@@ -51,7 +51,7 @@ AssociationChecker
 	
 		    PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 		    
-		    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+		    if ( platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations) ){
 	    	
 		    	if ( COConfigurationManager.getBooleanParameter( "config.interface.checkassoc",true )){
 		    		

@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -329,10 +330,11 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     try{
 	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 	    
-	    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+	    if (platform.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete)){
 
 		    gridData = new GridData();
 		    gridData.horizontalSpan = 2;
+            // todo: generify localization
 		    new BooleanParameter(gFile, "Move Deleted Data To Recycle Bin", true,
 		                         "ConfigView.section.file.win32movetorecyclebin").setLayoutData(gridData);
 

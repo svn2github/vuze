@@ -22,8 +22,8 @@
 
 package org.gudy.azureus2.platform;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author parg
@@ -49,9 +49,14 @@ PlatformManagerFactory
 				init_tried	= true;
 							    
 				if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
-					
-					platform_manager = PlatformManagerImpl.getSingleton();
+					platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
 				}
+                else if( getPlatformType() == PlatformManager.PT_MACOSX ){
+                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
+                }
+                else{
+                    platform_manager = DummyPlatformManager.getSingleton();
+                }
 			}
 			
 			return( platform_manager );
@@ -66,10 +71,10 @@ PlatformManagerFactory
 	getPlatformType()
 	{
 		if ( Constants.isWindows ){
-			
 			return( PlatformManager.PT_WINDOWS );
+        } else if (Constants.isOSX){
+            return ( PlatformManager.PT_MACOSX );
 		}else{
-			
 			return( PlatformManager.PT_OTHER );
 		}
 	}

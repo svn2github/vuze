@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerException;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -293,7 +294,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     try{
 	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 	    
-	    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+	    if (platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations)){
 	    	
 		    Composite cResetAssoc = new Composite(cArea, SWT.NULL);
 		    layout = new GridLayout();

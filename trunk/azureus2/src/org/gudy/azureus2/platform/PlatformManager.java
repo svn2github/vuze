@@ -31,7 +31,8 @@ PlatformManager
 {
 	public static final int	PT_WINDOWS		= 1;
 	public static final int PT_OTHER		= 2;
-	
+    public static final int PT_MACOSX = 3;
+
 	public int
 	getPlatformType();
 	
@@ -58,8 +59,22 @@ PlatformManager
 		throws PlatformManagerException;
 	
 	public void
-	moveToRecycleBin(
+    performRecoverableFileDelete(
 		String	file_name )
 	
 		throws PlatformManagerException;
+
+    /**
+     * <p>Gets whether the platform manager supports a capability</p>
+     * <p>Users of PlatformManager should check for supported capabilities before calling
+     * the corresponding methods</p>
+     * <p>Note that support for a particular capability may change arbitrarily in
+     * the duration of the application session, but the manager will cache where
+     * necessary.</p>
+     * @param capability A platform manager capability
+     * @return True if the manager supports the capability
+     */
+    public boolean
+	hasCapability(
+		PlatformManagerCapabilities	capability );
 }

@@ -27,12 +27,18 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
-import java.io.File;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
-import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.platform.win32.access.*;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
+import java.io.File;
+import java.util.HashSet;
 
 
 public class 
@@ -45,7 +51,9 @@ PlatformManagerImpl
 	
 	protected static PlatformManagerImpl		singleton;
 	protected static AEMonitor					class_mon	= new AEMonitor( "PlatformManager");
-	
+
+    protected final HashSet capabilitySet = new HashSet();
+
 	public static PlatformManagerImpl
 	getSingleton()
 	
@@ -94,11 +102,22 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		access	= _access;
-		
-		applyPatches();
+
+        initializeCapabilities();
+
+        applyPatches();
 	}
-	
-	protected void
+
+    private void
+    initializeCapabilities()
+    {
+        capabilitySet.add(PlatformManagerCapabilities.CreateCommandLineProcess);
+        capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
+        capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
+        capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
+    }
+
+    protected void
 	applyPatches()
 	{
 		try{
@@ -432,7 +451,7 @@ PlatformManagerImpl
 	}
 	
 	public void
-	moveToRecycleBin(
+    performRecoverableFileDelete(
 		String	file_name )
 	
 		throws PlatformManagerException
@@ -445,4 +464,11 @@ PlatformManagerImpl
 			throw( new PlatformManagerException( "Failed to move file", e ));
 		}
 	}
+
+    public boolean
+    hasCapability(
+            PlatformManagerCapabilities capability)
+    {
+        return capabilitySet.contains(capability);
+    }
 }

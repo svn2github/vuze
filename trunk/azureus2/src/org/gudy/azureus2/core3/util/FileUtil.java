@@ -7,17 +7,21 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.io.*;
-import java.net.URI;
-import java.util.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerException;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+
+import java.io.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * File utility class.
@@ -939,9 +943,9 @@ public class FileUtil {
 			try{
 			    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 			    
-			    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+			    if (platform.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete)){
 			    	
-			    	platform.moveToRecycleBin( file.getAbsolutePath());
+			    	platform.performRecoverableFileDelete( file.getAbsolutePath());
 			    
 			    	return( true );
 			    	
