@@ -592,6 +592,17 @@ public class MainWindow implements GlobalManagerListener {
       }
     });
     
+    MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
+      help_faq.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            String faqString = "http://azureus.sourceforge.net/faq.php";
+            Program.launch(faqString);
+          }
+        });
+    
+    new MenuItem(helpMenu,SWT.SEPARATOR);
+    
     MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
     Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
     help_donate.addListener(SWT.Selection, new Listener() {
@@ -1692,13 +1703,12 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrent(final String fileName) {
-       try {
-      if (!FileUtil.isTorrentFile(fileName)) //$NON-NLS-1$
+    try {
+      if (!FileUtil.isTorrentFile(fileName))//$NON-NLS-1$
         return;
     } catch (Exception e) {
       return;
-    }
-      return;
+    }      
     display.asyncExec(new Runnable() {
       public void run() {
         String savePath = getSavePath(fileName);
