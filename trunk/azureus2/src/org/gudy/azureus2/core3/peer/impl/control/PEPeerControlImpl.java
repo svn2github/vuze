@@ -45,26 +45,9 @@ PEPeerControlImpl
   private static final int WARNINGS_LIMIT = 3;
   
   private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
-  private static boolean disconnect_seeds_when_seeding;
+  private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
   
-  static{
-  	
-  	disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
-  	
-  	COConfigurationManager.addParameterListener(
-  		"Disconnect Seed",
-  		new ParameterListener()
-		{
-  			public void
-			parameterChanged(
-				String	str )
-  			{
-  			 	disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);				
-  			}
-		});
-  }
-  
-  
+    
   
   private int peer_manager_state = PS_INITIALISED;
   
@@ -172,6 +155,7 @@ PEPeerControlImpl
   	  this._diskManager = diskManager;
   	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
+      COConfigurationManager.addParameterListener( "Disconnect Seed", this );
       
  }
   
@@ -440,6 +424,7 @@ PEPeerControlImpl
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
     COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
+    COConfigurationManager.removeParameterListener( "Disconnect Seed", this );
   }
 
   /**
@@ -2506,10 +2491,10 @@ PEPeerControlImpl
   {
     oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
     
+    disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
+    
     //if ipfiltering becomes enabled, remove any existing filtered connections
     if (parameterName.equals("Ip Filter Enabled") && IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled()) {
-
-      	
       	ArrayList	peer_transports = peer_transports_cow;
       	
         for (int i=0; i < peer_transports.size(); i++) {

@@ -67,7 +67,7 @@ DMWriterAndCheckerImpl
 	private static AESemaphore	global_check_queue_block_sem;
 	private static int			global_check_queue_block_sem_next_report_size;
   
-  private static boolean friendly_hashing;
+  private static boolean friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
   
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
@@ -95,15 +95,13 @@ DMWriterAndCheckerImpl
 			
 			global_check_queue_block_sem.releaseForever();
 		}
-		
-		
-		friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-    COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", new ParameterListener() {
-      public void parameterChanged( String  str ) {
-          friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
-      }
-    });
 	}
+  
+  private static final ParameterListener param_listener = new ParameterListener() {
+    public void parameterChanged( String  str ) {
+      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
+    }
+  };
   
 
 	private DiskManagerHelper		disk_manager;
@@ -165,6 +163,9 @@ DMWriterAndCheckerImpl
 			}
 
 			started	= true;
+      
+      
+      COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
 			
 			writeThread = new DiskWriteThread();
 			
@@ -191,7 +192,9 @@ DMWriterAndCheckerImpl
 				// i.e. writes and checks (checks being doubly async)
 			
 			bOverallContinue	= false;
-			
+      
+      COConfigurationManager.removeParameterListener( "diskmanager.friendly.hashchecking", param_listener );
+      
 			if ( current_hash_request != null ){
 				
 				current_hash_request.cancel();

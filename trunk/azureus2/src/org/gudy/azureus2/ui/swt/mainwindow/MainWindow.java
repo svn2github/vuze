@@ -203,16 +203,7 @@ MainWindow
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     
 
-    COConfigurationManager.addParameterListener( "config.style.useSIUnits",
-    	new ParameterListener()
-    		{
-    			public void
-    			parameterChanged(
-    				String	value )
-    			{
-    				updateComponents();
-    			}
-    	});
+    COConfigurationManager.addParameterListener( "config.style.useSIUnits", this );
   
     mytorrents = null;
     my_tracker_tab	= null;
@@ -1064,21 +1055,19 @@ MainWindow
     COConfigurationManager.setParameter(
       "window.rectangle",
       windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
-    COConfigurationManager.save();
 
     //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
     if(!mainWindow.isDisposed() && !isDisposeFromListener) {
     	mainWindow.dispose();
     }
       
-    //if (updateJar){
-    //  updateJar();
-    //}
+    
+    COConfigurationManager.removeParameterListener( "config.style.useSIUnits", this );
+    COConfigurationManager.removeParameterListener( "Show Download Basket", this );
+    COConfigurationManager.removeParameterListener( "GUI_SWT_bFancyTab", this );
+    
     
     	// problem with closing down web start as AWT threads don't close properly
-
-  
-    
 	if ( SystemProperties.isJavaWebStartInstance()){    	
  	
 		Thread close = new AEThread( "JWS Force Terminate")
@@ -1244,23 +1233,23 @@ MainWindow
     pluginTabs.remove(view.getPluginViewName());
   }
   
-  /**
-   * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
-   */
+
+
+  
   public void parameterChanged(String parameterName) {
-    //System.out.println("parameterChanged:"+parameterName);
-    if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
-      if(tray == null) {
-        tray = new TrayWindow(this);
-        tray.setVisible(true);
+    if( parameterName.equals( "Show Download Basket" ) ) {
+      if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
+        if(tray == null) {
+          tray = new TrayWindow(this);
+          tray.setVisible(true);
+        }
+      } else if(tray != null) {
+        tray.setVisible(false);
+        tray = null;
       }
-    } else if(tray != null) {
-      tray.setVisible(false);
-      tray = null;
     }
     
-    if (parameterName.equals("GUI_SWT_bFancyTab") && 
+    if( parameterName.equals( "GUI_SWT_bFancyTab" ) && 
         folder instanceof CTabFolder && 
         folder != null && !folder.isDisposed()) {
       try {
@@ -1269,13 +1258,14 @@ MainWindow
         /** < SWT 3.0RC1 **/ 
       }
     }
+    
+    if( parameterName.equals( "config.style.useSIUnits" ) ) {
+      updateComponents();
+    }
   }
   
  
-  /**
-   * 
-   */
-  
+
 
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("open"))
