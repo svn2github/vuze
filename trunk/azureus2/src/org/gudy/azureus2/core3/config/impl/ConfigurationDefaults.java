@@ -113,7 +113,7 @@ public class ConfigurationDefaults {
     def.put("Start Peers Ratio", new Long(0));
     // Disconnect Seeds on completion
     //def.put("Core_bDisconnectSeed", new Long(0)); *
-    //def.put("Disconnect Seed", new Long(0));
+    def.put("Disconnect Seed", new Long(1));
     // Set to low priority on completion
     //def.put("Core_bSwitchPriority", new Long(1)); *
     def.put("Switch Priority", new Long(0));

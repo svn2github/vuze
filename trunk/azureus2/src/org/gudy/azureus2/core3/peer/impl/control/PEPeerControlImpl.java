@@ -1198,15 +1198,13 @@ PEPeerControlImpl
   //Methods that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds() {
     //If we are not ourself a seed, return
-    //if (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", false)) //$NON-NLS-1$
-    if (!_finished) {
+    if (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true)) //$NON-NLS-1$
       return;
-    }
     synchronized (_connections) {
       for (int i = 0; i < _connections.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
-          pc.closeAll(pc.getIp() + " : Disconnecting from other seeds when seeding",false);
+          pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false);
         }
       }
     }
