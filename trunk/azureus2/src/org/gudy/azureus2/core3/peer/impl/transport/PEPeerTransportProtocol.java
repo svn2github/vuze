@@ -984,6 +984,7 @@ PEPeerTransportProtocol
 	for (int i = 0; i < myStatus.length; i++) {
 	  if (!myStatus[i] && available[i]) {
 		newInterested = true;
+		break;
 	  }
 	}
 
