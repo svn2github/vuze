@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.resourcedownloader;
+package org.gudy.azureus2.plugins.utils.resourcedownloader;
 
 /**
  * @author parg

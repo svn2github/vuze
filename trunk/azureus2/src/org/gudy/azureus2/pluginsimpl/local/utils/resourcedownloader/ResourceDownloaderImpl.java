@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.resourcedownloader.impl;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -32,14 +32,14 @@ import java.net.*;
 
 import javax.net.ssl.*;
 
-import org.gudy.azureus2.core3.resourcedownloader.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
 ResourceDownloaderImpl
 	extends ResourceDownloaderBaseImpl
 {
-	protected String		original_url;
+	protected URL		original_url;
 	
 	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
@@ -48,7 +48,7 @@ ResourceDownloaderImpl
 	
 	public 
 	ResourceDownloaderImpl(
-		String		_url )
+		URL		_url )
 	{
 		original_url	= _url;
 	}
@@ -56,7 +56,7 @@ ResourceDownloaderImpl
 	public String
 	getName()
 	{
-		return( original_url );
+		return( original_url.toString());
 	}
 	
 	public ResourceDownloader
@@ -106,7 +106,7 @@ ResourceDownloaderImpl
 			}
 			
 			try{
-				URL	url = new URL( original_url.replaceAll( " ", "%20" ));
+				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
 				HttpURLConnection	con;
 				

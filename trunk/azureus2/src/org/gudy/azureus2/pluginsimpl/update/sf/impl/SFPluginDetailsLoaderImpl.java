@@ -28,10 +28,13 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl;
  */
 
 import java.util.*;
+import java.net.URL;
 import java.io.InputStream;
 
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
+
 import org.gudy.azureus2.core3.html.*;
 
 public class 
@@ -64,6 +67,8 @@ SFPluginDetailsLoaderImpl
 	
 	protected List		listeners			= new ArrayList();
 	
+	protected ResourceDownloaderFactory rd_factory = ResourceDownloaderFactoryImpl.getSingleton();
+
 	protected
 	SFPluginDetailsLoaderImpl()
 	{
@@ -74,13 +79,13 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException
 	{
-		ResourceDownloader dl = ResourceDownloaderFactory.create( page_url );
-		
-		dl = ResourceDownloaderFactory.getRetryDownloader( dl, 5 );
-		
-		dl.addListener( this );
-		
 		try{
+			ResourceDownloader dl = rd_factory.create( new URL(page_url));
+			
+			dl = rd_factory.getRetryDownloader( dl, 5 );
+			
+			dl.addListener( this );
+			
 			HTMLPage	page = HTMLPageFactory.loadPage( dl.download());
 			
 			String[]	links = page.getLinks();
@@ -116,9 +121,9 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{
-			ResourceDownloader p_dl = ResourceDownloaderFactory.create( site_prefix + "plugin_details.php?plugin=" + plugin_name );
+			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + plugin_name ));
 		
-			p_dl = ResourceDownloaderFactory.getRetryDownloader( p_dl, 5 );
+			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		
 			p_dl.addListener( this );
 

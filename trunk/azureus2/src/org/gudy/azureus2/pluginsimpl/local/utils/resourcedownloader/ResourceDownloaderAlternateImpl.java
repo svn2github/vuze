@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.resourcedownloader.impl;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -30,41 +30,53 @@ package org.gudy.azureus2.core3.resourcedownloader.impl;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-ResourceDownloaderRetryImpl 	
+ResourceDownloaderAlternateImpl 	
 	extends 	ResourceDownloaderBaseImpl
 	implements	ResourceDownloaderListener
 {
-	protected ResourceDownloader		delegate;
-	protected int						retry_count;
+	protected ResourceDownloader[]		delegates;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
-	protected int						done_count;
+	protected int						current_index;
+	
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
 	public
-	ResourceDownloaderRetryImpl(
-		ResourceDownloader	_delegate,
-		int					_retry_count )
+	ResourceDownloaderAlternateImpl(
+		ResourceDownloader[]	_delegates )
 	{
-		delegate		= _delegate;
-		retry_count		= _retry_count;
+		delegates		= _delegates;
 	}
 	
 	public String
 	getName()
 	{
-		return( delegate.getName() + ", retry=" + retry_count );
-	}
+		String	res = "[";
+		
+		for (int i=0;i<delegates.length;i++){
+			
+			res += (i==0?"":",") + delegates[i].getName();
+		}
+		
+		return( res );
+	}	
 	
 	public ResourceDownloader
 	getClone()
 	{
-		return( new ResourceDownloaderRetryImpl( delegate.getClone(), retry_count ));
+		ResourceDownloader[]	clones = new ResourceDownloader[delegates.length];
+		
+		for (int i=0;i<delegates.length;i++){
+			
+			clones[i] = ((ResourceDownloaderBaseImpl)delegates[i]).getClone();
+		}
+		
+		return( new ResourceDownloaderAlternateImpl( clones ));
 	}
 	
 	public InputStream
@@ -87,7 +99,7 @@ ResourceDownloaderRetryImpl
 	public synchronized void
 	asyncDownload()
 	{
-		if ( done_count == retry_count || cancelled ){
+		if ( current_index == delegates.length || cancelled ){
 			
 			done_sem.release();
 			
@@ -95,11 +107,11 @@ ResourceDownloaderRetryImpl
 			
 		}else{
 		
-			done_count++;
+			current_index++;
 			
-			informActivity( "download attempt " + done_count + " of " + retry_count );
+			current_downloader = ((ResourceDownloaderBaseImpl)delegates[current_index-1]).getClone();
 			
-			current_downloader = delegate.getClone();
+			informActivity( "download attempt using " + current_downloader.getName());
 			
 			current_downloader.addListener( this );
 			

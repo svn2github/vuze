@@ -19,46 +19,62 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.resourcedownloader;
+package org.gudy.azureus2.plugins.utils.resourcedownloader;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.resourcedownloader.impl.*;
+import java.net.URL;
 
-public class 
+public interface 
 ResourceDownloaderFactory 
 {
-	public static ResourceDownloader
-	create(
-		String	url )
-	{
-		return( new ResourceDownloaderImpl( url ));
-	}
+		/**
+		 * creates a basic downloader. current url must be http or https
+		 * @param url
+		 * @return
+		 */
 	
-	public static ResourceDownloader
+	public ResourceDownloader
+	create(
+		URL		url );
+	
+		/**
+		 * gets a downloader that will retry a number of times before failing
+		 * @param downloader
+		 * @param retry_count
+		 * @return
+		 */
+	
+	public ResourceDownloader
 	getRetryDownloader(
 		ResourceDownloader		downloader,
-		int						retry_count )
-	{
-		return( new ResourceDownloaderRetryImpl( downloader, retry_count ));
-	}
+		int						retry_count );
+
 	
-	public static ResourceDownloader
+		/**
+		 * gets a downloader that will timeout after a given period
+		 * @param downloader
+		 * @param timeout_millis
+		 * @return
+		 */
+	
+	public ResourceDownloader
 	getTimeoutDownloader(
 		ResourceDownloader		downloader,
-		int						timeout_millis )
-	{
-		return( new ResourceDownloaderTimeoutImpl( downloader, timeout_millis ));
-	}
+		int						timeout_millis );
+
 	
-	public static ResourceDownloader
+		/**
+		 * gets a downloader that will cycle through a list of downloaders until
+		 * a download succeeds
+		 * @param downloaders
+		 * @return
+		 */
+	
+	public ResourceDownloader
 	getAlternateDownloader(
-		ResourceDownloader[]		downloaders )
-	{
-		return( new ResourceDownloaderAlternateImpl( downloaders ));
-	}
-	
+		ResourceDownloader[]		downloaders );
 }

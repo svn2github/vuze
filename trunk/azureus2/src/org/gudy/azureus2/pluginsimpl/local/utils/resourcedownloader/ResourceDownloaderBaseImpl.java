@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.resourcedownloader.impl;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.resourcedownloader.impl;
 import java.util.*;
 import java.io.*;
 
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public abstract class 
 ResourceDownloaderBaseImpl
@@ -39,6 +39,9 @@ ResourceDownloaderBaseImpl
 	
 	protected boolean		result_informed;
 	
+	public abstract ResourceDownloader
+	getClone();
+
 	protected void
 	informPercentDone(
 		int	percentage )

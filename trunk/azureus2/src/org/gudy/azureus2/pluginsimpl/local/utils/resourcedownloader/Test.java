@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.resourcedownloader.impl;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -28,8 +28,9 @@ package org.gudy.azureus2.core3.resourcedownloader.impl;
  */
 
 import java.io.*;
+import java.net.*;
 
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
 Test
@@ -38,22 +39,29 @@ Test
 	protected
 	Test()
 	{
-		ResourceDownloader rd1 = ResourceDownloaderFactory.create( "http://localhost:6967/");
-		ResourceDownloader rd2 = ResourceDownloaderFactory.create( "http://www.microsoft.com/sdsdsd");
-		
-		ResourceDownloader[]	rds = { rd1, rd2 };
-		
-		ResourceDownloader rd = ResourceDownloaderFactory.getAlternateDownloader( rds );
-		
-		rd = ResourceDownloaderFactory.getRetryDownloader( rd, 5 );
-		
-		rd = ResourceDownloaderFactory.getTimeoutDownloader( rd, 20000 );
-		
-		rd.addListener( this );
-		
 		try{
-			rd.asyncDownload();
+			ResourceDownloaderFactory	factory = ResourceDownloaderFactoryImpl.getSingleton();
 			
+			ResourceDownloader rd1 = factory.create( new URL("http://localhost:6967/"));
+			ResourceDownloader rd2 = factory.create( new URL("http://www.microsoft.com/sdsdsd"));
+			
+			ResourceDownloader[]	rds = { rd1, rd2 };
+			
+			ResourceDownloader rd = factory.getAlternateDownloader( rds );
+			
+			rd = factory.getRetryDownloader( rd, 5 );
+			
+			rd = factory.getTimeoutDownloader( rd, 20000 );
+			
+			rd.addListener( this );
+			
+			try{
+				rd.asyncDownload();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

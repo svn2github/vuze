@@ -29,6 +29,8 @@ package org.gudy.azureus2.plugins.utils;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+
 public interface 
 Utilities 
 {
@@ -60,4 +62,6 @@ Utilities
 	createTimer(
 		String		name );
 
+	public ResourceDownloaderFactory
+	getResourceDownloaderFactory();
 }

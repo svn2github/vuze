@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.resourcedownloader.impl;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -30,53 +30,42 @@ package org.gudy.azureus2.core3.resourcedownloader.impl;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-ResourceDownloaderAlternateImpl 	
+ResourceDownloaderTimeoutImpl 	
 	extends 	ResourceDownloaderBaseImpl
 	implements	ResourceDownloaderListener
 {
-	protected ResourceDownloader[]		delegates;
+	protected ResourceDownloaderBaseImpl		delegate;
+	
+	protected int						timeout_millis;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
-	protected int						current_index;
-	
+
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
 	public
-	ResourceDownloaderAlternateImpl(
-		ResourceDownloader[]	_delegates )
+	ResourceDownloaderTimeoutImpl(
+		ResourceDownloader	_delegate,
+		int					_timeout_millis )
 	{
-		delegates		= _delegates;
+		delegate			= (ResourceDownloaderBaseImpl)_delegate;
+		timeout_millis		= _timeout_millis;
 	}
 	
 	public String
 	getName()
 	{
-		String	res = "[";
-		
-		for (int i=0;i<delegates.length;i++){
-			
-			res += (i==0?"":",") + delegates[i].getName();
-		}
-		
-		return( res );
-	}	
+		return( delegate.getName() + ", timeout=" + timeout_millis );
+	}
 	
 	public ResourceDownloader
 	getClone()
 	{
-		ResourceDownloader[]	clones = new ResourceDownloader[delegates.length];
-		
-		for (int i=0;i<delegates.length;i++){
-			
-			clones[i] = delegates[i].getClone();
-		}
-		
-		return( new ResourceDownloaderAlternateImpl( clones ));
+		return( new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis ));
 	}
 	
 	public InputStream
@@ -98,37 +87,53 @@ ResourceDownloaderAlternateImpl
 	
 	public synchronized void
 	asyncDownload()
-	{
-		if ( current_index == delegates.length || cancelled ){
+	{		
+		if ( !cancelled ){
 			
-			done_sem.release();
-			
-			informFailed((ResourceDownloaderException)result);
-			
-		}else{
-		
-			current_index++;
-			
-			current_downloader = delegates[current_index-1].getClone();
-			
-			informActivity( "download attempt using " + current_downloader.getName());
+			current_downloader = delegate.getClone();
 			
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();
+		
+			Thread t = new Thread( "ResourceDownloaderTimeout")
+				{
+					public void
+					run()
+					{
+						try{
+							Thread.sleep( timeout_millis );
+							
+							cancel(new ResourceDownloaderException( "Download timeout"));
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				};
+			
+			t.setDaemon(true);
+	
+			t.start();
 		}
 	}
 	
 	public synchronized void
 	cancel()
 	{
-		result	= new ResourceDownloaderException( "Download cancelled");
+		cancel( new ResourceDownloaderException( "Download cancelled"));
+	}
+	
+	protected synchronized void
+	cancel(
+		ResourceDownloaderException reason )
+	{
+		result	= reason; 
 		
 		cancelled	= true;
-		
+	
 		informFailed((ResourceDownloaderException)result );
-		
-		done_sem.release();
 		
 		if ( current_downloader != null ){
 			
@@ -141,7 +146,7 @@ ResourceDownloaderAlternateImpl
 		ResourceDownloader	downloader,
 		InputStream			data )
 	{
-		if ( informComplete( data )){
+		if (informComplete( data )){
 			
 			result	= data;
 			
@@ -160,6 +165,8 @@ ResourceDownloaderAlternateImpl
 	{
 		result		= e;
 		
-		asyncDownload();
+		done_sem.release();
+		
+		informFailed( e );
 	}
 }

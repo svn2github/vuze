@@ -20,9 +20,12 @@
  */
 package org.gudy.azureus2.ui.swt.updater;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.io.InputStream;
 
-import org.gudy.azureus2.core3.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 /**
  * @author Olivier Chalouhi
@@ -31,7 +34,7 @@ import org.gudy.azureus2.core3.resourcedownloader.*;
 public class URLDownloader implements ResourceDownloaderListener{
   
   DownloadListener listener;
-  String URL;
+  String url_string;
   ResourceDownloader downloader;
   
   /**
@@ -42,25 +45,30 @@ public class URLDownloader implements ResourceDownloaderListener{
    * @param listener
    * @param URL
    */
-  public URLDownloader(DownloadListener listener,String URL) {
+  public URLDownloader(DownloadListener listener,String url) {
     this.listener = listener;
-    this.URL = URL;
-    downloader = ResourceDownloaderFactory.create(URL);
-    downloader.addListener(this);
-    Thread t = new Thread("URL Downloader") {
-      public void run() {
-        InputStream inputStream = null;
-        try {
-          inputStream = downloader.download();
-          URLDownloader.this.listener.reportData(inputStream);
-        } catch(Exception e) {
-          //e.printStackTrace();
-          URLDownloader.this.listener.reportData(null);
-        }        
-      }
-    };
-    t.setDaemon(true);
-    t.start();
+    this.url_string = url;
+    try{
+	    downloader = ResourceDownloaderFactoryImpl.getSingleton().create(new URL(url_string));
+	    downloader.addListener(this);
+	    Thread t = new Thread("URL Downloader") {
+	      public void run() {
+	        InputStream inputStream = null;
+	        try {
+	          inputStream = downloader.download();
+	          URLDownloader.this.listener.reportData(inputStream);
+	        } catch(Exception e) {
+	          //e.printStackTrace();
+	          URLDownloader.this.listener.reportData(null);
+	        }        
+	      }
+	    };
+	    t.setDaemon(true);
+	    t.start();
+    }catch( MalformedURLException e ){
+    	e.printStackTrace();
+    	listener.reportData(null);
+    }
   }
   
     public void 

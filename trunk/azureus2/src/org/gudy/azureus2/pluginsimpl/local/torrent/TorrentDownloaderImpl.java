@@ -30,9 +30,9 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
-import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
@@ -48,7 +48,7 @@ TorrentDownloaderImpl
 	{
 		url		= _url;
 		
-		downloader = ResourceDownloaderFactory.create( url.toString());
+		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url );
 	}
 	
 	public Torrent

@@ -32,6 +32,8 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -108,5 +110,11 @@ UtilitiesImpl
 		String		name )
 	{
 		return( new UTTimerImpl( pi, name ));
+	}
+	
+	public ResourceDownloaderFactory
+	getResourceDownloaderFactory()
+	{
+		return( ResourceDownloaderFactoryImpl.getSingleton());
 	}
 }
