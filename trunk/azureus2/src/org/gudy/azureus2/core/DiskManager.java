@@ -1049,6 +1049,7 @@ public class DiskManager {
     int pieceNumber = e.getPieceNumber();
     int offset = e.getOffset();
     ByteBuffer buffer = e.getData();
+    if (buffer == null) System.out.println("DiskManager::dumpBlockToDisk:: null buffer");
 
     int previousFilesLength = 0;
     int currentFile = 0;
@@ -1065,9 +1066,14 @@ public class DiskManager {
     //Now tempPiece points to the first file that contains data for this block
     while (buffer.hasRemaining()) {
       //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "r:" + buffer.remaining());      
-      tempPiece = (PieceMapEntry) pieceList.get(currentFile);
-      //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "," + tempPiece.getLength());
-
+      try {
+         tempPiece = (PieceMapEntry) pieceList.get(currentFile);
+         //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "," + tempPiece.getLength());
+      }catch (Exception ex) {
+         System.out.println("DiskManager::dumpBlockToDisk:: pieceList.get() failed");
+         ex.printStackTrace();
+      }
+      
       synchronized (tempPiece.getFile()) {
         try {
           RandomAccessFile raf = tempPiece.getFile().getRaf();
@@ -1090,6 +1096,7 @@ public class DiskManager {
         }
         catch (IOException ex) {
           // TODO Auto-generated catch block
+          System.out.println("DiskManager::dumpBlockToDisk:: caught exception");
           ex.printStackTrace();
         }
       }

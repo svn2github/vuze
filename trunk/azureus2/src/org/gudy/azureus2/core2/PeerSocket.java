@@ -114,6 +114,11 @@ public class PeerSocket extends PeerConnection {
       bufferHandshakeS.limit(68);
       sendProtocol(bufferHandshakeS);
       readBuffer = ByteBufferPool.getInstance().getFreeBuffer();
+      if (readBuffer == null) {
+         System.out.println("PeerSocket::handShake:: readBuffer null");
+         closeAll();
+         return;
+      }
       readBuffer.limit(68);
       readBuffer.position(0);
     }
@@ -548,7 +553,13 @@ public class PeerSocket extends PeerConnection {
           setSnubbed(false);
           reSetRequestsTime();
           manager.writeBlock(pieceNumber, pieceOffset, buffer);
-          readMessage(ByteBufferPool.getInstance().getFreeBuffer());
+          ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer();
+          if (newbuff == null) {
+             System.out.println("PeerSocket::analyseBuffer:: newbuff null");
+             closeAll();
+             break;
+          }
+          readMessage(newbuff);      
         }
         else {
           logger.log(
