@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.upnp.impl.device;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.upnp.UPnPAction;
 import org.gudy.azureus2.core3.upnp.UPnPActionArgument;
 import org.gudy.azureus2.core3.upnp.UPnPActionInvocation;
@@ -80,41 +82,59 @@ UPnPSSWANConnectionImpl
 		
 		int	entries = Integer.parseInt( noe.getValue());
 		
-		UPnPWANConnectionPortMapping[]	res = new UPnPWANConnectionPortMapping[entries];
-	
+			// some routers (e.g. Gudy's) return 0 here whatever!
+			// In this case take mindless approach
+		
 		UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
 
-		for (int i=0;i<entries;i++){
+		List	res = new ArrayList();
+		
+		for (int i=0;i<(entries==0?512:entries);i++){
 					
 			UPnPActionInvocation inv = act.getInvocation();
 
 			inv.addArgument( "NewPortMappingIndex", "" + i );
 			
-			UPnPActionArgument[] outs = inv.invoke();
-			
-			int		port	= 0;
-			boolean	tcp		= false;
-			
-			for (int j=0;j<outs.length;j++){
+			try{
+				UPnPActionArgument[] outs = inv.invoke();
 				
-				UPnPActionArgument	out = outs[j];
+				int		port	= 0;
+				boolean	tcp		= false;
 				
-				String	out_name = out.getName();
-				
-				if ( out_name.equalsIgnoreCase("NewExternalPort")){
+				for (int j=0;j<outs.length;j++){
 					
-					port	= Integer.parseInt( out.getValue());
+					UPnPActionArgument	out = outs[j];
 					
-				}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
+					String	out_name = out.getName();
 					
-					tcp = out.getValue().equalsIgnoreCase("TCP");
+					if ( out_name.equalsIgnoreCase("NewExternalPort")){
+						
+						port	= Integer.parseInt( out.getValue());
+						
+					}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
+						
+						tcp = out.getValue().equalsIgnoreCase("TCP");
+					}
 				}
+				
+				res.add( new portMapping( port, tcp ));
+				
+			}catch( UPnPException e ){
+				
+				if ( entries == 0 ){
+					
+					break;
+				}
+				
+				throw(e);
 			}
-			
-			res[i] = new portMapping( port, tcp );
 		}
+		
+		UPnPWANConnectionPortMapping[]	res2= new UPnPWANConnectionPortMapping[res.size()];
+		
+		res.toArray( res2 );
 
-		return( res );
+		return( res2 );
 	}
 	
 	protected class
