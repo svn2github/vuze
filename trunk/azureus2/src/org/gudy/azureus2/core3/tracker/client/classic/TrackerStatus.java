@@ -30,10 +30,16 @@ public class TrackerStatus {
   private String scrapeURL = null;
   byte[] data;
 
-  private HashMap hashes;
-  private List hashList;
-
-  public TrackerStatus(String trackerUrl) {    	
+  private HashMap 					hashes;
+  private List 						hashList;
+  private TRTrackerScraperImpl		scraper;
+  public 
+  TrackerStatus(
+  	TRTrackerScraperImpl	_scraper,
+  	String 					trackerUrl) 
+  {    	
+  	scraper		= _scraper;
+  	
     this.hashes = new HashMap();
     this.hashList = new Vector();
     try {
@@ -64,7 +70,7 @@ public class TrackerStatus {
 
   protected void asyncUpdate(final HashWrapper hash) {
     if(hashes.get(hash) == null)
-      hashes.put(hash,new TRTrackerScraperResponseImpl(-1,-1));
+      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1));
     Thread t = new Thread("Tracker Checker - Scrape interface") {
       /* (non-Javadoc)
        * @see java.lang.Thread#run()
@@ -175,7 +181,12 @@ public class TrackerStatus {
         // System.out.println(ByteFormatter.nicePrint(hash.getHash()) + " -> " + ByteFormatter.nicePrint(key));
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();
-        hashes.put(new HashWrapper(key),new TRTrackerScraperResponseImpl(seeds,peers));        
+        
+        TRTrackerScraperResponseImpl	response = new TRTrackerScraperResponseImpl(key,seeds,peers);
+        
+        hashes.put(new HashWrapper(key),response);   
+        
+        scraper.scrapeReceived( response );
       }
       
       // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example

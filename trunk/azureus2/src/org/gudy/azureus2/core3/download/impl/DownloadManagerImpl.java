@@ -484,9 +484,24 @@ DownloadManagerImpl
   public String getTrackerStatus() {
 	if (tracker_client != null)
 	  return tracker_client.getStatusString();
-	return ""; //$NON-NLS-1$
+	return "";
   }
 
+  	// this is called asynchronously when a response is received
+  
+  public void
+  setTrackerScrapeResponse(
+  	TRTrackerScraperResponse	response )
+  {
+  	synchronized( tracker_listeners ){
+  		
+  		for (int i=0;i<tracker_listeners.size();i++){
+  			
+  			((DownloadManagerTrackerListener)tracker_listeners.get(i)).scrapeResult( response );
+  		}
+  	} 	
+  }
+  
   public TRTrackerClient 
   getTrackerClient() 
   {

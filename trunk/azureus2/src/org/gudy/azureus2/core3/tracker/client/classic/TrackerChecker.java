@@ -18,10 +18,16 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class TrackerChecker {
 
-  private HashMap trackers; 
-
-  protected TrackerChecker() {
-    trackers = new HashMap();
+  private HashMap 					trackers; 
+  private TRTrackerScraperImpl		scraper;
+  
+  
+  protected TrackerChecker(
+  		TRTrackerScraperImpl	_scraper ) 
+  {
+  	scraper		= _scraper;
+  	
+    trackers 	= new HashMap();
   }
 
   protected TRTrackerScraperResponseImpl 
@@ -122,7 +128,7 @@ public class TrackerChecker {
     
 	//System.out.println( "adding hash for " + trackerUrl );
 
-    final TrackerStatus ts = new TrackerStatus(trackerUrl);
+    final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
     synchronized (trackers) {
       trackers.put(trackerUrl, ts);
     }

@@ -15,20 +15,37 @@ public class
 TRTrackerScraperResponseImpl 
 	implements TRTrackerScraperResponse
 {
-    protected int seeds;
-    protected int peers;
-    protected boolean valid;
+	protected byte[]	hash;
+    protected int 		seeds;
+    protected int 		peers;
+    protected boolean 	valid;
 
-    protected TRTrackerScraperResponseImpl(int seeds, int peers) {
-      this.seeds = seeds;
-      this.peers = peers;
-      if(seeds == -1 && peers == -1) {
-        valid = false;
-      } else {
-        valid = true;
-      }
+    protected 
+    TRTrackerScraperResponseImpl(
+    	byte[]	_hash,
+		int 	_seeds, 
+		int 	_peers) 
+    {
+    	hash		= _hash;
+    	seeds 		= _seeds;
+    	peers 	= _peers;
+      
+    	if( seeds == -1 && peers == -1 ){
+    		
+    		valid = false;
+    		
+    	}else{
+    		
+    		valid = true;
+    	}
     }
 
+    public byte[]
+    getHash()
+    {
+    	return( hash );
+    }
+    
 	public int
 	getSeeds()
 	{

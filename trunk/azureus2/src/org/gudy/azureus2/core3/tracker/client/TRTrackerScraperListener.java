@@ -1,6 +1,6 @@
 /*
- * File    : TRTrackerScraper.java
- * Created : 09-Oct-2003
+ * File    : TRTrackerScraperListener.java
+ * Created : 14-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.tracker.client;
 
 /**
@@ -26,35 +26,10 @@ package org.gudy.azureus2.core3.tracker.client;
  *
  */
 
-import org.gudy.azureus2.core3.torrent.*;
-
 public interface 
-TRTrackerScraper 
+TRTrackerScraperListener 
 {
-	public TRTrackerScraperResponse
-	scrape(
-		TOTorrent		torrent );
-		
-	public TRTrackerScraperResponse
-	scrape(
-		TRTrackerClient	tracker_client );
-		
 	public void
-	remove(
-		TOTorrent		torrent );
-		
-	public void
-	remove(
-		TRTrackerClient	tracker_client );
-		
-	public void
-	update();
-	
-	public void
-	addListener(
-		TRTrackerScraperListener	l );
-	
-	public void
-	removeListener(
-		TRTrackerScraperListener	l );
+	scrapeReceived(
+		TRTrackerScraperResponse		response );	
 }

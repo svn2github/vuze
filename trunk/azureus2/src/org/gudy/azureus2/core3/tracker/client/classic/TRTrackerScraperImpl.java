@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 
@@ -36,6 +38,8 @@ TRTrackerScraperImpl
 	protected static TRTrackerScraperImpl	singleton;
 	
 	protected TrackerChecker	tracker_checker;
+	
+	protected List				listeners = new ArrayList();
 	
 	public static synchronized TRTrackerScraperImpl
 	create()
@@ -51,7 +55,7 @@ TRTrackerScraperImpl
 	protected
 	TRTrackerScraperImpl()
 	{
-		tracker_checker = new TrackerChecker();
+		tracker_checker = new TrackerChecker( this );;
 	}
 	
 	public TRTrackerScraperResponse
@@ -94,5 +98,28 @@ TRTrackerScraperImpl
 	update()
 	{
 		tracker_checker.update();
+	}
+	
+	protected void
+	scrapeReceived(
+		TRTrackerScraperResponse		response )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerScraperListener)listeners.get(i)).scrapeReceived( response );
+		}
+	}
+	public void
+	addListener(
+		TRTrackerScraperListener	l )
+	{
+		listeners.add(l);
+	}
+	
+	public void
+	removeListener(
+		TRTrackerScraperListener	l )
+	{
+		listeners.remove(l);
 	}
 }

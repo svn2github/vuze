@@ -30,6 +30,9 @@ package org.gudy.azureus2.core3.tracker.client;
 public interface 
 TRTrackerScraperResponse 
 {
+	public byte[]
+	getHash();
+	
 	public int
 	getSeeds();
 	

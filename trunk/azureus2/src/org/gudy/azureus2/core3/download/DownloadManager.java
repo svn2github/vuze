@@ -133,10 +133,14 @@ DownloadManager
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse();
 	
+	public void
+	setTrackerScrapeResponse(
+		TRTrackerScraperResponse	response );
+	
 	public String
 	getName();
   
-   public String getFullName();
+    public String getFullName();
 	
 	public long
 	getSize();
@@ -144,7 +148,7 @@ DownloadManager
 	public String
 	getTorrentFileName();
   
-   public void setTorrentFileName(String string);
+    public void setTorrentFileName(String string);
 	
 	public String
 	getSavePath();

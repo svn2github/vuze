@@ -59,9 +59,11 @@ import org.gudy.azureus2.core3.util.*;
 public class GlobalManagerImpl 
 	implements 	GlobalManager
 {
-	private Vector	listeners = new Vector();
-	private List	removal_listeners = new ArrayList();
-	private List managers;
+	private Vector	listeners 			= new Vector();
+	private List	removal_listeners 	= new ArrayList();
+	private List 	managers			= new ArrayList();
+	private Map		manager_map			= new HashMap();
+	
   private Checker checker;
   private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
@@ -303,8 +305,30 @@ public class GlobalManagerImpl
   	LGLogger.initialise();
   	
     stats = new GlobalManagerStatsImpl();
-    managers = new ArrayList();
+        
     trackerScraper = TRTrackerScraperFactory.create();
+    
+    trackerScraper.addListener(
+    	new TRTrackerScraperListener()
+    	{
+    		public void
+    		scrapeReceived(
+    			TRTrackerScraperResponse		response )
+    		{
+    			byte[]	hash = response.getHash();
+    			
+    			if ( hash != null ){
+    				
+    				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
+    				
+    				if ( manager != null ){
+    				
+    					manager.setTrackerScrapeResponse( response );
+    				}
+    			}
+    		}
+    	});
+    
     loadDownloads();
 
     	
@@ -460,6 +484,19 @@ public class GlobalManagerImpl
         }
         
         managers.add(manager);
+        
+        TOTorrent	torrent = manager.getTorrent();
+        
+        if ( torrent != null ){
+        	
+        	try{
+        		manager_map.put( new HashWrapper(torrent.getHash()), manager );
+        		
+        	}catch( TOTorrentException e ){
+        		
+        		e.printStackTrace();
+        	}
+        }
       }
 
 	  synchronized( listeners ){
@@ -505,6 +542,19 @@ public class GlobalManagerImpl
     synchronized (managers){
     	
       managers.remove(manager);
+      
+      TOTorrent	torrent = manager.getTorrent();
+      
+      if ( torrent != null ){
+      	
+      	try{
+      		manager_map.remove(new HashWrapper(torrent.getHash()));
+      		
+      	}catch( TOTorrentException e ){
+      		
+      		e.printStackTrace();
+      	}
+      }
     }
     
 	synchronized( listeners ){
@@ -548,9 +598,13 @@ public class GlobalManagerImpl
     	}
     	
       checker.stopIt();
+      
       saveDownloads();
+      
       stopAllDownloads();
+      
       managers.clear();
+      manager_map.clear();
       
       isStopped = true;
       
