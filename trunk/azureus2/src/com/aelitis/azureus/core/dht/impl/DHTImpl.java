@@ -42,16 +42,18 @@ DHTImpl
 {
 	private DHTRouter		router;
 	private DHTControl		control;
-	private DHTTransport	transport;
 	
 	public 
 	DHTImpl(
-		int		K,
-		int		B )
-	{
-		router	= DHTRouterFactory.create( K, B );
+		DHTTransport	transport,
+		int				K,
+		int				B )
+	{		
+		DHTTransportContact	local_contact = transport.getLocalContact();
+
+		router	= DHTRouterFactory.create( K, B, local_contact.getID(), local_contact );
 		
-		control = DHTControlFactory.create( router );
+		control = DHTControlFactory.create( transport, router );
 	}
 	
 	public void
@@ -69,25 +71,16 @@ DHTImpl
 		return( control.get( key ));
 	}
 	
-	public void
-	setTransport(
-		DHTTransport	_transport )
+	public DHTRouter
+	getRouter()
 	{
-		transport	= _transport;
-		
-		control.setTransport( transport );
+		return( router );
 	}
 	
 	public DHTTransport
 	getTransport()
 	{
-		return( transport );
-	}
-	
-	public DHTRouter
-	getRouter()
-	{
-		return( router );
+		return( control.getTransport());
 	}
 	
 	public void

@@ -61,7 +61,9 @@ DHTRouterImpl
 	public
 	DHTRouterImpl(
 		int					_K,
-		int					_B )
+		int					_B,
+		byte[]				_router_node_id,
+		Object				_attachment )
 	{
 		synchronized( DHTRouterImpl.class ){
 			
@@ -79,6 +81,18 @@ DHTRouterImpl
 		}
 		
 		SMALLEST_SUBTREE_MAX	+= SMALLEST_SUBTREE_MAX_EXCESS;
+		
+		router_node_id	= _router_node_id;
+		
+		List	buckets = new ArrayList();
+		
+		DHTRouterContactImpl local_contact = new DHTRouterContactImpl( router_node_id, _attachment, true );
+		
+		buckets.add( local_contact );
+		
+		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
+		
+		smallest_subtree	= root;
 	}
 	
 	public DHTRouterStats
@@ -93,23 +107,6 @@ DHTRouterImpl
 		return( K );
 	}
 	
-	public void
-	setID(
-		byte[]	_router_node_id,
-		Object	_attachment )
-	{
-		router_node_id	= _router_node_id;
-		
-		List	buckets = new ArrayList();
-		
-		DHTRouterContactImpl local_contact = new DHTRouterContactImpl( router_node_id, _attachment, true );
-		
-		buckets.add( local_contact );
-		
-		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
-		
-		smallest_subtree	= root;
-	}
 	
 	public byte[]
 	getID()
@@ -353,11 +350,6 @@ DHTRouterImpl
 		
 		return( contact );
 	}
-	
-	
-	
-	
-	
 	
 	protected int
 	findClosestContacts(

@@ -44,15 +44,6 @@ DHT
 	get(
 		byte[]		key );
 	
-		/**
-		 * A DHT can only have one transport
-		 * @param transport
-		 */
-	
-	public void
-	setTransport(
-		DHTTransport	transport );
-	
 	public DHTTransport
 	getTransport();
 	

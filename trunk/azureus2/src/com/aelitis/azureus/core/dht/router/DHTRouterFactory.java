@@ -35,8 +35,10 @@ DHTRouterFactory
 	public static DHTRouter
 	create(
 		int					K,
-		int					B )
+		int					B,
+		byte[]				id,
+		Object				attachment )
 	{
-		return( new DHTRouterImpl( K, B ));
+		return( new DHTRouterImpl( K, B, id, attachment ));
 	}
 }

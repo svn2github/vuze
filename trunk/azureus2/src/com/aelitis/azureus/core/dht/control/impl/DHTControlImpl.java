@@ -28,6 +28,9 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
@@ -43,18 +46,27 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
-	private DHTRouter	router;
+	private DHTTransport	transport;
+	private DHTRouter		router;
+	
 	private	int			node_id_byte_count	= 0;
 	private int			search_concurrency	= 3;	// TODO: fix
 	private int			CACHE_AT_CLOSEST_N	= 1;	// TODO: parameterise
+	
+	private int			ORIGINAL_REPUBLISH_INTERVAL	= 60000;	// TODO:
+	private int			CACHE_REPUBLISH_INTERVAL	= 15000;	// TODO:
 	
 	private Map			stored_values = new HashMap();
 	
 	public
 	DHTControlImpl(
+		DHTTransport	_transport,
 		DHTRouter		_router )
 	{
-		router	= _router;
+		transport	= _transport;
+		router		= _router;
+		
+		node_id_byte_count	= router.getID().length;
 		
 		router.setAdapter( 
 			new DHTRouterAdapter()
@@ -101,31 +113,58 @@ DHTControlImpl
 					lookup( id, false );
 				}
 			});
-	}
-	
-	public void
-	setTransport(
-		DHTTransport	transport )
-	{
-		DHTTransportContact	local_contact = transport.getLocalContact();
-		
-		int	bc = local_contact.getID().length;
-		
-		if ( node_id_byte_count == 0 ){
-			
-			node_id_byte_count = bc;
-			
-		}else if ( node_id_byte_count != bc ){
-			
-			throw( new RuntimeException( "DHTRouter: transports have different node id size!" ));
-		}
-					
-			// TODO: add listener, pick up node ID changes + reseed if changed
 		
 
 		transport.setRequestHandler( this );
+			
+		
+		// TODO: add listener, pick up node ID changes + reseed if changed
 				
-		router.setID( local_contact.getID(), local_contact);	
+		SimpleTimer.addPeriodicEvent(
+			ORIGINAL_REPUBLISH_INTERVAL,
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	event )
+				{
+					try{		
+						DHTLog.indent( router );
+
+						republishOriginalMappings();
+						
+					}finally{
+						
+						DHTLog.exdent();
+					}
+				}
+			});
+				
+		SimpleTimer.addPeriodicEvent(
+				CACHE_REPUBLISH_INTERVAL,
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						try{		
+							DHTLog.indent( router );
+
+							republishCachedMappings();
+							
+						}finally{
+							
+							DHTLog.exdent();
+						}						
+					}
+				});
+	}
+	
+	public DHTTransport
+	getTransport()
+	{
+		return( transport );
 	}
 	
 	public void
@@ -160,11 +199,17 @@ DHTControlImpl
 		final byte[]		_unencoded_key,
 		final byte[]		_value )
 	{
+		putSupport(	encodeKey( _unencoded_key ), _value );
+	}
+	
+	protected void
+	putSupport(
+		final byte[]	encoded_key,
+		final byte[]	value )
+	{
 		try{
 			DHTLog.indent( router );
-			
-			final byte[]	encoded_key = encodeKey( _unencoded_key );
-	
+				
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		
 			List	closest = lookup( encoded_key, false );
@@ -181,20 +226,21 @@ DHTControlImpl
 					public byte[]
 					getValue()
 					{
-						return( _value );
+						return( value );
 					}
 				};
 	
+			synchronized( this ){
+					
+				stored_values.put( new HashWrapper( encoded_key ), t_value );
+			}
+
 			for (int i=0;i<closest.size();i++){
 			
 				DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
 				
-				if ( router.isID( contact.getID())){
-					
-					stored_values.put( new HashWrapper( encoded_key ), t_value );
-					
-				}else{
-					
+				if ( !router.isID( contact.getID())){
+										
 					contact.sendStore( 
 						new DHTTransportReplyHandlerAdapter()
 						{
@@ -247,13 +293,16 @@ DHTControlImpl
 
 				// maybe we've got the value already
 			
-			byte[]	local_result = (byte[])stored_values.get( new HashWrapper( encoded_key ));
-			
-			if ( local_result != null ){
+			synchronized( this ){
 				
-				DHTLog.log( "    surprisingly we've got it locally!" );
-
-				return( local_result );
+				DHTTransportValue	local_result = (DHTTransportValue)stored_values.get( new HashWrapper( encoded_key ));
+			
+				if ( local_result != null ){
+					
+					DHTLog.log( "    surprisingly we've got it locally!" );
+	
+					return( local_result.getValue());
+				}
 			}
 			
 			List	result_and_closest = lookup( encoded_key, true );
@@ -681,25 +730,27 @@ DHTControlImpl
 
 			router.contactAlive( originating_contact.getID(), originating_contact );
 	
-			stored_values.put( 
-				new HashWrapper( key ), 
-				new DHTTransportValue()
-				{
-					private int	distance	= value.getCacheDistance() + 1;
-					private byte[] val		= value.getValue();
-					
-					public int
-					getCacheDistance()
+			synchronized( this ){
+				stored_values.put( 
+					new HashWrapper( key ), 
+					new DHTTransportValue()
 					{
-						return( distance );
-					}
-					
-					public byte[]
-					getValue()
-					{
-						return(val );
-					}
-				});
+						private int	distance	= value.getCacheDistance() + 1;
+						private byte[] val		= value.getValue();
+						
+						public int
+						getCacheDistance()
+						{
+							return( distance );
+						}
+						
+						public byte[]
+						getValue()
+						{
+							return(val );
+						}
+					});
+			}
 			
 		}finally{
 			
@@ -746,21 +797,92 @@ DHTControlImpl
 
 			DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
-			DHTTransportValue	value = (DHTTransportValue)stored_values.get( new HashWrapper( key ));
-			
-			if ( value != null ){
+			synchronized( this ){
 				
-				router.contactAlive( originating_contact.getID(), originating_contact );
-	
-				return( value );
+				DHTTransportValue	value = (DHTTransportValue)stored_values.get( new HashWrapper( key ));
 				
-			}else{
-				
-				return( findNodeRequest( originating_contact, key ));
+				if ( value != null ){
+					
+					router.contactAlive( originating_contact.getID(), originating_contact );
+		
+					return( value );
+					
+				}else{
+					
+					return( findNodeRequest( originating_contact, key ));
+				}
 			}
 		}finally{
 			
 			DHTLog.exdent();
+		}
+	}
+	
+	protected void
+	republishOriginalMappings()
+	{
+		Map	republish = new HashMap();
+		
+		synchronized( this ){
+			
+			Iterator	it = stored_values.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper			key		= (HashWrapper)entry.getKey();
+				
+				DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+				
+				if ( value.getCacheDistance() == 0 ){
+					
+					republish.put( key, value );
+				}
+			}
+		}
+		
+		Iterator	it = republish.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry	entry = (Map.Entry)it.next();
+			
+			HashWrapper			key		= (HashWrapper)entry.getKey();
+			
+			DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+			
+			putSupport( key.getHash(), value.getValue());
+		}
+	}
+	
+	protected void
+	republishCachedMappings()
+	{
+		Map	republish = new HashMap();
+		
+		synchronized( this ){
+			
+			Iterator	it = stored_values.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper			key		= (HashWrapper)entry.getKey();
+				
+				DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+				
+				if ( value.getCacheDistance() > 0 ){
+					
+					republish.put( key, value );
+				}
+			}
+		}
+		
+		if ( republish.size() > 0 ){
+			
+			System.out.println( "cache replublish" );
 		}
 	}
 	

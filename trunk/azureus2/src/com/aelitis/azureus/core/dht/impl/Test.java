@@ -57,10 +57,6 @@ Test
 			
 			for (int i=0;i<dhts.length;i++){
 				
-				DHT	dht = DHTFactory.create( K, B );
-			
-				dhts[i]	= dht;
-				
 				DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
 			
 				HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
@@ -74,9 +70,11 @@ Test
 				
 				check.put(id,"");
 				
-				transports[i] = transport;
+				DHT	dht = DHTFactory.create( transport, K, B );
 				
-				dht.setTransport( transport );
+				dhts[i]	= dht;					
+
+				transports[i] = transport;
 			}
 
 			for (int i=0;i<dhts.length-1;i++){

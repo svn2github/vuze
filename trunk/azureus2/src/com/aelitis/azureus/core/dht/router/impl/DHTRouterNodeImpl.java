@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.dht.router.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -148,15 +147,39 @@ DHTRouterNodeImpl
 							break;
 						}
 					}
-				}
+					
+						// no unknown existing replacements but this is "newer" than the existing
+						// ones so replace the oldest one
+					
+					if ( replacements.size() == MAX_REPLACEMENTS ){
+						
+						replacements.remove(0);
+					}
+				}else{
+						
+						// replace old unknown ones with newer unknown ones but don't remove
+						// ones with a ping in process as this would be a waste
+					
+					for (int i=0;i<replacements.size();i++){
+						
+						DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
 				
-				if ( replacements.size() == MAX_REPLACEMENTS ){
-		
-					return( null );
+						if ( !( r.hasBeenAlive() || r.isPingOutstanding())){
+							
+							replacements.remove(i);
+							
+							break;
+						}
+					}
 				}
 			}
+		}
+		
+		if ( replacements.size() == MAX_REPLACEMENTS ){
 			
-	
+				// no room, drop the contact
+			
+			return( null );
 		}
 		
 		replacements.add( replacement );
@@ -175,7 +198,7 @@ DHTRouterNodeImpl
 				continue;
 			}
 			
-			if ( !contact.getPingOutstanding()){
+			if ( !contact.isPingOutstanding()){
 				
 				contact.setPingOutstanding( true );
 				
@@ -241,7 +264,7 @@ DHTRouterNodeImpl
 			
 			contact.setPingOutstanding( false );
 			
-			contact.alive();
+			contact.setAlive();
 			
 			buckets.add( contact );
 			
@@ -249,7 +272,7 @@ DHTRouterNodeImpl
 			
 			contact.setPingOutstanding( false );
 			
-			contact.alive();
+			contact.setAlive();
 			
 			replacements.add( contact );		
 		}
@@ -261,7 +284,7 @@ DHTRouterNodeImpl
 	{
 		DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
 		
-		if ( contact.failed()){
+		if ( contact.setFailed()){
 			
 				// check the contact is still present
 			

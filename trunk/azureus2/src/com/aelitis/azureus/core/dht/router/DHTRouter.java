@@ -35,11 +35,6 @@ DHTRouter
 	public int
 	getK();
 	
-	public void
-	setID(
-		byte[]	node_id,
-		Object	attachment );
-	
 	public byte[]
 	getID();
 	

@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.control;
 
 import com.aelitis.azureus.core.dht.control.impl.DHTControlImpl;
 import com.aelitis.azureus.core.dht.router.*;
+import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
 /**
  * @author parg
@@ -35,8 +36,9 @@ DHTControlFactory
 {
 	public static DHTControl
 	create(
+		DHTTransport	transport,
 		DHTRouter		router )
 	{
-		return( new DHTControlImpl( router ));
+		return( new DHTControlImpl( transport, router ));
 	}
 }

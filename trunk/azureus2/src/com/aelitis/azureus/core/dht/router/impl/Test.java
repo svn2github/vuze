@@ -43,18 +43,13 @@ Test
 	main(
 		String[]	args )
 	{
-		DHTRouter	router = DHTRouterFactory.create( 20, 5 );
-		
-		randomTest( router );
-		
-		router.print();
+		randomTest();
 	}
 	
 	protected static void
-	simpleTest(
-		DHTRouter	router )
+	simpleTest()
 	{
-		router.setID( new byte[]{ 0 }, null);
+		DHTRouter	router = DHTRouterFactory.create( 20, 5, new byte[]{ 0 }, null);
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		
@@ -75,10 +70,9 @@ Test
 	}
 	
 	protected static void
-	randomTest(
-		DHTRouter	router )
+	randomTest()
 	{
-		router.setID( getSHA1(), null );
+		DHTRouter	router = DHTRouterFactory.create( 20, 5, getSHA1(), null);
 		
 		for (int i=0;i<100000;i++){
 			

@@ -44,7 +44,6 @@ DHTControl
 	get(
 		byte[]		key );
 	
-	public void
-	setTransport(
-		DHTTransport	transport );
+	public DHTTransport
+	getTransport();
 }

@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht;
 
 import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
 /**
  * @author parg
@@ -34,9 +35,10 @@ DHTFactory
 {
 	public static DHT
 	create(
-		int		K_constant,
-		int		B_constant )
+		DHTTransport	transport,
+		int				K_constant,
+		int				B_constant )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		return( new DHTImpl( transport, K_constant, B_constant ));
 	}
 }

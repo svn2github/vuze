@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
-import org.gudy.azureus2.core3.util.ByteFormatter;
-
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
@@ -69,7 +67,7 @@ DHTRouterContactImpl
 	}
 	
 	public boolean
-	getPingOutstanding()
+	isPingOutstanding()
 	{
 		return( ping_outstanding );
 	}
@@ -82,7 +80,7 @@ DHTRouterContactImpl
 	}
 	
 	public void
-	alive()
+	setAlive()
 	{
 		fail_count		= 0;
 		has_been_alive	= true;
@@ -95,7 +93,7 @@ DHTRouterContactImpl
 	}
 	
 	public boolean
-	failed()
+	setFailed()
 	{
 		fail_count++;
 		
