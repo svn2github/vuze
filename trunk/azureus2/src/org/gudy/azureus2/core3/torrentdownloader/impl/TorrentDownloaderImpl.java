@@ -73,16 +73,32 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       }
       
       this.directoryname = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
-      
+      boolean useTorrentSave = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
+            
       if (_file != null) {
         File temp = new File(_file);
+
+        //if we're not using a default torrent save dir
+        if (!useTorrentSave || directoryname.length() == 0) {
+          //if it's already a dir
+          if (temp.isDirectory()) {
+            //use it
+            directoryname = temp.getCanonicalPath();
+          }
+          //it's a file
+          else {
+            //so use its parent dir
+            directoryname = temp.getCanonicalFile().getParent();
+          }
+        }
+        
+        //if it's a file
         if (!temp.isDirectory()) {
-		  this.directoryname = temp.getAbsolutePath();
-        } else {
-          this.filename = temp.getName();
-		  this.directoryname = temp.getAbsoluteFile().getParent();
+          //set the file name
+          filename = temp.getName();
         }
       }
+     
       this.state = STATE_INIT;
       this.notifyListener();
     } catch (java.net.MalformedURLException e) {
