@@ -131,7 +131,7 @@ DiskManagerImpl
 		  //if the torrent file resides in the completed files dir
 		  if (new File(torrentFullName).getParent().startsWith(completedDir)) {
 		    //set the completed dir as the save path
-		    this.path = completedDir;
+		    this.path = FileUtil.smartPath(completedDir, fileName);
           alreadyMoved = true;
 		  }
 		}
@@ -262,6 +262,8 @@ DiskManagerImpl
 		int newFiles = this.allocateFiles(rootPath, btFileList);
       
 		if (this.state == FAULTY) return;
+    
+      path = FileUtil.smartPath(path, fileName);
 
 		constructPieceMap(btFileList);
 
@@ -1575,6 +1577,7 @@ DiskManagerImpl
   public String moveCompletedFiles() {
     String fullPath;
     String subPath;
+    String rPath = path;
     File destDir;
     String returnName = "";
     
@@ -1598,18 +1601,16 @@ DiskManagerImpl
           File oldFile = files[i].getFile();
           
           //make sure the 'path' var isn't refering to multi-file torrent dir
-          if (path.endsWith(fileName)) {
-            File fTest = new File(path);
-            if(fTest.exists() && fTest.isDirectory()) {
-              path = fTest.getParent();
-            }
+          if (rPath.endsWith(fileName)) {
+            File fTest = new File(rPath);
+            if(fTest.isDirectory()) rPath = fTest.getParent();
           }
           
           //get old file's parent path
           fullPath = oldFile.getParent();
           
           //compute the file's sub-path off from the default save path
-          subPath = fullPath.substring(fullPath.indexOf(path) + path.length());
+          subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
     
           //create the destination dir
           destDir = new File(moveToDir + subPath);
@@ -1639,11 +1640,11 @@ DiskManagerImpl
         }
       }
       
-      File tFile = new File(path, fileName);
+      File tFile = new File(rPath, fileName);
       if (tFile.isDirectory()) FileUtil.recursiveDelete(tFile);
       
       //update internal path
-      path = moveToDir;
+      path = FileUtil.smartPath(moveToDir, fileName);
       
       //move the torrent file as well
       synchronized (torrent) {

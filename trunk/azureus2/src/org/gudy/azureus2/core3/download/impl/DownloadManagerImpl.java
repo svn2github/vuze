@@ -158,8 +158,8 @@ DownloadManagerImpl
 		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
 		tracker_client.addListener( this );
-		
-		diskManager = DiskManagerFactory.create( torrent, savePath);
+
+      diskManager = DiskManagerFactory.create( torrent, savePath);
     
 		this.state = STATE_INITIALIZED;
 									
@@ -420,23 +420,16 @@ DownloadManagerImpl
    * Returns the full path including file/dir name
    */
   public String getFullName() {
-	if (diskManager != null) {
+	//if diskmanager is already running, use its values
+   if (diskManager != null) {
     String path = diskManager.getPath();
-    String name = diskManager.getFileName();
-    String fullPath = path + System.getProperty("file.separator") + name; //$NON-NLS-1$
-    if(path.endsWith(name)) {
-      File fTest = new File(path);
-      if(fTest.exists() && fTest.isDirectory()) {
-        return path;
-      } else {
-        return fullPath;
-      }
-    } else {  
-        return fullPath;
-    }	  
+    String fname = diskManager.getFileName();
+    return FileUtil.smartFullName(path, fname); 
+	}
+   //otherwise use downloadmanager's initial values
+   else return FileUtil.smartFullName(savePath, name);
   }
-	return savePath;
-  }
+
 
   /**
    * @return
