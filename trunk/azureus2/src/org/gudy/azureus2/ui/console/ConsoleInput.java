@@ -12,6 +12,7 @@ package org.gudy.azureus2.ui.console;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.Reader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,6 +43,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.stats.StatsWriterFactory;
+import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -86,6 +89,7 @@ public class ConsoleInput extends Thread {
     os.println("show torrents\t\t\tsh t\tShow running torrents.");
     os.println("start (#|all|hash <hash>)\ts\tStart torrent(s).");
     os.println("stop (#|all|hash <hash>)\th\tStop torrent(s).");
+    os.println("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
     os.println("quit\t\t\t\tq\tShutdown Azureus");
   }
   
@@ -157,6 +161,24 @@ public class ConsoleInput extends Thread {
           running = false;
         } else if (command.equalsIgnoreCase("set") || command.equalsIgnoreCase("+")) {
           // Nothing for the moment
+        } else if (command.equalsIgnoreCase("xml")) {
+          StatsWriterStreamer sws = StatsWriterFactory.createStreamer(gm);
+          if (subcommand==null) {
+            try {
+              out.println("> -----");
+              sws.write(out);
+              out.println("> -----");
+            } catch (Exception e) {
+              out.println("> Exception while trying to output xml stats:"+e.getMessage());
+            }
+          } else {
+            try {
+              sws.write(new FileOutputStream(subcommand));
+              out.println("> XML stats successfully written to "+subcommand);
+            } catch (Exception e) {
+              out.println("> Exception while trying to write xml stats:"+e.getMessage());
+            }
+          }
         } else if (command.equalsIgnoreCase("show") || command.equalsIgnoreCase("sh")) {
           if (subcommand != null) {
             if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {

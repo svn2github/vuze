@@ -13,6 +13,9 @@ import java.io.StringReader;
 
 import java.net.Socket;
 
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -118,13 +121,15 @@ public class Main {
       start.stopIt();
     if (GM!=null)
       GM.stopAll();
+    SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+    Logger.getLogger("azureus2").fatal("Azureus stopped at "+temp.format(new Date()));
     System.exit(0);
   }
   
   public static void processArgs(String[] args, boolean creategm, CommandLine commands) {
     if (commands==null)
       commands = parseCommands(args, false);
-    if ((commands!=null) && (args.length>0)) {
+    if (((commands!=null) && (args.length>0)) || creategm) {
       if (UIS == null)
         UIS = new HashMap();
       if (commands.hasOption('u')) {
@@ -155,8 +160,11 @@ public class Main {
         isFirst = false;
       }
 
-      if (creategm)
+      if (creategm) {
+        SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+        Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(new Date()));
         GM = GlobalManagerFactory.create();
+      }
 
       uis = UIS.values().iterator();
       while (uis.hasNext())
