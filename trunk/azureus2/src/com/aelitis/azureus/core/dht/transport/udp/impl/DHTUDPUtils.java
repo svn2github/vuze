@@ -714,7 +714,7 @@ DHTUDPUtils
 							getAveragePacketsReceived() + "," +
 							getAveragePacketsSent() + "," +
 							getIncomingRequests() + 
-							", router:" +
+							",router:" +
 							getRouterNodes() + "," +
 							getRouterLeaves() + "," +
 							getRouterContacts() + 
