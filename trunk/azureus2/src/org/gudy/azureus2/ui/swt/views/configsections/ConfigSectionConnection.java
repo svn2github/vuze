@@ -129,7 +129,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     proxy_group.setLayout( proxy_layout );
     
     formData = new FormData();
-    formData.top = new FormAttachment( max_connects.getControl() );
+    formData.top = new FormAttachment( max_connects.getControl(), 5 );
     proxy_group.setLayoutData( formData );
     
     GridData grid_data;
@@ -306,7 +306,77 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
     sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
      
+    
+ ///////////////////////   
+    
+    final BooleanParameter enable_advanced = new BooleanParameter( cServer, "config.connection.show_advanced", false );
+    formData = new FormData();
+    formData.top = new FormAttachment( proxy_group, 5 );
+    enable_advanced.setLayoutData( formData );
+    
+    
  ///////////////////////
+    
+    Group advanced_group = new Group( cServer, SWT.NULL );
+    Messages.setLanguageText( advanced_group, "ConfigView.connection.group.advanced" );
+    GridLayout advanced_layout = new GridLayout();
+    advanced_layout.numColumns = 2;
+    advanced_group.setLayout( advanced_layout );
+    
+    formData = new FormData();
+    formData.left = new FormAttachment( enable_advanced.getControl() );
+    formData.top = new FormAttachment( proxy_group, 6 );
+    advanced_group.setLayoutData( formData );
+    
+    GridData advanced_grid_data;
+    
+    final IntParameter mtu_size = new IntParameter( advanced_group, "network.tcp.mtu.size" );
+    advanced_grid_data = new GridData();
+    advanced_grid_data.widthHint = 40;
+    mtu_size.setLayoutData( advanced_grid_data );
+    Label lmtu = new Label(advanced_group, SWT.NULL);
+    Messages.setLanguageText(lmtu, "ConfigView.section.connection.advanced.mtu");
+    
+    
+    final IntParameter SO_SNDBUF = new IntParameter( advanced_group, "network.tcp.socket.SO_SNDBUF" );
+    advanced_grid_data = new GridData();
+    advanced_grid_data.widthHint = 40;
+    SO_SNDBUF.setLayoutData( advanced_grid_data );
+    Label lsend = new Label(advanced_group, SWT.NULL);
+    Messages.setLanguageText(lsend, "ConfigView.section.connection.advanced.SO_SNDBUF");
+    
+    
+    final IntParameter SO_RCVBUF = new IntParameter( advanced_group, "network.tcp.socket.SO_RCVBUF" );
+    advanced_grid_data = new GridData();
+    advanced_grid_data.widthHint = 40;
+    SO_RCVBUF.setLayoutData( advanced_grid_data );
+    Label lreceiv = new Label(advanced_group, SWT.NULL);
+    Messages.setLanguageText(lreceiv, "ConfigView.section.connection.advanced.SO_RCVBUF");
+    
+
+    StringParameter IPTOS = new StringParameter( advanced_group, "network.tcp.socket.IPTOS" );
+    grid_data = new GridData();
+    grid_data.widthHint = 30;
+    IPTOS.setLayoutData( grid_data );
+    Label ltos = new Label(advanced_group, SWT.NULL);
+    Messages.setLanguageText(ltos, "ConfigView.section.connection.advanced.IPTOS");
+    
+
+    Control[] advanced_controls = { advanced_group,
+                                    mtu_size.getControl(),
+                                    lmtu,
+                                    SO_SNDBUF.getControl(),
+                                    lsend,
+                                    SO_RCVBUF.getControl(),
+                                    lreceiv,
+                                    IPTOS.getControl(),
+                                    ltos
+                                   };
+    enable_advanced.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( advanced_controls ) );
+    
+
+ ///////////////////////   
+ 
     
     return cServer;
 

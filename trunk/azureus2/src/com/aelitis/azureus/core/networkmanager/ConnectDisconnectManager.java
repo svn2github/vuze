@@ -116,14 +116,14 @@ public class ConnectDisconnectManager {
     try {
       request.channel = SocketChannel.open();
       
-      String rcv_size = System.getProperty("socket.SO_RCVBUF");
-      if ( rcv_size != null ) request.channel.socket().setReceiveBufferSize( Integer.parseInt( rcv_size ) );
+      int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
+      if( rcv_size > 0 ) request.channel.socket().setReceiveBufferSize( rcv_size );
       
-      String snd_size = System.getProperty("socket.SO_SNDBUF");
-      if ( snd_size != null ) request.channel.socket().setSendBufferSize( Integer.parseInt( snd_size ) );
+      int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+      if( snd_size > 0 ) request.channel.socket().setSendBufferSize( snd_size );
 
-      String ip_tos = System.getProperty("socket.IPTOS");
-      if ( ip_tos != null ) request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+      String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+      if( ip_tos.length() > 0 ) request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
 
       String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
       if ( bindIP.length() > 6 ) {

@@ -13,6 +13,7 @@ FEATURE: Core | Added configuration items for tracker processing limits [Parg]
 FEATURE: Core | Option to open torrent for seeding in create-torrent Wizard [Parg,Gudy]
 FEATURE: Core | Auto-rescan of shared resources + addition/deletion of shares accordingly [Parg]
 FEATURE: Core | Persistence of download and tracker stats for shares [Parg]
+FEATURE: Core | Advanced network settings: MTU, SO_RCVBUF, SO_SNDBUF, IPTOS [Nolar]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]

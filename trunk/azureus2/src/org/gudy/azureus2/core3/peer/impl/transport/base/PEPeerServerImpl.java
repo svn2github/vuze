@@ -114,9 +114,9 @@ PEPeerServerImpl
 
     	sck.socket().setReuseAddress(true);
       
-      String size = System.getProperty("socket.SO_RCVBUF");
-      if ( size != null ) sck.socket().setReceiveBufferSize( Integer.parseInt( size ) );
-      
+      int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
+      if( rcv_size > 0 ) sck.socket().setReceiveBufferSize( rcv_size );
+
     	if (bindIP.length() < 7) {
     		sck.socket().bind(new InetSocketAddress(TCPListenPort));
     	}
@@ -168,14 +168,12 @@ PEPeerServerImpl
             "PEPeerServer has accepted an incoming connection from : "
             + sckClient.socket().getInetAddress().getHostAddress());
           
-          String size = System.getProperty("socket.SO_SNDBUF");
-          if ( size != null ) sckClient.socket().setSendBufferSize( Integer.parseInt( size ) );
-          //sckClient.socket().setSendBufferSize( NetworkManager.WRITE_WINDOW_SIZE );
-
-          String ip_tos = System.getProperty("socket.IPTOS");
-          if ( ip_tos != null ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
-          //System.out.println( "iTOS=" + sckClient.socket().getTrafficClass() );
+          int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+          if( snd_size > 0 ) sckClient.socket().setSendBufferSize( snd_size );
           
+          String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+          if( ip_tos.length() > 0 ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+
           sckClient.configureBlocking(false);
           
           adapter.addPeerTransport(sckClient);
