@@ -231,4 +231,32 @@ public class Debug {
  			System.out.println( "\t".concat(name).concat(" = '").concat(props.get(name).toString()).concat("'" ));
  		}
 	}
+	
+	public static String
+	getNestedExceptionMessage(
+		Throwable 		e )
+	{
+		String	last_message	= null;
+		
+		while(e != null){
+			
+			if ( e.getMessage() != null ){
+				
+				last_message	= e.getMessage() + ( last_message==null?"":(", " + last_message ));
+			}
+			
+			e	= e.getCause();
+		}
+		
+		if ( last_message == null ){
+			
+			last_message = e.getClass().getName();
+			
+			int	pos = last_message.lastIndexOf(".");
+			
+			last_message = last_message.substring( pos+1 );
+		}
+		
+		return( last_message );
+	}
 }

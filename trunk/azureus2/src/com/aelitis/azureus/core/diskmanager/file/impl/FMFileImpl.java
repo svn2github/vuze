@@ -75,7 +75,7 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::getCanonicalPath: Fails", e ));
+			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
 	}
 
@@ -104,12 +104,12 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::getCanonicalPath: Fails", e ));
+			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}	
 		
 		if ( new_file.exists()){
 			
-			throw( new FMFileManagerException( "FMFile::moveFile: Fails - file '" + new_canonical_path + "' already exists"));	
+			throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 		}
 		
 		boolean	was_open	= raf != null;
@@ -146,7 +146,7 @@ FMFileImpl
 				}
 			}
 			
-			throw( new FMFileManagerException( "FMFile::moveFile: Fails"));
+			throw( new FMFileManagerException( "moveFile fails"));
 		}	
 	}
 	
@@ -178,7 +178,7 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::getLength: Fails", e ));
+			throw( new FMFileManagerException( "getLength fails", e ));
 		}
 	}
 	
@@ -193,7 +193,7 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::setLength: Fails", e ));
+			throw( new FMFileManagerException( "setLength fails", e ));
 		}
 	}
 	
@@ -204,7 +204,7 @@ FMFileImpl
 	{
 		if (raf == null){
 			
-			throw new FMFileManagerException( "FMFile::getSize: raf is null" );
+			throw new FMFileManagerException( "getSize: raf is null" );
 		}
 	      
 		try{
@@ -218,11 +218,11 @@ FMFileImpl
 				
 				Debug.out("FileChannel is not open");
 				
-				throw( new FMFileManagerException( "FMFile::getSize: channel not open"));
+				throw( new FMFileManagerException( "getSize: channel not open"));
 			}
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::getSize: Fails", e ));
+			throw( new FMFileManagerException( "getSize fails", e ));
 		}
 	}
 	
@@ -242,7 +242,7 @@ FMFileImpl
 			
 			e.printStackTrace();
 			
-			throw( new FMFileManagerException( "FMFile::Open fails", e ));
+			throw( new FMFileManagerException( "open fails", e ));
 		}
 	}
 	
@@ -269,7 +269,7 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException("FMFile::close Fails", e ));
+			throw( new FMFileManagerException("close fails", e ));
 			
 		}finally{
 			
@@ -293,7 +293,7 @@ FMFileImpl
 	{
 		if (raf == null){
 			
-			throw new FMFileManagerException( "FMFile::read: raf is null" );
+			throw new FMFileManagerException( "read: raf is null" );
 		}
     
 		FileChannel fc = raf.getChannel();
@@ -302,7 +302,7 @@ FMFileImpl
 			
 			Debug.out("FileChannel is closed: " + file.getAbsolutePath());
 			
-			throw( new FMFileManagerException( "FMFile::read - file is closed"));
+			throw( new FMFileManagerException( "read - file is closed"));
 		}
 
 		long lRemainingBeforeRead = buffer.remaining();
@@ -319,7 +319,7 @@ FMFileImpl
 			
 			e.printStackTrace();
 			
-			throw( new FMFileManagerException( "FMFile::read: " + e.getMessage() + " (readFileInfoIntoBuffer)", e ));
+			throw( new FMFileManagerException( "read fails", e ));
 		}
 
     // Recycle handle to clear OS cache
@@ -349,7 +349,7 @@ FMFileImpl
 	{
 		if (raf == null){
 			
-			throw( new FMFileManagerException( "FMFile::write: raf is null" ));
+			throw( new FMFileManagerException( "write fails: raf is null" ));
 		}
     
 		FileChannel fc = raf.getChannel();
@@ -418,7 +418,7 @@ FMFileImpl
 								
 								Debug.out( "FMFile::write: zero length write - abandoning" );
 							
-								throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
+								throw( new FMFileManagerException( "write fails: retry limit exceeded"));
 								
 							}else{
 								
@@ -429,7 +429,7 @@ FMFileImpl
 									
 								}catch( InterruptedException e ){
 									
-									throw( new FMFileManagerException( "FMFile::write: interrupted" ));
+									throw( new FMFileManagerException( "write fails: interrupted" ));
 								}
 							}
 						}						
@@ -442,7 +442,7 @@ FMFileImpl
 						
 						Debug.out( "FMFile::write: **** partial write **** failed: expected = " + expected_write + ", actual = " + actual_write );
 
-						throw( new FMFileManagerException( "FMFile::write: expected write/actual write mismatch" ));
+						throw( new FMFileManagerException( "write fails: expected write/actual write mismatch" ));
 					
 					}else{
 						
@@ -456,14 +456,14 @@ FMFileImpl
 				
 				Debug.out("file channel is not open !");
 				
-				throw( new FMFileManagerException( "FMFile::write: Fails " ));
+				throw( new FMFileManagerException( "write fails " ));
 			}
 			
 		}catch (Exception e ){
 			
 			e.printStackTrace();
 			
-			throw( new FMFileManagerException( "FMFile::write: Fails", e ));
+			throw( new FMFileManagerException( "write fails", e ));
 		}		
 	}
 	

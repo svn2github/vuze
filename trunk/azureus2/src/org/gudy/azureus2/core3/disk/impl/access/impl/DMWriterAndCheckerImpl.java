@@ -473,7 +473,7 @@ DMWriterAndCheckerImpl
 			
 			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getName();
 						
-			disk_manager.setErrorMessage( (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (dumpBlockToDisk) when processing file '" + file_name + "'" );
+			disk_manager.setErrorMessage( Debug.getNestedExceptionMessage(e) + " when processing file '" + file_name + "'" );
 			
 			LGLogger.logAlert( LGLogger.AT_ERROR, disk_manager.getErrorMessage() );
 			
