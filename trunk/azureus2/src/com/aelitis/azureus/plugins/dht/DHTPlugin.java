@@ -444,7 +444,7 @@ DHTPlugin
 													keyCreated(
 														HashWrapper		key )
 													{
-														System.out.println( "DHT key created");
+														//System.out.println( "DHT key created");
 														
 														return(
 															new DHTStorageKey()
@@ -461,7 +461,7 @@ DHTPlugin
 													keyDeleted(
 														DHTStorageKey		key )
 													{
-														System.out.println( "DHT key deleted" );
+														//System.out.println( "DHT key deleted" );
 													}
 													
 													public void
@@ -469,7 +469,7 @@ DHTPlugin
 														DHTStorageKey			key,
 														DHTTransportContact		contact )
 													{
-														System.out.println( "DHT value read" );
+														//System.out.println( "DHT value read" );
 													}
 													
 													public void
@@ -477,7 +477,7 @@ DHTPlugin
 														DHTStorageKey		key,
 														DHTTransportValue	value )
 													{
-														System.out.println( "DHT value added" );
+														//System.out.println( "DHT value added" );
 													}
 													
 													public void
@@ -485,7 +485,7 @@ DHTPlugin
 														DHTStorageKey		key,
 														DHTTransportValue	value )
 													{
-														System.out.println( "DHT value updated" );
+														//System.out.println( "DHT value updated" );
 													}
 													
 													public void
@@ -493,7 +493,7 @@ DHTPlugin
 														DHTStorageKey		key,
 														DHTTransportValue	value )
 													{
-														System.out.println( "DHT value deleted" );
+														//System.out.println( "DHT value deleted" );
 													}
 													
 													public byte[][]
@@ -501,7 +501,7 @@ DHTPlugin
 														byte[]			key,
 														boolean			put_operation )
 													{
-														System.out.println( "DHT get existing diversification: put = " + put_operation  );
+														//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 														
 														return( new byte[][]{ key });
 													}
