@@ -173,7 +173,7 @@ public class ConfigView extends AbstractIView {
 	{
 		tempParams = repository.getParameterBlock(names[i]);
 		tempTab = new TabItem(tfPlugins, SWT.NULL);
-		tempTab.setText(repository.getNames()[i]);
+		tempTab.setText(names[i]);
 		
 		tempGroup = new Group(tfPlugins, SWT.NULL);
 		tempLayout = new GridLayout();
@@ -184,7 +184,10 @@ public class ConfigView extends AbstractIView {
 		{
 			tempParam = (GenericParameter)(tempParams[j]);
 			tempLabel = new Label(tempGroup, SWT.NULL);
-			tempLabel.setText(tempParam.getLabel());
+			if(tempParam == null)
+				tempLabel.setText("it's null!");
+			else
+				tempLabel.setText(String.valueOf(tempParams.length));
 			
 			if(tempParam instanceof org.gudy.azureus2.plugins.ui.config.impl.StringParameter)
 			{
