@@ -13,6 +13,7 @@ FEATURE: Export of runtime statistics to XML file [Parg]
 FEATURE: Hosting of torrents using built-in tracker [Parg]
 FEATURE: Trackers used in the 'make torrent' wizard are now remembered.
 FEATURE: Embedded tracker [Parg]
+FEATURE: Peer client version identification [Nolar]
 
 CHANGE: Some GUI Changes, so that SWT WinXP theme is better supported [Gudy]
 CHANGE: Saving of torrent files to central dir now optional [Nolar]
