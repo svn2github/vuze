@@ -24,6 +24,7 @@ FEATURE: Core | Concurrent hashing for >1 CPU [Parg]
 FEATURE: Core | Added ability to not outward connect to a defined set of port numbers [Parg]
 FEATURE: Core | SOCKS V4, V4a and V5 (no auth/user+password methods) support for outgoing data connections [Parg]
 FEATURE: Core | Torrents created by Azureus now include .utf-8 fields [Parg]
+FEATURE: Core | Dynamic piece request queue scaling [Gudy]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
@@ -63,6 +64,7 @@ BUGFIX: UI   | Torrent Downloader Window : retry button now placed correctly [Gu
 BUGFIX: Core | Random shuffling of multi-tracker torrent URLs fixed [Parg]
 BUGFIX: Core | Fix for some kernel panics under OSX [Nolar]
 BUGFIX: Core | Fix occasional 60sec delay on initial tracker announce [Nolar]
+BUGFIX: Core | Fix for reading piece data from a too-long file [Nolar/Parg]
 
 
 
