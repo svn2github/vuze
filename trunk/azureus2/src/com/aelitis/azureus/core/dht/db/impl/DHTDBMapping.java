@@ -26,6 +26,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
+import sun.security.krb5.internal.i;
+
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
@@ -39,11 +41,10 @@ DHTDBMapping
 {
 	private HashWrapper		key;
 	
-		// sender map is access order, most recently used at tail, so we cycle values
-	
-	private Map				sender_map				= new LinkedHashMap(16, 0.75f, true );
-	
-	private Map				originator_value_map	= new HashMap();
+		// maps are access order, most recently used at tail, so we cycle values
+		
+	private Map				direct_originator_map			= new LinkedHashMap(16, 0.75f, true );
+	private Map				indirect_originator_value_map	= new LinkedHashMap(16, 0.75f, true );
 	
 	protected
 	DHTDBMapping(
@@ -62,7 +63,12 @@ DHTDBMapping
 	updateLocalContact(
 		DHTTransportContact		contact )
 	{
-		Iterator	it = sender_map.values().iterator();
+			// pull out all the local values, reset the originator and then
+			// re-add them
+		
+		List	changed = new ArrayList();
+		
+		Iterator	it = direct_originator_map.values().iterator();
 		
 		while( it.hasNext()){
 		
@@ -71,7 +77,16 @@ DHTDBMapping
 			if ( value.getCacheDistance() == 0 ){
 			
 				value.setOriginator( contact );
+				
+				changed.add( value );
+				
+				it.remove();
 			}
+		}
+		
+		for (int i=0;i<changed.size();i++){
+			
+			add((DHTDBValueImpl)changed.get(i));
 		}
 	}
 	
@@ -81,9 +96,17 @@ DHTDBMapping
 	//	3) an originator (the contact who originally published it)
 	//	4) a sender  (the contact who sent it, could be diff for caches)
 
+	// rethink time :P
+	// a) for a value where sender + originator are the same we store a single value
+	// b) where sender + originator differ we store an entry per originator/value pair as the 
+	//    send can legitimately forward multiple values but their originator should differ
+	
+	// c) the code that adds values is responsible for not accepting values that are either
+	//    to "far away" from our ID, or that are cache-forwards from a contact "too far"
+	//    away.
+
+	
 	// for a given key
-	//		a) we only hold one entry per sender (IP+port) (latest)
-	//		b) we only hold one entry for a given originator+value pair
 	//		c) we only allow up to 8 entries per sending IP address (excluding port)
 	//		d) if multiple entries have the same value the value is only returned once
 	// 		e) only the originator can delete an entry
@@ -118,30 +141,39 @@ DHTDBMapping
 		// don't replace a closer cache value with a further away one. in particular
 		// we have to avoid the case where the original publisher of a key happens to
 		// be close to it and be asked by another node to cache it!
+
+		DHTTransportContact	originator 		= new_value.getOriginator();
+		DHTTransportContact	sender 			= new_value.getSender();
+
+		HashWrapper	originator_id = new HashWrapper( originator.getID());
 		
-		try{
-			HashWrapper	originator_value_id = getOriginatorValueID( new_value );
+		HashWrapper	originator_value_id = getOriginatorValueID( new_value );
+
+		boolean	direct = Arrays.equals( originator.getID(), sender.getID());
+		
+		if ( direct ){
 			
-				// rule (b) - one entry per originator/value 
+				// direct contact from the originator is straight forward
 			
-			DHTDBValueImpl existing_value = (DHTDBValueImpl)originator_value_map.get( originator_value_id );
+			direct_originator_map.put( originator_id, new_value );
 			
-			if ( existing_value != null ){
-				
-				existing_value.reset();
-				
-				//System.out.println( "    updating existing (originator/value same)" );
+				// remove any indirect value we might already have for this
+			
+			indirect_originator_value_map.remove( originator_value_id );
+			
+		}else{
+			
+				// not direct. if we have a value already for this originator then
+				// we drop the value as the originator originated one takes precedence
+			
+			if ( direct_originator_map.get( originator_id ) != null ){
 				
 				return;
 			}
-			
-				// rule (a) - one entry per sender
-			
-			DHTTransportContact	sender 		= new_value.getSender();
-			
-			HashWrapper		sender_id = new HashWrapper( sender.getID());
-			
-			existing_value = (DHTDBValueImpl)sender_map.get( sender_id );
+						
+				// rule (b) - one entry per originator/value pair
+								
+			DHTDBValueImpl existing_value = (DHTDBValueImpl)indirect_originator_value_map.get( originator_value_id );
 			
 			if ( existing_value != null ){
 				
@@ -152,12 +184,14 @@ DHTDBMapping
 					
 					if ( new_value.getCreationTime() > existing_value.getCreationTime()){
 					
-						existing_value.setValue( new_value.getValue());
-					}
+						indirect_originator_value_map.put( originator_value_id, new_value );
+						
+					}else{
 					
-						// mark it as current 
+							// mark it as current 
 				
-					existing_value.reset();
+						existing_value.reset();
+					}
 				
 					//System.out.println( "    updating existing (sender same)" );
 					
@@ -165,29 +199,14 @@ DHTDBMapping
 					
 						// overwrite further away entry for this sender
 					
-					addValue(  originator_value_id, sender_id, new_value );
+					indirect_originator_value_map.put( originator_value_id, new_value );
 					
 					//System.out.println( "    replacing existing" );
-				}
-				
-				return;
-			}
+				}				
+			}else{
 			
-			addValue(  originator_value_id, sender_id, new_value );
-				
-		}finally{
-			
-			/*
-			String	str = DHTLog.getString2(key.getHash());
-			
-			System.out.println( "Mapping for '" + str + "' has " + sender_map.size() + " entries" );
-
-			if ( !str.startsWith("7")){
-				
-				System.out.println( "    Details: orig = " + new_value.getOriginator().getString() + ", sender = " + new_value.getSender().getString());
-				
-			}
-			*/
+				indirect_originator_value_map.put( originator_value_id, new_value );
+			}	
 		}
 	}
 
@@ -210,19 +229,6 @@ DHTDBMapping
 		return( originator_value_id );
 	}
 	
-	protected DHTDBValueImpl
-	get(
-		HashWrapper	value_key  )
-	{
-		return((DHTDBValueImpl)sender_map.get( value_key ));
-	}
-	
-	protected DHTDBValueImpl
-	get(
-		DHTTransportContact	contact )
-	{
-		return((DHTDBValueImpl)sender_map.get( new HashWrapper( contact.getID())));
-	}
 	
 	protected DHTDBValueImpl[]
 	get(
@@ -230,54 +236,62 @@ DHTDBMapping
 		boolean		remove_secondary_caches )
 	{
 		List	res 		= new ArrayList();
-		List	keys_used 	= new ArrayList();
 		
 		Set		duplicate_check = new HashSet();
 		
-		Iterator	it = sender_map.entrySet().iterator();
+		Map[]	maps = new Map[]{ direct_originator_map, indirect_originator_value_map };
 		
-		while( it.hasNext() && ( max==0 || res.size()< max )){
+		for (int i=0;i<maps.length;i++){
+			
+			List	keys_used 	= new ArrayList();
+
+			Map			map	= maps[i];
+			
+			Iterator	it = map.entrySet().iterator();
 		
-			Map.Entry	entry = (Map.Entry)it.next();
+			while( it.hasNext() && ( max==0 || res.size()< max )){
 			
-			HashWrapper		entry_key		= (HashWrapper)entry.getKey();
-			
-			DHTDBValueImpl	entry_value = (DHTDBValueImpl)entry.getValue();
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper		entry_key		= (HashWrapper)entry.getKey();
+				
+				DHTDBValueImpl	entry_value = (DHTDBValueImpl)entry.getValue();
+						
+				HashWrapper	x = new HashWrapper( entry_value.getValue());
+				
+				if ( duplicate_check.contains( x )){
 					
-			HashWrapper	x = new HashWrapper( entry_value.getValue());
-			
-			if ( duplicate_check.contains( x )){
+					continue;
+				}
 				
-				continue;
+				duplicate_check.add( x );
+				
+				// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
+				// contact could spam all contacts surrounding the target with bogus information 
+				// current approach is to only allow usage of a secondary cache entry ONCE before
+				// we delete it :P
+			
+				if ( remove_secondary_caches && entry_value.getCacheDistance() > 1 ){
+					
+					it.remove();
+				}
+				
+					// zero length values imply deleted values so don't return them
+				
+				if ( entry_value.getValue().length > 0 ){
+					
+					res.add( entry_value );
+				
+					keys_used.add( entry_key );
+				}
 			}
 			
-			duplicate_check.add( x );
+				// now update the access order so values get cycled
 			
-			// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
-			// contact could spam all contacts surrounding the target with bogus information 
-			// current approach is to only allow usage of a secondary cache entry ONCE before
-			// we delete it :P
-		
-			if ( remove_secondary_caches && entry_value.getCacheDistance() > 1 ){
+			for (int j=0;j<keys_used.size();j++){
 				
-				removeValue( it, null, entry_value );
+				map.get( keys_used.get(j));
 			}
-			
-				// zero length values imply deleted values so don't return them
-			
-			if ( entry_value.getValue().length > 0 ){
-				
-				res.add( entry_value );
-			
-				keys_used.add( entry_key );
-			}
-		}
-		
-			// now update the access order so values get cycled
-		
-		for (int i=0;i<keys_used.size();i++){
-			
-			sender_map.get( keys_used.get(i));
 		}
 		
 		DHTDBValueImpl[]	v = new DHTDBValueImpl[res.size()];
@@ -289,74 +303,71 @@ DHTDBMapping
 	
 	protected DHTDBValueImpl
 	remove(
-		DHTTransportContact 	sender )
+		DHTTransportContact 	originator )
 	{
-		HashWrapper	sender_id = new HashWrapper( sender.getID());
+			// local remove
 		
-		DHTDBValueImpl	res = (DHTDBValueImpl)sender_map.get( sender_id );
+		HashWrapper originator_id = new HashWrapper( originator.getID());
 		
-		if ( res != null ){
-			
-			removeValue( null, sender_id, res );
-		}
+		DHTDBValueImpl	res = (DHTDBValueImpl)direct_originator_map.remove( originator_id );
 		
 		return( res );
 	}
-	
-	
-	protected void
-	addValue(
-		HashWrapper		originator_value_id,
-		HashWrapper		sender_id,
-		DHTDBValueImpl	value )
-	{
-		DHTDBValueImpl	old_value = (DHTDBValueImpl)sender_map.put( sender_id, value );
 		
-			// if we've removed an existing value for this sender then we've got to also
-			// remove the associated originator mapping
-		
-		if ( old_value != null ){
-			
-			originator_value_map.remove( getOriginatorValueID( old_value ));
-		}
-		
-		originator_value_map.put( originator_value_id, value );
-	}
-	
-	protected void
-	removeValue(
-		Iterator			sender_map_iterator,
-		HashWrapper			sender_id,
-		DHTDBValueImpl		value )
-	{
-		if ( sender_map_iterator == null ){
-			
-			if ( sender_map.remove( sender_id ) == null ){
-				
-				System.out.println( "sender value entry missing" );
-			}
-			
-		}else{
-			
-			sender_map_iterator.remove();
-		}
-		
-		if ( originator_value_map.remove( getOriginatorValueID( value )) == null ){
-			
-			System.out.println( "originator value entry missing" );
-		}
-	}
-	
 	
 	protected int
 	getSize()
 	{
-		return( originator_value_map.size());
+		return( direct_originator_map.size() + indirect_originator_value_map.size());
 	}
 	
 	protected Iterator
 	getValues()
 	{
-		return( sender_map.values()).iterator();
+		return( new valueIterator());
+	}
+	
+	protected class
+	valueIterator
+		implements Iterator
+	{
+		Map[]	maps 		= new Map[]{ direct_originator_map, indirect_originator_value_map };
+		int		map_index 	= 0;
+		
+		Iterator	it;
+		
+		public boolean
+		hasNext()
+		{
+			if ( it != null && it.hasNext()){
+				
+				return( true );
+			}
+			
+			if ( map_index < maps.length ){
+				
+				it = maps[map_index++].values().iterator();
+				
+				return( it.hasNext());
+			}
+			
+			return( false );
+		}
+		
+		public Object
+		next()
+		{
+			hasNext();
+			
+			return( it.next());
+		}
+		
+		public void
+		remove()
+		{
+			hasNext();
+			
+			it.remove();
+		}
 	}
 }

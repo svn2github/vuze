@@ -56,15 +56,14 @@ Test
 		final byte[]	target 	= { (byte)0x35, (byte)0x6a, (byte)0x19, (byte)0x28 };
 		final byte[]	t1 		= { (byte)0x76, (byte)0x1f, (byte)0x22, (byte)0xb2 };
 		final byte[]	t2 		= { (byte)0x47, (byte)0x2b, (byte)0x07, (byte)0xb9 };
-				   
-			
-		byte[]	d1 = DHTControlImpl.computeDistance( target, t1 );
-		byte[]	d2 = DHTControlImpl.computeDistance( target, t2 );
+				   		
+		byte[]	d1 = DHTControlImpl.computeDistance2( target, t1 );
+		byte[]	d2 = DHTControlImpl.computeDistance2( target, t2 );
 		
 		System.out.println( "d1 = " + ByteFormatter.nicePrint( d1 ));
 		System.out.println( "d2 = " + ByteFormatter.nicePrint( d2 ));
 		
-		System.out.println( "comp = " + DHTControlImpl.compareDistances( d1, d2 ));
+		System.out.println( "comp = " + DHTControlImpl.compareDistances2( d1, d2 ));
 		
 		final Set			set = 
 			new TreeSet(
@@ -75,12 +74,12 @@ Test
 						Object	o1,
 						Object	o2 )
 					{						
-						byte[] d1 = DHTControlImpl.computeDistance( (byte[])o1, target );
-						byte[] d2 = DHTControlImpl.computeDistance( (byte[])o2, target );
+						byte[] d1 = DHTControlImpl.computeDistance2( (byte[])o1, target );
+						byte[] d2 = DHTControlImpl.computeDistance2( (byte[])o2, target );
 						
 						System.out.println( "dist:" + ByteFormatter.nicePrint((byte[])o1) + " -> " + ByteFormatter.nicePrint(d1));
 						System.out.println( "dist:" + ByteFormatter.nicePrint((byte[])o2) + " -> " + ByteFormatter.nicePrint(d2));
-						return( DHTControlImpl.compareDistances( d1, d2 ));
+						return( DHTControlImpl.compareDistances2( d1, d2 ));
 					}
 				});
 		

@@ -45,7 +45,8 @@ DHTDB
 	public DHTDBValue
 	store(
 		HashWrapper		key,
-		byte[]			value );
+		byte[]			value,
+		byte			flags );
 	
 	public void
 	store(

@@ -150,7 +150,8 @@ DHTDBImpl
 	public DHTDBValue
 	store(
 		HashWrapper		key,
-		byte[]			value )
+		byte[]			value,
+		byte			flags )
 	{
 		try{
 			this_mon.enter();
@@ -162,7 +163,7 @@ DHTDBImpl
 						local_contact, 
 						local_contact,
 						0,
-						0 );
+						flags );
 	
 	
 				// don't police max check for locally stored data
@@ -217,11 +218,56 @@ DHTDBImpl
 		
 		if ( !store_it ){
 			
-			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " -> " + value.getString() + " as too far away" );
+			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
+
+			return;
+		}
+		
+			// next, for cache forwards (rather then values coming directly from 
+			// originators) we ensure that the contact sending the values to us is
+			// close enough.
+		
+		boolean	cache_forward = false;
+		
+		for (int i=0;i<values.length;i++){
+			
+			if (!Arrays.equals( sender.getID(), values[i].getOriginator().getID())){
+				
+				cache_forward	= true;
+				
+				break;
+			}
+		}
+		
+		
+		if ( cache_forward ){
+			
+				// get the closest contacts to me
+				
+			byte[]	my_id	= local_contact.getID();
+			
+			closest_contacts = control.getClosestKContactsList( my_id, true );
+			
+			DHTTransportContact	furthest = (DHTTransportContact)closest_contacts.get( closest_contacts.size()-1);
+			
+			byte[]	furthest_ok_distance 	= control.computeDistance( furthest.getID(), my_id );
+			byte[]	sender_distance			= control.computeDistance( sender.getID(), my_id );
+			
+			if ( control.compareDistances( furthest_ok_distance, sender_distance) < 0 ){
+
+				store_it	= false;
+			}
+		}
+		
+		if ( !store_it ){
+			
+			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
 			return;
 		}
 		
+		// System.out.println( "Storing " + DHTLog.getString2(key.getHash()));
+
 		try{
 			this_mon.enter();
 						
@@ -285,9 +331,11 @@ DHTDBImpl
 	
 	public DHTDBValue
 	remove(
-		DHTTransportContact 	sender,
+		DHTTransportContact 	originator,
 		HashWrapper				key )
 	{
+			// local remove
+		
 		try{
 			this_mon.enter();
 		
@@ -295,7 +343,7 @@ DHTDBImpl
 			
 			if ( mapping != null ){
 				
-				return( mapping.remove( sender ));
+				return( mapping.remove( originator ));
 			}
 			
 			return( null );

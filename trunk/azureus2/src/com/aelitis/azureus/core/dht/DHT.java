@@ -62,8 +62,9 @@ DHT
 	
 	public void
 	put(
-		byte[]			key,
-		byte[]			value,
+		byte[]					key,
+		byte[]					value,
+		byte					flags,
 		DHTOperationListener	listener );
 	
 		/**
@@ -89,6 +90,7 @@ DHT
 	public void
 	get(
 		byte[]			key,
+		byte			flags,
 		int				max_values,
 		long			timeout,
 		DHTOperationListener	listener );

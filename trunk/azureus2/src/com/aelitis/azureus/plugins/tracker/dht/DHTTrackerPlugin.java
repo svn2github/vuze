@@ -393,6 +393,7 @@ DHTTrackerPlugin
 				final long	start = SystemTime.getCurrentTime();
 								
 				dht.get(dl.getTorrent().getHash(), 
+						(byte)0,
 						NUM_WANT, 
 						ANNOUNCE_TIMEOUT,
 						new DHTPluginOperationListener()

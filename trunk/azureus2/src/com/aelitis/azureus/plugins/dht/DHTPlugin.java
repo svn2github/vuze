@@ -170,7 +170,7 @@ DHTPlugin
 										}else if ( lhs.equals( "get" )){
 											
 											DHTPlugin.this.get(
-												rhs.getBytes(), 1, 10000, null );
+												rhs.getBytes(), (byte)0, 1, 10000, null );
 
 										}else if ( lhs.equals( "stats" )){
 											
@@ -481,6 +481,7 @@ DHTPlugin
 				
 		dht.put( 	key, 
 					value,
+					(byte)0,
 					new DHTOperationListener()
 					{
 						public void
@@ -538,6 +539,7 @@ DHTPlugin
 	public void
 	get(
 		final byte[]								key,
+		final byte									flags,
 		final int									max_values,
 		final long									timeout,
 		final DHTPluginOperationListener			listener )
@@ -547,7 +549,7 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.get( 	key, max_values, timeout,
+		dht.get( 	key, flags, max_values, timeout,
 					new DHTOperationListener()
 					{
 						public void

@@ -60,8 +60,9 @@ DHTControl
 	
 	public void
 	put(
-		byte[]			key,
-		byte[]			value,
+		byte[]					key,
+		byte[]					value,
+		byte					flags,
 		DHTOperationListener	listener );
 	
 	public byte[]
@@ -71,9 +72,10 @@ DHTControl
 	
 	public void
 	get(
-		byte[]			key,
-		int				max_values,
-		long			timeout,
+		byte[]					key,
+		byte					flags,
+		int						max_values,
+		long					timeout,
 		DHTOperationListener	listener );
 	
 	public byte[]
@@ -125,6 +127,16 @@ DHTControl
 		byte[][]				keys,
 		DHTTransportValue[][]	value_sets,
 		List					contacts );
+	
+	public int
+	compareDistances(
+		byte[]		n1,
+		byte[]		n2 );
+	
+	public byte[]
+	computeDistance(
+		byte[]		n1,
+		byte[]		n2 );
 	
 	public void
 	print();

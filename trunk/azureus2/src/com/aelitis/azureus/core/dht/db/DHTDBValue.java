@@ -33,12 +33,13 @@ public interface
 DHTDBValue 
 	extends DHTTransportValue
 {
-	public byte[]
-	getValue();
-		
 	public void
 	setValue(
 		byte[]	value );
+
+	public void
+	setFlags(
+		byte	flags );
 	
 	public DHTDBValue
 	getValueForRelay(

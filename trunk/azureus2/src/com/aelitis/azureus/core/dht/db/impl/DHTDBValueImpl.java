@@ -175,6 +175,13 @@ DHTDBValueImpl
 	}
 	
 	public void
+	setFlags(
+		byte	_flags )
+	{
+		flags = _flags;
+	}
+	
+	public void
 	setOriginator(
 		DHTTransportContact	_originator )
 	{
@@ -193,6 +200,6 @@ DHTDBValueImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		return( DHTLog.getString( value ) + " - " + new String(value) + "{ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
+		return( DHTLog.getString( value ) + " - " + new String(value) + "{f=" + Integer.toHexString(flags) +",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
 	}
 }

@@ -194,6 +194,7 @@ DHTControlImpl
 				{
 					lookup( internal_lookup_pool, 
 							id, 
+							(byte)0,
 							false, 
 							0, 
 							search_concurrency, 
@@ -437,6 +438,7 @@ DHTControlImpl
 		
 		lookup( internal_lookup_pool,
 				router.getID(), 
+				(byte)0,
 				false, 
 				0,
 				search_concurrency*4,
@@ -501,13 +503,14 @@ DHTControlImpl
 		final byte[]		_unencoded_key,
 		final byte[]		_value )
 	{
-		put( _unencoded_key, _value, null );
+		put( _unencoded_key, _value, (byte)0, null );
 	}
 
 	public void
 	put(
 		byte[]					_unencoded_key,
 		byte[]					_value,
+		byte					_flags,
 		DHTOperationListener	_listener )
 	{
 		if ( _value.length == 0 ){
@@ -521,7 +524,7 @@ DHTControlImpl
 		
 		DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		
-		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value );
+		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags );
 		
 		put( encoded_key, value, 0, _listener );		
 	}
@@ -545,6 +548,7 @@ DHTControlImpl
 	{
 		lookup( put_pool,
 				encoded_key, 
+				(byte)0,
 				false, 
 				timeout,
 				search_concurrency,
@@ -686,6 +690,7 @@ DHTControlImpl
 		
 		get(
 			unencoded_key,
+			(byte)0,
 			1,
 			timeout,
 			new DHTOperationListener()
@@ -735,6 +740,7 @@ DHTControlImpl
 	public void
 	get(
 		byte[]						unencoded_key,
+		byte						flags,
 		int							max_values,
 		long						timeout,
 		final DHTOperationListener	get_listener )
@@ -745,6 +751,7 @@ DHTControlImpl
 		
 		lookup( external_lookup_pool,
 				encoded_key, 
+				flags,
 				true, 
 				timeout,
 				search_concurrency,
@@ -891,6 +898,7 @@ DHTControlImpl
 	lookup(
 		ThreadPool					thread_pool,
 		final byte[]				lookup_id,
+		final byte					flags,
 		final boolean				value_search,
 		final long					timeout,
 		final int					concurrency,
@@ -901,7 +909,7 @@ DHTControlImpl
 		if ( thread_pool == null ){
 			
 			try{
-				lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, search_accuracy, handler );
+				lookupSupport( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler );
 	
 			}catch( Throwable e ){
 				
@@ -921,7 +929,7 @@ DHTControlImpl
 					runSupport()
 					{
 						try{
-							lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, search_accuracy, handler );
+							lookupSupport( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler );
 							
 						}catch( Throwable e ){
 							
@@ -940,6 +948,7 @@ DHTControlImpl
 	protected void
 	lookupSupport(
 		final byte[]				lookup_id,
+		byte						flags,
 		boolean						value_search,
 		long						timeout,
 		int							concurrency,
@@ -948,9 +957,7 @@ DHTControlImpl
 		final lookupResultHandler	result_handler )
 	{
 		boolean		timeout_occurred	= false;
-		
-		final byte	flags = 0;
-		
+				
 		try{
 			DHTLog.log( "lookup for " + DHTLog.getString( lookup_id ));
 			
@@ -1718,8 +1725,16 @@ DHTControlImpl
 		return( result );
 	}
 	
-	protected static byte[]
+	public byte[]
 	computeDistance(
+		byte[]		n1,
+		byte[]		n2 )
+	{
+		return( computeDistance2( n1, n2 ));
+	}
+	
+	protected static byte[]
+	computeDistance2(
 		byte[]		n1,
 		byte[]		n2 )
 	{
@@ -1740,8 +1755,16 @@ DHTControlImpl
 		 * @return
 		 */
 	
-	protected static int
+	public int
 	compareDistances(
+		byte[]		n1,
+		byte[]		n2 )
+	{
+		return( compareDistances2( n1,n2 ));
+	}
+	
+	protected static int
+	compareDistances2(
 		byte[]		n1,
 		byte[]		n2 )
 	{

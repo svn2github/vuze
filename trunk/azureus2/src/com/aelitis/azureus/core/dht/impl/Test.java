@@ -333,7 +333,7 @@ Test
 						String	key = rhs.substring(0,pos);
 						String	val = rhs.substring(pos+1);
 						
-						dht.put( key.getBytes(), val.getBytes());
+						dht.put( key.getBytes(), val.getBytes(), (byte)(Math.random()*255), null );
 					}
 				}else if ( command == 'x' ){
 					
@@ -398,7 +398,7 @@ Test
 					
 					stats_before = dht.getTransport().getStats().snapshot();
 					
-					dht.get( rhs.getBytes(), 10, 0,
+					dht.get( rhs.getBytes(), (byte)0, 10, 0,
 							new DHTOperationListener()
 							{
 								public void
