@@ -114,10 +114,12 @@ public class DirectByteBufferPool {
           new TimerEventPerformer() {
             public void perform( TimerEvent ev ) {
               System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
+              printInUse();
               long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
               long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
               long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
-              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB\n");
+              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
+              System.out.println();
             }
           }
       );
@@ -243,6 +245,8 @@ public class DirectByteBufferPool {
           	}
         }
         
+        addInUse( dbb.capacity() );
+        
         return dbb;
       }
     }
@@ -294,6 +298,7 @@ public class DirectByteBufferPool {
    * Force system garbage collection.
    */
   private void runGarbageCollection() {
+    System.out.println( "runGarbageCollection()" );
     System.runFinalization();
     System.gc();
   }
@@ -416,6 +421,8 @@ public class DirectByteBufferPool {
   		}
   	}
   	
+    remInUse( buffer.capacity() );
+    
     free( buffer ); 
   }
   
@@ -436,4 +443,44 @@ public class DirectByteBufferPool {
     }
     return bytesUsed;
   }
+  
+  
+  
+  private final HashMap in_use_counts = new HashMap();
+  
+  private void addInUse( int size ) {
+    Integer key = new Integer( size );
+    synchronized( in_use_counts ) {
+      Integer count = (Integer)in_use_counts.get( key );
+      if( count == null )  count = new Integer( 1 );
+      else  count = new Integer( count.intValue() + 1 );
+      in_use_counts.put( key, count );
+    }
+  }
+  
+  private void remInUse( int size ) {
+    Integer key = new Integer( size );
+    synchronized( in_use_counts ) {
+      Integer count = (Integer)in_use_counts.get( key );
+      if( count == null ) System.out.println("count = null");
+      if( count.intValue() == 0 ) System.out.println("count = 0");
+      in_use_counts.put( key, new Integer( count.intValue() - 1 ) );
+    }
+  }
+  
+  private void printInUse() {
+    synchronized( in_use_counts ) {
+      for( Iterator i = in_use_counts.keySet().iterator(); i.hasNext(); ) {
+        Integer key = (Integer)i.next();
+        int count = ((Integer)in_use_counts.get( key )).intValue();
+        int size = key.intValue();
+        if( count > 0 ) {
+          if( size < 1024 )  System.out.print("[" +size+ " x " +count+ "] ");
+          else  System.out.print("[" +size/1024+ "K x " +count+ "] ");
+        }
+      }
+      System.out.println();
+    }
+  }
+  
 }
