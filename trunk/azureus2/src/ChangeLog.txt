@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-2004.06.xx | Azureus 2.1.0.1
+2004.06.21 | Azureus 2.1.0.2
 
 FEATURE: Core | Health items now show if a torrent is being shared/published [Parg]
 FEATURE: Core | Creation of self-signed certificates for SSL (etc) via UI [Parg]
