@@ -222,15 +222,10 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
 
-     
-    BooleanParameter slowConnect = new BooleanParameter(cTransfer, "Slow Connect", true, "ConfigView.label.slowconnect");
-    formData = new FormData();
-    formData.top = new FormAttachment(paramMaxClientsTotal.getControl(), 10);
-    slowConnect.setLayoutData(formData);    
-    
+
     BooleanParameter oldPolling = new BooleanParameter(cTransfer, "Old.Socket.Polling.Style", false, "ConfigView.label.oldpollingstyle");
     formData = new FormData();
-    formData.top = new FormAttachment(slowConnect.getControl());
+    formData.top = new FormAttachment(paramMaxClientsTotal.getControl(), 10);
     oldPolling.setLayoutData(formData);
      
     BooleanParameter allowSameIP = new BooleanParameter(cTransfer, "Allow Same IP Peers", false, "ConfigView.label.allowsameip");

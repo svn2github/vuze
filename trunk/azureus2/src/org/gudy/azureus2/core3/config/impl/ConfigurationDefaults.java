@@ -109,7 +109,7 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Allow",new Long(0));
     def.put("Allow Same IP Peers",new Long(0));
     def.put("Use Super Seeding",new Long(0));
-    def.put("Slow Connect", new Long(1));
+
         
     /** SWT GUI Settings **/
     def.put("useCustomTab",new Long(1));    
