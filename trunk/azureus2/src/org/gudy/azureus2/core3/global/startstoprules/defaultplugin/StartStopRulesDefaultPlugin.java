@@ -352,6 +352,17 @@ public class StartStopRulesDefaultPlugin
           // (The call sets somethingChanged it was changed)
           if (dlDataArray[i].getActivelySeeding())
             iNumCDing++;
+          
+          /* READY downloads are usually waiting for a seeding torrent to
+             stop (the seeding torrent probably is within the "Minumum Seeding
+             Time" setting)
+           */
+          if (dl.getState() == Download.ST_READY) {
+            somethingChanged = true;
+              if (bDebugLog) 
+                log.log(LoggerChannel.LT_INFORMATION,
+                        "somethingChanged: Download is ready");
+          }
 
           /* Check if First Priority has been lost
              (In order for a gain in FP, the user has to manually increase
@@ -436,19 +447,21 @@ public class StartStopRulesDefaultPlugin
     if (bDebugLog) {
       log.log(LoggerChannel.LT_INFORMATION,
               "somethingChanged: config reload");
-      if (debugMenuItem == null && seedingRankColumn != null) {
-        debugMenuItem = ((TableColumnCore)seedingRankColumn).addContextMenuItem("StartStopRules.menu.viewDebug");
-        debugMenuItem.addListener(new MenuItemListener() {
-          public void selected(MenuItem _menu, Object _target) {
-  				  Download dl = (Download)((TableRow)_target).getDataSource();
-            downloadData dlData = (downloadData)downloadDataMap.get(dl);
-
-            if (dlData != null) {
-              new TextViewerWindow(null, null, dlData.sExplainFP + "\n" + dlData.sTrace);
+      try {
+        if (debugMenuItem == null && seedingRankColumn != null) {
+          debugMenuItem = ((TableColumnCore)seedingRankColumn).addContextMenuItem("StartStopRules.menu.viewDebug");
+          debugMenuItem.addListener(new MenuItemListener() {
+            public void selected(MenuItem _menu, Object _target) {
+    				  Download dl = (Download)((TableRow)_target).getDataSource();
+              downloadData dlData = (downloadData)downloadDataMap.get(dl);
+  
+              if (dlData != null) {
+                new TextViewerWindow(null, null, dlData.sExplainFP + "\n" + dlData.sTrace);
+              }
             }
-          }
-        });
-      }
+          });
+        }
+      } catch (Throwable t) { t.printStackTrace(); }
     } else {
       ((TableColumnCore)seedingRankColumn).removeContextMenuItem(debugMenuItem);
       debugMenuItem = null;
@@ -1576,6 +1589,10 @@ public class StartStopRulesDefaultPlugin
         sText = "ERR" + sr;
       }
       cell.setText(sText);
+      if (bDebugLog)
+        cell.setToolTip(dlData.sExplainFP + "\n" + dlData.sTrace);
+      else
+        cell.setToolTip(null);
     }
   }
 } // class
