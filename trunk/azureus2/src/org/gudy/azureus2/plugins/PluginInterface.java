@@ -23,6 +23,7 @@ package org.gudy.azureus2.plugins;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.tracker.Identificator;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
@@ -58,6 +59,13 @@ public interface PluginInterface {
    * in order to find the localized displayName. (see i18n)
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
+  
+  /**
+   * adds an identificator to the tracker
+   * @param indentificator the Identificator
+   */
+  public void addTrackerIdentificator(Identificator identificator);
+  
   
   /**
    * opens a torrent file given its name

@@ -26,6 +26,7 @@ import java.util.Properties;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.tracker.Identificator;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.config.impl.ParameterRepository;
@@ -94,5 +95,13 @@ public class PluginInterfaceImpl implements PluginInterface {
   
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
     PeersTableExtensions.getInstance().addExtension(columnName,item);
+  }
+  
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.plugins.PluginInterface#addTrackerIdentificator(org.gudy.azureus2.plugins.tracker.Identificator)
+   */
+  public void addTrackerIdentificator(Identificator identificator) {
+    // TODO Auto-generated method stub
+
   }
 }
