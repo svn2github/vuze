@@ -668,7 +668,7 @@ DiskManagerImpl
 					  dumpBlockToDisk(elt);
 					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 					} else {
-					  ByteBufferPool.getInstance().freeBuffer(elt.getData());
+					  ByteBufferPool.freeBuffer(elt.getData());
 					  elt.data = null;
 					}					
 				}
@@ -700,7 +700,7 @@ DiskManagerImpl
 			this.bContinue = false;
 			while (writeQueue.size() != 0) {
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
-				ByteBufferPool.getInstance().freeBuffer(elt.data);
+				ByteBufferPool.freeBuffer(elt.data);
 				elt.data = null;
 			}
 		}
@@ -1182,7 +1182,7 @@ DiskManagerImpl
 
 	public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
-		ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer(length+13);
+		ByteBuffer buffer = ByteBufferPool.getFreeBuffer(length+13);
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
@@ -1389,7 +1389,7 @@ DiskManagerImpl
 			previousFilesLength = offset;
 		}
 
-		ByteBufferPool.getInstance().freeBuffer(buffer);
+		ByteBufferPool.freeBuffer(buffer);
 		buffer = null;
 	}
 
@@ -1887,7 +1887,7 @@ DiskManagerImpl
         ByteBuffer buffer = readBlock(pieceNumber,offset,length);
         buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
-        ByteBufferPool.getInstance().freeBuffer(buffer);
+        ByteBufferPool.freeBuffer(buffer);
         buffer = null;
         piece.addWrite(i,peer,hash,correct);        
       }
