@@ -113,7 +113,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       //System.out.println(exec);
       String execLog = "";
       for(int i = 0 ; i < exec.length ; i++) {
-        execLog = exec[i] + "\n;";
+        execLog += exec[i] + "\n";
       }
       LGLogger.log("SWT Updater is about to execute : " + execLog);
       
