@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.config.impl;
 
 import java.util.HashMap;
 import java.io.File;
-import java.net.URI;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
