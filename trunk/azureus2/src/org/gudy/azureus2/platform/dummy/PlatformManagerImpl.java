@@ -41,7 +41,7 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public String getUserDataDirectory()
 
-            throws PlatformManagerException
+        throws PlatformManagerException
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
@@ -51,7 +51,7 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public boolean isApplicationRegistered()
 
-            throws PlatformManagerException
+        throws PlatformManagerException
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
@@ -61,7 +61,7 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void registerApplication()
 
-            throws PlatformManagerException
+        throws PlatformManagerException
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
@@ -71,7 +71,7 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void createProcess(String command_line, boolean inherit_handles)
 
-            throws PlatformManagerException
+        throws PlatformManagerException
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
@@ -81,18 +81,27 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void performRecoverableFileDelete(String file_name)
 
-            throws PlatformManagerException
+        throws PlatformManagerException
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
     public String getVersion()
 
-    throws PlatformManagerException
+    	throws PlatformManagerException
 	{
-	throw new PlatformManagerException("Unsupported capability called on platform manager");
+    	throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
     
+	public void
+	setTCPTOSEnabled(
+		boolean		enabled )
+		
+		throws PlatformManagerException
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
     /**
      * {@inheritDoc}
      */

@@ -120,7 +120,8 @@ Test
 									//test();
 									
 									try{
-										PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
+										//PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
+										PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
 										
 									}catch( Throwable e ){
 										

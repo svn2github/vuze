@@ -116,6 +116,7 @@ PlatformManagerImpl
         capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
         capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
         capabilitySet.add(PlatformManagerCapabilities.GetVersion);
+        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
     }
 
     protected void
@@ -466,6 +467,25 @@ PlatformManagerImpl
 		}
 	}
 
+	public void
+	setTCPTOSEnabled(
+		boolean		enabled )
+		
+		throws PlatformManagerException
+	{
+		try{
+			access.writeWordValue( 	
+					AEWin32Access.HKEY_LOCAL_MACHINE,
+					"System\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+					"DisableUserTOSSetting",
+					enabled?0:1);
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to write registry details", e ));
+		}		
+	}
+			
     public boolean
     hasCapability(
             PlatformManagerCapabilities capability)

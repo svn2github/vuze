@@ -98,7 +98,19 @@ AEWin32AccessImpl
 	{
 		return( AEWin32AccessInterface.readWordValue( type, subkey, value_name ));
 	}
-		
+	
+	public void
+	writeWordValue(
+		int		type,		
+		String	subkey,
+		String	value_name,
+		int		value_value )
+	
+		throws AEWin32AccessException
+	{
+		AEWin32AccessInterface.writeWordValue( type, subkey, value_name, value_value );
+	}
+	
 	
 	public void
 	deleteKey(

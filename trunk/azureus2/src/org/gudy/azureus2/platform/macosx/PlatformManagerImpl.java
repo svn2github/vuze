@@ -480,4 +480,13 @@ public class PlatformManagerImpl implements PlatformManager
             return "Finder";
         }
     }
+    
+	public void
+	setTCPTOSEnabled(
+		boolean		enabled )
+		
+		throws PlatformManagerException
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
 }

@@ -43,6 +43,8 @@ public final class PlatformManagerCapabilities
     public static final PlatformManagerCapabilities RegisterFileAssociations = new PlatformManagerCapabilities("RegisterFileAssociations");
     public static final PlatformManagerCapabilities ShowFileInBrowser = new PlatformManagerCapabilities("ShowFileInBrowser");
     public static final PlatformManagerCapabilities ShowPathInCommandLine = new PlatformManagerCapabilities("ShowPathInCommandLine");
+    
+    public static final PlatformManagerCapabilities SetTCPTOSEnabled = new PlatformManagerCapabilities("SetTCPTOSEnabled");
 
     private final String myName; // for debug only
 

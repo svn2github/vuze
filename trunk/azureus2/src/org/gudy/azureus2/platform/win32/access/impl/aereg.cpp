@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.7"
+#define VERSION "1.8"
 
 
 HMODULE	application_module;
@@ -265,13 +265,13 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 		return( NULL );
 	}
 
-	if ( RegOpenKey( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
+	if ( RegOpenKeyW( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
 
 		BYTE	value[1024];
 		DWORD	value_length	= sizeof( value );
 		DWORD	type;
 
-		if ( RegQueryValueEx( subkey, value_name, NULL, &type, (unsigned char*)value, &value_length ) == ERROR_SUCCESS){
+		if ( RegQueryValueExW( subkey, value_name, NULL, &type, (unsigned char*)value, &value_length ) == ERROR_SUCCESS){
 
 			if ( type == REG_SZ || type == REG_EXPAND_SZ || type == REG_MULTI_SZ ){
 
@@ -340,13 +340,13 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readWor
 		return( NULL );
 	}
 
-	if ( RegOpenKey( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
+	if ( RegOpenKeyW( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
 
 		BYTE	value[1024];
 		DWORD	value_length	= sizeof( value );
 		DWORD	type;
 
-		if ( RegQueryValueEx( subkey, value_name, NULL, &type, (unsigned char*)value, &value_length ) == ERROR_SUCCESS){
+		if ( RegQueryValueExW( subkey, value_name, NULL, &type, (unsigned char*)value, &value_length ) == ERROR_SUCCESS){
 
 			if ( type == REG_DWORD ){
 
@@ -369,6 +369,60 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readWor
 	}
 
 	return(result);
+}
+
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValueW(
+	JNIEnv		*env,
+	jclass		cla,
+	jint		_type, 
+	jstring		_subkey_name,
+	jstring		_value_name,
+	jint		_value_value )
+{
+	HKEY		key;
+	HKEY		subkey;
+	WCHAR		subkey_name[1024];
+	WCHAR		value_name[1024];
+	DWORD		value_value	= _value_value;
+
+	key	= mapHKEY( env, _type );
+
+	if ( key == NULL ){
+
+		return;
+	}
+
+	if ( !jstringToCharsW( env, _subkey_name, subkey_name, sizeof( subkey_name ))){
+
+		return;
+	}
+
+	if ( !jstringToCharsW( env, _value_name, value_name, sizeof( value_name ))){
+
+		return;
+	}
+
+
+
+	if ( RegCreateKeyExW( key, subkey_name, 0, REG_NONE, 0, KEY_ALL_ACCESS, NULL, &subkey, NULL ) == ERROR_SUCCESS ){
+
+
+		if ( RegSetValueExW( subkey, value_name, 0, REG_DWORD, (const BYTE*)&value_value, sizeof(DWORD)) == ERROR_SUCCESS){
+
+		}else{
+
+			throwException( env, "writeWordValue", "RegSetValueEx failed" );
+		}
+
+		RegCloseKey(subkey);
+
+	}else{
+
+		throwException( env, "writeWordValue", "RegCreateKeyEx failed" );
+	}
+
 }
 
 
@@ -411,10 +465,10 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeSt
 	}
 
 
-	if ( RegCreateKeyEx( key, subkey_name, 0, REG_NONE, 0, KEY_ALL_ACCESS, NULL, &subkey, NULL ) == ERROR_SUCCESS ){
+	if ( RegCreateKeyExW( key, subkey_name, 0, REG_NONE, 0, KEY_ALL_ACCESS, NULL, &subkey, NULL ) == ERROR_SUCCESS ){
 
 
-		if ( RegSetValueEx( subkey, value_name, 0, REG_SZ, (const BYTE*)value_value, (wcslen(value_value)+1)*sizeof(WCHAR)) == ERROR_SUCCESS){
+		if ( RegSetValueExW( subkey, value_name, 0, REG_SZ, (const BYTE*)value_value, (wcslen(value_value)+1)*sizeof(WCHAR)) == ERROR_SUCCESS){
 
 		}else{
 
@@ -457,20 +511,20 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteK
 		return;
 	}
 
-	if ( RegOpenKey( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
+	if ( RegOpenKeyW( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
 
 
 		RegCloseKey(subkey);
 
 		if ( _recursive ){
 
-			if ( SHDeleteKey( key, subkey_name ) != ERROR_SUCCESS ){
+			if ( SHDeleteKeyW( key, subkey_name ) != ERROR_SUCCESS ){
 
 				throwException( env, "deleteKey", "SHDeleteKey failed" );
 			}
 		}else{
 
-			if ( RegDeleteKey( key, subkey_name ) != ERROR_SUCCESS ){
+			if ( RegDeleteKeyW( key, subkey_name ) != ERROR_SUCCESS ){
 
 				throwException( env, "deleteKey", "RegDeleteKey failed" );
 			}
@@ -510,12 +564,12 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteV
 		return;
 	}
 
-	if ( RegOpenKey( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
+	if ( RegOpenKeyW( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
 
 
 		RegCloseKey(subkey);
 
-		if ( SHDeleteValue( key, subkey_name, value_name ) != ERROR_SUCCESS ){
+		if ( SHDeleteValueW( key, subkey_name, value_name ) != ERROR_SUCCESS ){
 
 			throwException( env, "deleteValue", "SHDeleteValue failed" );
 		}
@@ -829,6 +883,57 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readWor
 	return(result);
 }
 
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValueA(
+	JNIEnv		*env,
+	jclass		cla,
+	jint		_type, 
+	jstring		_subkey_name,
+	jstring		_value_name,
+	jint		_value_value )
+{
+	HKEY		key;
+	HKEY		subkey;
+	char		subkey_name[1024];
+	char		value_name[1024];
+	DWORD		value_value	= _value_value;
+
+	key	= mapHKEY( env, _type );
+
+	if ( key == NULL ){
+
+		return;
+	}
+
+	if ( !jstringToCharsA( env, _subkey_name, subkey_name, sizeof( subkey_name ))){
+
+		return;
+	}
+
+	if ( !jstringToCharsA( env, _value_name, value_name, sizeof( value_name ))){
+
+		return;
+	}
+
+
+
+	if ( RegCreateKeyExA( key, subkey_name, 0, REG_NONE, 0, KEY_ALL_ACCESS, NULL, &subkey, NULL ) == ERROR_SUCCESS ){
+
+
+		if ( RegSetValueExA( subkey, value_name, 0, REG_DWORD, (const BYTE*)&value_value, sizeof(DWORD)) == ERROR_SUCCESS){
+
+		}else{
+
+			throwException( env, "writeWordValue", "RegSetValueEx failed" );
+		}
+
+		RegCloseKey(subkey);
+
+	}else{
+
+		throwException( env, "writeWordValue", "RegCreateKeyEx failed" );
+	}
+}
 
 JNIEXPORT void JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeStringValueA(
@@ -1146,6 +1251,22 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeSt
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeStringValueA( env, cla, _type, _subkey_name, _value_name, _value_value );
 	}else{
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeStringValueW( env, cla, _type, _subkey_name, _value_name, _value_value );
+	}
+}
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValue(
+	JNIEnv		*env,
+	jclass		cla,
+	jint		_type, 
+	jstring		_subkey_name,
+	jstring		_value_name,
+	jint		_value_value )
+{
+	if ( non_unicode ){
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValueA( env, cla, _type, _subkey_name, _value_name, _value_value );
+	}else{
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValueW( env, cla, _type, _subkey_name, _value_name, _value_value );
 	}
 }
 

@@ -76,6 +76,16 @@ AEWin32AccessInterface
 		throws AEWin32AccessExceptionImpl;
 	
 	protected static native void
+	writeWordValue(
+		int		type,		// HKEY type from above
+		String	subkey,
+		String	value_name,
+		int		value_value )
+	
+		throws AEWin32AccessExceptionImpl;
+	
+
+	protected static native void
 	deleteKey(
 		int		type,
 		String	subkey,

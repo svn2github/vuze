@@ -69,6 +69,18 @@ PlatformManager
 	
 		throws PlatformManagerException;
 
+		/**
+		 * enable or disable the platforms support for TCP TOS
+		 * @param enabled
+		 * @throws PlatformManagerException
+		 */
+	
+	public void
+	setTCPTOSEnabled(
+		boolean		enabled )
+		
+		throws PlatformManagerException;
+
     /**
      * <p>Gets whether the platform manager supports a capability</p>
      * <p>Users of PlatformManager should check for supported capabilities before calling

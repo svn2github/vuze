@@ -49,6 +49,14 @@ JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
 
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    writeWordValue
+ * Signature: (ILjava/lang/String;Ljava/lang/String;I)V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeWordValue
+  (JNIEnv *, jclass, jint, jstring, jstring, jint);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
  * Method:    deleteKey
  * Signature: (ILjava/lang/String;Z)V
  */
