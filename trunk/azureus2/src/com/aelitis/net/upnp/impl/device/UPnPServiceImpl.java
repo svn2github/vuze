@@ -57,7 +57,7 @@ UPnPServiceImpl
 	{
 		device		= _device;
 		
-		service_type 		= service_node.getChild("ServiceType").getValue();
+		service_type 		= service_node.getChild("ServiceType").getValue().trim();
 		
 		desc_url	= device.getAbsoluteURL(service_node.getChild("SCPDURL").getValue());
 		

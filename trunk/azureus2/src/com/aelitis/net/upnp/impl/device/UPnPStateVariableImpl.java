@@ -46,7 +46,7 @@ UPnPStateVariableImpl
 	{
 		service	= _service;
 		
-		name	= node.getChild( "name" ).getValue();
+		name	= node.getChild( "name" ).getValue().trim();
 	}
 
 	public String

@@ -56,8 +56,8 @@ UPnPDeviceImpl
 	{
 		root_device		= _root_device;
 		
-		device_type		= device_node.getChild("DeviceType").getValue();
-		friendly_name	= device_node.getChild("FriendlyName").getValue();
+		device_type		= device_node.getChild("DeviceType").getValue().trim();
+		friendly_name	= device_node.getChild("FriendlyName").getValue().trim();
 		
 		boolean	interested = device_type.equalsIgnoreCase( "urn:schemas-upnp-org:device:WANConnectionDevice:1" );
 		
