@@ -48,7 +48,7 @@ public class SystemProperties {
     
     if ( userhome != null ){
     	
-    	LGLogger.log("SystemProperties::getUserPath: user.home overridden to '" + userhome +"'" );
+    	System.out.println("SystemProperties::getUserPath: user.home overridden to '" + userhome +"'" );
     	
     	home_overridden	= true;
     	
@@ -56,7 +56,7 @@ public class SystemProperties {
     	
     	userhome = System.getProperty("user.home");
     	
-    	LGLogger.log( "SystemProperties::getUserPath: user.home = " + userhome );
+    	System.out.println( "SystemProperties::getUserPath: user.home = " + userhome );
     }
     
     String OS = System.getProperty("os.name").toLowerCase();
@@ -99,7 +99,6 @@ public class SystemProperties {
             }
           }
         } catch (Exception e) {
-          LGLogger.log(e);
           e.printStackTrace();
         }
       }
@@ -110,18 +109,18 @@ public class SystemProperties {
       
       user_path = user_dir_win + SEP + AZ_DIR + SEP;
       
-      LGLogger.log( "SystemProperties::getUserPath(Win): user_path = " + user_path );
+      System.out.println( "SystemProperties::getUserPath(Win): user_path = " + user_path );
     }else if ( OS.indexOf("mac os x") >= 0 ) {
     	
       user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
       
-      LGLogger.log( "SystemProperties::getUserPath(Mac): user_path = " + user_path );
+      System.out.println( "SystemProperties::getUserPath(Mac): user_path = " + user_path );
     
     }else{
     	
       user_path = userhome + SEP + AZ_DIR + SEP;
       
-      LGLogger.log( "SystemProperties::getUserPath(Unix): user_path = " + user_path );
+      System.out.println( "SystemProperties::getUserPath(Unix): user_path = " + user_path );
     }
     
     //if the directory doesn't already exist, create it
@@ -183,7 +182,7 @@ public class SystemProperties {
     
     	String system_encoding = LocaleUtil.getSystemEncoding();
     	
-        LGLogger.log( "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
+        System.out.println( "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
 
     	br = new BufferedReader( new InputStreamReader( p.getInputStream(), system_encoding), 8192);
     	String line;
@@ -192,7 +191,7 @@ public class SystemProperties {
     		String key = line.substring( 0, idx );
     		String value = line.substring( idx+1 );
     		
-    		LGLogger.log( "\t" + key + " = " + value );
+    		System.out.println( "\t" + key + " = " + value );
     		envVars.setProperty( key, value );
     	}
       br.close();
