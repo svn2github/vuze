@@ -137,7 +137,6 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label.setLayoutData(formData);
 
      
-    
     BooleanParameter slowConnect = new BooleanParameter(cTransfer, "Slow Connect", true, "ConfigView.label.slowconnect");
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxClientsTotal.getControl(), 10);
@@ -148,9 +147,26 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.top = new FormAttachment(slowConnect.getControl());
     oldPolling.setLayoutData(formData);
     
-    BooleanParameter allowSameIP = new BooleanParameter(cTransfer, "Allow Same IP Peers", false, "ConfigView.label.allowsameip");
+    
+    IntParameter MTUSize = new IntParameter(cTransfer, "MTU.Size"); 
     formData = new FormData();
     formData.top = new FormAttachment(oldPolling.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(0,50);
+    MTUSize.setLayoutData(formData);
+
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.mtu_size");
+    formData = new FormData();
+    formData.top = new FormAttachment(oldPolling.getControl(),5);
+    formData.left = new FormAttachment(MTUSize.getControl());
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
+    label.setLayoutData(formData);
+    
+    
+    BooleanParameter allowSameIP = new BooleanParameter(cTransfer, "Allow Same IP Peers", false, "ConfigView.label.allowsameip");
+    formData = new FormData();
+    formData.top = new FormAttachment(MTUSize.getControl(), 10);
     allowSameIP.setLayoutData(formData);
     
     BooleanParameter firstPiece = new BooleanParameter(cTransfer, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
