@@ -184,9 +184,8 @@ IpFilterImpl
 				  String endIp = new String((byte[])range.get("end"));
 		        
 				  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
-				  if(ipRange.isValid()){
-					new_ipRanges.add(ipRange);
-				  }
+
+				  addRange( ipRange );
 				}
 				bin.close();
 				fin.close();
