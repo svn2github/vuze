@@ -74,6 +74,11 @@ public class ConfigView extends AbstractIView {
 	  	900, 1200, 1800, 2400, 3000, 3600, 
 	  	7200, 10800, 14400, 21600, 43200, 86400,
 	  };
+	  
+  private static final int logFileSizes[] =
+		 {
+		   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100,
+		 };
 
   IpFilter filter;
 
@@ -1194,11 +1199,11 @@ public class ConfigView extends AbstractIView {
 		
 		label = new Label(gLogging, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.logging.enable"); //$NON-NLS-1$
-		BooleanParameter enableStats = new BooleanParameter(gLogging, "Logging Enable", false); //$NON-NLS-1$
+		BooleanParameter enableLogging = new BooleanParameter(gLogging, "Logging Enable", false); //$NON-NLS-1$
 
 		label = new Label(gLogging, SWT.NULL);
 
-	  Control[] controls = new Control[7];
+	    Control[] controls = new Control[4];
    
 		   // row
 		
@@ -1207,14 +1212,15 @@ public class ConfigView extends AbstractIView {
 
 		gridData = new GridData();
 		gridData.widthHint = 150;
-	  final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
-	  pathParameter.setLayoutData(gridData);
-	  controls[0] = lStatsPath;
-	  controls[1] = pathParameter.getControl();
-	  Button browse = new Button(gLogging, SWT.PUSH);
-	  Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
-	  controls[2] = browse;
-	  browse.addListener(SWT.Selection, new Listener() {
+		
+	    final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+	    pathParameter.setLayoutData(gridData);
+	    controls[0] = lStatsPath;
+	    controls[1] = pathParameter.getControl();
+	    Button browse = new Button(gLogging, SWT.PUSH);
+	    Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
+	    controls[2] = browse;
+	    browse.addListener(SWT.Selection, new Listener(){
 		 /* (non-Javadoc)
 		  * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 		  */
@@ -1229,6 +1235,22 @@ public class ConfigView extends AbstractIView {
 		   }
 		 }
 	   });
+ 
+	   Label lMaxLog = new Label(gLogging, SWT.NULL);
+		
+	   Messages.setLanguageText(lMaxLog, "ConfigView.section.logging.maxsize"); 
+	   final String lmLabels[] = new String[logFileSizes.length];
+	   final int lmValues[] = new int[logFileSizes.length];
+	   for (int i = 0; i < logFileSizes.length; i++) {
+		   int	num = logFileSizes[i];
+			
+		   lmLabels[i] = " " + num + " MB";
+				
+		   lmValues[i] = num;
+	   }
+	
+	   controls[3] = new IntListParameter(gLogging, "Logging Max Size", 0, lmLabels, lmValues).getControl();  
+	   enableLogging.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
  
 	   itemLogging.setControl(gLogging);
 	  }

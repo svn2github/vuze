@@ -36,6 +36,8 @@ public class
 LGLoggerImpl
 {
 	public static final String		LOG_FILE_NAME	= "az.log";
+	public static final String		BAK_FILE_NAME	= "az.log.bak";
+	
 	public static final String		NL = "\r\n";
 	
 	private static boolean			initialised = false;
@@ -44,6 +46,7 @@ LGLoggerImpl
 
 	private static boolean			log_to_file		= false;
 	private static String			log_dir			= "";
+	private static int				log_file_max	= 1;		// MB
 	
 	public static synchronized void
 	initialise()
@@ -88,9 +91,11 @@ LGLoggerImpl
 	protected static void
 	checkLoggingConfig()
 	{
-		log_to_file = COConfigurationManager.getBooleanParameter("Logging Enable", false );
+		log_to_file 	= COConfigurationManager.getBooleanParameter("Logging Enable", false );
 		
-		log_dir		= COConfigurationManager.getStringParameter("Logging Dir", "" );
+		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
+		
+		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
 	}
 
 	public static synchronized void 
@@ -141,16 +146,18 @@ LGLoggerImpl
 			
 			PrintWriter	pw = null;
 			
+			File	file_name = new File( log_dir + File.separator + LOG_FILE_NAME );
+			
 			try{		
-			
-				String file_name = log_dir + File.separator + LOG_FILE_NAME;
-			
+						
 				pw = new PrintWriter(new FileWriter( file_name, true ));
 			
 				pw.print( str );
 				
 			}catch( Throwable e ){
+				
 				// can't log this as go recursive!!!!
+				
 			}finally{
 				
 				if ( pw != null ){
@@ -158,8 +165,29 @@ LGLoggerImpl
 					try{
 					
 						pw.close();
+						
 					}catch( Throwable e ){
-							// can't log as go recursive!!!!
+						
+						// can't log as go recursive!!!!
+					}
+					
+					long	max_bytes = (log_file_max*1024*1024)/2;	// two files so half
+					
+					if ( file_name.length() > max_bytes ){
+						
+						File	back_name = new File( log_dir + File.separator + BAK_FILE_NAME );
+						
+						if ( (!back_name.exists()) || back_name.delete()){
+						
+							if ( !file_name.renameTo( back_name )){
+								
+								file_name.delete();
+							}
+							
+						}else{
+							
+							file_name.delete();
+						}
 					}
 				}
 			}
