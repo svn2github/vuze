@@ -149,7 +149,7 @@ TOTorrentDeserialiseImpl
 							
 					String url_str = readStringFromMetaData( meta_data, TK_ANNOUNCE );
 					
-					url_str.replaceAll( " ", "" );
+					url_str=url_str.replaceAll( " ", "" );
 					
 					try{
 					
@@ -181,7 +181,7 @@ TOTorrentDeserialiseImpl
 			
 									String url_str = readStringFromMetaData((byte[])set.get(j));
 									
-									url_str.replaceAll( " ", "" );
+									url_str=url_str.replaceAll( " ", "" );
 											
 									urls.add( new URL( url_str ));		
 							
