@@ -85,6 +85,7 @@ TRTrackerClientClassicImpl
   
   	private String trackerUrlListString;
   
+  	private byte[]	torrent_hash;
 	private String info_hash = "?info_hash=";
 	private byte[] peerId;
 	private String peer_id = "&peer_id=";
@@ -171,9 +172,11 @@ TRTrackerClientClassicImpl
 	
 	try {
 	
-	  this.info_hash += URLEncoder.encode(new String(_torrent.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		torrent_hash = _torrent.getHash();
+		
+		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
-	  this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 	}catch (UnsupportedEncodingException e){
 		
@@ -880,13 +883,15 @@ TRTrackerClientClassicImpl
  		String	failure_reason = null;
  		
  		try{
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( 6881 );	// TODO:
+ 			int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+ 			
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( lp );
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort());
  			
- 			PRUDPPacket request_packet = new PRUDPPacketRequestConnect(0);
+ 			PRUDPPacket connect_request = new PRUDPPacketRequestConnect(0);
  			
- 			PRUDPPacket reply = handler.sendAndReceive( request_packet, destination );
+ 			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
  			
  			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
  			
@@ -894,13 +899,52 @@ TRTrackerClientClassicImpl
  				
  				long	my_connection = connect_reply.getConnectionId();
  			
- 				request_packet = new PRUDPPacketRequestAnnounce( my_connection );
+ 				PRUDPPacketRequestAnnounce announce_request = new PRUDPPacketRequestAnnounce( my_connection );
  		
- 				reply = handler.sendAndReceive( request_packet, destination );
+ 					// bit of a hack this...
+ 				
+ 				String	url_str = reqUrl.toString();
+ 				
+ 				int		p_pos = url_str.indexOf("?");
+ 				
+ 				url_str	= url_str.substring(p_pos+1);
+ 				
+ 				String event_str = getURLParam( url_str, "event" );
+ 				
+ 				int	event = PRUDPPacketRequestAnnounce.EV_UPDATE;
+ 				
+ 				if ( event_str != null ){
+ 					
+ 					if ( event_str.equals( "started" )){
+ 						
+ 						event = PRUDPPacketRequestAnnounce.EV_STARTED;
+ 						
+ 					}else if ( event_str.equals( "stopped" )){
+ 						
+ 						event = PRUDPPacketRequestAnnounce.EV_STOPPED;
+ 						
+ 					}else if ( event_str.equals( "completed" )){
+ 						
+ 						event = PRUDPPacketRequestAnnounce.EV_COMPLETED;
+ 					}
+ 				}
+ 				
+ 				announce_request.setDetails(
+ 					torrent_hash,
+ 					peerId,
+					getLongURLParam( url_str, "downloaded" ), 
+					event,
+					(int)getLongURLParam( url_str, "numwant" ), 
+					getLongURLParam( url_str, "left" ), 
+					(short)getLongURLParam( url_str, "port" ),
+					getLongURLParam( url_str, "uploaded" ));
+ 				
+ 				reply = handler.sendAndReceive( announce_request, destination );
  			
  				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
  					
  					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
+ 					
  					
  					// TODO:
  				}else{
@@ -918,6 +962,43 @@ TRTrackerClientClassicImpl
  		}
  		
  		return( failure_reason );
+ 	}
+ 	
+ 	protected long
+ 	getLongURLParam(
+ 		String		url,
+		String		param )
+ 	{
+ 		String	val = getURLParam( url, param );
+ 		
+ 		if( val == null ){
+ 			
+ 			return(0);
+ 		}
+ 		
+ 		return( Long.parseLong( val ));
+ 	}
+ 	
+ 	protected String
+ 	getURLParam(
+ 		String		url,
+		String		param )
+ 	{
+ 		int	p1 = url.indexOf( param + "=" );
+ 		
+ 		if ( p1 == -1 ){
+ 			
+ 			return( null );
+ 		}
+ 		
+ 		int	p2 = url.indexOf( "&", p1 );
+ 		
+ 		if ( p2 == -1 ){
+ 			
+ 			return( url.substring(p1+param.length()+1));
+ 		}
+ 		
+ 		return( url.substring(p1+param.length()+1,p2));
  	}
  	
   protected String
