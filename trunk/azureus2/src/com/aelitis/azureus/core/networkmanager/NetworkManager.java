@@ -62,31 +62,24 @@ public class NetworkManager {
   
   /**
    * Create a new unconnected remote peer connection (for outbound-initiated connections).
-   * @param remote_address ip address or hostname of remote peer
-   * @param remote_port to connect to
+   * @param remote_address to connect to
    * @return a new connection
    */
-  public Connection createNewConnection( ConnectionOwner owner, String remote_address, int remote_port ) {
-    if( remote_port < 0 || remote_port > 65535 ) {
-      Debug.out( "remote_port invalid: " + remote_port );
-      remote_port = 0;
-    }
-    Connection conn = new Connection( owner, new InetSocketAddress( remote_address, remote_port ) );
-    return conn;
+  public Connection createNewConnection( InetSocketAddress remote_address ) { 
+    return new Connection( remote_address );
   }
   
   
   
   /**
    * Request the acceptance and routing of new incoming connections that match the given initial byte sequence.
-   * @param owner of connection
    * @param matcher initial byte sequence used for routing
    * @param listener for handling new inbound connections
    */
-  public void requestIncomingConnectionRouting( final ConnectionOwner owner, ByteMatcher matcher, final RoutingListener listener ) {
+  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener ) {
     incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
       public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-        listener.connectionRouted( new Connection( owner, channel, read_so_far ) );
+        listener.connectionRouted( new Connection( channel, read_so_far ) );
       }
     });
   }

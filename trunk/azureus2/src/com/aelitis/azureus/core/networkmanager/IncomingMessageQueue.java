@@ -20,14 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging;
+package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 
@@ -101,8 +101,8 @@ public class IncomingMessageQueue {
           handled = handled || mql.messageReceived( msg );
         }
         
-        if( !handled ) {  //this should never happen
-          Debug.out( "no registered listeners handled decoded message!" );
+        if( !handled ) {  //this should not happen
+          Debug.out( "no registered listeners handled decoded message [" +msg.getDescription()+ "]" );
           DirectByteBuffer[] buffs = msg.getData();
           for( int x=0; x < buffs.length; x++ ) {
             buffs[ x ].returnToPool();

@@ -23,7 +23,7 @@
 package org.gudy.azureus2.core3.peer.impl.transport;
 
 /**
- * @author parg
+ * CURRENTLY UNUSED
  *
  */
 
@@ -31,13 +31,9 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-import com.aelitis.azureus.core.networkmanager.TransportDebugger;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
-
 
 public class 
 PEPeerTransportDebugger
-	implements TransportDebugger
 {
 	protected int	piece_length;
 	

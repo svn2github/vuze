@@ -28,16 +28,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 
-import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
 /**
- * Represents a managed peer connection,
- * over which protocol messages can be sent and received.
+ * Represents a managed peer connection, over which messages can be sent and received.
  */
 public class Connection {
-  private final ConnectionOwner	owner;
   private final InetSocketAddress remote_address;
   private final TCPTransport tcp_transport;
   private ConnectionListener connection_listener;
@@ -55,10 +52,9 @@ public class Connection {
    * The connection is not yet established upon instantiation; use connect() to do so.
    * @param _remote_address to connect to
    */
-  protected Connection( ConnectionOwner	_owner, InetSocketAddress _remote_address ) {
-  	owner = _owner;
+  protected Connection( InetSocketAddress _remote_address ) {
     remote_address = _remote_address;
-    tcp_transport = new TCPTransport( owner.getTransportOwner() );
+    tcp_transport = new TCPTransport();
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
     incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
@@ -68,14 +64,12 @@ public class Connection {
   /**
    * Constructor for new INbound connection.
    * The connection is assumed to be already established, by the given already-connected channel.
-   * @param _owner of connection
    * @param _remote_channel connected by
    * @param data_already_read bytestream already read during routing
    */
-  protected Connection( ConnectionOwner _owner, SocketChannel _remote_channel, ByteBuffer data_already_read ) {
-  	owner	= _owner;
+  protected Connection( SocketChannel _remote_channel, ByteBuffer data_already_read ) {
     remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
-    tcp_transport = new TCPTransport( owner.getTransportOwner(), _remote_channel, data_already_read );
+    tcp_transport = new TCPTransport( _remote_channel, data_already_read );
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
     incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
@@ -114,13 +108,7 @@ public class Connection {
     });
   }
   
-  
-  /**
-   * Tells whether or not this connection's transport is connected,
-   * i.e. the connection has been successfully established.
-   * @return true if connected, false if not yet connected
-   */
-  public boolean isConnected() {  return is_connected;  }
+
   
   
   /**

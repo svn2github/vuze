@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.messaging;
 
+import com.aelitis.azureus.core.networkmanager.RawMessage;
+
 /**
  * Encodes messages into a raw message stream format for sending.
  */

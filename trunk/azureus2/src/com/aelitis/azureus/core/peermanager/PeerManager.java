@@ -109,17 +109,7 @@ public class PeerManager {
     
     
     //register for incoming connection routing   
-    NetworkManager.getSingleton().requestIncomingConnectionRouting( new ConnectionOwner() {
-      public TransportOwner getTransportOwner() {
-        return new TransportOwner() {
-          public TransportDebugger getDebugger() {  return null;  }  //no write debugging
-        };
-      }
-    },
-    
-    matcher,
-    
-    new NetworkManager.RoutingListener() {
+    NetworkManager.getSingleton().requestIncomingConnectionRouting( matcher, new NetworkManager.RoutingListener() {
       public void connectionRouted( Connection connection ) {
         LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
         manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, connection ) );

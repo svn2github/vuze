@@ -51,7 +51,6 @@ public class TCPTransport {
   
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
   private String description = "<disconnected>";
-  private TransportDebugger		transport_debugger;
   private ByteBuffer data_already_read = null;
   private final boolean is_inbound_connection;
   
@@ -63,29 +62,26 @@ public class TCPTransport {
   /**
    * Constructor for disconnected transport.
    */
-  public TCPTransport( TransportOwner _owner ) {
+  public TCPTransport() {
     socket_channel = null;
     is_connected = false;
     is_ready_for_write = false;
     is_inbound_connection = false;
-    transport_debugger	= _owner.getDebugger();
   }
   
   
   /**
    * Constructor for connected transport.
-   * @param _owner of transport
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  protected TCPTransport( TransportOwner _owner, SocketChannel channel, ByteBuffer already_read ) {
+  protected TCPTransport( SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
     this.data_already_read = already_read;   
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
     is_inbound_connection = true;  //well, true only if the given socket was actually accepted
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
-    transport_debugger = _owner.getDebugger();
   }
   
   /**
@@ -155,10 +151,7 @@ public class TCPTransport {
     
       if( enable_efficient_write ) {
         try {
-          long written = transport_debugger==null?
-          					socket_channel.write( buffers, array_offset, length ):
-          					transport_debugger.write( socket_channel, buffers, array_offset, length );
-          					
+          long written = socket_channel.write( buffers, array_offset, length );		
           if( written < 1 )  requestWriteSelect();
           return written;
         }
@@ -180,9 +173,7 @@ public class TCPTransport {
       long written_sofar = 0;
       for( int i=array_offset; i < (array_offset + length); i++ ) {
         int data_length = buffers[ i ].remaining();
-        int written = transport_debugger==null?
-        					socket_channel.write( buffers[ i ] ):
-        					transport_debugger.write( socket_channel, buffers[i] );
+        int written = socket_channel.write( buffers[ i ] );
         written_sofar += written;
         if( written < data_length ) {
           break;

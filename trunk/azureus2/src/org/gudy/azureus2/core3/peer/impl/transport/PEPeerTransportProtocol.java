@@ -21,6 +21,7 @@
 package org.gudy.azureus2.core3.peer.impl.transport;
 
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -44,7 +45,7 @@ import com.aelitis.azureus.core.peermanager.utils.*;
 
 public class 
 PEPeerTransportProtocol
-	implements PEPeerTransport, ConnectionOwner
+	implements PEPeerTransport
 {
  
 	private PEPeerControl manager;
@@ -184,7 +185,12 @@ PEPeerTransportProtocol
     
     init();
     
-    connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, ip, port );
+    if( port < 0 || port > 65535 ) {
+      Debug.out( "given remote port invalid: " + port );
+      closeAll( "Given remote port is invalid: " + port, false, false );
+    }
+    
+    connection = NetworkManager.getSingleton().createNewConnection( new InetSocketAddress( ip, port ) );
       
     current_peer_state = PEPeer.CONNECTING;
     
@@ -802,24 +808,6 @@ PEPeerTransportProtocol
 	}
 	
   
-	public TransportOwner
-	getTransportOwner()
-	{
-		return( new TransportOwner()
-				{
-					public TransportDebugger
-					getDebugger()
-					{
-						if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
-							
-							return( new PEPeerTransportDebugger( PEPeerTransportProtocol.this ));
-						}
-						
-						return( null );
-					}
-			
-				});
-	}
   
   
   public void doKeepAliveCheck() {

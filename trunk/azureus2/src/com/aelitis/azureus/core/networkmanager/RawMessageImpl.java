@@ -20,9 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging;
+package com.aelitis.azureus.core.networkmanager;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 
 /**

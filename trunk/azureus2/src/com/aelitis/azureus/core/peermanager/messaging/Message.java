@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
  * Basic peer message.
- * A message type is uniquely identified by the combination of ID and version.
+ * A message is uniquely identified by the combination of ID and version.
  */
 public interface Message { 
   
