@@ -17,10 +17,11 @@ public class FileChecker {
     if (args.length < 2)
       usage();
     StringBuffer metaInfo = new StringBuffer();
+    FileInputStream fis = null;
     try {
       byte[] buf = new byte[1024];
       int nbRead;
-      FileInputStream fis = new FileInputStream(args[0]);
+      fis = new FileInputStream(args[0]);
       while ((nbRead = fis.read(buf)) > 0)
         metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1"));
       Map metaData =
@@ -44,6 +45,12 @@ public class FileChecker {
       diskManager.stopIt();
     } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      try {
+        if (fis != null)
+          fis.close();
+      } catch (Exception e) {
+      }
     }
   }
 
