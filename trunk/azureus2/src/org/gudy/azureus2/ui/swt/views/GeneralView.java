@@ -539,28 +539,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     comment.setLayoutData(gridData);
  
     
-    fileImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0) {
-          updateOverall(true);
-        }
-      }
-    });
-    piecesImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0) {
-          updatePiecesInfo(true);
-        }
-      }
-    });
-    availabilityImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0) {
-          updateAvailability();
-        }
-      }
-    });
-
     if(System.getProperty("os.name").equals("Mac OS X")) {
       Shell shell = MainWindow.getWindow().getShell();
       Point size = shell.getSize();
@@ -570,6 +548,28 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
+
+    fileImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updateOverall(true);
+        }
+      }
+    });
+    piecesImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updatePiecesInfo(true);
+        }
+      }
+    });
+    availabilityImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updateAvailability();
+        }
+      }
+    });
 
     COConfigurationManager.addParameterListener("Graphics Update", this);
   }
