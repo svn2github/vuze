@@ -121,11 +121,11 @@ TRTrackerClientClassicImpl
 	  peerId[i] = version[i];
     }
     
+   String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	for (int i = 8; i < 20; i++) {
-	  peerId[i] = (byte)(Math.random() * 254);
+	  int pos = (int) ( Math.random() * chars.length());
+     peerId[i] = (byte)chars.charAt(pos);
 	}
-
-		// System.out.println("TrackerClient: new peer - " + ByteFormatter.nicePrint(peerId));
 	
 	try {
 	
