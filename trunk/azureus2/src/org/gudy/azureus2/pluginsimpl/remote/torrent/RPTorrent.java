@@ -47,6 +47,8 @@ RPTorrent
 	
 	public String		name;
 	public long			size;
+	public byte[]		hash;
+	
 	
 	public static RPTorrent
 	create(
@@ -79,6 +81,7 @@ RPTorrent
 		
 		name		= delegate.getName();
 		size		= delegate.getSize();
+		hash		= delegate.getHash();
 	}
 	
 	public Object
@@ -138,9 +141,7 @@ RPTorrent
 	public byte[]
 	getHash()
 	{
-		notSupported();
-		
-		return(null);
+		return( hash );
 	}	
 	
 	public long

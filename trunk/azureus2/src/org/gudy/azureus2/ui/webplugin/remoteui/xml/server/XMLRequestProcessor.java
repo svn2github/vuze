@@ -31,6 +31,7 @@ import java.io.*;
 import java.net.*;
 import java.lang.reflect.*;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.pluginsimpl.remote.*;
@@ -356,22 +357,33 @@ XMLRequestProcessor
 			
 			int	len = Array.getLength( obj );
 			
-			for (int i=0;i<len;i++){
+				// byte[] -> hex chars
+			
+			if ( cla.getComponentType() == byte.class ){
+			
+				byte[] data = (byte[])obj;
 				
-				Object	entry = Array.get( obj, i );
+				writeLine( ByteFormatter.nicePrint( data, true ));
 				
-				try{
-					writeLine( "<ENTRY index=\""+i+"\">" );
-					
-					indent();
+			}else{
 				
-					serialiseObject( entry, indent+"  ");
+				for (int i=0;i<len;i++){
 					
-				}finally{
+					Object	entry = Array.get( obj, i );
 					
-					exdent();
+					try{
+						writeLine( "<ENTRY index=\""+i+"\">" );
+						
+						indent();
 					
-					writeLine( "</ENTRY>");
+						serialiseObject( entry, indent+"  ");
+						
+					}finally{
+						
+						exdent();
+						
+						writeLine( "</ENTRY>");
+					}
 				}
 			}
 			

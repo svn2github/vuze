@@ -80,7 +80,7 @@ XMLHTTPClient
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
 				
-				
+				/* config stuff
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -105,7 +105,8 @@ XMLHTTPClient
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
 
-
+				*/
+				
 				/* stuff for adding a torrent
 				 
 				res = sendRequest( 
@@ -157,7 +158,7 @@ XMLHTTPClient
 				res.print();
 				*/
 				
-				/*
+				
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
@@ -168,6 +169,7 @@ XMLHTTPClient
 			
 				res.print();
 				
+				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
 				
 				for (int i=0;i<kids.length;i++){
