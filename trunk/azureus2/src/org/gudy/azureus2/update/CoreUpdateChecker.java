@@ -43,7 +43,7 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
-import com.aelitis.azureus.core.clientstats.*;
+import com.aelitis.azureus.core.versioncheck.*;
 
 public class 
 CoreUpdateChecker

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.clientstats;
+package com.aelitis.azureus.core.versioncheck;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
