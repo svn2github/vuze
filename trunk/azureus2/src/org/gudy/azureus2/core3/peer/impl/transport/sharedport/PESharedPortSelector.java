@@ -76,7 +76,7 @@ PESharedPortSelector
 			
 			try {
         				
-				int select_res = selector.select(1000);
+				int select_res = selector.select(500);
 
 LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select, count = " + select_res);
 			 			   
@@ -218,6 +218,9 @@ LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select, count = " + select
 						}	
 				  	}				
 			  	}
+          
+			  	Thread.sleep(500);
+          
 			}catch( Throwable e ){
 				
 					// we should never get here - possible nio bug producing null pointer
