@@ -56,7 +56,11 @@ AEMonitor
 	
 	private static long	monitor_id_next;
 	
-	private static Map 	debug_traces	= new HashMap();
+	private static Map 	debug_traces		= new HashMap();
+	private static List	debug_recursions	= new ArrayList();
+	private static List	debug_reciprocals	= new ArrayList();
+	
+	
 	
 	private static Map	debug_name_mapping		= new WeakHashMap();
 	private static Map	debug_monitors			= new WeakHashMap();
@@ -85,7 +89,7 @@ AEMonitor
 	{
 		synchronized( AEMonitor.class ){
 
-			System.out.println( "AEMonitor: id = " + monitor_id_next + ", monitors = " + debug_monitors.size() + ", names = " + debug_name_mapping.size());
+			System.out.println( "AEMonitor: id = " + monitor_id_next + ", monitors = " + debug_monitors.size() + ", names = " + debug_name_mapping.size() + ", traces = " + debug_traces.size());
 
 		
 			Iterator 	it = debug_monitors.keySet().iterator();
@@ -172,24 +176,111 @@ AEMonitor
 				// A(inst1) -> A(inst2)
 			
 			Stack	stack = (Stack)tls.get();
-			
-			stack.push( this );
-					
-			String	str = "";
-
-			for (int i=0;i<stack.size();i++){
-			
-				str += (i==0?"":",") + ((AEMonitor)stack.get(i)).name;
-			}
-			
-			synchronized( debug_traces ){
+						
+			if ( !stack.isEmpty()){
 				
-				if ( debug_traces.get(str) == null ){
-			
-					// System.out.println( "AEMonitor: " + str );
+				StringBuffer	sb = new StringBuffer();
+	
+				boolean	check_recursion = !debug_recursions.contains( name );
+				
+				String	prev_name	= null;
+				
+				for (int i=0;i<stack.size();i++){
+				
+					AEMonitor	mon = (AEMonitor)stack.get(i);
 					
-					debug_traces.put( str, str );
+					if ( check_recursion ){
+						if ( 	mon.name.equals( name ) &&
+								mon != this ){
+							
+							Debug.out( "AEMonitor: recursive locks on different monitor instances: " + name );
+							
+							debug_recursions.add( name );
+						}
+					}
+	
+						// remove consecutive duplicates
+					
+					if ( prev_name == null || !mon.name.equals( prev_name )){
+						
+						sb.append("$");
+						sb.append(mon.name);
+					}
+					
+					prev_name	= mon.name;
 				}
+				
+				sb.append( "$" );
+				sb.append( name );
+				sb.append( "$" );
+				
+				String trace_key = sb.toString();
+				
+				stack.push( this );
+
+				synchronized( debug_traces ){
+								
+					if ( debug_traces.get(trace_key) == null ){
+					
+						String	thread_name	= Thread.currentThread().getName();
+						String	stack_trace	= Debug.getCompressedStackTrace(2);
+						
+						Iterator	it = debug_traces.keySet().iterator();
+					
+						while( it.hasNext()){
+							
+							String	key = (String)it.next();
+							
+							String[]	data = (String[])debug_traces.get(key);
+							
+							String	old_thread_name	= data[0];
+							String	old_trace		= data[1];
+							
+							for (int i=0;i<stack.size();i++){
+								
+								for (int j=i+1;j<stack.size();j++){
+									
+									String	n1 = ((AEMonitor)stack.get(i)).name;
+									String	n2 = ((AEMonitor)stack.get(j)).name;
+									
+										// same object recursion already tested above
+									
+									if ( !n1.equals( n2 )){
+									
+										int	p1 = key.indexOf( "$" + n1 + "$");
+										int p2 = key.indexOf( "$" + n2 + "$");
+										
+										if ( p1 != -1 && p2 != -1 && p1 > p2 ){
+											
+											String	reciprocal_log = trace_key + " / " + key;
+											
+											if ( !debug_reciprocals.contains( reciprocal_log )){
+												
+												debug_reciprocals.add( reciprocal_log );
+												
+												System.out.println(
+														"AEMonitor: Reciprocal monitor usage:\n" +
+														"    " + trace_key + "\n" + 
+														"        [" + thread_name + "] " + stack_trace + "\n" +
+														"    " + key + "\n" +
+														"        [" + old_thread_name + "] " + old_trace );
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						debug_traces.put( trace_key, new String[]{ thread_name, stack_trace });
+				
+							// look through all the traces for an A->B and B->A
+					}
+				}
+				
+			}else{
+				
+				stack.push( this );
+				
 			}
 		}
 		

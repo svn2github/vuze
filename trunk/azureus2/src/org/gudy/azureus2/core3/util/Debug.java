@@ -126,6 +126,37 @@ public class Debug {
 		killAWTThreads( threadGroup );
 	}
 	
+	public static String
+	getCompressedStackTrace(
+		int	frames_to_skip )
+	{
+		String	trace_trace_tail	= null;
+	
+	   try {
+	      throw new Exception();
+	    }
+	    catch (Exception e) {
+	    	StackTraceElement[]	st = e.getStackTrace();
+	    		   
+	      for (int i=frames_to_skip;i<st.length;i++){
+	      	
+	      	if ( trace_trace_tail == null ){
+	      		trace_trace_tail = "";
+	      	}else{
+	      		trace_trace_tail += ",";
+	      	}
+	      	
+	      	String cn = st[i].getClassName();
+	      	      	  
+	      	cn = cn.substring( cn.lastIndexOf(".")+1);
+	      	
+	      	trace_trace_tail += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+	      }
+	    }
+	    
+	    return( trace_trace_tail );
+	}
+	
 	public static void
 	killAWTThreads(
 		   ThreadGroup	threadGroup )

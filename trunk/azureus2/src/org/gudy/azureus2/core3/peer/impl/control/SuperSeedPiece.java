@@ -40,7 +40,9 @@ public class SuperSeedPiece {
   //private int numberOfPeersWhenFirstReceived;
   private int timeToReachAnotherPeer;
   
-  private AEMonitor	this_mon	= new AEMonitor( "SuperSeedPiece" );
+  	// use class monitor to reduce number of monitor objects (low contention here)
+  
+  private static AEMonitor	class_mon	= new AEMonitor( "SuperSeedPiece:class" );
   
   
   public SuperSeedPiece(PEPeerControl manager,int _pieceNumber) {
@@ -51,7 +53,7 @@ public class SuperSeedPiece {
   
   public void peerHasPiece(PEPeer peer) {
   	try{
-  		this_mon.enter();
+  		class_mon.enter();
   	
 	    if(level < 2) {
 	      firstReceiver = peer;
@@ -66,7 +68,7 @@ public class SuperSeedPiece {
 	    level = 2;
   	}finally{
   		
-  		this_mon.exit();
+  		class_mon.exit();
   	}
   }
   
@@ -76,12 +78,12 @@ public class SuperSeedPiece {
   
   public void pieceRevealedToPeer() {
   	try{
-  		this_mon.enter();
+  		class_mon.enter();
   
   		level = 1;
   	}finally{
   		
-  		this_mon.exit();
+  		class_mon.exit();
   	}
   }
   /**
