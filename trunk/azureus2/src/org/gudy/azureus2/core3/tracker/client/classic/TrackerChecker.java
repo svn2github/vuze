@@ -196,7 +196,7 @@ public class TrackerChecker {
 
           ts.updateSingleHash(hash);
 
-          try { Thread.sleep(500); } catch (Exception e) {/**/}
+          try { Thread.sleep(25); } catch (Exception e) {/**/}
         }
       }
       else {
