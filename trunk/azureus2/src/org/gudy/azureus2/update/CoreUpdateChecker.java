@@ -32,6 +32,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
 
@@ -79,11 +80,7 @@ CoreUpdateChecker
 			
 			if ( COConfigurationManager.getBooleanParameter("Send Version Info")){
 				
-				ResourceDownloader rd = rdf.getRetryDownloader(rdf.create( getVersionURL()), RD_GET_DETAILS_RETRIES );
-				
-				rd.addListener( rd_logger );
-				
-				rd.download();
+				doVersionDownload();
 				
 				log.log( "Anonymous ID usage report ok" );
 			}
@@ -92,24 +89,7 @@ CoreUpdateChecker
 			log.log( "Anonymous ID usage report fails", e );
 		}
 	}
-	
-	protected URL
-	getVersionURL()
-		throws MalformedURLException, UnsupportedEncodingException
-	{
-		String url_str = Constants.AELITIS_WEB_SITE + "version.php";
-		
-		String id = COConfigurationManager.getStringParameter("ID",null);
-		
-		if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
-			
-			url_str += "?id=" + id + 
-							"&version=" + Constants.AZUREUS_VERSION + 
-							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-		}
-		
-		return( new URL( url_str ));
-	}
+
 	
 	public void
 	initialize(
@@ -171,19 +151,7 @@ CoreUpdateChecker
 				
 			}
 					
-			URL url = getVersionURL();
-			
-			ResourceDownloader	rd = rdf.create( url );
-			
-			rd = rdf.getRetryDownloader( rd, RD_GET_DETAILS_RETRIES );
-			
-			rd.addListener( rd_logger );
-			
-			BufferedInputStream	data = new BufferedInputStream(rd.download());
-			
-			Map decoded = BDecoder.decode(data);
-			
-			data.close();
+			Map	decoded = doVersionDownload();
 			
 			String latest_version 			= null;
 			String latest_file_name			= null;
@@ -314,6 +282,74 @@ CoreUpdateChecker
 			
 			checker.completed();
 		}
+	}
+	
+	protected Map
+	doVersionDownload()
+	
+		throws Exception
+	{
+		URL url = getVersionURL();
+		
+		ResourceDownloader	rd = rdf.create( url );
+		
+		rd = rdf.getRetryDownloader( rd, RD_GET_DETAILS_RETRIES );
+		
+		if ( rd_logger != null ){
+			
+			rd.addListener( rd_logger );
+		}
+		
+		BufferedInputStream	data = new BufferedInputStream(rd.download());
+		
+		Map decoded = BDecoder.decode(data);
+		
+		data.close();
+
+			// pick up any user message in the reply
+		
+		try{
+			byte[]	message = (byte[])decoded.get( "message" );
+					
+			if ( message != null ){
+				
+				String	s_message = new String(message);
+				
+				String	last = COConfigurationManager.getStringParameter( "CoreUpdateChecker.lastmessage", "" );
+				
+				if ( !s_message.equals( last )){
+					
+					LGLogger.logAlert( LGLogger.AT_WARNING, s_message );
+					
+					COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
+					
+					COConfigurationManager.save();
+				}
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( decoded );
+	}
+
+	protected URL
+	getVersionURL()
+		throws MalformedURLException, UnsupportedEncodingException
+	{
+		String url_str = Constants.AELITIS_WEB_SITE + "version.php";
+		
+		String id = COConfigurationManager.getStringParameter("ID",null);
+		
+		if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
+			
+			url_str += "?id=" + id + 
+							"&version=" + Constants.AZUREUS_VERSION + 
+							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		}
+		
+		return( new URL( url_str ));
 	}
 	
 	protected ResourceDownloader[]
