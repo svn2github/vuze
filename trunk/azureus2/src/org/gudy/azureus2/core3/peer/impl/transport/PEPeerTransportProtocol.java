@@ -638,6 +638,7 @@ PEPeerTransportProtocol
   }
 
   private void analyseBuffer(ByteBuffer buffer) {
+  	boolean	logging_is_on = LGLogger.isLoggingOn();
 	buffer.position(0);
 	int pieceNumber, pieceOffset, pieceLength;
 	byte cmd = buffer.get();
@@ -647,7 +648,7 @@ PEPeerTransportProtocol
 			  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
 			choked = true;
 			cancelRequests();
 			readMessage(readBuffer);
@@ -657,7 +658,7 @@ PEPeerTransportProtocol
 			  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
 			choked = false;
 			readMessage(readBuffer);
 			break;
@@ -666,7 +667,7 @@ PEPeerTransportProtocol
 			  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
 			interesting = true;
 			readMessage(readBuffer);
 			break;
@@ -675,7 +676,7 @@ PEPeerTransportProtocol
 			  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
 			interesting = false;
 			readMessage(readBuffer);
 			break;
@@ -685,12 +686,12 @@ PEPeerTransportProtocol
 			  break;
 			}
 			pieceNumber = buffer.getInt();
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
 			have(pieceNumber);
 			readMessage(readBuffer);
 			break;
 	  case BT_BITFIELD :
-			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
+	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
 			setBitField(buffer);
 			checkInterested();
 			checkSeed();
@@ -704,11 +705,15 @@ PEPeerTransportProtocol
 			pieceNumber = buffer.getInt();
 			pieceOffset = buffer.getInt();
 			pieceLength = buffer.getInt();
-			LGLogger.log(
-			  componentID,
-			  evtProtocol,
-			  LGLogger.RECEIVED,
-			  ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			
+			if ( logging_is_on ){
+				LGLogger.log(
+					componentID,
+					evtProtocol,
+					LGLogger.RECEIVED,
+					ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			}
+			
 			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
 			  if(!choking) {
 			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
@@ -748,11 +753,13 @@ PEPeerTransportProtocol
 			pieceNumber = buffer.getInt();
 			pieceOffset = buffer.getInt();
 			pieceLength = buffer.limit() - buffer.position();
-			LGLogger.log(
-			  componentID,
-			  evtProtocol,
-			  LGLogger.RECEIVED,
-			  ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			if ( logging_is_on ){
+				LGLogger.log(
+					componentID,
+					evtProtocol,
+					LGLogger.RECEIVED,
+					ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			}
 			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
 			if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
 			  removeRequest( request );
@@ -788,11 +795,13 @@ PEPeerTransportProtocol
 			pieceNumber = buffer.getInt();
 			pieceOffset = buffer.getInt();
 			pieceLength = buffer.getInt();
-			LGLogger.log(
-			  componentID,
-			  evtProtocol,
-			  LGLogger.RECEIVED,
-			  ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			if ( logging_is_on ){
+				LGLogger.log(
+					componentID,
+					evtProtocol,
+					LGLogger.RECEIVED,
+					ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			}
 			removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 			readMessage(readBuffer);
 			break;
