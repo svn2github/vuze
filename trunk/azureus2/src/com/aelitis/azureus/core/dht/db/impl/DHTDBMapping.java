@@ -80,17 +80,19 @@ DHTDBMapping
 	// for a given key
 	//		a) we only hold one entry per sender (IP+port) (latest)
 	//		b) we only hold one entry for a given originator+value pair
-	//		b) we only allow up to 8 entries per sending IP address (excluding port)
-	// 		c) only the originator can delete an entry
+	//		c) we only allow up to 8 entries per sending IP address (excluding port)
 	//		d) if multiple entries have the same value the value is only returned once
+	// 		e) only the originator can delete an entry
 
 	// a) prevents a single sender from filling up the mapping with garbage
 	// b) prevents the same key->value mapping being held multiple times when sent by different caches
 	// c) prevents multiple senders from same IP filling up, but supports multiple machines behind NAT
 	// d) optimises responses.
+	
 	// Note that we can't trust the originator value in cache forwards, we therefore
 	// need to prevent someone from overwriting a valid originator->value1 mapping
-	// with an invalid originator->value2 mapping
+	// with an invalid originator->value2 mapping - that is we can't use uniqueness of
+	// originator
 
 	// a value can be "volatile" - this means that the cacher can ping the originator
 	// periodically and delete the value if it is dead

@@ -1173,18 +1173,28 @@ DHTControlImpl
 										
 										DHTTransportContact	originator = value.getOriginator();
 										
-										if ( !values_found_set.contains( originator.getAddress())){
+											// can't just use originator id as this value can be DOSed (see DB code)
+										
+										byte[]	originator_id 	= originator.getID();
+										byte[]	value_bytes		= value.getValue();
+										
+										byte[]	value_id = new byte[originator_id.length + value_bytes.length];
+										
+										System.arraycopy( originator_id, 0, value_id, 0, originator_id.length );
+										System.arraycopy( value_bytes, 0, value_id, originator_id.length, value_bytes.length );
+										
+										HashWrapper	x = new HashWrapper( value_id );
+
+										if ( !values_found_set.contains( x )){
 											
 											new_values++;
 											
-											values_found_set.add( originator.getAddress());
+											values_found_set.add( x );
 											
-											result_handler.read( originator, values[i] );
+											result_handler.read( contact, values[i] );
 										}
 									}
-									
-										// TODO: remove duplicates 
-									
+											
 									try{
 										contacts_to_query_mon.enter();
 
