@@ -53,6 +53,14 @@ public class PluginConfigImpl
 	public int getIntParameter(String name) {
 		return config.getIntParameter(name);
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
+	 */
+	public int getIntParameter(String name, int default_value) {
+		return config.getIntParameter(name, default_value);
+	}
+
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
