@@ -45,7 +45,8 @@ public class ByteBucket {
    */
   protected ByteBucket( int rate_bytes_per_sec ) {
     this.rate = rate_bytes_per_sec;
-    burst_rate = rate_bytes_per_sec * 2; //allow for twice normal rate
+    //burst_rate = rate_bytes_per_sec * 2; //allow for twice normal rate
+    burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/2);
     avail_bytes = 0; //start bucket empty
     prev_update_time = SystemTime.getCurrentTime();
   }
@@ -89,7 +90,8 @@ public class ByteBucket {
    * @param rate_bytes_per_sec
    */
   protected void setRate( int rate_bytes_per_sec ) {
-    setRate( rate_bytes_per_sec, rate_bytes_per_sec * 2 );
+    //setRate( rate_bytes_per_sec, rate_bytes_per_sec * 2 );
+    setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/2));
   }
   
   
