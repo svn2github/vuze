@@ -300,15 +300,19 @@ public class MyTorrentsView
         cCategories.setEnabled(false);
     }
     else {
-        cCategories.setEnabled(true);
+        boolean enableCombo = false;
         Arrays.sort(categories);
         for (int i = 0; i < categories.length; i++) {
             final Category cat = categories[i];
-            if(cat.getType() == Category.TYPE_USER)
+            if(cat.getType() == Category.TYPE_USER) {
                 cCategories.add(cat.getName());
-            else
+                enableCombo = true;
+            }
+            else {
                 cCategories.add(MessageText.getString(cat.getName()));
+            }
         }
+        cCategories.setEnabled(enableCombo);
     }
 
     cCategoriesListener = new SelectionAdapter() {
@@ -600,7 +604,7 @@ public class MyTorrentsView
         itemPublish.setEnabled(hasSelection);
 
         itemMove.setEnabled(hasSelection);
-        //itemSpeed.setEnabled(hasSelection);   //TODO     
+        itemCategory.setEnabled(hasSelection);     
         itemBar.setEnabled(hasSelection);
 
         itemManualUpdate.setEnabled(hasSelection);
