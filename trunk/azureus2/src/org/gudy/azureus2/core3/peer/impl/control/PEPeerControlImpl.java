@@ -1751,6 +1751,8 @@ PEPeerControlImpl
 
   
   private void pieceChecked(int pieceNumber, boolean result) {
+    if( result ) pieceRemoved(_pieces[pieceNumber]);
+    
     if( _finished ) {  //this is a recheck, so don't send HAVE msgs
       if( result) { //piece ok
         
@@ -1763,8 +1765,6 @@ PEPeerControlImpl
       return;
     }
     
-    
-    this.pieceRemoved(_pieces[pieceNumber]);
     //  the piece has been written correctly
     if (result) {
 
