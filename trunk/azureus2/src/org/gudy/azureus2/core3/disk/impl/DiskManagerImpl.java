@@ -115,6 +115,7 @@ DiskManagerImpl
 	private boolean alreadyMoved = false;
 
   private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
+  private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
 		this.state = INITIALIZING;
@@ -129,7 +130,10 @@ DiskManagerImpl
 			hasher = new SHA1Hasher();
 		} catch (NoSuchAlgorithmException ignore) {/*ignore*/}
     
+    // add configuration parameter listeners
     COConfigurationManager.addParameterListener("Use Resume", this);
+    COConfigurationManager.addParameterListener("Prioritize First Piece", this);
+    
     Thread init = new Thread() {
 			public void run() {
 				initialize();
@@ -1379,8 +1383,10 @@ DiskManagerImpl
 	}
 
 	public void stopIt() {
-		
+        
+		// remove configuration parameter listeners
 		COConfigurationManager.removeParameterListener("Use Resume", this);
+    COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
 		
 		if (writeThread != null)
 			writeThread.stopIt();
@@ -1493,12 +1499,12 @@ DiskManagerImpl
 				}
 
 				//if this is the first piece of the file
-				if (i == fileInfo.getFirstPieceNumber()) {
+				if (firstPiecePriority && i == fileInfo.getFirstPieceNumber()) {
 				  if (fileInfo.isPriority()) completion = 99;
 				  else completion = 97;
 				}
         
-            //if the file is high-priority
+        //if the file is high-priority
 				else if (fileInfo.isPriority()) {
 				  completion = 98;
 				}
@@ -1845,6 +1851,7 @@ DiskManagerImpl
    */
   public void parameterChanged(String parameterName) {
     useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
+    firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   }
 
 }
