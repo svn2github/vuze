@@ -99,6 +99,8 @@ public class Main {
   }
   
   public static void main(String[] args) {
+  	COConfigurationManager.setSystemProperties();
+  	
     initRootLogger();
     CommandLine commands = parseCommands(args, true);
 

@@ -114,8 +114,11 @@ public class Main implements ILocaleUtilChooser {
   }
   
   public static void main(String args[]) {
-  	//Debug.dumpThreads("Entry threads");
   	
+  	COConfigurationManager.setSystemProperties();
+  	
+  	//Debug.dumpThreads("Entry threads");
+ 
   	//Debug.dumpSystemProperties();
   	
     new Main(args);

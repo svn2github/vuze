@@ -29,6 +29,12 @@ public class
 COConfigurationManager 
 {
 	public static void
+	setSystemProperties()
+	{
+		ConfigurationChecker.setSystemProperties();
+	}
+	
+	public static void
 	checkConfiguration()
 	{
 		ConfigurationChecker.checkConfiguration();
