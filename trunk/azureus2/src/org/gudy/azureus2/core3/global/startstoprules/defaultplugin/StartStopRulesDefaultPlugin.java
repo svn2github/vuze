@@ -1087,7 +1087,10 @@ StartStopRulesDefaultPlugin
       if (newQR < 0)
         newQR = 1;
 
-      if (bScrapeResultsOk || newQR >= QR_FIRST_PRIORITY_STARTS_AT)
+      // Don't change the qr if we don't have scrape results
+      // unless we changed to first priority
+      // or unless we are connected to some seeds/peers
+      if (bScrapeResultsOk || newQR >= QR_FIRST_PRIORITY_STARTS_AT || numSeeds > 1 || numPeers > 1)
         setQR(newQR);
 
       return qr;
