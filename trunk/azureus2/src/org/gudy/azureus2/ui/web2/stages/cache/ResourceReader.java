@@ -49,6 +49,7 @@ public class ResourceReader implements EventHandlerIF, WebConst {
       httpRequest req = (httpRequest) item;
       httpResponse resp;
       String fileres = "org/gudy/azureus2/ui/web/template/" + req.getURL();
+      fileres = fileres.replaceAll("//","/");
       if (ClassLoader.getSystemResource(fileres) != null) {
         byte[] buf = new byte[1024];
         InputStream res = ClassLoader.getSystemResourceAsStream(fileres);

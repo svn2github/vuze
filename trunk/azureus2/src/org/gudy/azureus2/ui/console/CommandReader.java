@@ -175,7 +175,7 @@ public class CommandReader extends Reader {
         }
         
       }
-      line.replaceAll("\r", "");
+      line = line.replaceAll("\r", "");
       return line;
     }
   }
