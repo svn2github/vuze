@@ -231,6 +231,14 @@ PluginInterfaceImpl
   	
   	return( id==null?"<none>":id );
   }
+
+  public boolean
+  isMandatory()
+  {
+	String	mand = getPluginProperties().getProperty( "plugin.mandatory");
+	
+	return( mand != null && mand.trim().toLowerCase().equals("true"));
+  }
   
   public Properties getPluginProperties() 
   {
@@ -436,12 +444,12 @@ PluginInterfaceImpl
   	initialiser.reloadPlugin( this );
   }
   
-	public void
+	public boolean
 	uninstall()
 	
 		throws PluginException
 	{
-		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
+		return( PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this ));
 	}
 	
   protected void

@@ -40,11 +40,5 @@ PluginInstaller
 	public StandardPlugin[]
 	getStandardPlugins()
 	
-		throws PluginException;
-	
-	public void
-	install(
-		StandardPlugin		standard_plugin )
-	
-		throws PluginException;
+		throws PluginException;	
 }

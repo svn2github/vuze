@@ -138,10 +138,8 @@ PluginUpdatePlugin
 		for (int i=0;i<plugins.length;i++){
 			
 			PluginInterface	pi = plugins[i];
-			
-			String	mand = pi.getPluginProperties().getProperty( "plugin.mandatory");
-			
-			boolean	pi_mandatory = mand != null && mand.trim().toLowerCase().equals("true");
+						
+			boolean	pi_mandatory = pi.isMandatory();
 						
 			String	id 		= pi.getPluginID();
 			String	version = pi.getPluginVersion();

@@ -27,6 +27,10 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  *
  */
 
+import java.io.File;
+
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
@@ -94,14 +98,71 @@ PluginInstallerImpl
 	public void
 	install(
 		StandardPlugin		standard_plugin )
+	
+		throws PluginException
 	{
+		PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
+
+		if ( pi != null ){
+			
+			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is already installed"));
+		}
 		
+		System.out.println( "install '" + standard_plugin.getId() + "'" );
 	}
 	
-	public void
+	public boolean
+	uninstall(
+		StandardPlugin		standard_plugin )
+	
+		throws PluginException
+	{
+		PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
+		
+		if ( pi == null ){
+			
+			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is not installed"));
+		}
+		
+		return( pi.uninstall());
+	}
+	
+	public boolean
 	uninstall(
 		PluginInterface		pi )
+	
+		throws PluginException
 	{
+		if ( pi.isMandatory()){
+			
+			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
+		}
 		
+		String	plugin_dir = pi.getPluginDirectoryName();
+		
+		if ( plugin_dir == null || !new File(plugin_dir).exists()){
+
+			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
+		}
+		
+		try{
+			if ( pi.isUnloadable()){
+				
+				pi.unload();
+				
+				FileUtil.recursiveDelete( new File( plugin_dir ));
+				
+				return( false );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+			// TODO:
+	
+			// need to create an uninstall action to delete this
+		
+		throw( new PluginException( "not imp" ));	
 	}
 }

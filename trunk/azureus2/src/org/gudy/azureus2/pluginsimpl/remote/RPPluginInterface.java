@@ -380,6 +380,13 @@ RPPluginInterface
 		return( null );
 	}
     
+    public boolean isMandatory()
+	{
+		notSupported();
+		
+		return( false );
+	}
+    
     public boolean isOperational()
 	{
 		notSupported();
@@ -451,12 +458,14 @@ RPPluginInterface
 		notSupported();
 	}
 	
-	public void
+	public boolean
 	uninstall()
 	
 		throws PluginException
 	{
 		notSupported();
+		
+		return( false );
 	}
 	
 	public void

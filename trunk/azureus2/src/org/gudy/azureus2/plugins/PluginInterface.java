@@ -297,6 +297,10 @@ public interface PluginInterface {
   public String
   getPluginID();
   
+  
+  public boolean
+  isMandatory();
+  
   /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
@@ -363,7 +367,14 @@ public interface PluginInterface {
   
   	throws PluginException;
   
-  public void
+  	/**
+  	 * Uninstall this plugin if it has been loaded from a plugin directory. Deletes the
+  	 * plugin directory 
+  	 * @return	true -> restart required to complete action
+  	 * @throws PluginException
+  	 */
+  
+  public boolean
   uninstall()
   
   	throws PluginException;

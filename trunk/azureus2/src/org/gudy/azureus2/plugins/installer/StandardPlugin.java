@@ -45,4 +45,20 @@ StandardPlugin
 	
 	public PluginInterface
 	getAlreadyInstalledPlugin();
+	
+	public void
+	install()
+	
+		throws PluginException;
+	
+		/**
+		 * uninstall this plugin
+		 * @return	true -> restart required to complete the action
+		 * @throws PluginException
+		 */
+	
+	public boolean
+	uninstall()
+	
+		throws PluginException;
 }

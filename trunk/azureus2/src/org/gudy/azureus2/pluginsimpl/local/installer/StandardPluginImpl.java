@@ -81,4 +81,20 @@ StandardPluginImpl
 		
 		return( null );
 	}
+	
+	public void
+	install()
+	
+		throws PluginException
+	{
+		installer.install( this );
+	}
+	
+	public boolean
+	uninstall()
+	
+		throws PluginException
+	{
+		return( installer.uninstall( this ));
+	}
 }

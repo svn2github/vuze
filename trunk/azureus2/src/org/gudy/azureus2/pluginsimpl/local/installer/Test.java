@@ -76,12 +76,24 @@ Test
 		try{
 			StandardPlugin[]	sps = installer.getStandardPlugins();
 			
+			String	install_name = "azshareexporter";
+			
+			StandardPlugin	install_act = null;
+			
 			for (int i=0;i<sps.length;i++){
 				
 				StandardPlugin	sp = sps[i];
 				
-				System.out.println( "Standard Plugin: " + sp.getId() + " - " + sp.getVersion());
+				System.out.println( "Standard Plugin: " + sp.getId() + " - " + sp.getVersion() + ", installed = " + sp.getAlreadyInstalledPlugin());
+				
+				if ( sp.getId().equals( install_name )){
+					
+					install_act = sp;
+				}
 			}
+			
+			install_act.install();
+			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
