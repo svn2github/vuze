@@ -338,6 +338,9 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
+		throwIfNotAvailable();
+		
+
 			// TODO: max values?
 		
 		dht.get(	
@@ -355,6 +358,8 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
+		throwIfNotAvailable();
+		
 		dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
 	}
 	
@@ -365,6 +370,8 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
+		throwIfNotAvailable();
+		
 		final HashWrapper	type_key = DDBaseHelpers.getKey( type.getClass());
 		
 		if ( transfer_map.get( type_key ) != null ){

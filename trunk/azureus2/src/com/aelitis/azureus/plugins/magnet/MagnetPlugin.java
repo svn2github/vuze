@@ -352,6 +352,8 @@ MagnetPlugin
 					}
 				}catch( Throwable e ){
 					
+					listener.reportActivity("Failed: " + Debug.getNestedExceptionMessage(e));
+					
 					Debug.printStackTrace(e);
 				}
 			}
@@ -362,6 +364,8 @@ MagnetPlugin
 			
 			Debug.printStackTrace(e);
 			
+			listener.reportActivity("Failed: " + Debug.getNestedExceptionMessage(e));
+
 			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
 	}

@@ -266,10 +266,10 @@ MagnetURIHandlerImpl
 				return( true );
 			}
 			
+			final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+
 			try{
-				
-				final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
-				
+								
 				pw.print( "HTTP/1.0 200 OK" + NL ); 
 
 				pw.flush();
@@ -342,7 +342,13 @@ MagnetURIHandlerImpl
 				}
 			}catch( Throwable e ){
 				
+				pw.print( "X-Report: Error " + Debug.getNestedExceptionMessage(e) + NL );
+				
+				pw.flush();
+				
 				Debug.printStackTrace(e);
+				
+				return( false );
 			}
 		}
 		
