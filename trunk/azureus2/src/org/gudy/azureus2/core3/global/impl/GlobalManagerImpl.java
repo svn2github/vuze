@@ -447,6 +447,14 @@ public class GlobalManagerImpl
   public List getDownloadManagers() {
     return managers;
   }
+  
+  public DownloadManager getDownloadManager(TOTorrent torrent) {
+    try {
+      return (DownloadManager)manager_map.get(new HashWrapper(torrent.getHash()));
+    } catch (TOTorrentException e) {
+      return null;
+    }
+  }
 
   public void 
   canDownloadManagerBeRemoved(
@@ -585,6 +593,7 @@ public class GlobalManagerImpl
 
   private void loadDownloads(STProgressListener listener) 
   {
+    int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
       Map map = FileUtil.readResilientConfigFile("downloads.config");
       
       boolean debug = Boolean.getBoolean("debug");
@@ -663,9 +672,6 @@ public class GlobalManagerImpl
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
           }
-          if (lDownloaded != null && lUploaded != null) {
-            stats.setSavedDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
-          }
           if (lCompleted != null) {
             stats.setDownloadCompleted(lCompleted.intValue());
           }
@@ -688,6 +694,18 @@ public class GlobalManagerImpl
           else
             ++numDownloading;
   	      dm.setOnlySeeding(bCompleted);
+  	      bCompleted = stats.getDownloadCompleted(false) == 1000;
+
+          if (lDownloaded != null && lUploaded != null) {
+            long lUploadedValue = lUploaded.longValue();
+            long lDownloadedValue = lDownloaded.longValue();
+            if (bCompleted && (lDownloadedValue == 0)) {
+              lDownloadedValue = dm.getSize();
+              if ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio)
+                lUploadedValue = dm.getSize() * minQueueingShareRatio / 1000;
+            }
+            stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
+          }
 
           if (lPosition != null)
             dm.setPosition(lPosition.intValue());

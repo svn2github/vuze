@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.global;
 
 import java.util.List;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.download.*;
 
@@ -61,7 +62,10 @@ GlobalManager
 	
 	public List
 	getDownloadManagers();
-	
+
+  public DownloadManager 
+  getDownloadManager(TOTorrent torrent);
+
 	public void
 	stopAll();
 
