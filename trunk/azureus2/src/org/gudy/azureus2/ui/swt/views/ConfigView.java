@@ -161,6 +161,7 @@ public class ConfigView extends AbstractIView {
 	TabItem tempTab;
 	Group tempGroup;
 	GridLayout tempLayout;
+	Label tempLabel;
 	
 	for(int i = 0; i < repository.getSize(); i++)
 	{
@@ -171,10 +172,10 @@ public class ConfigView extends AbstractIView {
 		tempGroup = new Group(tfPlugins, SWT.NULL);
 		tempLayout = new GridLayout();
 		tempLayout.numColumns = 2;
-		
+			
 		for(int j = 0; j < tempParams.length; j++)
 		{
-			
+			tempLabel = new Label(tempGroup, SWT.NULL);
 		}
 		tempTab.setControl(tempGroup);
 	}
