@@ -38,11 +38,11 @@ PEPeerControlImpl
   
   //Min number of requests sent to a peer
   private static final int MIN_REQUESTS = 2;
-  //Default number of requests sent to a peer
-  //(for each X B/s a new request will be used)
-  private static final int SLOPE_REQUESTS = 2 * 1024;
   //Max number of request sent to a peer
-  private static final int MAX_REQUESTS = 64;
+  private static final int MAX_REQUESTS = 256;
+  //Default number of requests sent to a peer, (for each X B/s a new request will be used)
+  private static final int SLOPE_REQUESTS = 4 * 1024;
+  
   
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
