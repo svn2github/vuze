@@ -87,7 +87,7 @@ public class ByteBufferPool {
           return buffer;
        } catch (OutOfMemoryError ex) {
        	 Debug.out("Memory allocation failed: Out of direct memory space\n"
-                  + "TO FIX: Use the -XX:MaxDirectMemorySize=xxxxxx command line option.");
+                  + "TO FIX: Use the -XX:MaxDirectMemorySize=512m command line option.");
           return null;
        }
     }
