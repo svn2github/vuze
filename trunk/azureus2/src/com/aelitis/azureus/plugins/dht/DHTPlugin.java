@@ -171,10 +171,16 @@ DHTPlugin
 					try{
 						int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 						
-						final DHTTransportUDP transport = DHTTransportFactory.createUDP( port, 5, 10000, log );
+						final DHTTransportUDP transport = 
+							DHTTransportFactory.createUDP( 
+									port, 
+									5,
+									3,
+									10000, 
+									log );
 						
 						plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-								10000,
+								60000,
 								new UTTimerEventPerformer()
 								{
 									public void
@@ -187,7 +193,8 @@ DHTPlugin
 													":ps=" + stats.getPacketsSent() +
 													",pr=" +stats.getPacketsReceived() +
 													",bs=" +stats.getBytesSent() +
-													",br=" + stats.getBytesReceived());
+													",br=" + stats.getBytesReceived() +
+													",to=" + stats.getRequestsTimedOut());
 									}
 								});
 						

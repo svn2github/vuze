@@ -64,7 +64,8 @@ DHTTransportUDPImpl
 	
 	
 	private int					port;
-	private int					max_fails;
+	private int					max_fails_for_live;
+	private int					max_fails_for_unknown;
 	private long				request_timeout;
 	private LoggerChannel		logger;
 	
@@ -88,17 +89,19 @@ DHTTransportUDPImpl
 	public
 	DHTTransportUDPImpl(
 		int				_port,
-		int				_max_fails,
+		int				_max_fails_for_live,
+		int				_max_fails_for_unknown,
 		long			_timeout,
 		LoggerChannel	_logger )
 	
 		throws DHTTransportException
 	{
-		port			= _port;
-		max_fails		= _max_fails;
-		request_timeout	= _timeout;
-		logger			= _logger;
-		
+		port					= _port;
+		max_fails_for_live		= _max_fails_for_live;
+		max_fails_for_unknown	= _max_fails_for_unknown;
+		request_timeout			= _timeout;
+		logger					= _logger;
+				
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
 		
@@ -370,9 +373,15 @@ DHTTransportUDPImpl
 	}
 	
 	protected int
-	getMaxFailCount()
+	getMaxFailForLiveCount()
 	{
-		return( max_fails );
+		return( max_fails_for_live );
+	}
+	
+	protected int
+	getMaxFailForUnknownCount()
+	{
+		return( max_fails_for_unknown );
 	}
 	
 	public DHTTransportContact
@@ -907,6 +916,13 @@ DHTTransportUDPImpl
 	process(
 		PRUDPPacketRequest	_request )
 	{
+		if ( request_handler == null ){
+			
+			logger.log( "Ignoring packet as not yet ready to process" );
+			
+			return;
+		}
+		
 		try{
 			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
 			

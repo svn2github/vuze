@@ -31,7 +31,10 @@ public interface
 DHTRouterContactAttachment 
 {
 	public int
-	getMaxFailCount();
+	getMaxFailForLiveCount();
+	
+	public int
+	getMaxFailForUnknownCount();
 	
 	public int
 	getInstanceID();

@@ -25,12 +25,14 @@ package com.aelitis.azureus.core.dht.control.impl;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -57,6 +59,7 @@ DHTControlImpl
 	
 	private	int			node_id_byte_count;
 	private int			search_concurrency;
+	private int			lookup_concurrency;
 	private int			cache_at_closest_n;
 	private int			K;
 	private int			B;
@@ -74,6 +77,8 @@ DHTControlImpl
 	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
 	private long		last_cache_expiry_check;
 	
+	private ThreadPool	lookup_pool;
+	
 	public
 	DHTControlImpl(
 		DHTTransport	_transport,
@@ -81,6 +86,7 @@ DHTControlImpl
 		int				_B,
 		int				_max_rep_per_node,
 		int				_search_concurrency,
+		int				_lookup_concurrency,
 		int				_original_republish_interval,
 		int				_cache_republish_interval,
 		int				_cache_at_closest_n,
@@ -94,10 +100,16 @@ DHTControlImpl
 		B								= _B;
 		max_rep_per_node				= _max_rep_per_node;
 		search_concurrency				= _search_concurrency;
+		lookup_concurrency				= _lookup_concurrency;
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		cache_at_closest_n				= _cache_at_closest_n;
 		max_values_stored				= _max_values_stored;
+		
+		if ( lookup_concurrency > 1 ){
+			
+			lookup_pool = new ThreadPool("DHTControl:lookups", lookup_concurrency );
+		}
 		
 		createRouter( transport.getLocalContact());
 
@@ -217,7 +229,7 @@ DHTControlImpl
 				requestLookup(
 					byte[]	id )
 				{
-					lookup( id, false, 0 );
+					lookup( id, false, 0, null );
 				}
 				
 				public void
@@ -318,9 +330,28 @@ DHTControlImpl
 	public void
 	seed()
 	{
-		lookup( router.getID(), false, 0 );
+		final AESemaphore	sem = new AESemaphore( "DHTControl:seed" );
 		
-		router.seed();
+		lookup( router.getID(), 
+				false, 
+				0,
+				new lookupResultHandler()
+				{
+					public void
+					complete(
+						List		res )
+					{
+						try{
+							router.seed();
+							
+						}finally{
+							
+							sem.release();
+						}
+					}
+				});
+		
+		sem.reserve();
 	}
 	
 	public void
@@ -356,13 +387,22 @@ DHTControlImpl
 
 	protected void
 	putSupport(
-		final byte[]		encoded_key,
-		DHTTransportValue	value,
-		long				timeout )
+		final byte[]			encoded_key,
+		final DHTTransportValue	value,
+		final long				timeout )
 	{
-		List	closest = lookup( encoded_key, false, timeout  );
-		
-		putSupport( encoded_key, value, closest );			
+		lookup( encoded_key, 
+				false, 
+				timeout,
+				new lookupResultHandler()
+				{
+					public void
+					complete(
+						List		closest )
+					{
+						putSupport( encoded_key, value, closest );		
+					}
+				});
 	}
 	
 	protected void
@@ -417,79 +457,95 @@ DHTControlImpl
 		byte[]		unencoded_key,
 		long		timeout )
 	{
-		try{		
-			DHTLog.indent( router );
-			
-			final byte[]	encoded_key = encodeKey( unencoded_key );
+		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-			DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
+		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 
-				// maybe we've got the value already
+			// maybe we've got the value already
+		
+		synchronized( stored_values ){
 			
-			synchronized( stored_values ){
+			DHTTransportValue	local_result = (DHTTransportValue)stored_values.get( new HashWrapper( encoded_key ));
+		
+			if ( local_result != null ){
 				
-				DHTTransportValue	local_result = (DHTTransportValue)stored_values.get( new HashWrapper( encoded_key ));
-			
-				if ( local_result != null ){
-					
-					DHTLog.log( "    surprisingly we've got it locally!" );
-	
-					return( local_result.getValue());
-				}
+				DHTLog.log( "    surprisingly we've got it locally!" );
+
+				return( local_result.getValue());
 			}
-			
-			List	result_and_closest = lookup( encoded_key, true, timeout );
-	
-			DHTTransportValue	value = (DHTTransportValue)result_and_closest.get(0);
-			
-			if ( value != null ){
-				
-					// cache the value at the 'n' closest seen locations
-				
-				for (int i=1;i<Math.min(1+cache_at_closest_n,result_and_closest.size());i++){
-					
-					((DHTTransportContact)result_and_closest.get(i)).sendStore( 
-							new DHTTransportReplyHandlerAdapter()
-							{
-								public void
-								storeReply(
-									DHTTransportContact contact )
-								{
-									DHTLog.indent( router );
-									
-									DHTLog.log( "cache store ok" );
-									
-									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
-									
-									DHTLog.exdent();
-								}	
-								
-								public void
-								failed(
-									DHTTransportContact 	contact )
-								{
-									DHTLog.indent( router );
-									
-									DHTLog.log( "cache store failed" );
-									
-									router.contactDead( contact.getID(), new DHTControlContactImpl(contact));
-									
-									DHTLog.exdent();
-								}
-							},
-							encoded_key, 
-							value );
-				}
-			}
-			
-			DHTLog.log( "get reply: " + DHTLog.getString( value ));
-			
-			return( value==null?null:value.getValue());
-			
-		}finally{
-			
-			DHTLog.exdent();
 		}
+		
+		final DHTTransportValue[]	value 	= new DHTTransportValue[1];
+		
+		final AESemaphore			sem		= new AESemaphore( "DHTControl:get" );
+		lookup( encoded_key, 
+				true, 
+				timeout,
+				new lookupResultHandler()
+				{
+					public void
+					complete(
+						List	result_and_closest )
+					{
+						try{		
+							DHTLog.indent( router );
+
+							value[0] = (DHTTransportValue)result_and_closest.get(0);
+		
+							if ( value[0] != null ){
+								
+									// cache the value at the 'n' closest seen locations
+								
+								for (int i=1;i<Math.min(1+cache_at_closest_n,result_and_closest.size());i++){
+									
+									((DHTTransportContact)result_and_closest.get(i)).sendStore( 
+											new DHTTransportReplyHandlerAdapter()
+											{
+												public void
+												storeReply(
+													DHTTransportContact contact )
+												{
+													DHTLog.indent( router );
+													
+													DHTLog.log( "cache store ok" );
+													
+													router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
+													
+													DHTLog.exdent();
+												}	
+												
+												public void
+												failed(
+													DHTTransportContact 	contact )
+												{
+													DHTLog.indent( router );
+													
+													DHTLog.log( "cache store failed" );
+													
+													router.contactDead( contact.getID(), new DHTControlContactImpl(contact));
+													
+													DHTLog.exdent();
+												}
+											},
+											encoded_key, 
+											value[0] );
+								}
+							}
+							
+							DHTLog.log( "get reply: " + DHTLog.getString( value[0] ));
+							
+						}finally{
+							
+							DHTLog.exdent();
+							
+							sem.release();
+						}
+					}
+				});
+		
+		sem.reserve();
+		
+		return( value[0]==null?null:value[0].getValue());
 	}
 	
 	public byte[]
@@ -530,8 +586,62 @@ DHTControlImpl
 		 * @return
 		 */
 	
-	protected List
+	protected void
 	lookup(
+		final byte[]				lookup_id,
+		final boolean				value_search,
+		final long					timeout,
+		final lookupResultHandler	handler )
+	{
+		if ( lookup_pool == null ){
+			
+			try{
+				List	res = lookupSupport( lookup_id, value_search, timeout );
+				
+				if ( handler != null ){
+					
+					handler.complete( res );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				if ( handler != null ){
+					
+					handler.complete( null );
+				}
+			}
+		}else{
+			
+			lookup_pool.run(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							List	res = lookupSupport( lookup_id, value_search, timeout );
+							
+							if ( handler != null ){
+								
+								handler.complete( res );
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							if ( handler != null ){
+								
+								handler.complete( null );
+							}
+						}
+					}
+				});
+		}
+	}
+	
+	protected List
+	lookupSupport(
 		final byte[]	lookup_id,
 		boolean			value_search,
 		long			timeout )
@@ -1573,5 +1683,13 @@ DHTControlImpl
 		{
 			return( tree_set );
 		}
+	}
+	
+	interface
+	lookupResultHandler
+	{
+		public void
+		complete(
+			List		res );
 	}
 }

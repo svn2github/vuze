@@ -33,7 +33,10 @@ public interface
 DHTTransportContact
 {
 	public int
-	getMaxFailCount();
+	getMaxFailForLiveCount();
+	
+	public int
+	getMaxFailForUnknownCount();
 	
 	public int
 	getInstanceID();

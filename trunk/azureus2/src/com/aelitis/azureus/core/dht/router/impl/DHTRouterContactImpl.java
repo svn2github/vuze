@@ -128,7 +128,14 @@ DHTRouterContactImpl
 	protected boolean
 	hasFailed()
 	{
-		return( fail_count >= attachment.getMaxFailCount());
+		if ( has_been_alive ){
+			
+			return( fail_count >= attachment.getMaxFailForLiveCount());
+			
+		}else{
+			
+			return( fail_count >= attachment.getMaxFailForUnknownCount());
+		}
 	}
 	
 	protected long

@@ -56,11 +56,16 @@ DHTTransportLoopbackContactImpl
 	}
 	
 	public int
-	getMaxFailCount()
+	getMaxFailForLiveCount()
 	{
 		return( 5 );
 	}
 	
+	public int
+	getMaxFailForUnknownCount()
+	{
+		return( 3 );
+	}
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

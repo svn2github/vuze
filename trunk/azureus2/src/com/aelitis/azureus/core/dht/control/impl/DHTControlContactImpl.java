@@ -44,9 +44,15 @@ DHTControlContactImpl
 	}
 	
 	public int
-	getMaxFailCount()
+	getMaxFailForLiveCount()
 	{
-		return( contact.getMaxFailCount());
+		return( contact.getMaxFailForLiveCount());
+	}
+	
+	public int
+	getMaxFailForUnknownCount()
+	{
+		return( contact.getMaxFailForUnknownCount());
 	}
 	
 	public int

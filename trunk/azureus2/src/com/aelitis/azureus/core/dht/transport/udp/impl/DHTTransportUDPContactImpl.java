@@ -67,9 +67,15 @@ DHTTransportUDPContactImpl
 	}
 	
 	public int
-	getMaxFailCount()
+	getMaxFailForLiveCount()
 	{
-		return( transport.getMaxFailCount());
+		return( transport.getMaxFailForLiveCount() );
+	}
+	
+	public int
+	getMaxFailForUnknownCount()
+	{
+		return( transport.getMaxFailForUnknownCount() );
 	}
 	
 	public int

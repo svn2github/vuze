@@ -478,7 +478,7 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportFactory.createUDP( 6890 + i, 5, udp_timeout, logger );
+			transport = DHTTransportFactory.createUDP( 6890 + i, 5, 3, udp_timeout, logger );
 			
 		}else{
 			

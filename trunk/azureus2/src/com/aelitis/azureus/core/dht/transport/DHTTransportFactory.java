@@ -46,12 +46,13 @@ DHTTransportFactory
 	public static DHTTransportUDP
 	createUDP(
 		int				port,
-		int				max_fails,
+		int				max_fails_for_live,
+		int				max_fails_for_unknown,
 		long			timeout,
 		LoggerChannel	logger )
 	
 		throws DHTTransportException
 	{
-		return( new DHTTransportUDPImpl( port, max_fails, timeout, logger ));
+		return( new DHTTransportUDPImpl( port, max_fails_for_live, max_fails_for_unknown, timeout, logger ));
 	}
 }
