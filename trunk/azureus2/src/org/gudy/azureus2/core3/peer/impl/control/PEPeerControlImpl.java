@@ -1127,7 +1127,7 @@ PEPeerControlImpl
     if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0) {
       return;
     }
-    
+
     // We retreive the current non-choking peers
     List nonChoking = getNonChokingPeers();
 
@@ -1136,7 +1136,6 @@ PEPeerControlImpl
 
     // Then, in any case if we have too many unchoked pple we need to choke some
     while (nbUnchoke < nonChoking.size()) {
-      System.out.println( "nbUnchoke < nonChoking.size()" );
       PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
       pc.sendChoke();
     }
