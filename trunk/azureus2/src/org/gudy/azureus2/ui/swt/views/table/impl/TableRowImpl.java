@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
@@ -256,9 +257,8 @@ public class TableRowImpl
 
     if (sTableID.equals(TableManager.TABLE_TORRENT_FILES)) {
       DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)coreDataSource;
-      // XXX There is no DiskManagerFileInfo object for plugins yet
       if (fileInfo != null)
-        pluginDataSource = null;
+        pluginDataSource = new DiskManagerFileInfoImpl(fileInfo);
     }
 
     if (sTableID.equals(TableManager.TABLE_MYSHARES)) {

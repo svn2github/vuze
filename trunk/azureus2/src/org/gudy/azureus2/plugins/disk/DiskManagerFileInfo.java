@@ -1,5 +1,7 @@
 /*
- * Azureus - a Java Bittorrent client
+ * Created : 2004/May/26
+ *
+ * Copyright (C) 2004 Aelitis SARL, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +16,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Created on 3 juil. 2003
- *
+ * AELITIS, SARL au capital de 30,000 euros,
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package org.gudy.azureus2.core3.disk;
+
+package org.gudy.azureus2.plugins.disk;
 
 import java.io.File;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.plugins.torrent.TorrentFile;
+import org.gudy.azureus2.plugins.download.*;
 
 /**
- * @author Olivier
- * 
+ * @author TuxPaper
+ *
  */
-public interface 
-DiskManagerFileInfo 
-{
+
+public interface DiskManagerFileInfo {
 	public static final int READ = 1;
 	public static final int WRITE = 2;
 
@@ -45,23 +48,16 @@ DiskManagerFileInfo
 	
 	public long getDownloaded();
 	
-	public String getExtension();
+	public File getFile();
 		
 	public int getFirstPieceNumber();
 	
-	public long getLength();
-	
-	public String getName();
-	
-	public int getNbPieces();
+	public int getNumPieces();
 		
-	public String getPath();
-	
 	public boolean isPriority();
 	
 	public boolean isSkipped();
 	
-	public DiskManager getDiskManager();
-
-  public File getFile();
+  public Download getDownload()
+         throws DownloadException;
 }
