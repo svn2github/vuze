@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 import java.io.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -345,10 +346,30 @@ ResourceDownloaderTorrentImpl
 		
 			// assumption is that this is a SIMPLE torrent
 		
+			// unfortunately by the time we get here the data might have been
+			// moved via the "move on complete" options
+		
+		File	target_file = 
+			new File( data_dir,	new String(torrent.getFiles()[0].getPathComponents()[0]));
+		
+		if ( !target_file.exists()){
+	
+			if ( COConfigurationManager.getBooleanParameter("Move Completed When Done", false)){
+				
+				target_file = 
+					new File( 
+							COConfigurationManager.getStringParameter("Completed Files Directory", ""),
+							new String(torrent.getFiles()[0].getPathComponents()[0]));	
+			}
+		}
+
 		try{
-			InputStream	data = 
-				new FileInputStream( new File( data_dir, 
-												new String(torrent.getFiles()[0].getPathComponents()[0])));
+			if ( !target_file.exists()){
+				
+				throw( new Exception( "File '" + target_file.toString() + "' not found" ));
+			}
+			
+			InputStream	data = new FileInputStream( target_file );
 			
 			informComplete( data );
 				
@@ -360,7 +381,7 @@ ResourceDownloaderTorrentImpl
 			
 			e.printStackTrace();
 			
-			failed( this, new ResourceDownloaderException( "Failed to read torrent data", e ));
+			failed( this, new ResourceDownloaderException( "Failed to read downloaded torrent data: " + e.getMessage(), e ));
 		}
 	}
 	

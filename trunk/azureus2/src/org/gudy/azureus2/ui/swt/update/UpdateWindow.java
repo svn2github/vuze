@@ -448,7 +448,15 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       ResourceDownloaderException e) {
     downloader.removeListener(this);
     setStatusText(MessageText.getString("swt.update.window.status.failed"));
-    appendDetails(downloader.getName() + " : " + e);
+    
+    String	msg = downloader.getName() + " : " + e;
+    
+    if ( e.getCause() != null ){
+    	
+    	msg += " [" + e.getCause() + "]";
+    }
+    
+    appendDetails(msg);
   }
   
   public void reportActivity(ResourceDownloader downloader, final String activity) {
