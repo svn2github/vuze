@@ -268,7 +268,11 @@ public class GlobalManagerImpl
   public boolean addDownloadManager(String fileName, String savePath) {
     try {
       File f = new File(fileName);
-      File torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
+      File torrentDir;
+      
+      boolean saveTorrents = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
+      if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
+      else torrentDir = new File(f.getParent());
 
       //if the torrent is already in the completed files dir, use this
       //torrent instead of creating a new one in the default dir
@@ -287,10 +291,11 @@ public class GlobalManagerImpl
       if (fDest.equals(f)) {
         throw new Exception("Same files");
       }
-      String prefix = "_";
+      
       while (fDest.exists()) {
         fDest = new File(torrentDir, "_" + fDest.getName());
       }
+      
       fDest.createNewFile();
       copyFile(f, fDest);
       DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath);
