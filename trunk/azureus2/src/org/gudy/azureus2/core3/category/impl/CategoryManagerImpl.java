@@ -73,6 +73,12 @@ public class CategoryManagerImpl  {
     });
 
 
+  protected
+  CategoryManagerImpl()
+  {
+  	loadCategories();
+  }
+  
   public void addCategoryManagerListener(CategoryManagerListener l) {
     category_listeners.addListener( l );
   }
@@ -87,7 +93,7 @@ public class CategoryManagerImpl  {
     return catMan;
   }
 
-  public void loadCategories() {
+  protected void loadCategories() {
     if (doneLoading)
       return;
     doneLoading = true;
@@ -134,7 +140,7 @@ public class CategoryManagerImpl  {
       catch (Exception e) {}
     }
 
-    if (map != null) {
+    //if (map != null) {
       synchronized (categories) {
         makeSpecialCategories();
 
@@ -144,7 +150,7 @@ public class CategoryManagerImpl  {
           categories.put(name, cat);
         } // for catNames
       }
-    }
+    //}
   }
 
   public void saveCategories() {

@@ -45,12 +45,6 @@ public class CategoryManager {
     CategoryManagerImpl.getInstance().removeCategoryManagerListener(l);
   }
   
-  /** Loads the list of Categories 
-   */
-  public static void loadCategories() {
-    CategoryManagerImpl.getInstance().loadCategories();
-  }
-
   /** Creates a new Category object and adds it to the list
    * @return If successful, returns the newly created Category.  Otherwise, returns null.
    * @param name Name of Category to add

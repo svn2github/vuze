@@ -240,9 +240,6 @@ public class GlobalManagerImpl
   	
   	LGLogger.initialise();
   	
-  	// XXX: There's probably a better place to load categories!!
-  	CategoryManager.loadCategories();
-  	
     stats = new GlobalManagerStatsImpl();
         
     trackerScraper = TRTrackerScraperFactory.create();
