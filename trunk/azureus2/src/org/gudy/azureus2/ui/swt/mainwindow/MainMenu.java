@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
+import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -427,6 +428,40 @@ public class MainMenu {
         }
       });
       
+      if ( !SystemProperties.isJavaWebStartInstance()){
+        
+        MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+        Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
+        help_checkupdate.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {          
+            UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
+          }
+        });
+      }
+      
+      
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      
+      MenuItem help_health = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_health, "MyTorrentsView.menu.health");
+      help_health.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          HealthHelpWindow.show( display );
+        }
+      });
+      
+      
+      MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
+      help_faq.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          String faqString = "http://azureus.sourceforge.net/wiki/";
+          Program.launch(faqString);
+        }
+      });
+      
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      
       
       MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
@@ -436,14 +471,6 @@ public class MainMenu {
         }
       });
       
-      MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
-        help_faq.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-              String faqString = "http://azureus.sourceforge.net/wiki/";
-              Program.launch(faqString);
-            }
-          });
       
       MenuItem help_plugin= new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_plugin, "MainWindow.menu.help.plugins"); //$NON-NLS-1$
@@ -454,16 +481,6 @@ public class MainMenu {
           }
         });
     
-      if ( !SystemProperties.isJavaWebStartInstance()){
-      	
-      MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
-      help_checkupdate.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {          
-            UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
-        }
-      });
-      }
   
       new MenuItem(helpMenu,SWT.SEPARATOR);
       
