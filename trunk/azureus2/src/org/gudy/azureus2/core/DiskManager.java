@@ -348,12 +348,14 @@ public class DiskManager {
       }
     }
 
-    if (resumeValid && resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
+    if (resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
       for (int i = 0; i < resumeArray.length; i++) //parse the array
         {
+        percentDone = ((i + 1) * 1000) / nbPieces;
         //mark the pieces
         if (resumeArray[i] == 0) {
-          pieceDone[i] = false;
+          if(!resumeValid)
+            pieceDone[i] = checkPiece(i);
         }
         else {
           computeFilesDone(i);
@@ -366,7 +368,7 @@ public class DiskManager {
           }
         }
       }
-      if(partialPieces != null) {
+      if(partialPieces != null && resumeValid) {
         pieces = new Piece[nbPieces];
         Iterator iter = partialPieces.entrySet().iterator();
         while(iter.hasNext()) {
@@ -664,6 +666,11 @@ public class DiskManager {
           raf.setLength(length);
         }
         catch (Exception e) {
+          try {
+            raf.close();         
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
           this.state = FAULTY;
           this.errorMessage = e.getMessage();
           return false;
