@@ -2588,4 +2588,8 @@ DiskManagerImpl
   public PEPeerManager getPeerManager() {
     return manager;
   }
+
+  public TOTorrent getTOTorrent() {
+    return torrent;
+  }
 }
