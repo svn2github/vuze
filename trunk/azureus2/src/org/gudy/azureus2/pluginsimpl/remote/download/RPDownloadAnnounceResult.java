@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
  *
  */
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.*;
 
@@ -161,5 +162,13 @@ RPDownloadAnnounceResult
 		notSupported();
 		
 		return( 0 );
+	}
+	
+	public Map
+	getExtensions()
+	{
+		notSupported();
+		
+		return( null );
 	}
 }

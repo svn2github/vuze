@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.download;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -294,6 +296,21 @@ Download
   
   public String[]
   getListAttribute(
+	TorrentAttribute		attribute );
+  
+  /**
+   * 
+   * @param attribute
+   * @param value		must be bencodable - key is string, value is Map, List, Long or byte[]
+   */
+  
+  public void
+  setMapAttribute(
+	TorrentAttribute		attribute,
+	Map						value );
+  
+  public Map
+  getMapAttribute(
 	TorrentAttribute		attribute );
   
   /** Returns the name of the Category

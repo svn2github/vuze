@@ -328,6 +328,12 @@ DHTTrackerPlugin
 															{
 																return( 0 );
 															}
+															
+															public Map
+															getExtensions()
+															{
+																return( null );
+															}
 														});
 										}
 									}
@@ -1009,6 +1015,12 @@ DHTTrackerPlugin
 												getTimeToWait()
 												{
 													return( retry/1000 );
+												}
+												
+												public Map
+												getExtensions()
+												{
+													return( null );
 												}
 											});
 								}

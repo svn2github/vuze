@@ -398,8 +398,6 @@ PEPeerControlImpl
         	
         if (extensions != null ){
         		
-        	System.out.println( "PEPeerControl: tracker response contained extensions");
-        		
         	addExtendedPeersFromTracker( extensions );
     	}
   	}
@@ -422,21 +420,26 @@ PEPeerControlImpl
 	{
 		Map	protocols = (Map)extensions.get("protocols");
 		
-		Iterator protocol_it = protocols.keySet().iterator();
-		
-		while( protocol_it.hasNext()){
+		if ( protocols != null ){
 			
-			String	protocol_name = (String)protocol_it.next();
+	       	System.out.println( "PEPeerControl: tracker response contained protocol extensions");
+    		
+			Iterator protocol_it = protocols.keySet().iterator();
 			
-			Map	protocol = (Map)protocols.get(protocol_name);
-			
-			List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
-								
-			for (int i=0;i<transports.size();i++){
+			while( protocol_it.hasNext()){
 				
-				PEPeer	transport = (PEPeer)transports.get(i);
+				String	protocol_name = (String)protocol_it.next();
 				
-				addPeer( transport );
+				Map	protocol = (Map)protocols.get(protocol_name);
+				
+				List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
+									
+				for (int i=0;i<transports.size();i++){
+					
+					PEPeer	transport = (PEPeer)transports.get(i);
+					
+					addPeer( transport );
+				}
 			}
 		}
 	}

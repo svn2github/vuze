@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
  *
  */
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
@@ -654,6 +656,22 @@ RPDownload
   {
 	notSupported();
 	return (null);   	
+  }
+  
+  public void
+  setMapAttribute(
+	TorrentAttribute		attribute,
+	Map						value )
+  {
+	  notSupported();
+  }
+  
+  public Map
+  getMapAttribute(
+	TorrentAttribute		attribute )
+  {
+	notSupported();
+	return( null );
   }
   
   public String getCategoryName() {

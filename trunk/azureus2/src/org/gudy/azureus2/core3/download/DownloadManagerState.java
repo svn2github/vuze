@@ -38,7 +38,6 @@ DownloadManagerState
 	public static final String AT_NETWORKS		= "networks";
 	public static final String AT_USER			= "user";
 	public static final String AT_PEER_SOURCES	= "peersources";
-	public static final String AT_TRACKER_KEY	= "trackerkey";
 	
 	public TOTorrent
 	getTorrent();

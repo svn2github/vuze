@@ -22,6 +22,7 @@
 package org.gudy.azureus2.plugins.download;
 
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author parg
@@ -108,4 +109,7 @@ DownloadAnnounceResult
 	
 	public long
 	getTimeToWait();
+	
+	public Map
+	getExtensions();
 }

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  */
 
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -124,7 +125,7 @@ DownloadAnnounceResultImpl
 	public URL
 	getURL()
 	{
-		return( response.getURL());
+		return( response==null?null:response.getURL());
 	}
 	
 	public DownloadAnnounceResultPeer[]
@@ -141,6 +142,22 @@ DownloadAnnounceResultImpl
 	public long
 	getTimeToWait()
 	{
+		if ( response == null ){
+			
+			return( -1 );
+		}
+		
 		return( response.getTimeToWait());
+	}
+	
+	public Map
+	getExtensions()
+	{
+		if ( response == null ){
+			
+			return( null );
+		}
+		
+		return( response.getExtensions());
 	}
 }

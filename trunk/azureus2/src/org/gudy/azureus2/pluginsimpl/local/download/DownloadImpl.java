@@ -408,6 +408,33 @@ DownloadImpl
   }
   
   public void
+  setMapAttribute(
+	TorrentAttribute		attribute,
+	Map						value )
+  {
+	  	String	name = convertAttribute( attribute );
+	  	
+	  	if ( name != null ){
+			
+			download_manager.getDownloadState().setMapAttribute( name, value );
+	  	}
+  }
+  
+  public Map
+  getMapAttribute(
+	TorrentAttribute		attribute )
+  {
+	  	String	name = convertAttribute( attribute );
+	  	
+	  	if ( name != null ){
+	  		
+	  		return( download_manager.getDownloadState().getMapAttribute( name ));
+	  	}
+	  	
+	  	return( null );
+  }
+  
+  public void
   setAttribute(
   	TorrentAttribute		attribute,
 	String					value )
