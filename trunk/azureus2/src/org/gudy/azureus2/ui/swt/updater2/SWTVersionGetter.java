@@ -110,7 +110,7 @@ public class SWTVersionGetter {
     downloadLatestVersion();
   }
     
-  public void processData(InputStream is) throws Exception{
+  private void processData(InputStream is) throws Exception{
     if(is == null) {
       nextTry();
       return;
