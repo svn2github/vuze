@@ -1,5 +1,5 @@
 /*
- * File    : TorrentDownloader2.java
+ * File    : TorrentDownloader2Listener.java
  * Created : 27-Feb-2004
  * By      : parg
  * 
@@ -19,31 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.torrentdownloader;
+package org.gudy.azureus2.core3.resourcedownloader;
 
 /**
  * @author parg
  *
  */
-
-import java.io.InputStream;
-
 public interface 
-TorrentDownloader2 
+ResourceDownloaderListener 
 {
-	public InputStream
-	download()
-	
-		throws TorrentDownloaderException;
-	
 	public void
-	cancel();
-	
-	public void
-	addListener(
-		TorrentDownloader2Listener	l );
-	
-	public void
-	removeListener(
-		TorrentDownloader2Listener	l );
+	percentComplete(
+		int		percentage );
 }

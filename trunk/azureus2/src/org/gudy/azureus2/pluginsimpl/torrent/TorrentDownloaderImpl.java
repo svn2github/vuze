@@ -31,8 +31,8 @@ import java.io.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
 
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader2Factory;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader2;
+import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
@@ -40,7 +40,7 @@ TorrentDownloaderImpl
 	implements TorrentDownloader
 {
 	protected URL						url;
-	protected TorrentDownloader2		downloader;
+	protected ResourceDownloader		downloader;
 	
 	protected
 	TorrentDownloaderImpl(
@@ -48,7 +48,7 @@ TorrentDownloaderImpl
 	{
 		url		= _url;
 		
-		downloader = TorrentDownloader2Factory.create( url.toString());
+		downloader = ResourceDownloaderFactory.create( url.toString());
 	}
 	
 	public Torrent

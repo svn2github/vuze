@@ -1,5 +1,5 @@
 /*
- * File    : TorrentDownloader2Factory.java
+ * File    : TorrentDownloader2.java
  * Created : 27-Feb-2004
  * By      : parg
  * 
@@ -19,22 +19,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.torrentdownloader;
+package org.gudy.azureus2.core3.resourcedownloader;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.torrentdownloader.impl.*;
+import java.io.InputStream;
 
-public class 
-TorrentDownloader2Factory 
+public interface 
+ResourceDownloader 
 {
-	public static TorrentDownloader2
-	create(
-		String	url )
-	{
-		return( new TorrentDownloader2Impl( url ));
-	}
+	public InputStream
+	download()
+	
+		throws ResourceDownloaderException;
+	
+	public void
+	cancel();
+	
+	public void
+	addListener(
+		ResourceDownloaderListener	l );
+	
+	public void
+	removeListener(
+		ResourceDownloaderListener	l );
 }

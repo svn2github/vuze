@@ -22,19 +22,19 @@ package org.gudy.azureus2.ui.swt.updater;
 
 import java.io.InputStream;
 
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader2;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader2Factory;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader2Listener;
+import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderListener;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class URLDownloader implements TorrentDownloader2Listener{
+public class URLDownloader implements ResourceDownloaderListener{
   
   DownloadListener listener;
   String URL;
-  TorrentDownloader2 downloader;
+  ResourceDownloader downloader;
   
   /**
    * Downloads the content at the given URL, reports percent done to the
@@ -47,7 +47,7 @@ public class URLDownloader implements TorrentDownloader2Listener{
   public URLDownloader(DownloadListener listener,String URL) {
     this.listener = listener;
     this.URL = URL;
-    downloader = TorrentDownloader2Factory.create(URL);
+    downloader = ResourceDownloaderFactory.create(URL);
     downloader.addListener(this);
     Thread t = new Thread("URL Downloader") {
       public void run() {

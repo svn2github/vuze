@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.torrentdownloader.impl;
+package org.gudy.azureus2.core3.resourcedownloader.impl;
 
 /**
  * @author parg
@@ -33,12 +33,12 @@ import java.net.*;
 
 import javax.net.ssl.*;
 
-import org.gudy.azureus2.core3.torrentdownloader.*;
+import org.gudy.azureus2.core3.resourcedownloader.*;
 import org.gudy.azureus2.core3.util.Constants;
 
 public class 
-TorrentDownloader2Impl
-	implements TorrentDownloader2
+ResourceDownloaderImpl
+	implements ResourceDownloader
 {
 	protected String		url_str;
 	
@@ -46,7 +46,7 @@ TorrentDownloader2Impl
 	protected List			listeners		= new ArrayList();
 	
 	public 
-	TorrentDownloader2Impl(
+	ResourceDownloaderImpl(
 		String		_url_str )
 	{
 		url_str = _url_str.replaceAll( " ", "%20" );	   
@@ -55,7 +55,7 @@ TorrentDownloader2Impl
 	public InputStream
 	download()
 	
-		throws TorrentDownloaderException
+		throws ResourceDownloaderException
 	{
 		try{
 			URL	url = new URL( url_str );
@@ -98,7 +98,7 @@ TorrentDownloader2Impl
 			
 			if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
 				
-				throw( new TorrentDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+				throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 			}
 
 			InputStream in = con.getInputStream();
@@ -137,15 +137,15 @@ TorrentDownloader2Impl
 			
 		}catch (java.net.MalformedURLException e){
 			
-			throw( new TorrentDownloaderException("Exception while parsing URL '" + url_str + "':" + e.getMessage()));
+			throw( new ResourceDownloaderException("Exception while parsing URL '" + url_str + "':" + e.getMessage()));
 			
 		}catch (java.net.UnknownHostException e){
 			
-			throw( new TorrentDownloaderException("Exception while initializing download of '" + url_str + "': Unknown Host '" + e.getMessage() + "'"));
+			throw( new ResourceDownloaderException("Exception while initializing download of '" + url_str + "': Unknown Host '" + e.getMessage() + "'"));
 			
 		}catch (java.io.IOException ioe){
 			
-			throw( new TorrentDownloaderException("I/O Exception while downloading '" + url_str + "':" + ioe.toString()));
+			throw( new ResourceDownloaderException("I/O Exception while downloading '" + url_str + "':" + ioe.toString()));
 		}
 	}
 	
@@ -161,20 +161,20 @@ TorrentDownloader2Impl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((TorrentDownloader2Listener)listeners.get(i)).percentComplete(percentage);
+			((ResourceDownloaderListener)listeners.get(i)).percentComplete(percentage);
 		}
 	}
 	
 	public void
 	addListener(
-		TorrentDownloader2Listener		l )
+		ResourceDownloaderListener		l )
 	{
 		listeners.add( l );
 	}
 	
 	public void
 	removeListener(
-		TorrentDownloader2Listener		l )
+		ResourceDownloaderListener		l )
 	{
 		listeners.remove(l);
 	}
