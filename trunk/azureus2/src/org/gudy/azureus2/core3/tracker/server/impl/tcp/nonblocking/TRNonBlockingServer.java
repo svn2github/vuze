@@ -68,6 +68,8 @@ TRNonBlockingServer
 	private long	total_timeouts;
 	private long	total_connections;
 	
+	public static final int MAX_CONCURRENT_CONNECTIONS	= COConfigurationManager.getIntParameter( "Tracker TCP NonBlocking Conc Max" );
+	
 	private final AEMonitor this_mon = new AEMonitor( "TRNonBlockingServer" );
 
 	public
@@ -196,20 +198,33 @@ TRNonBlockingServer
     {
         final TRNonBlockingServerProcessor processor = new TRNonBlockingServerProcessor( this, channel );
         
+        int	num_processors;
+        
         try{
         	this_mon.enter();
         	
         	total_connections++;
         	
         	processors.add( processor );
+        
+        	num_processors	= processors.size();
         	
         }finally{
         	
         	this_mon.exit();
         }
         
-		if ( 	(!isIPFilterEnabled()) || 
-				(!ip_filter.isInRange( channel.socket().getInetAddress().getHostAddress(), "Tracker" ))){
+        if ( 	MAX_CONCURRENT_CONNECTIONS != 0 &&
+        		num_processors > MAX_CONCURRENT_CONNECTIONS ){
+        	
+        	removeAndCloseConnection( processor );
+        
+        }else if ( 	isIPFilterEnabled() && 
+					ip_filter.isInRange( channel.socket().getInetAddress().getHostAddress(), "Tracker" )){
+        	
+        	removeAndCloseConnection( processor );
+        	
+        }else{
 
 	        VirtualChannelSelector.VirtualSelectorListener read_listener = 
 	        	new VirtualChannelSelector.VirtualSelectorListener() 
@@ -255,10 +270,6 @@ TRNonBlockingServer
 				};
 	        
 	        read_selector.register( channel, read_listener, null );  //start reading from the connection
-	        
-		}else{
-			
-			removeAndCloseConnection( processor );
 		}
     }
 

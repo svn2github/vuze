@@ -275,6 +275,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Max POST Time Multiplier", new Long(1));
     def.put( "Tracker Max Threads", new Long( 48 ));
     def.put( "Tracker TCP NonBlocking", new Long(0));
+    def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
     
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );

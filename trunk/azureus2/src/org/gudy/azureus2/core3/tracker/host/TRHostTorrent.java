@@ -90,7 +90,13 @@ TRHostTorrent
 	getAnnounceCount();
 	
 	public long
+	getAverageAnnounceCount();
+	
+	public long
 	getScrapeCount();
+	
+	public long
+	getAverageScrapeCount();
 	
 	public long
 	getCompletedCount();

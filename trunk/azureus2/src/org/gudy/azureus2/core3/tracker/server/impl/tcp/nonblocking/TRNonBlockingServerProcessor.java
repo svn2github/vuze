@@ -96,20 +96,14 @@ TRNonBlockingServerProcessor
 		try{
 			int	len = socket_channel.read( read_buffer );
 			
-			if ( len < 0 ){
-				
-				return( -1 );
-				
-			}else if ( len == 0 ){
-				
-				System.out.println( "TRNonBlockingServerProcessor: zero length read" );
+			if ( len <= 0 ){
 				
 				return( -1 );
 			}
 			
 			byte[]	data = read_buffer.array();
 						
-			for (int i=0;i<=read_buffer.position() - 4;i++){
+			for (int i=read_buffer.position()-4;i>=0;i--){
 				
 				if ( 	data[i]   == CR &&
 						data[i+1] == FF &&

@@ -124,8 +124,14 @@ TrackerTorrent
 	getScrapeCount();
 
 	public long
+	getAverageScrapeCount();
+	
+	public long
 	getAnnounceCount();
 
+	public long
+	getAverageAnnounceCount();
+	
 		/**
 		 * stops the tracker from caching replies to announces/scrapes for this torrent
 		 */

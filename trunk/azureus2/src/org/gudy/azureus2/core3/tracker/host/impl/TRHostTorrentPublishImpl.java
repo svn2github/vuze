@@ -152,10 +152,23 @@ TRHostTorrentPublishImpl
 	}
 	
 	public long
+	getAverageAnnounceCount()
+	{
+		return( 0 );
+	}
+	
+	public long
 	getScrapeCount()
 	{
 		return( 0 );
 	}
+	
+	public long
+	getAverageScrapeCount()
+	{
+		return( 0 );
+	}
+	
 	public long
 	getCompletedCount()
 	{

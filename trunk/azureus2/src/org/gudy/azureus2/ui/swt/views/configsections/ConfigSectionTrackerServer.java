@@ -99,242 +99,7 @@ ConfigSectionTrackerServer
     
       // MAIN TAB DATA
 
-    	// Poll Group
-    
-    Group gPollStuff = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gPollStuff, "ConfigView.section.tracker.pollinterval");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
-    gPollStuff.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    gPollStuff.setLayout(layout);
-
-    label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    pollIntervalMin.setLayoutData( gridData );
-
-    label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    pollIntervalMax.setLayoutData( gridData );
-
-    // row
-
-    label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    pollIntervalIncBy.setLayoutData( gridData );
-
-    label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    pollIntervalIncPer.setLayoutData( gridData );
-
-    
-    // scrape + cache group
-
-    Group gScrapeCache = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gScrapeCache, "ConfigView.section.tracker.scrapeandcache");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
-    gScrapeCache.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    gScrapeCache.setLayout(layout);
-    
-    // row
-    
-    label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcescrapepercentage");
-
-    IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    scrapeannouncepercentage.setLayoutData( gridData );
-    
-    label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.scrapecacheperiod");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache", TRHost.DEFAULT_SCRAPE_CACHE_PERIOD );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    scrapeCachePeriod.setLayoutData( gridData );
-    
- 
-    // row
-
-    label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheminpeers");
-
-    IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers", TRHost.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    announceCacheMinPeers.setLayoutData( gridData );
-    
-    label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheperiod");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache", TRHost.DEFAULT_ANNOUNCE_CACHE_PERIOD );
-
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    announceCachePeriod.setLayoutData( gridData );
-
-    // processing limits group
-
-    Group gProcessing = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
-    gProcessing.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    gProcessing.setLayout(layout);
-    
-    	// row annouce/scrape max process time
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
-    maxGetTime.setMinimumValue(1);
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxGetTime.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
-   
-  	// row post multiplier
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxPostTimeMultiplier.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
-   
-   	// row max threads
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
-    maxThreadsTime.setMinimumValue(1);
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxThreadsTime.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    
-    // main tab again
-    // row
-
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxpeersreturned");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 100 );
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxPeersReturned.setLayoutData( gridData );
-
-    label = new Label(gMainTab, SWT.NULL);
-
-    	// seed retention limit
-    
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained");
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    seedRetentionLimit.setLayoutData( gridData );
-
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention.info");
-  
-    	// row
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
-                         "ConfigView.section.tracker.natcheckenable").setLayoutData( gridData );
-    
-    Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 1;
-    gNATDetails.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    layout.marginHeight=0;
-    layout.marginWidth=0;
-    gNATDetails.setLayout(layout);
-    
-    	// row
-    
-    label = new Label(gNATDetails, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.natchecktimeout");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout", TRTrackerServer.DEFAULT_NAT_CHECK_SECS );
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    NATTimeout.setLayoutData( gridData );
-
-    	// row
+   	// row
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.ip");
@@ -571,8 +336,283 @@ ConfigSectionTrackerServer
             };
 
     passwordEnableWeb.setAdditionalActionPerformer(enabler);
-    passwordEnableTorrent.setAdditionalActionPerformer(enabler);
+    passwordEnableTorrent.setAdditionalActionPerformer(enabler);    
+    
+    	// Poll Group
+    
+    Group gPollStuff = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gPollStuff, "ConfigView.section.tracker.pollinterval");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gPollStuff.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    gPollStuff.setLayout(layout);
 
+    label = new Label(gPollStuff, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    pollIntervalMin.setLayoutData( gridData );
+
+    label = new Label(gPollStuff, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    pollIntervalMax.setLayoutData( gridData );
+
+    // row
+
+    label = new Label(gPollStuff, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    pollIntervalIncBy.setLayoutData( gridData );
+
+    label = new Label(gPollStuff, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    pollIntervalIncPer.setLayoutData( gridData );
+
+    
+    // scrape + cache group
+
+    Group gScrapeCache = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gScrapeCache, "ConfigView.section.tracker.scrapeandcache");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gScrapeCache.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    gScrapeCache.setLayout(layout);
+    
+    // row
+    
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcescrapepercentage");
+
+    IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    scrapeannouncepercentage.setLayoutData( gridData );
+    
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.scrapecacheperiod");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache", TRHost.DEFAULT_SCRAPE_CACHE_PERIOD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    scrapeCachePeriod.setLayoutData( gridData );
+    
+ 
+    // row
+
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheminpeers");
+
+    IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers", TRHost.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    announceCacheMinPeers.setLayoutData( gridData );
+    
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheperiod");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache", TRHost.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    announceCachePeriod.setLayoutData( gridData );
+
+    // processing limits group
+
+    Group gProcessing = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gProcessing.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gProcessing.setLayout(layout);
+    
+    	// row annouce/scrape max process time
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
+    maxGetTime.setMinimumValue(1);
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxGetTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
+   
+  	// row post multiplier
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxPostTimeMultiplier.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
+   
+   	// row max threads
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
+    maxThreadsTime.setMinimumValue(1);
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxThreadsTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    
+    
+  	// non-blocking tracker group
+    
+    Group gNBTracker = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gNBTracker, "ConfigView.section.tracker.nonblocking");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gNBTracker.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gNBTracker.setLayout(layout);
+    
+    	// row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+ 
+    BooleanParameter nb_enable =
+    	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking", false,
+                         "ConfigView.section.tracker.tcpnonblocking");
+    nb_enable.setLayoutData(gridData);
+
+ 	// row max conc connections
+    
+    label = new Label(gNBTracker, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.nonblockingconcmax");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxConcConn = new IntParameter(gNBTracker, "Tracker TCP NonBlocking Conc Max" );
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxConcConn.setLayoutData( gridData );
+
+    label = new Label(gNBTracker, SWT.NULL);
+    
+    nb_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( maxConcConn.getControls() ));
+
+    
+    // main tab again
+    // row
+
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxpeersreturned");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 100 );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxPeersReturned.setLayoutData( gridData );
+
+    label = new Label(gMainTab, SWT.NULL);
+
+    	// seed retention limit
+    
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained");
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    seedRetentionLimit.setLayoutData( gridData );
+
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention.info");
+  
+    	// row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
+                         "ConfigView.section.tracker.natcheckenable").setLayoutData( gridData );
+    
+    Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 1;
+    gNATDetails.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    layout.marginHeight=0;
+    layout.marginWidth=0;
+    gNATDetails.setLayout(layout);
+    
+    	// row
+    
+    label = new Label(gNATDetails, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.natchecktimeout");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout", TRTrackerServer.DEFAULT_NAT_CHECK_SECS );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    NATTimeout.setLayoutData( gridData );
+
+ 
     // row
     
     gridData = new GridData();
@@ -622,14 +662,7 @@ ConfigSectionTrackerServer
                          "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
 
     
-    // row
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
- 
-    new BooleanParameter(gMainTab, "Tracker TCP NonBlocking", false,
-                         "ConfigView.section.tracker.tcpnonblocking").setLayoutData(gridData);
-
+    
     // row
 
     gridData = new GridData();

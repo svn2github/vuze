@@ -58,6 +58,8 @@ TRHostTorrentHostImpl
 	protected long				last_downloaded;
 	protected long				last_bytes_in;
 	protected long				last_bytes_out;
+	protected long				last_announce;
+	protected long				last_scrape;
 	
 		//average over 10 periods, update every period.
 
@@ -65,6 +67,8 @@ TRHostTorrentHostImpl
 	protected Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	protected Average			average_announce		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	protected Average			average_scrape			= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
 	protected boolean			disable_reply_caching;
 	
@@ -367,6 +371,12 @@ TRHostTorrentHostImpl
 	}
 	
 	public long
+	getAverageAnnounceCount()
+	{
+		return( average_announce.getAverage());
+	}
+	
+	public long
 	getScrapeCount()
 	{
 		TRTrackerServerTorrentStats	stats = getStats();
@@ -377,6 +387,12 @@ TRHostTorrentHostImpl
 		}
 		
 		return( 0 );
+	}
+	
+	public long
+	getAverageScrapeCount()
+	{
+		return( average_scrape.getAverage());
 	}
 	
 	public long
@@ -427,7 +443,7 @@ TRHostTorrentHostImpl
 			
 			last_downloaded = current_downloaded;
 			
-			// bytes in 
+				// bytes in 
 			
 			long	current_bytes_in 	= stats.getBytesIn();
 			
@@ -442,7 +458,7 @@ TRHostTorrentHostImpl
 			
 			last_bytes_in = current_bytes_in;
 
-			// bytes out 
+				// bytes out 
 			
 			long	current_bytes_out 	= stats.getBytesOut();
 			
@@ -456,8 +472,36 @@ TRHostTorrentHostImpl
 			average_bytes_out.addValue((int)bo_diff);
 			
 			last_bytes_out = current_bytes_out;
-						
-			// System.out.println( "tot_up = " + total_uploaded + ", tot_down = " + total_downloaded);
+		
+				// announce
+			
+			long	current_announce 	= stats.getAnnounceCount();
+			
+			long an_diff = current_announce - last_announce;
+			
+			if ( an_diff < 0 ){
+								
+				an_diff = 0;
+			}
+			
+			average_announce.addValue((int)an_diff);
+			
+			last_announce = current_announce;
+			
+				// scrape 
+			
+			long	current_scrape 	= stats.getScrapeCount();
+			
+			long sc_diff = current_scrape - last_scrape;
+			
+			if ( sc_diff < 0 ){
+								
+				sc_diff = 0;
+			}
+			
+			average_scrape.addValue((int)sc_diff);
+			
+			last_scrape = current_scrape;
 		}
 	}
 	

@@ -56,7 +56,9 @@ RPTrackerTorrent
 	public long		total_bytes_out;
 	public long 	average_bytes_out;
 	public long		scrape_count;
+	public long		average_scrape_count;
 	public long		announce_count;
+	public long		average_announce_count;
 	public int		seed_count;
 	public int		leecher_count;
 	public int		bad_NAT_count;
@@ -99,22 +101,24 @@ RPTrackerTorrent
 	{
 		delegate = (TrackerTorrent)_delegate;
 		
-		status				= delegate.getStatus();
-		total_uploaded		= delegate.getTotalUploaded();
-		total_downloaded	= delegate.getTotalDownloaded();
-		average_uploaded	= delegate.getAverageUploaded();
-		average_downloaded	= delegate.getAverageDownloaded();
-		total_left			= delegate.getTotalLeft();
-		completed_count		= delegate.getCompletedCount();
-		total_bytes_in		= delegate.getTotalBytesIn();
-		average_bytes_in	= delegate.getAverageBytesIn();
-		total_bytes_out		= delegate.getTotalBytesOut();
-		average_bytes_out	= delegate.getAverageBytesOut();
-		scrape_count		= delegate.getScrapeCount();
-		announce_count		= delegate.getAnnounceCount();
-		seed_count			= delegate.getSeedCount();
-		leecher_count		= delegate.getLeecherCount();
-		bad_NAT_count		= delegate.getBadNATCount();
+		status					= delegate.getStatus();
+		total_uploaded			= delegate.getTotalUploaded();
+		total_downloaded		= delegate.getTotalDownloaded();
+		average_uploaded		= delegate.getAverageUploaded();
+		average_downloaded		= delegate.getAverageDownloaded();
+		total_left				= delegate.getTotalLeft();
+		completed_count			= delegate.getCompletedCount();
+		total_bytes_in			= delegate.getTotalBytesIn();
+		average_bytes_in		= delegate.getAverageBytesIn();
+		total_bytes_out			= delegate.getTotalBytesOut();
+		average_bytes_out		= delegate.getAverageBytesOut();
+		scrape_count			= delegate.getScrapeCount();
+		average_scrape_count	= delegate.getAverageScrapeCount();
+		announce_count			= delegate.getAnnounceCount();
+		average_announce_count	= delegate.getAverageAnnounceCount();
+		seed_count				= delegate.getSeedCount();
+		leecher_count			= delegate.getLeecherCount();
+		bad_NAT_count			= delegate.getBadNATCount();
 	}
 	
 	public Object
@@ -193,128 +197,108 @@ RPTrackerTorrent
 	public int
 	getStatus()
 	{
-		notSupported();
-		
 		return( status );	
 	}
 	
 	public long
 	getTotalUploaded()
 	{
-		notSupported();
-		
 		return( total_uploaded );	
 	}
 	
 	public long
 	getTotalDownloaded()
 	{
-		notSupported();
-		
 		return( total_downloaded );	
 	}
 	
 	public long
 	getAverageUploaded()
 	{
-		notSupported();
-		
 		return( average_uploaded );
 	}
 	
 	public long
 	getAverageDownloaded()
 	{
-		notSupported();
-		
 		return( average_downloaded );	
 	}
 	
 	public long
 	getTotalLeft()
 	{
-		notSupported();
-		
 		return( total_left );	
 	}
 	
 	public long
 	getCompletedCount()
 	{
-		notSupported();
-		
 		return( completed_count );	
 	}
 
 	public long
 	getTotalBytesIn()
 	{
-		notSupported();
-		
 		return( total_bytes_in );	
 	}	
 	
 	public long
 	getAverageBytesIn()
 	{
-		notSupported();
-		
 		return( average_bytes_in );	
 	}
 	
 	public long
 	getTotalBytesOut()
 	{
-		notSupported();
-		
 		return( total_bytes_out );	
 	}
 	
 	public long
 	getAverageBytesOut()
 	{
-		notSupported();
-		
 		return( average_bytes_out );	
 	}	
 
 	public long
 	getScrapeCount()
 	{
-		notSupported();
-		
 		return( scrape_count );	
+	}
+	
+	public long
+	getAverageScrapeCount()
+	{
+		return( average_scrape_count );
 	}
 	
 	public long
 	getAnnounceCount()
 	{
-		notSupported();
-		
 		return( announce_count );	
+	}
+	
+	public long
+	getAverageAnnounceCount()
+	{
+		return( average_announce_count );
 	}
 	
 	public int
 	getSeedCount()
 	{
-		notSupported();
-		
 		return( seed_count );	
 	}	
 	
 	public int
 	getLeecherCount()
 	{
-		notSupported();
-		
 		return( leecher_count);	
 	}
 	
 	public int
 	getBadNATCount()
 	{
-		notSupported();
-		
 		return( bad_NAT_count );
 	}
 	
@@ -328,20 +312,21 @@ RPTrackerTorrent
 	addListener(
 		TrackerTorrentListener	listener )
 	{
-		
+		notSupported();
 	}
 	
 	public void
 	removeListener(
 		TrackerTorrentListener	listener )
 	{
-		
+		notSupported();
 	}
 	
 	public void
 	addRemovalListener(
 		TrackerTorrentWillBeRemovedListener	listener )
 	{
+		notSupported();
 	}
 	
 	
@@ -349,6 +334,6 @@ RPTrackerTorrent
 	removeRemovalListener(
 		TrackerTorrentWillBeRemovedListener	listener )
 	{
-		
+		notSupported();
 	}
 }

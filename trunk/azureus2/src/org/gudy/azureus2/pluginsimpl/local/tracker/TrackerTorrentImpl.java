@@ -187,11 +187,23 @@ TrackerTorrentImpl
 	}
 	
 	public long
+	getAverageScrapeCount()
+	{
+		return( host_torrent.getAverageScrapeCount());
+	}
+	
+	public long
 	getScrapeCount()
 	{
 		return( host_torrent.getScrapeCount());
 	}
 	
+	public long
+	getAverageAnnounceCount()
+	{
+		return( host_torrent.getAverageAnnounceCount());
+	}
+
 	public long
 	getAnnounceCount()
 	{
