@@ -55,7 +55,7 @@ AEMonSem
 	private static Map 	debug_traces		= new HashMap();
 	private static List	debug_recursions	= new ArrayList();
 	private static List	debug_reciprocals	= new ArrayList();
-	private static List	debug_sem_in_mon	= new ArrayList();
+	//private static List	debug_sem_in_mon	= new ArrayList();
 	
 	
 	
@@ -330,6 +330,7 @@ AEMonSem
 			
 			String	recursion_trace = "";
 			
+			/* not very useful 
 			if (	(!is_monitor) &&
 					((AEMonSem)stack.peek()).is_monitor ){
 				
@@ -341,10 +342,14 @@ AEMonSem
 					debug_sem_in_mon.add( name );
 				}
 			}
-					
+			*/
+			
 			StringBuffer	sb = new StringBuffer();
 	
-			boolean	check_recursion = !debug_recursions.contains( name );
+				// not very interesting for semaphores as these tend to get left on stack traces when
+				// asymetric usage (which is often)
+			
+			boolean	check_recursion = is_monitor && !debug_recursions.contains( name );
 			
 			String	prev_name	= null;
 			
@@ -456,10 +461,25 @@ AEMonSem
 						
 						for (int i=0;i<earliest_common;i++){
 							
+							AEMonSem	ms1 = (AEMonSem)stack.get(i);
+							
+							if ( !ms1.is_monitor ){
+								
+								continue;
+							}
+							
+							String	n1 = ms1.name;
+
 							for (int j=i+1;j<stack.size();j++){
 								
-								String	n1 = ((AEMonSem)stack.get(i)).name;
-								String	n2 = ((AEMonSem)stack.get(j)).name;
+								AEMonSem	ms2 = (AEMonSem)stack.get(j);
+								
+								if ( !ms2.is_monitor ){
+									
+									continue;
+								}
+								
+								String	n2 = ms2.name;
 								
 									// same object recursion already tested above
 								

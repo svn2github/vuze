@@ -145,7 +145,7 @@ AESemaphore
 			}
 		}
 	}
-
+	
 	public void
 	release()
 	{
