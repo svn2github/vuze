@@ -227,7 +227,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     GridLayout layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
-    layoutInfo.horizontalSpacing = 5;
+    layoutInfo.horizontalSpacing = 7;
     layoutInfo.marginHeight = 0;
     layoutInfo.marginWidth = 0;
     culdl.setLayout(layoutInfo);
@@ -277,7 +277,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
 
-    
     
     // ul speed
   
