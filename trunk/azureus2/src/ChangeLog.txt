@@ -13,6 +13,7 @@ FEATURE: Plug | Webui attempts to get access to system clipboard to fix copy/pas
 FEATURE: Plug | Plugin interface extensions for basic plugin config [Parg]
 FEATURE: Plug | External authorisation framework [Parg]
 FEATURE: Plug | WebUI + XML/HTTP i/f now have separately configurable username/password via Plugin config (*not* plugin.properties) [Parg]
+FEATURE: Plug | WebUI can now use signed jars, if configured, so that clipboard access doesn't require local config [Parg]
 FEATURE: UI   | Better scrape result reporting, including new "Next Tracker Access" column [TuxPaper]
 FEATURE: UI   | Tooltip for Health Icon [TuxPaper]
 FEATURE: UI   | New language: Japanese [Gouss]
