@@ -186,7 +186,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       cfg.addStage("CacheStage", STAGES + "cache.PageCacheSized", defaultargs);
       cfg.addStage("ResouceReader", STAGES + "cache.ResourceReader", defaultargs);
       cfg.addStage("DynamicHttp", STAGES + "hdapi.WildcardDynamicHttp", defaultargs);
-      cfg.addStage("HttpProxy", STAGES + "proxy.HttpProxy", defaultargs);
+      //cfg.addStage("HttpProxy", STAGES + "proxy.HttpProxy", defaultargs);
     } catch (Exception e) {
       logger.fatal("Webinterface configuration failed: " + e.getMessage(), e);
     }
