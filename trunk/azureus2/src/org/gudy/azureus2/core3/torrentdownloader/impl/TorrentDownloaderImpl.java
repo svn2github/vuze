@@ -23,6 +23,7 @@ import java.net.URLDecoder;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author Tobias Minich
@@ -106,7 +107,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
         if ( param_pos != -1 ){
           tmp = tmp.substring(0,param_pos);
         }
-        this.filename = URLDecoder.decode(tmp, "UTF-8");
+        this.filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
       } else {
         this.filename = this.filename.substring(this.filename.indexOf('=') + 1);
         if (this.filename.startsWith("\"") && this.filename.endsWith("\""))

@@ -438,7 +438,24 @@ DiskManagerImpl
 		  Map resumeMap = torrent.getAdditionalMapProperty("resume");
 		  
 		  if (resumeMap != null) {
-		    Map resumeDirectory = (Map)resumeMap.get(this.path);
+		  	
+		  		// see bug 869749 for explanation of this mangling
+		  	
+		  	String mangled_path;
+		  	
+		  	try{
+		  		mangled_path = new String(this.path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+		  		
+		  		// System.out.println( "resume: path = " + path + ", mangled_path = " + mangled_path );
+		  		
+		  	}catch( Throwable e ){
+		  		
+		  		e.printStackTrace();
+		  		
+		  		mangled_path = this.path;
+		  	}
+		  	
+		    Map resumeDirectory = (Map)resumeMap.get(mangled_path);
 		    if (resumeDirectory != null) {
 		      try {
 		        resumeArray = (byte[])resumeDirectory.get("resume data");
@@ -1000,7 +1017,12 @@ DiskManagerImpl
 		torrent.setAdditionalMapProperty("resume", resumeMap);
 
 	  Map resumeDirectory = new HashMap();
+	  
+	  	// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
+	  	// currently fixed by mangling such that decode works
+	  
 	  resumeMap.put(path, resumeDirectory);
+	  
 	  resumeDirectory.put("resume data", resumeData);
 	  Map partialPieces = new HashMap();
 	

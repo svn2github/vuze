@@ -22,13 +22,13 @@ LocaleUtil
   private static final String[] manual_charset = {
 	systemEncoding,
 	"Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR",
-	"Shift_JIS","KOI8-R","UTF-8","windows-1251","ISO-8859-1" 
+	"Shift_JIS","KOI8-R",Constants.DEFAULT_ENCODING,"windows-1251",Constants.BYTE_ENCODING 
   };
   
 	// the general ones *must* also be members of the above manual ones
   	
   protected static final String[] generalCharsets = {
-	"ISO-8859-1", "UTF-8", systemEncoding
+	Constants.BYTE_ENCODING, Constants.DEFAULT_ENCODING, systemEncoding
   };
   
    private static LocaleUtilDecoder[] 	charsetDecoders;
