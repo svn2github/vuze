@@ -327,6 +327,9 @@ AESocksProxyConnectionImpl
 				}else{
 				
 					// drop the user id byte
+					
+					buffer.flip();
+					
 				}
 			}else{
 				
