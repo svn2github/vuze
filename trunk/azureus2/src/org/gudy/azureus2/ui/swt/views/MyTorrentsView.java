@@ -1,274 +1,129 @@
 /*
  * Created on 30 juin 2003
  *
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-
+import java.util.*;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DragSourceAdapter;
-import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
+
+import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryListener;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
-import org.gudy.azureus2.core3.category.*;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
-import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.URLTransfer;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
-import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 /** Displays a list of torrents in a table view.
  *
  * @author Olivier
  * @author TuxPaper
+ *         2004/Apr/18: Use TableRowImpl instead of PeerRow
+ *         2004/Apr/20: Remove need for tableItemToObject
+ *         2004/Apr/21: extends TableView instead of IAbstractView
  */
-public class MyTorrentsView extends AbstractIView
-  implements GlobalManagerListener, 
-             SortableTable, 
-             ITableStructureModificationListener,
-             ParameterListener,
-             DownloadManagerListener,
-             CategoryManagerListener,
-             CategoryListener {
+public class MyTorrentsView
+       extends TableView
+       implements GlobalManagerListener,
+                  ParameterListener,
+                  DownloadManagerListener,
+                  CategoryManagerListener,
+                  CategoryListener
+{
 
   private GlobalManager globalManager;
   private boolean isSeedingView;
 
-  private Composite composite;
-  private Composite panel;
-  private Table table;
+  private Composite cTablePanel;
   private Font fontButton = null;
-  private HashMap objectToSortableItem;
-  private HashMap tableItemToObject;
-  private Menu menu;
   private Composite cCategories;
   private Menu menuCategory;
-  private Menu menuThisColumn;
   private MenuItem menuItemChangeDir = null;
 
-  private HashMap downloadBars;
+  private Map downloadBars;
 
-  // Contains all the column information (ItemDescriptor for each column)
-  private ItemEnumerator itemEnumerator;
-  private TableSorter sorter;
-
-  private String[] tableItems;
-  private String configTableName;
   private Category currentCategory;
   private boolean skipDMAdding = true;
 
-
-	// table item index, where the drag has started
+  // table item index, where the drag has started
   private int drag_drop_line_start = -1;
-  private int iMouseX = -1;
 
-
-  private int loopFactor;
-  private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   private boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
 
-  /**
-   * @return Returns the itemEnumerator.
-   */
-  public ItemEnumerator getItemEnumerator() {
-    return itemEnumerator;
-  }
-
-  public MyTorrentsView(GlobalManager globalManager, boolean isSeedingView) {
-    final String[] tableItemsDL = {
-        "health;L;I;18;0"
-        ,"#;R;I;30;1"
-        ,"name;L;S;250;2"
-        ,"size;R;I;70;3"
-        ,"down;R;I;70;4"
-        ,"done;R;I;55;5"
-        ,"status;L;I;80;6"
-        ,"seeds;C;I;60;7"
-        ,"peers;C;I;60;8"
-        ,"downspeed;R;I;70;9"
-        ,"upspeed;R;I;60;10"
-        ,"eta;L;I;70;11"
-        ,"priority;L;I;50;12"
-
-        ,"tracker;L;S;70;-1"
-        ,"shareRatio;R;I;70;-1"
-        ,"up;R;I;70;-1"
-        ,"remaining;R;I;70;-1"
-        ,"pieces;C;I;100;-1"
-        ,"completion;C;I;100;-1"
-        ,"maxuploads;R;I;30;-1"
-        ,"totalspeed;R;I;70;-1"
-        ,"savepath;L;S;150;-1"
-        ,"category;L;S;70;-1"
-        ,"availability;R;I;50;-1"
-        ,"secondsseeding;R;I;70;-1"
-        ,"secondsdownloading;R;I;70;-1"
-
-    };
-
-    final String[] tableItemsSeeder = {
-        "health;L;I;18;0"
-        ,"#;R;I;30;1"
-        ,"name;L;S;250;2"
-        ,"size;R;I;70;3"
-        ,"status;L;I;80;4"
-        ,"seeds;C;I;60;5"
-        ,"peers;C;I;60;6"
-        ,"upspeed;R;I;60;7"
-        ,"priority;L;I;50;8"
-        ,"shareRatio;R;I;70;9"
-        ,"up;R;I;70;10"
-
-        ,"tracker;L;S;70;-1"
-        ,"done;R;I;55;-1"
-        ,"maxuploads;R;I;30;-1"
-        ,"totalspeed;R;I;70;-1"
-        ,"savepath;L;S;150;-1"
-        ,"category;L;S;70;-1"
-        ,"availability;R;I;50;-1"
-        ,"secondsseeding;R;I;70;-1"
-        ,"secondsdownloading;R;I;70;-1"
-    };
-
+  public MyTorrentsView(GlobalManager globalManager, boolean isSeedingView,
+                        TableColumnCore[] basicItems) {
+    super((isSeedingView) ? TableManager.TABLE_MYTORRENTS_COMPLETE
+                          : TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+          "MyTorrentsView", basicItems, "#", 
+          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     this.globalManager = globalManager;
     this.isSeedingView = isSeedingView;
 
-
-    if (isSeedingView) {
-      tableItems = tableItemsSeeder;
-      configTableName = "MySeeders";
-    }
-    else {
-      tableItems = tableItemsDL;
-      configTableName = "MyTorrents";
-    }
-    // turn array into list so we can add to it
-    List itemsList = new ArrayList(tableItems.length);
-    for(int i=0 ; i < tableItems.length ; i++) {
-      itemsList.add(tableItems[i]);
-    }
-    // Add Plugin Extensions
-    Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
-    Iterator iter = extensions.keySet().iterator();
-    while(iter.hasNext()) {
-      String name = (String) iter.next();
-      PluginMyTorrentsItemFactory ppif = (PluginMyTorrentsItemFactory) extensions.get(name);
-      if ((isSeedingView && ((ppif.getTablesVisibleIn() & PluginMyTorrentsItemFactory.TABLE_COMPLETE) != 0)) ||
-          (!isSeedingView && ((ppif.getTablesVisibleIn() & PluginMyTorrentsItemFactory.TABLE_INCOMPLETE) != 0)))
-      {
-        String sItem = ppif.getName() + ";" + ppif.getOrientation()  + ";" + 
-                       ppif.getType() + ";" + ppif.getDefaultSize() + ";";
-        int iPosition = ppif.getDefaultPosition();
-        if (iPosition > itemsList.size() || iPosition < -1)
-          iPosition = itemsList.size();
-        itemsList.add(sItem + iPosition);
-      }
-    }
-    // revert back to an array
-    tableItems = (String[])itemsList.toArray(new String[itemsList.size()]);
-
-    objectToSortableItem = new HashMap();
-    tableItemToObject = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
     currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
   }
-   
+
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite0) {
-    if(panel != null) {
+    if(cTablePanel != null) {
       return;
     }
-    createMainPanel(composite0);
-    createMenu();
-    createTable();
+
+    super.initialize(composite0);
+
+    createTabs();
+
     createDragDrop();
 
-    composite.layout();
-
-    COConfigurationManager.addParameterListener("Graphics Update", this);
     COConfigurationManager.addParameterListener("Confirm Data Delete", this);
 
     activateCategory(currentCategory);
@@ -281,59 +136,38 @@ public class MyTorrentsView extends AbstractIView
   }
 
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener#tableStructureChanged()
-   */
   public void tableStructureChanged() {
-    //2. Clear everything
-    Iterator iter = objectToSortableItem.values().iterator();
-    while(iter.hasNext()) {
-      TorrentRow row = (TorrentRow) iter.next();
-      TableItem tableItem = row.getTableItem();
-      tableItemToObject.remove(tableItem);
-      row.delete();
-      iter.remove();
-    }
+    super.tableStructureChanged();
 
-    //3. Dispose the old table
-    table.dispose();
-    menu.dispose();
-
-    //4. Re-create the table
-    createMenu();
-    createTable();
     createDragDrop();
-
     activateCategory(currentCategory);
-    panel.layout();
   }
 
-
-  private void createMainPanel(Composite composite0) {
+  public Composite createMainPanel(Composite composite) {
     GridData gridData;
-    composite = new Composite(composite0, SWT.NULL);
+    Composite panel = new Composite(composite, SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     layout.horizontalSpacing = 0;
     layout.verticalSpacing = 0;
     layout.marginHeight = 0;
     layout.marginWidth = 0;
-    composite.setLayout(layout);
-    composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    panel.setLayout(layout);
+    panel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-    createTabs();
-
-    panel = new Composite(composite, SWT.NULL);
+    cTablePanel = new Composite(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 2;
-    panel.setLayoutData(gridData);
+    cTablePanel.setLayoutData(gridData);
 
     layout = new GridLayout(1, false);
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     layout.verticalSpacing = 0;
     layout.horizontalSpacing = 0;
-    panel.setLayout(layout);
+    cTablePanel.setLayout(layout);
+
+    return panel;
   }
 
   private void createTabs() {
@@ -343,7 +177,7 @@ public class MyTorrentsView extends AbstractIView
 
     if (categories.length > 0) {
       if (cCategories == null) {
-        cCategories = new Composite(composite, SWT.NULL);
+        cCategories = new Composite(getComposite(), SWT.NULL);
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
         cCategories.setLayoutData(gridData);
         RowLayout rowLayout = new RowLayout();
@@ -354,18 +188,19 @@ public class MyTorrentsView extends AbstractIView
         rowLayout.spacing = 0;
         rowLayout.wrap = true;
         cCategories.setLayout(rowLayout);
-  
-        Label l = new Label(composite, SWT.WRAP);
+
+        Label l = new Label(getComposite(), SWT.WRAP);
         gridData = new GridData();
         gridData.horizontalIndent = 3;
         l.setLayoutData(gridData);
-        Messages.setLanguageText(l, configTableName + "View.header");
+        Messages.setLanguageText(l, sTableID + "View.header");
         cCategories.moveAbove(null);
         l.moveAbove(null);
       } else {
         Control[] controls = cCategories.getChildren();
-        for (int i = 0; i < controls.length; i++)
+        for (int i = 0; i < controls.length; i++) {
           controls[i].dispose();
+        }
       }
 
 
@@ -378,7 +213,7 @@ public class MyTorrentsView extends AbstractIView
           Font f = catButton.getFont();
           FontData fd = f.getFontData()[0];
           fd.setHeight(iFontPointHeight);
-          fontButton = new Font(cCategories.getDisplay(), fd); 
+          fontButton = new Font(cCategories.getDisplay(), fd);
         }
         catButton.setFont(fontButton);
         catButton.pack(true);
@@ -387,7 +222,7 @@ public class MyTorrentsView extends AbstractIView
           rd.height = catButton.getSize().y - 5 + catButton.getBorderWidth() * 2;
           catButton.setLayoutData(rd);
         }
-        
+
         String name = categories[i].getName();
         if (categories[i].getType() == Category.TYPE_USER)
           catButton.setText(name);
@@ -431,26 +266,26 @@ public class MyTorrentsView extends AbstractIView
 
           public void drop(DropTargetEvent e) {
             e.detail = DND.DROP_NONE;
-            if(drag_drop_line_start >= 0) { 
+            if(drag_drop_line_start >= 0) {
               drag_drop_line_start = -1;
-              
+
               assignSelectedToCategory((Category)catButton.getData("Category"));
             }
           }
         });
 
         if (categories[i].getType() == Category.TYPE_USER) {
-          Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
-  
+          Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
+
           final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
           Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
           menu.setDefaultItem(itemDelete);
-          
+
           itemDelete.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
               Category catToDelete = (Category)catButton.getData("Category");
               if (catToDelete != null) {
-                List managers = catToDelete.getDownloadManagers();
+                java.util.List managers = catToDelete.getDownloadManagers();
                 // move to array,since setcategory removed it from the category,
                 // which would mess up our loop
                 DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
@@ -467,117 +302,30 @@ public class MyTorrentsView extends AbstractIView
         }
       }
       cCategories.layout();
-      composite.layout();
+      getComposite().layout();
     }
   }
 
-  private void createTable() {
-    GridData gridData;
-    table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
-    gridData = new GridData(GridData.FILL_BOTH);
-    table.setLayoutData(gridData);
-    sorter = new TableSorter(this, configTableName, "#", true);
+  public Table createTable() {
+    bSkipFirstColumn = true;
+    Table table = new Table(cTablePanel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+    table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-    ControlListener resizeListener = new ControlAdapter() {
-      public void controlResized(ControlEvent e) {
-        int columnNumber = table.indexOf((TableColumn) e.widget);
-    		locationChanged(columnNumber);
-      }
-    };
-
-    // Setup table
-    // -----------
-    itemEnumerator = ConfigBasedItemEnumerator.getInstance(configTableName, tableItems);
-    ItemDescriptor[] items = itemEnumerator.getItems();
-
-    // Add 1 to position because we make a non resizable 0-sized 1st column
-    // to fix the 1st column gap problem (Eclipse Bug 43910)
-    TableColumn tc = new TableColumn(table, SWT.NULL);
-    tc.setWidth(0);
-    tc.setResizable(false);
-
-    //Create all columns
-    for (int i = 0; i < items.length; i++) {
-      int position = items[i].getPosition();
-      if (position != -1) {
-        new TableColumn(table, SWT.NULL);
-      }
-    }
-    //Assign length and titles
-    //We can only do it after ALL columns are created, as position (order)
-    //may not be in the natural order (if the user re-order the columns).
-    for (int i = 0; i < items.length; i++) {
-      int position = items[i].getPosition();
-      if(position != -1) {
-        // +1 for Eclipse Bug 43910 (see above)
-        TableColumn column = table.getColumn(position + 1);
-        Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
-        column.setAlignment(items[i].getAlign());
-        column.setWidth(items[i].getWidth());
-        if (items[i].getType() == ItemDescriptor.TYPE_INT) {
-          sorter.addIntColumnListener(column, items[i].getName());
-        }
-        if (items[i].getType() == ItemDescriptor.TYPE_STRING) {
-          sorter.addStringColumnListener(column, items[i].getName());
-        }
-        column.setData("configName", "Table." + configTableName + "." + items[i].getName());
-        column.setData("Name", items[i].getName());
-        column.addControlListener(resizeListener);
-      }
-    }
-
-    table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
 
     table.addSelectionListener(new SelectionAdapter() {
       public void widgetDefaultSelected(SelectionEvent e) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
-          return;
-        }
-        TableItem ti = tis[0];
-        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-        MainWindow.getWindow().openManagerView(dm);
-      }
-    });
-
-    // Deselect rows if user clicks on a black spot (a spot with no row)
-    table.addMouseListener(new MouseAdapter() {
-      public void mouseDown(MouseEvent e) {
-        iMouseX = e.x;
-        Point pMousePosition = new Point(e.x, e.y);
-        TableItem ti = table.getItem(pMousePosition);
-        if (ti == null) {
-          // skip if outside client area (ie. scrollbars)
-          Rectangle rTableArea = table.getClientArea();
-          if (rTableArea.contains(pMousePosition)) {
-            table.deselectAll();
-          }
-        }
+        DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
+        if (dm != null)
+          MainWindow.getWindow().openManagerView(dm);
       }
     });
     
-    // XXX this may not be needed if all platforms process mouseDown
-    //     before the menu
-    table.addMouseMoveListener(new MouseMoveListener() {
-      public void mouseMove(MouseEvent e) {
-        iMouseX = e.x;
-      }
-    });
-
-    table.addPaintListener(new PaintListener() {
-			public void paintControl(PaintEvent event) {
-        if(event.width == 0 || event.height == 0) return;
-				doPaint(event.gc);
-			}
-    });
-
-    table.setMenu(menu);
+    cTablePanel.layout();
+    return table;
   }
 
-  private void createMenu() {
-    menu = new Menu(composite.getShell(), SWT.POP_UP);
-
+  public void fillMenu(final Menu menu) {
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
@@ -589,21 +337,21 @@ public class MyTorrentsView extends AbstractIView
 
     new MenuItem(menu, SWT.SEPARATOR);
 
-  	final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-  	Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
+    final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
     itemOpen.setImage(ImageRepository.getImage("run"));
 
-  	final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
-  	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
+    final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
     itemExport.setImage(ImageRepository.getImage("export"));
 
-		final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
-		itemHost.setImage(ImageRepository.getImage("host"));
+    final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
+    itemHost.setImage(ImageRepository.getImage("host"));
 
-		final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
-		itemPublish.setImage(ImageRepository.getImage("publish"));
+    final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
+    itemPublish.setImage(ImageRepository.getImage("publish"));
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -611,7 +359,7 @@ public class MyTorrentsView extends AbstractIView
     Messages.setLanguageText(itemMove, "MyTorrentsView.menu.move"); //$NON-NLS-1$
     itemMove.setImage(ImageRepository.getImage("move"));
 
-    final Menu menuMove = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final Menu menuMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemMove.setMenu(menuMove);
 
     final MenuItem itemMoveTop = new MenuItem(menuMove, SWT.PUSH);
@@ -634,7 +382,7 @@ public class MyTorrentsView extends AbstractIView
     Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
     itemPriority.setImage(ImageRepository.getImage("speed"));
 
-    final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final Menu menuPriority = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
 
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.PUSH);
@@ -644,16 +392,16 @@ public class MyTorrentsView extends AbstractIView
 
     // Category
 
-    menuCategory = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
     //itemCategory.setImage(ImageRepository.getImage("speed"));
     itemCategory.setMenu(menuCategory);
-    
+
     addCategorySubMenu();
 
     // Tracker
-    final Menu menuTracker = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final Menu menuTracker = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     final MenuItem itemTracker = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemTracker, "MyTorrentsView.menu.tracker");
     itemTracker.setMenu(menuTracker);
@@ -669,7 +417,7 @@ public class MyTorrentsView extends AbstractIView
     final MenuItem itemManualUpdate = new MenuItem(menuTracker,SWT.PUSH);
     Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
     //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
-    
+
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
@@ -692,7 +440,7 @@ public class MyTorrentsView extends AbstractIView
     Messages.setLanguageText(itemRemoveAnd, "MyTorrentsView.menu.removeand"); //$NON-NLS-1$
     itemRemoveAnd.setImage(ImageRepository.getImage("delete"));
 
-    final Menu menuRemove = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final Menu menuRemove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemRemoveAnd.setMenu(menuRemove);
     final MenuItem itemDeleteTorrent = new MenuItem(menuRemove, SWT.PUSH);
     Messages.setLanguageText(itemDeleteTorrent, "MyTorrentsView.menu.removeand.deletetorrent"); //$NON-NLS-1$
@@ -707,38 +455,13 @@ public class MyTorrentsView extends AbstractIView
 
     new MenuItem(menu, SWT.SEPARATOR);
 
-    menuThisColumn = new Menu(composite.getShell(), SWT.DROP_DOWN);
-    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
-    itemThisColumn.setMenu(menuThisColumn);
-    
-    final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
-    itemChangeTable.setImage(ImageRepository.getImage("columns"));
-
-
+    super.fillMenu(menu);
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        boolean hasSelection = (tis.length > 0);
+        Object[] dms = getSelectedDataSources();
+        boolean hasSelection = (dms.length > 0);
 
-        if (table.getItemCount() > 0) {
-          TableItem ti = table.getItem(0);
-          // Unfortunately, this listener doesn't fill location
-          int x = 0;
-          int iColumn = -1;
-          for (int i = 0; i < table.getColumnCount(); i++) {
-            // M8 Fixes SWT GTK Bug 51777:
-            //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
-            Rectangle cellBounds = ti.getBounds(i);
-            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width) {
-              iColumn = i;
-              break;
-            }
-          }
-          addThisColumnSubMenu(iColumn);
-        }
-        
         itemDetails.setEnabled(hasSelection);
 
         itemOpen.setEnabled(hasSelection);
@@ -749,56 +472,53 @@ public class MyTorrentsView extends AbstractIView
         itemMove.setEnabled(hasSelection);
         itemPriority.setEnabled(hasSelection);
         itemBar.setEnabled(hasSelection);
-        
+
         itemManualUpdate.setEnabled(hasSelection);
 
         boolean bChangeDir = false;
         if (hasSelection) {
           bChangeDir = true;
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, 
-                  forceStart, forceStartEnabled, recheck, top, bottom, manualUpdate;
-          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = 
+          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened,
+                  forceStart, forceStartEnabled, recheck, manualUpdate;
+          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened =
                    forceStart = forceStartEnabled = recheck = manualUpdate = true;
-          for (int i = 0; i < tis.length; i++) {
-            TableItem ti = tis[i];
-            DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-            if (dm != null) {
-              if (dm.getTrackerClient() == null)
-                changeUrl = false;
-              if (!downloadBars.containsKey(dm))
-                barsOpened = false;
+          for (int i = 0; i < dms.length; i++) {
+            DownloadManager dm = (DownloadManager)dms[i];
+            if (dm.getTrackerClient() == null)
+              changeUrl = false;
+            if (!downloadBars.containsKey(dm))
+              barsOpened = false;
 
-              int state = dm.getState();
-              stop = stop && ManagerUtils.isStopable(dm);
-              remove = remove && ManagerUtils.isRemoveable(dm);
-              start = start && ManagerUtils.isStartable(dm);
+            int state = dm.getState();
+            stop = stop && ManagerUtils.isStopable(dm);
+            remove = remove && ManagerUtils.isRemoveable(dm);
+            start = start && ManagerUtils.isStartable(dm);
 
-              if (state != DownloadManager.STATE_STOPPED)
-                start = false;
+            if (state != DownloadManager.STATE_STOPPED)
+              start = false;
 
-              if (!dm.canForceRecheck())
-                recheck = false;
+            if (!dm.canForceRecheck())
+              recheck = false;
 
-              if (!dm.isMoveableDown())
-                moveDown = false;
-              if (!dm.isMoveableUp())
-                moveUp = false;
+            if (!dm.isMoveableDown())
+              moveDown = false;
+            if (!dm.isMoveableUp())
+              moveUp = false;
 
-              if (state != DownloadManager.STATE_STOPPED && state != DownloadManager.STATE_QUEUED && 
-                  state != DownloadManager.STATE_SEEDING && state != DownloadManager.STATE_DOWNLOADING)
-                forceStartEnabled = false;
+            if (state != DownloadManager.STATE_STOPPED && state != DownloadManager.STATE_QUEUED &&
+                state != DownloadManager.STATE_SEEDING && state != DownloadManager.STATE_DOWNLOADING)
+              forceStartEnabled = false;
 
-              if (!dm.isForceStart())
-                forceStart = false;
-              
-              TRTrackerClient trackerClient = dm.getTrackerClient();
-              if(trackerClient != null) {
-                boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
-                manualUpdate = manualUpdate & update_state;
-              }
+            if (!dm.isForceStart())
+              forceStart = false;
 
-              bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
+            TRTrackerClient trackerClient = dm.getTrackerClient();
+            if(trackerClient != null) {
+              boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+              manualUpdate = manualUpdate & update_state;
             }
+
+            bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
           }
           itemBar.setSelection(barsOpened);
 
@@ -817,7 +537,7 @@ public class MyTorrentsView extends AbstractIView
           itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);
-          
+
           itemManualUpdate.setEnabled(manualUpdate);
 
         } else {
@@ -834,7 +554,7 @@ public class MyTorrentsView extends AbstractIView
           itemChangeTracker.setEnabled(false);
           itemRecheck.setEnabled(false);
         }
-        
+
         if (menuItemChangeDir != null && !menuItemChangeDir.isDisposed()) {
           menuItemChangeDir.dispose();
         }
@@ -862,210 +582,83 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
-    itemRemove.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        removeSelectedTorrentsIfStoppedOrError();
+    itemRemove.addListener(SWT.Selection,
+                           new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        removeTorrent((DownloadManager)row.getDataSource(true), false, false);
       }
     });
 
-    itemDeleteTorrent.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          int state = dm.getState();
-          if (dm != null && 
-              (state == DownloadManager.STATE_STOPPED || 
-               state == DownloadManager.STATE_ERROR ||
-               state == DownloadManager.STATE_QUEUED)) {
-
-          	try{
-          		globalManager.removeDownloadManager(dm);
-          		try {
-          			File f = new File(dm.getTorrentFileName());
-          			f.delete();
-          		}
-          		catch (Exception ex) {
-          			ex.printStackTrace();
-          		}
-            }catch( GlobalManagerDownloadRemovalVetoException f ){
-
-            	Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
-            }
-          }
-        }
+    itemDeleteTorrent.addListener(SWT.Selection,
+                                  new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        removeTorrent((DownloadManager)row.getDataSource(true), true, false);
       }
     });
 
-    itemDeleteData.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          int state = dm.getState();
-          if (dm != null && 
-              (state == DownloadManager.STATE_STOPPED || 
-               state == DownloadManager.STATE_ERROR ||
-               state == DownloadManager.STATE_QUEUED)) {
-            String path = dm.getFullName();
-            MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-            mb.setText(MessageText.getString("deletedata.title"));
-            mb.setMessage(
-              MessageText.getString("deletedata.message1")
-                + dm.getName() + " :\n"
-                + path
-                + MessageText.getString("deletedata.message2"));
+    itemDeleteData.addListener(SWT.Selection,
+                               new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        removeTorrent((DownloadManager)row.getDataSource(true), false, true);
+      }
+    });
 
-            int choice;
-            if (confirmDataDelete) choice = mb.open();
-            else choice = SWT.YES;
+    itemDeleteBoth.addListener(SWT.Selection,
+                               new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        removeTorrent((DownloadManager)row.getDataSource(true), true, true);
+      }
+    });
 
-            if (choice == SWT.YES) {
+    itemChangeTracker.addListener(SWT.Selection,
+                                  new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        TRTrackerClient tc = ((DownloadManager)row.getDataSource(true)).getTrackerClient();
+        if (tc != null)
+          new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), tc);
+      }
+    });
+
+    itemEditTracker.addListener(SWT.Selection,
+                                new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        final DownloadManager dm = (DownloadManager)row.getDataSource(true);
+        if (dm.getTorrent() != null) {
+          final TOTorrent torrent = dm.getTorrent();
+
+          java.util.List group = TorrentUtils.announceGroupsToList(torrent);
+
+          new MultiTrackerEditor(null, group, new TrackerEditorListener() {
+            public void trackersChanged(String str, String str2, 
+                                        java.util.List group) {
+              TorrentUtils.listToAnnounceGroups(group, torrent);
+
               try {
-                globalManager.removeDownloadManager(dm);
-                dm.deleteDataFiles();
-
-              }catch( GlobalManagerDownloadRemovalVetoException f ){
-
-                Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
-
-              }catch (Exception ex) {
-
-                ex.printStackTrace();
+                TorrentUtils.writeToFile(torrent);
+              } catch(Throwable e) {
+                e.printStackTrace();
               }
+
+              if (dm.getTrackerClient() != null)
+                dm.getTrackerClient().resetTrackerUrl( true );
             }
-          }
+          }, true);
         }
+      } // run
+    }); 
+
+
+    itemManualUpdate.addListener(SWT.Selection, 
+                                 new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).checkTracker();
       }
     });
 
-    itemDeleteBoth.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          int state = dm.getState();
-          if (dm != null && 
-              (state == DownloadManager.STATE_STOPPED || 
-               state == DownloadManager.STATE_ERROR ||
-               state == DownloadManager.STATE_QUEUED)) {
-            String path = dm.getFullName();
-            MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-            mb.setText(MessageText.getString("deletedata.title"));
-            mb.setMessage(
-              MessageText.getString("deletedata.message1")
-                + dm.getName() + " :\n"
-                + path
-                + MessageText.getString("deletedata.message2"));
-
-            int choice;
-            if (confirmDataDelete) choice = mb.open();
-            else choice = SWT.YES;
-
-            if (choice == SWT.YES) {
-              try {
-                globalManager.removeDownloadManager(dm);
-                dm.deleteDataFiles();
-                File f = new File(dm.getTorrentFileName());
-                f.delete();
-
-              }catch( GlobalManagerDownloadRemovalVetoException f ){
-
-              	Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
-
-              }catch (Exception ex) {
-
-                ex.printStackTrace();
-              }
-            }
-          }
-        }
-      }
-    });
-
-    itemChangeTracker.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		TableItem[] tis = table.getSelection();
-    		for (int i = 0; i < tis.length; i++) {
-    			TableItem ti = tis[i];
-    			DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-    			if (dm != null && dm.getTrackerClient() != null) {
-    				new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerClient());
-    			}
-    		}
-    	}
-    });
-
-    itemEditTracker.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		TableItem[] tis = table.getSelection();
-    		for (int i = 0; i < tis.length; i++) {
-    			TableItem ti = tis[i];
-    			final DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-    			if (dm != null && dm.getTorrent() != null) {
-
-    				final TOTorrent	torrent = dm.getTorrent();
-
-    				List	group = TorrentUtils.announceGroupsToList( torrent );
-
-    				new MultiTrackerEditor(null,group,
-    						new TrackerEditorListener()
-    						{
-    							public void
-    							trackersChanged(
-    								String	str,
-									String	str2,
-									List	group )
-    							{
-    								TorrentUtils.listToAnnounceGroups( group, torrent );
-
-    								try{
-    									TorrentUtils.writeToFile( torrent );
-    								}catch( Throwable e ){
-
-    									e.printStackTrace();
-    								}
-
-    								if ( dm.getTrackerClient() != null ){
-
-    									dm.getTrackerClient().resetTrackerUrl( true );
-    								}
-    							}
-    						}, true);
-    			}
-    		}
-    	}
-    });
-    
-    
-    itemManualUpdate.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          dm.checkTracker();
-        }        
-      }
-    });
-
-    itemChangeTable.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance(configTableName,tableItems),MyTorrentsView.this,"MyTorrentsView");
-      }
-    });
-
-    itemDetails.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          MainWindow.getWindow().openManagerView(dm);
-        }
+    itemDetails.addListener(SWT.Selection,
+                            new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        MainWindow.getWindow().openManagerView((DownloadManager)row.getDataSource(true));
       }
     });
 
@@ -1077,49 +670,40 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
-	itemExport.addListener(SWT.Selection, new Listener() {
-	   public void handleEvent(Event event) {
-		 TableItem[] tis = table.getSelection();
-		 if (tis.length == 0) {
-		   return;
-		 }
-		 TableItem ti = tis[0];
-		 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+    itemExport.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
+        if (dm != null)
+          new ExportTorrentWizard(itemExport.getDisplay(), dm);
+      }
+    });
 
-		 new ExportTorrentWizard(itemExport.getDisplay(), dm);
-	   }
-	 });
-
-	  itemHost.addListener(SWT.Selection, new Listener() {
+    itemHost.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         hostSelectedTorrents();
       }
     });
 
-	  itemPublish.addListener(SWT.Selection, new Listener() {
+    itemPublish.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         publishSelectedTorrents();
       }
     });
 
-    itemBar.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          synchronized (downloadBars) {
-            if (downloadBars.containsKey(dm)) {
-              MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
-              mw.close();
-            }
-            else {
-              MinimizedWindow mw = new MinimizedWindow(dm, panel.getShell());
-              downloadBars.put(dm, mw);
-            }
+    itemBar.addListener(SWT.Selection,
+                        new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        DownloadManager dm = (DownloadManager)row.getDataSource(true);
+        synchronized (downloadBars) {
+          if (downloadBars.containsKey(dm)) {
+            MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
+            mw.close();
+          } else {
+            MinimizedWindow mw = new MinimizedWindow(dm, cTablePanel.getShell());
+            downloadBars.put(dm, mw);
           }
-        }
-      }
+        } // sync
+      } // run
     });
 
     itemMoveDown.addListener(SWT.Selection, new Listener() {
@@ -1146,59 +730,42 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
-    itemHigh.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          dm.setPriority(DownloadManager.HIGH_PRIORITY);
-        }
+    itemHigh.addListener(SWT.Selection,
+                         new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).setPriority(DownloadManager.HIGH_PRIORITY);
       }
     });
 
-    itemLow.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          dm.setPriority(DownloadManager.LOW_PRIORITY);
-        }
+    itemLow.addListener(SWT.Selection,
+                         new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).setPriority(DownloadManager.LOW_PRIORITY);
       }
     });
 
-    itemForceStart.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          dm.setForceStart(itemForceStart.getSelection());
-        }
+    itemForceStart.addListener(SWT.Selection,
+                         new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).setForceStart(itemForceStart.getSelection());
       }
     });
 
-    itemRecheck.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null) {
-            dm.forceRecheck();
-          }
-        }
+    itemRecheck.addListener(SWT.Selection,
+                         new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).forceRecheck();
       }
     });
 
-  }
+  } // fillMenu
 
   private void addCategorySubMenu() {
     MenuItem[] items = menuCategory.getItems();
     int i;
-    for (i = 0; i < items.length; i++)
+    for (i = 0; i < items.length; i++) {
       items[i].dispose();
+    }
 
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
@@ -1218,7 +785,7 @@ public class MyTorrentsView extends AbstractIView
 
         new MenuItem(menuCategory, SWT.SEPARATOR);
       }
-      
+
       for (i = 0; i < categories.length; i++) {
         if (categories[i].getType() == Category.TYPE_USER) {
           final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
@@ -1233,12 +800,13 @@ public class MyTorrentsView extends AbstractIView
           });
         }
       }
-  
+
       new MenuItem(menuCategory, SWT.SEPARATOR);
     }
 
     final MenuItem itemAddCategory = new MenuItem(menuCategory, SWT.PUSH);
-    Messages.setLanguageText(itemAddCategory, "MyTorrentsView.menu.setCategory.add");
+    Messages.setLanguageText(itemAddCategory,
+                             "MyTorrentsView.menu.setCategory.add");
 
     itemAddCategory.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
@@ -1247,106 +815,55 @@ public class MyTorrentsView extends AbstractIView
     });
 
   }
-  
-  /* SubMenu for column specific tasks. 
-   * @param iColumn Column # that tasks apply to.
+
+  /* SubMenu for column specific tasks.
    */
-  private void addThisColumnSubMenu(int iColumn) {
-    MenuItem item;
+  public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
+    final Table table = getTable();
 
-    // Dispose of the old items
-    MenuItem[] items = menuThisColumn.getItems();
-    for (int i = 0; i < items.length; i++)
-      items[i].dispose();
-      
-    if (iColumn == -1) {
-      return;
-    }
-    
-    menu.setData("ColumnNo", new Long(iColumn));
-
-    TableColumn tcColumn = table.getColumn(iColumn);
-    menuThisColumn.getParentItem().setText("'" + tcColumn.getText() + "' " + 
-                                           MessageText.getString("GenericText.column"));
-
-    String sColumnName = (String)tcColumn.getData("Name");
-    if (sColumnName != null) {
-      if (sColumnName.equals("health")) {
-        item = new MenuItem(menuThisColumn, SWT.PUSH);
-        Messages.setLanguageText(item, "MyTorrentsView.menu.health");
-        item.setImage(ImageRepository.getImage("st_explain"));
-        item.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            HealthHelpWindow.show(table.getDisplay());
-          }
-        });
-
-      } else if (sColumnName.equals("maxuploads")) {
-        int iStart = COConfigurationManager.getIntParameter("Max Uploads") - 2;
-        if (iStart < 2) iStart = 2;
-        for (int i = iStart; i < iStart + 6; i++) {
-          item = new MenuItem(menuThisColumn, SWT.PUSH);
-          item.setText(String.valueOf(i));
-          item.setData("MaxUploads", new Long(i));
-          item.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-              TableItem[] tis = table.getSelection();
-              for (int i = 0; i < tis.length; i++) {
-                MenuItem item = (MenuItem)e.widget;
-                DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[i]);
-                if (dm != null && item != null) {
-                  int value = ((Long)item.getData("MaxUploads")).intValue();
-                  dm.getStats().setMaxUploads(value);
-                }
-              }
-            }
-          }); // listener
-        } // for
-      }
-    }
-
-    if (menuThisColumn.getItemCount() > 0) {
-      new MenuItem(menuThisColumn, SWT.SEPARATOR);
-    }
-
-    item = new MenuItem(menuThisColumn, SWT.PUSH);
-    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
-    item.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
-        table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
-      }
-    });
-
-    item = new MenuItem(menuThisColumn, SWT.PUSH);
-    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
-    item.setEnabled(false);
-
-    item = new MenuItem(menuThisColumn, SWT.PUSH);
-    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
-    item.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        String sToClipboard = "";
-        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          if (i != 0) sToClipboard += "\n";
-          sToClipboard += tis[i].getText(iColumn);
+    if (sColumnName.equals("health")) {
+      MenuItem item = new MenuItem(menuThisColumn, SWT.PUSH);
+      Messages.setLanguageText(item, "MyTorrentsView.menu.health");
+      item.setImage(ImageRepository.getImage("st_explain"));
+      item.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          HealthHelpWindow.show(table.getDisplay());
         }
-        new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
-                                                      new Transfer[] {TextTransfer.getInstance()});
-      }
-    });
+      });
+
+    } else if (sColumnName.equals("maxuploads")) {
+      int iStart = COConfigurationManager.getIntParameter("Max Uploads") - 2;
+      if (iStart < 2) iStart = 2;
+      for (int i = iStart; i < iStart + 6; i++) {
+        MenuItem item = new MenuItem(menuThisColumn, SWT.PUSH);
+        item.setText(String.valueOf(i));
+        item.setData("MaxUploads", new Long(i));
+        item.addListener(SWT.Selection,
+                         new SelectedTableRowsListener() {
+          public void run(TableRowCore row) {
+            DownloadManager dm = (DownloadManager)row.getDataSource(true);
+            MenuItem item = (MenuItem)event.widget;
+            if (item != null) {
+              int value = ((Long)item.getData("MaxUploads")).intValue();
+              dm.getStats().setMaxUploads(value);
+            }
+          } // run
+        }); // listener
+      } // for
+    }
   }
 
   private void createDragDrop() {
     Transfer[] types = new Transfer[] { TextTransfer.getInstance()};
 
-    DragSource dragSource = new DragSource(table, DND.DROP_MOVE);
+    DragSource dragSource = new DragSource(getTable(), DND.DROP_MOVE);
     dragSource.setTransfer(types);
     dragSource.addDragListener(new DragSourceAdapter() {
       public void dragStart(DragSourceEvent event) {
-        if (table.getSelectionCount() != 0 && table.getSelectionCount() != table.getItemCount()) {
+        Table table = getTable();
+        if (table.getSelectionCount() != 0 &&
+           table.getSelectionCount() != table.getItemCount())
+        {
           event.doit = true;
           drag_drop_line_start = table.getSelectionIndex();
          } else {
@@ -1356,8 +873,13 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
-    DropTarget dropTarget = new DropTarget(table, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
-    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(), FileTransfer.getInstance(), TextTransfer.getInstance()});
+    DropTarget dropTarget = new DropTarget(getTable(),
+                                           DND.DROP_DEFAULT | DND.DROP_MOVE |
+                                           DND.DROP_COPY | DND.DROP_LINK |
+                                           DND.DROP_TARGET_MOVE);
+    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+                                            FileTransfer.getInstance(),
+                                            TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
 /*
       public void dragEnter(DropTargetEvent event) {
@@ -1411,7 +933,7 @@ public class MyTorrentsView extends AbstractIView
           event.detail = DND.DROP_NONE;
           if(event.item == null)
             return;
-          int drag_drop_line_end = table.indexOf((TableItem)event.item);
+          int drag_drop_line_end = getTable().indexOf((TableItem)event.item);
           moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
           drag_drop_line_start = -1;
         } else {
@@ -1425,11 +947,11 @@ public class MyTorrentsView extends AbstractIView
     if (drag_drop_line_end == drag_drop_line_start)
       return;
 
-    TableItem[] tis = table.getSelection();
-    List list = Arrays.asList(tis);
+    java.util.List list = getSelectedRowsList();
+    if (list.size() == 0)
+      return;
     final boolean moveDown = drag_drop_line_end > drag_drop_line_start;
-    DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[moveDown ? tis.length - 1 : 0]);
-    int lastIndex = dm.getIndex();
+    int lastIndex = ((DownloadManager)list.get(moveDown ? list.size() - 1 : 0)).getIndex();
     if (moveDown) {
       Collections.reverse(list);
       lastIndex += drag_drop_line_end - drag_drop_line_start + 1;
@@ -1437,32 +959,23 @@ public class MyTorrentsView extends AbstractIView
       lastIndex -= drag_drop_line_start - drag_drop_line_end + 1;
     }
     for (Iterator iter = list.iterator(); iter.hasNext();) {
-      TableItem ti = (TableItem) iter.next();
-      dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null) {
-        if (!moveDown) {
-          for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
-            if (dm.isMoveableUp() && dm.getIndex() > lastIndex + 1)
-              dm.moveUp();
-          }
-        } else {
-          for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
-            if (dm.isMoveableDown() && dm.getIndex() < lastIndex - 1)
-              dm.moveDown();
-          }
+      TableRowCore row = (TableRowCore)iter.next();
+      DownloadManager dm = (DownloadManager)row.getDataSource(true);
+      if (!moveDown) {
+        for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
+          if (dm.isMoveableUp() && dm.getIndex() > lastIndex + 1)
+            dm.moveUp();
         }
-        lastIndex = dm.getIndex();
+      } else {
+        for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
+          if (dm.isMoveableDown() && dm.getIndex() < lastIndex - 1)
+            dm.moveDown();
+        }
       }
+      lastIndex = dm.getIndex();
     }
     if (sorter.getLastField().equals("#"))
       sorter.reOrder(true);
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
-  public Composite getComposite() {
-    return composite;
   }
 
   /* (non-Javadoc)
@@ -1475,96 +988,21 @@ public class MyTorrentsView extends AbstractIView
     computePossibleActions();
     MainWindow.getWindow().refreshIconBar();
 
-    sorter.reOrder(false);
-    synchronized(objectToSortableItem) {
-      Iterator iter = objectToSortableItem.keySet().iterator();
-      while (iter.hasNext()) {
-        if (this.panel.isDisposed())
-          return;
-        DownloadManager manager = (DownloadManager) iter.next();
-        TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-        if (item != null) {
-          // Every N GUI updates we refresh graphics
-          item.refresh((loopFactor % graphicsUpdate) == 0);
-        }
-      }
-    }
-
-    Utils.alternateTableBackground(table);
-    loopFactor++;
+    super.refresh();
   }
 
 
-  public void locationChanged(int iStartColumn) {
-  	if (getComposite() == null || getComposite().isDisposed())
-  		return;    
-    
-  	synchronized(objectToSortableItem) {
-  		Iterator iter = objectToSortableItem.values().iterator();
-  		while (iter.hasNext()) {
-  			TorrentRow pr = (TorrentRow) iter.next();  		  			
-  			pr.locationChanged(iStartColumn);
-  		}
-  	}
-  }
-
-  private void doPaint(GC gc) {
-    if (getComposite() == null || getComposite().isDisposed())
-      return;
-
-    synchronized(objectToSortableItem) {
-      Iterator iter = objectToSortableItem.keySet().iterator();
-      while (iter.hasNext()) {
-        if (this.panel.isDisposed())
-          return;
-        DownloadManager manager = (DownloadManager) iter.next();
-        TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-        if (item != null) {
-          item.doPaint(gc);
-        }
-      }
-    }
-  }
-
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
   public void delete() {
+    super.delete();
+
     if (fontButton != null && !fontButton.isDisposed()) {
       fontButton.dispose();
       fontButton = null;
     }
-    if (table != null && !table.isDisposed()) {
-      Utils.saveTableColumn(table.getColumns());
-    }
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
-    COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
-    COConfigurationManager.removeParameterListener("Graphics Update", this);
     COConfigurationManager.removeParameterListener("Confirm Data Delete", this);
   }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
-  	public String getFullTitle() {
-    	return MessageText.getString("MyTorrentsView.mytorrents");
-  	}
-
-
-/*
-  private List getSelection() {
-    TableItem[] selection = table.getSelection();
-    List selected = new ArrayList(selection.length);
-    for (int i = 0; i < selection.length; i++) {
-      DownloadManager manager = (DownloadManager) tableItemToObject.get(selection[i]);
-      if (manager != null)
-        selected.add(manager);
-    }
-    return selected;
-  }
-*/
 
   private KeyListener createKeyListener() {
     return new KeyAdapter() {
@@ -1628,24 +1066,9 @@ public class MyTorrentsView extends AbstractIView
             moveSelectedTorrentsEnd();
           // CTRL+A select all Torrents
           else if(e.character == 0x1)
-            table.selectAll();
+            getTable().selectAll();
           else if(e.character == 0x3) {
-            String sToClipboard = "";
-            for (int j = 0; j < table.getColumnCount(); j++) {
-              if (j != 0) sToClipboard += "\t";
-              sToClipboard += table.getColumn(j).getText();
-            }
-
-            TableItem[] tis = table.getSelection();
-            for (int i = 0; i < tis.length; i++) {
-              sToClipboard += "\n";
-              for (int j = 0; j < table.getColumnCount(); j++) {
-                if (j != 0) sToClipboard += "\t";
-                sToClipboard += tis[i].getText(j);
-              }
-            }
-            new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
-                                                          new Transfer[] {TextTransfer.getInstance()});
+            clipboardSelected();
           // CTRL+R resume/start selected Torrents
           } else if(e.character == 0x12)
             resumeSelectedTorrents();
@@ -1655,158 +1078,164 @@ public class MyTorrentsView extends AbstractIView
         } else if(e.stateMask == 0) {
           // DEL remove selected Torrents
           if(e.keyCode == 127) {
-            removeSelectedTorrentsIfStoppedOrError();
+            removeSelectedTorrents();
           } else {
             // normal character: jump to next item with a name beginning with this character
-            TableItem[] items = table.getSelection();
-            int lastSelectedIndex = items.length == 0 ? -1 : table.indexOf(items[items.length-1]);
+            TableItem[] items = getTable().getSelection();
+            int lastSelectedIndex = items.length == 0 ? -1 : getTable().indexOf(items[items.length-1]);
             int nextIndex = globalManager.getNextIndexForCharacter(e.character, lastSelectedIndex);
             if (nextIndex >= 0)
-              table.setSelection(nextIndex);
+              getTable().setSelection(nextIndex);
           }
         }
       }
     };
   }
 
-  public void setItem(TableItem item,DownloadManager manager) {
-    tableItemToObject.put(item,manager);
-  }
-
-  /*
-   * SortableTable implementation
-   */
-
-  public Map getObjectToSortableItemMap() {
-    return objectToSortableItem;
-  }
-
-  public Table getTable() {
-    return table;
-  }
-
-  public Map getTableItemToObjectMap() {
-    return tableItemToObject;
-  }
-  
   private void changeDirSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    if (tis.length > 0) {
-      String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
-                        COConfigurationManager.getStringParameter("Default save path", "") :
-                        "";
-      DirectoryDialog dDialog = new DirectoryDialog(panel.getShell(), SWT.SYSTEM_MODAL);
-      dDialog.setFilterPath(sDefPath);
-      dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath"));
-      String sSavePath = dDialog.open();
-      if (sSavePath != null) {
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm.getState() == DownloadManager.STATE_ERROR &&
-              dm.setSavePath(sSavePath) && 
-              dm.filesExist()) {
-            dm.setState(DownloadManager.STATE_STOPPED);
-            ManagerUtils.queue(dm,panel);
-          }
+    Object[] dataSources = getSelectedDataSources();
+    if (dataSources.length <= 0)
+      return;
+
+    String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
+                      COConfigurationManager.getStringParameter("Default save path", "") :
+                      "";
+    DirectoryDialog dDialog = new DirectoryDialog(cTablePanel.getShell(),
+                                                  SWT.SYSTEM_MODAL);
+    dDialog.setFilterPath(sDefPath);
+    dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath"));
+    String sSavePath = dDialog.open();
+    if (sSavePath != null) {
+      for (int i = 0; i < dataSources.length; i++) {
+        DownloadManager dm = (DownloadManager)dataSources[i];
+        if (dm.getState() == DownloadManager.STATE_ERROR &&
+            dm.setSavePath(sSavePath) &&
+            dm.filesExist()) {
+          dm.setState(DownloadManager.STATE_STOPPED);
+          ManagerUtils.queue(dm, cTablePanel);
         }
       }
     }
   }
 
-  private void removeSelectedTorrentsIfStoppedOrError() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      try{
-      	ManagerUtils.remove(dm);
-      }catch(GlobalManagerDownloadRemovalVetoException e){
-        Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+  private void removeTorrent(DownloadManager dm, boolean bDeleteTorrent, 
+                             boolean bDeleteData) {
+    if (ManagerUtils.isRemoveable(dm)) {
+      int choice;
+      if (confirmDataDelete && bDeleteData) {
+        String path = dm.getFullName();
+        MessageBox mb = new MessageBox(cTablePanel.getShell(), 
+                                       SWT.ICON_WARNING | SWT.YES | SWT.NO);
+        mb.setText(MessageText.getString("deletedata.title"));
+        mb.setMessage(MessageText.getString("deletedata.message1")
+                      + dm.getName() + " :\n"
+                      + path
+                      + MessageText.getString("deletedata.message2"));
+
+        choice = mb.open();
+      } else {
+        choice = SWT.YES;
       }
-    }
+
+      if (choice == SWT.YES) {
+        try {
+          ManagerUtils.remove(dm);
+          if (bDeleteData)
+            dm.deleteDataFiles();
+          if (bDeleteTorrent) {
+            File f = new File(dm.getTorrentFileName());
+            f.delete();
+          }
+        } catch (GlobalManagerDownloadRemovalVetoException f) {
+          Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      } // if choice
+    } // if state
+  }
+
+  private void removeSelectedTorrents() {
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        removeTorrent((DownloadManager)row.getDataSource(true), false, false);
+      }
+    });
   }
 
   private void stopSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.stop(dm,panel);
-    }
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ManagerUtils.stop((DownloadManager)row.getDataSource(true), cTablePanel);
+      }
+    });
   }
 
   private void queueSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.queue(dm,panel);
-    }
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ManagerUtils.queue((DownloadManager)row.getDataSource(true), cTablePanel);
+      }
+    });
   }
 
   private void resumeSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.start(dm);
-    }
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ManagerUtils.start((DownloadManager)row.getDataSource(true));
+      }
+    });
   }
 
   private void hostSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.host(dm,panel);
-    }
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ManagerUtils.host((DownloadManager)row.getDataSource(true), cTablePanel);
+      }
+    });
     MainWindow.getWindow().showMyTracker();
   }
 
   private void publishSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.publish(dm,panel);
-    }
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ManagerUtils.publish((DownloadManager)row.getDataSource(true), cTablePanel);
+      }
+    });
     MainWindow.getWindow().showMyTracker();
   }
 
+  // Note: This only runs the first selected torrent!
   private void runSelectedTorrents() {
-    TableItem[] tis = table.getSelection();
-    if (tis.length == 0) {
-      return;
-    }
-    TableItem ti = tis[0];
-    DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-    ManagerUtils.run(dm);
+    DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
+    if (dm != null)
+      ManagerUtils.run(dm);
   }
 
   private void moveSelectedTorrentsDown() {
-    TableItem[] tis = table.getSelection();
-    for (int i = tis.length - 1; i >= 0; i--) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null && dm.isMoveableDown()) {
+    // Don't use runForSelectDataSources to ensure the order we want
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = dataSources.length - 1; i >= 0; i--) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
+      if (dm.isMoveableDown()) {
         dm.moveDown();
       }
     }
-    
+
     if (sorter.getLastField().equals("#"))
       sorter.reOrder(true);
   }
 
   private void moveSelectedTorrentsUp() {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null && dm.isMoveableUp()) {
+    // Don't use runForSelectDataSources to ensure the order we want
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = 0; i < dataSources.length; i++) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
+      if (dm.isMoveableUp()) {
         dm.moveUp();
       }
     }
+
     if (sorter.getLastField().equals("#"))
       sorter.reOrder(true);
   }
@@ -1820,13 +1249,9 @@ public class MyTorrentsView extends AbstractIView
   }
 
   private void moveSelectedTorrentsTopOrEnd(boolean moveToTop) {
-    TableItem[] tis = table.getSelection();
-    if(tis.length == 0)
+    DownloadManager[] downloadManagers = (DownloadManager[])getSelectedDataSources(new DownloadManager[0]);
+    if (downloadManagers.length == 0)
       return;
-    DownloadManager[] downloadManagers = new DownloadManager[tis.length];
-    for (int i = 0; i < tis.length; i++) {
-      downloadManagers[i] = (DownloadManager) tableItemToObject.get(tis[i]);
-    }
     if(moveToTop)
       globalManager.moveTop(downloadManagers);
     else
@@ -1840,28 +1265,21 @@ public class MyTorrentsView extends AbstractIView
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
     confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
   }
 
   private boolean up,down,run,host,publish,start,stop,remove;
 
   private void computePossibleActions() {
-    if(table == null || table.isDisposed())
-      return;
-    TableItem[] tis = table.getSelection();
+    Object[] dataSources = getSelectedDataSources();
     up = down = run = host = publish = start = stop = remove = false;
-    if(tis.length > 0) {
-      for (int i = 0; i < tis.length; i++) {
-        TableItem ti = tis[i];
-        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-        if(dm == null)
-          continue;
+    if (dataSources.length > 0) {
+      remove = up = down = true;
+      host = publish = true;
+      run = true;
 
-        //Safer here, in case the DownloadManager is null
-        remove = up = down = true;
-        host = publish = true;
-        run = true;
+      for (int i = 0; i < dataSources.length; i++) {
+        DownloadManager dm = (DownloadManager)dataSources[i];
 
         if(ManagerUtils.isStartable(dm))
           start =  true;
@@ -1939,10 +1357,9 @@ public class MyTorrentsView extends AbstractIView
       return;
     }
     if(itemKey.equals("remove")){
-      removeSelectedTorrentsIfStoppedOrError();
+      removeSelectedTorrents();
       return;
     }
-    return;
   }
 
 
@@ -1954,24 +1371,18 @@ public class MyTorrentsView extends AbstractIView
   }
 
   private void addCategory() {
-		CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
-		Category newCategory = adderWindow.getNewCategory();
-		if (newCategory != null)
-		  assignSelectedToCategory(newCategory);
+    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+    Category newCategory = adderWindow.getNewCategory();
+    if (newCategory != null)
+      assignSelectedToCategory(newCategory);
   }
 
-	// categorymanagerlistener Functions
-  public void downloadManagerAdded(Category category, DownloadManager manager)
+  // categorymanagerlistener Functions
+  public void downloadManagerAdded(Category category, final DownloadManager manager)
   {
-    if ((manager.getStats().getDownloadCompleted(false) == 1000 && isSeedingView) ||
-        (manager.getStats().getDownloadCompleted(false) != 1000 && !isSeedingView)) {
-      synchronized (objectToSortableItem) {
-        TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-          if (item == null) {
-            item = new TorrentRow(this,table, manager);
-            objectToSortableItem.put(manager, item);
-          }
-      }
+    boolean bCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
+    if ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView)) {
+      addDataSource(manager);
     }
     manager.addListener( this );
   }
@@ -1979,50 +1390,25 @@ public class MyTorrentsView extends AbstractIView
   public void downloadManagerRemoved(Category category, DownloadManager removed)
   {
     MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(removed);
-    if (mw != null)
-      mw.close();
-    TorrentRow managerItem;
-    synchronized(objectToSortableItem) {
-      managerItem = (TorrentRow) objectToSortableItem.remove(removed);
-    }
-    if (managerItem != null) {
-        TableItem tableItem = managerItem.getTableItem();
-        tableItemToObject.remove(tableItem);
-        managerItem.delete();
-    }
+    if (mw != null) mw.close();
+
+    removeDataSource(removed);
     removed.removeListener( this );
   }
 
 
   // DownloadManagerListener Functions
-  public void stateChanged(DownloadManager manager, int state)
-  {
+  public void stateChanged(DownloadManager manager, int state) {
   }
 
-  public void completionChanged(DownloadManager manager, boolean bCompleted) {
+  public void completionChanged(final DownloadManager manager, boolean bCompleted) {
     // manager has moved lists
-    synchronized (objectToSortableItem) {
-      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-      if (item == null) {
-        // check to see if it should be in this view
-        if ((isSeedingView && bCompleted) ||
-            (!isSeedingView && !bCompleted)) {
-          // Add to view
-          item = new TorrentRow(this,table, manager);
-          objectToSortableItem.put(manager, item);
-        }
-      } else { // item exists in view
-        // does it belong?
-        if ((isSeedingView && !bCompleted) ||
-            (!isSeedingView && bCompleted)) {
-          TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(manager);
-          if (managerItem != null) {
-            TableItem tableItem = managerItem.getTableItem();
-            tableItemToObject.remove(tableItem);
-            managerItem.delete();
-          }
-        }
-      }
+    if ((isSeedingView && bCompleted) || (!isSeedingView && !bCompleted)) {
+      addDataSource(manager);
+      manager.addListener( this );
+    } else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
+      removeDataSource(manager);
+      manager.removeListener( this );
     }
   }
 
@@ -2030,15 +1416,14 @@ public class MyTorrentsView extends AbstractIView
   }
 
   // Category Stuff
-  private void assignSelectedToCategory(Category category) {
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableItem ti = tis[i];
-      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      dm.setCategory(category);
-    }
+  private void assignSelectedToCategory(final Category category) {
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        ((DownloadManager)row.getDataSource(true)).setCategory(category);
+      }
+    });
   }
-  
+
   private void activateCategory(Category category) {
     if (currentCategory != null)
       currentCategory.removeCategoryListener(this);
@@ -2048,68 +1433,60 @@ public class MyTorrentsView extends AbstractIView
     currentCategory = category;
 
     int catType = (currentCategory == null) ? Category.TYPE_ALL : currentCategory.getType();
-    List managers;
+    java.util.List managers;
     if (catType == Category.TYPE_USER)
       managers = currentCategory.getDownloadManagers();
     else
       managers = globalManager.getDownloadManagers();
-      
-    
-    // remove all
-    Iterator iter = objectToSortableItem.values().iterator();
-    while(iter.hasNext()) {
-      TorrentRow row = (TorrentRow) iter.next();
-      TableItem tableItem = row.getTableItem();
-      tableItemToObject.remove(tableItem);
-      row.delete();
-      iter.remove();
-    }
+
+
+    removeAllTableRows();
 
     // add new
-    if (catType == Category.TYPE_UNCATEGORIZED)
+    if (catType == Category.TYPE_UNCATEGORIZED) {
       for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager)managers.get(i);
         if (manager.getCategory() == null)
           downloadManagerAdded(currentCategory, manager);
       }
-    else
-      for (int i = 0; i < managers.size(); i++)
+    } else {
+      for (int i = 0; i < managers.size(); i++) {
         downloadManagerAdded(currentCategory, (DownloadManager)managers.get(i));
+      }
+    }
   }
 
-  
+
   // CategoryManagerListener Functions
-	public void categoryAdded(Category category) {
-	  createTabs();
-	  addCategorySubMenu();
-	}
+  public void categoryAdded(Category category) {
+    createTabs();
+    addCategorySubMenu();
+  }
 
-	public void categoryRemoved(Category category) {
-	  createTabs();
-	  addCategorySubMenu();
-	}
+  public void categoryRemoved(Category category) {
+    createTabs();
+    addCategorySubMenu();
+  }
 
-	// globalmanagerlistener Functions
-	public void	downloadManagerAdded( DownloadManager	dm ) {
-	  if (skipDMAdding || 
-	      (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
-	    return;
-	  Category cat = dm.getCategory();
-	  if (cat == null)
+  // globalmanagerlistener Functions
+  public void downloadManagerAdded( DownloadManager dm ) {
+    if (skipDMAdding ||
+        (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
+      return;
+    Category cat = dm.getCategory();
+    if (cat == null)
       downloadManagerAdded(null, dm);
   }
-		
-	public void	downloadManagerRemoved(	DownloadManager	dm ) {
-	  if (skipDMAdding || 
-	      (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
-	    return;
-	  Category cat = dm.getCategory();
+
+  public void downloadManagerRemoved( DownloadManager dm ) {
+    if (skipDMAdding ||
+        (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
+      return;
     downloadManagerRemoved(null, dm);
-	}
-		
-	public void	destroyInitiated() {
-	}
-		
-	public void destroyed() {
-	}
+  }
+
+  public void destroyInitiated() {  }
+  public void destroyed() { }
+
+  // End of globalmanagerlistener Functions
 }

@@ -1,90 +1,86 @@
 /*
  * Created on 17 juil. 2003
  *
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
-import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
-import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 /**
  * @author Olivier
- * 
+ * @author TuxPaper
+ *         2004/Apr/23: extends TableView instead of IAbstractView
  */
-public class FilesView extends AbstractIView implements SortableTable {
-
-  DownloadManager manager;
-  Table table;
-  HashMap objectToSortableItem;
-  HashMap tableItemToObject;
-  TableSorter sorter;
+public class FilesView 
+       extends TableView
+{
+  private static final TableColumnCore[] basicItems = {
+    new NameItem(),
+    new SizeItem(),
+    new DoneItem(),
+    new PercentItem(),
+    new FirstPieceItem(),
+    new PieceCountItem(),
+    new ProgressGraphItem(),
+    new ModeItem(),
+    new PriorityItem()
+  };
+  private DownloadManager manager;
 
   public FilesView(DownloadManager manager) {
+    super(TableManager.TABLE_TORRENT_FILES, "FilesView", 
+          basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION);
     this.manager = manager;
-    objectToSortableItem = new HashMap();
-    tableItemToObject = new HashMap();
   }
 
   public void initialize(Composite composite) {
+    super.initialize(composite);
 
-    table = new Table(composite, SWT.MULTI | SWT.FULL_SELECTION);
-    table.setLinesVisible(false);
-    table.setHeaderVisible(true);
-    String[] columnsHeader = { "name", "size", "done", "%", "firstpiece", "numberofpieces", "pieces", "mode", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
-    int[] align = { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.LEFT, SWT.LEFT };
-    for (int i = 0; i < columnsHeader.length; i++) {
-      TableColumn column = new TableColumn(table, align[i]);
-      Messages.setLanguageText(column, "FilesView." + columnsHeader[i]); //$NON-NLS-1$
-    }
-    table.getColumn(0).setWidth(300);
-    table.getColumn(1).setWidth(70);
-    table.getColumn(2).setWidth(70);
-    table.getColumn(3).setWidth(60);
-    table.getColumn(4).setWidth(75);
-    table.getColumn(5).setWidth(75);
-    table.getColumn(6).setWidth(150);
-    table.getColumn(7).setWidth(60);
-    table.getColumn(8).setWidth(70);
+    
+    getTable().addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent mEvent) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)getFirstSelectedDataSource();
+        if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
+          Program.launch(fileInfo.getPath() + fileInfo.getName());
+      }
+    });
 
-    sorter = new TableSorter(this,"FilesView","fp",true);
-    sorter.addStringColumnListener(table.getColumn(0),"name");
-    sorter.addIntColumnListener(table.getColumn(1),"size");
-    sorter.addIntColumnListener(table.getColumn(2),"done");
-    sorter.addIntColumnListener(table.getColumn(3),"percent");
-    sorter.addIntColumnListener(table.getColumn(4),"fp");
-    sorter.addIntColumnListener(table.getColumn(5),"nbp");
-    sorter.addIntColumnListener(table.getColumn(6),"percent");
-    sorter.addIntColumnListener(table.getColumn(7),"mode");
-    sorter.addIntColumnListener(table.getColumn(8),"priority");
+    if(COConfigurationManager.getBooleanParameter("Always Show Torrent Files", true))
+      manager.initializeDiskManager();
+  }
 
-    final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
+  public void fillMenu(final Menu menu) {
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open"); //$NON-NLS-1$
     itemOpen.setImage(ImageRepository.getImage("run"));
@@ -92,7 +88,7 @@ public class FilesView extends AbstractIView implements SortableTable {
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
     
-    final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final Menu menuPriority = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
@@ -106,8 +102,8 @@ public class FilesView extends AbstractIView implements SortableTable {
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
+        Object[] infos = getSelectedDataSources();
+        if (infos.length == 0) {
           itemOpen.setEnabled(false);
           itemPriority.setEnabled(false);
           return;
@@ -115,9 +111,8 @@ public class FilesView extends AbstractIView implements SortableTable {
         itemOpen.setEnabled(false);
         itemPriority.setEnabled(true);
         boolean open = true;
-        for(int i = 0 ; i < tis.length ; i++) {
-          TableItem ti = tis[0];
-          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
+        for (int i = 0; i < infos.length; i++) {
+          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)infos[i];
           if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ)
             open = false;
         }
@@ -125,98 +120,40 @@ public class FilesView extends AbstractIView implements SortableTable {
       }
     });       
 
-    itemOpen.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
-          return;
-        }
-        for(int i = 0 ; i < tis.length ; i++) {
-          TableItem ti = tis[i];
-          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-          if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-            Program.launch(fileInfo.getPath() + fileInfo.getName());
-        }
-      }
-    });
-    
-    itemHigh.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            TableItem[] tis = table.getSelection();
-            if (tis.length == 0) {
-              return;
-            }
-            for(int i = 0 ; i < tis.length ; i++) {
-              TableItem ti = tis[i];
-              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-              if (fileInfo != null) {
-                fileInfo.setPriority(true);
-                fileInfo.setSkipped(false);
-              }
-            }
-          }
-        });
-        
-    itemLow.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            TableItem[] tis = table.getSelection();
-            if (tis.length == 0) {
-              return;
-            }
-            for(int i = 0 ; i < tis.length ; i++) {
-              TableItem ti = tis[i];
-              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-              if (fileInfo != null) {
-                fileInfo.setPriority(false);
-                fileInfo.setSkipped(false);
-              }
-            }
-          }
-        });
-        
-    itemSkipped.addListener(SWT.Selection, new Listener() {
-              public void handleEvent(Event e) {
-                TableItem[] tis = table.getSelection();
-                if (tis.length == 0) {
-                  return;
-                }
-                for(int i = 0 ; i < tis.length ; i++) {
-                  TableItem ti = tis[i];
-                  DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-                  if (fileInfo != null)
-                    fileInfo.setSkipped(true);
-                }
-              }
-            });
-    
-    
-    table.setMenu(menu);
-
-    table.addMouseListener(new MouseAdapter() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.events.MouseAdapter#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
-       */
-      public void mouseDoubleClick(MouseEvent mEvent) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
-          return;
-        }
-        TableItem ti = tis[0];
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-        if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
+    itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+        if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
           Program.launch(fileInfo.getPath() + fileInfo.getName());
       }
     });
+    
+    itemHigh.addListener(SWT.Selection, new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+        fileInfo.setPriority(true);
+        fileInfo.setSkipped(false);
+      }
+    });
+        
+    itemLow.addListener(SWT.Selection, new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+        fileInfo.setPriority(false);
+        fileInfo.setSkipped(false);
+      }
+    });
+        
+    itemSkipped.addListener(SWT.Selection, new SelectedTableRowsListener() {
+      public void run(TableRowCore row) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+        fileInfo.setSkipped(true);
+      }
+    });
 
-    if(COConfigurationManager.getBooleanParameter("Always Show Torrent Files", true))
-      manager.initializeDiskManager();
-  }
+    new MenuItem(menu, SWT.SEPARATOR);
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
-  public Composite getComposite() {
-    return table;
+    super.fillMenu(menu);
   }
 
   /* (non-Javadoc)
@@ -232,39 +169,33 @@ public class FilesView extends AbstractIView implements SortableTable {
     }
     removeInvalidFileItems();
     DiskManagerFileInfo files[] = diskManager.getFiles();
-    if (files == null)
-      return;
-    for (int i = 0; i < files.length; i++) {
-      if (files[i] != null) {
-        FileItem fileItem = (FileItem) objectToSortableItem.get(files[i]);
-        if (fileItem == null) {
-          fileItem = new FileItem(table, manager, files[i], Colors.blues);
-          objectToSortableItem.put(files[i], fileItem);
-          tableItemToObject.put(fileItem.getItem(), files[i]);
+    if (files != null && getTable().getItemCount() != files.length) {
+      for (int i = 0; i < files.length; i++) {
+        if (files[i] != null) {
+          addDataSource(files[i]);
         }
-        fileItem.refresh();
       }
     }
+    
+    super.refresh();
   }
   
   private void removeInvalidFileItems() {
     DiskManager diskManager = manager.getDiskManager();
-    if(objectToSortableItem == null || diskManager == null)
+    if (diskManager == null)
       return;
     DiskManagerFileInfo files[] = diskManager.getFiles();
-    Iterator iter = objectToSortableItem.values().iterator();
-    while(iter.hasNext()) {        
-      FileItem fileItem = (FileItem) iter.next();
-      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(fileItem.getItem());
-      if(! containsFileInfo(files,fileInfo)) {        
-        tableItemToObject.remove(fileItem.getItem());
-        fileItem.delete();
-        iter.remove();
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = 0; i < dataSources.length; i++) {
+      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)dataSources[i];
+      if (!containsFileInfo(files, fileInfo)) {
+        removeDataSource(fileInfo);
       }
-    }    
+    }
   }
   
-  private boolean containsFileInfo(DiskManagerFileInfo[] files,DiskManagerFileInfo file) {
+  private boolean containsFileInfo(DiskManagerFileInfo[] files,
+                                   DiskManagerFileInfo file) {
     //This method works with reference comparision
     if(files == null || file == null) {
       return true;
@@ -275,44 +206,4 @@ public class FilesView extends AbstractIView implements SortableTable {
     }
     return false;
   }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
-  public void delete() {
-    Iterator iter = objectToSortableItem.values().iterator();
-    while (iter.hasNext()) {
-      FileItem fileItem = (FileItem) iter.next();
-      fileItem.delete();
-    }
-    if(table != null && ! table.isDisposed())
-      table.dispose();
-    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
-  }
-
-  public String getData() {
-    return "FilesView.title.short"; //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
-  public String getFullTitle() {
-    return MessageText.getString("FilesView.title.full"); //$NON-NLS-1$
-  }
-
-  //Sorting
-
-  public Map getObjectToSortableItemMap() {
-    return objectToSortableItem;
-  }
-
-  public Table getTable() {
-    return table;
-  }
-
-  public Map getTableItemToObjectMap() {
-    return tableItemToObject;
-  }
-
 }

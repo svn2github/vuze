@@ -1,179 +1,92 @@
 /*
  * Created on 2 juil. 2003
  *
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
-import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
-import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
- * 
+ * @author TuxPaper
+ *         2004/Apr/20: Remove need for tableItemToObject
+ *         2004/Apr/21: extends TableView instead of IAbstractView
  */
-public class PiecesView extends AbstractIView implements DownloadManagerPeerListener,SortableTable {
+public class PiecesView 
+       extends TableView 
+       implements DownloadManagerPeerListener
+{
+  private final static TableColumnCore[] basicItems = {
+    new PieceNumberItem(),
+    new SizeItem(),
+    new BlockCountItem(),
+    new BlocksItem(),
+    new CompletedItem(),
+    new AvailabilityItem()
+  };
 
   DownloadManager manager;
-  Table table;
-  HashMap pieceToPieceItem;
-  HashMap tableItemToObject;
-  TableSorter sorter;
 
   public PiecesView(DownloadManager manager) {
+    super(TableManager.TABLE_TORRENT_PIECES, "PiecesView",
+          basicItems, basicItems[0].getName());
     this.manager = manager;
-    pieceToPieceItem = new HashMap();
-    tableItemToObject = new HashMap();    
   }
 
   public void initialize(Composite composite) {
-    table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
-    table.setLinesVisible(false);
-    table.setHeaderVisible(true);
-    String[] titlesPieces =
-      { "#", "size", "numberofblocks", "blocks", "completed", "availability" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-    int[] alignPieces =
-      { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.RIGHT, SWT.RIGHT };
-    int[] widths = 
-      { 50, 60, 65, 300, 80, 80 };
-    for (int i = 0; i < titlesPieces.length; i++) {
-      TableColumn column = new TableColumn(table, alignPieces[i]);
-      column.setWidth(widths[i]);
-      Messages.setLanguageText(column, "PiecesView." + titlesPieces[i]); //$NON-NLS-1$
-      column.addControlListener(new ControlAdapter() {
-        public void controlResized(ControlEvent e) {
-          refresh();
-        }
-      });
-    }
+    super.initialize(composite);
+    manager.addPeerListener(this);
+  }
+
+  public void tableStructureChanged() {
+    //1. Unregister for item creation
+    manager.removePeerListener(this);
     
-    sorter = new TableSorter(this, "PiecesView", "#",true);
-    
-    sorter.addIntColumnListener(table.getColumn(0),"#");
-    sorter.addIntColumnListener(table.getColumn(1),"size");
-    sorter.addIntColumnListener(table.getColumn(2),"nbBlocs");
-    sorter.addIntColumnListener(table.getColumn(3),"done");
-    sorter.addIntColumnListener(table.getColumn(4),"done");
-    sorter.addIntColumnListener(table.getColumn(5),"availability");
+    super.tableStructureChanged();
+
+    //5. Re-add as a listener
+    manager.addPeerListener(this);
   }
-
-  public Composite getComposite() {
-    return table;
-  }
-
-  public void refresh() {
-    if(getComposite() == null || getComposite().isDisposed())
-      return;
-      
-    sorter.reOrder(false);
-
-    synchronized (pieceToPieceItem) {
-      Iterator iter = pieceToPieceItem.values().iterator();
-      while (iter.hasNext()) {
-        PieceTableItem pti = (PieceTableItem) iter.next();
-        pti.updateDisplay();
-      }
-    }
-  }
-
-
+  
   public void delete() {
     manager.removePeerListener(this);
-    Iterator iter = pieceToPieceItem.values().iterator();
-    while (iter.hasNext()) {
-      PieceTableItem item = (PieceTableItem) iter.next();
-      item.remove();
-    }
-    if (table != null && !table.isDisposed())
-      table.dispose();
-    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
+    super.delete();
   }
 
-  public String getData() {
-    return "PiecesView.title.short"; //$NON-NLS-1$
-  }
-
-  public String getFullTitle() {
-    return MessageText.getString("PiecesView.title.full"); //$NON-NLS-1$
-  }
-
+  /* DownloadManagerPeerListener implementation */
   public void pieceAdded(PEPiece created) {
-    synchronized (pieceToPieceItem) {
-      if (pieceToPieceItem.containsKey(created))
-        return;
-      PieceTableItem item = new PieceTableItem(this,table, (PEPiece) created);
-      pieceToPieceItem.put(created, item);      
-    }
+    addDataSource(created);
   }
 
   public void pieceRemoved(PEPiece removed) {    
-    PieceTableItem item;
-    synchronized (pieceToPieceItem) {
-      item = (PieceTableItem) pieceToPieceItem.remove(removed);
-    }
-    if (item == null)
-      return;
-    tableItemToObject.remove(item.getTableItem());
-    item.remove();
+    removeDataSource(removed);
   }
   
-  public void peerAdded(PEPeer peer) {
-  }
-
-  public void peerRemoved(PEPeer peer) {
-  }
-  
-	public void
-	peerManagerAdded(
-		PEPeerManager	manager )
-	{
-	}
-	
-	public void
-	peerManagerRemoved(
-		PEPeerManager	manager )
-	{
-	}
-	
-  public void setItem(TableItem item, PEPiece piece) {
-    tableItemToObject.put(item, piece);
-  }
-  
-  /*
-   * SortableTable implementation
-   */
-  
-  public Table getTable() {
-    return table;
-  }
-  
-  public Map getObjectToSortableItemMap() {
-    return pieceToPieceItem;
-  }
-
-  public Map getTableItemToObjectMap() {
-    return tableItemToObject;
-  }
-
-
-
+  public void peerAdded(PEPeer peer) {  }
+  public void peerRemoved(PEPeer peer) {  }
+	public void peerManagerAdded(PEPeerManager manager) {	}
+	public void peerManagerRemoved(PEPeerManager	manager) {	}
 }
