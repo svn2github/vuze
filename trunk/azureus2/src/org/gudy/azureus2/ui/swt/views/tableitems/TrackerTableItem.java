@@ -27,12 +27,17 @@ package org.gudy.azureus2.ui.swt.views.tableitems;
  */
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.program.Program;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 import org.gudy.azureus2.core3.tracker.host.*;
 
@@ -99,15 +104,31 @@ TrackerTableItem
 	public void 
 	refresh() 
 	{
-		if (table == null || table.isDisposed())
+		if (table == null || table.isDisposed()){
+		
 			return;
+		}
 			
-	  	if (item == null || item.isDisposed())
+	  	if (item == null || item.isDisposed()){
+	  	
 			return;
-
+	  	}
+	  		  	
 	  	String name = new String(torrent.getTorrent().getName());	// TODO: !!!!
     
-		ViewUtils.setText( item, 0,name);
+		int sep = name.lastIndexOf('.');
+		 
+		if(sep < 0) sep = 0;
+		
+		String	key = name.substring(sep);
+		
+		Program program = Program.findProgram(key);
+		
+		Image icon = ImageRepository.getIconFromProgram(program);
+				
+		item.setImage(icon);
+
+		ViewUtils.setText( item, 0, name);
 		
 		String	tracker = torrent.getTorrent().getAnnounceURL().toString();
 
@@ -172,6 +193,14 @@ TrackerTableItem
 		ViewUtils.setText( item, 7, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
 		
 		ViewUtils.setText( item, 8, "" + DisplayFormatters.formatByteCountToKBEtc(left));
+		
+		if ( seed_count != 0 ){
+			
+			if ( !item.getForeground().equals( MainWindow.blues[3])){
+				
+				item.setForeground( MainWindow.blues[3]);
+			}
+		}
 	}
 
 	public int 

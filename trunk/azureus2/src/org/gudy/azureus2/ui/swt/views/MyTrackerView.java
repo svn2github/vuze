@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
@@ -160,12 +161,15 @@ MyTrackerView
     
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
+	   itemStart.setImage(ImageRepository.getImage("start"));
 
 	   final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+	   itemStop.setImage(ImageRepository.getImage("stop"));
 
 	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
+	   itemRemove.setImage(ImageRepository.getImage("delete"));
 
 
 	   menu.addListener(SWT.Show, new Listener() {
