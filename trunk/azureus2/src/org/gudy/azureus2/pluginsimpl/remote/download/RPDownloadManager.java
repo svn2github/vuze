@@ -198,9 +198,10 @@ RPDownloadManager
 	
 	public void
 	addDownload(
-			URL		url,
-			URL		referer) {
-		//TODO : PAUL GARDNER must look at this and fix / implement it. (hehe :p Olivier.)
+		URL		url,
+		URL		referer) 
+	{
+		notSupported();
 	}
 	
 	public void 
