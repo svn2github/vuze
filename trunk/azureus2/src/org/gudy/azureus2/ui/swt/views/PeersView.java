@@ -10,12 +10,20 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -55,6 +63,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
   private Composite panel;
   private Table table;
   private Menu menu;
+  private Menu menuThisColumn;
   private Map objectToSortableItem;
   private Map tableItemToObject;
   
@@ -63,6 +72,8 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
   
   private int loopFactor;
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  /* position of mouse in table.  Used for context menu. */
+  private int iMouseX = -1;
 
   private final String[] tableItems = {
      "ip;L;S;100;0"
@@ -147,6 +158,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
         Utils.saveTableColumn(column);
         int columnNumber = table.indexOf(column);
         PeersViewEventDispacher.getInstance().columnSizeChanged(columnNumber,column.getWidth());
+    		locationChanged(columnNumber);
       }
     };
     
@@ -177,6 +189,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
           sorter.addStringColumnListener(column, items[i].getName());
         }
         column.setData("configName", "Table.Peers." + items[i].getName());
+        column.setData("Name", items[i].getName());
         column.addControlListener(resizeListener);
       }
     }   
@@ -188,6 +201,30 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     	}
     });
     
+    // Deselect rows if user clicks on a black spot (a spot with no row)
+    table.addMouseListener(new MouseAdapter() {
+      public void mouseDown(MouseEvent e) {
+        iMouseX = e.x;
+        Point pMousePosition = new Point(e.x, e.y);
+        TableItem ti = table.getItem(pMousePosition);
+        if (ti == null) {
+          // skip if outside client area (ie. scrollbars)
+          Rectangle rTableArea = table.getClientArea();
+          if (rTableArea.contains(pMousePosition)) {
+            table.deselectAll();
+          }
+        }
+      }
+    });
+    
+    // XXX this may not be needed if all platforms process mouseDown
+    //     before the menu
+    table.addMouseMoveListener(new MouseMoveListener() {
+      public void mouseMove(MouseEvent e) {
+        iMouseX = e.x;
+      }
+    });
+
     table.setHeaderVisible(true);
     table.setMenu(menu);
   }
@@ -199,12 +236,33 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     
     new MenuItem(menu, SWT.SEPARATOR);
 
+    menuThisColumn = new Menu(panel.getShell(), SWT.DROP_DOWN);
+    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
+    itemThisColumn.setMenu(menuThisColumn);
+
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
     itemChangeTable.setImage(ImageRepository.getImage("columns"));
     
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
+        if (table.getItemCount() > 0) {
+          TableItem ti = table.getItem(0);
+          // Unfortunately, this listener doesn't fill location
+          int x = 0;
+          int iColumn = -1;
+          for (int i = 0; i < table.getColumnCount(); i++) {
+            // M8 Fixes SWT GTK Bug 51777:
+            //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
+            Rectangle cellBounds = ti.getBounds(i);
+            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width) {
+              iColumn = i;
+              break;
+            }
+          }
+          addThisColumnSubMenu(iColumn);
+        }
+
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           item.setEnabled(false);
@@ -241,6 +299,75 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     });
   }
 
+  /* SubMenu for column specific tasks. 
+   * @param iColumn Column # that tasks apply to.
+   */
+  private void addThisColumnSubMenu(int iColumn) {
+    MenuItem item;
+
+    // Dispose of the old items
+    MenuItem[] items = menuThisColumn.getItems();
+    for (int i = 0; i < items.length; i++)
+      items[i].dispose();
+      
+    if (iColumn == -1) {
+      return;
+    }
+    
+    menu.setData("ColumnNo", new Long(iColumn));
+
+    TableColumn tcColumn = table.getColumn(iColumn);
+    menuThisColumn.getParentItem().setText("'" + tcColumn.getText() + "' " + 
+                                           MessageText.getString("GenericText.column"));
+
+    /*
+    String sColumnName = (String)tcColumn.getData("Name");
+    if (sColumnName != null) {
+      if (sColumnName.equals("xxx")) {
+        item = new MenuItem(menuThisColumn, SWT.PUSH);
+        Messages.setLanguageText(item, "xxx.menu.xxx");
+        item.setImage(ImageRepository.getImage("xxx"));
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            // Code here
+          }
+        });
+    }
+    */
+
+    if (menuThisColumn.getItemCount() > 0) {
+      new MenuItem(menuThisColumn, SWT.SEPARATOR);
+    }
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
+    item.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
+        table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
+      }
+    });
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
+    item.setEnabled(false);
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
+    item.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        String sToClipboard = "";
+        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          if (i != 0) sToClipboard += "\n";
+          sToClipboard += tis[i].getText(iColumn);
+        }
+        new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
+                                                      new Transfer[] {TextTransfer.getInstance()});
+      }
+    });
+  }
 
   public Composite getComposite() {
     return panel;
@@ -270,6 +397,19 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
   }
   
   
+  public void locationChanged(int iStartColumn) {
+  	if (getComposite() == null || getComposite().isDisposed())
+  		return;    
+    
+  	synchronized(objectToSortableItem) {
+  		Iterator iter = objectToSortableItem.values().iterator();
+  		while (iter.hasNext()) {
+  			PeerRow pr = (PeerRow) iter.next();  		  			
+  			pr.locationChanged(iStartColumn);
+  		}
+  	}
+  }
+
   private void doPaint(GC gc) {
   	if (getComposite() == null || getComposite().isDisposed())
   		return;    
