@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.program.Program;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 /**
@@ -107,7 +108,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
           
       
                   
-      if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
+      /*if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
         File fUpdate = new File(userPath + "/updateSWT");
         String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
@@ -117,7 +118,8 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         fosUpdate.close();
         Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
         pChMod.waitFor();
-        Process p = Runtime.getRuntime().exec(new String[]{"sh","-c","\"" + userPath + "/updateSWT\""});
+        //Process p = Runtime.getRuntime().exec(new String[]{"sh","-c","\"" + userPath + "/updateSWT\""});
+        Program.launch(exec);
       } else {
         String exec[] = {
             javaPath + "java" ,
@@ -144,8 +146,13 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         File userDir = new File(userPath);
         String[] env = {"user.dir=" + userPath };
         fosLog.close();
-        Runtime.getRuntime().exec(exec,env,userDir);
-      }
+        //Runtime.getRuntime().exec(exec,env,userDir);
+      
+      }*/
+      String exec = javaPath + "java\" -classpath \"" + classPath
+      + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
+      + userPath + "\" \"" + libraryPath + "\"";
+      Program.launch(exec);
     } catch(Exception e) {
       e.printStackTrace();
     }
