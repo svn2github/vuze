@@ -7,7 +7,6 @@
 package org.gudy.azureus2.core;
 
 import java.util.HashMap;
-import java.lang.*;
 
 /**
  *
@@ -36,12 +35,12 @@ public class ConfigurationDefaults {
   
   private static ConfigurationDefaults configdefaults;
   
-  public static HashMap def = null;
+  public HashMap def = null;
   
-  public static int def_int = 0;
-  public static boolean def_boolean = false;
-  public static String def_String = "";
-  public static byte[] def_bytes = null;
+  public int def_int = 0;
+  public boolean def_boolean = false;
+  public String def_String = "";
+  public byte[] def_bytes = null;
   
   public synchronized static ConfigurationDefaults getInstance() {
     if(configdefaults == null)
