@@ -1216,6 +1216,8 @@ public class MainWindow implements IComponentListener {
   }
 
   public static void main(String args[]) {
+  	System.setProperty("sun.net.client.defaultConnectTimeout","120000");
+	System.setProperty("sun.net.client.defaultReadTimeout","60000");
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
     GlobalManager gm = new GlobalManager();
