@@ -19,15 +19,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.StringTokenizer;
+
+import org.gudy.azureus2.core3.peer.*;
 
 /**
  * @author Olivier
  * 
  */
-public class IpRange {
+
+public class 
+IpRangeImpl
+	implements IpRange 
+{
     
    public String description;
     
@@ -39,7 +45,7 @@ public class IpRange {
     
    private boolean valid;
     
-   public IpRange(String description, String startIp, String endIp) {
+   public IpRangeImpl(String description, String startIp, String endIp) {
      this.valid = false;
      this.description = description;  
      if(startIp == null || endIp == null) {        
@@ -114,6 +120,45 @@ public class IpRange {
      return true;
    }
     
+   public String
+   getDescription()
+   {
+   	return( description );
+   }
+
+   public void
+   setDescription(
+   	String	str )
+   {
+   	description = str;
+   }
+   
+   public String
+   getStartIp()
+   {
+   	return( startIp );
+   }
+	
+	public void
+	setStartIp(
+		String	str )
+	{
+		startIp	= str;
+	}
+	
+   public String
+   getEndIp()
+   {
+   	return( endIp );
+   }
+   
+   public void
+   setEndIp(
+	   String	str )
+   {
+	   endIp	= str;
+   }
+   
    public String toString() {
      return description + " : " + startIp + " - " + endIp; 
    }

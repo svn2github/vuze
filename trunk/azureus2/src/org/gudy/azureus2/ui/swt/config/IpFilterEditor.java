@@ -37,7 +37,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core.IpRange;
+import org.gudy.azureus2.core3.peer.IpFilter;
+import org.gudy.azureus2.core3.peer.IpRange;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -62,7 +63,7 @@ public class IpFilterEditor {
     this.range = _range;
     if (range == null) {
       newRange = true;
-      range = new IpRange("","","");
+      range = IpFilter.getInstance().createRange();
     }
 
     final Shell shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -105,9 +106,9 @@ public class IpFilterEditor {
     ok.setLayoutData(gridData);
     ok.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        range.description = textDescription.getText();
-        range.startIp = textStartIp.getText();
-        range.endIp = textEndIp.getText();
+        range.setDescription( textDescription.getText());
+        range.setStartIp( textStartIp.getText());
+        range.setEndIp( textEndIp.getText());
         range.checkValid();
         if (newRange) {
           ipRanges.add(range);
@@ -121,7 +122,7 @@ public class IpFilterEditor {
     
     textStartIp.addModifyListener(new ModifyListener() {
       public void modifyText(ModifyEvent event) {
-        range.startIp = textStartIp.getText();
+        range.setStartIp( textStartIp.getText());
         range.checkValid();
         if(range.isValid())
           ok.setEnabled(true);
@@ -132,7 +133,7 @@ public class IpFilterEditor {
     
     textEndIp.addModifyListener(new ModifyListener() {
           public void modifyText(ModifyEvent event) {
-            range.endIp = textEndIp.getText();
+            range.setEndIp( textEndIp.getText());
             range.checkValid();
             if(range.isValid())
               ok.setEnabled(true);
@@ -142,9 +143,9 @@ public class IpFilterEditor {
      });
      
     if (range != null) {
-          textDescription.setText(range.description);
-          textStartIp.setText(range.startIp);
-          textEndIp.setText(range.endIp);
+          textDescription.setText(range.getDescription());
+          textStartIp.setText(range.getStartIp());
+          textEndIp.setText(range.getEndIp());
     }
 
     shell.pack();

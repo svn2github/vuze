@@ -28,10 +28,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.IpFilter;
-import org.gudy.azureus2.core.IpRange;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.peer.IpFilter;
+import org.gudy.azureus2.core3.peer.IpRange;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -706,16 +706,16 @@ public class ConfigView extends AbstractIView {
       if (items[i] == null || items[i].isDisposed())
         continue;
       String tmp = items[i].getText(0);
-      if (range.description != null && !range.description.equals(tmp))
-        items[i].setText(0, range.description);
+      if (range.getDescription() != null && !range.getDescription().equals(tmp))
+        items[i].setText(0, range.getDescription());
 
       tmp = items[i].getText(1);
-      if (range.description != null && !range.startIp.equals(tmp))
-        items[i].setText(1, range.startIp);
+      if (range.getStartIp() != null && !range.getStartIp().equals(tmp))
+        items[i].setText(1, range.getStartIp());
 
       tmp = items[i].getText(2);
-      if (range.description != null && !range.endIp.equals(tmp))
-        items[i].setText(2, range.endIp);
+      if (range.getEndIp() != null && !range.getEndIp().equals(tmp))
+        items[i].setText(2, range.getEndIp());
 
     }
   }
@@ -755,9 +755,9 @@ public class ConfigView extends AbstractIView {
         IpRange range = (IpRange) iter.next();
         TableItem item = new TableItem(table, SWT.NULL);
         item.setImage(0, ImageRepository.getImage("ipfilter"));
-        item.setText(0, range.description);
-        item.setText(1, range.startIp);
-        item.setText(2, range.endIp);
+        item.setText(0, range.getDescription());
+        item.setText(1, range.getStartIp());
+        item.setText(2, range.getEndIp());
         item.setData(range);
       }
     }

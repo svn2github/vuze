@@ -28,7 +28,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core.DiskManager;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.IpFilter;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.Server;
@@ -837,7 +836,7 @@ PEPeerManagerImpl
     /* create a peer socket for testing purposes */
     PEPeerSocketImpl testPS = new PEPeerSocketImpl(this, peerId, ip, port, true);
     
-    if (!IpFilter.getInstance().isInRange(ip)) {
+    if (!IpFilterImpl.getInstance().isInRange(ip)) {
        synchronized (_connections) {
           if (!_connections.contains(testPS)) {
              if (maxConnections == 0 || _connections.size() < maxConnections) {
@@ -868,7 +867,7 @@ PEPeerManagerImpl
     int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
     boolean addFailed = false;
     
-    if (!IpFilter.getInstance().isInRange(ps.getIp())) {
+    if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
        synchronized (_connections) {
           if (!_connections.contains(ps)) {
              if (maxConnections == 0 || _connections.size() < maxConnections) {
