@@ -25,6 +25,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -64,6 +65,7 @@ public class BlockedIpsWindow {
     
     final StyledText textBanned = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
     Button btnOk = new Button(window,SWT.PUSH);
+    Button btnReset = new Button(window,SWT.PUSH);
     textBanned.setEditable(false);
     
             
@@ -76,6 +78,16 @@ public class BlockedIpsWindow {
     textBlocked.setText(ipsBlocked);
     
     
+    // label blocked area
+    
+    Label	blockedInfo = new Label(window, SWT.NULL);
+    Messages.setLanguageText(blockedInfo,"ConfigView.section.ipfilter.blockedinfo");
+    formData = new FormData();
+    formData.top = new FormAttachment(textBlocked);    
+    formData.right = new FormAttachment(btnClear);    
+    formData.left = new FormAttachment(0,0);    
+    blockedInfo.setLayoutData( formData );
+ 
     	// clear button
     
     
@@ -97,7 +109,7 @@ public class BlockedIpsWindow {
     });
     
     
-    // text banned area
+    	// text banned area
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
@@ -106,8 +118,34 @@ public class BlockedIpsWindow {
     textBanned.setLayoutData(formData);
     textBanned.setText(ipsBanned);
     
-    	// ok button
+    	// label banned area
     
+    Label	bannedInfo = new Label(window, SWT.NULL);
+    Messages.setLanguageText(bannedInfo,"ConfigView.section.ipfilter.bannedinfo");
+    formData = new FormData();
+    formData.right = new FormAttachment(btnReset);    
+    formData.left = new FormAttachment(0,0);    
+    formData.bottom = new FormAttachment(100,0);  
+    bannedInfo.setLayoutData( formData );
+    
+    	// reset button
+    
+    Messages.setLanguageText(btnReset,"Button.reset");
+    formData = new FormData();
+    formData.right = new FormAttachment(btnOk);    
+    formData.bottom = new FormAttachment(100,0);    
+    formData.width = 70;
+    btnReset.setLayoutData(formData);
+    btnReset.addListener(SWT.Selection,new Listener() {
+
+    public void handleEvent(Event e) {
+      	IpFilter.getInstance().clearBannedIps();
+    	BadIps.getInstance().clearBadIps();
+		
+    	textBanned.setText( "" );    
+    	}
+    });
+    	// ok button
     
     Messages.setLanguageText(btnOk,"Button.ok");
     formData = new FormData();

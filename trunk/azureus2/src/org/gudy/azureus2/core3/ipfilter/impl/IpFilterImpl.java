@@ -359,6 +359,15 @@ IpFilterImpl
 		return( bannedIps.size());
 	}
 	
+	public void
+	clearBannedIps()
+	{
+		synchronized(bannedIps){
+		
+			bannedIps.clear();
+		}
+	}
+	
 	public BlockedIp[] 
 	getBlockedIps() 
 	{

@@ -45,4 +45,7 @@ public abstract class BadIps {
   
   public abstract BadIp[]
   getBadIps();
+  
+  public abstract void
+  clearBadIps();
 }

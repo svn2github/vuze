@@ -104,6 +104,12 @@ public class BadIpsImpl extends BadIps {
   	}
   }
   
+  public synchronized void
+  clearBadIps()
+  {
+  	bad_ip_map.clear();
+  }
+  
   public int
   getNbBadIps()
   {

@@ -107,6 +107,9 @@ IpFilter
 	public abstract BannedIp[]
 	getBannedIps();
 	
+	public abstract void
+	clearBannedIps();
+	
 	public abstract boolean
 	isEnabled();
 
