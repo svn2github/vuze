@@ -387,7 +387,7 @@ DMWriterAndCheckerImpl
             //many bytes before hitting EOF, and our piece buffer data will be misaligned,
             //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
             
-            int entry_read_limit = tempPiece.getLength() + buffer.position( DirectByteBuffer.SS_DW );
+            int entry_read_limit = buffer.position( DirectByteBuffer.SS_DW ) + tempPiece.getLength();
             buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
 
             tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read

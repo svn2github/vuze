@@ -155,10 +155,19 @@ DMReaderImpl
 		fileOffset += offset - previousFilesLength;
 		// noError is only used for error reporting, it could probably be removed
 		boolean noError = true;
-		while (buffer.hasRemaining(DirectByteBuffer.SS_DR)
-			&& currentFile < pieceList.size()
-			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
-
+		while (buffer.hasRemaining(DirectByteBuffer.SS_DR) && currentFile < pieceList.size() ) {
+      PieceMapEntry map_entry = pieceList.get( currentFile );
+      
+      //explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
+      //see long DMWriterAndCheckerImpl::checkPiece note
+      int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + map_entry.getLength();
+      buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
+      
+      noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset);
+      
+      buffer.limit ( DirectByteBuffer.SS_DR, length );
+      if( !noError ) break;
+      
 			currentFile++;
 			fileOffset = 0;
 		}
