@@ -127,8 +127,9 @@ public class MainWindow implements GlobalManagerListener {
   public static Color red_ManagerItem;
   public static Cursor handCursor;
 
-  private TabFolder folder;
-  //private CTabFolder folder;
+  //private TabFolder folder;
+  private CTabFolder folder;
+  
   private CLabel statusText;
   private CLabel statusDown;
   private CLabel statusUp;
@@ -183,8 +184,8 @@ public class MainWindow implements GlobalManagerListener {
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
 
             try {
-              view = Tab.getView(folder.getSelection()[0]);
-              //view = Tab.getView(folder.getSelection());
+              //view = Tab.getView(folder.getSelection()[0]);
+              view = Tab.getView(folder.getSelection());
 
             }
             catch (Exception e) {
@@ -583,8 +584,8 @@ public class MainWindow implements GlobalManagerListener {
     
 
     gridData = new GridData(GridData.FILL_BOTH);
-    folder = new TabFolder(mainWindow, SWT.V_SCROLL);
-    //folder = new CTabFolder(mainWindow, SWT.NULL);
+    //folder = new TabFolder(mainWindow, SWT.V_SCROLL);
+    folder = new CTabFolder(mainWindow, SWT.NULL);
     Tab.setFolder(folder);   
     
     /*Menu menuFolder = new Menu(mainWindow,SWT.NULL);
@@ -598,23 +599,23 @@ public class MainWindow implements GlobalManagerListener {
     });
     folder.setMenu(menuFolder);*/
     
-    folder.addKeyListener(new KeyAdapter() {
+    /*folder.addKeyListener(new KeyAdapter() {
       public void keyReleased(KeyEvent keyEvent) {
         //System.out.println(keyEvent.keyCode);
         if(keyEvent.character == SWT.ESC) {
           Tab.closeCurrent();
         }
       }
-    });
+    });*/
     
-    //folder.setSelectionBackground(new Color[] { white }, new int[0]);
+    folder.setSelectionBackground(new Color[] { white }, new int[0]);
     folder.setLayoutData(gridData);
-    /*folder.addCTabFolderListener(new CTabFolderAdapter() {
+    folder.addCTabFolderListener(new CTabFolderAdapter() {
       public void itemClosed(CTabFolderEvent event) {
         Tab.closed((CTabItem) event.item);
         event.doit = true;
       }
-    });*/
+    });
 
     mytorrents = new Tab(new MyTorrentsView(globalManager));
 

@@ -27,8 +27,8 @@ public abstract class AbstractIView implements IView {
 
   public String getShortTitle() {
     String shortTitle = getFullTitle();
-    if(shortTitle != null && shortTitle.length() > 20) {
-      shortTitle = shortTitle.substring(0,20) + "...";
+    if(shortTitle != null && shortTitle.length() > 30) {
+      shortTitle = shortTitle.substring(0,30) + "...";
     }
     return shortTitle;
 	}

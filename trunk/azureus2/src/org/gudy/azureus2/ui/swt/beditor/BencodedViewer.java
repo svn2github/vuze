@@ -35,7 +35,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Decorations;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Layout;
@@ -53,19 +52,19 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
  *
  * Simple class to show how the BEditor tree should/could work
  */
-public class TreeTest {
+public class BencodedViewer {
 	
 	private Tree theTree;
 	private Composite form;
 	private Composite treeComposite;
-	private Composite editorComposite;
+  private Composite editorComposite;
 	private Display display;
-	private boolean showArrayIndices = false;
+	private boolean showArrayIndices = true;
 	private Map renderInfo;
 	
-	public TreeTest(Display display, Decorations parent, boolean editable) throws FileNotFoundException
+	public BencodedViewer(Composite parent, boolean editable)
 	{
-		this.display = display;
+		this.display = parent.getDisplay();
 		
 		final FillLayout layout = new FillLayout();
 		renderInfo = new HashMap();
@@ -92,6 +91,7 @@ public class TreeTest {
 	{
 		return form;
 	}
+  
 	private void renderItem( String key, TreeItem item )
 	{
 		RenderInfo info = (RenderInfo) renderInfo.get(key);
@@ -109,10 +109,10 @@ public class TreeTest {
 	 * attaches some context menu items to the specified tree item.
 	 * @param item
 	 */
-	private void setupContextMenu(Decorations theWindow, final Tree theTree)
+	private void setupContextMenu(Composite panel, final Tree theTree)
 	{
 		System.out.println("adding menu");
-		final Menu menu = new Menu((Decorations)theWindow, SWT.POP_UP);
+		final Menu menu = new Menu(panel.getShell(), SWT.POP_UP);
 		theTree.setMenu(menu);
 		final MenuItem addItem;
 		final MenuItem editItem;
@@ -203,7 +203,7 @@ public class TreeTest {
 		for (Iterator iterator = list.iterator(); iterator.hasNext(); ) 
 		{
 			Object iterVal = iterator.next();
-			TreeItem child = new TreeItem(parent, SWT.NORMAL);
+			TreeItem child = new TreeItem(parent, SWT.NULL);
 			if( showArrayIndices )
 				addItem(child, "" + index, iterVal );
 			else
@@ -298,14 +298,16 @@ public class TreeTest {
 		}
 		display.dispose();
 	}	
-	public void setRenderInfo( String keyName, RenderInfo info )
+	public void addRenderInfo( String keyName, RenderInfo info )
 	{
 		this.renderInfo.put(keyName, info);
 	}
+  
 	public void setShowArrayIndices(boolean newValue)
 	{
 		this.showArrayIndices = newValue;
 	}
+  
 	public static void main(String args[]) throws FileNotFoundException
 	{
 		final String fileName;
@@ -327,7 +329,7 @@ public class TreeTest {
 		mainWindow.setLayout(layout);
 		mainWindow.setText("SWT Test");
 
-		TreeTest test = new TreeTest(display, mainWindow, true);
+		BencodedViewer test = new BencodedViewer(mainWindow, false);
 		final String []specialKeys = new String[] {
 			"comment",
 			"created by",
@@ -338,7 +340,7 @@ public class TreeTest {
 		};
 		RenderInfo info = new RenderInfo( SWT.COLOR_BLUE, -1 );
 		for (int i = 0; i < specialKeys.length; i++) {
-			test.setRenderInfo(specialKeys[i], info);
+			test.addRenderInfo(specialKeys[i], info);
 		}
 
 		test.addMetaData(fileName);
