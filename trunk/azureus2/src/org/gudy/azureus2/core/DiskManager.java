@@ -643,14 +643,24 @@ public class DiskManager {
             //Test if files exists
             RandomAccessFile raf = null;
 
-            if (!(f.exists() && f.length() == length)) {
+			boolean bDynamicFile=ConfigurationManager.getInstance().getBooleanParameter("Enable incremental file creation", false);
+			boolean bCreateFile=false;
+			
+			if (!f.exists()) { bCreateFile = true; }
+			
+			if (f.length() != length) {
+				if (!bDynamicFile || f.length() > length ) bCreateFile=true;
+			}
+			
+            if (bCreateFile) {
                 //File doesn't exist
                 buildDirectoryStructure(tempPath);
                 try {
                     // throw Exception if filename is not supported by os
                     f.getCanonicalPath();
                     raf = new RandomAccessFile(f, "rw");
-                    raf.setLength(length);
+                    if (!bDynamicFile)
+                    	raf.setLength(length);
                 } catch (Exception e) {
                     try {
                         raf.close();
@@ -662,8 +672,22 @@ public class DiskManager {
                     return false;
                 }
 
-                if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true))
+                if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true)) {
+                	try {
+                		raf.setLength(length);
+                	}
+                	catch (Exception e) {
+						try {
+							 raf.close();
+						 } catch (IOException ex) {
+							 ex.printStackTrace();
+						 }
+						 this.state = FAULTY;
+						 this.errorMessage = e.getMessage();
+						 return false;
+                	}
                     clearFile(raf);
+                }
                 newFiles = true;
             } else {
                 try {
@@ -774,9 +798,14 @@ public class DiskManager {
                 try {
                     RandomAccessFile raf = tempPiece.getFile().getRaf();
                     FileChannel fc = raf.getChannel();
+                    
                     if (fc.isOpen()) {
-                        fc.position(tempPiece.getOffset());
-                        fc.read(allocateAndTestBuffer);
+						if (fc.size() >= tempPiece.getOffset()+length) {
+							fc.position(tempPiece.getOffset());
+							fc.read(allocateAndTestBuffer);
+						} else {
+							allocateAndTestBuffer.clear();
+						}                    	
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -1079,7 +1108,7 @@ public class DiskManager {
                     int realLimit = buffer.limit();
                     //System.out.print(" realLimit:" + realLimit);
                     int limit =
-                        buffer.position() + (int) ((raf.length() - tempPiece.getOffset()) - (offset - previousFilesLength));
+                        buffer.position() + (int) ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
                     //System.out.print(" limit:" + limit);
                     if (limit < realLimit)
                         buffer.limit(limit);

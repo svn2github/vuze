@@ -100,6 +100,11 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
+    
+	label = new Label(gFile, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
+	new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
+	new Label(gFile, SWT.NULL);    
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$

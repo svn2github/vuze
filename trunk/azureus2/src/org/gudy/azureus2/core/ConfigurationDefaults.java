@@ -65,6 +65,8 @@ public class ConfigurationDefaults {
     // Allocate new files ("Allocate New")
     //def.put("Core_bAllocateNew", new Long(1));
     def.put("Allocate New", new Long(1));
+    
+	def.put("Enable incremental file creation", new Long(0));
     // Lower port to use for BT ("Low Port")
     //def.put("Core_iLowPort", new Long(6881));
     def.put("Low Port", new Long(6881));
@@ -136,7 +138,6 @@ public class ConfigurationDefaults {
     def.put("Server_iDownstreamProxyPort", new Long(0));
     // Grab Torrents in Proxy mode
     def.put("Server_bProxyGrabTorrents", new Long(1));
-    
     
     // Logging relevant Stuff
     //  Log levels:
