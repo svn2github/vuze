@@ -36,8 +36,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 import org.gudy.azureus2.ui.swt.SplashWindow;
 
-import org.gudy.azureus2.plugins.Plugin;
-import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
@@ -327,6 +326,25 @@ PluginInitializer
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownComplete();
   	}  	
+  }
+  
+  protected void
+  fireEventSupport(
+  	final int	type )
+  {
+  	PluginEvent	ev = new PluginEvent(){ public int getType(){ return( type );}};
+  	
+  	for (int i=0;i<plugin_interfaces.size();i++){
+  		
+  		((PluginInterfaceImpl)plugin_interfaces.get(i)).fireEvent(ev);
+  	}  	
+  }
+  
+  public static void
+  fireEvent(
+  	int		type )
+  {
+  	singleton.fireEventSupport(type);
   }
   
   protected void

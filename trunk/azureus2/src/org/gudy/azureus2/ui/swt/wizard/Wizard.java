@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.ui.swt.wizard;
 
+import java.util.*;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -49,6 +51,8 @@ import org.gudy.azureus2.ui.swt.Utils;
  */
 public class Wizard {
 
+  List		listeners = new ArrayList();
+  
   Display display;
   Shell wizardWindow;
   Label title;
@@ -388,6 +392,11 @@ public class Wizard {
   		titleFont.dispose();
   		titleFont=null;
   	}
+  	
+  	for (int i=0;i<listeners.size();i++){
+  		
+  		((WizardListener)listeners.get(i)).closed();
+  	}
   }  
   /**
    * @return Returns the currentPanel.
@@ -404,4 +413,17 @@ public class Wizard {
   		wizardWindow.setSize(400,height);
   }
 
+  public void
+  addListener(
+  	WizardListener	l )
+  {
+  	listeners.add(l);
+  }
+  
+  public void
+  removeListener(
+  	WizardListener	l )
+  {
+  	listeners.remove(l);
+  }
 }

@@ -88,10 +88,11 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.pluginsimpl.PluginInitializer;
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
@@ -923,9 +924,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       PasswordWindow.showPasswordWindow(display);
     }
 
+    PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
+    
     if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
-      new ConfigureWizard(display);
-    }       
+    	ConfigureWizard	wizard = new ConfigureWizard(display);
+    	
+    	wizard.addListener(
+    		new WizardListener()
+    		{
+    			public void
+    			closed()
+    			{
+    				PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+    			}
+    		});
+    }else{
+    	PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+    }
 
     if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null)

@@ -23,10 +23,7 @@ package org.gudy.azureus2.pluginsimpl;
 
 import java.util.*;
 
-import org.gudy.azureus2.plugins.PluginConfig;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.pluginsimpl.logging.LoggerImpl;
 import org.gudy.azureus2.plugins.tracker.Tracker;
@@ -57,7 +54,8 @@ public class PluginInterfaceImpl implements PluginInterface {
   
   protected PluginInitializer	initialiser;
   protected ClassLoader			class_loader;
-  protected List				listeners = new ArrayList();
+  protected List				listeners 		= new ArrayList();
+  protected List				event_listeners	= new ArrayList();
   protected String 				pluginConfigKey;
   protected Properties 			props;
   protected String 				pluginDir;
@@ -204,6 +202,22 @@ public class PluginInterfaceImpl implements PluginInterface {
   	}
   }
   
+  protected void
+  fireEvent(
+  	PluginEvent		event )
+  {
+  	for (int i=0;i<event_listeners.size();i++){
+  		
+  		try{
+  			((PluginEventListener)event_listeners.get(i)).handleEvent( event );
+  			
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  		}
+  	} 	
+  }
+  
   public ClassLoader
   getPluginClassLoader()
   {
@@ -222,5 +236,19 @@ public class PluginInterfaceImpl implements PluginInterface {
   	PluginListener	l )
   {
   	listeners.remove(l);
+  }
+  
+  public void
+  addEventListener(
+  	PluginEventListener	l )
+  {
+  	event_listeners.add(l);
+  }
+  
+  public void
+  removeEventListener(
+  	PluginEventListener	l )
+  {
+  	event_listeners.remove(l);
   }
 }

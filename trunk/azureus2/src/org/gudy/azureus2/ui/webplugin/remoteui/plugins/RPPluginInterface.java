@@ -234,4 +234,18 @@ RPPluginInterface
 	{
 		notSupported();
 	}
+	
+	public void
+	addEventListener(
+		PluginEventListener	l )
+	{
+		notSupported();
+	}
+	
+	public void
+	removeEventListener(
+		PluginEventListener	l )	
+	{
+		notSupported();
+	}
 }

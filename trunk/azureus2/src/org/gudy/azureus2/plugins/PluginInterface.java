@@ -169,4 +169,12 @@ public interface PluginInterface {
   public void
   removeListener(
   	PluginListener	l );
+  
+  public void
+  addEventListener(
+  	PluginEventListener	l );
+  
+  public void
+  removeEventListener(
+  	PluginEventListener	l );
 }

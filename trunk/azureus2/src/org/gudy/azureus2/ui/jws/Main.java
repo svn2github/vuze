@@ -35,12 +35,12 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 Main 
-	implements Plugin, PluginListener
+	implements Plugin, PluginListener, PluginEventListener
 {
 	protected static Main				singleton;
 	
 	protected static Semaphore			init_sem = new Semaphore();
-	
+
 	public static synchronized Main
 	getSingleton(
 		final String[]	args )
@@ -70,7 +70,8 @@ Main
 	
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
-	
+	protected Semaphore				ready_sem	= new Semaphore();
+
 	public void 
 	initialize(
 		PluginInterface _pi )
@@ -107,6 +108,8 @@ Main
 		
 		plugin_interface.addListener( this );
 		
+		plugin_interface.addEventListener( this );
+		
 		init_sem.release();
 	}
 	
@@ -115,9 +118,23 @@ Main
 	{
 	}
 	
+	public void
+	handleEvent(
+		PluginEvent	ev )
+	{
+		System.out.println( "PluginEvent:" + ev.getType());
+		
+		if ( ev.getType() == PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES ){
+			
+			ready_sem.release();
+		}
+	}
+	
 	protected void
 	process()
 	{
+		ready_sem.reserve();
+		
 		log.log(LoggerChannel.LT_INFORMATION, "processing jws request" );
 		
 		Properties props = System.getProperties();
