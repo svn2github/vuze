@@ -88,7 +88,7 @@ BUGFIX: Core | Created torrents had name.utf-8 tag in wrong place [Parg]
 BUGFIX: Plug | UPnP plugin support for multi-homed machines improved [Parg]
 BUGFIX: Core | UDP scrape responses being handled incorrectly [Parg]
 BUGFIX: Core | Fixed the "high priority" for files [Gudy]
-
+BUGFIX: UI   | Fixed bug 1081886 : stats graphics can now be 2000 pixels wide, instead of only 1600 before [Gudy]
 2004.10.31 | Azureus 2.2.0.0
 
 FEATURE: Core | Disk cache [Parg]
