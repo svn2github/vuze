@@ -39,6 +39,13 @@ public class Timer
 	
 	public
 	Timer(
+		String	name )
+	{
+		this( name, 1 );
+	}
+		
+	public
+	Timer(
 		String	name,
 		int		thread_pool_size )
 	{

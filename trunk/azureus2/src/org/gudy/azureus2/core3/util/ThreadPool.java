@@ -31,6 +31,8 @@ import java.util.*;
 public class 
 ThreadPool 
 {
+	protected static final int	IDLE_LINGER_TIME	= 10000;
+	
 	protected String	name;
 	protected int		thread_name_index	= 1;
 	
@@ -85,11 +87,29 @@ ThreadPool
 					public void 
 					run()
 					{
+						boolean	time_to_die = false;
+			
+outer:
 						while(true){
 							
 							try{
-								my_sem.reserve();
-									
+								while( !my_sem.reserve(IDLE_LINGER_TIME)){
+																		
+									synchronized( ThreadPool.this ){
+										
+										if ( runnable == null ){
+											
+											time_to_die	= true;
+											
+											thread_pool.remove( worker.this );
+											
+											System.out.println( "ThreadPool: thread terminated - " + Thread.currentThread().getName() );
+											
+											break outer;
+										}
+									}
+								}
+								
 								try{
 											
 									runnable.run();
@@ -103,12 +123,15 @@ ThreadPool
 								e.printStackTrace();
 											
 							}finally{
-													
-								synchronized( ThreadPool.this ){
+										
+								if ( !time_to_die ){
+									
+									synchronized( ThreadPool.this ){
 															
-									thread_pool.push( worker.this );
+										thread_pool.push( worker.this );
+									}
 								}
-															
+								
 								thread_sem.release();
 							}
 						}
