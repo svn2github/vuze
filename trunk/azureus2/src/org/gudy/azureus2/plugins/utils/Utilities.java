@@ -55,4 +55,9 @@ Utilities
 	
 	public LocaleUtilities
 	getLocaleUtilities();
+	
+	public UTTimer
+	createTimer(
+		String		name );
+
 }

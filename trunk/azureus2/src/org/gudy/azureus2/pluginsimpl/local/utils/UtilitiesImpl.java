@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -40,6 +41,15 @@ public class
 UtilitiesImpl
 	implements Utilities
 {
+	protected PluginInterface			pi;
+	
+	public
+	UtilitiesImpl(
+		PluginInterface		_pi )
+	{
+		pi		= _pi;
+	}
+	
 	public String
 	getAzureusUserDir()
 	{
@@ -91,5 +101,12 @@ UtilitiesImpl
 	getLocaleUtilities()
 	{
 		return( new LocaleUtilitiesImpl());
+	}
+	
+	public UTTimer
+	createTimer(
+		String		name )
+	{
+		return( new UTTimerImpl( pi, name ));
 	}
 }

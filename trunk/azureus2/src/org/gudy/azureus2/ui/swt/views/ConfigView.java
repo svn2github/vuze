@@ -469,16 +469,23 @@ public class ConfigView extends AbstractIView {
       label = new Label(infoGroup, SWT.NULL);
 
       Properties p = pluginIF.getPluginProperties();
-      String s = p.getProperty("plugin.name", "");
+      
+      String plugin_name = pluginIF.getPluginName(); // p.getProperty("plugin.name", "");
+      
+      String plugin_version = (String)p.getProperty("plugin.version" );
+      
       String sDirName = pluginIF.getPluginDirectoryName();
+      
       if (sDirName.length() > sPluginDir.length() && 
-          sDirName.substring(0, sPluginDir.length()).equals(sPluginDir)) {
-        sDirName = sDirName.substring(sPluginDir.length());
+          sDirName.substring(0, sPluginDir.length()).equals(sPluginDir)){
+      	
+      	sDirName = sDirName.substring(sPluginDir.length());
       }
       
       // Blank means it's internal
-      if (sDirName != "") {
-        label.setText(" - " + s + " (" + sDirName + ")");
+      if (sDirName != ""){
+      	
+        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")");
         numPlugins++;
       }
     }

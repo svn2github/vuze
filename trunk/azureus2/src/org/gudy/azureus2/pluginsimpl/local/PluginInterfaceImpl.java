@@ -277,7 +277,7 @@ PluginInterfaceImpl
   public Utilities
   getUtilities()
   {
-  	return( new UtilitiesImpl());
+  	return( new UtilitiesImpl( this ));
   }
 
   public UIManager

@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.plugins.PluginConfig;
 
@@ -30,8 +32,19 @@ import org.gudy.azureus2.plugins.PluginConfig;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class PluginConfigImpl
-	implements PluginConfig {
+public class 
+PluginConfigImpl
+	implements PluginConfig 
+{
+
+	protected static Map	external_to_internal_key_map = new HashMap();
+	
+	static{
+		
+		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC );
+		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL, "Max Uploads" );
+		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT, "Max.Peer.Connections.Per.Torrent" );
+	}
 
 	private ConfigurationManager config;
 	private String key;
@@ -51,25 +64,25 @@ public class PluginConfigImpl
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
 	 */
 	public String getStringParameter(String name) {
-		return config.getStringParameter(name);
+		return config.getStringParameter(mapKeyName(name));
 	}
 
 	public float getFloatParameter(String name) {
-		return config.getFloatParameter(name);
+		return config.getFloatParameter(mapKeyName(name));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name) {
-		return config.getIntParameter(name);
+		return config.getIntParameter(mapKeyName(name));
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name, int default_value) {
-		return config.getIntParameter(name, default_value);
+		return config.getIntParameter(mapKeyName(name), default_value);
 	}
 
 	public void
@@ -77,23 +90,25 @@ public class PluginConfigImpl
 	  	String	key, 
 		int		value )
 	{
-		if ( !key.equals( CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC )){
+		String	target_key = (String)external_to_internal_key_map.get( key );
+		
+		if ( target_key == null ){
 			
 			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
 		}
 		
-		config.setParameter( key, value );
+		config.setParameter( target_key, value );
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
 	 */
 	public boolean getBooleanParameter(String name) {
-		return config.getBooleanParameter(name);
+		return config.getBooleanParameter(mapKeyName(name));
 	}
 	
 	public boolean getBooleanParameter(String name, boolean _default) {
-		return config.getBooleanParameter(name, _default);
+		return config.getBooleanParameter(mapKeyName(name), _default);
 	}
 	
 	/* (non-Javadoc)
@@ -172,5 +187,19 @@ public class PluginConfigImpl
 	save()
 	{
 		config.save();
+	}
+	
+	protected String
+	mapKeyName(
+		String	key )
+	{
+		String	k = (String)external_to_internal_key_map.get(key);
+		
+		if ( k != null ){
+			
+			return( k );
+		}
+		
+		return( key );
 	}
 }
