@@ -30,8 +30,23 @@ package org.gudy.azureus2.plugins.ui.components;
 public interface 
 UIComponent 
 {
-	public static final int PT_ENABLED		= 1;
-	public static final int PT_VALUE		= 2;
+	public static final int PT_ENABLED		= 1;		// Boolean
+	public static final int PT_VALUE		= 2;		// Depends on component type
+	public static final int PT_VISIBLE		= 3;		// Boolean
+	
+	public void
+	setEnabled(
+		boolean		enabled );
+	
+	public boolean
+	getEnabled();
+	
+	public void
+	setVisible(
+		boolean		visible );
+	
+	public boolean
+	getVisible();
 	
 	public void
 	setProperty(
