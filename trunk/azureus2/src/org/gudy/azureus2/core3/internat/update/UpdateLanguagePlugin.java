@@ -58,9 +58,19 @@ import org.gudy.azureus2.ui.swt.Utils;
  *    -or- 
  *      a 0 length file, a 404 error (not tested) of the locale does not exist.
  *
- * 2) Open the URL sent on Line 2 and save it to the User directory
+ * 2) Compare current revision with the latest revision. Quit early if it's
+ *    not newer.
  *
- * 3) Refresh Azureus
+ * 3) Open the URL sent on Line 2 and save it to the User directory. Two lines 
+ *    are added to the new bundle (to allow for comparing in step 2):
+ *      Line 1: The revision of the bundle
+ *      Line 2: Comment for users about the above line.
+ *
+ * 4) Refresh Azureus
+ *
+ * If there was already a bundle in the user's directory that did not have a
+ * revision number on the first line, it is renamed, and a "User.x" is placed
+ * in its variant name.
  */
 public class
 UpdateLanguagePlugin
@@ -71,8 +81,8 @@ UpdateLanguagePlugin
   protected PluginInterface   plugin_interface;
   protected PluginConfig      plugin_config;
   protected LoggerChannel     log;
-  TorrentDownloader downloader;
-  
+
+  private TorrentDownloader downloader;
   private String sCurLocale;
   private String sUpdateURL;
   private File  fLanguageFile;
@@ -108,6 +118,7 @@ UpdateLanguagePlugin
     }
   }
   
+  /* Main procedure to update the current language file. */
   private void updateLanguage() {
     String sCurrentRevision = "0";
 
@@ -157,6 +168,7 @@ UpdateLanguagePlugin
             ". Starting download using " + sUpdateURL);
   }
 
+  /* Handle responses from the TorrentDownloader */
   public void TorrentDownloaderEvent(int stateDownloader, TorrentDownloader inf) {   
     if (state == STATE_UPDATEURL) {
       if (stateDownloader == TorrentDownloader.STATE_FINISHED) {
@@ -174,8 +186,9 @@ UpdateLanguagePlugin
     }
   }
 
+  /* Retrieve the revision number, and if newer, update bundle */
   private void checkRevision() {
-    log.log(LoggerChannel.LT_INFORMATION, "Version Info Download complete");
+    log.log(LoggerChannel.LT_INFORMATION, "Revision info download complete");
     String sLanguageURL = null;
 
     // retrieve the revision number and Language URL from file
@@ -230,6 +243,7 @@ UpdateLanguagePlugin
     }
   }    
   
+  /* Overwrite the old bundle with the new Revision. */
   private void moveInNewRevision() {
     log.log(LoggerChannel.LT_INFORMATION, "Language File download complete");
     // overwrite user language file
@@ -284,6 +298,11 @@ UpdateLanguagePlugin
     MainWindow.getWindow().refreshLanguage();
   }
   
+  /* Checks to see if it's okay to retreive the latest bundle.
+   * Currently consists of renaming old file if exists.
+   *
+   * @return whether it's okay to retrieve the latest bundle
+   */
   private boolean okToGetLatest() {
     if (!fLanguageFile.exists()) {
       return true;
@@ -316,6 +335,15 @@ UpdateLanguagePlugin
             (okToProceed ? "succeeded" : "failed"));
 
     return okToProceed;  
+  }
+
+  private File getCurLocaleFile() {
+    String sCurLocale = Locale.getDefault().toString();
+    if (sCurLocale == "en")
+      sCurLocale = "";
+    if (!sCurLocale.equals(""))
+      sCurLocale = "_" + sCurLocale;
+    return FileUtil.getUserFile("MessagesBundle" + sCurLocale + ".properties");
   }
 
   /* Configuration.
@@ -376,7 +404,23 @@ UpdateLanguagePlugin
 	      }
 	    });
   
+      Button btnRevert = new Button(cSection, SWT.PUSH);
+      Messages.setLanguageText(btnRevert, "Button.revert");
+	    btnRevert.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        File file = UpdateLanguagePlugin.this.getCurLocaleFile();
+    	    if (file.exists()) {
+            try {
+              file.delete();
+            } catch (Exception e) {}
+          }
+          ((Button)event.widget).setEnabled(file.exists());
+          MainWindow.getWindow().refreshLanguage();
+	      }
+	    });
+      btnRevert.setEnabled(UpdateLanguagePlugin.this.getCurLocaleFile().exists());
+
       return cSection;
     }
- }
+  }
 }
