@@ -53,6 +53,6 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	public int
 	getValue()
 	{
-		return( config.getPluginIntParameter( getKey(), getDefaultValue()));
+		return( config.getIntParameter( getKey(), getDefaultValue()));
 	}
 }

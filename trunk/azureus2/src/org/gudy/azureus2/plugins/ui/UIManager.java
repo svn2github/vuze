@@ -39,6 +39,7 @@ UIManager
 		 * Gets a basic plugin view model that supports simple plugin requirements
 		 * After getting the model create the view using createPluginView
 		 * @return
+		 * @deprecated Use createBasicPluginViewModel 
 		 */
 	
 	public BasicPluginViewModel
@@ -50,6 +51,7 @@ UIManager
 		 * as any other PluginView
 		 * @param model
 		 * @return
+		 * @deprecated Use createBasicPluginViewModel
 		 */
 	
 	public PluginView
@@ -66,6 +68,14 @@ UIManager
 	createBasicPluginConfigModel(
 		String		parent_section,
 		String		section_name );
+	
+		/*
+		 * Creates a basic plugin view model and adds it to the plugin in one step
+		 */
+	
+	public BasicPluginViewModel
+	createBasicPluginViewModel(
+		String			name );
 	
 	public void
 	copyToClipBoard(

@@ -62,6 +62,6 @@ DirectoryParameterImpl
 	public String
 	getValue()
 	{
-		return( config.getPluginStringParameter( getKey(), getDefaultValue()));
+		return( config.getStringParameter( getKey(), getDefaultValue()));
 	}
 }

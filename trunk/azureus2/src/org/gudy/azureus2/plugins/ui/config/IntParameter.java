@@ -28,7 +28,8 @@ package org.gudy.azureus2.plugins.ui.config;
  */
 
 public interface 
-IntParameter 
+IntParameter
+	extends Parameter
 {
 	public int
 	getValue();

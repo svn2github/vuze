@@ -61,6 +61,6 @@ BooleanParameterImpl
 	public boolean
 	getValue()
 	{
-		return( config.getPluginBooleanParameter( getKey(), getDefaultValue()));
+		return( config.getBooleanParameter( getKey(), getDefaultValue()));
 	}
 }

@@ -29,6 +29,7 @@ package org.gudy.azureus2.plugins.ui.config;
 
 public interface 
 StringParameter
+	extends Parameter
 {
 	public String
 	getValue();

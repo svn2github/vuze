@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.ui.config;
  */
 public interface 
 DirectoryParameter 
+	extends Parameter
 {
 	public String
 	getValue();

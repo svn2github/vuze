@@ -96,6 +96,22 @@ UIManagerImpl
 		}
 	}
 	
+	public BasicPluginViewModel
+	createBasicPluginViewModel(
+		String			name )
+	{
+		BasicPluginViewModel	model = getBasicPluginViewModel( name );
+		
+		PluginView	pv = createPluginView( model );
+		
+		if ( pv != null ){
+			
+			pi.getUIManager().getSWTManager().addView( pv );
+		}
+		
+		return( model );
+	}
+	
 	public BasicPluginConfigModel
 	createBasicPluginConfigModel(
 		String		section_name )
@@ -188,15 +204,7 @@ UIManagerImpl
 		String 				resource_name,
 		final String	 	defaultValue )
 	{
-		return(
-				new StringParameter()
-				{
-					public String
-					getValue()
-					{
-						return( pi.getPluginconfig().getPluginStringParameter( key, defaultValue));
-					}
-				});	
+		return( new StringParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
 	}
 	
 	public IntParameter
@@ -205,15 +213,7 @@ UIManagerImpl
 		String 			resource_name,
 		final int	 	defaultValue )
 	{
-		return(
-				new IntParameter()
-				{
-					public int
-					getValue()
-					{
-						return( pi.getPluginconfig().getPluginIntParameter( key, defaultValue));
-					}
-				});		
+		return( new IntParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
 	}
 	
 	public LabelParameter
