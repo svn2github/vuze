@@ -45,7 +45,7 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	public GlobalManager	gm;
 	CommandReader br;
 	public PrintStream out;
-	public ArrayList torrents = null;
+	public List torrents = null;
 	public File[] adds = null;
 	boolean controlling;
 	boolean running;

@@ -47,7 +47,7 @@ public class Show implements IConsoleCommand {
 				ci.invokeCommand("set", null);
 			} else if (sSubcommands[0].equalsIgnoreCase("torrents") || sSubcommands[0].equalsIgnoreCase("t")) {
 				ci.out.println("> -----");
-				ci.torrents = (ArrayList) ((ArrayList) ci.gm.getDownloadManagers()).clone();
+				ci.torrents = ci.gm.getDownloadManagers();
 				Collections.sort(ci.torrents, new Comparator() {
 					public final int compare(Object a, Object b) {
 						DownloadManager aDL = (DownloadManager) a;
