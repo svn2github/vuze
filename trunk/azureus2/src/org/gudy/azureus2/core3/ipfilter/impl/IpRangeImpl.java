@@ -63,7 +63,9 @@ IpRangeImpl
      checkValid(); 
    }
     
-   public void checkValid() {
+   public void checkValid() 
+   {
+   	try{
      this.valid = false;   
      StringTokenizer stStart = new StringTokenizer(startIp,".");
      StringTokenizer stEnd = new StringTokenizer(endIp,".");
@@ -89,6 +91,10 @@ IpRangeImpl
        }
      }
      this.valid = true;
+   	}finally{
+	
+   		((IpFilterImpl)IpFilterImpl.getInstance()).setValidOrNot( this, valid );
+   	}
    }
     
    public boolean isValid() {

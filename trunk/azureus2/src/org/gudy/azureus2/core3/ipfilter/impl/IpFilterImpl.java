@@ -48,7 +48,9 @@ IpFilterImpl
 
 	private static IpFilterImpl ipFilter;
   
-	private List 	ipRanges;
+	private List 	all_ip_ranges;
+	
+	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
 	private Map		bannedIps;
 	 
@@ -102,11 +104,11 @@ IpFilterImpl
 		throws Exception
 	{
       Map map = new HashMap();
-	  synchronized(ipRanges) { 
+	  synchronized(all_ip_ranges) { 
 
 		List filters = new ArrayList();
 		map.put("ranges",filters);
-		Iterator iter = this.ipRanges.iterator();
+		Iterator iter = all_ip_ranges.iterator();
 		while(iter.hasNext()) {
 		  IpRange range = (IpRange) iter.next();
 		  if(range.isValid() && ! range.isSessionOnly()) {
@@ -166,15 +168,16 @@ IpFilterImpl
 			  String endIp = new String((byte[])range.get("end"));
 	        
 			  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
-			  if(ipRange.isValid())
+			  if(ipRange.isValid()){
 				new_ipRanges.add(ipRange);
+			  }
 			}
 			bin.close();
 			fin.close();
 		}		
 	  }finally{
 	  
-	  	ipRanges 	= new_ipRanges;
+	  	all_ip_ranges 	= new_ipRanges;
 	  	
 	  	markAsUpToDate();
 	  }
@@ -199,23 +202,22 @@ IpFilterImpl
 	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true))
 	    return false;
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
-	  synchronized(ipRanges) { 
-			Iterator iter = ipRanges.iterator();
-			while(iter.hasNext()) {
-			  IpRange ipRange = (IpRange) iter.next();
-			  if(ipRange.isInRange(ipAddress)) {
-			    if(!allow) {
-			      synchronized(ipsBlocked) {
-			        ipsBlocked.add(new BlockedIpImpl(ipAddress,ipRange, torrent_name));
-			      }
-						LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
-						return true;
-			    } else {		      
-			      return false;
-			    }
-			  }
-			}
-		}
+	  
+	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
+
+	  if(match != null) {
+	    if(!allow) {
+	      synchronized(ipsBlocked) {
+	        ipsBlocked.add(new BlockedIpImpl(ipAddress,match, torrent_name));
+	      }
+		
+	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
+		  return true;
+	    }else {		      
+	      return false;
+	    }
+	  }
+	
 	  if(allow) {
 	    synchronized(ipsBlocked) {
 	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
@@ -255,17 +257,17 @@ IpFilterImpl
 	public List 
 	getIpRanges() 
 	{
-	  return ipRanges;
+	  return all_ip_ranges;
 	}
 	
 	public IpRange[]
 	getRanges()
 	{
-		synchronized( ipRanges ){
+		synchronized( all_ip_ranges ){
 			
-			IpRange[]	res = new IpRange[ipRanges.size()];
+			IpRange[]	res = new IpRange[all_ip_ranges.size()];
 			
-			ipRanges.toArray( res );
+			all_ip_ranges.toArray( res );
 			
 			return( res );
 		}
@@ -281,9 +283,9 @@ IpFilterImpl
 	addRange(
 		IpRange	range )
 	{
-		synchronized( ipRanges ){
+		synchronized( all_ip_ranges ){
 		
-			ipRanges.add( range );
+			all_ip_ranges.add( range );
 		}
 		
 		markAsUpToDate();
@@ -293,16 +295,32 @@ IpFilterImpl
 	removeRange(
 		IpRange	range )
 	{
-		synchronized( ipRanges ){
+		synchronized( all_ip_ranges ){
 		
-			ipRanges.remove( range );
+			all_ip_ranges.remove( range );
+			
+			range_manager.removeRange( range );
 		}
 		
 		markAsUpToDate();
 	}
 	
 	public int getNbRanges() {
-	  return ipRanges.size();
+	  return all_ip_ranges.size();
+	}
+	
+	protected void
+	setValidOrNot(
+		IpRange		range,
+		boolean		valid )
+	{
+		if ( valid ){
+		
+			range_manager.addRange(range.getStartIp(), range.getEndIp(), range );
+		}else{
+			
+			range_manager.removeRange( range );
+		}
 	}
 	
 	public int getNbIpsBlocked() {
