@@ -33,9 +33,7 @@ SFPluginDetails
 	getId();
 	
 	public String
-	getName()
-	
-		throws SFPluginDetailsException;
+	getName();
 	
 		/**
 		 * 

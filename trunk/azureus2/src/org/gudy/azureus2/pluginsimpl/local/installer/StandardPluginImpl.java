@@ -69,7 +69,7 @@ StandardPluginImpl
 	public String
 	getName()
 	{
-		return( "Coming Soon" );
+		return( details.getName());
 	}
 	
 	public String

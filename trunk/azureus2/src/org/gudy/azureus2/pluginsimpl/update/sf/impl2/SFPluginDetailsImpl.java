@@ -51,17 +51,17 @@ SFPluginDetailsImpl
 	SFPluginDetailsImpl(
 		SFPluginDetailsLoaderImpl	_loader,
 		String						_id,
-		String						_version )
+		String						_version,
+		String						_name )
 	{
 		loader				= _loader;
 		id					= _id;
 		version				= _version;
+		name				= _name;
 	}
 	
 	protected void
 	setDetails(
-		String	_name,
-		String	_version,
 		String	_download_url,
 		String	_author,
 		String	_cvs_version,
@@ -71,8 +71,6 @@ SFPluginDetailsImpl
 	{
 		fully_loaded		= true;
 		
-		name				= _name;
-		version				= _version;
 		download_url		= _download_url;
 		author				= _author;
 		cvs_version			= _cvs_version;
@@ -106,11 +104,7 @@ SFPluginDetailsImpl
 	
 	public String
 	getName()
-	
-		throws SFPluginDetailsException
 	{
-		checkLoaded();
-		
 		return( name );
 	}
 	

@@ -23,6 +23,9 @@
 package org.gudy.azureus2.ui.swt.pluginsinstaller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
@@ -115,6 +118,19 @@ public class IPWListPanel extends AbstractWizardPanel {
 	    try {
 	      plugins = wizard.getAzureusCore().getPluginManager().getPluginInstaller().getStandardPlugins();
 	      
+	      Arrays.sort( 
+	      	plugins,
+		  	new Comparator()
+			{
+	      		public int 
+				compare(
+					Object o1, 
+					Object o2)
+	      		{
+	      			return(((StandardPlugin)o1).getName().compareTo(((StandardPlugin)o2).getName()));
+	      		}
+			});
+			
 	    } catch(final Exception e) {
 	    	
 	    	Debug.printStackTrace(e);
@@ -135,7 +151,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	          if(plugin.getAlreadyInstalledPlugin() == null) {
 	            TableItem item = new TableItem(pluginList,SWT.NULL);
 	            item.setData(plugin);
-	            item.setText(0,plugin.getId() + "/" + plugin.getName());
+	            item.setText(0,plugin.getName());
 	            item.setText(1,plugin.getVersion());
 	          }
 	        }

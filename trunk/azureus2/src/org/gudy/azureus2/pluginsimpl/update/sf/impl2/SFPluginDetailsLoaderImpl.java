@@ -47,7 +47,7 @@ SFPluginDetailsLoaderImpl
 {
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
-	public static final String	page_url 	= site_prefix + "update/pluginlist.php?type=release";
+	public static final String	page_url 	= site_prefix + "update/pluginlist2.php?type=release";
 
 	protected static SFPluginDetailsLoaderImpl		singleton;
   	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
@@ -110,13 +110,38 @@ SFPluginDetailsLoaderImpl
 			
 			while( it.hasNext()){
 				
-				String	plugin_name 	= (String)it.next();
-				String	version			= (String)details.get(plugin_name);
-
-				plugin_names.add( plugin_name );
+				String	plugin_id 	= (String)it.next();
 				
-				plugin_map.put(plugin_name.toLowerCase(), 
-				               new SFPluginDetailsImpl( this, plugin_name, version ));
+				String	data			= (String)details.get(plugin_id);
+
+				int	pos = 0;
+				
+				List	bits = new ArrayList();
+				
+				while( pos < data.length()){
+					
+					int	p1 = data.indexOf(';',pos);
+					
+					if ( p1 == -1 ){
+						
+						bits.add( data.substring(pos).trim());
+					
+						break;
+					}else{
+						
+						bits.add( data.substring(pos,p1).trim());
+						
+						pos = p1+1;
+					}
+				}
+				
+				String	version = (String)bits.get(0);
+				String	name	= (String)bits.get(1);
+				
+				plugin_names.add( plugin_id );
+				
+				plugin_map.put(plugin_id.toLowerCase(), 
+				               new SFPluginDetailsImpl( this, plugin_id, version, name ));
 			}
 			
 			plugin_names_loaded	= true;
@@ -236,8 +261,6 @@ SFPluginDetailsLoaderImpl
 					// System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
 					
 					details.setDetails(
-									plugin_name,
-									plugin_version,
 									plugin_download,
 									plugin_auth,
 									plugin_cvs_version,
