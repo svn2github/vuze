@@ -309,8 +309,11 @@ public class DownloadManager extends Component {
     Thread stopThread = new Thread() {
       public void run() {
         state = DownloadManager.STATE_STOPPING;
-        if (peerManager != null)
-          peerManager.stopAll();        
+        if (peerManager != null) {
+          uploaded = peerManager.getStats().getTotalSentRaw();
+          downloaded = peerManager.getStats().getTotalReceivedRaw();
+          peerManager.stopAll();  
+        }      
         if (diskManager != null) {
           if (diskManager.getState() == DiskManager.READY)
              diskManager.dumpResumeDataToDisk(true);
