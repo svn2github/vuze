@@ -231,9 +231,8 @@ public class DownloadManager extends Component {
     if (diskManager.getState() == DiskManager.ALLOCATING || diskManager.getState() == DiskManager.CHECKING || diskManager.getState() == DiskManager.INITIALIZING)
       return diskManager.getPercentDone();
     else {
-      long remaining = diskManager.getRemaining();
       long total = diskManager.getTotalLength();
-      return (int) ((1000 * (total - remaining)) / total);
+      return total == 0 ? 0 : (int) ((1000 * (total - diskManager.getRemaining())) / total);
     }
   }
 
