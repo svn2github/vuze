@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : DoneItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,24 +22,34 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
-/**
- * @author Olivier
+/** % Done column in My Torrents
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class DoneItem extends TorrentItem {
-
-  
-  
-  public DoneItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class DoneItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public DoneItem(String sTableID) {
+    super("done", 55, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
+    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE))
+      setPosition(POSITION_LAST);
+    else
+      setPosition(POSITION_INVISIBLE);
   }
 
-  public void refresh() {
-    setText(DisplayFormatters.formatPercentFromThousands(torrentRow.getManager().getStats().getCompleted()));
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    int value = (dm == null) ? 0 : dm.getStats().getCompleted();
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatPercentFromThousands(value));
   }
-
 }

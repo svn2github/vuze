@@ -23,29 +23,31 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class PriorityItem extends TorrentItem {
-
-  public PriorityItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class PriorityItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public PriorityItem(String sTableID) {
+    super("priority", ALIGN_LEAD, POSITION_LAST, 50, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    String tmp;
-    if (torrentRow.getManager().getPriority() == DownloadManager.HIGH_PRIORITY) {
-      tmp = MessageText.getString("ManagerItem.high"); //$NON-NLS-1$
-    }
-    else {
-      tmp = MessageText.getString("ManagerItem.low"); //$NON-NLS-1$
-    }
-    setText(tmp);
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getPriority();
+    cell.setSortValue(value);
+    String tmp = (value == DownloadManager.HIGH_PRIORITY) ? "ManagerItem.high" 
+                                                          : "ManagerItem.low";
+    cell.setText(MessageText.getString(tmp));
   }
-
 }

@@ -22,20 +22,30 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-/**
- * @author Olivier
+
+/** Size of Torrent cell
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class SizeItem extends TorrentItem {
-
-  
-  public SizeItem(TorrentRow torrentRow, int position) {
-    super(torrentRow, position);
+public class SizeItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SizeItem(String sTableID) {
+    super("size", POSITION_LAST, 70, sTableID);
   }
 
-  public void refresh() {    
-    setText(DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getSize()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getSize();
 
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
+  }
 }

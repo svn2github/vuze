@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : TrackerStatusItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,21 +21,25 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  * @author Olivier
  *
  */
-public class TrackerStatusItem extends TorrentItem {
-
-  public TrackerStatusItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class TrackerStatusItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  public TrackerStatusItem(String sTableID) {
+    super("tracker", 90, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(torrentRow.getManager().getTrackerStatus());    
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    cell.setText((dm == null) ? "" : dm.getTrackerStatus());
   }
-
 }

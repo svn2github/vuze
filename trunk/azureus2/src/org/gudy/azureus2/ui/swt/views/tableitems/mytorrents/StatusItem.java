@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : StatusItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,35 +21,42 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class StatusItem extends TorrentItem {
-
-  public StatusItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class StatusItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public StatusItem(String sTableID) {
+    super("status", POSITION_LAST, 80, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    //setText returns true only if text has changed (ie status has changed)
-    if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager())) || !torrentRow.isValid()) {
-      int state = torrentRow.getManager().getState();
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm == null) {
+      cell.setText("");
+    } else if (cell.setText(DisplayFormatters.formatDownloadStatus(dm)) || 
+               !cell.isValid()) {
+      int state = dm.getState();
       if (state == DownloadManager.STATE_SEEDING)
-        setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
+        ((TableCellCore)cell).getTableRowCore().setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
       else if (state == DownloadManager.STATE_ERROR)
-        setForeground(Colors.colorError);
+        ((TableCellCore)cell).getTableRowCore().setForeground(Colors.colorError);
       else
-        setForeground(null);
+        ((TableCellCore)cell).getTableRowCore().setForeground(null);
     }
   }
-
 }

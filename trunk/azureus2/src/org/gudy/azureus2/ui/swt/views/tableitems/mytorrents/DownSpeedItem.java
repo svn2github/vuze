@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : DownSpeedItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,66 +21,92 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Color;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 
-/**
- * @author Olivier
+/** Download Speed column
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class DownSpeedItem extends TorrentItem implements ParameterListener {
+public class DownSpeedItem
+       extends CoreTableColumn 
+       implements TableCellAddedListener, ParameterListener
+{
+  private final static String CONFIG_ID = "StartStopManager_iMinSpeedForActiveDL";
   private int iMinActiveSpeed;
-  private int iLastState;
-  
-  
-  public DownSpeedItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
 
-    iMinActiveSpeed = COConfigurationManager.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
-    COConfigurationManager.addParameterListener("StartStopManager_iMinSpeedForActiveDL", this);
+  /** Default Constructor */
+  public DownSpeedItem() {
+    super("downspeed", POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    setRefreshInterval(INTERVAL_LIVE);
+
+    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
+    COConfigurationManager.addParameterListener(CONFIG_ID, this);
   }
 
-  public void refresh() {
-    long iDLAverage = torrentRow.getManager().getStats().getDownloadAverage();
-    int iState = torrentRow.getManager().getState();
-    if (setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage)) || 
-        (iState != iLastState)) {
-      changeColor(iDLAverage, iState);
+  protected void finalize() throws Throwable {
+    super.finalize();
+    COConfigurationManager.removeParameterListener(CONFIG_ID, this);
+  }
+  
+  public void cellAdded(TableCell cell) {
+    cell.addRefreshListener(new RefreshListener());
+  }
+
+  public class RefreshListener implements TableCellRefreshListener {
+    private int iLastState;
+
+    public void refresh(TableCell cell) {
+      DownloadManager dm = (DownloadManager)cell.getDataSource();
+      long iDLAverage = (dm == null) ? 0 : dm.getStats().getDownloadAverage();
+      cell.setSortValue(iDLAverage);
+  
+      if (dm != null) {
+        int iState = dm.getState();
+        if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage)) || 
+            (iState != iLastState)) {
+          changeColor(cell, iDLAverage, iState);
+        }
+      }
     }
-  }
-  
-  private void changeColor() {
-    try {
-      changeColor(torrentRow.getManager().getStats().getDownloadAverage(), torrentRow.getManager().getState());
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 
-  private void changeColor(long iDLAverage, int iState) {
-    try {
-      setItemForeground((iDLAverage < iMinActiveSpeed && 
-                         iState == DownloadManager.STATE_DOWNLOADING) ? Colors.colorWarning : null);
-      iLastState = iState;
-    } catch (Exception e) {
-      e.printStackTrace();
+    private void changeColor(TableCell cell) {
+      try {
+        DownloadManager dm = (DownloadManager)cell.getDataSource();
+        if (dm == null) {
+          return;
+        }
+        changeColor(cell, dm.getStats().getDownloadAverage(), dm.getState());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  
+    private void changeColor(TableCell cell, long iDLAverage, int iState) {
+      try {
+        Color newFG = (iDLAverage < iMinActiveSpeed && 
+                       iState == DownloadManager.STATE_DOWNLOADING) ? Colors.colorWarning 
+                                                                    : null;
+        ((TableCellCore)cell).setForeground(newFG);
+        iLastState = iState;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
 
   public void parameterChanged(String parameterName) {
-    iMinActiveSpeed = COConfigurationManager.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
-    changeColor();
-  }
-
-  public void dispose() {
-    COConfigurationManager.removeParameterListener("StartStopManager_iMinSpeedForActiveDL", this);
+    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : UpItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,24 +22,36 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
-/**
- * @author Olivier
+/** bytes uploaded column
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class UpItem extends TorrentItem {
+public class UpItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public UpItem(String sTableID) {
+    super("up", 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
 
-  
-  
-  public UpItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))
+      setPosition(POSITION_LAST);
+    else
+      setPosition(POSITION_INVISIBLE);
   }
 
-  public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getUploaded()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getUploaded();
 
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
+  }
 }

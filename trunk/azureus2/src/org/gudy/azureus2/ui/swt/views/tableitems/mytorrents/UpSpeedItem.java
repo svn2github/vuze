@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : UpSpeedItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,22 +22,34 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
-/**
- * @author Olivier
+/** Upload Speed column
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class UpSpeedItem extends TorrentItem {
-
-  public UpSpeedItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class UpSpeedItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /**
+   * Default Constructor
+   * @param sTableID
+   */
+  public UpSpeedItem(String sTableID) {
+    super("upspeed", POSITION_LAST, 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getUploadAverage()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
 
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+  }
 }

@@ -21,19 +21,29 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-/**
- * @author Olivier
- *
- */
-public class RankItem extends TorrentItem {
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-  public RankItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);    
+/**
+ *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
+ */
+public class RankItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public RankItem(String sTableID) {
+    super("#", POSITION_LAST, 50, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(String.valueOf(torrentRow.getManager().getPosition()));
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getPosition();
+    cell.setSortValue(value);
+    cell.setText(String.valueOf(value));
   }
 }

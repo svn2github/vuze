@@ -23,36 +23,46 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-/**
- * @author Olivier
+/** Torrent name cell for My Torrents.
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class NameItem extends TorrentItem {
-
-  
-  
-  public NameItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class NameItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public NameItem(String sTableID) {
+    super("name", POSITION_LAST, 250, sTableID);
   }
 
-  public void refresh() {
+  public void refresh(TableCell cell) {
+    String name = null;
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm != null)
+      name = dm.getName();
+    if (name == null)
+      name = "";
+
     //setText returns true only if the text is updated
-    if(setText(torrentRow.getManager().getName())) {
+    if (cell.setText(name)) {
       //in which case we also update the icon
-      String name = torrentRow.getManager().getName();
-      if (name != null ) {
-        int sep = name.lastIndexOf('.'); //$NON-NLS-1$
-        if(sep < 0) sep = 0;
-        name = name.substring(sep);
-        Program program = Program.findProgram(name);
-        Image icon = ImageRepository.getIconFromProgram(program);
-        setImage(icon);
-      }
+      int sep = name.lastIndexOf('.');
+			if(sep < 0) sep = 0;
+
+      name = name.substring(sep);
+      Program program = Program.findProgram(name);
+      Image icon = ImageRepository.getIconFromProgram(program);
+      // cheat for core, since we really know it's a TabeCellImpl and want to use
+      // those special functions not available to Plugins
+      ((TableCellCore)cell).setImage(icon);
     }
   }
-
 }

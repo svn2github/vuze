@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : PiecesItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -24,183 +24,209 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class PiecesItem extends TorrentGraphicItem  {
-  // only supports 0 or 1 border width
+public class PiecesItem
+       extends CoreTableColumn 
+       implements TableCellAddedListener
+{
+  // only supports 0 or 1 border size
   private final static int borderHorizontalSize = 1;
   private final static int borderVerticalSize = 1;
   private final static int borderSplit = 1;
+  // height of little completion bar above piece bar.
   private final static int completionHeight = 2;
 
-  /**
-   * @param row
-   * @param position
-   */
-  public PiecesItem(TorrentRow torrentRow, int position) {
-    super(torrentRow, position);
+  /** Default Constructor */
+  public PiecesItem() {
+    super("pieces", 100, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    initializeAsGraphic(POSITION_INVISIBLE, 100);
   }
 
-  public void dispose() {
-    super.dispose();
-    //if (torrentRow.getManager() == null) System.out.println("crap! infoObj == null! Graphic possibly == " + getGraphic());
-
-    setGraphic(null);
-    DownloadManager infoObj = torrentRow.getManager();
-    if (infoObj == null)
-      return;
-    Image img = (Image)infoObj.getData("PiecesImage");
-    if (img != null && !img.isDisposed())
-      img.dispose();
-
-    infoObj.setData("PiecesImageBuffer", null);
-    infoObj.setData("PiecesImage", null);
+  public void cellAdded(TableCell cell) {
+    new Cell(cell);
   }
 
-  public void refresh() {
-    /* Notes:
-     * We store our image and imageBufer in DownloadManager using
-     * setData & getData.
-     * This means, we can ignore peerRow.isValid(). peerRow gets marked
-     * invalid when its link between peerRow and the table row changes.
-     * However, since our data isn't reliant on the table row, it may not
-     * really be invalid.
-     */
-    BufferedTableRow row = torrentRow.getRow();
-    if (row == null || row.isDisposed())
-      return;
-
-    //Compute bounds ...
-    Rectangle bounds = getBoundsForCanvas();
-
-    //In case item isn't displayed bounds is null
-    if(bounds == null)
-      return;
-
-    DownloadManager infoObj = torrentRow.getManager();
-
-    int x0 = borderVerticalSize;
-    int x1 = bounds.width - 1 - borderVerticalSize;
-    int y0 = completionHeight + borderHorizontalSize + borderSplit;
-    int y1 = bounds.height - 1 - borderHorizontalSize;
-    int drawWidth = x1 - x0 + 1;
-    if (drawWidth < 10 || y1 < 3)
-      return;
-    boolean bImageBufferValid = true;
-    int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
-    if (imageBuffer == null || imageBuffer.length != x1) {
-      imageBuffer = new int[x1];
-      bImageBufferValid = false;
+  private class Cell
+          implements TableCellRefreshListener, TableCellDisposeListener
+  {
+    public Cell(TableCell cell) {
+      cell.addRefreshListener(this);
+      cell.addDisposeListener(this);
     }
 
-    Image image = (Image)infoObj.getData("PiecesImage");
-    GC gcImage;
-    boolean bImageChanged;
-    Rectangle imageBounds;
-    if (image == null || image.isDisposed()) {
-      bImageChanged = true;
-    } else {
-      imageBounds = image.getBounds();
-      bImageChanged = imageBounds.width != bounds.width ||
-                      imageBounds.height != bounds.height;
+    public void dispose(TableCell cell) {
+      cell.setGraphic(null);
+      // Named infoObj so code can be copied easily to the other PiecesItem
+      DownloadManager infoObj = (DownloadManager)cell.getDataSource();
+      if (infoObj == null)
+        return;
+
+      Image img = (Image)infoObj.getData("PiecesImage");
+      if (img != null && !img.isDisposed())
+        img.dispose();
+  
+      infoObj.setData("PiecesImageBuffer", null);
+      infoObj.setData("PiecesImage", null);
     }
-    if (bImageChanged) {
-      if (image != null && !image.isDisposed()) {
-        image.dispose();
+  
+    public void refresh(TableCell cell) {
+      /* Notes:
+       * We store our image and imageBufer in DownloadManager using
+       * setData & getData.
+       * This means, we can ignore peerRow.isValid(). peerRow gets marked
+       * invalid when its link between peerRow and the table row changes.
+       * However, since our data isn't reliant on the table row, it may not
+       * really be invalid.
+       */
+  
+      // Named infoObj so code can be copied easily to the other PiecesItem
+      DownloadManager infoObj = (DownloadManager)cell.getDataSource();
+      long lCompleted = (infoObj == null) ? 0 : infoObj.getStats().getCompleted();
+      cell.setSortValue(lCompleted);
+      if (infoObj == null)
+        return;
+  
+      //Compute bounds ...
+      Point ptNewSize = cell.getSize();
+      if (ptNewSize == null || ptNewSize.x == 0)
+        return;
+  
+      int x0 = borderVerticalSize;
+      int x1 = ptNewSize.x - 1 - borderVerticalSize;
+      int y0 = completionHeight + borderHorizontalSize + borderSplit;
+      int y1 = ptNewSize.y - 1 - borderHorizontalSize;
+      int drawWidth = x1 - x0 + 1;
+      if (drawWidth < 10 || y1 < 3)
+        return;
+      boolean bImageBufferValid = true;
+      int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
+      if (imageBuffer == null || imageBuffer.length != drawWidth) {
+        imageBuffer = new int[drawWidth];
+        bImageBufferValid = false;
       }
-      image = new Image(torrentRow.getTableItem().getDisplay(), bounds.width, bounds.height);
-      imageBounds = image.getBounds();
-      bImageBufferValid = false;
-
-      // draw border
-      gcImage = new GC(image);
-      gcImage.setForeground(Colors.grey);
-      if (borderHorizontalSize > 0) {
-        if (borderVerticalSize > 0) {
-          gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
-        } else {
-          gcImage.drawLine(0, 0, bounds.width - 1, 0);
-          gcImage.drawLine(0, bounds.height -1, bounds.width - 1, bounds.height - 1);
+  
+      Image image = (Image)infoObj.getData("PiecesImage");
+      GC gcImage;
+      boolean bImageChanged;
+      Rectangle imageBounds;
+      if (image == null || image.isDisposed()) {
+        bImageChanged = true;
+      } else {
+        imageBounds = image.getBounds();
+        bImageChanged = imageBounds.width != ptNewSize.x ||
+                        imageBounds.height != ptNewSize.y;
+      }
+      if (bImageChanged) {
+        if (image != null && !image.isDisposed()) {
+          image.dispose();
         }
-      } else if (borderVerticalSize > 0) {
-        gcImage.drawLine(0, 0, 0, bounds.height - 1);
-        gcImage.drawLine(bounds.width - 1, 0, bounds.width - 1, bounds.height - 1);
-      }
-
-      if (borderSplit > 0) {
-        gcImage.setForeground(Colors.white);
-        gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
-                         x1, completionHeight + borderHorizontalSize);
-      }
-    } else {
-      gcImage = new GC(image);
-    }
-
-    boolean available[] = infoObj.getPiecesStatus();
-    if (available != null && available.length > 0) {
-      int nbComplete = 0;
-      int nbPieces = available.length;
-      int a0;
-      int a1 = 0;
-      for (int i = 0; i < drawWidth; i++) {
-        if (i == 0) {
-          // always start out with one piece
-          a0 = 0;
-          a1 = nbPieces / drawWidth;
-          if (a1 == 0)
-            a1 = 1;
-        } else {
-          // the last iteration, a1 will be nbPieces
-          a0 = a1;
-          a1 = ((i + 1) * nbPieces) / (drawWidth);
+        image = new Image(SWTManagerImpl.getSingleton().getDisplay(), 
+                          ptNewSize.x, ptNewSize.y);
+        imageBounds = image.getBounds();
+        bImageBufferValid = false;
+  
+        // draw border
+        gcImage = new GC(image);
+        gcImage.setForeground(Colors.grey);
+        if (borderHorizontalSize > 0) {
+          if (borderVerticalSize > 0) {
+            gcImage.drawRectangle(0, 0, ptNewSize.x - 1, ptNewSize.y - 1);
+          } else {
+            gcImage.drawLine(0, 0, ptNewSize.x - 1, 0);
+            gcImage.drawLine(0, ptNewSize.y -1, ptNewSize.x - 1, ptNewSize.y - 1);
+          }
+        } else if (borderVerticalSize > 0) {
+          gcImage.drawLine(0, 0, 0, ptNewSize.y - 1);
+          gcImage.drawLine(ptNewSize.x - 1, 0, ptNewSize.x - 1, ptNewSize.y - 1);
         }
-
-        int index;
-
-        if (a1 <= a0) {
-          index = imageBuffer[i - 1];
-        } else {
-          int nbAvailable = 0;
-          for (int j = a0; j < a1; j++)
-            if (available[j])
-              nbAvailable++;
-          nbComplete += nbAvailable;
-          index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-          //System.out.println("i="+i+";nbAvailable="+nbAvailable+";nbComplete="+nbComplete+";nbPieces="+nbPieces+";a0="+a0+";a1="+a1);
+  
+        if (borderSplit > 0) {
+          gcImage.setForeground(Colors.white);
+          gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
+                           x1, completionHeight + borderHorizontalSize);
         }
+      } else {
+        gcImage = new GC(image);
+      }
+  
+      boolean available[] = infoObj.getPiecesStatus();
 
-        if (!bImageBufferValid || imageBuffer[i] != index) {
-          imageBuffer[i] = index;
-          bImageChanged = true;
-          gcImage.setForeground(Colors.blues[index]);
-          gcImage.drawLine(i + x0, y0, i + x0, y1);
+      if (available != null && available.length > 0) {
+      try {
+
+        int nbComplete = 0;
+        int nbPieces = available.length;
+        int a0;
+        int a1 = 0;
+        for (int i = 0; i < drawWidth; i++) {
+          if (i == 0) {
+            // always start out with one piece
+            a0 = 0;
+            a1 = nbPieces / drawWidth;
+            if (a1 == 0)
+              a1 = 1;
+          } else {
+            // the last iteration, a1 will be nbPieces
+            a0 = a1;
+            a1 = ((i + 1) * nbPieces) / (drawWidth);
+          }
+  
+          int index;
+
+  
+          if (a1 <= a0) {
+            index = imageBuffer[i - 1];
+          } else {
+            int nbAvailable = 0;
+            for (int j = a0; j < a1; j++)
+              if (available[j])
+                nbAvailable++;
+            nbComplete += nbAvailable;
+            index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
+            //System.out.println("i="+i+";nbAvailable="+nbAvailable+";nbComplete="+nbComplete+";nbPieces="+nbPieces+";a0="+a0+";a1="+a1);
+          }
+  
+          if (!bImageBufferValid || imageBuffer[i] != index) {
+            imageBuffer[i] = index;
+            bImageChanged = true;
+            gcImage.setForeground(Colors.blues[index]);
+            gcImage.drawLine(i + x0, y0, i + x0, y1);
+          }
         }
+  
+        int limit = (drawWidth * nbComplete) / nbPieces;
+        if (limit < drawWidth) {
+          gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+          gcImage.fillRectangle(limit+x0, borderHorizontalSize,
+                                x1-limit, completionHeight);
+        }
+        gcImage.setBackground(Colors.colorProgressBar);
+        gcImage.fillRectangle(x0, borderHorizontalSize,
+                              limit, completionHeight);
+      } catch (Exception e) {
+        System.out.println("Error Drawing PiecesItem");
+        e.printStackTrace();
+      } }
+      gcImage.dispose();
+  
+      Image oldImage = cell.getGraphic();
+      if (bImageChanged || image != oldImage) {
+        cell.setGraphic(image);
+        infoObj.setData("PiecesImage", image);
+        infoObj.setData("PiecesImageBuffer", imageBuffer);
       }
-
-      int limit = (drawWidth * nbComplete) / nbPieces;
-      if (limit < drawWidth) {
-        gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
-        gcImage.fillRectangle(limit+x0, borderHorizontalSize,
-                              x1-limit, completionHeight);
-      }
-      gcImage.setBackground(Colors.colorProgressBar);
-      gcImage.fillRectangle(x0, borderHorizontalSize,
-                            limit, completionHeight);
-    }
-    gcImage.dispose();
-
-    Image oldImage = getGraphic();
-    if (bImageChanged || image != oldImage) {
-      setGraphic(image);
-      infoObj.setData("PiecesImage", image);
-      infoObj.setData("PiecesImageBuffer", imageBuffer);
     }
   }
 }

@@ -1,6 +1,6 @@
 /*
  * File    : CategoryItem.java
- * Created : 01 febv. 2004
+ * Created : 01 feb. 2004
  * By      : TuxPaper
  *
  * Azureus - a Java Bittorrent client
@@ -18,25 +18,36 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-public class CategoryItem extends TorrentItem {
-
-  
-  
-  public CategoryItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+/** Display Category torrent belongs to.
+ *
+ * @author TuxPaper
+ */
+public class CategoryItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public CategoryItem(String sTableID) {
+    super("category", 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    Category cat = torrentRow.getManager().getCategory();
-    String s = (cat == null) ? "" : cat.getName();
-    setText(s);
+  public void refresh(TableCell cell) {
+    String sCategory = null;
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm != null) {
+      Category cat = dm.getCategory();
+      if (cat != null)
+        sCategory = cat.getName();
+    }
+    cell.setText((sCategory == null) ? "" : sCategory);
   }
-
 }

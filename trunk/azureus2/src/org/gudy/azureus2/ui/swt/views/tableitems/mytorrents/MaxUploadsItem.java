@@ -21,18 +21,25 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-public class MaxUploadsItem extends TorrentItem {
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-  
-  
-  public MaxUploadsItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class MaxUploadsItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public MaxUploadsItem(String sTableID) {
+    super("maxuploads", 30, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(String.valueOf(torrentRow.getManager().getStats().getMaxUploads()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getMaxUploads();
 
+    cell.setSortValue(value);
+    cell.setText(String.valueOf(value));
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : SeedsItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,29 +22,43 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class SeedsItem extends TorrentItem {
-
-  
-  
-  public SeedsItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class SeedsItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SeedsItem(String sTableID) {
+    super("seeds", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    TRTrackerScraperResponse hd = torrentRow.getManager().getTrackerScrapeResponse();
+  public void refresh(TableCell cell) {
+    long lConnectedSeeds = 0;
+    long lTotalSeeds = -1;
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm != null) {
+      lConnectedSeeds = dm.getNbSeeds();
+      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+      if (hd != null && hd.isValid())
+        lTotalSeeds = hd.getSeeds();
+    }
     
-    String tmp = String.valueOf(torrentRow.getManager().getNbSeeds()); //$NON-NLS-1$
-    if(hd!=null && hd.isValid())
-      tmp = tmp.concat(" (").concat(String.valueOf(hd.getSeeds())).concat(")");
-    setText(tmp);
+    String tmp = String.valueOf(lConnectedSeeds); //$NON-NLS-1$
+    if (lTotalSeeds != -1)
+      tmp += " (" + lTotalSeeds + ")";
+    else
+      lTotalSeeds = 0;
+    cell.setText(tmp);
+    cell.setSortValue(lConnectedSeeds * 10000000 + lTotalSeeds);
   }
-
 }

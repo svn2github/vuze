@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : SecondsDownloadingItem.java
  * Created : 01 febv. 2004
  * By      : TuxPaper
  *
@@ -22,15 +22,31 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-public class SecondsDownloadingItem extends TorrentItem {
 
-  public SecondsDownloadingItem(TorrentRow torrentRow, int position) {
-    super(torrentRow, position);
+/**
+ *
+ * @author TuxPaper
+ * @since 2.0.8.5
+ */
+public class SecondsDownloadingItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SecondsDownloadingItem(String sTableID) {
+    super("secondsdownloading", 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(TimeFormater.format(torrentRow.getManager().getStats().getSecondsDownloading()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getSecondsDownloading();
 
+    cell.setSortValue(value);
+    cell.setText(TimeFormater.format(value));
+  }
 }

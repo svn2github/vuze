@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : PeersItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,29 +22,43 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
-/**
- * @author Olivier
+/** # of Peers
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class PeersItem extends TorrentItem {
-
-  
-  
-  public PeersItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class PeersItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public PeersItem(String sTableID) {
+    super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    TRTrackerScraperResponse hd = torrentRow.getManager().getTrackerScrapeResponse();
+  public void refresh(TableCell cell) {
+    long lConnectedPeers = 0;
+    long lTotalPeers = -1;
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm != null) {
+      lConnectedPeers = dm.getNbPeers();
+      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+      if (hd != null && hd.isValid())
+        lTotalPeers = hd.getPeers();
+    }
     
-    String tmp = String.valueOf(torrentRow.getManager().getNbPeers()); //$NON-NLS-1$
-    if(hd!=null && hd.isValid())
-      tmp = tmp.concat(" (").concat(String.valueOf(hd.getPeers())).concat(")");
-    setText(tmp);
+    String tmp = String.valueOf(lConnectedPeers); //$NON-NLS-1$
+    if (lTotalPeers != -1)
+      tmp += " (" + lTotalPeers + ")";
+    else
+      lTotalPeers = 0;
+    cell.setText(tmp);
+    cell.setSortValue(lConnectedPeers * 10000000 + lTotalPeers);
   }
-
 }

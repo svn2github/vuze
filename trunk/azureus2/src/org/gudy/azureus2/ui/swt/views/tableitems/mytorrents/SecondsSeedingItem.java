@@ -1,6 +1,6 @@
 /*
- * File    : TorrentItem.java
- * Created : 01 febv. 2004
+ * File    : SecondsSeedingItem.java
+ * Created : 01 feb. 2004
  * By      : TuxPaper
  *
  * Azureus - a Java Bittorrent client
@@ -21,19 +21,32 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-public class SecondsSeedingItem extends TorrentItem {
-
-  public SecondsSeedingItem(TorrentRow torrentRow, int position) {
-    super(torrentRow, position);
+/**
+ *
+ * @author TuxPaper
+ * @since 2.0.8.5
+ */
+public class SecondsSeedingItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SecondsSeedingItem(String sTableID) {
+    super("secondsseeding", 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    DownloadManagerStats stats = torrentRow.getManager().getStats();
-    long lSecs = stats.getSecondsDownloading() + stats.getSecondsOnlySeeding();
-    setText(TimeFormater.format(lSecs));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getSecondsDownloading() +
+                                    dm.getStats().getSecondsOnlySeeding();
 
+    cell.setSortValue(value);
+    cell.setText(TimeFormater.format(value));
+  }
 }

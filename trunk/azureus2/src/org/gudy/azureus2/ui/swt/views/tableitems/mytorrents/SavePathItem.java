@@ -21,18 +21,23 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-public class SavePathItem extends TorrentItem {
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-  
-  
-  public SavePathItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+
+public class SavePathItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SavePathItem(String sTableID) {
+    super("savepath", 150, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(torrentRow.getManager().getSavePath());
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    cell.setText((dm == null) ? "" : dm.getSavePath());
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : ShareRatioItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,33 +22,55 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class ShareRatioItem extends TorrentItem {
+public class ShareRatioItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public ShareRatioItem(String sTableID) {
+    super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+    setRefreshInterval(INTERVAL_LIVE);
 
-  
-  
-  public ShareRatioItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))
+      setPosition(POSITION_LAST);
+    else
+      setPosition(POSITION_INVISIBLE);
   }
 
-  public void refresh() {
+  public void refresh(TableCell cell) {
     String shareRatio = "";
-    int sr = torrentRow.getManager().getStats().getShareRatio();
-    if(sr == -1) shareRatio = Constants.INFINITY_STRING;
-    if(sr >  0){ 
-      String partial = String.valueOf(sr%1000);
-      while(partial.length() < 3) partial = "0".concat(partial);
-      shareRatio = String.valueOf(sr/1000).concat(".").concat(partial);
 
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    // exit early if the cell is valid and the download isn't active
+    // (an inactive download means the share ratio won't change)
+    int iState = (dm == null) ? DownloadManager.STATE_QUEUED : dm.getState();
+    if (cell.isValid() && 
+        iState != DownloadManager.STATE_DOWNLOADING &&
+        iState != DownloadManager.STATE_SEEDING)
+      return;
+                       
+    int sr = (dm == null) ? 0 : dm.getStats().getShareRatio();
+    if (sr == -1) {
+      sr = Constants.INFINITY_AS_INT;
+      shareRatio = Constants.INFINITY_STRING;
+    } else {
+      String partial = String.valueOf(sr % 1000);
+      while (partial.length() < 3) {
+        partial = "0" + partial;
+      }
+      shareRatio = (sr / 1000) + "." + partial;
     }
-    setText(shareRatio);
+    cell.setSortValue(sr);
+    cell.setText(shareRatio);
   }
-
 }

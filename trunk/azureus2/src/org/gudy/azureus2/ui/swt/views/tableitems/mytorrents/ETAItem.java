@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : ETAItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,24 +22,31 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class ETAItem extends TorrentItem {
-
-  
-  
-  public ETAItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class ETAItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public ETAItem() {
+    super("eta", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(DisplayFormatters.formatETA(torrentRow.getManager().getStats().getETA()));
-  }
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getETA();
 
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatETA(value));
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : NameItem.java
+ * File    : DownItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,24 +22,30 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
-/**
- * @author Olivier
+/** bytes downloaded column
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class DownItem extends TorrentItem {
-
-  
-  
-  public DownItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class DownItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public DownItem() {
+    super("down", POSITION_LAST, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getDownloaded()));
+  public void refresh(TableCell cell) {
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    long value = (dm == null) ? 0 : dm.getStats().getDownloaded();
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
-
 }

@@ -24,32 +24,50 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class RemainingItem extends TorrentItem {
-
-  
-  
-  public RemainingItem(
-    TorrentRow torrentRow,
-    int position) {
-    super(torrentRow, position);
+public class RemainingItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public RemainingItem() {
+    super("remaining", 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
-  public void refresh() {
-    DownloadManager manager = torrentRow.getManager();
-    DiskManager dm = manager.getDiskManager();
-    if (dm == null) {
-      long lRemaining = manager.getSize() - 
-                        ((long)manager.getStats().getCompleted() * manager.getSize() / 1000L);
-      setText("~ " + DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
+    private boolean bLastValueEstimate = false;
+  
+  public void refresh(TableCell cell) {
+    long lRemaining = getRemaining(cell);
+
+    cell.setSortValue(lRemaining);
+    if (bLastValueEstimate) {
+      cell.setText("~ " + DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
     } else {
-      setText(DisplayFormatters.formatByteCountToKiBEtc(dm.getRemaining()));
+      cell.setText(DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
     }
   }
 
+  private long getRemaining(TableCell cell) {
+    DownloadManager manager = (DownloadManager)cell.getDataSource();
+    if (manager == null)
+      return 0;
+
+    DiskManager dm = manager.getDiskManager();
+    bLastValueEstimate = (dm == null);
+    if (bLastValueEstimate) {
+      return manager.getSize() - 
+             ((long)manager.getStats().getCompleted() * manager.getSize() / 1000L);
+    } else {
+      return dm.getRemaining();
+    }
+  }
 }
