@@ -135,6 +135,10 @@ public class LocaleUtil implements ILocaleUtilChooser {
       return name.equals(other.name);
     }
     
+	public int hashCode() {
+		return 31*name.hashCode()+charset.hashCode();
+	}
+    
   }
   
   /**
