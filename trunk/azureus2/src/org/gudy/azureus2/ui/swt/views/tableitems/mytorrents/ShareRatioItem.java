@@ -21,10 +21,14 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 
 /**
@@ -34,8 +38,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class ShareRatioItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, ParameterListener
 {
+  private final static String CONFIG_ID = "StartStopManager_iFirstPriority_ShareRatio";
+  private int iMinShareRatio;
+
   /** Default Constructor */
   public ShareRatioItem(String sTableID) {
     super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
@@ -45,23 +52,30 @@ public class ShareRatioItem
       setPosition(POSITION_LAST);
     else
       setPosition(POSITION_INVISIBLE);
+
+    iMinShareRatio = COConfigurationManager.getIntParameter(CONFIG_ID);
+    COConfigurationManager.addParameterListener(CONFIG_ID, this);
+  }
+
+  protected void finalize() throws Throwable {
+    super.finalize();
+    COConfigurationManager.removeParameterListener(CONFIG_ID, this);
   }
 
   public void refresh(TableCell cell) {
     String shareRatio = "";
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    // exit early if the cell is valid and the download isn't active
-    // (an inactive download means the share ratio won't change)
-    int iState = (dm == null) ? DownloadManager.STATE_QUEUED : dm.getState();
-    if (cell.isValid() && 
-        iState != DownloadManager.STATE_DOWNLOADING &&
-        iState != DownloadManager.STATE_SEEDING)
-      return;
                        
     int sr = (dm == null) ? 0 : dm.getStats().getShareRatio();
-    if (sr == -1) {
+    if (sr == -1)
       sr = Constants.INFINITY_AS_INT;
+      
+    ((TableCellCore)cell).setForeground((sr < iMinShareRatio) ? Colors.colorWarning : null);
+    if (!cell.setSortValue(sr) && cell.isValid())
+      return;
+
+    if (sr == Constants.INFINITY_AS_INT) {
       shareRatio = Constants.INFINITY_STRING;
     } else {
       String partial = String.valueOf(sr % 1000);
@@ -70,7 +84,11 @@ public class ShareRatioItem
       }
       shareRatio = (sr / 1000) + "." + partial;
     }
-    cell.setSortValue(sr);
     cell.setText(shareRatio);
+  }
+
+  public void parameterChanged(String parameterName) {
+    iMinShareRatio = COConfigurationManager.getIntParameter(CONFIG_ID);
+    invalidateCells();
   }
 }
