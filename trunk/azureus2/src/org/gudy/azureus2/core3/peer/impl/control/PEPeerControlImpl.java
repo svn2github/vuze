@@ -41,11 +41,12 @@ import org.gudy.azureus2.core3.peer.impl.*;
 
 public class 
 PEPeerControlImpl
-	implements 	PEPeerControl
+	implements 	PEPeerControl, ParameterListener
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
-
+  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  
   private int peer_manager_state = PS_INITIALISED;
   
   private int[] _availability;
@@ -609,7 +610,7 @@ PEPeerControlImpl
     	
       int swarmPeers = 0;
       int swarmSeeds = 0;
-      int tempMaxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+      int tempMaxConnections = maxConnections;
       int currentConnectionCount = _connections.size();
       TRTrackerScraperResponse tsr = _manager.getTrackerScrapeResponse();
     
@@ -864,8 +865,6 @@ PEPeerControlImpl
     * @param pc
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    //Get the max number of connections allowed
-    int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
     /* create a peer socket for testing purposes */
     PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
     
@@ -897,7 +896,6 @@ PEPeerControlImpl
    */
  private synchronized void insertPeerSocket(PEPeerTransport ps) {
     //Get the max number of connections allowed
-    int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
     boolean addFailed = false;
     String reason = "";
     if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
@@ -1678,5 +1676,13 @@ PEPeerControlImpl
   {
   	listeners.remove(l);
   }
- 
-}
+
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  }
+
+ }
