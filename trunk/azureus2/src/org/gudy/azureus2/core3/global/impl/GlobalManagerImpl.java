@@ -630,16 +630,14 @@ public class GlobalManagerImpl
                 );
           }
           
-          	// migration from using a single savePath to a separate dir and file entry
-          
-          byte[] savePathBytes = (byte[]) mDownload.get("path");
-          
+          //migration from using a single savePath to a separate dir and file entry
           String	torrent_save_dir;
           String	torrent_save_file;
           
-          if ( savePathBytes == null ){
+          byte[] torrent_save_dir_bytes   = (byte[]) mDownload.get("save_dir");
+          
+          if ( torrent_save_dir_bytes != null ){
           	
-          	byte[] torrent_save_dir_bytes 	= (byte[]) mDownload.get("save_dir");
           	byte[] torrent_save_file_bytes 	= (byte[]) mDownload.get("save_file");
           	       
           	torrent_save_dir	= new String(torrent_save_dir_bytes, Constants.DEFAULT_ENCODING);
@@ -652,10 +650,13 @@ public class GlobalManagerImpl
           		torrent_save_file	= null;
           	}
           }else{
-          	
+            
+            byte[] savePathBytes = (byte[]) mDownload.get("path");
           	torrent_save_dir 	= new String(savePathBytes, Constants.DEFAULT_ENCODING);
           	torrent_save_file	= null;
           }
+          
+          
           
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int maxDL = mDownload.get("maxdl")==null?0:((Long) mDownload.get("maxdl")).intValue();
@@ -821,6 +822,10 @@ public class GlobalManagerImpl
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("save_dir", dm.getTorrentSaveDir());
 		      dmMap.put("save_file", dm.getTorrentSaveFile());
+          
+          //TODO: remove after later release...it makes sure older versions can load this version's downloads.config
+          dmMap.put("path", new File( dm.getTorrentSaveDir(), dm.getTorrentSaveFile() ).getAbsolutePath() );
+          
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long(stats.getMaxDownloadKBSpeed()));
           int state = dm.getState();
