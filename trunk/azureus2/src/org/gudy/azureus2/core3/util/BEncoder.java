@@ -85,10 +85,13 @@ public class BEncoder {
 					for(int i = 0; i<keyList.size(); i++){
 						
 				   		String key = (String)keyList.get(i);
-				   			//encode the key
-				   		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
-				   			//encode the value
-				   		BEncoder.encode(baos, tempMap.get(key));
+				   		Object value = tempMap.get(key);
+				   		if (value != null) {
+  				   			//encode the key
+  				   		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
+  				   			//encode the value
+  				   		BEncoder.encode(baos, tempMap.get(key));
+  				   	}
 			   		}
             	}catch( UnsupportedEncodingException e ){
             		
@@ -98,10 +101,13 @@ public class BEncoder {
            
 				for(int i = 0; i<keyList.size(); i++){
 					Object key = keyList.get(i);
-					//encode the key
-					BEncoder.encode(baos, key );	// Key goes in as UTF-8
-					//encode the value
-					BEncoder.encode(baos, tempMap.get(key));
+					Object value = tempMap.get(key);
+					if (value != null) {
+  					//encode the key
+  					BEncoder.encode(baos, key );	// Key goes in as UTF-8
+  					//encode the value
+  					BEncoder.encode(baos, value);
+  				}
 				}      
             }          
      
