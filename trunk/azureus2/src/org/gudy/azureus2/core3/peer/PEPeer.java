@@ -80,4 +80,14 @@ PEPeer
 	public void hasSentABadChunk();
 	
 	public int getNbBadChunks();
+	
+	//Used in super-seed mode
+	//The lower the better
+	public void setUploadHint(int timeToSpread);
+	
+	public int getUploadHint();
+	
+	public void setUniqueAnnounce(int uniquePieceNumber);
+	
+	public int getUniqueAnnounce();
 }

@@ -1,8 +1,8 @@
 /*
- * File    : IpFilter.java
- * Created : 1 oct. 2003 12:27:26
- * By      : Olivier 
- * 
+ * File    : TorrentItem.java
+ * Created : 24 nov. 2003
+ * By      : Olivier
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,43 +19,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.ipfilter;
+package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-
+import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
  * @author Olivier
- * 
+ *
  */
-
-import java.util.List;
-
-import org.gudy.azureus2.core3.ipfilter.impl.*;
-
-public abstract class 
-IpFilter 
-{
-	public static IpFilter
-	getInstance()
-	{
-		return( IpFilterImpl.getInstance());
-	}
-	
-	public abstract void save();
-	
-	public abstract List getIpRanges();
-
-	public abstract boolean isInRange(String ipAddress);
-	
-	public abstract IpRange
-	createRange(boolean sessionOnly);
-	
-	public abstract int getNbRanges();
-	
-	public abstract int getNbIpsBlocked();
-	
-	public abstract List getBlockedIps();
-	
-	
-	public abstract void ban(String ipAddress);
+public class UniquePieceItem extends PeerItem  {
+  
+  /**
+   * @param row
+   * @param position
+   */
+  public UniquePieceItem(PeerRow peerRow, int position) {
+    super(peerRow, position);
+  }
+  
+  public void refresh() {
+    int piece = peerRow.getPeerSocket().getUniqueAnnounce();
+    if(piece == -1)
+      setText(MessageText.getString("PeersView.uniquepiece.none"));
+    else
+      setText("" + piece);
+  }
 }

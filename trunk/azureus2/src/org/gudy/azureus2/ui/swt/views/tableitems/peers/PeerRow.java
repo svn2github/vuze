@@ -89,6 +89,7 @@ public class PeerRow implements SortableItem {
         items.add(new OptimisticUnchokeItem(PeerRow.this,itemEnumerator.getPositionByName("optunchoke")));
         items.add(new ClientItem(PeerRow.this,itemEnumerator.getPositionByName("client")));
         items.add(new DiscardedItem(PeerRow.this,itemEnumerator.getPositionByName("discarded")));
+        items.add(new UniquePieceItem(PeerRow.this,itemEnumerator.getPositionByName("uniquepiece")));
         
         Map extensions = PeersTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();

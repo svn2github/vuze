@@ -119,6 +119,12 @@ PEPeerTransportProtocol
 	
 	//Number of bad chunks received from this peer
 	private int nbBadChunks;
+	
+	//When superSeeding, number of unique piece announced
+	private int uniquePiece;
+	
+	//Spread time
+	private int spreadTimeHint;
 
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
@@ -167,6 +173,8 @@ PEPeerTransportProtocol
 			return;
 		}
 	
+		uniquePiece = -1;
+		
 		incoming = incoming_connection;
 		
 		if ( incoming ){
@@ -631,158 +639,158 @@ PEPeerTransportProtocol
 	byte cmd = buffer.get();
 	switch (cmd) {
 	  case BT_CHOKED :
-		if (buffer.limit() != 1) {
-		  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
-		choked = true;
-		cancelRequests();
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 1) {
+			  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
+			choked = true;
+			cancelRequests();
+			readMessage(readBuffer);
+			break;
 	  case BT_UNCHOKED :
-		if (buffer.limit() != 1) {
-		  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
-		choked = false;
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 1) {
+			  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
+			choked = false;
+			readMessage(readBuffer);
+			break;
 	  case BT_INTERESTED :
-		if (buffer.limit() != 1) {
-		  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
-		interesting = true;
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 1) {
+			  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
+			interesting = true;
+			readMessage(readBuffer);
+			break;
 	  case BT_UNINTERESTED :
-		if (buffer.limit() != 1) {
-		  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
-		interesting = false;
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 1) {
+			  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
+			interesting = false;
+			readMessage(readBuffer);
+			break;
 	  case BT_HAVE :
-		if (buffer.limit() != 5) {
-		  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		pieceNumber = buffer.getInt();
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
-		have(pieceNumber);
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 5) {
+			  closeAll(ip + " have received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			pieceNumber = buffer.getInt();
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
+			have(pieceNumber);
+			readMessage(readBuffer);
+			break;
 	  case BT_BITFIELD :
-		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
-		setBitField(buffer);
-		checkInterested();
-		checkSeed();
-		readMessage(readBuffer);
-		break;
+			LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
+			setBitField(buffer);
+			checkInterested();
+			checkSeed();
+			readMessage(readBuffer);
+			break;
 	  case BT_REQUEST :
-		if (buffer.limit() != 13) {
-		  closeAll(ip + " request received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		pieceNumber = buffer.getInt();
-		pieceOffset = buffer.getInt();
-		pieceLength = buffer.getInt();
-		LGLogger.log(
-		  componentID,
-		  evtProtocol,
-		  LGLogger.RECEIVED,
-		  ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-		  if(!choking) {
-		    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-		  } else {
-		    LGLogger.log(LGLogger.INFORMATION,ip
-        + " has requested #"
-        + pieceNumber
-        + ":"
-        + pieceOffset
-        + "->"
-        + (pieceOffset + pieceLength)        
-        + " but peer is currently choked. Request dropped");
-		  }
-		}
-		else {
-		  closeAll(ip
-        + " has requested #"
-        + pieceNumber
-        + ":"
-        + pieceOffset
-        + "->"
-        + (pieceOffset + pieceLength)        
-        + " which is an invalid request.",
-        true, true);
-		  return;
-		}
-		readMessage(readBuffer);
-		break;
+			if (buffer.limit() != 13) {
+			  closeAll(ip + " request received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			pieceNumber = buffer.getInt();
+			pieceOffset = buffer.getInt();
+			pieceLength = buffer.getInt();
+			LGLogger.log(
+			  componentID,
+			  evtProtocol,
+			  LGLogger.RECEIVED,
+			  ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
+			  if(!choking) {
+			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+			  } else {
+			    LGLogger.log(LGLogger.INFORMATION,ip
+	        + " has requested #"
+	        + pieceNumber
+	        + ":"
+	        + pieceOffset
+	        + "->"
+	        + (pieceOffset + pieceLength)        
+	        + " but peer is currently choked. Request dropped");
+			  }
+			}
+			else {
+			  closeAll(ip
+	        + " has requested #"
+	        + pieceNumber
+	        + ":"
+	        + pieceOffset
+	        + "->"
+	        + (pieceOffset + pieceLength)        
+	        + " which is an invalid request.",
+	        true, true);
+			  return;
+			}
+			readMessage(readBuffer);
+			break;
 	  case BT_PIECE :
-		if (buffer.limit() < 9) {
-		   closeAll(ip + " piece received, but message of wrong size : " + buffer.limit(),true, true);
-		   break;
-		}
-		pieceNumber = buffer.getInt();
-		pieceOffset = buffer.getInt();
-		pieceLength = buffer.limit() - buffer.position();
-		LGLogger.log(
-		  componentID,
-		  evtProtocol,
-		  LGLogger.RECEIVED,
-		  ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-		if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
-		  removeRequest( request );
-		  manager.received(pieceLength);
-		  setSnubbed(false);
-		  reSetRequestsTime();
-		  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);                
-		  readMessage(null);      
-		}
-		else {
-		  LGLogger.log(
-			componentID,
-			evtErrors,
-			LGLogger.ERROR,
-			ip
-			  + " has sent #"
-			  + pieceNumber
-			  + ":"
-			  + pieceOffset
-			  + "->"
-			  + (pieceOffset + pieceLength)
-			  + " but piece was discarded (either not requested or invalid)");
-		  stats.discarded(pieceLength);
-		  manager.discarded(pieceLength);
-		  readMessage(readBuffer);
-		}
-		break;
+			if (buffer.limit() < 9) {
+			   closeAll(ip + " piece received, but message of wrong size : " + buffer.limit(),true, true);
+			   break;
+			}
+			pieceNumber = buffer.getInt();
+			pieceOffset = buffer.getInt();
+			pieceLength = buffer.limit() - buffer.position();
+			LGLogger.log(
+			  componentID,
+			  evtProtocol,
+			  LGLogger.RECEIVED,
+			  ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
+			if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
+			  removeRequest( request );
+			  manager.received(pieceLength);
+			  setSnubbed(false);
+			  reSetRequestsTime();
+			  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);                
+			  readMessage(null);      
+			}
+			else {
+			  LGLogger.log(
+				componentID,
+				evtErrors,
+				LGLogger.ERROR,
+				ip
+				  + " has sent #"
+				  + pieceNumber
+				  + ":"
+				  + pieceOffset
+				  + "->"
+				  + (pieceOffset + pieceLength)
+				  + " but piece was discarded (either not requested or invalid)");
+			  stats.discarded(pieceLength);
+			  manager.discarded(pieceLength);
+			  readMessage(readBuffer);
+			}
+			break;
 	  case BT_CANCEL :
-		if (buffer.limit() != 13) {
-		  closeAll(ip + " cancel received, but message of wrong size : " + buffer.limit(),true, true);
-		  break;
-		}
-		pieceNumber = buffer.getInt();
-		pieceOffset = buffer.getInt();
-		pieceLength = buffer.getInt();
-		LGLogger.log(
-		  componentID,
-		  evtProtocol,
-		  LGLogger.RECEIVED,
-		  ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-		readMessage(readBuffer);
-		break;
-	 default:
-	  closeAll(ip + " has sent a wrong message " + cmd,true, true);
+			if (buffer.limit() != 13) {
+			  closeAll(ip + " cancel received, but message of wrong size : " + buffer.limit(),true, true);
+			  break;
+			}
+			pieceNumber = buffer.getInt();
+			pieceOffset = buffer.getInt();
+			pieceLength = buffer.getInt();
+			LGLogger.log(
+			  componentID,
+			  evtProtocol,
+			  LGLogger.RECEIVED,
+			  ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+			removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+			readMessage(readBuffer);
+			break;
+	  default:
+	    closeAll(ip + " has sent a wrong message " + cmd,true, true);
 	}
   }
 
@@ -920,7 +928,8 @@ PEPeerTransportProtocol
 	  byte bData = data[index];
 	  byte b = (byte) (bData >> bit);
 	  if ((b & 0x01) == 1) {
-		available[i] = true;
+	    available[i] = true;
+	    manager.updateSuperSeedPiece(this,i);
 	  }
 	  else {
 		available[i] = false;
@@ -977,6 +986,10 @@ PEPeerTransportProtocol
    *
    */
   private void sendBitField() {
+  //In case we're in super seed mode, we don't send our bitfield
+  if(manager.isSuperSeedMode())
+    return;
+  
 	ByteBuffer buffer = ByteBuffer.allocate(5 + (manager.getPiecesNumber() + 7) / 8);
 	buffer.putInt(buffer.capacity() - 4);
 	buffer.put(BT_BITFIELD);
@@ -1316,4 +1329,21 @@ PEPeerTransportProtocol
   public int getNbBadChunks() {
     return nbBadChunks;
   }
+  
+  public void setUploadHint(int spreadTime) {
+    spreadTimeHint = spreadTime;
+  }
+  
+  public int getUploadHint() {
+    return spreadTimeHint;
+  }
+  
+  public void setUniqueAnnounce(int uniquePiece) {
+    this.uniquePiece = uniquePiece;
+  }
+  
+  public int getUniqueAnnounce() {
+    return this.uniquePiece;
+  }
+
 }

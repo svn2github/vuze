@@ -160,6 +160,9 @@ DisplayFormatters
                  + " + "
                  + MessageText.getString("ManagerItem.checking");
          }
+         else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
+           tmp = MessageText.getString("ManagerItem.superseeding"); //$NON-NLS-1$
+         }
          else {
            tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
          }

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.peer.impl.control;
+package org.gudy.azureus2.core3.peer.impl.control;
 
 
 import java.nio.ByteBuffer;
@@ -99,6 +99,12 @@ PEPeerControlImpl
 
   private List	listeners = new ArrayList();
   
+  
+  private boolean superSeedMode;
+  private int superSeedModeCurrentPiece;
+  private int superSeedModeNumberOfAnnounces;
+  private SuperSeedPiece[] superSeedPieces;
+  
   public PEPeerControlImpl(
     DownloadManager 	manager,
     PEPeerServerHelper 	server,
@@ -156,6 +162,14 @@ PEPeerControlImpl
 
     setDiskManager(_diskManager);
 
+    superSeedMode = (COConfigurationManager.getBooleanParameter("Use Super Seeding") && this.getRemaining() == 0);
+    superSeedModeCurrentPiece = 0;
+    superSeedPieces = new SuperSeedPiece[_nbPieces];
+    for(int i = 0 ; i < _nbPieces ; i++) {
+      superSeedPieces[i] = new SuperSeedPiece(this,i);
+    }
+    
+    
     requestsToFree = new ArrayList();
 
     peerUpdater = new PeerUpdater();
@@ -296,6 +310,7 @@ PEPeerControlImpl
           }
         }
         checkSeeds(false);
+        updatePeersInSuperSeedMode();
         unChoke();
         //prefetchReadOperation();
         //sendReceive(); //Send - Receive data on sockets
@@ -1463,6 +1478,13 @@ PEPeerControlImpl
   }
 
   public void havePiece(int pieceNumber, PEPeer pcOrigin) {
+    if(superSeedMode) {
+      superSeedPieces[pieceNumber].peerHasPiece(pcOrigin);
+      if(pieceNumber == pcOrigin.getUniqueAnnounce()) {
+        pcOrigin.setUniqueAnnounce(-1);
+        superSeedModeNumberOfAnnounces--;
+      }      
+    }
     int length = getPieceLength(pieceNumber);
     int availability = _availability[pieceNumber];
     if (availability < 4) {
@@ -1481,7 +1503,7 @@ PEPeerControlImpl
           }
         }
       }
-    }
+    }    
   }
 
   public int getPieceLength(int pieceNumber) {
@@ -1543,7 +1565,12 @@ PEPeerControlImpl
     _manager.addPeer(pc);
   }
 
-  public void peerRemoved(PEPeer pc) {
+  public void peerRemoved(PEPeer pc) {    
+    int piece = pc.getUniqueAnnounce();
+    if(piece != -1) {
+      superSeedModeNumberOfAnnounces--;
+      superSeedPieces[piece].peerLeft();
+    }
     _manager.removePeer(pc);
   }
 
@@ -1887,4 +1914,88 @@ PEPeerControlImpl
     return piece.getPieceWrites().size() > 0;
   }
 
+  public boolean isSuperSeedMode() {
+    return superSeedMode;
+  }
+
+  public void setSuperSeedMode(boolean superSeedMode) {
+    this.superSeedMode = superSeedMode;
+  }    
+  
+  private void updatePeersInSuperSeedMode() {
+    if(!superSeedMode) {
+      return;
+    }
+    //Use the same number of announces than unchoke
+    int nbUnchoke = _manager.getStats().getMaxUploads();
+    if(superSeedModeNumberOfAnnounces >= nbUnchoke)
+      return;
+    
+    
+    //Find an available Peer
+    PEPeer selectedPeer;
+    synchronized(_connections) {
+      if(_connections.size() == 0)
+				return;
+      int random = (int) (Math.random() * _connections.size());
+      selectedPeer = (PEPeer) _connections.get(random);
+    }
+
+    if(selectedPeer == null || (selectedPeer.getUniqueAnnounce() != -1) || (selectedPeer.getState() != PEPeer.TRANSFERING)) {
+			return;
+		}
+
+		//Find a piece
+		boolean found = false;
+		SuperSeedPiece piece = null;
+		while(!found) {
+			piece = superSeedPieces[superSeedModeCurrentPiece];
+			if(piece.getLevel() > 0) {
+			  piece = null;
+			  superSeedModeCurrentPiece++;
+			  if(superSeedModeCurrentPiece >= _nbPieces) {
+			    superSeedModeCurrentPiece = 0;
+			    quitSuperSeedMode();
+			    return;
+			  }
+			} else {
+			  found = true;
+			}			  
+		}
+		
+		if(piece == null) {
+		  return;
+		}
+		
+		//If this peer already has this piece, return (shouldn't happen)
+		if(selectedPeer.getAvailable()[piece.getPieceNumber()]) {
+		  return;
+		}
+		
+		selectedPeer.setUniqueAnnounce(piece.getPieceNumber());
+		superSeedModeNumberOfAnnounces++;
+		piece.pieceRevealedToPeer();
+		((PEPeerTransport)selectedPeer).sendHave(piece.getPieceNumber());		
+  }
+
+  public void updateSuperSeedPiece(PEPeer peer,int pieceNumber) {
+    if(superSeedMode) {
+      superSeedPieces[pieceNumber].peerHasPiece(null);
+      if(peer.getUniqueAnnounce() == pieceNumber) {
+        peer.setUniqueAnnounce(-1);
+        superSeedModeNumberOfAnnounces--;        
+      }
+    }
+  }
+  
+  private void quitSuperSeedMode() {
+    superSeedMode = false;
+    synchronized(_connections) {
+      Iterator iter = _connections.iterator();
+      while(iter.hasNext()) {
+        PEPeerTransport peer = (PEPeerTransport) iter.next();
+        peer.closeAll(peer.getIp() + " : Quiting SuperSeed Mode",false,true);
+      }
+    }
+  }
  }

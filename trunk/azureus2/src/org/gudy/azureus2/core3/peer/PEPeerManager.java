@@ -107,4 +107,7 @@ PEPeerManager
   public void pieceAdded(PEPiece piece);
   
   public boolean needsMD5CheckOnCompletion(int pieceNumber);
+  
+  public boolean
+  isSuperSeedMode();
 }

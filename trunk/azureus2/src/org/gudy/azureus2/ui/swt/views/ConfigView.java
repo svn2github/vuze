@@ -613,6 +613,10 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
     new BooleanParameter(gDownloads, "Alert on close", true);
     
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.userSuperSeeding"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Use Super Seeding", false);
+    
     itemDownloads.setControl(gDownloads);
   }
 

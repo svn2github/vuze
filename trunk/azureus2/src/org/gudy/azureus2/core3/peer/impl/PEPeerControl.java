@@ -113,5 +113,14 @@ PEPeerControl
 		
 	public void
 	discarded(
-		int		l );
+		int		l );		
+
+	public void 
+	setSuperSeedMode(
+	    boolean superSeedMode);
+	
+	public void
+	updateSuperSeedPiece(
+	    PEPeer peer,
+	    int pieceNumber);
 }

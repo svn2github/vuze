@@ -52,7 +52,8 @@ public class PeersViewItemEnumerator {
    ,"S;C;I;20;13"
    ,"downloadspeedoverall;R;I;65;14"    
    ,"client;L;S;105;15"
-   ,"discarded;R;I;60;16" };
+   ,"discarded;R;I;60;16"
+   ,"uniquepiece;L;I;60;-1"};
   
   public static ConfigBasedItemEnumerator getItemEnumerator() {
     List items = new ArrayList(basicItems.length);
