@@ -210,10 +210,33 @@ public class UpdateSWT {
   
   public static void restart() throws IOException{
     UpdateLogger.log("Restarting Azureus");
-    try {
-    	Main.main(new String[0]);
-    } catch(Throwable t) {
-     UpdateLogger.log("Exception while running Main : " + t);   
+    if(System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
+      String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+      String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
+      String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+      String javaPath = System.getProperty("java.home")
+                      + System.getProperty("file.separator")
+                      + "bin"
+                      + System.getProperty("file.separator");
+      File fUpdate = new File(userPath + "/updateSWT");
+      String exec = "#!/bin/bash\n\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
+      + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" org.gudy.azureus2.ui.swt.Main" ;
+      FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+      fosUpdate.write(exec.getBytes());
+      fosUpdate.close();
+      Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
+      try {
+        pChMod.waitFor();
+      } catch(Exception e) {
+      }
+      Process p = Runtime.getRuntime().exec("./updateSWT");
+    } else {
+      //Generic re-launcher, no need to spawn a new Process
+	    try {
+	    	Main.main(new String[0]);
+	    } catch(Throwable t) {
+	     UpdateLogger.log("Exception while running Main : " + t);   
+	    }
     }
   }
 }

@@ -102,8 +102,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         
         File fUpdate = new File(userPath + "/updateSWT");
         String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
-        + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
-        + userPath + "\" \"" + libraryPath + "\"";
+        + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\"";
         FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
         fosUpdate.write(exec.getBytes());
         fosUpdate.close();
