@@ -1,5 +1,5 @@
 /*
- * File    : PRDownloadStats.java
+ * File    : RPDownloadAnnounceResult.java
  * Created : 30-Jan-2004
  * By      : parg
  * 
@@ -31,33 +31,32 @@ import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 
 public class 
-RPDownloadStats
+RPDownloadScrapeResult
 	extends		RPObject
-	implements 	DownloadStats
+	implements 	DownloadScrapeResult
 {
-	protected transient DownloadStats		delegate;
+	protected transient DownloadScrapeResult		delegate;
 
-	protected long				downloaded;
-	protected int				completed;
-	protected String			status;
+	protected int				seed_count;
+	protected int				non_seed_count;
 	
-	public static RPDownloadStats
+	public static RPDownloadScrapeResult
 	create(
-		DownloadStats		_delegate )
+		DownloadScrapeResult		_delegate )
 	{
-		RPDownloadStats	res =(RPDownloadStats)_lookupLocal( _delegate );
+		RPDownloadScrapeResult	res =(RPDownloadScrapeResult)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new RPDownloadStats( _delegate );
+			res = new RPDownloadScrapeResult( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	RPDownloadStats(
-		DownloadStats		_delegate )
+	RPDownloadScrapeResult(
+		DownloadScrapeResult		_delegate )
 	{
 		super( _delegate );
 	}
@@ -66,11 +65,10 @@ RPDownloadStats
 	_setDelegate(
 		Object		_delegate )
 	{
-		delegate = (DownloadStats)_delegate;
+		delegate = (DownloadScrapeResult)_delegate;
 		
-		downloaded	= delegate.getDownloaded();
-		completed	= delegate.getCompleted();
-		status		= delegate.getStatus();
+		seed_count		= delegate.getSeedCount();
+		non_seed_count	= delegate.getNonSeedCount();	
 	}
 	
 	public void
@@ -93,117 +91,31 @@ RPDownloadStats
 	
 		// ***************************************************
 	
-	public String
-	getStatus()
-	{
-		return( status );
-	}	
-	
-	public String
-	getDownloadDirectory()
+	public Download
+	getDownload()
 	{
 		notSupported();
-		
-		return( null );
-	}	
-	
-	public String
-	getTargetFileOrDir()
-	{
-		notSupported();
-		
-		return( null );
-	}	
-	
-	public String
-	getTrackerStatus()
-	{
-		notSupported();
-		
+
 		return( null );
 	}
 	
 	public int
-	getCompleted()
-	{
-		return( completed );
-	}
-	
-	public long
-	getDownloaded()
-	{
-		return( downloaded );
-	}
-	
-	public long
-	getUploaded()
+	getResponseType()
 	{
 		notSupported();
-		
+
 		return( 0 );
 	}
-	
-	public long
-	getDiscarded()
-	{
-		notSupported();
 		
-		return( 0 );
-	}
-	
-	public long
-	getDownloadAverage()
+	public int
+	getSeedCount()
 	{
-		notSupported();
-		
-		return( 0 );
-	}
-	
-	public long
-	getUploadAverage()
-	{
-		notSupported();
-		
-		return( 0 );
-	}
-	
-	public long
-	getTotalAverage()
-	{
-		notSupported();
-		
-		return( 0 );
-	}
-	
-	public String
-	getElapsedTime()
-	{
-		notSupported();
-		
-		return( null );
-	}	
-	
-	public String
-	getETA()
-	{
-		notSupported();
-		
-		return( null );
-	}
-	
-	public long
-	getHashFails()
-	{
-		notSupported();
-		
-		return( 0 );
+		return( seed_count );
 	}
 	
 	public int
-	getShareRatio()
+	getNonSeedCount()
 	{
-		notSupported();
-		
-		return( 0 );
+		return( non_seed_count );
 	}
 }

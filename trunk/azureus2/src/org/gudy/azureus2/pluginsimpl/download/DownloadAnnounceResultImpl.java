@@ -57,6 +57,11 @@ DownloadAnnounceResultImpl
 	public int
 	getResponseType()
 	{
+		if ( response == null ){
+			
+			return( RT_ERROR );
+		}
+		
 		int status = response.getStatus();
 		
 		if ( status == TRTrackerResponse.ST_ONLINE ){
@@ -71,7 +76,7 @@ DownloadAnnounceResultImpl
 	public int
 	getReportedPeerCount()
 	{
-		return( response.getPeers().length );
+		return( response==null?0:response.getPeers().length );
 	}
 	
 	public int
@@ -103,6 +108,6 @@ DownloadAnnounceResultImpl
 	public String
 	getError()
 	{
-		return( response.getFailureReason());
+		return( response==null?"No Response":response.getFailureReason());
 	}
 }

@@ -40,9 +40,10 @@ RPDownload
 {
 	protected transient Download		delegate;
 
-	protected int				state;
-	protected RPTorrent			torrent;
-	protected RPDownloadStats	stats;
+	protected RPTorrent					torrent;
+	protected RPDownloadStats			stats;
+	protected RPDownloadAnnounceResult	announce_result;
+	protected RPDownloadScrapeResult	scrape_result;
 	
 	public static RPDownload
 	create(
@@ -77,6 +78,20 @@ RPDownload
 			
 			stats = RPDownloadStats.create( delegate.getStats());
 		}
+		
+		announce_result = (RPDownloadAnnounceResult)_lookupLocal( delegate.getLastAnnounceResult());
+		
+		if ( announce_result == null ){
+			
+			announce_result = RPDownloadAnnounceResult.create( delegate.getLastAnnounceResult());
+		}
+		
+		scrape_result = (RPDownloadScrapeResult)_lookupLocal( delegate.getLastScrapeResult());
+		
+		if ( scrape_result == null ){
+			
+			scrape_result = RPDownloadScrapeResult.create( delegate.getLastScrapeResult());
+		}
 	}
 	
 	protected void
@@ -96,6 +111,10 @@ RPDownload
 		torrent._setLocal();
 		
 		stats._setLocal();
+		
+		announce_result._setLocal();
+		
+		scrape_result._setLocal();
 	}
 	
 	public void
@@ -107,6 +126,10 @@ RPDownload
 		torrent._setRemote( _dispatcher );
 		
 		stats._setRemote( _dispatcher );
+		
+		announce_result._setRemote( _dispatcher );
+		
+		scrape_result._setRemote( _dispatcher );
 	}
 	
 	public RPReply
@@ -115,15 +138,67 @@ RPDownload
 	{
 		String	method = request.getMethod();
 		
-		if ( method.equals( "getTorrent")){
-		 			
-			return( new RPReply( torrent ));
+		if ( method.equals( "initialize")){
 			
-		}else if ( method.equals( "getStats")){
-						
-			return( new RPReply( stats ));
-		}
-		
+			try{
+				delegate.initialize();
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "start")){
+			
+			try{
+				delegate.start();
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "restart")){
+			
+			try{
+				delegate.restart();
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "stop")){
+			
+			try{
+				delegate.stop();
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "remove")){
+			
+			try{
+				delegate.remove();
+				
+			}catch( Throwable e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+	}
+			
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
@@ -157,15 +232,15 @@ RPDownload
 	
 		throws DownloadException	
 	{
-		notSupported();
+		dispatcher.dispatch( new RPRequest( this, "initialize", null )).getResponse();
 	}
 	
 	public void
 	start()
 	
-	throws DownloadException
+		throws DownloadException
 	{
-		notSupported();
+		dispatcher.dispatch( new RPRequest( this, "start", null )).getResponse();
 	}
 	
 	public void
@@ -173,7 +248,7 @@ RPDownload
 	
 		throws DownloadException
 	{
-		notSupported();
+		dispatcher.dispatch( new RPRequest( this, "stop", null )).getResponse();
 	}
 	
 	public void
@@ -181,7 +256,7 @@ RPDownload
 	
 		throws DownloadException
 	{
-		notSupported();
+		dispatcher.dispatch( new RPRequest( this, "restart", null )).getResponse();
 	}
 	
 	public boolean
@@ -220,7 +295,7 @@ RPDownload
 	
 		throws DownloadException, DownloadRemovalVetoException
 	{
-		notSupported();
+		dispatcher.dispatch( new RPRequest( this, "remove", null )).getResponse();
 	}
 	
 	public boolean
@@ -236,17 +311,13 @@ RPDownload
 	public DownloadAnnounceResult
 	getLastAnnounceResult()
 	{
-		notSupported();
-		
-		return( null );
+		return( announce_result );
 	}
 	
 	public DownloadScrapeResult
 	getLastScrapeResult()
 	{
-		notSupported();
-		
-		return( null );
+		return( scrape_result );
 	}
 	
 	public DownloadStats

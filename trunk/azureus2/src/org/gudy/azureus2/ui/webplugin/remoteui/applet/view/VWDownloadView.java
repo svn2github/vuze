@@ -51,7 +51,7 @@ VWDownloadView
 		
 		TableColumnModel cm = table.getColumnModel();
 
-		int[]	widths = { 30, -1, 60, 90, 80 };
+		int[]	widths = { 30, -1, 60, 90, 80, 80, 50, 50 };
 		
 		for (int i=0;i<widths.length;i++){
 			
@@ -61,7 +61,8 @@ VWDownloadView
 			}
 		}
 	
-		int[]	byte_columns = { 2, 3 };
+		int[]	byte_columns 	= { 2, 3 };
+		int[]	rhs_columns		= { 5, 6, 7 };
 		
 		for (int i=0;i<byte_columns.length;i++){
 			
@@ -90,6 +91,31 @@ VWDownloadView
 						return( res );
 					}
 				});
+		}
+		
+		for (int i=0;i<rhs_columns.length;i++){
+			
+			TableColumn column = cm.getColumn( rhs_columns[i]);
+			
+			column.setCellRenderer(
+					new DefaultTableCellRenderer()
+					{
+						public Component 
+						getTableCellRendererComponent(
+								JTable		table,
+								Object 		o_value,
+								boolean 	isSelected,
+								boolean 	hasFocus,
+								int 		row,
+								int 		column )
+						{
+							JLabel	res = (JLabel)super.getTableCellRendererComponent( table, o_value, isSelected, hasFocus, row,column );
+							
+							res.setHorizontalAlignment( JLabel.RIGHT );
+							
+							return( res );
+						}
+					});
 		}
 		
 		cm.getColumn(4).setCellRenderer(
@@ -139,5 +165,11 @@ VWDownloadView
 		component.revalidate();
 		
 		component.repaint();
+	}
+	
+	public int[]
+	getSelectedRows()
+	{
+		return(table.getSelectedRows());
 	}
 }

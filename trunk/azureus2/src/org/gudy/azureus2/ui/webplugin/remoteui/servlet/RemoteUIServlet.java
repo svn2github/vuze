@@ -60,6 +60,11 @@ RemoteUIServlet
 				
 				RPReply	reply = processRequest( rp_request );
 				
+				if ( reply == null ){
+					
+					reply = new RPReply( null );
+				}
+				
 				response.setContentType( "application/octet-stream" );
 				
 				ObjectOutputStream	oos = new ObjectOutputStream(response.getOutputStream());

@@ -62,6 +62,18 @@ RemoteUIMainPanel
 			
 			tb.add( refresh );
 			
+			JButton	start = new JButton( "Start");
+			
+			tb.add( start );
+			
+			JButton	stop = new JButton( "Stop");
+			
+			tb.add( stop );
+			
+			JButton	remove = new JButton( "Remove");
+			
+			tb.add( remove );
+			
 			final JTextField	tf = new JTextField();
 			
 			tf.setColumns(20);
@@ -94,6 +106,66 @@ RemoteUIMainPanel
 								}
 								
 								model.refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
+	
+			start.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+						
+								model.start(view.getSelectedRows());
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
+			
+			stop.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								
+								model.stop(view.getSelectedRows());
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
+			
+			remove.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								
+								model.remove(view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								

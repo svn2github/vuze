@@ -56,8 +56,8 @@ DownloadImpl
 	
 	protected int		latest_state		= ST_STOPPED;
 	
-	protected DownloadAnnounceResult	last_announce_result;
-	protected DownloadScrapeResult		last_scrape_result;
+	protected DownloadAnnounceResult	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
+	protected DownloadScrapeResult		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
 	
 	protected List		listeners 			= new ArrayList();
 	protected List		tracker_listeners	= new ArrayList();

@@ -29,13 +29,14 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 
 import javax.swing.table.*;
 
-import org.gudy.azureus2.plugins.download.*; 
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.RPException;
 
 public class 
 MDDownloadModel
 	extends AbstractTableModel
 {
-	public static String[]	column_names = { "#", "Name", "Size", "Downloaded", "Done" };
+	public static String[]	column_names = { "#", "Name", "Size", "Downloaded", "Done", "State", "Seeds", "Peers" };
 	
 	protected DownloadManager	download_manager;
 	protected Download[]		downloads;
@@ -80,7 +81,9 @@ MDDownloadModel
 		int row, 
 		int col ) 
 	{
-		Download	download	= downloads[row];
+		Download				download	= downloads[row];
+		DownloadAnnounceResult	announce	= download.getLastAnnounceResult();
+		DownloadScrapeResult	scrape		= download.getLastScrapeResult();
 		
 		if ( col == 0 ){
 			
@@ -101,6 +104,18 @@ MDDownloadModel
 		}else if ( col == 4 ){
 			
 			return(new Integer( download.getStats().getCompleted()));
+			
+		}else if ( col == 5 ){
+			
+			return( download.getStats().getStatus());
+			
+		}else if ( col == 6 ){
+			
+			return( announce.getSeedCount()+"("+(scrape.getSeedCount()==-1?0:scrape.getSeedCount())+")");
+			
+		}else if ( col == 7 ){
+			
+			return( announce.getNonSeedCount()+"("+(scrape.getNonSeedCount()==-1?0:scrape.getNonSeedCount())+")");
 		}
 		
 		return( null );
@@ -135,5 +150,59 @@ MDDownloadModel
 		int 	column )
 	{
 		throw( new RuntimeException("not supported"));
-	}		
+	}	
+	
+	public void
+	start(
+		int[]		rows )
+	{
+		for (int i=0;i<rows.length;i++){
+			
+			try{
+				downloads[rows[i]].restart();
+				
+			}catch( Throwable e ){
+				
+				throw( new RPException( "start fails", e ));
+			}
+		}
+		
+		refresh();
+	}
+	
+	public void
+	stop(
+			int[]		rows )
+	{
+		for (int i=0;i<rows.length;i++){
+			
+			try{
+				downloads[rows[i]].stop();
+				
+			}catch( Throwable e ){
+				
+				throw( new RPException( "start fails", e ));
+			}
+		}
+		
+		refresh();
+	}
+	
+	public void
+	remove(
+			int[]		rows )
+	{
+		for (int i=0;i<rows.length;i++){
+			
+			try{
+				downloads[rows[i]].remove();
+				
+			}catch( Throwable e ){
+				
+				throw( new RPException( "start fails", e ));
+			}
+		}
+		
+		refresh();
+	}
 }
