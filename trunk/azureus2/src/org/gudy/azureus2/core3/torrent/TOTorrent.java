@@ -176,10 +176,14 @@ TOTorrent
 	public void
 	setAdditionalMapProperty(
 		String		name,
-		Map		value );
+		Map			value );
 		
 	public Map
 	getAdditionalMapProperty(
+		String		name );
+	
+	public Object
+	getAdditionalProperty(
 		String		name );
 	
 	/**

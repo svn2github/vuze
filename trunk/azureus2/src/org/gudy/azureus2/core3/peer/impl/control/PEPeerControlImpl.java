@@ -392,7 +392,13 @@ PEPeerControlImpl
   		 				
     	if ( tracker_response.getStatus() == TRTrackerResponse.ST_ONLINE ){
       	    	
-        	addPeersFromTracker( tracker_response.getPeers());       	        	
+        	addPeersFromTracker( tracker_response.getPeers());  
+        	
+        	Map extensions = tracker_response.getExtensions();
+        	
+        	if (extensions != null ){
+        		System.out.println( "PEPeerControl: tracker response contained extensions");
+        	}
     	}
   	}
 

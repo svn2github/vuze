@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.tracker.client.classic;
 
+import java.util.Map;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 
@@ -33,6 +34,8 @@ TRTrackerResponseImpl
 	protected String	failure_reason;
 	
 	protected TRTrackerResponsePeer[]	peers;
+	
+	protected Map						extensions;
 	
 	protected
 	TRTrackerResponseImpl(
@@ -87,6 +90,19 @@ TRTrackerResponseImpl
 	getPeers()
 	{
 		return( peers );
+	}
+	
+	protected void
+	setExtensions(
+		Map		_extensions )
+	{
+		extensions = _extensions;
+	}
+	
+	public Map
+	getExtensions()
+	{
+		return( extensions );
 	}
 	
 	public void

@@ -128,6 +128,12 @@ TrackerTorrentImpl
 		return( host_torrent.getCompletedCount());
 	}
 	
+	public Object
+	getAdditionalProperty(
+		String		name )
+	{
+		return( host_torrent.getTorrent().getAdditionalProperty(name));
+	}
 	public synchronized void
 	postProcess(
 		TRHostTorrentRequest	request )

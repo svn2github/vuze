@@ -217,6 +217,13 @@ TRHostExternalTorrent
 		return( null );
 	}
 		
+	public Object
+	getAdditionalProperty(
+		String		name )
+	{
+		return( null );
+	}
+	
 	public void
 	removeAdditionalProperties()
 	{

@@ -1042,7 +1042,11 @@ TRTrackerClientClassicImpl
 					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
 					peers=(TRTrackerResponsePeer[]) valid_meta_peers.toArray(peers);
 					
-					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers ));  
+					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
+					
+					resp.setExtensions((Map)metaData.get( "extensions" ));
+					
+					return( resp );  
 
 				}			
 			}catch( Exception e ){

@@ -62,6 +62,10 @@ TrackerTorrent
 	public long
 	getCompletedCount();
 	
+	public Object
+	getAdditionalProperty(
+		String		name );
+	
 	public void
 	addListener(
 		TrackerTorrentListener	listener );

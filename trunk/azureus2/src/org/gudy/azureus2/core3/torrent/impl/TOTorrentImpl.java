@@ -622,6 +622,13 @@ TOTorrentImpl
 		return((Map)additional_properties.get( name ));
 	}
 	
+	public Object
+	getAdditionalProperty(
+		String		name )
+	{
+		return(additional_properties.get( name ));
+	}
+	
 	public void
 	removeAdditionalProperties()
 	{
