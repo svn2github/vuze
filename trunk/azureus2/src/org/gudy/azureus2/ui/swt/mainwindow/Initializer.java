@@ -21,15 +21,12 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
+import com.aelitis.azureus.core.*;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
-
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -39,6 +36,7 @@ import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
 import org.gudy.azureus2.ui.swt.StartServer;
+import org.gudy.azureus2.ui.swt.views.ConsoleView;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
@@ -46,7 +44,8 @@ import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
-import com.aelitis.azureus.core.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -184,7 +183,8 @@ Initializer
 	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
 	    
 	    Alerts.init();
-	    
+        ConsoleView.preInitialize();
+
 	    StartupUtils.setLocale();
 	    	
 	    new SWTNetworkSelection();
