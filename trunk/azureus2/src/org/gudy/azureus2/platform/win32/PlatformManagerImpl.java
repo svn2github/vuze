@@ -32,6 +32,7 @@ import java.io.File;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.platform.win32.access.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 
 
 public class 
@@ -79,7 +80,8 @@ PlatformManagerImpl
 	
 	protected AEWin32Access		access;
 	
-	protected File				_az_exe;
+	protected File				az_exe;
+	protected boolean			az_exe_checked;
 	
 	protected
 	PlatformManagerImpl(
@@ -100,30 +102,50 @@ PlatformManagerImpl
 	getAureusEXELocation()
 		throws PlatformManagerException
 	{
-		if ( _az_exe == null ){
-			
-			String az_home;
+		if ( az_exe == null ){
 			
 			try{
-				az_home = access.getAzureusInstallDir();
-				
-				_az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
 			
-			}catch( Throwable e ){
+				String az_home;
+				
+				try{
+					az_home = access.getAzureusInstallDir();
 					
-				throw( new PlatformManagerException( "Failed to read Azureus install location from the registry, please re-install"));
+					az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
+	
+					if ( !az_exe.exists()){
+						
+						throw( new PlatformManagerException( "Azureus.exe not found in " + az_home + ", please re-install"));
+					}
+				}catch( Throwable e ){
+					
+						//hmmm, well let's try the app dir
+					
+					az_home = SystemProperties.getApplicationPath();		
+					
+					az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
+				}
 				
-			}
-			
-			if ( !_az_exe.exists()){
+				if ( !az_exe.exists()){
+					
+					String	msg = "Azureus.exe not found in " + az_home + " - can't check file associations. Please re-install Azureus";
+					
+					az_exe = null;
+					
+					if (!az_exe_checked){
+					
+						LGLogger.logAlert( LGLogger.AT_WARNING, msg );
+					}
+					
+					throw( new PlatformManagerException( msg ));
+				}
+			}finally{
 				
-				_az_exe = null;
-				
-				throw( new PlatformManagerException( "Azureus.exe not found in " + az_home + ", please re-install"));
+				az_exe_checked	= true;
 			}
 		}
 		
-		return( _az_exe );
+		return( az_exe );
 	}
 	
 	public int
