@@ -54,10 +54,11 @@ TRHostImpl
 		
 	protected Hashtable				server_map 	= new Hashtable();
 	
-	protected List	host_torrents		= new ArrayList();
+	protected List	host_torrents			= new ArrayList();
+	protected Map	host_torrent_hash_map	= new HashMap();
 	
-	protected Map	host_torrent_map	= new HashMap();
-	protected Map	tracker_client_map	= new HashMap();
+	protected Map	host_torrent_map		= new HashMap();
+	protected Map	tracker_client_map		= new HashMap();
 	
 	protected List	listeners			= new ArrayList();
 	
@@ -318,6 +319,15 @@ TRHostImpl
 		host_torrent.setPersistent( persistent );
 		
 		host_torrents.add( host_torrent );
+		
+		try{
+			host_torrent_hash_map.put( new HashWrapper( torrent.getHash()), host_torrent );
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+				
 		host_torrent_map.put( torrent, host_torrent );
 		
 		if ( state != TRHostTorrent.TS_PUBLISHED ){
@@ -384,14 +394,12 @@ TRHostImpl
 	lookupHostTorrent(
 		TOTorrent	torrent )
 	{
-		for (int i=0;i<host_torrents.size();i++){
+		try{
+			return((TRHostTorrent)host_torrent_hash_map.get( new HashWrapper(torrent.getHash())));
 			
-			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+		}catch( TOTorrentException e ){
 			
-			if ( ht.getTorrent() == torrent ){
-									
-				return( ht );
-			}
+			e.printStackTrace();
 		}
 		
 		return( null );
@@ -461,7 +469,18 @@ TRHostImpl
 		}
 		
 		host_torrents.remove( host_torrent );
-		host_torrent_map.remove( host_torrent.getTorrent());
+		
+		TOTorrent	torrent = host_torrent.getTorrent();
+		
+		try{
+			host_torrent_hash_map.remove(new HashWrapper(torrent.getHash()));
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+		
+		host_torrent_map.remove( torrent );
 		
 		if ( host_torrent instanceof TRHostTorrentHostImpl ){
 			
@@ -609,27 +628,7 @@ TRHostImpl
 	lookupHostTorrentViaHash(
 		byte[]		hash )
 	{
-			// TODO: should make this more efficient
-		
-		for (int i=0;i<host_torrents.size();i++){
-			
-			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
-			
-			try{
-				byte[]	ht_hash = ht.getTorrent().getHash();
-			
-				if ( Arrays.equals( hash, ht_hash )){
-					
-					return( ht );
-				}
-						
-			}catch( TOTorrentException e ){
-				
-				e.printStackTrace();
-			}
-		}
-		
-		return( null );
+		return((TRHostTorrent)host_torrent_hash_map.get(new HashWrapper(hash)));
 	}
 	
 		// reports from TRTrackerServer regarding state of hashes

@@ -52,8 +52,6 @@ PEPieceImpl
   public int completed;
   public boolean isBeingChecked = false;
 
-  // Note by Moti:
-  // TODO: find some way of removing this! The only place it's actually accessed is in 1 place in the UI (org.gudy.azureus2.ui.swt.PiecesView)  
   public PEPeerManager manager;
 
   public PEPieceImpl(PEPeerManager manager, int length) {
