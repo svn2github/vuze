@@ -379,10 +379,25 @@ PluginInitializer
       		       		       		  
 	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
 		      
-		      Class c = classLoader.loadClass(plugin_class);
+		      	// if the plugin load fails we still need to generate a plugin entry
+      		  	// as this drives the upgrade process
+      		  
+		      Plugin plugin = null;
 		      
-		      Plugin plugin = (Plugin) c.newInstance();
+		      Throwable	load_failure	= null;
 		      
+		      try{
+			      Class c = classLoader.loadClass(plugin_class);
+			      
+		      	  plugin	= (Plugin) c.newInstance();
+		      
+		      }catch( Throwable e ){
+		      	
+		      	load_failure	= e;
+		      	
+		      	plugin = new loadFailedPlugin();
+		      }
+
 		      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
 		      
 		      PluginInterfaceImpl plugin_interface = 
@@ -402,7 +417,12 @@ PluginInitializer
 		      plugins.add( plugin );
 		      
 		      plugin_interfaces.add( plugin_interface );
-      	}
+		      
+		      if ( load_failure != null ){
+		      	
+		      	throw( load_failure );
+		      }
+      		}
 	      
 	      if ( p1 == -1 ){
 	      	break;
@@ -781,5 +801,19 @@ PluginInitializer
   		res.toArray( res_array );
   		
   		return( res_array );
+  	}
+  	
+  	protected class
+	loadFailedPlugin
+		implements Plugin
+	{
+  		 public void 
+		  initialize(
+		  		PluginInterface pluginInterface )
+		  
+		  	throws PluginException
+		{
+  		 	
+  		}
   	}
 }

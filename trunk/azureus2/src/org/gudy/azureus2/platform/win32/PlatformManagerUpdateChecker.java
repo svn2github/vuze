@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 
 public class 
