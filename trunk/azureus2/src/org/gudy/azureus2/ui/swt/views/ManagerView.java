@@ -26,17 +26,12 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 
   DownloadManager manager;
   TabFolder folder;
+  
   TabItem itemGeneral;
   TabItem itemDetails;
   TabItem itemPieces;
   TabItem itemFiles;
-  /*
-  CTabFolder folder;
-  CTabItem itemGeneral;
-  CTabItem itemDetails;
-  CTabItem itemPieces;
-  CTabItem itemFiles;
-  */
+
   IView viewGeneral;
   IView viewDetails;
   IView viewPieces;
@@ -54,6 +49,13 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     MainWindow.getWindow().removeManagerView(manager);
     manager.removeListener(this);
     
+    if(folder != null) {
+      TabItem[] items = folder.getItems();
+      for(int i=0 ; i < items.length ; i++) {
+        	items[i].dispose();
+      }
+    }
+    
     if (viewGeneral != null)
       viewGeneral.delete();
     if (viewDetails != null)
@@ -62,8 +64,9 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       viewPieces.delete();
     if (viewFiles != null)
       viewFiles.delete();
-    if (folder != null)
+    if (folder != null && !folder.isDisposed()) {
       folder.dispose();
+    }
   }
 
   /* (non-Javadoc)
@@ -85,37 +88,43 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-  	if (folder == null) {
-      folder = new TabFolder(composite, SWT.LEFT);
-      folder.setBackground(MainWindow.getWindow().getBackground());
-    	//folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
-    	//folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
-  	}
+    
+	  	if (folder == null) {
+	    folder = new TabFolder(composite, SWT.LEFT);
+	    folder.setBackground(MainWindow.getWindow().getBackground());
+	  	} else {
+	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
+	  	}
+	  	
     itemGeneral = new TabItem(folder, SWT.NULL);
     itemDetails = new TabItem(folder, SWT.NULL);
     itemPieces  = new TabItem(folder, SWT.NULL);
     itemFiles   = new TabItem(folder, SWT.NULL);
-    /*
-    itemGeneral = new CTabItem(folder, SWT.NULL);
-    itemDetails = new CTabItem(folder, SWT.NULL);
-    itemPieces = new CTabItem(folder, SWT.NULL);
-    itemFiles = new CTabItem(folder, SWT.NULL);*/
+
     viewGeneral = new GeneralView(manager);
     viewGeneral.initialize(folder);
+    
     viewDetails = new PeersView(manager);
     viewDetails.initialize(folder);
+    
     viewPieces = new PiecesView(manager);
     viewPieces.initialize(folder);
+    
     viewFiles = new FilesView(manager);
     viewFiles.initialize(folder);
+    
     Messages.setLanguageText(itemGeneral, viewGeneral.getData());
     itemGeneral.setControl(viewGeneral.getComposite());
+    
     Messages.setLanguageText(itemDetails, viewDetails.getData());
     itemDetails.setControl(viewDetails.getComposite());
+    
     Messages.setLanguageText(itemPieces, viewPieces.getData());
     itemPieces.setControl(viewPieces.getComposite());
+    
     Messages.setLanguageText(itemFiles, viewFiles.getData());
     itemFiles.setControl(viewFiles.getComposite());
+    
     TabItem items[] = {itemGeneral};
     folder.setSelection(items);
     manager.addPeerListener((PiecesView)viewPieces);
@@ -157,6 +166,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
           break;
       }
     } catch (Exception e) {
+      e.printStackTrace();
     }
   }
   

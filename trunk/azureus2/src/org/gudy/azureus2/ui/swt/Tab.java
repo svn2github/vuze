@@ -339,7 +339,7 @@ public class Tab {
         }
       }
       try {
-        Control control;
+        /*Control control;
         if(item instanceof CTabItem) {
           control = ((CTabItem)item).getControl();
         } else {
@@ -347,10 +347,11 @@ public class Tab {
         }
         if (control != null && !control.isDisposed())
           control.dispose();
+        */
         item.dispose();
       }
       catch (Exception ignore) {
-        //ignore.printStackTrace();
+        ignore.printStackTrace();
       }
       tabs.remove(item);
     }

@@ -13,7 +13,7 @@ import org.gudy.azureus2.ui.swt.IconBarEnabler;
  */
 public interface IView extends IconBarEnabler {
   /**
-   * This method is called when the view is intanciated, it should initialize all GUI
+   * This method is called when the view is instanciated, it should initialize all GUI
    * components. Must NOT be blocking, or it'll freeze the whole GUI.
    * Caller is the GUI Thread.
    * @param composite the parent composite. Each view should create a child composite, and then use this child composite to add all elements to.

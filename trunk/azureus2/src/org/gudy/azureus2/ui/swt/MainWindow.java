@@ -583,16 +583,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
         e.printStackTrace();
       }      
-      try {
-        TabFolder2ListenerAdder.add((CTabFolder)folder);
-      } catch (NoClassDefFoundError e) {
+      //try {
+      ///  TabFolder2ListenerAdder.add((CTabFolder)folder);
+      //} catch (NoClassDefFoundError e) {
         ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
           public void itemClosed(CTabFolderEvent event) {
             Tab.closed((CTabItem) event.item);
             event.doit = true;
+            ((CTabItem) event.item).dispose();
           }
         });
-      }
+      //}
 
       try {
         ((CTabFolder)folder).setUnselectedCloseVisible(false);
