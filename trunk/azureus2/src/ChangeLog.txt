@@ -17,6 +17,8 @@ FEATURE: Tracker bytes in/out + scrapes recorded [Parg]
 FEATURE: Tracker - ability to limit number of peers returned [Parg]
 FEATURE: Share ratio now shown on tracker web pages [Parg]
 FEATURE: Tracker/client support for "no_peer_id" spec for bandwidth savings [Parg/Nolar]
+FEATURE: More plugin stuff - alert raising, ipfilter reloading, various other stuff [Parg]
+FEATURE: Applet UI enhanced into usable state (start/stop/add/remove downloads) [Parg]
 
 CHANGE: Split torrents in My Torrents view into 2 lists: Downloading and Seeding (Completed) [TuxPaper]
 CHANGE: STOPPED status now means the torrent never auto-starts [TuxPaper]
@@ -27,6 +29,7 @@ CHANGE: Re-design of Configuration view [TuxPaper]
 CHANGE: Language files (MessageBundles_xx_xx.properties) can now be in the Azureus application directory [TuxPaper]
 CHANGE: Remember sorted column and order for all views [TuxPaper]
 CHANGE: Core performance optimizations and major cpu usage reductions [Nolar]
+CHANGE: User prompt when (1) tracker listens fails (2) incoming server port bind fails [Parg]
 
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
@@ -34,7 +37,7 @@ BUGFIX: Fix for download stalls at 99% / 100% cpu usage bug introduced in 2070 [
 BUGFIX: Fix for minimize/close causing the program to disappear from view under OSX [Nolar]
 BUGFIX: Fix for icon bar buttons not being flat (Bug #890166) [Gudy]
 BUGFIX: More reliable .config and .torrent file save/load management [Nolar]
-
+BUGFIX: Better handling of failures when performing "move on complete" [Parg]
 
 02.02.04 | Azureus 2.0.7.0
 
