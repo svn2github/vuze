@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
 
 /**
@@ -48,6 +49,14 @@ public class MD5 {
     
     int a,b,c,d;
     
+    /*
+     * Crazy byte order for MD5 ... took me hours to find out
+     * where the problem was .... words (32 bits) must be read starting
+     * with the least significant byte !
+     */
+    ByteOrder order = M.order();
+    M.order(ByteOrder.LITTLE_ENDIAN);
+    
     x0 = M.getInt();
     x1 = M.getInt();
     x2 = M.getInt();
@@ -64,6 +73,8 @@ public class MD5 {
     x13 = M.getInt();
     x14 = M.getInt();
     x15 = M.getInt();
+    
+    M.order(order);
     
     a = h0 ; b = h1 ; c = h2 ; d = h3 ;
     
@@ -100,6 +111,7 @@ public class MD5 {
     c = d + ((c << 17) | (c >>> 15));
     b += ((c & d) | ( ~c & a)) + x15 + 0x49b40821;
     b = c + ((b << 22) | (b >>> 10));
+    
     a += ((b & d) | (c & ~d)) + x1 + 0xf61e2562;
     a = b + ((a << 5) | (a >>> 27));
     d += ((a & c) | (b & ~c)) + x6 + 0xc040b340;
@@ -286,14 +298,14 @@ public class MD5 {
     transform(finalBuffer);
     
     finalBuffer.position(0);
-    finalBuffer.putInt(h0);
-    finalBuffer.putInt(h1);
+    finalBuffer.putInt(h3);
     finalBuffer.putInt(h2);
-    finalBuffer.putInt(h3);    
+    finalBuffer.putInt(h1);
+    finalBuffer.putInt(h0);    
     finalBuffer.position(0);
     
     for(int i  = 0 ; i < 16 ; i++) {
-     result[i] = finalBuffer.get(); 
+     result[15-i] = finalBuffer.get(); 
     }
     
     return result;
@@ -327,7 +339,7 @@ public class MD5 {
     System.out.println("Jmule: " + ByteFormatter.nicePrint(hashJ));
     System.out.println("Sun: " + ByteFormatter.nicePrint(md5Sun.digest()));
     
-    for(int i = 0 ; i < 4 ; i++) {
+    for(int i = 0 ; i < 1 ; i++) {
       ByteBuffer test = ByteBuffer.allocate(i);
       while(test.remaining() > 0) {
         test.put((byte)(Math.random() * 256));
