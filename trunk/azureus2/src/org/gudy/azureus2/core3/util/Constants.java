@@ -21,5 +21,5 @@ public class Constants {
   
   public static final String AZUREUS_NAME	    = "Azureus";
   public static final String AZUREUS_VERSION  = "2.0.3.5_CVS";
-  public static final byte[] VERSION_ID       = ("0" + "AZ" + "2035" + "0").getBytes();
+  public static final byte[] VERSION_ID       = ("0" + "AZ" + "2035" + "0").getBytes();  //MUST be 8 chars long!
 }

@@ -27,12 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.gudy.azureus2.core3.util.ByteBufferPool;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -331,20 +329,8 @@ PEPeerTransportProtocol
 	  }
 	}
 
-	try {
-	   client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
-	   String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
-	   if (xan.equals("DansClient "))
-		  client = "Xan'";
-	   String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
-	   if (azureus.equals("Azureus"))
-		  client = "Azureus";
-	   String shadow = new String(otherPeerId, 0, 1);
-	   if (shadow.equals("S")) {
-		  client = "Shadow";
-	   }
-	}
-	catch (Exception e) {}
+	//decode a client identification string from the given peerID
+	client = Identification.decode(otherPeerId);
 
 	sendBitField();
 	readMessage(readBuffer);
@@ -843,7 +829,7 @@ PEPeerTransportProtocol
   public void request(int pieceNumber, int pieceOffset, int pieceLength) {
 	if (getState() != TRANSFERING) {
     manager.requestCanceled(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-    return; 
+	  return;
   }
 	  
 	LGLogger.log(
