@@ -74,7 +74,7 @@ public class UpSpeedItem
       long value;
       int iState;
       if (dm == null) {
-        iState = iLastState;
+        iState = -1;
         value = 0;
       } else {
         iState = dm.getState();
