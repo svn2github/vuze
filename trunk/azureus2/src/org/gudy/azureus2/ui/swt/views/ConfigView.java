@@ -1285,6 +1285,31 @@ public class ConfigView extends AbstractIView {
    Messages.setLanguageText(label, "ConfigView.section.style.alwaysRefreshMyTorrents"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "config.style.refreshMT",false); //$NON-NLS-1$
    
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
+   
+   String[]	drop_options = { 
+   			"ConfigView.section.style.dropdiraction.opentorrents",
+   			"ConfigView.section.style.dropdiraction.sharefolder",
+   			"ConfigView.section.style.dropdiraction.sharefoldercontents",
+   			"ConfigView.section.style.dropdiraction.sharefoldercontentsrecursive",
+   	};
+   
+   String dropLabels[] = new String[drop_options.length];
+   String dropValues[] = new String[drop_options.length];
+   
+   for (int i = 0; i < drop_options.length; i++) {
+   	
+   		dropLabels[i] = MessageText.getString( drop_options[i]);
+   		dropValues[i] = "" + i;
+   }
+   
+   Control drop_param = new StringListParameter(gStyle, "config.style.dropdiraction", "", dropLabels, dropValues).getControl();
+   
+   //gridData = new GridData();
+   //gridData.horizontalSpan = 3;
+   //decoder_controls[1].setLayoutData(gridData);  
+   
    itemStyle.setControl(gStyle);
   }
   
