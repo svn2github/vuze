@@ -151,7 +151,9 @@ public class ConfigurationDefaults {
     def.put("Tracker Password Enable Web", new Long(0));
     def.put("Tracker Username", "");
     def.put("Tracker Password", "");
-    
+    def.put("Tracker Max GET Time", new Long(20));
+    def.put("Tracker Max POST Time Multiplier", new Long(1));
+    def.put("Tracker Max Threads", new Long( 48 ));
     def.put("Colors.progressBar.override", new Long(0));
     
     def.put("Logging Enable", new Long(0));

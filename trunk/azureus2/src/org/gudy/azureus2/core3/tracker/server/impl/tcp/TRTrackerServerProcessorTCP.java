@@ -59,7 +59,8 @@ TRTrackerServerProcessorTCP
 	protected Socket				socket;
 	
 
-	protected boolean				disable_timeouts = false;
+	protected int					timeout_ticks		= 1;
+	protected boolean				disable_timeouts 	= false;
 	protected String				current_request;
 	
 	protected
@@ -141,17 +142,28 @@ TRTrackerServerProcessorTCP
 				
 				if ( header_plus.startsWith( "GET " )){
 				
+					timeout_ticks		= 1;
+					
 					actual_header		= header_plus;
 					lowercase_header	= actual_header.toLowerCase();
 	
 				}else if ( header_plus.startsWith( "HEAD " )){
-						
+					
+					timeout_ticks		= 1;
+					
 					actual_header		= header_plus;
 					lowercase_header	= actual_header.toLowerCase();			
 
 					head	= true;
 					
 				}else if ( header_plus.startsWith( "POST ")){
+					
+					timeout_ticks	= TRTrackerServerTCP.PROCESSING_POST_MULTIPLIER;
+					
+					if ( timeout_ticks == 0 ){
+						
+						disable_timeouts	= true;
+					}
 					
 					setTaskState( "reading content" );
 
@@ -353,12 +365,18 @@ TRTrackerServerProcessorTCP
 		try{
 			if ( disable_timeouts ){
 				
-				Debug.out( "External tracker request timeout ignored: state = " + getTaskState() + ", req = " + current_request  );
+				// Debug.out( "External tracker request timeout ignored: state = " + getTaskState() + ", req = " + current_request  );
 				
 			}else{
-				Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
 				
-				socket.close();
+				timeout_ticks--;
+					
+				if ( timeout_ticks <= 0 ){
+					
+					Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
+					
+					socket.close();
+				}
 			}
 																						
 		}catch( Throwable e ){

@@ -213,6 +213,66 @@ ConfigSectionTrackerServer
     gridData.widthHint = 30;
     announceCachePeriod.setLayoutData( gridData );
 
+    // processing limits group
+
+    Group gProcessing = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gProcessing.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gProcessing.setLayout(layout);
+    
+    	// row annouce/scrape max process time
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
+    maxGetTime.setMinimumValue(1);
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxGetTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
+   
+  	// row post multiplier
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxPostTimeMultiplier.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
+   
+   	// row max threads
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
+    maxThreadsTime.setMinimumValue(1);
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxThreadsTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    
+    // main tab again
     // row
 
     label = new Label(gMainTab, SWT.NULL);

@@ -40,9 +40,24 @@ public class
 TRTrackerServerTCP 
 	extends 	TRTrackerServerImpl
 {
-	protected static final int 	THREAD_POOL_SIZE				= 48;
+	protected static int 	THREAD_POOL_SIZE		= COConfigurationManager.getIntParameter( "Tracker Max Threads" );
 	
-	protected static final long THREAD_POOL_EXECUTION_LIMIT		= 20000;
+	public static long PROCESSING_GET_LIMIT			= COConfigurationManager.getIntParameter( "Tracker Max GET Time" )*1000;
+	public static int  PROCESSING_POST_MULTIPLIER	= COConfigurationManager.getIntParameter( "Tracker Max POST Time Multiplier" );
+	
+	static{
+			// sanity checks
+		
+		if ( THREAD_POOL_SIZE <= 0 ){
+			THREAD_POOL_SIZE	= 1;
+		}
+		if ( PROCESSING_GET_LIMIT <= 0 ){
+			PROCESSING_GET_LIMIT = 1000;
+		}
+		if ( PROCESSING_POST_MULTIPLIER < 0 ){
+			PROCESSING_POST_MULTIPLIER	= 0;
+		}
+	}
 	
 	protected String	name;
 	protected boolean	ssl;
@@ -71,7 +86,7 @@ TRTrackerServerTCP
 		apply_ip_filter			= _apply_ip_filter;
 
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
-		thread_pool.setExecutionLimit( THREAD_POOL_EXECUTION_LIMIT );
+		thread_pool.setExecutionLimit( PROCESSING_GET_LIMIT );
 		
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
