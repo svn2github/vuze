@@ -100,7 +100,7 @@ ResourceDownloaderImpl
 	
 		throws ResourceDownloaderException
 	{
-		System.out.println("ResourceDownloader:getSize - " + getName());
+		// System.out.println("ResourceDownloader:getSize - " + getName());
 		
 		try{
 			reportActivity(this, "getting size of " + original_url );
@@ -219,7 +219,7 @@ ResourceDownloaderImpl
 	
 		throws ResourceDownloaderException
 	{
-		System.out.println("ResourceDownloader:download - " + getName());
+		// System.out.println("ResourceDownloader:download - " + getName());
 		
 		try{
 			reportActivity(this, "downloading " + original_url );
