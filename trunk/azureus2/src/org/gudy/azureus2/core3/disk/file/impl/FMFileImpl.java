@@ -40,6 +40,10 @@ public abstract class
 FMFileImpl
 	implements FMFile
 {
+	protected static long REOPEN_EVERY_BYTES = 50 * 1024 * 1024;
+	protected long lBytesRead = 0;
+	protected long lClosedAt = 0;
+
 	protected static Map			file_map = new HashMap();
 	
 	protected FMFileOwner			owner;
@@ -140,6 +144,24 @@ FMFileImpl
 		}	
 	}
 	
+	public synchronized void
+	ensureOpen()
+	
+		throws FMFileManagerException
+	{
+		if ( raf != null )
+		  return;
+		long lTimeToWait = lClosedAt + 1000 - System.currentTimeMillis();
+		if (lTimeToWait > 0) {
+      try {
+        Thread.sleep(lTimeToWait);
+      } catch (Exception ignore) { ignore.printStackTrace(); }
+    }
+
+		if (raf == null)
+  		openSupport();
+	}
+
 	protected long
 	getLengthSupport()
 	
@@ -203,8 +225,12 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+	  if (raf != null) {
+	    closeSupport(true);
+	  }
+
 		try{		
-			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rw");
+			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rwd");
 			
 		}catch( Throwable e ){
 			
@@ -241,6 +267,8 @@ FMFileImpl
 			
 		}finally{
 			
+  	  lClosedAt = System.currentTimeMillis();
+  	  
 			raf	= null;
 			
 			if ( explicit ){
@@ -271,6 +299,8 @@ FMFileImpl
 			throw( new FMFileManagerException( "FMFile::read - file is closed"));
 		}
 
+		long lRemainingBeforeRead = buffer.remaining();
+
 		try{
 			fc.position(offset);
 			
@@ -285,6 +315,13 @@ FMFileImpl
 			
 			throw( new FMFileManagerException( "FMFile::read: " + e.getMessage() + " (readFileInfoIntoBuffer)", e ));
 		}
+
+    // Recycle handle to clear OS cache
+	  lBytesRead += lRemainingBeforeRead - buffer.remaining();
+	  if (lBytesRead >= REOPEN_EVERY_BYTES) {
+	    lBytesRead = 0;
+  	  close();
+  	}
 	}
 	
 	protected int

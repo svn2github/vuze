@@ -51,7 +51,7 @@ FMFileLimited
 		manager = _manager;
 	}
 	
-	protected void
+	public synchronized void
 	ensureOpen()
 	
 		throws FMFileManagerException
@@ -65,7 +65,8 @@ FMFileLimited
 			getSlot();
 		
 			try{
-				openSupport();
+
+			  super.ensureOpen();
 				
 			}finally{
 				

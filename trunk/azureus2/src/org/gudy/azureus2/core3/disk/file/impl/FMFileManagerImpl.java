@@ -199,6 +199,9 @@ FMFileManagerImpl
 	closeFile(
 		FMFileLimited	file )
 	{
+		if ( DEBUG ){
+			System.out.println( "FMFileManager::closeFile: " + file.getFile().toString());
+		}
 		synchronized( close_queue ){
 			
 			close_queue.add( file );

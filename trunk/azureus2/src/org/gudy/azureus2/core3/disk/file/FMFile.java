@@ -55,6 +55,11 @@ FMFile
 	public int
 	getAccessMode();
 	
+	public void
+	ensureOpen()
+
+		throws FMFileManagerException;
+
 	public long
 	getSize()
 	

@@ -72,6 +72,7 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
+		ensureOpen();
 		return( getSizeSupport());
 	}
 	
@@ -80,6 +81,7 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
+		ensureOpen();
 		return( getLengthSupport());
 	}
 
@@ -89,6 +91,7 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
+		ensureOpen();
 		setLengthSupport( length );
 	}
 	
@@ -99,6 +102,7 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
+		ensureOpen();
 		readSupport( buffer, offset );
 	}
 	
@@ -110,6 +114,7 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
+		ensureOpen();
 		return( writeSupport( buffer, position ));
 	}
 	
