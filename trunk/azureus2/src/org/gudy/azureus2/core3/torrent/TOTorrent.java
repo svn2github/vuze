@@ -193,7 +193,7 @@ TOTorrent
 	setAdditionalByteArrayProperty(
 		String		name,
 		byte[]		value );
-		
+	
 	public byte[]
 	getAdditionalByteArrayProperty(
 		String		name );
@@ -230,6 +230,15 @@ TOTorrent
 	getAdditionalProperty(
 		String		name );
 
+	/**
+	 * set an arbitrary property. Make sure its compatible with bencoding!
+	 */
+
+	public void
+	setAdditionalProperty(
+		String		name,
+		Object		value );
+	
 	public void
 	removeAdditionalProperty(
 		String name );

@@ -307,7 +307,7 @@ public class MyTorrentsView
                 // which would mess up our loop
                 DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
                 for (int i = 0; i < dms.length; i++) {
-                  dms[i].setCategory(null);
+                  dms[i].getDownloadState().setCategory(null);
                 }
                 if (currentCategory == catToDelete)
                    activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
@@ -1552,7 +1552,7 @@ public class MyTorrentsView
   private void assignSelectedToCategory(final Category category) {
     runForSelectedRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        ((DownloadManager)row.getDataSource(true)).setCategory(category);
+        ((DownloadManager)row.getDataSource(true)).getDownloadState().setCategory(category);
       }
     });
   }
@@ -1578,7 +1578,7 @@ public class MyTorrentsView
     if (catType == Category.TYPE_UNCATEGORIZED) {
       for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager)managers.get(i);
-        if (manager.getCategory() == null)
+        if (manager.getDownloadState().getCategory() == null)
           downloadManagerAdded(currentCategory, manager);
       }
     } else {
@@ -1607,7 +1607,7 @@ public class MyTorrentsView
     if (skipDMAdding ||
         (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
       return;
-    Category cat = dm.getCategory();
+    Category cat = dm.getDownloadState().getCategory();
     if (cat == null)
       downloadManagerAdded(null, dm);
   }

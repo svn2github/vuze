@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.download;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 /**
@@ -36,6 +37,12 @@ DownloadManagerState
 	public TOTorrent
 	getTorrent();
 	
+	public DownloadManager
+	getDownloadManager();
+	
+	public void
+	clearResumeData();
+	
 	public Map
 	getResumeData();
 	
@@ -43,6 +50,24 @@ DownloadManagerState
 	setResumeData(
 		Map	data );
 	
+	public void
+	clearTrackerResponseCache();
+	
+	public Map
+	getTrackerResponseCache();
+	
+	public void
+	setTrackerResponseCache(
+		Map		value );
+	
+	public Category 
+	getCategory();
+	
+	public void 
+	setCategory(
+		Category cat );
+	
+
 	public void
 	save();
 	

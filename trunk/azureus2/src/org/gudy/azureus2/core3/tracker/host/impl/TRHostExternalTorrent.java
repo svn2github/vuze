@@ -259,6 +259,21 @@ TRHostExternalTorrent
 		additional_properties.put(name,value);
 	}
 		
+	public void
+	setAdditionalProperty(
+		String		name,
+		Object		value )
+	{
+		if ( name instanceof String ){
+			
+			setAdditionalStringProperty(name,(String)value);
+			
+		}else{
+		
+			additional_properties.put( name, value );
+		}
+	}
+	
 	public Long
 	getAdditionalLongProperty(
 		String		name )

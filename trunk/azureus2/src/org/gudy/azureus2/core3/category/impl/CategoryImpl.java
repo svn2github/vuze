@@ -85,24 +85,29 @@ public class CategoryImpl implements Category, Comparable {
     return managers;
   }
   
-  public void addManager(DownloadManager manager) {
-    if (manager.getCategory() != this) {
-      manager.setCategory(this);
+  public void addManager(DownloadManagerState manager_state) {
+    if (manager_state.getCategory() != this) {
+    	manager_state.setCategory(this);
       // we will be called again by CategoryManager.categoryChange
       return;
     }
+    
+    DownloadManager	manager = manager_state.getDownloadManager();
+    
     if (!managers.contains(manager)) {
       managers.add(manager);
       category_listeners.dispatch(LDT_CATEGORY_DMADDED, manager);
     }
   }
 
-  public void removeManager(DownloadManager manager) {
-    if (manager.getCategory() == this) {
-      manager.setCategory(null);
+  public void removeManager(DownloadManagerState manager_state) {
+    if (manager_state.getCategory() == this) {
+    	manager_state.setCategory(null);
       // we will be called again by CategoryManager.categoryChange
       return;
     }
+    DownloadManager	manager = manager_state.getDownloadManager();
+
     if (managers.contains(manager) || type != Category.TYPE_USER) {
       managers.remove(manager);
       category_listeners.dispatch( LDT_CATEGORY_DMREMOVED, manager );

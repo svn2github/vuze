@@ -510,6 +510,10 @@ public class GlobalManagerImpl
 	        }
 	        
 	        Long lPosition = (Long) save_download_state.get("position");
+	        
+	        	// 2.2.0.1 - category moved to downloadstate - this here for
+	        	// migration purposes
+	        
 	        String sCategory = null;
 	        if (save_download_state.containsKey("category")){
 	        	try{
@@ -522,7 +526,7 @@ public class GlobalManagerImpl
 	
 	        if (sCategory != null) {
 	          Category cat = CategoryManager.getCategory(sCategory);
-	          if (cat != null) download_manager.setCategory(cat);
+	          if (cat != null) download_manager.getDownloadState().setCategory(cat);
 	        }
 	
 	        
@@ -748,18 +752,17 @@ public class GlobalManagerImpl
 
     DownloadManagerState dms = manager.getDownloadState();
     
-    if ( dms != null ){
-    	
-    	dms.delete();
+    if (dms.getCategory() != null){
+    
+    	dms.setCategory(null);
     }
+    
+    dms.delete();
     
     if (manager.getTorrent() != null) {
 
       trackerScraper.remove(manager.getTorrent());
     }
-
-    if (manager.getCategory() != null)
-      manager.setCategory(null);
   }
 
   /* Puts GlobalManager in a stopped state.
@@ -1159,11 +1162,8 @@ public class GlobalManagerImpl
 		      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
 		      dmMap.put("hashfails", new Long(dm_stats.getHashFails()));
 		      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
-          dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
-          dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
-		      Category category = dm.getCategory();
-		      if (category != null && category.getType() == Category.TYPE_USER)
-		        dmMap.put("category", category.getName());
+		      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
+		      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
           
 		      dmMap.put( "creationTime", new Long( dm.getCreationTime()));
 		      

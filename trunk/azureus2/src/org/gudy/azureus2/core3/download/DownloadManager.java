@@ -287,10 +287,6 @@ DownloadManager
 	 */
 	public int getHealthStatus();
 	
-	public Category getCategory();
-	
-	public void setCategory(Category cat);
-	
 		/**
 		 * persist resume data
 		 *

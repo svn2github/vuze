@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.category.*;
 
 import org.gudy.azureus2.core3.logging.*;
 
@@ -218,15 +217,13 @@ DownloadManagerImpl
 	// Position in Queue
 	private int position = -1;
 	
-	// Category the user assigned torrent to.
-	private Category category;
   
 	//Used when trackerConnection is not yet created.
 	// private String trackerUrl;
   
 	private PEPeerServer server;
 	
-	private	DownloadManagerStateImpl		download_manager_state;
+	private	DownloadManagerState		download_manager_state;
 	
 	private TOTorrent		torrent;
 	private String 			torrent_comment;
@@ -421,7 +418,7 @@ DownloadManagerImpl
 		try {
 
 			 download_manager_state	= 
-				 	(DownloadManagerStateImpl)DownloadManagerStateImpl.getDownloadState(
+				 	DownloadManagerStateImpl.getDownloadState(
 				 			this, torrentFileName, torrent_hash );
 			 
 			 torrent	= download_manager_state.getTorrent();
@@ -591,13 +588,21 @@ DownloadManagerImpl
         					
 			setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
 			
-		}catch( Exception e ){
+		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
     					
 			setFailed( e );		
+		}
+		
+		if ( download_manager_state == null ){
+		
+				// torernt's stuffed - create a dummy "null object" to simplify use
+				// by other code
+			
+			download_manager_state	= DownloadManagerStateImpl.getDownloadState( this );
 		}
 	}
 
@@ -865,7 +870,7 @@ DownloadManagerImpl
 				      
 						  	// we don't want to update the torrent if we're seeding
 						  
-						  if ((!onlySeeding) && download_manager_state != null ){
+						  if ( !onlySeeding ){
 						  	
 						  	download_manager_state.save();
 						  }
@@ -922,7 +927,7 @@ DownloadManagerImpl
     
   	// we don't want to update the torrent if we're seeding
 	  
-	  if ( (!onlySeeding) && download_manager_state != null  ){
+	  if ( !onlySeeding  ){
 	  	
 	  	download_manager_state.save();
 	  }
@@ -937,6 +942,8 @@ DownloadManagerImpl
     	
     	disk_manager.storeFilePriorities();
     }
+    
+    download_manager_state.save();
   }
   
   public void setState(int _state){
@@ -1763,28 +1770,6 @@ DownloadManagerImpl
     	informPositionChanged(oldPosition);
     }
   }
-
-	public Category getCategory() {
-	  return category;
-	}
-	
-	public void setCategory(Category cat) {
-	  if (cat == category)
-	    return;
-	  if (cat != null && cat.getType() != Category.TYPE_USER)
-	    cat = null;
-
-	  Category oldCategory = (category == null)
-	                         ? CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED) 
-	                         : category;
-	  category = cat;
-	  if (oldCategory != null) {
-  	  oldCategory.removeManager(this);
-  	}
-  	if (category != null) {
-   	  category.addManager(this);
-   	}
-	}
 
   public void
   addTrackerListener(

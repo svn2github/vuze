@@ -26,12 +26,15 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -50,6 +53,9 @@ DownloadManagerStateImpl
 {
 	private static final String			RESUME_KEY			= "resume";
 	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
+	private static final String			ATTRIBUTE_KEY		= "attributes";
+	
+	private static final String			AT_CATEGORY			= "category";
 	
 	private static final File			ACTIVE_DIR;
 	
@@ -75,6 +81,10 @@ DownloadManagerStateImpl
 	
 	private Map							tracker_response_cache			= new HashMap();
   
+	
+	// Category the user assigned torrent to.
+	private Category category;
+
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
@@ -248,15 +258,48 @@ DownloadManagerStateImpl
 		download_manager	= _download_manager;
 		torrent				= _torrent;
 		
+			// sanity check on additional attribute types
+		
+		String[]	map_types = { RESUME_KEY, TRACKER_CACHE_KEY, ATTRIBUTE_KEY };
+		
+		for (int i=0;i<map_types.length;i++){
+			
+			String	map_type = map_types[i];
+			
+			Object	attribute_key = torrent.getAdditionalProperty( map_type );
+			
+			if ( attribute_key != null && !( attribute_key instanceof Map )){
+			
+				Debug.out( "Invalid state entry type for '" + map_type + "'" );
+				
+				torrent.removeAdditionalProperty( map_type );
+			}
+		}
+		
+			// get initial values
+		
 		tracker_response_cache	= (Map)torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
 		
 		if ( tracker_response_cache == null ){
 			
 			tracker_response_cache	= new HashMap();
 		}
+		
+		
+        String cat_string = getStringAttribute( AT_CATEGORY );
+
+        if ( cat_string != null ){
+        	
+        	Category cat = CategoryManager.getCategory( cat_string );
+        	
+        	if ( cat != null ){
+        		
+        		setCategory( cat );
+        	}
+        }
 	}
 	
-	protected DownloadManagerImpl
+	public DownloadManager
 	getDownloadManager()
 	{
 		return( download_manager );
@@ -269,19 +312,19 @@ DownloadManagerStateImpl
 		download_manager	= dm;
 	}
 	
-	protected void
+	public void
 	clearTrackerResponseCache()
 	{
 		setTrackerResponseCache( new HashMap());
 	}
 	
-	protected Map
+	public Map
 	getTrackerResponseCache()
 	{
 		return( tracker_response_cache );
 	}
 	
-	protected void
+	public void
 	setTrackerResponseCache(
 		Map		value )
 	{
@@ -333,7 +376,7 @@ DownloadManagerStateImpl
 		return( torrent.getAdditionalMapProperty(RESUME_KEY));
 	}
 	
-	protected void
+	public void
 	clearResumeData()
 	{
 		setResumeData( null );
@@ -393,6 +436,8 @@ DownloadManagerStateImpl
 	  		try{
 	  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
 	  		
+	  			LGLogger.log( "Saving state for download '" + TorrentUtils.getLocalisedName( torrent ) + "'" );
+				
 	  			TorrentUtils.writeToFile( torrent, true );
 	  		
 	  		}catch( Throwable e ){
@@ -453,6 +498,218 @@ DownloadManagerStateImpl
 		}catch( Throwable e ){
 				
 			Debug.printStackTrace( e );
+		}
+	}
+	
+	public Category getCategory() {
+		  return category;
+		}
+		
+	public void 
+	setCategory(
+		Category 	cat ) 
+	{
+		if ( cat == category ){
+			
+			return;
+		}
+	  
+		if (cat != null && cat.getType() != Category.TYPE_USER){
+	    
+			cat = null;
+		}
+		
+		Category oldCategory = (category == null)?CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED):category;
+				
+		category = cat;
+	  
+		if (oldCategory != null ){
+			
+			oldCategory.removeManager( this );
+  		}
+		
+		if (category != null ){
+			
+			category.addManager( this );
+		}
+  	
+		if ( category != null && category.getType() == Category.TYPE_USER ){
+			
+			setStringAttribute( AT_CATEGORY, category.getName());
+			
+		}else{
+			
+			setStringAttribute( AT_CATEGORY, null );
+		}
+	}
+		
+	
+	public String
+	getStringAttribute(
+		String	attribute_name )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			return( null );
+		}
+		
+		byte[]	bytes = (byte[])attributes.get( attribute_name );
+		
+		if ( bytes == null ){
+			
+			return( null );
+		}
+		
+		try{
+			return( new String( bytes, Constants.DEFAULT_ENCODING ));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
+	public void
+	setStringAttribute(
+		String	attribute_name,
+		String	attribute_value )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			if ( attribute_value == null ){
+			
+					// nothing to do, no attributes and we're removing a value
+				
+				return;
+			}
+			
+			attributes = new HashMap();
+			
+			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+		}
+	
+		if ( attribute_value == null ){
+			
+			if ( attributes.containsKey( attribute_name )){
+			
+				attributes.remove( attribute_name );
+			
+				write_required	= true;
+			}
+		}else{
+		
+			try{
+				byte[]	existing_bytes = (byte[])attributes.get( attribute_name );
+				
+				byte[]	new_bytes = attribute_value.getBytes( Constants.DEFAULT_ENCODING );
+				
+				if ( 	existing_bytes == null || 
+						!Arrays.equals( existing_bytes, new_bytes )){
+				
+					attributes.put( attribute_name, new_bytes );
+					
+					write_required	= true;
+				}
+				
+			}catch( UnsupportedEncodingException e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public static DownloadManagerState
+	getDownloadState(
+		DownloadManager	dm )
+	{
+		return( new nullState(dm));
+	}
+	
+	protected static class
+	nullState
+		implements DownloadManagerState
+	{
+		protected DownloadManager		download_manager;
+		
+		protected
+		nullState(
+			DownloadManager	_dm )
+		{
+			download_manager = _dm;
+		}
+		
+		public TOTorrent
+		getTorrent()
+		{
+			return( null );
+		}
+		
+		public DownloadManager
+		getDownloadManager()
+		{
+			return( download_manager );
+		}
+		
+		public void
+		clearResumeData()
+		{
+		}
+		
+		public Map
+		getResumeData()
+		{
+			return( new HashMap());
+		}
+		
+		public void
+		setResumeData(
+			Map	data )
+		{
+		}
+		
+		public void
+		clearTrackerResponseCache()
+		{
+		}
+		
+		public Map
+		getTrackerResponseCache()
+		{
+			return( new HashMap());
+		}
+
+		public void
+		setTrackerResponseCache(
+			Map		value )
+		{
+		}
+		
+		public Category 
+		getCategory()
+		{
+			return( null );
+		}
+		
+		public void 
+		setCategory(
+			Category cat )
+		{
+		}
+		
+		public void
+		save()
+		{	
+		}
+		
+		public void
+		delete()
+		{
 		}
 	}
 }

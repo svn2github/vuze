@@ -47,7 +47,7 @@ public class CategoryItem
     String sCategory = null;
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     if (dm != null) {
-      Category cat = dm.getCategory();
+      Category cat = dm.getDownloadState().getCategory();
       if (cat != null)
         sCategory = cat.getName();
     }

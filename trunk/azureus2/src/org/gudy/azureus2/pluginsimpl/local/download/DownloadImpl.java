@@ -350,7 +350,7 @@ DownloadImpl
   }
   
   public String getCategoryName() {
-    Category category = download_manager.getCategory();
+    Category category = download_manager.getDownloadState().getCategory();
     if (category == null)
       category = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
 
@@ -364,7 +364,7 @@ DownloadImpl
     Category category = CategoryManager.getCategory(sName);
     if (category == null)
       category = CategoryManager.createCategory(sName);
-    download_manager.setCategory(category);
+    download_manager.getDownloadState().setCategory(category);
   }
 
   public boolean isPersistent() {

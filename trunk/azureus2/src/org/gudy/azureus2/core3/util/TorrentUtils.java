@@ -1049,6 +1049,14 @@ TorrentUtils
 		}
 
 		public void
+		setAdditionalProperty(
+			String		name,
+			Object		value )
+		{
+			delegate.setAdditionalProperty( name, value );
+		}
+		
+		public void
 		removeAdditionalProperty(
 			String name )
 		{
