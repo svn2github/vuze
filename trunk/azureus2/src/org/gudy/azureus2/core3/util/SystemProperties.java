@@ -48,8 +48,7 @@ public class SystemProperties {
     // Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
     user_path = System.getProperty("azureus.user.fullpath"); //TODO <--- remove
     if ( user_path == null ) user_path = System.getProperty( SYS_PROP_CONFIG_OVERRIDE );
-    // Ignore ovveride if it starts with "Settings/" because of a bug in upgrading from 2100
-    if (user_path != null && !user_path.startsWith("Settings\\")) {
+    if (user_path != null) {
       if (!user_path.endsWith(SEP))
         user_path += SEP;
       File dir = new File( user_path );
