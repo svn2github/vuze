@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.logging.impl;
  *
  */
 
+import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -131,7 +132,13 @@ LGLoggerImpl
 		String	str )
 	{
 		if ( log_to_file ){
-				
+			Calendar now = GregorianCalendar.getInstance();
+			        
+			 String timeStamp =
+			   "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
+	
+			str = timeStamp + str;
+			
 			PrintWriter	pw = null;
 			
 			try{		
@@ -159,6 +166,11 @@ LGLoggerImpl
 		}
 	}
 	
+	private static String format(int n) {
+	   if(n < 10) return "0" + n; //$NON-NLS-1$
+	   return "" + n; //$NON-NLS-1$
+	 }  
+	 
 	protected static class
 	redirectorOutputStream
 		extends OutputStream

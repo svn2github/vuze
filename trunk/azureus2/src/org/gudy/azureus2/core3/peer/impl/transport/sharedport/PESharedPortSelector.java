@@ -32,10 +32,13 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 PESharedPortSelector 
 {
+	public static final long	SOCKET_TIMEOUT	= 30*1000;
+	
 	protected Selector	selector;
 	
 	protected Map		outstanding_sockets	= new HashMap();
@@ -97,18 +100,19 @@ PESharedPortSelector
 	
 				  		// Read what's ready in response
 				  		
-				  		ByteBuffer	buffer = (ByteBuffer)outstanding_sockets.get( socket );
+				  		socketData	socket_data = (socketData)outstanding_sockets.get( socket );
 				  		
-				  		if ( buffer == null ){
+				  		if ( socket_data == null ){
 				  			
-				  			System.out.println( "eh? buffer not found");
+							LGLogger.log(0, 0, LGLogger.ERROR, getIP(socket) + " : PESharedPortSelector: failed to find socket buffer" );
 				  			
 				  			remove_this_key = true;
 				  			
 				  		}else{
 				  		
 					  		try{
-					  		
+					  			ByteBuffer	buffer = socket_data.getBuffer();
+					  			
 								int	len = socket.read(buffer);
 					  		
 					  			if ( len <= 0 ){
@@ -116,9 +120,7 @@ PESharedPortSelector
 					  				remove_this_key = true;
 					  				
 					  			}else{
-					  			
-						  			System.out.println( "buffer position = " + buffer.position());
-						  			
+					  									  			
 						  			if ( buffer.position() >= 48 ){
 						  				
 						  				byte[]	contents = new byte[buffer.position()];
@@ -135,11 +137,13 @@ PESharedPortSelector
 											
 											remove_this_key	= true;
 											
-											System.out.println( "server dead");
+											LGLogger.log(0, 0, LGLogger.ERROR, getIP(socket) + " : PESharedPortSelector: failed to find server hash" );
 										}else{
 											
 												// hand over this socket 
-												
+	
+											outstanding_sockets.remove( socket );
+											
 											key.cancel();
 											
 											server.connectionReceived( socket, contents );
@@ -150,7 +154,7 @@ PESharedPortSelector
 					  			
 					  			remove_this_key	= true;
 					  			
-					  			e.printStackTrace();
+								LGLogger.log(0, 0, LGLogger.ERROR, getIP(socket) + " : PESharedPortSelector: error occurred during socket read: " + e.toString());
 					  		}
 				  		}
 					}
@@ -163,16 +167,47 @@ PESharedPortSelector
 							socket.close();
 							
 						}catch( IOException e ){
-							
-							e.printStackTrace();
 						}
 						
 						key.cancel();
 					}
 				}
+				
+				Iterator	keys_it = selector.keys().iterator();
+				
+				long	now = System.currentTimeMillis();
+				
+				while( keys_it.hasNext()){
+				
+					SelectionKey key = (SelectionKey)keys_it.next();
+					
+					SocketChannel socket = (SocketChannel)key.channel();
+	
+					socketData	socket_data = (socketData)outstanding_sockets.get( socket );
+					
+					if ( socket_data != null ){
+						
+						if ( now - socket_data.getLastUseTime() > SOCKET_TIMEOUT ){
+					
+							LGLogger.log(0, 0, LGLogger.INFORMATION, getIP(socket_data.getSocket())+" : PESharedPortSelector: timed out socket connection" );
+
+							outstanding_sockets.remove( socket );
+						
+							try{
+								socket.close();
+							
+							}catch( IOException e ){
+							}
+						
+							key.cancel();							
+						}
+					}
+					
+				}
+				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				LGLogger.log(0, 0, LGLogger.ERROR, "PESharedPortSelector: error occurred during processing: " + e.toString());
 			}
 		}
 	}
@@ -180,18 +215,12 @@ PESharedPortSelector
 	public void
 	addSocket(
 		SocketChannel		_socket )
-	{
-		System.out.println( "socket added");
-		
+	{		
 		try{
 			
-			ByteBuffer	buffer = ByteBuffer.allocate( 68 );
+			socketData	sd = new socketData( _socket );
 			
-			buffer.position(0);
-			
-			buffer.limit(68);
-			
-			outstanding_sockets.put( _socket, buffer );
+			outstanding_sockets.put( _socket, sd );
 			
 			_socket.register(selector,SelectionKey.OP_READ);
 			
@@ -210,9 +239,7 @@ PESharedPortSelector
 	addHash(
 		PESharedPortServerImpl		_server,
 		byte[]						_hash )
-	{
-		System.out.println( "hash added");
-		
+	{		
 		hash_map.put( new HashWrapper( _hash ), _server );
 	}	
 	
@@ -220,9 +247,55 @@ PESharedPortSelector
 	removeHash(
 		PESharedPortServerImpl		_server,
 		byte[]						_hash )
-	{
-		System.out.println( "hash removed");
-		
+	{		
 		hash_map.remove( new HashWrapper(_hash));
+	}
+	
+	protected String
+	getIP(
+		SocketChannel	socket )
+	{
+		return( socket.socket().getInetAddress().getHostAddress());
+	}
+	
+	protected class
+	socketData
+	{
+		protected SocketChannel	socket;
+		protected ByteBuffer	buffer;
+		protected long			last_use_time	= System.currentTimeMillis();
+		
+		protected
+		socketData(
+			SocketChannel	_socket )
+		{
+			socket	= _socket;
+			
+			buffer = ByteBuffer.allocate( 68 );
+			
+			buffer.position(0);
+			
+			buffer.limit(68);
+		}
+		
+		protected SocketChannel
+		getSocket()
+		{
+			return( socket );
+		}
+		
+		protected ByteBuffer
+		getBuffer()
+		{
+			last_use_time	= System.currentTimeMillis();
+			
+			return( buffer );
+		}
+		
+		protected long
+		getLastUseTime()
+		{
+			return( last_use_time );
+		}
 	}
 }

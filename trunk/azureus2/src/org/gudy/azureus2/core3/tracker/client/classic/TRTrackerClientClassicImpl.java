@@ -598,7 +598,7 @@ TRTrackerClientClassicImpl
   
   		throws Exception
 	{
-  		String	failure_reason;
+  		String	failure_reason = null;
   	
 		try{      
 	  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
@@ -673,12 +673,16 @@ TRTrackerClientClassicImpl
 		
 				// if we've got some kind of response then return it
 			
-			if (message.size() > 0){
+			if ( message.size() > 0 ){
 		
 				return( message.toByteArray());
+				
 			}else{
 				
-				failure_reason = "No data received from tracker";
+				if ( failure_reason == null ){
+				
+					failure_reason = "No data received from tracker";
+				}
 			}
 
 		}catch (Exception e){

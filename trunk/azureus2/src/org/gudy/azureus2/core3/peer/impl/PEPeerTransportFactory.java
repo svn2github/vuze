@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
@@ -33,8 +34,6 @@ import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
 public class 
 PEPeerTransportFactory 
 {
-	static boolean shared_port = false;
-	
 	public static PEPeerTransport
 	createTransport(
 		PEPeerControl	 	control, 
@@ -49,6 +48,8 @@ PEPeerTransportFactory
 	public static PEPeerServer
 	createServer()
 	{
+		boolean shared_port 	= COConfigurationManager.getBooleanParameter( "Server.shared.port", true );
+		
 		if ( shared_port ){
 			
 			return( new PESharedPortServerImpl());
