@@ -80,7 +80,7 @@ public class CommandReader extends Reader {
   	StringBuffer current = new StringBuffer();
   	Vector args = new Vector();
   	boolean allowEmpty = false;
-  	boolean bailout = false;
+  	boolean bailout = commandLine.length() == 0;
   	int index = 0;
     int state = ENTER;
 
