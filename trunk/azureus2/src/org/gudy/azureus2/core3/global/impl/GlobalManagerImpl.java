@@ -638,7 +638,8 @@ public class GlobalManagerImpl
             if (mDownload.containsKey("state")) {
               state = ((Long) mDownload.get("state")).intValue();
               if (state != DownloadManager.STATE_STOPPED &&
-                  state != DownloadManager.STATE_QUEUED)
+                  state != DownloadManager.STATE_QUEUED &&
+                  state != DownloadManager.STATE_WAITING)
                 state = DownloadManager.STATE_QUEUED;
             }
             else {

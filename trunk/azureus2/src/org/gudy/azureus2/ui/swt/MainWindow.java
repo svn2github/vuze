@@ -1919,7 +1919,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   downloadManagerAdded(
   	final DownloadManager created) 
   {
-    if ( created.getState() != DownloadManager.STATE_WAITING )
+    if ( created.getState() == DownloadManager.STATE_STOPPED || 
+         created.getState() == DownloadManager.STATE_QUEUED ||
+         created.getState() == DownloadManager.STATE_ERROR ||
+         created.getState() == DownloadManager.STATE_SEEDING )
       return;
     
     checkForDonationPopup();
