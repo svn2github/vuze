@@ -91,9 +91,7 @@ DMWriterAndCheckerImpl
 	private SHA1Hasher hasher;
 	private Md5Hasher md5;
 	private DirectByteBuffer md5Result;
-	
-	private DirectByteBuffer allocateAndTestBuffer;
-		
+			
 
 	protected boolean	bOverallContinue		= true;
 	
@@ -132,16 +130,7 @@ DMWriterAndCheckerImpl
 		checkQueue			= new LinkedList();
 		writeCheckQueueSem	= new Semaphore();
 		writeCheckQueueLock	= new Object();
-		
-		//Create the ByteBuffer for checking (size : pieceLength)
-        allocateAndTestBuffer = DirectByteBufferPool.getBuffer(pieceLength);
-    
-		allocateAndTestBuffer.limit(pieceLength);
-		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
-			allocateAndTestBuffer.put((byte)0);
-		}
-		allocateAndTestBuffer.position(0);
-		
+				
 		writeThread = new DiskWriteThread();
 		writeThread.start();
 	}
@@ -151,76 +140,110 @@ DMWriterAndCheckerImpl
 	{
 		bOverallContinue	= false;
 		
-		if (writeThread != null)
+		if (writeThread != null){
+			
 			writeThread.stopIt();
-		
-		   
-	    if (allocateAndTestBuffer != null) {
-	    	allocateAndTestBuffer.returnToPool();
-	      allocateAndTestBuffer = null;
-	    }
+		}
 	}
 	
-	 public boolean isChecking() {
-	    return (checkQueue.size() != 0);
-	  }
+	public boolean 
+	isChecking() 
+	{
+	   return (checkQueue.size() != 0);
+	}
 
-	  public boolean zeroFile( DiskManagerFileInfoImpl file, long length ) {
-	  	CacheFile	cache_file = file.getCacheFile();
-			long written = 0;
-			synchronized (file){
-			  try{
-			    if( length == 0 ) { //create a zero-length file if it is listed in the torrent
-	          cache_file.setLength( 0 );
-	        }
-	        else {
-	          while (written < length && bOverallContinue) {
-	          	int	write_size = allocateAndTestBuffer.capacity();
-	            if ((length - written) < write_size ){
+	public boolean 
+	zeroFile( 
+		DiskManagerFileInfoImpl file, 
+		long 					length ) 
+	{
+		CacheFile	cache_file = file.getCacheFile();
+		
+		long written = 0;
+		
+		synchronized (file){
+			
+			try{
+				if( length == 0 ){ //create a zero-length file if it is listed in the torrent
+					
+					cache_file.setLength( 0 );
+					
+				}else{
+						
+			        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(pieceLength);
+			    
+			        try{
+				        buffer.limit(pieceLength);
+				        
+						for (int i = 0; i < buffer.limit(); i++){
+							
+							buffer.put((byte)0);
+						}
+						
+						buffer.position(0);
+
+						while (written < length && bOverallContinue){
+							
+							int	write_size = buffer.capacity();
+							
+							if ((length - written) < write_size ){
 	            	
-	              write_size = (int)(length - written);
-	            }
+								write_size = (int)(length - written);
+							}
 	            
-	            allocateAndTestBuffer.limit(write_size);
+							buffer.limit(write_size);
 	             
-	            cache_file.write(allocateAndTestBuffer, written);
+							cache_file.write( buffer, written );
 	            
-	            allocateAndTestBuffer.position(0);
+							buffer.position(0);
 	            
-	            written += write_size;
+							written += write_size;
 	            
-	            disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
+							disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
 	            
-	            disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
-	          }
-	        }
-					if (!bOverallContinue) {
-					   cache_file.close();
-					   return false;
-					}
-			  } catch (Exception e) {  e.printStackTrace();  }
-			}
-			return true;
+							disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
+						}
+			        }finally{
+			        	
+			        	buffer.returnToPool();
+			        }
+					
+				}
+				
+				if (!bOverallContinue){
+							
+					cache_file.close();
+					   
+					return false;
+				}
+			} catch (Exception e) {  e.printStackTrace();  }
 		}
+			
+		return true;
+	}
 	  
 
-	  public void 
-	   aSyncCheckPiece(
-	   		int pieceNumber) 
-	   {  		
-	   		global_check_queue_block_sem.reserve();
+	public void 
+	aSyncCheckPiece(
+		int pieceNumber ) 
+	{  		
+		global_check_queue_block_sem.reserve();
 	   		
-	  		synchronized( writeCheckQueueLock ){
+	  	synchronized( writeCheckQueueLock ){
 	 		
-	   			checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
-	    	}
+	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
+	    }
 	   		
-	   		writeCheckQueueSem.release();
-	   }
+	   	writeCheckQueueSem.release();
+	}  
 	  
-	  
-		public synchronized boolean checkPiece(int pieceNumber) {
-		    
+	public synchronized boolean 
+	checkPiece(
+		int 				pieceNumber )
+	{
+        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(pieceLength);
+        
+		try{
 		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ) {
 		      try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
 		    }
@@ -229,11 +252,11 @@ DMWriterAndCheckerImpl
 		    
 		    if (bOverallContinue == false) return false;
 
-				allocateAndTestBuffer.position(0);
+		    buffer.position(0);
 
 				int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
-				allocateAndTestBuffer.limit(length);
+				buffer.limit(length);
 
 				//get the piece list
 				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
@@ -249,12 +272,12 @@ DMWriterAndCheckerImpl
 							   //if the file is large enough
 						if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
 							
-							tempPiece.getFile().getCacheFile().read(allocateAndTestBuffer, tempPiece.getOffset());
+							tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
 							
 						}else{
 								   //too small, can't be a complete piece
 							
-							allocateAndTestBuffer.clear();
+							buffer.clear();
 							
 							pieceDone[pieceNumber] = false;
 							
@@ -270,9 +293,9 @@ DMWriterAndCheckerImpl
 		      
 		      if (bOverallContinue == false) return false;
 		      
-					allocateAndTestBuffer.position(0);
+		      buffer.position(0);
 
-					byte[] testHash = hasher.calculateHash(allocateAndTestBuffer.getBuffer());
+					byte[] testHash = hasher.calculateHash(buffer.getBuffer());
 					int i = 0;
 					for (i = 0; i < 20; i++) {
 						if (testHash[i] != disk_manager.getPieceHash(pieceNumber)[i])
@@ -298,7 +321,10 @@ DMWriterAndCheckerImpl
 					e.printStackTrace();
 				}
 				return false;
-			}
+		}finally{
+			buffer.returnToPool();
+		}
+	}
 		
 		
 		 private byte[] computeMd5Hash(DirectByteBuffer buffer) {
