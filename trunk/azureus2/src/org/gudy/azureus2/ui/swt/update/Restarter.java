@@ -314,9 +314,22 @@ Restarter
     String libraryPath = System.getProperty("java.library.path");
     
     if ( libraryPath == null ){
+    	
       libraryPath = "";
-    }else if ( libraryPath.length() > 0 ){
-      libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
+      
+    }else{
+    		// remove trailing separator chars if they exist as they stuff up
+    		// the following "
+    	
+    	while( libraryPath.endsWith(File.separator)){
+    	
+    		libraryPath = libraryPath.substring( 0, libraryPath.length()-1 );
+    	}
+    	
+    	if ( libraryPath.length() > 0 ){
+  
+    		libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
+    	}
     }
     
     return( libraryPath );
