@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.config;
 
+import java.util.*;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
@@ -16,8 +18,10 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class IntParameter {
-
+public class 
+IntParameter 
+	implements Parameter
+{
   Text inputField;
   int iMinValue = 0;
   int iMaxValue = -1;
@@ -25,6 +29,10 @@ public class IntParameter {
   String sParamName;
   boolean allowZero = false;
 
+  boolean value_is_changing_internally;
+  
+  List	change_listeners	= new ArrayList(1);
+  
   public IntParameter(Composite composite, final String name) {
     iDefaultValue = COConfigurationManager.getIntParameter(name);
     initialize(composite,name);
@@ -45,7 +53,7 @@ public class IntParameter {
   }
   
     
-  public void initialize(Composite composite, final String name) {
+  public void initialize(Composite composite, String name) {
     sParamName = name;
 
     inputField = new Text(composite, SWT.BORDER);
@@ -67,47 +75,70 @@ public class IntParameter {
 
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
-        try {
-          int val = Integer.parseInt(inputField.getText());
-          if (val < iMinValue) {
-            if (!(allowZero && val == 0)) {
-            	val = iMinValue;
-            }
-          }
-          if (val > iMaxValue) {
-            if (iMaxValue > -1) {
-              val = iMaxValue;
-            }
-          }
-          COConfigurationManager.setParameter(name, val);
-        }
-        catch (Exception e) {}
+      	checkValue();
       }
     });
 
     inputField.addListener(SWT.FocusOut, new Listener() {
       public void handleEvent(Event event) {
-        try {
-          int val = Integer.parseInt(inputField.getText());
-          if (val < iMinValue) {
-            if (!(allowZero && val == 0)) {
-              inputField.setText(String.valueOf(iMinValue));
-              COConfigurationManager.setParameter(name, iMinValue);
-            }
-          }
-          if (val > iMaxValue) {
-            if (iMaxValue > -1) {
-            	inputField.setText(String.valueOf(iMaxValue));
-            	COConfigurationManager.setParameter(name, iMaxValue);
-            }
-          }
-        }
-        catch (Exception e) {}
+      	checkValue();
       }
     });
   }
   
+  protected void
+  checkValue()
+ {
+    try{
+    	int	old_val = COConfigurationManager.getIntParameter( sParamName, -1 );
+    	
+        int new_val = Integer.parseInt(inputField.getText());
+        
+        if (new_val < iMinValue) {
+          if (!(allowZero && new_val == 0)) {
+          	new_val = iMinValue;
+          }
+        }
+        
+        if (new_val > iMaxValue) {
+          if (iMaxValue > -1) {
+            new_val = iMaxValue;
+          }
+        }
+        
+        if ( new_val != old_val ){
+        	
+        	COConfigurationManager.setParameter(sParamName, new_val);
+        	
+        	for (int i=0;i<change_listeners.size();i++){
+        		
+        		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(this,value_is_changing_internally);
+        	}
+        }
+      }
+      catch (Exception e) {}
+  }
 
+  public void
+  setValue(
+  	int		value )
+  {
+  	try{
+  		value_is_changing_internally	= true;
+  		
+  		inputField.setText(String.valueOf(value));
+  	}finally{
+  		
+ 		value_is_changing_internally	= false;
+  	}
+  }
+  
+  public int
+  getValue()
+  {
+  	return(COConfigurationManager.getIntParameter(sParamName, iDefaultValue));
+  }
+  
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
   }
@@ -117,4 +148,18 @@ public class IntParameter {
   {
   	return( inputField );
   }
+  
+  	public void
+	addChangeListener(
+		ParameterChangeListener	l )
+	{
+  		change_listeners.add( l );
+	}
+		
+	public void
+	removeChangeListener(
+		ParameterChangeListener	l )
+	{
+		change_listeners.remove(l);
+	}
 }

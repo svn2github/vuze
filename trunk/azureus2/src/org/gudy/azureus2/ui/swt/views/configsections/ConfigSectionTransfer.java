@@ -74,7 +74,11 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
 
     	// max upload speed
     
-    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED, -1, true);    
+    	// store the initial d/l speed so we can do something sensible later
+    
+    final int[]	manual_max_download_speed = { COConfigurationManager.getIntParameter( "Max Download Speed KBs" )};
+    
+    final IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 1, -1, true);    
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -91,7 +95,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     	// max download speed
     
-    IntParameter paramMaxDownSpeed = new IntParameter(cTransfer, "Max Download Speed KBs", 0, -1, true);    
+    final IntParameter paramMaxDownSpeed = new IntParameter(cTransfer, "Max Download Speed KBs", 0, -1, true);    
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -105,6 +109,66 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.left = new FormAttachment(paramMaxDownSpeed.getControl());
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
+    
+    	// max upload/download limit dependencies
+    
+    paramMaxUploadSpeed.addChangeListener(
+    	new ParameterChangeListener()
+		{
+    		public void
+			parameterChanged(
+				Parameter	p,
+				boolean		internal )
+			{
+      			int	up_val 		= paramMaxUploadSpeed.getValue();
+   				int	down_val 	= paramMaxDownSpeed.getValue();
+    			   			
+    			if ( up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ){
+    				
+    				if ( ( down_val==0 ) ||down_val > up_val ){
+    					
+    					paramMaxDownSpeed.setValue( up_val );
+    				}
+    			}else{
+    				
+    				if ( down_val != manual_max_download_speed[0] ){
+    					
+    					paramMaxDownSpeed.setValue( manual_max_download_speed[0] );
+    				}
+    			}
+    		}
+    	});
+    
+    paramMaxDownSpeed.addChangeListener(
+    	new ParameterChangeListener()
+		{
+    		public void
+			parameterChanged(
+				Parameter	p,
+				boolean		internal )
+			{
+       			int	up_val 		= paramMaxUploadSpeed.getValue();
+   				int	down_val 	= paramMaxDownSpeed.getValue();
+   	   		
+   				if ( !internal ){
+   					
+   					manual_max_download_speed[0] = down_val;
+   				}
+   				  	   		   			     			
+    			if ( up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ){
+    				
+    				if ( up_val != 0 && up_val < down_val ){
+    					
+    					paramMaxUploadSpeed.setValue( down_val );
+    					
+    				}else if ( down_val == 0 ){
+    					
+    					paramMaxUploadSpeed.setValue( 0 );
+    				}
+    			}   			
+    		}
+    	});
+        
     
     	// max uploads
 
