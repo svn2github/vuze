@@ -72,6 +72,9 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private Throwable destroyed_trace;
   
   
+  private TCPTransport orig_transport = null;
+  
+  
   
   
   public BTMessageDecoder() {
@@ -81,6 +84,14 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
+    
+    if( orig_transport == null )  orig_transport = transport;
+    if( orig_transport != transport ) {
+      Debug.out( "performStreamDecode():: orig_transport != transport" );
+    }
+    
+    
+    
     protocol_bytes_last_read = 0;
     data_bytes_last_read = 0;
     
@@ -91,7 +102,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       if( destroyed ) {
         destroyed_loop_count++;
         
-        if( destroyed_loop_count % 100 == 0 ) {
+        if( destroyed_loop_count % 50 == 0 ) {
           int read = -1;
           
           try{
