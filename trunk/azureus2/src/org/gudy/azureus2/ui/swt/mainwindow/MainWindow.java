@@ -1059,6 +1059,8 @@ MainWindow
       "window.rectangle",
       windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
 
+    COConfigurationManager.save();
+    
     //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
     if(!mainWindow.isDisposed() && !isDisposeFromListener) {
     	mainWindow.dispose();
