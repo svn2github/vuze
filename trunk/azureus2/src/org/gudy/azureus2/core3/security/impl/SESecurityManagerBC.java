@@ -37,6 +37,7 @@ import java.util.Calendar;
 
 import org.bouncycastle.jce.*;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 SESecurityManagerBC 
@@ -67,7 +68,7 @@ SESecurityManagerBC
 		
 		certificateGenerator.setSignatureAlgorithm( "MD5WithRSAEncryption" );
 		
-		certificateGenerator.setSerialNumber( new BigInteger( ""+System.currentTimeMillis()));
+		certificateGenerator.setSerialNumber( new BigInteger( ""+SystemTime.getCurrentTime()));
 					
 		X509Name	issuer_dn = new X509Name(true,cert_dn);
 		

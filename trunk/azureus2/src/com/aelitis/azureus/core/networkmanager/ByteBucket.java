@@ -115,7 +115,6 @@ public class ByteBucket {
   
   private void update_avail_byte_count() {
     long current_time = SystemTime.getCurrentTime();
-    //long current_time = System.currentTimeMillis();
     long time_diff = current_time - prev_update_time;
     if( time_diff > 0 ) {
       int num_new_bytes = new Float((time_diff * rate) / 1000).intValue();    

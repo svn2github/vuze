@@ -63,7 +63,7 @@ public class SelectorGuard {
    * mark the start time.
    */
   protected void markPreSelectTime() {
-    beforeSelectTime = System.currentTimeMillis();
+    beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
   
@@ -81,7 +81,7 @@ public class SelectorGuard {
     if (marked) marked = false;
     else Debug.out("Error: You must run markPreSelectTime() before calling isSelectorOK");
     
-    afterSelectTime = System.currentTimeMillis();
+    afterSelectTime = SystemTime.getCurrentTime();
     long elapsedTime = afterSelectTime - beforeSelectTime;
     
     if (elapsedTime > _time_threshold) {

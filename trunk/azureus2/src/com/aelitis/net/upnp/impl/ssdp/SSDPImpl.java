@@ -215,7 +215,7 @@ SSDPImpl
 	public void
 	searchNow()
 	{
-		long	now = System.currentTimeMillis();
+		long	now = SystemTime.getCurrentTime();
 		
 		if ( now - last_explicit_search < 10000 ){
 			

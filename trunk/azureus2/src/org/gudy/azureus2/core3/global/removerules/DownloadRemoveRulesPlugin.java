@@ -249,7 +249,7 @@ DownloadRemoveRulesPlugin
 						// try to maintain an upper bound on seeds that isn't going to
 						// kill the tracker
 					
-					long	running_hours = ( System.currentTimeMillis() - creation_time )/(60*60*1000);
+					long	running_hours = ( SystemTime.getCurrentTime() - creation_time )/(60*60*1000);
 					
 					if ( seeds > AELITIS_SEED_LIMIT && running_hours > 0 ){
 

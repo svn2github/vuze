@@ -171,7 +171,7 @@ FMFileImpl
 	
 			if ( raf != null )
 			  return;
-			long lTimeToWait = lClosedAt + 1000 - System.currentTimeMillis();
+			long lTimeToWait = lClosedAt + 1000 - SystemTime.getCurrentTime();
 			if (lTimeToWait > 0) {
 	      try {
 	        Thread.sleep(lTimeToWait);
@@ -292,7 +292,7 @@ FMFileImpl
 			
 		}finally{
 			
-  	  lClosedAt = System.currentTimeMillis();
+  	  lClosedAt = SystemTime.getCurrentTime();
   	  
 			raf	= null;
 			

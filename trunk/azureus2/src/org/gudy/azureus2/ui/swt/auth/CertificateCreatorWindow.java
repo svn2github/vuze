@@ -30,6 +30,7 @@ package org.gudy.azureus2.ui.swt.auth;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.logging.*;
 
 import org.eclipse.swt.*;
@@ -231,11 +232,11 @@ CertificateCreatorWindow
 						
 						close(true );
 						
-						LGLogger.logAlert( LGLogger.AT_COMMENT, MessageText.getString( "security.certcreate.createok") + "\n" + alias +":" + strength + "\n" + dn + "\n" + System.currentTimeMillis());
+						LGLogger.logAlert( LGLogger.AT_COMMENT, MessageText.getString( "security.certcreate.createok") + "\n" + alias +":" + strength + "\n" + dn + "\n" + SystemTime.getCurrentTime());
 						
 					}catch( Throwable f ){
 						
-						LGLogger.logAlert( MessageText.getString( "security.certcreate.createfail")+"\n" + System.currentTimeMillis(), f );
+						LGLogger.logAlert( MessageText.getString( "security.certcreate.createfail")+"\n" + SystemTime.getCurrentTime(), f );
 					}
 				}
 			});

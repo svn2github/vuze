@@ -979,7 +979,7 @@ DownloadManagerImpl
       if (response != null) {
         if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING)
           return -1;
-        return (int)((response.getNextScrapeStartTime() - System.currentTimeMillis()) / 1000);
+        return (int)((response.getNextScrapeStartTime() - SystemTime.getCurrentTime()) / 1000);
       }
     }
 	
