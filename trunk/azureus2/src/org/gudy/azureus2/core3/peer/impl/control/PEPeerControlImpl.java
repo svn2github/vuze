@@ -518,17 +518,14 @@ PEPeerControlImpl
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
       //re-check all pieces to make sure they are not corrupt
       if (checkPieces && (_timeFinished - _timeStarted) > 10) {
-        boolean allPiecesOK = _diskManager.verifyAllPiecesComplete();
-        if (!allPiecesOK) {
-          //if not all ok, restart the download
-          _manager.restartDownload();
-          return;
+        for(int i=0; i < _downloaded.length; i++) {
+          _diskManager.aSyncCheckPiece(i);
         }
       }
       
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
       if (moveWhenDone) {
-        //to be completed ;)
+        //_diskManager.moveCompletedFiles;
       }
       
       _manager.setState(DownloadManager.STATE_SEEDING);
@@ -1501,9 +1498,9 @@ PEPeerControlImpl
       sendHave(pieceNumber);
 
     }
+    //the piece is corrupt
     else {
-
-      _pieces[pieceNumber].free();
+      if (_pieces[pieceNumber] != null) _pieces[pieceNumber].free();
       _pieces[pieceNumber] = null;
 
       //Mark this piece as non downloading
@@ -1512,9 +1509,12 @@ PEPeerControlImpl
       //Mark this piece as not downloaded (shouldn't change anything)
       _downloaded[pieceNumber] = false;
       
+      //if the download has been marked as finish, restart the download
+      if (_finished) _manager.restartDownload();
+      
       //We haven't finished (to recover from a wrong finish state)
       _finished = false;
-            
+         
       nbHashFails++;
     }
   }

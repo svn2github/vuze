@@ -76,9 +76,6 @@
 	public void
 	dumpResumeDataToDisk(
 		boolean	savePartialPieces );
-  
-	public boolean
-   verifyAllPiecesComplete(); 
 
 	public void
 	computePriorityIndicator();

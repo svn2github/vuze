@@ -470,29 +470,6 @@ DiskManagerImpl
 		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false);
 
 	}
-
-  
-  /**
-   * Scan all the pieces, to make sure nothing is corrupt.
-   * Returns false if the pieces are not all ok.
-   */
-  public boolean verifyAllPiecesComplete() {
-    state = CHECKING;
-    boolean result = true;
-    boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
-        
-    for (int i=0; i < nbPieces && bContinue; i++) {
-      percentDone = ((i + 1) * 1000) / nbPieces;
-      if (!checkPiece(i)) result = false;
-    }
-    
-    if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false);
-    
-    state = READY;
-    return result;
-  }
-  
-
   
 	private List buildPieceToFileList(List btFileList, int currentFile, int fileOffset, int pieceSize) {
 		ArrayList pieceToFileList = new ArrayList();
