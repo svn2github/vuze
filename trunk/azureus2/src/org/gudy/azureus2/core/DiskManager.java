@@ -180,7 +180,8 @@ public class DiskManager {
       //:: Directory patch 08062003 - Tyler
       //check for a user selecting the full path
       String fullPath = path + separator;
-      if (fullPath.lastIndexOf(rootPath) == (fullPath.length() - rootPath.length())) {
+      int fullPathIndex=fullPath.lastIndexOf(rootPath);
+      if (fullPathIndex>=0 && fullPathIndex == (fullPath.length() - rootPath.length())) {
         rootPath = ""; //null out rootPath
       }
 
