@@ -83,7 +83,7 @@ public class FileItem {
     }
 
     int percent = 1000;
-    if (fileInfo.getLength() > 0)
+    if (fileInfo.getLength() != 0)
       percent = (int) ((fileInfo.getDownloaded() * 1000) / fileInfo.getLength());
     tmp = (percent / 10) + "." + (percent % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
     if (!oldTexts[3].equals(tmp)) {
@@ -153,10 +153,10 @@ public class FileItem {
         int a1 = ((i + 1) * nbPieces) / width;
         if (a1 == a0)
           a1++;
-        if (a1 > nbPieces && nbPieces > 0)
+        if (a1 > nbPieces && nbPieces != 0)
           a1 = nbPieces;
         int nbAvailable = 0;
-        if(firstPiece > -1) {               
+        if(firstPiece >= 0) {               
           for (int j = a0; j < a1; j++)
            if (available[j+firstPiece])
               nbAvailable++;        
