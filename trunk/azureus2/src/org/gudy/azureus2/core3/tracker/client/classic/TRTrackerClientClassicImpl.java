@@ -1431,84 +1431,88 @@ TRTrackerClientClassicImpl
 		ip_override = null;
 	}
 		
-  private void 
-  constructTrackerUrlLists(
-  	boolean	shuffle )
-  {
-	try {
-	  trackerUrlLists = new ArrayList();
-	  trackerUrlListString = "";
+	private void 
+	constructTrackerUrlLists(
+		boolean	shuffle )
+	{
+		try{
+			trackerUrlLists = new ArrayList();
 	  
-	  	//This entry is present on multi-tracker torrents
+				//This entry is present on multi-tracker torrents
 	  
-	  TOTorrentAnnounceURLSet[]	announce_sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+			TOTorrentAnnounceURLSet[]	announce_sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 	       
-	  if( announce_sets.length == 0 ) {
+			if ( announce_sets.length == 0 ){
 	  	
-				//If not present, we use the default specification
-				
-			String url = torrent.getAnnounceURL().toString();
-			       
-			trackerUrlListString = "{ " + url + " }"; 
-			
-				//We then contruct a list of one element, containing this url, and put this list
-				//into the list of lists of urls.
-				
-			List list = new ArrayList();
-			
-			list.add(url);
-			
-			trackerUrlLists.add(list);
-	  }else{
-	  	
-		String separatorList = "";
-		
-			//Ok we have a multi-tracker torrent
-		
-		for(int i = 0 ; i < announce_sets.length ; i++){
-			
-		  	//Each list contains a list of urls
-		  
-			URL[]	urls = announce_sets[i].getAnnounceURLs();
-			
-		 	List stringUrls = new ArrayList(urls.length);
-		 	
-		  	String separatorUrl = "";
-		  	
-		  	trackerUrlListString += separatorList + " { ";
-		  	
-		  	for(int j = 0 ; j < urls.length; j++){
-		  		
-				//System.out.println(urls.get(j).getClass());
-				      
-				String url = urls[j].toString();
-				            
-				trackerUrlListString += separatorUrl + url;
-		
-					//Shuffle
+					//If not present, we use the default specification
 					
-				int pos = shuffle?(int)(Math.random() *  stringUrls.size()):j;
+				String url = torrent.getAnnounceURL().toString();
+				       
+					//We then contruct a list of one element, containing this url, and put this list
+					//into the list of lists of urls.
+					
+				List list = new ArrayList();
 				
-				stringUrls.add(pos,url);
+				list.add(url);
+				
+				trackerUrlLists.add(list);
+			}else{
+	  			
+					//Ok we have a multi-tracker torrent
+				
+				for(int i = 0 ; i < announce_sets.length ; i++){
+					
+				  	//Each list contains a list of urls
+				  
+					URL[]	urls = announce_sets[i].getAnnounceURLs();
+					
+				 	List stringUrls = new ArrayList();
+				 	
+				 	for(int j = 0 ; j < urls.length; j++){
+				  		
+						//System.out.println(urls.get(j).getClass());
+						      
+						String url = urls[j].toString();
+						            		
+							//Shuffle
+							
+						int pos = shuffle?(int)(Math.random() *  (stringUrls.size()+1)):j;
+						
+						stringUrls.add(pos,url);
+				  	}
+				  			  	         
+				  		//Add this list to the list
+				  		
+				 	trackerUrlLists.add(stringUrls);
+				}
+			}      
+		}catch(Exception e){
 			
-				separatorUrl = ", ";
+			e.printStackTrace();
+		}
+	
+		trackerUrlListString = "[";
+	
+		for (int i=0;i<trackerUrlLists.size();i++){
+
+			List	group = (List)trackerUrlLists.get(i);
 			
-				lastUsedUrl = url;
-		  	}
-		  	
-		  	separatorList = " ; ";
-		  	
-		  	trackerUrlListString += " } ";
-		  	         
-		  		//Add this list to the list
-		  		
-		  	trackerUrlLists.add(stringUrls);
+			trackerUrlListString	+= (i==0?"":",") + "[";
+			
+			for (int j=0;j<group.size();j++){
+				
+				String	u = (String)group.get(j);
+				
+				trackerUrlListString	+= (j==0?"":",") + u;
 			}
-	  	}      
-	} catch(Exception e) {
-	  e.printStackTrace();
+			
+			trackerUrlListString	+= "]";
+		}
+		
+		trackerUrlListString += "]";
+		
+		// System.out.println( trackerUrlListString );
 	}
-  }
   
   	protected TRTrackerResponse
   	decodeTrackerResponse(
