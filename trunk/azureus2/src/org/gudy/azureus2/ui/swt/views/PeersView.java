@@ -149,6 +149,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
           while(iter.hasNext()) {
             PeerRow row = (PeerRow) iter.next();
             row.invalidate();
+            row.refresh();
           }
         }        
         int columnNumber = table.indexOf(column);

@@ -21,10 +21,15 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
@@ -39,6 +44,7 @@ public class PiecesItem extends PeerItem  {
   Image image;
   //And its size
   Point imageSize;
+  Canvas cBlockView;
   
   String txt;
   
@@ -49,13 +55,25 @@ public class PiecesItem extends PeerItem  {
   public PiecesItem(PeerRow peerRow, int position) {
     super(peerRow, position);
     txt = "";
+    cBlockView = new Canvas(getTable(), SWT.NULL);
+    cBlockView.setBackground(MainWindow.white);
+    cBlockView.addPaintListener(new PaintListener() {
+    	public void paintControl(PaintEvent event) {
+        if (event.count > 0 || event.width == 0 || event.height == 0)
+          return;
+    		refresh(true);
+    	}
+    });
   }
   
   public void refresh() {
+    refresh(false);
+  }
+  public void refresh(boolean bForce) {
     boolean valid = peerRow.isValid();
     
     //If the image is still valid (not expired or not resized)
-    if(valid)
+    if(valid && !bForce)
       return;
     
     //Compute bounds ...
@@ -64,19 +82,18 @@ public class PiecesItem extends PeerItem  {
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
+    cBlockView.setBounds(bounds);
     
     int width = bounds.width - 2;
-    int x0 = bounds.x;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
     int height = bounds.height - 2;
     if (width < 10 || height < 3)
       return;
     
-    if (!valid || image == null) {
+    if (!valid || image == null || bForce) {
       Image oldImage = null;
       if (image == null || ! imageSize.equals(new Point(width,height))) {
         oldImage = image;
-        image = new Image(peerRow.getTableItem().getDisplay(), width, height);
+        image = new Image(cBlockView.getDisplay(), width, height);
         imageSize = new Point(width,height);
       }
       GC gcImage = new GC(image);
@@ -135,13 +152,11 @@ public class PiecesItem extends PeerItem  {
     if (width < 10 || height < 3)
       return;
     
-    int x0 = bounds.x;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
-       
     if (valid && image != null) {
-      GC gc = new GC(row.getTable());
-      gc.setClipping(clipping);   
-      gc.drawImage(image, x0, y0);      
+      GC gc = new GC(cBlockView);
+      gc.drawImage(image, 0, 0);
+//      gc.setClipping(clipping);   
+      gc.drawImage(image, 0, 0);
       gc.dispose();
     }    
   }
@@ -149,6 +164,11 @@ public class PiecesItem extends PeerItem  {
   public void dispose() {
     if(image != null && ! image.isDisposed()) {
       image.dispose();
+    }
+    if (cBlockView != null) {
+      if (!cBlockView.isDisposed())
+        cBlockView.dispose();
+      cBlockView = null;
     }
   }
 }
