@@ -51,7 +51,7 @@ PEPiece
   
   public boolean[] getRequested();
   
-  public boolean[] getDownloaded();
+  public boolean[] getDownloaded();   
   
   public boolean isSlowPiece();
   

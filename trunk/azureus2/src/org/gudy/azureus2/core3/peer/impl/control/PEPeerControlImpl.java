@@ -1049,6 +1049,8 @@ PEPeerControlImpl
     //Last completed level (this is for undo purposes)   
     int lastCompleted = -1;
 
+    long currentTime = SystemTime.getCurrentTime();
+    
     //For every piece
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading the piece and if it's available from that peer 
@@ -1065,7 +1067,8 @@ PEPeerControlImpl
           //A better piece is a piece which is more completed
           //ie more blocks have already been WRITTEN on disk (not requested)
           // and the piece corresponds to our class of peer
-          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece())) {
+          // or nothing has happened to the piece in the last 120 secs
+          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece() || (_pieces[i].isSlowPiece() && (currentTime - _pieces[i].getLastWriteTime() > 120 * 1000))) ) {
             //If we had marked a block previously, we must unmark it
             if (pieceNumber != -1) {
               //So pieceNumber contains the last piece
@@ -1103,6 +1106,8 @@ PEPeerControlImpl
       //if (snubbed)
       //  _pieces[pieceNumber].unmarkBlock(blockNumber);
 
+      _pieces[pieceNumber].setSlowPiece(slowPeer);
+      
       //We really send the request to the peer
       pc.request(pieceNumber, blockNumber * BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
 
