@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.zip.*;
 
+import javax.net.ssl.*;
+
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
@@ -85,10 +87,40 @@ public class TrackerStatus {
     try {
       String info_hash = "?info_hash=";
       info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-      URL scrape = new URL(scrapeURL + info_hash);
-      LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + scrape);
+      URL reqUrl = new URL(scrapeURL + info_hash);
+      
+      LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + reqUrl);
+      
       //System.out.println( "trying " + scrape.toString());
-      HttpURLConnection con = (HttpURLConnection) scrape.openConnection();
+      
+      HttpURLConnection con;
+      
+      if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+      	
+      	// see ConfigurationChecker for SSL client defaults
+      	
+      	HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+      	
+      	// allow for certs that contain IP addresses rather than dns names
+      	
+      	ssl_con.setHostnameVerifier(
+      			new HostnameVerifier()
+      			{
+      				public boolean
+      				verify(
+      						String		host,
+							SSLSession	session )
+      				{
+      					return( true );
+      				}
+      			});
+      	
+      	con = ssl_con;
+      	
+      }else{
+      	
+      	con = (HttpURLConnection) reqUrl.openConnection();
+      }
       
       // some trackers support gzip encoding of replies
       
