@@ -373,6 +373,10 @@ DownloadImpl
     download_manager.setCategory(category);
   }
 
+  public boolean isPersistent() {
+    return download_manager.isPersistent();
+  }
+
 	public void
 	remove()
 	

@@ -295,6 +295,15 @@ Download
 	public DownloadStats
 	getStats();
 	
+	/** Downloads can be persistent (be remembered accross Azureus sessions), or
+	 * non-persistent.
+	 *
+	 * @return true - persistent<br>
+	 *         false - non-persistent
+	 */
+  public boolean
+  isPersistent();
+
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state
 	 * @param l
