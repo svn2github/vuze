@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
  *
@@ -71,7 +72,7 @@ public class ProgressGraphItem
     }
 
     public void dispose(TableCell cell) {
-      Image img = cell.getGraphic();
+      Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
       cell.setGraphic(null);
@@ -108,7 +109,7 @@ public class ProgressGraphItem
       lastPercentDone = percentDone;
       lastWidth = newWidth;
 
-      Image piecesImage = cell.getGraphic();
+      Image piecesImage = ((TableCellCore)cell).getGraphicSWT();
 
       if (piecesImage != null && !piecesImage.isDisposed())
         piecesImage.dispose();
@@ -190,7 +191,7 @@ public class ProgressGraphItem
       gcImage.dispose();
       last_draw_time = SystemTime.getCurrentTime();
 
-      cell.setGraphic(piecesImage);
+      ((TableCellCore)cell).setGraphic(piecesImage);
     }
   }
 }

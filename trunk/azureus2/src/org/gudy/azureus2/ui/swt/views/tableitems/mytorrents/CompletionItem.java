@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
  *
@@ -68,7 +69,7 @@ public class CompletionItem
     }
 
     public void dispose(TableCell cell) {
-      Image img = cell.getGraphic();
+      Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
       cell.setGraphic(null);
@@ -104,7 +105,7 @@ public class CompletionItem
       lastPercentDone = percentDone;
       lastWidth = newWidth;
   
-      Image image = cell.getGraphic();
+      Image image = ((TableCellCore)cell).getGraphicSWT();
       GC gcImage;
       boolean bImageSizeChanged;
       Rectangle imageBounds;
@@ -140,7 +141,7 @@ public class CompletionItem
       gcImage.dispose();
         
       if (!bImageBufferValid) {
-        cell.setGraphic(image);
+        ((TableCellCore)cell).setGraphic(image);
       }
     }
   

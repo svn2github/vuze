@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /**
  *
@@ -59,7 +60,7 @@ public class BlocksItem
     }
 
     public void dispose(TableCell cell) {
-      Image img = cell.getGraphic();
+      Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
       cell.setGraphic(null);
@@ -120,9 +121,9 @@ public class BlocksItem
       }
       gcImage.dispose();
 
-      Image oldImage = cell.getGraphic();
+      Image oldImage = ((TableCellCore)cell).getGraphicSWT();
 
-      cell.setGraphic(image);
+      ((TableCellCore)cell).setGraphic(image);
       if (oldImage != null && !oldImage.isDisposed())
         oldImage.dispose();
       

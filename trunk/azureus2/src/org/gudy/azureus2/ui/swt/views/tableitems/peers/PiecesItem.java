@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /**
  *
@@ -262,9 +263,9 @@ public class PiecesItem
       } }
       gcImage.dispose();
   
-      Image oldImage = cell.getGraphic();
+      Image oldImage = ((TableCellCore)cell).getGraphicSWT();
       if (bImageChanged || image != oldImage) {
-        cell.setGraphic(image);
+        ((TableCellCore)cell).setGraphic(image);
         infoObj.setData("PiecesImage", image);
         infoObj.setData("PiecesImageBuffer", imageBuffer);
       }

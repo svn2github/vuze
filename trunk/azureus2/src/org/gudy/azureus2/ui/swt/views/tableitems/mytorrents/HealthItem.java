@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /**
  *
@@ -80,7 +81,7 @@ public class HealthItem
       image_name += "_selected";
       
       if (!sLastImageName.equals(image_name) || !cell.isValid()) {
-        cell.setGraphic(ImageRepository.getImage(image_name));
+        ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name));
         sLastImageName = image_name;
       }
     }
