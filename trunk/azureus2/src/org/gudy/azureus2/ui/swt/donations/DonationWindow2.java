@@ -266,7 +266,7 @@ public class DonationWindow2 {
       radioDonate.setFont(mainFont);
       radioDonate.setBackground(MainWindow.white);
       formData = new FormData();
-      formData.top = new FormAttachment(65);
+      formData.top = new FormAttachment(65, 0); // added ",0" for Pre 3.0 SWT
       formData.left = new FormAttachment(0,140);
       formData.right = new FormAttachment(100,-5);
       radioDonate.setLayoutData(formData);        
