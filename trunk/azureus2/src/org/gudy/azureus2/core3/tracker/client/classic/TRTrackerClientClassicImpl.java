@@ -1234,7 +1234,7 @@ TRTrackerClientClassicImpl
       //no_peer_id has been made obsolete by 'compact'
       // TODO: remove this 2.0.9.0 or beyond
       
-      request.append("&no_peer_id=1");
+      //request.append("&no_peer_id=1");
       
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
@@ -1242,7 +1242,7 @@ TRTrackerClientClassicImpl
       
       if ( COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true )){
       	
-      	request.append( "&compact=1");
+      	if (numwant > 0) request.append( "&compact=1");
       }
     }
 	
@@ -1498,8 +1498,8 @@ TRTrackerClientClassicImpl
           Long lIncomplete = null;
           Long lComplete = (Long)metaData.get("complete");
 				  if (lComplete != null) {
-				    System.out.println("VICTORY! Announce contained 'complete' of " + lComplete);
             lIncomplete = (Long)metaData.get("incomplete");
+            LGLogger.log( LGLogger.INFORMATION, "ANNOUNCE SCRAPE1: seeds=" +lComplete+ " peers=" +lIncomplete);
           }
 						
 						//build the list of peers
@@ -1581,7 +1581,7 @@ TRTrackerClientClassicImpl
 				    		
 				    		byte[]	peer_id = getAnonymousPeerId( ip, port );
 							
-                LGLogger.log("COMPACT PEER: ip=" +ip+ " port=" +port);
+                LGLogger.log(LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +port);
 							
 							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_id, ip, port ));							
 				    	}
@@ -1605,8 +1605,8 @@ TRTrackerClientClassicImpl
 					if (extensions != null && lComplete == null) {
             lComplete = (Long)extensions.get("complete");
   				  if (lComplete != null) {
-  				    System.out.println("VICTORY2! Announce contained 'complete' of " + lComplete);
               lIncomplete = (Long)extensions.get("incomplete");
+              LGLogger.log( LGLogger.INFORMATION, "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
   				  }
  				  }
 
