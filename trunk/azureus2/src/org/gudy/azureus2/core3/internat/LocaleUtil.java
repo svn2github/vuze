@@ -517,4 +517,11 @@ LocaleUtil
 	{
 		setTorrentEncoding( torrent, Constants.DEFAULT_ENCODING );
 	}
+	
+	public String
+	getCurrentTorrentEncoding(
+		TOTorrent	torrent )
+	{
+		return( torrent.getAdditionalStringProperty("encoding"));
+	}
 }

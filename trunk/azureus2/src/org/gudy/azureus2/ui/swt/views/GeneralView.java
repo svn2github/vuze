@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -754,11 +754,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       
     setTracker(manager);
     
+    TOTorrent	torrent = manager.getTorrent();
+    
     setInfos(
       manager.getDisplayName(),
+	  torrent==null?null:LocaleUtil.getSingleton().getCurrentTorrentEncoding( torrent ),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
       manager.getTorrentSaveDirAndFile(),
-      ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
+      ByteFormatter.nicePrintTorrentHash(torrent),
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getTorrentComment(),
@@ -1167,6 +1170,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
   public void setInfos(
     final String _fileName,
+	final String _encoding,
     final String _fileSize,
     final String _path,
     final String _hash,
@@ -1178,7 +1182,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       return;
     display.asyncExec(new AERunnable(){
       public void runSupport() {
-		fileName.setText(_fileName);
+		fileName.setText(_fileName + (_encoding==null?"":(" [" + _encoding + "]")));
 		fileSize.setText( _fileSize);
 		saveIn.setText( _path);
 		hash.setText( _hash);

@@ -91,11 +91,12 @@ Main
 			
 			}else if ( test_type == TT_DECODE ){
 							 
-				File f = new File("c:\\temp\\tunnel_server.poo.torrent" );
+				//File f = new File("c:\\temp\\badt\\Copy of Ivan Lins - Anjo De Mim - 1995(azureus).torrent" );
+				File f = new File("c:\\temp\\badt\\Copy of Ivan Lins - Anjo De Mim - 1995(maketorrent2).torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( f );
 			
-				System.out.println( "\turl group sets = " + torrent.getAnnounceURLGroup().getAnnounceURLSets().length);
+				// System.out.println( "\turl group sets = " + torrent.getAnnounceURLGroup().getAnnounceURLSets().length);
 				
 				torrent.print();		
 				
