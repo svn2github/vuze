@@ -1,5 +1,5 @@
 /*
- * Created on 28-Nov-2004
+ * Created on 30-Nov-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,81 +22,73 @@
 
 package org.gudy.azureus2.pluginsimpl.local.installer;
 
+import java.io.File;
+
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+
 /**
  * @author parg
  *
  */
 
-import java.util.List;
-
-import org.gudy.azureus2.core3.html.HTMLUtils;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsException;
-
 public class 
-StandardPluginImpl 
-	implements StandardPlugin
+FilePluginInstallerImpl
+	implements FilePluginInstaller
 {
-	protected PluginInstallerImpl	installer;
-	protected SFPluginDetails		details;
+	protected PluginInstallerImpl		installer;
+	protected File						file;
+	protected String					id;
+	protected String					version;
+	protected boolean					is_jar;
 	
 	protected
-	StandardPluginImpl(
+	FilePluginInstallerImpl(
 		PluginInstallerImpl	_installer,
-		SFPluginDetails		_details )
+		File				_file,
+		String				_id,
+		String				_version,
+		boolean				_is_jar )
 	{
 		installer	= _installer;
-		details		= _details;
+		file		= _file;
+		id			= _id;
+		version		= _version;
+		is_jar		= _is_jar;
+	}
+	
+	public File
+	getFile()
+	{
+		return( file );
 	}
 	
 	public String
 	getId()
 	{
-		return( details.getId());
+		return( id );
 	}
 	
 	public String
 	getVersion()
 	{
-		String	version = details.getVersion();
-		
-		return( version==null?"":version );
+		return( version );
 	}
 	
 	public String
 	getName()
 	{
-		return( "Coming Soon" );
+		return( "" );
 	}
 	
 	public String
 	getDescription()
 	{
-		try{
-			List lines = HTMLUtils.convertHTMLToText("", details.getDescription());
-			
-			String	res = "";
-			
-			for (int i=0;i<lines.size();i++){
-				res += (i==0?"":"\n") + lines.get(i);
-			}
-			
-			return( res );
-			
-		}catch( Throwable e ){
-			
-			return( Debug.getNestedExceptionMessage( e ));
-		}
+		return( file.toString());
 	}
-	
-		/**
-		 * Returns the plugin's interface if already installed, null if it isn't
-		 * @return
-		 */
-	
+		
 	public PluginInterface
 	getAlreadyInstalledPlugin()
 	{
@@ -109,8 +101,9 @@ StandardPluginImpl
 	
 		throws PluginException
 	{
-		installer.install( this, shared );
-	}
+		installer.install( new String[]{ getId() }, shared, file, version, is_jar );
+	}	
+	
 	
 	public boolean
 	uninstall()
@@ -118,7 +111,7 @@ StandardPluginImpl
 		throws PluginException
 	{
 		return( installer.uninstall( this ));
-	}
+	}	
 	
 	public PluginInstaller
 	getInstaller()

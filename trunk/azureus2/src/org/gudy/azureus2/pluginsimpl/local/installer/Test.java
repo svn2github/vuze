@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 
@@ -105,7 +106,9 @@ Test
 					install_act.install( true );
 					*/
 					
-					installer.installFromFile(new File("C:\\temp\\azshareexporter_0.1.jar"), false );
+					FilePluginInstaller inst = installer.installFromFile(new File("C:\\temp\\azshareexporter_0.1.jar"));
+					
+					inst.install( false );
 					
 				}catch( Throwable e ){
 					

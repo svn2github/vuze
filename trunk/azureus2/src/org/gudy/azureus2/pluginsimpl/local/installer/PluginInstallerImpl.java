@@ -119,17 +119,14 @@ PluginInstallerImpl
 		}
 	}
 	
-	public void
+	public FilePluginInstaller
 	installFromFile(
-		File				file,
-		boolean				shared )
+		File				file )
 	
 		throws PluginException
 	{
 		String	name = file.getName();
-		
-		boolean	bad_name	= true;
-		
+				
 		int	pos = name.lastIndexOf( "." );
 		
 		if ( pos != -1 ){
@@ -152,22 +149,17 @@ PluginInstallerImpl
 						throw( new PluginException( "Plugin '" + plugin_id + "' is already installed" ));
 					}
 					
-					bad_name	= false;
-					
-					install( new String[]{ plugin_id }, shared, file, version, suffix.toLowerCase().equals( "jar"));
+					return( new FilePluginInstallerImpl(this,file,plugin_id, version,suffix.toLowerCase().equals( "jar")));
 				}
 			}
 		}
-		
-		if ( bad_name ){
-			
-			throw( new PluginException( "Invalid plugin file name" ));
-		}
+					
+		throw( new PluginException( "Invalid plugin file name: must be of form <pluginid>_<version>.[jar|zip]" ));
 	}
 	
 	public void
 	install(
-		StandardPlugin		standard_plugin,
+		InstallablePlugin	standard_plugin,
 		boolean				shared )
 	
 		throws PluginException
@@ -186,7 +178,7 @@ PluginInstallerImpl
 	
 	public void
 	install(
-		StandardPlugin[]	plugins,
+		InstallablePlugin[]	plugins,
 		boolean				shared )
 	
 		throws PluginException
@@ -195,7 +187,7 @@ PluginInstallerImpl
 		
 		for (int i=0;i<plugins.length;i++){
 			
-			StandardPlugin	standard_plugin = plugins[i];
+			InstallablePlugin	standard_plugin = plugins[i];
 			
 			PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
 
@@ -338,7 +330,7 @@ PluginInstallerImpl
 	
 	public boolean
 	uninstall(
-		StandardPlugin		standard_plugin )
+		InstallablePlugin		standard_plugin )
 	
 		throws PluginException
 	{
@@ -389,6 +381,23 @@ PluginInstallerImpl
 			// need to create an uninstall action to delete this
 		
 		throw( new PluginException( "not imp" ));	
+	}
+	
+	protected PluginInterface
+	getAlreadyInstalledPlugin(
+		String	id )
+	{
+		PluginInterface[]	ifs = getPluginManager().getPluginInterfaces();
+		
+		for (int i=0;i<ifs.length;i++){
+			
+			if ( ifs[i].getPluginID().equals( id )){
+				
+				return( ifs[i]);
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected class

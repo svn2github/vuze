@@ -1,5 +1,5 @@
 /*
- * Created on 28-Nov-2004
+ * Created on 30-Nov-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,14 +22,54 @@
 
 package org.gudy.azureus2.plugins.installer;
 
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * @author parg
  *
  */
 
 public interface 
-StandardPlugin
-	extends InstallablePlugin
+InstallablePlugin 
 {
-
+	public String
+	getId();
+	
+	public String
+	getVersion();
+	
+	public String
+	getName();
+	
+	public String
+	getDescription();
+	
+		/**
+		 * Returns the plugin's interface if already installed, null if it isn't
+		 * @return
+		 */
+	
+	public PluginInterface
+	getAlreadyInstalledPlugin();
+	
+	public void
+	install(
+		boolean		shared )
+	
+		throws PluginException;
+	
+		/**
+		 * uninstall this plugin
+		 * @return	true -> restart required to complete the action
+		 * @throws PluginException
+		 */
+	
+	public boolean
+	uninstall()
+	
+		throws PluginException;
+	
+	public PluginInstaller
+	getInstaller();
 }

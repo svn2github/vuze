@@ -45,13 +45,13 @@ PluginInstaller
 		throws PluginException;	
 	
 		/**
-		 * Install one of more standard plugins in a single operation
+		 * Install one of more plugins in a single operation
 		 * @param plugins
 		 */
 	
 	public void
 	install(
-		StandardPlugin[]	plugins,
+		InstallablePlugin[]	plugins,
 		boolean				shared )
 	
 		throws PluginException;
@@ -66,10 +66,9 @@ PluginInstaller
 		 * @throws PluginException
 		 */
 	
-	public void
+	public FilePluginInstaller
 	installFromFile(
-		File		file,
-		boolean		shared )
+		File		file )
 	
 		throws PluginException;
 }

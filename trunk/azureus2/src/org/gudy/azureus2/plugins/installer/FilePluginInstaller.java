@@ -1,5 +1,5 @@
 /*
- * Created on 28-Nov-2004
+ * Created on 30-Nov-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,14 +22,17 @@
 
 package org.gudy.azureus2.plugins.installer;
 
+import java.io.File;
+
 /**
  * @author parg
  *
  */
 
 public interface 
-StandardPlugin
+FilePluginInstaller
 	extends InstallablePlugin
 {
-
+	public File
+	getFile();
 }
