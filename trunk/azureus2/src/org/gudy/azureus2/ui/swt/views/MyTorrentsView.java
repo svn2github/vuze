@@ -394,9 +394,12 @@ public class MyTorrentsView
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
     itemMoveEnd.setImage(ImageRepository.getImage("bottom"));
 
+    //TODO
+    /*
     final MenuItem itemSpeed = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
     itemSpeed.setImage(ImageRepository.getImage("speed"));
+    
     
     final Menu menuSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemSpeed.setMenu(menuSpeed);
@@ -420,6 +423,8 @@ public class MyTorrentsView
         }
       });
     }
+    */
+    
 
     // Category
 
@@ -501,7 +506,7 @@ public class MyTorrentsView
         itemPublish.setEnabled(hasSelection);
 
         itemMove.setEnabled(hasSelection);
-        itemSpeed.setEnabled(hasSelection);        
+        //itemSpeed.setEnabled(hasSelection);   //TODO     
         itemBar.setEnabled(hasSelection);
 
         itemManualUpdate.setEnabled(hasSelection);
@@ -564,7 +569,7 @@ public class MyTorrentsView
             bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
           }
           
-          itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %"); 
+          //itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %");  //TODO
           
           itemBar.setSelection(barsOpened);
 
