@@ -150,10 +150,10 @@ public class EnumeratorEditor {
       if(position == -1)
         createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
     }
-    //Hack to get a correct width
     table.getColumn(0).setWidth(30);
-    table.getColumn(1).setWidth(200);
-    table.getColumn(2).setWidth(1000);
+    for (int i = 1; i< columnsHeader.length; i++) {
+      table.getColumn(i).pack();
+    }
     
     
     table.addMouseListener(new MouseAdapter() {
@@ -230,8 +230,10 @@ public class EnumeratorEditor {
     table.redraw();
     shell.pack ();
     Point p = shell.getSize();
-    p.x = 550;
-    shell.setSize(p);
+    if (p.x > 550) {
+      p.x = 550;
+      shell.setSize(p);
+    }
     shell.open (); 
   }
   
