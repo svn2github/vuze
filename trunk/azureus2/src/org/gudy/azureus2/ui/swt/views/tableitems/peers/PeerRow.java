@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -118,9 +119,10 @@ public class PeerRow implements SortableItem {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
     }
+    valid = true;
   }
   
-  public void doPaint() {
+  public void doPaint(Rectangle clipping) {   
   	if (table == null || table.isDisposed())
   		return;
   	if (row == null || row.isDisposed())
@@ -130,9 +132,8 @@ public class PeerRow implements SortableItem {
   	while(iter.hasNext()) {
   		BufferedTableItem item = (BufferedTableItem) iter.next();
   		if(item.needsPainting())
-  			item.doPaint();
+  			item.doPaint(clipping);
   	}
-  	valid = true;
   }
 
   public void delete() {

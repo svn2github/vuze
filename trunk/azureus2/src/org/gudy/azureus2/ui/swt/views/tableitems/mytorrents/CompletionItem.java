@@ -49,13 +49,6 @@ public class CompletionItem extends TorrentItem  {
   }
   
   public void refresh() {    
-  }
-  
-  public boolean needsPainting() {
-   return true; 
-  }
-  
-  public void doPaint() {
     boolean valid = torrentRow.isValid();    
     BufferedTableRow row = torrentRow.getRow();
     
@@ -74,15 +67,8 @@ public class CompletionItem extends TorrentItem  {
     int height = bounds.height - 2;
     if (width < 10 || height < 2)
       return;
-    //Get the table GC
-    GC gc = new GC(row.getTable());
-    gc.setClipping(row.getTable().getClientArea());
-    if (valid && image != null) {
-      //If the image is still valid, simply copy it :)
-      gc.drawImage(image, x0, y0);
-      gc.dispose();
-    }
-    else {
+
+    if (!valid || image == null) {
       Image oldImage = null;
       if (image == null || ! imageSize.equals(new Point(width,height))) {
         oldImage = image;
@@ -98,13 +84,49 @@ public class CompletionItem extends TorrentItem  {
       gcImage.setForeground(MainWindow.grey);
       gcImage.drawRectangle(0, 0, width-1, height-1);
       gcImage.dispose();
-
-      gc.drawImage(image, x0, y0);
-      gc.dispose();
       
       if (oldImage != null && !oldImage.isDisposed())
         oldImage.dispose();
-    } 
+      
+      doPaint(bounds,true);
+    }
+  }
+  
+  public boolean needsPainting() {
+   return true; 
+  }
+  
+  public void doPaint(Rectangle clipping) {
+    doPaint(clipping,false);
+  }
+  
+  public void doPaint(Rectangle clipping,boolean ignoreValid) {
+    boolean valid = ignoreValid || torrentRow.isValid();    
+    BufferedTableRow row = torrentRow.getRow();
+    
+    if (row == null || row.isDisposed())
+      return;
+    
+    //Compute bounds ...
+    Rectangle bounds = getBounds();
+    //In case item isn't displayed bounds is null
+    if(bounds == null)
+      return;
+    
+    int width = bounds.width - 2;
+    int x0 = bounds.x + 1;
+    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    int height = bounds.height - 2;
+    if (width < 10 || height < 2)
+      return;
+    
+    if (valid  && image != null) {
+    	//Get the table GC
+      GC gc = new GC(row.getTable());
+      gc.setClipping(clipping);
+      gc.drawImage(image, x0, y0);
+      gc.dispose();   
+    }
   }
   
   public void dispose() {

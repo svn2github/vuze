@@ -715,7 +715,54 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
     statusUp.setText("U:"); //$NON-NLS-1$
     statusUp.setLayoutData(gridData);
-
+    
+    final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
+    menuUpSpeed.addListener(SWT.Show,new Listener() {
+      public void handleEvent(Event e) {
+        MenuItem[] items = menuUpSpeed.getItems();
+        for(int i = 0 ; i < items.length ; i++) {
+         items[i].dispose(); 
+        }
+        
+        int upLimit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
+        int index = findIndex(upLimit/1024,ConfigView.upRates);
+        
+        MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
+        item.setText(MessageText.getString("ConfigView.unlimited"));
+        item.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            COConfigurationManager.setParameter("Max Upload Speed",0); 
+          }
+        });
+        if(index == 0) item.setSelection(true);
+        
+        int start = index - 10;
+        if(start < 1) start = 1;
+        for(int i = start ; i < start + 20 && i < ConfigView.upRates.length ; i++) {
+          final int fi = i;
+          item = new MenuItem(menuUpSpeed,SWT.RADIO);
+          item.setText(ConfigView.upRates[i] + " KB/s");
+          item.addListener(SWT.Selection,new Listener() {
+            public void handleEvent(Event e) {
+             COConfigurationManager.setParameter("Max Upload Speed",ConfigView.upRates[fi]*1024); 
+            }
+          });
+          if(i == index) item.setSelection(true);
+        }
+      }           
+      
+      private int findIndex(int value,int values[]) {
+        for(int i = 0 ; i < values.length ;i++) {
+          if(values[i] == value)
+            return i;
+        }
+        return 0;
+      }
+      
+    });
+    
+    statusUp.setMenu(menuUpSpeed);
+    
     globalManager.addListener(this);
 
     String windowRectangle = COConfigurationManager.getStringParameter("window.rectangle", null);
@@ -813,6 +860,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
     Tab.addTabKeyListenerToComposite(folder);
+    
+    gm.startChecker();
   }catch( Throwable e ){
 		e.printStackTrace();
 	} }

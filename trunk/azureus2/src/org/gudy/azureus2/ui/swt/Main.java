@@ -72,7 +72,7 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
-      gm = GlobalManagerFactory.create();
+      gm = GlobalManagerFactory.create(false);
       
       COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);
@@ -83,7 +83,7 @@ public class Main implements ILocaleUtilChooser {
     
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
-      gm = GlobalManagerFactory.create();
+      gm = GlobalManagerFactory.create(false);
       
       COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);      

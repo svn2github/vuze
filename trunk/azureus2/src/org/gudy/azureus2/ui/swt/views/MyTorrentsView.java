@@ -33,6 +33,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -278,9 +279,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     table.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
-				if(event.count > 1)
-					return;
-				doPaint();
+        if(event.width == 0 || event.height == 0) return;
+				doPaint(new Rectangle(event.x,event.y,event.width,event.height));
 			}
     });
     
@@ -977,17 +977,18 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
         if (item != null) {
           //Every N GUI updates we unvalidate the images
-          if (loopFactor % graphicsUpdate == 0) {
+          if ((loopFactor % graphicsUpdate) == 0) {
             item.invalidate();            
-          }          
+          }
           item.refresh();
         }
       }
     }
+    loopFactor++;
   }
   
   
-  private void doPaint() {
+  private void doPaint(Rectangle clipping) {
     if (getComposite() == null || getComposite().isDisposed())
       return;
     
@@ -999,7 +1000,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         DownloadManager manager = (DownloadManager) iter.next();
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
         if (item != null) {          
-          item.doPaint();
+          item.doPaint(clipping);
         }
       }
     }

@@ -32,8 +32,14 @@ public class
 GlobalManagerFactory 
 {
 	public static GlobalManager
-	create()
+	create(boolean initializeStarted)
 	{
-		return( new GlobalManagerImpl());
+		return( new GlobalManagerImpl(initializeStarted));
 	}
+  
+  public static GlobalManager
+  create()
+  {
+    return( new GlobalManagerImpl(true));
+  }
 }

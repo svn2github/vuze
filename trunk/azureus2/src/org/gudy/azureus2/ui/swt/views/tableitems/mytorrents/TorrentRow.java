@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -129,11 +130,12 @@ public class TorrentRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      item.refresh();
+      item.refresh();      
     }
+    this.setValid(true);
   }
   
-  public void doPaint() {
+  public void doPaint(Rectangle clipping) {
     if (table == null || table.isDisposed())
       return;
     if (row == null || row.isDisposed())
@@ -143,9 +145,8 @@ public class TorrentRow implements SortableItem {
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       if(item.needsPainting())
-      	item.doPaint();
-    }
-    this.setValid(true);
+      	item.doPaint(clipping);
+    }    
   }
 
   public int getIndex() {

@@ -47,6 +47,9 @@ public class HealthItem extends TorrentItem  {
   }
   
   public void refresh() {
+    boolean valid = torrentRow.isValid();
+    if(valid) return;
+    
     String	image_name = "st_stopped";
     
     DownloadManager manager = torrentRow.getManager();
@@ -62,14 +65,20 @@ public class HealthItem extends TorrentItem  {
     }
     image_name += "_selected";
     
-    image = ImageRepository.getImage(image_name);        
+    image = ImageRepository.getImage(image_name);
+    
+    doPaint(getBounds(),true);
   }
   
   public boolean needsPainting() {
    return true; 
   }
   
-  public void doPaint() {
+  public void doPaint(Rectangle clipping) {
+    doPaint(clipping,false);
+  }
+  
+  public void doPaint(Rectangle clipping,boolean ignoreValid) {
     BufferedTableRow row = torrentRow.getRow();
     
     if (row == null || row.isDisposed())
@@ -82,12 +91,12 @@ public class HealthItem extends TorrentItem  {
       return;
     
     int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    int y0 = bounds.y + VerticalAligner.getAlignement();
     
     Table table = row.getTable();
     if(image != null) {
       GC gc = new GC(row.getTable());
-      gc.setClipping(table.getClientArea());
+      gc.setClipping(clipping);
       gc.drawImage(image, x0, y0);
       gc.dispose();     
     } 

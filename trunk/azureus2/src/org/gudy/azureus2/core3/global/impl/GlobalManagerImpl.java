@@ -279,7 +279,7 @@ public class GlobalManagerImpl
     }
   }
 
-  public GlobalManagerImpl()
+  public GlobalManagerImpl(boolean initialiseStarted)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -322,8 +322,8 @@ public class GlobalManagerImpl
     		}
     	});
     	
-    checker = new Checker();
-    checker.start();
+    checker = new Checker();    
+    if(initialiseStarted) checker.start();
     
     stats_writer = StatsWriterFactory.createPeriodicDumper( this );
     
@@ -845,5 +845,9 @@ public class GlobalManagerImpl
       }
     }
     return -1;
+  }
+  
+  public void startChecker() {
+    checker.start(); 
   }
 }

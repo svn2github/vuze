@@ -22,7 +22,6 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
@@ -78,6 +77,6 @@ public abstract class BufferedTableItem {
   	return false; 
   }
   
-  public void doPaint() {  
-  }
+  public void doPaint(Rectangle clipping) {    
+  } 
 }
