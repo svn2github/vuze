@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
+import com.aelitis.azureus.core.peermanager.NewPeerManager;
+
 
 public class 
 PEPeerControlImpl
@@ -38,9 +40,7 @@ PEPeerControlImpl
   private static final int WARNINGS_LIMIT = 3;
   
   private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
-  
-  private static int	SLOW_CONNECT_INTERVAL	= 1000;	// millisecs
-  
+
   private int peer_manager_state = PS_INITIALISED;
   
   private int[] _availability;
@@ -77,10 +77,6 @@ PEPeerControlImpl
   private List requestsToFree;
   private PeerUpdater peerUpdater;
   
-  boolean slowConnect;
-  private SlowConnector slowConnector;
-  private List slowQueue;
-  
   private int nbHashFails;
   private static final int MAINLOOP_WAIT_TIME   = 500;
   private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; //every 10s
@@ -96,6 +92,28 @@ PEPeerControlImpl
   private int superSeedModeCurrentPiece;
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
+  
+  private final NewPeerManager.Listener new_peer_manager_listener = new NewPeerManager.Listener() {
+    public boolean isNewPeerNeeded() {
+      int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      if( allowed == -1 ) return true;
+      if( allowed > 0 ) return true;
+      return false;
+    }
+    
+    public boolean isAlreadyConnected( PEPeerTransport peer ) {
+      synchronized( _peer_transports ) {
+        if( _peer_transports.contains( peer ) ) return true;
+        return false;
+      }
+    }
+    
+    public void addNewPeer( PEPeerTransport peer ) {
+      addToPeerTransports( PEPeerTransportFactory.createTransport( peer.getControl(), peer.getId(), peer.getIp(), peer.getPort(), false ) ); 
+    }
+  };
+  
+  
   
   public PEPeerControlImpl(
     DownloadManager 	manager,
@@ -136,10 +154,10 @@ PEPeerControlImpl
     	
     }catch( TOTorrentException e ){
     	
-    		// this should never happen - TODO: tidy when refactoring peer manager
+    		// this should never happen
     	e.printStackTrace();
     	
-    	_hash = new byte[20]; // TODO: just for the mo
+    	_hash = new byte[20]; 
     }
     
     this.nbHashFails = 0;
@@ -204,16 +222,6 @@ PEPeerControlImpl
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
     
-    /* create new outgoing connections slowly */
-    slowConnect = COConfigurationManager.getBooleanParameter("Slow Connect");
-    if( Constants.isOSX ) slowConnect = true;
-    
-    if (slowConnect) {
-       slowQueue = Collections.synchronizedList(new LinkedList());
-       slowConnector = new SlowConnector();
-       slowConnector.setDaemon(true);
-       slowConnector.start();
-    }
     
     new Thread( "Peer Manager"){
       public void
@@ -289,53 +297,7 @@ PEPeerControlImpl
     }
   }
   
-  /* thread to slow connect new outgoing peer connections */
-  private class SlowConnector extends Thread {
-      private boolean bContinue = true;
 
-      public SlowConnector() {
-         super("Slow Connector");
-      }
-
-      public void run() {
-         PEPeerTransport testPS;
-         
-         while (bContinue) {
-            testPS = null;
-            
-            try {
-               /* wait until notified of new connection to slow connect */
-               synchronized (slowQueue) { slowQueue.wait(SLOW_CONNECT_INTERVAL); }
-               
-               /* dequeue waiting connections and process */
-               while ((slowQueue.size() > 0) && bContinue) {
-                  /* get next connection */
-                  testPS = (PEPeerTransport)slowQueue.remove(0);
-                  /* add the connection */
-                  if (testPS != null) {
-                     synchronized (_peer_transports) {
-                        //System.out.println("new slow connect: " + (SystemTime.getCurrentTime() /1000));
-                        /* add connection */
-                       if ( !_peer_transports.contains( testPS )) {
-                         addToPeerTransports(PEPeerTransportFactory.createTransport(testPS.getControl(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));   
-                       }
-                     }
-                  }
-                  /* wait */
-                  Thread.sleep(SLOW_CONNECT_INTERVAL);
-               }
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
-      }
-
-      public void stopIt() {
-        bContinue = false;
-      }
-    }
-  
-  
 
   //main method
   public void mainLoop() {
@@ -402,8 +364,7 @@ PEPeerControlImpl
     t.setDaemon(true);
     t.start();
 
-    //stop the slow connector
-    if (slowConnect) slowConnector.stopIt();
+    NewPeerManager.cancelAllNewPeers( new_peer_manager_listener );
     
     //  Stop the server
     _server.stopServer();
@@ -439,7 +400,7 @@ PEPeerControlImpl
    * A private method that does analysis of the result sent by the tracker.
    * It will mainly open new connections with peers provided
    * and set the timeToWait variable according to the tracker response.
-   * @param the tracker response
+   * @param tracker_response
    */
   
 	private void 
@@ -910,7 +871,6 @@ PEPeerControlImpl
    * 3. If it can't find a piece then, this means that all pieces are already downloaded/fully requested, and it returns false.
    * 
    * @param pc the PeerConnection we're working on
-   * @param snubbed if the peer is snubbed, so requested block won't be mark as requested.
    * @return true if a request was assigned, false otherwise
    */
   private boolean findPieceToDownload(PEPeerTransport pc) {
@@ -1072,22 +1032,9 @@ PEPeerControlImpl
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
     if (!IpFilterImpl.getInstance().isInRange(ip, _downloadManager.getName())) {
-    	synchronized (_peer_transports) {
-    		//create a peer socket for testing purposes
-    		PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
-         
-    		if (!_peer_transports.contains(testPS)) {
-    			if (slowConnect) {
-    				//add connection to be slow-connected
-    				slowQueue.add(testPS);
-    				synchronized (slowQueue) { slowQueue.notify(); }
-    			}
-    			else {
-    				//add connection
-    				addToPeerTransports(PEPeerTransportFactory.createTransport(this, peerId, ip, port, false));
-    			}
-    		}
-    	}
+      //create a 'light' peer transport
+      PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
+      NewPeerManager.registerNewPeer( new_peer_manager_listener, testPS );
     }
   }
   
@@ -1426,7 +1373,7 @@ PEPeerControlImpl
   /**
    * This method is used by BtServer to add an incoming connection
    * to the list of peer connections.
-   * @param sckClient the incoming connection socket
+   * @param param the incoming connection socket
    */
   
   public void addPeerTransport(Object param) {
@@ -1703,7 +1650,7 @@ PEPeerControlImpl
       long timeElapsed = (_timeFinished - _timeStarted)/1000;
       //if time was spent downloading....return the time as negative
       if(timeElapsed > 1) return timeElapsed * -1;
-      else return 0;
+      return 0;
     }
     
     long averageSpeed = _averageReceptionSpeed.getAverage();
@@ -1723,7 +1670,9 @@ PEPeerControlImpl
   	PEPeerTransport		peer )
   {
   	// System.out.println( "PEPeerControl::addToPeerTransports:" + peer );
-  	_peer_transports.add(peer);
+    synchronized( _peer_transports ) {
+      _peer_transports.add(peer);
+    }
       
   	for (int i=0;i<peer_transport_listeners.size();i++){
   		((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
@@ -2131,11 +2080,11 @@ PEPeerControlImpl
            boolean result = peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
 		       piece.markBlock(chunk.getBlockNumber());
            return result;
-		      } else {
-		        endGameModeChunks.remove(chunk);
-		        //System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
-		        return false;
 		      }
+		      
+          endGameModeChunks.remove(chunk);
+		      //System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
+		      return false;
 		    }
 	    }
     }
