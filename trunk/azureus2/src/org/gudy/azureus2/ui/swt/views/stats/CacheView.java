@@ -53,10 +53,15 @@ public class CacheView extends AbstractIView {
   Label lblInUse,lblSize,lblPercentUsed;
   ProgressBar pbInUse;
   
-  Label lblReadsInCache,lblReadsFromFile,lblPercentReads;
+  Label lblReadsFromCache,lblNumberReadsFromCache,lblAvgSizeFromCache;
+  Label lblReadsFromFile, lblNumberReadsFromFile,lblAvgSizeFromFile;
+  Label lblPercentReads;
   ProgressBar pbReads;
   
-  Label lblWritesToCache,lblWritesToFile,lblPercentWrites;
+  
+  Label lblWritesToCache,lblNumberWritesToCache,lblAvgSizeToCache;
+  Label lblWritesToFile, lblNumberWritesToFile,lblAvgSizeToFile;
+  Label lblPercentWrites;
   ProgressBar pbWrites;
   
   Canvas  readsFromFile,readsFromCache,writesToCache,writesToFile;
@@ -140,9 +145,24 @@ public class CacheView extends AbstractIView {
     gCacheReads.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
     GridLayout layoutGeneral = new GridLayout();
-    layoutGeneral.numColumns = 4;    
+    layoutGeneral.numColumns = 6;    
     gCacheReads.setLayout(layoutGeneral);
     Label lbl;
+    
+    lbl = new Label(gCacheReads,SWT.NULL);
+    
+    lbl = new Label(gCacheReads,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.#");
+    
+    lbl = new Label(gCacheReads,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.amount");
+    
+    lbl = new Label(gCacheReads,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.avgsize");
+    
+    lbl = new Label(gCacheReads,SWT.NULL);
+    lbl = new Label(gCacheReads,SWT.NULL);
+    
     
     lbl = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
@@ -150,10 +170,20 @@ public class CacheView extends AbstractIView {
     lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromCache");
     
-    lblReadsInCache = new Label(gCacheReads,SWT.NULL);
+    lblNumberReadsFromCache = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblReadsInCache.setLayoutData(gridData);
+    lblNumberReadsFromCache.setLayoutData(gridData);
+    
+    lblReadsFromCache = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblReadsFromCache.setLayoutData(gridData);
+    
+    lblAvgSizeFromCache = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblAvgSizeFromCache.setLayoutData(gridData);
     
     pbReads =  new ProgressBar(gCacheReads,SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -174,10 +204,20 @@ public class CacheView extends AbstractIView {
     lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromFile");
     
+    lblNumberReadsFromFile = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblNumberReadsFromFile.setLayoutData(gridData);  
+    
     lblReadsFromFile = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblReadsFromFile.setLayoutData(gridData);        
+    lblReadsFromFile.setLayoutData(gridData); 
+    
+    lblAvgSizeFromFile = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblAvgSizeFromFile.setLayoutData(gridData); 
   }
   
   private void generateSpeedGroup() {
@@ -251,9 +291,24 @@ public class CacheView extends AbstractIView {
     gCacheWrites.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
     GridLayout layoutGeneral = new GridLayout();
-    layoutGeneral.numColumns = 4;    
+    layoutGeneral.numColumns = 6;    
     gCacheWrites.setLayout(layoutGeneral);
     Label lbl;
+    
+    lbl = new Label(gCacheWrites,SWT.NULL);
+    
+    lbl = new Label(gCacheWrites,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.#");
+    
+    lbl = new Label(gCacheWrites,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.amount");
+    
+    lbl = new Label(gCacheWrites,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.reads.avgsize");
+    
+    lbl = new Label(gCacheWrites,SWT.NULL);
+    lbl = new Label(gCacheWrites,SWT.NULL);
+        
     
     lbl = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
@@ -261,10 +316,20 @@ public class CacheView extends AbstractIView {
     lbl.setLayoutData(gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toCache");
     
+    lblNumberWritesToCache = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblNumberWritesToCache.setLayoutData(gridData);
+    
     lblWritesToCache = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     lblWritesToCache.setLayoutData(gridData);
+    
+    lblAvgSizeToCache = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblAvgSizeToCache.setLayoutData(gridData);
     
     pbWrites =  new ProgressBar(gCacheWrites,SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -285,10 +350,20 @@ public class CacheView extends AbstractIView {
     lbl.setLayoutData(gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toFile");
     
+    lblNumberWritesToFile = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblNumberWritesToFile.setLayoutData(gridData);
+    
     lblWritesToFile = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     lblWritesToFile.setLayoutData(gridData);
+    
+    lblAvgSizeToFile = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lblAvgSizeToFile.setLayoutData(gridData);
   }
 
   public void delete() {
@@ -313,26 +388,10 @@ public class CacheView extends AbstractIView {
     pbInUse.setSelection(perThousands);
     
     //Reads
-    lblReadsInCache.setText((DisplayFormatters.formatByteCountToKiBEtc(stats.getBytesReadFromCache())));
-    lblReadsFromFile.setText((DisplayFormatters.formatByteCountToKiBEtc(stats.getBytesReadFromFile())));
-    
-    long totalRead = stats.getBytesReadFromCache() + stats.getBytesReadFromFile();
-    if(totalRead > 0) {
-      perThousands = (int) ((1000l * stats.getBytesReadFromCache()) / totalRead);
-      lblPercentReads.setText(DisplayFormatters.formatPercentFromThousands(perThousands) + " " + MessageText.getString("CacheView.reads.hits"));
-      pbReads.setSelection(perThousands);      
-    }
+    refrehReads();
     
     //Writes
-    lblWritesToCache.setText((DisplayFormatters.formatByteCountToKiBEtc(stats.getBytesWrittenToCache())));
-    lblWritesToFile.setText((DisplayFormatters.formatByteCountToKiBEtc(stats.getBytesWrittenToFile())));
-    
-    long totalWrites = stats.getBytesWrittenToCache() + stats.getBytesWrittenToFile();
-    if(totalWrites > 0) {
-      perThousands = (int) ((1000* stats.getBytesWrittenToCache()) / totalWrites);
-      lblPercentWrites.setText(DisplayFormatters.formatPercentFromThousands(perThousands) + " " + MessageText.getString("CacheView.reads.hits"));
-      pbWrites.setSelection(perThousands);      
-    }
+    refreshWrites();
     
     //Graphics
     rfcGraph.refresh();
@@ -341,6 +400,77 @@ public class CacheView extends AbstractIView {
     wtfGraph.refresh();    
   }  
   
+  /**
+   * 
+   */
+  private void refrehReads() {
+    int perThousands;
+    long readsFromCache = stats.getBytesReadFromCache();
+    long readsFromFile = stats.getBytesReadFromFile();
+    long nbReadsFromCache = stats.getCacheReadCount();
+    long nbReadsFromFile = stats.getFileReadCount();
+    lblNumberReadsFromCache.setText("" + nbReadsFromCache);
+    lblNumberReadsFromFile.setText("" + nbReadsFromFile);
+    
+    if(nbReadsFromCache != 0) {
+      long avgReadFromCache = readsFromCache / nbReadsFromCache;
+      lblAvgSizeFromCache.setText(DisplayFormatters.formatByteCountToKiBEtc(avgReadFromCache));
+    } else {
+      lblAvgSizeFromCache.setText("--");
+    }
+    
+    if(nbReadsFromFile != 0) {
+      long avgReadFromFile = readsFromFile / nbReadsFromFile;
+      lblAvgSizeFromFile.setText(DisplayFormatters.formatByteCountToKiBEtc(avgReadFromFile));
+    } else {
+      lblAvgSizeFromFile.setText("--");
+    }
+    
+    lblReadsFromCache.setText(DisplayFormatters.formatByteCountToKiBEtc(readsFromCache));
+    lblReadsFromFile.setText(DisplayFormatters.formatByteCountToKiBEtc(readsFromFile));
+    
+    long totalRead = readsFromCache + readsFromFile;
+    if(totalRead > 0) {
+      perThousands = (int) ((1000l * stats.getBytesReadFromCache()) / totalRead);
+      lblPercentReads.setText(DisplayFormatters.formatPercentFromThousands(perThousands) + " " + MessageText.getString("CacheView.reads.hits"));
+      pbReads.setSelection(perThousands);      
+    }
+  }
+  
+  private void refreshWrites() {
+    int perThousands;
+    long writesToCache = stats.getBytesWrittenToCache();
+    long writesToFile = stats.getBytesWrittenToFile();
+    long nbWritesToCache = stats.getCacheWriteCount();
+    long nbWritesToFile = stats.getFileWriteCount();
+    lblNumberWritesToCache.setText("" + nbWritesToCache);
+    lblNumberWritesToFile.setText("" + nbWritesToFile);
+    
+    if(nbWritesToCache != 0) {
+      long avgReadToCache = writesToCache / nbWritesToCache;
+      lblAvgSizeToCache.setText(DisplayFormatters.formatByteCountToKiBEtc(avgReadToCache));
+    } else {
+      lblAvgSizeToCache.setText("--");
+    }
+    
+    if(nbWritesToFile != 0) {
+      long avgReadToFile = writesToFile / nbWritesToFile;
+      lblAvgSizeToFile.setText(DisplayFormatters.formatByteCountToKiBEtc(avgReadToFile));
+    } else {
+      lblAvgSizeToFile.setText("--");
+    }
+    
+    lblWritesToCache.setText(DisplayFormatters.formatByteCountToKiBEtc(writesToCache));
+    lblWritesToFile.setText(DisplayFormatters.formatByteCountToKiBEtc(writesToFile));
+    
+    long totalNbWrites = nbWritesToCache + nbWritesToFile;
+    if(totalNbWrites > 0) {
+      perThousands = (int) ((1000l * nbWritesToCache) / totalNbWrites);
+      lblPercentWrites.setText(DisplayFormatters.formatPercentFromThousands(perThousands) + " " + MessageText.getString("CacheView.writes.hits"));
+      pbWrites.setSelection(perThousands);      
+    }
+  }
+
   public String getData() {
     return "CacheView.title.full";
   }
