@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.ui;
  *
  */
 
+import org.gudy.azureus2.plugins.ui.view.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
 
 public interface 
@@ -34,6 +35,15 @@ UIManager
 {
 	public MyTracker
 	getMyTracker();
+	
+		/**
+		 * Gets a basic plugin view that supports simple plugin requirements
+		 * You need to add this to the plugin as anyother PluginView
+		 * @return
+		 */
+	
+	public BasicPluginView
+	getBasicPluginView();
 	
 	public void
 	copyToClipBoard(

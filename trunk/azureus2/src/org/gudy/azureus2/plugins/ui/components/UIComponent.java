@@ -20,32 +20,21 @@
  *
  */
 
-package org.gudy.azureus2.core3.html.impl;
+package org.gudy.azureus2.plugins.ui.components;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.html.*;
-
-public class 
-HTMLTableCellImpl 
-	extends		HTMLChunkImpl
-	implements 	HTMLTableCell
+public interface 
+UIComponent 
 {
-	String	raw_content;
+	public static final int PT_ENABLED		= 1;
+	public static final int PT_VALUE		= 2;
 	
-	protected
-	HTMLTableCellImpl(
-		String	str )
-	{
-		raw_content		= str;
-		
-		int	pos = str.indexOf(">");
-		
-		String	content = str.substring( pos+1 );
-		
-		setContent( content );
-	}
+	public void
+	setProperty(
+		int		property_type,
+		Object	property_value );
 }

@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui;
  */
 
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.view.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.mytracker.*;
 
@@ -58,6 +59,12 @@ UIManagerImpl
 		my_tracker	= new MyTrackerImpl();
 	}
 	
+	public BasicPluginView
+	getBasicPluginView()
+	{
+		return( null );
+	}
+
 	public MyTracker
 	getMyTracker()
 	{

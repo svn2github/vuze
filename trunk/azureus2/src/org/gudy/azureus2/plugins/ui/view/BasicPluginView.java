@@ -20,32 +20,34 @@
  *
  */
 
-package org.gudy.azureus2.core3.html.impl;
+package org.gudy.azureus2.plugins.ui.view;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.html.*;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.components.*;
 
-public class 
-HTMLTableCellImpl 
-	extends		HTMLChunkImpl
-	implements 	HTMLTableCell
+public abstract class 
+BasicPluginView
+	extends PluginView
 {
-	String	raw_content;
+		/**
+		 * All UI Components are initially enabled - disable if not required
+		 * @return
+		 */
 	
-	protected
-	HTMLTableCellImpl(
-		String	str )
-	{
-		raw_content		= str;
-		
-		int	pos = str.indexOf(">");
-		
-		String	content = str.substring( pos+1 );
-		
-		setContent( content );
-	}
+	public abstract UITextField
+	getStatus();
+	
+	public abstract UITextField
+	getActivity();
+	
+	public abstract UITextArea
+	getLogArea();
+	
+	public abstract UIProgressBar
+	getProgress();
 }
