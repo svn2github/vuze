@@ -771,10 +771,12 @@ public class ConfigView extends AbstractIView {
 		
 	 label = new Label(gStats, SWT.NULL);
 	 Messages.setLanguageText(label, "ConfigView.section.stats.enable"); //$NON-NLS-1$
-	 new BooleanParameter(gStats, "Stats Enable", false); //$NON-NLS-1$
+	 BooleanParameter enableStats = new BooleanParameter(gStats, "Stats Enable", false); //$NON-NLS-1$
 
 	 label = new Label(gStats, SWT.NULL);
 
+   Control[] controls = new Control[4];
+   
 		// row
 		
 	 label = new Label(gStats, SWT.NULL);
@@ -782,11 +784,13 @@ public class ConfigView extends AbstractIView {
 
 	 gridData = new GridData();
 	 gridData.widthHint = 150;
-	final StringParameter pathParameter = new StringParameter(gStats, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
-	pathParameter.setLayoutData(gridData);
-	Button browse = new Button(gStats, SWT.PUSH);
-	Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
-	browse.addListener(SWT.Selection, new Listener() {
+   final StringParameter pathParameter = new StringParameter(gStats, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+   pathParameter.setLayoutData(gridData);
+   controls[0] = pathParameter.getControl();
+   Button browse = new Button(gStats, SWT.PUSH);
+   Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
+   controls[1] = browse;
+   browse.addListener(SWT.Selection, new Listener() {
 	  /* (non-Javadoc)
 	   * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 	   */
@@ -810,8 +814,8 @@ public class ConfigView extends AbstractIView {
 	gridData = new GridData();
 	gridData.widthHint = 150;
 	final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME ); 
-	fileParameter.setLayoutData(gridData);
-
+  fileParameter.setLayoutData(gridData);
+  controls[2] = fileParameter.getControl();
 	label = new Label(gStats, SWT.NULL);
 
 		// row
@@ -840,8 +844,10 @@ public class ConfigView extends AbstractIView {
 		spValues[i] = statsPeriods[i];
 	}
 	
-	new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues);  
-
+  
+  controls[3] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();  
+  enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+ 
 	itemStats.setControl(gStats);
    }
 
