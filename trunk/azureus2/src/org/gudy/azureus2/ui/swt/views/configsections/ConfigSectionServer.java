@@ -23,9 +23,9 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -49,121 +49,172 @@ public class ConfigSectionServer implements ConfigSectionSWT {
   
 
   public Composite configSectionCreate(final Composite parent) {
-    GridData gridData;
-    GridLayout layout;
+    FormData formData;
+    FormLayout layout;
     Label label;
 
-    Composite gServer = new Composite(parent, SWT.NULL);
+    Composite cServer = new Composite(parent, SWT.NULL);
 
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gServer.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    gServer.setLayout(layout);
+    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    cServer.setLayoutData(gridData);
+    layout = new FormLayout();   
+    layout.spacing = 5;
+    cServer.setLayout(layout);
 
-    label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.overrideip"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 113;
-    gridData.horizontalSpan = 3;
-    new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
+ ///////////////////////
+    
+    IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 6881);
+    formData = new FormData();
+    formData.top = new FormAttachment(0);
+    formData.left = new FormAttachment(0);
+    formData.width = 40;
+    tcplisten.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.serverport");
+    formData = new FormData();
+    formData.top = new FormAttachment(0,5);
+    formData.left = new FormAttachment(tcplisten.getControl());
+    label.setLayoutData(formData);
+    
+ ///////////////////////
+    
+    StringParameter overrideip = new StringParameter(cServer, "Override Ip", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(tcplisten.getControl());
+    formData.left = new FormAttachment(0);
+    formData.width = 105;
+    overrideip.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.overrideip");
+    formData = new FormData();
+    formData.top = new FormAttachment(tcplisten.getControl(),5);
+    formData.left = new FormAttachment(overrideip.getControl());
+    label.setLayoutData(formData);
+    
+ //////////////////////
+    
+    StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(overrideip.getControl());
+    formData.left = new FormAttachment(0);
+    formData.width = 105;
+    bindip.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.bindip");
+    formData = new FormData();
+    formData.top = new FormAttachment(overrideip.getControl(),5);
+    formData.left = new FormAttachment(bindip.getControl());
+    label.setLayoutData(formData);
+    
+ //////////////////////
+    
+    Label proxytext = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(proxytext, "ConfigView.section.proxy.description");
+    formData = new FormData();
+    formData.top = new FormAttachment( bindip.getControl(), 10 );
+    proxytext.setLayoutData(formData);
+    
+ //////////////////////
+    
+    BooleanParameter enableProxy = new BooleanParameter(cServer, "Enable.Proxy", false, "ConfigView.section.proxy.enable_proxy");
+    formData = new FormData();
+    formData.top = new FormAttachment( proxytext );
+    enableProxy.setLayoutData(formData);  
 
-    label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.bindip"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 113;
-    gridData.horizontalSpan = 3;
-    new StringParameter(gServer, "Bind IP", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
+ //////////////////////
+    
+    BooleanParameter enableSocks = new BooleanParameter(cServer, "Enable.SOCKS", false, "ConfigView.section.proxy.enable_socks");
+    formData = new FormData();
+    formData.top = new FormAttachment( enableProxy.getControl() );
+    formData.left = new FormAttachment(0);
+    enableSocks.setLayoutData(formData); 
+    
+ //////////////////////
 
-    new Label(gServer, SWT.NULL);
-    new Label(gServer, SWT.NULL);
-    new Label(gServer, SWT.NULL);
-    new Label(gServer, SWT.NULL);
+    StringParameter pHost = new StringParameter(cServer, "Proxy.Host", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(enableSocks.getControl());
+    formData.left = new FormAttachment(0);
+    formData.width = 105;
+    pHost.setLayoutData(formData);
     
-    label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.serverport"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    new IntParameter(gServer, "TCP.Listen.Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
-    
-    
-    return gServer;
-    
-    // this will have to be put in a file of it's own..
-    // Sub-Section: Server -> Proxy
-    // ----------------------------
-    /*
-    Composite cProxy = createConfigSection(treeServer, "proxy");
-
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cProxy.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    cProxy.setLayout(layout);
-    
-    new Label(cProxy, SWT.NULL);
-    
-    label = new Label(cProxy, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.proxy.description");
-    
-    new Label(cProxy, SWT.NULL);
-    new Label(cProxy, SWT.NULL);
-    
-    BooleanParameter enableProxy = new BooleanParameter(cProxy, "Enable.Proxy", false);
-    label = new Label(cProxy, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.proxy.enable_proxy");
-    
-    BooleanParameter enableSocks = new BooleanParameter(cProxy, "Enable.SOCKS", true);
-    Label lSocks = new Label(cProxy, SWT.NULL);
-    Messages.setLanguageText(lSocks, "ConfigView.section.proxy.enable_socks");
-    
-    new Label(cProxy, SWT.NULL);
-    new Label(cProxy, SWT.NULL);
-    
-    Label lHost = new Label(cProxy, SWT.NULL);
+    Label lHost = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(lHost, "ConfigView.section.proxy.host");
-    gridData = new GridData();
-    gridData.widthHint = 150;
-    StringParameter pHost = new StringParameter(cProxy, "Proxy.Host", "");
-    pHost.setLayoutData(gridData);
+    formData = new FormData();
+    formData.top = new FormAttachment(enableSocks.getControl(),5);
+    formData.left = new FormAttachment(pHost.getControl());
+    lHost.setLayoutData(formData);
 
-    Label lPort = new Label(cProxy, SWT.NULL);
+ //////////////////////
+
+    StringParameter pPort = new StringParameter(cServer, "Proxy.Port", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(enableSocks.getControl());
+    formData.left = new FormAttachment(lHost, 15);
+    formData.width = 40;
+    pPort.setLayoutData(formData);
+    
+    Label lPort = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(lPort, "ConfigView.section.proxy.port");
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    StringParameter pPort = new StringParameter(cProxy, "Proxy.Port", "");
-    pPort.setLayoutData(gridData);
-    
-    new Label(cProxy, SWT.NULL);
-    new Label(cProxy, SWT.NULL);
-    
-    Label lUser = new Label(cProxy, SWT.NULL);
-    Messages.setLanguageText(lUser, "ConfigView.section.proxy.username");
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    StringParameter pUser = new StringParameter(cProxy, "Proxy.Username", "");
-    pUser.setLayoutData(gridData);
+    formData = new FormData();
+    formData.top = new FormAttachment(enableSocks.getControl(),5);
+    formData.left = new FormAttachment(pPort.getControl());
+    lPort.setLayoutData(formData);
 
-    Label lPass = new Label(cProxy, SWT.NULL);
-    Messages.setLanguageText(lPass, "ConfigView.section.proxy.password");
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    StringParameter pPass = new StringParameter(cProxy, "Proxy.Password", "");
-    pPass.setLayoutData(gridData);
+ //////////////////////
     
-    Control[] controls = new Control[10];
-    controls[0] = lSocks;
-    controls[1] = enableSocks.getControl();
-    controls[2] = lHost;
-    controls[3] = pHost.getControl();
-    controls[4] = lPort;
-    controls[5] = pPort.getControl();
-    controls[6] = lUser;
-    controls[7] = pUser.getControl();
-    controls[8] = lPass;
-    controls[9] = pPass.getControl();
+    StringParameter pUser = new StringParameter(cServer, "Proxy.Username", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(pPort.getControl());
+    formData.left = new FormAttachment(0);
+    formData.width = 105;
+    pUser.setLayoutData(formData);
+    
+    Label lUser = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lUser, "ConfigView.section.proxy.username");
+    formData = new FormData();
+    formData.top = new FormAttachment(pPort.getControl(),5);
+    formData.left = new FormAttachment(pUser.getControl());
+    lUser.setLayoutData(formData);
+    
+ //////////////////////
+    
+    StringParameter pPass = new StringParameter(cServer, "Proxy.Password", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(pUser.getControl());
+    formData.left = new FormAttachment(0);
+    formData.width = 105;
+    pPass.setLayoutData(formData);
+    
+    Label lPass = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lPass, "ConfigView.section.proxy.password");
+    formData = new FormData();
+    formData.top = new FormAttachment(pUser.getControl(),5);
+    formData.left = new FormAttachment(pPass.getControl());
+    lPass.setLayoutData(formData);
+    
+ //////////////////////
+    
+    Control[] controls = new Control[9];
+    controls[0] = enableSocks.getControl();
+    controls[1] = lHost;
+    controls[2] = pHost.getControl();
+    controls[3] = lPort;
+    controls[4] = pPort.getControl();
+    controls[5] = lUser;
+    controls[6] = pUser.getControl();
+    controls[7] = lPass;
+    controls[8] = pPass.getControl();
     IAdditionalActionPerformer proxyButton = new ChangeSelectionActionPerformer(controls);
     enableProxy.setAdditionalActionPerformer(proxyButton);
-    */
+    
+ //////////////////////
+    
+
+    return cServer;
+
   }
 }
