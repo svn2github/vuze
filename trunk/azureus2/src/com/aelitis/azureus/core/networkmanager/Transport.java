@@ -42,7 +42,7 @@ public class Transport {
   private boolean is_write_select_pending = false;
   private Throwable write_select_failure = null;
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
-  
+  private String description = "<disconnected>";
   private TransportDebugger		transport_debugger;
   
   /**
@@ -64,7 +64,7 @@ public class Transport {
     this.socket_channel = channel;
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
-    
+    description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
     transport_debugger = _owner.getDebugger();
   }
   
@@ -79,10 +79,7 @@ public class Transport {
    * Get a textual description for this transport.
    * @return description
    */
-  protected String getDescription() {
-    if( !is_connected )  return "";
-    return socket_channel.socket().getInetAddress().getHostAddress() + ":" + socket_channel.socket().getPort();
-  }
+  protected String getDescription() {  return description;  }
   
   
   /**
@@ -193,6 +190,7 @@ public class Transport {
         is_connected = true;
         is_ready_for_write = true;
         connect_request_key = null;
+        description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
         listener.connectSuccess();
       }
 
