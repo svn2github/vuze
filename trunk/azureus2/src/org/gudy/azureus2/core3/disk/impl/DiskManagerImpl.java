@@ -603,40 +603,47 @@ DiskManagerImpl
 		}
 
 		public void run() {
-			while (true){
-				readQueueSem.reserve();
+			
+			while (bReadContinue){	
+		
+				int	entry_count = readQueueSem.reserveSet( 10 );
 				
-				DiskManagerDataQueueItemImpl	item;
-				
-				synchronized( readQueue ){
+				for (int i=0;i<entry_count;i++){
 					
-					if ( !bReadContinue){
-												
-						break;
+					DiskManagerDataQueueItemImpl	item;
+					
+					synchronized( readQueue ){
+						
+						if ( !bReadContinue){
+													
+							break;
+						}
+					
+						item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 					}
-				
-					item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
-				}
-
-				DiskManagerRequest request = item.getRequest();
-
-					// temporary fix for bug 784306
-				ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-				if (buffer != null) {
-					item.setBuffer(buffer);
-				} else {
-				  item.setLoading(false);
-				  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
-				      item.getRequest().getPieceNumber() + ":" +
-				  		item.getRequest().getOffset() + "->" +
-				  		(item.getRequest().getOffset() + item.getRequest().getLength()));
-				  System.out.println("Read Error");
+	
+					DiskManagerRequest request = item.getRequest();
+	
+						// temporary fix for bug 784306
+					ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+					if (buffer != null) {
+						item.setBuffer(buffer);
+					} else {
+					  item.setLoading(false);
+					  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
+					      item.getRequest().getPieceNumber() + ":" +
+					  		item.getRequest().getOffset() + "->" +
+					  		(item.getRequest().getOffset() + item.getRequest().getLength()));
+					  System.out.println("Read Error");
+					}
 				}
         
-				if (readQueue.isEmpty()) {
-          try { Thread.sleep(3000); } catch (Exception ignore) {}
-        }
-        
+				/*
+				if (readQueue.isEmpty()){
+					
+					try { Thread.sleep(3000); } catch (Exception ignore) {}
+				}
+				*/
 			}
 		}
 
@@ -665,79 +672,83 @@ DiskManagerImpl
 
 		public void run() 
 		{
-			while (true){
+			while (bWriteContinue){
 				
-				writeCheckQueueSem.reserve();
+				int	entry_count = writeCheckQueueSem.reserveSet( 64 );
 				
-				QueueElement	elt;
-				boolean			elt_is_write;
-				
-				synchronized( writeCheckQueueLock ){
+				for (int i=0;i<entry_count;i++){
 					
-					if ( !bWriteContinue){
-													
-						break;
+					QueueElement	elt;
+					boolean			elt_is_write;
+					
+					synchronized( writeCheckQueueLock ){
+						
+						if ( !bWriteContinue){
+														
+							break;
+						}
+						
+						if ( writeQueue.size() > checkQueue.size()){
+							
+							elt	= (QueueElement)writeQueue.remove(0);
+							
+							elt_is_write	= true;
+						}else{
+							
+							elt	= (QueueElement)checkQueue.remove(0);
+							
+							elt_is_write	= false;
+						}
 					}
-					
-					if ( writeQueue.size() > checkQueue.size()){
+	
+					if ( elt_is_write ){
 						
-						elt	= (QueueElement)writeQueue.remove(0);
+							//Do not allow to write in a piece marked as done.
 						
-						elt_is_write	= true;
+						int pieceNumber = elt.getPieceNumber();
+						
+						if(!pieceDone[pieceNumber]){
+							
+						  dumpBlockToDisk(elt);
+						  
+						  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+						  
+						}else{
+							
+						  DirectByteBufferPool.freeBuffer(elt.getData());
+						  
+						  elt.data = null;
+						}
+						
 					}else{
 						
-						elt	= (QueueElement)checkQueue.remove(0);
+					  boolean correct = checkPiece(elt.getPieceNumber());
 						
-						elt_is_write	= false;
-					}
-				}
-
-				if ( elt_is_write ){
-					
-						//Do not allow to write in a piece marked as done.
-					
-					int pieceNumber = elt.getPieceNumber();
-					
-					if(!pieceDone[pieceNumber]){
-						
-					  dumpBlockToDisk(elt);
-					  
-					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
-					  
-					}else{
-						
-					  DirectByteBufferPool.freeBuffer(elt.getData());
-					  
-					  elt.data = null;
-					}
-					
-				}else{
-					
-				  boolean correct = checkPiece(elt.getPieceNumber());
-					
-				  if(!correct){
-				  	
-				    MD5CheckPiece(elt.getPieceNumber(),false);
-				    
-				    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-				    
-				  }else{
-				  	
-				    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-				    
-				    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())){
-				    	
-				      MD5CheckPiece(elt.getPieceNumber(),true);
-				    }
+					  if(!correct){
+					  	
+					    MD5CheckPiece(elt.getPieceNumber(),false);
+					    
+					    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+					    
+					  }else{
+					  	
+					    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+					    
+					    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())){
+					    	
+					      MD5CheckPiece(elt.getPieceNumber(),true);
+					    }
+					  }
+	
+					  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
 				  }
-
-				  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
-			  }
+				}
         
-        if (writeQueue.isEmpty() && checkQueue.isEmpty()) {
-          try { Thread.sleep(3000); } catch (Exception ignore) {}
-        }
-        
+				/*
+				if (writeQueue.isEmpty() && checkQueue.isEmpty()) {
+					try { Thread.sleep(3000); } catch (Exception ignore) {}
+				}
+				*/
 			}
 		}
 

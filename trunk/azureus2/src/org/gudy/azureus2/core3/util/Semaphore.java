@@ -61,11 +61,26 @@ Semaphore
 	reserve(
 		long	millis )
 	{
+		return( reserveSupport( millis, 1 ) == 1 );
+	}
+	
+	public int
+	reserveSet(
+		int	max_to_reserve )
+	{
+		return( reserveSupport( 0, max_to_reserve));
+	}
+	
+	protected int
+	reserveSupport(
+		long	millis,
+		int		max_to_reserve )
+	{
 		synchronized(this){
 
 			if ( released_forever ){
 
-				return(true);
+				return(1);
 			}
 
 			if ( dont_wait == 0 ){
@@ -86,12 +101,12 @@ Semaphore
 							
 						waiting--;
 						
-						return( false );
+						return( 0 );
 					}
 						
 					total_reserve++;
 
-					return( true );
+					return( 1 );
 
 				}catch( Throwable e ){
 
@@ -102,11 +117,13 @@ Semaphore
 					throw( new RuntimeException("Semaphore: operation interrupted" ));
 				}
 			}else{
-				dont_wait--;
-
-				total_reserve++;
+				int	num_to_get = max_to_reserve>dont_wait?dont_wait:max_to_reserve;
 				
-				return( true );
+				dont_wait -= num_to_get;
+
+				total_reserve += num_to_get;
+				
+				return( num_to_get );
 			}
 		}
 	}
