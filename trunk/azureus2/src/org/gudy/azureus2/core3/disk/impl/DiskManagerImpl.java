@@ -62,7 +62,7 @@ DiskManagerImpl
 	implements DiskManager, ParameterListener 
 {  
   
-	private int state;
+	private int state_set_via_method;
 	private String errorMessage = "";
 
 	private int pieceLength;
@@ -118,7 +118,7 @@ DiskManagerImpl
   private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
-		this.state = INITIALIZING;
+		setState( INITIALIZING );
 		this.percentDone = 0;
 		this.torrent = _torrent;
       this.path = path;
@@ -137,7 +137,7 @@ DiskManagerImpl
     Thread init = new Thread() {
 			public void run() {
 				initialize();
-				if (state == DiskManager.FAULTY) {
+				if (getState() == DiskManager.FAULTY) {
 					stopIt();
 				}
 			}
@@ -182,12 +182,12 @@ DiskManagerImpl
 			  path = f.getParent();
 			}
 		}catch( TOTorrentException e ){
-			this.state = FAULTY;
 			this.errorMessage = TorrentUtils.exceptionToText(e);
+			setState( FAULTY );
 			return;
 		}catch( UnsupportedEncodingException e ){
-			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
+			setState( FAULTY );
 			return;
 		}
       
@@ -220,8 +220,8 @@ DiskManagerImpl
             allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
         } catch (OutOfMemoryError ex) {
             System.out.println("Memory allocation failed: Out of direct memory space");
-            this.state = FAULTY;
             this.errorMessage = "Memory allocation failed: Out of direct memory space";
+            setState( FAULTY );
             return;
         }
     }
@@ -272,7 +272,7 @@ DiskManagerImpl
 
 			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
 
-			if (this.state == FAULTY)
+			if (getState() == FAULTY)
 				return;
 		}
 
@@ -286,7 +286,7 @@ DiskManagerImpl
       
 		int newFiles = this.allocateFiles(rootPath, btFileList);
       
-		if (this.state == FAULTY) return;
+		if (getState() == FAULTY) return;
     
       path = FileUtil.smartPath(path, fileName);
 
@@ -300,7 +300,7 @@ DiskManagerImpl
 		else if (newFiles != btFileList.size()) checkAllPieces(true);
     
 		//3.Change State   
-		state = READY;
+		setState( READY );
 	}
 
 	// no changes made here, just refactored the code out from initialize() - Moti
@@ -383,7 +383,7 @@ DiskManagerImpl
         	
 			long fileLength = buildFileLookupTable(torrent_files[i], btFileList, locale_decoder, separator);
 
-			if (this.state == FAULTY)
+			if (getState() == FAULTY)
 				return;
 
 			//increment the global length 
@@ -437,8 +437,8 @@ DiskManagerImpl
 					locale_decoder.decodeString(path_components[lastIndex]),
 					fileLength));
 		}catch( UnsupportedEncodingException e ){
-			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
+			setState( FAULTY );
 		}
  
 		return fileLength;
@@ -695,7 +695,7 @@ DiskManagerImpl
 	}
 
 	private int allocateFiles(String rootPath, List fileList) {
-		this.state = ALLOCATING;
+		setState( ALLOCATING );
 		allocated = 0;
 		int numNewFiles = 0;
 		String basePath = path + System.getProperty("file.separator") + rootPath;
@@ -746,7 +746,7 @@ DiskManagerImpl
 					  //and zero
 					  boolean ok = zeroFile(raf);
 					  if (!ok) {
-					    this.state = FAULTY;
+					    setState( FAULTY );
 					    return -1;
 					  }
 					}
@@ -760,8 +760,8 @@ DiskManagerImpl
 							raf.close();
 						}
 					} catch (IOException ex) { ex.printStackTrace(); }
-					this.state = FAULTY;
 					this.errorMessage = e.getMessage();
+					setState( FAULTY );
 					return -1;
 				}
         
@@ -770,8 +770,8 @@ DiskManagerImpl
 				try {
 					raf = new RandomAccessFile(f, "rwd");
 				} catch (FileNotFoundException e) {
-					this.state = FAULTY;
 					this.errorMessage = e.getMessage();
+					setState( FAULTY );
 					return -1;
 				}
 				allocated += length;
@@ -825,8 +825,8 @@ DiskManagerImpl
 		try {
 			length = file.length();
 		} catch (IOException e) {
-			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
+			setState( FAULTY );
 			return false;
 		}
 		long written = 0;
@@ -931,7 +931,7 @@ DiskManagerImpl
 		// RESUME DATA STUFF STARTS.....
 	
 	private void checkAllPieces(boolean newfiles) {
-		state = CHECKING;
+		setState( CHECKING );
 		int startPos = 0;
 		
 		boolean resumeEnabled = useFastResume;
@@ -1370,9 +1370,16 @@ DiskManagerImpl
 	}
 
 	public int getState() {
-		return state;
+		return state_set_via_method;
 	}
 
+	protected void
+	setState(
+		int		_state ) 
+	{
+		state_set_via_method = _state;
+	}
+	
 	public String getFileName() {
 		return fileName;
 	}
