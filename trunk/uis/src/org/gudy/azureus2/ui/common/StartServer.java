@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
@@ -56,20 +58,17 @@ public class StartServer extends Thread {
           if (line != null) {
             //            main.showMainWindow();
             StringTokenizer st = new StringTokenizer(line, ";");
-            if (st.countTokens() > 1) {
-              String args[] = new String[st.countTokens()];
-              String checker = st.nextToken();
+            List argsList = new ArrayList();
+            while( st.hasMoreElements() )
+              argsList.add(st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&"));
+            if (argsList.size() > 1 )
+            {
+              String checker = (String) argsList.remove(0);
               if (checker.equals(ACCESS_STRING)) {
-                int i = 0;
-                while (st.hasMoreElements()) {
-                  args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
-                }
-                if (args[0].equals("args")) {
-                  String newargs[] = new String[args.length - 1];
-                  if (args.length > 1) {
-                    for (int j = 1; j < args.length; j++)
-                      newargs[j - 1] = args[j];
-                  }
+                if (argsList.get(0).equals("args")) {
+                  argsList.remove(0);                  
+                  String newargs[] = new String[argsList.size()];
+                  argsList.toArray(newargs);
                   Main.processArgs(newargs, null, null);
                 } else {
                   Logger.getLogger("azureus2").error("Something strange was sent to the StartServer: " + line);
