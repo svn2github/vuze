@@ -117,7 +117,7 @@ PEPeerTransportProtocol
 		
 	private List dataQueue;
 	private boolean incoming;
-	private boolean closing;
+	private volatile boolean closing;
 	private PEPeerTransportProtocolState currentState;
 
 		//The maxUpload ...
@@ -1720,6 +1720,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	    		catch (ArrayIndexOutOfBoundsException e) {
 	    			//Keep going, most probably, piece removed...
 	    			//Hopefully we'll find it later :p
+            e.printStackTrace();
 	    		}
 	    	}
 	    }
@@ -1761,7 +1762,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  	try {
 			  		request = (DiskManagerRequest) requested.get(i);
 			  	}
-			  	catch (Exception e) {}
+			  	catch (Exception e) { e.printStackTrace(); }
 	        
 			  	if (request != null)
 			  		request.reSetTime();
