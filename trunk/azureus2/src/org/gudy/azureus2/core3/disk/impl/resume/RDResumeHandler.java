@@ -106,7 +106,9 @@ RDResumeHandler
 			disk_manager.setState( DiskManager.CHECKING );
 						
 			boolean resumeEnabled = useFastResume;
-			//disable fast resume if a new file was created
+			
+				//disable fast resume if a new file was created
+			
 			if (newfiles) resumeEnabled = false;
 			
 			boolean	resume_data_complete = false;
@@ -207,8 +209,7 @@ RDResumeHandler
 							
 							partialPieces = (Map)resumeDirectory.get("blocks");
 							
-							resumeValid = 	resumeArray != null &&
-											((Long)resumeDirectory.get("valid")).intValue() == 1;
+							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
 							
 								// if the torrent download is complete we don't need to invalidate the
 								// resume data
@@ -238,14 +239,23 @@ RDResumeHandler
 					}
 				}
 								
+				if ( resumeArray == null ){
+					
+					resumeValid	= false;
+				}
+				
 				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
 					
 					DiskManagerPiece	dm_piece	= pieces[i];
 					
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 					
-					if ( (!resumeValid) || resumeArray == null || resumeArray[i] == 0 ){
-													
+					if ( resumeValid ){
+						
+						dm_piece.setDone( resumeArray[i] == 1 );
+						
+					}else{								
+						
 						pending_check_num++;
 						
 						writer_and_checker.checkPiece(
@@ -262,9 +272,6 @@ RDResumeHandler
 								}
 							},
 							null );
-					}else{
-										
-						dm_piece.setDone(true);
 					}
 				}
 					
