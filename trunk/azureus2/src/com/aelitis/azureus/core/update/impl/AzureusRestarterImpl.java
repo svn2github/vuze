@@ -22,14 +22,14 @@
 package com.aelitis.azureus.core.update.impl;
 
 import java.io.*;
+import java.util.Properties;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.update.AzureusRestarter;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class 
@@ -39,7 +39,8 @@ AzureusRestarterImpl
 	private static final String MAIN_CLASS 		= "org.gudy.azureus2.update.Updater";
 	private static final String UPDATER_JAR 	= "Updater.jar";
   
-  
+	public static final String		UPDATE_PROPERTIES	= "update.properties";
+
 	protected AzureusCore	azureus_core;
 	protected String		classpath_prefix;
 	
@@ -89,11 +90,43 @@ AzureusRestarterImpl
 	  	}
 	  	
 	  	String[]	parameters = {
-	  			"restart",
+	  			update_only?"updateonly":"restart",
 	  			app_path,
 	  			user_path,
 				config_override,
 	  	};
+	  	
+	  	FileOutputStream	fos	= null;
+	  	
+	  	try{
+	  		Properties	restart_properties = new Properties();
+	  	
+	  		long	max_mem = Runtime.getRuntime().maxMemory();
+	  			  			  			
+	  		restart_properties.put( "max_mem", ""+max_mem );
+	  		
+	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
+	  		
+	  		restart_properties.store(fos, "Azureus restart properties" );
+	  		
+	  	}catch( Throwable e ){
+	  		
+	  		Debug.printStackTrace( e );
+	  		
+	  	}finally{
+	  		
+	  		if ( fos != null ){
+	  			
+	  			try{
+	  				
+	  				fos.close();
+	  				
+	  			}catch( Throwable e ){
+	  				
+	  				Debug.printStackTrace(e);
+	  			}
+	  		}
+	  	}
 	  	
 	  	String[]	properties = { "-Duser.dir=\"" + app_path + "\"" };
 	  	
