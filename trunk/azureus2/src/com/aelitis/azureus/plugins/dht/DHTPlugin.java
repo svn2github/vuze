@@ -36,11 +36,14 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
 
 /**
  * @author parg
@@ -168,9 +171,31 @@ DHTPlugin
 					try{
 						int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 						
-						DHTTransportUDP transport = DHTTransportFactory.createUDP( port, 5, 30000,log );
+						final DHTTransportUDP transport = DHTTransportFactory.createUDP( port, 5, 10000, log );
 						
-						dht = DHTFactory.create( transport, new Properties(), log );
+						plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
+								10000,
+								new UTTimerEventPerformer()
+								{
+									public void
+									perform(
+										UTTimerEvent		event )
+									{
+										DHTTransportUDPStats stats = (DHTTransportUDPStats)transport.getStats();
+										
+										log.log( "Stats" + 
+													":ps=" + stats.getPacketsSent() +
+													",pr=" +stats.getPacketsReceived() +
+													",bs=" +stats.getBytesSent() +
+													",br=" + stats.getBytesReceived());
+									}
+								});
+						
+						Properties	props = new Properties();
+						
+						// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
+						
+						dht = DHTFactory.create( transport, props, log );
 						
 						transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
 						

@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandler;
 import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 import com.aelitis.net.udp.PRUDPPacketReceiver;
 import com.aelitis.net.udp.PRUDPPacketReply;
 import com.aelitis.net.udp.PRUDPPacketRequest;
@@ -53,7 +54,8 @@ PRUDPPacketHandlerImpl
 	
 	private PRUDPRequestHandler	request_handler;
 	
-	private long		last_timeout_check;
+	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl();
+	
 	
 	private Map			requests = new HashMap();
 	private AEMonitor	requests_mon	= new AEMonitor( "PRUDPPH:req" );
@@ -225,6 +227,8 @@ PRUDPPacketHandlerImpl
 				
 					it.remove();
 
+					stats.requestTimedOut();
+					
 					timed_out.add( request );
 				}
 			}
@@ -262,10 +266,13 @@ PRUDPPacketHandlerImpl
 				// always has the MSB clear, we can use this to differentiate. 
 			
 			byte[]	packet_data = dg_packet.getData();
+			int		packet_len	= dg_packet.getLength();
 			
 			PRUDPPacket packet;
 			
 			boolean	request_packet;
+						
+			stats.packetReceived(packet_len);
 			
 			if ( ( packet_data[0]&0x80 ) == 0 ){
 				
@@ -273,7 +280,7 @@ PRUDPPacketHandlerImpl
 				
 				packet = PRUDPPacketReply.deserialiseReply( 
 					this,
-					new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
+					new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet_len)));
 				
 			}else{
 				
@@ -281,7 +288,7 @@ PRUDPPacketHandlerImpl
 				
 				packet = PRUDPPacketRequest.deserialiseRequest( 
 						this,
-						new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
+						new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet_len)));
 		
 			}
 			
@@ -446,6 +453,8 @@ PRUDPPacketHandlerImpl
 			try{
 				socket.send( packet );
 					
+				stats.packetSent( buffer.length );
+				
 					// if the send is ok then the request will be removed from the queue
 					// either when a reply comes back or when it gets timed-out
 				
@@ -499,11 +508,19 @@ PRUDPPacketHandlerImpl
 			
 			socket.send( packet );
 			
+			stats.packetSent( buffer.length );
+			
 		}catch( Throwable e ){
 			
 			LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:send failed", e ));
 		}
+	}
+	
+	public PRUDPPacketHandlerStats
+	getStats()
+	{
+		return( stats );
 	}
 }

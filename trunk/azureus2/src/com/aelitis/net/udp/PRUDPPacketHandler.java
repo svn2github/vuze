@@ -81,4 +81,7 @@ PRUDPPacketHandler
 	
 	public PRUDPRequestHandler
 	getRequestHandler();
+	
+	public PRUDPPacketHandlerStats
+	getStats();
 }

@@ -79,7 +79,7 @@ DHTTransportUDPImpl
 	private List listeners	= new ArrayList();
 	
 	
-	private DHTTransportStatsImpl	stats = new DHTTransportStatsImpl();
+	private DHTTransportUDPStatsImpl	stats;
 
 		// TODO: secure enough?
 	
@@ -104,6 +104,7 @@ DHTTransportUDPImpl
 		
 		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
 
+		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
 		InetSocketAddress	address = 
 			new InetSocketAddress( getExternalAddress(false,"127.0.0.1", logger), port );
@@ -148,114 +149,125 @@ DHTTransportUDPImpl
 		}
 	}
 	
-	protected static synchronized String
+	protected String
 	getExternalAddress(
 		boolean				force,
 		String				default_address,
 		final LoggerChannel	log )
 	{
-		if ( force || external_address == null ){
-			
-			external_address = null;
-			
-			if ( TEST_EXTERNAL_IP ){
-				
-				external_address	= "192.168.0.2";
-				
-				return( external_address );
-			}
-			
-			try{
-				String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
-				
-				if ( vc_ip != null && vc_ip.length() > 0 ){
-					
-					log.log( "External IP address obtained from version-check: " + vc_ip );
-					
-					external_address	= vc_ip;
-					
-				}else{
-					
-					ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
-					
-					ExternalIPCheckerService[]	services = checker.getServices();
-					
-					final String[]	ip = new String[]{ null };
-					
-					for (int i=0;i<services.length && ip[0] == null;i++){
-						
-						final ExternalIPCheckerService	service = services[i];
-						
-						if ( service.supportsCheck()){
+			// class level synchronisation is for testing purposes when running multiple UDP instances
+			// in the same VM
 		
-							final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
+		synchronized( DHTTransportUDPImpl.class ){
+			
+	
+			if ( force || external_address == null ){
+				
+				external_address = null;
+				
+				if ( TEST_EXTERNAL_IP ){
+					
+					external_address	= "192.168.0.2";
+					
+					return( external_address );
+				}
+				
+				try{
+						// First attempt is via other contacts we know about. Select three
+					
+					
+					
+					String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
+					
+					if ( vc_ip != null && vc_ip.length() > 0 ){
+						
+						log.log( "External IP address obtained from version-check: " + vc_ip );
+						
+						external_address	= vc_ip;
+						
+					}else{
+						
+						ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
+						
+						ExternalIPCheckerService[]	services = checker.getServices();
+						
+						final String[]	ip = new String[]{ null };
+						
+						for (int i=0;i<services.length && ip[0] == null;i++){
 							
-							ExternalIPCheckerServiceListener	listener = 
-								new ExternalIPCheckerServiceListener()
-								{
-									public void
-									checkComplete(
-										ExternalIPCheckerService	_service,
-										String						_ip )
-									{
-										log.log( "External IP address obtained from " + service.getName() + ": " + _ip );
-
-										ip[0]	= _ip;
-										
-										sem.release();
-									}
-										
-									public void
-									checkFailed(
-										ExternalIPCheckerService	_service,
-										String						_reason )
-									{
-										sem.release();
-									}
-										
-									public void
-									reportProgress(
-										ExternalIPCheckerService	_service,
-										String						_message )
-									{
-									}
-								};
-								
-							services[i].addListener( listener );
+							final ExternalIPCheckerService	service = services[i];
 							
-							try{
+							if ( service.supportsCheck()){
+			
+								final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
 								
-								services[i].initiateCheck( 60000 );
+								ExternalIPCheckerServiceListener	listener = 
+									new ExternalIPCheckerServiceListener()
+									{
+										public void
+										checkComplete(
+											ExternalIPCheckerService	_service,
+											String						_ip )
+										{
+											log.log( "External IP address obtained from " + service.getName() + ": " + _ip );
+	
+											ip[0]	= _ip;
+											
+											sem.release();
+										}
+											
+										public void
+										checkFailed(
+											ExternalIPCheckerService	_service,
+											String						_reason )
+										{
+											sem.release();
+										}
+											
+										public void
+										reportProgress(
+											ExternalIPCheckerService	_service,
+											String						_message )
+										{
+										}
+									};
+									
+								services[i].addListener( listener );
 								
-								sem.reserve( 60000 );
-								
-							}finally{
-								
-								services[i].removeListener( listener );
+								try{
+									
+									services[i].initiateCheck( 60000 );
+									
+									sem.reserve( 60000 );
+									
+								}finally{
+									
+									services[i].removeListener( listener );
+								}
 							}
+						}
+						
+						if ( ip[0] != null ){
+							
+							external_address	= ip[0];
 						}
 					}
 					
-					if ( ip[0] != null ){
-						
-						external_address	= ip[0];
-					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
 				}
 				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+				if ( external_address == null ){
+					
+					external_address =	default_address;
+					
+					log.log( "External IP address defaulted:  " + default_address );
+				}
 			}
 			
-			if ( external_address == null ){
-				
-				external_address =	default_address;
-				
-				log.log( "External IP address defaulted:  " + default_address );
-			}
+			return( external_address );
 		}
-		
-		return( external_address );
 	}
 	
 	protected synchronized boolean
@@ -348,6 +360,13 @@ DHTTransportUDPImpl
 		}
 		
 		return( true );
+	}
+	
+	protected void
+	contactAlive(
+		DHTTransportUDPContactImpl	contact )
+	{
+		
 	}
 	
 	protected int
@@ -911,6 +930,8 @@ DHTTransportUDPImpl
 
 			}else{
 				
+				contactAlive( originating_contact );
+				
 				if ( request instanceof DHTUDPPacketRequestPing ){
 					
 					request_handler.pingRequest( originating_contact );
@@ -1049,6 +1070,8 @@ DHTTransportUDPImpl
 			}
 			
 		}else{
+			
+			contactAlive( contact );
 			
 			return( false );
 		}

@@ -395,7 +395,7 @@ DHTRouterNodeImpl
 			return( Long.MAX_VALUE );
 		}
 		
-		return( last_lookup_time );
+		return( now - last_lookup_time );
 	}
 	
 	protected void
@@ -416,7 +416,8 @@ DHTRouterNodeImpl
 					": buckets = " + buckets.size() + contactsToString( buckets) + 
 					", replacements = " + (replacements==null?"null":( replacements.size() + contactsToString( replacements ))) + 
 					(contains_router_node_id?" *":" ") +
-					(this==router.getSmallestSubtree()?"SST":""));
+					(this==router.getSmallestSubtree()?"SST":"") +
+					" tsll=" + getTimeSinceLastLookup());
 			
 		}else{
 			
