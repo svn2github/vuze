@@ -116,6 +116,7 @@ public class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeds");
 
+    // Share Ratio
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
     gridData = new GridData();
@@ -124,6 +125,32 @@ public class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
     label = new Label(cIgnore, SWT.NULL);
     label.setText(":1");
 
+    cArea = new Composite(cIgnore, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    layout.marginWidth = 0;
+    layout.marginHeight = 0;
+    cArea.setLayout(layout);
+    gridData = new GridData();
+    gridData.horizontalIndent = 15;
+    gridData.horizontalSpan = 3;
+    cArea.setLayoutData(gridData);
+
+    label = new Label(cArea, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    label.setImage(img);
+
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
+
+    gridData = new GridData();
+    gridData.widthHint = 20;
+    new IntParameter(cArea, "StartStopManager_iIgnoreShareRatioSeedStart").setLayoutData(gridData);
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.seeds");
+
+    // Ignore 0 Peers
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     new BooleanParameter(cIgnore,

@@ -106,6 +106,7 @@ public class StartStopRulesDefaultPlugin
   // Ignore even when First Priority
   boolean bIgnore0Peers;
   int     iIgnoreShareRatio;
+  int iIgnoreShareRatio_SeedStart;
   int     iIgnoreRatioPeers;
   int iIgnoreRatioPeers_SeedStart;
 
@@ -397,6 +398,7 @@ public class StartStopRulesDefaultPlugin
     iIgnoreSeedCount = plugin_config.getIntParameter("StartStopManager_iIgnoreSeedCount");
     bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
     iIgnoreShareRatio = (int)(1000 * plugin_config.getFloatParameter("Stop Ratio"));
+    iIgnoreShareRatio_SeedStart = plugin_config.getIntParameter("StartStopManager_iIgnoreShareRatioSeedStart");
     iIgnoreRatioPeers = plugin_config.getIntParameter("Stop Peers Ratio", 0);
     iIgnoreRatioPeers_SeedStart = plugin_config.getIntParameter("StartStopManager_iIgnoreRatioPeersSeedStart", 0);
 
@@ -408,7 +410,7 @@ public class StartStopRulesDefaultPlugin
     bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
 
 
-    if (iNewRankType != iRankType || iIgnoreShareRatio != iOldIgnoreShareRatio) {
+    if (iNewRankType != iRankType) {
       iRankType = iNewRankType;
       
       // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
@@ -436,8 +438,6 @@ public class StartStopRulesDefaultPlugin
 
   protected synchronized void process() {
     long  process_time = SystemTime.getCurrentTime();
-
-    // TODO: change variables to use "stalled" count instead of "active" count
 
     // total Forced Seeding doesn't include stalled torrents
     int totalForcedSeeding = 0;
@@ -812,10 +812,12 @@ public class StartStopRulesDefaultPlugin
         // If torrent maches criteria, the SeedingRank will be <= -2 and will be
         // stopped later in the code
         if (okToQueue) {
+          int numSeeds = calcSeedsNoUs(download);
           // ignore when Share Ratio reaches # in config
           //0 means unlimited
           if (iIgnoreShareRatio != 0 && 
               shareRatio > iIgnoreShareRatio && 
+              numSeeds >= iIgnoreShareRatio_SeedStart &&
               shareRatio != -1 &&
               dlData.getSeedingRank() != SR_SHARERATIOMET) 
           {
@@ -828,7 +830,6 @@ public class StartStopRulesDefaultPlugin
           if (iIgnoreRatioPeers != 0 && 
               dlData.getSeedingRank() != SR_RATIOMET) 
           {
-            int numSeeds = calcSeedsNoUs(download);
             if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
                 numSeeds += numPeers / numPeersAsFullCopy;
             //If there are no seeds, avoid / by 0
@@ -1246,6 +1247,7 @@ public class StartStopRulesDefaultPlugin
 
         if (iIgnoreShareRatio != 0 && 
             shareRatio > iIgnoreShareRatio && 
+            numSeeds >= iIgnoreShareRatio_SeedStart &&
             shareRatio != -1) {
           setSeedingRank(SR_SHARERATIOMET);
           return sr;
