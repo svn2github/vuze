@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -781,12 +782,20 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   	try{
   		this_mon.enter();
   	
+  		final int[] available;
+  		
+  		PEPeerManager	pm = manager.getPeerManager();
+  		
 	    if (manager.getPeerManager() == null) {
 	      if (availabilityPercent.getText() != "")
+	      	
 	        availabilityPercent.setText("");
-	      return;
+	    
+	      	available	= new int[manager.getNbPieces()];
+	    }else{
+	    	available	= pm.getAvailability();
 	    }
-	    final int[] available = manager.getPeerManager().getAvailability();
+	    
 	    if (display == null || display.isDisposed())
 	      return;
 	
@@ -913,55 +922,37 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
 	    boolean valid = !bForce;
 	    
-	    if (valid) {
-	    	
-	      if (dm == null){
+        boolean[] new_pieces = new boolean[manager.getNbPieces()];
+	        	
+	    if ( dm != null ){
+	      		      	
+	      	DiskManagerPiece[]	dm_pieces = dm.getPieces();
 	      	
-	        pieces = new boolean[manager.getNbPieces()];
-	        
-	      }else{
-	      	DiskManagerPiece[]	new_pieces = dm.getPieces();
-	      	
-	      	if (pieces == null ){
-	      		 pieces = new boolean[new_pieces.length];
-	      		 
-	      		 for (int i=0;i<pieces.length;i++){
+	 		for (int i=0;i<pieces.length;i++){
 	      		 	
-	      		 	pieces[i] = new_pieces[i].getDone();
-	      		 }
-	      		 valid = false;
-	      	}else{
-		        for (int i = 0; i < pieces.length; i++) {
-		          if (pieces[i] != new_pieces[i].getDone()) {
-		            valid = false;
-		            pieces[i] = new_pieces[i].getDone();
-		          }
-		        }
-	      	}
-	      }
-	    } else {
-	      // clone so it doesn't auto-update..
-	      try {
-		      if (dm == null){
-		      	
-		        pieces = new boolean[manager.getNbPieces()];
-		        
-		      }else{
-		      	DiskManagerPiece[]	new_pieces = dm.getPieces();
-		      	
-	      		 pieces = new boolean[new_pieces.length];
-		      		 
-	      		 for (int i=0;i<pieces.length;i++){
-	      		 	
-	      		 	pieces[i] = new_pieces[i].getDone();
-	      		 }
-		      }
-	      } catch (Exception e) {
-	      	Debug.printStackTrace( e );
-	        pieces = null;
-	      }
+	 			new_pieces[i] = dm_pieces[i].getDone();
+	       }
 	    }
-	
+
+	    if ( pieces == null ){
+	    	
+	    	valid	= false;
+	    	
+	    }else{
+	    	
+		    for (int i = 0; i < pieces.length; i++) {
+		    
+		    	if (pieces[i] != new_pieces[i]){
+		    		
+		            valid = false;
+		            
+		            break;
+		        }
+		    }
+	    }
+
+	    pieces	= new_pieces;
+	    
 	    if (!valid) {
 	      Rectangle bounds = piecesImage.getClientArea();
 	      GC gc = new GC(piecesImage);
@@ -1003,8 +994,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	        }
 	  
 	        total = (total * 1000) / nbPieces;
-	      } else {
-	        total = manager.getStats().getDownloadCompleted(true);
+	      }
+	      
+	      	// no dm -> all pieces false -> total is not correct in above code
+	      	// so grab value from stats (download is in stopped state)
+	      
+	      if ( dm == null ){
+	      	
+	        total = manager.getStats().getDownloadCompleted(true);	
 	      }
 	      
 	      // draw file % bar above
