@@ -1,6 +1,6 @@
 /*
- * File    : Utilities.java
- * Created : 24-Mar-2004
+ * File    : LocaleDecoder.java
+ * Created : 30-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -26,25 +26,13 @@ package org.gudy.azureus2.plugins.utils;
  *
  */
 
-import java.nio.ByteBuffer;
-
 public interface 
-Utilities 
+LocaleDecoder 
 {
-	public Semaphore
-	getSemaphore();
+	public String
+	getName();
 	
-	public ByteBuffer
-	allocateDirectByteBuffer(
-		int		size );
-	
-	public void
-	freeDirectByteBuffer(
-		ByteBuffer	buffer );
-	
-	public Formatters
-	getFormatters();
-	
-	public LocaleUtilities
-	getLocaleUtilities();
+	public String
+	decode(
+		byte[]		encoded_bytes );
 }

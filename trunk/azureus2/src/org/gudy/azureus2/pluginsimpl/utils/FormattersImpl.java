@@ -1,6 +1,6 @@
 /*
- * File    : Utilities.java
- * Created : 24-Mar-2004
+ * File    : FormattersImpl.java
+ * Created : 30-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,32 +19,47 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.utils;
+package org.gudy.azureus2.pluginsimpl.utils;
 
 /**
  * @author parg
  *
  */
 
-import java.nio.ByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 
-public interface 
-Utilities 
+import org.gudy.azureus2.plugins.utils.*;
+
+public class 
+FormattersImpl
+	implements Formatters
 {
-	public Semaphore
-	getSemaphore();
+	public String
+	formatByteCountToKiBEtc(
+		long		bytes )
+	{
+		return( DisplayFormatters.formatByteCountToKiBEtc( bytes ));
+	}
 	
-	public ByteBuffer
-	allocateDirectByteBuffer(
-		int		size );
+	public String
+	formatByteCountToKiBEtcPerSec(
+		long		bytes )
+	{
+		return( DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes ));
+	}
+
+	public String
+	formatPercentFromThousands(
+		long		thousands )
+	{
+		return( DisplayFormatters.formatPercentFromThousands( (int)thousands ));
+	}
 	
-	public void
-	freeDirectByteBuffer(
-		ByteBuffer	buffer );
-	
-	public Formatters
-	getFormatters();
-	
-	public LocaleUtilities
-	getLocaleUtilities();
+	public String
+	formatByteArray(
+		byte[]		data,
+		boolean		no_spaces )
+	{
+		return( ByteFormatter.nicePrint( data, no_spaces ));
+	}
 }

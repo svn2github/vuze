@@ -1,6 +1,6 @@
 /*
- * File    : Utilities.java
- * Created : 24-Mar-2004
+ * File    : Formatter.java
+ * Created : 30-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,26 +25,23 @@ package org.gudy.azureus2.plugins.utils;
  * @author parg
  *
  */
-
-import java.nio.ByteBuffer;
-
 public interface 
-Utilities 
+Formatters 
 {
-	public Semaphore
-	getSemaphore();
+	public String
+	formatByteCountToKiBEtc(
+		long		bytes );
 	
-	public ByteBuffer
-	allocateDirectByteBuffer(
-		int		size );
+	public String
+	formatByteCountToKiBEtcPerSec(
+		long		bytes );
+
+	public String
+	formatPercentFromThousands(
+		long		thousands );
 	
-	public void
-	freeDirectByteBuffer(
-		ByteBuffer	buffer );
-	
-	public Formatters
-	getFormatters();
-	
-	public LocaleUtilities
-	getLocaleUtilities();
+	public String
+	formatByteArray(
+		byte[]		data,
+		boolean		no_spaces );
 }

@@ -55,4 +55,16 @@ UtilitiesImpl
 	{
 		DirectByteBufferPool.freeBuffer( buffer );
 	}
+	
+	public Formatters
+	getFormatters()
+	{
+		return( new FormattersImpl());
+	}
+	
+	public LocaleUtilities
+	getLocaleUtilities()
+	{
+		return( new LocaleUtilitiesImpl());
+	}
 }

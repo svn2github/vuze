@@ -1,6 +1,6 @@
 /*
- * File    : Utilities.java
- * Created : 24-Mar-2004
+ * File    : LocaleDecoderImpl.java
+ * Created : 30-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,32 +19,50 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.utils;
+package org.gudy.azureus2.pluginsimpl.utils;
 
 /**
  * @author parg
  *
  */
 
-import java.nio.ByteBuffer;
+import java.io.UnsupportedEncodingException;
 
-public interface 
-Utilities 
-{
-	public Semaphore
-	getSemaphore();
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+
+import org.gudy.azureus2.plugins.utils.*;
+
+public class 
+LocaleDecoderImpl
+	implements LocaleDecoder
+{	
+	LocaleUtilDecoder		decoder;
 	
-	public ByteBuffer
-	allocateDirectByteBuffer(
-		int		size );
+	protected
+	LocaleDecoderImpl(
+		LocaleUtilDecoder		_decoder )
+	{
+		decoder	= _decoder;
+	}
 	
-	public void
-	freeDirectByteBuffer(
-		ByteBuffer	buffer );
+	public String
+	getName()
+	{
+		return( decoder.getName());
+	}
 	
-	public Formatters
-	getFormatters();
-	
-	public LocaleUtilities
-	getLocaleUtilities();
+	public String
+	decode(
+		byte[]		encoded_bytes )
+	{
+		try{
+			return( decoder.decodeString( encoded_bytes ));
+			
+		}catch( UnsupportedEncodingException	e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
+	}
 }
