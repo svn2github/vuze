@@ -121,6 +121,8 @@ UpdateCheckerImpl
 				}
 			}
 			
+			sem_released	= true;
+			
 			semaphore.release();
 		}
 	}
@@ -143,6 +145,8 @@ UpdateCheckerImpl
 				}
 			}
 
+			sem_released	= true;
+			
 			semaphore.release();
 		}		
 	}
@@ -164,19 +168,29 @@ UpdateCheckerImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	addListener(
 		UpdateCheckerListener	l )
 	{
 		listeners.add( l );
 		
+		if ( failed ){
+			
+			l.failed( this );
+			
+		}else if ( completed ){
+			
+			l.completed( this );
+		}
+		
 		if ( cancelled ){
 			
 			l.cancelled( this );
+			
 		}
 	}
 	
-	public void
+	public synchronized void
 	removeListener(
 		UpdateCheckerListener	l )
 	{
