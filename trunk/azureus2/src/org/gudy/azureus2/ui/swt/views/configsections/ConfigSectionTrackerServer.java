@@ -474,8 +474,7 @@ ConfigSectionTrackerServer
     label.setLayoutData( gridData );
 
     IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
-    maxGetTime.setMinimumValue(1);
-
+ 
     gridData = new GridData();
     gridData.widthHint = 50;
     maxGetTime.setLayoutData( gridData );
