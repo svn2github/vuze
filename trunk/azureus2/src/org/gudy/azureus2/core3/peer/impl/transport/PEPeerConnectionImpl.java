@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer.impl.transport.base;
+package org.gudy.azureus2.core3.peer.impl.transport;
 
 /**
  * @author parg
@@ -51,15 +51,6 @@ PEPeerConnectionImpl
 
 	protected boolean[] available;
 	protected boolean seed;
-
-	/**
-	 * @param manager
-	 * @param ip
-	 * @param port
-	 */
-	public PEPeerConnectionImpl(PEPeerControl manager, String ip, int port) {
-	  super(manager, ip, port);
-	}
 
 	/**
 	 * @param manager

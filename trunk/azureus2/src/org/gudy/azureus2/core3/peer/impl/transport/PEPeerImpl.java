@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer.impl.transport.base;
+package org.gudy.azureus2.core3.peer.impl.transport;
 
 /**
  * @author parg
@@ -38,16 +38,11 @@ PEPeerImpl
 	String ip;
 	int port;
 
-	public PEPeerImpl(PEPeerControl manager, String ip, int port) {
-	  this.manager = manager;
-	  this.ip = ip;
-	  this.port = port;
-	  this.id = null;
-	}
-
 	public PEPeerImpl(PEPeerControl manager, byte[] id, String ip, int port) {
-	  this(manager, ip, port);
-	  this.id = id;
+		this.manager = manager;
+		this.ip = ip;
+		this.port = port;
+	 	this.id = id;
 	}
 
 

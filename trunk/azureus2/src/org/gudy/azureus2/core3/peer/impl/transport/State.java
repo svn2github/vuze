@@ -23,7 +23,7 @@
  * Created on 4 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.peer.impl.transport.base;
+package org.gudy.azureus2.core3.peer.impl.transport;
 
 /**
  * @author Olivier
