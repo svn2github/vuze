@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -68,7 +67,7 @@ public class ConsoleInput extends Thread {
 	private final static List pluginCommands = new ArrayList();
 	private final Map commands = new LinkedHashMap();
 	private final List helpItems = new ArrayList();
-	private final List extraHelpItems = new ArrayList();
+	private final List extraHelpItems = new ArrayList();	
 	/**
 	 * can be used by plugins to register console commands since they may not have access o
 	 * each ConsoleInput object that is created.
@@ -105,7 +104,7 @@ public class ConsoleInput extends Thread {
 		azureus_core	= _azureus_core;
 		gm  			= _azureus_core.getGlobalManager();
 		controlling = _controlling.booleanValue();
-		br = new CommandReader(_in, new OutputStreamWriter(_out));
+		br = new CommandReader(_in);
 		start();
 	}
 
@@ -352,10 +351,12 @@ public class ConsoleInput extends Thread {
 		}
 	}
 
-	public boolean invokeCommand(String command, Vector cargs) {
+	public boolean invokeCommand(String command, List cargs) {		
 		if (commands.containsKey(command)) {
 			IConsoleCommand cmd = (IConsoleCommand) commands.get(command);
 			try {
+				if( cargs == null )
+					cargs = new ArrayList();
 				cmd.execute(command, this, cargs);
 				return true;
 			} catch (Exception e)
@@ -378,7 +379,7 @@ public class ConsoleInput extends Thread {
 			} catch (Exception e) {
 				running = false;
 			}
-			if ((comargs != null) && (!comargs.isEmpty())) {
+			if (!comargs.isEmpty()) {
 				command = (String) comargs.get(0);
 				if (oldcommand != null) {
 					if (command.equals("."))
