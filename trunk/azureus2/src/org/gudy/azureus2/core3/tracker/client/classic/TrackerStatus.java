@@ -169,9 +169,9 @@ public class TrackerStatus {
   
   	throws IOException
   {
-  	TRTrackerClientUtils.checkForBlacklistedURLs( reqUrl );
+  	TRTrackerClientUtilsImpl.checkForBlacklistedURLs( reqUrl );
   	
-	reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+	reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
   	//System.out.println( "trying " + scrape.toString());
   	
@@ -263,7 +263,7 @@ public class TrackerStatus {
   
   		throws Exception
   {
-	reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+	reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
 	int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
 	

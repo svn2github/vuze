@@ -391,27 +391,8 @@ public class GlobalManagerImpl
         if (existing_index != -1) {
         	
         	DownloadManager existing = (DownloadManager)managers.get(existing_index);
-          
-        	TOTorrent existing_torrent 	= existing.getTorrent();
-        	TOTorrent new_torrent		= manager.getTorrent();
-        	
-        	if ( TorrentUtils.mergeAnnounceURLs( new_torrent, existing_torrent )){
-        		
-        		try{
-        			
-        			TorrentUtils.writeToFile( existing_torrent );
-        			
-        			TRTrackerClient	client = existing.getTrackerClient();
-        			
-        			if ( client != null ){
-        				
-        				client.resetTrackerUrl( false );
-        			}
-        		}catch( Throwable e ){
-        			
-        			e.printStackTrace();
-        		}
-        	}
+                	
+        	existing.mergeTorrentDetails( manager );
         	
         	return( existing );
         }

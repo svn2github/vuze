@@ -26,13 +26,14 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  *
  */
 
+import java.util.*;
 import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 
 public class 
-TRTrackerClientUtils 
+TRTrackerClientUtilsImpl 
 {
 	// author of MakeTorrent has requested we blacklist his site
 	// as people keep embedding it as a tracker in torrents
@@ -110,5 +111,13 @@ TRTrackerClientUtils
  						":" + BLACKLISTED_PORTS[i] + "/ is not a tracker" ));
  			}
  		}
+	}
+	
+	public static Map
+	mergeResponseCache(
+		Map		map1,
+		Map		map2 )
+	{
+		return( TRTrackerClientClassicImpl.mergeResponseCache( map1, map2 ));
 	}
 }

@@ -772,9 +772,9 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
- 		TRTrackerClientUtils.checkForBlacklistedURLs( reqUrl );
+ 		TRTrackerClientUtilsImpl.checkForBlacklistedURLs( reqUrl );
  		
- 		reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
  		
  		String	failure_reason = null;
  		
@@ -917,7 +917,7 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
- 		reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
  		String	failure_reason = null;
  		
@@ -1776,6 +1776,45 @@ TRTrackerClientClassicImpl
 				}
 			}
 		}
+	}
+	
+	protected static Map
+	mergeResponseCache(
+		Map		map1,
+		Map		map2 )
+	{
+		if ( map1 == null & map2 == null ){
+			return( new HashMap());
+		}else if ( map1 == null ){
+			return( map2 );
+		}else if ( map2 == null ){
+			return( map1 );
+		}
+		
+		Map	res = new HashMap();
+				
+		List	peers = (List)map1.get( "tracker_peers" );
+		
+		if ( peers == null ){
+			
+			peers = new ArrayList();
+		}
+		
+		List	p2 = (List)map2.get( "tracker_peers" );
+		
+		if ( p2 != null ){
+			
+			System.out.println( "merging peer set: p1 = " + peers.size() + ", p2 = " + p2.size());
+		
+			for (int i=0;i<p2.size();i++){
+				
+				peers.add( p2.get( i ));
+			}
+		}
+		
+		res.put( "tracker_peers", peers );
+		
+		return( res );
 	}
 	
 	protected TRTrackerResponsePeer[]

@@ -203,6 +203,7 @@ DownloadManagerImpl
 	
 	private static String				TRACKER_CACHE_KEY	= "tracker_cache";
 	
+	private Map							initial_tracker_response_cache;
 	private Map							tracker_response_cache; 
   
 	private TRTrackerClient 			tracker_client;
@@ -252,6 +253,8 @@ DownloadManagerImpl
 
   public void initialize() 
   {
+  	initial_tracker_response_cache	= null;
+  	
     // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
     if (onlySeeding) {
       String errMessage = filesExistErrorMessage();
@@ -383,6 +386,8 @@ DownloadManagerImpl
 			 	// if this is a newly introduced torrent trash the tracker cache. We do this to
 			 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
 			 	// in it and a bad tracker URL. This could be used as a DOS attack
+
+			 initial_tracker_response_cache	= (Map)torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
 			 
 			 if ( new_torrent ){
 			 	
@@ -1350,6 +1355,61 @@ DownloadManagerImpl
     DiskManagerFactory.deleteDataFiles(torrent, FileUtil.smartPath(savePath, name));
   }
 
+  protected Map
+  getInitialTrackerCache()
+  {
+  	return( initial_tracker_response_cache );
+  }
+  
+  public void
+  mergeTorrentDetails(
+  	DownloadManager		other_manager )
+  {
+	try{
+		TOTorrent	other_torrent = other_manager.getTorrent();
+		
+		if ( other_torrent == null ){
+			
+			return;
+		}
+		
+		boolean	write = TorrentUtils.mergeAnnounceURLs( other_torrent, torrent );
+		
+		Map  other_cache	= ((DownloadManagerImpl)other_manager).getInitialTrackerCache();
+
+		TRTrackerClient	client = tracker_client;
+		
+		if ( other_cache != null && other_cache.size() > 0 ){
+			
+			if ( client != null ){
+				
+				tracker_response_cache = client.getTrackerResponseCache();			
+			}
+			
+			tracker_response_cache = TRTrackerClientUtils.mergeResponseCache( tracker_response_cache, other_cache );
+		
+	  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
+	  		
+	  		write	= true;
+		}
+		
+		if ( write ){
+			
+			TorrentUtils.writeToFile( torrent );
+						
+			if ( client != null ){
+				
+				client.setTrackerResponseCache( tracker_response_cache );
+				
+				client.resetTrackerUrl( false );
+			}
+		}
+	}catch( Throwable e ){
+			
+		e.printStackTrace();
+	}
+  }
+  
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key) {
   	if (data == null) return null;
