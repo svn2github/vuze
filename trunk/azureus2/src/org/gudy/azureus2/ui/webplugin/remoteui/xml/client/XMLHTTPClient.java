@@ -111,7 +111,7 @@ XMLHTTPClient
 						"</REQUEST>");
 				*/
 
-				/*
+				
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -123,7 +123,7 @@ XMLHTTPClient
 				res.print();
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
-				*/
+				
 				
 					// tracker torrents
 				
@@ -361,7 +361,7 @@ XMLHTTPClient
 						"</REQUEST>");
 	
 				res.print();
-				
+				*/
 				
 				res = sendRequest( 
 						"<REQUEST>" +
@@ -372,7 +372,7 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
-				*/
+				
 				
 				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
