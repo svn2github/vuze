@@ -36,6 +36,11 @@ TRHost
 	public static final int DEFAULT_INC_BY					= TRTrackerServer.DEFAULT_INC_BY;
 	public static final int DEFAULT_INC_PER			 		= TRTrackerServer.DEFAULT_INC_PER;
 	public static final int DEFAULT_SCRAPE_RETRY_PERCENTAGE	= TRTrackerServer.DEFAULT_SCRAPE_RETRY_PERCENTAGE;
+
+	public static final int	DEFAULT_SCRAPE_CACHE_PERIOD				= TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD;
+	public static final int	DEFAULT_ANNOUNCE_CACHE_PERIOD			= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD;
+	public static final int	DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
+	
 	public static final int DEFAULT_PORT 					= TRTrackerServer.DEFAULT_TRACKER_PORT;
 	public static final int DEFAULT_PORT_SSL				= TRTrackerServer.DEFAULT_TRACKER_PORT_SSL;
 

@@ -44,8 +44,10 @@ TRTrackerServerImpl
 	
 	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
 	
-	protected static int		max_peers_to_send	= 0;
-	protected static boolean	send_peer_ids		= true;
+	protected static int		max_peers_to_send		= 0;
+	protected static boolean	send_peer_ids			= true;
+	protected static int		announce_cache_period	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD;
+	protected static int		scrape_cache_period		= TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD;
 	
 	static{
 		final String	send_ids_param = "Tracker Send Peer IDs";
@@ -79,6 +81,38 @@ TRTrackerServerImpl
 						max_peers_to_send = COConfigurationManager.getIntParameter( max_peers_param, 0 );
 					}
 				});
+		
+		final String	scrape_cache_param = "Tracker Scrape Cache";
+		
+		scrape_cache_period = COConfigurationManager.getIntParameter( scrape_cache_param, TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
+		
+		COConfigurationManager.addParameterListener(
+				scrape_cache_param,
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	value )
+					{
+						scrape_cache_period = COConfigurationManager.getIntParameter( scrape_cache_param, TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
+					}
+				});
+		
+		final String	announce_cache_param = "Tracker Announce Cache";
+		
+		announce_cache_period = COConfigurationManager.getIntParameter( announce_cache_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+		
+		COConfigurationManager.addParameterListener(
+				announce_cache_param,
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	value )
+					{
+						announce_cache_period = COConfigurationManager.getIntParameter( announce_cache_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+					}
+				});
 	}
 	
 	protected static boolean
@@ -91,6 +125,18 @@ TRTrackerServerImpl
 	getMaxPeersToSend()
 	{
 		return( max_peers_to_send );
+	}
+	
+	protected static int
+	getScrapeCachePeriod()
+	{
+		return( scrape_cache_period );
+	}
+	
+	protected static int
+	getAnnounceCachePeriod()
+	{
+		return( announce_cache_period );
 	}
 	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();

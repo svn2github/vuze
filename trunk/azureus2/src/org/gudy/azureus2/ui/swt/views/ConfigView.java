@@ -1487,6 +1487,8 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     label.setLayoutData( gridData );
 
+    	// Poll Group
+    
     Group gPollStuff = new Group(gMainTab, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 5;
@@ -1541,20 +1543,72 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 30;
     pollIntervalIncPer.setLayoutData( gridData );
 
+    
+    // scrape + cache group
+ 
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.scrapeandcache");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+    
+    Group gScrapeCache = new Group(gMainTab, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 5;
+    gScrapeCache.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    gScrapeCache.setLayout(layout);
+    
     // row
     
-    label = new Label(gPollStuff, SWT.NULL);
+    label = new Label(gScrapeCache, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.announcescrapepercentage");
     gridData = new GridData();
-    gridData.horizontalSpan	= 3;
+    gridData.horizontalSpan	= 1;
     label.setLayoutData( gridData );
 
-    IntParameter scrapeannouncepercentage = new IntParameter(gPollStuff, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+    IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 
     gridData = new GridData();
     gridData.widthHint = 30;
     scrapeannouncepercentage.setLayoutData( gridData );
     
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.scrapecacheperiod");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache", TRHost.DEFAULT_SCRAPE_CACHE_PERIOD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    scrapeCachePeriod.setLayoutData( gridData );
+    
+ 
+    // row
+
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheminpeers");
+    gridData = new GridData();
+    gridData.horizontalSpan	= 1;
+    label.setLayoutData( gridData );
+
+    IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers", TRHost.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    announceCacheMinPeers.setLayoutData( gridData );
+    
+    label = new Label(gScrapeCache, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheperiod");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache", TRHost.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    announceCachePeriod.setLayoutData( gridData );
 
     // row
 

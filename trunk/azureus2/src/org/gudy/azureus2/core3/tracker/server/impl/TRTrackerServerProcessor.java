@@ -107,7 +107,9 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				torrent.exportPeersToMap( root, num_want );
+				List	peers = torrent.exportPeersToList( num_want );
+				
+				root.put( "peers", peers );
 				
 				root.put( "interval", new Long( interval ));
 				

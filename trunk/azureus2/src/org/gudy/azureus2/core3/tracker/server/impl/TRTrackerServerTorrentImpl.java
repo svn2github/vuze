@@ -36,8 +36,6 @@ public class
 TRTrackerServerTorrentImpl 
 	implements TRTrackerServerTorrent
 {
-	public static final long	SCRAPE_CACHE_PERIOD	= 5000;
-	
 	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
 
@@ -206,11 +204,12 @@ TRTrackerServerTorrentImpl
 		}										
 	}
 	
-	public synchronized void
-	exportPeersToMap(
-		Map		map,
+	public synchronized List
+	exportPeersToList(
 		int		num_want )
 	{
+		List	rep_peers = new ArrayList();
+		
 		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
 		int		total_peers	= peer_map.size();
 		
@@ -231,113 +230,35 @@ TRTrackerServerTorrentImpl
 		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
 		
 		long	now = System.currentTimeMillis();
-		
-		List	rep_peers = new ArrayList();
-			
-		map.put( "peers", rep_peers );
-		
+				
 		boolean	send_peer_ids = TRTrackerServerImpl.getSendPeerIds();
 		
 			// if they want them all simply give them the set
 		
-		if ( num_want == 0 ){
-			
-			return;
-			
-		}else if ( num_want >= total_peers){
-	
-				// if they want them all simply give them the set
-			
-			Iterator	it = peer_map.values().iterator();
-					
-			while(it.hasNext()){
+		if ( num_want > 0 ){
+						
+			if ( num_want >= total_peers){
 		
-				TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
-								
-				if ( now > peer.getTimeout()){
-								
-						// System.out.println( "removing timed out client '" + peer.getString());
-					
-					removePeer( it, peer );									
-					
-				}else{
+					// if they want them all simply give them the set
+				
+				Iterator	it = peer_map.values().iterator();
+						
+				while(it.hasNext()){
+			
+					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
 									
-					Map rep_peer = new HashMap();
-		
-					rep_peers.add( rep_peer );
-											
-					if ( send_peer_ids ){
-						
-						rep_peer.put( "peer id", peer.getPeerId() );
-					}
-					
-					rep_peer.put( "ip", peer.getIPAsRead() );
-					rep_peer.put( "port", new Long( peer.getPort()));
-				}
-			}
-		}else{
-			if ( num_want < total_peers*3 ){
-				
-					// too costly to randomise as below. use more efficient but slightly less accurate
-					// approach
-				
-				int	limit 	= (num_want*3)/2;
-				int	added	= 0;
-				
-				for (int i=0;i<limit && added < num_want;i++){
-					
-					int	index = random.nextInt(peer_list.size());
-					
-					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
-	
 					if ( now > peer.getTimeout()){
+									
+							// System.out.println( "removing timed out client '" + peer.getString());
 						
-						removePeer( peer );
+						removePeer( it, peer );									
 						
 					}else{
-				
-						added++;
-						
+										
 						Map rep_peer = new HashMap();
-						
+			
 						rep_peers.add( rep_peer );
-						
-						if ( send_peer_ids ){
-							
-							rep_peer.put( "peer id", peer.getPeerId() );
-						}
-						
-						rep_peer.put( "ip", peer.getIPAsRead() );
-						rep_peer.put( "port", new Long( peer.getPort()));					
-					}
-				}
-				
-			}else{
-				
-					// randomly select the peers to return
-				
-				LinkedList	peers = new LinkedList( peer_map.keySet());
-				
-				int	added = 0;
-				
-				while( added < num_want && peers.size() > 0 ){
-					
-					String	key = (String)peers.remove(random.nextInt(peers.size()));
-									
-					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
-					
-					if ( now > peer.getTimeout()){
-						
-						removePeer( peer );
-						
-					}else{
-						
-						added++;
-						
-						Map rep_peer = new HashMap();
-						
-						rep_peers.add( rep_peer );
-						
+												
 						if ( send_peer_ids ){
 							
 							rep_peer.put( "peer id", peer.getPeerId() );
@@ -347,8 +268,83 @@ TRTrackerServerTorrentImpl
 						rep_peer.put( "port", new Long( peer.getPort()));
 					}
 				}
+			}else{
+				if ( num_want < total_peers*3 ){
+					
+						// too costly to randomise as below. use more efficient but slightly less accurate
+						// approach
+					
+					int	limit 	= (num_want*3)/2;
+					int	added	= 0;
+					
+					for (int i=0;i<limit && added < num_want;i++){
+						
+						int	index = random.nextInt(peer_list.size());
+						
+						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
+		
+						if ( now > peer.getTimeout()){
+							
+							removePeer( peer );
+							
+						}else{
+					
+							added++;
+							
+							Map rep_peer = new HashMap();
+							
+							rep_peers.add( rep_peer );
+							
+							if ( send_peer_ids ){
+								
+								rep_peer.put( "peer id", peer.getPeerId() );
+							}
+							
+							rep_peer.put( "ip", peer.getIPAsRead() );
+							rep_peer.put( "port", new Long( peer.getPort()));					
+						}
+					}
+					
+				}else{
+					
+						// randomly select the peers to return
+					
+					LinkedList	peers = new LinkedList( peer_map.keySet());
+					
+					int	added = 0;
+					
+					while( added < num_want && peers.size() > 0 ){
+						
+						String	key = (String)peers.remove(random.nextInt(peers.size()));
+										
+						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+						
+						if ( now > peer.getTimeout()){
+							
+							removePeer( peer );
+							
+						}else{
+							
+							added++;
+							
+							Map rep_peer = new HashMap();
+							
+							rep_peers.add( rep_peer );
+							
+							if ( send_peer_ids ){
+								
+								rep_peer.put( "peer id", peer.getPeerId() );
+							}
+							
+							rep_peer.put( "ip", peer.getIPAsRead() );
+							rep_peer.put( "port", new Long( peer.getPort()));
+						}
+					}
+				}
 			}
 		}
+		
+		return( rep_peers );
 	}
 	
 	public synchronized void
@@ -374,7 +370,7 @@ TRTrackerServerTorrentImpl
 	{
 		long	now = System.currentTimeMillis();
 		
-		if ( last_scrape != null && now - last_scrape_calc_time < SCRAPE_CACHE_PERIOD ){
+		if ( last_scrape != null && now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
 			
 			return( last_scrape );
 		}
