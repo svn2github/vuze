@@ -115,8 +115,6 @@ ShareHosterPlugin
 			
 					Torrent torrent = item.getTorrent();
 					
-					tracker.host(torrent, false );
-					
 					Download	download = download_manager.getDownload( torrent );
 					
 					if ( download == null ){
@@ -131,8 +129,6 @@ ShareHosterPlugin
 					
 					Torrent torrent = item.getTorrent();
 					
-					tracker.host(torrent, false );
-					
 					Download	download = download_manager.getDownload( torrent );
 					
 					if ( download == null ){
@@ -142,6 +138,13 @@ ShareHosterPlugin
 				}
 				
 				if ( new_download != null ){
+
+					Torrent	dl_torrent = new_download.getTorrent();
+					
+					if ( dl_torrent != null ){
+						
+						tracker.host(dl_torrent, false );
+					}
 					
 					new_download.addDownloadWillBeRemovedListener(
 							new DownloadWillBeRemovedListener()
