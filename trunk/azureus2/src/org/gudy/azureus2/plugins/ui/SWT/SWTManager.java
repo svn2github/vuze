@@ -15,6 +15,7 @@
 package org.gudy.azureus2.plugins.ui.SWT;
 
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.graphics.Image;
 
 /** Evil SWT Specific stuff that plugins may need access to
  *
@@ -30,4 +31,11 @@ public interface SWTManager
    * @return SWT Display object that Azureus uses
    */
   public Display getDisplay();
+
+  /** Creates an UIImageSWT object with the supplied SWT Image
+   *
+   * @param img Image to assign to the object
+   * @return a new UIImagetSWT object
+   */
+  public GraphicSWT createGraphic(Image img);
 }
