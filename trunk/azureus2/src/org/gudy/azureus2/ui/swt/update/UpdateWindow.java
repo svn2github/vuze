@@ -22,6 +22,13 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyledText;
@@ -34,15 +41,19 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Application;
@@ -52,17 +63,25 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  * @author Olivier Chalouhi
  *
  */
-public class UpdateWindow implements Runnable{
+public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
   Display display;  
   
   Shell updateWindow;
   Table table;
   StyledText stDescription;
+  ProgressBar progress;
+  Label status;
   Button btnOk;
+  Listener lOk;
   Button btnCancel;
   
+  
+  
   boolean askingForShow;
+  private long totalDownloadSize;
+  private List downloaders;
+  private Iterator iterDownloaders;
   
   private static final int COL_NAME = 0;
   private static final int COL_VERSION = 1;
@@ -130,8 +149,15 @@ public class UpdateWindow implements Runnable{
     
     stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
     
+    progress = new ProgressBar(updateWindow,SWT.NULL);
+    progress.setMinimum(0);
+    progress.setMaximum(100);
+    progress.setSelection(0);
+    
+    status = new Label(updateWindow,SWT.NULL);
+    
     btnCancel = new Button(updateWindow,SWT.PUSH);
-    Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    Messages.setLanguageText(btnCancel,"swt.update.window.quit");
     btnCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         updateWindow.setVisible(false);
@@ -142,12 +168,32 @@ public class UpdateWindow implements Runnable{
     btnOk = new Button(updateWindow,SWT.PUSH);
     Messages.setLanguageText(btnOk,"swt.update.window.ok");
     
+    lOk = new Listener() {
+      public void handleEvent(Event e) {
+        update();
+      }
+    };
+    
+    btnOk.addListener(SWT.Selection, lOk);
+    
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
     formData.top = new FormAttachment(lHeaderText);
-    formData.bottom = new FormAttachment(btnOk);
+    formData.bottom = new FormAttachment(progress);
     sash.setLayoutData(formData);
+    
+    formData = new FormData();
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);
+    formData.bottom = new FormAttachment(status);
+    progress.setLayoutData(formData);
+    
+    formData = new FormData();
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);
+    formData.bottom = new FormAttachment(btnOk);
+    status.setLayoutData(formData);
     
     formData = new FormData();
     formData.width = 100;
@@ -215,5 +261,119 @@ public class UpdateWindow implements Runnable{
       Update update = (Update) items[i].getData();
       if(update.isMandatory()) items[i].setChecked(true);
     }
+  }
+  
+  private void update() {
+    btnOk.setEnabled(false);    
+    Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    table.setEnabled(false);
+    stDescription.setText("");
+    TableItem[] items = table.getItems();
+    
+    totalDownloadSize = 0;   
+    downloaders = new ArrayList();
+    
+    for(int i = 0 ; i < items.length ; i++) {
+      if(! items[i].getChecked()) continue;
+      
+      Update update = (Update) items[i].getData();
+      ResourceDownloader[] rds = update.getDownloaders();
+      for(int j = 0 ; j < rds.length ; j++) {
+        downloaders.add(rds[j]);        
+        try {
+          totalDownloadSize += rds[j].getSize();
+        } catch (Exception e) {
+          stDescription.append(MessageText.getString("swt.update.window.no_size") + rds[j].getName() +"\n");
+        }        
+      }
+    }
+    downloadersToData = new HashMap();
+    iterDownloaders = downloaders.iterator();
+    nextUpdate();
+  }
+  
+  private void nextUpdate() {
+    if(iterDownloaders.hasNext()) {
+      ResourceDownloader downloader = (ResourceDownloader) iterDownloaders.next();
+      downloader.addListener(this);
+      downloader.asyncDownload();
+    } else {
+      switchToRestart();      
+    }
+  }
+  
+  private void switchToRestart() {
+    if(display == null || display.isDisposed())
+      return;
+    
+    display.asyncExec(new Runnable() {
+      public void run() {
+        progress.setSelection(100);
+        status.setText(MessageText.getString("swt.update.window.status.done"));
+        btnOk.removeListener(SWT.Selection,lOk);
+        btnOk.setEnabled(true);
+        btnOk.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            finishUpdate();
+          }
+        });
+        Messages.setLanguageText(btnOk,"swt.update.window.restart");
+        btnCancel.setEnabled(false);
+          }
+    });
+  }
+  
+  public void reportPercentComplete(ResourceDownloader downloader,
+      int percentage) {
+    setProgressSelection(percentage);   
+  }
+  
+  private void setProgressSelection(final int percent) {
+    if(display == null || display.isDisposed())
+      return;
+    
+    display.asyncExec(new Runnable() {
+      public void run() {
+        if(progress != null && !progress.isDisposed())
+        progress.setSelection(percent);
+      }
+    });
+  }
+  
+  private Map downloadersToData;
+  
+  public boolean completed(ResourceDownloader downloader, InputStream data) {
+    downloadersToData.put(downloader,data);
+    downloader.removeListener(this);
+    setProgressSelection(0);
+    nextUpdate();
+    return true;
+  }
+  
+  public void failed(ResourceDownloader downloader,
+      ResourceDownloaderException e) {
+    downloader.removeListener(this);
+    setStatusText(MessageText.getString("swt.update.window.status.failed"));
+  }
+  
+  public void reportActivity(ResourceDownloader downloader, final String activity) {
+    setStatusText(activity);
+  }
+  
+  private void setStatusText(final String text) {
+    if(display == null || display.isDisposed())
+      return;
+    
+    display.asyncExec(new Runnable() {
+      public void run() {
+        if(status != null && !status.isDisposed())
+          status.setText(text);
+      }
+    });  
+  }
+  
+  
+  private void finishUpdate() {    
+    updateWindow.setVisible(false);
   }
 }
