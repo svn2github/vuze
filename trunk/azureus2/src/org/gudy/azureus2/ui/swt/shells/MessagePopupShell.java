@@ -61,6 +61,8 @@ public class MessagePopupShell implements AnimableShell {
    private static LinkedList viewStack;
    private Timer closeTimer;
 
+    private String icon;
+
   static {
       viewStack = new LinkedList();
   }
@@ -69,6 +71,7 @@ public class MessagePopupShell implements AnimableShell {
     closeTimer = new Timer(true);
 
     this.display = display;
+    this.icon = icon;
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
     if(! Constants.isOSX) {
       detailsShell.setImage(ImageRepository.getImage("azureus"));
@@ -196,7 +199,7 @@ public class MessagePopupShell implements AnimableShell {
           closeTimer.cancel();
           detailsShell.setVisible(false);
           detailsShell.forceActive();
-          detailsShell.forceFocus();
+          if(!Constants.isOSX){detailsShell.forceFocus();}
           currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),20,30);
           currentAnimator.start();
           closeAfterAnimation = true;
@@ -239,6 +242,12 @@ public class MessagePopupShell implements AnimableShell {
                display.syncExec(new AERunnable() {
                     public void runSupport() {
                         if(shell.isDisposed()) {
+                            closeTimer.cancel();
+                            return;
+                        }
+
+                        final boolean notInfoType = MessagePopupShell.this.icon != ICON_INFO;
+                        if(notInfoType) {
                             closeTimer.cancel();
                             return;
                         }
