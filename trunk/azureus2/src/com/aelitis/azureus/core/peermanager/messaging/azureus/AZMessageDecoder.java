@@ -260,13 +260,13 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for core message decode: " + message_length );
         }
         
-        if( message_length > 4095 ) {  //4K min to bother with direct buffers
-          direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
-          payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
-        }
-        else {
+        //if( message_length > 4095 ) {  //4K min to bother with direct buffers
+        //  direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
+        //  payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
+        //}
+        //else {
           payload_buffer = ByteBuffer.allocate( message_length );
-        }
+        //}
       }
     }
     
