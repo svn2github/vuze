@@ -13,6 +13,8 @@ CHANGE: All progress/piece bars re-done (again) [TuxPaper]
 CHANGE: Can set per-torrent and global peer connection limits [Nolar]
 
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
+BUGFIX: Fix for discarded data due to occasional duplicate request [Nolar]
+BUGFIX: Fix for underlying socket handles not closing under linux ("Too many open files") [Nolar]
 
 
 
