@@ -49,13 +49,11 @@ PEPeer
 
 	public String getIp();
  
-		/**
-		 * Gets the host name for the IP, if possible, ip as string otherwise
-		 * @return
-		 */
-	
-	public String
-	getIPHostName();
+	/**
+	 * Gets the host name for the IP, if possible, IP as string otherwise
+   * @return hostname or IP
+   */
+	public String getIPHostName();
 	
 	public int getPort();
 	
@@ -63,14 +61,31 @@ PEPeer
  
 	public void setSnubbed(boolean b);	// explicit un-snub
   
-	public boolean isChoked();
+  /**
+   * Is the peer choking me.
+   * @return true if I am choked by the peer, false if not
+   */
+	public boolean isChokingMe();
 
-	public boolean isChoking();
+  /**
+   * Am I choking the peer.
+   * @return true if the peer is choked, false if not
+   */
+	public boolean isChokedByMe();
 
-	public boolean isInterested();
+  /**
+   * Am I Interested in the peer.
+   * @return true if peer is interesting, false if not
+   */
+	public boolean isInterestingToMe();
 
-	public boolean isInteresting();
+  /**
+   * Is the peer Interested in me.
+   * @return true if the peer is interested in me, false if not
+   */
+	public boolean isInterestedInMe();
 
+  
 	public boolean isSeed();
  
 	public boolean isSnubbed();
@@ -79,8 +94,14 @@ PEPeer
  	
 	public boolean isIncoming();
 
-	public int getPercentDone();
+  /**
+   * Get the peer's torrent completion percentage in thousand-notation,
+   * i.e. 53.7% is returned as the value 0537.
+   * @return the percentage the peer has complete
+   */
+	public int getPercentDoneInThousandNotation();
 
+  
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();
