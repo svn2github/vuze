@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.awt.print.Paper;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -148,6 +149,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static final int BLUES_MIDLIGHT = (BLUES_DARKEST+1) / 4;
   public static final int BLUES_MIDDARK = ((BLUES_DARKEST+1) / 2) + BLUES_MIDLIGHT;
   public static Color[] blues = new Color[BLUES_DARKEST + 1];
+  public static Color progressBarColor;
   public static Color colorInverse;
   public static Color black;
   public static Color blue;
@@ -453,6 +455,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         red_ConsoleView = new Color(display, new RGB(255, 192, 192));
         red_ManagerItem = new Color(display, new RGB(255, 68, 68));
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
+        allocateProgressBarColor();
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
         e.printStackTrace();
@@ -1087,6 +1090,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     startFolderWatcher();
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
+    COConfigurationManager.addParameterListener("Colors.progressBar.red", this);
+    COConfigurationManager.addParameterListener("Colors.progressBar.green", this);
+    COConfigurationManager.addParameterListener("Colors.progressBar.blue", this);
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
@@ -2034,6 +2040,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       irc.dispose();
 
     display.dispose();
+    disposeColors();
+  }
+  
+  private void disposeColors() {
+    if(progressBarColor != null && !progressBarColor.isDisposed())
+      progressBarColor.dispose();
   }
 
   public static void main(String args[]) {
@@ -2661,9 +2673,38 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       stopFolderWatcher();
     if("Watch Torrent Folder Path".equals(parameterName))
       startFolderWatcher();
+    
+    if(parameterName.startsWith("Colors.progressBar")) {
+      allocateProgressBarColor();      
+    }
    }
   
   
+
+  /**
+   * 
+   */
+  private void allocateProgressBarColor() {
+    if(display == null || display.isDisposed())
+      return;
+    
+    display.asyncExec(new Runnable() {
+      public void run() {
+        Color toBeDeleted = null;
+        if(progressBarColor != null && !progressBarColor.isDisposed()) {
+          toBeDeleted = progressBarColor;
+        }
+        
+        progressBarColor = new Color(display,
+           COConfigurationManager.getIntParameter("Colors.progressBar.red",0),
+           COConfigurationManager.getIntParameter("Colors.progressBar.green",128),
+           COConfigurationManager.getIntParameter("Colors.progressBar.blue",255));
+        
+        if(toBeDeleted != null)
+          toBeDeleted.dispose();
+      }
+    });    
+  }
 
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("open"))

@@ -161,6 +161,13 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     gridData = new GridData();
     gridData.widthHint = 50;
     colorScheme.setLayoutData(gridData);
+    
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.progressBarColor");
+    ColorParameter progressBarColor = new ColorParameter(cArea, "Colors.progressBar",0,128,255,false);
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    progressBarColor.setLayoutData(gridData);
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");
