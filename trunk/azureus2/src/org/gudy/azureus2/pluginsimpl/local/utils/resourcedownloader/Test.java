@@ -29,30 +29,33 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 import java.io.*;
 import java.net.*;
+import java.util.Properties;
 
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
 Test
-	implements ResourceDownloaderListener
+	implements ResourceDownloaderListener, Plugin
 {
-	protected
-	Test()
+	public void
+	initialize(
+		PluginInterface pi )
 	{
 		try{
-			ResourceDownloaderFactory	factory = ResourceDownloaderFactoryImpl.getSingleton();
+			ResourceDownloaderFactory	factory = pi.getUtilities().getResourceDownloaderFactory();
 			
-			ResourceDownloader rd1 = factory.create( new URL("http://localhost:6967/"));
-			ResourceDownloader rd2 = factory.create( new URL("http://www.microsoft.com/sdsdsd"));
+			//ResourceDownloader rd1 = factory.create( new URL("http://localhost:6967/"));
+			//ResourceDownloader rd2 = factory.create( new URL("http://www.microsoft.com/sdsdsd"));
 			
-			ResourceDownloader[]	rds = { rd1, rd2 };
+			//ResourceDownloader[]	rds = { rd1, rd2 };
 			
-			ResourceDownloader rd = factory.getAlternateDownloader( rds );
+			//ResourceDownloader rd = factory.getAlternateDownloader( rds );
 			
-			rd = factory.getRetryDownloader( rd, 5 );
+			ResourceDownloader rd = factory.create( new URL("http://66.90.75.92/suprnova//torrents/1822/DivX511-exe.torrent" ));
 			
-			rd = factory.getTimeoutDownloader( rd, 20000 );
-			
+			rd = factory.getTorrentDownloader( rd, false );
+						
 			rd.addListener( this );
 			
 			try{
@@ -62,6 +65,7 @@ Test
 				
 				e.printStackTrace();
 			}
+						
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
@@ -108,6 +112,14 @@ Test
 	main(
 		String[]	args )
 	{
-		new Test();
+		try{
+			PluginManager.registerPlugin( Test.class );
+										
+			PluginManager.startAzureus( PluginManager.UI_SWT, new Properties() );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

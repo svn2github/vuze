@@ -122,4 +122,18 @@ ResourceDownloaderFactory
 	getMetaRefreshDownloader(
 		ResourceDownloader			downloader );
 
+		/**
+		 * Given a downloader that will download a torrent, this will download
+		 * the torrent data itself. Note that the torrent MUST contain only a 
+		 * single file (although a future enhancement may return a ZIP input stream
+		 * for multi-file torrents)  
+		 * @param downloader
+		 * @param persistent whether or not the d/l will be retained over az stop/start
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	getTorrentDownloader(
+		ResourceDownloader			downloader,
+		boolean						persistent );
 }

@@ -126,4 +126,12 @@ ResourceDownloaderFactoryImpl
 				
 		return( res );
 	}
+	
+	public ResourceDownloader
+	getTorrentDownloader(
+		ResourceDownloader			downloader,
+		boolean						persistent )
+	{
+		return( new ResourceDownloaderTorrentImpl( null, downloader, persistent ));
+	}
 }
