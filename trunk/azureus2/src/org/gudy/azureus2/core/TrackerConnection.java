@@ -36,14 +36,14 @@ public class TrackerConnection
   {
     //Get the Tracker url
     try{            
-	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF8");      
+	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF-8");      
     } catch (Exception e) {
       e.printStackTrace();
     }
     
     //Copy the hash
     this.hash = new byte[20];
-    for(int i = 0 ; i < 20 ; i++)
+    for(int i = this.hash.length - 1 ; i >= 0 ; i--)
     {
       this.hash[i] = hash[i];
     }
