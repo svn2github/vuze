@@ -257,7 +257,7 @@ PEPeerControlImpl
             PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
             
             if (ps.getState() == PEPeer.DISCONNECTED) {
-              removeFromPeerTransports( ps );
+              removeFromPeerTransports( ps, "Disconnected" );
             }
             else {
               if (oldPolling || ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
@@ -432,8 +432,7 @@ PEPeerControlImpl
     if (_peer_transports != null) {
       synchronized (_peer_transports) {
         while (_peer_transports.size() != 0) {
-          PEPeerTransport pc = removeFromPeerTransports(0);
-          pc.closeAll("Closing all Connections",false, false);
+          removeFromPeerTransports((PEPeerTransport)_peer_transports.get(0), "Closing all Connections");
         }
       }
     }
@@ -553,8 +552,7 @@ PEPeerControlImpl
 				
 			if ( _peer_transports.contains(transport)){
 				
-				removeFromPeerTransports( transport.getRealTransport());
-				
+				removeFromPeerTransports( transport, "Peer Removed" );			
 			}	
 		}
 	}
@@ -1446,16 +1444,6 @@ PEPeerControlImpl
   	return( this );
   }
 
-  /**
-   * The way to remove a peer from our peer list.
-   * @param pc
-   */
-  public void removePeer(PEPeerTransport pc) {
-    synchronized (_peer_transports) {
-    	removeFromPeerTransports(pc);
-    }
-  }
-
   //get the hash value
   public byte[] getHash() {
     return _hash;
@@ -1738,6 +1726,7 @@ PEPeerControlImpl
   addToPeerTransports(
   	PEPeerTransport		peer )
   {
+  	// System.out.println( "PEPeerControl::addToPeerTransports:" + peer );
   	_peer_transports.add(peer);
       
   	for (int i=0;i<peer_transport_listeners.size();i++){
@@ -1745,26 +1734,17 @@ PEPeerControlImpl
   	}
   }
   
-  
-  private PEPeerTransport
-  removeFromPeerTransports(
-  		int		index )
-  {
-  	PEPeerTransport res = (PEPeerTransport)_peer_transports.remove(index);
-
-	for (int i=0;i<peer_transport_listeners.size();i++){
-		((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( res );
-	}	
-	
-	return( res );
-  } 
-  
   private void
   removeFromPeerTransports(
-  	PEPeerTransport		peer )
+  	PEPeerTransport		peer,
+	String				reason )
   {
   	 _peer_transports.remove(peer);
   	 
+ 	//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
+ 	 
+ 	 peer.closeAll( reason ,false, false);
+ 	 
   	 for (int i=0;i<peer_transport_listeners.size();i++){
   	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
   	 }
