@@ -192,6 +192,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         		
     		int	pos = query.indexOf( "XT=URN:SHA1:");
     		
+    		if ( pos == -1 ){
+    			
+    	   		pos = query.indexOf( "XT=URN:BTIH:");		
+    		}
+    		
     		if ( pos != -1 ){
     			
     			pos += 12;

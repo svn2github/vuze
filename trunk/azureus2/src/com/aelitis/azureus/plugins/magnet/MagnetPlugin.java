@@ -86,7 +86,7 @@ MagnetPlugin
 					
 					Torrent t = download.getTorrent();
 					
-					String	url = "magnet:?xt=urn:sha1:" + Base32.encode( t.getHash());
+					String	url = "magnet:?xt=urn:btih:" + Base32.encode( t.getHash());
 					
 					System.out.println( "MagnetPlugin: export = " + url );
 					

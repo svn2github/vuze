@@ -269,7 +269,7 @@ MagnetURIHandlerImpl
 			
 			String urn = (String)params.get( "xt" );
 			
-			if ( urn == null || !urn.startsWith( "urn:sha1:")){
+			if ( urn == null || !( urn.startsWith( "urn:sha1:") || urn.startsWith( "urn:btih:"))){
 				
 				LGLogger.log("MagentURIHandler: invalid command - '" + get + "'" );
 				

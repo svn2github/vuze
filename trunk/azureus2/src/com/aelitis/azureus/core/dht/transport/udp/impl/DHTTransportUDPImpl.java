@@ -1368,7 +1368,7 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ));
+			logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 			
 			packet_handler.send(
 				request,
