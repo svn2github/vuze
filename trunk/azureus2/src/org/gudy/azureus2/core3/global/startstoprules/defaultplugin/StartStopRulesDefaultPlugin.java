@@ -571,7 +571,9 @@ public class StartStopRulesDefaultPlugin
                     (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) 
                                                                         : 0;
     int maxTorrents;
-    if (iMaxUploadSpeed == 0) {
+    if (maxActive == 0) {
+      maxTorrents = 9999;
+    } else if (iMaxUploadSpeed == 0) {
       maxTorrents = maxActive + 4;
     } else {
       // Don't allow more "seeding/downloading" torrents than there is enough
