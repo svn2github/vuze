@@ -10,13 +10,16 @@
 package org.gudy.azureus2.ui.swt.osx;
 
 import org.eclipse.swt.internal.Callback;
-import org.eclipse.swt.internal.carbon.*;
+import org.eclipse.swt.internal.carbon.HICommand;
+import org.eclipse.swt.internal.carbon.OS;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+
+import java.io.IOException;
 
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
@@ -40,7 +43,7 @@ public class CarbonUIEnhancer {
    
    private void registerTorrentFile() {
    
-     /* Not working cause of SWT, it tries to load AWT, maybe javaswt has a problem with it.
+     /* SWT cannot work with AWT (see Eclipse bug #67384)
       * The Thread stalls in the class loader (for awt).
       */
      /*
@@ -131,8 +134,21 @@ public class CarbonUIEnhancer {
          new AERunnable() {
             public void runSupport() {
                commandCallback.dispose();
+//               stopSidekick();
             }
          }
       );
+   }
+
+   private static void stopSidekick()
+   {
+       try
+       {
+           Runtime.getRuntime().exec(new String[]{"osascript", "-e", "tell application \"Azureus\" to quit"});
+       }
+       catch (IOException e)
+       {
+           Debug.printStackTrace(e);
+       }
    }
 }
