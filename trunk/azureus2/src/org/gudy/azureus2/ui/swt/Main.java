@@ -16,7 +16,6 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
-import org.gudy.azureus2.ui.swt.updater.UpdateSWTWindow;
 
 /**
  * @author Olivier
@@ -108,17 +107,6 @@ public class Main implements ILocaleUtilChooser {
     }
     
     if (startServer.getState() == StartServer.STATE_LISTENING) {
-    	
-      if(!checkForSWT()) {      
-        
-        startServer.stopIt();
-        
-        UpdateSWTWindow usWindow = new UpdateSWTWindow();  
-        
-        if (!usWindow.bIgnored)
-          return;
-        startServer = new StartServer(this);
-      }
 
       startServer.pollForConnections();
 
@@ -184,9 +172,4 @@ public class Main implements ILocaleUtilChooser {
     }
   }
 
-  
-  public boolean checkForSWT() {    
-    return (SWT.getVersion() >= Constants.MINIMAL_SWT_VERSION) ||
-           System.getProperty("azureus.skipSWTcheck") != null;
-  }
 }
