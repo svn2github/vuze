@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
@@ -87,6 +88,8 @@ StatsWriterImpl
 	{
 		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
+		boolean	export_peer_stats = COConfigurationManager.getBooleanParameter("Stats Export Peer Details", false );
+		
 		String xsl = COConfigurationManager.getStringParameter( "Stats XSL File", "" );
 		
 		if ( xsl.length() > 0 ){
@@ -209,6 +212,61 @@ StatsWriterImpl
 						writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
 						writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
 			
+						if ( export_peer_stats ){
+							
+							try{
+								writeLine( "<PEERS>");
+								
+								indent();
+							
+								PEPeerManager pm = dm.getPeerManager();
+								
+								if ( pm != null ){
+									
+									List	peers = pm.getPeers();
+									
+									for (int j=0;j<peers.size();j++){
+										
+										PEPeer	peer = (PEPeer)peers.get(j);
+										
+										PEPeerStats	peer_stats = peer.getStats();
+										
+										try{
+											String	peer_id = Identification.getPrintablePeerID( peer.getId());
+											
+											peer_id = escapeXML(peer_id);
+											
+											String	type = escapeXML( peer.getClient());
+											
+											writeLine( "<PEER hex_id=\"" + ByteFormatter.encodeString( peer.getId()) + "\" printable_id=\""+ peer_id + "\" type=\"" + type + "\">");
+										
+											indent();
+										
+											writeRawCookedTag( "DOWNLOADED", peer_stats.getTotalReceived());
+											writeRawCookedTag( "UPLOADED", peer_stats.getTotalSent());
+											
+											writeRawCookedAverageTag( "DOWNLOAD_SPEED", peer_stats.getDownloadAverage());
+											writeRawCookedAverageTag( "UPLOAD_SPEED", peer_stats.getUploadAverage());
+											
+										}catch( Throwable e ){
+											
+											e.printStackTrace();
+											
+										}finally{
+										
+											exdent();
+											
+											writeLine( "</PEER>");
+										}
+									}
+								}
+							}finally{
+								
+								exdent();
+								
+								writeLine( "</PEERS>");
+							}
+						}
 					}finally{
 						
 						exdent();

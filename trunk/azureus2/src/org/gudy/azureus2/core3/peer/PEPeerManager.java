@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.peer;
  *
  */
 
+import java.util.List;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
@@ -149,6 +150,10 @@ PEPeerManager
 	
 	public PEPeerStats
 	createPeerStats();
+	
+	
+	public List
+	getPeers();
 	
 	public void
 	addPeer(

@@ -500,6 +500,15 @@ PEPeerControlImpl
 		}
 	}
 	
+	public List
+	getPeers()
+	{
+		synchronized( _peer_transports ){
+			
+			return( new ArrayList( _peer_transports ));
+		}
+	}
+	
 	public void
 	addPeer(
 		PEPeer		_transport )

@@ -268,7 +268,18 @@ public class Identification {
       
     }
 
-    String sPeerID = "";
+    String sPeerID = getPrintablePeerID( peerID );
+
+    
+    return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
+}
+  
+  public static String
+  getPrintablePeerID(
+  	byte[]		peerID )
+  {
+  	String	sPeerID = "";
+  	
     try {
     	for (int i = 0; i < peerID.length; i++) {
     		if ((0xFF & peerID[i]) < 32)
@@ -280,6 +291,6 @@ public class Identification {
     }
     catch (UnsupportedEncodingException ignore) {}
     
-    return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
-}
+    return( sPeerID );
+  }
 }

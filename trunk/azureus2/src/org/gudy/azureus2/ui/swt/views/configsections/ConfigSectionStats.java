@@ -91,7 +91,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
-    Control[] controls = new Control[11];
+    Control[] controls = new Control[12];
 
     // row
 
@@ -192,6 +192,21 @@ public class ConfigSectionStats implements ConfigSectionSWT {
 
     controls[9] = lSaveFreq;
     controls[10] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
+    label = new Label(gStats, SWT.NULL);
+
+    	// ROW
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    BooleanParameter exportPeers = 
+        new BooleanParameter(gStats, "Stats Export Peer Details", false,
+                             "ConfigView.section.stats.exportpeers");
+    enableStats.setLayoutData(gridData);
+
+    controls[11] = exportPeers.getControl();
+    
+    	// control stuff
+    
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
     return gStats;
