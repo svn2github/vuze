@@ -187,7 +187,7 @@ public class PiecesItem
           }
   
           int index;
-          boolean needed = false;
+          int nbNeeded = 0;
   
           if (a1 <= a0) {
             index = imageBuffer[i - 1];
@@ -196,14 +196,14 @@ public class PiecesItem
             for (int j = a0; j < a1; j++) {
               if (available[j]) {
               	if (!pieces[j]) {
-              	  needed = true;
+              	  nbNeeded++;
               	}
                 nbAvailable++;
               }
             }
             nbComplete += nbAvailable;
             index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-            if (!needed)
+            if (nbNeeded < nbAvailable / 2)
               index += INDEX_COLOR_FADEDSTARTS;
           }
   
