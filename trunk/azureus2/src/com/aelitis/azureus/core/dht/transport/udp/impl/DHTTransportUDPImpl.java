@@ -1514,11 +1514,15 @@ DHTTransportUDPImpl
 					}
 				});
 		
+		int	entire_request_count = 0;
+		
 		try{
 			long	start = SystemTime.getCurrentTime();
 			
 			listener.reportActivity( "Requesting entire transfer" );
 
+			entire_request_count++;
+			
 			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
 
 			while( SystemTime.getCurrentTime() - start <= timeout ){					
@@ -1618,6 +1622,15 @@ DHTTransportUDPImpl
 					
 					if ( packets.size() == 0 ){
 						
+						if ( entire_request_count == 2 ){
+						
+							listener.reportActivity( "Timeout, no replies received" );
+							
+							return( null );
+						}
+						
+						entire_request_count++;
+						
 						listener.reportActivity( "Re-requesting entire transfer" );
 						
 						sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
@@ -1671,7 +1684,14 @@ DHTTransportUDPImpl
 				}
 			}
 			
+			listener.reportActivity( 
+					"Timeout, " + 
+						(packets.size()==0?
+							" no replies received":
+							("" + packets.size() + " packets received but incomplete" )));
+			
 			return( null );
+			
 		}finally{
 			
 			transfer_queue.destroy();
