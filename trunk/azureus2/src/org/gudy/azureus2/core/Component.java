@@ -4,8 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
 import org.gudy.azureus2.ui.swt.IComponent;
 import org.gudy.azureus2.ui.swt.IComponentListener;
@@ -16,10 +15,10 @@ import org.gudy.azureus2.ui.swt.IComponentListener;
  */
 public class Component implements IComponent, IComponentListener {
 
-  private List listeners;
+  private Vector listeners;
 
   public Component() {
-    listeners = new ArrayList();
+    listeners = new Vector();
   }
 
   public void addListener(IComponentListener listener) {
