@@ -46,6 +46,7 @@ TRTrackerResponse
 	
 	/**
 	 * if the status is ST_REPORTED_ERROR then this method is of use
+	 * Also populated when ST_OFFLINE - in this case it gives a reason where possible
 	 * @return	failure reason as reported by tracker.
 	 */
 	

@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 
 /**
  * 
- * This class handles communication with the tracker, but doesn't analyse responses.
+ * This class handles communication with the tracker
  * 
  * @author Olivier
  *
@@ -157,45 +157,74 @@ TRTrackerClientClassicImpl
 	byte[] result = null;
 	boolean failed = false;
 	this.firstIndexUsed = this.listIndex;
-	try {
-	  for(int i = 0 ; i < trackerUrlLists.size() ; i++) {
+		
+	String	last_failure_reason = "";
+		
+	for (int i = 0 ; i < trackerUrlLists.size() ; i++) {
+	  	
 		List urls = (List) trackerUrlLists.get(i);
-		for(int j = 0 ; j < urls.size() ; j++) {
+		
+		for (int j = 0 ; j < urls.size() ; j++) {
+			
 		  String url = (String) urls.get(j);
-		  lastUsedUrl = url; 
-		  URL reqUrl = new URL(constructUrl(evt,url));
-		  result = updateOld(reqUrl,evt);
-		  //We have a result, move everything in top of list
-		  if(result != null && ! (result.length == 0)) {
-        //Add a test to see if result is 1. valid and 2. not an error response
-        try{
-          Map metaData = BDecoder.decode(result);
-          byte[] failure =(byte[]) metaData.get("failure reason");
-          
-          if(failure == null) {
-            urls.remove(j);
-            urls.add(0,url);
-            trackerUrlLists.remove(i);
-            trackerUrlLists.add(0,urls);            
-            
-            //and return the result
-            return(decodeTrackerResponse(result));
-          }
-        } catch(Exception e) {
-          //do nothing
-        }
-  			
+		  
+		  lastUsedUrl = url;
+		   
+		  String	this_url_string = null;
+		  
+		  try{
+		  
+			  this_url_string = constructUrl(evt,url);
+			  
+			  URL reqUrl = new URL(this_url_string);
+			  
+			  TRTrackerResponse resp = decodeTrackerResponse( updateOld(reqUrl,evt));
+			  
+		      if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
+					
+	            	urls.remove(j);
+	            	
+	            	urls.add(0,url);
+	            	
+	            	trackerUrlLists.remove(i);
+	            	
+	            	trackerUrlLists.add(0,urls);            
+	            
+	            		//and return the result
+	            		
+	            	return( resp );
+			  }else{
+			  	
+			  	String	this_reason = resp.getFailureReason();
+			  	
+			  	if ( this_reason != null ){
+			  		
+			  		last_failure_reason = this_reason;	
+			  	}
+			  }
+		  }catch( MalformedURLException e ){
+		  	
+		  	e.printStackTrace();
+		  	
+		  	last_failure_reason = "malformed URL '" + this_url_string + "'";
+		  	
+		  }catch( Exception e ){
+		  	
+		  	last_failure_reason = e.getMessage();
 		  }
 		}
-	  }  
-	} catch(MalformedURLException e) {
-	  e.printStackTrace();
-	}
-	return( decodeTrackerResponse( null ));
+	  } 
+	   
+	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, last_failure_reason ));
   }
 
   private byte[] 
-  updateOld(URL reqUrl,String evt) {
+  updateOld(URL reqUrl,String evt)
+  
+  	throws Exception
+  {
+  	String	failure_reason = null;
+  	
 	try {      
 	  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
 	  final HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
@@ -204,6 +233,9 @@ TRTrackerClientClassicImpl
 	  if(httpConnecter != null && httpConnecter.isAlive() && !httpConnecter.isInterrupted()) {
 		httpConnecter.interrupt();
 	  }
+	  
+	  final String[]	fr_for_thread = { null };
+	  
 	  httpConnected = false;
 	  httpConnecter = new Thread("Tracker HTTP Connect") {
 		public void run() {
@@ -211,6 +243,8 @@ TRTrackerClientClassicImpl
 			con.connect();
 			httpConnected = true;
 		  } catch (Exception ignore) {
+		  		  		
+			fr_for_thread[0] = exceptionToString( ignore );
 		  }
 		}
 	  };
@@ -222,7 +256,16 @@ TRTrackerClientClassicImpl
 		httpConnecter.join(timeout);
 	  } catch (InterruptedException ignore) {
 	   // if somebody interrupts us he knows what he is doing
+	   
+	   failure_reason = "timeout";
+	   
 	  }
+	  
+	  if ( failure_reason == null ){
+	  	
+	  	failure_reason = fr_for_thread[0];
+	  }
+	  
 	  if (httpConnecter.isAlive()) {
 		httpConnecter.interrupt();
 	  }
@@ -245,11 +288,23 @@ TRTrackerClientClassicImpl
 			  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
 			  LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
 			  nbRead = -1;
+			  
+			  failure_reason = exceptionToString( e );
 			}
 		  }
+		  
 		  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+		  
 		} catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+			
+			failure_reason = "SSL not supported";
+			
 		} catch (Exception ignore) {
+			
+			// ignore.printStackTrace();
+			
+			failure_reason = exceptionToString( ignore );
+			
 		} finally {
 		  if (is != null) {
 			try {
@@ -259,12 +314,49 @@ TRTrackerClientClassicImpl
 			is = null;
 		  }
 		}
-		return( message.toByteArray());
+		
+			// if we've got soem kind of response then return it
+			
+		if (message.size() > 0){
+		
+			return( message.toByteArray());
+		}
+	  }else{
+	  	
+	  	if (failure_reason == null ){
+	  		
+	  		failure_reason = "timeout";
+	  	}
 	  }
 	} catch (Exception e) {
-	  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while creating the Tracker Request : " + e);
+	  
+	  failure_reason = exceptionToString( e );
 	}
-	return null;
+	
+	if (failure_reason != null ){
+		
+		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
+		
+		throw( new Exception( failure_reason));
+	}
+	
+	return( null );
+  }
+  
+  protected String
+  exceptionToString(
+  	Exception 	e )
+  {
+  	String class_name = e.getClass().getName();
+  	
+  	int	pos = class_name.lastIndexOf( '.' );
+  	
+  	if ( pos != -1 ){
+  		
+  		class_name = class_name.substring(pos+1);
+  	}
+  	
+  	return( class_name + ":" + e.getMessage());
   }
   
   public String constructUrl(String evt,String url) {
@@ -405,8 +497,14 @@ TRTrackerClientClassicImpl
   	decodeTrackerResponse(
   		byte[]		data )
   	{
-  		if ( data != null ){
+  		String	failure_reason;
+  		
+  		if ( data == null ){
   			
+  			failure_reason = "no response";
+  			
+  		}else{
+  		
 	 		try{
 					   //parse the metadata
 					   
@@ -415,11 +513,14 @@ TRTrackerClientClassicImpl
 					// decode could fail if the tracker's returned, say, an HTTP response
 					// indicating server overload
 					
-				if ( metaData != null ){
-				
-					long	time_to_wait;
-					String	failure_reason = null;
+				if ( metaData == null ){
 					
+					failure_reason = "invalid reply:" + new String( data );
+				
+				}else{
+					
+					long	time_to_wait;
+										
 					boolean		tracker_ok = false;
 					
 					try{
@@ -484,9 +585,11 @@ TRTrackerClientClassicImpl
 			}catch( Exception e ){
 				
 				e.printStackTrace();
+				
+				failure_reason = "error: " + e.getMessage();
 			}
   		}
 
-		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60 ));
+		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, failure_reason ));
   	}
 }

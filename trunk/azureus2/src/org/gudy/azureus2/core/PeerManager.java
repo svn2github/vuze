@@ -284,7 +284,13 @@ PeerManager
     	if ( status == TRTrackerResponse.ST_OFFLINE ){
       
       		_trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
-      		      		
+      		      
+      		String	reason = tracker_response.getFailureReason();
+      		
+      		if ( reason != null ){
+      			
+      			_trackerStatus += " (" + reason + ")";		
+      		}
 	    }else if ( status == TRTrackerResponse.ST_REPORTED_ERROR ){
 
 			_trackerStatus = tracker_response.getFailureReason();
