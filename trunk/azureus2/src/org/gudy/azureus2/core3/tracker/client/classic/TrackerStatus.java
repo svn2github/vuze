@@ -8,24 +8,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.tracker.protocol.udp.*;
-import org.gudy.azureus2.core3.tracker.util.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -125,8 +123,8 @@ public class TrackerStatus {
     if (!SystemTime.isErrorLast1min() && !force && lMainNextScrapeStartTime >= SystemTime.getCurrentTime()) {
       return;
     }
-    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
-    response.setStatusString(MessageText.getString("Scrape.status.scraping"));
+    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+                       MessageText.getString("Scrape.status.scraping"));
 
     responsesToUpdate.add(response);
     
@@ -149,9 +147,8 @@ public class TrackerStatus {
 	          
 	          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
 	          	
-	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
-	            
-	            r.setStatusString(MessageText.getString("Scrape.status.scraping"));
+	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+	                        MessageText.getString("Scrape.status.scraping"));
 	            
 	            responsesToUpdate.add(r);
 	          }
@@ -229,14 +226,20 @@ public class TrackerStatus {
             bSingleHashScrapes = true;
             LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
                          scrapeURL + " doesn't properly support multi-hash scrapes");
+            for (int i = 0; i < responses.size(); i++) {
+		          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+              response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                                 MessageText.getString("Scrape.status.error.invalid"),
+                                 true);
+            }
           } else {
             // 1 was requested, 0 returned.  Therefore, hash not found.
             TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(0);
             response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                             FAULTY_SCRAPE_RETRY_INTERVAL);
-            response.setStatus(TRTrackerScraperResponse.ST_ERROR);
-            response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                                     MessageText.getString("Scrape.status.error.nohash"));
+            response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                               MessageText.getString("Scrape.status.error") + 
+                               MessageText.getString("Scrape.status.error.nohash"));
           }
 
           return;
@@ -257,16 +260,16 @@ public class TrackerStatus {
             if (responses.size() == 1 || mapFiles.size() != 1) {
               response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                               FAULTY_SCRAPE_RETRY_INTERVAL);
-              response.setStatus(TRTrackerScraperResponse.ST_ERROR);
-              response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                                       MessageText.getString("Scrape.status.error.nohash"));
+              response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                                 MessageText.getString("Scrape.status.error") + 
+                                 MessageText.getString("Scrape.status.error.nohash"));
             } else {
               // This tracker doesn't support multiple hash requests.
               // revert status to what it was
               response.revertStatus();
               if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING) {
                 System.out.println("Hash " + ByteFormatter.nicePrint(response.getHash(), true) + " mysteriously reverted to ST_SCRAPING!");
-                response.setStatus(TRTrackerScraperResponse.ST_ONLINE);
+                response.setStatus(TRTrackerScraperResponse.ST_ONLINE, "");
               }
               // if this was the first scrape request in the list, TrackerChecker
               // will attempt to scrape again because we didn't reset the 
@@ -283,8 +286,9 @@ public class TrackerStatus {
             //make sure we dont use invalid replies
             if ( seeds < 0 || peers < 0 ) {
             	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + FAULTY_SCRAPE_RETRY_INTERVAL);
-            	response.setStatus(TRTrackerScraperResponse.ST_ERROR);
-              response.setStatusString(MessageText.getString("Scrape.status.error") + MessageText.getString("Scrape.status.error.invalid"));
+            	response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                                 MessageText.getString("Scrape.status.error") +
+                                 MessageText.getString("Scrape.status.error.invalid"));
               scraper.scrapeReceived( response );
               return;
             }
@@ -322,18 +326,9 @@ public class TrackerStatus {
     	      response.setScrapeStartTime(scrapeStartTime);
     	      response.seeds = seeds;
     	      response.peers = peers; 
-            response.setStatus(TRTrackerScraperResponse.ST_ONLINE);
+            response.setStatus(TRTrackerScraperResponse.ST_ONLINE,
+                               MessageText.getString("Scrape.status.ok"), true);
 
-            String s = MessageText.getString("Scrape.status.ok");
-            if (!s.endsWith(".")) {
-              s += ".  ";
-            } else if (!s.equals("")) {
-              s += "  ";
-            }
-            String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
-            response.setStatusString(s + 
-                                     MessageText.getString("Scrape.status.nextScrapeAt", 
-                                                           params));
             //notifiy listeners
             scraper.scrapeReceived( response );
           }
@@ -344,7 +339,9 @@ public class TrackerStatus {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
-          response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                             MessageText.getString("Scrape.status.error") + 
+                             ignoreSSL.getMessage(), true);
           //notifiy listeners
           scraper.scrapeReceived( response );
         }
@@ -356,17 +353,9 @@ public class TrackerStatus {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
-          response.setStatus(TRTrackerScraperResponse.ST_ERROR);
-          String s = MessageText.getString("Scrape.status.error") + e.getMessage();
-          if (!s.endsWith(".")) {
-            s += ".  ";
-          } else if (!s.equals("")) {
-            s += "  ";
-          }
-          String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
-          response.setStatusString(s + 
-                                   MessageText.getString("Scrape.status.nextScrapeAt", 
-                                                         params));
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                             MessageText.getString("Scrape.status.error") + 
+                             e.getMessage(), true);
           //notifiy listeners
           scraper.scrapeReceived( response );
         }
@@ -638,11 +627,12 @@ public class TrackerStatus {
   protected TRTrackerScraperResponseImpl addHash(byte[] hash) {
     TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(this, hash);
     if (scrapeURL == null)  {
-      response.setStatus(TRTrackerScraperResponse.ST_ERROR);
-      response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                               MessageText.getString("Scrape.status.error.badURL"));
+      response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                         MessageText.getString("Scrape.status.error") + 
+                         MessageText.getString("Scrape.status.error.badURL"));
     } else {
-      response.setStatusString(MessageText.getString("Scrape.status.initializing"));
+      response.setStatus(TRTrackerScraperResponse.ST_INITIALIZING,
+                         MessageText.getString("Scrape.status.initializing"));
     }
   	synchronized( hashes ){
       hashes.put(hash, response);
