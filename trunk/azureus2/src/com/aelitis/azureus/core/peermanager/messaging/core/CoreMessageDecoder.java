@@ -37,7 +37,9 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  * Length-prefixed message decoding.
  */
 public class CoreMessageDecoder implements MessageStreamDecoder {
-  private final CoreMessageCreator message_creator;
+  private static final int MIN_MESSAGE_LENGTH = 6;  //4 byte id length + at least 1 byte for id + 1 byte version
+  private static final int MAX_MESSAGE_LENGTH = 65536;  //64K arbitrary limit
+  
   
   private ByteBuffer payload_buffer = null;
   private DirectByteBuffer direct_payload_buffer = null;
@@ -57,15 +59,10 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0;
+
   
-  
-  
-  /**
-   * Decoder using the given creator for message processing.
-   * @param creator to use
-   */
-  public CoreMessageDecoder( CoreMessageCreator creator ) {
-    this.message_creator = creator;
+  public CoreMessageDecoder() {
+    /*nothing*/
   }
   
   
@@ -202,7 +199,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
     
     if( !reading_length_mode ) {  //reading payload data mode
       //ensure-restore proper buffer limits
-      payload_buffer.limit( message_length - 1 );
+      payload_buffer.limit( message_length );
       length_buffer.limit( 4 );
       
       int read = payload_buffer.position() - pre_read_start_position;
@@ -224,7 +221,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
         DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
           
         try {
-          Message msg = message_creator.createMessage( payload );
+          Message msg = CoreMessageFactory.createCoreMessage( payload );
           messages_last_read.add( msg );
         }
         catch( MessageException me ) {
@@ -260,17 +257,17 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
         
         length_buffer.position( 0 );  //reset it for next length read      
 
-        if( message_length < 0 || message_length > 65536 ) {  //64K arbitrary limit for now
+        if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
           String msg = "Invalid message length given for legacy message decode: " + message_length;
           throw new IOException( msg );
         }
         
-        if( message_length > 4095 ) {
-          direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length - 1 );
+        if( message_length > 4095 ) {  //4K min to bother with direct buffers
+          direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
           payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
         }
         else {
-          payload_buffer = ByteBuffer.allocate( message_length - 1 );
+          payload_buffer = ByteBuffer.allocate( message_length );
         }
       }
     }

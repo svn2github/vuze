@@ -36,7 +36,8 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  *
  */
 public class BTMessageDecoder implements MessageStreamDecoder {
-  
+  private static final int MIN_MESSAGE_LENGTH = 1;  //for type id
+  private static final int MAX_MESSAGE_LENGTH = 16393;  //should never be > 16KB+9B, as we never request chunks > 16KB
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
       
   private final ByteBuffer type_buffer = ByteBuffer.allocateDirect( 1 );
@@ -315,11 +316,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           payload_buffer = ByteBuffer.allocate( 68 - 5 );  //we've already read 4 bytes, plus 1 byte preceding type buffer
           message_length = 68 - 4;  //restore 'real' length
         }
-        else if( message_length < 0 || message_length > 16393 ) {  //should never be > 16KB+9B, as we never request chunks > 16KB
-          String msg = "Invalid message length given for legacy message decode: " + message_length;
-          //Debug.out( msg );
-          throw new IOException( msg );
-        }
         else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;
           last_received_was_keepalive = true;
@@ -331,6 +327,11 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             Debug.out( me );
             throw new IOException( "message decode failed: " + me.getMessage() );
           }
+        }
+        else if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
+          String msg = "Invalid message length given for legacy message decode: " + message_length;
+          //Debug.out( msg );
+          throw new IOException( msg );
         }
         else {  //normal message
           if( message_length > 1023 ) {
