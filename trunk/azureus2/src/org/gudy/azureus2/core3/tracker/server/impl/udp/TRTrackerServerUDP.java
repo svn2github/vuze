@@ -50,20 +50,20 @@ TRTrackerServerUDP
 		port		= _port;
 		
 		try{
-			DatagramSocket	socket = new DatagramSocket();
-		
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 			
 			InetSocketAddress	address;
 			
 			if ( bind_ip.length() == 0 ){
 				
-				address = new InetSocketAddress(port);
+				address = new InetSocketAddress("127.0.0.1",port);
 				
 			}else{
 				
 				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
 			}
+			
+			DatagramSocket	socket = new DatagramSocket(address);
 			
 			socket.setReuseAddress(true);
 			
@@ -101,19 +101,15 @@ TRTrackerServerUDP
 			
 			try{				
 				byte[] buf = new byte[PACKET_SIZE];
-				
+								
 				DatagramPacket packet = new DatagramPacket( buf, buf.length, address );
 				
 				socket.receive( packet );
 				
 				String	ip = packet.getAddress().getHostAddress();
-				
-				System.out.println( "got a UDP packet: ip = " + ip);
-				
+								
 				if ( !ip_filter.isInRange( ip )){
-					
-					System.out.println( "got a UDP packet");
-					
+										
 					// thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
 				}					
 				

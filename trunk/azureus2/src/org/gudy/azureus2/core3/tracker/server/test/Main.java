@@ -21,6 +21,9 @@
 
 package org.gudy.azureus2.core3.tracker.server.test;
 
+import java.io.*;
+import java.net.*;
+
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
 
 public class 
@@ -49,7 +52,24 @@ Main
 		try{
 
 			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, 6969 );
-					
+				
+			for (int i=0;i<100;i++){
+				
+				Thread.sleep(1000);
+				
+				DatagramSocket	ds = new DatagramSocket( );
+				
+				byte[]	buffer = "hello world".getBytes();
+				
+				InetAddress address = InetAddress.getByName( "127.0.0.1" );
+				
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length,address,6969);
+				
+				System.out.println( "sending packet");
+				
+				ds.send( packet );
+			}
+			
 			Thread.sleep(100000);
 			
 		}catch( Throwable e ){
