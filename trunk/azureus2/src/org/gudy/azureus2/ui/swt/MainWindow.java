@@ -416,6 +416,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     downloadBars = new HashMap();
     
 
+    LGLogger.log("Allocating Colors..");
     if (instanceCount == 0) {      
       allocateBlues();
       
@@ -430,6 +431,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       handCursor = new Cursor(display, SWT.CURSOR_HAND);
     }
     instanceCount++;
+    LGLogger.log("Done allocating Colors..");
 
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
@@ -686,7 +688,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     addCloseDownloadBarsToMenu(viewMenu);
 
     createLanguageMenu(menuBar, mainWindow, locales);
-    LGLogger.log("Creating Language Menu");
+    LGLogger.log("Language Menu Created");
 
     //The Help Menu
     MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -1105,13 +1107,18 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         toBeDisposed.dispose();
       }
     }
-    float[] hsb = new float[3];
-    java.awt.Color.RGBtoHSB(r, g, b, hsb);
-    hsb[0] += 0.10;
-    if (hsb[0] > 1)
-    	hsb[0] -= 1;
-    java.awt.Color awtColorShift = java.awt.Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-    colorShift = new Color(display, awtColorShift.getRed(), awtColorShift.getGreen(), awtColorShift.getBlue());
+    try {
+      float[] hsb = new float[3];
+      java.awt.Color.RGBtoHSB(r, g, b, hsb);
+      hsb[0] += 0.10;
+      if (hsb[0] > 1)
+      	hsb[0] -= 1;
+      java.awt.Color awtColorShift = java.awt.Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+      colorShift = new Color(display, awtColorShift.getRed(), awtColorShift.getGreen(), awtColorShift.getBlue());
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR, "Color Shift Failure, using default 'blue'");
+      colorShift = new Color(display, r, g, b);
+    }
     
   }
 
