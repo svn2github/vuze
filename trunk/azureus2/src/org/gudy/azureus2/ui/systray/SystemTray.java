@@ -86,6 +86,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 		toolTip.append(main.getGlobalManager().getUploadSpeed());
 
 		menu.setToolTip(toolTip.toString());
+    if(!menu.isIconVisible())
+      menu.showIcon();
 	}
 	/* (non-Javadoc)
 	 * @see snoozesoft.systray4j.SysTrayMenuListener#iconLeftDoubleClicked(snoozesoft.systray4j.SysTrayMenuEvent)
@@ -123,6 +125,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 	}
 
 	private void dispose() {
+    menu.hideIcon();
+
 		Display display = main.getDisplay();
 		if (display == null || display.isDisposed())
 			return;
