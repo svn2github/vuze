@@ -355,7 +355,13 @@ PluginUpdatePlugin
 					
 					int	comp = PluginUtils.comparePluginVersions( az_plugin_version, sf_comp_version );
 					
-					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + az_plugin_version + ", Latest: " + sf_plugin_version );
+						// if they're the same version and latest is CVS then stick a _CVS on
+						// the end of current to avoid confusion
+					
+					log.log( LoggerChannel.LT_INFORMATION, 
+								"    Current: " + az_plugin_version + 
+								(comp==0&&sf_plugin_version.endsWith( "_CVS")?"_CVS":"")+
+								", Latest: " + sf_plugin_version );
 					
 					if ( comp < 0 && ! ( pi_being_checked.getPlugin() instanceof UpdatableComponent)){
 													
