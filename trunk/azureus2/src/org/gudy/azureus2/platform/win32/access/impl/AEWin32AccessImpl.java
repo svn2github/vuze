@@ -48,6 +48,11 @@ AEWin32AccessImpl
 		return( singleton );
 	}
 	
+	public String
+	getVersion()
+	{
+		return( AEWin32AccessInterface.getVersion());		
+	}
 	
 	public String
 	readStringValue(

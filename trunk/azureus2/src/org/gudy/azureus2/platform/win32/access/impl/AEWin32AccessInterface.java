@@ -28,6 +28,7 @@ package org.gudy.azureus2.platform.win32.access.impl;
  */
 
 import org.gudy.azureus2.platform.win32.access.*;
+import org.gudy.azureus2.platform.win32.*;
 
 public class 
 AEWin32AccessInterface 
@@ -38,13 +39,16 @@ AEWin32AccessInterface
 	public static final int	HKEY_CURRENT_USER		= AEWin32Access.HKEY_CURRENT_USER;
 
 	static{
-		System.loadLibrary( "aereg" );
+		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
 	}
 	
 	protected static void
 	load()
 	{	
 	}
+	
+	protected static native String
+	getVersion();
 	
 	protected static native String
 	readStringValue(

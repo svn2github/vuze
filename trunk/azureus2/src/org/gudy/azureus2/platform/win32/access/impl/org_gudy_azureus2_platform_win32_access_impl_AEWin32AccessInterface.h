@@ -17,6 +17,14 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_HKEY_CURRENT_USER 4L
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    getVersion
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getVersion
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
  * Method:    readStringValue
  * Signature: (ILjava/lang/String;Ljava/lang/String;)Ljava/lang/String;
  */

@@ -30,6 +30,10 @@
 
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
+
+#define VERSION "1.1"
+
+
 HMODULE	application_module;
 
 
@@ -201,6 +205,18 @@ mapHKEY(
 		return( NULL );
 	}
 }
+
+
+JNIEXPORT jstring JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getVersion(
+	JNIEnv		*env,
+	jclass		cla )
+{
+	jstring	result = env->NewStringUTF((char *)VERSION);
+
+	return( result );
+}
+
 
 JNIEXPORT jstring JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStringValue(

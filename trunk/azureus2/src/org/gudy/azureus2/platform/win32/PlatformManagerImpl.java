@@ -38,6 +38,8 @@ public class
 PlatformManagerImpl
 	implements PlatformManager
 {
+	public static final String					DLL_NAME = "aereg";
+	
 	protected static boolean					init_tried;
 	
 	protected static PlatformManagerImpl		singleton;
@@ -49,21 +51,26 @@ PlatformManagerImpl
 	{
 		if ( singleton == null && !init_tried ){
 			
-			init_tried	= true;
-			
 			try{
-				singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
+				init_tried	= true;
 				
-			}catch( Throwable e ){
-				
-				LGLogger.log( "Win32Platform: failed to initialise", e );
-				
-				if ( e instanceof PlatformManagerException ){
+				try{
+					singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
 					
-					throw((PlatformManagerException)e);
+				}catch( Throwable e ){
+					
+					LGLogger.log( "Win32Platform: failed to initialise", e );
+					
+					if ( e instanceof PlatformManagerException ){
+						
+						throw((PlatformManagerException)e);
+					}
+					
+					throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
 				}
+			}finally{
 				
-				throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
+				new PlatformManagerUpdateChecker( singleton );
 			}
 		}
 		
@@ -81,6 +88,12 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		access	= _access;
+	}
+	
+	protected String
+	getVersion()
+	{
+		return( access.getVersion());
 	}
 	
 	protected File
