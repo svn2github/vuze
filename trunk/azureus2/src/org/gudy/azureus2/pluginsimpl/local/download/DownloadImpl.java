@@ -61,6 +61,7 @@ DownloadImpl
 	protected DownloadStatsImpl		download_stats;
 	
 	protected int		latest_state		= ST_STOPPED;
+	protected boolean latest_forcedStart;
 	
 	protected DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
 	protected DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
@@ -80,6 +81,7 @@ DownloadImpl
 		download_manager.addListener( this );
 		
 		download_manager.addPeerListener( this );
+		latest_forcedStart = download_manager.isForceStart();
 	}
 	
 	protected DownloadManager
@@ -449,8 +451,10 @@ DownloadImpl
 	{
 		int	prev_state 	= latest_state;
 		int	curr_state	= getState();
+		boolean curr_forcedStart = isForceStart();
 	
-		if ( prev_state != curr_state ){
+		if ( prev_state != curr_state || latest_forcedStart != curr_forcedStart ){
+		  latest_forcedStart = curr_forcedStart;
 			
 			synchronized( listeners ){
 				
@@ -476,6 +480,19 @@ DownloadImpl
   public void completionChanged(DownloadManager manager, boolean bCompleted) {
   }
 	
+  public void positionChanged(DownloadManager download, 
+                              int oldPosition, int newPosition) {
+		synchronized(listeners){
+			for (int i = 0; i < listeners.size(); i++) {
+				try {
+					((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+		}
+  }
+
 	public void
 	addListener(
 		DownloadListener	l )

@@ -21,17 +21,33 @@
 
 package org.gudy.azureus2.plugins.download;
 
-/**
+/** A listener informed of changes to a Download's state and position
+ *
  * @author parg
- * A listener informed of changes to a Download's state
+ * @author TuxPaper (positionChanged)
  */
 
 public interface 
 DownloadListener 
 {
+  /** The Download's state has changed.  This is also triggered if the user
+   * toggles the Force Start on/off.
+   */
 	public void
 	stateChanged(
 		Download		download,
 		int				old_state,
 		int				new_state );
+
+  /** Position of download has changed.
+   *
+   * @param download object in which the position has changed
+   * @param oldPosition position that the download used to be at
+   * @param newPosition position that the download is now at
+   */
+	public void
+	positionChanged(
+		Download	download, 
+		int oldPosition,
+		int newPosition );
 }
