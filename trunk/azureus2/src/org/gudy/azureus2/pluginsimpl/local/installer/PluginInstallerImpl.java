@@ -439,9 +439,36 @@ PluginInstallerImpl
 										}
 									});
 	
+									// the plugin may have > 1 plugin interfaces, make the name up appropriately
+								
+								String	update_name = "";
+									
+								PluginInterface[]	ifs = manager.getPluginInterfaces();
+								
+							    Arrays.sort( 
+							    		ifs,
+									  	new Comparator()
+										{
+								      		public int 
+											compare(
+												Object o1, 
+												Object o2)
+								      		{
+								      			return(((PluginInterface)o1).getPluginName().compareTo(((PluginInterface)o2).getPluginName()));
+								      		}
+										});
+							    
+								for (int i=0;i<ifs.length;i++){
+									
+									if ( ifs[i].getPluginID().equals(pi.getPluginID())){
+									
+										update_name += (update_name.length()==0?"":",") + ifs[i].getPluginName();
+									}
+								}
+								
 								checker.addUpdate(
-									pi.getPluginName(),
-									new String[]{ "Uninstall" },
+									update_name,
+									new String[]{ "Uninstall: " + plugin_dir},
 									pi.getPluginVersion(),
 									rd,
 									pi.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
