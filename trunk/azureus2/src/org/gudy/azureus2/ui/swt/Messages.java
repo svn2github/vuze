@@ -6,6 +6,9 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.net.URI;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -31,6 +34,8 @@ import org.eclipse.swt.widgets.Widget;
 public class Messages {
 
   private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
+  private static final String prefix = "MessagesBundle";
+  private static final String extension = ".properties";
 
   private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
   public static Locale LOCALE_ENGLISH = new Locale("en", "EN"); 
@@ -60,6 +65,22 @@ public class Messages {
     if(LOCALE_ENGLISH.equals(locale))
       locale = LOCALE_DEFAULT;
     return RESOURCE_BUNDLE.getLocale().equals(locale);
+  }
+
+  public static Locale[] getLocales() {
+    File bundleDirectory = new File(URI.create(ClassLoader.getSystemResource(BUNDLE_NAME.replace('.', '/').concat(".properties")).toString())).getParentFile();
+    String[] bundles = bundleDirectory.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.startsWith(prefix) && name.endsWith(extension);
+      }
+    });
+
+    Locale[] foundLocales = new Locale[bundles.length];
+    for (int i = 0; i < bundles.length; i++) {
+      String locale = bundles[i].substring(prefix.length(), bundles[i].length()-extension.length());
+      foundLocales[i] = locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
+    }
+    return foundLocales;
   }
   
   public static boolean changeLocale(Locale newLocale) {
@@ -136,4 +157,5 @@ public class Messages {
         System.out.println("No cast for " + widget.getClass().getName());
     }
   }
+
 }

@@ -337,18 +337,7 @@ public class MainWindow implements IComponentListener {
     */
     addCloseDownloadBarsToMenu(viewMenu);
 
-    //The Language Menu
-    MenuItem languageItem = new MenuItem(menuBar, SWT.CASCADE);
-    Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
-    Menu languageMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    languageItem.setMenu(languageMenu);
-
-    MenuItem language = new MenuItem(languageMenu, SWT.RADIO);
-    createLanguageMenuitem(language, Messages.LOCALE_ENGLISH);
-    language = new MenuItem(languageMenu, SWT.RADIO);
-    createLanguageMenuitem(language, Locale.GERMANY);
-    language = new MenuItem(languageMenu, SWT.RADIO);
-    createLanguageMenuitem(language, Locale.FRANCE);
+    createLanguageMenu(menuBar);
 
     createDropTarget(mainWindow);
 
@@ -443,6 +432,20 @@ public class MainWindow implements IComponentListener {
       }
     });
 
+  }
+
+  private void createLanguageMenu(Menu menu) {
+    MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
+    Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
+    Menu languageMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    languageItem.setMenu(languageMenu);
+
+    Locale[] locales = Messages.getLocales();
+    for (int i = 0; i < locales.length; i++) {
+//      System.out.println("found Locale: " + locales[i]);
+      MenuItem language = new MenuItem(languageMenu, SWT.RADIO);
+      createLanguageMenuitem(language, locales[i]);
+    }
   }
 
   private void setStatusVersion() {
