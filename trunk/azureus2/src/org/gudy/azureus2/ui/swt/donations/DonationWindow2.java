@@ -62,6 +62,12 @@ public class DonationWindow2 {
   
   private Display display;
   private Shell shell;
+  
+  private Button radioDonate;
+  private Button radioNoDonate;
+  private Button radioLater;
+  private Button radioAlready;
+  
   private Button ok;
   
   private String mainText,footerText;
@@ -264,7 +270,20 @@ public class DonationWindow2 {
       FormData formData;
       
       
-      final Button radioDonate = new Button(shell,SWT.RADIO);
+      //We're adding the OK button First so that it's on TOP
+      //Of other controls (Not sure about this, but should be right)
+      //Gudy :p
+      ok = new Button(shell,SWT.PUSH);     
+      ok.setEnabled(false);
+      Messages.setLanguageText(ok,"DonationWindow.ok");
+      
+      formData = new FormData();
+      formData.bottom = new FormAttachment(100,-5);
+      formData.right = new FormAttachment(100,-5);
+      formData.width = 100;
+      ok.setLayoutData(formData);
+      
+      radioDonate = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");
       radioDonate.setFont(mainFont);
       radioDonate.setBackground(Colors.white);
@@ -287,7 +306,7 @@ public class DonationWindow2 {
       textFooter.setLayoutData(formData);
       
       
-      final Button radioNoDonate = new Button(shell,SWT.RADIO);
+      radioNoDonate = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioNoDonate,"DonationWindow.options.nodonate");
       radioNoDonate.setFont(mediumFont);
       radioNoDonate.setBackground(Colors.white);
@@ -297,7 +316,7 @@ public class DonationWindow2 {
       formData.right = new FormAttachment(100,-5);
       radioNoDonate.setLayoutData(formData);
       
-      final Button radioLater = new Button(shell,SWT.RADIO);
+      radioLater = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioLater,"DonationWindow.options.later");
       radioLater.setFont(mediumFont);
       radioLater.setBackground(Colors.white);
@@ -307,7 +326,7 @@ public class DonationWindow2 {
       formData.right = new FormAttachment(100,-5);
       radioLater.setLayoutData(formData);
       
-      final Button radioAlready = new Button(shell,SWT.RADIO);
+      radioAlready = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioAlready,"DonationWindow.options.already");      
       radioAlready.setFont(mediumFont);
       radioAlready.setBackground(Colors.white);
@@ -330,39 +349,44 @@ public class DonationWindow2 {
       //By default, donate is selected (of course)
       radioDonate.setSelection(true);    
       
-      ok = new Button(shell,SWT.PUSH);     
-      ok.setEnabled(false);
-      Messages.setLanguageText(ok,"DonationWindow.ok");
-      
-      formData = new FormData();
-      formData.bottom = new FormAttachment(100,-5);
-      formData.right = new FormAttachment(100,-5);
-      formData.width = 100;
-      ok.setLayoutData(formData);
-      
-      
       
       
       ok.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event evt) {        
-          if(radioDonate.getSelection()) {
-            Program.launch(donationUrl);
-          }
-          if(radioAlready.getSelection()) {
-            thanks();
-            stopAsking(); 
-          }
-          if(radioNoDonate.getSelection()){
-            stopAsking(); 
-          }
-          if(!radioDonate.getSelection()) {
-            close();
-          }       
+        public void handleEvent(Event evt) {          
+          handleChoice();
         }
       });
       
+      Listener keyListener =  new Listener() {
+        public void handleEvent(Event e) {
+          System.out.println(e.character);
+          if(e.character == SWT.ESC) {
+            if(ok.getEnabled()) close();                
+          }
+        }
+      };
+      
+      shell.addListener(SWT.KeyUp,keyListener);
+      textForCopy.addListener(SWT.KeyUp,keyListener);
+      
       shell.layout();
 		}
+  
+  private void handleChoice() {
+    if(radioDonate.getSelection()) {
+      Program.launch(donationUrl);
+    }
+    if(radioAlready.getSelection()) {
+      thanks();
+      stopAsking(); 
+    }
+    if(radioNoDonate.getSelection()){
+      stopAsking(); 
+    }
+    if(!radioDonate.getSelection()) {
+      close();
+    }       
+  }
   
   
   private void thanks() {
