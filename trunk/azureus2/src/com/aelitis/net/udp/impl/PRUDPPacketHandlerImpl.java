@@ -49,6 +49,8 @@ public class
 PRUDPPacketHandlerImpl
 	implements PRUDPPacketHandler
 {	
+	private boolean			TRACE_REQUESTS	= false;
+	
 	private int				port;
 	private DatagramSocket	socket;
 	
@@ -256,8 +258,10 @@ PRUDPPacketHandlerImpl
 			
 			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)timed_out.get(i);
 			
-			LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
-			
+			if ( TRACE_REQUESTS ){
+				
+				LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
+			}
 				// don't change the text of this message, it's used elsewhere
 			
 			try{
@@ -310,14 +314,20 @@ PRUDPPacketHandlerImpl
 			packet.setAddress( (InetSocketAddress)dg_packet.getSocketAddress());
 			
 			if ( request_packet ){
-								
-				LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
-
+					
+				if ( TRACE_REQUESTS ){
+				
+					LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
+				}
+				
 				request_handler.process( (PRUDPPacketRequest)packet );
 			}else{
 				
-				LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
-						
+				if ( TRACE_REQUESTS ){
+					
+					LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
+				}
+				
 				PRUDPPacketHandlerRequest	request;
 				
 				try{
@@ -332,7 +342,10 @@ PRUDPPacketHandlerImpl
 				
 				if ( request == null ){
 				
-					LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
+					if ( TRACE_REQUESTS ){
+					
+						LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
+					}
 				
 				}else{
 				
@@ -463,7 +476,10 @@ PRUDPPacketHandlerImpl
 				requests_mon.exit();
 			}
 			
-			LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString()); 
+			if ( TRACE_REQUESTS ){
+			
+				LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString());
+			}
 			
 			try{
 				socket.send( packet );

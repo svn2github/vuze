@@ -32,13 +32,11 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
-import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
+import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -56,6 +54,8 @@ DHTControlImpl
 	
 	private DHTRouter		router;
 	
+	private DHTDB			database;
+	
 	private LoggerChannel	logger;
 	
 	private	int			node_id_byte_count;
@@ -66,21 +66,6 @@ DHTControlImpl
 	private int			B;
 	private int			max_rep_per_node;
 	
-	private int			original_republish_interval;
-	
-		// the grace period gives the originator time to republish their data as this could involve
-		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
-	
-	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 30*60*1000;
-	
-	private int			cache_republish_interval;
-	
-	private long		max_values_stored;
-	
-	private Map			stored_values = new HashMap();
-	
-	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
-	private long		last_cache_expiry_check;
 	
 	private ThreadPool	lookup_pool;
 	
@@ -106,10 +91,13 @@ DHTControlImpl
 		max_rep_per_node				= _max_rep_per_node;
 		search_concurrency				= _search_concurrency;
 		lookup_concurrency				= _lookup_concurrency;
-		original_republish_interval		= _original_republish_interval;
-		cache_republish_interval		= _cache_republish_interval;
 		cache_at_closest_n				= _cache_at_closest_n;
-		max_values_stored				= _max_values_stored;
+		
+		database = DHTDBFactory.create( 
+						_original_republish_interval,
+						_cache_republish_interval,
+						_max_values_stored,
+						logger );
 		
 		if ( lookup_concurrency > 1 ){
 			
@@ -158,56 +146,6 @@ DHTControlImpl
 					seed();
 				}
 			});
-		
-		Timer	timer = new Timer("DHT refresher");
-	
-				
-		timer.addPeriodicEvent(
-			original_republish_interval,
-			new TimerEventPerformer()
-			{
-				public void
-				perform(
-					TimerEvent	event )
-				{
-					logger.log( "Republishing original mappings" );
-					
-					try{		
-						DHTLog.indent( router );
-
-						republishOriginalMappings();
-						
-					}finally{
-						
-						DHTLog.exdent();
-					}
-				}
-			});
-				
-			// random skew here so that cache refresh isn't very synchronized, as the optimisations
-			// regarding non-republising benefit from this 
-		
-		timer.addPeriodicEvent(
-				cache_republish_interval + 10000 - (int)(Math.random()*20000),
-				new TimerEventPerformer()
-				{
-					public void
-					perform(
-						TimerEvent	event )
-					{
-						logger.log( "Republishing cached mappings" );
-						
-						try{		
-							DHTLog.indent( router );
-
-							republishCachedMappings();
-							
-						}finally{
-							
-							DHTLog.exdent();
-						}						
-					}
-				});
 	}
 	
 	protected void
@@ -247,22 +185,7 @@ DHTControlImpl
 				}
 			});	
 		
-			// our ID has changed - amend the originator of all our values
-		
-		synchronized( stored_values ){
-			
-			Iterator	it = stored_values.values().iterator();
-			
-			while( it.hasNext()){
-				
-				DHTControlValueImpl	value = (DHTControlValueImpl)it.next();
-				
-				if ( value.getCacheDistance() == 0 ){
-					
-					value.setOriginator( local_contact );
-				}
-			}
-		}
+		database.setControl( this );
 	}
 	
 	public DHTTransport
@@ -392,26 +315,9 @@ DHTControlImpl
 			
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 			
-			DHTControlValueImpl	value;
+			DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value );
 			
-			synchronized( stored_values ){
-				
-				value =	new DHTControlValueImpl( 
-							SystemTime.getCurrentTime(), 
-							_value, 
-							local_contact, 
-							local_contact,
-							0,
-							0 );
-
-
-					// don't police max check for locally stored data
-					// only that received
-				
-				stored_values.put( new HashWrapper( encoded_key ), value );
-			}
-			
-			putSupport( encoded_key, value, 0 );		
+			put( encoded_key, value.getTransportValue(), 0 );		
 
 		}finally{
 			
@@ -419,8 +325,8 @@ DHTControlImpl
 		}
 	}
 
-	protected void
-	putSupport(
+	public void
+	put(
 		final byte[]			encoded_key,
 		final DHTTransportValue	value,
 		final long				timeout )
@@ -435,14 +341,14 @@ DHTControlImpl
 					complete(
 						List		closest )
 					{
-						putSupport( encoded_key, value, closest );		
+						put( encoded_key, value, closest );		
 					}
 				});
 	}
 	
-	protected void
-	putSupport(
-		final byte[]		encoded_key,
+	public void
+	put(
+		byte[]				encoded_key,
 		DHTTransportValue	value,
 		List				closest )
 	{
@@ -584,18 +490,15 @@ DHTControlImpl
 
 			DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
 
-				// maybe we've got the value already
-				
-			synchronized( stored_values ){
+			DHTDBValue	res = database.remove( new HashWrapper( encoded_key ));
 			
-				DHTTransportValue val = (DHTTransportValue)stored_values.remove( new HashWrapper( encoded_key ));
+			if ( res == null ){
 				
-				if ( val == null ){
-					
-					return( null );
-				}
+				return( null );
 				
-				return( val.getValue());
+			}else{
+				
+				return( res.getValue());
 			}
 		}finally{
 			
@@ -731,6 +634,8 @@ DHTControlImpl
 						
 					if ( remaining <= 0 ){
 						
+						DHTLog.log( "lookup: terminates - timeout" );
+
 						break;
 						
 					}
@@ -738,6 +643,8 @@ DHTControlImpl
 					
 					if ( !search_sem.reserve( remaining )){
 						
+						DHTLog.log( "lookup: terminates - timeout" );
+
 						break;
 					}
 				}else{
@@ -760,7 +667,7 @@ DHTControlImpl
 						
 						if ( active_searches[0] == 0 ){
 							
-							DHTLog.log( "lookup: terminates as no contacts left to query" );
+							DHTLog.log( "lookup: terminates - no contacts left to query" );
 							
 							break;
 						}
@@ -786,7 +693,7 @@ DHTControlImpl
 						
 						if ( compareDistances( furthest_ok_distance, closest_distance) <= 0 ){
 							
-							DHTLog.log( "lookup: terminates as we've searched the closest K contacts" );
+							DHTLog.log( "lookup: terminates - we've searched the closest K contacts" );
 	
 							break;
 						}
@@ -1006,7 +913,7 @@ DHTControlImpl
 	storeRequest(
 		DHTTransportContact 	originating_contact, 
 		byte[]					key,
-		final DHTTransportValue	value )
+		DHTTransportValue		value )
 	{
 		try{		
 			DHTLog.indent( router );
@@ -1015,61 +922,7 @@ DHTControlImpl
 
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
-				// All values have
-				//	1) a key
-				//	2) a value
-				//	3) an originator (the contact who originally published it)
-				//	4) an originating contact (the contact who sent it, could be diff for caches)
-			
-				// for a given key
-				//		a) we only hold one entry per originating contact (IP+port) (latest)
-				//		b) we only allow up to 8 entries per originating IP address (excluding port)
-				// 		c) only the originator can delete an entry
-				//		d) if multiple keys have the same value the value is only returned once
-			
-				// a value can be "volatile" - this means that the cacher can ping the originator
-				// periodically and delete the value if it is dead
-			
-			
-				// the aim here is to
-				//	1) 	reduce ability for single contacts to spam the key while supporting up to 8 
-				//		contacts on a given IP (assuming NAT is being used)
-				//	2)	stop one contact deleting or overwriting another contact's entry
-				//	3)	support garbage collection for contacts that don't delete entries on exit
-			
-			synchronized( stored_values ){
-				
-				if ( stored_values.size() >= max_values_stored ){
-					
-						// just drop it
-					
-					DHTLog.log( "Max entries exceeded" );
-					
-				}else{
-					
-					checkCacheExpiration( false );
-					
-						// don't replace a closer cache value with a further away one. in particular
-						// we have to avoid the case where the original publisher of a key happens to
-						// be close to it and be asked by another node to cache it!
-					
-					HashWrapper	wrapper = new HashWrapper( key );
-					
-					DHTControlValueImpl	existing = (DHTControlValueImpl)stored_values.get( wrapper );
-					
-					if ( existing == null || existing.getCacheDistance() > value.getCacheDistance() + 1 ){
-						
-						stored_values.put(
-								wrapper, 
-								new DHTControlValueImpl( originating_contact, value, 1 ));
-					}else{
-						
-							// mark it as current 
-						
-						existing.reset();
-					}
-				}
-			}
+			database.store( originating_contact, new HashWrapper( key ), value );
 			
 		}finally{
 			
@@ -1113,32 +966,13 @@ DHTControlImpl
 
 			DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
-			DHTTransportValue	value;
-			
-			synchronized( stored_values ){
-				
-				checkCacheExpiration( false );
-				
-				HashWrapper wrapper =  new HashWrapper( key );
-				
-				value = (DHTTransportValue)stored_values.get(wrapper);
-				
-					// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
-					// contact could spam all contacts surrounding the target with bogus information 
-					// current approach is to only allow usage of a secondary cache entry ONCE before
-					// we delete it :P
-				
-				if ( value != null && value.getCacheDistance() > 1 ){
-					
-					stored_values.remove( wrapper );
-				}
-			}
-			
+			DHTDBValue	value	= database.get( new HashWrapper( key ));
+						
 			if ( value != null ){
 				
 				router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
-				return( value );
+				return( value.getTransportValue());
 				
 			}else{
 				
@@ -1151,167 +985,7 @@ DHTControlImpl
 		}
 	}
 	
-	protected void
-	republishOriginalMappings()
-	{
-		Map	republish = new HashMap();
-		
-		synchronized( stored_values ){
-			
-			Iterator	it = stored_values.entrySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Map.Entry	entry = (Map.Entry)it.next();
-				
-				HashWrapper			key		= (HashWrapper)entry.getKey();
-				
-				DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
-				
-				if ( value.getCacheDistance() == 0 ){
-					
-					republish.put( key, value );
-				}
-			}
-		}
-		
-		Iterator	it = republish.entrySet().iterator();
-		
-		while( it.hasNext()){
-			
-			Map.Entry	entry = (Map.Entry)it.next();
-			
-			HashWrapper			key		= (HashWrapper)entry.getKey();
-			
-			DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
-			
-				// we're republising the data, reset the creation time
-			
-			value.setCreationTime();
-			
-			putSupport( key.getHash(), value, 0 );
-		}
-	}
-	
-	protected void
-	republishCachedMappings()
-	{		
-			// first refresh any leaves that have not performed at least one lookup in the
-			// last period
-		
-		router.refreshIdleLeaves( cache_republish_interval );
-		
-		Map	republish = new HashMap();
-		
-		long	now = System.currentTimeMillis();
-		
-		synchronized( stored_values ){
-			
-			checkCacheExpiration( true );
 
-			Iterator	it = stored_values.entrySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Map.Entry	entry = (Map.Entry)it.next();
-				
-				HashWrapper			key		= (HashWrapper)entry.getKey();
-				
-				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
-				
-				if ( value.getCacheDistance() == 1 ){
-					
-						// if this value was stored < period ago then we assume that it was
-						// also stored to the other k-1 locations at the same time and therefore
-						// we don't need to re-store it
-					
-					if ( now < value.getStoreTime()){
-						
-							// deal with clock changes
-						
-						value.setStoreTime( now );
-						
-					}else if ( now - value.getStoreTime() <= cache_republish_interval ){
-						
-						// System.out.println( "skipping store" );
-						
-					}else{
-							
-						republish.put( key, value );
-					}
-				}
-			}
-		}
-		
-		if ( republish.size() > 0 ){
-			
-			// System.out.println( "cache replublish" );
-			
-				// not sure I really understand this re-publish optimisation, however the approach
-				// is to refresh all leaves in the smallest subtree, thus populating the tree with
-				// sufficient information to directly know which nodes to republish the values
-				// to.
-			
-				// However, I'm going to rely on the "refresh idle leaves" logic above
-				// (that's required to keep the DHT alive in general) to ensure that all
-				// k-buckets are reasonably up-to-date
-					
-			Iterator	it = republish.entrySet().iterator();
-			
-			List	stop_caching = new ArrayList();
-			
-			while( it.hasNext()){
-				
-				Map.Entry	entry = (Map.Entry)it.next();
-				
-				HashWrapper			key		= (HashWrapper)entry.getKey();
-				
-				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
-				
-				byte[]	lookup_id	= key.getHash();
-				
-				List	contacts = getClosestKContactsList( lookup_id );
-							
-					// if we are no longer one of the K closest contacts then we shouldn't
-					// cache the value
-				
-				boolean	keep_caching	= false;
-				
-				for (int i=0;i<contacts.size();i++){
-				
-					if ( router.isID(((DHTTransportContact)contacts.get(i)).getID())){
-						
-						keep_caching	= true;
-						
-						break;
-					}
-				}
-				
-				if ( !keep_caching ){
-					
-					logger.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
-					
-					stop_caching.add( key );
-				}
-					// we reduce the cache distance by 1 here as it is incremented by the
-					// recipients
-				
-				putSupport( 
-						lookup_id, 
-						new DHTControlValueImpl(local_contact,value,-1), 
-						contacts );
-			}
-			
-			synchronized( stored_values ){
-				
-				for (int i=0;i<stop_caching.size();i++){
-					
-					stored_values.remove( stop_caching.get(i));
-				}
-			}
-		}
-	}
-		
 	protected void
 	requestPing(
 		DHTRouterContact	contact )
@@ -1356,101 +1030,102 @@ DHTControlImpl
 		
 		Map	values_to_store	= new HashMap();
 		
-		synchronized( stored_values ){
-			
-			if ( stored_values.size() == 0 ){
+		if( database.isEmpty()){
+							
+			// nothing to do, ping it if it isn't known to be alive
 				
-					// nothing to do, ping it if it isn't known to be alive
-				
-				if ( !new_contact.hasBeenAlive()){
+			if ( !new_contact.hasBeenAlive()){
 					
-					requestPing( new_contact );
-				}
-				
-				return;
+				requestPing( new_contact );
 			}
+				
+			return;
+		}
 			
-				// see if we're one of the K closest to the new node
-			
-			List	closest_contacts = getClosestKContactsList( new_contact.getID());
-			
-			boolean	close	= false;
-			
-			for (int i=0;i<closest_contacts.size();i++){
-				
-				if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
-					
-					close	= true;
-					
-					break;
-				}
-			}
-			
-			if ( !close ){
-				
-				if ( !new_contact.hasBeenAlive()){
-					
-					requestPing( new_contact );
-				}
-
-				return;
-			}
-			
-				// ok, we're close enough to worry about transferring values				
-			
-			Iterator	it = stored_values.entrySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Map.Entry	entry = (Map.Entry)it.next();
-				
-				HashWrapper	key		= (HashWrapper)entry.getKey();
-				
-				byte[]	encoded_key		= key.getHash();
-				
-				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
-				
-					// we neither consider the node's originating values, nor any cached
-					// further away than the initial location, for transfer
-				
-				if ( value.getCacheDistance() != 1 ){
-					
-					continue;
-				}
-				
-				List		sorted_contacts	= getClosestKContactsList( encoded_key ); 
-				
-					// if we're closest to the key, or the new node is closest and
-					// we're second closest, then we take responsibility for storing
-					// the value
-				
-				boolean	store_it	= false;
-				
-				if ( sorted_contacts.size() > 0 ){
-					
-					DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
-					
-					if ( router.isID( first.getID())){
-						
-						store_it = true;
-						
-					}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
-						
-						store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());
-						
-					}
-				}
-				
-				if ( store_it ){
+			// see if we're one of the K closest to the new node
 		
-					values_to_store.put( key, value );
+		List	closest_contacts = getClosestKContactsList( new_contact.getID());
+		
+		boolean	close	= false;
+		
+		for (int i=0;i<closest_contacts.size();i++){
+			
+			if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
+				
+				close	= true;
+				
+				break;
+			}
+		}
+		
+		if ( !close ){
+			
+			if ( !new_contact.hasBeenAlive()){
+				
+				requestPing( new_contact );
+			}
+
+			return;
+		}
+			
+			// ok, we're close enough to worry about transferring values				
+		
+		Iterator	it = database.getKeys();
+		
+		while( it.hasNext()){
+							
+			HashWrapper	key		= (HashWrapper)it.next();
+			
+			byte[]	encoded_key		= key.getHash();
+			
+			DHTDBValue	value	= database.get( key );
+			
+			if ( value == null ){
+				
+					// deleted in the meantime
+				
+				continue;
+			}
+				// we neither consider the node's originating values, nor any cached
+				// further away than the initial location, for transfer
+			
+			if ( value.getTransportValue().getCacheDistance() != 1 ){
+				
+				continue;
+			}
+			
+			List		sorted_contacts	= getClosestKContactsList( encoded_key ); 
+			
+				// if we're closest to the key, or the new node is closest and
+				// we're second closest, then we take responsibility for storing
+				// the value
+			
+			boolean	store_it	= false;
+			
+			if ( sorted_contacts.size() > 0 ){
+				
+				DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
+				
+				if ( router.isID( first.getID())){
+					
+					store_it = true;
+					
+				}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
+					
+					store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());
+					
 				}
+			}
+			
+			if ( store_it ){
+	
+				values_to_store.put( key, value );
 			}
 		}
 		
 		if ( values_to_store.size() > 0 ){
 			
-			Iterator	it = values_to_store.entrySet().iterator();
+			it = values_to_store.entrySet().iterator();
 			
 			DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
 	
@@ -1462,7 +1137,7 @@ DHTControlImpl
 				
 				HashWrapper	key		= (HashWrapper)entry.getKey();
 				
-				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+				DHTDBValue	value	= (DHTDBValue)entry.getValue();
 					
 				final boolean	ping_replacement = 
 					first_value && !new_contact.hasBeenAlive();
@@ -1512,7 +1187,7 @@ DHTControlImpl
 							}
 						},
 						key.getHash(), 
-						new DHTControlValueImpl( local_contact, value, -1 ));
+						value.getValueForRelay( local_contact ).getTransportValue());
 						
 			}
 		}else{
@@ -1520,67 +1195,6 @@ DHTControlImpl
 			if ( !new_contact.hasBeenAlive()){
 				
 				requestPing( new_contact );
-			}
-		}
-	}
-	
-	protected void
-	checkCacheExpiration(
-		boolean		force )
-	{
-		long	 now = SystemTime.getCurrentTime();
-		
-		if ( !force ){
-			
-			long elapsed = now - last_cache_expiry_check;
-			
-			if ( elapsed > 0 && elapsed < MIN_CACHE_EXPIRY_CHECK_INTERVAL ){
-				
-				return;
-			}
-		}
-				
-		last_cache_expiry_check	= now;
-		
-		Iterator	it = stored_values.values().iterator();
-		
-		while( it.hasNext()){
-			
-			DHTControlValueImpl	value = (DHTControlValueImpl)it.next();
-			
-			int	distance = value.getCacheDistance();
-			
-				// distance = 0 are explicitly published and need to be explicitly removed
-			
-			if ( distance == 1 ){
-				
-					// distance 1 = initial store location. We use the initial creation date
-					// when deciding whether or not to remove this, plus a bit, as the 
-					// original publisher is supposed to republish these
-				
-				if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
-					
-					DHTLog.log( "removing cache entry at level " + distance );
-					
-					it.remove();
-				}
-				
-			}else if ( distance > 1 ){
-				
-					// distance 2 get 1/2 time, 3 get 1/4 etc.
-					// these are indirectly cached at the nearest location traversed
-					// when performing a lookup. the store time is used when deciding
-					// whether or not to remove these in an ever reducing amount the
-					// further away from the correct cache position that the value is
-				
-				long	permitted = cache_republish_interval >> (distance-1);
-				
-				if ( now - value.getStoreTime() >= permitted ){
-					
-					DHTLog.log( "removing cache entry at level " + distance );
-					
-					it.remove();
-				}
 			}
 		}
 	}
@@ -1601,7 +1215,7 @@ DHTControlImpl
 		return( sorted_set );
 	}
 	
-	protected List
+	public List
 	getClosestKContactsList(
 		byte[]	id )
 	{
@@ -1677,59 +1291,7 @@ DHTControlImpl
 	{
 		router.print();
 		
-		Map	count = new TreeMap();
-		
-		synchronized( stored_values ){
-			
-			DHTLog.log( "Stored values = " + stored_values.size()); 
-
-			Iterator	it = stored_values.entrySet().iterator();
-			
-			while( it.hasNext()){
-						
-				Map.Entry			entry = (Map.Entry)it.next();
-				
-				HashWrapper			value_key	= (HashWrapper)entry.getKey();
-				
-				DHTTransportValue	value		= (DHTTransportValue)entry.getValue();
-				
-				Integer key = new Integer( value.getCacheDistance());
-				
-				Object[]	data = (Object[])count.get( key );
-								
-				if ( data == null ){
-					
-					data = new Object[2];
-					
-					data[0] = new Integer(1);
-					
-					data[1] = "";
-								
-					count.put( key, data );
-
-				}else{
-					
-					data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
-				}
-				
-				String	s = (String)data[1];
-				
-				s += (s.length()==0?"":", ") + "key=" + DHTLog.getString(value_key.getHash()) + ",val=" + value.getString();
-				
-				data[1]	= s;
-			}
-		}
-				
-		Iterator	it = count.keySet().iterator();
-		
-		while( it.hasNext()){
-			
-			Integer	k = (Integer)it.next();
-			
-			Object[]	data = (Object[])count.get(k);
-			
-			DHTLog.log( "    " + k + " -> " + data[0] + ": " + data[1]);
-		}
+		database.print();
 	}
 	
 	

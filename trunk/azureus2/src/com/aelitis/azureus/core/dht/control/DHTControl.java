@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.control;
 import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.util.List;
 
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -82,6 +83,24 @@ DHTControl
 		DataInputStream		is )
 		
 		throws IOException;
+	
+		// support methods for DB
+	
+	public List
+	getClosestKContactsList(
+		byte[]	id );
+	
+	public void
+	put(
+		byte[]				key,
+		DHTTransportValue	value,
+		long				timeout );
+	
+	public void
+	put(
+		byte[]				key,
+		DHTTransportValue	value,
+		List				closest );
 	
 	public void
 	print();

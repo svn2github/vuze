@@ -20,10 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.control.impl;
+package com.aelitis.azureus.core.dht.db.impl;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.dht.db.DHTDBValue;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -34,8 +35,8 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
  */
 
 public class 
-DHTControlValueImpl
-	implements DHTTransportValue
+DHTDBValueImpl
+	implements DHTTransportValue, DHTDBValue
 {
 	private long				creation_time;
 	private byte[]				value;
@@ -46,8 +47,18 @@ DHTControlValueImpl
 	
 	private long				store_time;
 	
+		/**
+		 * constructor for the originator of values only
+		 * @param _creation_time
+		 * @param _value
+		 * @param _originator
+		 * @param _sender
+		 * @param _distance
+		 * @param _flags
+		 */
+	
 	protected
-	DHTControlValueImpl(
+	DHTDBValueImpl(
 		long				_creation_time,
 		byte[]				_value,
 		DHTTransportContact	_originator,
@@ -65,8 +76,18 @@ DHTControlValueImpl
 		reset();
 	}
 
+		/**
+		 * Constructor used to generate values for relaying to other contacts
+		 * or receiving a value from another contact - adjusts the cache offset 
+		 * and sender as required
+		 * Originator, creation time, flags and value are fixed.
+		 * @param _sender
+		 * @param _other
+		 * @param _cache_offset
+		 */
+	
 	protected 
-	DHTControlValueImpl(
+	DHTDBValueImpl(
 		DHTTransportContact	_sender,
 		DHTTransportValue	_other,
 		int					_cache_offset )
@@ -75,7 +96,7 @@ DHTControlValueImpl
 				_other.getValue(),
 				_other.getOriginator(),
 				_sender,
-				_other.getCacheDistance()+_cache_offset,
+				_other.getCacheDistance() + _cache_offset,
 				_other.getFlags());
 	}
 	
@@ -146,6 +167,19 @@ DHTControlValueImpl
 		DHTTransportContact	_originator )
 	{
 		originator	= _originator;
+	}
+	
+	public DHTTransportValue
+	getTransportValue()
+	{
+		return( this );
+	}
+	
+	public DHTDBValue
+	getValueForRelay(
+		DHTTransportContact	_sender )
+	{
+		return( new DHTDBValueImpl( _sender, this, -1 ));
 	}
 	
 	public String
