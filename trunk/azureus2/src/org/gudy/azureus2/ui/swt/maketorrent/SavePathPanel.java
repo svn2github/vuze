@@ -140,21 +140,27 @@ public class SavePathPanel extends AbstractWizardPanel {
        */
       public void handleEvent(Event arg0) {
         FileDialog fd = new FileDialog(wizard.getWizardWindow(),SWT.SAVE);
-        if(wizard.getErrorMessage().equals("") && !((NewTorrentWizard)wizard).savePath.equals("")) {
-          fd.setFileName(((NewTorrentWizard)wizard).savePath);
+        final String path = ((NewTorrentWizard)wizard).savePath;
+        if(wizard.getErrorMessage().equals("") && !path.equals("")) {
+            File fsPath = new File(path);
+            if(!path.endsWith(File.separator)) {
+                fd.setFilterPath(fsPath.getParent());
+                fd.setFileName(fsPath.getName());
+            }
+            else {
+                fd.setFileName(path);
+            }
         }
         String f = fd.open();
         if (f != null){
             file.setText(f);
             
             File	ff = new File(f);
-            
+
             String	parent = ff.getParent();
-            
-            if ( parent != null ){
-            	
-            	((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
-            }
+
+            if ( parent != null )
+                ((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
           }
       }
     });   
