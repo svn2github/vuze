@@ -363,6 +363,11 @@ public interface PluginInterface {
   
   	throws PluginException;
   
+  public void
+  uninstall()
+  
+  	throws PluginException;
+  
   /**
    * gives access to the plugin manager
    * @return

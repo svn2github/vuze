@@ -450,6 +450,15 @@ RPPluginInterface
 	{
 		notSupported();
 	}
+	
+	public void
+	uninstall()
+	
+		throws PluginException
+	{
+		notSupported();
+	}
+	
 	public void
 	addListener(
 			PluginListener	l )

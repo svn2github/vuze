@@ -27,6 +27,7 @@ import java.io.File;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.protocol.*;
@@ -435,6 +436,14 @@ PluginInterfaceImpl
   	initialiser.reloadPlugin( this );
   }
   
+	public void
+	uninstall()
+	
+		throws PluginException
+	{
+		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
+	}
+	
   protected void
   initialisationComplete()
   {

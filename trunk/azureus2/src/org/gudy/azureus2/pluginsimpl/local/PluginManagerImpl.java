@@ -31,6 +31,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.pluginsimpl.local.installer.*;
 
 import com.aelitis.azureus.core.*;
 
@@ -291,5 +293,11 @@ PluginManagerImpl
 		int	ev )
 	{
 		PluginInitializer.fireEvent( ev );
+	}
+	
+	public PluginInstaller
+	getPluginInstaller()
+	{
+		return( PluginInstallerImpl.getSingleton(this));
 	}
 }

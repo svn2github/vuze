@@ -24,6 +24,7 @@ package org.gudy.azureus2.plugins;
 import java.util.Properties;
 
 import org.gudy.azureus2.pluginsimpl.local.*;
+import org.gudy.azureus2.plugins.installer.*;
 
 /**
  * This class allows Azureus to be started as an embedded component and also allows plugins to
@@ -182,4 +183,8 @@ PluginManager
 	public abstract void
 	firePluginEvent(
 		int		event_type );
+	
+	public abstract PluginInstaller
+	getPluginInstaller();
+	
 }
