@@ -150,11 +150,11 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
                 logger.debug("ProcessTorrent: \"" + hash + "\" processed");
               DownloadManager dm = (DownloadManager) dls.get(hash);
               if (subcommand.equals("Pause") && ((dm.getState() != DownloadManager.STATE_STOPPED) || (dm.getState() != DownloadManager.STATE_STOPPING)))
-                dm.stopIt();
+                dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
               else if (subcommand.equals("Start") && ((dm.getState() == DownloadManager.STATE_READY) || (dm.getState() == DownloadManager.STATE_WAITING) || (dm.getState() == DownloadManager.STATE_STOPPED)))
                 dm.startDownloadInitialized(true);
               else if (subcommand.equals("Cancel")) {
-                dm.stopIt();
+                dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
                 try{
                 	UIConst.getGlobalManager().removeDownloadManager(dm);
                 }catch(GlobalManagerDownloadRemovalVetoException e ){

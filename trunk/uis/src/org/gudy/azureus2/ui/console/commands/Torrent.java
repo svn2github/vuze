@@ -53,7 +53,7 @@ public class Torrent implements IConsoleCommand {
 			case TORRENTCOMMAND_STOP :
 				{
 					try {
-						dm.stopIt();
+						dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
 					} catch (Exception e) {
 						e.printStackTrace(ci.out);
 						return false;
@@ -63,7 +63,7 @@ public class Torrent implements IConsoleCommand {
 			case TORRENTCOMMAND_REMOVE :
 				{
 					try {
-						dm.stopIt();
+						dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
 						ci.gm.removeDownloadManager(dm);
 					} catch (GlobalManagerDownloadRemovalVetoException e) {
 						ci.out.println("> Veto when removing torrent (" + e.getMessage() + ")");
@@ -80,7 +80,7 @@ public class Torrent implements IConsoleCommand {
 						if (dm.getState() == DownloadManager.STATE_STOPPED)
 							dm.setState(DownloadManager.STATE_QUEUED);
 						else if (dm.getState() == DownloadManager.STATE_DOWNLOADING || dm.getState() == DownloadManager.STATE_SEEDING)
-							dm.stopIt(DownloadManager.STATE_QUEUED);
+							dm.stopIt( DownloadManager.STATE_QUEUED, false, false );
 						else
 							return false;
 					} catch (Exception e) {
