@@ -200,13 +200,23 @@ CacheFileImpl
 				
 				current_read_ahead_size	+= 16*1024;
 				
+					// no bigger than a piece
+				
 				current_read_ahead_size	= Math.min( current_read_ahead_size, piece_size );
+				
+					// no bigger than the fixed max size
+				
+				current_read_ahead_size	= Math.min( current_read_ahead_size, READAHEAD_HIGH_LIMIT );
+				
+					// no bigger than a 16th of the cache, in case its really small (e.g. 1M)
 				
 				current_read_ahead_size = Math.min( current_read_ahead_size, (int)(manager.getCacheSize()/16 ));
 				
 			}else if ( ratio < 0.5 ){
 				
 				current_read_ahead_size	-= 16*1024;
+				
+					// no smaller than the min
 				
 				current_read_ahead_size = Math.max( current_read_ahead_size, READAHEAD_LOW_LIMIT );
 			}
