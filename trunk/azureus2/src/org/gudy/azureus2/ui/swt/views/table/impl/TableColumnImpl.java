@@ -31,6 +31,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
@@ -56,6 +58,7 @@ public class TableColumnImpl
 	private ArrayList cellAddedListeners;
 	private ArrayList cellDisposeListeners;
 	private int iConsecutiveErrCount;
+  private ArrayList menuItems;
 
   /** Create a column object for the specified table.
    *
@@ -302,5 +305,29 @@ public class TableColumnImpl
 
   public void setConsecutiveErrCount(int iCount) {
     iConsecutiveErrCount = iCount;
+  }
+
+  public void removeContextMenuItem(TableContextMenuItem menuItem) {
+    if (menuItems == null)
+      return;
+
+    menuItems.remove(menuItem);
+  }
+
+  public TableContextMenuItem addContextMenuItem(String key) {
+    if (menuItems == null)
+      menuItems = new ArrayList();
+
+    // Hack.. should be using our own implementation..
+    TableContextMenuItemImpl item = new TableContextMenuItemImpl("", key);
+    menuItems.add(item);
+    return item;
+  }
+
+  public TableContextMenuItem[] getContextMenuItems() {
+    if (menuItems == null)
+      return new TableContextMenuItem[0];
+
+    return (TableContextMenuItem[])menuItems.toArray(new TableContextMenuItem[0]);
   }
 }

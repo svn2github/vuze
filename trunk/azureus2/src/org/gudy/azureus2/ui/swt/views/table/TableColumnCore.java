@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.table;
 
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 /** Core Table Column functions are those available to plugins plus
  * some core-only functions.  The core-only functions are listed here.
@@ -110,4 +111,8 @@ public interface TableColumnCore extends TableColumn {
   
   public int getConsecutiveErrCount();
   public void setConsecutiveErrCount(int iCount);
+  
+  public TableContextMenuItem addContextMenuItem(String key);
+  public void removeContextMenuItem(TableContextMenuItem menuItem);
+  public TableContextMenuItem[] getContextMenuItems();
 }

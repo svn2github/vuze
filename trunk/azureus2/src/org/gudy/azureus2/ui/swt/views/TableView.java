@@ -431,9 +431,9 @@ public class TableView
     MenuItem item;
 
     // Dispose of the old items
-    MenuItem[] items = menuThisColumn.getItems();
-    for (int i = 0; i < items.length; i++) {
-      items[i].dispose();
+    MenuItem[] oldItems = menuThisColumn.getItems();
+    for (int i = 0; i < oldItems.length; i++) {
+      oldItems[i].dispose();
     }
 
     item = menuThisColumn.getParentItem();
@@ -488,6 +488,25 @@ public class TableView
                                                       new Transfer[] {TextTransfer.getInstance()});
       }
     });
+
+    // Add Plugin Context menus..
+    TableColumnCore tc = (TableColumnCore)tcColumn.getData("TableColumnCore");
+    TableContextMenuItem[] items = tc.getContextMenuItems();
+    if (items.length > 0) {
+      new MenuItem(menuThisColumn, SWT.SEPARATOR);
+
+      for (int i = 0; i < items.length; i++) {
+        final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)items[i];
+        final MenuItem menuItem = new MenuItem(menuThisColumn, SWT.PUSH);
+
+        Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
+        menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
+          public void run(TableRowCore row) {
+            contextMenuItem.invokeListeners(row);
+          }
+        });
+      }
+    }
   }
   
   /** Create a SubMenu for column specific tasks.  Everytime the user opens
