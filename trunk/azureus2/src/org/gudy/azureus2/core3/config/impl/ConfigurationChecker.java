@@ -254,6 +254,7 @@ public class ConfigurationChecker {
         "azureus.statistics", "tracker.log", "tracker.config",
         "trackers.config", "sharing.config", "plugins", "shares", "web" };
     
+    //migrate files/folders
     for (int i=0; i < fileNames.length; i++) {
       File oldFile = FileUtil.getApplicationFile( fileNames[i] );
       if ( oldFile.exists() ) {
@@ -263,6 +264,17 @@ public class ConfigurationChecker {
         if (result) System.out.println(" ...SUCCESS");
         else System.out.println(" ...FAILED");
       }
+    }
+    
+    //migrate from old /.azureus/ dir
+    String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEPARATOR + ".azureus" + SystemProperties.SEPARATOR;
+    File oldLinuxAndWebStartDir = new File( oldLinuxAndWebStartPath );
+    if ( oldLinuxAndWebStartDir.exists() ) {
+      File newDir = new File( SystemProperties.getUserPath());
+      System.out.print("Migrating " + oldLinuxAndWebStartDir.getAbsolutePath() + " to " + newDir.getAbsolutePath());
+      boolean result = oldLinuxAndWebStartDir.renameTo(newDir);
+      if (result) System.out.println(" ...SUCCESS");
+      else System.out.println(" ...FAILED");
     }
     
     ConfigurationManager.getInstance().load();
