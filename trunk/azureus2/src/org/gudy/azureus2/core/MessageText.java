@@ -26,7 +26,8 @@ import java.util.jar.JarFile;
 public class MessageText {
 
   private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
-  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+  private static ResourceBundle RESOURCE_BUNDLE =
+    ResourceBundle.getBundle(BUNDLE_NAME);
   public static Locale LOCALE_ENGLISH = new Locale("en", "EN");
   public static Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
   /**
@@ -37,78 +38,87 @@ public class MessageText {
     // TODO Auto-generated method stub
     try {
       return RESOURCE_BUNDLE.getString(key);
-    }
-    catch (MissingResourceException e) {
+    } catch (MissingResourceException e) {
       return '!' + key + '!';
     }
   }
+
+  public static Locale getCurrentLocale() {
+    Locale currentLocale = RESOURCE_BUNDLE.getLocale();
+    if (LOCALE_DEFAULT.equals(currentLocale))
+    currentLocale = LOCALE_ENGLISH;
+    return currentLocale;
+  }
+
   public static boolean isCurrentLocale(Locale locale) {
     if (LOCALE_ENGLISH.equals(locale))
       locale = LOCALE_DEFAULT;
     return RESOURCE_BUNDLE.getLocale().equals(locale);
   }
-    public static Locale[] getLocales() {
-      String bundleFolder = BUNDLE_NAME.replace('.', '/');
-      final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.')+1);
-      final String extension = ".properties";
-  
-      String urlString = ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
-  //    System.out.println("urlString: " + urlString);
-      String[] bundles = null;
-      if(urlString.startsWith("jar:file:/")) {
-        try {
-          int posDirectory = urlString.indexOf(".jar!", 11);
-          String jarName = urlString.substring(4, posDirectory+4);
-  //        System.out.println("jarName: " + jarName);
-          URI uri = URI.create(jarName);
-          File jar = new File(uri);
-  //        System.out.println("jar: " + jar.getAbsolutePath());
-          JarFile jarFile = new JarFile(jar);
-          Enumeration entries = jarFile.entries();
-          ArrayList list = new ArrayList(250);
-          while (entries.hasMoreElements()) {
-            JarEntry jarEntry = (JarEntry) entries.nextElement();
-            if(jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length()+extension.length()+7) {
-  //            System.out.println("jarEntry: " + jarEntry.getName());
-              list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length())); // "MessagesBundle_de_DE.properties"
-            }
+
+  public static Locale[] getLocales() {
+    String bundleFolder = BUNDLE_NAME.replace('.', '/');
+    final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
+    final String extension = ".properties";
+
+    String urlString =
+      ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
+    //    System.out.println("urlString: " + urlString);
+    String[] bundles = null;
+    if (urlString.startsWith("jar:file:/")) {
+      try {
+        int posDirectory = urlString.indexOf(".jar!", 11);
+        String jarName = urlString.substring(4, posDirectory + 4);
+        //        System.out.println("jarName: " + jarName);
+        URI uri = URI.create(jarName);
+        File jar = new File(uri);
+        //        System.out.println("jar: " + jar.getAbsolutePath());
+        JarFile jarFile = new JarFile(jar);
+        Enumeration entries = jarFile.entries();
+        ArrayList list = new ArrayList(250);
+        while (entries.hasMoreElements()) {
+          JarEntry jarEntry = (JarEntry) entries.nextElement();
+          if (jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length() + extension.length() + 7) {
+            //            System.out.println("jarEntry: " + jarEntry.getName());
+            list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length()));
+            // "MessagesBundle_de_DE.properties"
           }
-          bundles = (String[]) list.toArray(new String[list.size()]);
-        } catch (Exception e) {
-          e.printStackTrace();
         }
-      } else {
-        File bundleDirectory = new File(URI.create(urlString)).getParentFile();
-  //      System.out.println("bundleDirectory: " + bundleDirectory.getAbsolutePath());
-          
-        bundles = bundleDirectory.list(new FilenameFilter() {
-          public boolean accept(File dir, String name) {
-            return name.startsWith(prefix) && name.endsWith(extension);
-          }
-        });
+        bundles = (String[]) list.toArray(new String[list.size()]);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-  
-      Locale[] foundLocales = new Locale[bundles.length];
-      for (int i = 0; i < bundles.length; i++) {
-  //      System.out.println("ResourceBundle: " + bundles[i]);
-        String locale = bundles[i].substring(prefix.length(), bundles[i].length() - extension.length());
-  //      System.out.println("Locale: " + locale);
-        foundLocales[i] =
-          locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
-      }
-      return foundLocales;
+    } else {
+      File bundleDirectory = new File(URI.create(urlString)).getParentFile();
+      //      System.out.println("bundleDirectory: " + bundleDirectory.getAbsolutePath());
+
+      bundles = bundleDirectory.list(new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+          return name.startsWith(prefix) && name.endsWith(extension);
+        }
+      });
     }
+
+    Locale[] foundLocales = new Locale[bundles.length];
+    for (int i = 0; i < bundles.length; i++) {
+      //      System.out.println("ResourceBundle: " + bundles[i]);
+      String locale = bundles[i].substring(prefix.length(), bundles[i].length() - extension.length());
+      //      System.out.println("Locale: " + locale);
+      foundLocales[i] = locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
+    }
+    return foundLocales;
+  }
   public static boolean changeLocale(Locale newLocale) {
     if (LOCALE_ENGLISH.equals(newLocale))
       newLocale = LOCALE_DEFAULT;
     if (!newLocale.equals(RESOURCE_BUNDLE.getLocale())) {
-      ResourceBundle newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
+      ResourceBundle newResourceBundle =
+        ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
       if (newResourceBundle.getLocale().equals(newLocale)) {
         RESOURCE_BUNDLE = newResourceBundle;
         Locale.setDefault(newLocale);
         return true;
-      }
-      else
+      } else
         System.out.println("Messages: no message properties for Locale " + newLocale.getDisplayLanguage());
     }
     return false;
