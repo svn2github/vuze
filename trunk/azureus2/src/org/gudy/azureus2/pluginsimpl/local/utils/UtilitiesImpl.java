@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
 
 import java.io.InputStream;
 import java.io.File;
+import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.platform.PlatformManager;
@@ -36,9 +37,12 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
@@ -222,5 +226,23 @@ UtilitiesImpl
 	getSimpleXMLParserDocumentFactory()
 	{
 		return( new SimpleXMLParserDocumentFactoryImpl());
+	}
+	
+	public RSSFeed
+	getRSSFeed(
+		URL		feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException
+	{
+		return( getRSSFeed( getResourceDownloaderFactory().create( feed_location )));
+	}
+	
+	public RSSFeed
+	getRSSFeed(
+		ResourceDownloader	feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException
+	{
+		return( new RSSFeedImpl( this, feed_location ));
 	}
 }

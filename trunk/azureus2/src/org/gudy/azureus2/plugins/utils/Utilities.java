@@ -27,12 +27,14 @@ package org.gudy.azureus2.plugins.utils;
  */
 
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.security.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
+import org.gudy.azureus2.plugins.utils.xml.rss.*;
 
 public interface 
 Utilities 
@@ -114,4 +116,16 @@ Utilities
 	
 	public SimpleXMLParserDocumentFactory
 	getSimpleXMLParserDocumentFactory();
+	
+	public RSSFeed
+	getRSSFeed(
+		URL		feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException;
+	
+	public RSSFeed
+	getRSSFeed(
+		ResourceDownloader	feed_location )
+	
+		throws ResourceDownloaderException, SimpleXMLParserDocumentException;
 }
