@@ -61,8 +61,10 @@ public class StringListParameter extends Parameter {
       public void handleEvent(Event e) {
         COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
         
-        for (int i=0;i<change_listeners.size();i++){
-          ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringListParameter.this,false);
+        if( change_listeners != null ) {
+          for (int i=0;i<change_listeners.size();i++){
+            ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringListParameter.this,false);
+          }
         }
       }
     }); 
