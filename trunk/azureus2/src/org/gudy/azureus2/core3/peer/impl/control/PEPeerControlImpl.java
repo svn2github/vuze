@@ -1800,6 +1800,19 @@ PEPeerControlImpl
 
   
   private void pieceChecked(int pieceNumber, boolean result) {
+    if( _finished ) {  //this is a recheck, so don't send HAVE msgs
+      if( result) { //piece ok
+        
+      }
+      else {  //piece failed
+        //restart the download afresh
+        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
+        _downloadManager.restartDownload( false );
+      }
+      return;
+    }
+    
+    
     this.pieceRemoved(_pieces[pieceNumber]);
     //  the piece has been written correctly
     if (result) {
@@ -1884,12 +1897,6 @@ PEPeerControlImpl
       
       //Mark this piece as not downloaded (shouldn't change anything)
       _downloaded[pieceNumber] = false;
-      
-      //if the download has been marked as finish, restart the download
-      if (_finished) {
-        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
-        _downloadManager.restartDownload(false);
-      }
       
       //if we are in end-game mode, we need to re-add all the piece chunks
       //to the list of chunks needing to be downloaded
