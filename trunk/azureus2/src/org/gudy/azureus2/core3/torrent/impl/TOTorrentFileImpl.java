@@ -76,9 +76,11 @@ TOTorrentFileImpl
 			
 			temp.copyInto( path_components );
 			
+			checkComponents();
+			
 		}catch( UnsupportedEncodingException e ){
 	
-			throw( new TOTorrentException( 	"TOTorrentFile: unsupported encoding for '" + _path + "'",
+			throw( new TOTorrentException( 	"Unsupported encoding for '" + _path + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
@@ -88,10 +90,34 @@ TOTorrentFileImpl
 		TOTorrent		_torrent,
 		long			_len,
 		byte[][]		_path_components )
+	
+		throws TOTorrentException
 	{
 		torrent				= _torrent;
 		file_length			= _len;
 		path_components		= _path_components;
+		
+		checkComponents();
+	}
+	
+	protected void
+	checkComponents()
+	
+		throws TOTorrentException
+	{
+		for (int i=0;i<path_components.length;i++){
+			
+			byte[]	comp = path_components[i];
+			
+			if (	comp.length == 2 && 
+					comp[0] == (byte)'.' &&
+					comp[1] == (byte)'.' ){
+				
+				throw( 	new TOTorrentException( 
+						"Torrent file contains illegal '..' component",
+						TOTorrentException.RT_DECODE_FAILS ));
+			}
+		}
 	}
 	
 	public TOTorrent
