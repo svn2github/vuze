@@ -21,8 +21,6 @@
 package org.gudy.azureus2.ui.swt.donations;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
@@ -65,7 +63,7 @@ public class DonationWindow {
    OverallStats stats = StatsFactory.getStats();
    fullText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
               + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
+              + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
               + MessageText.getString("DonationWindow.text");
    timeToWait = fullText.length() / 25 ;
   }
@@ -93,8 +91,7 @@ public class DonationWindow {
       fontData[i].setHeight((int) (fontData[i].getHeight() * 1.2));
       fontData[i].setStyle(SWT.BOLD);     
     }
-    final Font fontNew = new Font(display,fontData);
-    text.setFont(fontNew);
+    text.setFont(new Font(display,fontData));
     text.setForeground(MainWindow.blues[4]);
     text.setBackground(MainWindow.blues[0]);
     
@@ -145,14 +142,6 @@ public class DonationWindow {
     
     
     
-    shell.addDisposeListener(new DisposeListener() {
-      public void widgetDisposed(DisposeEvent de) {
-        if (fontNew != null && !fontNew.isDisposed()) {
-          fontNew.dispose();
-        }
-      }
-    });
-
     ok.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event evt) {				
         if(radioDonate.getSelection()) {
@@ -165,7 +154,9 @@ public class DonationWindow {
         if(radioNoDonate.getSelection()){
          stopAsking(); 
         }
-        shell.dispose();
+        if(!radioDonate.getSelection()) {
+          shell.dispose();
+        }       
 			}
     });
     shell.pack();    
@@ -222,6 +213,7 @@ public class DonationWindow {
     msgThanks.setText(MessageText.getString("DonationWindow.thanks.title"));
     msgThanks.setMessage(MessageText.getString("DonationWindow.thanks.text"));
     msgThanks.open();
+    
   }
   
   private void stopAsking() {

@@ -65,16 +65,16 @@ Tests
         				
     				ctrlPoint.print();
     				
-    				processDevices( "", ctrlPoint.getDeviceList());
+    				//processDevices( "", ctrlPoint.getDeviceList());
 				}
     		};
 
     	ctrlPoint.addSearchResponseListener(listener);
 
-    	//ctrlPoint.search("upnp:rootdevice");   
+    	ctrlPoint.search("upnp:rootdevice");   
     	
-    	ctrlPoint.search( "urn:schemas-upnp-org:service:WANIPConnection:1" );
-    	
+    	//ctrlPoint.search( "urn:schemas-upnp-org:service:WANIPConnection:1" );    	
+      //ctrlPoint.search( "urn:schemas-upnp-org:service:WANPPPConnection:1" );
 
   
     }
