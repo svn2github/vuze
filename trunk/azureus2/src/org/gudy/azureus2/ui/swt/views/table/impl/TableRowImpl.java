@@ -64,7 +64,6 @@ public class TableRowImpl
   private Map mTableCells;
   private String sTableID;
   
-  private boolean valid;
   private int loopFactor;
   
   private Object coreDataSource;
@@ -73,9 +72,13 @@ public class TableRowImpl
   /** Must be initialized on the Display thread */
   public TableRowImpl(TableView tableView, Object dataSource,
                       boolean bSkipFirstColumn) {
-    super(tableView.getTable());
+    this(tableView, dataSource, bSkipFirstColumn, -1);
+  }
+
+  public TableRowImpl(TableView tableView, Object dataSource,
+                      boolean bSkipFirstColumn, int index) {
+    super(tableView.getTable(), index);
     this.sTableID = tableView.getTableID();
-    this.valid = false;
     coreDataSource = dataSource;
     mTableCells = new HashMap();
 
@@ -95,6 +98,13 @@ public class TableRowImpl
   }
 
   public boolean isValid() {
+    boolean valid = true;
+    Iterator iter = mTableCells.values().iterator();
+    while (iter.hasNext()) {
+      TableCellCore cell = (TableCellCore)iter.next();
+      if (cell != null)
+        valid &= cell.isValid();
+    }
     return valid;
   }
 
@@ -121,7 +131,12 @@ public class TableRowImpl
   ///////////////////////////////
 
   public void setValid(boolean valid) {
-    this.valid = valid;
+    Iterator iter = mTableCells.values().iterator();
+    while (iter.hasNext()) {
+      TableCellCore cell = (TableCellCore)iter.next();
+      if (cell != null)
+        cell.setValid(valid);
+    }
   }
 
   public void delete() {
@@ -163,7 +178,6 @@ public class TableRowImpl
         item.refresh();
       }
     }
-    this.setValid(true);
     loopFactor++;
   }
   

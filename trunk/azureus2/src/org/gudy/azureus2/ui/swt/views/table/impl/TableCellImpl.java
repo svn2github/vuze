@@ -137,7 +137,7 @@ public class TableCellImpl
   }
   
   public boolean isValid() {
-    return tableRow.isValid() && valid;
+    return valid;
   }
   
   public boolean setForeground(Color color) {
