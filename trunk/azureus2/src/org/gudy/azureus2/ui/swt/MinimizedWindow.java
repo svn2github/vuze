@@ -36,7 +36,6 @@ public class MinimizedWindow {
 
   private int xPressed, yPressed;
   private boolean moving;
-  private boolean snapped = false;
 
   private int hSize;
 
@@ -217,7 +216,7 @@ public class MinimizedWindow {
     */
     if (currentLoc.x < 10)
       currentLoc.x = 0;
-    if (currentLoc.x > screen.width - splash.getBounds().width - 10)
+    else if (currentLoc.x > screen.width - splash.getBounds().width - 10)
       currentLoc.x = screen.width - splash.getBounds().width;
     if (currentLoc.y < 10)
       currentLoc.y = 0;
@@ -240,21 +239,20 @@ public class MinimizedWindow {
     if (downloadBars.size() > 1) {
       for (int i = 0; i < downloadBars.size(); i++) {
         MinimizedWindow downloadBar = (MinimizedWindow) downloadBars.get(i);
+        Point location = downloadBar.getShell().getLocation();
+        // TODO isn't the height always 10?
+        location.y += downloadBar.getShell().getBounds().height;
         //Stucking to someone else
         if (downloadBar != this && downloadBar.getStucked() == null || downloadBar.getStucked() == this) {
-          int x = downloadBar.getShell().getLocation().x;
-          int y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height;
-          if (Math.abs(x - currentLoc.x) < 10 && y - currentLoc.y < 10 & y - currentLoc.y > 0) {
+          if (Math.abs(location.x - currentLoc.x) < 10 && location.y - currentLoc.y < 10 & location.y - currentLoc.y > 0) {
             downloadBar.setStucked(this);
-            currentLoc.x = x;
-            currentLoc.y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height - 1;
+            currentLoc.x = location.x;
+            currentLoc.y = location.y - 1;
           }
         }
         //Un-stucking from someone
         if (downloadBar != this && downloadBar.getStucked() == this) {
-          int x = downloadBar.getShell().getLocation().x;
-          int y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height;
-          if (Math.abs(x - currentLoc.x) > 10 || Math.abs(y - currentLoc.y) > 10)
+          if (Math.abs(location.x - currentLoc.x) > 10 || Math.abs(location.y - currentLoc.y) > 10)
             downloadBar.setStucked(null);
         }
       }
@@ -274,7 +272,6 @@ public class MinimizedWindow {
         else {
           mwCurrent = mwChild;
           mwCurrent.getShell().setLocation(currentLoc);
-
         }
       }
       else
