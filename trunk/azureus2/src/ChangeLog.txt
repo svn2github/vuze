@@ -37,6 +37,7 @@ FEATURE: Option to move-on-complete only when data is inside the default save di
 FEATURE: Auto-import new .torrents from a chosen folder regularly [Rele]
 FEATURE: Create torrent allows manual piece size selection [Parg]
 
+
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
 CHANGE: URL dialogs are initialized with the first valid link beginning with http:// from clipboard [Rele]
@@ -46,6 +47,8 @@ CHANGE: Option to disconnect seeds when seeding is now checked by default [Gudy]
 CHANGE: FilesView now shows files even in other states than Downloading (configurable) [Rele]
 CHANGE: Updated/additional menu buttons [Gudy]
 CHANGE: Some speed optimizations with piece-picking [Nolar]
+CHANGE: Generated PeerID only uses chars that don't need to be escaped, saving bandwidth for tracker communications [Nolar]
+CHANGE: Can now identify BitComet, TurboBT, LibTorrent clients [Nolar]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
