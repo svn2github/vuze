@@ -7,14 +7,20 @@ FEATURE: Added Remaining column to My Torrents [TuxPaper]
 FEATURE: Caching of peer info to disk for quick restarts if tracker is unavailable [Parg]
 FEATURE: Tracker comm proxy support [Nolar]
 FEATURE: Added option to auto-update language file from web (Config -> Interface -> Language) [TuxPaper]
+FEATURE: Send text in My Torrents to clipboard [TuxPaper]
+FEATURE: Added "DLing For" and "Seeding For" time columns to "My Torrents" [TuxPaper]
+FEATURE: When torrent data is missing, you can change directory via the context menu [TuxPaper]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
 CHANGE: Can set per-torrent and global peer connection limits [Nolar]
+CHANGE: Shrink "My Torrents" Context menu [TuxPaper]
+CHANGE: Ignore Share Ratio can now be non-integer [TuxPaper]
 
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 BUGFIX: Fix for discarded data due to occasional duplicate request [Nolar]
 BUGFIX: Fix for underlying socket handles not closing under linux ("Too many open files") [Nolar]
+BUGFIX: First Priority rules based on time now work accross sessions [TuxPaper]
 
 
 
