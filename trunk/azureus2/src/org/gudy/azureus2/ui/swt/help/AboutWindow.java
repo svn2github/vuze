@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -130,11 +131,7 @@ public class AboutWindow {
     }
   
     window.pack();
-    Rectangle splashRect = window.getBounds();
-    Rectangle displayRect = display.getBounds();
-    int x = (displayRect.width - splashRect.width) / 2;
-    int y = (displayRect.height - splashRect.height) / 2;
-    window.setLocation(x, y);
+    Utils.centreWindow(window);
     window.open();
     
     Thread updater =  new Thread("Splash Screen Updater") {
