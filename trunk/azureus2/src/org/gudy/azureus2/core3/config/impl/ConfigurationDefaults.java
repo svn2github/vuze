@@ -299,7 +299,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "network.experimental.osx.kernel.panic.fix", new Long(0) );
     def.put( "File.truncate.if.too.large", new Long(0));
-    
+    def.put( "diskmanager.perf.cache.trace", new Long(1));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

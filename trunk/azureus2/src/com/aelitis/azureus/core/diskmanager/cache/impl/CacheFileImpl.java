@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -72,8 +73,18 @@ CacheFileImpl
 			}
 		};
 		
-	protected final static boolean	TRACE					= true;
+	protected static boolean	TRACE						= false;
 	protected final static boolean	TRACE_CACHE_CONTENTS	= false;
+	
+	static{
+		
+		TRACE = COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.trace" );
+		
+		if ( TRACE ){
+		
+			System.out.println( "Disk Cache tracing enabled" );
+		}
+	}
 	
 	protected final static boolean	READAHEAD_ENABLE		= true;
 	protected final static int		READAHEAD_MAX			= 65536;

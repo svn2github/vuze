@@ -160,9 +160,20 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
     
+     // diskmanager.perf.cache.trace
+    
+    final BooleanParameter disk_cache_trace = new BooleanParameter(cSection, "diskmanager.perf.cache.trace", "ConfigView.section.file.perf.cache.trace");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    disk_cache_trace.setLayoutData(gridData);
+     
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( cache_size.getControls() ));
     
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( disk_cache_trace.getControls() ));
+    
+
     return cSection;
   }
 }
