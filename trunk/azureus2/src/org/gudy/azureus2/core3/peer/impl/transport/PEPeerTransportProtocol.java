@@ -234,10 +234,12 @@ PEPeerTransportProtocol
 		if( incoming ) {
       connection = NetworkManager.getSingleton().createNewInboundConnection( this, channel );
       
-      connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-      
       //"fake" a connect request to register our listener
       connection.connect( new Connection.ConnectionListener() {
+        public void connectStarted() {
+          connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+        }
+        
         public void connectSuccess() {  //will be called immediately
           LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
           currentState = new StateHandshaking( false, data_already_read );
@@ -414,6 +416,10 @@ PEPeerTransportProtocol
  		
      	    cl = 
                 new Connection.ConnectionListener() {
+     	             public void connectStarted() {
+     	               connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+     	             }
+           
                    public void connectSuccess() {
                      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
                      setChannel( connection.getSocketChannel() );
@@ -435,6 +441,10 @@ PEPeerTransportProtocol
       
     	    cl = 
                 new Connection.ConnectionListener() {
+                   public void connectStarted() {
+                     connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+                   }
+            
                    public void connectSuccess() {
                      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
                      setChannel( connection.getSocketChannel() );
@@ -451,8 +461,6 @@ PEPeerTransportProtocol
                  };
     	}
 
-      connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-      
       connection.connect( cl );
       
       LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);

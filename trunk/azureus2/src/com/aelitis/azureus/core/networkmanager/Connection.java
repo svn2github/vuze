@@ -82,6 +82,10 @@ public class Connection {
     }
     
     transport.establishOutboundConnection( remote_address, new Transport.ConnectListener() {
+      public void connectAttemptStarted() {
+        connection_listener.connectStarted();
+      }
+      
       public void connectSuccess() {
         is_connected = true;
         connection_listener.connectSuccess();
@@ -154,6 +158,12 @@ public class Connection {
    * Listener for notification of connection events.
    */
   public interface ConnectionListener {
+    /**
+     * The connection establishment process has started,
+     * i.e. the connection is actively being attempted.
+     */
+    public void connectStarted();    
+    
     /**
      * The connection attempt succeeded.
      * The connection is now established.

@@ -112,7 +112,9 @@ public class ConnectDisconnectManager {
   
   
 
-  private void addNewRequest( final ConnectionRequest request ) {  
+  private void addNewRequest( final ConnectionRequest request ) {
+    request.listener.connectAttemptStarted();
+    
     try {
       request.channel = SocketChannel.open();
       
@@ -459,6 +461,12 @@ public class ConnectDisconnectManager {
    * Listener for notification of connection establishment.
    */
    protected interface ConnectListener {
+     /**
+      * The connection establishment process has started,
+      * i.e. the connection is actively being attempted.
+      */
+     public void connectAttemptStarted();    
+     
      /**
       * The connection attempt succeeded.
       * @param channel connected socket channel

@@ -185,6 +185,10 @@ public class Transport {
     }
     
     ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
+      public void connectAttemptStarted() {
+        listener.connectAttemptStarted();
+      }
+      
       public void connectSuccess( SocketChannel channel ) {
         socket_channel = channel;
         is_connected = true;
@@ -236,6 +240,12 @@ public class Transport {
    * Listener for notification of connection establishment.
    */
    protected interface ConnectListener {
+     /**
+      * The connection establishment process has started,
+      * i.e. the connection is actively being attempted.
+      */
+     public void connectAttemptStarted();   
+     
      /**
       * The connection attempt succeeded.
       * The connection is now established.
