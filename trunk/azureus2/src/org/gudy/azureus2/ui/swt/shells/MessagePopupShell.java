@@ -72,6 +72,7 @@ public class MessagePopupShell implements AnimableShell {
     detailsShell.setLayout(new FillLayout());
     StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
     textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+    textDetails.setWordWrap( true );
     detailsShell.layout();    
     detailsShell.setSize(500,300);    
     
