@@ -299,7 +299,7 @@ DownloadManagerImpl
 		
 		if ( data_location == null ){
 			
-		    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
+		    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir");
 		    
 		    String data_dir = null;
 		    

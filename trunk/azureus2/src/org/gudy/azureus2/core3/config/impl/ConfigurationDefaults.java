@@ -135,7 +135,8 @@ public class ConfigurationDefaults {
     def.put("Show Download Basket",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
     def.put("Open Details", new Long(0));    
-    def.put("Use default data dir", new Long(1));
+    def.put("Use default data dir", new Long(0));	// default is OFF user really needs to select
+    												// their own location
     String	default_save_path = SystemProperties.getUserPath()+"downloads";
     File	default_save_path_file = new File( default_save_path );
     if ( !default_save_path_file.exists()){
