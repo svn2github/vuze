@@ -1,10 +1,10 @@
 /*
- * Created on 03-Oct-2003
+ * Created on 06-Oct-2003
  *
  * To change the template for this generated file go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-package org.gudy.azureus2.core3.torrent;
+package org.gudy.azureus2.core3.tracker.client;
 
 /**
  * @author gardnerpar
@@ -12,16 +12,15 @@ package org.gudy.azureus2.core3.torrent;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-
 public interface 
-TOTorrentFile 
+TRTrackerResponsePeer
 {
-	public long
-	getLength();
+	public byte[]
+	getPeerId();
 	
 	public String
-	getPath();
+	getIPAddress();
 	
-	public String[]
-	getPathComponents();
+	public int
+	getPort();
 }

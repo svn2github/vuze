@@ -113,33 +113,35 @@ TRTrackerClientClassicImpl
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 
-  public String start() {
+  public TRTrackerResponse start() {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
 	return update("started");
   }
 
-  public String completed() {
+  public TRTrackerResponse completed() {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
 	return update("completed");
   }
 
-  public String stop() {
+  public TRTrackerResponse stop() {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
 	int oldTimeout = timeout;
 	if(timeout > 5000 || timeout == 0)
 	  timeout = 5000;
-	String response = update("stopped");
+	TRTrackerResponse response = update("stopped");
 	timeout = oldTimeout;
 	return response;
   }
 
-  public String update() {
+  public TRTrackerResponse update() {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
 	return update("");
   }
   
-  private String update(String evt) {
-	String result = null;
+  private TRTrackerResponse 
+  update(String evt) 
+  {
+	byte[] result = null;
 	boolean failed = false;
 	this.firstIndexUsed = this.listIndex;
 	try {
@@ -157,17 +159,18 @@ TRTrackerClientClassicImpl
 			trackerUrlLists.remove(i);
 			trackerUrlLists.add(0,urls);            
 			//and return the result
-			return result;
+			return(decodeTrackerResponse(result));
 		  }
 		}
 	  }  
 	} catch(MalformedURLException e) {
 	  e.printStackTrace();
 	}
-	return null;
+	return( decodeTrackerResponse( null ));
   }
 
-  private String updateOld(URL reqUrl,String evt) {
+  private byte[] 
+  updateOld(URL reqUrl,String evt) {
 	try {      
 	  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
 	  final HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
@@ -231,7 +234,7 @@ TRTrackerClientClassicImpl
 			is = null;
 		  }
 		}
-		return new String(message.toByteArray(), Constants.BYTE_ENCODING);
+		return( message.toByteArray());
 	  }
 	} catch (Exception e) {
 	  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while creating the Tracker Request : " + e);
@@ -366,4 +369,76 @@ TRTrackerClientClassicImpl
 	  e.printStackTrace();
 	}
   }
+  
+  	protected TRTrackerResponse
+  	decodeTrackerResponse(
+  		byte[]		data )
+  	{
+  		if ( data != null ){
+  			
+	 		try{
+					   //parse the metadata
+					   
+				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
+	
+				long	time_to_wait;
+				String	failure_reason = null;
+				
+				try{
+					// * In fact we use 2/3 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
+					
+					time_to_wait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
+				   
+			   	}catch( Exception e ){
+			   	
+					failure_reason = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
+					
+					time_to_wait = 120;
+			 	}
+	
+				if ( failure_reason != null ){
+					
+					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
+					
+				}else{
+				
+						//build the list of peers
+						
+					List meta_peers = (List) metaData.get("peers"); //$NON-NLS-1$
+					 
+					TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ meta_peers.size()];
+					 
+						//for every peer
+						
+					for (int i = 0; i < peers.length; i++) {
+						 	
+						Map peer = (Map) meta_peers.get(i);
+						   
+						  //build a dictionary object
+						 	         
+						byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
+						   
+						 	//get the peer id
+						   	
+						String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
+						   
+						  	//get the peer ip address
+						   	
+						int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
+						   
+						   	//get the peer port number
+						
+						peers[i] = new TRTrackerResponsePeerImpl( peerId, ip, port );
+					} 
+					
+					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers ));  
+				}
+			}catch( Exception e ){
+				
+				e.printStackTrace();
+			}
+  		}
+		
+		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60 ));
+  	}
 }

@@ -4,18 +4,16 @@
  */
 package org.gudy.azureus2.core;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.ui.swt.IComponentListener;
+
+import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.torrent.*;
 
 /**
  * @author Olivier
@@ -48,7 +46,7 @@ public class DownloadManager extends Component {
 
   private String torrentFileName;
   private String name;
-  private String nameFromUser = null;
+  // private String nameFromUser = null;
 
   private int nbPieces;
   private String savePath;
@@ -59,10 +57,9 @@ public class DownloadManager extends Component {
   //The comment field in the metaData
   private String comment;
 
-  private byte[] hash;
-  private Map metaData;
   private Server server;
-  private TrackerConnection trackerConnection;
+  private TOTorrent			torrent;
+  private TRTrackerClient 	trackerConnection;
   public DiskManager diskManager;
   public PeerManager peerManager;
   
@@ -80,6 +77,7 @@ public class DownloadManager extends Component {
    *
    * @author Rene Leonhardt
    */
+  /*
   public boolean setNameFromUser(String nameFromUser) {
     if(!name.equals(nameFromUser) && nameFromUser != null && nameFromUser.trim().length() != 0) {
       if(state == STATE_STOPPED) {
@@ -90,7 +88,7 @@ public class DownloadManager extends Component {
     }
     return false;
   }
-
+	*/
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
     this(gm, torrentFileName, savePath);
     if (this.state == STATE_ERROR)
@@ -106,111 +104,134 @@ public class DownloadManager extends Component {
     this.priority = HIGH_PRIORITY;
     this.torrentFileName = torrentFileName;
     this.savePath = savePath;
-    extractMetaInfo();
-    if (this.state == STATE_ERROR) return;
-
-    //Get the Tracker url / comment
-       try {
-         trackerUrl = null;
-         trackerUrl = new String((byte[]) metaData.get("announce"), Constants.DEFAULT_ENCODING);
-         trackerUrl = trackerUrl.replaceAll(" ", "");
-         comment = "";
-         byte[] bcomment = (byte[]) metaData.get("comment");
-         if(bcomment != null)
-          comment = new String(bcomment, Constants.DEFAULT_ENCODING);
-       } catch (Exception e) {
-         e.printStackTrace();
-       }
+    
+    readTorrent();
   }
 
   public void initialize() {
-    if(metaData == null) {
+    if(torrent == null) {
       this.state = STATE_ERROR;
       return;
     }
     this.state = STATE_INITIALIZING;
+    
     startServer();
-    if (this.state == STATE_WAITING)
-      return;
-
-    trackerConnection = new TrackerConnection(metaData, hash, server.getPort());
-    diskManager = new DiskManager(metaData, savePath);
-    this.state = STATE_INITIALIZED;
+    
+    if (this.state == STATE_WAITING){
+    	
+    	return;
+    }
+    
+	try{
+    	trackerConnection = TRTrackerClientFactory.create( torrent, server.getPort());
+    
+		diskManager = new DiskManager( torrent, savePath);
+    
+		this.state = STATE_INITIALIZED;
+									
+	}catch( TRTrackerClientException e ){
+		
+		e.printStackTrace();
+		
+		this.state = STATE_ERROR;
+	}
   }
 
   public void startDownload() {
     this.state = STATE_DOWNLOADING;
-    peerManager = new PeerManager(this, hash, server, trackerConnection, diskManager);
+    peerManager = new PeerManager(this, getHash(), server, trackerConnection, diskManager);
     peerManager.getStats().setTotalReceivedRaw(downloaded);
     peerManager.getStats().setTotalSent(uploaded);
   }
 
-  private void extractMetaInfo() {
-    FileInputStream fis = null;
-    try {
-      File torrent = new File(torrentFileName);
-      if(!torrent.isFile()) {
-        name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-        nbPieces = 0;
-        hash = new byte[20];
-        this.state = STATE_ERROR;
-        errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-        return;
-      }
-      if(torrent.length() == 0L) {
-        this.state = STATE_ERROR;
-        errorDetail = MessageText.getString("DownloadManager.error.fileempty"); //$NON-NLS-1$
-        return;
-      }
-      if(torrent.length() > 1024L * 1024L) {
-        this.state = STATE_ERROR;
-        errorDetail = MessageText.getString("DownloadManager.error.filetoobig"); //$NON-NLS-1$
-        return;
-      }
-      byte[] buf = new byte[1024];
-      int nbRead;
-      ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
-      fis = new FileInputStream(torrentFileName);
-      while ((nbRead = fis.read(buf)) > 0)
-        metaInfo.write(buf, 0, nbRead);
-      metaData = BDecoder.decode(metaInfo.toByteArray());
-      if(metaData == null) {
-        name = torrent.getName();
-        state = STATE_ERROR;
-        errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo"); //$NON-NLS-1$
-        return;
-      }
-      Map info = (Map) metaData.get("info"); //$NON-NLS-1$
-      name = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$
-      if(nameFromUser != null) {
-        name = nameFromUser;
-        info.put("name", name.getBytes(LocaleUtil.getCharsetString(name.getBytes()))); //$NON-NLS-1$
-      }
-      byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
-      nbPieces = pieces.length / 20;
-      metaData.put("torrent filename", torrentFileName.getBytes(Constants.DEFAULT_ENCODING)); //$NON-NLS-1$ //$NON-NLS-2$
-      SHA1Hasher s = new SHA1Hasher();
-      hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
-    } catch (UnsupportedEncodingException e) {
-      this.state = STATE_ERROR;
-      errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
-    } catch (IOException e) {
-      this.state = STATE_ERROR;
-      errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
-    } catch (NoSuchAlgorithmException e) {
-      this.state = STATE_ERROR;
-      errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
-    } catch (Exception e) {
-      this.state = STATE_ERROR;
-      errorDetail = e.getMessage();
-    } finally {
-      try {
-        if (fis != null)
-          fis.close();
-      } catch (Exception e) {
-      }
-    }
-  }
+  	private void 
+  	readTorrent()
+  	{
+  		name		= torrentFileName;	// default if things go wrong decoding it
+		trackerUrl	= "";
+		comment		= "";
+		nbPieces	= 0;
+		
+  		try{
+  	
+			torrent	= TOTorrentFactory.deserialiseFromFile(new File(torrentFileName));
+		
+			// torrent.print();
+			
+			name = LocaleUtil.getCharsetString( torrent.getName().getBytes( Constants.DEFAULT_ENCODING));
+			
+			/*
+			if( nameFromUser != null ){
+				
+				name = nameFromUser;
+			   
+			 	torrent.setName( new String( name.getBytes(LocaleUtil.getCharsetString(name.getBytes())),Constants.DEFAULT_ENCODING )); //$NON-NLS-1$
+			 }
+			 */
+			 
+			 trackerUrl = torrent.getAnnounceURL().toString();
+         
+			 comment = torrent.getComment();
+         
+			 if ( comment == null ){
+         	
+			 	comment	= "";
+			 }
+			 
+			 nbPieces = torrent.getPieces().length;
+			 
+			 torrent.setAdditionalStringProperty("torrent filename", torrentFileName ); //$NON-NLS-1$ //$NON-NLS-2$
+
+  		}catch( TOTorrentException e ){
+		
+			nbPieces = 0;
+        		
+			this.state = STATE_ERROR;
+ 			
+  			int	reason = e.getReason();
+  			
+ 	     	if ( reason == TOTorrentException.RT_FILE_NOT_FOUND ){
+ 	     	        		 		
+        		errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
+        		
+ 	     	}else if ( reason == TOTorrentException.RT_ZERO_LENGTH ){
+     
+	        	errorDetail = MessageText.getString("DownloadManager.error.fileempty"); //$NON-NLS-1$
+        
+ 	     	}else if ( reason == TOTorrentException.RT_TOO_BIG ){
+ 	     		
+		        errorDetail = MessageText.getString("DownloadManager.error.filetoobig"); //$NON-NLS-1$
+		        
+			}else if ( reason == TOTorrentException.RT_DECODE_FAILS ){
+ 
+ 		        errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo"); //$NON-NLS-1$
+ 		        
+ 	     	}else if ( reason == TOTorrentException.RT_UNSUPPORTED_ENCODING ){
+ 	     		
+				errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
+				
+			}else if ( reason == TOTorrentException.RT_READ_FAILS ){
+
+				errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
+				
+			}else if ( reason == TOTorrentException.RT_HASH_FAILS ){
+
+ 				errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
+ 	     	}else{
+ 	     
+      			errorDetail = e.getMessage();
+ 	     	}
+ 			
+		}catch( UnsupportedEncodingException e ){
+		
+			nbPieces = 0;
+        		
+			this.state = STATE_ERROR;
+			
+			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
+  		}
+  	}
+
 
   private void startServer() {
     if(Server.portsFree()) {
@@ -409,8 +430,19 @@ public class DownloadManager extends Component {
   /**
    * @return
    */
-  public byte[] getHash() {
-    return hash;
+  public byte[] 
+  getHash() 
+  {
+  	try{
+  	
+    	return( torrent == null?new byte[20]:torrent.getHash());
+    	
+  	}catch( TOTorrentException e ){
+  	
+  		e.printStackTrace();
+  		
+  		return( new byte[20] );
+  	}
   }
 
   /**
@@ -509,10 +541,10 @@ public class DownloadManager extends Component {
 
   public HashData getHashData() {
     if (trackerConnection != null  && globalManager != null)
-      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), hash);
+      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), getHash());
     else
       if(trackerUrl != null && globalManager != null)
-        return globalManager.getTrackerChecker().getHashData(trackerUrl,hash);
+        return globalManager.getTrackerChecker().getHashData(trackerUrl, getHash());
     return null;
   }
 
@@ -538,7 +570,7 @@ public class DownloadManager extends Component {
   public boolean equals(Object obj) {
     if(null != obj && obj instanceof DownloadManager) {
       DownloadManager other = (DownloadManager) obj;
-      return getSize() == other.getSize() && Arrays.equals(hash, other.getHash());
+      return getSize() == other.getSize() && Arrays.equals(getHash(), other.getHash());
     }
     return false;
   }
@@ -551,7 +583,7 @@ public class DownloadManager extends Component {
   /**
    * @return
    */
-  public TrackerConnection getTrackerConnection() {
+  public TRTrackerClient getTrackerConnection() {
     return trackerConnection;
   }
 

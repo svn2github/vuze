@@ -100,7 +100,7 @@ Main
 						}
 					};
 				
-				boolean	do_file = false;
+				boolean	do_file = true;
 				
 				TOTorrent t;
 				

@@ -1,20 +1,26 @@
 package org.gudy.azureus2.core;
 
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
 
-public class PeerManager extends Thread {
+import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.peer.*;
+
+
+public class 
+PeerManager 
+	extends 	Thread
+	implements 	PEPeerManager 
+{
   public static final int BLOCK_SIZE = 16384;
   private static final int MAX_REQUESTS = 10;
   private static final boolean DEBUG = false;
@@ -36,7 +42,7 @@ public class PeerManager extends Thread {
   private PeerStats _stats;
   private long _timeLastUpdate;
   private int _timeToWait;
-  private TrackerConnection _tracker;
+  private TRTrackerClient _tracker;
   private String _trackerStatus;
   //  private int _maxUploads;
   private int _trackerState;
@@ -62,7 +68,7 @@ public class PeerManager extends Thread {
     DownloadManager manager,
     byte[] hash,
     Server server,
-    TrackerConnection tracker,
+	TRTrackerClient tracker,
     DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
@@ -246,93 +252,58 @@ public class PeerManager extends Thread {
   }
 
   /**
-   * A private method that does analysis of bencoded stream sent by the tracker.
+   * A private method that does analysis of the result sent by the tracker.
    * It will mainly open new connections with peers provided
    * and set the timeToWait variable according to the tracker response.
-   * In fact we use 2/3 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
-   * @param data a String with bencoded data in it
+   * @param the tracker response
    */
-  private void analyseTrackerResponse(byte[] data) {
-    //was any data returned?
-    if (data == null) //no data returned
-      {
-      _trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
-      _timeToWait = 60; //retry in 60 seconds
-      return; //break
-    }
-    else //otherwise
-      {
-      try {
-        //parse the metadata
-        Map metaData = BDecoder.decode(data); //$NON-NLS-1$
+  
+	private void 
+	analyseTrackerResponse(
+  		TRTrackerResponse	tracker_response )
+  	{
+  		// tracker_response.print();
+  		
+  		int	status = tracker_response.getStatus();
+  		
+		_timeToWait	= (int)tracker_response.getTimeToWait();
+		
+    	if ( status == TRTrackerResponse.ST_OFFLINE ){
+      
+      		_trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
+      		      		
+	    }else if ( status == TRTrackerResponse.ST_REPORTED_ERROR ){
 
-        //OLD WAY
-        //BtDictionary metaData = new BtDecode(data).getDictionary();
+			_trackerStatus = tracker_response.getFailureReason();
+			
+	    }else{
+	    	
+        	addPeersFromTracker( tracker_response.getPeers());
+        	
+        	_trackerState = TRACKER_UPDATE;
+        	
+        	_trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+    	}
+  	}
 
-        try {
-          //set the timeout     
-          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
-        }
-        catch (Exception e) {
-          _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-          _timeToWait = 120;
-          return;
-        }
-
-        addPeersFromTracker(metaData);
-        _trackerState = TRACKER_UPDATE;
-        _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
-        return; //break           
-      }
-      catch (Exception e) {
-        //tracker not working   
-        _trackerStatus = MessageText.getString("PeerManager.status.offline"); //$NON-NLS-1$
-        _timeToWait = 60;
-      }
-    }
-  }
-
-  private void addPeersFromTracker(Map metaData) {
-    if (metaData == null)
-      return;
-    try {
-      //build the list of peers
-      List peers = (List) metaData.get("peers"); //$NON-NLS-1$
-
-      //OLD WAY
-      //BtList peers = (BtList) metaData.getValue("peers");
-
-      //count the number of peers
-      int nbPeers = peers.size();
-
-      //for every peer
-      for (int i = 0; i < nbPeers; i++) {
-        Map peer = (Map) peers.get(i);
-        //build a dictionary object       
-        byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
-        //get the peer id
-        String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-        //get the peer ip address
-        int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-        //get the peer port number
-
-        if (!Arrays.equals(peerId, _myPeerId))
-          //::this should be quicker -Tyler
-          {
-          addPeer(peerId, ip, port);
-        }
-        //for(int j = 0 ; j < piBytes.length ; j++)
-        //{       
-        //same = same && (piBytes[j] == _myPeerId[j]);
-        //System.out.print(same + " ");
-        //}                      
-      }
-    }
-    catch (Exception e) {
-      System.out.println("Problems with peer informations from Tracker");
-      e.printStackTrace();
-    }
-  }
+ 	private void 
+ 	addPeersFromTracker(
+ 		TRTrackerResponsePeer[]		peers )
+ 	{
+		for (int i = 0; i < peers.length; i++){
+      	
+			TRTrackerResponsePeer	peer = peers[i];
+		
+			byte[]	this_peer_id = peer.getPeerId();
+		
+				// ignore ourselves
+				
+        	if (!Arrays.equals(this_peer_id, _myPeerId)){
+           
+        	  	addPeer( this_peer_id, peer.getIPAddress(), peer.getPort());
+        	}                
+  		}
+ 	}
 
   /**
    * A private method that checks if pieces being downloaded are finished
@@ -512,27 +483,41 @@ public class PeerManager extends Thread {
     }
   }
 
-  public void checkTracker() {
-    long time = System.currentTimeMillis() / 1000;
-    if (time - _timeLastUpdate < 60)
-      return;
-    _timeLastUpdate = time; //update last checked time
-      Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
-  public void run() {
-        try {
-          String result;
-          if (_trackerState == TRACKER_UPDATE)
-            result = _tracker.update();
-          else
-            result = _tracker.start();
-          analyseTrackerResponse(result == null ? null : result.getBytes(Constants.BYTE_ENCODING));
-        }
-        catch (UnsupportedEncodingException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-    };
+	public void 
+  	checkTracker()
+  	{
+		long time = System.currentTimeMillis() / 1000;
+		
+    	if (time - _timeLastUpdate < 60){
+    		
+      		return;
+    	}
+    	
+    	_timeLastUpdate = time; //update last checked time
+    	
+      	Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
+			public void 
+		  	run() 
+		 	{
+		  		try{
+		    		TRTrackerResponse result;
+		    	
+		    	    if ( _trackerState == TRACKER_UPDATE){
+		        
+		        	    result = _tracker.update();
+		        	}else{
+		        
+		            	result = _tracker.start();
+		        	}
+		        
+		        	analyseTrackerResponse(result);
+		       
+		  		}catch (Throwable e){
+		        
+		    		e.printStackTrace();
+		  		} 
+		 	}
+		};
     t.start(); //start the thread
   }
 

@@ -95,7 +95,8 @@ TOTorrentImpl
 			
 		}catch( Throwable e){
 			
-			throw( new TOTorrentException( "TOTorrent::serialise: fails '" + e.toString() + "'" ));
+			throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
+											TOTorrentException.RT_WRITE_FAILS ));
 			
 		}finally{
 			
@@ -257,6 +258,12 @@ TOTorrentImpl
 		return( torrent_name );
 	}
 	
+	public boolean
+	isSimpleTorrent()
+	{
+		return( simple_torrent );
+	}
+	
 	public String
 	getComment()
 	{
@@ -270,10 +277,12 @@ TOTorrentImpl
 		comment = _comment;
 	}
 	
-	protected void
+	public void
 	setName(
 		String	_name )
 	{
+		torrent_hash		= null;
+		
 		torrent_name		= _name;
 	}
 	
@@ -313,7 +322,8 @@ TOTorrentImpl
 	
 		}catch( Throwable e ){
 				
-			throw( new TOTorrentException( "TOTorrent::setHashFromInfo: fails '" + e.toString() + "'"));
+			throw( new TOTorrentException( 	"TOTorrent::setHashFromInfo: fails '" + e.toString() + "'",
+											TOTorrentException.RT_HASH_FAILS ));
 		}
 	}
 	
@@ -393,19 +403,35 @@ TOTorrentImpl
 	setAdditionalStringProperty(
 		String		name,
 		String		value )
-		
-		throws TOTorrentException
 	{
-		setAdditionalByteArrayProperty( name, writeStringToMetaData( value ));
+		try{
+		
+			setAdditionalByteArrayProperty( name, writeStringToMetaData( value ));
+			
+		}catch( TOTorrentException e ){
+			
+				// hide encoding exceptions as default encoding must be available
+			
+			e.printStackTrace();
+		}
 	}
 		
 	public String
 	getAdditionalStringProperty(
 		String		name )
+	{	
+		try{			
 		
-		throws TOTorrentException
-	{				
-		return( readStringFromMetaData( getAdditionalByteArrayProperty(name)));
+			return( readStringFromMetaData( getAdditionalByteArrayProperty(name)));
+			
+		}catch( TOTorrentException e ){
+			
+				// hide encoding exceptions as default encoding must be available
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
 	}
 	
 	public void
@@ -494,7 +520,8 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: unsupported encoding for '" + new String(value) + "'"));
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: unsupported encoding for '" + new String(value) + "'",
+											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
 	
@@ -521,7 +548,8 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( "TOTorrent::writeStringToMetaData: unsupported encoding for '" + new String(value) + "'"));
+			throw( new TOTorrentException( 	"TOTorrent::writeStringToMetaData: unsupported encoding for '" + new String(value) + "'",
+											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
 	
@@ -545,7 +573,14 @@ TOTorrentImpl
 				String	key = (String)it.next();
 				Object	value = additional_properties.get( key );
 				
-				System.out.println( "prop '" + key + "' = '" + value + "'" );
+				try{
+				
+					System.out.println( "prop '" + key + "' = '" + 
+										( value instanceof byte[]?new String((byte[])value, Constants.DEFAULT_ENCODING):value.toString()) + "'" );
+				}catch( UnsupportedEncodingException e){
+				
+					System.out.println( "prop '" + key + "' = unsupported encoding!!!!");	
+				}
 			}
 			
 			for (int i=0;i<pieces.length;i++){

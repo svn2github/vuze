@@ -88,7 +88,8 @@ TOTorrentFileHasher
 			
 		}catch( Throwable e ){
 			
-			throw( new TOTorrentException( "TOTorrentFileHasher: file read fails '" + e.toString() + "'" ));
+			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",
+											TOTorrentException.RT_READ_FAILS ));
 		}
 	}
 	
@@ -122,7 +123,8 @@ TOTorrentFileHasher
 			
 		}catch( Throwable e ){
 			
-			throw( new TOTorrentException( "TOTorrentFileHasher: file read fails '" + e.toString() + "'" ));
+			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",
+											TOTorrentException.RT_READ_FAILS ));
 		}
 	}
 }

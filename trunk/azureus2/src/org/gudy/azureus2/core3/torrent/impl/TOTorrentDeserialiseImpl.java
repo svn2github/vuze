@@ -32,9 +32,21 @@ TOTorrentDeserialiseImpl
 	{		
 		if(!file.isFile()) {
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: Torrent must be a file ('" + file.getName() + "')" ));
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent must be a file ('" + file.getName() + "')",
+											TOTorrentException.RT_FILE_NOT_FOUND ));
 		}
 
+		if ( file.length() == 0 ){
+		
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent is zero length ('" + file.getName() + "')",
+											TOTorrentException.RT_ZERO_LENGTH ));
+			
+		}else if ( file.length() > 1024L * 1024L ){
+			
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent is too big ('" + file.getName() + "')",
+											TOTorrentException.RT_TOO_BIG ));
+		}
+		
 		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
 		
 		FileInputStream fis = null;
@@ -53,7 +65,8 @@ TOTorrentDeserialiseImpl
 			}
 		}catch( IOException e ){
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'" ));
+			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'",
+											TOTorrentException.RT_READ_FAILS ));
 			
 		}finally{
 			
@@ -99,7 +112,8 @@ TOTorrentDeserialiseImpl
 		
 		if ( meta_data == null) {
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: decode fails" ));
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: decode fails",
+											TOTorrentException.RT_DECODE_FAILS ));
 		}
 
 		construct( meta_data );
@@ -111,156 +125,169 @@ TOTorrentDeserialiseImpl
 		
 		throws TOTorrentException
 	{
+		try{
 		
-			// decode the stuff
-		
-		Iterator root_it = meta_data.keySet().iterator();
-		
-		while( root_it.hasNext()){
+				// decode the stuff
 			
-			String	key = (String)root_it.next();
+			Iterator root_it = meta_data.keySet().iterator();
 			
-			if ( key.equalsIgnoreCase( TK_ANNOUNCE )){
-						
-				String url_str = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+			while( root_it.hasNext()){
 				
-				url_str.replaceAll( " ", "" );
+				String	key = (String)root_it.next();
 				
-				try{
-				
-					setAnnounceURL( new URL( url_str ));
-					
-				}catch( MalformedURLException e ){
-					
-					e.printStackTrace();
-					
-					throw( new TOTorrentException( "TOTorrentDeserialise: announce URL malformed ('" + url_str + "'"));
-				}
-				
-			}else if ( key.equalsIgnoreCase( TK_ANNOUNCE_LIST )){
-
-				List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
-				
-				if ( announce_list != null ){
-					
-					for (int i=0;i<announce_list.size();i++){
-						
-						List	set = (List)announce_list.get(i);
+				if ( key.equalsIgnoreCase( TK_ANNOUNCE )){
 							
-						Vector urls = new Vector();
-							
-						for (int j=0;j<set.size();j++){
-				
-							try{
-		
-								String url_str = readStringFromMetaData((byte[])set.get(j));
-								
-								url_str.replaceAll( " ", "" );
-										
-								urls.add( new URL( url_str ));		
+					String url_str = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+					
+					url_str.replaceAll( " ", "" );
+					
+					try{
+					
+						setAnnounceURL( new URL( url_str ));
 						
-							}catch( MalformedURLException e ){
+					}catch( MalformedURLException e ){
+						
+						e.printStackTrace();
+						
+						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + url_str + "'",
+														TOTorrentException.RT_DECODE_FAILS ));
+					}
+					
+				}else if ( key.equalsIgnoreCase( TK_ANNOUNCE_LIST )){
+	
+					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
+					
+					if ( announce_list != null ){
+						
+						for (int i=0;i<announce_list.size();i++){
+							
+							List	set = (List)announce_list.get(i);
 								
-								e.printStackTrace();
+							Vector urls = new Vector();
+								
+							for (int j=0;j<set.size();j++){
+					
+								try{
+			
+									String url_str = readStringFromMetaData((byte[])set.get(j));
+									
+									url_str.replaceAll( " ", "" );
+											
+									urls.add( new URL( url_str ));		
+							
+								}catch( MalformedURLException e ){
+									
+									e.printStackTrace();
+								}
+							}
+							
+							if ( urls.size() > 0 ){
+							
+								URL[]	url_array = new URL[urls.size()];
+								
+								urls.copyInto( url_array );
+								
+								addTorrentAnnounceURLSet( url_array );
 							}
 						}
-						
-						if ( urls.size() > 0 ){
-						
-							URL[]	url_array = new URL[urls.size()];
-							
-							urls.copyInto( url_array );
-							
-							addTorrentAnnounceURLSet( url_array );
-						}
 					}
-				}
-			}else if ( key.equalsIgnoreCase( TK_COMMENT )){
-				
-				setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
-				
-			}else if ( key.equalsIgnoreCase( TK_INFO )){
-				
-				// processed later
-				
-			}else{
-				
-				Object	prop = meta_data.get( key );
-				
-				if ( prop instanceof byte[] ){
+				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
 					
-					setAdditionalByteArrayProperty( key, (byte[])prop );
+					setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
 					
-				}else if ( prop instanceof Long ){
+				}else if ( key.equalsIgnoreCase( TK_INFO )){
 					
-					setAdditionalLongProperty( key, (Long)prop );
-					
-				}else if ( prop instanceof List ){
-					
-					setAdditionalListProperty( key, (List)prop );
+					// processed later
 					
 				}else{
 					
-					setAdditionalMapProperty( key, (Map)prop );
-				}
-			}
-		}
-		
-		Map	info = (Map)meta_data.get( TK_INFO );
-		
-		setHashFromInfo( info );
-		
-		setName( readStringFromMetaData( info, TK_NAME ));
-		
-		Long simple_file_length = (Long)info.get( TK_LENGTH );
-		
-		if ( simple_file_length != null ){
-		
-			setSimpleTorrent( true );
-			
-			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( simple_file_length.longValue(), getName())});
-			
-		}else{
-			
-			setSimpleTorrent( false );  
-
-			List	meta_files = (List)info.get( TK_FILES );
-		
-			TOTorrentFile[] files = new TOTorrentFile[ meta_files.size()];
-		
-			for (int i=0;i<files.length;i++){
-				
-				Map	file_map = (Map)meta_files.get(i);
-				
-				long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
-				
-				List	paths = (List)file_map.get( TK_PATH );
-				
-				String	path = "";
-				
-				for (int j=0;j<paths.size();j++){
-				
-					path += (j==0?"":File.separator) + new String(readStringFromMetaData((byte[])paths.get(j)));
-				}
-				
-				files[i] = new TOTorrentFileImpl( len, path );
-			}
-			
-			setFiles( files );
-		}
-										 
-		setPieceLength( ((Long)info.get( TK_PIECE_LENGTH )).longValue());
+					Object	prop = meta_data.get( key );
 					
-		byte[]	flat_pieces = (byte[])info.get( TK_PIECES );
-		
-		byte[][]pieces = new byte[flat_pieces.length/20][20];
-		
-		for (int i=0;i<pieces.length;i++){
+					if ( prop instanceof byte[] ){
+						
+						setAdditionalByteArrayProperty( key, (byte[])prop );
+						
+					}else if ( prop instanceof Long ){
+						
+						setAdditionalLongProperty( key, (Long)prop );
+						
+					}else if ( prop instanceof List ){
+						
+						setAdditionalListProperty( key, (List)prop );
+						
+					}else{
+						
+						setAdditionalMapProperty( key, (Map)prop );
+					}
+				}
+			}
 			
-			System.arraycopy( flat_pieces, i*20, pieces[i], 0, 20 );
-		}	
+			Map	info = (Map)meta_data.get( TK_INFO );
 			
-		setPieces( pieces );		
+			setHashFromInfo( info );
+			
+			setName( readStringFromMetaData( info, TK_NAME ));
+			
+			Long simple_file_length = (Long)info.get( TK_LENGTH );
+			
+			if ( simple_file_length != null ){
+			
+				setSimpleTorrent( true );
+				
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( simple_file_length.longValue(), new String[]{getName()})});
+				
+			}else{
+				
+				setSimpleTorrent( false );  
+	
+				List	meta_files = (List)info.get( TK_FILES );
+			
+				TOTorrentFile[] files = new TOTorrentFile[ meta_files.size()];
+			
+				for (int i=0;i<files.length;i++){
+					
+					Map	file_map = (Map)meta_files.get(i);
+					
+					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
+					
+					List	paths = (List)file_map.get( TK_PATH );
+									
+					String[]	path_comps = new String[paths.size()];
+					
+					for (int j=0;j<paths.size();j++){
+					
+						path_comps[j] = new String(readStringFromMetaData((byte[])paths.get(j)));
+					}
+					
+					files[i] = new TOTorrentFileImpl( len, path_comps );
+				}
+				
+				setFiles( files );
+			}
+											 
+			setPieceLength( ((Long)info.get( TK_PIECE_LENGTH )).longValue());
+						
+			byte[]	flat_pieces = (byte[])info.get( TK_PIECES );
+			
+			byte[][]pieces = new byte[flat_pieces.length/20][20];
+			
+			for (int i=0;i<pieces.length;i++){
+				
+				System.arraycopy( flat_pieces, i*20, pieces[i], 0, 20 );
+			}	
+				
+			setPieces( pieces );	
+			
+		}catch( Throwable e ){
+			
+			if ( e instanceof TOTorrentException){
+				
+				throw((TOTorrentException)e);	
+			}
+			
+			throw( new TOTorrentException( "TOTorrentDeserialise: deserialisation fails '" + e.toString() + "'",
+											TOTorrentException.RT_DECODE_FAILS ));
+		}
 	}
 	
 

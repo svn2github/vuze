@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.TrackerConnection;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 
 /**
  * @author Olivier
@@ -23,7 +23,7 @@ import org.gudy.azureus2.core.TrackerConnection;
  */
 public class TrackerChangerWindow {
 
-  public TrackerChangerWindow(final Display display, final TrackerConnection trackerConnection) {
+  public TrackerChangerWindow(final Display display, final TRTrackerClient trackerConnection) {
     final Shell shell = new Shell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     shell.setImage(ImageRepository.getImage("azureus"));

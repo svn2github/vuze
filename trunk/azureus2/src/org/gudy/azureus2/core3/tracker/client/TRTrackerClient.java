@@ -32,12 +32,12 @@ TRTrackerClient
 	public byte[]
 	getPeerId();
 	
-	public String
+	public TRTrackerResponse
 	start();
 	
-	public String
+	public TRTrackerResponse
 	update();
 	
-	public String
+	public TRTrackerResponse
 	stop();
 }

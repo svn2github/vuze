@@ -3,7 +3,6 @@ package org.gudy.azureus2.core;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -20,6 +19,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
+
+import org.gudy.azureus2.core3.torrent.*;
 
 /**
  * 
@@ -43,7 +44,7 @@ public class DiskManager {
 
     //  private int[] _priorityPieces;
 
-    private byte[] piecesHash;
+    private byte[][] piecesHash;
     private int nbPieces;
     private long totalLength;
     private boolean pieceDone[];
@@ -54,7 +55,8 @@ public class DiskManager {
 
     private String path;
     private String fileName = "";
-    private Map metaData;
+    
+    private	TOTorrent		torrent;
 
     private ByteBuffer allocateAndTestBuffer;
 
@@ -85,10 +87,10 @@ public class DiskManager {
 
     private Piece[] pieces;
 
-    public DiskManager(Map metaData, String path) {
+    public DiskManager(TOTorrent	_torrent, String path) {
         this.state = INITIALIZING;
         this.percentDone = 0;
-        this.metaData = metaData;
+        this.torrent = _torrent;
         this.path = path;
         try {
             hasher = new SHA1Hasher();
@@ -108,12 +110,12 @@ public class DiskManager {
 
     private void initialize() {
 
-        //1. parse the metaData object.
-        Map info = (Map)metaData.get("info");
-        pieceLength = (int) ((Long)info.get("piece length")).longValue();
+  
+        pieceLength = (int)torrent.getPieceLength();
 
-        piecesHash = (byte[])info.get("pieces");
-        nbPieces = piecesHash.length / 20;
+        piecesHash = torrent.getPieces();
+        
+        nbPieces = piecesHash.length;
 
         //  create the pieces map
         pieceMap = new PieceList[nbPieces];
@@ -125,13 +127,13 @@ public class DiskManager {
         //    _priorityPieces = new int[nbPieces + 1];
 
         pieceDone = new boolean[nbPieces];
-        LocaleUtil localeUtil = LocaleUtil.getLocaleUtil(metaData.get("encoding"));
+        LocaleUtil localeUtil = LocaleUtil.getLocaleUtil( torrent.getAdditionalStringProperty( "encoding" ));
 
         fileName = "";
         try {
             File f = new File(path);
             if (f.isDirectory()) {
-                fileName = localeUtil.getChoosableCharsetString((byte[])info.get("name"));
+                fileName = localeUtil.getChoosableCharsetString( torrent.getName().getBytes(Constants.DEFAULT_ENCODING));
             } else {
                 fileName = f.getName();
                 path = f.getParent();
@@ -163,10 +165,16 @@ public class DiskManager {
         readThread.start();
 
         //2. Distinguish between simple file
-        Object test = info.get("length");
-        if (test != null) {
-            totalLength = ((Long)test).longValue();
+
+		TOTorrentFile[] torrent_files = torrent.getFiles();
+
+        if ( torrent.isSimpleTorrent()){
+        	
+        	
+            totalLength = torrent_files[0].getLength();
+            
             rootPath = "";
+            
             btFileList.add(new BtFile("", fileName, totalLength));
         } else {
             //define a variable to keep track of what piece we're on
@@ -185,14 +193,16 @@ public class DiskManager {
                 rootPath = ""; //null out rootPath
             }
 
-            buildFileLookupTables(info, btFileList, localeUtil, separator);
+            buildFileLookupTables( torrent_files, btFileList, localeUtil, separator);
 
             if (this.state == FAULTY)
                 return;
         }
 
-        if (localeUtil.canEncodingBeSaved() && !localeUtil.getLastChoosedEncoding().equals(metaData.get("encoding"))) {
-            metaData.put("encoding", localeUtil.getLastChoosedEncoding());
+        if (localeUtil.canEncodingBeSaved() && !localeUtil.getLastChoosedEncoding().equals(torrent.getAdditionalStringProperty("encoding"))) {
+        	
+            torrent.setAdditionalStringProperty("encoding", localeUtil.getLastChoosedEncoding());
+            
             saveTorrent();
         }
 
@@ -286,12 +296,15 @@ public class DiskManager {
     }
 
     // refactored out of initialize() - Moti
-    private void buildFileLookupTables(Map info, ArrayList btFileList, LocaleUtil localeUtil, final char separator) {
-        //get the files object
-        List files = (List)info.get("files");
-        //for each file
-        for (int i = 0; i < files.size(); i++) {
-            long fileLength = buildFileLookupTable((Map)files.get(i), btFileList, localeUtil, separator);
+    private void 
+    buildFileLookupTables(
+    	TOTorrentFile[]	torrent_files, ArrayList btFileList, LocaleUtil localeUtil, final char separator) {
+ 
+         //for each file
+         
+        for (int i = 0; i < torrent_files.length; i++) {
+        	
+            long fileLength = buildFileLookupTable(torrent_files[i], btFileList, localeUtil, separator);
 
             if (this.state == FAULTY)
                 return;
@@ -311,11 +324,18 @@ public class DiskManager {
      */
     // refactored out of initialize() - Moti
     // code further refactored for readibility
-    private long buildFileLookupTable(Map fileDictionay, ArrayList btFileList, LocaleUtil localeUtil, final char separator) {
-        long fileLength = ((Long)fileDictionay.get("length")).longValue();
+    private long 
+    buildFileLookupTable(
+		TOTorrentFile		torrent_file, 
+		ArrayList 			btFileList, 
+		LocaleUtil 			localeUtil, 
+		final char 			separator) 
+	{
+        long fileLength  = torrent_file.getLength();
 
         //build the path
-        List fileList = (List)fileDictionay.get("path");
+        
+		String[]	path_components = torrent_file.getPathComponents();
 
         /* replaced the following two calls:
         StringBuffer pathBuffer = new StringBuffer(256);
@@ -323,10 +343,10 @@ public class DiskManager {
         */
         StringBuffer pathBuffer = new StringBuffer(0);
         try {
-            int lastIndex = fileList.size() - 1;
+            int lastIndex = path_components.length - 1;
             for (int j = 0; j < lastIndex; j++) {
                 //attach every element        
-                pathBuffer.append(localeUtil.getChoosableCharsetString((byte[])fileList.get(j)));
+                pathBuffer.append(localeUtil.getChoosableCharsetString( path_components[j].getBytes( Constants.DEFAULT_ENCODING )));
                 pathBuffer.append(separator);
             }
 
@@ -335,7 +355,7 @@ public class DiskManager {
             btFileList.add(
                 new BtFile(
                     pathBuffer.toString(),
-                    localeUtil.getChoosableCharsetString((byte[])fileList.get(lastIndex)),
+                    localeUtil.getChoosableCharsetString(path_components[lastIndex].getBytes( Constants.DEFAULT_ENCODING )),
                     fileLength));
 
         } catch (UnsupportedEncodingException e) {
@@ -351,7 +371,7 @@ public class DiskManager {
         boolean resumeValid = false;
         byte[] resumeArray = null;
         Map partialPieces = null;
-        Map resumeMap = (Map)metaData.get("resume");
+        Map resumeMap = torrent.getAdditionalMapProperty("resume");
         if (resumeMap != null) {
             Map resumeDirectory = (Map)resumeMap.get(this.path);
             if (resumeDirectory != null) {
@@ -826,9 +846,8 @@ public class DiskManager {
 
             byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
             int i = 0;
-            int pieceLocation = pieceNumber * 20;
             for (i = 0; i < 20; i++) {
-                if (testHash[i] != piecesHash[pieceLocation + i])
+                if (testHash[i] != piecesHash[pieceNumber][i])
                     break;
             }
             if (i >= 20) {
@@ -859,10 +878,10 @@ public class DiskManager {
         }
 
         //Attach the resume data
-        Map resumeMap = (Map)metaData.get("resume");
+        Map resumeMap = torrent.getAdditionalMapProperty("resume");
         if (resumeMap == null) {
             resumeMap = new HashMap();
-            metaData.put("resume", resumeMap);
+            torrent.setAdditionalMapProperty("resume", resumeMap);
         }
         Map resumeDirectory = new HashMap();
         resumeMap.put(path, resumeDirectory);
@@ -893,32 +912,17 @@ public class DiskManager {
         saveTorrent();
     }
 
-    private void saveTorrent() {
-        //open the torrent file       
-        File torrent = null;
+    private void 
+    saveTorrent() 
+    {
         try {
-            torrent = new File(new String((byte[])metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
-        } catch (UnsupportedEncodingException e) {
+			File torrent_file = new File( torrent.getAdditionalStringProperty( "torrent filename"));
+			
+			torrent.serialiseToFile( torrent_file );
+			
+        } catch (TOTorrentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-        //re-encode the data
-        byte[] torrentData = BEncoder.encode(metaData);
-        //open a file stream
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(torrent);
-            //write the data out
-            fos.write(torrentData);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            try {
-                if (fos != null)
-                    fos.close();
-            } catch (Exception e) {
-            }
         }
     }
 
@@ -1144,6 +1148,7 @@ public class DiskManager {
         ByteBufferPool.getInstance().freeBuffer(buffer);
     }
 
+	/*
     public void updateResumeInfo() {
         FileOutputStream fos = null;
         try {
@@ -1159,7 +1164,7 @@ public class DiskManager {
             }
 
             //Attach the resume data
-            metaData.put("resume data", resumeData);
+            torrent.setAdditionalMapProperty("resume data", resumeData);
 
             //open the torrent file       
             File torrent = new File(new String((byte[])metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
@@ -1179,6 +1184,7 @@ public class DiskManager {
             }
         }
     }
+*/
 
     public byte[] readDataBloc(int pieceNumber, int offset, int length) {
         /*

@@ -23,6 +23,18 @@ TOTorrent
 	public String
 	getName();
 
+	/**
+	 * Note: setting the torrent name alters it's hash
+	 * @param name	new torrent name
+	 */
+	
+	public void
+	setName(
+		String		name );
+		
+	public boolean
+	isSimpleTorrent();
+	
 	public String
 	getComment();
 	
@@ -60,15 +72,11 @@ TOTorrent
 	public void
 	setAdditionalStringProperty(
 		String		name,
-		String		value )
-		
-		throws TOTorrentException;
+		String		value );
 		
 	public String
 	getAdditionalStringProperty(
-		String		name )
-		
-		throws TOTorrentException;
+		String		name );
 		
 	public void
 	setAdditionalByteArrayProperty(

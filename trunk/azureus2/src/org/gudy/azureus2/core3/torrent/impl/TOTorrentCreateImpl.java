@@ -51,14 +51,16 @@ TOTorrentCreateImpl
 		
 		if ( piece_count == 0 ){
 			
-			throw( new TOTorrentException( "TOTorrentCreate: specified files have zero total length" ));
+			throw( new TOTorrentException( "TOTorrentCreate: specified files have zero total length",
+											TOTorrentException.RT_ZERO_LENGTH ));
 		}
 		
 		if ( getSimpleTorrent()){
 							
 			long length = hasher.add( _torrent_base );
 		
-			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( length, getName())});
+			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( length, new String[]{ getName()})});
+			
 		
 			setPieces( hasher.getPieces());
 
@@ -165,7 +167,8 @@ TOTorrentCreateImpl
 		
 		if ( !file.exists()){
 			
-			throw( new TOTorrentException( "TOTorrentCreate: file '" + file.getName() + "' doesn't exist" ));
+			throw( new TOTorrentException( "TOTorrentCreate: file '" + file.getName() + "' doesn't exist",
+											TOTorrentException.RT_FILE_NOT_FOUND ));
 		}
 		
 		if ( file.isFile()){

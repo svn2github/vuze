@@ -5,8 +5,9 @@
 package org.gudy.azureus2.core;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.util.Map;
+import java.io.File;
+
+import org.gudy.azureus2.core3.torrent.*;
 
 /**
  * @author Olivier
@@ -15,19 +16,33 @@ import java.util.Map;
 public class FileChecker {
 
   public static void main(String args[]) {
-    if (args.length < 2)
-      usage();
+    if (args.length < 2){
+    	
+      	usage();
+    }
+    
     ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
-    FileInputStream fis = null;
+ 
     try {
-      byte[] buf = new byte[1024];
-      int nbRead;
-      fis = new FileInputStream(args[0]);
-      while ((nbRead = fis.read(buf)) > 0)
-        metaInfo.write(buf, 0, nbRead);
-      Map metaData = BDecoder.decode(metaInfo.toByteArray());
-      DiskManager diskManager = new DiskManager(metaData, args[1]);
-      while (diskManager.getState() != DiskManager.READY) {
+   		TOTorrent	torrent = TOTorrentFactory.deserialiseFromFile( new File(args[0]));
+   		
+      DiskManager diskManager = new DiskManager(torrent, args[1]);
+      
+      while ( true ){
+      	
+      	int	state = diskManager.getState();
+      	
+      	if ( state == DiskManager.READY ){
+      		
+      		break;
+      		
+      	}else if ( state == DiskManager.FAULTY ){
+      		
+      		System.out.println( "DiskManager reports FAULTY state ( " + diskManager.getErrorMessage() + ")");
+      		
+      		System.exit(1);
+      	}
+      	
         int percent = diskManager.getPercentDone();
         int percentOk = 0;
         if (diskManager.getTotalLength() != 0)
@@ -43,12 +58,6 @@ public class FileChecker {
       diskManager.stopIt();
     } catch (Exception e) {
       e.printStackTrace();
-    } finally {
-      try {
-        if (fis != null)
-          fis.close();
-      } catch (Exception e) {
-      }
     }
   }
 
