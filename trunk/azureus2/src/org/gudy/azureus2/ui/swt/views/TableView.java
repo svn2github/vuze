@@ -382,11 +382,11 @@ public class TableView
           TableItem ti = table.getItem(0);
           // Unfortunately, this listener doesn't fill location
           int iColumn = -1;
-          for (int i = 0; i < table.getColumnCount(); i++) {
+          for (int i = bSkipFirstColumn ?  1 : 0; i < table.getColumnCount(); i++) {
             // M8 Fixes SWT GTK Bug 51777:
             //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
             Rectangle cellBounds = ti.getBounds(i);
-            //System.out.println("Mouse.x="+iMouseX+";cellbounds="+cellBounds);
+            //System.out.println("i="+i+";Mouse.x="+iMouseX+";cellbounds="+cellBounds);
             if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width && cellBounds.width > 0) {
               iColumn = i;
               break;
@@ -671,12 +671,14 @@ public class TableView
           if (iCellHeight > 0)
             row.setHeight(iCellHeight);
 
-          synchronized (objectToSortableItem) {
-            objectToSortableItem.put(dataSource, row);
+          if (objectToSortableItem.containsKey(dataSource)) {
+            synchronized (objectToSortableItem) {
+              objectToSortableItem.put(dataSource, row);
+            }
+            TableCellCore cell = row.getTableCellCore(sorter.getLastField());
+            if (cell != null)
+              cell.refresh();
           }
-          TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-          if (cell != null)
-            cell.refresh();
           bSortScheduled = true;
         }
       });
