@@ -93,10 +93,10 @@ public class ManagerItem {
 
     String tmp;
     tmp = manager.getName();
-    if (!(tmp.equals(this.name))) {
+    if (tmp != null && !(this.name.equals(tmp))) {
       name = tmp;
-      int sep = tmp.lastIndexOf("."); //$NON-NLS-1$
-      if(sep == -1) sep = 0;
+      int sep = tmp.lastIndexOf('.'); //$NON-NLS-1$
+      if(sep < 0) sep = 0;
       tmp = tmp.substring(sep);
       Program program = Program.findProgram(tmp);
       Image icon = ImageRepository.getIconFromProgram(program);
@@ -107,7 +107,7 @@ public class ManagerItem {
 
     tmp = ""; //$NON-NLS-1$
     tmp = PeerStats.format(manager.getSize());
-    if (!(tmp.equals(this.size))) {
+    if (tmp != null && !(tmp.equals(this.size))) {
       size = tmp;
       item.setText(1, tmp);
     }
@@ -207,8 +207,7 @@ public class ManagerItem {
       item.setText(9, tmp);
     }
 
-    int prio = manager.getPriority();
-    if (prio == DownloadManager.HIGH_PRIORITY) {
+    if (manager.getPriority() == DownloadManager.HIGH_PRIORITY) {
       tmp = MessageText.getString("ManagerItem.high"); //$NON-NLS-1$
     }
     else {
