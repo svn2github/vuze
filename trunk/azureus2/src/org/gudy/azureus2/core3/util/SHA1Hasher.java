@@ -11,7 +11,6 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.jmule.util.SHA1;
 
 /**
  * A SHA-1 hasher used to check pieces.
