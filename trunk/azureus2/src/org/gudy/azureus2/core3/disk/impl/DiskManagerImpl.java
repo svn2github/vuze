@@ -772,9 +772,9 @@ DiskManagerImpl
 			if (bCreateFile) {
 				//File doesn't exist
 			   numNewFiles++;
-				buildDirectoryStructure(tempPath);
 				
 				try {
+					buildDirectoryStructure(tempPath);
 					//test: throws Exception if filename is not supported by os
 					f.getCanonicalPath();
 					//create the new file

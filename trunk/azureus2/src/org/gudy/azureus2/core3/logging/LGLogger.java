@@ -19,6 +19,12 @@ LGLogger {
 	public static final int SENT 			= 2;
 	public static final int ERROR 			= 3;
 
+	public static void
+	initialise()
+	{
+		LGLoggerImpl.initialise();
+	}
+	
 	public static void 
 	log(
 		int componentId, 

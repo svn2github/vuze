@@ -46,7 +46,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -281,7 +281,10 @@ public class GlobalManagerImpl
   }
 
   public GlobalManagerImpl(
-  	final GlobalManagerAdapter	_adapter ) {
+  	final GlobalManagerAdapter	_adapter ) 
+  {
+  	LGLogger.initialise();
+  	
     stats = new GlobalManagerStatsImpl();
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
@@ -342,10 +345,13 @@ public class GlobalManagerImpl
     stats_writer.start();
   }
 
-  public boolean addDownloadManager(String fileName, String savePath) {
+  public boolean addDownloadManager(String fileName, String savePath) 
+  {
+	File torrentDir	= null;
+	File fDest		= null;
+	
     try {
       File f = new File(fileName);
-      File torrentDir;
       
       boolean saveTorrents = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
       if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -364,7 +370,7 @@ public class GlobalManagerImpl
         
       torrentDir.mkdirs();
       
-      File fDest = new File(torrentDir, f.getName().replaceAll("%20","."));
+      fDest = new File(torrentDir, f.getName().replaceAll("%20","."));
       if (fDest.equals(f)) {
         throw new Exception("Same files");
       }
@@ -380,14 +386,17 @@ public class GlobalManagerImpl
       if (!correct) {
         fDest.delete();
       }
+ 
       return correct;
     }
     catch (IOException e) {
+      System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       e.printStackTrace();
       DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
       return addDownloadManager(manager);
     }
     catch (Exception e) {
+    	// get here on duplicate files, no need to treat as error
       DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
       return addDownloadManager(manager);
     }
