@@ -1434,6 +1434,25 @@ public class ConfigView extends AbstractIView {
 		gridData.widthHint = 30;
 		pollIntervalIncPer.setLayoutData( gridData );
 		
+		
+		// row
+		
+		label = new Label(gMainTab, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.section.tracker.maxpeersreturned"); 
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		
+		IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 0 );
+		
+		gridData = new GridData();
+		gridData.widthHint = 50;
+		maxPeersReturned.setLayoutData( gridData );
+		
+		label = new Label(gMainTab, SWT.NULL);
+		label = new Label(gMainTab, SWT.NULL);
+		label = new Label(gMainTab, SWT.NULL);
+		label = new Label(gMainTab, SWT.NULL);
+		
 	   // row
 		
 	  label = new Label(gMainTab, SWT.NULL);

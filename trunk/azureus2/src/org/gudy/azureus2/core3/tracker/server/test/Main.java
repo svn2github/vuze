@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.core3.tracker.server.test;
 
-import java.io.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
