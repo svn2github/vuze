@@ -103,6 +103,7 @@ public class PeerConnectInfoStorage {
    * Holds peer connection info.
    */
   public static class PeerInfo {
+  	private final String	source;
     private final String address;
     private final int port;
     private final int hashcode;
@@ -112,12 +113,18 @@ public class PeerConnectInfoStorage {
      * @param address ip
      * @param port remote port
      */
-    public PeerInfo( String address, int port ) {
+    public PeerInfo( String source, String address, int port ) {
+      this.source = source;
       this.address = address;
       this.port = port;
       this.hashcode = address.hashCode() + port;
     }
     
+    public String
+	getPeerSource()
+    {
+    	return( source );
+    }
     /**
      * Get the peer ip address.
      * @return address

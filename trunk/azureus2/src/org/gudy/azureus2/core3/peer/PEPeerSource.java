@@ -1,5 +1,5 @@
 /*
- * Created on 07-Feb-2005
+ * Created on 13-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.plugins.download;
+package org.gudy.azureus2.core3.peer;
 
 /**
  * @author parg
@@ -28,17 +28,36 @@ package org.gudy.azureus2.plugins.download;
  */
 
 public interface 
-DownloadAnnounceResultPeer 
+PEPeerSource 
 {
-	public String
-	getSource();
+		/**
+		 * Class to enumerate the sources of peer connections
+		 */
 	
-	public int
-	getPort();
 	
-	public String
-	getAddress();
+	// DON'T change these constants as they get serialised!!!!
+	// (obviously you can add new networks to them).
+	// If you add to them remember to update the configuration item default for
+	// "Peer Source Selection Default.<name>" and
 	
-	public byte[]
-	getPeerID();
+	// outgoing connections - details how the peer was discovered
+	
+	public static final String	PS_BT_TRACKER		= "Tracker";
+	public static final String	PS_DHT				= "DHT";
+	public static final String	PS_OTHER_PEER		= "PeerExchange";
+	public static final String	PS_PLUGIN			= "Plugin";
+	
+		// incoming connections, we don't know much about these apart from the fact that they occurred
+	
+	public static final String	PS_INCOMING			= "Incoming";
+	
+	public static final String[]
+		PS_SOURCES = {
+			PS_BT_TRACKER,
+			PS_DHT,
+			PS_OTHER_PEER,
+			PS_PLUGIN,
+			PS_INCOMING,
+	};
+
 }

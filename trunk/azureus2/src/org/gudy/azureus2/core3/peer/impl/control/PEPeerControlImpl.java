@@ -500,6 +500,7 @@ PEPeerControlImpl
   
   public void addPeer( final String ip_address, final int port ) {
     TRTrackerResponsePeer peer = new TRTrackerResponsePeer() {
+      public String getSource(){ return PEPeerSource.PS_PLUGIN; }
       public byte[] getPeerID() {  return new byte[20];  }     
       public String getAddress() {  return ip_address;  }         
       public int getPort() {  return port;  }
@@ -541,8 +542,8 @@ PEPeerControlImpl
       
       if( already_connected )  continue;
       
-      peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getAddress(), peer.getPort() ) );
-		}
+      	peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getSource(), peer.getAddress(), peer.getPort() ) );
+	  }
  	}
   
   
@@ -554,7 +555,9 @@ PEPeerControlImpl
    */
   private boolean 
   makeNewOutgoingConnection( 
-  	String address, int port ) 
+  		String	peer_source,
+		String 	address, 
+		int port ) 
   {    
   		//make sure this connection isn't filtered
   	
@@ -567,7 +570,7 @@ PEPeerControlImpl
     if( needed == 0 )  return false;
 
     //start the connection
-    PEPeerTransport real = PEPeerTransportFactory.createTransport( this, address, port );
+    PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port );
     
     addToPeerTransports( real );
     return true;
@@ -1983,7 +1986,7 @@ PEPeerControlImpl
 	      	reconnect_counts_mon.exit();
 	      }
 	      
-	      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
+	      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getPort() );
 	    }
 	    else { //cleanup any reconnect count
 	      try{
@@ -2880,7 +2883,7 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
           if( peer_info == null )  break;
-          if( makeNewOutgoingConnection( peer_info.getAddress(), peer_info.getPort() ) ) {
+          if( makeNewOutgoingConnection( peer_info.getPeerSource(), peer_info.getAddress(), peer_info.getPort() ) ) {
             num_waiting_establishments++;
           }
         }

@@ -284,6 +284,12 @@ public class ConfigurationDefaults {
     def.put( "Tracker Network Selection Default.I2P", new Long(1));
     def.put( "Tracker Network Selection Default.Tor", new Long(1));
     
+    def.put( "Peer Source Selection Default.Tracker", new Long(1));
+    def.put( "Peer Source Selection Default.DHT", new Long(1));
+    def.put( "Peer Source Selection Default.PeerExchange", new Long(1));
+    def.put( "Peer Source Selection Default.Plugin", new Long(1));
+    def.put( "Peer Source Selection Default.Incoming", new Long(1));
+    
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );

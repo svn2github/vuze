@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.peer.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
@@ -56,11 +57,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
-import com.aelitis.net.udp.PRUDPPacket;
-import com.aelitis.net.udp.PRUDPPacketHandler;
-import com.aelitis.net.udp.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.PRUDPPacketHandlerFactory;
-import com.aelitis.net.udp.PRUDPPacketRequest;
+import com.aelitis.net.udp.*;
 
 
 /**
@@ -2054,7 +2051,7 @@ TRTrackerClientClassicImpl
 						    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 						    				"NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 
-									valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
+									valid_meta_peers.add(new TRTrackerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
 								}
 							} 
 						}
@@ -2094,7 +2091,7 @@ TRTrackerClientClassicImpl
     				    				"    Ignoring as peer port is in ignore list" );
     	
                 			}else{
-                				valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
+                				valid_meta_peers.add(new TRTrackerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
                 			}
 				    	}
 				    }
@@ -2399,6 +2396,7 @@ TRTrackerClientClassicImpl
 				Map	entry = new HashMap();
 				
 				entry.put( "ip", peer.getAddress().getBytes());
+				entry.put( "src", peer.getSource().getBytes());
 				entry.put( "port", new Long(peer.getPort()));
 				
 				peers.add( entry );
@@ -2443,6 +2441,8 @@ TRTrackerClientClassicImpl
 					
 					Map	peer = (Map)peers.get(i);
 					
+					byte[]	src_bytes = (byte[])peer.get("src");
+					String	peer_source = src_bytes==null?PEPeerSource.PS_BT_TRACKER:new String(src_bytes);
 					String	peer_ip_address = new String((byte[])peer.get("ip"));
 					int		peer_port		= ((Long)peer.get("port")).intValue();
 					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
@@ -2458,7 +2458,7 @@ TRTrackerClientClassicImpl
 					}else{
 						tracker_peer_cache.put( 
 							peer_ip_address, 
-							new TRTrackerResponsePeerImpl(peer_peer_id, peer_ip_address, peer_port ));
+							new TRTrackerResponsePeerImpl(peer_source, peer_peer_id, peer_ip_address, peer_port ));
 					}
 				}
 				
@@ -2652,6 +2652,7 @@ TRTrackerClientClassicImpl
 	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
 
 				peers[i] = new TRTrackerResponsePeerImpl( 
+									ext_peers[i].getSource(),
 									ext_peers[i].getPeerID(),
 									ext_peers[i].getAddress(), 
 									ext_peers[i].getPort());

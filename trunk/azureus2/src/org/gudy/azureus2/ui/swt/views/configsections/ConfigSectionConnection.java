@@ -31,8 +31,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -132,6 +132,8 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     proxy_group.setLayout( proxy_layout );
     
     formData = new FormData();
+    formData.left = new FormAttachment( 0, 0 );
+    formData.right = new FormAttachment( 100, -5 );
     formData.top = new FormAttachment( max_connects.getControl(), 5 );
     proxy_group.setLayoutData( formData );
     
@@ -318,6 +320,8 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     networks_group.setLayout( networks_layout );
     
     formData = new FormData();
+    formData.left = new FormAttachment( 0, 0 );
+    formData.right = new FormAttachment( 100, -5 );
     formData.top = new FormAttachment( proxy_group, 6 );
     networks_group.setLayoutData( formData );
         
@@ -352,11 +356,51 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
 	grid_data.horizontalSpan = 2;
 	network_prompt.setLayoutData( grid_data );
 	
+///////////////////////
+    
+    Group peer_sources_group = new Group( cServer, SWT.NULL );
+    Messages.setLanguageText( peer_sources_group, "ConfigView.section.connection.group.peersources" );
+    GridLayout peer_sources_layout = new GridLayout();
+    peer_sources_layout.numColumns = 2;
+    peer_sources_group.setLayout( peer_sources_layout );
+    
+    formData = new FormData();
+    formData.top = new FormAttachment( networks_group, 6 );
+    formData.left = new FormAttachment( 0, 0 );
+    formData.right = new FormAttachment( 100, -5 );
+    peer_sources_group.setLayoutData( formData );
+        
+    label = new Label(peer_sources_group, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.connection.group.peersources.info");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+    
+    for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
+		
+		String	nn = PEPeerSource.PS_SOURCES[i];
+	
+		String	config_name = "Peer Source Selection Default." + nn;
+		String	msg_text	= "ConfigView.section.connection.peersource." + nn;
+		 
+		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
+				
+	    grid_data = new GridData();
+	    grid_data.horizontalSpan = 2;
+	    peer_source.setLayoutData( grid_data );
+	}
+    
+    label = new Label(peer_sources_group, SWT.NULL);
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+	
+	
  ///////////////////////   
     
     final BooleanParameter enable_advanced = new BooleanParameter( cServer, "config.connection.show_advanced", false );
     formData = new FormData();
-    formData.top = new FormAttachment( networks_group, 5 );
+    formData.top = new FormAttachment( peer_sources_group, 5 );
     enable_advanced.setLayoutData( formData );
     
     
@@ -370,7 +414,8 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
     formData = new FormData();
     formData.left = new FormAttachment( enable_advanced.getControl() );
-    formData.top = new FormAttachment( networks_group, 6 );
+    formData.right = new FormAttachment( 100, -5 );
+    formData.top = new FormAttachment( peer_sources_group, 6 );
     advanced_group.setLayoutData( formData );
     
     GridData advanced_grid_data;

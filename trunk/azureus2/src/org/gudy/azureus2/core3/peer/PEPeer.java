@@ -37,15 +37,18 @@ PEPeer
 	public final static int CONNECTING 		= 10;
 	public final static int HANDSHAKING 	= 20;
 	public final static int TRANSFERING 	= 30;
-  public final static int CLOSING       = 40;
+	public final static int CLOSING      	= 40;
 	public final static int DISCONNECTED 	= 50;
 	
 	
 	public int getPeerState();	// from above set
   
-  public PEPeerManager
-  getManager();
+	public PEPeerManager
+	getManager();
 
+	public String
+	getPeerSource();
+	
 	public byte[] getId();
 
 	public String getIp();

@@ -50,16 +50,23 @@ PEPeerTransportFactory
 	public static PEPeerTransport
 	createTransport(
 		PEPeerControl	 	control,
+		String				peer_source,
 		String 				ip, 
 		int 				port )
 	{
-    return new PEPeerTransportProtocol( control, ip, port );    
+    return new PEPeerTransportProtocol( control, peer_source, ip, port );    
 	}
   
   
   //incoming
-  public static PEPeerTransport createTransport( PEPeerControl control, Connection connection ) {
-    return new PEPeerTransportProtocol( control, connection );
+	
+  public static PEPeerTransport 
+  createTransport( 
+  		PEPeerControl control,
+		String			peer_source,
+		Connection connection ) 
+  {
+    return new PEPeerTransportProtocol( control, peer_source, connection );
   }
   
   

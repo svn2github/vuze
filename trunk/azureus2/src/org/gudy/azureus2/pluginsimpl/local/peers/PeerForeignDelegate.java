@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
@@ -197,6 +198,12 @@ PeerForeignDelegate
 	getManager()
 	{
 		return( manager.getDelegate());
+	}
+	
+	public String
+	getPeerSource()
+	{
+		return( PEPeerSource.PS_PLUGIN );
 	}
 	
 	public int 

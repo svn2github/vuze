@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -453,6 +454,12 @@ DHTTrackerPlugin
 									peers[i] = 
 										new DownloadAnnounceResultPeer()
 										{
+											public String
+											getSource()
+											{
+												return( PEPeerSource.PS_DHT );
+											}
+											
 											public String
 											getAddress()
 											{

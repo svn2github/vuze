@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -112,7 +113,7 @@ public class PeerManager {
     NetworkManager.getSingleton().requestIncomingConnectionRouting( matcher, new NetworkManager.RoutingListener() {
       public void connectionRouted( Connection connection ) {
         LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
-        manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, connection ) );
+        manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
       }
     });
     

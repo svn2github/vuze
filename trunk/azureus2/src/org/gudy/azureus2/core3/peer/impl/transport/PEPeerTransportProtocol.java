@@ -48,7 +48,8 @@ PEPeerTransportProtocol
 	implements PEPeerTransport
 {
  
-	private PEPeerControl manager;
+	private PEPeerControl 	manager;
+	private String			peer_source;
 	private byte[] peer_id;
 	private String ip;
 	private String ip_resolved;
@@ -140,8 +141,9 @@ PEPeerTransportProtocol
   
   
   //INCOMING
-  public PEPeerTransportProtocol( PEPeerControl _manager, Connection _connection ) {
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, Connection _connection ) {
     manager = _manager;
+    peer_source	= _peer_source;
     ip    = _connection.getSocketChannel().socket().getInetAddress().getHostAddress();
     port  = _connection.getSocketChannel().socket().getPort();
     incoming = true;
@@ -177,8 +179,9 @@ PEPeerTransportProtocol
   
   
   //OUTGOING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _ip, int _port ) {
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port ) {
     manager = _manager;
+    peer_source	= _peer_source;
     ip    = _ip;
     port  = _port;
     incoming = false;
@@ -229,8 +232,11 @@ PEPeerTransportProtocol
   }
   
   
-  
-  
+	public String
+	getPeerSource()
+	{
+		return( peer_source );
+	}
   
 
   /**

@@ -28,19 +28,28 @@ public class
 TRTrackerResponsePeerImpl
 	implements TRTrackerResponsePeer
 {
-	protected byte[]		peer_id;
-	protected String		address;
-	protected int			port;
+	private String		source;
+	private byte[]		peer_id;
+	private String		address;
+	private int			port;
 	
 	protected
 	TRTrackerResponsePeerImpl(
+		String		_source,
 		byte[]		_peer_id,
 		String		_address,
 		int			_port )
 	{
+		source		= _source;
 		peer_id		= _peer_id;
 		address		= _address;
 		port		= _port;
+	}
+	
+	public String
+	getSource()
+	{
+		return( source );
 	}
 	
 	public byte[]
