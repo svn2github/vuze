@@ -961,7 +961,7 @@ public class PeerManager extends Thread {
     }
     if (i < upRates.length) {
       best.add(i, pc);
-      for (int j = upRates.length - 2; j == i; j--) {
+      for (int j = upRates.length - 2; j >= i; j--) {
         upRates[j + 1] = upRates[j];
       }
       upRates[i] = upRate;
