@@ -153,7 +153,16 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader			downloader,
 		boolean						persistent )
 	{
-		return( new ResourceDownloaderTorrentImpl( null, downloader, persistent ));
+		return( getTorrentDownloader( downloader, persistent, null ));
+	}
+	
+	public ResourceDownloader
+	getTorrentDownloader(
+		ResourceDownloader			downloader,
+		boolean						persistent,
+		File						download_directory )
+	{
+		return( new ResourceDownloaderTorrentImpl( null, downloader, persistent, download_directory ));	
 	}
 	
 	public ResourceDownloader

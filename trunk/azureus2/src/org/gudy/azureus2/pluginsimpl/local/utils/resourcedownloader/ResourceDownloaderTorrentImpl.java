@@ -48,6 +48,7 @@ ResourceDownloaderTorrentImpl
 	
 	protected ResourceDownloaderBaseImpl		delegate;
 	protected boolean							persistent;
+	protected File								download_dir;
 	
 	protected long						size	= -2;
 	
@@ -65,11 +66,13 @@ ResourceDownloaderTorrentImpl
 	ResourceDownloaderTorrentImpl(
 		ResourceDownloaderBaseImpl	_parent,
 		ResourceDownloader			_delegate,
-		boolean						_persistent )
+		boolean						_persistent,
+		File						_download_dir )
 	{
 		super( _parent );
 		
 		persistent		= _persistent;
+		download_dir	= _download_dir;
 		delegate		= (ResourceDownloaderBaseImpl)_delegate;
 		
 		delegate.setParent( this );
@@ -146,7 +149,7 @@ ResourceDownloaderTorrentImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderTorrentImpl c = new ResourceDownloaderTorrentImpl( parent, delegate.getClone( this ), persistent);
+		ResourceDownloaderTorrentImpl c = new ResourceDownloaderTorrentImpl( parent, delegate.getClone( this ), persistent, download_dir );
 		
 		c.setSizeAndTorrent( size, torrent );
 		
@@ -215,18 +218,24 @@ ResourceDownloaderTorrentImpl
 				// going to use it across Azureus restarts to hold the download data and
 				// to seed it afterwards. Therefore we don't use AETemporaryFileHandler!!!!
 			
-			final File	temp_file 	= File.createTempFile("AZU", null );
-			final File	temp_dir	= temp_file.getParentFile();
+			final File	torrent_file 	= File.createTempFile("AZU", null );
 			
-			torrent.serialiseToBEncodedFile( temp_file );
+			if ( download_dir != null && !download_dir.exists()){
+				
+				download_dir.mkdirs();
+			}
+			
+			final File	data_dir		= download_dir==null?torrent_file.getParentFile():download_dir;
+			
+			torrent.serialiseToBEncodedFile( torrent_file );
 						
 			if ( persistent ){
 				
-				download = download_manager.addDownload( new TorrentImpl(torrent), temp_file, temp_dir );
+				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
 				
 			}else{
 				
-				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), temp_file, temp_dir );
+				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), torrent_file, data_dir );
 			}
 			
 			download.setPosition(1);				
@@ -248,7 +257,7 @@ ResourceDownloaderTorrentImpl
 					{
 						if ( download == _download ){
 							
-							ResourceDownloaderTorrentImpl.this.downloadRemoved( temp_file, temp_dir );
+							ResourceDownloaderTorrentImpl.this.downloadRemoved( torrent_file, data_dir );
 						}
 					}
 				});
@@ -285,7 +294,7 @@ ResourceDownloaderTorrentImpl
 						
 						if ( new_state == Download.ST_SEEDING ){
 							
-							downloadSucceeded( temp_file, temp_dir );
+							downloadSucceeded( torrent_file, data_dir );
 						}
 					}
 
@@ -338,7 +347,7 @@ ResourceDownloaderTorrentImpl
 			
 			if ( download.getState() == Download.ST_SEEDING ){
 				
-				downloadSucceeded( temp_file, temp_dir );
+				downloadSucceeded( torrent_file, data_dir );
 			}
 		}catch( Throwable e ){
 			
@@ -365,10 +374,27 @@ ResourceDownloaderTorrentImpl
 	
 			if ( COConfigurationManager.getBooleanParameter("Move Completed When Done", false)){
 				
-				target_file = 
+				File	moved_target_file = 
 					new File( 
 							COConfigurationManager.getStringParameter("Completed Files Directory", ""),
-							new String(torrent.getFiles()[0].getPathComponents()[0]));	
+							new String(torrent.getFiles()[0].getPathComponents()[0]));
+				
+					// hmm, explicit target location and its moved, copy it back :)
+				
+				try{
+					if ( download_dir != null && moved_target_file.exists()){
+						
+						FileUtil.copyFile( moved_target_file, target_file );
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+				
+					// carry on and use the moved one 
+				
+				target_file	= moved_target_file;
 			}
 		}
 

@@ -156,6 +156,20 @@ ResourceDownloaderFactory
 		boolean						persistent );
 	
 		/**
+		 * Download a torrent's data to the given download location 
+		 * @param downloader
+		 * @param persistent
+		 * @param download_directory
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	getTorrentDownloader(
+		ResourceDownloader			downloader,
+		boolean						persistent,
+		File						download_directory );
+	
+		/**
 		 * Returns a downloader that does something sensible based on the url suffix.
 		 * In particular will return a torrent downloader if the URL ends with ".torrent"
 		 * The decision is made based on a random child downloader, so don't mix URL 
