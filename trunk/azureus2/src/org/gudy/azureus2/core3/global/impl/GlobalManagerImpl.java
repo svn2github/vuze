@@ -228,34 +228,31 @@ public class GlobalManagerImpl
     
     StatsFactory.initialize(this);
         
-    trackerScraper = TRTrackerScraperFactory.getSingleton();
-    
-    trackerScraper.addListener(
-    	new TRTrackerScraperListener()
-    	{
-    		public void scrapeReceived(TRTrackerScraperResponse response)
-    		{
-    			byte[]	hash = response.getHash();
-    			
-    			if ( response.isValid() ){
-    				
-    				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
-    				
-    				if ( manager != null ){
-    				
-    					manager.setTrackerScrapeResponse( response );
-    				}
-    			}
-    		}
-    	});
-    
     if (splash != null)
       splash.setCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
                             MessageText.getString("splash.laodingTorrents"));
     loadDownloads();
     if (splash != null)
       splash.setCurrentTask(MessageText.getString("splash.initializeGM"));
-    	
+
+    // Initialize scraper after loadDownloads so that we can merge scrapes
+    // into one request per tracker
+    trackerScraper = TRTrackerScraperFactory.getSingleton();
+    
+    trackerScraper.addListener(
+    	new TRTrackerScraperListener() {
+    		public void scrapeReceived(TRTrackerScraperResponse response) {
+    			byte[]	hash = response.getHash();
+    			
+    			if ( response.isValid() ){
+    				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
+    				if ( manager != null ) {
+    					manager.setTrackerScrapeResponse( response );
+    				}
+    			}
+    		}
+    	});
+    
     tracker_host = TRHostFactory.create();
     
     tracker_host.initialise( 
@@ -710,6 +707,7 @@ public class GlobalManagerImpl
       // Someone could have mucked with the config file and set weird positions,
       // so fix them up.
       fixUpDownloadManagerPositions();
+      LGLogger.log("Loaded " + managers.size() + " torrents");
   }
 
   private void saveDownloads() 
