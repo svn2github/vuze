@@ -298,7 +298,7 @@ public class TCPTransport {
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null ) {
-      //stopReadSelects();  //TODO enable
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
     
@@ -371,7 +371,7 @@ public class TCPTransport {
       bytes_read = socket_channel.read( buffers, array_offset, length );
     }
     catch( IOException ioe ) {
-      //stopReadSelects();//TODO
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
       throw ioe;
     }
     catch( Throwable t ) {
@@ -380,7 +380,7 @@ public class TCPTransport {
     }
     
     if( bytes_read < 0 ) {
-      //stopReadSelects();//TODO
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
       throw new IOException( "end of stream on socket read" );
     }
     
