@@ -47,7 +47,14 @@ public class FileUtil {
   }
   
   public static File getApplicationFile(String filename) {
-    return new File(SystemProperties.getApplicationPath(), filename);
+      
+    String path = SystemProperties.getApplicationPath();
+      
+      if(Constants.isOSX) {
+        path = path + "/Azureus.app/Contents/";
+      }
+      
+      return new File(path, filename);
   }
   
   
