@@ -228,11 +228,12 @@ public class MyTorrentsView
           fd.setHeight(iFontPointHeight);
           fontButton = new Font(cCategories.getDisplay(), fd);
         }
+        catButton.setText("|");
         catButton.setFont(fontButton);
         catButton.pack(true);
-        if (catButton.getSize().y > 0) {
+        if (catButton.computeSize(100,SWT.DEFAULT).y > 0) {
           RowData rd = new RowData();
-          rd.height = catButton.getSize().y - 3 + catButton.getBorderWidth() * 2;
+          rd.height = catButton.computeSize(100,SWT.DEFAULT).y - 3 + catButton.getBorderWidth() * 2;
 //          Point pt = catButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 //          rd.height = pt.y;
           catButton.setLayoutData(rd);
@@ -393,17 +394,32 @@ public class MyTorrentsView
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
     itemMoveEnd.setImage(ImageRepository.getImage("bottom"));
 
-    final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
-    itemPriority.setImage(ImageRepository.getImage("speed"));
-
-    final Menu menuPriority = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemPriority.setMenu(menuPriority);
-
-    final MenuItem itemHigh = new MenuItem(menuPriority, SWT.PUSH);
-    Messages.setLanguageText(itemHigh, "MyTorrentsView.menu.setpriority.high"); //$NON-NLS-1$
-    final MenuItem itemLow = new MenuItem(menuPriority, SWT.PUSH);
-    Messages.setLanguageText(itemLow, "MyTorrentsView.menu.setpriority.low"); //$NON-NLS-1$
+    final MenuItem itemSpeed = new MenuItem(menu, SWT.CASCADE);
+    Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
+    itemSpeed.setImage(ImageRepository.getImage("speed"));
+    
+    final Menu menuSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemSpeed.setMenu(menuSpeed);
+    
+    final MenuItem itemCurrentSpeed = new MenuItem(menuSpeed,SWT.PUSH);
+    itemCurrentSpeed.setEnabled(false);   
+    
+    new MenuItem(menuSpeed,SWT.SEPARATOR);
+    
+    final MenuItem itemsSpeed[] = new MenuItem[10];
+    
+    
+    for(int i = 0 ; i < 10 ; i++) {
+      final int percent = (i+1) * 10;
+      itemsSpeed[i] = new MenuItem(menuSpeed,SWT.PUSH);
+      itemsSpeed[i].setText(percent + " %");
+      
+      itemsSpeed[i].addListener(SWT.Selection,new Listener() {
+        public void handleEvent(Event e) {
+          setSelectedTorrentsSpeed(percent);
+        }
+      });
+    }
 
     // Category
 
@@ -485,7 +501,7 @@ public class MyTorrentsView
         itemPublish.setEnabled(hasSelection);
 
         itemMove.setEnabled(hasSelection);
-        itemPriority.setEnabled(hasSelection);
+        itemSpeed.setEnabled(hasSelection);        
         itemBar.setEnabled(hasSelection);
 
         itemManualUpdate.setEnabled(hasSelection);
@@ -497,8 +513,13 @@ public class MyTorrentsView
                   forceStart, forceStartEnabled, recheck, manualUpdate;
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened =
                    forceStart = forceStartEnabled = recheck = manualUpdate = true;
+          
+          float totalSpeed = 0;
           for (int i = 0; i < dms.length; i++) {
             DownloadManager dm = (DownloadManager)dms[i];
+            
+            //totalSpeed = (totalSpeed * i) + dm.
+            
             if (dm.getTrackerClient() == null)
               changeUrl = false;
             if (!downloadBars.containsKey(dm))
@@ -535,6 +556,9 @@ public class MyTorrentsView
 
             bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
           }
+          
+          itemCurrentSpeed.setText((float) ((int) (totalSpeed * 10)) / 10 + " %"); 
+          
           itemBar.setSelection(barsOpened);
 
           itemMoveTop.setEnabled(moveUp);
@@ -740,20 +764,6 @@ public class MyTorrentsView
     itemMoveEnd.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         moveSelectedTorrentsEnd();
-      }
-    });
-
-    itemHigh.addListener(SWT.Selection,
-                         new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        ((DownloadManager)row.getDataSource(true)).setPriority(DownloadManager.HIGH_PRIORITY);
-      }
-    });
-
-    itemLow.addListener(SWT.Selection,
-                         new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        ((DownloadManager)row.getDataSource(true)).setPriority(DownloadManager.LOW_PRIORITY);
       }
     });
 
@@ -1513,4 +1523,15 @@ public class MyTorrentsView
   public void destroyed() { }
 
   // End of globalmanagerlistener Functions
+  
+  private void setSelectedTorrentsSpeed(int speed) {      
+    Object[] dms = getSelectedDataSources();
+    if(dms.length > 0) {
+      float realSpeedPerTorrent  = (float) speed / dms.length;
+      
+      for (int i = 0; i < dms.length; i++) {
+        DownloadManager dm = (DownloadManager)dms[i];
+      }
+    }
+  }
 }
