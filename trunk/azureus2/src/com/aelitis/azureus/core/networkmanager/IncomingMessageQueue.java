@@ -191,10 +191,13 @@ public class IncomingMessageQueue {
   public void startQueueProcessing() {
     if( !is_processing_enabled ) {
       connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
+        
         public void readyToRead() {
-          if( !is_processing_enabled )  return;
-          
           try {
+            if( !is_processing_enabled ) {
+              throw new IOException( "readyToRead():: !is_processing_enabled" );
+            }
+            
             receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
           }
           catch( Throwable e ) {
