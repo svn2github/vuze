@@ -17,6 +17,42 @@ public class PeerUtils {
 
    private static final AEMonitor 		class_mon	= new AEMonitor( "PeerUtils:class");
 
+   private static final String	CONFIG_MAX_CONN_PER_TORRENT	= "Max.Peer.Connections.Per.Torrent";
+   private static final String	CONFIG_MAX_CONN_TOTAL		= "Max.Peer.Connections.Total";
+   
+   private static int maxConnPerTorrent;
+   private static int maxConnTotal;
+
+   static{
+   	
+   	COConfigurationManager.addParameterListener(
+   		CONFIG_MAX_CONN_PER_TORRENT,
+   		new ParameterListener()
+		{
+   			public void 
+			parameterChanged(
+				String parameterName )
+   			{
+   				maxConnPerTorrent = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
+   			}
+		});
+   	
+   	maxConnPerTorrent = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
+   	
+  	COConfigurationManager.addParameterListener(
+  			CONFIG_MAX_CONN_TOTAL,
+  	   		new ParameterListener()
+  			{
+  	   			public void 
+  				parameterChanged(
+  					String parameterName )
+  	   			{
+  	   				maxConnTotal = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
+  	   			}
+  			});
+  	   	
+  	maxConnTotal = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
+   }
   /**
    * Get the number of new peer connections allowed for the given data item,
    * within the configured per-torrent and global connection limits.
@@ -26,8 +62,6 @@ public class PeerUtils {
   	try{
 	  	class_mon.enter();
 	  	
-	    int maxConnPerTorrent = COConfigurationManager.getIntParameter("Max.Peer.Connections.Per.Torrent");
-	    int maxConnTotal = COConfigurationManager.getIntParameter("Max.Peer.Connections.Total");
 	    int curConnPerTorrent = PeerIdentityManager.getIdentityCount( data_id );
 	    int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
 	    
