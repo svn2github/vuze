@@ -103,9 +103,9 @@ public class Share implements IConsoleCommand {
       ci.out.println( "> -----" );
       ci.out.println( "[share <type> <path>]" );
       ci.out.println( "type options:" );
-      ci.out.println( "file\t\t\t\tShare a single file." );
+      ci.out.println( "file\t\t\tShare a single file." );
       ci.out.println( "folder\t\t\tShare a folder as a single multi-file torrent." );
-      ci.out.println( "contents\t\t\tShare files and sub-dirs in a folder as single and multi-file torrents." );
+      ci.out.println( "contents\t\tShare files and sub-dirs in a folder as single and multi-file torrents." );
       ci.out.println( "rcontents\t\tShare files and sub-dir files in a folder as separate torrents." );
       ci.out.println( "> -----" );
     }
