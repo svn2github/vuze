@@ -95,10 +95,12 @@ PEPeerControl
 		int 		offset, 
 		ByteBuffer 	data );
 		
+  /*
 	public boolean 
 	validateHandshaking( 
 		PEPeer pc, 
 		byte[] peerId );
+  */
 
 	public void 
 	havePiece(

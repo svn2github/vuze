@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.ipfilter.impl.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.util.*;
 
 
 public class 
@@ -49,7 +50,7 @@ PEPeerControlImpl
   private static final int MAX_REQUESTS = 16;
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
-  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
+  
   private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
   
   private int peer_manager_state = PS_INITIALISED;
@@ -117,7 +118,6 @@ PEPeerControlImpl
   	  this._manager = manager;
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
-  	  COConfigurationManager.addParameterListener("Max Clients", this);
   	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
  }
   
@@ -174,12 +174,6 @@ PEPeerControlImpl
     			{
     				return( PEPeerControlImpl.this.getRemaining());
     			}
-                
-          public int
-          getConnectionCount()
-          {
-            return( getNbSeeds() + getNbPeers() );
-          }
     		});
     
     _myPeerId = _tracker.getPeerId();
@@ -448,7 +442,6 @@ PEPeerControlImpl
     }
     
     // 5. Remove listeners
-    COConfigurationManager.removeParameterListener("Max Clients", this);
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
   }
 
@@ -797,48 +790,38 @@ PEPeerControlImpl
   {
   	int		percentage 			= 100;
   	boolean	use_minimum_delay	= false;
+    final int LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
-    if (_manager.getState() != DownloadManager.STATE_DOWNLOADING) {
-    }else{
-    	// calculate new rate
-    	
-      int swarmPeers = 0;
-      int swarmSeeds = 0;
-      int tempMaxConnections = maxConnections;
-      int currentConnectionCount = _peer_transports.size();
+    if (_manager.getState() == DownloadManager.STATE_DOWNLOADING) {
+      int maxAllowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      if ( maxAllowed < 0 || maxAllowed > LIMIT ) {
+      	maxAllowed = LIMIT;
+      }
+
       TRTrackerScraperResponse tsr = _manager.getTrackerScrapeResponse();
-    
+
       //get current scrape values
+      int swarmPeers = -1;
+      int swarmSeeds = -1;
       if (tsr != null && tsr.isValid()) {
         swarmPeers = tsr.getPeers();
         swarmSeeds = tsr.getSeeds();
       }
       
-      //limit maximum number of peers to calculate with
-      if (tempMaxConnections == 0 || tempMaxConnections > 100) tempMaxConnections = 100;
-      
       //lower limit to swarm size if necessary
-      if (tempMaxConnections > (swarmPeers + swarmSeeds)) {
-        tempMaxConnections = swarmPeers + swarmSeeds;
+      int swarmSize = swarmPeers + swarmSeeds;
+      if (swarmSize > 0 && maxAllowed > swarmSize) {
+        maxAllowed = swarmSize;
       }
       
-      //use only 3/4 the value
-      tempMaxConnections = (int)(tempMaxConnections * .75);
-
-      //if already over the limit, don't shorten the time
-      if (currentConnectionCount >= tempMaxConnections){
-      //if no connections, recheck in 1 minute
-      }else if (currentConnectionCount == 0){
-      
-      	use_minimum_delay	= true;
-      //otherwise...
-      }else {
-        //calculate the new wait time
-        float currentConnectionPercent = ((float)currentConnectionCount) / tempMaxConnections;
-        
-		percentage = (int)(currentConnectionPercent*100);
- 
+      int currConnectionCount = PeerIdentityManager.getIdentityCount( _hash );
+      if ( currConnectionCount == 0 ) {
+        use_minimum_delay = true;  //no current connections, recheck in 1 min
+      }
+      else if ( maxAllowed > 0 ) {
+        float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + maxAllowed);
+        percentage = (int)(currConnectionPercent * 100);
       }
     }
    
@@ -1057,38 +1040,31 @@ PEPeerControlImpl
 
   /**
     * private method to add a new outgoing peerConnection
-    * created by Tyler
-    * @param pc
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    /* create a peer socket for testing purposes */
-    PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
-    
     if (!IpFilterImpl.getInstance().isInRange(ip)) {
-       synchronized (_peer_transports) {
-          if (!_peer_transports.contains(testPS)) {
-             if (maxConnections == 0 || _peer_transports.size() < maxConnections) {
-                /* do we need to slow down new connection creation? */
-                if (slowConnect) {
-                   /* add connection to be slow-connected */
-                   slowQueue.add(testPS);
-                   synchronized (slowQueue) { slowQueue.notify(); }
-                }
-                else {
-                   /* add connection */
-                	addToPeerTransports(PEPeerTransportFactory.createTransport(this, peerId, ip, port, false));
-                }
-             }
-          }
-       }
+    	synchronized (_peer_transports) {
+    		//create a peer socket for testing purposes
+    		PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
+         
+    		if (!_peer_transports.contains(testPS)) {
+    			if (slowConnect) {
+    				//add connection to be slow-connected
+    				slowQueue.add(testPS);
+    				synchronized (slowQueue) { slowQueue.notify(); }
+    			}
+    			else {
+    				//add connection
+    				addToPeerTransports(PEPeerTransportFactory.createTransport(this, peerId, ip, port, false));
+    			}
+    		}
+    	}
     }
   }
   
   
  /**
    * private method to add a new incoming peerConnection
-   * created by Tyler
-   * @param pc
    */
  private synchronized void insertPeerSocket(PEPeerTransport ps) {
     //Get the max number of connections allowed
@@ -1097,14 +1073,8 @@ PEPeerControlImpl
     if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
        synchronized (_peer_transports) {
           if (!_peer_transports.contains(ps)) {
-             if (maxConnections == 0 || _peer_transports.size() < maxConnections) {
-                /* add connection */
-             	addToPeerTransports(ps);
-             }
-             else {
-               addFailed = true;
-               reason=ps.getIp() + " : Too many connections";
-             }
+          	/* add connection */
+          	addToPeerTransports(ps);
           }
           else {
             addFailed = true;
@@ -1664,12 +1634,14 @@ PEPeerControlImpl
     return _diskManager.getPieceLength();
   }
 
+  /*
   public boolean validateHandshaking(PEPeer pc, byte[] peerId) {
     PEPeerTransport pcTest = PEPeerTransportFactory.createTransport(this, peerId, pc.getIp(), pc.getPort(), true);
     synchronized (_peer_transports) {
       return !_peer_transports.contains(pcTest);
     }
   }
+  */
 
   public int 
   getNbPeers() 
@@ -1732,11 +1704,12 @@ PEPeerControlImpl
   	PEPeerTransport		peer )
   {
   	_peer_transports.add(peer);
-  	
+      
   	for (int i=0;i<peer_transport_listeners.size();i++){
   		((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
   	}
   }
+  
   
   private PEPeerTransport
   removeFromPeerTransports(
@@ -2056,7 +2029,6 @@ PEPeerControlImpl
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    maxConnections = COConfigurationManager.getIntParameter("Max Clients");
     oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
   }
   
@@ -2278,4 +2250,7 @@ PEPeerControlImpl
   		peer_transport_listeners.remove(l);
   	}
   }
+  
+    
+  
  }
