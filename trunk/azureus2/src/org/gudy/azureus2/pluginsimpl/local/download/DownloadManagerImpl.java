@@ -202,47 +202,8 @@ DownloadManagerImpl
 		Torrent		torrent )
 	
 		throws DownloadException
-	{
-	    String torrent_dir = null;
-	    
-	    if(COConfigurationManager.getBooleanParameter("Save Torrent Files",true)){
-	    	
-	      try{
-	      	
-	      	torrent_dir = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
-	        
-	      }catch(Exception egnore){}
-	    }
-	    
-	    if ( torrent_dir == null ){
-	    	
-	    	throw( new DownloadException("DownloadManager::addDownload: default torrent save directory must be configured" ));
-	    }
-	
-	    File	torrent_file = new File( torrent_dir + File.separator + torrent.getName() + ".torrent" );
-	    
-	    try{
-	    	torrent.writeToFile( torrent_file );
-	    	
-	    }catch( TorrentException e ){
-	    	
-	    	throw( new DownloadException("DownloadManager::addDownload: failed to write torrent to '" + torrent_file.toString() + "'", e ));	    	
-	    }
-	    
-	    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
-	    
-	    String data_dir = null;
-	    
-	    if (useDefDataDir){
-	    	data_dir = COConfigurationManager.getStringParameter("Default save path");
-	    }
-	    
-	    if ( data_dir == null ){
-	    	
-	    	throw( new DownloadException("DownloadManager::addDownload: default data save directory must be configured" ));
-	    }
-	 
-	    return( addDownload( torrent, torrent_file, new File(data_dir)));
+	{	 
+	    return( addDownload( torrent, null, null ));
 	}
 	
 	public Download
@@ -253,6 +214,54 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
+		if ( torrent_file == null ){
+			
+		    String torrent_dir = null;
+		    
+		    if( COConfigurationManager.getBooleanParameter("Save Torrent Files",true)){
+		    	
+		      try{
+		      	
+		      	torrent_dir = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+		        
+		      }catch(Exception egnore){}
+		    }
+		    
+		    if ( torrent_dir == null ){
+		    	
+		    	throw( new DownloadException("DownloadManager::addDownload: default torrent save directory must be configured" ));
+		    }
+		
+		    torrent_file = new File( torrent_dir + File.separator + torrent.getName() + ".torrent" );
+		    
+		    try{
+		    	torrent.writeToFile( torrent_file );
+		    	
+		    }catch( TorrentException e ){
+		    	
+		    	throw( new DownloadException("DownloadManager::addDownload: failed to write torrent to '" + torrent_file.toString() + "'", e ));	    	
+		    }
+		}
+		
+		if ( data_location == null ){
+			
+		    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
+		    
+		    String data_dir = null;
+		    
+		    if (useDefDataDir){
+		    	
+		    	data_dir = COConfigurationManager.getStringParameter("Default save path");
+		    }
+		    
+		    if ( data_dir == null ){
+		    	
+		    	throw( new DownloadException("DownloadManager::addDownload: default data save directory must be configured" ));
+		    }
+		    
+		    data_location = new File(data_dir); 
+		}
+		
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
 		                                                       data_location.toString(), 
 		                                                       DownloadManager.STATE_QUEUED, 

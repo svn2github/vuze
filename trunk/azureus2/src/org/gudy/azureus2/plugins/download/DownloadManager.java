@@ -80,10 +80,10 @@ DownloadManager
 	/**
 	 * add a torrent from a "Torrent" object and point it at the data location 
 	 * @param torrent
-	 * @param torrent_location
-	 * @param data_location
+	 * @param torrent_location	null -> use default torrent save location if defined
+	 * @param data_location null -> user default data save location if defined
 	 * @return
-   *
+   * support for null params for torrent_location/data_location since 2.1.0.4
    * @since 2.0.7.0
 	 */
 	public Download
