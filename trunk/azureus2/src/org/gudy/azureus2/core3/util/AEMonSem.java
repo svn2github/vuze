@@ -210,7 +210,7 @@ AEMonSem
 					current_total += diff;
 					
 				}else{
-					total_x[total_pos++] = new Object[]{ ms.name, new Long( current_total )};
+					total_x[total_pos++] = new Object[]{ current.name, new Long( current_total )};
 					
 					current 		= ms;
 					current_total	= diff;
