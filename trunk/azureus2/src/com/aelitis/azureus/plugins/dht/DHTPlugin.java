@@ -22,23 +22,15 @@
 
 package com.aelitis.azureus.plugins.dht;
 
-import java.io.*;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Average;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -57,8 +49,6 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
-import com.aelitis.azureus.core.dht.DHTStorageAdapter;
-import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -101,17 +91,15 @@ DHTPlugin
 	private DHTTransportUDP		transport;
 	private long				integrated_time;
 	
+	private DHTPluginStorageManager storage_manager;
+
 	private boolean				enabled;
 	private int					dht_data_port;
-	
-	private Map					recent_addresses	= new HashMap();
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
 	private LoggerChannel		log;
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTPlugin" );
-
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -326,7 +314,9 @@ DHTPlugin
 								model.getStatus().setText( "Initialising" );
 								
 								try{
-									readRecentAddresses();
+									storage_manager = new DHTPluginStorageManager( plugin_interface);
+									
+									storage_manager.readRecentAddresses();
 									
 									transport = 
 										DHTTransportFactory.createUDP( 
@@ -350,7 +340,7 @@ DHTPlugin
 											currentAddress(
 												String		address )
 											{
-												recordCurrentAddress( address );
+												storage_manager.recordCurrentAddress( address );
 											}
 										});
 										
@@ -438,92 +428,14 @@ DHTPlugin
 									dht = DHTFactory.create( 
 												transport, 
 												props,
-												new DHTStorageAdapter()
-												{
-													public DHTStorageKey
-													keyCreated(
-														HashWrapper		key )
-													{
-														//System.out.println( "DHT key created");
-														
-														return(
-															new DHTStorageKey()
-															{
-																public byte
-																getDiversificationType()
-																{
-																	return( DHT.DT_NONE );
-																}
-															});
-													}
-													
-													public void
-													keyDeleted(
-														DHTStorageKey		key )
-													{
-														//System.out.println( "DHT key deleted" );
-													}
-													
-													public void
-													keyRead(
-														DHTStorageKey			key,
-														DHTTransportContact		contact )
-													{
-														//System.out.println( "DHT value read" );
-													}
-													
-													public void
-													valueAdded(
-														DHTStorageKey		key,
-														DHTTransportValue	value )
-													{
-														//System.out.println( "DHT value added" );
-													}
-													
-													public void
-													valueUpdated(
-														DHTStorageKey		key,
-														DHTTransportValue	value )
-													{
-														//System.out.println( "DHT value updated" );
-													}
-													
-													public void
-													valueDeleted(
-														DHTStorageKey		key,
-														DHTTransportValue	value )
-													{
-														//System.out.println( "DHT value deleted" );
-													}
-													
-													public byte[][]
-													getExistingDiversification(
-														byte[]			key,
-														boolean			put_operation )
-													{
-														//System.out.println( "DHT get existing diversification: put = " + put_operation  );
-														
-														return( new byte[][]{ key });
-													}
-													
-													public byte[][]
-													createNewDiversification(
-														byte[]			key,
-														boolean			put_operation,
-														int				diversification_type )
-													{
-														System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
-																							
-														return( new byte[0][] );
-													}
-												}, 
+												storage_manager,
 												log );
 									
 									dht.setLogging( logging.getValue());
 									
 									importSeed();
 									
-									importContacts();
+									storage_manager.importContacts( dht );
 									
 									plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
 											10*60*1000,
@@ -535,7 +447,7 @@ DHTPlugin
 												{
 													checkForReSeed();
 													
-													exportContacts();
+													storage_manager.exportContacts( dht );
 												}
 											});
 									
@@ -631,202 +543,7 @@ DHTPlugin
 		}
 	}
 	
-	protected File
-	getDataDir()
-	{
-		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
-		
-		dir.mkdirs();
-		
-		return( dir );
-	}
-	
-	protected void
-	importContacts()
-	{
-		try{
-			this_mon.enter();
-			
-			File	dir = getDataDir();
-			
-			File	target = new File( dir, "contacts.dat" );
 
-			if ( target.exists()){
-				
-				DataInputStream	dis = null;
-				
-				try{
-				
-					dis = new DataInputStream( new FileInputStream( target ));
-					
-					dht.importState( dis );
-					
-				}finally{
-					
-					if ( dis != null ){
-						
-						dis.close();	
-					}
-				}
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected void
-	exportContacts()
-	{
-		try{
-			this_mon.enter();
-			
-			File	dir = getDataDir();
-			
-			File	saving = new File( dir, "contacts.saving" );
-			File	target = new File( dir, "contacts.dat" );
-
-			saving.delete();
-			
-			DataOutputStream	dos	= null;
-			
-			boolean	ok = false;
-			
-			try{
-				dos = new DataOutputStream( new FileOutputStream( saving ));
-					
-				dht.exportState( dos, 32 );
-			
-				ok	= true;
-				
-			}finally{
-				
-				if ( dos != null ){
-					
-					dos.close();
-					
-					if ( ok ){
-						
-						target.delete();
-						
-						saving.renameTo( target );
-					}
-				}
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected void
-	readRecentAddresses()
-	{
-		try{
-			this_mon.enter();
-			
-			File f = new File( getDataDir(), "addresses.dat" );
-			
-			if ( f.exists()){
-				
-				BufferedInputStream	is = new BufferedInputStream( new FileInputStream( f ));
-				
-				recent_addresses = BDecoder.decode( is );
-				
-				is.close();
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected void
-	writeRecentAddresses()
-	{
-		try{
-			this_mon.enter();
-		
-			File f = new File( getDataDir(), "addresses.dat" );
-
-				// remove any old crud
-			
-			Iterator	it = recent_addresses.keySet().iterator();
-			
-			while( it.hasNext()){
-				
-				String	key = (String)it.next();
-				
-				Long	time = (Long)recent_addresses.get(key);
-				
-				if ( SystemTime.getCurrentTime() - time.longValue() > 7*24*60*60*1000 ){
-					
-					it.remove();
-				}
-			}
-			
-			byte[]	data = BEncoder.encode( recent_addresses );
-			
-			FileOutputStream os = new FileOutputStream( f );
-			
-			os.write( data );
-			
-			os.close();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected void
-	recordCurrentAddress(
-		String		address )
-	{
-		try{
-			this_mon.enter();
-
-			recent_addresses.put( address, new Long( SystemTime.getCurrentTime()));
-		
-			writeRecentAddresses();
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected boolean
-	isRecentAddress(
-		String		address )
-	{
-		try{
-			this_mon.enter();
-
-			return( recent_addresses.containsKey( address ));
-					
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
 	public boolean
 	isEnabled()
 	{
@@ -1179,6 +896,12 @@ DHTPlugin
 			throw( new RuntimeException( e ));
 		}
 	}
+
+	public DHT
+	getDHT()
+	{
+		return( dht );
+	}
 	
 	protected class
 	DHTPluginContactImpl
@@ -1215,7 +938,7 @@ DHTPlugin
 		public boolean
 		isOrHasBeenLocal()
 		{
-			return( isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
+			return( storage_manager.isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
 		}
 	}
 }

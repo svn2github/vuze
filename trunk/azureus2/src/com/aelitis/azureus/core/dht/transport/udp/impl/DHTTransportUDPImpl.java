@@ -1970,6 +1970,10 @@ DHTTransportUDPImpl
 					Debug.out( "Unexpected packet:" + request.toString());
 				}
 			}
+		}catch( PRUDPPacketHandlerException e ){
+			
+			// not interesting, send packet fail or something
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
