@@ -56,6 +56,11 @@ StartStopRulesDefaultPlugin
   // for debugging
   private static final String sStates = " WPRDS.XEQ";
 
+  /** Time to sleep in ms between start/stop checks.
+   * May be stopped early by <i>somethingChanged</i>
+   */
+  int SLEEP_PERIOD = 2000;
+
   /** Do not rank completed torrents */  
   public static final int RANK_NONE = 0;
   /** Rank completed torrents using Seeds:Peer Ratio */  
@@ -194,9 +199,25 @@ StartStopRulesDefaultPlugin
             }
             // force a QR recalc, so that it gets positiong properly next process()
             dlData.recalcQR();
+            somethingChanged = true;
           }
 
         }
+      };
+    
+    download_tracker_listener = 
+      new DownloadTrackerListener()
+      {
+      	public void scrapeResult( DownloadScrapeResult result ) {
+          downloadData dlData = (downloadData)downloadDataMap.get(result.getDownload());
+          if (dlData != null) {
+            dlData.recalcQR();
+            somethingChanged = true;
+          }
+      	}
+      	
+      	public void announceResult( DownloadAnnounceResult result ) {
+      	}
       };
 
     download_manager.addListener(
@@ -204,18 +225,26 @@ StartStopRulesDefaultPlugin
         {
           public void downloadAdded( Download  download )
           {
-            if (!downloadDataMap.containsKey(download)) {
-              downloadDataMap.put( download, new downloadData(download) );
+            downloadData dlData = null;
+            if (downloadDataMap.containsKey(download)) {
+              dlData = (downloadData)downloadDataMap.get(download);
+            } else {
+              dlData = new downloadData(download);
+              downloadDataMap.put( download, dlData );
+              download.addListener( download_listener );
+              download.addTrackerListener( download_tracker_listener );
             }
 
-            download.addListener( download_listener );
-
-            somethingChanged = true;
+            if (dlData != null) {
+              dlData.recalcQR();
+              somethingChanged = true;
+            }
           }
 
           public void downloadRemoved( Download  download )
           {
             download.removeListener( download_listener );
+            download.removeTrackerListener( download_tracker_listener );
 
             if (downloadDataMap.containsKey(download)) {
               downloadDataMap.remove(download);
@@ -239,6 +268,10 @@ StartStopRulesDefaultPlugin
                 log.log( LoggerChannel.LT_INFORMATION, "System Closing - processing stopped" );
                 break;
               }
+              
+              if (positionsChanged()) {
+                somethingChanged = true;
+              }              
 
               process();
             }catch( Exception e ){
@@ -247,13 +280,14 @@ StartStopRulesDefaultPlugin
             }
 
             try{
-              int sleep_period = 1000;
-
-              if ( somethingChanged ){
-                sleep_period = 100;
+              // sleep for 200ms, check if somethingChanged, then sleep
+              // more, until sleep_period
+              for (int i = 0; i < SLEEP_PERIOD / 200; i++) {
+                if (somethingChanged) {
+                  break;
+                }
+                Thread.sleep(200);
               }
-
-              Thread.sleep(sleep_period);
 
             }catch( InterruptedException e ){
 
@@ -266,6 +300,36 @@ StartStopRulesDefaultPlugin
     t.setDaemon(true);
 
     t.start();
+  }
+  
+  private boolean positionsChanged() {
+    boolean bPositionsChanged = false;
+    downloadData[] dlDataArray;
+    dlDataArray = (downloadData[])
+      downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
+
+    for (int i = 0; i < dlDataArray.length; i++) {
+      downloadData dl_data = dlDataArray[i];
+      
+      int iNewPosition = dl_data.getDownloadObject().getPosition();
+      int iOldPosition = dl_data.getDLPosition();
+      if (iNewPosition != iOldPosition) {
+        dl_data.setDLPosition(iNewPosition);
+        bPositionsChanged = true;
+      }
+    }
+    // we don't need to recalc QR for RANK_NONE because it doesn't use QR for
+    // sorting
+    if (bPositionsChanged && iRankType != RANK_NONE) {
+      for (int i = 0; i < dlDataArray.length; i++) {
+        if (dlDataArray[i].getQR() > QR_INCOMPLETE_ENDS_AT - 10000 ||
+            dlDataArray[i].getDownloadObject().getStats().getDownloadCompleted(false) < 1000) {
+          dlDataArray[i].recalcQR();
+        }
+      }
+    }
+      
+    return bPositionsChanged;
   }
 
   private synchronized void reloadConfigParams() {
@@ -310,9 +374,8 @@ StartStopRulesDefaultPlugin
       for (int i = 0; i < dlDataArray.length; i++) {
         dlDataArray[i].setQR(0);
       }
-      
-      process();
     }
+    somethingChanged = true;
   }
   
   private int calcMaxSeeders(int iDLs) {
@@ -335,10 +398,6 @@ StartStopRulesDefaultPlugin
     int totalFirstPriority = 0;
 
     boolean recalcQR = ((process_time - lastQRcalcTime) > RECALC_QR_EVERY);
-    if (somethingChanged) {
-    	somethingChanged = false;
-    	recalcQR = true;
-    }
 	  if (recalcQR)
   	  lastQRcalcTime = System.currentTimeMillis();
 
@@ -348,11 +407,12 @@ StartStopRulesDefaultPlugin
       downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
 
     // Start seeding right away if there's no auto-ranking
-    // Otherwise, wait a maximium of 60 seconds for scrape results to come in
+    // Otherwise, wait a maximium of 90 seconds for scrape results to come in
     // When the first scrape result comes in, bSeedHasRanking will turn to true
     // (see logic in 1st loop)
     boolean bSeedHasRanking = (iRankType == RANK_NONE) || 
-                              (System.currentTimeMillis() - startedOn > 60000);
+                              (iRankType == RANK_TIMED) || 
+                              (System.currentTimeMillis() - startedOn > 90000);
 
     // Loop 1 of 2:
     // - Build a QR list for sorting
@@ -391,8 +451,12 @@ StartStopRulesDefaultPlugin
       // calculated here
       dl_data.setActivelyDownloading(bActivelyDownloading);
 
-      if (!bSeedHasRanking && completionLevel == 1000 && qr != 0)
+      if (!bSeedHasRanking && 
+          (completionLevel == 1000) && 
+          (qr > 0) && 
+          (state == Download.ST_QUEUED)) {
         bSeedHasRanking = true;
+      }
 
       // All of these are either seeding or about to be seeding
       if (completionLevel == 1000) {
@@ -437,39 +501,74 @@ StartStopRulesDefaultPlugin
                          (totalDownloading < maxDownloads && totalIncompleteQueued == 0)
                         ) &&
                         (totalWaitingToDL == 0) &&
-                        (!recalcQR);
+                        (!recalcQR) &&
+                        (!somethingChanged);
 
-		//log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" totalWaitingToSeed="+totalWaitingToSeed);
-    if (quitEarly)
+    String[] mainDebugEntries = null;
+    if (bDebugLog) {
+      log.log(LoggerChannel.LT_INFORMATION, ">>process()" + 
+                                            (recalcQR ? " recalc all ranks" : "") +
+                                            (quitEarly ? " Nothing to do, quitting early" : ""));
+      mainDebugEntries = new String[] { 
+              "somethingChanged="+somethingChanged,
+              "bCdHasRank="+bSeedHasRanking,
+              "tCding="+totalSeeding,
+              "tFrcdCding="+totalForcedSeeding,
+              "tW8tingToCd="+totalWaitingToSeed,
+              "tDLing="+totalDownloading,
+              "activeDLs="+activeDLCount,
+              "tW8tingToDL="+totalWaitingToDL,
+              "tCom="+totalComplete,
+              "tComQd="+totalCompleteQueued,
+              "tIncQd="+totalIncompleteQueued,
+              "mxCdrs="+maxSeeders,
+              "t1stPr="+totalFirstPriority
+                      };
+    }
+
+    if (quitEarly) {
+      if (bDebugLog) {
+        String[] mainDebugEntries2 = new String[] { 
+            "somethingChanged="+somethingChanged,
+            "bCdHasRank="+bSeedHasRanking,
+            "tCding="+totalSeeding,
+            "tFrcdCding="+totalForcedSeeding,
+            "tW8tingToCd="+totalWaitingToSeed,
+            "tDLing="+totalDownloading,
+            "activeDLs="+activeDLCount,
+            "tW8tingToDL="+totalWaitingToDL,
+            "tCom="+totalComplete,
+            "tComQd="+totalCompleteQueued,
+            "tIncQd="+totalIncompleteQueued,
+            "mxCdrs="+maxSeeders,
+            "t1stPr="+totalFirstPriority
+                    };
+        printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2, "", "", true);
+      }
       return;
+    }
 
-    if (bDebugLog)
-      log.log(LoggerChannel.LT_INFORMATION, 
-              "tCding="+totalSeeding+
-              ";tFrcdCding="+totalForcedSeeding+
-              ";tW8tingToCd="+totalWaitingToSeed+
-              ";tDLing="+totalDownloading+
-              ";activeDLs="+activeDLCount+
-              ";tW8tingToDL="+totalWaitingToDL+
-              ";tCom="+totalComplete+
-              ";tComQd="+totalCompleteQueued+
-              ";tIncQd="+totalIncompleteQueued+
-              ";recalcQR="+recalcQR+
-              ";bCdHasRank="+bSeedHasRanking+
-              ";mxCdrs="+maxSeeders+
-              ";t1stPr="+totalFirstPriority+
-              "");
+    if (somethingChanged) {
+    	somethingChanged = false;
+    }
 
     // Sort by QR
     if (iRankType != RANK_NONE)
       Arrays.sort(dlDataArray);
     else
       Arrays.sort(dlDataArray, new Comparator () {
-	          public final int compare (Object a, Object b) {
-	            return ((downloadData)a).getDownloadObject().getPosition() -
-	                   ((downloadData)b).getDownloadObject().getPosition();
-	          }
-	        } );
+        public final int compare (Object a, Object b) {
+          Download aDL = ((downloadData)a).getDownloadObject();
+          Download bDL = ((downloadData)b).getDownloadObject();
+          boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
+          boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
+          if (aIsComplete && !bIsComplete)
+            return -1;
+          if (!aIsComplete && bIsComplete)
+            return 1;
+          return aDL.getPosition() - bDL.getPosition();
+        }
+      } );
 
     int numWaitingOrSeeding = totalForcedSeeding; // Running Count
     int numWaitingOrDLing = 0;   // Running Count
@@ -483,6 +582,7 @@ StartStopRulesDefaultPlugin
      * Updates position.
      */
     int posComplete = 0;
+    int iSeedingPos = 0;
 
     // Loop 2 of 2:
     // - Start/Stop torrents based on criteria
@@ -504,6 +604,9 @@ StartStopRulesDefaultPlugin
           download.getStats().getDownloadCompleted(false) == 1000 &&
           bSeedHasRanking)
         download.setPosition(++posComplete);
+
+      if (download.getStats().getDownloadCompleted(false) == 1000)
+        dl_data.setSeedingPos(++iSeedingPos);
 
       // Never do anything to stopped entries
       if (download.getState() == Download.ST_STOPPING ||
@@ -529,8 +632,6 @@ StartStopRulesDefaultPlugin
         if (download.isForceStart())
           continue;
           
-        boolean bActivelyDownloading = dl_data.getActivelyDownloading();
-
         int state = download.getState();
         if (state == Download.ST_PREPARING) {
           // Don't mess with preparing torrents.  they could be in the 
@@ -541,13 +642,12 @@ StartStopRulesDefaultPlugin
                    state == Download.ST_DOWNLOADING ||
                    state == Download.ST_WAITING) {
 
-          boolean bIsActiveDownload = (state == Download.ST_DOWNLOADING) &&
-                                      (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-                                      (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000);
+          boolean bActivelyDownloading = dl_data.getActivelyDownloading();
+
           // Stop torrent if over limit
           if ((maxDownloads != 0) &&
               (numWaitingOrDLing >= maxDownloads - iExtraFPs) &&
-              (bIsActiveDownload || state != Download.ST_DOWNLOADING)) {
+              (bActivelyDownloading || state != Download.ST_DOWNLOADING)) {
             try {
               if (bDebugLog)
                 log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
@@ -564,7 +664,7 @@ StartStopRulesDefaultPlugin
             } catch (Exception ignore) {/*ignore*/}
             
             state = download.getState();
-          } else if (bIsActiveDownload) {
+          } else if (bActivelyDownloading) {
             numWaitingOrDLing++;
           }
         }
@@ -662,6 +762,32 @@ StartStopRulesDefaultPlugin
         
         // Note: First Priority have the highest QR, so they will always start first
         
+        // ignore when Share Ratio reaches # in config
+        //0 means unlimited
+        if (iIgnoreShareRatio != 0 && 
+            shareRatio > iIgnoreShareRatio && 
+            shareRatio != -1 &&
+            dl_data.getQR() != QR_SHARERATIOMET) {
+          if (bDebugLog)
+            sDebugLine += "\nShare Ratio Met";
+          dl_data.setQR(QR_SHARERATIOMET);
+        }
+
+        if (okToQueue && (iIgnoreRatioPeers != 0) && dl_data.getQR() != QR_RATIOMET) {
+          int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
+          int numPeers = calcPeersNoUs(download);
+          if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
+              numSeeds += numPeers / numPeersAsFullCopy;
+          //If there are no seeds, avoid / by 0
+          if (numSeeds != 0) {
+            float ratio = (float) numPeers / numSeeds;
+            if (ratio <= iIgnoreRatioPeers) {
+              sDebugLine += "\nP:S Met";
+              dl_data.setQR(QR_RATIOMET);
+            }
+          }
+        }
+        
         // Change to waiting if queued and we have an open slot
         if ((state == Download.ST_QUEUED) &&
             (numWaitingOrSeeding < maxSeeders) && 
@@ -711,8 +837,15 @@ StartStopRulesDefaultPlugin
         if (okToQueue &&
             ((numWaitingOrSeeding > maxSeeders) || higherQueued || dl_data.getQR() <= -2)) {
           try {
-            if (bDebugLog)
-              sDebugLine += "\nstopAndQueue(); > Max";
+            if (bDebugLog) {
+              sDebugLine += "\nstopAndQueue()";
+              if (numWaitingOrSeeding > maxSeeders)
+                sDebugLine += "; > Max";
+              if (higherQueued)
+                sDebugLine += "; higherQueued (it should be seeding instead of this one)";
+              if (dl_data.getQR() <= -2)
+                sDebugLine += "; ignoreRule met";
+            }
 
             if (state == Download.ST_READY)
               totalWaitingToSeed--;
@@ -726,43 +859,6 @@ StartStopRulesDefaultPlugin
           state = download.getState();
         }
 
-        // ignore when Share Ratio reaches # in config
-        //0 means unlimited
-        if (iIgnoreShareRatio != 0) {
-          if (shareRatio > iIgnoreShareRatio && shareRatio != -1) {
-            if (okToQueue) {
-              try {
-                if (bDebugLog)
-                  sDebugLine += "\nstopAndQueue() Share Ratio Met";
-                download.stopAndQueue();
-                bStopAndQueued = true;
-                numWaitingOrSeeding--;
-              } catch (Exception ignore) {/*ignore*/}
-            }
-            dl_data.setQR(QR_SHARERATIOMET);
-          }
-        }
-
-        if (okToQueue && (iIgnoreRatioPeers != 0)) {
-          int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
-          int numPeers = calcPeersNoUs(download);
-          if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
-              numSeeds += numPeers / numPeersAsFullCopy;
-          //If there are no seeds, avoid / by 0
-          if (numSeeds != 0) {
-            float ratio = (float) numPeers / numSeeds;
-            if (ratio <= iIgnoreRatioPeers) {
-              try {
-                if (bDebugLog)
-                  sDebugLine += "\nstopAndQueue() P:S Met";
-                download.stopAndQueue();
-                bStopAndQueued = true;
-              } catch (Exception ignore) {/*ignore*/}
-              dl_data.setQR(QR_RATIOMET);
-            }
-          }
-        }
-        
         // move completed timed rank types to bottom of the list
         if (bStopAndQueued && iRankType == RANK_TIMED) {
           for (int j = 0; j < dlDataArray.length; j++) {
@@ -794,28 +890,62 @@ StartStopRulesDefaultPlugin
                            "maxCDrs="+maxSeeders,
                            "1stPriority="+dl_data.isFirstPriority()
                           };
-
-          boolean bAnyChanged = false;
-          String sDebugLineNoChange = download.getName() + "] ";
-          String sDebugLineOld = "";
-          String sDebugLineNew = "";
-          for (int j = 0; j < debugEntries.length; j++) {
-            if (debugEntries[j].equals(debugEntries2[j]))
-              sDebugLineNoChange += debugEntries[j] + ";";
-            else {
-              sDebugLineOld += debugEntries[j] + ";";
-              sDebugLineNew += debugEntries2[j] + ";";
-              bAnyChanged = true;
-            }
-          }
-          String sDebugLineOut = sDebugLineNoChange + sDebugLine +
-                              (bAnyChanged ? "\nOld:"+sDebugLineOld+"\nNew:"+sDebugLineNew : "");
-          log.log(LoggerChannel.LT_INFORMATION, sDebugLineOut);
+          printDebugChanges(download.getName() + "] ", debugEntries, debugEntries2, sDebugLine, "  ", true);
         }
 
       } // getDownloadCompleted == 1000
     } // Loop 2/2 (Start/Stopping)
+    
+    if (bDebugLog) {
+      String[] mainDebugEntries2 = new String[] { 
+          "somethingChanged="+somethingChanged,
+          "bCdHasRank="+bSeedHasRanking,
+          "tCding="+totalSeeding,
+          "tFrcdCding="+totalForcedSeeding,
+          "tW8tingToCd="+totalWaitingToSeed,
+          "tDLing="+totalDownloading,
+          "activeDLs="+activeDLCount,
+          "tW8tingToDL="+totalWaitingToDL,
+          "tCom="+totalComplete,
+          "tComQd="+totalCompleteQueued,
+          "tIncQd="+totalIncompleteQueued,
+          "mxCdrs="+maxSeeders,
+          "t1stPr="+totalFirstPriority
+                  };
+      printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2, "", "", true);
+    }
+
   } // process()
+  
+  private void printDebugChanges(String sPrefixFirstLine, 
+                                 String[] oldEntries, 
+                                 String[] newEntries,
+                                 String sDebugLine,
+                                 String sPrefix, 
+                                 boolean bAlwaysPrintNoChangeLine) {
+      boolean bAnyChanged = false;
+      String sDebugLineNoChange = sPrefixFirstLine;
+      String sDebugLineOld = "";
+      String sDebugLineNew = "";
+      for (int j = 0; j < oldEntries.length; j++) {
+        if (oldEntries[j].equals(newEntries[j]))
+          sDebugLineNoChange += oldEntries[j] + ";";
+        else {
+          sDebugLineOld += oldEntries[j] + ";";
+          sDebugLineNew += newEntries[j] + ";";
+          bAnyChanged = true;
+        }
+      }
+      String sDebugLineOut = ((bAlwaysPrintNoChangeLine || bAnyChanged) ? sDebugLineNoChange : "") +
+                             (bAnyChanged ? "\nOld:"+sDebugLineOld+"\nNew:"+sDebugLineNew : "") + 
+                             sDebugLine;
+      if (!sDebugLineOut.equals("")) {
+        String[] lines = sDebugLineOut.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+          log.log(LoggerChannel.LT_INFORMATION, sPrefix + ((i>0)?"  ":"") + lines[i]);
+        }
+      }
+  }
 
   public boolean getAlreadyAllocatingOrChecking() {
     Download[]  downloads = download_manager.getDownloads(false);
@@ -887,10 +1017,12 @@ StartStopRulesDefaultPlugin
   private class downloadData implements Comparable
   {
     protected int qr;
+    protected int iSeedingPos;
     protected Download dl;
     protected long startedSeedingOn;
     private boolean bActivelyDownloading;
     private boolean bWasComplete;
+    private int iDLPos;
     
     /** Sort first by QR Descending, then by Position Ascending.
       */
@@ -909,7 +1041,25 @@ StartStopRulesDefaultPlugin
       startedSeedingOn = -1;
       dl = _dl;
       setWasComplete(dl.getStats().getDownloadCompleted(false) == 1000);
+      iDLPos = dl.getPosition();
+      iSeedingPos = 100000 - iDLPos;
       //recalcQR();
+    }
+    
+    public int getDLPosition() {
+      return iDLPos;
+    }
+
+    public void setDLPosition(int iPos) {
+      iDLPos = iPos;
+    }
+
+    public int getSeedingPos() {
+      return iSeedingPos;
+    }
+    
+    public void setSeedingPos(int iPos) {
+      iSeedingPos = iPos;
     }
     
     public boolean getWasComplete() {
@@ -951,7 +1101,7 @@ StartStopRulesDefaultPlugin
     /** Assign Seeding Rank based on RankType
      * @return New Seeding Rank Value
      */
-    public int recalcQR() {
+    public synchronized int recalcQR() {
       DownloadStats stats = dl.getStats();
       int numCompleted = stats.getDownloadCompleted(false);
 
@@ -988,11 +1138,15 @@ StartStopRulesDefaultPlugin
           setQR(QR_0PEERS);
           return QR_0PEERS;
         }
+
+        if (iIgnoreShareRatio != 0 && 
+            shareRatio > iIgnoreShareRatio && 
+            shareRatio != -1) {
+          setQR(QR_SHARERATIOMET);
+          return qr;
+        }
   
         if (shareRatio > minQueueingShareRatio || shareRatio == -1) {
-          if (qr == QR_SHARERATIOMET)
-            return qr;
-  
           //0 means disabled
           if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
             setQR(QR_NUMSEEDSMET);
@@ -1089,8 +1243,9 @@ StartStopRulesDefaultPlugin
 
       // Don't change the qr if we don't have scrape results
       // unless we changed to first priority
-      // or unless we are connected to some seeds/peers
-      if (bScrapeResultsOk || newQR >= QR_FIRST_PRIORITY_STARTS_AT || numSeeds > 1 || numPeers > 1)
+      boolean bOldQRInRange = (qr >= 0) && (qr < QR_FIRST_PRIORITY_STARTS_AT);
+      boolean bNewQRInRange = (newQR >= 0) && (newQR < QR_FIRST_PRIORITY_STARTS_AT);
+      if (bScrapeResultsOk || bOldQRInRange != bNewQRInRange)
         setQR(newQR);
 
       return qr;
@@ -1817,7 +1972,7 @@ StartStopRulesDefaultPlugin
       if (dlData == null)
         return 0;
 
-      return dlData.getQR();
+      return dlData.getSeedingPos();
     }
   }
 
