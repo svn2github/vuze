@@ -1118,7 +1118,8 @@ StateTransfering
       
 				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
 				if( length > 16393 ) {
-					closeAll(PEPeerTransportProtocol.this + " : incoming message size too large: " + length,true, true);
+          Debug.out( PEPeerTransportProtocol.this + " : sent incoming message size too large: " + length );
+					closeAll(PEPeerTransportProtocol.this + " : sent incoming message size too large: " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
         
@@ -1140,7 +1141,8 @@ StateTransfering
 				}
 				else {
 				  //length is 0 : Keep alive message, process next.
-        LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, PEPeerTransportProtocol.this + " sent keep-alive" );
+          last_message_received_time = SystemTime.getCurrentTime();
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, PEPeerTransportProtocol.this + " sent keep-alive" );
 					readingLength = true;
 				}
 			}
