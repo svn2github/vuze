@@ -83,6 +83,21 @@ public class Identification {
         return name;
       }
       
+
+      //Bram's original client
+      String mainline = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
+      if ( mainline.equals("M") ) {
+      	if ( (peerID[2] == (byte)45) &&
+             (peerID[4] == (byte)45) &&
+             (peerID[6] == (byte)45) &&
+             (peerID[7] == (byte)45) ) {
+      		String major = new String(peerID, 1, 1, Constants.BYTE_ENCODING);
+          String minor = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+          String sub   = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
+          return "Mainline " + major + "." + minor + "." + sub;
+        }
+      }
+
       
       String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
       if (old_azureus.equals("Azureus")) return "Azureus 2.0.3.2";
