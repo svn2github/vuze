@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 import org.gudy.azureus2.core3.peer.impl.*;
 
@@ -68,20 +69,6 @@ PESharedPortServerImpl
 						server_delegate = null;
 						
 					}else{
-					
-						server_delegate.addListener(
-							new PEPeerServerListener()
-							{
-								public void
-								portChanged(
-									int		port )
-								{
-									for (int i=0;i<listeners.size();i++){
-										
-										((PEPeerServerListener)listeners.get(i)).portChanged( port );
-									}
-								}
-							});
 						
 						server_delegate.setServerAdapter( 
 							new PEPeerServerAdapter()
@@ -182,13 +169,27 @@ PESharedPortServerImpl
 	addListener(
 		PEPeerServerListener	l )
 	{	
-		listeners.add(l);
+		if ( server_delegate == null ){
+			
+			Debug.out( "PESharedPortServer:addListener - failes as no delegate");
+			
+		}else{
+			
+			server_delegate.addListener( l );
+		}
 	}
 		
 	public void
 	removeListener(
 		PEPeerServerListener	l )
 	{
-		listeners.remove( l );
+		if ( server_delegate == null ){
+			
+			Debug.out( "PESharedPortServer:removeListener - failes as no delegate");
+			
+		}else{
+			
+			server_delegate.removeListener( l );
+		}	
 	}
 }

@@ -976,10 +976,8 @@ TRTrackerClientClassicImpl
  				
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
- 			
- 			int lport = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
- 			
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( lport );
+ 						
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( peer_server.getPort());
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			
