@@ -22,20 +22,27 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+
+
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.model.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytracker.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
-
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 
 public class 
 UIManagerImpl 
@@ -97,12 +104,6 @@ UIManagerImpl
 		}
 	}
 	
-	public MyTracker
-	getMyTracker()
-	{
-		return( MyTrackerImpl.getSingleton());
-	}
-	
 	public void
 	copyToClipBoard(
 		String		data )
@@ -118,4 +119,12 @@ UIManagerImpl
 		}
 
 	}
+
+  public TableManager getTableManager() {
+    return TableManagerImpl.getSingleton();
+  }
+
+  public SWTManager getSWTManager() {
+    return SWTManagerImpl.getSingleton();
+  }
 }
