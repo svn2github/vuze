@@ -29,7 +29,7 @@ public class StringParameter extends GenericParameter
 {
 	private String defaultValue;
 	public StringParameter(String key, String label, String defaultValue)
-	{
+	{ 
 		super(key, label);
     this.defaultValue = defaultValue;
 	}

@@ -34,7 +34,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createDirectoryParameter(java.lang.String, java.lang.String, java.lang.String)
-   */
+   */ 
   public Parameter createDirectoryParameter(
     String key,
     String label,
