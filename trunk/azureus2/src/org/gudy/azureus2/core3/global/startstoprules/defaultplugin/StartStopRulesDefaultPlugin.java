@@ -77,6 +77,8 @@ public class StartStopRulesDefaultPlugin
   private static final int SR_NUMSEEDSMET     = -4;
   private static final int SR_0PEERS          = -5;
   private static final int SR_SHARERATIOMET   = -6;
+  
+  private static final int FORCE_ACTIVE_FOR = 30000;
 
   private PluginInterface     plugin_interface;
   private PluginConfig        plugin_config;
@@ -570,7 +572,7 @@ public class StartStopRulesDefaultPlugin
                                                                         : 0;
     int maxTorrents;
     if (iMaxUploadSpeed == 0) {
-      maxTorrents = 4;
+      maxTorrents = maxActive + 4;
     } else {
       // Don't allow more "seeding/downloading" torrents than there is enough
       // bandwidth for.  There needs to be enough bandwidth for at least
@@ -586,6 +588,8 @@ public class StartStopRulesDefaultPlugin
       // upload speed can handle
       if (maxTorrents < maxActive)
         maxTorrents = maxActive;
+      //System.out.println("maxTorrents = " + maxTorrents + " = " + iMaxUploadSpeed + " / " + minSpeedPerActive);
+      //System.out.println("totalTorrents = " + (activeSeedingCount + totalStalledSeeders + totalDownloading));
     }
 
     String[] mainDebugEntries = null;
@@ -602,7 +606,8 @@ public class StartStopRulesDefaultPlugin
               "tCom="+totalComplete,
               "tIncQd="+totalIncompleteQueued,
               "mxCdrs="+maxSeeders,
-              "t1stPr="+totalFirstPriority
+              "t1stPr="+totalFirstPriority,
+              "maxT="+maxTorrents
                       };
     }
 
@@ -867,15 +872,15 @@ public class StartStopRulesDefaultPlugin
         if (bDebugLog) {
           debugEntries = new String[] { "state="+sStates.charAt(state),
                            "shareR="+shareRatio,
-                           "numWorCDing="+numWaitingOrSeeding,
-                           "numWorDLing="+numWaitingOrDLing,
-                           "okToQ="+okToQueue,
+                           "nWorCDing="+numWaitingOrSeeding,
+                           "nWorDLing="+numWaitingOrDLing,
+                           "ok2Q="+okToQueue,
                            "sr="+dlData.getSeedingRank(),
                            "hgherQd="+higherQueued,
                            "maxCDrs="+maxSeeders,
-                           "1stPriority="+isFP,
-                           "activeCDingCount="+activeSeedingCount,
-                           "ActCding="+bActivelySeeding
+                           "1stP="+isFP,
+                           "actCDingCount="+activeSeedingCount,
+                           "ActCDing="+bActivelySeeding
                           };
         }
         
@@ -1023,15 +1028,15 @@ public class StartStopRulesDefaultPlugin
         if (bDebugLog) {
           String[] debugEntries2 = new String[] { "state="+sStates.charAt(download.getState()),
                            "shareR="+download.getStats().getShareRatio(),
-                           "numWorCDing="+numWaitingOrSeeding,
-                           "numWorDLing="+numWaitingOrDLing,
-                           "okToQ="+okToQueue,
+                           "nWorCDing="+numWaitingOrSeeding,
+                           "nWorDLing="+numWaitingOrDLing,
+                           "ok2Q="+okToQueue,
                            "sr="+dlData.getSeedingRank(),
                            "hgherQd="+higherQueued,
                            "maxCDrs="+maxSeeders,
-                           "1stPriority="+dlData.isFirstPriority(),
-                           "activeCDingCount="+activeSeedingCount,
-                           "ActCding="+bActivelySeeding
+                           "1stP="+dlData.isFirstPriority(),
+                           "actCDingCount="+activeSeedingCount,
+                           "ActCDing="+bActivelySeeding
                           };
           printDebugChanges(download.getName() + "] ", debugEntries, debugEntries2, sDebugLine, "  ", true, dlData);
         }
@@ -1051,7 +1056,8 @@ public class StartStopRulesDefaultPlugin
           "tCom="+totalComplete,
           "tIncQd="+totalIncompleteQueued,
           "mxCdrs="+maxSeeders,
-          "t1stPr="+totalFirstPriority
+          "t1stPr="+totalFirstPriority,
+          "maxT="+maxTorrents
                   };
       printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2, "", "", true, null);
     }
@@ -1210,7 +1216,7 @@ public class StartStopRulesDefaultPlugin
       // - Must be above speed threshold, or started less than 30s ago
       if ((state == Download.ST_DOWNLOADING) &&
           ((stats.getDownloadAverage() >= minSpeedForActiveDL) ||
-           (SystemTime.getCurrentTime() - stats.getTimeStarted() <= 30000)))
+           (SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR)))
           bIsActive = true;
 
       if (bActivelyDownloading != bIsActive) {
@@ -1242,7 +1248,7 @@ public class StartStopRulesDefaultPlugin
       // - If we auto-start 0 Peers, must not have 0 Peers
       if ((state == Download.ST_SEEDING) &&
           ((stats.getUploadAverage() >= minSpeedForActiveSeeding) ||
-           (SystemTime.getCurrentTime() - stats.getTimeStarted() <= 30000)) &&
+           (SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR)) &&
           (!bAutoStart0Peers || calcPeersNoUs(dl) > 0))
         bIsActive = true;
 
