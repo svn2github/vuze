@@ -55,6 +55,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -375,4 +376,11 @@ UtilitiesImpl
   public long getCurrentSystemTime() {
     return SystemTime.getCurrentTime();
   }
+  
+	public ByteArrayWrapper
+	createWrapper(
+		byte[]		data )
+	{
+		return( new HashWrapper( data ));
+	}
 }

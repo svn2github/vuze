@@ -153,5 +153,9 @@ Utilities
    * only the time lookup is cached for performance reasons.
    * @return current system time
    */
-  public long getCurrentSystemTime();
+	public long getCurrentSystemTime();
+  
+  	public ByteArrayWrapper
+	createWrapper(
+		byte[]		data );
 }

@@ -6,11 +6,16 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Arrays;
 
+import org.gudy.azureus2.plugins.utils.ByteArrayWrapper;
+
 /**
  * @author Olivier
  * 
  */
-public class HashWrapper {
+public class 
+HashWrapper 
+	implements ByteArrayWrapper
+{
   
   private byte[] 	hash;
   private int		hash_code;
@@ -44,6 +49,12 @@ public class HashWrapper {
   getHash() 
   {
     return( hash );
+  }
+
+  public byte[]
+  getBytes()
+  {
+  	return( hash );
   }
   
   /* (non-Javadoc)
