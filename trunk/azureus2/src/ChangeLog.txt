@@ -33,6 +33,7 @@ BUGFIX: Fix for underlying socket handles not closing under linux ("Too many ope
 BUGFIX: First Priority rules based on time now work across sessions [TuxPaper]
 BUGFIX: Freeze on exit under OSX [Gudy]
 BUGFIX: Tracker status column sortable [TuxPaper]
+BUGFIX: Fix for system clock changes stalling downloads: Bug #918193 [Nolar]
 
 
 
