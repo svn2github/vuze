@@ -297,7 +297,7 @@ public class StartStopRulesDefaultPlugin
         somethingChanged = true;
         if (bDebugLog) 
           log.log(LoggerChannel.LT_INFORMATION,
-                  "somethingChanged: stateChange for " + download.getName());
+                  "somethingChanged: stateChange for " + download.getName() + " from " + old_state + " to " + new_state);
       }
     }
 
@@ -309,7 +309,7 @@ public class StartStopRulesDefaultPlugin
         somethingChanged = true;
         if (bDebugLog) 
           log.log(LoggerChannel.LT_INFORMATION,
-                  "somethingChanged: positionChanged for " + download.getName());
+                  "somethingChanged: positionChanged for " + download.getName()  + " from " + oldPosition + " to " + newPosition);
       }
     }
   }
@@ -419,7 +419,7 @@ public class StartStopRulesDefaultPlugin
           }
           
           /* READY downloads are usually waiting for a seeding torrent to
-             stop (the seeding torrent probably is within the "Minumum Seeding
+             stop (the seeding torrent probably is within the "Minimum Seeding
              Time" setting)
            */
           if (dl.getState() == Download.ST_READY) {
@@ -573,7 +573,7 @@ public class StartStopRulesDefaultPlugin
 	    int totalStalledSeeders = 0;
 	    int total0PeerSeeders = 0;
 	
-	    // pull the data into an local array, so we don't have to lock/synchronize
+	    // pull the data into a local array, so we don't have to lock/synchronize
 	    downloadData[] dlDataArray;
 	    dlDataArray = (downloadData[])
 	      downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
@@ -975,15 +975,16 @@ public class StartStopRulesDefaultPlugin
 	        int shareRatio = download.getStats().getShareRatio();
 	        boolean bActivelySeeding = dlData.getActivelySeeding();
 	        boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
-	                            (!download.isForceStart()) &&
-	                            (!isFP);
+								(!isFP || (isFP && numWaitingOrSeeding >= maxSeeders)) &&
+								(!download.isForceStart());
 	        // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
 	        // skip check
-	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
+			// we want changes to take effect immediately - Gouss 2203
+/*	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
 	          long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
 	          okToQueue = (timeAlive >= minTimeAlive);
 	        }
-	        
+*/	        
 	        if (state != Download.ST_QUEUED &&  // Short circuit.
 	            (state == Download.ST_READY ||
 	             state == Download.ST_WAITING ||
@@ -1048,7 +1049,7 @@ public class StartStopRulesDefaultPlugin
 	          }
 			  
 			  // Ignore SPratio
-			  if (numPeers !=0 && numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio && 
+			  if (numPeers !=0 && numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0 && 
 					  dlData.getSeedingRank() != SR_SPRATIOMET) {
 				  if (bDebugLog)
 		              sDebugLine += "\nSP Ratio Met";
@@ -1491,7 +1492,7 @@ public class StartStopRulesDefaultPlugin
 			         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
 			         shareRatio != -1) {
 			     setSeedingRank(SR_SHARERATIOMET);
-			     return SR_SHARERATIOMET;
+			     return sr;
 			}
 							
 			if (num_peers_excluding_us == 0 && bScrapeResultsOk &&
@@ -1502,7 +1503,7 @@ public class StartStopRulesDefaultPlugin
 		         return SR_0PEERS;
 		    }
 			
-			if (num_peers_excluding_us != 0 && 
+			if (num_peers_excluding_us != 0 && iFirstPriorityIgnoreSPRatio != 0 && 
 					num_seeds_excluding_us / num_peers_excluding_us >= iFirstPriorityIgnoreSPRatio && 
 					bScrapeResultsOk ) 
 			{
@@ -1512,7 +1513,7 @@ public class StartStopRulesDefaultPlugin
 				}
 				else if ( iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio ) {  
 					setSeedingRank(SR_SHARERATIOMET);
-			          return SR_SHARERATIOMET;
+			          return sr;
 				}
 				else { 
 					setSeedingRank(SR_RATIOMET);
