@@ -28,6 +28,7 @@ package com.aelitis.azureus.core.diskmanager.file.impl;
 import java.util.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.ByteBuffer;
@@ -73,11 +74,26 @@ FMFileImpl
 		file	= _file;
 		
 		try{
-			canonical_path = file.getCanonicalPath();
+      
+      try {
+        canonical_path = file.getCanonicalPath();
+      }
+      catch( IOException ioe ) {
+        String msg = ioe.getMessage();
+        if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+          String abs_path = file.getAbsolutePath();
+          String error = "Caught 'There are no more files' exception during file.getCanonicalPath(). " +
+                         "os=[" +Constants.OSName+ "], file.getPath()=[" +file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
+                         //"canonical_path temporarily set to [" +abs_path+ "]";
+          Debug.out( error, ioe );
+        }
+        throw ioe;
+      }
 			
 			reserveFile();
 			
-		}catch( Throwable e ){
+		}
+    catch( Throwable e ){
 			
 			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
@@ -107,7 +123,21 @@ FMFileImpl
 			String	new_canonical_path;
 	
 			try{
-				new_canonical_path = new_file.getCanonicalPath();
+        
+        try {
+          new_canonical_path = new_file.getCanonicalPath();
+        }
+        catch( IOException ioe ) {
+          String msg = ioe.getMessage();
+          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+            String abs_path = new_file.getAbsolutePath();
+            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
+                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
+                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
+            Debug.out( error, ioe );
+          }
+          throw ioe;
+        }
 				
 			}catch( Throwable e ){
 				
