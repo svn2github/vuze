@@ -70,7 +70,6 @@ public class PeersView
     new DiscardedItem(),
     new UniquePieceItem(),
     new TimeToSendPieceItem(),
-    new AllowedUpItem()
   };
   private DownloadManager manager;
 
