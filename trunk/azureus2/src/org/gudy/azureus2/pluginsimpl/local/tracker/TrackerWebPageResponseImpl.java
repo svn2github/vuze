@@ -296,25 +296,28 @@ TrackerWebPageResponseImpl
 			
 			torrent_to_send.removeAdditionalProperties();
 			
-			// override the announce url but not port (as this is already fixed)
-			
-			String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-			
-			// if tracker ip not set then assume they know what they're doing
-			
-			if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED ){
+			if ( !TorrentUtils.isDecentralised( torrent_to_send )){
 				
-				if ( tracker_ip.length() > 0 ){
+				// override the announce url but not port (as this is already fixed)
+				
+				String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+				
+				// if tracker ip not set then assume they know what they're doing
+				
+				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED ){
 					
-					int	 	tracker_port 	= host_torrent.getPort();
-					
-					String protocol = torrent_to_send.getAnnounceURL().getProtocol();
-					
-					URL announce_url = new URL( protocol + "://" + tracker_ip + ":" + tracker_port + "/announce" );
-					
-					torrent_to_send.setAnnounceURL( announce_url );
-					
-					torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+					if ( tracker_ip.length() > 0 ){
+						
+						int	 	tracker_port 	= host_torrent.getPort();
+						
+						String protocol = torrent_to_send.getAnnounceURL().getProtocol();
+						
+						URL announce_url = new URL( protocol + "://" + tracker_ip + ":" + tracker_port + "/announce" );
+						
+						torrent_to_send.setAnnounceURL( announce_url );
+						
+						torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+					}
 				}
 			}
 	

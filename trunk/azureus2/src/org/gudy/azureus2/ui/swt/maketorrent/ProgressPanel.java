@@ -110,7 +110,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   public void makeTorrent() {
   	NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
-    if(!_wizard.localTracker){
+    if(_wizard.tracker_type == NewTorrentWizard.TT_EXTERNAL ){
+    	
       TrackersUtil.getInstance().addTracker(_wizard.trackerURL);
     }
     
@@ -148,6 +149,11 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	torrent = c.create();
       }
       
+      if ( _wizard.tracker_type == NewTorrentWizard.TT_DECENTRAL ){
+      	
+      	TorrentUtils.setDecentralised( torrent );
+      }
+	  
       torrent.setComment(_wizard.getComment());
  
 	  LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
@@ -201,7 +207,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 						true,	// persistent 
 						true );	// for seeding
                 
-                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).localTracker ){
+                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).tracker_type != NewTorrentWizard.TT_EXTERNAL ){
                 	
                 	try{
                 		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true );

@@ -276,7 +276,7 @@ public class SavePathPanel extends AbstractWizardPanel {
         public void handleEvent(Event event) {
           _wizard.autoOpen = bAutoOpen.getSelection();
           
-          bAutoHost.setEnabled( _wizard.autoOpen && _wizard.localTracker );
+          bAutoHost.setEnabled( _wizard.autoOpen && _wizard.tracker_type != NewTorrentWizard.TT_EXTERNAL );
         }
       });
     

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -103,9 +104,13 @@ public class ModePanel extends AbstractWizardPanel {
 
     // there's a potential oversize issue with the howToLocal string, and attemtping to force wrap has no effect -
     // therefore, provide more room and remove extraneous labeling
+    
     final boolean showLocal = localTrackerHost != null && !localTrackerHost.equals("");
+    
     final Label labelLocalAnnounce = (showLocal) ? new Label(panel, SWT.NULL) : null;
-    if (showLocal) {
+    
+    if ( showLocal ){
+    	
       localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
       localTrackerValue.setText(localTrackerUrl[0]);
       btnSSL.setEnabled( SSLEnabled );
@@ -114,32 +119,46 @@ public class ModePanel extends AbstractWizardPanel {
 
       gridData = new GridData();
       gridData.horizontalSpan = 3;
+      
     } else {
+    	
       localTrackerUrl[0] = "";
       Messages.setLanguageText(localTrackerValue, "wizard.tracker.howToLocal");
       btnLocalTracker.setSelection(false);
       btnSSL.setEnabled(false);
       btnLocalTracker.setEnabled(false);
       localTrackerValue.setEnabled(false);
-      ((NewTorrentWizard) wizard).localTracker = false;
+      
+      if (((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_LOCAL ){
+      	
+      	((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_EXTERNAL;
+      }
 
       gridData = new GridData();
       gridData.horizontalSpan = 4;
     }
+    
     localTrackerValue.setLayoutData(gridData);
 
-    if (((NewTorrentWizard) wizard).localTracker) {
+    if (((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_LOCAL) {
+    	
       setTrackerUrl(localTrackerUrl[0]);
     }
 
     //Line:
-    // O use external Tracker
+    // O use external Tracker     O decentral tracking
     
     final Button btnExternalTracker = new Button(panel, SWT.RADIO);
     Messages.setLanguageText(btnExternalTracker, "wizard.tracker.external");
     gridData = new GridData();
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 2;
     btnExternalTracker.setLayoutData(gridData);
+    
+    final Button btnDHTTracker = new Button(panel, SWT.RADIO);
+    Messages.setLanguageText(btnDHTTracker, "wizard.tracker.dht");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    btnDHTTracker.setLayoutData(gridData);
 
     //Line:
     // [External Tracker Url ]V
@@ -147,13 +166,17 @@ public class ModePanel extends AbstractWizardPanel {
     final Label labelExternalAnnounce = new Label(panel, SWT.NULL);
     Messages.setLanguageText(labelExternalAnnounce, "wizard.announceUrl");
 
-    btnLocalTracker.setSelection(((NewTorrentWizard) wizard).localTracker);
-    localTrackerValue.setEnabled(((NewTorrentWizard) wizard).localTracker);
-    btnSSL.setEnabled(((NewTorrentWizard) wizard).localTracker);
+    int	tracker_type = ((NewTorrentWizard) wizard).tracker_type;
     
-    btnExternalTracker.setSelection(!((NewTorrentWizard) wizard).localTracker);
-    labelExternalAnnounce.setEnabled(!((NewTorrentWizard) wizard).localTracker);
+    btnLocalTracker.setSelection(tracker_type==NewTorrentWizard.TT_LOCAL);
+    localTrackerValue.setEnabled(tracker_type==NewTorrentWizard.TT_LOCAL);
+    btnSSL.setEnabled(SSLEnabled&&tracker_type==NewTorrentWizard.TT_LOCAL);
+    
+    btnExternalTracker.setSelection(tracker_type==NewTorrentWizard.TT_EXTERNAL);
+    labelExternalAnnounce.setEnabled(tracker_type==NewTorrentWizard.TT_EXTERNAL);
 
+    btnDHTTracker.setSelection(tracker_type==NewTorrentWizard.TT_DECENTRAL);
+    
     tracker = new Combo(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
@@ -205,8 +228,10 @@ public class ModePanel extends AbstractWizardPanel {
         wizard.setNextEnabled(valid);
       }
     });
+    
     updateTrackerURL();
-    tracker.setEnabled(!((NewTorrentWizard) wizard).localTracker);
+    
+    tracker.setEnabled(((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_EXTERNAL );
     
     new Label(panel,SWT.NULL);
 
@@ -318,31 +343,54 @@ public class ModePanel extends AbstractWizardPanel {
 	
     btnLocalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        ((NewTorrentWizard) wizard).localTracker = true;
+        ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_LOCAL;
         setTrackerUrl(localTrackerUrl[0]);
+        updateTrackerURL();
         btnExternalTracker.setSelection(false);
         btnLocalTracker.setSelection(true);
+        btnDHTTracker.setSelection(false);
         tracker.setEnabled(false);
         btnSSL.setEnabled(SSLEnabled);
         if(labelLocalAnnounce != null) {labelLocalAnnounce.setEnabled(true);}
         localTrackerValue.setEnabled(true);
         labelExternalAnnounce.setEnabled(false);
+        btnMultiTracker.setEnabled(true);
       }
     });
 
     btnExternalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        ((NewTorrentWizard) wizard).localTracker = false;
+        ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_EXTERNAL;
         setTrackerUrl(tracker.getText());
+        updateTrackerURL();
         btnLocalTracker.setSelection(false);
         btnExternalTracker.setSelection(true);
+        btnDHTTracker.setSelection(false);
         tracker.setEnabled(true);
         btnSSL.setEnabled(false);
         if(labelLocalAnnounce != null) {labelLocalAnnounce.setEnabled(false);}
         localTrackerValue.setEnabled(false);
         labelExternalAnnounce.setEnabled(true);
+        btnMultiTracker.setEnabled(true);
       }
     });
+    
+    btnDHTTracker.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+          ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_DECENTRAL;
+          setTrackerUrl( TorrentUtils.getDecentralisedEmptyURL().toString());
+          updateTrackerURL();
+          btnLocalTracker.setSelection(false);
+          btnExternalTracker.setSelection(false);
+          btnDHTTracker.setSelection(true);
+          tracker.setEnabled(false);
+          btnSSL.setEnabled(false);
+          if(labelLocalAnnounce != null) {labelLocalAnnounce.setEnabled(false);}
+          localTrackerValue.setEnabled(false);
+          labelExternalAnnounce.setEnabled(false);
+          btnMultiTracker.setEnabled(false);
+        }
+      });
     
     //Line:
     // ------------------------------
@@ -395,7 +443,7 @@ public class ModePanel extends AbstractWizardPanel {
     if(Constants.isOSX) {
       //In case we're not using the localTracker, refresh the
       //Tracker URL from the Combo text
-      if( ! ((NewTorrentWizard) wizard).localTracker) {
+      if( ((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_EXTERNAL ){
         setTrackerUrl(tracker.getText());
       }
     }

@@ -29,6 +29,7 @@ TRTrackerServerFactory
 {
 	public static final int PR_TCP	= 1;
 	public static final int PR_UDP	= 2;
+	public static final int PR_DHT	= 3;
 	
 	public static TRTrackerServer
 	create(

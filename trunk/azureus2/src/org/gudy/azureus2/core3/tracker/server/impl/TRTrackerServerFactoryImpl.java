@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.server.impl.dht.TRTrackerServerDHT;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking.TRBlockingServer;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServer;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
@@ -68,7 +69,7 @@ TRTrackerServerFactoryImpl
 					server = new TRBlockingServer( name, port, ssl, apply_ip_filter );
 				}
 				
-			}else{
+			}else if ( protocol == TRTrackerServerFactory.PR_UDP ){
 				
 				if ( ssl ){
 					
@@ -76,6 +77,10 @@ TRTrackerServerFactoryImpl
 				}
 				
 				server = new TRTrackerServerUDP( name, port );
+				
+			}else{
+				
+				server = new TRTrackerServerDHT( name );
 			}
 			
 			servers.add( server );

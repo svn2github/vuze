@@ -69,8 +69,15 @@ NewTorrentWizard
   String directoryPath = "";
   String savePath = "";
   String comment = "";
-  boolean localTracker = true;
+  
+  static final int	TT_LOCAL		= 1;
+  static final int	TT_EXTERNAL		= 2;
+  static final int	TT_DECENTRAL	= 3;
+  
+  int tracker_type = TT_LOCAL;
+  
   String trackerURL = "http://";
+  
   boolean computed_piece_size = true;
   long	  manual_piece_size;
   

@@ -378,10 +378,10 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
     for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
 		
-		String	nn = PEPeerSource.PS_SOURCES[i];
+		String	p = PEPeerSource.PS_SOURCES[i];
 	
-		String	config_name = "Peer Source Selection Default." + nn;
-		String	msg_text	= "ConfigView.section.connection.peersource." + nn;
+		String	config_name = "Peer Source Selection Default." + p;
+		String	msg_text	= "ConfigView.section.connection.peersource." + p;
 		 
 		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
 				
@@ -390,11 +390,6 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
 	    peer_source.setLayoutData( grid_data );
 	}
     
-    label = new Label(peer_sources_group, SWT.NULL);
-    grid_data = new GridData();
-    grid_data.horizontalSpan = 2;
-    label.setLayoutData( grid_data );
-	
 	
  ///////////////////////   
     

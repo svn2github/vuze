@@ -726,6 +726,42 @@ TorrentUtils
 		return( null );
 	}
 	
+	public static URL
+	getDecentralisedEmptyURL()
+	{
+		try{
+			return( new URL( "dht://" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
+	public static void
+	setDecentralised(
+		TOTorrent	torrent )
+	{
+	   	try{
+	   		byte[]	hash = torrent.getHash();
+	     		
+	   		torrent.setAnnounceURL( new URL( "dht://" + ByteFormatter.encodeString( hash ) + ".dht/announce" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+		
+	public static boolean
+	isDecentralised(
+		TOTorrent		torrent )
+	{
+		return( torrent.getAnnounceURL().getProtocol().equalsIgnoreCase( "dht" ));
+	}
+	
 		// this class exists to minimise memory requirements by discarding the piece hash values
 		// when "idle" 
 	

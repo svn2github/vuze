@@ -352,6 +352,10 @@ TRHostImpl
 				if ( protocol_str.equalsIgnoreCase("udp")){
 					
 					protocol = TRTrackerServerFactory.PR_UDP;
+					
+				}else if ( TorrentUtils.isDecentralised( torrent )){
+					
+					protocol = TRTrackerServerFactory.PR_DHT;
 				}
 				
 				boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
