@@ -940,13 +940,12 @@ public class TableView
   }
 
   public void runForAllRows(GroupTableRowRunner runner) {
-    synchronized (objectToSortableItem) {
-      Iterator iter = objectToSortableItem.values().iterator();
-      while (iter.hasNext()) {
-        TableRowCore row = (TableRowCore)iter.next();
-        if (row != null)
-          runner.run(row);
-      }
+    // put to array instead of synchronized iterator, so that runner can remove
+    TableRowCore[] rows = 
+      (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
+    for (int i = 0; i < rows.length; i++) {
+      if (rows[i] != null)
+        runner.run(rows[i]);
     }
   }
   

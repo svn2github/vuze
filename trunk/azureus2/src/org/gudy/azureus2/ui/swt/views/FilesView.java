@@ -166,11 +166,11 @@ public class FilesView
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
-    DiskManager diskManager = manager.getDiskManager();
-    if (diskManager == null) {      
-      return;      
-    }
     removeInvalidFileItems();
+
+    DiskManager diskManager = manager.getDiskManager();
+    if (diskManager == null)
+      return;      
     DiskManagerFileInfo files[] = diskManager.getFiles();
     if (files != null && getTable().getItemCount() != files.length) {
       for (int i = 0; i < files.length; i++) {
@@ -184,18 +184,17 @@ public class FilesView
   }
   
   private void removeInvalidFileItems() {
-    DiskManagerFileInfo files[] = null;
     DiskManager diskManager = manager.getDiskManager();
-    if (diskManager != null)
-      files = diskManager.getFiles();
+    final DiskManagerFileInfo files[] = (diskManager != null) ? diskManager.getFiles() : null;
 
-    Object[] dataSources = getSelectedDataSources();
-    for (int i = 0; i < dataSources.length; i++) {
-      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)dataSources[i];
-      if (!containsFileInfo(files, fileInfo)) {
-        removeDataSource(fileInfo);
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+        if (fileInfo != null && !containsFileInfo(files, fileInfo)) {
+          removeDataSource(fileInfo);
+        }
       }
-    }
+    });
   }
   
   private boolean containsFileInfo(DiskManagerFileInfo[] files,

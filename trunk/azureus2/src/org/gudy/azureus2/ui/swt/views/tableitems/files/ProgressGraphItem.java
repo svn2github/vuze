@@ -64,6 +64,7 @@ public class ProgressGraphItem
   {
     int lastPercentDone = 0;
     private long last_draw_time;
+    private boolean bNoRed = false;
 
     public Cell(TableCell cell) {
       cell.addRefreshListener(this);
@@ -100,7 +101,7 @@ public class ProgressGraphItem
       }
 
       boolean bImageBufferValid = (lastPercentDone == percentDone) &&
-                                  cell.isValid();
+                                  cell.isValid() && bNoRed;
       if (bImageBufferValid) {
         return;
       }
@@ -128,6 +129,7 @@ public class ProgressGraphItem
   
         PEPiece[] pieces = pm==null?null:pm.getPieces();
   
+        bNoRed = true;
         for (int i = 0; i < newWidth; i++) {
           int a0 = (i * nbPieces) / newWidth;
           int a1 = ((i + 1) * nbPieces) / newWidth;
@@ -172,11 +174,12 @@ public class ProgressGraphItem
             nbAvailable = 1;
           }
   
-          int index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-          //System.out.print(index);
           gcImage.setBackground(written ? Colors.red
-                                        : requested ? Colors.grey : Colors.blues[index]);
+                                        : requested ? Colors.grey 
+                                                    : Colors.blues[(nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0)]);
           gcImage.fillRectangle(i, 1, 1, newHeight - 2);
+          if (written)
+            bNoRed = false;
         }
         gcImage.setForeground(
           (fileInfo.getDownloaded() == fileInfo.getLength()) ? Colors.blues[Colors.BLUES_DARKEST] 
