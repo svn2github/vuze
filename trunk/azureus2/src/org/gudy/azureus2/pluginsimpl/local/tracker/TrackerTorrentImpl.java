@@ -40,7 +40,7 @@ TrackerTorrentImpl
 {
 	protected TRHostTorrent		host_torrent;
 
-	protected List	listeners 			= new ArrayList();
+	protected List	listeners_cow		= new ArrayList();
 	protected List	removal_listeners	= new ArrayList();
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TrackerTorrent" );
@@ -235,27 +235,42 @@ TrackerTorrentImpl
 	}
 	
 	public void
+	preProcess(
+		TRHostTorrentRequest	request )
+	
+		throws TRHostException
+	{
+		List	listeners_ref = listeners_cow;
+		
+		for (int i=0;i<listeners_ref.size();i++){
+			
+			try{
+				((TrackerTorrentListener)listeners_ref.get(i)).preProcess(new TrackerTorrentRequestImpl(request));
+				
+			}catch( TrackerException e ){
+				
+				throw( new TRHostException( "Pre process fails", e ));
+			}
+		}
+	}
+	
+	public void
 	postProcess(
 		TRHostTorrentRequest	request )
 	
 		throws TRHostException
 	{
-		try{
-			this_mon.enter();
+		List	listeners_ref = listeners_cow;
 		
-			for (int i=0;i<listeners.size();i++){
-				
-				try{
-					((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
-					
-				}catch( TrackerException e ){
-					
-					throw( new TRHostException( "Post process fails", e ));
-				}
-			}
-		}finally{
+		for (int i=0;i<listeners_ref.size();i++){
 			
-			this_mon.exit();
+			try{
+				((TrackerTorrentListener)listeners_ref.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+				
+			}catch( TrackerException e ){
+				
+				throw( new TRHostException( "Post process fails", e ));
+			}
 		}
 	}
 	
@@ -266,12 +281,17 @@ TrackerTorrentImpl
 		try{
 			this_mon.enter();
 		
-			listeners.add( listener );
+			List	new_listeners = new ArrayList( listeners_cow );
 			
-			if ( listeners.size() == 1 ){
+			new_listeners.add( listener );
+			
+			if ( new_listeners.size() == 1 ){
 				
 				host_torrent.addListener( this );
 			}
+			
+			listeners_cow = new_listeners;
+			
 		}finally{
 			
 			this_mon.exit();
@@ -285,12 +305,17 @@ TrackerTorrentImpl
 		try{
 			this_mon.enter();
 		
-			listeners.remove( listener );
+			List	new_listeners = new ArrayList( listeners_cow );
 			
-			if ( listeners.size() == 0 ){
+			new_listeners.remove( listener );
+				
+			if ( new_listeners.size() == 0 ){
 				
 				host_torrent.removeListener(this);
 			}
+			
+			listeners_cow = new_listeners;
+
 		}finally{
 			
 			this_mon.exit();

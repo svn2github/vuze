@@ -38,6 +38,7 @@ DownloadManagerState
 	public static final String AT_NETWORKS		= "networks";
 	public static final String AT_USER			= "user";
 	public static final String AT_PEER_SOURCES	= "peersources";
+	public static final String AT_TRACKER_KEY	= "trackerkey";
 	
 	public TOTorrent
 	getTorrent();
@@ -113,6 +114,15 @@ DownloadManagerState
 	getAttribute(
 		String		name );		// make sure you use an AT_ value defined above
 
+	public void
+	setMapAttribute(
+		String		name,
+		Map			value );
+	
+	public Map
+	getMapAttribute(
+		String		name );
+	
 	public String[]
 	getListAttribute(
 		String		name );

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TRHostTorrentPublishImpl
@@ -45,7 +46,7 @@ TRHostTorrentPublishImpl
 	
 	protected TRHostPeer[]		peers = new TRHostPeer[0];
 	
-	protected List				listeners 			= new ArrayList();
+	protected List				listeners_cow		= new ArrayList();
 	protected List				removal_listeners	= new ArrayList();
 	
 	private HashMap data;
@@ -294,21 +295,42 @@ TRHostTorrentPublishImpl
 	}
 	
 	protected void
+	preProcess(
+		TRHostTorrentRequest	req )
+	
+		throws TRHostException
+	{
+		List	listeners_ref = listeners_cow;
+	
+		for (int i=0;i<listeners_ref.size();i++){
+		
+			try{
+				((TRHostTorrentListener)listeners_ref.get(i)).preProcess(req);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void
 	postProcess(
 		TRHostTorrentRequest	req )
 	
 		throws TRHostException
 	{
-		try{
-			this_mon.enter();
+		List	listeners_ref = listeners_cow;
+	
+		for (int i=0;i<listeners_ref.size();i++){
 		
-			for (int i=0;i<listeners.size();i++){
+			try{
+				((TRHostTorrentListener)listeners_ref.get(i)).postProcess(req);
 				
-				((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
-		}finally{
-			
-			this_mon.exit();
 		}
 	}
 	
@@ -319,14 +341,18 @@ TRHostTorrentPublishImpl
 		try{
 			this_mon.enter();
 	
-			listeners.add(l);
-		
-			host.torrentListenerRegistered();
+			List	new_listeners = new ArrayList( listeners_cow );
+			
+			new_listeners.add(l);
+			
+			listeners_cow	= new_listeners;
 			
 		}finally{
 			
 			this_mon.exit();
 		}
+		
+		host.torrentListenerRegistered();
 	}
 	
 	public void
@@ -335,8 +361,12 @@ TRHostTorrentPublishImpl
 	{
 		try{
 			this_mon.enter();
-
-			listeners.remove(l);
+		
+			List	new_listeners = new ArrayList( listeners_cow );
+			
+			new_listeners.remove(l);
+			
+			listeners_cow	= new_listeners;
 			
 		}finally{
 			

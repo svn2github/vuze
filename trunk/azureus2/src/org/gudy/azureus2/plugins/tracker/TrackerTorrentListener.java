@@ -28,6 +28,12 @@ package org.gudy.azureus2.plugins.tracker;
 public interface 
 TrackerTorrentListener 
 {
+	public void
+	preProcess(
+		TrackerTorrentRequest request )
+	
+		throws TrackerException;
+	
 	/**
 	 * This is called to give the opportunity to post-process the reply being
 	 * sent to a peer.

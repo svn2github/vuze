@@ -276,7 +276,7 @@ LoadTest
 			try{
 				torrent.peerContact("started", peer_id, 6881, address, false, key, uploaded, downloaded, left, interval );
 				
-				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( new HashMap(), null, true, num_want, 4, true, true );
 				
 				/*
 				byte[]	l = (byte[])m.get("peers");
@@ -317,7 +317,7 @@ LoadTest
 				
 				torrent.peerContact(null, peer_id, 6881, address, false,  key, uploaded, downloaded, left, interval );
 	
-				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( new HashMap(), null, true, num_want, 4, true, true );
 			
 				state	= ST_COMPLETED;
 				
@@ -334,7 +334,7 @@ LoadTest
 				
 				torrent.peerContact("complete", peer_id, 6881, address, false,  key, uploaded, downloaded, left, interval );
 	
-				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( new HashMap(), null, true, num_want, 4, true, true );
 			
 				state	= ST_COMPLETED;
 				

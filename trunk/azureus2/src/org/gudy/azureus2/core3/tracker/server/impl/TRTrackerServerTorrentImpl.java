@@ -499,6 +499,7 @@ TRTrackerServerTorrentImpl
 	
 	public Map
 	exportAnnounceToMap(
+		HashMap						preprocess_map,
 		TRTrackerServerPeerImpl		requesting_peer,		// maybe null for an initial announce from a stopped peer
 		boolean						include_seeds,
 		int							num_want,
@@ -548,6 +549,7 @@ TRTrackerServerTorrentImpl
 					
 			if ( 	caching_enabled &&
 					(!nat_warning) &&
+					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
 					cache_millis > 0 &&
 					num_want >= MIN_CACHE_ENTRY_SIZE &&
 					total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
@@ -851,6 +853,11 @@ TRTrackerServerTorrentImpl
 			}
 			
 			Map	root = new TreeMap();	// user TreeMap to pre-sort so encoding quicker
+			
+			if ( preprocess_map.size() > 0 ){
+				
+				root.putAll( preprocess_map );
+			}
 			
 			int	num_peers_returned	= rep_peers.size();
 			

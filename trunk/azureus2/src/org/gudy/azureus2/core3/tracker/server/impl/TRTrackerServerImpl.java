@@ -186,6 +186,7 @@ TRTrackerServerImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
 
+	private Vector	request_listeners 	= new Vector();
 	
 	public
 	TRTrackerServerImpl(
@@ -726,5 +727,61 @@ TRTrackerServerImpl
 		TRTrackerServerAuthenticationListener	l )
 	{
 		auth_listeners.remove(l);
+	}
+	
+	public void
+	preProcess(
+		TRTrackerServerPeerImpl		peer,
+		TRTrackerServerTorrentImpl	torrent,
+		int							type,
+		Map							response )
+	
+		throws TRTrackerServerException
+	{
+		Map	result	= null;
+
+		if ( request_listeners.size() > 0 ){
+			
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
+			
+			for (int i=0;i<request_listeners.size();i++){
+				
+				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).preProcess( req );
+			}
+		}
+	}
+	
+	public void
+	postProcess(
+		TRTrackerServerPeerImpl		peer,
+		TRTrackerServerTorrentImpl	torrent,
+		int							type,
+		Map							response )
+	
+		throws TRTrackerServerException
+	{
+		if ( request_listeners.size() > 0 ){
+			
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
+			
+			for (int i=0;i<request_listeners.size();i++){
+				
+				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
+			}
+		}
+	}
+		
+	public void
+	addRequestListener(
+		TRTrackerServerRequestListener	l )
+	{
+		request_listeners.addElement( l );
+	}
+	
+	public void
+	removeRequestListener(
+		TRTrackerServerRequestListener	l )
+	{
+		request_listeners.removeElement(l);
 	}
 }

@@ -61,8 +61,6 @@ TRTrackerServerTCP
 	private int		port;
 	private boolean	apply_ip_filter;
 	
-	private Vector	request_listeners 	= new Vector();
-	
 	private ThreadPool	thread_pool;
 	
 	private AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTCP" );
@@ -336,37 +334,5 @@ TRTrackerServerTCP
 		return( false );
 	}
 	
-	protected void
-	postProcess(
-		TRTrackerServerPeerImpl		peer,
-		TRTrackerServerTorrentImpl	torrent,
-		int							type,
-		Map							response )
-	
-		throws TRTrackerServerException
-	{
-		if ( request_listeners.size() > 0 ){
-			
-			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
-			
-			for (int i=0;i<request_listeners.size();i++){
-				
-				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
-			}
-		}
-	}
-		
-	public void
-	addRequestListener(
-		TRTrackerServerRequestListener	l )
-	{
-		request_listeners.addElement( l );
-	}
-	
-	public void
-	removeRequestListener(
-		TRTrackerServerRequestListener	l )
-	{
-		request_listeners.removeElement(l);
-	}
+
 }

@@ -976,6 +976,41 @@ TRHostImpl
 	}
 	
 	public void
+	preProcess(
+		TRTrackerServerRequest	request )
+	
+		throws TRTrackerServerException
+	{
+		if ( 	request.getType() 	== TRTrackerServerRequest.RT_ANNOUNCE  ||
+				request.getType() 	== TRTrackerServerRequest.RT_SCRAPE ){
+			
+			TRTrackerServerTorrent ts_torrent = request.getTorrent();
+		
+			HashWrapper	hash_wrapper = ts_torrent.getHash();
+			
+			TRHostTorrent h_torrent = lookupHostTorrentViaHash( hash_wrapper.getHash());
+			
+			if ( h_torrent != null ){
+				
+				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, new TRHostPeerHostImpl(request.getPeer()), request );
+			
+				try{
+					if ( h_torrent instanceof TRHostTorrentHostImpl ){
+					
+						((TRHostTorrentHostImpl)h_torrent).preProcess( req );
+					}else{
+						
+						((TRHostTorrentPublishImpl)h_torrent).preProcess( req );	
+					}
+				}catch( TRHostException e ){
+					
+					throw( new TRTrackerServerException( "Pre-process fails", e ));
+				}
+			}
+		}	
+	}
+	
+	public void
 	postProcess(
 		TRTrackerServerRequest	request )
 	

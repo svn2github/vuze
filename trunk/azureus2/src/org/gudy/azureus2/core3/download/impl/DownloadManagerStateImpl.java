@@ -1019,6 +1019,106 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	public Map
+	getMapAttribute(
+		String	attribute_name )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes != null ){
+			
+			Map	value = (Map)attributes.get( attribute_name );
+		
+			return( value );
+		}
+	
+		return( null );
+	}
+	
+	public void
+	setMapAttribute(
+		final String	attribute_name,
+		final Map		attribute_value )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			if ( attribute_value == null ){
+			
+					// nothing to do, no attributes and we're removing a value
+				
+				return;
+			}
+			
+			attributes = new HashMap();
+			
+			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+		}
+	
+		boolean	changed	= false;
+		
+		if ( attribute_value == null ){
+			
+			if ( attributes.containsKey( attribute_name )){
+			
+				attributes.remove( attribute_name );
+			
+				changed	= true;
+			}
+		}else{
+		
+			Map old_value = getMapAttribute( attribute_name );
+								
+			if ( old_value == null || old_value.size() != attribute_value.size()){
+				
+				attributes.put( attribute_name, attribute_value );
+					
+				changed	= true;
+				
+			}else{
+				
+				changed = !BEncoder.mapsAreIdentical( old_value, attribute_value ); 
+				
+				if ( changed ){
+					
+					attributes.put( attribute_name, attribute_value );
+				}
+			}
+		}
+		
+		if ( changed ){
+			
+			write_required	= true;
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+						this,
+						new DownloadManagerStateEvent()
+						{
+							public int
+							getType()
+							{
+								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
+							}
+							
+							public Object
+							getData()
+							{
+								return( attribute_name );
+							}
+						});
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
 	public static DownloadManagerState
 	getDownloadState(
 		DownloadManager	dm )
@@ -1116,6 +1216,20 @@ DownloadManagerStateImpl
 		public String[]
 		getListAttribute(
 			String	name )
+		{
+			return( null );
+		}
+		
+		public void
+		setMapAttribute(
+			String		name,
+			Map			value )
+		{
+		}
+		
+		public Map
+		getMapAttribute(
+			String		name )
 		{
 			return( null );
 		}

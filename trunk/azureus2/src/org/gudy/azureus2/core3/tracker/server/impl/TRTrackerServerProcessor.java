@@ -143,11 +143,15 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left,
 						interval );
 				
+				HashMap	pre_map = new HashMap();
+				
+				server.preProcess( peer, torrent, request_type, pre_map );
+				
 					// set num_want to 0 for stopped events as no point in returning peers
 				
 				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 				
-				root_out[0] = torrent.exportAnnounceToMap( peer, left > 0, stopped?0:num_want, interval, no_peer_id, compact );
+				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, no_peer_id, compact );
 				
 				peer_out[0]	= peer;				
 			}else{

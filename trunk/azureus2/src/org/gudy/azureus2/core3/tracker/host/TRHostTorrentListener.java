@@ -30,6 +30,12 @@ public interface
 TRHostTorrentListener
 {
 	public void
+	preProcess(
+		TRHostTorrentRequest	request )
+	
+		throws TRHostException;
+	
+	public void
 	postProcess(
 		TRHostTorrentRequest	request )
 	

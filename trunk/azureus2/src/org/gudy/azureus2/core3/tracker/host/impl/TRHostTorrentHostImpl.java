@@ -43,7 +43,7 @@ TRHostTorrentHostImpl
 	protected TOTorrent						torrent;
 	protected int							port;
 	
-	protected List				listeners			= new ArrayList();
+	protected List				listeners_cow		= new ArrayList();
 	protected List				removal_listeners	= new ArrayList();
 	
 	protected int				status	= TS_STOPPED;
@@ -621,26 +621,42 @@ TRHostTorrentHostImpl
 	}
 	
 	protected void
+	preProcess(
+		TRHostTorrentRequest	req )
+	
+		throws TRHostException
+	{
+		List	listeners_ref = listeners_cow;
+	
+		for (int i=0;i<listeners_ref.size();i++){
+		
+			try{
+				((TRHostTorrentListener)listeners_ref.get(i)).preProcess(req);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void
 	postProcess(
 		TRHostTorrentRequest	req )
 	
 		throws TRHostException
 	{
-		ArrayList	listeners_copy;
-		
-		try{
-			this_mon.enter();
-		
-			listeners_copy = new ArrayList( listeners );
-		
-		}finally{
-			
-			this_mon.exit();
-		}
+		List	listeners_ref = listeners_cow;
 	
-		for (int i=0;i<listeners_copy.size();i++){
+		for (int i=0;i<listeners_ref.size();i++){
 		
-			((TRHostTorrentListener)listeners_copy.get(i)).postProcess(req);
+			try{
+				((TRHostTorrentListener)listeners_ref.get(i)).postProcess(req);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -651,7 +667,11 @@ TRHostTorrentHostImpl
 		try{
 			this_mon.enter();
 	
-			listeners.add(l);
+			List	new_listeners = new ArrayList( listeners_cow );
+			
+			new_listeners.add(l);
+			
+			listeners_cow	= new_listeners;
 			
 		}finally{
 			
@@ -668,7 +688,11 @@ TRHostTorrentHostImpl
 		try{
 			this_mon.enter();
 		
-			listeners.remove(l);
+			List	new_listeners = new ArrayList( listeners_cow );
+			
+			new_listeners.remove(l);
+			
+			listeners_cow	= new_listeners;
 			
 		}finally{
 			
