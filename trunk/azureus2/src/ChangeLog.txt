@@ -31,7 +31,7 @@ CHANGE: Language files (MessageBundles_xx_XX.properties) are read in the followi
 CHANGE: Remember sorted column and order for all views [TuxPaper]
 CHANGE: Core performance optimizations and major cpu usage reductions [Nolar]
 CHANGE: User prompt when (1) tracker listens fails (2) incoming server port bind fails [Parg]
-CHANGE: Config files/dirs and plugins now stored in OS user dir (Win: C:\Documents and Settings\<username>\Azureus\, OSX: /Users/<username>/Azureus/, Linux: ~/Azureus/) [Nolar]
+CHANGE: Config files/dirs and plugins now stored in OS user dir (Win: C:\Documents and Settings\<username>\Application Data\Azureus\, OSX: /Users/<username>/Library/Azureus/, Linux: /home/username/Azureus/) [Nolar]
 
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
