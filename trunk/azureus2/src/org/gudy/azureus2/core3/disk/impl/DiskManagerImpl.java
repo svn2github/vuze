@@ -1615,16 +1615,18 @@ DiskManagerImpl
           destDir = new File(moveToDir + subPath);
      
           destDir.mkdirs();
-
+          
           //create the destination file pointer
           File newFile = new File(destDir, oldFile.getName());
 
           if (newFile.exists()) {
-            System.out.println("DiskManagerImpl::ERROR: " + oldFile.getName() + " already exists in MoveTo destination dir");
-            continue;
+            String msg = "" + oldFile.getName() + " already exists in MoveTo destination dir";
+            LGLogger.log(LGLogger.ERROR,msg);
+            Debug.out(msg);
+            return returnName;
           }
           
-          //close the currently open stream to we can move the file
+          //close the currently open stream so we can move the file
           files[i].getRaf().close();
           
           //move the file ~ rename old file pointer to new file pointer
@@ -1635,7 +1637,13 @@ DiskManagerImpl
             files[i].setRaf(newRaf);
             files[i].setAccessmode(DiskManagerFileInfo.READ);
             files[i].setFile(newFile);
-          } else System.out.println("DiskManagerImpl::ERROR: failed to move " + oldFile.getName());          
+          }
+          else {
+            String msg = "Failed to move " + oldFile.getName() + " to destination dir";
+            LGLogger.log(LGLogger.ERROR,msg);
+            Debug.out(msg);
+            return returnName;
+          }
         }
       }
       
