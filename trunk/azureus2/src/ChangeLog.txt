@@ -5,6 +5,7 @@ xx.xx.03 | Azureus 2.0.4.3
 
 FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for quicker download speed ramp up [Nolar]
 FEATURE: Azureus can now run all downloads off one shared incoming port: only need to open/forward one port in your firewall/NAT [Parg]
+FEATURE: Drag-n-Drop moving of downloads in MyTorrents; moving of downloads in MyTorrents with Ctrl + Arrow-Up/Down [Rele]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
