@@ -140,9 +140,10 @@ public class PiecesItem extends PeerGraphicItem  {
     }
 
     boolean available[] = infoObj.getAvailable();
-    boolean pieces[] = dm.getPiecesStatus();
     
     if (available != null && available.length > 0) {
+    try {
+      boolean pieces[] = dm.getPiecesStatus();
       int nbComplete = 0;
       int nbPieces = available.length;
       int a0;
@@ -203,7 +204,10 @@ public class PiecesItem extends PeerGraphicItem  {
       gcImage.setBackground(MainWindow.colorProgressBar);
       gcImage.fillRectangle(x0, borderHorizontalSize,
                             limit, completionHeight);
-    }
+    } catch (Exception e) {
+      System.out.println("Error Drawing PiecesItem");
+      e.printStackTrace();
+    } }
     gcImage.dispose();
 
     Image oldImage = getGraphic();
