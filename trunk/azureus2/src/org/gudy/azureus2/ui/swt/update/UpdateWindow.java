@@ -144,7 +144,10 @@ public class UpdateWindow implements Runnable{
         
         TableItem item = new TableItem(table,SWT.NULL);
         item.setData(update);
-        item.setText(0,update.getName());       
+        item.setText(0,update.getName());  
+        
+        
+        updateWindow.open();
       }
     });
   }
