@@ -455,6 +455,21 @@ public class MainWindow implements GlobalManagerListener {
         openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
       }
     });
+    
+    MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
+    Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
+    file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+        fDialog.setFilterExtensions(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setFilterNames(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+        String fileName = fDialog.open();
+        if (fileName == null)
+          return;
+        openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false);
+      }
+    });
 
     MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
     Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
@@ -1726,8 +1741,12 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public String getSavePath(String fileName) {
+    return getSavePath(fileName,true);
+  }
+  
+  public String getSavePath(String fileName,boolean useDefault) {
     String savePath = COConfigurationManager.getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
-    if (savePath.length() == 0) {
+    if (savePath.length() == 0 || ! useDefault) {
       mainWindow.setActive();
       boolean singleFile = false;
       String singleFileName = ""; //$NON-NLS-1$
@@ -1763,14 +1782,17 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrents(final String path, final String fileNames[]) {
+    openTorrents(path,fileNames,true);
+  }
+  
+  public void openTorrents(final String path, final String fileNames[],final boolean useDefault) {
     display.asyncExec(new Runnable() {
       public void run() {
-
         String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
           if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) //$NON-NLS-1$
             continue;
-          String savePath = getSavePath(path + separator + fileNames[i]);
+          String savePath = getSavePath(path + separator + fileNames[i],useDefault);
           if (savePath == null)
             continue;
           globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
