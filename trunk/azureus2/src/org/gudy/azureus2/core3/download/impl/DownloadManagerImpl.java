@@ -1583,7 +1583,7 @@ DownloadManagerImpl
           return WEALTH_NO_TRACKER;        
         return WEALTH_KO;        
       }
-      if( trackerStatus == TRTrackerResponse.ST_OFFLINE)
+      if( trackerStatus == TRTrackerResponse.ST_OFFLINE || trackerStatus == TRTrackerResponse.ST_REPORTED_ERROR)
         return WEALTH_NO_TRACKER;
       if( nbRemotes == 0 )
         return WEALTH_NO_REMOTE;

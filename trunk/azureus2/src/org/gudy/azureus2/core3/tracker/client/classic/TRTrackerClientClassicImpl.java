@@ -520,6 +520,7 @@ TRTrackerClientClassicImpl
 					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
 												
 						tracker_state = TS_STOPPED;
+						
 					}else{
 						
 							// just have one go at sending a stop event as we don't want to sit here
@@ -528,6 +529,17 @@ TRTrackerClientClassicImpl
 						tracker_state = TS_STOPPED;
 					}
 				}	
+			}else if ( tracker_state == TS_INITIALISED ){
+							
+					// always go through the "start" phase, even if we're already complete
+					// as some trackers insist on the initial "start"
+				
+				response = startSupport();
+					
+				if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+						
+					tracker_state = TS_DOWNLOADING;
+				}
 			}else if ( completed ){
 				
 				if ( !complete_reported ){
@@ -546,14 +558,6 @@ TRTrackerClientClassicImpl
 					response = updateSupport();
 				}
 				
-			}else if ( tracker_state == TS_INITIALISED ){
-								
-				response = startSupport();
-					
-				if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
-						
-					tracker_state = TS_DOWNLOADING;
-				}
 			}else{
 				
 				response = updateSupport();
@@ -565,7 +569,7 @@ TRTrackerClientClassicImpl
 				
 				if ( rs == TRTrackerResponse.ST_OFFLINE ){
       
-					tracker_status_str = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
+					tracker_status_str = MessageText.getString("PeerManager.status.offline"); 
       		      
 					String	reason = response.getFailureReason();
       		
@@ -575,8 +579,22 @@ TRTrackerClientClassicImpl
 					}
 				}else if ( rs == TRTrackerResponse.ST_REPORTED_ERROR ){
 
-					tracker_status_str = response.getFailureReason();
+					tracker_status_str = MessageText.getString("PeerManager.status.error"); 
+	      		      
+					String	reason = response.getFailureReason();
+      		
+					if ( reason != null ){
+      			
+						tracker_status_str += " (" + reason + ")";		
+					}
 			
+						// move state back to initialised to next time around a "started"
+						// event it resent. Required for trackers like 123torrents.com that
+						// will fail peers that don't start with a "started" event after a 
+						// tracker restart
+					
+					tracker_state	= TS_INITIALISED;
+					
 				}else{
 	    	       	        	
 					tracker_status_str = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
@@ -654,7 +672,7 @@ TRTrackerClientClassicImpl
   private TRTrackerResponse 
   update(String evt) 
   {
-	String	last_failure_reason = "";
+  	TRTrackerResponseImpl	last_failure_resp = null;
 		
 	for (int i = 0 ; i < trackerUrlLists.size() ; i++) {
 	  	
@@ -674,7 +692,7 @@ TRTrackerClientClassicImpl
 			  					  	  
 			  URL reqUrl = new URL(this_url_string);
 			  
-			  TRTrackerResponse resp = decodeTrackerResponse( updateOld(reqUrl));
+			  TRTrackerResponseImpl resp = decodeTrackerResponse( updateOld(reqUrl));
 			  
 		      if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
 					
@@ -692,43 +710,54 @@ TRTrackerClientClassicImpl
 	            		
 	            	return( resp );
 			  }else{
-			  	
-			  	String	this_reason = resp.getFailureReason();
-			  	
-			  	if ( this_reason != null ){
-			  		
-			  		last_failure_reason = this_reason;	
-			  	}
+			  				  		
+			  	last_failure_resp = resp;
 			  }
 		  }catch( MalformedURLException e ){
 		  	
 		  	e.printStackTrace();
 		  	
-		  	last_failure_reason = "malformed URL '" + this_url_string + "'";
+		  	last_failure_resp = 
+		  		new TRTrackerResponseImpl( 
+		  				TRTrackerResponse.ST_OFFLINE, 
+						getErrorRetryInterval(), 
+						"malformed URL '" + this_url_string + "'" );
 		  	
 		  }catch( Exception e ){
 		  	
 		  	//e.printStackTrace();
 		  	
-		  	last_failure_reason = e.getMessage();
+		  	last_failure_resp = 
+		  		new TRTrackerResponseImpl( 
+		  				TRTrackerResponse.ST_OFFLINE, 
+						getErrorRetryInterval(), 
+						e.getMessage());
 		  }
 		}
 	  } 
 	   
 		// things no good here
 	
-      TRTrackerResponseImpl res = new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), last_failure_reason );
-    
+		if ( last_failure_resp == null ){
+			
+		  	last_failure_resp = 
+		  		new TRTrackerResponseImpl( 
+		  				TRTrackerResponse.ST_OFFLINE, 
+						getErrorRetryInterval(), 
+						"Reason Unknown" );
+		
+		}
+     
       TRTrackerResponsePeer[]	cached_peers = getPeersFromCache();
       
       if ( cached_peers.length > 0 ){
 
       	// System.out.println( "cached peers used:" + cached_peers.length );
       	
-      	res.setPeers( cached_peers );
+      	last_failure_resp.setPeers( cached_peers );
       }
       
-      return( res );
+      return( last_failure_resp );
   }
 
  	private byte[] 
@@ -1515,7 +1544,7 @@ TRTrackerClientClassicImpl
 		// System.out.println( trackerUrlListString );
 	}
   
-  	protected TRTrackerResponse
+  	protected TRTrackerResponseImpl
   	decodeTrackerResponse(
   		byte[]		data )
   	{
@@ -1591,6 +1620,9 @@ TRTrackerClientClassicImpl
 				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval() ));
 	
 				     }else{
+				     	
+				     		// explicit failure from the tracker
+				     	
 				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
                             				
 				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
