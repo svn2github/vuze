@@ -40,7 +40,7 @@ TRTrackerServerProcessor
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(
 		TRTrackerServerImpl		_server,
-		Map						root,
+		Map[]					root_out,		// output
 		int						request_type,
 		byte[]					hash,
 		String					peer_id,
@@ -107,12 +107,8 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				List	peers = torrent.exportPeersToList( num_want );
-				
-				root.put( "peers", peers );
-				
-				root.put( "interval", new Long( interval ));
-				
+				root_out[0] = torrent.exportPeersToList( num_want, interval );
+								
 			}else{
 				
 				
@@ -127,6 +123,10 @@ TRTrackerServerProcessor
 				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 				
 				files.put( str_hash, hash_entry );
+				
+				Map	root = new HashMap();
+				
+				root_out[0] = root;
 				
 				addInterval( root );
 				
@@ -152,6 +152,10 @@ TRTrackerServerProcessor
 				
 				files.put( str_hash, hash_entry );
 			}
+	
+			Map	root = new HashMap();
+			
+			root_out[0] = root;
 			
 			addInterval( root );
 			

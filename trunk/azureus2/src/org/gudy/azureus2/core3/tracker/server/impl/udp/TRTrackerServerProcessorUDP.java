@@ -234,9 +234,7 @@ TRTrackerServerProcessorUDP
 			
 			return( null );
 		}
-		
-		Map	root = new HashMap();
-		
+				
 		byte[]		hash_bytes	= null;
 		String		peer_id		= null;
 		int			port		= 0;
@@ -299,8 +297,10 @@ TRTrackerServerProcessorUDP
 			hash_bytes	= scrape.getHash();
 		}
 		
+		Map[]	root_out = new Map[1];
+		
 		processTrackerRequest( 
-				server, root,
+				server, root_out,
 				request_type,
 				hash_bytes,
 				peer_id,
@@ -309,6 +309,8 @@ TRTrackerServerProcessorUDP
 				client_ip_address,
 				downloaded, uploaded, left,
 				num_peers, num_want );
+		
+		Map	root = root_out[0];
 		
 		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 

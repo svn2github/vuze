@@ -36,6 +36,10 @@ public class
 TRTrackerServerTorrentImpl 
 	implements TRTrackerServerTorrent
 {
+		// no point in caching replies smaller than that below
+	
+	public static final int	MIN_CACHE_ENTRY_SIZE	= 10;
+	
 	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
 
@@ -47,6 +51,8 @@ TRTrackerServerTorrentImpl
 	
 	protected long				last_scrape_calc_time;
 	protected Map				last_scrape;
+	
+	protected LinkedHashMap		announce_cache	= new LinkedHashMap();
 	
 	protected TRTrackerServerTorrentStatsImpl	stats;
 		
@@ -204,17 +210,58 @@ TRTrackerServerTorrentImpl
 		}										
 	}
 	
-	public synchronized List
+	public synchronized Map
 	exportPeersToList(
-		int		num_want )
+		int		num_want,
+		long	interval )
 	{
+		long	now = System.currentTimeMillis();
+		
 		int		total_peers	= peer_map.size();
-
-		if ( total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
+		int		cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
+		
+		boolean	add_to_cache	= false;
+		
+		if ( 	cache_millis > 0 &&
+				num_want >= MIN_CACHE_ENTRY_SIZE &&
+				total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
+						
+				// note that we've got to select a cache entry that is somewhat 
+				// relevant to the num_want param (but NOT greater than it)
 			
-			int	cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
+				// remove stuff that's too old
+						
+			Iterator	it = announce_cache.keySet().iterator();
 			
-			System.out.println( "cache period = " + cache_millis );
+			while( it.hasNext() ){
+				
+				Integer	key = (Integer)it.next();
+				
+				announceCacheEntry	entry = (announceCacheEntry)announce_cache.get( key );
+				
+				if ( now - entry.getTime() > cache_millis ){
+										
+					it.remove();
+					
+				}else{
+										
+					break;
+				}
+			}
+			
+				// look for an entry with a reasonable num_want
+			
+			for (int i=num_want/10;i>0;i--){
+								
+				announceCacheEntry	res = (announceCacheEntry)announce_cache.get(new Integer(i));
+				
+				if( res != null ){
+										
+					return( res.getData());
+				}
+			}
+		
+			add_to_cache	= true;
 		}
 		
 		
@@ -238,8 +285,6 @@ TRTrackerServerTorrentImpl
 	
 		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
 		
-		long	now = System.currentTimeMillis();
-				
 		boolean	send_peer_ids = TRTrackerServerImpl.getSendPeerIds();
 		
 			// if they want them all simply give them the set
@@ -353,7 +398,18 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
-		return( rep_peers );
+		Map	root = new HashMap();
+		
+		root.put( "peers", rep_peers );
+		
+		root.put( "interval", new Long( interval ));
+		
+		if ( add_to_cache ){
+						
+			announce_cache.put( new Integer(num_want/10), new announceCacheEntry( root ));
+		}
+		
+		return( root );
 	}
 	
 	public synchronized void
@@ -431,5 +487,32 @@ TRTrackerServerTorrentImpl
 	getHash()
 	{
 		return( hash );
+	}
+	
+	static class
+	announceCacheEntry
+	{
+		protected Map		data;
+		protected long		time;
+		
+		protected
+		announceCacheEntry(
+			Map		_data )
+		{
+			data		= _data;
+			time		= System.currentTimeMillis();
+		}
+		
+		protected long
+		getTime()
+		{
+			return( time );
+		}
+		
+		protected Map
+		getData()
+		{
+			return( data );
+		}
 	}
 }

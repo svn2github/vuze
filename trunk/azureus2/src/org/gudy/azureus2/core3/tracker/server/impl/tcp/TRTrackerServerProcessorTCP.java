@@ -240,7 +240,7 @@ TRTrackerServerProcessorTCP
 		throws IOException
 	{
 		try{
-			Map	root = new HashMap();
+			Map	root = null;
 				
 			boolean	gzip_reply = false;
 			
@@ -400,9 +400,11 @@ TRTrackerServerProcessorTCP
 					hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
 				}
 				
+				Map[]	root_out = new Map[1];
+				
 				TRTrackerServerTorrentImpl	torrent = 
 						processTrackerRequest( 
-							server, root,
+							server, root_out,
 							request_type,
 							hash_bytes,
 							peer_id,
@@ -411,6 +413,8 @@ TRTrackerServerProcessorTCP
 							client_ip_address,
 							downloaded, uploaded, left,
 							num_peers, num_want );
+				
+				root	= root_out[0];
 				
 				server.postProcess( torrent, request_type, root );
 				
@@ -426,26 +430,46 @@ TRTrackerServerProcessorTCP
 								
 					message = e.toString();
 				}
-								
+					
+				root	= new HashMap();
+				
 				root.put( "failure reason", message );
 			}
 		
-			byte[] data = BEncoder.encode( root );
-				
-			if ( gzip_reply ){
-				
-				ByteArrayOutputStream tos = new ByteArrayOutputStream(data.length);
-				
-				GZIPOutputStream gos = new GZIPOutputStream( tos );
-				
-				gos.write( data );
-				
-				gos.close();
-				
-				data = tos.toByteArray();
-			}
+				// cache both plain and gzip encoded data for possible reuse
 			
-			// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
+			byte[] data 		= (byte[])root.get( "_data" );
+					
+			if ( data == null ){
+				
+				data = BEncoder.encode( root );
+				
+				root.put( "_data", data );
+			}
+						
+			if ( gzip_reply ){
+
+				byte[]	gzip_data = (byte[])root.get( "_gzipdata");
+				
+				if ( gzip_data == null ){
+						
+					ByteArrayOutputStream tos = new ByteArrayOutputStream(data.length);
+					
+					GZIPOutputStream gos = new GZIPOutputStream( tos );
+					
+					gos.write( data );
+					
+					gos.close();
+					
+					gzip_data = tos.toByteArray();
+					
+					root.put( "_gzipdata", gzip_data );
+				}
+				
+				data	= gzip_data;
+			}
+						
+				// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
 				
 			StringBuffer output_header = new StringBuffer(data.length+256);
 			
