@@ -122,7 +122,10 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       fosLog.write(("SWT Updater is about to execute : " + execLog + "\n").getBytes());         
       fosLog.close();
       
-      Runtime.getRuntime().exec(exec);
+      File userDir = new File(userPath);
+      String[] env = {"user.dir=" + userPath };
+      
+      Runtime.getRuntime().exec(exec,env,userDir);
     } catch(Exception e) {
       e.printStackTrace();
     }
