@@ -27,6 +27,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -186,9 +188,9 @@ PluginInitializer
   
   public void 
   initializePlugins(
-  		int		ui_type ) 
+  		AzureusCore		core  ) 
   {
-    PluginManagerImpl.setStartType( ui_type );
+    PluginManagerImpl.setStartDetails( core );
     
   		// first do explicit plugins
   	  	

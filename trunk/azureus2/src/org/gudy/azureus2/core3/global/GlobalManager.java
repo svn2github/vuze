@@ -23,12 +23,15 @@ package org.gudy.azureus2.core3.global;
 
 import java.util.List;
 
+import com.aelitis.azureus.core.AzureusCoreComponent;
+
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.download.*;
 
 public interface
 GlobalManager
+	extends AzureusCoreComponent
 {
 	public DownloadManager
 	addDownloadManager(

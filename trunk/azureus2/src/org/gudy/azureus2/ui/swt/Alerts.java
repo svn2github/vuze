@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -232,9 +231,7 @@ public class Alerts {
     {
     	public void
     	run()
-    	{
-    		PluginInitializer.initialisationComplete();
-    		
+    	{   		
     		synchronized( alert_queue ){
     			
     			initialisation_complete	= true;

@@ -22,12 +22,15 @@
 
 package com.aelitis.azureus.core.impl;
 
+import java.util.*;
 import java.io.UnsupportedEncodingException;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
@@ -43,7 +46,7 @@ import com.aelitis.azureus.core.*;
 public class 
 AzureusCoreImpl 
 	extends		LocaleUtil
-	implements 	AzureusCore
+	implements 	AzureusCore, STProgressListener
 {
 	protected static AzureusCore		singleton;
 	
@@ -66,7 +69,8 @@ AzureusCoreImpl
 	
 	
 	protected boolean			running;
-	
+	protected List				listeners				= new ArrayList();
+	protected List				lifecycle_listeners		= new ArrayList();
 	
 	protected
 	AzureusCoreImpl()
@@ -75,7 +79,18 @@ AzureusCoreImpl
 		
 		COConfigurationManager.checkConfiguration();
 		
+		LGLogger.initialise();
+
+			// set the default locale chooser, can be overridden later
+		
 		LocaleUtil.setLocaleUtilChooser(this);
+	}
+	
+	public void
+	setLocaleChooser(
+		ILocaleUtilChooser		_util )
+	{
+		LocaleUtil.setLocaleUtilChooser(_util);
 	}
 	
 	public synchronized void
@@ -90,18 +105,30 @@ AzureusCoreImpl
 		
 		running	= true;
 		
-		global_manager = GlobalManagerFactory.create();
+		global_manager = GlobalManagerFactory.create( this );
+		
+		for (int i=0;i<lifecycle_listeners.size();i++){
 			
-	    PluginInitializer.getSingleton(global_manager,null).initializePlugins( PluginManager.UI_NONE );
+			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
+		}
+
+	    PluginInitializer.getSingleton(global_manager,this).initializePlugins( this );
 	        
+	    LGLogger.log("Initializing Plugins complete");
+
 	    new AEThread("Plugin Init Complete")
-	        {
+	       {
 	        	public void
 	        	run()
 	        	{
 	        		PluginInitializer.initialisationComplete();
+	        		
+	        		for (int i=0;i<lifecycle_listeners.size();i++){
+	        			
+	        			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
+	        		}
 	        	}
-	        }.start();   
+	       }.start();   
 	}
 	
 	public synchronized void
@@ -117,6 +144,44 @@ AzureusCoreImpl
 		running	= false;
 		
 		global_manager.stopAll();
+		
+		for (int i=0;i<lifecycle_listeners.size();i++){
+			
+			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+		}
+	}
+	
+	
+	public void
+	requestStop()
+	
+		throws AzureusCoreException
+	{
+		for (int i=0;i<lifecycle_listeners.size();i++){
+			
+			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( this )){
+				
+				return;
+			}
+		}
+
+		stop();
+	}
+	
+	public void
+	requestRestart()
+	
+		throws AzureusCoreException
+	{
+		for (int i=0;i<lifecycle_listeners.size();i++){
+			
+			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this )){
+				
+				return;
+			}
+		}
+		
+		throw( new AzureusCoreException("Restart request unhandled" ));
 	}
 	
 	public GlobalManager
@@ -175,4 +240,51 @@ AzureusCoreImpl
 		return( new String( array ));
 	}
 	
+	public void 
+	reportCurrentTask(
+		String currentTask )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((AzureusCoreListener)listeners.get(i)).reportCurrentTask( currentTask ); 
+		}
+	}
+	  
+	public void 
+	reportPercent(
+		int percent )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((AzureusCoreListener)listeners.get(i)).reportPercent( percent ); 
+		}
+	}
+	
+	public void
+	addLifecycleListener(
+		AzureusCoreLifecycleListener	l )
+	{
+		lifecycle_listeners.add(l);
+	}
+	
+	public void
+	removeLifecycleListener(
+		AzureusCoreLifecycleListener	l )
+	{
+		lifecycle_listeners.remove(l);
+	}
+	
+	public void
+	addListener(
+		AzureusCoreListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		AzureusCoreListener	l )
+	{
+		listeners.remove( l );
+	}
 }

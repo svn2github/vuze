@@ -27,12 +27,10 @@ import java.util.Iterator;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.startup.STProgressListener;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -40,8 +38,11 @@ import org.gudy.azureus2.ui.swt.StartServer;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
+import org.gudy.azureus2.ui.swt.update.Restarter;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
+
+import com.aelitis.azureus.core.*;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -51,20 +52,125 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
  * 4. The GlobalManager
  * 5. The Main Window in correct state or the Password window if needed.
  */
-public class Initializer implements STProgressListener, Application {
-  
-  private GlobalManager gm;
-  private StartServer startServer;
+public class 
+Initializer 
+	implements AzureusCoreListener, Application 
+{
+  private AzureusCore		core;
+  private GlobalManager 	gm;
+  private StartServer 		startServer;
   
   private ArrayList listeners;
   private String[] args;
   
-  public Initializer(StartServer server,String[] args) {
+  public 
+  Initializer(
+  		AzureusCore		_core,
+  		StartServer 	_server,
+		String[] 		_args ) 
+  {
     
-    this.listeners = new ArrayList();
+    listeners = new ArrayList();
     
-    this.startServer = server;
-    this.args = args;
+    core			= _core;
+    startServer 	= _server;
+    args 			= _args;
+    
+    	// these lifecycle actions are initially to handle plugin-initiated stops and restarts
+    
+    core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public boolean
+				stopRequested(
+					AzureusCore		core )
+				
+					throws AzureusCoreException
+				{
+					final Semaphore			sem 	= new Semaphore();
+					final AzureusCoreException[]	error 	= {null};
+					
+					try{
+						MainWindow.getWindow().getDisplay().asyncExec(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									try{
+								
+										if ( !MainWindow.getWindow().dispose()){
+											
+											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
+										}	
+									}finally{
+											
+										sem.release();
+									}
+								}
+							});
+					}catch( Throwable e ){
+						
+						error[0]	= new AzureusCoreException( "SWT Initializer: closeAzureus fails", e );
+						
+						sem.release();
+					}
+					
+					sem.reserve();
+					
+					if ( error[0] != null ){
+			
+						// removed reporting of error 
+					}	
+					
+					return( true );
+				}	
+				
+				public boolean
+				restartRequested(
+					AzureusCore		core )
+				{
+					final Semaphore			sem 	= new Semaphore();
+					final AzureusCoreException[]	error 	= {null};
+						
+					try{
+						MainWindow.getWindow().getDisplay().asyncExec(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									try{				
+										if ( !MainWindow.getWindow().dispose()){
+												
+											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
+										}	
+										
+										Restarter.restartForUpgrade();
+									}finally{
+												
+										sem.release();
+									}
+								}
+							});
+					}catch( Throwable e ){
+							
+						error[0]	= new AzureusCoreException( "SWT Initializer: closeAzureus fails", e );
+							
+						sem.release();
+					}
+						
+					sem.reserve();
+						
+					if ( error[0] != null ){
+
+						// removed reporting of error 
+					
+					}
+					
+					return( true );
+				}
+			});
     
     try {
       SWTThread.createInstance(this);
@@ -73,74 +179,110 @@ public class Initializer implements STProgressListener, Application {
     }
   }  
     
-  public void run() {  
-    SWTThread swt = SWTThread.getInstance();
-    
-    Display display = swt.getDisplay();
-    
-    //The splash window, if displayed will need some images. 
-    ImageRepository.loadImagesForSplashWindow(display);
-    
-    //Splash Window is not always shown
-    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
-      SplashWindow.create(display,this);
-    }
-    
-    setNbTasks(6);
-    
-    reportCurrentTaskByKey("splash.firstMessageNoI18N");
-    nextTask();   
-    Alerts.init();
-    StartupUtils.setLocale();
-    COConfigurationManager.checkConfiguration();
-    new AuthenticatorWindow();
-    new CertificateTrustWindow();
-     
-    nextTask();
-    reportCurrentTaskByKey("splash.loadingImages");
-    ImageRepository.loadImages(display);
-    
-    reportCurrentTaskByKey("splash.initializeGM");   
-    nextTask();
-    this.gm = GlobalManagerFactory.create(this);
-    new UserAlerts(gm);
-    
-    
-    
-    
-    nextTask();
-    reportCurrentTaskByKey("splash.initializeGui");
-    new Colors();
-    Cursors.init();
-    new MainWindow(gm,this);
-    
-    AssociationChecker.checkAssociations();
+  public void 
+  run() 
+  {
+  	try{
+	    SWTThread swt = SWTThread.getInstance();
+	    
+	    Display display = swt.getDisplay();
+	    
+	    //The splash window, if displayed will need some images. 
+	    ImageRepository.loadImagesForSplashWindow(display);
+	    
+	    //Splash Window is not always shown
+	    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
+	      SplashWindow.create(display,this);
+	    }
+	    	    
+	    setNbTasks(6);
+	    
+	    nextTask(); 	    
+	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
+	    
+	    Alerts.init();
+	    
+	    StartupUtils.setLocale();
+	    
+	    COConfigurationManager.checkConfiguration();
+	    
+	    new AuthenticatorWindow();
+	    
+	    new CertificateTrustWindow();
 
-    nextTask();  
-    reportCurrentTaskByKey( "splash.initializePlugins");
-    PluginInitializer.getSingleton(gm,this).initializePlugins( PluginManager.UI_SWT );        
-    LGLogger.log("Initializing Plugins complete");
-    
-    nextTask();
-    reportCurrentTaskByKey( "splash.openViews");
-    
-    SWTUpdateChecker.initialize();
-    
-    UpdateMonitor.getSingleton();	// setup the update monitor
-	
-    //Tell listeners that all is initialized :
-    
-    Alerts.initComplete();
-    
-    nextTask();
-    
-    
-    //Finally, open torrents if any.
-    if (args.length != 0) {
-      TorrentOpener.openTorrent( args[0]);
-    }
-    
-     
+	    nextTask(); 	    
+	    reportCurrentTaskByKey("splash.loadingImages");
+	    
+	    ImageRepository.loadImages(display);
+	    
+	    nextTask();
+	    reportCurrentTaskByKey("splash.initializeGM");
+	    
+	    core.addListener( this );
+	    
+	    core.addLifecycleListener(
+	    	new AzureusCoreLifecycleAdapter()
+			{
+	    		public void
+				componentCreated(
+					AzureusCore					core,
+					AzureusCoreComponent		comp )
+	    		{
+	    			if ( comp instanceof GlobalManager ){
+	    				
+	    				gm	= (GlobalManager)comp;
+
+		    		    new UserAlerts(gm);
+		    		    
+		    		    nextTask();	    
+		    		    reportCurrentTaskByKey("splash.initializeGui");
+		    		    
+		    		    new Colors();
+		    		    
+		    		    Cursors.init();
+		    		    
+		    		    new MainWindow(gm,Initializer.this);
+		    		    
+		    		    AssociationChecker.checkAssociations();
+
+	    				nextTask();	    
+	    				reportCurrentTask(MessageText.getString("splash.initializePlugins"));    				
+	    			}
+	    		}
+	    		
+	    		public void
+				started(
+					AzureusCore		core )
+	    		{	    		      		    	    
+	    		    nextTask();
+	    		    reportCurrentTaskByKey( "splash.openViews");
+
+	    		    SWTUpdateChecker.initialize();
+	    		    
+	    		    UpdateMonitor.getSingleton();	// setup the update monitor
+	    			
+	    		    //Tell listeners that all is initialized :
+	    		    
+	    		    Alerts.initComplete();
+	    		    
+	    		    nextTask();
+	    		    
+	    		    
+	    		    //Finally, open torrents if any.
+	    		    if (args.length != 0) {
+	    		      TorrentOpener.openTorrent( args[0]);
+	    		    }
+	    		}
+			});
+	    
+	    core.start();
+
+  	}catch( Throwable e ){
+  	
+  		LGLogger.log( "Initialization fails:", e );
+  		
+  		e.printStackTrace();
+  	} 
   }
   
   public GlobalManager getGlobalManager() {
@@ -174,16 +316,13 @@ public class Initializer implements STProgressListener, Application {
     SWTThread.getInstance().terminate();
   }
   
-  public static void main(String args[]) {
-    new Initializer(null,args);
-  }
   
-  public void reportCurrentTask(String currentTask) {
-    synchronized(listeners) {
+  public void reportCurrentTask(String currentTaskString) {
+     synchronized(listeners) {
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
 	      STProgressListener listener = (STProgressListener) iter.next();
-	      listener.reportCurrentTask(currentTask);
+	      listener.reportCurrentTask(currentTaskString);
 	    }
     }
   }
@@ -231,4 +370,19 @@ public class Initializer implements STProgressListener, Application {
   private void reportCurrentTaskByKey(String key) {
     reportCurrentTask(MessageText.getString(key));
   }
+  
+  
+  public static void main(String args[]) 
+  {
+  	try{
+  		AzureusCore		core = AzureusCoreFactory.create();
+
+  		new Initializer( core, null,args);
+  		
+  	}catch( AzureusCoreException e ){
+  		
+  		e.printStackTrace();
+  	}
+  }
+ 
 }

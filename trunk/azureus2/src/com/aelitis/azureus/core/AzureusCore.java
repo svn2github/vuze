@@ -29,21 +29,51 @@ package com.aelitis.azureus.core;
 
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.plugins.*;
 
 public interface 
 AzureusCore 
 {
 	public void
+	setLocaleChooser(
+		ILocaleUtilChooser		_util );
+	
+	public void
 	start()
 	
 		throws AzureusCoreException;
+	
+		/**
+		 * stop the core and inform lifecycle listeners of stopping
+		 * @throws AzureusCoreException
+		 */
 	
 	public void
 	stop()
 	
 		throws AzureusCoreException;
 	
+		/**
+		 * ask lifecycle listeners to perform a stop. they may veto this by throwing an exception, or do nothing
+		 * if nothing is done then it will be stopped as per "stop" above
+		 * @throws AzureusCoreException
+		 */
+	
+	public void
+	requestStop()
+	
+		throws AzureusCoreException;
+	
+		/**
+		 * request a restart of the system - currently only available for swt based systems 
+		 * @throws AzureusCoreException
+		 */
+	
+	public void
+	requestRestart()
+	
+		throws AzureusCoreException;
 	
 	public GlobalManager
 	getGlobalManager()
@@ -64,4 +94,20 @@ AzureusCore
 	getTrackerHost()
 	
 		throws AzureusCoreException;
+	
+	public void
+	addLifecycleListener(
+		AzureusCoreLifecycleListener	l );
+	
+	public void
+	removeLifecycleListener(
+		AzureusCoreLifecycleListener	l );
+	
+	public void
+	addListener(
+		AzureusCoreListener	l );
+	
+	public void
+	removeListener(
+		AzureusCoreListener	l );
 }

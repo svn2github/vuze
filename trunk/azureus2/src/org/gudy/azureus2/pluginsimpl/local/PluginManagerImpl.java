@@ -28,10 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.update.Restarter;
 
 import com.aelitis.azureus.core.*;
 
@@ -40,7 +37,6 @@ PluginManagerImpl
 	extends PluginManager
 {
 	protected static boolean	running		= false;
-	protected static int		ui_type		= PluginManager.UI_NONE;
 	
 	protected static PluginManagerImpl	singleton;
 	
@@ -60,7 +56,7 @@ PluginManagerImpl
 	
 	public static void
 	startAzureus(
-		int			_ui_type,
+		int			ui_type,
 		Properties	properties )
 	{
 		synchronized( PluginManagerImpl.class ){
@@ -71,8 +67,6 @@ PluginManagerImpl
 			}
 			
 			running	= true;
-			
-			ui_type	= _ui_type;
 		}
 		
 			// there's a small window here when an immediate "stop" wouldn't work coz
@@ -87,6 +81,21 @@ PluginManagerImpl
 			try{
 				
 				azureus_core = AzureusCoreFactory.create();
+				
+				azureus_core.addLifecycleListener(
+					new AzureusCoreLifecycleAdapter()
+					{
+						public boolean
+						stopRequested(
+							AzureusCore		core )
+						
+							throws AzureusCoreException
+						{
+							core.stop();
+							
+							return( true );
+						}						
+					});
 				
 				azureus_core.start();
 				
@@ -124,58 +133,15 @@ PluginManagerImpl
 			
 			throw( new RuntimeException( "Azureus is not running"));
 		}
-		
-		if ( ui_type == PluginManager.UI_NONE ){
+					
+		try{
+			azureus_core.requestStop();
 			
-				// can't invoke directly as the ui.common stuff isn't part of the core distribution
-				// org.gudy.azureus2.ui.common.Main.shutdown();
-			
-			try{
-				azureus_core.stop();
-				
-			}catch( Throwable e ){
+		}catch( Throwable e ){
 							
-				throw( new PluginException( "PluginManager: Azureus close action failed", e));
-			}
-		}else if ( ui_type == PluginManager.UI_SWT ){
-			
-			final Semaphore			sem 	= new Semaphore();
-			final PluginException[]	error 	= {null};
-			
-			try{
-				MainWindow.getWindow().getDisplay().asyncExec(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							try{
-						
-								if ( !MainWindow.getWindow().dispose()){
-									
-									error[0] = new PluginException( "PluginManager: Azureus close action failed");
-								}	
-							}finally{
-									
-								sem.release();
-							}
-						}
-					});
-			}catch( Throwable e ){
-				
-				error[0]	= new PluginException( "PluginManager: closeAzureus fails", e );
-				
-				sem.release();
-			}
-			
-			sem.reserve();
-			
-			if ( error[0] != null ){
-	
-				// removed reporting of error 
-			}
+			throw( new PluginException( "PluginManager: Azureus close action failed", e));
 		}
-		
+
 		running	= false;
 	}
 	
@@ -189,47 +155,12 @@ PluginManagerImpl
 			throw( new RuntimeException( "Azureus is not running"));
 		}
 		
-		if ( ui_type != PluginManager.UI_SWT ){
-			
-			throw( new RuntimeException( "Only SWT type Azureus restart supported"));
-		}
-		
-		final Semaphore			sem 	= new Semaphore();
-		final PluginException[]	error 	= {null};
-			
 		try{
-			MainWindow.getWindow().getDisplay().asyncExec(
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						try{				
-							if ( !MainWindow.getWindow().dispose()){
-									
-								error[0] = new PluginException( "PluginManager: Azureus close action failed");
-							}	
-							
-							Restarter.restartForUpgrade();
-						}finally{
-									
-							sem.release();
-						}
-					}
-				});
+			azureus_core.requestRestart();
+			
 		}catch( Throwable e ){
-				
-			error[0]	= new PluginException( "PluginManager: closeAzureus fails", e );
-				
-			sem.release();
-		}
-			
-		sem.reserve();
-			
-		if ( error[0] != null ){
-
-			// removed reporting of error 
-		
+							
+			throw( new PluginException( "PluginManager: Azureus restart action failed", e));
 		}
 			
 		running	= false;
@@ -242,12 +173,12 @@ PluginManagerImpl
 		 */
 	
 	public static void
-	setStartType(
-		int			_type )
+	setStartDetails(
+		AzureusCore		_core )
 	{
-		ui_type		= _type;
+		azureus_core	= _core;
 		
-		running		= true;
+		running			= true;
 	}
 	
 	public static void
