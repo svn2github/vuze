@@ -41,7 +41,7 @@ public class ShellManager
 {
     private static ShellManager instance;
 
-    private final Set shells = new HashSet();
+    private final Collection shells = new ArrayList();
     private final List addHandlers = new LinkedList();
     private final List removeHandlers = new LinkedList();
 
@@ -62,7 +62,7 @@ public class ShellManager
     }
 
     /**
-     * Adds a shell to the shell manager
+     * Adds a shell to the shell manager. If the shell is already managed, it is not added again.
      * <p><b>Note</b>: This method must be invoked by the SWT display thread</p>
      * @param shell A SWT Shell
      */
@@ -94,7 +94,8 @@ public class ShellManager
     }
 
     /**
-     * Gets the shells managed by the manager as an Iterator
+     * <p>Gets the shells managed by the manager as an Iterator</p>
+     * <p>The order in which the shells were added are retained.</p>
      * <p><b>Note</b>: This method must be invoked by the SWT display thread</p>
      * @return The iterator
      */
@@ -143,7 +144,7 @@ public class ShellManager
      * Gets the set of managed shells
      * @return The set
      */
-    protected final Set getManagedShellSet()
+    protected final Collection getManagedShellSet()
     {
         return shells;
     }
