@@ -234,8 +234,8 @@ PluginUpdatePlugin
 			
 			for ( int i=0;i<plugins_to_check.size();i++){
 				
-				final PluginInterface	pi 			= (PluginInterface)plugins_to_check.get(i);
-				final String			plugin_id 	= pi.getPluginID();
+				final PluginInterface	pi_being_checked 	= (PluginInterface)plugins_to_check.get(i);
+				final String			plugin_id 			= pi_being_checked.getPluginID();
 								
 				boolean	found	= false;
 				
@@ -267,7 +267,7 @@ PluginUpdatePlugin
 	
 					boolean az_cvs = plugin_interface.getUtilities().isCVSVersion();
 					
-					String az_plugin_version	= pi.getPluginVersion();
+					String az_plugin_version	= pi_being_checked.getPluginVersion();
 					
 					String sf_plugin_version	= details.getVersion();
 					String sf_plugin_download	= details.getDownloadURL();
@@ -295,7 +295,7 @@ PluginUpdatePlugin
 					
 					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + az_plugin_version + ", Latest: " + sf_plugin_version );
 					
-					if ( comp < 0 && ! ( plugin_interface.getPlugin() instanceof UpdatableComponent)){
+					if ( comp < 0 && ! ( pi_being_checked.getPlugin() instanceof UpdatableComponent)){
 													
 							// only update if newer verison + plugin itself doesn't handle
 							// the update
@@ -389,7 +389,7 @@ PluginUpdatePlugin
 										log.addListener(list);
 											
 										installUpdate( 
-												pi,
+												pi_being_checked,
 												plugin_unloadable,
 												f_sf_plugin_download, 
 												f_sf_plugin_version, 
