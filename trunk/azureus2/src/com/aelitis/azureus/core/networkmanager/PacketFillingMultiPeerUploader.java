@@ -524,6 +524,10 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     return written > 0 ? true : false;
   }
 
+  public int getPriority() {
+    return RateControlledWriteEntity.PRIORITY_HIGH;
+  }
+  
  ///////////////////////////////////////////////////////////////////////////////
   
 }

@@ -31,7 +31,8 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class WriteController {
   private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
-  private final LinkedHashMap entities = new LinkedHashMap();
+  private final LinkedHashMap normal_priority_entities = new LinkedHashMap();
+  private final LinkedHashMap high_priority_entities = new LinkedHashMap();
   private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
   
   
@@ -69,35 +70,95 @@ public class WriteController {
   
   
   private void writeProcessorLoop() {
+    boolean check_high_first = true;
+    
     while( true ) {
       RateControlledWriteEntity ready_entity = null;
       
-      //find the next ready entity
-      try {  entities_mon.enter();
-        for( Iterator i = entities.keySet().iterator(); i.hasNext(); ) {
-          ready_entity = (RateControlledWriteEntity)i.next();
-          if( ready_entity.canWrite() ) {  //is ready
-            i.remove();  //remove from beginning and...
-            break;
+      if( check_high_first ) {
+        ready_entity = getNextReadyHighPriorityEntity();
+        if( ready_entity != null ) { //ready high entity found
+          ready_entity.doWrite();
+          check_high_first = false; //start with normal next round
+        }
+        else { //none ready in high-priority, so check normal-priority
+          ready_entity = getNextReadyNormalPriorityEntity();
+          if( ready_entity != null ) { //ready normal entity found
+            ready_entity.doWrite();
           }
-          ready_entity = null;  //not ready, so leave at beginning for checking next round
-        }
-        
-        if( ready_entity != null ) {
-          entities.put( ready_entity, null );  //...put back at the end
+          else { //none ready in normal-priority either, so sleep
+            try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
+          }
         }
       }
-      finally {  entities_mon.exit();  }
-      
-      
-      if( ready_entity != null ) {
-        ready_entity.doWrite();  //do the write op
-      }
-      else { //none ready, so sleep a bit
-        try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
+      else { //check normal first
+        check_high_first = true; //start with high next round
+        ready_entity = getNextReadyNormalPriorityEntity();
+        if( ready_entity != null ) { //ready normal entity found
+          ready_entity.doWrite();
+        }
+        else { //none ready in normal-priority, so check high-priority
+          ready_entity = getNextReadyHighPriorityEntity();
+          if( ready_entity != null ) { //ready high entity found
+            ready_entity.doWrite();
+            check_high_first = false;  //start with normal again next round
+          }
+          else { //none ready in high-priority either, so sleep
+            try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
+          }
+        }
       }
     }
   }
+  
+  
+  private RateControlledWriteEntity getNextReadyNormalPriorityEntity() {
+    RateControlledWriteEntity ready_entity = null;
+    
+    try {  entities_mon.enter();
+      //find the next ready entity
+      for( Iterator i = normal_priority_entities.keySet().iterator(); i.hasNext(); ) {
+        ready_entity = (RateControlledWriteEntity)i.next();
+        if( ready_entity.canWrite() ) {  //is ready
+          i.remove();  //remove from beginning and...
+          break;
+        }
+        ready_entity = null;  //not ready, so leave at beginning for checking next round
+      }
+      
+      if( ready_entity != null ) {
+        normal_priority_entities.put( ready_entity, null );  //...put back at the end
+      }
+    }
+    finally {  entities_mon.exit();  }
+ 
+    return ready_entity;
+  }
+  
+  
+  private RateControlledWriteEntity getNextReadyHighPriorityEntity() {
+    RateControlledWriteEntity ready_entity = null;
+    
+    try {  entities_mon.enter();
+      //find the next ready entity
+      for( Iterator i = high_priority_entities.keySet().iterator(); i.hasNext(); ) {
+        ready_entity = (RateControlledWriteEntity)i.next();
+        if( ready_entity.canWrite() ) {  //is ready
+          i.remove();  //remove from beginning and...
+          break;
+        }
+        ready_entity = null;  //not ready, so leave at beginning for checking next round
+      }
+      
+      if( ready_entity != null ) {
+        high_priority_entities.put( ready_entity, null );  //...put back at the end
+      }
+    }
+    finally {  entities_mon.exit();  }
+ 
+    return ready_entity;
+  }
+  
   
   
   /**
@@ -106,8 +167,13 @@ public class WriteController {
    */
   protected void addWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
-    
-      entities.put( entity, null );
+      
+      if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
+        high_priority_entities.put( entity, entity );
+      }
+      else {
+        normal_priority_entities.put( entity, entity );
+      }
     }
     finally {  entities_mon.exit();  }
   }
@@ -119,8 +185,11 @@ public class WriteController {
    */
   protected void removeWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
-    
-      entities.remove( entity );
+      
+      Object removed = normal_priority_entities.remove( entity );
+      if( removed == null ) {
+        high_priority_entities.remove( entity );
+      }
     }
     finally {  entities_mon.exit();  }
   }

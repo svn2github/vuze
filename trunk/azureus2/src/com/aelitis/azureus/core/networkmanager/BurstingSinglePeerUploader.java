@@ -72,6 +72,10 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
     rate_handler.bytesWritten( written );
     return true;
   }
+  
+  public int getPriority() {
+    return RateControlledWriteEntity.PRIORITY_NORMAL;
+  }
 
 /////////////////////////////////////////////////////////////////////////////
   

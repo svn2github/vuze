@@ -25,7 +25,18 @@ package com.aelitis.azureus.core.networkmanager;
 /**
  * Interface designation for rate-limited entities handled by a write controller.
  */
-public interface RateControlledWriteEntity {   
+public interface RateControlledWriteEntity {
+  /**
+   * Uses fair round-robin scheduling of write ops.
+   */
+  public static final int PRIORITY_NORMAL = 0;
+  
+  /**
+   * Guaranteed scheduling of write ops, with preference
+   * over normal-priority entities.
+   */
+  public static final int PRIORITY_HIGH   = 1;
+  
   /**
    * Is ready for a write op.
    * @return true if it can write >0 bytes, false if not ready
@@ -37,4 +48,10 @@ public interface RateControlledWriteEntity {
    * @return true if >0 bytes were written (success), false if 0 bytes were written (failure)
    */
   public boolean doWrite();
+  
+  /**
+   * Get this entity's priority level.
+   * @return priority
+   */
+  public int getPriority();
 }
