@@ -5,6 +5,7 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -31,6 +32,15 @@ public class Debug {
    */
   public static void out(final Throwable _exception) {
     out( "", _exception );
+  }
+  
+  public static void
+  outNoStack(
+  	String		str )
+  {
+    diag_logger.logAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString());
+    
+    diag_logger.logAndOut("  " + str );
   }
   
   /**
@@ -291,5 +301,26 @@ public class Debug {
 		}
 		
 		return( last_message );
+	}
+	
+	public static void
+	printStackTrace(
+		Throwable e )
+	{
+		try{
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			
+			PrintWriter	pw = new PrintWriter( new OutputStreamWriter( baos ));
+			
+			e.printStackTrace( pw );
+			
+			pw.close();
+			
+			outNoStack( baos.toString());
+			
+		}catch( Throwable ignore ){
+			
+			e.printStackTrace();
+		}
 	}
 }

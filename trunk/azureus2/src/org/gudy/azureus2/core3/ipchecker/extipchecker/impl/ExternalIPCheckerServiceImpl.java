@@ -75,7 +75,7 @@ ExternalIPCheckerServiceImpl
 			
 		}catch( CloneNotSupportedException e){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}

@@ -383,7 +383,7 @@ AEMonSem
 			
 			if ( recursion_trace.length() > 0 ){
 				
-				Debug.out( recursion_trace + "\r\n    " + trace_key );
+				Debug.outNoStack( recursion_trace + "\r\n    " + trace_key );
 			}
 			
 			last_trace_key	= trace_key;
@@ -476,7 +476,7 @@ AEMonSem
 											
 											debug_reciprocals.add( reciprocal_log );
 											
-											Debug.out(
+											Debug.outNoStack(
 													"AEMonSem: Reciprocal usage:\r\n" +
 													"    " + trace_key + "\r\n" + 
 													"        [" + thread_name + "] " + stack_trace + "\r\n" +
