@@ -570,8 +570,10 @@ public class GeneralView extends AbstractIView {
     if (overall != total) {
       if (fImage != null && !fImage.isDisposed())
         fImage.dispose();
-      if (width < 10 || height < 5)
+      if (width < 10 || height < 5) {
+      	gc.dispose();
         return;
+      }
       fImage = new Image(display, width, height);
       GC gcImage = new GC(fImage);
       int limit = (width * total) / 1000;
@@ -584,8 +586,10 @@ public class GeneralView extends AbstractIView {
         filePercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
     }
     overall = total;
-    if (fImage == null || fImage.isDisposed())
+    if (fImage == null || fImage.isDisposed()) {
+	  gc.dispose();
       return;
+    }
     gc.setForeground(MainWindow.grey);
     gc.drawImage(fImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
