@@ -91,7 +91,8 @@ public class SplashWindow {
     splash.pack();
     splash.layout();
     Utils.centreWindow(splash);
-    splash.open();    
+    splash.open();
+    display.update();
   }
   
   public void close() {
@@ -111,7 +112,7 @@ public class SplashWindow {
   
   public void setCurrentTask(String task) {
     currentTask.setText(task);
-    while (display.readAndDispatch());    
+    currentTask.update();
   }
 
 }
