@@ -50,7 +50,6 @@ public class ByteBufferPool {
 
   private ByteBuffer allocateNewBuffer() {
     try {
-      System.gc();
       ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
       usedBuffers.add(buffer);
       //System.out.println("Pool Size :" + buffers.size());
@@ -87,6 +86,5 @@ public class ByteBufferPool {
 
   public synchronized void clearFreeBuffers() {
     freeBuffers.clear();
-    System.gc();
   }
 }
