@@ -99,7 +99,8 @@ SFPluginDetailsLoaderImpl
 
 				plugin_names.add( plugin_name );
 				
-				plugin_map.put( plugin_name, new SFPluginDetailsImpl( this, plugin_name, version ));
+				plugin_map.put(plugin_name.toLowerCase(), 
+				               new SFPluginDetailsImpl( this, plugin_name, version ));
 			}
 			
 			plugin_names_loaded	= true;
@@ -302,7 +303,7 @@ SFPluginDetailsLoaderImpl
 		
 		getPluginNames();
 		
-		SFPluginDetails details = (SFPluginDetails)plugin_map.get(name); 
+		SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase()); 
 		
 		if ( details == null ){
 			
