@@ -114,7 +114,7 @@ public class GlobalManagerImpl
             DownloadManager manager = (DownloadManager) managers.get(i);
             
             //temp debug check to see if DiskManager's write thread is dying
-            if (loopFactor % 180 == 0) {
+            if (loopFactor % 300 == 0) {
               DiskManager dm = manager.getDiskManager();
               if (dm != null && dm.getState() != DiskManager.INITIALIZING) {
                 if (!dm.isWriteThreadRunning()) {
