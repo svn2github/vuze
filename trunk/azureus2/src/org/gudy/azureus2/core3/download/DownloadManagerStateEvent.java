@@ -1,5 +1,5 @@
 /*
- * Created on 15-Nov-2004
+ * Created on 10-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,77 +22,19 @@
 
 package org.gudy.azureus2.core3.download;
 
-import java.util.Map;
-
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-
 /**
  * @author parg
+ *
  */
 
 public interface 
-DownloadManagerState 
+DownloadManagerStateEvent 
 {
-	public static final String AT_CATEGORY		= "category";
+	public static final int	ET_ATTRIBUTE_CHANGED		= 1;	// data will be string attribute name
 	
-	public TOTorrent
-	getTorrent();
+	public int
+	getType();
 	
-	public DownloadManager
-	getDownloadManager();
-	
-	public void
-	clearResumeData();
-	
-	public Map
-	getResumeData();
-	
-	public void
-	setResumeData(
-		Map	data );
-	
-	public void
-	clearTrackerResponseCache();
-	
-	public Map
-	getTrackerResponseCache();
-	
-	public void
-	setTrackerResponseCache(
-		Map		value );
-	
-	public Category 
-	getCategory();
-	
-	public void 
-	setCategory(
-		Category cat );
-	
-	public void
-	setAttribute(
-		String		name,
-		String		value );
-	
-	public String
-	getAttribute(
-		String		name );
-
-	public void
-	save();
-	
-		/**
-		 * deletes the saved state
-		 */
-	
-	public void
-	delete();
-	
-	public void
-	addListener(
-		DownloadManagerStateListener	l );
-	
-	public void
-	removeListener(
-		DownloadManagerStateListener	l );
+	public Object
+	getData();
 }

@@ -482,6 +482,20 @@ RPDownload
 	}
 	
 	public void
+	addPropertyListener(
+		DownloadPropertyListener	l )
+	{
+		notSupported();
+	}
+	
+	public void
+	removePropertyListener(
+		DownloadPropertyListener	l )
+	{
+		notSupported();
+	}
+	
+	public void
 	addTrackerListener(
 		DownloadTrackerListener	l )
 	{

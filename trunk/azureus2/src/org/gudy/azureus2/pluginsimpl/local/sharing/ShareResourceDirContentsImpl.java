@@ -144,6 +144,7 @@ ShareResourceDirContentsImpl
 			
 		}else{
 			
+			List	new_resources = new ArrayList();
 		
 			for (int i=0;i<files.length;i++){
 				
@@ -169,6 +170,8 @@ ShareResourceDirContentsImpl
 								if ( res == null ){
 								
 									res = manager.addDir( file );
+									
+									new_resources.add( res );
 								}
 								
 								kids.add( res );
@@ -186,6 +189,8 @@ ShareResourceDirContentsImpl
 							if ( res == null ){
 								
 								res = manager.addFile( file );
+								
+								new_resources.add( res );
 							}
 							
 							kids.add( res );
@@ -209,6 +214,13 @@ ShareResourceDirContentsImpl
 					
 					((shareNode)o).setParent(this);
 				}
+			}
+			
+				// inherit parent attributes for any new resources
+			
+			for (int i=0;i<new_resources.size();i++){
+				
+				((ShareResourceImpl)new_resources.get(i)).inheritAttributes( this );
 			}
 		}
 		

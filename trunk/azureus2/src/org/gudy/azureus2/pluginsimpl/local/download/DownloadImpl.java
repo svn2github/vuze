@@ -42,9 +42,12 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
+import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
+import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
@@ -58,7 +61,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 public class 
 DownloadImpl
 	implements 	Download, DownloadManagerListener, 
-				DownloadManagerTrackerListener, DownloadManagerPeerListener
+				DownloadManagerTrackerListener, DownloadManagerPeerListener,
+				DownloadManagerStateListener
 {
 	protected DownloadManager		download_manager;
 	protected DownloadStatsImpl		download_stats;
@@ -71,6 +75,7 @@ DownloadImpl
 	
 	protected List		listeners 				= new ArrayList();
 	protected AEMonitor	listeners_mon			= new AEMonitor( "Download:L");
+	protected List		property_listeners		= new ArrayList();
 	protected List		tracker_listeners		= new ArrayList();
 	protected AEMonitor	tracker_listeners_mon	= new AEMonitor( "Download:TL");
 	protected List		removal_listeners 		= new ArrayList();
@@ -404,6 +409,20 @@ DownloadImpl
   	}
   }
   
+  protected TorrentAttribute
+  convertAttribute(
+  	String			name )
+  {
+  	if ( name.equals( DownloadManagerState.AT_CATEGORY )){
+  		
+  		return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY ));
+  		
+  	}else{
+  		
+  		return( null );
+  	}
+  }
+  
   public void setCategory(String sName) {
     Category category = CategoryManager.getCategory(sName);
     if (category == null)
@@ -650,16 +669,111 @@ DownloadImpl
 	{
 		last_announce_result.setContent( response );
 		
-		for (int i=0;i<tracker_listeners.size();i++){
+		List	tracker_listeners_ref = tracker_listeners;
+		
+		for (int i=0;i<tracker_listeners_ref.size();i++){
 			
 			try{						
-				((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( last_announce_result );
+				((DownloadTrackerListener)tracker_listeners_ref.get(i)).announceResult( last_announce_result );
 
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
 			}
 		}
+	}
+	
+	public void
+	stateChanged(
+		DownloadManagerState			state,
+		DownloadManagerStateEvent		event )
+	{
+		if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED ){
+			
+			String	name = (String)event.getData();
+			
+			if ( name.equals( DownloadManagerState.AT_CATEGORY )){
+				
+				List	property_listeners_ref = property_listeners;
+				
+				final TorrentAttribute	attr = convertAttribute( name );
+				
+				if ( attr != null ){
+					
+					for (int i=0;i<property_listeners_ref.size();i++){
+						
+						try{						
+							((DownloadPropertyListener)property_listeners_ref.get(i)).propertyChanged(
+									this,
+									new DownloadPropertyEvent()
+									{
+										public int
+										getType()
+										{
+											return( DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE );
+										}
+										
+										public Object
+										getData()
+										{
+											return( attr );
+										}
+									});
+	
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+						}
+					}
+				}			
+			}
+		}
+	}
+	
+	public void
+	addPropertyListener(
+		DownloadPropertyListener	l )
+	{
+		try{
+			tracker_listeners_mon.enter();
+	
+			List	new_property_listeners = new ArrayList( property_listeners );
+			
+			new_property_listeners.add( l );
+			
+			property_listeners	= new_property_listeners;
+			
+			if ( property_listeners.size() == 1 ){
+				
+				download_manager.getDownloadState().addListener( this );
+			}
+		}finally{
+			
+			tracker_listeners_mon.exit();
+		}	
+	}
+	
+	public void
+	removePropertyListener(
+		DownloadPropertyListener	l )
+	{
+		try{
+			tracker_listeners_mon.enter();
+			
+			List	new_property_listeners	= new ArrayList( property_listeners );
+			
+			new_property_listeners.remove( l );
+			
+			property_listeners	= new_property_listeners;
+			
+			if ( property_listeners.size() == 0 ){
+				
+				download_manager.getDownloadState().removeListener( this );
+			}
+		}finally{
+			
+			tracker_listeners_mon.exit();
+		}		
 	}
 	
 	public void

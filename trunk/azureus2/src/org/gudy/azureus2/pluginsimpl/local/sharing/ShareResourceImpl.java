@@ -141,6 +141,12 @@ ShareResourceImpl
 		parent	= _parent;
 	}
 	
+	public ShareResource[]
+	getChildren()
+	{
+		return( new ShareResource[0] );
+	}
+	
 	public int
 	getType()
 	{
@@ -152,7 +158,50 @@ ShareResourceImpl
 		final TorrentAttribute		attribute,
 		String						value )
 	{
-		attributes.put( attribute, value );
+		ShareConfigImpl	config = manager.getShareConfig();
+				
+		try{
+			config.suspendSaving();
+		
+			ShareResource[]	kids = getChildren();
+			
+			for (int i=0;i<kids.length;i++){
+				
+				kids[i].setAttribute( attribute, value );
+			}
+			
+			String	old_value = (String)attributes.get( attribute );
+			
+			if( old_value == null && value == null ){
+				
+				return;
+			}
+			
+			if ( old_value != null && value != null && old_value.equals( value )){
+				
+				return;
+			}
+			
+			attributes.put( attribute, value );
+			
+			try{
+				config.saveConfig();
+				
+			}catch( ShareException e ){
+				
+				Debug.printStackTrace( e );
+			}
+			
+		}finally{
+				
+			try{
+				config.resumeSaving();
+					
+			}catch( ShareException e ){
+					
+				Debug.printStackTrace( e );
+			}
+		}
 		
 		for (int i=0;i<change_listeners.size();i++){
 			
@@ -196,6 +245,18 @@ ShareResourceImpl
 		attributes.keySet().toArray( res );
 		
 		return( res );
+	}
+	
+	protected void
+	inheritAttributes(
+		ShareResourceImpl	source )
+	{
+		TorrentAttribute[]	attrs = source.getAttributes();
+		
+		for ( int i=0;i<attrs.length;i++ ){
+			
+			attributes.put( attrs[i], source.getAttribute( attrs[i] ));
+		}
 	}
 	
 	public void

@@ -79,10 +79,10 @@ DownloadManagerStateImpl
 	
 	private Map							tracker_response_cache			= new HashMap();
   
-	
-	// Category the user assigned torrent to.
-	private Category category;
+		
+	private Category 	category;
 
+	private List		listeners	= new ArrayList();
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
@@ -630,8 +630,8 @@ DownloadManagerStateImpl
 	
 	protected void
 	setStringAttribute(
-		String	attribute_name,
-		String	attribute_value )
+		final String	attribute_name,
+		final String	attribute_value )
 	{
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 		
@@ -649,13 +649,15 @@ DownloadManagerStateImpl
 			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
 		}
 	
+		boolean	changed	= false;
+		
 		if ( attribute_value == null ){
 			
 			if ( attributes.containsKey( attribute_name )){
 			
 				attributes.remove( attribute_name );
 			
-				write_required	= true;
+				changed	= true;
 			}
 		}else{
 		
@@ -669,12 +671,43 @@ DownloadManagerStateImpl
 				
 					attributes.put( attribute_name, new_bytes );
 					
-					write_required	= true;
+					changed	= true;
 				}
 				
 			}catch( UnsupportedEncodingException e ){
 				
 				Debug.printStackTrace(e);
+			}
+		}
+		
+		if ( changed ){
+			
+			write_required	= true;
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+						this,
+						new DownloadManagerStateEvent()
+						{
+							public int
+							getType()
+							{
+								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
+							}
+							
+							public Object
+							getData()
+							{
+								return( attribute_name );
+							}
+						});
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}
@@ -684,6 +717,20 @@ DownloadManagerStateImpl
 		DownloadManager	dm )
 	{
 		return( new nullState(dm));
+	}
+	
+	public void
+	addListener(
+		DownloadManagerStateListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		DownloadManagerStateListener	l )
+	{
+		listeners.remove(l);
 	}
 	
 	protected static class
@@ -780,5 +827,15 @@ DownloadManagerStateImpl
 		delete()
 		{
 		}
+		
+		public void
+		addListener(
+			DownloadManagerStateListener	l )
+		{}
+		
+		public void
+		removeListener(
+			DownloadManagerStateListener	l )
+		{}
 	}
 }

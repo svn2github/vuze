@@ -203,6 +203,12 @@ ShareManagerImpl
 		}
 	}
 	
+	protected ShareConfigImpl
+	getShareConfig()
+	{
+		return( config );
+	}
+	
 	protected void
 	checkConsistency()
 	

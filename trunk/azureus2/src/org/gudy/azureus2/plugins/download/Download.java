@@ -539,6 +539,14 @@ Download
 	removePeerListener(
 		DownloadPeerListener	l );
   
+	public void
+	addPropertyListener(
+		DownloadPropertyListener	l );
+	
+	public void
+	removePropertyListener(
+		DownloadPropertyListener	l );
+	
   /**
    * Get the local peerID advertised to the download swarm.
    * @return self peer id

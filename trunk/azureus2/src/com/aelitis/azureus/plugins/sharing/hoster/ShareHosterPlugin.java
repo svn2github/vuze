@@ -116,7 +116,7 @@ ShareHosterPlugin
 	
 	public void
 	resourceAdded(
-		ShareResource		resource )
+		final ShareResource		resource )
 	{
 		log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
 		
@@ -186,8 +186,10 @@ ShareHosterPlugin
 								ShareResourceEvent		event )
 							{
 								if ( event.getType() == ShareResourceEvent.ET_ATTRIBUTE_CHANGED ){
-									
+							
 									TorrentAttribute	attribute = (TorrentAttribute)event.getData();
+									
+									System.out.println( "sh: res -> ds: " + attribute.getName() + "/" + resource.getAttribute( attribute ));
 									
 									f_new_download.setAttribute(
 											attribute,
@@ -201,12 +203,29 @@ ShareHosterPlugin
 					for (int i=0;i<attributes.length;i++){
 						
 						TorrentAttribute	ta = attributes[i];
-						
-						String	value = resource.getAttribute( ta );
-						
-						new_download.setAttribute(
-								ta,	resource.getAttribute( ta ));
+									
+						new_download.setAttribute( ta,	resource.getAttribute( ta ));
 					}
+					
+					new_download.addPropertyListener(
+						new DownloadPropertyListener()
+						{
+							public void
+							propertyChanged(
+								Download				download,
+								DownloadPropertyEvent	event )
+							{
+								if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE ){
+									
+									TorrentAttribute	at = (TorrentAttribute)event.getData();
+									
+									System.out.println( "sh: rs -> res " + at.getName() + "/" + download.getAttribute( at ));
+									
+									resource.setAttribute( at, download.getAttribute( at ));
+						
+								}
+							}
+						});
 					
 					Torrent	dl_torrent = new_download.getTorrent();
 					

@@ -36,7 +36,8 @@ ShareConfigImpl
 {
 	protected ShareManagerImpl		manager;
 	
-	protected boolean				saving_suspended;
+	protected int					suspend_level;
+	
 	protected boolean				save_outstanding;
 	
 	protected AEMonitor				this_mon	= new AEMonitor( "ShareConfig" );
@@ -81,7 +82,7 @@ ShareConfigImpl
 		try{
 			this_mon.enter();
 		
-			if ( saving_suspended ){
+			if ( suspend_level > 0 ){
 				
 				save_outstanding = true;
 				
@@ -119,7 +120,7 @@ ShareConfigImpl
 		try{
 			this_mon.enter();
 		
-			saving_suspended	= true;
+			suspend_level++;
 			
 		}finally{
 			
@@ -134,9 +135,9 @@ ShareConfigImpl
 		try{
 			this_mon.enter();
 		
-			saving_suspended	= false;
+			suspend_level--;
 			
-			if ( save_outstanding ){
+			if ( suspend_level == 0 && save_outstanding ){
 				
 				save_outstanding	= false;
 				
