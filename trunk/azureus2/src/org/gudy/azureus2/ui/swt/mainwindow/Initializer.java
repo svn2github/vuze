@@ -56,7 +56,7 @@ import com.aelitis.azureus.core.*;
  */
 public class 
 Initializer 
-	implements AzureusCoreListener, Application 
+	implements AzureusCoreListener 
 {
   private AzureusCore		azureus_core;
   private GlobalManager 	gm;
@@ -103,7 +103,7 @@ Initializer
 								{
 									try{
 								
-										if ( !MainWindow.getWindow().dispose(false)){
+										if ( !MainWindow.getWindow().dispose(false, true)){
 											
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
@@ -124,7 +124,9 @@ Initializer
 					
 					if ( error[0] != null ){
 			
-						// removed reporting of error 
+						Debug.printStackTrace( error[0] );
+						
+						return( false );
 					}	
 					
 					return( true );
@@ -145,7 +147,7 @@ Initializer
 								runSupport()
 								{
 									try{				
-										if ( !MainWindow.getWindow().dispose(true)){
+										if ( !MainWindow.getWindow().dispose(true,true)){
 												
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
@@ -256,6 +258,7 @@ Initializer
 					AzureusCore		core )
 	    		{	    		      		    	    
 	    		    nextTask();
+	    		    
 	    		    reportCurrentTaskByKey( "splash.openViews");
 
 	    		    SWTUpdateChecker.initialize();
@@ -294,14 +297,6 @@ Initializer
   	} 
   }
   
-  public GlobalManager getGlobalManager() {
-    return gm;
-  }
-  
-  public void openMainWindow() {
-    
-  }
-  
   public void addListener(AzureusCoreListener listener){
     try{
     	listeners_mon.enter();
@@ -323,18 +318,6 @@ Initializer
     	listeners_mon.exit();
     }
   }
-  public void disposeAllGUIElements() {
-    
-    ImageRepository.unLoadImages();
-  }
-  
-  public void stopApplication() {
-    disposeAllGUIElements();
-    if(startServer != null)
-      	startServer.stopIt();
-    SWTThread.getInstance().terminate();
-  }
-  
   
   public void reportCurrentTask(String currentTaskString) {
      try{
@@ -366,21 +349,37 @@ Initializer
     }
   }
   
-  public void stopIt() {
-    if(azureus_core != null){
-    	try{
-    		azureus_core.stop();
-    		
-    	}catch( AzureusCoreException e ){
-    		
-    		Debug.printStackTrace( e );
-    	}
-    }
-    
-    if (startServer != null)
-      startServer.stopIt();
-    Cursors.dispose();
-    SWTThread.getInstance().terminate();  
+  public void 
+  stopIt(
+  	boolean	for_restart,
+	boolean	close_already_in_progress ) 
+  
+  	throws AzureusCoreException
+  {
+  	try{
+	    if ( startServer != null ){
+	    
+	    	startServer.stopIt();
+	    }
+	    
+	    Cursors.dispose();
+	    
+	    SWTThread.getInstance().terminate();  
+	    
+	}finally{
+	  	
+	    if ( azureus_core != null && !close_already_in_progress ){
+
+	    	if ( for_restart ){
+	    			
+	    		azureus_core.restart();
+	    			
+	    	}else{
+	    			
+	    		azureus_core.stop();
+	    	}
+	    }
+	}
   }
   
   private int nbTasks = 1;

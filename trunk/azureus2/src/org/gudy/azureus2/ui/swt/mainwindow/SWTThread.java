@@ -39,7 +39,7 @@ public class SWTThread {
     return instance;
   }
   
-  public static void createInstance(Application app) throws SWTThreadAlreadyInstanciatedException {
+  public static void createInstance(Initializer app) throws SWTThreadAlreadyInstanciatedException {
     if(instance != null) {
       throw new SWTThreadAlreadyInstanciatedException();
     }
@@ -61,7 +61,10 @@ public class SWTThread {
   private boolean terminated;
   private Thread runner;
   
-  private SWTThread(final Application app) { 
+  private 
+  SWTThread(
+  	final Initializer app ) 
+  { 
     
     instance = this;
     
@@ -100,10 +103,14 @@ public class SWTThread {
       }
     }
     
-    //if it hasn been terminated, there's no way to stop the application
-    //as the application is the one who has stopped it.
+   
     if(!terminated) {
-      app.stopIt();
+    	
+    	// if we've falled out of the loop without being explicitly terminated then
+    	// this appears to have been caused by a non-specific exit/restart request (as the
+    	// specific ones should terminate us before disposing of the window...)
+    	
+      app.stopIt( false, false );
     }
     
     display.dispose();

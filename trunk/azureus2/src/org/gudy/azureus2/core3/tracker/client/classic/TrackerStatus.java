@@ -26,6 +26,8 @@ import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+
 /**
  * @author Olivier
  * 
@@ -567,6 +569,8 @@ public class TrackerStatus {
   	
     reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
+    reqUrl = AEProxyFactory.getAddressMapper().internalise( reqUrl );
+    
   	// System.out.println( "scraping " + reqUrl.toString());
   	
   	InputStream is = null;

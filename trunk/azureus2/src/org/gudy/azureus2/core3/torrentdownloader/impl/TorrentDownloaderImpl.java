@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+
 /**
  * @author Tobias Minich
  */
@@ -103,9 +105,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   	}
   }
 
-  public void runSupport() {
+  public void 
+  runSupport() {
     try {      
-      url = new URL(url_str);
+      url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
       
       if ( url.getProtocol().equalsIgnoreCase("https")){
       	

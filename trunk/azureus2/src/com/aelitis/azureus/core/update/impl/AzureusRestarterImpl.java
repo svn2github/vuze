@@ -41,6 +41,9 @@ AzureusRestarterImpl
   
 	public static final String		UPDATE_PROPERTIES	= "update.properties";
 
+	protected static boolean	restarted		= false;
+	
+	
 	protected AzureusCore	azureus_core;
 	protected String		classpath_prefix;
 	
@@ -55,6 +58,15 @@ AzureusRestarterImpl
 	restart(
 		boolean	update_only )
 	{
+		if ( restarted ){
+			
+			LGLogger.log( "AzureusRestarted: already restarted!!!!");
+			
+			return;
+		}
+		
+		restarted	= true;
+		
 		PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
 		
 		if ( pi == null ){
@@ -257,8 +269,12 @@ AzureusRestarterImpl
       // hmm, try java method - this WILL inherit handles but might work :)
           
         try{
-          Runtime.getRuntime().exec(exec);
+        	log.println( "Using java spawn" );
           
+        	Process p = Runtime.getRuntime().exec(exec);
+          
+        	log.println("    -> " + p );
+        	
         }catch(Throwable f){
           
           f.printStackTrace( log );

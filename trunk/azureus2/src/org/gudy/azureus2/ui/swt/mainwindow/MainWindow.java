@@ -651,7 +651,7 @@ MainWindow
     			isDisposeFromListener = true;
     			if (mainWindow != null) {
     				mainWindow.removeDisposeListener(this);
-    				dispose(false);
+    				dispose(false,false);
     			}
     			isAlreadyDead = true;
     		}
@@ -671,7 +671,7 @@ MainWindow
           minimizeToTray(event);
         }
         else {
-          event.doit = dispose(false);
+          event.doit = dispose(false,false);
         }
       }
 
@@ -1055,7 +1055,8 @@ MainWindow
 
   public boolean 
   dispose(
-  	boolean	for_restart ) 
+  	boolean	for_restart,
+	boolean	close_already_in_progress ) 
   {
     if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation(for_restart))
       return false;
@@ -1073,9 +1074,10 @@ MainWindow
       SysTrayMenu.dispose();
     */
 
-    initializer.stopIt();
-    if(updater != null)
+    if(updater != null){
+    	
       updater.stopIt();
+    }
     
     COConfigurationManager.setParameter("window.maximized", mainWindow.getMaximized());
     // unmaximize to get correct window rect
@@ -1089,6 +1091,8 @@ MainWindow
 
     COConfigurationManager.save();
     
+    initializer.stopIt( for_restart, close_already_in_progress );
+
     //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
     if(!mainWindow.isDisposed() && !isDisposeFromListener) {
     	mainWindow.dispose();

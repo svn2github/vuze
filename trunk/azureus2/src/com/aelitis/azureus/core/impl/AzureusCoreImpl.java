@@ -198,6 +198,15 @@ AzureusCoreImpl
 	{
 		LGLogger.log("Core: Stop operation starts");
 		
+		stopSupport( true );
+	}
+	
+	public void
+	stopSupport(
+		boolean		apply_updates )
+	
+		throws AzureusCoreException
+	{
 		try{
 			this_mon.enter();
 		
@@ -228,7 +237,8 @@ AzureusCoreImpl
 
 			// if any installers exist then we need to closedown via the updater
 		
-		if ( getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
+		if ( 	apply_updates && 
+				getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
 			
 			AzureusRestarterFactory.create( this ).restart( true );
 		}
@@ -258,10 +268,11 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		if ( running ){
+		LGLogger.log("Core: Restart operation starts");
 			
-			stop();
-		}
+		checkCanRestart();
+		
+		stopSupport( false );
 		
 		AzureusRestarterFactory.create( this ).restart( false );
 	}
@@ -271,6 +282,8 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
+		checkCanRestart();
+		
 		for (int i=0;i<lifecycle_listeners.size();i++){
 			
 			if (!((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this )){
@@ -282,6 +295,19 @@ AzureusCoreImpl
 		}
 		
 		restart();
+	}
+	
+	protected void
+	checkCanRestart()
+	
+		throws AzureusCoreException
+	{
+		if ( getPluginManager().getPluginInterfaceByClass( "org.gudy.azureus2.update.UpdaterPatcher") == null ){
+			
+			LGLogger.logRepeatableAlert( LGLogger.AT_ERROR, "Can't restart without the 'azupdater' plugin installed" );
+			
+			throw( new  AzureusCoreException("Can't restart without the 'azupdater' plugin installed"));
+		}
 	}
 	
 	public GlobalManager

@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.peermanager.UploadManager;
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
 
@@ -505,7 +506,9 @@ PEPeerTransportProtocol
 	    	int	next_handshake_phase	= 100;
 	    	int	expected_reply_size;
 	    	
-	    	ByteBuffer	socks_out	= ByteBuffer.allocate(256);
+           	String	mapped_ip = AEProxyFactory.getAddressMapper().internalise(ip);
+
+	    	ByteBuffer	socks_out	= ByteBuffer.allocate(256+mapped_ip.length());
             
     	   	  
 	    	if ( socks_version.equals( "V4" )){
@@ -557,7 +560,7 @@ PEPeerTransportProtocol
                 }
                 
                 socks_out.put((byte)0);
-                socks_out.put( ip.getBytes());
+                socks_out.put( mapped_ip.getBytes());
 				socks_out.put((byte)0);
 				
 				expected_reply_size		= 8;
@@ -599,9 +602,12 @@ PEPeerTransportProtocol
 	    			socks_out.put((byte)1);				// connect			
   	    			socks_out.put((byte)0);				// reserved			
 
+  	    				// use the maped ip for dns resolution so we don't leak the
+  	    				// actual address if this is a secure one (e.g. I2P one)
+  	    			                	
 	                try{
 	                	
-	                	byte[]	ip_bytes = InetAddress.getByName(ip).getAddress();
+	                	byte[]	ip_bytes = InetAddress.getByName(mapped_ip).getAddress();
 	                
      	    			socks_out.put((byte)1);				// IP4			
 
@@ -612,9 +618,9 @@ PEPeerTransportProtocol
 	                
 	                }catch( Throwable e ){
 	                	
-      	    			socks_out.put((byte)3);				// address type = domain name			
-     	    			socks_out.put((byte)ip.length());	// address type = domain name			
-     	    			socks_out.put( ip.getBytes());
+     	    			socks_out.put((byte)3);						// address type = domain name			
+     	    			socks_out.put((byte)mapped_ip.length());	// address type = domain name			
+     	    			socks_out.put( mapped_ip.getBytes());
 	                }
 	                
     	            socks_out.putShort((short)port);    // port
