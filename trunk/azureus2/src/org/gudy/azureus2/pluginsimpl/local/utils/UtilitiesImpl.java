@@ -90,7 +90,7 @@ UtilitiesImpl
 	allocateDirectByteBuffer(
 		int		size )
 	{
-		return( DirectByteBufferPool.getBuffer( size ).buff);
+		return( DirectByteBufferPool.getBuffer( size ).getBuffer());
 	}
 	
 	public void

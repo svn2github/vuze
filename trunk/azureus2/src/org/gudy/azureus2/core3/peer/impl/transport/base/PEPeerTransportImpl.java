@@ -205,7 +205,7 @@ PEPeerTransportImpl
 	{
 		if ( TRACE ){
 			
-			int	pos = buffer.buff.position();
+			int	pos = buffer.position();
 			
 			int	len = data_reader.read( socket, buffer );
 			
@@ -213,9 +213,9 @@ PEPeerTransportImpl
 				
 				byte[]	trace = new byte[len];
 				
-				buffer.buff.position(pos);
+				buffer.position(pos);
 				
-				buffer.buff.get( trace );
+				buffer.get( trace );
 				
 				System.out.println( "readData:" + ByteFormatter.nicePrint( trace ));
 			}
@@ -237,17 +237,17 @@ PEPeerTransportImpl
 	{
 		if ( TRACE ){
 			
-			int	pos = buffer.buff.position();
+			int	pos = buffer.position();
 			
-			int	len = socket.write(buffer.buff);
+			int	len = buffer.write( socket );
 			
 			if ( len > 0 ){
 				
 				byte[]	trace = new byte[len];
 				
-				buffer.buff.position(pos);
+				buffer.position(pos);
 				
-				buffer.buff.get( trace );
+				buffer.get( trace );
 				
 				System.out.println( "writeData:" + ByteFormatter.nicePrint( trace ));
 			}
@@ -255,7 +255,7 @@ PEPeerTransportImpl
 			return( len );
 		}else{
 			
-			return(  socket.write(buffer.buff ));
+			return(  buffer.write(socket));
 		}
 	}
 }

@@ -46,13 +46,13 @@ public class BTPiece implements BTMessage {
     length = data.remaining();
     buffer = new DirectByteBuffer( ByteBuffer.allocate( length + 13 ) );
     
-    buffer.buff.putInt( length + 9 );
-    buffer.buff.put( (byte)7 );
-    buffer.buff.putInt( piece_number );
-    buffer.buff.putInt( piece_offset );
-    buffer.buff.put( data );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( length + 13 );
+    buffer.putInt( length + 9 );
+    buffer.put( (byte)7 );
+    buffer.putInt( piece_number );
+    buffer.putInt( piece_offset );
+    buffer.put( data );
+    buffer.position( 0 );
+    buffer.limit( length + 13 );
   }
   
   public int getType() {  return BTMessage.BT_PIECE;  }

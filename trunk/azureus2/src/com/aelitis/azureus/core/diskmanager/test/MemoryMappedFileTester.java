@@ -74,7 +74,7 @@ public class MemoryMappedFileTester {
         tchan += System.currentTimeMillis() - start;
 ///////////////////////////////////////////////////////
         start = System.currentTimeMillis();
-        mmf.write( dbb, 0, start_pos, dbb.buff.limit() );
+        mmf.write( dbb, 0, start_pos, dbb.limit() );
         tmmf += System.currentTimeMillis() - start;
 ///////////////////////////////////////////////////////
         written += raw.length;
@@ -95,9 +95,9 @@ public class MemoryMappedFileTester {
 
   private static void refreshBuffers() {
     rand.nextBytes( raw );
-    dbb.buff.clear();
-    dbb.buff.put( raw );
-    dbb.buff.flip();
+    dbb.clear();
+    dbb.put( raw );
+    dbb.flip();
   }
   
 

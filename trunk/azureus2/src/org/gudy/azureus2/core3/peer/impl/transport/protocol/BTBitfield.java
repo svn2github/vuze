@@ -39,11 +39,11 @@ public class BTBitfield implements BTMessage {
     bitfield.position( 0 );
     bitfield.limit( bitfield.capacity() );
     
-    buffer.buff.putInt( bitfield.capacity() + 1 );
-    buffer.buff.put( (byte)5 );
-    buffer.buff.put( bitfield );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( bitfield.capacity() + 5 );
+    buffer.putInt( bitfield.capacity() + 1 );
+    buffer.put( (byte)5 );
+    buffer.put( bitfield );
+    buffer.position( 0 );
+    buffer.limit( bitfield.capacity() + 5 );
   }
   
   public int getType() {  return BTMessage.BT_BITFIELD;  }

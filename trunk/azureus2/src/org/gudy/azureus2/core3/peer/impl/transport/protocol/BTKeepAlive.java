@@ -36,9 +36,9 @@ public class BTKeepAlive implements BTMessage {
   public BTKeepAlive() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     
-    buffer.buff.putInt( 0 );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( 4 );
+    buffer.putInt( 0 );
+    buffer.position( 0 );
+    buffer.limit( 4 );
   }
   
   public int getType() {  return BTMessage.BT_KEEP_ALIVE;  }

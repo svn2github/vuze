@@ -22,24 +22,201 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.io.IOException;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SocketChannel;
 
 /**
  * Virtual direct byte buffer given out and tracker
  * by the buffer pool.
  */
 public class DirectByteBuffer {
-  public final ByteBuffer buff;
+	
+  protected final ByteBuffer buffer;
+  
   protected Reference ref;
   
-  public DirectByteBuffer( ByteBuffer buffer ) {
-    this.buff = buffer;
+  public 
+  DirectByteBuffer( 
+  	ByteBuffer _buffer ) 
+  {
+  	buffer = _buffer;
   }
   
-  public void returnToPool() {
-    if ( ref != null ) {
+  public int
+  limit()
+  {
+  	return( buffer.limit());
+  }
+  
+  public void
+  limit(
+  	int	l )
+  {
+  	buffer.limit(l);
+  }
+  
+  public int
+  position()
+  {
+  	return( buffer.position());
+  }
+  
+  public void
+  position(
+  	int	l )
+  {
+  	buffer.position(l);
+  }
+  
+  public void
+  clear()
+  {
+  	buffer.clear();
+  }
+  
+  public void
+  flip()
+  {
+  	buffer.flip();
+  }
+  
+  public int
+  remaining()
+  {
+  	return( buffer.remaining());
+  }
+  
+  public int
+  capacity()
+  {
+  	return( buffer.capacity());
+  }
+  
+  public void
+  put(
+  	byte[]	data )
+  {
+  	buffer.put( data );
+  }
+  
+  public void
+  put(
+  	DirectByteBuffer	data )
+  {
+  	buffer.put( data.buffer );
+  }
+  
+  public void
+  put(
+  	ByteBuffer	data )
+  {
+  	buffer.put( data );
+  }
+  
+  public void
+  put(
+  	byte	data )
+  {
+  	buffer.put( data );
+  }
+  
+  public void
+  putInt(
+  	int	data )
+  {
+  	buffer.putInt( data );
+  }
+  
+  public byte
+  get()
+  {
+  	return( buffer.get());
+  }
+  public byte
+  get(
+  	int	x )
+  {
+  	return( buffer.get(x));
+  }
+  
+  public void
+  get(
+  	byte[]	data )
+  {
+  	buffer.get(data);
+  }
+  
+  public int
+  getInt()
+  {
+  	return( buffer.getInt());
+  }
+  
+  public int
+  getInt(
+  	int		x )
+  {
+  	return( buffer.getInt(x));
+  }
+  
+  public boolean
+  hasRemaining()
+  {
+  	return( buffer.hasRemaining());
+  }
+  
+  public int
+  read(
+  	FileChannel	chan )
+  
+  	throws IOException
+  {
+  	return( chan.read(buffer ));
+  }
+  
+  public int
+  write(
+  	FileChannel	chan )
+  
+  	throws IOException
+  {
+  	return( chan.write(buffer ));
+  }
+  
+  public int
+  read(
+  	SocketChannel	chan )
+  
+  	throws IOException
+  {
+  	return( chan.read(buffer ));
+  }
+  
+  public int
+  write(
+  	SocketChannel	chan )
+  
+  	throws IOException
+  {
+  	return( chan.write(buffer ));
+  }
+  
+  public ByteBuffer
+  getBuffer()
+  {
+  	return( buffer );
+  }
+  
+  public void 
+  returnToPool() 
+  {
+    if ( ref != null ){
+    	
       DirectByteBufferPool.registerReturn( ref );
+      
       ref.enqueue();
     }
   }

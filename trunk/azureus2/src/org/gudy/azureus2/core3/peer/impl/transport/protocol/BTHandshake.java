@@ -42,13 +42,13 @@ public class BTHandshake implements BTMessage {
     this.peer_id = peer_id;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
     
-    buffer.buff.put( (byte)PROTOCOL.length() );
-    buffer.buff.put( PROTOCOL.getBytes() );
-    buffer.buff.put( RESERVED );
-    buffer.buff.put( data_hash );
-    buffer.buff.put( peer_id );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( 68 );
+    buffer.put( (byte)PROTOCOL.length() );
+    buffer.put( PROTOCOL.getBytes() );
+    buffer.put( RESERVED );
+    buffer.put( data_hash );
+    buffer.put( peer_id );
+    buffer.position( 0 );
+    buffer.limit( 68 );
   }
   
   public int getType() {  return BTMessage.BT_HANDSHAKE;  }

@@ -80,10 +80,8 @@ public class MemoryMappedFile {
   	if ( access_mode == MODE_READ_ONLY ) {
       throw new IOException( "cannot write to a read-only file" );
     }
-    
-    ByteBuffer buff = buffer.buff;
-    
-    if ( buff.limit() - buffer_offset < length ) {
+        
+    if ( buffer.limit() - buffer_offset < length ) {
       throw new IOException( "not enough buffer remaining to write given length" );
     }
     
@@ -128,10 +126,10 @@ public class MemoryMappedFile {
       else cache_hits++;
       
       //do the write
-      buff.position( buffer_offset + written );
-      buff.limit( buff.position() + length_to_write );
+      buffer.position( buffer_offset + written );
+      buffer.limit( buffer.position() + length_to_write );
       mbb.position( map_offset );
-      mbb.put( buff );
+      mbb.put( buffer.getBuffer() );
       written += length_to_write;
       
       //add the buffer (back) to the pool

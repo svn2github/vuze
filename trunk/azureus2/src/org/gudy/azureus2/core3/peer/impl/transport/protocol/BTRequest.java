@@ -42,13 +42,13 @@ public class BTRequest implements BTMessage {
     this.length = length;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 17 ) );
     
-    buffer.buff.putInt( 13 );
-    buffer.buff.put( (byte)6 );
-    buffer.buff.putInt( piece_number );
-    buffer.buff.putInt( piece_offset );
-    buffer.buff.putInt( length );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( 17 );
+    buffer.putInt( 13 );
+    buffer.put( (byte)6 );
+    buffer.putInt( piece_number );
+    buffer.putInt( piece_offset );
+    buffer.putInt( length );
+    buffer.position( 0 );
+    buffer.limit( 17 );
   }
   
   public int getType() {  return BTMessage.BT_REQUEST;  }

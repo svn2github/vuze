@@ -274,9 +274,9 @@ FMFileImpl
 		try{
 			fc.position(offset);
 			
-			while (fc.position() < (fc.size() - 1) && buffer.buff.hasRemaining()){
+			while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()){
 				
-				fc.read(buffer.buff);
+				buffer.read(fc);
 			}
 			
 		}catch ( Exception e ){
@@ -307,7 +307,7 @@ FMFileImpl
 				
 				fc.position( position );
 				
-				return( fc.write(buffer.buff));
+				return( buffer.write(fc));
 				
 			}else{
 				

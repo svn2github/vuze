@@ -327,11 +327,11 @@ DiskManagerImpl
 		//Create the ByteBuffer for checking (size : pieceLength)
         allocateAndTestBuffer = DirectByteBufferPool.getBuffer(pieceLength);
     
-		allocateAndTestBuffer.buff.limit(pieceLength);
-		for (int i = 0; i < allocateAndTestBuffer.buff.limit(); i++) {
-			allocateAndTestBuffer.buff.put((byte)0);
+		allocateAndTestBuffer.limit(pieceLength);
+		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
+			allocateAndTestBuffer.put((byte)0);
 		}
-		allocateAndTestBuffer.buff.position(0);
+		allocateAndTestBuffer.position(0);
 
 		//Create the new Queue
 		
@@ -1097,16 +1097,26 @@ DiskManagerImpl
 		long written = 0;
 		synchronized (file){
 		  try{
+		    while (written < length && bOverallContinue) {
+					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
+					if ((length - written) < allocateAndTestBuffer.remaining())
+					  allocateAndTestBuffer.limit((int) (length - written));
+					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
+					allocateAndTestBuffer.position(0);
+					written += deltaWriten;
+					allocated += deltaWriten;
+					percentDone = (int) ((allocated * 1000) / totalLength);
+		    }
 		    if( length == 0 ) { //create a zero-length file if it is listed in the torrent
           fm_file.setLength( 0 );
         }
         else {
           while (written < length && bOverallContinue) {
-            allocateAndTestBuffer.buff.limit(allocateAndTestBuffer.buff.capacity());
-            if ((length - written) < allocateAndTestBuffer.buff.remaining())
-              allocateAndTestBuffer.buff.limit((int) (length - written));
+            allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
+            if ((length - written) < allocateAndTestBuffer.remaining())
+              allocateAndTestBuffer.limit((int) (length - written));
              int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
-             allocateAndTestBuffer.buff.position(0);
+             allocateAndTestBuffer.position(0);
              written += deltaWriten;
              allocated += deltaWriten;
              percentDone = (int) ((allocated * 1000) / totalLength);
@@ -1141,11 +1151,11 @@ DiskManagerImpl
         
       if (bOverallContinue == false) return false;
 
-		allocateAndTestBuffer.buff.position(0);
+		allocateAndTestBuffer.position(0);
 
 		int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
-		allocateAndTestBuffer.buff.limit(length);
+		allocateAndTestBuffer.limit(length);
 
 		//get the piece list
 		PieceList pieceList = pieceMap[pieceNumber];
@@ -1166,7 +1176,7 @@ DiskManagerImpl
 				}else{
 						   //too small, can't be a complete piece
 					
-					allocateAndTestBuffer.buff.clear();
+					allocateAndTestBuffer.clear();
 					
 					pieceDone[pieceNumber] = false;
 					
@@ -1182,9 +1192,9 @@ DiskManagerImpl
       
       if (bOverallContinue == false) return false;
       
-			allocateAndTestBuffer.buff.position(0);
+			allocateAndTestBuffer.position(0);
 
-			byte[] testHash = hasher.calculateHash(allocateAndTestBuffer.buff);
+			byte[] testHash = hasher.calculateHash(allocateAndTestBuffer.getBuffer());
 			int i = 0;
 			for (i = 0; i < 20; i++) {
 				if (testHash[i] != piecesHash[pieceNumber][i])
@@ -1566,12 +1576,12 @@ DiskManagerImpl
 			return null;
 		}
 
-		buffer.buff.position(0);
-		buffer.buff.limit(length + 13);
-		buffer.buff.putInt(length + 9);
-		buffer.buff.put((byte)7);
-		buffer.buff.putInt(pieceNumber);
-		buffer.buff.putInt(offset);
+		buffer.position(0);
+		buffer.limit(length + 13);
+		buffer.putInt(length + 9);
+		buffer.put((byte)7);
+		buffer.putInt(pieceNumber);
+		buffer.putInt(offset);
 
 		long previousFilesLength = 0;
 		int currentFile = 0;
@@ -1594,7 +1604,7 @@ DiskManagerImpl
 		fileOffset += offset - previousFilesLength;
 		// noError is only used for error reporting, it could probably be removed
 		boolean noError = true;
-		while (buffer.buff.hasRemaining()
+		while (buffer.hasRemaining()
 			&& currentFile < pieceList.size()
 			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
 
@@ -1622,7 +1632,7 @@ DiskManagerImpl
 			setState( FAULTY );
 		}
 
-		buffer.buff.position(0);
+		buffer.position(0);
 		return buffer;
 	}
 
@@ -1688,7 +1698,7 @@ DiskManagerImpl
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
     }
-		int size = data.buff.remaining();
+		int size = data.remaining();
 		if (offset + size > length) {
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
@@ -1745,7 +1755,7 @@ DiskManagerImpl
 		int pieceNumber 	= queue_entry.getPieceNumber();
 		int offset		 	= queue_entry.getOffset();
 		DirectByteBuffer buffer 	= queue_entry.getData();
-		int	initial_buffer_position = buffer.buff.position();
+		int	initial_buffer_position = buffer.position();
 
 		PieceMapEntry current_piece = null;
 		
@@ -1763,7 +1773,7 @@ DiskManagerImpl
 			}
 	
 			//Now tempPiece points to the first file that contains data for this block
-			while (buffer.buff.hasRemaining()) {
+			while (buffer.hasRemaining()) {
 				current_piece = pieceList.get(currentFile);
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
@@ -1773,20 +1783,20 @@ DiskManagerImpl
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
 				
-				int realLimit = buffer.buff.limit();
+				int realLimit = buffer.limit();
 					
-				long limit = buffer.buff.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
+				long limit = buffer.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
 	       
 				if (limit < realLimit) {
-					buffer.buff.limit((int)limit);
+					buffer.limit((int)limit);
 				}
 	
-				if ( buffer.buff.hasRemaining() ){
+				if ( buffer.hasRemaining() ){
 
 					current_piece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
 				}
 					
-				buffer.buff.limit(realLimit);
+				buffer.limit(realLimit);
 				
 				currentFile++;
 				fileOffset = 0;
@@ -1807,7 +1817,7 @@ DiskManagerImpl
 			
 			LGLogger.logAlert( LGLogger.AT_ERROR, errorMessage );
 			
-			buffer.buff.position(initial_buffer_position);
+			buffer.position(initial_buffer_position);
 			
 			return( false );
 		}
@@ -2363,15 +2373,15 @@ DiskManagerImpl
     
   private byte[] computeMd5Hash(DirectByteBuffer buffer) {
     md5.reset();
-    int position = buffer.buff.position();
-    md5.update(buffer.buff);
-    buffer.buff.position(position);
-    md5Result.buff.position(0);
-    md5.finalDigest(md5Result.buff);
+    int position = buffer.position();
+    md5.update(buffer.getBuffer());
+    buffer.position(position);
+    md5Result.position(0);
+    md5.finalDigest(md5Result.getBuffer());
     byte[] result = new byte[16];
-    md5Result.buff.position(0);
+    md5Result.position(0);
     for(int i = 0 ; i < result.length ; i++) {
-      result[i] = md5Result.buff.get();
+      result[i] = md5Result.get();
     }    
     return result;    
   }
@@ -2388,7 +2398,7 @@ DiskManagerImpl
       PEPeer peer = writers[i];
       if(peer != null) {
         DirectByteBuffer buffer = readBlock(pieceNumber,offset,length);
-        buffer.buff.position(13);
+        buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
         buffer.returnToPool();
         buffer = null;

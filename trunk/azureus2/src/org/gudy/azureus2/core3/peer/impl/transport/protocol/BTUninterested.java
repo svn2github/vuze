@@ -36,10 +36,10 @@ public class BTUninterested implements BTMessage {
   public BTUninterested() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
-    buffer.buff.putInt( 1 );
-    buffer.buff.put( (byte)3 );
-    buffer.buff.position( 0 );
-    buffer.buff.limit( 5 );
+    buffer.putInt( 1 );
+    buffer.put( (byte)3 );
+    buffer.position( 0 );
+    buffer.limit( 5 );
   }
   
   public int getType() {  return BTMessage.BT_UNINTERESTED;  }
