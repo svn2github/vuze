@@ -198,6 +198,23 @@ SFPluginDetailsLoaderImpl
 						plugin_download = site_prefix + dl_links[0];
 					}
 					
+					HTMLTableCell[]	cvs_detail_cells = rows[3].getCells();
+
+					String	plugin_cvs_version		= cvs_detail_cells[1].getContent();
+
+					String[]	cvs_dl_links 		= cvs_detail_cells[2].getLinks();
+					
+					String	plugin_cvs_download;
+					
+					if ( cvs_dl_links.length == 0 ){
+						
+						plugin_cvs_download	= "<unknown>";
+						
+					}else{
+						
+						plugin_cvs_download = site_prefix + cvs_dl_links[0];
+					}
+
 					// System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
 					
 					return(	new SFPluginDetailsImpl(
@@ -205,6 +222,8 @@ SFPluginDetailsLoaderImpl
 									plugin_version,
 									plugin_download,
 									plugin_auth,
+									plugin_cvs_version,
+									plugin_cvs_download,
 									rows[6].getCells()[0].getContent(),
 									rows[9].getCells()[0].getContent()));							
 				}

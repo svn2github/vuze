@@ -37,6 +37,9 @@ SFPluginDetailsImpl
 	protected String		version;
 	protected String		download_url;
 	protected String		author;
+	protected String		cvs_version;
+	protected String		cvs_download_url;
+
 	protected String		desc;
 	protected String		comment;
 	
@@ -46,15 +49,19 @@ SFPluginDetailsImpl
 		String	_version,
 		String	_download_url,
 		String	_author,
+		String	_cvs_version,
+		String	_cvs_download_url,
 		String	_desc,
 		String	_comment )
 	{
-		name			= _name;
-		version			= _version;
-		download_url	= _download_url;
-		author			= _author;
-		desc			= _desc;
-		comment			= _comment;
+		name				= _name;
+		version				= _version;
+		download_url		= _download_url;
+		author				= _author;
+		cvs_version			= _cvs_version;
+		cvs_download_url	= _cvs_download_url;
+		desc				= _desc;
+		comment				= _comment;
 	}
 	
 	public String
@@ -79,6 +86,18 @@ SFPluginDetailsImpl
 	getAuthor()
 	{
 		return( author );
+	}	
+	
+	public String
+	getCVSVersion()
+	{
+		return( cvs_version );
+	}
+	
+	public String
+	getCVSDownloadURL()
+	{
+		return( cvs_download_url );
 	}
 	
 	public String

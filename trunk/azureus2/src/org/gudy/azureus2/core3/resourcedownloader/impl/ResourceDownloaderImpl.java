@@ -93,6 +93,8 @@ ResourceDownloaderImpl
 		throws ResourceDownloaderException
 	{
 		try{
+			reportActivity(this, "downloading " + original_url );
+			
 			synchronized( this ){
 				
 				if ( download_initiated ){

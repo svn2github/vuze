@@ -47,6 +47,12 @@ SFPluginDetails
 	getAuthor();
 	
 	public String
+	getCVSVersion();
+	
+	public String
+	getCVSDownloadURL();
+
+	public String
 	getDescription();
 	
 	public String

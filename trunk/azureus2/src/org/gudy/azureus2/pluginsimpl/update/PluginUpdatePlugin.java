@@ -185,6 +185,25 @@ PluginUpdatePlugin
 				
 				String	plugin_id = pi.getPluginID();
 				
+				boolean	found	= false;
+				
+				for (int j=0;j<names.length;j++){
+					
+					if ( names[j].equalsIgnoreCase( plugin_id )){
+						
+						found	= true;
+						
+						break;
+					}
+				}
+				
+				if ( !found ){
+					
+					log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as not listed on web site");
+
+					continue;
+				}
+				
 				String	plugin_names	= (String)plugins_to_check_names.get( plugin_id );
 				
 				log.log( LoggerChannel.LT_INFORMATION, "Checking " + plugin_id);
@@ -193,9 +212,34 @@ PluginUpdatePlugin
 					
 					SFPluginDetails	details = loader.getPluginDetails( plugin_id );
 	
-					int	comp = PluginUtils.comparePluginVersions( pi.getPluginVersion(), details.getVersion());
+					boolean az_cvs = plugin_interface.getAzureusVersion().toLowerCase().indexOf( "cvs" ) != -1;
 					
-					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + pi.getPluginVersion() + ", Latest: " + details.getVersion());
+					String az_plugin_version	= pi.getPluginVersion();
+					
+					String sf_plugin_version	= details.getVersion();
+					String sf_plugin_download	= details.getDownloadURL();
+					String sf_comp_version		= sf_plugin_version;
+					
+					if ( az_cvs ){
+						
+						String	sf_cvs_version = details.getCVSVersion();
+						
+						if ( sf_cvs_version.length() > 0 ){
+							
+								// sf cvs version ALWAYS entry in _CVS
+							
+							sf_plugin_version	= sf_cvs_version;
+							sf_plugin_download	= details.getCVSDownloadURL();
+							
+							sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
+						}
+					}
+					
+					// 	System.out.println("comp version = " + sf_comp_version );
+					
+					int	comp = PluginUtils.comparePluginVersions( az_plugin_version, sf_comp_version );
+					
+					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + az_plugin_version + ", Latest: " + sf_plugin_version );
 					
 					if ( comp > 0 ){
 						
@@ -207,7 +251,7 @@ PluginUpdatePlugin
 						
 						logMultiLine( "        ", details.getComment());
 						
-						String msg =   "A newer version (version " + details.getVersion() + ") of plugin '" + 
+						String msg =   "A newer version (version " + sf_plugin_version + ") of plugin '" + 
 										plugin_id + "' " +
 										(plugin_names.length()==0?"":"(" + plugin_names + ") " ) +
 										"is available. ";
@@ -216,8 +260,8 @@ PluginUpdatePlugin
 						
 						log.log( LoggerChannel.LT_INFORMATION, "" );
 						
-						log.log( LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
-									details.getDownloadURL());
+						log.log( 	LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
+									sf_plugin_download);
 					}
 				}catch( SFPluginDetailsException e ){
 					
