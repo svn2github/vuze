@@ -4,9 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.Vector;
 
 import org.gudy.azureus2.core2.PeerSocket;
@@ -97,6 +95,11 @@ public class SpeedLimiter {
     return (this.limit != 0 && uploaders.contains(wt));
   }
 
+  /**
+   * This method returns the amount of data a thread may upload
+   * over a period of 100ms.
+   * @return number of bytes allowed for 100 ms
+   */
   public int getLimitPer100ms(PeerSocket wt) {
 
     if (this.uploaders.size() == 0)
@@ -196,78 +199,6 @@ public class SpeedLimiter {
 
     allowed = toBeAllocated / peersToBeAllocated;
     maxUpload = wt.getMaxUpload();
-    int result = allowed > maxUpload ? maxUpload : allowed;
-    //Logger.getLogger().log(0,0,Logger.ERROR,"Allocated for 100ms :" + result);
-//    getLimitPer100ms(wt, result);
-    return result;
-  }
-
-  /**
-   * This method returns the amount of data a thread may upload
-   * over a period of 100ms.
-   * @return number of bytes allowed for 100 ms
-   */
-  public int getLimitPer100msOld(PeerSocket wt, int otherResult) {
-
-    if (this.uploaders.size() == 0)
-      return 0;
-
-    //We construct a TreeMap to sort all writeThread according to their up speed.
-    TreeMap sortedUploadersHighPriority = new TreeMap();
-    TreeMap sortedUploadersLowPriority = new TreeMap();
-    synchronized (uploaders) {
-      for (int i = 0; i < uploaders.size(); i++) {
-        TreeMap sortedUploaders;
-        PeerSocket wti = (PeerSocket) uploaders.get(i);
-        if (wti.getDownloadPriority() == DownloadManager.HIGH_PRIORITY) {
-          sortedUploaders = sortedUploadersHighPriority;
-        }
-        else {
-          sortedUploaders = sortedUploadersLowPriority;
-        }
-        int maxUpload = wti.getMaxUpload();
-        while (sortedUploaders.containsKey(new Integer(maxUpload)))
-          maxUpload++;
-        sortedUploaders.put(new Integer(maxUpload), wti);
-      }
-    }
-    
-    //System.out.println(sortedUploadersHighPriority.size() + " : " + sortedUploadersLowPriority.size());
-
-    int toBeAllocated = this.limit / 10;
-    int peersToBeAllocated = sortedUploadersHighPriority.size();
-    Iterator iter = sortedUploadersHighPriority.keySet().iterator();
-    boolean found = false;
-    while (iter.hasNext()) {
-      Integer key = (Integer) iter.next();
-      PeerSocket wti = (PeerSocket) sortedUploadersHighPriority.get(key);
-      if (wti == wt) {
-        found = true;
-        break;
-      }
-      int allowed = toBeAllocated / peersToBeAllocated;
-      int maxUpload = wti.getMaxUpload();
-      toBeAllocated -= allowed > maxUpload ? maxUpload : allowed;
-      peersToBeAllocated--;
-    }
-    if (!found) {
-      peersToBeAllocated = sortedUploadersLowPriority.size();
-      iter = sortedUploadersLowPriority.keySet().iterator();
-      while (iter.hasNext()) {
-        Integer key = (Integer) iter.next();
-        PeerSocket wti = (PeerSocket) sortedUploadersLowPriority.get(key);
-        if (wti == wt) {
-          break;
-        }
-        int allowed = toBeAllocated / peersToBeAllocated;
-        int maxUpload = wti.getMaxUpload();
-        toBeAllocated -= allowed > maxUpload ? maxUpload : allowed;
-        peersToBeAllocated--;
-      }
-    }
-
-    int allowed = toBeAllocated / peersToBeAllocated;
-    int maxUpload = wt.getMaxUpload();
     int result = allowed > maxUpload ? maxUpload : allowed;
     //Logger.getLogger().log(0,0,Logger.ERROR,"Allocated for 100ms :" + result);
     return result;
