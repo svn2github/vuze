@@ -508,7 +508,7 @@ PEPeerTransportProtocol
   public void sendChoke() {
   	if ( getPeerState() != TRANSFERING ) return;
     
-    System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " choked");
+    //System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " choked");
     
     outgoing_piece_message_handler.removeAllPieceRequests();
     connection.getOutgoingMessageQueue().addMessage( new BTChoke(), false );
@@ -520,7 +520,7 @@ PEPeerTransportProtocol
   public void sendUnChoke() {
     if ( getPeerState() != TRANSFERING ) return;
     
-    System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
+    //System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
     
     connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
     choking_other_peer = false;
