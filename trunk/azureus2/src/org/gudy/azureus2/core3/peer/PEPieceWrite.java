@@ -1,7 +1,7 @@
 /*
- * File    : PEPiece
- * Created : 15-Oct-2003
- * By      : Olivier
+ * File    : PEPieceWriteImpl.java
+ * Created : 7 nov. 2003 16:04:47
+ * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,44 +19,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.peer;
+package org.gudy.azureus2.core3.peer;
 
-import java.util.List;
 
 /**
- * Represents a Piece and the status of its different chunks (un-requested, requested, downloaded, written).
- * 
  * @author Olivier
- *
+ * 
  */
-
-public interface 
-PEPiece 
-{  
-  public void setWritten(PEPeer peer,byte[] hash,int blocNumber);
- 
-  public void unmarkBlock(int blocNumber);
- 
-  public int getAvailability();
-   
-  public int getPieceNumber();
+public class PEPieceWrite {
   
-  public int getLength();
+  public int blocNumber;
+  public PEPeer sender;
+  public byte[] hash;
   
-  public int getNbBlocs();  
- 
-  public int getCompleted();
- 
-  public boolean[] getWritten();
+  public PEPieceWrite(int blocNumber,PEPeer sender, byte[] hash) {
+    this.blocNumber = blocNumber;
+    this.sender = sender;
+    this.hash = hash;
+  }
   
-  public boolean[] getRequested(); 
-  
-  public List getPieceWrites();
-  
-  public List getPieceWrites(int blocNumber);
-  
-  public List getPieceWrites(PEPeer peer);
-  
-  public void reset();
-    
 }

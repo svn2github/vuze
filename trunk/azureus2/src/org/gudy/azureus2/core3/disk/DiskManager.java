@@ -42,7 +42,8 @@
 	writeBlock(
 		int 		pieceNumber, 
 		int 		offset, 
-		ByteBuffer 	data );
+		ByteBuffer 	data,
+    PEPeer sender);
 
 	public boolean 
 	checkBlock(

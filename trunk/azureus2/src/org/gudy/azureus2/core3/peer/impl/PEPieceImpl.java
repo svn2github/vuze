@@ -26,6 +26,10 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+
 import org.gudy.azureus2.core3.peer.*;
 
 public class 
@@ -41,6 +45,8 @@ PEPieceImpl
   public boolean[] downloaded;
   public boolean[] requested;
   public boolean[] written;
+  public List writes;
+  
   public int completed;
   public boolean isBeingChecked = false;
 
@@ -50,9 +56,11 @@ PEPieceImpl
 
   public PEPieceImpl(PEPeerManager manager, int length) {
 	this.manager = manager;
-	//System.out.println("Creating Piece of Size " + length); 
+	  
+  
 	this.length = length;
 	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
+  this.writes = new ArrayList(nbBlocs);
 	downloaded = new boolean[nbBlocs];
 	requested = new boolean[nbBlocs];
 	written = new boolean[nbBlocs];
@@ -69,9 +77,12 @@ PEPieceImpl
 	this.pieceNumber = pieceNumber;
   }
  
-  public void setWritten(int blocNumber) {
-	written[blocNumber] = true;
-	completed++;
+  public void setWritten(PEPeer peer,byte[] hash,int blocNumber) {
+    synchronized(writes) {
+      writes.add(new PEPieceWrite(blocNumber,peer,hash));
+    }
+    written[blocNumber] = true;
+    completed++;
   }
 
   public int 
@@ -171,4 +182,51 @@ PEPieceImpl
   public void setManager(PEPeerManager manager) {
 	this.manager = manager;
   }
+
+  public List getPieceWrites() {
+    List result;
+    synchronized(writes) {
+      result = new ArrayList(writes);
+    }
+    return result;
+  }
+
+
+  public List getPieceWrites(int blocNumber) {
+    List result;
+    synchronized(writes) {
+      result = new ArrayList(writes);
+    }
+    Iterator iter = result.iterator();
+    while(iter.hasNext()) {
+      PEPieceWrite write = (PEPieceWrite) iter.next();
+      if(write.blocNumber != blocNumber)
+        iter.remove();
+    }
+    return result;
+  }
+
+
+  public List getPieceWrites(PEPeer peer) {
+    List result;
+     synchronized(writes) {
+       result = new ArrayList(writes);
+     }
+    Iterator iter = result.iterator();
+    while(iter.hasNext()) {
+      PEPieceWrite write = (PEPieceWrite) iter.next();
+      if(peer == null || ! peer.equals(write.sender))
+        iter.remove();
+    }
+     return result;
+  }
+  
+  public void reset() {
+    downloaded = new boolean[nbBlocs];
+    requested = new boolean[nbBlocs];
+    written = new boolean[nbBlocs];
+    isBeingChecked = false;
+    completed = 0;
+  }
+
 }

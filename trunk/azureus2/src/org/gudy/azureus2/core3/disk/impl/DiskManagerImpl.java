@@ -109,6 +109,8 @@ DiskManagerImpl
 
 	private PEPeerManager manager;
 	private SHA1Hasher hasher;
+  private Md5Hasher md5;
+  private ByteBuffer md5Result;
 	private boolean bContinue = true;
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
@@ -134,8 +136,10 @@ DiskManagerImpl
 		  }
 		}
 
+    md5 = new Md5Hasher();
+    md5Result = ByteBuffer.allocate(16);
 		try {
-			hasher = new SHA1Hasher();
+			hasher = new SHA1Hasher();      
 		} catch (NoSuchAlgorithmException ignore) {
 		}
 		Thread init = new Thread() {
@@ -469,7 +473,7 @@ DiskManagerImpl
 		          List blocks = (List)partialPieces.get(key.getKey());
 		          Iterator iterBlock = blocks.iterator();
 		          while (iterBlock.hasNext()) {
-		            piece.setWritten(((Long)iterBlock.next()).intValue());
+		            piece.setWritten(null,null,((Long)iterBlock.next()).intValue());
 		          }
 		          pieces[pieceNumber] = piece;
 		      }
@@ -598,11 +602,13 @@ DiskManagerImpl
 		private int pieceNumber;
 		private int offset;
 		private ByteBuffer data;
+    private PEPeer sender;
 
-		public WriteElement(int pieceNumber, int offset, ByteBuffer data) {
+		public WriteElement(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
 			this.pieceNumber = pieceNumber;
 			this.offset = offset;
 			this.data = data;
+      this.sender = sender;
 		}
 
 		public int getPieceNumber() {
@@ -616,6 +622,10 @@ DiskManagerImpl
 		public ByteBuffer getData() {
 			return this.data;
 		}
+    
+    public PEPeer getSender() {
+      return this.sender;
+    }
 	}
 
 	public class DiskReadThread extends Thread {
@@ -667,12 +677,13 @@ DiskManagerImpl
 					//FIX for bug 814062
 					//Do not allow to write in a piece marked as done.
 					int pieceNumber = elt.getPieceNumber();
+          byte[] hash = computeMd5Hash(elt);
 					if(!pieceDone[pieceNumber]) {
 					  dumpBlockToDisk(elt);
 					} else {
 					  ByteBufferPool.getInstance().freeBuffer(elt.getData());
 					}
-					manager.blockWritten(elt.getPieceNumber(), elt.getOffset());
+					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender(),hash);
 				}
         
 				
@@ -873,7 +884,7 @@ DiskManagerImpl
 
   
    public void aSyncCheckPiece(int pieceNumber) {
-		checkQueue.add(new WriteElement(pieceNumber, 0, null));
+		checkQueue.add(new WriteElement(pieceNumber, 0, null, null));
 	}
   
 
@@ -1126,8 +1137,8 @@ DiskManagerImpl
 		}
 	}
 
-	public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-		writeQueue.add(new WriteElement(pieceNumber, offset, data));
+	public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
+		writeQueue.add(new WriteElement(pieceNumber, offset, data,sender));
 	}
 
 	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
@@ -1658,6 +1669,23 @@ DiskManagerImpl
     } catch (Exception e) { e.printStackTrace(); }
     
     return returnName;
+  }
+  
+  
+  private byte[] computeMd5Hash(WriteElement elt) {
+    md5.reset();
+    ByteBuffer buffer = elt.data;
+    int position = buffer.position();
+    md5.update(buffer);
+    buffer.position(position);
+    md5Result.position(0);
+    md5.finalDigest(md5Result);
+    byte[] result = new byte[16];
+    md5Result.position(0);
+    for(int i = 0 ; i < result.length ; i++) {
+      result[i] = md5Result.get();
+    }    
+    return result;    
   }
    
     

@@ -754,7 +754,7 @@ PEPeerTransportProtocol
 		  manager.received(pieceLength);
 		  setSnubbed(false);
 		  reSetRequestsTime();
-		  manager.writeBlock(pieceNumber, pieceOffset, buffer);                
+		  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);                
 		  readMessage(null);      
 		}
 		else {

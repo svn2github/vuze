@@ -1344,19 +1344,19 @@ PEPeerControlImpl
     _stats.haveNewPiece();
   }
 
-  public void blockWritten(int pieceNumber, int offset) {
+  public void blockWritten(int pieceNumber, int offset,PEPeer sender,byte[] hash) {
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
-      piece.setWritten(offset / BLOCK_SIZE);
+      piece.setWritten(sender,hash,offset / BLOCK_SIZE);
     }
   }
 
-  public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
+  public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
     PEPieceImpl piece = _pieces[pieceNumber];
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBloc(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data);
+      _diskManager.writeBlock(pieceNumber, offset, data,sender);
     }
   }
 
@@ -1506,9 +1506,11 @@ PEPeerControlImpl
     }
     //the piece is corrupt
     else {
-      if (_pieces[pieceNumber] != null) _pieces[pieceNumber].free();
-      _pieces[pieceNumber] = null;
-
+      if (_pieces[pieceNumber] != null) {
+        //_pieces[pieceNumber].free();      
+        _pieces[pieceNumber].reset();
+      
+      }
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
       
