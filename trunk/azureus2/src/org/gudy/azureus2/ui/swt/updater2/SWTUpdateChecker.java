@@ -120,4 +120,16 @@ public class SWTUpdateChecker implements UpdatableComponent
         
     return true;
   }
+  
+  public String
+  getName()
+  {
+    return( "SWT library" );
+  }
+  
+  public int
+  getMaximumCheckTime()
+  {
+    return( 30 ); // !!!! TODO: fix this
+  } 
 }
