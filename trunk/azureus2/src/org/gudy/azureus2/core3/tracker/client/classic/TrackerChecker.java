@@ -119,8 +119,15 @@ public class TrackerChecker implements TRTrackerScraperListener {
 
     TRTrackerScraperResponseImpl data = null;
 
-    if (trackers.containsKey(trackerUrl)) {
-      final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
+    	// DON'T USE URL as a key in the trackers map, use the string version. If you
+    	// use a URL then the "containsKey" method does a URL.equals test. This does not
+    	// simply check on str equivalence, it tries to resolve the host name. this can
+    	// result in significant hangs (several seconds....)
+    
+    String	url_str = trackerUrl.toString();
+    
+    if (trackers.containsKey(url_str)) {
+      final TrackerStatus ts = (TrackerStatus) trackers.get(url_str);
       data = ts.getHashData(hashBytes);
       if (data == null) {
         //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
@@ -132,7 +139,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
       try{
       	trackers_mon.enter();
       	
-        trackers.put(trackerUrl, ts);
+        trackers.put(url_str, ts);
       }finally{
       	
       	trackers_mon.exit();
@@ -204,7 +211,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
           TrackerStatus ts = (TrackerStatus) iter.next();
 
           if ( 	target_url == null ||
-          		target_url.equals( ts.getTrackerURL())){
+          		target_url.toString().equals( ts.getTrackerURL().toString())){
           	
 	          Map hashmap = ts.getHashes();
 	
