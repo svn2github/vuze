@@ -76,7 +76,7 @@ public class PeersView
 
   public PeersView(DownloadManager manager) {
     super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
-          basicItems, "pieces");
+          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     this.manager = manager;
     iCellHeight = 16;
   }
