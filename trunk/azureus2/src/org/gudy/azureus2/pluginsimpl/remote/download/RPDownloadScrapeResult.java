@@ -127,4 +127,10 @@ RPDownloadScrapeResult
 		return( 0 );
 	}
 	
+	public void 
+	setNextScrapeStartTime(
+		long nextScrapeStartTime)
+	{
+		notSupported();		
+	}
 }
