@@ -20,6 +20,8 @@ FEATURE: UI   | Added detailed connection State to peers view [Nolar]
 FEATURE: Core | Optimistic Connect: drop inactive connections in order to find better ones [Nolar]
 FEATURE: UI   | Added Connected Time item to peers view [Nolar]
 FEATURE: UI   | Option to add torrent downloads silently (without activating main Azureus window) [Nolar]
+FEATURE: UI   | Added download speed limit column to MyTorrents [Parg]
+FEATURE: Core | Added ability to apply updates and shutdown Azureus instead of restarting [Parg]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -31,6 +33,8 @@ CHANGE: Core | Also do dynamic tracker re-announce interval overrides when seedi
 CHANGE: Core | NAT check url changed to aelitis server [Nolar]
 CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
 CHANGE: Core | Remove old auto-migration code [Nolar]
+CHANGE: Core | update restart logic now preserves JVM mam mem for Sun JVMs [Parg]
+
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
@@ -56,9 +60,7 @@ BUGFIX: UI   | Fix bug with Azureus crashing when quitting on OSX if the Stats v
 BUGFIX: UI   | Fix the fuzzy Azureus icon bug under OSX [Gudy]
 BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are set [Gudy]
 BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
-
-
-
+BUGFIX: Core | Fix for UPnP failing if trailing spaces in 'action name' [Parg]
 
 2004.10.31 | Azureus 2.2.0.0
 
