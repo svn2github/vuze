@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1111,7 +1112,17 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     String trackerURL = null;
     
-    if ( trackerClient == null ){
+    if ( trackerClient != null ){
+    	
+    	URL	temp = trackerClient.getTrackerUrl();
+    	
+    	if ( temp != null ){
+    		
+    		trackerURL	= temp.toString();
+    	}
+    }
+    
+    if ( trackerURL == null ){
     	
        	TOTorrent	torrent = _manager.getTorrent();
        	
@@ -1119,9 +1130,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
        		
        		trackerURL = torrent.getAnnounceURL().toString();
        	}
-    }else{
-    	
-    	trackerURL = trackerClient.getTrackerUrl().toString();
     }
     
     if ( trackerURL != null ){

@@ -31,12 +31,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TrackersUtil;
@@ -55,8 +54,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   ProgressBar progress;
   Display display;
 
-  public ProgressPanel(NewTorrentWizard wizard, IWizardPanel previousPanel) {
-    super(wizard, previousPanel);
+  public ProgressPanel(NewTorrentWizard _wizard, IWizardPanel _previousPanel) {
+    super(_wizard, _previousPanel);
   }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
@@ -152,7 +151,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       	// mark this newly created torrent as complete to avoid rechecking on open
       
-      File save_dir;
+      final File save_dir;
       
       if (_wizard.create_from_dir){
       	
@@ -169,16 +168,48 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
         TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
        }
-      this.reportCurrentTask(MessageText.getString("wizard.savingfile"));      
-      torrent.serialiseToBEncodedFile(new File(((NewTorrentWizard)wizard).savePath));
+      this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
+      
+      final File torrent_file = new File(((NewTorrentWizard)wizard).savePath);
+      
+      torrent.serialiseToBEncodedFile(torrent_file);
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
 	  wizard.switchToClose();
+	  
+	  if ( ((NewTorrentWizard)wizard).autoOpen ){
+	  	
+        new AEThread("TorrentOpener::openTorrent") 
+		{
+            public void
+			runSupport() 
+            {
+             	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+
+                ((NewTorrentWizard)wizard).getAzureusCore().getGlobalManager().addDownloadManager(
+                		torrent_file.toString(), 
+                		save_dir.toString(), 
+						default_start_stopped 	? DownloadManager.STATE_STOPPED 
+												: DownloadManager.STATE_QUEUED,
+						true,	// persistent 
+						true );	// for seeding
+
+            }
+		}.start();
+	  }
 	}
     catch (Exception e) {
-    	Debug.printStackTrace( e );
-      reportCurrentTask(MessageText.getString("wizard.operationfailed"));
-      reportCurrentTask(LGLogger.exceptionToString(e));
-	  wizard.switchToClose();
+      if ( 	e instanceof TOTorrentException && 
+      		((TOTorrentException)e).getReason() == TOTorrentException.RT_CANCELLED ){
+      	
+      		//expected failure, don't log exception
+     	
+      }else{
+      	Debug.printStackTrace( e );
+        reportCurrentTask(MessageText.getString("wizard.operationfailed"));
+        reportCurrentTask(LGLogger.exceptionToString(e));
+      }
+      
+ 	  wizard.switchToClose();
     }
   }
 
