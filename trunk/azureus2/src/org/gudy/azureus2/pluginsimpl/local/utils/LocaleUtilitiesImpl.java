@@ -29,12 +29,29 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
 import org.gudy.azureus2.core3.internat.*;
 
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.plugins.*;
 
 
 public class 
 LocaleUtilitiesImpl
 	implements LocaleUtilities
 {
+	protected PluginInterface	pi;
+	
+	public
+	LocaleUtilitiesImpl(
+		PluginInterface		_pi )
+	{
+		pi	 = _pi;
+	}
+	
+	public void
+	integrateLocalisedMessageBundle(
+		String		resource_bundle_prefix )
+	{
+		MessageText.integratePluginMessages(resource_bundle_prefix,pi.getPluginClassLoader());
+	}	
+	
 	public String
 	getLocalisedMessageText(
 		String		key )

@@ -35,12 +35,11 @@ import java.util.jar.*;
 import org.gudy.azureus2.core3.security.SEKeyDetails;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 WUJarBuilder 
-{
-	public static final boolean SIGN_JAR	= false;
-	
+{	
 	public static void
 	buildFromResources(
 		JarOutputStream		jos,
@@ -62,6 +61,19 @@ WUJarBuilder
 		throws IOException
 	{
 		buildFromResources2( jos, class_loader, resource_prefix, resource_names );	
+	}	
+	
+	public static void
+	buildFromResources(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String				resource_prefix,
+		String[]			resource_names,
+		String				sign_alias )
+		
+			throws IOException
+	{
+		buildFromResources2( jos, class_loader, resource_prefix, resource_names, sign_alias );	
 	}
 	
 	public static long
@@ -72,7 +84,7 @@ WUJarBuilder
 	
 		throws IOException
 	{
-		return( buildFromResources2( jos, class_loader, null, resource_names ));
+		return( buildFromResources2( jos, class_loader, null, resource_names, null ));
 	}
 	
 	public static long
@@ -84,18 +96,38 @@ WUJarBuilder
 	
 		throws IOException
 	{
-		if ( SIGN_JAR ){
+		return( buildFromResources2( jos, class_loader, resource_prefix, resource_names, null ));
+	}
+	
+	public static long
+	buildFromResources2(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String				resource_prefix,
+		String[]			resource_names,
+		String				sign_alias )
+		
+		throws IOException
+	{
+		if ( sign_alias != null ){
 			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream(65536);
 			
 			long tim = buildFromResourcesSupport( new JarOutputStream( baos ),class_loader,resource_prefix,resource_names );
-			
-			String	alias = "SomeAlias"; // SESecurityManager.DEFAULT_ALIAS;
-			
+						
 			try{
-				SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
+				SEKeyDetails	kd = SESecurityManager.getKeyDetails( sign_alias );
 			
-				WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
+				if ( kd == null ){
+			
+					LGLogger.logAlert(
+						LGLogger.AT_ERROR,
+						"Certificate alias '" + sign_alias + "' not found, jar signing fails" );
+					
+					throw( new Exception( "Certificate alias '" + sign_alias + "' not found "));
+				}
+				
+				WUJarSigner signer = new WUJarSigner(sign_alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
 
 				signer.signJarStream( new ByteArrayInputStream(baos.toByteArray()), jos );
 			

@@ -28,6 +28,17 @@ package org.gudy.azureus2.plugins.utils;
 public interface 
 LocaleUtilities 
 {
+	/**
+	 * Allows programatic registration of plugin messages, as opposed to using the
+	 * plugin.langfile property in plugin.properties
+	 * If you message base file is, say, a.b.c.Messages.properties, pass a.b.c.Messages
+	 * @param resource_bundle_prefix
+	 */
+	
+	public void
+	integrateLocalisedMessageBundle(
+		String		resource_bundle_prefix );
+	
 	public String
 	getLocalisedMessageText(
 		String		key );

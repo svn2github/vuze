@@ -274,8 +274,13 @@ SESecurityManagerImpl
 		
 		final Key key = key_store.getKey( alias, SESecurityManager.SSL_PASSWORD.toCharArray());
 		
-		java.security.cert.Certificate[]	chain = key_store.getCertificateChain( alias );
+		if ( key == null ){
+			
+			return( null );
+		}
 		
+		java.security.cert.Certificate[]	chain = key_store.getCertificateChain( alias );
+
 		final X509Certificate[]	res = new X509Certificate[chain.length];
 		
 		for (int i=0;i<chain.length;i++){

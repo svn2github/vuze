@@ -110,7 +110,7 @@ UtilitiesImpl
 	public LocaleUtilities
 	getLocaleUtilities()
 	{
-		return( new LocaleUtilitiesImpl());
+		return( new LocaleUtilitiesImpl( pi ));
 	}
 	
 	public UTTimer

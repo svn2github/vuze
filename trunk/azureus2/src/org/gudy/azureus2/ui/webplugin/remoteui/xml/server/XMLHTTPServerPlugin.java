@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
 
 import org.gudy.azureus2.ui.webplugin.*;
 
+import java.util.Properties;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
@@ -39,12 +40,21 @@ public class
 XMLHTTPServerPlugin
 	extends WebPlugin
 {
+	public static final int	DEFAULT_PORT	= 6884;
+	
+	protected static Properties	defaults = new Properties();
+	
+	static{
+		
+		defaults.put( WebPlugin.CONFIG_PORT, new Integer( DEFAULT_PORT ));
+	}
+	
 	protected RPRequestHandler		request_handler;
 	
 	public
 	XMLHTTPServerPlugin()
 	{
-		super();
+		super(defaults);
 	}
 	
 	public void 

@@ -58,7 +58,7 @@ WebPlugin
 	public static final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
 	
 	public static final String 	CONFIG_PORT						= "Port";
-	public static final int	 	CONFIG_PORT_DEFAULT				= 8089;
+	public static int	 		CONFIG_PORT_DEFAULT				= 8089;
 	
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
 	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
@@ -94,6 +94,23 @@ WebPlugin
 	
 	protected boolean				ip_range_all	= false;
 	protected IpRange				ip_range;
+	
+	public 
+	WebPlugin()
+	{
+	}
+	
+	public 
+	WebPlugin(
+		Properties		defaults )
+	{	
+		Integer	i = (Integer)defaults.get(CONFIG_PORT);
+		
+		if ( i != null ){
+		
+			CONFIG_PORT_DEFAULT	= i.intValue();
+		}
+	}
 	
 	public void 
 	initialize(
@@ -242,6 +259,8 @@ WebPlugin
 			plugin_config.save();
 		}
 		
+		config_model.addLabelParameter2( "webui.restart.info" );
+
 		IntParameter	param_port = config_model.addIntParameter2(	CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
 		
 		StringListParameter	param_protocol = 
@@ -604,5 +623,11 @@ WebPlugin
 		}
 		
 		return( false );
+	}
+	
+	protected BasicPluginConfigModel
+	getConfigModel()
+	{
+		return( config_model );
 	}
 }

@@ -280,6 +280,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   
     label = new Label(culdl, SWT.LEFT);
     label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getKiloBytePerSecUnit()+":");
+    Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
     
     final Text maxDLSpeed = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
