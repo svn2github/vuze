@@ -48,15 +48,23 @@ VWDownloadView
 		JTable    table = new JTable(sorter);
 		
 		TableColumnModel cm = table.getColumnModel();
+
+		int[]	widths = { 30, -1, 60, 90, 80 };
 		
+		for (int i=0;i<widths.length;i++){
+			
+			if ( widths[i] != -1 ){
+				
+				cm.getColumn(i).setMaxWidth(widths[i]);
+			}
+		}
+	
 		int[]	byte_columns = { 2, 3 };
 		
 		for (int i=0;i<byte_columns.length;i++){
 			
 			TableColumn column = cm.getColumn( byte_columns[i]);
-			
-			column.setWidth(50);
-			
+						
 			column.setCellRenderer(
 				new DefaultTableCellRenderer()
 				{
