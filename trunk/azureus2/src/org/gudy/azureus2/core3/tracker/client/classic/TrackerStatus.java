@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.zip.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
@@ -88,8 +89,26 @@ public class TrackerStatus {
       LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + scrape);
       //System.out.println( "trying " + scrape.toString());
       HttpURLConnection con = (HttpURLConnection) scrape.openConnection();
+      
+      // some trackers support gzip encoding of replies
+      
+      con.addRequestProperty("Accept-Encoding","gzip");
+      
       con.connect();
+      
       is = con.getInputStream();
+
+      String encoding = con.getHeaderField( "content-encoding");
+      
+      boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+      
+      // System.out.println( "encoding = " + encoding );
+      
+      if ( gzip ){
+      	
+      	is = new GZIPInputStream( is );
+      }
+      
       ByteArrayOutputStream message = new ByteArrayOutputStream();
       int nbRead = 0;
       while (nbRead >= 0) {
