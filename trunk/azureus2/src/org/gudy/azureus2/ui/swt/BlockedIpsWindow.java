@@ -43,6 +43,9 @@ public class BlockedIpsWindow {
     window.setImage(ImageRepository.getImage("azureus"));
     
     FormLayout layout = new FormLayout();
+    layout.spacing = 3;
+    layout.marginHeight = 3;
+    layout.marginWidth = 3;
     window.setLayout(layout);
     FormData formData;
     
@@ -59,7 +62,7 @@ public class BlockedIpsWindow {
     Button btnOk = new Button(window,SWT.PUSH);
     Messages.setLanguageText(btnOk,"authenticator.ok");
     formData = new FormData();
-    //formData.left = new FormAttachment(text);
+    formData.right = new FormAttachment(100,0);
     formData.top = new FormAttachment(text);
     
     formData.width = 70;
