@@ -58,7 +58,7 @@ PEPeerManager
 
 	public PEPiece[] getPieces();
 
-	public PEPeerStats
+	public PEPeerManagerStats
 	getStats();
 
 	public void 

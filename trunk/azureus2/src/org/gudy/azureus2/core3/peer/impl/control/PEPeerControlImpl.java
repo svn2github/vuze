@@ -59,9 +59,9 @@ PEPeerControlImpl
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
-  private PEPieceImpl[] 		_pieces;
-  private PEPeerServerHelper 	_server;
-  private PEPeerStatsImpl 		_stats;
+  private PEPieceImpl[] 				_pieces;
+  private PEPeerServerHelper 			_server;
+  private PEPeerManagerStatsImpl 		_stats;
   private long _timeLastUpdate;
   private int _timeToWait;
   private TRTrackerClient _tracker;
@@ -1044,7 +1044,7 @@ PEPeerControlImpl
             && pc.isInterested()
             && bestUploaders.size() < upRates.length
             && !pc.isSnubbed()
-            && (pc.getStats().getTotalSent() / (pc.getStats().getTotalReceived() + 16000)) < 10) {
+            && (_manager.getStats().getUploaded() / (_manager.getStats().getDownloaded() + 16000)) < 10) {
             bestUploaders.add(pc);
           }
         }
@@ -1332,7 +1332,7 @@ PEPeerControlImpl
     _availability = new int[_nbPieces];
 
     //the stats
-    _stats = new PEPeerStatsImpl(diskManager.getPieceLength());
+    _stats = new PEPeerManagerStatsImpl(diskManager.getPieceLength());
 
     _server.startServer();
 
@@ -1422,7 +1422,7 @@ PEPeerControlImpl
     return _seeds;
   }
 
-  public PEPeerStats getStats() {
+  public PEPeerManagerStats getStats() {
     return _stats;
   }
 

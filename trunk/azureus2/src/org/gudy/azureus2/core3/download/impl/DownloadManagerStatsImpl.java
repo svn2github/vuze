@@ -42,10 +42,10 @@ DownloadManagerStatsImpl
 		
 	protected int completed;
 	
-		//saved downloaded and uploaded
+		// saved downloaded and uploaded
 		
-	protected long downloaded;
-	protected long uploaded;
+	protected long saved_downloaded;
+	protected long saved_uploaded;
 
 	protected
 	DownloadManagerStatsImpl(
@@ -169,17 +169,17 @@ DownloadManagerStatsImpl
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null) {
-		PEPeerStats ps = pm.getStats();
-		return ps.getTotalReceived();
+		PEPeerManagerStats ps = pm.getStats();
+		return saved_downloaded + ps.getTotalReceived();
 	  }
-	  return(0);
+	  return(saved_downloaded);
 	}
 
 	public long getUploaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null)
-		return pm.getStats().getTotalSent();
-	  return( 0 );
+		return saved_uploaded + pm.getStats().getTotalSent();
+	  return( saved_uploaded );
 	}
 	
 	public long getDiscarded(){
@@ -203,11 +203,6 @@ DownloadManagerStatsImpl
 	  return( 0 );
 	}
       
-	public void setDownloadedUploaded(long downloaded,long uploaded) {
-	  this.downloaded = downloaded;
-	  this.uploaded = uploaded;
-	}
-  
 	public void setCompleted(int completed) {
 	  this.completed = completed;
 	}
@@ -216,11 +211,11 @@ DownloadManagerStatsImpl
 	  long downloaded,uploaded;
 	  PEPeerManager	pm = download_manager.getPeerManager();
 	  if(pm != null) {
-		downloaded = pm.getStats().getTotalReceived();
-		uploaded = pm.getStats().getTotalSent();
+		downloaded = saved_downloaded + pm.getStats().getTotalReceived();
+		uploaded = saved_uploaded + pm.getStats().getTotalSent();
 	  } else {
-		downloaded = this.downloaded;
-		uploaded = this.uploaded;
+		downloaded = this.saved_downloaded;
+		uploaded = this.saved_uploaded;
 	  }
         
 	  if(downloaded == 0) {
@@ -231,29 +226,26 @@ DownloadManagerStatsImpl
 	  }
 	}
 	
+	
+	public void 
+	setSavedDownloadedUploaded(
+		long 	downloaded,
+		long 	uploaded ) 
+	{
+	  saved_downloaded = downloaded;
+	  saved_uploaded = uploaded;
+	}
+  
+
 	protected long
-	getDownloadedInternal()
+	getSavedDownloaded()
 	{
-		return( downloaded );
+		return( saved_downloaded );
 	}
-	
-	protected void
-	setDownloadedInternal(
-		long	l )
-	{
-		downloaded = l;
-	}
-	
+		
 	protected long
-	getUploadedInternal()
+	getSavedUploaded()
 	{
-		return( uploaded );
-	}
-	
-	protected void
-	setUploadedInternal(
-		long	l )
-	{
-		uploaded = l;
+		return( saved_uploaded );
 	}
 }

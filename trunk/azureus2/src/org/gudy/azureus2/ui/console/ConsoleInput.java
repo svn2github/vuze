@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.stats.StatsWriterFactory;
 import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
@@ -202,7 +202,7 @@ public class ConsoleInput extends Thread {
                 long totalDiscarded = 0;
                 int connectedSeeds = 0;
                 int connectedPeers = 0;
-                PEPeerStats ps;
+                PEPeerManagerStats ps;
                 int nrTorrent = 0;
                 while (torrent.hasNext()) {
                   dm = (DownloadManager) torrent.next();
@@ -212,8 +212,8 @@ public class ConsoleInput extends Thread {
                     ps = dm.getPeerManager().getStats();
                   } catch (Exception e) {ps = null;}
                   if (ps != null) {
-                    totalReceived += ps.getTotalReceived();
-                    totalSent += ps.getTotalSent();
+                    totalReceived += dm.getStats().getDownloaded();
+                    totalSent	  += dm.getStats().getUploaded();
                     totalDiscarded += ps.getTotalDiscarded();
                     connectedSeeds += dm.getNbSeeds();
                     connectedPeers += dm.getNbPeers();

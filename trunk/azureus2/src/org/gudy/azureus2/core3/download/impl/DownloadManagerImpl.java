@@ -173,11 +173,8 @@ DownloadManagerImpl
 
   public void startDownload() {
 	this.state = STATE_DOWNLOADING;
+	
 	peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
-	
-	peerManager.getStats().setTotalReceived(stats.getDownloadedInternal());
-	
-	peerManager.getStats().setTotalSent(stats.getUploadedInternal());
   }
 
 	private void 
@@ -307,8 +304,10 @@ DownloadManagerImpl
 	  public void run() {
 		state = DownloadManager.STATE_STOPPING;
 		if (peerManager != null) {
-		  stats.setUploadedInternal( peerManager.getStats().getTotalSent());
-		  stats.setDownloadedInternal(peerManager.getStats().getTotalReceived());
+		  stats.setSavedDownloadedUploaded( 
+				  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
+			 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
+			 	  
 		  peerManager.stopAll();  
 		}      
 		if (diskManager != null) {

@@ -67,7 +67,7 @@ DownloadManagerStats
 		// set methods
 
 	public void
-	setDownloadedUploaded(
+	setSavedDownloadedUploaded(
 		long	d,
 		long	u );
 

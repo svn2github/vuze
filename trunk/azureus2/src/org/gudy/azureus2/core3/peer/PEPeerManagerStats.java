@@ -1,7 +1,7 @@
 /*
- * File    : PEPeerStats
- * Created : 15-Oct-2003
- * By      : stuff
+ * File    : PEPeerManagerStats.java
+ * Created : 05-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,33 +18,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
- package org.gudy.azureus2.core3.peer;
+
+package org.gudy.azureus2.core3.peer;
 
 /**
- * Provides Statistic upon a peer.
- * It uses Average to compute its different averages. 
- * 
- * @author Olivier
+ * @author parg
  *
  */
-
 public interface 
-PEPeerStats 
-{   
-  public int getDownloadAverage();
+PEPeerManagerStats 
+{
+	public int getDownloadAverage();
 
-  public int getReception();
-
-  public int getUploadAverage();
+	public int getUploadAverage();
    
-  public int getTotalAverage();
+	public int getTotalAverage();
    
-  public long getTotalDiscarded();
+	public long getTotalDiscarded();
  
-  public long getTotalSent();
+	public long getTotalSent();
   
-  public long getTotalReceived();
- 
-  public int getStatisticSentAverage();
+	public long getTotalReceived();
+
 }

@@ -443,7 +443,7 @@ public class GlobalManagerImpl
             dm.setPriority(lPriority.intValue());
           }
           if (lDownloaded != null && lUploaded != null) {
-            dm.getStats().setDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
+            dm.getStats().setSavedDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
           }
           if (lCompleted != null) {
             dm.getStats().setCompleted(lCompleted.intValue());

@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -467,7 +467,7 @@ public class Jhttpp2HTTPSession extends Thread {
       long totalDiscarded = 0;
       int connectedSeeds = 0;
       int connectedPeers = 0;
-      PEPeerStats ps;
+      PEPeerManagerStats ps;
       while (torrent.hasNext()) {
         dm = (DownloadManager) torrent.next();
         TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
@@ -476,8 +476,8 @@ public class Jhttpp2HTTPSession extends Thread {
           ps = dm.getPeerManager().getStats();
         } catch (Exception e) {ps = null;}
         if (ps != null) {
-          totalReceived += ps.getTotalReceived();
-          totalSent += ps.getTotalSent();
+          totalReceived += dm.getStats().getDownloaded();
+          totalSent 	+= dm.getStats().getUploaded();
           totalDiscarded += ps.getTotalDiscarded();
           connectedSeeds += dm.getNbSeeds();
           connectedPeers += dm.getNbPeers();

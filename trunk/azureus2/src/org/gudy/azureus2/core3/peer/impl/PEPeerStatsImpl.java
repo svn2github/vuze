@@ -33,15 +33,12 @@ public class
 PEPeerStatsImpl 
 	implements PEPeerStats
 {
-//		private final int avgTime = 12;
-
-//		private long timeCreated;
-
 	  private int pieceLength;
 
 	  private long totalReceived;
-	  private long totalDiscarded;
 	  private long totalSent;
+	  
+	  private long totalDiscarded;
 	  private long totalHave;
 
 	  private Average receptionSpeed;
@@ -118,18 +115,10 @@ PEPeerStatsImpl
 		return totalSent;
 	  }
   
-	  public void setTotalSent(long sent) {
-		 totalSent = sent;
-	   }
-
 	  public long getTotalReceived() {
 		return totalReceived;
 	  }
-  
-	  public void setTotalReceived(long received) {
-		totalReceived = received;
-	  }
-  
+    
 	  public int 
 	  getTotalAverage() 
 	  {
