@@ -42,8 +42,8 @@ PESharedPortSelector
 	
 	protected Selector	  selector;
 	
-	protected Map		outstanding_sockets	= new HashMap();
-		
+	protected List		register_list		= new ArrayList(16);
+			
 	protected Map		hash_map			= new HashMap();
 	
 	protected
@@ -70,12 +70,47 @@ PESharedPortSelector
 	protected void
 	selectLoop()
 	{   
+		Map		outstanding_sockets	= new HashMap();
+		
 		List	sockets_to_handover = new ArrayList();
 		
 		while (true){
 			
 			try {
-        				
+					//	could optimise these syncs if required....
+				
+				synchronized( this ){
+					
+					if ( register_list.size() > 0 ){
+						
+						for (int i=0;i<register_list.size();i++){
+						
+							socketData	sd = (socketData)register_list.get(i);
+							
+							SocketChannel socket = sd.getSocket();
+							
+							try{
+								outstanding_sockets.put( socket, sd );
+	
+								socket.register(selector,SelectionKey.OP_READ);
+								
+							}catch( Exception e ){
+								
+								e.printStackTrace();
+								
+								outstanding_sockets.remove( socket );
+								
+								try{
+									socket.close();
+								}
+								catch( IOException f ){ f.printStackTrace(); }
+							}								
+						}
+						
+						register_list.clear();
+					}
+				}
+				
 				int select_res = selector.select(500);
 			 			   
 				for (int i=0;i<sockets_to_handover.size();i++){
@@ -89,7 +124,7 @@ PESharedPortSelector
 			  
 			  	if ( select_res > 0 ){
 			  	
-			  		synchronized( PESharedPortSelector.this ){
+			  		synchronized( this ){
 			  	
 				    	Iterator ready_it = selector.selectedKeys().iterator();
 				    
@@ -215,10 +250,7 @@ PESharedPortSelector
 					    	}	
 						}	
 				  	}				
-			  	}
-          
-			  	Thread.sleep(500);
-          
+			  	}          
 			}catch( Throwable e ){
 				
 					// we should never get here - possible nio bug producing null pointer
@@ -243,7 +275,7 @@ PESharedPortSelector
 				
 					// recreate the selector
 					
-				synchronized( PESharedPortSelector.this ){
+				synchronized( this ){
 					
 					try{
 						selector.close();
@@ -303,22 +335,9 @@ PESharedPortSelector
 	addSocket(
 		SocketChannel		_socket )
 	{		
-		try{
-			
-			socketData	sd = new socketData( _socket );
-      
-			outstanding_sockets.put( _socket, sd );
-      			
-			_socket.register(selector,SelectionKey.OP_READ);
-			
-		}catch( Exception e ){
-			e.printStackTrace();
-			
-			try {
-				_socket.close();
-			}
-			catch( IOException f ){ f.printStackTrace(); }
-		}
+		socketData	sd = new socketData( _socket );
+     
+		register_list.add( sd );
 	}
 	
 	public void
