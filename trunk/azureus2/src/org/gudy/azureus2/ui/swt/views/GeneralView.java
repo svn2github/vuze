@@ -772,7 +772,13 @@ public class GeneralView extends AbstractIView {
         }
       }
     } else {
-      pieces = manager.getPiecesStatus();
+      // clone so it doesn't auto-update..
+      try {
+        pieces = (boolean[])manager.getPiecesStatus().clone();
+      } catch (Exception e) {
+        e.printStackTrace();
+        pieces = null;
+      }
       if (pieces == null) {
         return;
       }
