@@ -53,16 +53,21 @@ PluginInitializer
 	implements GlobalManagerListener
 {
 
-  private Class[]	initial_builtin_plugins = 
-    	{ 		org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
+  private Class[]	builtin_plugins = 
+    	{ 		 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
                  ShareHosterPlugin.class,
                  TrackerDefaultWeb.class,
                  UpdateLanguagePlugin.class,
+  		    	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class,
         };
   
-  private Class[]	final_builtin_plugins = 
-  		{ 		org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class,
-        };
+  private String[] builtin_plugin_keys = 
+  		{		"",
+  				"ShareHoster",
+				"TrackerDefault",
+				"UpdateLanguagePlugin",
+				"PluginUpdate",
+  		};
   
   private static PluginInitializer	singleton;
   
@@ -91,7 +96,9 @@ PluginInitializer
   		for (int i=0;i<registration_queue.size();i++){
   			
   			try{
-  				singleton.initializePluginFromClass((Class)registration_queue.get(i));
+  				Class cla = (Class)registration_queue.get(i);
+  				
+  				singleton.initializePluginFromClass(cla, cla.getName());
   				
   			}catch(PluginException e ){
   				
@@ -115,7 +122,7 @@ PluginInitializer
   	}else{
   		
   		try{
-  			singleton.initializePluginFromClass( _class );
+  			singleton.initializePluginFromClass( _class, _class.getName());
   			
 		}catch(PluginException e ){
   				
@@ -184,25 +191,15 @@ PluginInitializer
     	// now do built in ones
       LGLogger.log("Initializing built-in plugins");
     
-     for (int i=0;i<initial_builtin_plugins.length;i++){
+     for (int i=0;i<builtin_plugins.length;i++){
     	
      	try{
-     		initializePluginFromClass( initial_builtin_plugins[i] );
+     		initializePluginFromClass( builtin_plugins[i], builtin_plugin_keys[i] );
      		
 		}catch(PluginException e ){
   				
   		}
      }
-     
-     for (int i=0;i<final_builtin_plugins.length;i++){
-    	
-     	try{
-     		initializePluginFromClass( final_builtin_plugins[i] );
-     		
-		}catch(PluginException e ){
-  				
-  		}
-    }
   }
   
   private void 
@@ -340,7 +337,7 @@ PluginInitializer
 								this, 
 								directory, 
 								classLoader,
-								directory.getName(),
+								directory.getName(),	// key for config values
 								new_props,
 								directory.getAbsolutePath(),
 								plugin_id[0],
@@ -407,7 +404,8 @@ PluginInitializer
   
   protected void 
   initializePluginFromClass(
-  	Class 	plugin_class )
+  	Class 	plugin_class,
+	String	plugin_config_key )
   
   	throws PluginException
   {
@@ -428,7 +426,7 @@ PluginInitializer
 						this,
 						plugin_class,
 						plugin_class.getClassLoader(),
-						"",
+						plugin_config_key,
 						new Properties(),
 						"",
 						"<intenal>",
@@ -471,7 +469,8 @@ PluginInitializer
   {
   	unloadPlugin( pi );
   	
-  	Object key = pi.getInitializerKey();
+  	Object key 			= pi.getInitializerKey();
+  	String config_key	= pi.getPluginConfigKey();
   	
   	if ( key instanceof File ){
   		
@@ -479,7 +478,7 @@ PluginInitializer
   		
   	}else{
   		
-  		initializePluginFromClass( (Class) key );
+  		initializePluginFromClass( (Class) key, config_key );
   	}
   }
  	

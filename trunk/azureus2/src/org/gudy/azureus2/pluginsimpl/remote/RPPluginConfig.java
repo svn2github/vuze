@@ -123,6 +123,14 @@ RPPluginConfig
 
 	// ***************************************************
 
+	public String
+	getPluginConfigKeyPrefix()
+	{
+	  	notSupported();
+	  	
+	  	return(null);
+	}
+	
     public float getFloatParameter(String key) {
 	  	notSupported();
 	  	

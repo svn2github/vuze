@@ -41,6 +41,12 @@ public class PluginConfigImpl
 		config = ConfigurationManager.getInstance();
 	}
 
+	public String
+	getPluginConfigKeyPrefix()
+	{
+		return( key );
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
 	 */

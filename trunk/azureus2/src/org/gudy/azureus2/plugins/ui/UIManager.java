@@ -58,6 +58,17 @@ UIManager
 	createPluginView(
 		PluginViewModel	model );
 	
+	
+	public BasicPluginConfigModel
+	createBasicPluginConfigModel(
+		String		section_name );
+	
+	
+	public BasicPluginConfigModel
+	createBasicPluginConfigModel(
+		String		parent_section,
+		String		section_name );
+	
 	public void
 	copyToClipBoard(
 		String		data )

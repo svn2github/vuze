@@ -220,9 +220,24 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionSharing(),
                                          new ConfigSectionLogging()
                                         };
+    
     pluginSections.addAll(0, Arrays.asList(internalSections));
 
     for (int i = 0; i < pluginSections.size(); i++) {
+   
+    	// slip the non-standard "plugins" initialisation inbetween the internal ones
+    	// and the plugin ones so plugin ones can be children of it
+    	
+      if ( i == internalSections.length ){
+        // for now, init plugins seperately
+        try {
+          initGroupPlugins();
+        } catch (Exception e) {
+          LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView.Plugins");
+          e.printStackTrace();
+        }   	
+      }
+      
       ConfigSection section = (ConfigSection)pluginSections.get(i);
       if (section instanceof ConfigSectionSWT) {
         String name;
@@ -268,13 +283,7 @@ public class ConfigView extends AbstractIView {
       }
     }
     
-    // for now, init plugins seperately
-    try {
-      initGroupPlugins();
-    } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView.Plugins");
-      e.printStackTrace();
-    }
+ 
 
 
     initSaveButton();

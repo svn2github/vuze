@@ -40,6 +40,15 @@ UITextArea
 	setText(
 		String		text );
 	
+	/**
+	 * Appends the supplied text to the existing text value
+	 * @param text
+	 */
+	
+	public void
+	appendText(
+		String		text );
+	
 	public String
 	getText();
 }

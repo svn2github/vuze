@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
@@ -50,11 +51,15 @@ PluginUpdatePlugin
 		
 		log = plugin_interface.getLogger().getChannel("Plugin Update");
 
+		UIManager	ui_manager = plugin_interface.getUIManager();
+		
 		final BasicPluginViewModel model = 
-			plugin_interface.getUIManager().getBasicPluginViewModel( 
+			ui_manager.getBasicPluginViewModel( 
 					"Plugin Update");
 		
-		model.getStatus().setText( "Running" );
+		boolean enabled = plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true );
+
+		model.getStatus().setText( enabled?"Running":"Disabled" );
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
 		
@@ -66,7 +71,7 @@ PluginUpdatePlugin
 					int		type,
 					String	message )
 				{
-					model.getLogArea().setText( model.getLogArea().getText()+message+"\n");
+					model.getLogArea().appendText( message+"\n");
 				}
 				
 				public void
@@ -74,26 +79,36 @@ PluginUpdatePlugin
 					String		str,
 					Throwable	error )
 				{
-					model.getLogArea().setText( model.getLogArea().getText()+error.toString()+"\n");
+					model.getLogArea().appendText( error.toString()+"\n");
 				}
 			});
 		
-		PluginView view = plugin_interface.getUIManager().createPluginView( model );
+		PluginView view = ui_manager.createPluginView( model );
 		
 		plugin_interface.addView( view );	
 		
-		Thread t = new Thread("PluginUpdate" )
-			{
-				public void
-				run()
-				{
-					updater();
-				}
-			};
-			
-		t.setDaemon(true);
+		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel( "plugins", "plugins.update");
 		
-		t.start();
+		config.addBooleanParameter( "enable.update", "Plugin.pluginupdate.enablecheck", true );
+		
+		if ( enabled ){
+			
+			Thread t = new Thread("PluginUpdate" )
+				{
+					public void
+					run()
+					{
+						updater();
+					}
+				};
+				
+			t.setDaemon(true);
+			
+			t.start();
+		}else{
+			
+			log.log( LoggerChannel.LT_INFORMATION, "Update check disabled in configuration" );
+		}
 	}
 	
 	protected void

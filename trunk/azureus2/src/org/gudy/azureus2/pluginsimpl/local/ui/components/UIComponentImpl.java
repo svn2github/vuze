@@ -77,6 +77,8 @@ UIComponentImpl
 		final String	property_type,
 		final Object	property_value )
 	{
+		final Object	old_value = properties.get( property_type );
+		
 		properties.put( property_type, property_value );
 		
 		UIPropertyChangeEvent	ev = new
@@ -95,9 +97,15 @@ UIComponentImpl
 				}
 				
 				public Object
-				getPropertyValue()
+				getNewPropertyValue()
 				{
 					return( property_value );
+				}
+				
+				public Object
+				getOldPropertyValue()
+				{
+					return( old_value );
 				}
 			};
 			

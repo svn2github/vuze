@@ -48,6 +48,22 @@ UITextAreaImpl
 		setProperty( PT_VALUE, text );
 	}
 		
+	public void
+	appendText(
+		String		text )
+	{
+		String	str = getText();
+		
+		if ( str == null ){
+			
+			setText( text );
+			
+		}else{
+			
+			setText( str + text );
+		}
+	}
+	
 	public String
 	getText()
 	{

@@ -224,6 +224,12 @@ PluginInterfaceImpl
     return new PluginConfigUIFactoryImpl(pluginConfigKey);
   }
   
+  public String
+  getPluginConfigKey()
+  {
+  	return( pluginConfigKey );
+  }
+  
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
     PeersTableExtensions.getInstance().addExtension(columnName,item);
   }
@@ -275,7 +281,7 @@ PluginInterfaceImpl
   public UIManager
   getUIManager()
   {
-  	return( UIManagerImpl.getSingleton());
+  	return( new UIManagerImpl( this ));
   }
   
   public PeerProtocolManager

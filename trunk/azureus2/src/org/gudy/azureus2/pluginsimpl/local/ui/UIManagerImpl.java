@@ -27,7 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui;
  *
  */
 
-import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
@@ -40,26 +40,14 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 public class 
 UIManagerImpl 
 	implements UIManager
-{
-	protected static UIManagerImpl	singleton;
+{	
+	protected PluginInterface		pi;
 	
-	public synchronized static UIManagerImpl
-	getSingleton()
+	public
+	UIManagerImpl(
+		PluginInterface		_pi )
 	{
-		if ( singleton == null ){
-			
-			singleton = new UIManagerImpl();
-		}
-		
-		return( singleton );
-	}
-	
-	protected MyTrackerImpl		my_tracker;
-	
-	protected
-	UIManagerImpl()
-	{
-		my_tracker	= new MyTrackerImpl();
+		pi		=_pi;
 	}
 	
 	public BasicPluginViewModel
@@ -81,10 +69,38 @@ UIManagerImpl
 	  }
 	}
 	
+	public BasicPluginConfigModel
+	createBasicPluginConfigModel(
+		String		section_name )
+	{
+		try{
+			return( new BasicPluginConfigModelImpl( pi, null, section_name ));
+		}catch( Throwable e ){
+			// no SWT probably
+			
+			return( null );
+		}
+	}
+	
+	
+	public BasicPluginConfigModel
+	createBasicPluginConfigModel(
+		String		parent_section,
+		String		section_name )
+	{
+		try{
+			return( new BasicPluginConfigModelImpl( pi, parent_section, section_name ));
+		}catch( Throwable e ){
+			// no SWT probably
+			
+			return( null );
+		}
+	}
+	
 	public MyTracker
 	getMyTracker()
 	{
-		return( my_tracker );
+		return( MyTrackerImpl.getSingleton());
 	}
 	
 	public void

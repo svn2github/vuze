@@ -36,6 +36,19 @@ public class
 MyTrackerImpl 
 	implements MyTracker
 {
+	protected static MyTrackerImpl	singleton;
+	
+	public synchronized static MyTrackerImpl
+	getSingleton()
+	{
+		if ( singleton == null ){
+			
+			singleton = new MyTrackerImpl();
+		}
+		
+		return( singleton );
+	}
+	
 	protected List		menus = new ArrayList();
 	
 	public ContextMenuItem

@@ -87,7 +87,7 @@ WebPlugin
 					int		type,
 					String	message )
 				{
-					model.getLogArea().setText( model.getLogArea().getText()+message+"\n");
+					model.getLogArea().appendText( message+"\n");
 				}
 				
 				public void
@@ -95,7 +95,7 @@ WebPlugin
 					String		str,
 					Throwable	error )
 				{
-					model.getLogArea().setText( model.getLogArea().getText()+error.toString()+"\n");
+					model.getLogArea().appendText( error.toString()+"\n");
 				}
 			});
 		

@@ -147,7 +147,8 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
   public void propertyChanged(UIPropertyChangeEvent ev) {
     if(ev.getSource() != model.getLogArea())
       return;
-    final String value = (String) ev.getPropertyValue();
+    final String old_value = (String)ev.getOldPropertyValue();
+    final String new_value = (String) ev.getNewPropertyValue();
     if(display == null || display.isDisposed())
       return;
     if(log == null)
@@ -156,7 +157,11 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
       public void run() {
         if(log.isDisposed())
           return;
-        log.setText(value);
+        if ( new_value.startsWith( old_value )){
+        	log.append( new_value.substring(old_value.length()));
+        }else{
+        	log.setText(new_value);
+        }
       }
     });
   }

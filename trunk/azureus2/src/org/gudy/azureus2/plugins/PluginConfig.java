@@ -154,6 +154,14 @@ PluginConfig
   public void setPluginParameter(String key,boolean value);
 
   /**
+   * @return the prefix used when storing configuration values in the config file for
+   * this plugin's config parameters
+   */
+  
+  public String
+  getPluginConfigKeyPrefix();
+
+  /**
    * make sure you save it after making changes!
    *
    */

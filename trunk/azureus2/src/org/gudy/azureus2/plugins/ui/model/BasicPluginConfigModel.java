@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 28-Apr-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,24 +20,19 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui.components;
+package org.gudy.azureus2.plugins.ui.model;
 
 /**
  * @author parg
  *
  */
 public interface 
-UIPropertyChangeEvent 
+BasicPluginConfigModel 
+	extends PluginConfigModel
 {
-	public UIComponent
-	getSource();
-	
-	public String
-	getPropertyType();
-	
-	public Object
-	getNewPropertyValue();
-	
-	public Object
-	getOldPropertyValue();
+	public void
+	addBooleanParameter(
+		String 		key,
+		String 		resource_name,
+		boolean 	defaultValue );
 }
