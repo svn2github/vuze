@@ -40,8 +40,7 @@ public class NatChecker {
   public static final int NAT_UNABLE = 3;
   
   private static final String[] urls = {
-      "http://www.gudy.org/azureus/checkNat.php",
-      "http://azureus.dmhgames.ath.cx:60/checkNat.php"          
+      "http://www.gudy.org/azureus/checkNat2.php"         
   };
 
   public static int test(int port) {
@@ -50,7 +49,7 @@ public class NatChecker {
     if (server.isValid()) {
       try {
         server.start();
-        String urlStr = urls[1] + "?port=" + port + "&check=" + check;
+        String urlStr = urls[0] + "?port=" + port + "&check=" + check;
         URL url = new URL(urlStr);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.connect();
@@ -71,12 +70,10 @@ public class NatChecker {
         int result = ((Long)map.get("result")).intValue();
         switch(result) {
           case 0 :
-            System.out.println(map.get("reason"));
             return NAT_KO;
           case 1 :
             return NAT_OK;
           default:
-          	System.out.println(map.get("reason"));
             return NAT_UNABLE;            
         }
       }

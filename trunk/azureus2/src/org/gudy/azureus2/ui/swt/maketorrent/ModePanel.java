@@ -105,9 +105,11 @@ public class ModePanel extends AbstractWizardPanel {
       labelLocalTracker.setEnabled(false);      
       ((NewTorrentWizard)wizard).localTracker = false;
     }
+
     if(((NewTorrentWizard)wizard).localTracker) {
 			((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
 		}
+
     btnLocalTracker.setSelection(((NewTorrentWizard)wizard).localTracker);
     btnExternalTracker.setSelection(!((NewTorrentWizard)wizard).localTracker);
     

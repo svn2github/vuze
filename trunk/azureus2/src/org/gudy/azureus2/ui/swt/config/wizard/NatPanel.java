@@ -65,7 +65,7 @@ public class NatPanel extends AbstractWizardPanel {
     }
 
     public void run() {
-      if (lowPort < highPort) {
+      if (lowPort < highPort && (highPort-lowPort < 10)) {
         for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + port + " ... ");
           int portResult = NatChecker.test(port);
@@ -75,12 +75,15 @@ public class NatPanel extends AbstractWizardPanel {
               break;
             case NatChecker.NAT_KO :
               printMessage(MessageText.getString("configureWizard.nat.ko") + "\n");
+              bContinue = false;
               break;
             default :
               printMessage(MessageText.getString("configureWizard.nat.unable") + "\n");
               break;
           }
         }
+      }else {
+        printMessage(MessageText.getString("configureWizard.nat.tooManyPorts") + "\n");
       }
       enableNext();
     }
@@ -167,9 +170,11 @@ public class NatPanel extends AbstractWizardPanel {
     });
     textServerHigh.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        final int highPort = Integer.parseInt(textServerHigh.getText());
+        int highPort = 0;
+        try{
+          highPort = Integer.parseInt(textServerHigh.getText());
+        } catch(Exception ignore) { }
         ((ConfigureWizard) wizard).serverMaxPort = highPort;
-        ;
       }
     });
 
