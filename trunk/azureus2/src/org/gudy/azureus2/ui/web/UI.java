@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.LocaleUtilHeadless;
@@ -42,6 +43,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   
   public void startUI() {
     super.startUI();
+    TorrentDownloaderFactory.initManager(org.gudy.azureus2.ui.common.Main.GM, true, true);
     if ((!isStarted()) || (server==null)) {
       server = new Jhttpp2Server(org.gudy.azureus2.ui.common.Main.GM, true);
       new Thread(server, "Webinterface Server").start();

@@ -45,10 +45,10 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.stats.StatsWriterFactory;
 import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.common.HTTPDownloader;
 
 import org.pf.file.FileFinder;
 
@@ -330,6 +330,7 @@ public class ConsoleInput extends Thread {
               String[] whatelse = commands.getArgs();
               for(int j=0; j<whatelse.length; j++) {
                 if (whatelse[j].toUpperCase().startsWith("HTTP://")){
+                  /*
                   try {
                     out.println("> Starting Download of "+whatelse[j]+" ...");
                     HTTPDownloader dl = new HTTPDownloader(whatelse[j], COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -338,7 +339,9 @@ public class ConsoleInput extends Thread {
                     out.println("> Download of "+whatelse[j]+" succeeded");
                   } catch (Exception e) {
                     out.println("> Download of "+whatelse[j]+" failed");
-                  }
+                  }*/
+                  out.println("> Starting Download of "+whatelse[j]+" ...");
+                  TorrentDownloaderFactory.downloadManaged(whatelse[j]);  
                 } else {
                   File test = new File(whatelse[j]);
                   if (test.exists()) {

@@ -34,10 +34,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.common.HTTPDownloader;
 
 /**
  * One HTTP connection
@@ -606,6 +606,7 @@ public class Jhttpp2HTTPSession extends Thread {
   
   private void ProcessAdd(HashMap URIvars) {
     if (URIvars.containsKey("Add_torrent") && !((String) URIvars.get("Add_torrent")).equals("")) {
+      /*  
       try {
         HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
         String file = dl.download();
@@ -613,7 +614,8 @@ public class Jhttpp2HTTPSession extends Thread {
         server.loggerWeb.info("Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
-      }
+      }*/
+      TorrentDownloaderFactory.downloadManaged((String) URIvars.get("Add_torrent"));
     }
   }
   
@@ -842,6 +844,11 @@ public class Jhttpp2HTTPSession extends Thread {
   }
   
   public void torrent_handler() throws IOException {
+      TorrentDownloaderFactory.downloadManaged("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url);
+      sendHeader(204);
+      endHeader();
+      out.flush();
+      /*
       String fwd;
       try {
         HTTPDownloader dl = new HTTPDownloader("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url, COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -860,7 +867,7 @@ public class Jhttpp2HTTPSession extends Thread {
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
         sendErrorMSG(400, "Torrent download failed: "+e.getMessage());
-      }
+      }*/
       //sendHeader(301);
       //write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
       //write(out,"Location: javascript:alert(\"hallo\")\r\n");
