@@ -1704,7 +1704,10 @@ DiskManagerImpl
 			
 			DiskManagerFileInfoImpl	this_file = files[i];
 			
-			result[i][0] = this_file.getFile().getAbsolutePath();
+			try {
+        result[i][0] = this_file.getFile().getCanonicalPath();
+      }
+      catch (Exception e) { Debug.out("Unable to resolve canonical path for " + this_file.getName()); }
 
 			result[i][1] = "";
 			

@@ -358,11 +358,12 @@ public class GlobalManagerImpl
       
       fDest.createNewFile();
       FileUtil.copyFile(f, fDest);
-      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath, initialState, persistent );
+      String fName = fDest.getCanonicalPath();
+      DownloadManager manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent );
       manager = addDownloadManager(manager, true);
       if ( manager == null ) {
         fDest.delete();
-        File backupFile = new File(fDest.getAbsolutePath() + ".bak");
+        File backupFile = new File(fName + ".bak");
         if(backupFile.exists())
           backupFile.delete();
       }

@@ -28,6 +28,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -54,8 +55,11 @@ DiskManagerFileInfoImpl
   DiskManagerFileInfoImpl(
   	File		file )
   {
-  	path	= file.getParentFile().getAbsolutePath() + System.getProperty("file.separator");
-  	name	= file.getName();
+  	try{
+      path	= file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
+      name	= file.getName();
+    }
+    catch (Exception e) { Debug.out("Unable to resolve canonical path for " + file.getName()); }
   	
   	fm_file = FMFileManagerFactory.getSingleton().createFile( file );
   }
@@ -68,8 +72,10 @@ DiskManagerFileInfoImpl
   {
   	fm_file.moveFile( newFile );
   	
-  	path = newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator");
-  	
+  	try {
+      path = newFile.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
+    }
+    catch (Exception e) { Debug.out("Unable to resolve canonical path for " + newFile.getName()); }
   }
   
   public FMFile
