@@ -6,6 +6,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -28,7 +29,8 @@ public class StartServer extends Thread {
   public StartServer(Main main) {
     try {
       this.main = main;
-      socket = new ServerSocket(6880);
+      //socket = new ServerSocket(6880);
+	  socket = new ServerSocket(6880, 0, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
     }
     catch (Exception e) {
