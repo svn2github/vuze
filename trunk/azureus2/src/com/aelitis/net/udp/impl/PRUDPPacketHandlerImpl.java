@@ -278,22 +278,25 @@ PRUDPPacketHandlerImpl
 				
 				LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
 						
+				PRUDPPacketHandlerRequest	request;
+				
 				try{
 					requests_mon.enter();
 					
-					PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
-				
-					if ( request == null ){
-					
-						LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
-					
-					}else{
-					
-						request.setReply( packet, (InetSocketAddress)dg_packet.getSocketAddress());
-					}
+					request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
+
 				}finally{
 					
 					requests_mon.exit();
+				}
+				
+				if ( request == null ){
+				
+					LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
+				
+				}else{
+				
+					request.setReply( packet, (InetSocketAddress)dg_packet.getSocketAddress());
 				}
 			}
 		}catch( Throwable e ){
