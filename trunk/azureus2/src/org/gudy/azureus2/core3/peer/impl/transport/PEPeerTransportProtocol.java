@@ -1400,8 +1400,8 @@ PEPeerTransportProtocol
           return true;
         }       
         
-        String reason = "Received unknown message: " +message.getID()+ ":" +message.getVersion();
-        Debug.out( reason );
+        //String reason = "Received unknown message: " +message.getID()+ ":" +message.getVersion();
+        //Debug.out( reason );
         
         return false;
       }
