@@ -1288,7 +1288,7 @@ DownloadManagerImpl
   	
     Thread recheck = new Thread() {
 			public void run() {
-				int prevState = getState();
+				int prevState = DownloadManagerImpl.this.getState();
 				setState(STATE_CHECKING);
       	// remove resume data
 		  	torrent.removeAdditionalProperty("resume");

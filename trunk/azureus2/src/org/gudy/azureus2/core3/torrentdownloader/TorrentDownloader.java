@@ -45,7 +45,7 @@ public interface TorrentDownloader {
     /**
      * Gets the state of the TorrentDownloader.
      */
-    public int getState();
+    public int getDownloadState();
     /**
      * Returns the <code>File</code> the TorrentDownloader downloads to.
      */

@@ -161,7 +161,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
           if(progressBar != null && !progressBar.isDisposed()) {
             progressBar.setSelection(percentDone);
           }
-          int state = downloader.getState();
+          int state = downloader.getDownloadState();
           String stateText;
           switch(state) {
             case TorrentDownloader.STATE_DOWNLOADING :

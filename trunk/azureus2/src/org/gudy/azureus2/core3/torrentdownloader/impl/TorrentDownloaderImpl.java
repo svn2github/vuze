@@ -270,11 +270,11 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
     return this.percentDone;
   }
 
-  public int getState() {
+  public int getDownloadState() {
     return this.state;
   }
 
-  public void setState(int state) {
+  public void setDownloadState(int state) {
     this.state = state;
   }
 

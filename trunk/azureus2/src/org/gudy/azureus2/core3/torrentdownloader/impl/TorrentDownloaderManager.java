@@ -55,10 +55,10 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     }
     
     private TorrentDownloader download(TorrentDownloader dl) {
-        if (dl.getState()==TorrentDownloader.STATE_ERROR)
+        if (dl.getDownloadState()==TorrentDownloader.STATE_ERROR)
             this.errors.add(dl);
         else if (this.running.contains(dl) || this.queued.contains(dl)) {
-            ((TorrentDownloaderImpl) dl).setState(TorrentDownloader.STATE_DUPLICATE);
+            ((TorrentDownloaderImpl) dl).setDownloadState(TorrentDownloader.STATE_DUPLICATE);
             ((TorrentDownloaderImpl) dl).notifyListener();
             this.errors.add(dl);
         } else if (this.autostart) {

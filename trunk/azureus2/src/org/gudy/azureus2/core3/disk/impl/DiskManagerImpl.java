@@ -193,7 +193,7 @@ DiskManagerImpl
     Thread init = new Thread() {
 			public void run() {
 				initialize();
-				if (getState() == DiskManager.FAULTY) {
+				if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
 					stopIt();
 				}
 			}
