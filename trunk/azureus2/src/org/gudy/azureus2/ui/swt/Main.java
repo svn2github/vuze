@@ -101,6 +101,9 @@ public class Main implements ILocaleUtilChooser {
         String filename = args[0];
         try {
           args[0] = new java.io.File(args[0]).getCanonicalPath();
+          
+          LGLogger.log( "Main::main: args[0] exists = " + new java.io.File(args[0]).exists());
+          
         } catch (java.io.IOException ioe) {
         }
     }
@@ -122,6 +125,12 @@ public class Main implements ILocaleUtilChooser {
     }else{
     	
       new StartSocket(args);
+      
+      try{
+      	Thread.sleep(2500);
+      }catch( Throwable e ){
+      	
+      }
     }
   }
   
