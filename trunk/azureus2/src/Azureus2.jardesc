@@ -125,8 +125,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.webplugin.remoteui.xml.client"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.security"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.test"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.jar"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.update"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.jar"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.update.sf"/>
@@ -201,6 +201,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.peers.protocol"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.logging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.images"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.http.request"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.config"/>

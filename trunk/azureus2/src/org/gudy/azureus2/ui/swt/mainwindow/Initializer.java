@@ -59,7 +59,7 @@ public class
 Initializer 
 	implements AzureusCoreListener, Application 
 {
-  private AzureusCore		core;
+  private AzureusCore		azureus_core;
   private GlobalManager 	gm;
   private StartServer 		startServer;
   
@@ -70,25 +70,25 @@ Initializer
   
   public 
   Initializer(
-  		final AzureusCore		_core,
+  		final AzureusCore		_azureus_core,
   		StartServer 			_server,
 		String[] 				_args ) 
   {
     
     listeners = new ArrayList();
     
-    core			= _core;
+    azureus_core	= _azureus_core;
     startServer 	= _server;
     args 			= _args;
     
     	// these lifecycle actions are initially to handle plugin-initiated stops and restarts
     
-    core.addLifecycleListener(
+    azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
 				public boolean
 				stopRequested(
-					AzureusCore		core )
+					AzureusCore		_core )
 				
 					throws AzureusCoreException
 				{
@@ -151,7 +151,7 @@ Initializer
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
 										
-										Restarter.restartForUpgrade(_core);
+										Restarter.restartForUpgrade(azureus_core);
 									}finally{
 												
 										sem.release();
@@ -221,9 +221,9 @@ Initializer
 	    nextTask();
 	    reportCurrentTaskByKey("splash.initializeGM");
 	    
-	    core.addListener( this );
+	    azureus_core.addListener( this );
 	    
-	    core.addLifecycleListener(
+	    azureus_core.addLifecycleListener(
 	    	new AzureusCoreLifecycleAdapter()
 			{
 	    		public void
@@ -272,13 +272,21 @@ Initializer
 	    		    
 	    		    
 	    		    //Finally, open torrents if any.
-	    		    if (args.length != 0) {
-	    		      TorrentOpener.openTorrent( core, args[0]);
+	    		    
+	    		    for (int i=0;i<args.length;i++){
+	    		    	
+	    		    	try{
+	    		    		TorrentOpener.openTorrent( core, args[i]);
+	    		    		
+	    	        	}catch( Throwable e ){
+	    	        		
+	    	        		Debug.printStackTrace(e);
+	    	        	}	
 	    		    }
 	    		}
 			});
 	    
-	    core.start();
+	    azureus_core.start();
 
   	}catch( Throwable e ){
   	
@@ -361,9 +369,9 @@ Initializer
   }
   
   public void stopIt() {
-    if(core != null){
+    if(azureus_core != null){
     	try{
-    		core.stop();
+    		azureus_core.stop();
     		
     	}catch( AzureusCoreException e ){
     		
@@ -381,9 +389,9 @@ Initializer
   private int currentTask = 0;
   private int currentPercent = 0;
   
-  private void setNbTasks(int nbTasks) {
-    this.currentTask = 0;
-    this.nbTasks = nbTasks;
+  private void setNbTasks(int _nbTasks) {
+    currentTask = 0;
+    nbTasks = _nbTasks;
   }
   
   private void nextTask() {
