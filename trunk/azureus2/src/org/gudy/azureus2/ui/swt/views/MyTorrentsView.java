@@ -788,7 +788,7 @@ public class MyTorrentsView extends AbstractIView
           		}
             }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-            	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+            	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
             }
           }
         }
@@ -827,7 +827,7 @@ public class MyTorrentsView extends AbstractIView
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-              	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+              	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
 
               }catch (Exception ex) {
 
@@ -873,7 +873,7 @@ public class MyTorrentsView extends AbstractIView
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-              	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+              	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
 
               }catch (Exception ex) {
 
@@ -1463,7 +1463,7 @@ public class MyTorrentsView extends AbstractIView
       try{
       	ManagerUtils.remove(dm);
       }catch(GlobalManagerDownloadRemovalVetoException e){
-      	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", e );
+      	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
       }
     }
   }

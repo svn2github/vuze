@@ -155,9 +155,18 @@ LGLoggerImpl
 		int			type,
 		String		message )
 	{
+		LGLogger.log( "Alert:" + type + ":" + message );
+		
 		for (int i=0;i<alert_listeners.size();i++){
 			
-			((LGAlertListener)alert_listeners.get(i)).alertRaised( type, message );
+			try{
+				
+				((LGAlertListener)alert_listeners.get(i)).alertRaised( type, message );
+				
+			}catch( Throwable f ){
+				
+				f.printStackTrace();
+			}
 		}
 	}
 	
@@ -166,9 +175,17 @@ LGLoggerImpl
 		String		message,
 		Throwable	e )
 	{
+		LGLogger.log( "Alert:" + message, e );
+		
 		for (int i=0;i<alert_listeners.size();i++){
 			
-			((LGAlertListener)alert_listeners.get(i)).alertRaised( message, e );
+			try{
+				((LGAlertListener)alert_listeners.get(i)).alertRaised( message, e );
+				
+			}catch( Throwable f ){
+				
+				f.printStackTrace();
+			}
 		}
 	}
 	

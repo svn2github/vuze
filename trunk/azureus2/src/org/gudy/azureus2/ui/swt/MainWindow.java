@@ -86,6 +86,7 @@ import org.gudy.azureus2.core3.ipfilter.BlockedIp;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -198,6 +199,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   private FolderWatcher folderWatcher = null;
 
+  private boolean		initialisation_complete;
+  private List			alert_queue = new ArrayList();
+  private List			alert_history	= new ArrayList();
+  
 
   private class GUIUpdater extends Thread implements ParameterListener {
     boolean finished = false;
@@ -304,7 +309,39 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       return;
     }
     
+    window = this;
+
     try{
+    	LGLogger.addAlertListener(
+    			new LGAlertListener()
+				{
+    				public void
+					alertRaised(
+						int		type,
+						String	message )
+					{
+    					synchronized( alert_queue ){
+    						
+    						if ( !initialisation_complete ){
+    							
+    							alert_queue.add( new Object[]{ new Integer(type), message });
+    							
+    							return;
+    						}
+    					}
+    					
+    					showAlert( type, message );
+    				}
+					
+					public void
+					alertRaised(
+						String		message,
+						Throwable	exception )
+					{
+						showErrorMessageBox( message, exception );
+					}
+    			});
+    	
 	COConfigurationManager.checkConfiguration();
 
     auth_window = new AuthenticatorWindow();
@@ -367,7 +404,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     setSplashTask("splash.initializeGui");
     
     
-    window = this;
     this.startServer = server;
     this.globalManager = gm;
     mytorrents = null;
@@ -974,6 +1010,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     	run()
     	{
     		PluginInitializer.initialisationComplete();
+    		
+    		synchronized( alert_queue ){
+    			
+    			initialisation_complete	= true;
+    			
+    			for (int i=0;i<alert_queue.size();i++){
+    				
+    				Object[]	x = (Object[])alert_queue.get(i);
+    				
+    				int		type 	= ((Integer)x[0]).intValue();
+    				String	message = (String)x[1];
+    				
+    				showAlert( type, message );
+    			}
+    		}
     	}
     }.start();
     
@@ -981,6 +1032,32 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		e.printStackTrace();
 	} }
 
+  private void
+  showAlert(
+  		int	type,
+		String	message )
+  {
+  	if ( alert_history.contains( message )){
+  		return;
+  	}
+  	
+  	alert_history.add( message );
+  	
+	if ( type == LGLogger.AT_COMMENT ){
+			
+		showCommentMessageBox( message );
+		
+	}else if ( type == LGLogger.AT_WARNING ){
+		
+		showWarningMessageBox( message );
+			       						
+	}else{
+				
+	    showErrorMessageBox( message );
+	}
+  }
+  
+  
 	private void startFolderWatcher() {
     if(folderWatcher == null)
       folderWatcher = FileImporter.getFolderWatcher();
@@ -2649,24 +2726,80 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
   }
   
+  
   public static void
-  showErrorMessageBox(
+  showErrorMessageBoxUsingResourceString(
   	String		title_key,
 	Throwable	error )
   {
-  	MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),SWT.ICON_ERROR | SWT.OK );
-  	
-  	mb.setText(MessageText.getString(title_key));
-  	
-  	String message = error.getMessage();
-  	
-  	if ( message == null ){
-  		
-  		message = error.toString();
-  	}
-  	
-  	mb.setMessage(	message );
-  	
-  	mb.open();
+  	showErrorMessageBox(MessageText.getString(title_key), error);
   }
+  
+  public static void
+  showErrorMessageBox(
+  	String		message )
+  {
+  	showMessageBoxUsingResourceString( SWT.ICON_ERROR, "AlertMessageBox.error", message );
+  }
+  
+  public static void
+  showWarningMessageBox(
+  	String		message )
+  {
+  	showMessageBoxUsingResourceString( SWT.ICON_WARNING, "AlertMessageBox.warning", message );
+  }
+  
+  public static void
+  showCommentMessageBox(
+  	String		message )
+  {
+  	showMessageBoxUsingResourceString( SWT.ICON_INFORMATION, "AlertMessageBox.information", message );
+  }
+  
+  public static void
+  showErrorMessageBox(
+  	String		title,
+	Throwable	error )
+  {
+  	String error_message = error.getMessage();
+  	
+  	if ( error_message == null ){
+  		
+  		error_message = error.toString();
+  	}
+  
+  	showMessageBox( SWT.ICON_ERROR, title, error_message );
+  } 
+  
+  public static void
+  showMessageBoxUsingResourceString(
+  	int			type,
+    String		key,
+	String		message )
+  {
+  	showMessageBox( type,MessageText.getString(key), message );
+  }
+  
+  public static void
+  showMessageBox(
+  	final int			type,
+    final String		title,
+	final String		message )
+  {
+  	Display display = getWindow().getDisplay();
+  
+ 	display.asyncExec(new Runnable() {
+		public void 
+		run()
+		{
+			MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(), type | SWT.OK );
+    	
+			mb.setText(title);
+  	  	  	
+			mb.setMessage(	message );
+  	  	
+			mb.open();
+		}
+ 	});
+   }
 }

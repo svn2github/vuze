@@ -205,7 +205,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  		
 	  	}catch( GlobalManagerDownloadRemovalVetoException e ){
 	  		
-	  		MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", e );
+	  		MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
 	  	}
 	  	
 	    return;

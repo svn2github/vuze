@@ -28,10 +28,6 @@ package org.gudy.azureus2.core3.logging;
 public interface 
 LGAlertListener 
 {
-	public static final int	AT_COMMENT		= 1;
-	public static final int	AT_WARNING		= 2;
-	public static final int	AT_ERROR		= 3;
-	
 	public void
 	alertRaised(
 		int		type,

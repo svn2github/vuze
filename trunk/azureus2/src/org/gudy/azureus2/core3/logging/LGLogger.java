@@ -15,11 +15,21 @@ import java.io.*;
 import org.gudy.azureus2.core3.logging.impl.*;
 
 public class 
-LGLogger {
+LGLogger 
+{
+		// log types
+	
 	public static final int INFORMATION 	= 0;
 	public static final int RECEIVED 		= 1;
 	public static final int SENT 			= 2;
 	public static final int ERROR 			= 3;
+
+		// alert types
+	
+	public static final int	AT_COMMENT		= 0;
+	public static final int	AT_WARNING		= 1;
+	public static final int	AT_ERROR		= 3;
+	
 
 	public static void
 	initialise()

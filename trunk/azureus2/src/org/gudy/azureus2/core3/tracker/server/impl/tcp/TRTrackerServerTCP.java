@@ -130,6 +130,8 @@ TRTrackerServerTCP
 				
 			}catch( Throwable e){
 			
+				LGLogger.logAlert( LGLogger.AT_ERROR, "Failed to establish listen on port " + port + ".\nCheck other applications");
+				
 				LGLogger.log( "TRTrackerServer: SSL listener failed on port " + port, e ); 
 				  
 				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
@@ -171,6 +173,8 @@ TRTrackerServerTCP
 				
 			}catch( Throwable e){
 			
+				LGLogger.logAlert( LGLogger.AT_ERROR, "Failed to establish listen on port " + port + ".\nCheck other applications");
+		
 				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
 							
 				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));

@@ -530,7 +530,7 @@ MySharesView
       		
       	}catch( Throwable e ){
       		
-      		MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", e );
+      		MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
       	}
       }
     }

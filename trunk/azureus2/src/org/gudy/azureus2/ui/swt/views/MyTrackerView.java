@@ -514,7 +514,7 @@ MyTrackerView
       		
       		String	message = f.getMessage();
       	      	
-      		MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+      		MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
       	}
       }
     }
