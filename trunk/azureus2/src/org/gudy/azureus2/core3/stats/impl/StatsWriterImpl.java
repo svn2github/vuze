@@ -248,8 +248,10 @@ StatsWriterImpl
 				writeLine( "<GLOBAL>" );
 				
 				try{
-					
 					indent();
+					
+					writeTag( "DOWNLOAD_SPEED", global.getDownloadSpeed());
+					writeTag( "UPLOAD_SPEED", global.getUploadSpeed());
 					
 				}finally{
 					
@@ -270,12 +272,27 @@ StatsWriterImpl
 						
 						DownloadManager	dm = (DownloadManager)dms.get(i);
 						
+						DownloadManagerStats	dm_stats = dm.getStats();
+						
 						writeLine( "<DOWNLOAD>");
 						
 						try{
 							
 							writeTag( "NAME", dm.getName());
-							
+							writeTag( "TORRENT", dm.getTorrentFileName());
+							writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
+						
+							writeTag( "COMPLETED", 		dm_stats.getCompleted());
+							writeTag( "DOWNLOADED",	 	dm_stats.getDownloaded());	
+							writeTag( "UPLOADED", 		dm_stats.getUploaded());
+							writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
+							writeTag( "DOWNLOAD_SPEED", dm_stats.getDownloadSpeed());
+							writeTag( "UPLOAD_SPEED", 	dm_stats.getUploadSpeed());
+							writeTag( "ELAPSED", 		dm_stats.getElapsed());
+							writeTag( "ETA", 			dm_stats.getETA());
+							writeTag( "TOTAL_SPEED", 	dm_stats.getTotalSpeed());
+							writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
+				
 							indent();
 						}finally{
 							
