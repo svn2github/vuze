@@ -46,6 +46,7 @@ CHANGE: Auto-imported .torrent files are moved (not copied) to default .torrent 
 CHANGE: Socket writes now done in full MSS-sized chunks [Nolar]
 CHANGE: User config/pref/plugins dir culled from Windows' Registry (needs aereg.dll) [Parg]
 CHANGE: Scrape interval now based on # of seeds (15min minimum) [TuxPaper]
+CHANGE: Upload limit can now be set less than 5KB/sec. However, doing so limits download speed too [Parg]
 
 BUGFIX: Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
