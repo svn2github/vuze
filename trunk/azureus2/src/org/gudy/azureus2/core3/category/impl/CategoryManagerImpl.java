@@ -100,7 +100,7 @@ public class CategoryManagerImpl  {
       //open the file
       File configFile = FileUtil.getApplicationFile("categories.config");
       fin = new FileInputStream(configFile);
-      bin = new BufferedInputStream(fin);
+      bin = new BufferedInputStream(fin, 8192);
       map = BDecoder.decode(bin);
 
       List catList = (List) map.get("categories");
