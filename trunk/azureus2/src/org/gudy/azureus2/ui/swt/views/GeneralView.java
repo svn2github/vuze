@@ -161,12 +161,14 @@ public class GeneralView extends AbstractIView {
     gridData.widthHint = 150;
     gridData.heightHint = 30;
     availabilityImage.setLayoutData(gridData);
+    Messages.setLanguageText(availabilityImage, "GeneralView.label.status.pieces_available.tooltip");
 
     availabilityPercent = new Label(gAvailability, SWT.RIGHT);
     availabilityPercent.setText("\t"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     availabilityPercent.setLayoutData(gridData);
-
+    Messages.setLanguageText(availabilityPercent, "GeneralView.label.status.pieces_available.tooltip");
+    
     gTransfer = new Group(genComposite, SWT.SHADOW_OUT);
     Messages.setLanguageText(gTransfer, "GeneralView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
