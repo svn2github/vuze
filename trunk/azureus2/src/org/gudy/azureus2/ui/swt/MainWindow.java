@@ -1738,6 +1738,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     FileOutputStream fos = null;
     InputStream in = null;
     FileWriter log = null;
+    boolean foundMirror = false;
+    
     try {
       String userPath = System.getProperty("user.dir");
       File logFile = new File( userPath, "update.log" );
@@ -1775,34 +1777,46 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
 
         //Grab a random mirror
-        if (mirrors.size() == 0)
-          return;
-        int random = (int) (Math.random() * mirrors.size());
-        String mirror = (String) (mirrors.get(random));
+        if ( mirrors.size() > 0 ) {
+          int random = (int) (Math.random() * mirrors.size());
+          String mirror = (String) (mirrors.get(random));
 
-        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
-        String mirrorHtml = readUrl(mirrorUrl);
-        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=";
-        position = mirrorHtml.indexOf(pattern);
-        //System.out.println("position="+position);
-        if (position < 0)
-          return;
-        int end = mirrorHtml.indexOf("\">", position);
-        if (end < 0)
-          return;
-        reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
-        //System.out.println(reqUrl.toString());
+          URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
+          String mirrorHtml = readUrl(mirrorUrl);
+          pattern = "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=";
+          position = mirrorHtml.indexOf(pattern);
+          if ( position >= 0 ) {
+          	int end = mirrorHtml.indexOf("\">", position);
+            if ( end >= 0 ) {
+          	  reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
+              foundMirror = true;
+            }
+          }
+        }
       }
 
-      if (reqUrl == null)
-        return;
-      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);
+      if (reqUrl == null || !foundMirror) {
+      	reqUrl = getMirrorFromBackupList( log );
+      }
       
-      log.write("downloadJar:: downloading new Azureus jar from " + reqUrl + " .....");
+      HttpURLConnection con = null;
+      try {
+      	con = (HttpURLConnection) reqUrl.openConnection();
+      	con.connect();
+        in = con.getInputStream();
+      } catch (IOException e) {
+        //probably a 404 error, try one last time
+        if (con != null)  con.disconnect();
+        URL backup = getMirrorFromBackupList( log );
+        con = (HttpURLConnection) backup.openConnection();
+        con.connect();
+        in = con.getInputStream();
+      }
+            
+      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + con.getURL());
       
-      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
-      con.connect();
-      in = con.getInputStream();
+      log.write("downloadJar:: downloading new Azureus jar from " + con.getURL() + " .....");
+      
       fos = new FileOutputStream(newFile);
 
       progressBar.setMinimum(0);
@@ -2941,7 +2955,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		{
       
       //Uncomment following to restore old popup system.
-      /*
+      
 			MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(), type | SWT.OK );
     	
 			mb.setText(title);
@@ -2949,9 +2963,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			mb.setMessage(	message );
   	  	
 			mb.open();
-      */
       
-      ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
+      
+      //ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
 		}
  	});
    }
@@ -3001,4 +3015,37 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     });
    }   	     
   }
+  
+  
+  private URL getMirrorFromBackupList( FileWriter log ) {
+    try{ log.write("Retrieving backup SF mirror list..."); } catch (Exception e) {}
+    ByteArrayOutputStream message = new ByteArrayOutputStream();
+    int nbRead = 0;
+    HttpURLConnection con = null;
+    InputStream is = null;
+    try {
+      String url = "http://azureus.sourceforge.net/mirrors.php";
+      URL mirrorUrl = new URL(url);
+      con = (HttpURLConnection) mirrorUrl.openConnection();
+      con.connect();
+      is = con.getInputStream();
+      byte[] data = new byte[1024];
+      while (nbRead >= 0) {
+        nbRead = is.read(data);
+        if (nbRead >= 0) {
+          message.write(data, 0, nbRead);
+        }
+      }
+      Map decoded = BDecoder.decode(message.toByteArray());
+      List mirrors = (List)decoded.get("mirrors");
+      int random = (int) (Math.random() * mirrors.size());
+      String mirror = new String( (byte[])mirrors.get(random) );
+      return new URL( mirror + latestVersionFileName );
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
 }
