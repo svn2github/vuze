@@ -11,6 +11,8 @@ import java.util.*;
 import java.lang.ref.*;
 import java.math.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
+
 
 /**
  * This class handles allocation of direct ByteBuffers.
@@ -91,15 +93,19 @@ public class DirectByteBufferPool {
     }
     catch (OutOfMemoryError e) {
        Debug.out("Running garbage collector...");
+       reclaimBuffers();
        clearBufferPools();
        runGarbageCollection();
 
        try {
           return ByteBuffer.allocateDirect(_size);
        } catch (OutOfMemoryError ex) {
-       	 Debug.out("Memory allocation failed: Out of direct memory space\n"
-                  + "TO FIX: Use the -XX:MaxDirectMemorySize=512m command line option.");
-          return null;
+         String msg = "Memory allocation failed: Out of direct memory space.\n"
+                    + "To fix: Use the -XX:MaxDirectMemorySize=512m command line option,\n"
+                    + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
+       	 Debug.out( msg );
+         LGLogger.logAlert( LGLogger.AT_ERROR, "" );         
+         return null;
        }
     }
   }
