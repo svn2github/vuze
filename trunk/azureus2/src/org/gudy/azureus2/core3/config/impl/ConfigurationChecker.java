@@ -264,16 +264,23 @@ public class ConfigurationChecker {
     
     //migrate files/folders
     for (int i=0; i < fileNames.length; i++) {
-      File oldFile = FileUtil.getApplicationFile( fileNames[i] );
-      if ( oldFile.exists() ) {
-        File newFile = FileUtil.getUserFile( fileNames[i] );
-        boolean result = oldFile.renameTo(newFile);
-        if (result) {
-          successes += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : OK\n";
+      LGLogger.log(fileNames[i]);
+      try {
+        File oldFile = FileUtil.getApplicationFile( fileNames[i] );
+        if ( oldFile.exists() ) {
+          File newFile = FileUtil.getUserFile( fileNames[i] );
+          boolean result = oldFile.renameTo(newFile);
+          if (result) {
+            successes += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : OK\n";
+          }
+          else {
+            failures += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : FAILED\n\n";
+          }
         }
-        else {
-          failures += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : FAILED\n\n";
-        }
+      } catch (Throwable t) {
+        failures += fileNames[i] + "\n---> " + t.getMessage() + ": FAILED\n\n";
+        t.printStackTrace();
+        LGLogger.log(t);
       }
     }
     
