@@ -312,7 +312,7 @@ public abstract class MessageDigest {
                 md.update(testdata);
             md.finish();
             times[i] = System.currentTimeMillis() - t1;
-            rates[i] = ((double) (i*testdata.length) * 1000.0)/ (double) times[i];
+            rates[i] = ((i*testdata.length) * 1000.0) / times[i];
             System.out.println((i*testdata.length)+"\t"+times[i]+"\t"+rates[i]);
         }
         System.out.println("Done.");
