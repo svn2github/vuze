@@ -319,7 +319,8 @@ TRTrackerServerProcessorTCP
 				long		left			= 0;
 				int			num_peers		= 0;
 				int			num_want		= -1;
-					
+				boolean		no_peer_id		= false;
+				
 				while(pos < str.length()){
 						
 					int	p1 = str.indexOf( '&', pos );
@@ -354,9 +355,13 @@ TRTrackerServerProcessorTCP
 						hash_str	= rhs;
 							
 					}else if ( lhs.equals( "peer_id" )){
-							
+						
 						peer_id	= rhs;
-								
+						
+					}else if ( lhs.equals( "no_peer_id" )){
+						
+						no_peer_id = rhs.equals("1");
+						
 					}else if ( lhs.equals( "port" )){
 							
 						port = Integer.parseInt( rhs );
@@ -410,7 +415,7 @@ TRTrackerServerProcessorTCP
 							server, root_out,
 							request_type,
 							hash_bytes,
-							peer_id,
+							peer_id, no_peer_id,
 							event,
 							port,
 							client_ip_address,

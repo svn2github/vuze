@@ -303,7 +303,7 @@ TRTrackerServerProcessorUDP
 				server, root_out,
 				request_type,
 				hash_bytes,
-				peer_id,
+				peer_id, false,	// currently no "no_peer_id" in the packet and anyway they aren't returned
 				event,
 				port,
 				client_ip_address,

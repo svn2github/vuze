@@ -211,14 +211,24 @@ TRTrackerServerTorrentImpl
 	}
 	
 	public synchronized Map
-	exportPeersToList(
-		int		num_want,
-		long	interval )
+	exportAnnounceToList(
+		int			num_want,
+		long		interval,
+		boolean		no_peer_id )
 	{
 		long	now = System.currentTimeMillis();
 		
-		int		total_peers	= peer_map.size();
+		int		total_peers			= peer_map.size();
 		int		cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
+		
+		boolean	send_peer_ids 		= TRTrackerServerImpl.getSendPeerIds();
+		
+			// override if client has explicitly not requested them
+		
+		if ( no_peer_id ){
+			
+			send_peer_ids	= false;
+		}
 		
 		boolean	add_to_cache	= false;
 		
@@ -244,8 +254,11 @@ TRTrackerServerTorrentImpl
 					it.remove();
 					
 				}else{
-										
-					break;
+					
+					if ( entry.getSendPeerIds() == send_peer_ids ){
+						
+						break;
+					}
 				}
 			}
 			
@@ -284,8 +297,6 @@ TRTrackerServerTorrentImpl
 		}
 	
 		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
-		
-		boolean	send_peer_ids = TRTrackerServerImpl.getSendPeerIds();
 		
 			// if they want them all simply give them the set
 		
@@ -406,7 +417,7 @@ TRTrackerServerTorrentImpl
 		
 		if ( add_to_cache ){
 						
-			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root ));
+			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root, send_peer_ids ));
 		}
 		
 		return( root );
@@ -503,14 +514,23 @@ TRTrackerServerTorrentImpl
 	announceCacheEntry
 	{
 		protected Map		data;
+		protected boolean	send_peer_ids;
 		protected long		time;
 		
 		protected
 		announceCacheEntry(
-			Map		_data )
+			Map		_data,
+			boolean	_send_peer_ids )
 		{
-			data		= _data;
-			time		= System.currentTimeMillis();
+			data			= _data;
+			send_peer_ids	= _send_peer_ids;
+			time			= System.currentTimeMillis();
+		}
+		
+		protected boolean
+		getSendPeerIds()
+		{
+			return( send_peer_ids );
 		}
 		
 		protected long
