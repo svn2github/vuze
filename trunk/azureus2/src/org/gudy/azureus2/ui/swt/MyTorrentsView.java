@@ -232,8 +232,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
               if (!dm.isMoveableDown())
                 moveDown = false;
               if (!dm.isMoveableUp())
-                moveUp = false;
-
+                moveUp = false;               
             }
           }
           itemBar.setSelection(barsOpened);
@@ -244,6 +243,8 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           itemStart.setEnabled(start);
           itemStop.setEnabled(stop);
           itemRemove.setEnabled(remove);
+          
+          itemChangeTracker.setEnabled(changeUrl);
 
         }
         else if (tis.length > 1) {

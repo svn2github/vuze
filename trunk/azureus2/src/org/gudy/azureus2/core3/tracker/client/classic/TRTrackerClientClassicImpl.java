@@ -318,9 +318,9 @@ TRTrackerClientClassicImpl
    * @param trackerUrl
    */
   public void setTrackerUrl(String trackerUrl) {
-	List list = new ArrayList(1);
-	list.add(trackerUrl.replaceAll(" ", ""));
-	trackerUrlLists.add(list);
+  	List list = new ArrayList(1);
+  	list.add(trackerUrl.replaceAll(" ", ""));
+  	trackerUrlLists.add(list);
   }
   
   private void 

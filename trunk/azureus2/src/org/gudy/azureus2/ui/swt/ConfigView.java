@@ -4,10 +4,17 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -17,8 +24,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core.IpFilter;
+import org.gudy.azureus2.core.IpRange;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
  * @author Olivier
@@ -28,7 +40,7 @@ public class ConfigView extends AbstractIView {
 
   private static final int upRates[] =
     {
-      0,     
+      0,
       5,
       6,
       7,
@@ -66,22 +78,39 @@ public class ConfigView extends AbstractIView {
       900,
       1000 };
 
-  Composite gConfig;
+  IpFilter filter;
+
+  Composite cConfig;
+  CTabFolder ctfConfig;
+  Table table;
   Label passwordMatch;
-  
+
+  public ConfigView() {
+    filter = IpFilter.getInstance();
+  }
+
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    gConfig = new Composite(composite, SWT.NONE);
-    ((ScrolledComposite) composite).setContent(gConfig);
+    cConfig = new Composite(composite, SWT.NONE);
     GridLayout configLayout = new GridLayout();
+    //configLayout.horizontalSpacing = 0;
+    //configLayout.verticalSpacing = 0;
+    configLayout.marginHeight = 0;
+    configLayout.marginWidth = 0;
     configLayout.numColumns = 2;
-    gConfig.setLayout(configLayout);
-    Group gFile = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gFile, "ConfigView.section.files"); //$NON-NLS-1$
-    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gFile.setLayoutData(gridData);
+    cConfig.setLayout(configLayout);
+
+    ctfConfig = new CTabFolder(cConfig, SWT.TOP | SWT.FLAT);
+    ctfConfig.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
+    //ctfConfig.setLayoutData(gridData);
+
+    CTabItem itemFile = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemFile, "ConfigView.section.files"); //$NON-NLS-1$
+
+    Group gFile = new Group(ctfConfig, SWT.NULL);
 
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
@@ -96,11 +125,11 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
-    
-	label = new Label(gFile, SWT.NULL);
-	Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
-	new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
-	new Label(gFile, SWT.NULL);    
+
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
+    new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
+    new Label(gFile, SWT.NULL);
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
@@ -116,7 +145,7 @@ public class ConfigView extends AbstractIView {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(gConfig.getShell(), SWT.APPLICATION_MODAL);
+        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
         dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
         String path = dialog.open();
@@ -126,8 +155,12 @@ public class ConfigView extends AbstractIView {
       }
     });
 
-    Group gServer = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gServer, "ConfigView.section.server"); //$NON-NLS-1$
+    itemFile.setControl(gFile);
+
+    CTabItem itemServer = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemServer, "ConfigView.section.server"); //$NON-NLS-1$
+
+    Group gServer = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gServer.setLayoutData(gridData);
     layout = new GridLayout();
@@ -152,8 +185,12 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 40;
     new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData); //$NON-NLS-1$
 
-    Group gGlobal = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gGlobal, "ConfigView.section.global"); //$NON-NLS-1$
+    itemServer.setControl(gServer);
+
+    CTabItem itemGlobal = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemGlobal, "ConfigView.section.global"); //$NON-NLS-1$
+
+    Group gGlobal = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gGlobal.setLayoutData(gridData);
     layout = new GridLayout();
@@ -179,21 +216,25 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gGlobal, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
-    
+
     label = new Label(gGlobal, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 100;
-    new StringParameter(gGlobal, "priorityExtensions","").setLayoutData(gridData); //$NON-NLS-1$       
+    new StringParameter(gGlobal, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
 
-    Group gDownloads = new Group(gConfig,SWT.NULL);
-    Messages.setLanguageText(gDownloads, "ConfigView.section.downloadManagement"); //$NON-NLS-1$
+    itemGlobal.setControl(gGlobal);
+
+    CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemDownloads, "ConfigView.section.downloadManagement"); //$NON-NLS-1$
+
+    Group gDownloads = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDownloads.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gDownloads.setLayout(layout);
-    
+
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
     final String stopRatioLabels[] = new String[11];
@@ -205,7 +246,7 @@ public class ConfigView extends AbstractIView {
       stopRatioValues[i] = i;
     }
     new IntListParameter(gDownloads, "Stop Ratio", 0, stopRatioLabels, stopRatioValues);
-    
+
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$
     final String stopRatioPeersLabels[] = new String[4];
@@ -214,12 +255,11 @@ public class ConfigView extends AbstractIView {
     stopRatioPeersValues[0] = 0;
     String peers = MessageText.getString("ConfigView.text.peers");
     for (int i = 1; i < stopRatioPeersValues.length; i++) {
-      stopRatioPeersLabels[i] =  i + " " + peers; //$NON-NLS-1$
+      stopRatioPeersLabels[i] = i + " " + peers; //$NON-NLS-1$
       stopRatioPeersValues[i] = i;
     }
     new IntListParameter(gDownloads, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
-        
-        
+
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
     final String startRatioPeersLabels[] = new String[11];
@@ -227,23 +267,39 @@ public class ConfigView extends AbstractIView {
     startRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStart");
     startRatioPeersValues[0] = 0;
     for (int i = 1; i < 11; i++) {
-      startRatioPeersLabels[i] = (i+3) + " " + peers; //$NON-NLS-1$
-      startRatioPeersValues[i] = i+3;
+      startRatioPeersLabels[i] = (i + 3) + " " + peers; //$NON-NLS-1$
+      startRatioPeersValues[i] = i + 3;
     }
     new IntListParameter(gDownloads, "Start Peers Ratio", 0, startRatioPeersLabels, startRatioPeersValues);
-    
+
+    String seeds = MessageText.getString("ConfigView.label.seeds");
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.startNumSeeds"); //$NON-NLS-1$
+    final String startNumSeedsLabels[] = new String[11];
+    final int startNumSeedsValues[] = new int[11];
+    startNumSeedsLabels[0] = MessageText.getString("ConfigView.text.neverStart");
+    startNumSeedsValues[0] = 0;
+    for (int i = 1; i < 11; i++) {
+      startNumSeedsLabels[i] = i + " " + seeds; //$NON-NLS-1$
+      startNumSeedsValues[i] = i;
+    }
+    new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues);
+
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Check Pieces on Completion",false);
-    
+    new BooleanParameter(gDownloads, "Check Pieces on Completion", false);
+
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Alert on close",true);
-        
-    
-    
-    Group gTransfer = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Alert on close", true);
+
+    itemDownloads.setControl(gDownloads);
+
+    CTabItem itemTransfer = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
+
+    Group gTransfer = new Group(ctfConfig, SWT.NULL);
+
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTransfer.setLayoutData(gridData);
     layout = new GridLayout();
@@ -283,13 +339,17 @@ public class ConfigView extends AbstractIView {
     final String saveResumeLabels[] = new String[19];
     final int saveResumeValues[] = new int[19];
     for (int i = 2; i < 21; i++) {
-      saveResumeLabels[i-2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
-      saveResumeValues[i-2] = i;
+      saveResumeLabels[i - 2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
+      saveResumeValues[i - 2] = i;
     }
     new IntListParameter(gTransfer, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
 
-    Group gDisplay = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gDisplay, "ConfigView.section.display"); //$NON-NLS-1$
+    itemTransfer.setControl(gTransfer);
+
+    CTabItem itemDisplay = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemDisplay, "ConfigView.section.display"); //$NON-NLS-1$
+
+    Group gDisplay = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDisplay.setLayoutData(gridData);
     layout = new GridLayout();
@@ -312,8 +372,13 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Minimize To Tray", false); //$NON-NLS-1$
 
-    Group gStart = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
+    itemDisplay.setControl(gDisplay);
+
+    CTabItem itemStart = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
+
+    Group gStart = new Group(ctfConfig, SWT.NULL);
+
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gStart.setLayoutData(gridData);
     layout = new GridLayout();
@@ -340,8 +405,13 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Start Minimized", false); //$NON-NLS-1$
 
-    Group gIrc = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gIrc, "ConfigView.section.irc"); //$NON-NLS-1$
+    itemStart.setControl(gStart);
+
+    CTabItem itemIrc = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemIrc, "ConfigView.section.irc"); //$NON-NLS-1$
+
+    Group gIrc = new Group(ctfConfig, SWT.NULL);
+
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gIrc.setLayoutData(gridData);
     layout = new GridLayout();
@@ -366,8 +436,12 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 150;
     new StringParameter(gIrc, "Irc Login", "").setLayoutData(gridData); //$NON-NLS-1$
 
-    Group gSecurity = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gSecurity, "ConfigView.section.security"); //$NON-NLS-1$
+    itemIrc.setControl(gIrc);
+
+    CTabItem itemSecurity = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemSecurity, "ConfigView.section.security"); //$NON-NLS-1$
+
+    Group gSecurity = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gSecurity.setLayoutData(gridData);
     layout = new GridLayout();
@@ -379,77 +453,195 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 150;
     new PasswordParameter(gSecurity, "Password").setLayoutData(gridData); //$NON-NLS-1$
-    
+
     label = new Label(gSecurity, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
     new PasswordParameter(gSecurity, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
-    
+
     label = new Label(gSecurity, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
-    passwordMatch = new Label(gSecurity,SWT.NULL);
+    passwordMatch = new Label(gSecurity, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 150;
     passwordMatch.setLayoutData(gridData);
 
-    Button enter = new Button(gConfig, SWT.PUSH);
-    Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.horizontalSpan = 2;
-    enter.setLayoutData(gridData);
+    itemSecurity.setControl(gSecurity);
+    ctfConfig.setSelection(itemFile);
 
-    enter.addSelectionListener(new SelectionAdapter() {
-      public void widgetSelected(SelectionEvent event) {
-        COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
-        COConfigurationManager.save();
+    CTabItem itemFilter = new CTabItem(ctfConfig, SWT.NULL);
+    Messages.setLanguageText(itemFilter, "ipFilter.shortTitle"); //$NON-NLS-1$
+
+    Group gFilter = new Group(ctfConfig, SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gFilter.setLayoutData(gridData);
+
+    GridLayout layoutFilter = new GridLayout();
+    layoutFilter.numColumns = 2;
+    gFilter.setLayout(layoutFilter);
+
+    table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
+    String[] headers = { "ipFilter.description", "ipFilter.start", "ipFilter.end" };
+    int[] sizes = { 300, 120, 120 };
+    int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
+    for (int i = 0; i < headers.length; i++) {
+      TableColumn tc = new TableColumn(table, aligns[i]);
+      tc.setText(headers[i]);
+      tc.setWidth(sizes[i]);
+      Messages.setLanguageText(tc, headers[i]); //$NON-NLS-1$
+    }
+
+    table.setHeaderVisible(true);
+
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.heightHint = 300;
+    gridData.verticalSpan = 4;
+    table.setLayoutData(gridData);
+
+    Button add = new Button(gFilter, SWT.PUSH);
+    gridData = new GridData(GridData.CENTER);
+    gridData.widthHint = 100;
+    add.setLayoutData(gridData);
+    Messages.setLanguageText(add, "ipFilter.add");
+    add.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {
+        addRange();
       }
     });
 
-    gConfig.setSize(gConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    Button remove = new Button(gFilter, SWT.PUSH);
+    gridData = new GridData(GridData.CENTER);
+    gridData.widthHint = 100;
+    remove.setLayoutData(gridData);
+    Messages.setLanguageText(remove, "ipFilter.remove");
+    remove.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {
+        TableItem[] selection = table.getSelection();
+        if (selection.length == 0)
+          return;
+        removeRange((IpRange) selection[0].getData());
+        table.remove(table.indexOf(selection[0]));
+        selection[0].dispose();
+      }
+    });
+
+    Button edit = new Button(gFilter, SWT.PUSH);
+    gridData = new GridData(GridData.CENTER);
+    gridData.widthHint = 100;
+    edit.setLayoutData(gridData);
+    Messages.setLanguageText(edit, "ipFilter.edit");
+    edit.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {
+        TableItem[] selection = table.getSelection();
+        if (selection.length == 0)
+          return;
+        editRange((IpRange) selection[0].getData());
+      }
+    });
+
+    table.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        TableItem[] selection = table.getSelection();
+        if (selection.length == 0)
+          return;
+        editRange((IpRange) selection[0].getData());
+      }
+    });
+
+    /*Button save = new Button(gFilter, SWT.PUSH);
+    gridData = new GridData(GridData.GRAB_VERTICAL | GridData.VERTICAL_ALIGN_END);
+    gridData.widthHint = 100;
+    save.setLayoutData(gridData);
+    Messages.setLanguageText(save, "ipFilter.save");
+    save.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {
+        filter.save();
+      }
+    });*/
+
+    populateTable();
+
+    itemFilter.setControl(gFilter);
+
+    Button save = new Button(cConfig, SWT.PUSH);
+    Messages.setLanguageText(save, "ConfigView.button.save"); //$NON-NLS-1$
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+    gridData.widthHint = 80;
+    save.setLayoutData(gridData);
+
+    save.addSelectionListener(new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+        COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
+        COConfigurationManager.save();
+        filter.save();
+      }
+    });
+
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
   public Composite getComposite() {
-    return gConfig;
+    return cConfig;
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-  byte[] password = COConfigurationManager.getByteParameter("Password","".getBytes());
-  COConfigurationManager.setParameter("Password enabled",false);
-  if(password.length == 0)
-    {
+    byte[] password = COConfigurationManager.getByteParameter("Password", "".getBytes());
+    COConfigurationManager.setParameter("Password enabled", false);
+    if (password.length == 0) {
       passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchnone"));
     }
     else {
-      byte[] confirm = COConfigurationManager.getByteParameter("Password Confirm","".getBytes());     
-      if(confirm.length == 0)
-        {
-          passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
-        } else {
-          boolean same = true;
-          for(int i = 0 ; i < password.length ;i++) {
-            if(password[i] != confirm[i])
-              same = false;
-          }
-          if(same) {
-            passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchyes"));
-            COConfigurationManager.setParameter("Password enabled",true);
-          } else {
-            passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
-          }
+      byte[] confirm = COConfigurationManager.getByteParameter("Password Confirm", "".getBytes());
+      if (confirm.length == 0) {
+        passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
+      }
+      else {
+        boolean same = true;
+        for (int i = 0; i < password.length; i++) {
+          if (password[i] != confirm[i])
+            same = false;
         }
+        if (same) {
+          passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchyes"));
+          COConfigurationManager.setParameter("Password enabled", true);
+        }
+        else {
+          passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
+        }
+      }
+    }
+
+    if (table == null || table.isDisposed())
+      return;
+    TableItem[] items = table.getItems();
+    for (int i = 0; i < items.length; i++) {
+      IpRange range = (IpRange) items[i].getData();
+      if (items[i] == null || items[i].isDisposed())
+        continue;
+      String tmp = items[i].getText(0);
+      if (range.description != null && !range.description.equals(tmp))
+        items[i].setText(0, range.description);
+
+      tmp = items[i].getText(1);
+      if (range.description != null && !range.startIp.equals(tmp))
+        items[i].setText(1, range.startIp);
+
+      tmp = items[i].getText(2);
+      if (range.description != null && !range.endIp.equals(tmp))
+        items[i].setText(2, range.endIp);
+
     }
   }
 
   public void updateLanguage() {
     super.updateLanguage();
-    gConfig.setSize(gConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    ctfConfig.setSize(ctfConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   /* (non-Javadoc)
@@ -457,7 +649,7 @@ public class ConfigView extends AbstractIView {
    */
   public void delete() {
     MainWindow.getWindow().setConfig(null);
-    Utils.disposeComposite(gConfig);       
+    Utils.disposeComposite(ctfConfig);
   }
 
   /* (non-Javadoc)
@@ -472,6 +664,37 @@ public class ConfigView extends AbstractIView {
    */
   public String getFullTitle() {
     return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
+  }
+
+  private void populateTable() {
+    List ipRanges = filter.getIpRanges();
+    synchronized (ipRanges) {
+      Iterator iter = ipRanges.iterator();
+      while (iter.hasNext()) {
+        IpRange range = (IpRange) iter.next();
+        TableItem item = new TableItem(table, SWT.NULL);
+        item.setImage(0, ImageRepository.getImage("ipfilter"));
+        item.setText(0, range.description);
+        item.setText(1, range.startIp);
+        item.setText(2, range.endIp);
+        item.setData(range);
+      }
+    }
+  }
+
+  public void removeRange(IpRange range) {
+    List ranges = filter.getIpRanges();
+    synchronized (ranges) {
+      ranges.remove(range);
+    }
+  }
+
+  public void editRange(IpRange range) {
+    new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), range);
+  }
+
+  public void addRange() {
+    new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), null);
   }
 
 }

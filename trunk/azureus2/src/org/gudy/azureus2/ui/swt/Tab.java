@@ -10,7 +10,6 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -43,11 +42,11 @@ public class Tab {
     this.view = _view;
     this.folder = _folder;
     tabItem = new CTabItem(folder, SWT.NULL);
-    if(_view instanceof ConfigView) {
-      composite = new ScrolledComposite(folder, SWT.H_SCROLL | SWT.V_SCROLL);
-    } else {
-      composite = new Composite(folder, SWT.NULL);
-    }
+    //if(_view instanceof ConfigView) {
+    //  composite = new ScrolledComposite(folder, SWT.H_SCROLL | SWT.V_SCROLL);
+    //} else {
+    composite = new Composite(folder, SWT.NULL);
+    //}
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
