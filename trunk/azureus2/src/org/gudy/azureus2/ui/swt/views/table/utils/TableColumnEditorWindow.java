@@ -14,9 +14,6 @@
 
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -24,13 +21,16 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
-
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class TableColumnEditorWindow {
   
@@ -65,7 +65,9 @@ public class TableColumnEditorWindow {
     blue = new Color(display,0,0,128);
     
     shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(!Constants.isOSX) {
+        shell.setImage(ImageRepository.getImage("azureus"));
+    }
     shell.setText(MessageText.getString("columnChooser.title"));
     
     GridLayout layout = new GridLayout();
