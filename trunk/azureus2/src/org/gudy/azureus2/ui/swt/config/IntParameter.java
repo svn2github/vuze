@@ -123,13 +123,17 @@ IntParameter
   setValue(
   	int		value )
   {
-  	try{
-  		value_is_changing_internally	= true;
+  	if ( getValue() != value ){
   		
-  		inputField.setText(String.valueOf(value));
-  	}finally{
-  		
- 		value_is_changing_internally	= false;
+	  	try{
+	  		value_is_changing_internally	= true;
+	  		
+	  		inputField.setText(String.valueOf(value));
+	  		
+	  	}finally{
+	  		
+	 		value_is_changing_internally	= false;
+	  	}
   	}
   }
   
