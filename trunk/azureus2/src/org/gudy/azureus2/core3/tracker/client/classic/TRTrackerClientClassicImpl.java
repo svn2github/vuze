@@ -130,64 +130,6 @@ TRTrackerClientClassicImpl
 	  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
 	}
 	
-	private static Set	ignore_peer_ports	= new HashSet();
-	
-	static{
-		COConfigurationManager.addParameterListener(
-				"Ignore.peer.ports",
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						String parameterName )
-					{
-						readIgnorePeerPorts();
-					}
-				});
-		
-		readIgnorePeerPorts();
-	}
-	
-	static void
-	readIgnorePeerPorts()
-	{
-		String	str = COConfigurationManager.getStringParameter( "Ignore.peer.ports" ).trim();
-		
-		ignore_peer_ports.clear();
-		
-		if ( str.length() > 0 ){
-			
-			int	pos = 0;
-			
-			while(true){
-				
-				int	p1 = str.indexOf( ';', pos );
-				
-				String	bit;
-				
-				if ( p1 == -1 ){
-					
-					bit = str.substring(pos);
-					
-				}else{
-					
-					bit = str.substring(pos,p1);
-					
-					pos	= p1+1;
-				}
-				
-				bit	= bit.trim();
-							
-				ignore_peer_ports.add( bit );
-				
-				if ( p1 == -1 ){
-					
-					break;
-				}
-			}
-		}
-	}
-	
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
 	public final static int evtFullTrace = 1;
@@ -1829,7 +1771,7 @@ TRTrackerClientClassicImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								if ( ignore_peer_ports.contains( ""+peer_port )){
+								if ( PeerUtils.ignorePeerPort( peer_port )){
 								
 			 			    		LGLogger.log(
 						    				componentID, evtFullTrace, LGLogger.INFORMATION, 
@@ -1865,7 +1807,7 @@ TRTrackerClientClassicImpl
 				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 				    				"COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 							
-                			if ( ignore_peer_ports.contains( ""+peer_port )){
+                			if ( PeerUtils.ignorePeerPort( peer_port )){
 					
         			    		LGLogger.log(
         			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
@@ -2189,7 +2131,7 @@ TRTrackerClientClassicImpl
 						
 					//System.out.println( "recovered " + ip_address + ":" + port );
 					
-					if ( ignore_peer_ports.contains( ""+peer_port )){
+					if ( PeerUtils.ignorePeerPort( peer_port )){
 						
    			    		LGLogger.log(
 			    				componentID, evtFullTrace, LGLogger.INFORMATION, 

@@ -6,6 +6,9 @@
  */
 package org.gudy.azureus2.core3.peer.util;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.gudy.azureus2.core3.config.*;
 
 
@@ -85,4 +88,68 @@ public class PeerUtils {
   }
   
 
+	private static Set	ignore_peer_ports	= new HashSet();
+	
+	static{
+		COConfigurationManager.addParameterListener(
+				"Ignore.peer.ports",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						readIgnorePeerPorts();
+					}
+				});
+		
+		readIgnorePeerPorts();
+	}
+	
+	private static void
+	readIgnorePeerPorts()
+	{
+		String	str = COConfigurationManager.getStringParameter( "Ignore.peer.ports" ).trim();
+		
+		ignore_peer_ports.clear();
+		
+		if ( str.length() > 0 ){
+			
+			int	pos = 0;
+			
+			while(true){
+				
+				int	p1 = str.indexOf( ';', pos );
+				
+				String	bit;
+				
+				if ( p1 == -1 ){
+					
+					bit = str.substring(pos);
+					
+				}else{
+					
+					bit = str.substring(pos,p1);
+					
+					pos	= p1+1;
+				}
+				
+				bit	= bit.trim();
+							
+				ignore_peer_ports.add( bit );
+				
+				if ( p1 == -1 ){
+					
+					break;
+				}
+			}
+		}
+	}
+	
+	public static boolean
+	ignorePeerPort(
+		int		port )
+	{
+		return( ignore_peer_ports.contains( "" + port ));
+	}
 }
