@@ -34,6 +34,8 @@ public class WriteController {
   private final LinkedHashMap normal_priority_entities = new LinkedHashMap();
   private final LinkedHashMap high_priority_entities = new LinkedHashMap();
   private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
+
+  private static final int PROCESSOR_SLEEP_TIME = 20;
   
   
   /**
@@ -78,7 +80,7 @@ public class WriteController {
         check_high_first = false;
         if( !doHighPriorityWrite() ) {
           if( !doNormalPriorityWrite() ) {
-            try {  Thread.sleep( 10 );  }catch(Exception e) { Debug.printStackTrace(e); }
+            try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
           }
         }
       }
@@ -86,7 +88,7 @@ public class WriteController {
         check_high_first = true;
         if( !doNormalPriorityWrite() ) {
           if( !doHighPriorityWrite() ) {
-            try {  Thread.sleep( 10 );  }catch(Exception e) { Debug.printStackTrace(e); }
+            try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
           }
         }
       }
@@ -96,13 +98,17 @@ public class WriteController {
   
   private boolean doNormalPriorityWrite() {
     RateControlledWriteEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doWrite() )  return true;
+    if( ready_entity != null && ready_entity.doWrite() ) {
+      return true;
+    }
     return false;
   }
   
   private boolean doHighPriorityWrite() {
     RateControlledWriteEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doWrite() )  return true;
+    if( ready_entity != null && ready_entity.doWrite() ) {
+      return true;
+    }
     return false;
   }
   
@@ -144,7 +150,7 @@ public class WriteController {
         }
         ready_entity = null;  //not ready, so leave at beginning for checking next round
       }
-      
+
       if( ready_entity != null ) {
         high_priority_entities.put( ready_entity, null );  //...put back at the end
       }
