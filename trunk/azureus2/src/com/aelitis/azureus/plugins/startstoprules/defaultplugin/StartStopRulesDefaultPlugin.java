@@ -1056,7 +1056,7 @@ public class StartStopRulesDefaultPlugin
 			  }
 			  
 			  // Ignore 0 Peer
-			  if (numPeers == 0 && bFirstPriorityIgnore0Peer && 
+			  if (numPeers == 0 && (bFirstPriorityIgnore0Peer && shareRatio < minQueueingShareRatio)  && scrapeResultOk(download) &&
 					  dlData.getSeedingRank() != SR_0PEER) {
 				  if (bDebugLog)
 		              sDebugLine += "\n0 Peer";
@@ -1485,8 +1485,18 @@ public class StartStopRulesDefaultPlugin
 		      // never apply ignore rules to First Priority Matches
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
-			if (num_peers_excluding_us == 0 && 
-					( (bIgnore0Peers && shareRatio <= minQueueingShareRatio) || (bFirstPriorityIgnore0Peer)) ) 
+			  
+		    if (iIgnoreShareRatio != 0 && 
+			         shareRatio >= iIgnoreShareRatio && 
+			         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
+			         shareRatio != -1) {
+			     setSeedingRank(SR_SHARERATIOMET);
+			     return SR_SHARERATIOMET;
+			}
+							
+			if (num_peers_excluding_us == 0 && bScrapeResultsOk &&
+					( (bFirstPriorityIgnore0Peer && shareRatio <= minQueueingShareRatio) || 
+							bIgnore0Peers )) 
 			{
 		         setSeedingRank(SR_0PEERS);
 		         return SR_0PEERS;
@@ -1510,15 +1520,6 @@ public class StartStopRulesDefaultPlugin
 				}
 			}
 		    
-			
-	        if (iIgnoreShareRatio != 0 && 
-	            shareRatio > iIgnoreShareRatio && 
-	            num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart &&
-	            shareRatio != -1) {
-	          setSeedingRank(SR_SHARERATIOMET);
-	          return SR_SHARERATIOMET;
-	        }
-	       
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
