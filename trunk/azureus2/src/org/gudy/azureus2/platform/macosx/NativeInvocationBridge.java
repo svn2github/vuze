@@ -22,8 +22,6 @@ package org.gudy.azureus2.platform.macosx;
  *
  */
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import java.io.File;
 
 /**
@@ -41,7 +39,7 @@ public abstract class NativeInvocationBridge
 
     static
     {
-        try
+        /*try
         {
             Object newInstance = Class.forName("org.gudy.azureus2.platform.macosx.access.cocoa.CocoaJavaBridge").getConstructor(null).newInstance(null);
             instance = (NativeInvocationBridge)newInstance;
@@ -50,7 +48,9 @@ public abstract class NativeInvocationBridge
         {
             Debug.out(e);
             instance = new DummyBridge();
-        }
+        }*/
+
+        instance = new DummyBridge();
     }
 
     /**
