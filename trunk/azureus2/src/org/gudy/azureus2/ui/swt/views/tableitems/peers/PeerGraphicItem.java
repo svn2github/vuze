@@ -21,13 +21,13 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 
 /**
  * @author Olivier
  *
  */
-public abstract class PeerGraphicItem extends BufferedGraphicTableItem {
+public abstract class PeerGraphicItem extends BufferedGraphicTableItem2 {
 
   protected PeerRow peerRow;
   

@@ -21,13 +21,13 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 
 /**
  * @author Olivier
  *
  */
-public abstract class TorrentGraphicItem extends BufferedGraphicTableItem {
+public abstract class TorrentGraphicItem extends BufferedGraphicTableItem2 {
 
   protected TorrentRow torrentRow;
   
