@@ -261,9 +261,6 @@ public class PeerSocket extends PeerConnection {
     if (socket != null) {
       try {
         if (socket.isOpen() && socket.socket().isClosed()) System.out.println("ERROR: channel is open but socket is closed");
-        if (!socket.isOpen()) System.out.println("ERROR: channel not open");
-        if (socket.socket().isClosed()) System.out.println("ERROR: socket already closed");
-        
         if (!socket.socket().isClosed()) socket.socket().close();
         if (socket.isOpen()) {
            System.out.println("ERROR: channel still open");
