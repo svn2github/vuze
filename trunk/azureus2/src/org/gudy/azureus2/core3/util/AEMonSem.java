@@ -68,6 +68,12 @@ AEMonSem
 			
 			System.out.println( "**** AEMonitor/AESemaphore debug on ****" );
 			
+				// add know and validated exceptions 
+			
+			debug_recursions.add( "ResourceDownloader" );		// known tree recursion
+			debug_recursions.add( "ConnectionPool:CP" );		// known tree recursion
+			debug_recursions.add( "(S)RDRretry" );				// RDretry sem left on stack after 1st d/l so appears recursive on subsequent
+			
 			diag_logger	= AEDiagnostics.getLogger( "monsem" );
 		
 			new Timer("AEMonSem").addPeriodicEvent(
@@ -322,13 +328,16 @@ AEMonSem
 		
 		if ( !stack.isEmpty()){
 			
+			String	recursion_trace = "";
+			
 			if (	(!is_monitor) &&
 					((AEMonSem)stack.peek()).is_monitor ){
 				
 				if ( !debug_sem_in_mon.contains( name )){
 					
-					Debug.out( "Semaphore reservation while holding a monitor: sem = " + name+ ", mon = " + ((AEMonSem)stack.peek()).name );
-					
+					recursion_trace += ( recursion_trace.length()==0?"":"\r\n" ) +
+										"Semaphore reservation while holding a monitor: sem = " + name+ ", mon = " + ((AEMonSem)stack.peek()).name;
+								
 					debug_sem_in_mon.add( name );
 				}
 			}
@@ -347,7 +356,9 @@ AEMonSem
 					if ( 	mon.name.equals( name ) &&
 							mon != this ){
 						
-						Debug.out( "AEMonSem: recursive locks on different instances: " + name );
+						recursion_trace += 
+							( recursion_trace.length()==0?"":"\r\n" ) +
+							"Recursive locks on different instances: " + name;
 						
 						debug_recursions.add( name );
 					}
@@ -369,6 +380,11 @@ AEMonSem
 			sb.append( "$" );
 			
 			String trace_key = sb.toString();
+			
+			if ( recursion_trace.length() > 0 ){
+				
+				Debug.out( recursion_trace + "\r\n    " + trace_key );
+			}
 			
 			last_trace_key	= trace_key;
 			
