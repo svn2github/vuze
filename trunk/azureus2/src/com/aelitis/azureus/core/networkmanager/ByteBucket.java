@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
@@ -40,12 +39,11 @@ public class ByteBucket {
   
   /**
    * Create a new byte-bucket with the given byte fill (guaranteed) rate.
-   * Burst rate is set to default 2X of given fill rate.
+   * Burst rate is set to default 1.5X of given fill rate.
    * @param rate_bytes_per_sec
    */
   protected ByteBucket( int rate_bytes_per_sec ) {
     this.rate = rate_bytes_per_sec;
-    //burst_rate = rate_bytes_per_sec * 2; //allow for twice normal rate
     burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/2);
     avail_bytes = 0; //start bucket empty
     prev_update_time = SystemTime.getCurrentTime();
@@ -86,11 +84,10 @@ public class ByteBucket {
   
   
   /**
-   * Set the current fill/guaranteed rate, with a burst rate of 2X the given rate.
+   * Set the current fill/guaranteed rate, with a burst rate of 1.5X the given rate.
    * @param rate_bytes_per_sec
    */
   protected void setRate( int rate_bytes_per_sec ) {
-    //setRate( rate_bytes_per_sec, rate_bytes_per_sec * 2 );
     setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/2));
   }
   
@@ -106,7 +103,7 @@ public class ByteBucket {
   }
   
   
-  private void update_avail_byte_count() { //TODO: SystemTime.getCurrentTime() good enough ?
+  private void update_avail_byte_count() {
     long current_time = SystemTime.getCurrentTime();
     long time_diff = current_time - prev_update_time;
     int num_new_bytes = new Float((time_diff * rate) / 1000).intValue();    
