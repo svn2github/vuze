@@ -145,6 +145,11 @@ PEPieceImpl
 	if (!downloaded[blocNumber])
 	  requested[blocNumber] = false;
   }
+  
+  public synchronized void markBlock(int blocNumber) {
+    if (!downloaded[blocNumber])
+      requested[blocNumber] = true;
+  }
 
   public int getBlockSize(int blocNumber) {
 	if (blocNumber == (nbBlocs - 1))

@@ -73,7 +73,11 @@ PEPeerControlImpl
   private Average _averageReceptionSpeed;
   private PEPeerTransport currentOptimisticUnchoke;
   
+  
+  //A flag to indicate when we're in endgame mode
   private boolean endGameMode;
+  //The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
+  private List endGameModeChunks;
   
   private DownloadManager _manager;
   private List requestsToFree;
@@ -462,10 +466,15 @@ PEPeerControlImpl
         boolean found = true;
         //If queue is too low, we will enqueue another request
         int maxRequests = MAX_REQUESTS;
+        if (endGameMode)
+          maxRequests = 2;
         if (pc.isSnubbed())
-          maxRequests = 1;
+          maxRequests = 1;        
         while ((pc.isReadyToRequest() && pc.getState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
-          found = findPieceToDownload(pc, pc.isSnubbed());
+          if(endGameMode)
+            found = findPieceInEndGameMode(pc);
+          else
+            found = findPieceToDownload(pc, pc.isSnubbed());
           //is there anything else to download?
         }
       }
@@ -1392,7 +1401,7 @@ PEPeerControlImpl
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
       piece.setWritten(sender,offset / BLOCK_SIZE);
-    }
+    }    
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
@@ -1401,7 +1410,24 @@ PEPeerControlImpl
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
       _diskManager.writeBlock(pieceNumber, offset, data,sender);
-    }
+      if(endGameMode) {
+        //In case we are in endGame mode, remove the piece from the chunk list
+        removeFromEndGameModeChunks(pieceNumber,offset);
+        //For all connections cancel the request
+        synchronized(_connections) {
+          Iterator iter = _connections.iterator();
+          while(iter.hasNext()) {
+            PEPeerTransport connection = (PEPeerTransport) iter.next();
+            connection.sendCancel(
+                _diskManager.createRequest(
+                    pieceNumber,
+                    offset,
+										_pieces[pieceNumber].getBlockSize(offset / BLOCK_SIZE)));
+            
+          }
+        }
+      }
+    }    
   }
 
   public boolean checkBlock(int pieceNumber, int offset, int length) {
@@ -1553,7 +1579,7 @@ PEPeerControlImpl
       
     }
     //the piece is corrupt
-    else {
+    else {      
       if (_pieces[pieceNumber] != null) {
         
         //_pieces[pieceNumber].free();      
@@ -1570,6 +1596,17 @@ PEPeerControlImpl
       if (_finished) {
         Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
         _manager.restartDownload(false);
+      }
+      
+      //if we are in end-game mode, we need to re-add all the piece chunks
+      //to the list of chunks needing to be downloaded
+      if(endGameMode) {
+        synchronized(endGameModeChunks) {
+          int nbChunks = _pieces[pieceNumber].getNbBlocs();
+          for(int i = 0 ; i < nbChunks ; i++) {
+            endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
+          }
+        }
       }
       
       //We haven't finished (to recover from a wrong finish state)
@@ -1710,10 +1747,60 @@ PEPeerControlImpl
         continue;
       //Else, the piece is not downloaded / not fully requested, this isn't end game mode
       return;     
-    }
+    }    
+    computeEndGameModeChunks();
     endGameMode = true;
     LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode");
     System.out.println("End-Game Mode activated");
+  }
+  
+  private void computeEndGameModeChunks() {    
+    endGameModeChunks = new ArrayList();
+    synchronized(endGameModeChunks) {
+	    for(int i = 0 ; i < _pieces.length ; i++) {
+	      //Pieces already downloaded are of no interest
+	      if(_downloaded[i])
+	        continue;
+	      PEPiece piece = _pieces[i];
+	      if(piece == null)
+	        continue;
+	      boolean written[] = piece.getWritten();
+	      for(int j = 0 ; j < written.length ; j++) {
+	        if(!written[j]) {
+	          endGameModeChunks.add(new EndGameModeChunk(piece,j));
+	        }
+	      }
+	    }
+    }
+  }
+  
+  private void removeFromEndGameModeChunks(int pieceNumber,int offset) {    
+    synchronized(endGameModeChunks) {
+      Iterator iter = endGameModeChunks.iterator();
+      while(iter.hasNext()) {
+        EndGameModeChunk chunk = (EndGameModeChunk) iter.next();
+        if(chunk.compare(pieceNumber,offset))
+          iter.remove();
+      }	   
+	  }
+  }
+  
+  private boolean findPieceInEndGameMode(PEPeerTransport peer) {
+    //Ok, we try one, if it doesn't work, we'll try another next time
+    synchronized(endGameModeChunks) {
+	    int nbChunks = endGameModeChunks.size();   
+	    if(nbChunks > 0) {
+		    int random = (int) (Math.random() * nbChunks);
+		    EndGameModeChunk chunk = (EndGameModeChunk) endGameModeChunks.get(random);
+		    int pieceNumber = chunk.getPieceNumber();
+		    if(peer.getAvailable()[pieceNumber]) {
+		      peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
+		      _pieces[pieceNumber].markBlock(chunk.getBlockNumber());
+		      return true;
+		    }
+	    }
+    }
+    return false;
   }
 
  }

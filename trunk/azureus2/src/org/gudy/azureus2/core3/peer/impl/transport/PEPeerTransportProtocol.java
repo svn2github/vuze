@@ -818,40 +818,42 @@ PEPeerTransportProtocol
 	if (getState() != TRANSFERING) {
     manager.requestCanceled(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 	  return;
-  }
-	  
-	LGLogger.log(
-	  componentID,
-	  evtProtocol,
-	  LGLogger.SENT,
-	  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-	requested.add(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-	ByteBuffer buffer = ByteBuffer.allocate(17);
-	buffer.putInt(13);
-	buffer.put(BT_REQUEST);
-	buffer.putInt(pieceNumber);
-	buffer.putInt(pieceOffset);
-	buffer.putInt(pieceLength);
-	buffer.position(0);
-	buffer.limit(17);
-	sendProtocol(buffer);
+  }	
+	DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
+	if (!requested.contains(request)) {
+		LGLogger.log(
+		  componentID,
+		  evtProtocol,
+		  LGLogger.SENT,
+		  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+		requested.add(request);
+		ByteBuffer buffer = ByteBuffer.allocate(17);
+		buffer.putInt(13);
+		buffer.put(BT_REQUEST);
+		buffer.putInt(pieceNumber);
+		buffer.putInt(pieceOffset);
+		buffer.putInt(pieceLength);
+		buffer.position(0);
+		buffer.limit(17);
+		sendProtocol(buffer);
+	}
   }
 
   public void sendCancel(DiskManagerRequest request) {
 	if (getState() != TRANSFERING)
-	  return;
-	LGLogger.log(
-	  componentID,
-	  evtProtocol,
-	  LGLogger.SENT,
-	  ip
-		+ " is canceled for #"
-		+ request.getPieceNumber()
-		+ "::"
-		+ request.getOffset()
-		+ "->"
-		+ (request.getOffset() + request.getLength()));
+	  return;	
 	if (requested.contains(request)) {
+	  LGLogger.log(
+	      componentID,
+	      evtProtocol,
+				LGLogger.SENT,
+				ip
+				+ " is canceled for #"
+				+ request.getPieceNumber()
+				+ "::"
+				+ request.getOffset()
+				+ "->"
+				+ (request.getOffset() + request.getLength()));
 	  requested.remove(request);
 	  ByteBuffer buffer = ByteBuffer.allocate(17);
 	  buffer.putInt(13);

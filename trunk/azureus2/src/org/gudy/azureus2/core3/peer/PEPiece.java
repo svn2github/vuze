@@ -36,6 +36,8 @@ PEPiece
   public void setWritten(PEPeer peer,int blocNumber);
  
   public void unmarkBlock(int blocNumber);
+  
+  public void markBlock(int blocNumber);
  
   public int getAvailability();
    
