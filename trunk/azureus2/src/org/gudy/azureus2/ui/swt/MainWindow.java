@@ -769,9 +769,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if(!useCustomTab) {
       Tab.addTabKeyListenerToComposite(folder);
       ((TabFolder)folder).addSelectionListener(selectionAdapter);
-    } else {    
-      ((CTabFolder)folder).MIN_TAB_WIDTH = 75;
-      ((CTabFolder)folder).setSelectionBackground(new Color[] { white }, new int[0]);
+    } else {
+      try {
+        ((CTabFolder)folder).MIN_TAB_WIDTH = 75;
+      } catch (Exception e) {
+        LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
+        e.printStackTrace();
+      }
       ((CTabFolder)folder).setLayoutData(gridData);
       ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
         public void itemClosed(CTabFolderEvent event) {
@@ -780,6 +784,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
       });
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
+
+      Display display = folder.getDisplay();
+      ((CTabFolder)folder).setSelectionBackground(new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND) },
+                                                  new int[0]);
+      ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
     }
 
     splashNextTask();
