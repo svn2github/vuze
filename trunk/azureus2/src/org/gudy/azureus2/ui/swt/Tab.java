@@ -98,8 +98,8 @@ public class Tab {
               closed(tabItem);
             }
           }
-        } else {
-          selectedItem = useCustomTab ? (Item) ((CTabFolder) folder).getSelection() : ((TabFolder) folder).getSelection()[0];
+        } else {          
+          selectedItem = useCustomTab ? (Item) ((CTabFolder) folder).getSelection() : ((TabFolder) folder).getSelection().length > 0 ? ((TabFolder) folder).getSelection()[0] : null;
 //    System.out.println("selected: "+selectedItem.getText());
         }
       }

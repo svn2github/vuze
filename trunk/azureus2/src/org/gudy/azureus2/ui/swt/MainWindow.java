@@ -74,6 +74,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -2263,11 +2264,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private IView getCurrentView() {
 	  try {
 	    if(!useCustomTab) {
-	      return Tab.getView(((TabFolder)folder).getSelection()[0]);
+	      TabItem[] selection = ((TabFolder)folder).getSelection();
+				if(selection.length > 0)  {
+				  return Tab.getView(selection[0]);
+				}
+				else {
+				  return null;
+				}
 	    } else {
 	      return Tab.getView(((CTabFolder)folder).getSelection());
 	    }
-	
 	  }
 	  catch (Exception e) {
 	    return null;
