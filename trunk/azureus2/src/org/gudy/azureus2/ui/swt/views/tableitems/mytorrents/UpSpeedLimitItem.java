@@ -40,7 +40,7 @@ public class UpSpeedLimitItem
   
 	/** Default Constructor */
 	public UpSpeedLimitItem(String sTableID) {
-	  super("maxupspeed", ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
+	  super("maxupspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
 	}
 
