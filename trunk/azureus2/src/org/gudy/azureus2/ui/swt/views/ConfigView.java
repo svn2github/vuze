@@ -429,7 +429,9 @@ public class ConfigView extends AbstractIView {
     infoGroup.setLayout(new GridLayout());
     infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
 
-    String sPluginDir = SystemProperties.getUserPath() + "plugins" + System.getProperty("file.separator");
+    String sUserPluginDir = SystemProperties.getUserPath() + "plugins" + System.getProperty("file.separator");
+    String sAppPluginDir = SystemProperties.getApplicationPath() + "plugins" + System.getProperty("file.separator");
+    
     label = new Label(infoGroup, SWT.WRAP);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPut");
@@ -437,22 +439,24 @@ public class ConfigView extends AbstractIView {
     
     
     label = new Label(infoGroup, SWT.WRAP);
-    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    label.setText(sPluginDir);
+    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalIndent = 10;
+    label.setLayoutData(gridData);
+    label.setText(sUserPluginDir);
     label.setForeground(Colors.blue);
     label.setCursor(Cursors.handCursor);
     
-    final String _sPluginDir = sPluginDir;
+    final String _sUserPluginDir = sUserPluginDir;
     
     //TODO : Fix it for windows
     label.addMouseListener(new MouseAdapter() {
       public void mouseUp(MouseEvent arg0) {
-        if(_sPluginDir.endsWith("/plugins/")) {
-          File f = new File(_sPluginDir);
+        if(_sUserPluginDir.endsWith("/plugins/")) {
+          File f = new File(_sUserPluginDir);
           if(f.exists() && f.isDirectory()) {
-            Program.launch(_sPluginDir);
+            Program.launch(_sUserPluginDir);
           } else {
-            String azureusDir = _sPluginDir.substring(0,_sPluginDir.length() - 9);
+            String azureusDir = _sUserPluginDir.substring(0,_sUserPluginDir.length() - 9);
             System.out.println(azureusDir);
             Program.launch(azureusDir);
           }
@@ -460,6 +464,37 @@ public class ConfigView extends AbstractIView {
       }
     });
 
+    label = new Label(infoGroup, SWT.WRAP);
+    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPutOr");
+
+    label = new Label(infoGroup, SWT.WRAP);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalIndent = 10;
+    label.setLayoutData(gridData);
+    label.setText(sAppPluginDir);
+    label.setForeground(Colors.blue);
+    label.setCursor(Cursors.handCursor);
+    
+ 
+    final String _sAppPluginDir = sAppPluginDir;
+    
+    //TODO : Fix it for windows
+    label.addMouseListener(new MouseAdapter() {
+      public void mouseUp(MouseEvent arg0) {
+        if(_sAppPluginDir.endsWith("/plugins/")) {
+          File f = new File(_sAppPluginDir);
+          if(f.exists() && f.isDirectory()) {
+            Program.launch(_sAppPluginDir);
+          } else {
+            String azureusDir = _sAppPluginDir.substring(0,_sAppPluginDir.length() - 9);
+            System.out.println(azureusDir);
+            Program.launch(azureusDir);
+          }
+        }
+      }
+    });
+    
     List pluginIFs = PluginInitializer.getPluginInterfaces();
     Label labelInfo = new Label(infoGroup, SWT.WRAP);
     labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -477,10 +512,15 @@ public class ConfigView extends AbstractIView {
       
       String sDirName = pluginIF.getPluginDirectoryName();
       
-      if (sDirName.length() > sPluginDir.length() && 
-          sDirName.substring(0, sPluginDir.length()).equals(sPluginDir)){
+      if (sDirName.length() > sUserPluginDir.length() && 
+          sDirName.substring(0, sUserPluginDir.length()).equals(sUserPluginDir)){
       	
-      	sDirName = sDirName.substring(sPluginDir.length());
+      	sDirName = sDirName.substring(sUserPluginDir.length());
+      	
+      }else if (sDirName.length() > sAppPluginDir.length() && 
+            sDirName.substring(0, sAppPluginDir.length()).equals(sAppPluginDir)){
+      	
+      	sDirName = sDirName.substring(sAppPluginDir.length());
       }
       
       // Blank means it's internal

@@ -123,8 +123,10 @@ public class Initializer implements STProgressListener, Application {
     
     SWTUpdateChecker.initialize();
     
-    new UpdateMonitor();
+    UpdateMonitor.getSingleton();	// setup the update monitor
+	
     //Tell listeners that all is initialized :
+    
     Alerts.initComplete();
     
     nextTask();

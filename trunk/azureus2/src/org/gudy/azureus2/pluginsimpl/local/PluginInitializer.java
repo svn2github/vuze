@@ -184,8 +184,40 @@ PluginInitializer
     
   		// first do explicit plugins
   	  	
-    File pluginDirectory = FileUtil.getUserFile("plugins");
-        
+    File	user_dir = FileUtil.getUserFile("plugins");
+    File	app_dir	 = FileUtil.getApplicationFile("plugins");
+    
+    	// user ones first so they override app ones if present
+    
+    initializePluginsFromDir( user_dir );
+    
+    if ( !user_dir.equals( app_dir )){
+    	
+    	initializePluginsFromDir(app_dir );
+    }
+ 
+    	// now do built in ones
+    
+    LGLogger.log("Initializing built-in plugins");
+    
+    for (int i=0;i<builtin_plugins.length;i++){
+    	
+    	try{
+     		initializePluginFromClass(
+     				(Class)builtin_plugins[i][0], 
+					(String)builtin_plugins[i][1],
+					(String)builtin_plugins[i][2] );
+     		
+		}catch(PluginException e ){
+  				
+  		}
+     }
+  }
+ 
+  private void
+  initializePluginsFromDir(
+  	File	pluginDirectory )
+  {
     LGLogger.log("Plugin Directory is " + pluginDirectory);
     
     if ( !pluginDirectory.exists() ) {
@@ -216,23 +248,7 @@ PluginInitializer
 	        listener.reportPercent( 100 * i / pluginsDirectory.length);
 	      }
 	    }
-    }
-    
-    	// now do built in ones
-      LGLogger.log("Initializing built-in plugins");
-    
-     for (int i=0;i<builtin_plugins.length;i++){
-    	
-     	try{
-     		initializePluginFromClass(
-     				(Class)builtin_plugins[i][0], 
-					(String)builtin_plugins[i][1],
-					(String)builtin_plugins[i][2] );
-     		
-		}catch(PluginException e ){
-  				
-  		}
-     }
+    } 
   }
   
   private void 
@@ -340,9 +356,28 @@ PluginInitializer
       			pos1 = p1+1;
       		}
       
-      		if ( isPluginLoaded( plugin_class )){
+      		PluginInterfaceImpl existing_pi = getPluginFromClass( plugin_class );
+      		
+      		if ( existing_pi != null ){
+      				
+      				// allow user dir entries to override app dir entries without warning
       			
-      	 		LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+      			File	this_parent 	= directory.getParentFile();
+      			File	existing_parent = null;
+      			
+      			if ( existing_pi.getInitializerKey() instanceof File ){
+      				
+      				existing_parent	= ((File)existing_pi.getInitializerKey()).getParentFile();
+      			}
+      			
+      			if ( 	this_parent.equals( FileUtil.getApplicationFile("plugins")) &&
+      					existing_parent	!= null &&
+      					existing_parent.equals( FileUtil.getUserFile( "plugins" ))){
+      				
+      			}else{
+      			
+      				LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+      			}
 
       		}else{
       			
@@ -523,7 +558,7 @@ PluginInitializer
   	throws PluginException
   {
   
-  	if ( isPluginLoaded( plugin_class )){
+  	if ( getPluginFromClass( plugin_class ) != null ){
   	
   		LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class.getName() + "' is already loaded" );
   		
@@ -726,26 +761,28 @@ PluginInitializer
   	return( plugin_manager );
   }
   
-  protected boolean
-  isPluginLoaded(
+  protected PluginInterfaceImpl
+  getPluginFromClass(
   	Class	cla )
   {
-  	return( isPluginLoaded( cla.getName()));
+  	return( getPluginFromClass( cla.getName()));
   }
   
-  protected boolean
-  isPluginLoaded(
+  protected PluginInterfaceImpl
+  getPluginFromClass(
   	String	class_name )
   {  	
-  	for (int i=0;i<plugins.size();i++){
+  	for (int i=0;i<plugin_interfaces.size();i++){
   		
-  		if ( plugins.get(i).getClass().getName().equals( class_name )){
-  			
-  			return( true );
+  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)plugin_interfaces.get(i);
+  		
+  		if ( pi.getPlugin().getClass().getName().equals( class_name )){
+  		
+  			return( pi );
   		}
   	}
   	
-  	return( false );
+  	return( null );
   }
   
   	protected File[]

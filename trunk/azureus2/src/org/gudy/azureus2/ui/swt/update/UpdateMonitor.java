@@ -44,11 +44,24 @@ UpdateMonitor
 {
 	public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
 
+	protected static UpdateMonitor		singleton;
+	
 	protected UpdateWindow 			current_window;
   
 	protected UpdateCheckInstance		current_instance;
 	
-	public 
+	public static synchronized UpdateMonitor
+	getSingleton()
+	{
+		if ( singleton == null ){
+			
+			singleton = new UpdateMonitor();
+		}
+		
+		return( singleton );
+	}
+	
+	protected 
 	UpdateMonitor() 
 	{
 		Timer version_check_timer = new Timer("Auto-update timer");

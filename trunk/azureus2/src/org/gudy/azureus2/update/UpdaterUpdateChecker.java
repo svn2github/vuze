@@ -46,7 +46,7 @@ UpdaterUpdateChecker
 	checkPlugin()
 	{
 		try{
-		    File pluginDirectory = FileUtil.getUserFile("plugins");
+		    File pluginDirectory = FileUtil.getApplicationFile("plugins");
 
 		    File updater_plugin = new File( pluginDirectory, "azupdater" );
 		    
