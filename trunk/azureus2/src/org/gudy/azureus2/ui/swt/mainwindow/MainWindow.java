@@ -57,6 +57,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -550,7 +551,7 @@ MainWindow
         
         final Listener speedChangeListener = new Listener() {
               public void handleEvent(Event e) {
-                int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
+                int iSpeed = ((Integer)new TransferSpeedValidator("Max Upload Speed KBs", ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
                 COConfigurationManager.setParameter("Max Upload Speed KBs", iSpeed);
                 COConfigurationManager.save();
               }
@@ -598,7 +599,10 @@ MainWindow
         item.setText(MessageText.getString("ConfigView.unlimited"));
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            COConfigurationManager.setParameter("Max Download Speed KBs",0); 
+            COConfigurationManager.setParameter(
+                    "Max Download Speed KBs",
+                    ((Integer)new TransferSpeedValidator("Max Download Speed KBs", new Integer(0)).getValue()).intValue()
+                ); 
             COConfigurationManager.save();
           }
         });
@@ -606,7 +610,7 @@ MainWindow
         
         final Listener speedChangeListener = new Listener() {
               public void handleEvent(Event e) {
-                int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
+                int iSpeed = ((Integer)new TransferSpeedValidator("Max Download Speed KBs", ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
                 COConfigurationManager.setParameter("Max Download Speed KBs", iSpeed);
                 COConfigurationManager.save();
               }
