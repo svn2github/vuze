@@ -95,6 +95,7 @@ public class MyTorrentsView
   private Composite cTablePanel;
   private Font fontButton = null;
   private Composite cCategories;
+  private ControlAdapter catResizeAdapter;
   private Menu menuCategory;
   private MenuItem menuItemChangeDir = null;
 
@@ -342,18 +343,35 @@ public class MyTorrentsView
       getComposite().layout();
 
       // layout hack - relayout
-      final int labelWidth = getComposite().getChildren()[0].getSize().x;
-      int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
-      GridData tmpData = (GridData)cCategories.getLayoutData();
-      if(totalWidth > delta) {
-          tmpData.widthHint = delta;
+      if(catResizeAdapter != null) {
+          MainWindow.getWindow().getShell().removeControlListener(catResizeAdapter);
       }
-      else {
-          tmpData.widthHint = totalWidth;
-      }
-      cCategories.setLayoutData(tmpData);
-      cCategories.layout();
-      getComposite().layout();
+
+      final Integer totalWidthBox = new Integer(totalWidth);
+      catResizeAdapter = new ControlAdapter() {
+          public void controlResized(ControlEvent event) {
+              final Shell shell = MainWindow.getWindow().getShell();
+              if(shell.isDisposed() || !shell.isVisible())
+                  return;
+
+              final int totalWidth = totalWidthBox.intValue();
+              final int labelWidth = getComposite().getChildren()[0].getSize().x;
+              int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
+              GridData tmpData = (GridData)cCategories.getLayoutData();
+              if(totalWidth > delta) {
+                  tmpData.widthHint = delta;
+              }
+              else {
+                  tmpData.widthHint = totalWidth;
+              }
+              cCategories.setLayoutData(tmpData);
+              cCategories.layout();
+              getComposite().layout();
+          }
+      };
+
+      catResizeAdapter.controlMoved(null);
+      MainWindow.getWindow().getShell().addControlListener(catResizeAdapter);
     }
   }
 
