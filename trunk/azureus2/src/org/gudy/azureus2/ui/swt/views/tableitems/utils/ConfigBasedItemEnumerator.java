@@ -60,8 +60,8 @@ public class ConfigBasedItemEnumerator extends ItemEnumerator {
       int type = st.nextToken().equals("I") ? ItemDescriptor.TYPE_INT : ItemDescriptor.TYPE_STRING;
       int dWidth = Integer.parseInt(st.nextToken());
       int dPosition = Integer.parseInt(st.nextToken());
-      int width = COConfigurationManager.getIntParameter("Table." + tableName + "." + itemName + ".width",dWidth);
-      int position = COConfigurationManager.getIntParameter("Table." + tableName + "." + itemName + ".position",dPosition);
+      int width = COConfigurationManager.getIntParameter("Table.".concat(tableName).concat(".").concat(itemName).concat(".width"),dWidth);
+      int position = COConfigurationManager.getIntParameter("Table.".concat(tableName).concat(".").concat(itemName).concat(".position"),dPosition);
       items[i] = new ItemDescriptor(itemName,align,type,position,width);
     }
     return new ConfigBasedItemEnumerator(tableName,items);
@@ -72,7 +72,7 @@ public class ConfigBasedItemEnumerator extends ItemEnumerator {
     for(int i = 0 ; i < items.length ; i++) {
       String name = items[i].getName();
       int position = items[i].getPosition();
-      COConfigurationManager.setParameter("Table." + tableName + "." + name + ".position",position);
+      COConfigurationManager.setParameter("Table.".concat(tableName).concat(".").concat(name).concat(".position"),position);
     }
   }
 

@@ -256,12 +256,12 @@ public class EnumeratorEditor {
     else
       item = new TableItem (table, SWT.NONE,index);
     
-    item.setText(1,MessageText.getString(propertiesName + "." + name));
+    item.setText(1,MessageText.getString(propertiesName).concat(".").concat(name));
     item.setData("name",name);
     TableEditor editor = new TableEditor (table);
     Button button = new Button (table, SWT.CHECK);
     button.setSelection(selected);
-    //button.setText(MessageText.getString(propertiesName + "." + name));
+    //button.setText(MessageText.getString(propertiesName).concat(".").concat(name));
     button.pack ();
     editor.minimumWidth = button.getSize ().x;    
     editor.horizontalAlignment = SWT.CENTER;

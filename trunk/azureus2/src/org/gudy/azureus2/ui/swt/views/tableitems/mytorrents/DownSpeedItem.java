@@ -39,7 +39,7 @@ public class DownSpeedItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getDownloadAverage()));
+    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getDownloadAverage()));
   }
 
 }

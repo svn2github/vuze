@@ -39,7 +39,7 @@ public class ETAItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + DisplayFormatters.formatETA(torrentRow.getManager().getStats().getETA()));
+    setText(DisplayFormatters.formatETA(torrentRow.getManager().getStats().getETA()));
   }
 
 }

@@ -39,7 +39,7 @@ public class DownItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getDownloaded()));
+    setText(DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getDownloaded()));
   }
 
 }

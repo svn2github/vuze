@@ -87,7 +87,7 @@ public class ManagerUtils {
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
+        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message").concat("\n").concat(e.toString()));
         mb.open();
       }
     }
@@ -103,7 +103,7 @@ public class ManagerUtils {
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
+        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message").concat("\n").concat(e.toString()));
         mb.open();
       }
     }
