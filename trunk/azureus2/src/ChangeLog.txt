@@ -6,7 +6,7 @@ AZUREUS CHANGELOG
 FEATURE: UI   | Option to disable small fonts under OSX [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
-
+BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
 
 
 
