@@ -253,7 +253,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
         new BooleanParameter(gMainTab, "Tracker Port Enable", true, 
                              "ConfigView.section.tracker.port");
 
-    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT );
+    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT, false );
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -276,7 +276,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
                              "ConfigView.section.tracker.sslport");
 
     IntParameter tracker_port_ssl = 
-        new IntParameter(gMainTab, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL);
+        new IntParameter(gMainTab, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL, false);
     gridData = new GridData();
     gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );
