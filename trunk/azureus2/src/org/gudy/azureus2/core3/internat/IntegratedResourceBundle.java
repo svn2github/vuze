@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.ListResourceBundle;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Vector;
 
 /**
  * @author Rene Leonhardt
