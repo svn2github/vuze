@@ -9,10 +9,12 @@ FEATURE: Move files to a directory upon completion [Nolar]
 FEATURE: Slowly establish new connections to peers (for those with internet disconnection issues) [Nolar]
 FEATURE: Re-check file(s) integrity after completion [Nolar]
 FEATURE: Bind to local IP address [Nolar]
+FEATURE: Export/import torrent data to/from XML file [Parg]
 
 CHANGE: Some GUI Changes, so that SWT WinXP theme is better supported [Gudy]
 CHANGE: Saving of torrent files to central dir now optional [Nolar]
 CHANGE: Checking after crash now remembers Fast Resume data [Nolar]
+CHANGE: Internal refactorization of core classes [Parg]
 
 BUGFIX: Fixed snub/unsnub multiple peers on the peers list [Gudy]
 BUGFIX: Save file dialog now opens as a 'save' dialog, and not 'open' (for OSX) [Gudy]
