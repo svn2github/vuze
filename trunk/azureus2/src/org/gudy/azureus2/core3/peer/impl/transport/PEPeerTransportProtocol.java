@@ -1192,7 +1192,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		}
       else return PEPeerControl.NO_SLEEP;
   	}
-  	catch (Exception e) {
+  	catch (Throwable e) {
   		Debug.printStackTrace( e );
   		closeAll(toString() + " : Exception in process : " + e,true, false);
       return PEPeerControl.NO_SLEEP;
@@ -1981,11 +1981,16 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	}
   
   public void doKeepAliveCheck() {
-    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
-    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
-      sendKeepAlive();
-      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
-    }
+  	try{
+	    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
+	    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
+	      sendKeepAlive();
+	      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
+	    }
+  	}catch( Throwable e ){
+  		
+  		Debug.printStackTrace(e);
+  	}
   }
   
 }

@@ -53,7 +53,7 @@ PEPeerControlImpl
   
   private boolean _bContinue;    
   
-  private volatile ArrayList peer_transports_cow;	// Copy on write!
+  private volatile ArrayList peer_transports_cow = new ArrayList();	// Copy on write!
   
   private AEMonitor	peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
   
@@ -256,7 +256,10 @@ PEPeerControlImpl
     }.start();
   }
 
-  private class PeerUpdater extends AEThread {
+  private class 
+  PeerUpdater 
+  extends AEThread 
+  {
     private boolean bContinue = true;
 
     public PeerUpdater() {
@@ -269,19 +272,32 @@ PEPeerControlImpl
         
         long start_time = SystemTime.getCurrentTime();
         
-        List	peer_transports = peer_transports_cow;
-               	
-          for (int i=0; i < peer_transports.size(); i++) {
-            PEPeerTransport ps = (PEPeerTransport) peer_transports.get(i);
-
-            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
-              ps.setReadSleepTime( ps.processRead() );
-              if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
-              
-              ps.doKeepAliveCheck();
-            }
+        	// here we unfortunately must process the transports under the monitor
+        	// as if the transport has been closed it'll occassionally fail due
+        	// to invocations been made on a cleared down transport
+        
+        try{
+        	peer_transports_mon.enter();
+                       	
+	          for (int i=0; i < peer_transports_cow.size(); i++) {
+	            PEPeerTransport ps = (PEPeerTransport) peer_transports_cow.get(i);
+	
+	            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
+	              ps.setReadSleepTime( ps.processRead() );
+	              if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
+	              
+	              ps.doKeepAliveCheck();
+	            }
+	          }
+        }catch( Throwable e ){
+        	
+        	Debug.printStackTrace( e );
+	      
+        }finally{
+	          	
+	        peer_transports_mon.exit();
             
-          }
+        }
          
         long loop_time = SystemTime.getCurrentTime() - start_time;
         
@@ -356,9 +372,8 @@ PEPeerControlImpl
         	
         	Thread.sleep(timeWait); //sleep
         }
-
-      }
-      catch (Exception e) {
+      }catch (Throwable e) {
+      	
       	Debug.printStackTrace( e );
       }
     }
@@ -382,18 +397,22 @@ PEPeerControlImpl
     _server.clearServerAdapter();
     
     // Close all clients
-    if ( peer_transports_cow != null) {
-      try{
-      	peer_transports_mon.enter();
+    try{
+    	peer_transports_mon.enter();
       
+        	//  Stop itself
+    	
+        _bContinue = false;
+
         while (peer_transports_cow.size() != 0) {
+        	
           removeFromPeerTransports((PEPeerTransport)peer_transports_cow.get(0), "Closing all Connections");
         }
-      }finally{
+    }finally{
       	
       	peer_transports_mon.exit();
-      }
     }
+  
     
     // Stop the peer updater
     peerUpdater.stopIt();
@@ -404,8 +423,6 @@ PEPeerControlImpl
         pieceRemoved(_pieces[i]);
     }
 
-    //  Stop itself
-    _bContinue = false;
 
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
@@ -519,16 +536,7 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
-		try{
-			peer_transports_mon.enter();
-				
-			if ( peer_transports_cow.contains(transport)){//TODO does nothing as peertransport no longer overrides equals()
-				
-				removeFromPeerTransports( transport, "Peer Removed" );			
-			}	
-		}finally{
-			peer_transports_mon.exit();
-		}
+		removeFromPeerTransports( transport, "Peer Removed" );			
 	}
 	
  	private void 
@@ -1976,15 +1984,27 @@ PEPeerControlImpl
     try{
       peer_transports_mon.enter();
     
-      	// copy-on-write semantics
+      if ( !_bContinue ){
+      	
+      	throw( new RuntimeException( "PeerTransport added when manager not running" ));
+      }
       
-      ArrayList	new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
-      
-      new_peer_transports.addAll( peer_transports_cow );
-      
-      new_peer_transports.add( peer );
-      
-     peer_transports_cow	= new_peer_transports;
+      if ( peer_transports_cow.contains( peer )){
+      	
+      	Debug.out( "Transport added twice" );
+      	
+      }else{
+      	
+	      	// copy-on-write semantics
+	      
+	      ArrayList	new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
+	      
+	      new_peer_transports.addAll( peer_transports_cow );
+	      
+	      new_peer_transports.add( peer );
+	      
+	      peer_transports_cow	= new_peer_transports;
+      }
       
     }finally{
     	
@@ -2007,76 +2027,107 @@ PEPeerControlImpl
   	PEPeerTransport		peer,
 	String				reason )
   {
+  	boolean	connection_found = false;
+
   		// copy-on-write semantics
-  		// MONITOR ALREADY HELD BY CALLER
-  	
-  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
-  	
-  	new_peer_transports.remove(peer);
-  	 
-  	peer_transports_cow = new_peer_transports;
-  	
- 	//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
- 	 
- 	 peer.closeAll( reason ,false, false);
- 	 
-  	 for (int i=0;i<peer_transport_listeners.size();i++){
-  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-  	 }
+	try{
+		peer_transports_mon.enter();
+		  	
+		connection_found	= true;
+		
+	  	if ( peer_transports_cow.contains( peer )){
+	 
+		  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
+		  	
+		  	new_peer_transports.remove(peer);
+		  	 
+		  	peer_transports_cow = new_peer_transports;
+	  	
+		  		//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
+	 	 
+		 	peer.closeAll( reason ,false, false);
+	  	}
+	}finally{
+		
+		peer_transports_mon.exit();
+	}
+	
+	if ( connection_found ){
+		
+	  	 for (int i=0;i<peer_transport_listeners.size();i++){
+	  	 	
+	  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+	  	 }
+  	}
   }
   
   
-  public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
-    try{
-    	peer_transports_mon.enter();
+  public void 
+  peerConnectionClosed( 
+  	PEPeerTransport peer, 
+	boolean reconnect ) 
+  {
+  	boolean	connection_found = false;
   
-     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
-      	
-      	new_peer_transports.remove(peer);
-      	 
-      	peer_transports_cow = new_peer_transports;
-      	
+    try{
+    		// may have already been removed
+    	
+     	if ( peer_transports_cow.contains( peer )){
+     		 
+     		connection_found	= true;
+     		
+	    	peer_transports_mon.enter();
+	  
+	     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
+	      	
+	      	new_peer_transports.remove(peer);
+	      	 
+	      	peer_transports_cow = new_peer_transports;
+     	}
     }finally{
     	peer_transports_mon.exit();
     }
     
-    for( int i=0; i < peer_transport_listeners.size(); i++ ){
-      ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-    }
-    
-    String key = peer.getIp() + ":" + peer.getPort();
-    if( reconnect ) {
-      boolean reconnect_allowed = false;
-      try{
-      	reconnect_counts_mon.enter();  //only allow 3 reconnect attempts
-      
-        Integer reconnect_count = (Integer)reconnect_counts.get( key );
-        int count = 0;
-        if( reconnect_count != null )  count = reconnect_count.intValue();
-        if( count < 3 ) {
-          reconnect_counts.put( key, new Integer( count + 1 ) );
-          reconnect_allowed = true;
-        }
-        else { //don't reconnect this time, but allow at some later time if needed
-          LGLogger.log(LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
-          reconnect_counts.remove( key );
-        }
-      }finally{
-      	
-      	reconnect_counts_mon.exit();
-      }
-      
-      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
-    }
-    else { //cleanup any reconnect count
-      try{
-      	reconnect_counts_mon.enter();
-      
-        reconnect_counts.remove( key );
-      }finally{
-      	
-      	reconnect_counts_mon.exit();
-      }
+    if ( connection_found ){
+    	
+	    for( int i=0; i < peer_transport_listeners.size(); i++ ){
+	      ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+	    }
+	    
+	    String key = peer.getIp() + ":" + peer.getPort();
+	    if( reconnect ) {
+	      boolean reconnect_allowed = false;
+	      try{
+	      	reconnect_counts_mon.enter();  //only allow 3 reconnect attempts
+	      
+	        Integer reconnect_count = (Integer)reconnect_counts.get( key );
+	        int count = 0;
+	        if( reconnect_count != null )  count = reconnect_count.intValue();
+	        if( count < 3 ) {
+	          reconnect_counts.put( key, new Integer( count + 1 ) );
+	          reconnect_allowed = true;
+	        }
+	        else { //don't reconnect this time, but allow at some later time if needed
+	          LGLogger.log(LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
+	          reconnect_counts.remove( key );
+	        }
+	      }finally{
+	      	
+	      	reconnect_counts_mon.exit();
+	      }
+	      
+	      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
+	    }
+	    else { //cleanup any reconnect count
+	      try{
+	      	reconnect_counts_mon.enter();
+	      
+	        reconnect_counts.remove( key );
+	      }finally{
+	      	
+	      	reconnect_counts_mon.exit();
+	      }
+	    }
     }
   }
   
