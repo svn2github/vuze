@@ -63,7 +63,7 @@ public class Debug {
       		trace_trace_tail += ",";
       	}
       	
-      	trace_trace_tail += st[i].getClass()+"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+      	trace_trace_tail += st[i].getClassName()+"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
       }
     }
     

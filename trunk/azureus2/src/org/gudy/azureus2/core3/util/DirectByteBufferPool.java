@@ -21,6 +21,9 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class DirectByteBufferPool {
 
+	private static final boolean DEBUG = true;
+	
+	
   private static final DirectByteBufferPool pool = new DirectByteBufferPool();
   
   // There is no point in allocating buffers smaller than 4K,
@@ -38,9 +41,10 @@ public class DirectByteBufferPool {
   private final Object poolsLock = new Object();
   private final Timer compactionTimer;
   private final ReferenceQueue refQueue = new ReferenceQueue();
-  private final Map refMap = new HashMap();
   
-  private final Map refs = new HashMap();
+  private final Map refMap 		= new HashMap();
+  private final Map revRefMap	= new HashMap();	// for debugging
+  private final Map refs 		= new HashMap();
   
   private static final long COMPACTION_CHECK_PERIOD = 5*60*1000; //5 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
@@ -169,13 +173,31 @@ public class DirectByteBufferPool {
         
         //register it for later reclaiming
         DirectByteBuffer dbb = new DirectByteBuffer( buff );
+        
         WeakReference wr = new WeakReference( dbb, refQueue );
+        
         synchronized( refs ) {
+        	
           refs.put( wr, new Boolean( false ));
         }
+        
         dbb.setReference( wr );
-        synchronized( refMap ) {
+        
+        synchronized( refMap ){
+        	
           refMap.put( wr, buff );
+          
+          if ( DEBUG){
+          	
+    		// System.out.println( "buffer allocated = " + buff + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
+
+          	if ( revRefMap.put( new byteBufferWrapper(buff), wr ) != null ){
+          		
+          		Debug.out( "buffer handed out twice!!!!");
+          		
+          		throw( new RuntimeException( "Buffer handed out twice" ));
+          	}
+          }
         }
         
         return dbb;
@@ -338,7 +360,9 @@ public class DirectByteBufferPool {
   }
   
    
-  private void reclaimBuffers() {
+  private void 
+  reclaimBuffers() 
+  {
     Reference ref;
     
     while ( (ref = refQueue.poll()) != null ){
@@ -367,6 +391,16 @@ public class DirectByteBufferPool {
         	
 	        bytesIn += buff.capacity();
 	        
+        	if ( DEBUG ){
+        		
+        		// System.out.println( "buffer returned = " + buff + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
+        		
+        		if ( revRefMap.remove( new byteBufferWrapper(buff)) == null ){
+        			
+        			Debug.out( "Unknown buffer returned!!!!" );
+        		}
+        	}
+        	
 	        if ( returned != null && !returned.booleanValue()){
 	        	
 	        	Debug.out("DirectByteBuffer not returned to pool: size=" +buff.limit());
@@ -396,5 +430,35 @@ public class DirectByteBufferPool {
       	Debug.out( "entry already returned" );
       }
     }
+  }
+  
+  protected class
+  byteBufferWrapper
+  {
+  		// ByteBuffer implements "equals" based on buffer contents!!!!!
+  	
+  	protected ByteBuffer	b;
+  	
+  	protected
+	byteBufferWrapper(
+		ByteBuffer	_b )
+  	{
+  		b		= _b;
+  	}
+  	
+  	public int
+	hashCode()
+  	{
+  			// very poor hashcode :P
+  		
+  		return( b.capacity());
+  	}
+  	
+  	public boolean
+	equals(
+		Object	other )
+  	{
+  		return(((byteBufferWrapper)other).b == b );
+  	}
   }
 }
