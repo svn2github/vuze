@@ -92,7 +92,9 @@ public class LinearAnimator extends Animator{
     final int y = startY + ((endY - startY) * step ) / nbSteps;
     display.asyncExec(new AERunnable() {
       public void runSupport() {
-       shell.getShell().setLocation(x,y);
+        if(shell == null || shell.getShell() == null || shell.getShell().isDisposed())
+          return;
+        shell.getShell().setLocation(x,y);
       }    
     });
   }
