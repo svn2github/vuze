@@ -4,7 +4,7 @@
  * To change the template for this generated file go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-package org.gudy.azureus2.ui.swt.config;
+package org.gudy.azureus2.core3.config;
 
 /**
  * A ParameterListener is called when a configuration parameter changes.

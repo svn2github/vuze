@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewEventDispacher;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewListener;
@@ -101,7 +100,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     createMenu();
     createTable();        
     
-    ConfigurationManager.getInstance().addParameterListener("Graphics Update", this);
+    COConfigurationManager.addParameterListener("Graphics Update", this);
     PeersViewEventDispacher.getInstance().addListener(this);
   }
   
@@ -276,8 +275,8 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     }
     if(table != null && ! table.isDisposed())
       table.dispose();
-    ConfigurationManager.getInstance().removeParameterListener("Graphics Update", this);
-    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
+    COConfigurationManager.removeParameterListener("Graphics Update", this);
+    COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
    }
 
   public String getData() {
@@ -294,7 +293,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
       if (objectToSortableItem.containsKey(created))
         return;
       try {
-        PeerRow item = new PeerRow(this,table, (PEPeer) created);
+        PeerRow item = new PeerRow(this,table, created);
         objectToSortableItem.put(created, item);
       }
       catch (Exception e) {
@@ -350,7 +349,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
 
   /**
    * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");

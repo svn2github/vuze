@@ -33,8 +33,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
+import org.gudy.azureus2.core3.config.ParameterListener;
 
 /**
  * @author Olivier
@@ -63,7 +62,7 @@ public class TableSorter implements ParameterListener {
     this.objectToSortableItem = sortableTable.getObjectToSortableItemMap();
     this.tableItemToObject = sortableTable.getTableItemToObjectMap();
     this.table = sortableTable.getTable();
-    ConfigurationManager.getInstance().addParameterListener("ReOrder Delay", this);
+    COConfigurationManager.addParameterListener("ReOrder Delay", this);
   }
   
   public void reOrder(boolean force) {
@@ -142,7 +141,7 @@ public class TableSorter implements ParameterListener {
       SortableItem sortableItems[] = new SortableItem[objectToSortableItem.size()];
       Iterator iter = objectToSortableItem.keySet().iterator();
       while (iter.hasNext()) {
-        Object dataSource = (Object) iter.next();
+        Object dataSource = iter.next();
         SortableItem item = (SortableItem) objectToSortableItem.get(dataSource);
         int index = item.getIndex();
         if (index == -1)
@@ -151,7 +150,7 @@ public class TableSorter implements ParameterListener {
         long value = item.getIntField(field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          Object dataSourcei = (Object) ordered.get(i);
+          Object dataSourcei = ordered.get(i);
           SortableItem itemi = (SortableItem) objectToSortableItem.get(dataSourcei);
           long valuei = itemi.getIntField(field);
           if (ascending) {
@@ -180,7 +179,7 @@ public class TableSorter implements ParameterListener {
         SortableItem sortableItems[] = new SortableItem[objectToSortableItem.size()];
         Iterator iter = objectToSortableItem.keySet().iterator();
         while (iter.hasNext()) {
-          Object dataSource = (Object) iter.next();
+          Object dataSource = iter.next();
           SortableItem item = (SortableItem) objectToSortableItem.get(dataSource);
           int index = item.getIndex();
           if(index == -1)
@@ -189,7 +188,7 @@ public class TableSorter implements ParameterListener {
           String value = item.getStringField(field);
           int i;
           for (i = 0; i < ordered.size(); i++) {
-            Object dataSourcei = (Object) ordered.get(i);
+            Object dataSourcei = ordered.get(i);
             SortableItem itemi = (SortableItem) objectToSortableItem.get(dataSourcei);
             String valuei = itemi.getStringField(field);
             if (ascending) {
@@ -211,7 +210,7 @@ public class TableSorter implements ParameterListener {
 
   private void sort(SortableItem[] items, List ordered, List selected) {
     for (int i = 0; i < ordered.size(); i++) {
-      Object dataSource = (Object) ordered.get(i);
+      Object dataSource = ordered.get(i);
 
       items[i].setDataSource(dataSource);
 
@@ -231,7 +230,7 @@ public class TableSorter implements ParameterListener {
     Map items = sortableTable.getTableItemToObjectMap();
     List selected = new ArrayList(selection.length);
     for(int i = 0 ; i < selection.length ; i++) {                
-      Object piece = (Object) items.get(selection[i]);
+      Object piece = items.get(selection[i]);
       if(piece != null)
         selected.add(piece);
     }
@@ -247,7 +246,7 @@ public class TableSorter implements ParameterListener {
 
   /**
    * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
     reOrderDelay = COConfigurationManager.getIntParameter("ReOrder Delay");

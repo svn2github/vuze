@@ -131,8 +131,20 @@ COConfigurationManager
 	{
 		ConfigurationManager.getInstance().addListener( listener );
 	}
-	
-	public static void
+
+  public static void
+  addParameterListener(String parameter, ParameterListener listener)
+  {
+    ConfigurationManager.getInstance().addParameterListener(parameter, listener);
+  }
+
+  public static void
+  removeParameterListener(String parameter, ParameterListener listener)
+  {
+    ConfigurationManager.getInstance().removeParameterListener(parameter, listener);
+  }
+
+  public static void
 	removeListener(
 		COConfigurationListener		listener )
 	{

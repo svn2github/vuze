@@ -10,8 +10,7 @@ import java.applet.Applet;
 import java.applet.AudioClip;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
+import org.gudy.azureus2.core3.config.ParameterListener;
 
 /**
  * Contains methods to alert the user of certain events.
@@ -26,7 +25,7 @@ public class UserAlerts implements ParameterListener {
    * 
    */
   private UserAlerts() {
-    ConfigurationManager.getInstance().addParameterListener("Play Download Finished", this);
+    COConfigurationManager.addParameterListener("Play Download Finished", this);
     initialize();
   }
 
@@ -68,7 +67,7 @@ public class UserAlerts implements ParameterListener {
 
   /**
    * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
     if(COConfigurationManager.getBooleanParameter("Play Download Finished", true))

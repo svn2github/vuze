@@ -72,7 +72,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -83,7 +83,6 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.impl.PluginInitializer;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
@@ -170,7 +169,7 @@ public class MainWindow implements GlobalManagerListener {
     public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
       setPriority(Thread.MIN_PRIORITY);
-      ConfigurationManager.getInstance().addParameterListener("GUI Refresh", this);
+      COConfigurationManager.addParameterListener("GUI Refresh", this);
     }
 
     public void run() {
@@ -185,7 +184,7 @@ public class MainWindow implements GlobalManagerListener {
 
     /**
      * @param parameterName the name of the parameter that has changed
-     * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+     * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
      */
     public void parameterChanged(String parameterName) {
       waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
@@ -256,7 +255,7 @@ public class MainWindow implements GlobalManagerListener {
 
     public void stopIt() {
       finished = true;
-      ConfigurationManager.getInstance().removeParameterListener("GUI Refresh", this);
+      COConfigurationManager.removeParameterListener("GUI Refresh", this);
     }
   }
 

@@ -21,7 +21,6 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 /**
  * A singleton used to store configuration into a bencoded file.
