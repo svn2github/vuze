@@ -1740,7 +1740,11 @@ public class MainWindow implements GlobalManagerListener {
   }
   
   public String getSavePath(String fileName,boolean useDefault) {
-    String savePath = COConfigurationManager.getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    String savePath = "";
+    
+    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
+    if (useDefDataDir) savePath = COConfigurationManager.getStringParameter("Default save path", "");
+    
     if (savePath.length() == 0 || ! useDefault) {
       mainWindow.setActive();
       boolean singleFile = false;
