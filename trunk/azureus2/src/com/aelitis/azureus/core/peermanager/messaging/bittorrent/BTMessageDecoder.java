@@ -160,7 +160,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     else { //reading payload
       length_buffer.position( 4 );
       lbuff_read = 4;
-      pbuff_read = payload_buffer.position();
+      pbuff_read = payload_buffer == null ? 0 : payload_buffer.position();
     }
     
     ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
