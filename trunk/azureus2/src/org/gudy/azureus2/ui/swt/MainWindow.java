@@ -1696,14 +1696,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
         URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
         String mirrorHtml = readUrl(mirrorUrl);
-        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"1; URL=";
-        position = mirrorHtml.indexOf("<META HTTP-EQUIV=\"refresh\" content=\"1; URL=");
+        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=";
+        position = mirrorHtml.indexOf(pattern);
+        //System.out.println("position="+position);
         if (position < 0)
           return;
         int end = mirrorHtml.indexOf("\">", position);
         if (end < 0)
           return;
         reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
+        //System.out.println(reqUrl.toString());
       }
 
       if (reqUrl == null)
