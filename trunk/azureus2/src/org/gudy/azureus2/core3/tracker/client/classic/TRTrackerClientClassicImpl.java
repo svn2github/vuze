@@ -1107,6 +1107,10 @@ TRTrackerClientClassicImpl
       }
 
     	request.append("&numwant=" + numwant);
+      
+      //request the tracker to return a peer list without peerIDs, for bandwidth savings
+      //will be the default in next python core release
+      request.append("&no_peer_id=1");
     }
 	
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
@@ -1353,6 +1357,8 @@ TRTrackerClientClassicImpl
 							// work on internally so make an ID up from the ip and port
 							
 							if ( s_peerid == null ){
+                
+                Debug.out(ip + ": tracker did not give peerID in reply");
 								
 								peerId = new byte[20];
 								
