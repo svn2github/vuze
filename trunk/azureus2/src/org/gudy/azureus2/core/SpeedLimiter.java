@@ -120,7 +120,7 @@ public class SpeedLimiter {
       }
     }
     
-    System.out.println(sortedUploadersHighPriority.size() + " : " + sortedUploadersLowPriority.size());
+    //System.out.println(sortedUploadersHighPriority.size() + " : " + sortedUploadersLowPriority.size());
 
     int toBeAllocated = this.limit / 10;
     int peersToBeAllocated = sortedUploadersHighPriority.size();
