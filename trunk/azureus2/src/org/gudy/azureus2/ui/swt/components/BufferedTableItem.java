@@ -38,7 +38,7 @@ public abstract class BufferedTableItem {
   
   private BufferedTableRow row;
   private int position;
-  private boolean bOurFGColor = false;
+  private Color ourFGColor = null;
   
   public BufferedTableItem(BufferedTableRow row,int position) {
     this.row = row;
@@ -71,13 +71,13 @@ public abstract class BufferedTableItem {
       return false;
 
     boolean ok;
-    if (bOurFGColor) {
+    if (ourFGColor != null) {
       Color oldColor = row.getForeground(position);
       ok = row.setForeground(position, color);
       if (ok) {
         if (!color.isDisposed())
           color.dispose();
-        bOurFGColor = false;
+        ourFGColor = null;
       }
     } else {
       ok = row.setForeground(position, color);
@@ -98,12 +98,9 @@ public abstract class BufferedTableItem {
     Color newColor = new Color(row.getItem().getDisplay(), newRGB);
     boolean ok = row.setForeground(position, newColor);
     if (ok) {
-      if (bOurFGColor) {
-        if (!oldColor.isDisposed())
-          oldColor.dispose();
-      } else {
-        bOurFGColor = true;
-      }
+      if (ourFGColor != null && !ourFGColor.isDisposed())
+          ourFGColor.dispose();
+      ourFGColor = newColor;
     } else {
       if (!newColor.isDisposed())
         newColor.dispose();
@@ -133,11 +130,8 @@ public abstract class BufferedTableItem {
   public abstract void refresh();
   
   public void dispose() {
-    if (bOurFGColor && position != -1) {
-      Color oldColor = row.getForeground(position);
-      if (oldColor != null && !oldColor.isDisposed())
-        oldColor.dispose();
-    }
+    if (ourFGColor != null && !ourFGColor.isDisposed())
+      ourFGColor.dispose();
   }
   
   public boolean isShown() {
