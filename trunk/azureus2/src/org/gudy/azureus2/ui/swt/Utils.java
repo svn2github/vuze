@@ -47,6 +47,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
@@ -305,5 +307,18 @@ public class Utils {
     	} // size
   	} // controlResized
   } // class
+
+  public static void alternateTableBackground(Table table) {
+    TableItem[] rows = table.getItems();
+    Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+                       MainWindow.color2ndRow };
+    for (int i = 0; i < rows.length; i++) {
+      Color newColor = colors[i % colors.length];
+      if (!rows[i].getBackground().equals(newColor)) {
+        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
+        rows[i].setBackground(newColor);
+      }
+    }
+  }
 }
 

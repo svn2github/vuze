@@ -155,6 +155,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static Color colorShiftLeft;
   public static Color colorShiftRight;
   public static Color colorError;
+  public static Color color2ndRow;
+  public static Color colorWarning;
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -1255,7 +1257,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
       toBeDisposed = colorShiftRight;
       hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() + 13);
+      hslColor.setHue(hslColor.getHue() + 20);
       colorShiftRight = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
       if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
         toBeDisposed.dispose();
@@ -1263,11 +1265,29 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
       toBeDisposed = colorShiftLeft;
       hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() - 13);
+      hslColor.setHue(hslColor.getHue() - 20);
       colorShiftLeft = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
       if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
         toBeDisposed.dispose();
       }
+
+      hslColor.initHSLbyRGB(tR, tG, tB);
+      int lum = hslColor.getLuminence();
+      if (lum > 127)
+        lum -= 10;
+      else
+        lum += 30; // it's usually harder to see difference in darkness
+      hslColor.setLuminence(lum);
+      color2ndRow = new AllocateColor("2ndRow", 
+                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
+                                      color2ndRow).getColor();
+
+      HSLColor hslBG = new HSLColor();
+      hslBG.initHSLbyRGB(tR, tG, tB);
+      hslColor.initRGBbyHSL(25, 200, lum > 127 ? lum - 128 : lum + 92);
+      colorWarning = new AllocateColor("Warning", 
+                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
+                                      colorWarning).getColor();
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
       e.printStackTrace();
@@ -2225,7 +2245,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
       Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
                                   colorError, grey, black, blue, red, white,
-                                  red_ConsoleView };
+                                  red_ConsoleView, color2ndRow, colorWarning };
       for (int i = 0; i < colorsToDispose.length; i++) {
         if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
           colorsToDispose[i].dispose();
