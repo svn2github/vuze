@@ -126,33 +126,50 @@ Main
 					
 					if ( do_file ){
 						
-						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+						TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
 								new File("c:\\temp\\test.wmf"), 
 								new URL( "http://127.0.0.1:6969/announce" ),
-								1024*10, list );			
+								1024*10 );
 						
+						c.addListener( list );
+						
+						t = c.create();
 					}else{
 		
-						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+						TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
 								new File("c:\\temp\\scans"), 
 								new URL("http://127.0.0.1:6969/announce" ), 
-								1024*256, 
-								list);
+								1024*256 ); 
+								
+						
+						c.addListener( list );
+						
+						t = c.create();
 					}
 				}else{
 					if ( do_file ){
 						
-						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
+						TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 								new File("c:\\temp\\test.wmf"), 
-								new URL( "http://127.0.0.1:6969/announce" ),
-								list );			
+								new URL( "http://127.0.0.1:6969/announce" ));
+								
+						
+						
+						c.addListener( list );
+						
+						t = c.create();
 						
 					}else{
 		
-						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
+						TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 								new File("c:\\temp\\qqq"), 
-								new URL("http://127.0.0.1:6969/announce" ), 
-								list);
+								new URL("http://127.0.0.1:6969/announce" )); 
+								
+						
+						
+						c.addListener( list );
+						
+						t = c.create();
 								
 						t.setCreationDate( 12345L );
 						

@@ -37,6 +37,8 @@ TOTorrentFileHasher
 	
 	protected TOTorrentFileHasherListener	listener;
 		
+	protected boolean						cancelled;
+	
 	protected
 	TOTorrentFileHasher(
 		boolean							_do_other_overall_hashes,
@@ -80,6 +82,12 @@ TOTorrentFileHasher
 			is = new BufferedInputStream(new FileInputStream( _file ), 65536);
 
 			while(true){
+	
+				if ( cancelled ){
+						
+					throw( new TOTorrentException( 	"TOTorrentCreate: operation cancelled",
+													TOTorrentException.RT_CANCELLED ));
+				}
 				
 				int	len = is.read( buffer, buffer_pos, piece_length - buffer_pos );
 				
@@ -229,5 +237,11 @@ TOTorrentFileHasher
 		}
 		
 		return( sha1_digest );
+	}
+	
+	protected void
+	cancel()
+	{
+		cancelled	= true;
 	}
 }

@@ -113,7 +113,9 @@ Test
 
 			raf.close();
 			
-			final TOTorrent	torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( file, new URL("http://dummy/" ));
+			TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( file, new URL("http://dummy/" ));
+			
+			final TOTorrent	torrent = creator.create();
 			
 			File	torrent_file = new File( "C:\\temp\\dmtest.torrent" );
 			

@@ -84,18 +84,29 @@ TOTorrentFactory
 	}
 
 		// construction methods: fixed piece size
-		
-	public static TOTorrent
+
+	public static TOTorrentCreator
 	createFromFileOrDirWithFixedPieceLength(
 		File						file,
 		URL							announce_url )
-		
+	
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, TO_DEFAULT_FIXED_PIECE_SIZE, null ));
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, false, TO_DEFAULT_FIXED_PIECE_SIZE ));
 	}
 	
-	public static TOTorrent
+	public static TOTorrentCreator
+	createFromFileOrDirWithFixedPieceLength(
+		File						file,
+		URL							announce_url,
+		boolean						add_hashes )
+	
+		throws TOTorrentException
+	{
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, add_hashes, TO_DEFAULT_FIXED_PIECE_SIZE ));
+	}	
+	
+	public static TOTorrentCreator
 	createFromFileOrDirWithFixedPieceLength(
 		File						file,
 		URL							announce_url,
@@ -103,115 +114,38 @@ TOTorrentFactory
 		
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, piece_length, null ));
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, false, piece_length ));
 	}
 	
-	
-	public static TOTorrent
-	createFromFileOrDirWithFixedPieceLength(
-		File						file,
-		URL							announce_url,
-		TOTorrentProgressListener	progress_listener )
-		
-		throws TOTorrentException
-	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, TO_DEFAULT_FIXED_PIECE_SIZE, progress_listener ));
-	}	
-
-	public static TOTorrent
+	public static TOTorrentCreator
 	createFromFileOrDirWithFixedPieceLength(
 		File						file,
 		URL							announce_url,
 		boolean						add_hashes,
-		TOTorrentProgressListener	progress_listener )
+		long						piece_length )
 	
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, add_hashes, TO_DEFAULT_FIXED_PIECE_SIZE, progress_listener ));
-	}	
-	
-	public static TOTorrent
-	createFromFileOrDirWithFixedPieceLength(
-		File						file,
-		URL							announce_url,
-		long						piece_length,
-		TOTorrentProgressListener	progress_listener )
-		
-		throws TOTorrentException
-	{
-		return( new TOTorrentCreateImpl( file, announce_url, false, piece_length, progress_listener ));
+		return( TOTorrentCreateImpl.create( file, announce_url, add_hashes, piece_length ));
 	}
 	
-	public static TOTorrent
-	createFromFileOrDirWithFixedPieceLength(
-		File						file,
-		URL							announce_url,
-		boolean						add_hashes,
-		long						piece_length,
-		TOTorrentProgressListener	progress_listener )
-	
-	throws TOTorrentException
-	{
-		return( new TOTorrentCreateImpl( file, announce_url, add_hashes, piece_length, progress_listener ));
-	}
-	
-	// construction methods: variable piece size
+		// construction methods: variable piece size	
 
-	public static TOTorrent
+	public static TOTorrentCreator
 	createFromFileOrDirWithComputedPieceLength(
 		File						file,
 		URL							announce_url )
-			
+	
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithComputedPieceLength( 
-					file, 
-					announce_url,
-					TO_DEFAULT_VARIABLE_PIECE_SIZE_MIN, 
-					TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX,
-					TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER,
-					TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER,
-					null ));
+		return( createFromFileOrDirWithComputedPieceLength( file, announce_url, false ));
 	}
-		
-	public static TOTorrent
+	
+	public static TOTorrentCreator
 	createFromFileOrDirWithComputedPieceLength(
 		File						file,
 		URL							announce_url,
-		long						piece_min_size,
-		long						piece_max_size,
-		long						piece_num_lower,
-		long						piece_num_upper )
-			
-		throws TOTorrentException
-	{
-		return( createFromFileOrDirWithComputedPieceLength( 
-					file, announce_url, piece_min_size, piece_max_size,
-					piece_num_lower, piece_num_upper, null ));
-	}
-		
-		
-	public static TOTorrent
-	createFromFileOrDirWithComputedPieceLength(
-		File						file,
-		URL							announce_url,
-		TOTorrentProgressListener	progress_listener )
-			
-		throws TOTorrentException
-	{
-		return( createFromFileOrDirWithComputedPieceLength( 
-					file, 
-					announce_url,
-					false,
-					progress_listener ));	
-	}	
-
-	public static TOTorrent
-	createFromFileOrDirWithComputedPieceLength(
-		File						file,
-		URL							announce_url,
-		boolean						add_hashes,
-		TOTorrentProgressListener	progress_listener )
+		boolean						add_hashes )
 	
 		throws TOTorrentException
 	{
@@ -222,29 +156,28 @@ TOTorrentFactory
 					TO_DEFAULT_VARIABLE_PIECE_SIZE_MIN, 
 					TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX,
 					TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER,
-					TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER,
-					progress_listener ));	
+					TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER ));
+					
 	}	
 	
-	public static TOTorrent
+	public static TOTorrentCreator
 	createFromFileOrDirWithComputedPieceLength(
 		File						file,
 		URL							announce_url,
 		long						piece_min_size,
 		long						piece_max_size,
 		long						piece_num_lower,
-		long						piece_num_upper,
-		TOTorrentProgressListener	progress_listener )
+		long						piece_num_upper )
 			
 		throws TOTorrentException
 	{
-		return( new TOTorrentCreateImpl(
+		return( createFromFileOrDirWithComputedPieceLength(
 						file, announce_url, false, piece_min_size, piece_max_size,
-						piece_num_lower, piece_num_upper, progress_listener ));
+						piece_num_lower, piece_num_upper ));
 
 	}
 	
-	public static TOTorrent
+	public static TOTorrentCreator
 	createFromFileOrDirWithComputedPieceLength(
 		File						file,
 		URL							announce_url,
@@ -252,14 +185,13 @@ TOTorrentFactory
 		long						piece_min_size,
 		long						piece_max_size,
 		long						piece_num_lower,
-		long						piece_num_upper,
-		TOTorrentProgressListener	progress_listener )
+		long						piece_num_upper )
 	
-	throws TOTorrentException
+		throws TOTorrentException
 	{
-		return( new TOTorrentCreateImpl(
-				file, announce_url, add_hashes, piece_min_size, piece_max_size,
-				piece_num_lower, piece_num_upper, progress_listener ));
+		return( TOTorrentCreateImpl.create(
+					file, announce_url, add_hashes, piece_min_size, piece_max_size,
+					piece_num_lower, piece_num_upper ));
 
 	}
 	

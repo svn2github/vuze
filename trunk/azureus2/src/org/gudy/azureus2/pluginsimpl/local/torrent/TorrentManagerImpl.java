@@ -152,9 +152,11 @@ TorrentManagerImpl
 		throws TorrentException
 	{
 		try{
-			TOTorrent t =  TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, include_other_hashes, this );
+			TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, include_other_hashes);
 			
-			return( new TorrentImpl(t));
+			c.addListener( this );
+			
+			return( new TorrentImpl(c.create()));
 			
 		}catch( TOTorrentException e ){
 			

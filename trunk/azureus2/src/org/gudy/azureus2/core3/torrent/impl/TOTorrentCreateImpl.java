@@ -35,6 +35,9 @@ TOTorrentCreateImpl
 	extends		TOTorrentImpl
 	implements	TOTorrentFileHasherListener
 {	
+	protected File							torrent_base;
+	protected long							piece_length;
+	
 	protected TOTorrentFileHasher			file_hasher;
 	
 	protected long	total_file_size		= -1;
@@ -43,31 +46,76 @@ TOTorrentCreateImpl
 	protected long							piece_count;
 	protected boolean						add_other_hashes;
 	
-	protected TOTorrentProgressListener		progress_listener;
+	protected List							progress_listeners = new ArrayList();
 	
 	protected int	reported_progress;
 		
 	protected Map	ignore_map = new HashMap();
 	
-	public
+	protected boolean	cancelled;
+	
+	public static TOTorrentCreator
+	create(
+		File						_torrent_base,
+		URL							_announce_url,
+		boolean						_add_other_hashes,
+		long						_piece_length )
+		
+		throws TOTorrentException
+	{
+		TOTorrentCreateImpl	t = 
+			new TOTorrentCreateImpl(
+					_torrent_base,
+					_announce_url,
+					_add_other_hashes,
+					_piece_length );
+		
+		return( new TOTorrentCreatorImpl( t ));
+	}
+	
+	public static TOTorrentCreator
+	create(	
+		File						_torrent_base,
+		URL							_announce_url,
+		boolean						_add_other_hashes,
+		long						_piece_min_size,
+		long						_piece_max_size,
+		long						_piece_num_lower,
+		long						_piece_num_upper )
+	
+		throws TOTorrentException
+	{
+		TOTorrentCreateImpl	t = 
+			new TOTorrentCreateImpl(
+					_torrent_base,
+					_announce_url,
+					_add_other_hashes,
+					_piece_min_size,
+					_piece_max_size,
+					_piece_num_lower,
+					_piece_num_upper );
+		
+		return( new TOTorrentCreatorImpl( t ));
+	}
+	
+	
+	protected
 	TOTorrentCreateImpl(
 		File						_torrent_base,
 		URL							_announce_url,
 		boolean						_add_other_hashes,
-		long						_piece_length,
-		TOTorrentProgressListener	_progress_listener )
+		long						_piece_length )
 		
 		throws TOTorrentException
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
-				
+			
+		torrent_base		= _torrent_base;
+		piece_length		= _piece_length;
 		add_other_hashes	= _add_other_hashes;
-		progress_listener 	= _progress_listener;
-		
-		constructFixed( _torrent_base, _piece_length );
 	}
 	
-	public
+	protected
 	TOTorrentCreateImpl(	
 		File						_torrent_base,
 		URL							_announce_url,
@@ -75,21 +123,26 @@ TOTorrentCreateImpl
 		long						_piece_min_size,
 		long						_piece_max_size,
 		long						_piece_num_lower,
-		long						_piece_num_upper,
-		TOTorrentProgressListener	_progress_listener )
+		long						_piece_num_upper )
 		
 		throws TOTorrentException
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 		
+		torrent_base		= _torrent_base;
 		add_other_hashes	= _add_other_hashes;
-		progress_listener 	= _progress_listener;
 		
 		long	total_size = calculateTotalFileSize( _torrent_base );
 		
-		long	piece_length = getComputedPieceSize( total_size, _piece_min_size, _piece_max_size, _piece_num_lower, _piece_num_upper );
-		
-		constructFixed( _torrent_base, piece_length );
+		piece_length = getComputedPieceSize( total_size, _piece_min_size, _piece_max_size, _piece_num_lower, _piece_num_upper );
+	}
+	
+	protected void
+	create()
+	
+		throws TOTorrentException
+	{
+		constructFixed( torrent_base, piece_length );
 	}
 	
 	protected void
@@ -121,26 +174,32 @@ TOTorrentCreateImpl
 
 		boolean add_other_per_file_hashes 	= add_other_hashes&&!getSimpleTorrent();
 		
-		TOTorrentFileHasher	hasher = 
+		file_hasher = 
 			new TOTorrentFileHasher(
 					add_other_hashes,
 					add_other_per_file_hashes,
 					(int)_piece_length, 
-					progress_listener==null?null:this );
+					progress_listeners.size()==0?null:this );
+		
+		if ( cancelled ){
+			
+			throw( new TOTorrentException( 	"TOTorrentCreate: operation cancelled",
+											TOTorrentException.RT_CANCELLED ));
+		}
 		
 		if ( getSimpleTorrent()){
 							
-			long length = hasher.add( _torrent_base );
+			long length = file_hasher.add( _torrent_base );
 		
 			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, length, new byte[][]{ getName()})});
 			
-			setPieces( hasher.getPieces());
+			setPieces( file_hasher.getPieces());
 
 		}else{
 		
 			Vector	encoded = new Vector();
 		
-			processDir( hasher, _torrent_base, encoded, "" );
+			processDir( file_hasher, _torrent_base, encoded, "" );
 		
 			TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
 		
@@ -149,12 +208,12 @@ TOTorrentCreateImpl
 			setFiles( files );
 		}
 										 
-		setPieces( hasher.getPieces());
+		setPieces( file_hasher.getPieces());
 		
 		if ( add_other_hashes ){
 			
-			byte[]	sha1_digest = hasher.getSHA1Digest();
-			byte[]	ed2k_digest = hasher.getED2KDigest();
+			byte[]	sha1_digest = file_hasher.getSHA1Digest();
+			byte[]	ed2k_digest = file_hasher.getED2KDigest();
 			
 			addAdditionalInfoProperty( "sha1", sha1_digest );
 			addAdditionalInfoProperty( "ed2k", ed2k_digest );
@@ -241,7 +300,7 @@ TOTorrentCreateImpl
 	pieceHashed(
 		int		piece_number )
 	{
-		if ( progress_listener != null ){
+		for (int i=0;i<progress_listeners.size();i++){
 		
 			int	this_progress = (int)((piece_number*100)/piece_count );
 			
@@ -249,7 +308,7 @@ TOTorrentCreateImpl
 				
 				reported_progress = this_progress;
 				
-				progress_listener.reportProgress( reported_progress );
+				((TOTorrentProgressListener)progress_listeners.get(i)).reportProgress( reported_progress );
 			}
 		}
 	}
@@ -364,7 +423,7 @@ TOTorrentCreateImpl
 		String	resource_key,
 		long	bytes )
 	{
-		if ( progress_listener != null ){
+		if ( progress_listeners.size() > 0 ){
 			
 			report( resource_key, DisplayFormatters.formatByteCountToKiBEtc( bytes ));
 		}
@@ -375,11 +434,14 @@ TOTorrentCreateImpl
 		String	resource_key,
 		String	additional_text )
 	{
-		if ( progress_listener != null ){
+		if ( progress_listeners.size() > 0 ){
 			
 			String	prefix = MessageText.getString(resource_key);
 			
-			progress_listener.reportCurrentTask( prefix + (additional_text==null?"":additional_text ));		
+			for (int i=0;i<progress_listeners.size();i++){
+				
+				((TOTorrentProgressListener)progress_listeners.get(i)).reportCurrentTask( prefix + (additional_text==null?"":additional_text ));
+			}
 		}
 	}
 	
@@ -525,5 +587,30 @@ TOTorrentCreateImpl
 		}
 		
 		return( false );
+	}
+	
+	protected void
+	cancel()
+	{
+		cancelled	= true;
+		
+		if ( file_hasher != null ){
+			
+			file_hasher.cancel();
+		}
+	}
+	
+	protected void
+	addListener(
+		TOTorrentProgressListener	listener )
+	{
+		progress_listeners.add( listener );
+	}
+	
+	protected void
+	removeListener(
+		TOTorrentProgressListener	listener )
+	{
+		progress_listeners.remove( listener );
 	}
 }

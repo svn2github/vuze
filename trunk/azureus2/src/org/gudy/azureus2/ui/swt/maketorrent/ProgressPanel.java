@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -127,12 +128,22 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       if ( _wizard.getPieceSizeComputed()){
       	
-      	torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
-      					f, url, _wizard.getAddHashes(), this);
+      	TOTorrentCreator c = 
+      		TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
+      					f, url, _wizard.getAddHashes());
+      	
+      	c.addListener( this );
+      	
+      	torrent = c.create();
       	
       }else{
-      	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
-      					f, url, _wizard.getAddHashes(), _wizard.getPieceSizeManual(), this);
+      	TOTorrentCreator c = 
+      		TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
+      					f, url, _wizard.getAddHashes(), _wizard.getPieceSizeManual());
+      	
+    	c.addListener( this );
+      	
+      	torrent = c.create();
       }
       
       torrent.setComment(_wizard.getComment());

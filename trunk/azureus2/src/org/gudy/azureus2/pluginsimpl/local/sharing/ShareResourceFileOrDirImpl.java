@@ -149,11 +149,14 @@ ShareResourceFileOrDirImpl
 		try{
 			manager.reportCurrentTask( (item==null?"Creating":"Re-creating").concat(" torrent for '").concat(file.toString()).concat("'" ));
 			
-			TOTorrent	to_torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
+			TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 										file,
 										manager.getAnnounceURL(),
-										manager.getAddHashes(),
-										manager );
+										manager.getAddHashes());
+										
+			creator.addListener( manager );
+			
+			TOTorrent	to_torrent = creator.create();
 	
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( to_torrent );
 			

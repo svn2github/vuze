@@ -222,8 +222,13 @@ TorrentUtils
 			errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
 					
 		}else if ( reason == TOTorrentException.RT_HASH_FAILS ){
-	
+			
 			errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
+					
+		}else if ( reason == TOTorrentException.RT_CANCELLED ){
+			
+			errorDetail = MessageText.getString("DownloadManager.error.operationcancancelled");
+			
 		}else{
 	 	     
 			errorDetail = e.getMessage();
