@@ -462,7 +462,7 @@ public class StartStopRulesDefaultPlugin
           });
         }
       } catch (Throwable t) { t.printStackTrace(); }
-    } else {
+    } else if (debugMenuItem != null && seedingRankColumn != null) {
       ((TableColumnCore)seedingRankColumn).removeContextMenuItem(debugMenuItem);
       debugMenuItem = null;
     }
