@@ -66,13 +66,12 @@ public class OutgoingBTHaveMessageAggregator {
    */
   public void queueHaveMessage( int piece_number, boolean force ) {
     synchronized( pending_haves ) {
-      BTHave msg = new BTHave( piece_number );
-      pending_haves.add( msg );
+      pending_haves.add( new Integer( piece_number ) );
       if( force ) {
         sendPendingHaves();
       }
       else {
-        int pending_bytes = pending_haves.size() * msg.getTotalMessageByteSize();
+        int pending_bytes = pending_haves.size() * 9;
         if( pending_bytes >= NetworkManager.getSingleton().getTcpMssSize() ) {
           System.out.println("enough pending haves for a full packet!");
           //there's enough pending bytes to fill a packet payload
@@ -88,10 +87,6 @@ public class OutgoingBTHaveMessageAggregator {
    */
   public void destroy() {
     synchronized( pending_haves ) {
-      for( int i=0; i < pending_haves.size(); i++ ) {
-        BTHave msg = (BTHave)pending_haves.get( i );
-        msg.destroy();
-      }
       pending_haves.clear();
     }
   }
@@ -108,8 +103,8 @@ public class OutgoingBTHaveMessageAggregator {
   private void sendPendingHaves() {    
     synchronized( pending_haves ) {
       for( int i=0; i < pending_haves.size(); i++ ) {
-        BTHave msg = (BTHave)pending_haves.get( i ); 
-        outgoing_message_q.addMessage( msg );
+        Integer piece_num = (Integer)pending_haves.get( i ); 
+        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ) );
       }
       pending_haves.clear();
     }
