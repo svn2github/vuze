@@ -155,14 +155,7 @@ PluginInterfaceImpl
 
   public void addView(PluginView view)
   {
-  	try{
-	    MainWindow window = MainWindow.getWindow();
-	    if(window != null) {
-	      window.getMenu().addPluginView(view);
-	    }
-  	}catch( Throwable e ){
-  		// SWT not available prolly
-  	}
+    getUIManager().getSWTManager().addView(view);
   } 
   
   public void addConfigSection(ConfigSection section)

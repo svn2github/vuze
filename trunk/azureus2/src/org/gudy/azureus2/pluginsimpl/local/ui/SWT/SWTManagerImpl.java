@@ -20,7 +20,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 public class SWTManagerImpl
@@ -42,4 +44,28 @@ public class SWTManagerImpl
     return new GraphicSWTImpl(img);
   }
   
+
+  public void addView(final PluginView view, boolean bAutoOpen)
+  {
+  	try{
+	    final MainWindow window = MainWindow.getWindow();
+	    if(window != null) {
+	      window.getMenu().addPluginView(view);
+	      if (bAutoOpen) {
+          window.getDisplay().asyncExec(new Runnable() {
+            public void run() {
+    	        window.openPluginView(view);
+            }
+          });
+	      }
+	    }
+  	}catch( Throwable e ){
+  		// SWT not available prolly
+  	}
+  } 
+
+  public void addView(PluginView view)
+  {
+    addView(view, false);
+  } 
 }
