@@ -391,24 +391,21 @@ CoreUpdateChecker
 		String				version,
 		InputStream			data )
 	{
-		/*
 		try{
-			String	temp_dll_name 	= PlatformManagerImpl.DLL_NAME + "_" + version + ".dll";
-			String	target_dll_name	= PlatformManagerImpl.DLL_NAME + ".dll";
-			
+			String	temp_jar_name 	= "Azureus2_" + version + ".jar";
+			String	target_jar_name	= "Azureus2.jar";
 			
 			UpdateInstaller	installer = checker.createInstaller();
 			
-			installer.addResource( temp_dll_name, data );
+			installer.addResource( temp_jar_name, data );
 			
 			installer.addMoveAction( 
-					temp_dll_name,
-					installer.getInstallDir() + File.separator + target_dll_name );
+					temp_jar_name,
+					installer.getInstallDir() + File.separator + target_jar_name );
 			
 		}catch( Throwable e ){
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
-		*/
 	}
 }
