@@ -118,12 +118,13 @@ public class UpdateSWTWindow implements GeneralListener{
     btnCancel.setLayoutData(gridData);
     btnCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        mainUpdater.cancel();
+        if(mainUpdater != null)
+          mainUpdater.cancel();
         shell.dispose();
       }
     });
         
-    shell.setSize(300,200);
+    shell.setSize(500,300);
     shell.layout();
     Utils.centreWindow(shell);
     
