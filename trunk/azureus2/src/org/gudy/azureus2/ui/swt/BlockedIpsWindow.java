@@ -128,7 +128,10 @@ public class BlockedIpsWindow {
     StringBuffer sb = new StringBuffer();
     BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
     String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
-    String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");    
+    String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");   
+    String bannedMessage = MessageText.getString( "ConfigView.section.ipfilter.list.banned" );
+    String badDataMessage = MessageText.getString( "ConfigView.section.ipfilter.list.baddata" );
+    
     for(int i=0;i<blocked.length;i++){
       BlockedIp bIp = blocked[i];
       sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
@@ -156,15 +159,25 @@ public class BlockedIpsWindow {
         sb.append(DisplayFormatters.formatTimeStamp(bIp.getBanningTime()));
         sb.append("\t[");
         sb.append( bIp.getTorrentName() );
-        sb.append("] Banned due to sending bad data\n");
-        sb.append(bIp.getIp());
+        sb.append("] \t" );
+        sb.append( bIp.getIp());
+        sb.append( " " );
+        sb.append( bannedMessage );
+        sb.append( "\n");
     }
     
     BadIp[]	bad_ips = BadIps.getInstance().getBadIps();
     
     for(int i=0;i<bad_ips.length;i++){
     	BadIp bIp = bad_ips[i];
-        sb.append(bIp.getIp() + " has sent bad data " + bIp.getNumberOfWarnings() + " times\n" );
+        sb.append(DisplayFormatters.formatTimeStamp(bIp.getLastTime()));
+        sb.append( "\t" );
+        sb.append( bIp.getIp());
+        sb.append( " " );
+        sb.append( badDataMessage );
+        sb.append( " " );
+        sb.append( bIp.getNumberOfWarnings());
+        sb.append( "\n" );
     }
     
     if(mainWindow == null || mainWindow.isDisposed())

@@ -35,4 +35,7 @@ BadIp
 	
 	public int
 	getNumberOfWarnings();
+	
+	public long
+	getLastTime();
 }
