@@ -394,4 +394,19 @@ DisplayFormatters
     
     return( temp.format(new Date(date)));
   }
+
+  public static String
+  formatTime(
+    long    time )
+  {
+    if ( time == 0 ){
+      return( "" );
+    }
+    
+    	// 24 hour clock, no point in including AM/PM
+    
+    SimpleDateFormat temp = new SimpleDateFormat("HH:mm:ss");
+    
+    return( temp.format(new Date(time)));
+  }
 }
