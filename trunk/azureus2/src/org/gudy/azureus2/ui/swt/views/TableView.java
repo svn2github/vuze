@@ -545,11 +545,23 @@ public class TableView
       sorter.reOrder(false);
     }
 
+    final int topIndex = table.getTopIndex();
+    final int bottomIndex = topIndex + (table.getClientArea().height / table.getItemHeight());
+    
     //Refresh all items in table...
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        // Every N GUI updates we refresh graphics
-        row.refresh((loopFactor % graphicsUpdate) == 0);
+        int index = row.getIndex();
+        // If the row is being shown, update it.  Otherwise, just update
+        // the cell being sorted.
+        if (index >= topIndex && index <= bottomIndex) {
+          // Every N GUI updates we refresh graphics
+          row.refresh((loopFactor % graphicsUpdate) == 0);
+        } else {
+          TableCellCore cell = row.getTableCellCore(sorter.getLastField());
+          if (cell != null)
+            cell.refresh();
+        }
       }
     });
 
