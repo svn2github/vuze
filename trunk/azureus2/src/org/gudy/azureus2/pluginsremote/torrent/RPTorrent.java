@@ -28,6 +28,7 @@ import java.net.*;
  *
  */
 
+import java.util.Map;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
@@ -192,6 +193,16 @@ RPTorrent
 		
 		return(null);
 	}	
+	public Map
+	writeToMap()
+	
+		throws TorrentException
+	{
+		notSupported();
+
+		return( null );
+	}
+	
 	public void
 	writeToFile(
 		File		file )

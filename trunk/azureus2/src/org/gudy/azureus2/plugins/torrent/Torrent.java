@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.torrent;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
 
 public interface 
 Torrent
@@ -80,6 +81,11 @@ Torrent
 	
 	public TorrentFile[]
 	getFiles();
+	
+	public Map
+	writeToMap()
+	
+		throws TorrentException;
 	
 	public void
 	writeToFile(

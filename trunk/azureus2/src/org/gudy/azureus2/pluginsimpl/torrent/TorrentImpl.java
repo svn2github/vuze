@@ -28,6 +28,7 @@ import java.net.*;
  *
  */
 
+import java.util.Map;
 import java.io.File;
 
 import org.gudy.azureus2.core3.internat.*;
@@ -196,6 +197,20 @@ TorrentImpl
 		}
 		
 		return( "" );
+	}
+	
+	public Map
+	writeToMap()
+	
+		throws TorrentException
+	{
+		try{
+			return( torrent.serialiseToMap());
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "Torrent::writeToMap: fails", e ));
+		}
 	}
 	
 	public void
