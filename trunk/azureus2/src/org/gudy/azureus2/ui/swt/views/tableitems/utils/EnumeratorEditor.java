@@ -37,7 +37,7 @@ public class EnumeratorEditor {
   
   private boolean mousePressed;
   private TableItem selectedItem;
-  Rectangle oldBounds;
+  Point oldPoint;
   Image oldImage;
   
   /**
@@ -102,8 +102,6 @@ public class EnumeratorEditor {
           createTableRow(-1,items[i].getName(), (items[i].getPosition() != -1));
       }
     }
-    TableItem item  = new TableItem(table,SWT.NULL);
-    item.setText(1,"---");
     //Hack to get a correct width
     table.getColumn(0).setWidth(20);
     table.getColumn(1).setWidth(200);
@@ -114,20 +112,17 @@ public class EnumeratorEditor {
       public void mouseDown(MouseEvent arg0) {
         mousePressed = true;
         selectedItem = table.getItem(new Point(arg0.x,arg0.y));
-        if(selectedItem.getText(1).equals("---")) {
-          selectedItem = null;
-        }
       }
       
       public void mouseUp(MouseEvent e) {
         mousePressed = false;
         //1. Restore old image
-        if(oldBounds != null && oldImage != null) {
+        if(oldPoint != null && oldImage != null) {
           GC gc = new GC(table);
-          gc.drawImage(oldImage,oldBounds.x,oldBounds.y);
+          gc.drawImage(oldImage,oldPoint.x,oldPoint.y);
           oldImage.dispose();
           oldImage = null;
-          oldBounds = null;
+          oldPoint = null;
         }
         Point p = new Point(e.x,e.y);
         TableItem item = table.getItem(p);
@@ -136,6 +131,8 @@ public class EnumeratorEditor {
           int oldIndex = table.indexOf(selectedItem);
           if(index == oldIndex)
             return;
+          if(index > oldIndex)
+            index++;
           String name = (String) selectedItem.getData("name");
           Button oldBtn = (Button)selectedItem.getData("button");
           boolean selected = oldBtn.getSelection();
@@ -157,21 +154,26 @@ public class EnumeratorEditor {
           if(item != null) {
             GC gc = new GC(table);
             Rectangle bounds = item.getBounds(1);
+            int selectedPosition = table.indexOf(selectedItem);
+            int newPosition = table.indexOf(item);
+            
             //1. Restore old image
-            if(oldBounds != null && oldImage != null) {
-              gc.drawImage(oldImage,oldBounds.x,oldBounds.y);
+            if(oldPoint != null && oldImage != null) {
+              gc.drawImage(oldImage,oldPoint.x,oldPoint.y);
               oldImage.dispose();
               oldImage = null;
-              oldBounds = null;
-            }
+              oldPoint = null;
+            }            
+            if(newPosition <= selectedPosition)
+              oldPoint = new Point(bounds.x,bounds.y);
+            else
+              oldPoint = new Point(bounds.x,bounds.y+bounds.height);
             //2. Store the image
             oldImage = new Image(display,bounds.width,2);
-            gc.copyArea(oldImage,bounds.x,bounds.y);
-            oldBounds = bounds;
-            
+            gc.copyArea(oldImage,oldPoint.x,oldPoint.y);            
             //3. Draw a thick line
             gc.setBackground(blue);
-            gc.fillRectangle(bounds.x,bounds.y,bounds.width,2);
+            gc.fillRectangle(oldPoint.x,oldPoint.y,bounds.width,2);
           }
         }
       }
