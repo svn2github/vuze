@@ -586,7 +586,7 @@ PEPeerControlImpl
       	
         currentPiece.setBeingChecked();
         
-       _diskManager.aSyncCheckPiece(i,this);	
+       _diskManager.enqueueCheckRequest(i,this);	
       }
     }
   }
@@ -764,9 +764,7 @@ PEPeerControlImpl
     _finished = temp;
         
     if (_finished) {
-      
-    	System.out.println( "**** finished" );
-    	
+          	
       if(endGameMode) {
 	      try{
 	      	endGameModeChunks_mon.enter();
@@ -810,7 +808,7 @@ PEPeerControlImpl
       //re-check all pieces to make sure they are not corrupt
       if (checkPieces && !looks_like_restart) {
         for(int i=0; i < dm_pieces.length; i++) {
-          _diskManager.aSyncCheckPiece( i, this );
+          _diskManager.enqueueCheckRequest( i, this );
         }
       }
       
@@ -1694,7 +1692,7 @@ PEPeerControlImpl
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data, sender, this );
+      _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this );
       if(endGameMode) {
         //In case we are in endGame mode, remove the piece from the chunk list
         removeFromEndGameModeChunks(pieceNumber,offset);
@@ -1728,7 +1726,7 @@ PEPeerControlImpl
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data, sender, this);
+      _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this);
 
       //cancel any matching outstanding requests
       try{
@@ -1761,11 +1759,11 @@ PEPeerControlImpl
   
 
   public boolean checkBlock(int pieceNumber, int offset, int length) {
-    return _diskManager.checkBlock(pieceNumber, offset, length);
+    return _diskManager.checkBlockConsistency(pieceNumber, offset, length);
   }
 
   public boolean checkBlock(int pieceNumber, int offset, DirectByteBuffer data) {
-    return _diskManager.checkBlock(pieceNumber, offset, data);
+    return _diskManager.checkBlockConsistency(pieceNumber, offset, data);
   }
 
   public int getAvailability(int pieceNumber) {

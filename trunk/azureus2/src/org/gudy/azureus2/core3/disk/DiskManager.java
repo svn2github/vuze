@@ -58,26 +58,24 @@ DiskManager
 		int offset, 
 		int length );
 	
+		/**
+		 * enqueue an async write request
+		 * @param pieceNumber
+		 * @param offset
+		 * @param data
+		 * @param user_data	this will be provided to the listener when called back
+		 * @param listener
+		 */
+	
 	public void 
-	writeBlock(
+	enqueueWriteRequest(
 		int 							pieceNumber, 
 		int 							offset, 
 		DirectByteBuffer 				data,
 		Object 							user_data,
 		DiskManagerWriteRequestListener	listener );
 
-	public boolean 
-	checkBlock(
-		int 				pieceNumber, 
-		int 				offset, 
-		DirectByteBuffer 	data );
 
-	public boolean 
-	checkBlock(
-		int pieceNumber, 
-		int offset, 
-		int length );
-		
 	public DiskManagerReadRequest
 	createReadRequest(
 		int pieceNumber,
@@ -96,23 +94,24 @@ DiskManager
 		DiskManagerReadRequestListener listener );
 
 	public void
+	enqueueCheckRequest(
+		int								pieceNumber,
+		DiskManagerCheckRequestListener	listener );
+  
+	public void
     dumpResumeDataToDisk(
     	boolean savePartialPieces, 
 		boolean invalidate )
 		
 		throws Exception;
 
+	
 	public void
 	computePriorityIndicator();
 	
 	public DiskManagerPiece[] 
 	getPieces();
 
-	public void
-	aSyncCheckPiece(
-		int								pieceNumber,
-		DiskManagerCheckRequestListener	listener );
-  
 	public int 
 	getPieceNumberToDownload(
 		boolean[] 	_piecesRarest );
@@ -149,6 +148,34 @@ DiskManager
 
 	public boolean isChecking();
   
+		/**
+		 * method for checking that the block details are sensible
+		 * @param pieceNumber
+		 * @param offset
+		 * @param data
+		 * @return
+		 */
+	
+	public boolean 
+	checkBlockConsistency(
+		int 				pieceNumber, 
+		int 				offset, 
+		DirectByteBuffer 	data );
+
+		/**
+		 * method for checking that the block details are sensible
+		 * @param pieceNumber
+		 * @param offset
+		 * @param length
+		 * @return
+		 */
+	
+	public boolean 
+	checkBlockConsistency(
+		int pieceNumber, 
+		int offset, 
+		int length );
+		
    
 	public void
 	addListener(

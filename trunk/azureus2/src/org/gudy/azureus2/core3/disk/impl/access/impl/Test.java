@@ -219,7 +219,7 @@ Test
 										
 										DirectByteBuffer b = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, BLOCK_SIZE );
 										
-										dm.writeBlock( piece_number, BLOCK_SIZE*block_number, b, null, null );	
+										dm.enqueueWriteRequest( piece_number, BLOCK_SIZE*block_number, b, null, null );	
 									}
 						
 								}
@@ -879,7 +879,7 @@ Test
 					
 					if ( offset == 0 ){
 						
-						dm.aSyncCheckPiece( pieceNumber, null );
+						dm.enqueueCheckRequest( pieceNumber, null );
 					}
 				}
 			}

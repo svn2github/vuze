@@ -887,7 +887,7 @@ DiskManagerImpl
 	
   
 	public void 
-	aSyncCheckPiece(
+	enqueueCheckRequest(
 		int 							pieceNumber,
 		DiskManagerCheckRequestListener listener ) 
 	{
@@ -909,7 +909,7 @@ DiskManagerImpl
 	}
 	
 	public void 
-	writeBlock(
+	enqueueWriteRequest(
 		int 							pieceNumber, 
 		int 							offset, 
 		DirectByteBuffer 				data,
@@ -920,7 +920,7 @@ DiskManagerImpl
 	}
 	
 	public boolean 
-	checkBlock(
+	checkBlockConsistency(
 		int pieceNumber, 
 		int offset, 
 		DirectByteBuffer data) 
@@ -929,7 +929,7 @@ DiskManagerImpl
 	}
 	
 	public boolean 
-	checkBlock(
+	checkBlockConsistency(
 		int pieceNumber, 
 		int offset, 
 		int length) 
