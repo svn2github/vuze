@@ -1070,6 +1070,13 @@ PEPeerTransportProtocol
 		}
 		//We set it to null
 		writeBuffer = null;
+    //And return in order not to process any other writes this turn
+    //So you may wonder? why no more writes this turn?
+    //I'm asking myself the exact same question, and I've got no answer
+    //But this solves BOTH hash fails and deconnections
+    //Due to invalid packet length sent ....
+    //TODO : Understand why this return is needed here
+    return;
 	  } //So if we haven't written the whole buffer, we simply return...
 	}
 
