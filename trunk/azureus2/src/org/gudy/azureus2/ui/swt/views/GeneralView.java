@@ -839,8 +839,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	      if (xMax < 10 || yMax < 5)
 	        return;
 	
-	      allMin = available[0];
-	      allMax = available[0];
+	      allMin = available.length==0?0:available[0];
+	      allMax = available.length==0?0:available[0];
 	      int nbPieces = available.length;
 	      for (int i = 0; i < nbPieces; i++) {
 	        if (available[i] < allMin)
