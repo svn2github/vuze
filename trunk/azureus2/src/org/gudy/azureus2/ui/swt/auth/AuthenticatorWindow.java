@@ -448,6 +448,11 @@ AuthenticatorWindow
 		protected PasswordAuthentication
 		getAuth()
 		{
+			if ( succeeded ){
+				
+				return( auth );
+			}
+			
 			life--;
 			
 			if ( life >= 0 ){
