@@ -22,7 +22,7 @@ PeerManager
 	implements 	PEPeerManager 
 {
   public static final int BLOCK_SIZE = 16384;
-  private static final int MAX_REQUESTS = 10;
+  private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
 
   private int[] _availability;

@@ -366,7 +366,12 @@ public class GeneralView extends AbstractIView {
     int sr = manager.getShareRatio();
     
     if(sr == -1) _shareRatio = "oo";
-    if(sr >  0) _shareRatio = (sr/1000) + "." + (sr%1000);
+    if(sr >  0){ 
+      String partial = "" + sr%1000;
+      while(partial.length() < 3) partial = "0" + partial;
+      _shareRatio = (sr/1000) + "." + partial;
+    
+    }
     
     setStats(
       manager.getDownloaded(),

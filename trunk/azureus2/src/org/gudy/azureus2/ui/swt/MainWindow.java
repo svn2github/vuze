@@ -1512,17 +1512,11 @@ public class MainWindow implements IComponentListener {
       String singleFileName = ""; //$NON-NLS-1$
 
       try {
-
-		TOTorrent torrent = TOTorrentFactory.deserialiseFromFile(new File(fileName));
-		
-		singleFile = torrent.isSimpleTorrent();
-        
-        if ( singleFile ){
-        	
-        	singleFileName = torrent.getFiles()[0].getPath();
-        }
-     
-      }catch (Exception e) {
+        TOTorrent torrent = TOTorrentFactory.deserialiseFromFile(new File(fileName));
+        singleFile = torrent.isSimpleTorrent();
+        singleFileName = torrent.getName();       
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
 
@@ -1532,7 +1526,6 @@ public class MainWindow implements IComponentListener {
         fDialog.setFileName(singleFileName);
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         savePath = fDialog.open();
-
       }
       else {
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
