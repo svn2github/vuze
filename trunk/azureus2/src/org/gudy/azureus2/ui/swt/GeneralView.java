@@ -64,8 +64,6 @@ public class GeneralView extends AbstractIView {
   Label uploadSpeed;
   Combo maxUploads;
   Label totalSpeed;
-  int maxUploadsValue;
-  Combo maxSpeed;
   Label seeds;
   Label peers;
   Group gInfo;
