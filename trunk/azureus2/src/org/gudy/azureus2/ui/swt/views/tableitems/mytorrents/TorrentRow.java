@@ -72,6 +72,7 @@ public class TorrentRow implements SortableItem {
         items.add(new ETAItem(TorrentRow.this,itemEnumerator.getPositionByName("eta")));
         items.add(new TrackerStatusItem(TorrentRow.this,itemEnumerator.getPositionByName("tracker")));
         items.add(new PriorityItem(TorrentRow.this,itemEnumerator.getPositionByName("priority")));
+        items.add(new ShareRatioItem(TorrentRow.this,itemEnumerator.getPositionByName("shareRatio")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -162,7 +163,10 @@ public class TorrentRow implements SortableItem {
     
     if (field.equals("eta")) //$NON-NLS-1$
       return manager.getStats().getETA();
-  
+    
+    if (field.equals("shareRatio")) //$NON-NLS-1$
+          return manager.getStats().getShareRatio();
+    
     return 0;
   }  
   
