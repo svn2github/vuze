@@ -375,11 +375,7 @@ CacheFileImpl
 							
 						DirectByteBuffer	cache_buffer = 
 								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, actual_read_ahead );
-							
-						cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
-							
-						cache_buffer.limit( DirectByteBuffer.SS_CACHE, actual_read_ahead );
-							
+														
 						boolean	buffer_cached	= false;
 							
 						try{
@@ -522,18 +518,14 @@ CacheFileImpl
 					}
 					
 					DirectByteBuffer	cache_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_WRITE, write_length );
+										
+					cache_buffer.put( DirectByteBuffer.SS_CACHE, file_buffer );
 					
-					cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
-					
-					cache_buffer.limit( DirectByteBuffer.SS_CACHE, write_length );
-					
-					file_buffer.get( DirectByteBuffer.SS_CACHE, cache_buffer );
-					
-					cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
+					cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
 					
 						// make it look like this buffer has been handed over
 					
-					file_buffer		= cache_buffer;
+					file_buffer				= cache_buffer;
 					
 					file_buffer_position	= 0;
 					file_buffer_limit		= write_length;
