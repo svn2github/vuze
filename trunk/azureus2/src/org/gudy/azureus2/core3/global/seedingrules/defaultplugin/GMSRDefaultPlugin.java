@@ -140,7 +140,9 @@ GMSRDefaultPlugin
 				
 					//0 means unlimited
 				
-				if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! download.isStartStopLocked()){
+				// System.out.println( "["+i+"] min = " + minShareRatio + ", share = " + shareRatio + ", may = " + mayStop + ", minSeeds = " + nbMinSeeds + ", scrape = " + sr.getResponseType() + ", sr-seeds = " + sr.getSeedCount());
+				
+				if (minShareRatio != 0 && ( shareRatio == -1 || shareRatio > minShareRatio ) && mayStop && ! download.isStartStopLocked()){
 					
 					try{
 						log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: stop ratio" );

@@ -193,21 +193,18 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		boolean	ready = download_manager.getState() == DownloadManager.STATE_READY;
-		
-		if ( 	ready ||
-				download_manager.getState() == DownloadManager.STATE_STOPPED ){
-			
-			
+		if ( download_manager.getState() == DownloadManager.STATE_READY ){
+						
 			download_manager.startDownload();
-			
-			if ( ready ){
-				
+							
 				//set previous hash fails and discarded values
+				
+			download_manager.getStats().setSavedDiscarded();
+			download_manager.getStats().setSavedHashFails();
 			
-				download_manager.getStats().setSavedDiscarded();
-				download_manager.getStats().setSavedHashFails();
-			}
+		}else if ( download_manager.getState() == DownloadManager.STATE_STOPPED ){
+				
+			download_manager.setState( DownloadManager.STATE_WAITING );
 			
 		}else{
 			
