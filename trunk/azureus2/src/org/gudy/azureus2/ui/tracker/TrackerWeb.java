@@ -145,7 +145,8 @@ TrackerWeb
 		int tracker_page = -1;
 		int tracker_last_page = 1;
 		//Todo: get tracker config tab options to set//enable this.
-		int tracker_skip = 0; // 0 = disabled, range: >0
+		int tracker_skip = 0;
+		//int tracker_skip = COConfigurationManager.getIntParameter("Tracker Skip", 0);; // 0 = disabled, range: >0
 		
 		// parse get parms.
 		if ( params != null ){
