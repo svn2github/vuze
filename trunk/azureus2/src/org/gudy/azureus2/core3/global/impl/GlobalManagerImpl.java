@@ -708,6 +708,7 @@ public class GlobalManagerImpl
   		
   		destroyed = true;
   		
+  		/*
 		Thread t = new Thread("Azureus: destroy checker")
 			{
 				public void
@@ -738,7 +739,8 @@ public class GlobalManagerImpl
 		t.setDaemon(true);
 				
 		t.start();
-
+		*/
+		
   		synchronized( listeners ){
   			
   			for (int i=0;i<listeners.size();i++){

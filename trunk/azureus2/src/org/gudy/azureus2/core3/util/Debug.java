@@ -135,4 +135,21 @@ public class Debug {
 		   }
 	   }.start();
    }
+   
+	public static void
+	dumpSystemProperties()
+	{
+		System.out.println( "System Properties:");
+		
+ 		Properties props = System.getProperties();
+ 		
+ 		Iterator it = props.keySet().iterator();
+ 		
+ 		while(it.hasNext()){
+ 			
+ 			String	name = (String)it.next();
+ 			
+ 			System.out.println( "\t" + name + " = '" + props.get(name) + "'" );
+ 		}
+	}
 }

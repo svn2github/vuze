@@ -1785,8 +1785,20 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       if (handCursor != null && !handCursor.isDisposed())
         handCursor.dispose();
     }
-    if (updateJar)
+    if (updateJar){
+    
       updateJar();
+    }
+    
+    	// problem with closing down web start as AWT threads don't close properly
+    	
+    String	java_ws_prop = System.getProperty("azureus.javaws");
+    
+    if ( java_ws_prop != null && java_ws_prop.equals( "true")){
+    	
+    	System.exit(1);
+    }
+    
     return true;
   }
 
