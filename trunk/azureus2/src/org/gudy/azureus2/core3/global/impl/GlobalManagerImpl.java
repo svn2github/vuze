@@ -379,6 +379,9 @@ public class GlobalManagerImpl
       boolean correct = addDownloadManager(manager);
       if (!correct) {
         fDest.delete();
+        File backupFile = new File(fDest.getAbsolutePath() + ".bak");
+        if(backupFile.exists())
+          backupFile.delete();
       } else if(startStopped) {
         manager.setState(DownloadManager.STATE_STOPPED);
       }
