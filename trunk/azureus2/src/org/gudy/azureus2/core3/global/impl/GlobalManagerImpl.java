@@ -231,7 +231,7 @@ public class GlobalManagerImpl
         
     if (splash != null)
       splash.setCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
-                            MessageText.getString("splash.laodingTorrents"));
+                            MessageText.getString("splash.loadingTorrents"));
     loadDownloads();
     if (splash != null)
       splash.setCurrentTask(MessageText.getString("splash.initializeGM"));
