@@ -206,6 +206,8 @@ PEPeerControlImpl
     
     /* create new outgoing connections slowly */
     slowConnect = COConfigurationManager.getBooleanParameter("Slow Connect");
+    if( Constants.isOSX ) slowConnect = true;
+    
     if (slowConnect) {
        slowQueue = Collections.synchronizedList(new LinkedList());
        slowConnector = new SlowConnector();
@@ -1134,6 +1136,7 @@ PEPeerControlImpl
 
     // Then, in any case if we have too many unchoked pple we need to choke some
     while (nbUnchoke < nonChoking.size()) {
+      System.out.println( "nbUnchoke < nonChoking.size()" );
       PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
       pc.sendChoke();
     }
