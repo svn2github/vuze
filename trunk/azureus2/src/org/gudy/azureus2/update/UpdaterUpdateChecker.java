@@ -27,184 +27,73 @@ package org.gudy.azureus2.update;
  *
  */
 
-import java.io.*;
 import java.util.*;
-import java.net.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
-import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.pluginsimpl.local.update.*;
+	
+import org.gudy.azureus2.plugins.*;
 
 public class 
 UpdaterUpdateChecker
-	implements UpdatableComponent
+	implements Plugin
 {
-	public static final int	RD_SIZE_RETRIES	= 3;
-	public static final int	RD_SIZE_TIMEOUT	= 10000;
-
-	public static final String	UPDATE_DIR					= Constants.SF_WEB_SITE + "update/";
-	public static final String	UPDATE_SF_PROPERTIES_FILE	= UPDATE_DIR + "Updater.jar.properties";
-	
 	public static void
-	registerUpdatableComponent()
+	checkPlugin()
 	{
-	}
-	
-	protected
-	UpdaterUpdateChecker()
-	{		
-		UpdateManagerImpl.getSingleton().registerUpdatableComponent( this, true );
+		try{
+		    File pluginDirectory = FileUtil.getUserFile("plugins");
+
+		    File updater_plugin = new File( pluginDirectory, "azupdater" );
+		    
+		    updater_plugin.mkdirs();
+		    
+		    File	props = new File( updater_plugin, "plugin.properties" );
+		    
+		    if ( props.exists()){
+		    	
+		    	return;
+		    }
+		    
+		    PrintWriter	pw = null;
+		    
+		    try{
+		    	pw = new PrintWriter( new FileWriter( props ));
+		    	
+		    	pw.println( "plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker");
+		    }finally{
+		    	
+		    	if ( pw != null ){
+		    		
+		    		pw.close();
+		    	}
+		    }
+		    
+		    if ( !props.exists()){
+		    	
+		    	throw( new Exception( "Failed to write '" + props.toString() + "'"));
+		    }
+		    
+		}catch( Throwable e ){
+
+			LGLogger.logAlert( "azupdater plugin: initialisation error", e );
+		}
 	}
 	
 	public void
-	checkForUpdate(
-		final UpdateChecker	checker )
+	initialize(
+		PluginInterface		pi )
 	{
-		String	current_version = ""; // !!!!
+		Properties	props = pi.getPluginProperties();
 		
-		LGLogger.log( "UpdaterUpdateChecker:Updater.jar update check starts: current = " + current_dll_version );
+		props.setProperty( "plugin.mandatory", "true" );
 		
-		try{
-			ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+		if ( pi.getPluginVersion() == null ){
 			
-			ResourceDownloader	rd = rdf.create( new URL(UPDATE_PROPERTIES_FILE));
-
-			rd	= rdf.getRetryDownloader( rd, 5 );
-			
-			String  current_az_version 	= Constants.getBaseVersion();
-			boolean current_az_is_cvs	= Constants.isCVSVersion();
-			
-			InputStream is = rd.download();
-			
-			Properties	props = new Properties();
-			
-			props.load( is );
-			
-			String	target_dll_version	= null;
-			
-			Iterator it = props.keySet().iterator();
-			
-				// find the most recent version
-			
-			while( it.hasNext()){
-				
-				String	this_az_version 	= (String)it.next();
-				String	this_dll_version	= (String)props.get(this_az_version);
-				
-				String	this_base 	= Constants.getBaseVersion( this_az_version );
-				boolean	this_cvs	= Constants.isCVSVersion( this_az_version );
-				
-				if ( current_az_is_cvs != this_cvs ){
-					
-					continue;
-				}
-				
-				if ( Constants.compareVersions( this_base, current_az_version ) == 0 ){
-					
-					if ( Constants.compareVersions( this_dll_version, current_dll_version ) > 0 ){
-						
-						target_dll_version	= this_dll_version;
-						
-						break;
-					}
-				}
-			}
-		
-			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
-			
-			if ( target_dll_version != null ){
-				
-				String	target = UPDATE_DIR + PlatformManagerImpl.DLL_NAME + "_" + target_dll_version + ".dll";
-				
-				ResourceDownloader dll_rd = rdf.create( new URL( target ));
-			
-					// get size here so it is cached
-				
-				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
-
-				final String f_target_dll_version	= target_dll_version;
-				
-				dll_rd.addListener( 
-						new ResourceDownloaderListener()
-						{
-							public void
-							reportPercentComplete(
-								ResourceDownloader	downloader,
-								int					percentage )
-							{								
-							}
-							
-							public void
-							reportActivity(
-								ResourceDownloader	downloader,
-								String				activity )
-							{	
-							}
-								
-							public boolean
-							completed(
-								final ResourceDownloader	downloader,
-								InputStream					data )
-							{	
-								installUpdate( checker, downloader, f_target_dll_version, data );
-									
-								return( true );
-							}
-							
-							public void
-							failed(
-								ResourceDownloader			downloader,
-								ResourceDownloaderException e )
-							{
-							}
-							
-						});
-
-				checker.addUpdate(
-						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
-						new String[]{"This DLL supports native operations such as file-associations" },
-						target_dll_version,
-						dll_rd,
-						Update.RESTART_REQUIRED_YES );
-			}
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-			checker.failed();
-			
-		}finally{
-			
-			checker.completed();
+			props.setProperty( "plugin.version", "1.0" );
 		}
-	}
-	
-	protected void
-	installUpdate(
-		UpdateChecker		checker,
-		ResourceDownloader	rd,
-		String				version,
-		InputStream			data )
-	{
-		try{
-			String	temp_dll_name 	= PlatformManagerImpl.DLL_NAME + "_" + version + ".dll";
-			String	target_dll_name	= PlatformManagerImpl.DLL_NAME + ".dll";
-			
-			
-			UpdateInstaller	installer = checker.createInstaller();
-			
-			installer.addResource( temp_dll_name, data );
-			
-			installer.addMoveAction( 
-					temp_dll_name,
-					installer.getInstallDir() + File.separator + target_dll_name );
-			
-		}catch( Throwable e ){
-			
-			rd.reportActivity("Update install failed:" + e.getMessage());
-		}
+		
+		props.setProperty( "plugin.id", "azupdater" );
 	}
 }

@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 
-import org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
@@ -45,6 +44,9 @@ import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
+
+import org.gudy.azureus2.update.UpdaterUpdateChecker;
+
 
 /**
  * @author Olivier
@@ -175,6 +177,8 @@ PluginInitializer
     tracker_host	= TRHostFactory.create();
     
     plugin_manager = PluginManagerImpl.getSingleton( this );
+    
+    UpdaterUpdateChecker.checkPlugin();
   }
   
   public void 

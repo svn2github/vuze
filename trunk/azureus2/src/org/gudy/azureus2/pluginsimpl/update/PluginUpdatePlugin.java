@@ -45,12 +45,13 @@ import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
 PluginUpdatePlugin
-	implements Plugin, UpdatableComponent
+	implements Plugin
 {
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 		
 	protected PluginInterface		plugin_interface;
+	protected SFPluginDetailsLoader	loader;
 	protected LoggerChannel 		log;
 	
 	public void
@@ -93,6 +94,20 @@ PluginUpdatePlugin
 				}
 			});
 		
+		loader = SFPluginDetailsLoaderFactory.getSingleton();
+		
+		loader.addListener( 
+			new SFPluginDetailsLoaderListener()
+			{
+				public void
+				log(
+					String	str )
+				{
+					log.log( LoggerChannel.LT_INFORMATION, "[" + str + "]" );
+					
+				}
+			});
+		
 		PluginView view = ui_manager.createPluginView( model );
 		
 		plugin_interface.addView( view );	
@@ -115,22 +130,45 @@ PluginUpdatePlugin
 				
 			});
 		
-		update_manager.registerUpdatableComponent( this, false );
-	}
+		update_manager.registerUpdatableComponent( 
+			new UpdatableComponent()
+			{
+				public void
+				checkForUpdate(
+					UpdateChecker	checker )
+				{
+					checkForUpdateSupport( checker, false );
+				}
+				
+			}, false );
+		
+		update_manager.registerUpdatableComponent( 
+				new UpdatableComponent()
+				{
+					public void
+					checkForUpdate(
+						UpdateChecker	checker )
+					{
+						checkForUpdateSupport( checker, true );
+					}			
+				}, true );	
+		}
 	
-	public void
-	checkForUpdate(
-		UpdateChecker	checker )
+	protected synchronized void
+	checkForUpdateSupport(
+		UpdateChecker	checker,
+		boolean			mandatory )
 	{
 		try{
-			if ( !plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true )){
+			if ( 	(!mandatory) &&
+					(!plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true ))){
 								
 				return;
 			}
-
+			
 			PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
 			
-			log.log( LoggerChannel.LT_INFORMATION, "Currently loaded plugins:");
+			log.log( LoggerChannel.LT_INFORMATION, "Currently loaded " + (mandatory?"mandatory ":"non-mandatory" ) + " plugins:");
 	
 			List	plugins_to_check 			= new ArrayList();
 			List	plugins_to_check_ids		= new ArrayList();
@@ -140,6 +178,15 @@ PluginUpdatePlugin
 			for (int i=0;i<plugins.length;i++){
 				
 				PluginInterface	pi = plugins[i];
+				
+				String	mand = pi.getPluginProperties().getProperty( "plugin.mandatory");
+				
+				boolean	pi_mandatory = mand != null && mand.trim().toLowerCase().equals("true");
+				
+				if ( pi_mandatory != mandatory ){
+					
+					continue;
+				}
 				
 				String	id 		= pi.getPluginID();
 				String	version = pi.getPluginVersion();
@@ -173,20 +220,6 @@ PluginUpdatePlugin
 				
 				log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
 			}
-		
-			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.getSingleton();
-			
-			loader.addListener( 
-				new SFPluginDetailsLoaderListener()
-				{
-					public void
-					log(
-						String	str )
-					{
-						log.log( LoggerChannel.LT_INFORMATION, "[" + str + "]" );
-						
-					}
-				});
 			
 			String[]	names = loader.getPluginNames();
 			
