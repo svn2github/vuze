@@ -3,9 +3,9 @@
 ;Written by Joost Verburg
 
 
-!define AZ_VERSION "2.1.0.4"        ;Define your own software version here
-!define SWT_VERSION "3062"          ;SWT lib version
-!define AZPLUGINS_VERSION "0.8.6"   ;azplugins plugin version
+!define AZ_VERSION "2.2.0.0"        ;Define your own software version here
+!define SWT_VERSION "3106"          ;SWT lib version
+!define AZPLUGINS_VERSION "0.8.7"   ;azplugins plugin version
 !define AZUPDATER_VERSION "1.5.7"   ;azupdater plugin version
 
 !include "MUI.nsh"
@@ -116,8 +116,8 @@ Section "Azureus Shell Extension" SecExtention
 	WriteRegStr HKCR "BitTorrent" "" "Bittorrent File"
 	WriteRegStr HKCR "BitTorrent\shell" "" "open"
 	WriteRegStr HKCR "BitTorrent\DefaultIcon" "" $INSTDIR\Azureus.exe,1
-  	WriteRegStr HKCR "BitTorrent\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
-  	WriteRegStr HKCR "BitTorrent\Content Type" "" "application/x-bittorrent"
+  WriteRegStr HKCR "BitTorrent\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
+  WriteRegStr HKCR "BitTorrent\Content Type" "" "application/x-bittorrent"
   	
 SectionEnd
 
