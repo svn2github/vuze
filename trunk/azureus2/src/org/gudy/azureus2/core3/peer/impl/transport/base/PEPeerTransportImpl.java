@@ -33,6 +33,7 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.ByteFormatter;;
 
 
 
@@ -44,7 +45,8 @@ public class
 PEPeerTransportImpl 
 	extends PEPeerTransportProtocol
 {
-
+	private static final boolean	TRACE	= false;
+	
 	private SocketChannel 	socket = null;
   private volatile boolean connected = false;
   private volatile boolean connect_error = false;
@@ -160,13 +162,65 @@ PEPeerTransportImpl
 	}
   
   
-	protected int readData( DirectByteBuffer	buffer ) throws IOException {
-		return(socket.read(buffer.buff));
+	protected int 
+	readData( 
+		DirectByteBuffer	buffer )
+	
+		throws IOException 
+	{
+		if ( TRACE ){
+			
+			int	pos = buffer.buff.position();
+			
+			int	len = socket.read(buffer.buff);
+			
+			if ( len > 0 ){
+				
+				byte[]	trace = new byte[len];
+				
+				buffer.buff.position(pos);
+				
+				buffer.buff.get( trace );
+				
+				System.out.println( "readData:" + ByteFormatter.nicePrint( trace ));
+			}
+			
+			return( len );
+		}else{
+			
+			return(  socket.read(buffer.buff ));
+		}
+
 	}
   
   
-	protected int writeData( DirectByteBuffer	buffer ) throws IOException {
-		return(socket.write(buffer.buff));
-	}
-  
+	protected int 
+	writeData( 
+		DirectByteBuffer	buffer ) 
+	
+		throws IOException 
+	{
+		if ( TRACE ){
+			
+			int	pos = buffer.buff.position();
+			
+			int	len = socket.write(buffer.buff);
+			
+			if ( len > 0 ){
+				
+				byte[]	trace = new byte[len];
+				
+				buffer.buff.position(pos);
+				
+				buffer.buff.get( trace );
+				
+				System.out.println( "writeData:" + ByteFormatter.nicePrint( trace ));
+			}
+			
+			return( len );
+		}else{
+			
+			return(  socket.write(buffer.buff ));
+		}
+	}  
 }

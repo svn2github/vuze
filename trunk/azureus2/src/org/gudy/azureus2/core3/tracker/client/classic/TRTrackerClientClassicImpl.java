@@ -185,7 +185,7 @@ TRTrackerClientClassicImpl
      peerId[i] = (byte)chars.charAt(pos);
 	}
 
-	System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
+	// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
 	for (int i = 0; i < key_id_length; i++) {
 		int pos = (int) ( Math.random() * chars.length());
 	    key_id +=  chars.charAt(pos);
