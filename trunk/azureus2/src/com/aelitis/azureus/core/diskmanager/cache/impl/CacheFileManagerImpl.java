@@ -217,24 +217,17 @@ CacheFileManagerImpl
 				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_space_free - old_free ) + " from " + oldest_file.getName());
 			}
 		}
-		
-		synchronized( this ){
+					
+		CacheEntry	entry = new CacheEntry( file, buffer, file_position, length );
 			
-			cache_space_free	-= length;
-			
-			// System.out.println( "Total cache space = " + cache_space_free );
-			
-			CacheEntry	entry = new CacheEntry( file, buffer, file_position, length );
-			
-			if ( log ){
+		if ( log ){
 				
-				LGLogger.log( 
-						"DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
-						",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
-			}
-			
-			return( entry );
+			LGLogger.log( 
+					"DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
+					",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
 		}
+			
+		return( entry );
 	}
 	
 	protected void
@@ -243,6 +236,11 @@ CacheFileManagerImpl
 	{
 		synchronized( this ){
 	
+			cache_space_free	-= new_entry.getLength();
+			
+			// System.out.println( "Total cache space = " + cache_space_free );
+			
+
 			cache_entries.put( new_entry, new_entry );
 			
 			if ( DEBUG ){

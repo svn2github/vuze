@@ -271,24 +271,25 @@ CacheFileImpl
 						boolean	buffer_cached	= false;
 							
 						try{
-								// flush before read so that any bits in cache get re-read correctly on read
 							
-							flushCache( file_position, read_ahead_size, true, -1 );
-							
-							getFMFile().read( cache_buffer, file_position );
-		
-							manager.fileBytesRead( read_ahead_size );
-								
-							cache_buffer.position(DirectByteBuffer.SS_CACHE,0);
+								// must allocate space OUTSIDE sync block (see manager for details)
 							
 							CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
 							
 							entry.setClean();
 			
 							synchronized( this ){
-							
-								flushCache( file_position, read_ahead_size, true, -1 );
 
+									// flush before read so that any bits in cache get re-read correctly on read
+						
+								flushCache( file_position, read_ahead_size, true, -1 );
+								
+								getFMFile().read( cache_buffer, file_position );
+			
+								manager.fileBytesRead( read_ahead_size );
+									
+								cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
+								
 								cache.add( entry );
 								
 								manager.addCacheSpace( entry );
