@@ -168,10 +168,8 @@ TrackerWebDefaultTrackerPlugin
 						
 						args.put( "filehandle", new InputStreamReader( is ));
 
-						handleTemplate( url, params, args, os );
-	
-						return( true );
-						
+						return( handleTemplate( url, params, args, os ));
+							
 					}else{ 
 													
 						return( transferFile( file_type, is, response ));

@@ -99,9 +99,7 @@ TrackerWebDefaultStaticPlugin
 			
 				args.put( "filename", canonical_file.toString());
 				
-				handleTemplate( url, params, args, os );
-
-				return( true );
+				return( handleTemplate( url, params, args, os ));
 				
 			}else{ 
 				

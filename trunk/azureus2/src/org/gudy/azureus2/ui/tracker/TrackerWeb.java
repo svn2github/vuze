@@ -115,7 +115,7 @@ TrackerWeb
 		return( params );
 	}
 	
-	protected void
+	protected boolean
 	handleTemplate(
 		String			page_url,
 		Hashtable		params,
@@ -137,6 +137,13 @@ TrackerWeb
 		Which iteration is currently on. Starts at 1.(new in 0.1.1) 
 		*/
 		
+		TrackerTorrent[]	tracker_torrents = tracker.getTorrents();
+		
+		if ( tracker_torrents.length == 0 ){
+			
+			return( torrentNotFound(os) );
+		}
+
 		args.put( "loop_context_vars", "true" );
 		args.put( "global_vars", "true" );
 		
@@ -152,7 +159,9 @@ TrackerWeb
 		// parse get parms.
 		if ( params != null ){
 			
-			String	specific_torrents = (String)params.get( "torrent_info" );
+			String	specific_torrents 		= (String)params.get( "torrent_info" );
+			String	specific_torrents_hash 	= (String)params.get( "torrent_info_hash" );
+			
 			String	page = (String)params.get( "page" );
 			String	skip = (String)params.get( "skip" );
 			
@@ -163,7 +172,27 @@ TrackerWeb
 					// 1 based -> 0 based
 				
 				specific_torrent--;
+				
+			}else if ( specific_torrents_hash != null ){
+				
+				byte[] hash = ByteFormatter.decodeString( specific_torrents_hash );
+				
+				for (int i=0;i<tracker_torrents.length;i++){
+					
+					if ( Arrays.equals( hash, tracker_torrents[i].getTorrent().getHash())){
+						
+						specific_torrent = i;
+						
+						break;
+					}
+				}
+				
+				if ( specific_torrent == -1 ){
+					
+					return( torrentNotFound(os) );
+				}
 			}
+			
 			if ( page != null ){
 				
 				//make sure our values are in range
@@ -189,7 +218,6 @@ TrackerWeb
 		
 		Vector torrent_info = new Vector();
 		
-		TrackerTorrent[]	tracker_torrents = tracker.getTorrents();
 		
 		int	start;
 		int	end;
@@ -356,9 +384,11 @@ TrackerWeb
 				
 				t_row.put( "torrent_download_url", "/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str );
 
+				t_row.put( "torrent_details_url", "details.tmpl?torrent_info_hash=" + hash_str );
 			}else{
 				
 				t_row.put( "torrent_download_url", "" );
+				t_row.put( "torrent_details_url", "" );
 			}
 			
 			t_row.put( "torrent_status", status_str );
@@ -454,6 +484,19 @@ TrackerWeb
 		String	data = t.output();
 		
 		os.write( data.getBytes());
+		
+		return( true );
+	}
+	
+	protected boolean
+	torrentNotFound(
+		OutputStream	os )
+	
+		throws IOException
+	{
+		os.write( "Torrent not found".getBytes());
+		
+		return( true );
 	}
 	
 	protected boolean

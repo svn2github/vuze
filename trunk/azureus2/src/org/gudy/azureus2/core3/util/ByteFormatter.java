@@ -133,9 +133,11 @@ public class ByteFormatter
   {
   	char[]	chars = str.toCharArray();
   	
-  	byte[]	res = new byte[chars.length/2];
+  	int	chars_length = chars.length - chars.length%2;
   	
-  	for (int i=0;i<chars.length;i+=2){
+  	byte[]	res = new byte[chars_length/2];
+  	
+  	for (int i=0;i<chars_length;i+=2){
  
   		String	b = new String(chars,i,2);
    		
