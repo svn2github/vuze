@@ -131,6 +131,16 @@ TOTorrent
 		throws TOTorrentException;
 
 	/**
+	 * compares two torrents by hash
+	 * @param other
+	 * @return
+	 */
+	
+	public boolean
+	hasSameHashAs(
+		TOTorrent		other );
+	
+	/**
 	 * The additional properties are used for holding non-core data for Azureus' own user
 	 * @param name		name of the property (e.g. "encoding")
 	 * @param value		value. This will be encoded with default encoding

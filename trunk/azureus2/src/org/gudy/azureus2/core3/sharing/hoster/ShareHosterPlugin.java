@@ -28,8 +28,10 @@ package org.gudy.azureus2.core3.sharing.hoster;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.download.*;
 
 public class 
 ShareHosterPlugin
@@ -39,6 +41,7 @@ ShareHosterPlugin
 	protected LoggerChannel		log;
 	protected Tracker			tracker;
 	protected ShareManager		share_manager;
+	protected DownloadManager	download_manager;
 	
 	protected boolean			initialised	= false;
 	
@@ -62,6 +65,8 @@ ShareHosterPlugin
 		
 		try{
 			tracker	=  plugin_interface.getTracker();
+	
+			download_manager = plugin_interface.getDownloadManager();
 			
 			share_manager = plugin_interface.getShareManager();
 						
@@ -100,7 +105,16 @@ ShareHosterPlugin
 				
 				if ( type == ShareResource.ST_FILE ){
 					
-					tracker.host(((ShareResourceFile)resource).getItem().getTorrent(), false );
+					Torrent torrent = ((ShareResourceFile)resource).getItem().getTorrent();
+					
+					tracker.host(torrent, false );
+					
+					Download	download = download_manager.getDownload( torrent );
+					
+					if ( download == null ){
+						
+						download_manager.addDownload( torrent );
+					}
 				}
 			}catch( Throwable e ){
 				

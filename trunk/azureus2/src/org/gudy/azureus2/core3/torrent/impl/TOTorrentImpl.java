@@ -447,6 +447,23 @@ TOTorrentImpl
 		return( torrent_hash );
 	}
 	
+	public boolean
+	hasSameHashAs(
+		TOTorrent		other )
+	{
+		try{
+			byte[]	other_hash = other.getHash();
+				
+			return( Arrays.equals( getHash(), other_hash ));
+				
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+			
+			return( false );
+		}
+	}
+	
 	protected void
 	setHashFromInfo(
 		Map		info )

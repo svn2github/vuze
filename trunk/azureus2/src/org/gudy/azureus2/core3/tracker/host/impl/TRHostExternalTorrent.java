@@ -146,6 +146,23 @@ TRHostExternalTorrent
 		return( hash );
 	}
 	
+	public boolean
+	hasSameHashAs(
+		TOTorrent		other )
+	{
+		try{
+			byte[]	other_hash = other.getHash();
+			
+			return( Arrays.equals( hash, other_hash ));
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+			
+			return( false );
+		}
+	}
+	
 	public void
 	setAdditionalStringProperty(
 		String		name,

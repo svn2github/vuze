@@ -41,6 +41,8 @@ import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.peers.protocol.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.sharing.ShareManagerImpl;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.pluginsimpl.download.DownloadManagerImpl;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -123,6 +125,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   	throws ShareException
   {
   	return( ShareManagerImpl.getSingleton());
+  }
+  
+  public DownloadManager
+  getDownloadManager()
+  {
+  	return( DownloadManagerImpl.getSingleton(initialiser.getGlobalManager()));
   }
   
   public Logger getLogger() {

@@ -78,7 +78,7 @@ TorrentImpl
 			return( null );
 		}
 	}
-	
+		
 	public long
 	getSize()
 	{

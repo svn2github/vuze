@@ -56,7 +56,9 @@ public class PluginInitializer {
  
   private SplashWindow splash;
   
-  private TRHost	tracker_host;
+  private TRHost		tracker_host;
+  private GlobalManager	global_manager;
+  
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
   
@@ -95,8 +97,8 @@ public class PluginInitializer {
   }
   
   protected PluginInitializer(GlobalManager gm,SplashWindow splash) {
-    //this.gm = gm;
-    this.splash = splash;
+  	global_manager	= gm;
+    this.splash 	= splash;
     
     tracker_host	= TRHostFactory.create();
   }
@@ -211,6 +213,12 @@ public class PluginInitializer {
   getTrackerHost()
   {
   	return( tracker_host );
+  }
+  
+  protected GlobalManager
+  getGlobalManager()
+  {
+  	return( global_manager );
   }
   
   protected void

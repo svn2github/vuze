@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
@@ -78,6 +79,14 @@ public interface PluginInterface {
    */
   
   public Logger getLogger();
+  
+  /**
+   * Gives access to the download manager
+   * @return
+   */
+  
+  public DownloadManager
+  getDownloadManager();
   
   /**
    * Gives access to the peer protocol manager
