@@ -43,9 +43,10 @@ AEProxyProcessor
 	
 	protected AEProxyImpl		server;
 	protected SocketChannel		source_channel;
+	protected SocketChannel		target_channel;
 
 
-	protected volatile proxyState	proxy_read_state 		= new proxyStateVersion();
+	protected volatile proxyState	proxy_read_state 		= null;
 	protected volatile proxyState	proxy_write_state 		= null;
 	protected volatile proxyState	proxy_connect_state 	= null;
 	
@@ -57,7 +58,25 @@ AEProxyProcessor
 		server			= _server;
 		source_channel	= _socket;
 		
-		System.out.println( "ProxyProcessor: " + source_channel.socket().getInetAddress() + ":" + source_channel.socket().getPort());
+		if ( TRACE ){
+			
+			System.out.println( "ProxyProcessor: " + getName());
+		}
+		
+		proxy_read_state = new proxyStateVersion();
+	}
+	
+	protected String
+	getName()
+	{
+		String	name = source_channel.socket().getInetAddress() + ":" + source_channel.socket().getPort() + " -> ";
+		
+		if ( target_channel != null ){
+			
+			name += target_channel.socket().getInetAddress() + ":" + target_channel.socket().getPort();
+		}
+		
+		return( name );
 	}
 	
 	protected void
@@ -144,6 +163,33 @@ AEProxyProcessor
 		}
 	}
 	
+	protected void
+	close()
+	{
+		try{
+			cancelReadSelect( source_channel );
+			
+			source_channel.close();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		if ( target_channel != null ){
+			
+			try{
+				cancelReadSelect( target_channel );
+				
+				target_channel.close();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}	
+	}
+	
 	protected class
 	proxyState
 	{
@@ -153,6 +199,18 @@ AEProxyProcessor
 		proxyState()
 		{
 			trace();
+		}
+		
+		protected String
+		getStateName()
+		{
+			String	state = this.getClass().getName();
+			
+			int	pos = state.indexOf( "$");
+			
+			state = state.substring(pos+1);
+			
+			return( state );
 		}
 		
 		protected final void
@@ -232,7 +290,7 @@ AEProxyProcessor
 		{
 			if ( TRACE ){
 				
-				System.out.println( AEProxyProcessor.this + " - " + this.getClass().getName() + ", " + buffer );
+				System.out.println( getName() + ":" + getStateName() + ", " + buffer );
 			}
 		}
 	}
@@ -641,7 +699,6 @@ AEProxyProcessor
 		extends proxyState
 	{
 		protected InetSocketAddress	address;
-		protected SocketChannel		target_channel;
 		
 		protected
 		proxyStateRelayConnect(
@@ -680,7 +737,7 @@ AEProxyProcessor
 				throw( new IOException( "finishConnect returned false" ));
 			}
 	           
-			new proxyStateV5Reply(sc);
+			new proxyStateV5Reply();
 		}
 	}
 	
@@ -720,16 +777,11 @@ AEProxyProcessor
 	proxyStateV5Reply
 		extends proxyState
 	{
-		protected SocketChannel		target_channel;
-
 		protected
-		proxyStateV5Reply(
-			SocketChannel	_target_channel )
+		proxyStateV5Reply()
 		
 			throws IOException
-		{		
-			target_channel	= _target_channel;
-			
+		{					
 			proxy_write_state	= this;
 			
 			byte[]	addr = target_channel.socket().getInetAddress().getAddress();
@@ -755,9 +807,11 @@ AEProxyProcessor
 			if ( buffer.hasRemaining()){
 				
 				requestWriteSelect( sc );
+				
+			}else{
+	
+				new proxyStateRelayData();
 			}
-			
-			new proxyStateRelayData( target_channel );
 		}
 	}
 	
@@ -766,21 +820,16 @@ AEProxyProcessor
 	proxyStateRelayData
 		extends proxyState
 	{
-		protected SocketChannel		target_channel;
-		
 		protected ByteBuffer		source_buffer;
 		protected ByteBuffer		target_buffer;
 		
 		protected
-		proxyStateRelayData(
-			SocketChannel	_target_channel )
+		proxyStateRelayData()
 		
 			throws IOException
 		{
 			super();
-			
-			target_channel	= _target_channel;
-			
+						
 			source_buffer	= ByteBuffer.allocate( 1024 );
 			target_buffer	= ByteBuffer.allocate( 1024 );
 			
@@ -809,7 +858,7 @@ AEProxyProcessor
 				
 					//means that the channel has been shutdown
 				
-				cancelReadSelect( chan1 );
+				new proxyStateClose();
 				
 			}else{
 				
@@ -863,6 +912,23 @@ AEProxyProcessor
 				
 				requestReadSelect( chan2 );
 			}
+		}
+	}
+	
+	protected class
+	proxyStateClose
+		extends proxyState
+	{
+		protected
+		proxyStateClose()
+		
+			throws IOException
+		{					
+			close();
+			
+			proxy_read_state	= null;
+			proxy_write_state	= null;
+			proxy_connect_state	= null;
 		}
 	}
 }
