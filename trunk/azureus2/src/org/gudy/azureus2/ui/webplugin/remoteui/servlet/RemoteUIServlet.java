@@ -29,12 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.servlet;
 import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
-import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.logging.*;
-import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;

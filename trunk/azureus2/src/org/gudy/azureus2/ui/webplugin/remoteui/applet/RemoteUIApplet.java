@@ -39,7 +39,6 @@ import javax.net.ssl.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.download.*; 
 
 public class 
 RemoteUIApplet
@@ -56,9 +55,6 @@ RemoteUIApplet
 	public void
 	init()
 	{
-		setLayout(new BorderLayout());
-		
-		add(new JLabel("boing!"), BorderLayout.CENTER );
 	}
 	
 	public void
@@ -73,16 +69,13 @@ RemoteUIApplet
 			
 			System.out.println( "props = " + props );
 			
-			DownloadManager	dm = pi.getDownloadManager();
+			JPanel	panel = new RemoteUIMainPanel( pi );
 			
-			Download[]	downloads = dm.getDownloads();
+			setLayout(new BorderLayout());
 			
-			for (int i=0;i<downloads.length;i++){
-				
-				Download	download = downloads[i];
-				
-				System.out.println( "download:" + download.getTorrent().getName());
-			}
+			add(panel, BorderLayout.CENTER );
+			
+			validate();
 			
 		}catch( RPException e ){
 			
