@@ -31,14 +31,18 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -50,7 +54,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.BDecoder;
@@ -59,7 +63,6 @@ import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.systray.SystemTray;
-import org.gudy.azureus2.update.Updater;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -69,7 +72,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.1.0"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.1.1"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -436,7 +439,7 @@ public class MainWindow implements IComponentListener {
     catch (NoClassDefFoundError e) {}
 
     if (available) {
-      trayIcon = new SystemTray(this, "azureus.ico"); //$NON-NLS-1$
+      trayIcon = new SystemTray(this)
     }
     else
       tray = new TrayWindow(this);
@@ -549,6 +552,8 @@ public class MainWindow implements IComponentListener {
     s.setSize(250, 300);
     s.setLayout(new GridLayout(3, true));
     GridData gridData;
+    s.setLayoutData(gridData = new GridData());
+//    gridData.horizontalIndent = 10;
 
     Label label = new Label(s, SWT.CENTER);
     label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + latestVersion + "\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -565,6 +570,42 @@ public class MainWindow implements IComponentListener {
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
     
+    label = new Label(s, SWT.LEFT);
+    label.setText(MessageText.getString("MainWindow.upgrade.explanation.manual")+":\n"); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+    
+    final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
+    final Label linklabel = new Label(s, SWT.CENTER);
+    linklabel.setText(downloadLink);
+    linklabel.setCursor(new Cursor(display, SWT.CURSOR_HAND));
+    linklabel.setForeground(blue);
+    linklabel.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+            
+    linklabel.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        Program.launch(downloadLink);
+      }
+      public void mouseDown(MouseEvent arg0) {
+        Program.launch(downloadLink);
+      }
+    });
+
+    label = new Label(s, SWT.LEFT);
+    label.setText("\n"); //$NON-NLS-1$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    final Label separator = new Label(s, SWT.SEPARATOR | SWT.HORIZONTAL);
+    separator.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
+    gridData.horizontalSpan = 3;
+
+    label = new Label(s, SWT.LEFT);
+    label.setText("\n"); //$NON-NLS-1$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
     final Label step1 = new Label(s, SWT.LEFT);
     step1.setText("- "+MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
     step1.setForeground(blue);
@@ -579,6 +620,15 @@ public class MainWindow implements IComponentListener {
     final Label hint = new Label(s, SWT.LEFT);
     hint.setText(MessageText.getString("MainWindow.upgrade.hint1")+"."); //$NON-NLS-1$ //$NON-NLS-2$
     hint.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    label = new Label(s, SWT.LEFT);
+    label.setText("\n"); //$NON-NLS-1$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    final ProgressBar progressBar = new ProgressBar (s, SWT.SMOOTH);
+    progressBar.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
     gridData.horizontalSpan = 3;
 
     label = new Label(s, SWT.LEFT);
@@ -602,7 +652,7 @@ public class MainWindow implements IComponentListener {
 
     SelectionAdapter update = new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        downloadJar();
+        downloadJar(progressBar);
         if (jarDownloaded) {
           if(event.widget == finish) {
             updateJar = true;
@@ -616,19 +666,17 @@ public class MainWindow implements IComponentListener {
             hint.setText(MessageText.getString("MainWindow.upgrade.hint2")+"."); //$NON-NLS-1$ //$NON-NLS-2$
             hint.setForeground(black);
             hint.pack();
+            linklabel.setEnabled(false);
           }
         } else {
           if(event.widget == finish) {
-            MessageBox messageBox = new MessageBox(s, SWT.PRIMARY_MODAL | SWT.ICON_ERROR | SWT.OK);
-            messageBox.setText(MessageText.getString("MainWindow.upgrade.error.downloading")); //$NON-NLS-1$
-            String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
-            messageBox.setMessage(MessageText.getString("MainWindow.upgrade.error.downloading.explanation")+":\n"+downloadLink); //$NON-NLS-1$ //$NON-NLS-2$
-            messageBox.open();
             s.dispose();
           } else {
             hint.setText(MessageText.getString("MainWindow.upgrade.error.downloading.hint")+"!"); //$NON-NLS-1$ //$NON-NLS-2$
             hint.setForeground(red);
             hint.pack();
+            next.setEnabled(false);
+            finish.setEnabled(false);
           }
         }
       }
@@ -645,32 +693,33 @@ public class MainWindow implements IComponentListener {
     
     s.pack();
     s.open();
+    s.setFocus();
+
     while (!s.isDisposed()) {
       if (!display.readAndDispatch())
       display.sleep();
     } //end while
-//    System.exit(0);
 }
 
   private void updateJar() {
+    FileOutputStream out = null;
+    InputStream in = null;
     try {
       String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
       String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
       String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
 
-      File updaterJar = Updater.getFileFromClassJar(MainWindow.class, "Updater.jar"); //$NON-NLS-1$
+      File updaterJar = GlobalManager.getApplicationFile("Updater.jar"); //$NON-NLS-1$
       if (!updaterJar.isFile()) {
         URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
-        InputStream in = con.getInputStream();
-        FileOutputStream out = new FileOutputStream(updaterJar);
+        in = con.getInputStream();
+        out = new FileOutputStream(updaterJar);
         byte[] buffer = new byte[1024];
         int c;
         while ((c = in.read(buffer)) != -1)
           out.write(buffer, 0, c);
-        in.close();
-        out.close();
       }
 
       String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
@@ -687,27 +736,59 @@ public class MainWindow implements IComponentListener {
     } catch (Exception e1) {
       e1.printStackTrace();
       updateJar = false;
+    } finally {
+      try {
+        if (out != null)
+          out.close();
+      } catch (Exception e) {
+      }
+      try {
+        if (in != null)
+          in.close();
+      } catch (Exception e) {
+      }
     }
   }
 
-  private void downloadJar() {
-    if(jarDownloaded) return;
+  private void downloadJar(final ProgressBar progressBar) {
+    if(jarDownloaded) {
+      progressBar.setSelection(progressBar.getMaximum());
+      return;
+    }
 
+    FileOutputStream fos = null;
+    InputStream in = null;
     try {
-      File originFile = Updater.getFileFromClassJar(MainWindow.class, "Azureus2.jar"); //$NON-NLS-1$
+      File originFile = GlobalManager.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
       File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
       
       URL reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
-      InputStream in = con.getInputStream();
-      FileOutputStream out = new FileOutputStream(newFile);
-      byte[] buffer = new byte[1024];
+      in = con.getInputStream();
+      fos = new FileOutputStream(newFile);
+
+      progressBar.setMinimum(0);
+      progressBar.setMaximum(100);
+
+      final InputStream input = in; 
+      final FileOutputStream output = fos;
+
+      final long length = con.getContentLength();
+      final byte[] buffer = new byte[32768];
       int c;
-      while ((c = in.read(buffer)) != -1)
-        out.write(buffer, 0, c);
-      in.close();
-      out.close();
+      long bytesDownloaded = 0L;
+      while ((c = input.read(buffer)) != -1) {
+        output.write(buffer, 0, c);
+        bytesDownloaded += c;
+        int progress = (int) Math.round(((double) bytesDownloaded / length) * 100);
+        progressBar.setSelection(progress <= 100 ? progress : 100);
+        progressBar.update();
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e1) {
+        }
+      }
       jarDownloaded = true;
     } catch (MalformedURLException e) {
       e.printStackTrace();
@@ -715,6 +796,19 @@ public class MainWindow implements IComponentListener {
       e.printStackTrace();
     } catch (IOException e) {
       e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (fos != null)
+          fos.close();
+      } catch (Exception e) {
+      }
+      try {
+        if (in != null)
+          in.close();
+      } catch (Exception e) {
+      }
     }
   }
 
@@ -803,10 +897,14 @@ public class MainWindow implements IComponentListener {
         display.sleep();
     }
 
-    white.dispose();
+    black.dispose();
     blue.dispose();
+    red.dispose();
+    white.dispose();
+
     if (tray != null)
       tray.dispose();
+
     display.dispose();
   }
 
@@ -956,14 +1054,14 @@ public class MainWindow implements IComponentListener {
       mainWindow.setActive();
       boolean singleFile = false;
       String singleFileName = ""; //$NON-NLS-1$
+      FileInputStream fis = null;
       try {
         byte[] buf = new byte[1024];
         int nbRead;
         StringBuffer metaInfo = new StringBuffer();
-        FileInputStream fis = new FileInputStream(fileName);
+        fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-        fis.close();
         Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
         Map info = (Map) map.get("info");
         singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1");
@@ -974,6 +1072,12 @@ public class MainWindow implements IComponentListener {
       }
       catch (Exception e) {
         e.printStackTrace();
+      } finally {
+        try {
+          if (fis != null)
+            fis.close();
+        } catch (Exception e) {
+        }
       }
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
