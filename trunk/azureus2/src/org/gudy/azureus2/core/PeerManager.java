@@ -496,27 +496,34 @@ public class PeerManager extends Thread {
     //has the timeout expired?
     if ((time - _timeLastUpdate) > _timeToWait) //if so...
       {
-      _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
-      _timeLastUpdate = time; //update last checked time
-        Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
-  public void run() {
-          try {
-            String result;
-            if (_trackerState == TRACKER_UPDATE)
-              result = _tracker.update();
-            else
-              result = _tracker.start();
-            analyseTrackerResponse(result == null ? null : result.getBytes(Constants.BYTE_ENCODING));
-          }
-          catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        }
-      };
-      t.start(); //start the thread
+      _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
+      checkTracker();       
     }
   }
+  
+  public void checkTracker() {
+    long time = System.currentTimeMillis() / 1000;  
+    if(time - _timeLastUpdate < 60)
+      return;
+    _timeLastUpdate = time; //update last checked time
+    Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
+      public void run() {
+              try {
+                String result;
+                if (_trackerState == TRACKER_UPDATE)
+                  result = _tracker.update();
+                else
+                  result = _tracker.start();
+                analyseTrackerResponse(result == null ? null : result.getBytes(Constants.BYTE_ENCODING));
+              }
+              catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              }
+            }
+          };
+          t.start(); //start the thread
+  }  
 
   /**
    * This methd will compute the overall availability (inluding yourself)

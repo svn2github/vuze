@@ -501,5 +501,10 @@ public class DownloadManager extends Component {
     }
     return false;
   }
+  
+  public void checkTracker() {
+    if(peerManager != null)
+      peerManager.checkTracker();
+  }
 
 }
