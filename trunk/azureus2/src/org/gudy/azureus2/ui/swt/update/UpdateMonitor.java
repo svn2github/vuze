@@ -22,6 +22,9 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.plugins.update.UpdateManagerListener;
@@ -34,13 +37,23 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 public class UpdateMonitor implements UpdateManagerListener {
 
   UpdateWindow window;
+  List updates;
   
   public UpdateMonitor() {
+    updates = new ArrayList();
     window = new UpdateWindow();
-    PluginInitializer.getDefaultInterface().getUpdateManager().addListener(this);
+    UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager(); 
+    um.addListener(this);
+    Update[] us = um.getUpdates();
+    for(int i = 0 ;  i < us.length ; i++) {
+      updateAdded(um,us[i]);
+    }
   }
   
-  public void updateAdded(UpdateManager manager, Update update) {
+  public synchronized void updateAdded(UpdateManager manager, Update update) {
+    if(updates.contains(update))
+      return;
+   updates.add(update);
    window.addUpdate(update); 
   }  
 }
