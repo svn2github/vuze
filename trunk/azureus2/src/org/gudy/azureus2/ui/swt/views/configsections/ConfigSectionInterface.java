@@ -184,6 +184,11 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 	  confirm.setLayoutData( gridData );
     }
     
+    BooleanParameter confirm_removal = new BooleanParameter(cArea, "confirm_torrent_removal", "ConfigView.section.interface.confirm_torrent_removal" );
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    confirm_removal.setLayoutData( gridData );
+    
     
     // password
     

@@ -1229,6 +1229,16 @@ public class MyTorrentsView
   }
 
   private void removeTorrent(DownloadManager dm, boolean bDeleteTorrent, boolean bDeleteData) {
+    
+    if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
+      MessageBox mb = new MessageBox(cTablePanel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
+      mb.setText(MessageText.getString("deletedata.title"));
+      mb.setMessage(MessageText.getString("MyTorrentsView.confirm_torrent_removal") + dm.getDisplayName() );
+      if( mb.open() == SWT.NO ) {
+        return;
+      }
+    }
+    
     int choice;
     if (confirmDataDelete && bDeleteData) {
       String path = dm.getTorrentSaveDirAndFile();
