@@ -47,7 +47,7 @@ public class Debug {
       throw new Exception();
     }
     catch (Exception e) {
-      StackTraceElement st = e.getStackTrace()[1];
+      StackTraceElement st = e.getStackTrace()[2];
       className = st.getClassName() + "::";
       methodName = st.getMethodName() + "::";
       lineNumber = st.getLineNumber();
@@ -55,7 +55,7 @@ public class Debug {
     
     System.out.println(header.concat(className).concat(methodName).concat(String.valueOf(lineNumber)).concat(":"));
     if (_debug_msg.length() > 0) {
-      System.out.println("  " + _debug_msg + " :");
+      System.out.println("  " + _debug_msg);
     }
     if (_exception != null) {
       _exception.printStackTrace();
