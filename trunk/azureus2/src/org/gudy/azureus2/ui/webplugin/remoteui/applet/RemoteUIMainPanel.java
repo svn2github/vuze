@@ -33,13 +33,12 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;
-
-import com.sun.java.swing.SwingUtilities2;
 
 public class 
 RemoteUIMainPanel
@@ -53,7 +52,8 @@ RemoteUIMainPanel
 	
 	public
 	RemoteUIMainPanel(
-			DownloadManager	_dm )
+		PluginInterface	_pi,
+		DownloadManager	_dm )
 	{
 		try{
 			download_manager		= _dm;
@@ -92,12 +92,16 @@ RemoteUIMainPanel
 			
 			final MDDownloadModel	model 	= new MDDownloadModel( download_manager );
 			
-			final VWDownloadView 	view 	= new VWDownloadView(model);
+			final VWDownloadView 	download_view 	= new VWDownloadView(model);
+			
+			MDConfigModel			config_model	= new MDConfigModel( _pi );
+			
+			VWConfigView			config_view 	= new VWConfigView( config_model );
 			
 			JTabbedPane	tabs = new JTabbedPane();
 			
-			tabs.addTab( "Downloads", 	view.getComponent());
-			tabs.addTab( "Config", 		new JPanel());
+			tabs.addTab( "Downloads", 	download_view.getComponent());
+			tabs.addTab( "Config", 		config_view.getComponent());
 			
 			add( tabs, BorderLayout.CENTER );
 			
@@ -147,7 +151,7 @@ RemoteUIMainPanel
 						{
 							try{
 						
-								model.start(view.getSelectedRows());
+								model.start(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								
@@ -167,7 +171,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								model.stop(view.getSelectedRows());
+								model.stop(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								
@@ -187,7 +191,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								model.remove(view.getSelectedRows());
+								model.remove(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								

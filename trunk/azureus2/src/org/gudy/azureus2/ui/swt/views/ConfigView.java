@@ -72,7 +72,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 public class ConfigView extends AbstractIView {
   private static final String sSectionPrefix = "ConfigView.section.";
   
-  private static final int upRates[] =
+  public static final int upRates[] =
     {
       0,
       5,6,7,8,9,10,

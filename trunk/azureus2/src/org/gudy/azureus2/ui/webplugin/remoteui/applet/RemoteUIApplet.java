@@ -87,7 +87,7 @@ RemoteUIApplet
 			
 			final DownloadManager		download_manager	= plugin_interface.getDownloadManager();
 				
-			panel = new RemoteUIMainPanel( download_manager );
+			panel = new RemoteUIMainPanel( plugin_interface, download_manager );
 			
 			panel.addListener(
 				new RemoteUIMainPanelListener()

@@ -73,7 +73,7 @@ Main
 		
 		cont.setLayout( new BorderLayout());
 		
-		RemoteUIMainPanel	panel = new RemoteUIMainPanel( _plugin_interface.getDownloadManager());
+		RemoteUIMainPanel	panel = new RemoteUIMainPanel( _plugin_interface, _plugin_interface.getDownloadManager());
 		
 		cont.add( panel );	
 		

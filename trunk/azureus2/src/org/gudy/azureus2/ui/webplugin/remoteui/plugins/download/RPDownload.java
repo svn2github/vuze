@@ -334,6 +334,10 @@ RPDownload
 		notSupported();
 	}
 	
+	/**
+	 * @deprecated
+	 */
+	
 	public boolean
 	isPriorityLocked()
 	{

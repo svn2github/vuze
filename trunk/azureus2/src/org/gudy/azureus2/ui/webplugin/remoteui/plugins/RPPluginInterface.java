@@ -120,8 +120,12 @@ RPPluginInterface
 			return( new RPReply( delegate.getPluginProperties()));
 			
 		}else if ( method.equals( "getDownloadManager")){
-				
+			
 			return( new RPReply( RPDownloadManager.create(delegate.getDownloadManager())));
+		
+		}else if ( method.equals( "getPluginconfig")){
+				
+			return( new RPReply( RPPluginConfig.create(delegate.getPluginconfig())));
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -144,10 +148,10 @@ RPPluginInterface
 		notSupported();
 	}
 
-  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory)
-  {
-    notSupported();
-  }
+    public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory)
+    {
+    	notSupported();
+    }
 
 	public void addConfigSection(ConfigSection tab)
 	{
@@ -229,9 +233,11 @@ RPPluginInterface
 	
 	public PluginConfig getPluginconfig()
 	{
-		notSupported();
+		RPPluginConfig	res = (RPPluginConfig)dispatcher.dispatch( new RPRequest( this, "getPluginconfig", null )).getResponse();
 		
-		return( null );
+		res._setRemote( dispatcher );
+			
+		return( res );
 	}
 	
 	public PluginConfigUIFactory getPluginConfigUIFactory()
