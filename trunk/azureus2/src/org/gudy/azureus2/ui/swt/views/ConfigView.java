@@ -74,7 +74,7 @@ public class ConfigView extends AbstractIView {
 	  	900, 1200, 1800, 2400, 3000, 3600, 
 	  	7200, 10800, 14400, 21600, 43200, 86400,
 	  };
-	  
+
   private static final int logFileSizes[] =
 		 {
 		   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100,
@@ -545,45 +545,49 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gServer.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 4;
     gServer.setLayout(layout);
 
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.overrideip"); //$NON-NLS-1$
     gridData = new GridData();
-    gridData.widthHint = 100;
+    gridData.widthHint = 113;
+    gridData.horizontalSpan = 3;
     new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
 
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip"); //$NON-NLS-1$
     gridData = new GridData();
-    gridData.widthHint = 100;
+    gridData.widthHint = 113;
+    gridData.horizontalSpan = 3;
     new StringParameter(gServer, "Bind IP", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
     
     label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.serverportlow"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.serverportrange"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gServer, "Low Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
 
-    label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.serverporthigh"); //$NON-NLS-1$
+    Label lDash = new Label(gServer, SWT.NULL);
+    lDash.setText(" - ");
+
     gridData = new GridData();
     gridData.widthHint = 40;
-	IntParameter high_port = new IntParameter(gServer, "High Port", 6889);
-	high_port.setLayoutData(gridData); //$NON-NLS-1$
+    IntParameter high_port = new IntParameter(gServer, "High Port", 6889);
+    high_port.setLayoutData(gridData); //$NON-NLS-1$
 
-	label = new Label(gServer, SWT.NULL);
-	Messages.setLanguageText(label, "ConfigView.label.serverportshared"); //$NON-NLS-1$
-	gridData = new GridData();
-	gridData.widthHint = 40;
-	BooleanParameter ssp = new BooleanParameter(gServer, "Server.shared.port", true);
-	ssp.setLayoutData(gridData); //$NON-NLS-1$
+    label = new Label(gServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.serverportshared"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    BooleanParameter ssp = new BooleanParameter(gServer, "Server.shared.port", true);
+    ssp.setLayoutData(gridData); //$NON-NLS-1$
 
-	Control[] controls = new Control[1];
-	controls[0] = high_port.getControl();
-	IAdditionalActionPerformer grayHighPort = new ChangeSelectionActionPerformer(controls, true);
-	ssp.setAdditionalActionPerformer(grayHighPort);
+    Control[] controls = new Control[2];
+    controls[0] = lDash;
+    controls[1] = high_port.getControl();
+    IAdditionalActionPerformer grayHighPort = new ChangeSelectionActionPerformer(controls, true);
+    ssp.setAdditionalActionPerformer(grayHighPort);
 
 	
     itemServer.setControl(gServer);
@@ -1164,17 +1168,17 @@ public class ConfigView extends AbstractIView {
 
       label = new Label(gTracker, SWT.NULL);
 
-	  // row
+      // row
 			
-	  label = new Label(gTracker, SWT.NULL);
-	  Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
+      label = new Label(gTracker, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
     
-	  BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
+      BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
 
-	  label = new Label(gTracker, SWT.NULL);
+      label = new Label(gTracker, SWT.NULL);
 
 	  // row
-			
+
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenable"); 
     
@@ -1218,7 +1222,7 @@ public class ConfigView extends AbstractIView {
 	  IAdditionalActionPerformer enabler = new ChangeSelectionActionPerformer(controls);
 	  passwordEnable.setAdditionalActionPerformer(enabler); 
 
-	  itemStats.setControl(gTracker);
+	 	itemStats.setControl(gTracker);
 	}
 	
 	
@@ -1256,15 +1260,14 @@ public class ConfigView extends AbstractIView {
 
 		gridData = new GridData();
 		gridData.widthHint = 150;
-		
-	    final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
-	    pathParameter.setLayoutData(gridData);
-	    controls[0] = lStatsPath;
-	    controls[1] = pathParameter.getControl();
-	    Button browse = new Button(gLogging, SWT.PUSH);
-	    Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
-	    controls[2] = browse;
-	    browse.addListener(SWT.Selection, new Listener(){
+	  final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+	  pathParameter.setLayoutData(gridData);
+	  controls[0] = lStatsPath;
+	  controls[1] = pathParameter.getControl();
+	  Button browse = new Button(gLogging, SWT.PUSH);
+	  Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
+	  controls[2] = browse;
+	  browse.addListener(SWT.Selection, new Listener() {
 		 /* (non-Javadoc)
 		  * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 		  */
