@@ -519,7 +519,7 @@ public class TableView
   }
 
   /** IView.refresh(), called when the GUI needs an update */
-  public void refresh() {
+  public synchronized void refresh() {
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
