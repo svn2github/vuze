@@ -115,6 +115,12 @@ DHTTransportLoopbackContactImpl
 		transport.sendFindValue( this, handler, key );
 	}
 	
+	public DHTTransportFullStats
+	getStats()
+	{
+		return( null );
+	}
+	
 	public byte[]
 	getID()
 	{

@@ -1263,6 +1263,41 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	protected DHTTransportFullStats
+	getFullStats(
+		DHTTransportUDPContactImpl	contact )
+	{
+		final DHTTransportFullStats[] res = { null };
+		
+		final AESemaphore	sem = new AESemaphore( "DHTTransportUDP:getFullStats");
+		
+		sendStats(	contact,
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						statsReply(
+							DHTTransportContact 	contact,
+							DHTTransportFullStats	stats )
+						{
+							res[0]	= stats;
+							
+							sem.release();
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							sem.release();
+						}
+				
+					});
+		
+		sem.reserve();
+
+		return( res[0] );
+	}
+	
 	public void
 	process(
 		PRUDPPacketRequest	_request )

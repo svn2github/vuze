@@ -74,6 +74,9 @@ DHTTransportContact
 		DHTTransportReplyHandler	handler,
 		byte[]						key );
 		
+	public DHTTransportFullStats
+	getStats();
+	
 	public void
 	exportContact(
 		DataOutputStream	os )

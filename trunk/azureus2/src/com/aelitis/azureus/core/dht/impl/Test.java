@@ -32,6 +32,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -378,6 +379,52 @@ Test
 					byte[]	res = dht.get( rhs.getBytes(), 0);
 					
 					System.out.println( "-> " + (res==null?"null":new String(res)));
+					
+				}else if ( command == 'z' ){
+					
+					System.out.println( "Using dht " + dht_index );
+					
+					stats_before = dht.getTransport().getStats().snapshot();
+					
+					dht.get( rhs.getBytes(), 10, 0,
+							new DHTOperationListener()
+							{
+								public void
+								searching(
+									DHTTransportContact	contact,
+									int					level,
+									int					active_searches )
+								{
+									
+								}
+								
+								public void
+								found(
+									final DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{
+									System.out.println( "-> " + value.getString());
+
+									new AEThread("blah")
+									{
+										public void
+										runSupport()
+										{
+											DHTTransportFullStats stats = contact.getStats();
+									
+											System.out.println( "    stats = " + stats );
+										}
+									}.start();
+								}
+								
+								public void
+								complete(
+									boolean				timeout )
+								{
+									System.out.println( "complete");
+								}
+							});
+					
 					
 				}else if ( command == 'v' ){
 			

@@ -174,6 +174,12 @@ DHTTransportUDPContactImpl
 		transport.sendFindValue( this, handler, key );
 	}
 	
+	public DHTTransportFullStats
+	getStats()
+	{
+		return( transport.getFullStats( this ));
+	}
+	
 	public byte[]
 	getID()
 	{
