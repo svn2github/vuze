@@ -500,9 +500,9 @@ TRHostImpl
 								
 								URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
 								
-								torrent.setAnnounceURL( announce_url );
+								temp.setAnnounceURL( announce_url );
 								
-								torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+								temp.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
 							}
 
 							reply_bytes = BEncoder.encode( temp.serialiseToMap());

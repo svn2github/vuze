@@ -217,15 +217,15 @@ TRTrackerServerProcessor
 						
 					}else if ( lhs.equals( "uploaded" )){
 							
-						uploaded = Integer.parseInt( rhs );
+						uploaded = Long.parseLong( rhs );
 						
 					}else if ( lhs.equals( "downloaded" )){
 							
-						downloaded = Integer.parseInt( rhs );
+						downloaded = Long.parseLong( rhs );
 						
 					}else if ( lhs.equals( "left" )){
 							
-						left = Integer.parseInt( rhs );
+						left = Long.parseLong( rhs );
 						
 					}else if ( lhs.equals( "num_peers" )){
 							
@@ -319,6 +319,8 @@ TRTrackerServerProcessor
 								
 					message = e.toString();
 				}
+				
+				e.printStackTrace();
 				
 				root.put( "failure reason", message );
 			}
