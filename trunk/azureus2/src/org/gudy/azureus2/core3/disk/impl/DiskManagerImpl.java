@@ -721,7 +721,7 @@ DiskManagerImpl
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
 			setDaemon(true);
-      setPriority(Thread.MAX_PRIORITY - 1);
+      setPriority(Thread.MIN_PRIORITY);
 		}
 
 		public void run() 
