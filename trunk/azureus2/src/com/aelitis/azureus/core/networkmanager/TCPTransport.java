@@ -292,6 +292,7 @@ public class TCPTransport {
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null ) {
+      //stopReadSelects();  //TODO
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
     
@@ -362,11 +363,18 @@ public class TCPTransport {
       System.out.println( "read: buffers == null" );
     }
     
-
+    long bytes_read = 0;
     
-    long bytes_read = socket_channel.read( buffers, array_offset, length );
+    try{
+      bytes_read = socket_channel.read( buffers, array_offset, length );
+    }
+    catch( IOException ioe ) {
+      //stopReadSelects();//TODO
+      throw ioe;      
+    }
     
     if( bytes_read < 0 ) {
+      //stopReadSelects();//TODO
       throw new IOException( "end of stream on socket read" );
     }
     
@@ -456,11 +464,6 @@ public class TCPTransport {
   public void close() {
     is_ready_for_write = false;
 
-    if( connect_request_key != null ) {
-      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
-      connect_request_key = null;
-    }
-    
     if( socket_channel != null ){
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
@@ -468,6 +471,11 @@ public class TCPTransport {
     }
 
     socket_channel = null;
+    
+    if( connect_request_key != null ) {
+      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+      connect_request_key = null;
+    }
   }
      
   
