@@ -83,6 +83,9 @@ public class TableColumnManager {
           ((TableColumnCore)item).loadSettings();
         }
       }
+      if (!item.getColumnAdded()) {
+        item.setColumnAdded(true);
+      }
     } catch (Exception e) {
       System.out.println("Error while adding Table Column Extension");
       e.printStackTrace();

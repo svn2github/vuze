@@ -66,11 +66,7 @@ public class TableManagerImpl
     if (!(tableColumn instanceof TableColumnCore))
 			throw(new UIRuntimeException("TableManager.addColumn(..) can only add columns created by createColumn(..)"));
     
-    TableColumnCore tci = (TableColumnCore)tableColumn;
-    if (!tci.getColumnAdded()) {
-      TableColumnManager.getInstance().addColumn(tci);
-      tci.setColumnAdded(true);
-    }
+    TableColumnManager.getInstance().addColumn((TableColumnCore)tableColumn);
   }
   
   public TableContextMenuItem addContextMenuItem(String tableID, String resourceKey) {
