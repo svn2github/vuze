@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.disk.file.impl;
  */
 
 import java.nio.ByteBuffer;
+import java.io.File;
 
 import org.gudy.azureus2.core3.disk.file.*;
 
@@ -38,8 +39,11 @@ FMFileLimited
 	
 	protected
 	FMFileLimited(
-		FMFileManagerImpl	_manager )
+		FMFileManagerImpl	_manager,
+		File				_file )
 	{
+		super( _file );
+		
 		manager = _manager;
 	}
 	
@@ -86,7 +90,7 @@ FMFileLimited
 	{	
 		manager.usedSlot(this);
 	}
-	
+		
 	public synchronized void
 	setAccessMode(
 		int		mode )

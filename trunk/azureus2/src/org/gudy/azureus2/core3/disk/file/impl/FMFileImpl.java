@@ -43,14 +43,13 @@ FMFileImpl
 	protected File					file;
 	protected RandomAccessFile		raf;
 	
-	
-	public void
-	setFile(
+	protected
+	FMFileImpl(
 		File		_file )
 	{
-		file		= _file;
+		file	= _file;
 	}
-	
+
 	public File
 	getFile()
 	{
@@ -61,6 +60,24 @@ FMFileImpl
 	getAccessMode()
 	{
 		return( access_mode );
+	}
+	
+	public synchronized void
+	moveFile(
+		File		new_file )
+	
+		throws FMFileManagerException
+	{
+		close();
+		
+		if ( file.renameTo(new_file)) {
+			
+			file	= new_file;
+			
+		}else{
+			
+			throw( new FMFileManagerException( "FMFile::moveFile: Fails"));
+		}	
 	}
 	
 	protected long

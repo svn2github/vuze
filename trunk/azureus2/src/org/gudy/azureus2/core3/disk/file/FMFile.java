@@ -36,12 +36,14 @@ FMFile
 	public static final int	FM_READ		= 1;
 	public static final int FM_WRITE	= 2;
 	
-	public void
-	setFile(
-		File		file );
-	
 	public File
 	getFile();
+
+	public void
+	moveFile(
+		File		new_file )
+	
+		throws FMFileManagerException;
 	
 	public void
 	setAccessMode(

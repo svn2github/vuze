@@ -37,7 +37,7 @@ public class
 DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo
 {
-  private FMFile		fm_file = FMFileManagerFactory.getSingleton().createFile();
+  private FMFile		fm_file;
   
   private String 		path;
   private String 		name;
@@ -49,6 +49,28 @@ DiskManagerFileInfoImpl
   
   private boolean priority = false;  
   private boolean skipped = false;
+  
+  protected
+  DiskManagerFileInfoImpl(
+  	File		file )
+  {
+  	path	= file.getParentFile().getAbsolutePath() + System.getProperty("file.separator");
+  	name	= file.getName();
+  	
+  	fm_file = FMFileManagerFactory.getSingleton().createFile( file );
+  }
+  
+  protected void
+  moveFile(
+  	File	newFile )
+  
+  	throws FMFileManagerException
+  {
+  	fm_file.moveFile( newFile );
+  	
+  	path = newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator");
+  	
+  }
   
   public FMFile
   getFMFile()
@@ -137,12 +159,6 @@ DiskManagerFileInfoImpl
 	extension = string;
   }
 
-  /**
-   * @param file
-   */
-  public void setFile(File file) {
-	fm_file.setFile( file );
-  }
 
   /**
    * @param i
@@ -158,12 +174,6 @@ DiskManagerFileInfoImpl
 	length = l >= 0L ? l : 0L;
   }
 
-  /**
-   * @param string
-   */
-  public void setName(String string) {
-	name = string;
-  }
 
   /**
    * @param i
@@ -179,12 +189,6 @@ DiskManagerFileInfoImpl
 	return path;
   }
 
-  /**
-   * @param string
-   */
-  public void setPath(String string) {
-	path = string;
-  }
 
   /**
    * @return

@@ -26,9 +26,12 @@ package org.gudy.azureus2.core3.disk.file;
  *
  */
 
+import java.io.File;
+
 public interface 
 FMFileManager 
 {
 	public FMFile
-	createFile();
+	createFile(
+		File		file );
 }

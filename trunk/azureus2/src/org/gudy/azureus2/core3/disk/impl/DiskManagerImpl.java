@@ -769,12 +769,8 @@ DiskManagerImpl
 
 			final File f = new File(tempPath, tempName);
 
-			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl();
-			
-			fileInfo.setPath(tempPath);
-			
-			fileInfo.setName(tempName);
-			
+			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl( f );
+						
 			int separator = tempName.lastIndexOf(".");
 			
 			if (separator == -1){
@@ -805,7 +801,6 @@ DiskManagerImpl
 			
 			fileInfo.setLength(length);
 			fileInfo.setDownloaded(0);
-			fileInfo.setFile( f );
 			
 			int accessMode;
 
@@ -2010,18 +2005,14 @@ DiskManagerImpl
             return returnName;
           }
           
-          //close the currently open stream so we can move the file
-          files[i].getFMFile().close();
-          
-          //move the file ~ rename old file pointer to new file pointer
-          if (oldFile.renameTo(newFile)) {
-            //open the stream from the new file
-          	files[i].setFile(newFile);
-          	files[i].setPath(newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator"));
+          try{
           	
+          	files[i].moveFile( newFile );
+           	
             files[i].setAccessMode(DiskManagerFileInfo.READ);
-          }
-          else {
+            
+          }catch( FMFileManagerException e ){
+          	
             String msg = "Failed to move " + oldFile.getName() + " to destination dir";
             LGLogger.log(LGLogger.ERROR,msg);
             Debug.out(msg);

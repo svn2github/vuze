@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.disk.file.impl;
  */
 
 import java.nio.ByteBuffer;
+import java.io.File;
 
 import org.gudy.azureus2.core3.disk.file.*;
 
@@ -34,6 +35,14 @@ public class
 FMFileUnlimited
 	extends FMFileImpl
 {
+	protected
+	FMFileUnlimited(
+		File	_file )
+	{
+		super( _file );
+	}
+	
+	
 	public synchronized void
 	setAccessMode(
 		int		mode )

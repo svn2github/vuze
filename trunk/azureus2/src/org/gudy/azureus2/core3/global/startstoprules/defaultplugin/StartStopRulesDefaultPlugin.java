@@ -25,12 +25,9 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.TabFolder;
 
 
 import org.gudy.azureus2.plugins.*;
@@ -371,7 +368,7 @@ StartStopRulesDefaultPlugin
                           (totalWaitingToDL == 0) &&
                           (!recalcQR);
 
-	  log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
+	  // log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
       if (quitEarly || downloadIsPreparing){
       	
         return;

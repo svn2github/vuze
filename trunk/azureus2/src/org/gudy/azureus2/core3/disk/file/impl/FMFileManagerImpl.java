@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.disk.file.impl;
  */
 
 import java.util.*;
+import java.io.File;
 
 import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.util.*;
@@ -98,17 +99,18 @@ FMFileManagerImpl
 	}
 	
 	public FMFile
-	createFile()
+	createFile(
+		File		file )
 	{
 		FMFile	res;
 		
 		if ( limited ){
 
-			res = new FMFileLimited(this);
+			res = new FMFileLimited(this, file);
 			
 		}else{
 			
-			res = new FMFileUnlimited();
+			res = new FMFileUnlimited(file);
 		}
 		
 		if (DEBUG){
