@@ -53,7 +53,39 @@ public class Set implements IConsoleCommand {
 				} catch (Exception e) {
 					ci.out.println("> Command 'set': Exception '" + e.getMessage() + "' on parameter '" + parameter + "'");
 				}
-			} else {
+			}
+      else if( COConfigurationManager.doesParameterExist( parameter ) ) {
+        if( args.size() == 3 ) {
+          String type = (String)args.get( 2 );
+          boolean success = false;
+          if( type.equalsIgnoreCase("int") ) {
+            COConfigurationManager.setParameter( parameter, Integer.parseInt( setto ) );
+            success = true;
+          }
+          else if( type.equalsIgnoreCase("bool") ) {
+            COConfigurationManager.setParameter( parameter, setto.equalsIgnoreCase("true") ? true : false );
+            success = true;
+          }
+          else if( type.equalsIgnoreCase("float") ) {
+            COConfigurationManager.setParameter( parameter, Float.parseFloat( setto ) );
+            success = true;
+          }
+          else if( type.equalsIgnoreCase("string") ) {
+            COConfigurationManager.setParameter( parameter, setto );
+            success = true;
+          }
+
+          if( success ) {
+            COConfigurationManager.save();
+            ci.out.println("> Parameter '" + parameter + "' set to '" + setto + "'.");
+          }
+          else ci.out.println("ERROR: invalid type given");
+        }
+        else {
+          ci.out.println("Usage: 'set \"parameter\" value type', where type = int, bool, float, string");
+        }
+      }
+      else {
 				ci.out.println("> Command 'set': Parameter '" + parameter + "' unknown.");
 			}
 		} else {
