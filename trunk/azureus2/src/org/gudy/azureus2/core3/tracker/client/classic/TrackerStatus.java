@@ -85,7 +85,7 @@ public class TrackerStatus {
         hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
       }
       else if (response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
-        LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping scrape for hash "+hash.getHash());
+        LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping scrape for hash "+ByteFormatter.nicePrint(hash.getHash(), true));
         return;
       }
     }

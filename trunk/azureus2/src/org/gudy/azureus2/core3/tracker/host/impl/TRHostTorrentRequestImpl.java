@@ -36,23 +36,49 @@ TRHostTorrentRequestImpl
 	implements TRHostTorrentRequest
 {
 	protected TRHostTorrent				torrent;
+	protected TRHostPeer				peer;
 	protected TRTrackerServerRequest	request;
 	
 	protected
 	TRHostTorrentRequestImpl(
 		TRHostTorrent			_torrent,
+		TRHostPeer				_peer,
 		TRTrackerServerRequest	_request )
 	{
 		torrent		= _torrent;
+		peer		= _peer;
 		request		= _request;
 	}
 	
+	public TRHostPeer
+	getPeer()
+	{
+		return( peer );
+	}
+
 	public TRHostTorrent
 	getTorrent()
 	{
 		return( torrent );
 	}
 	
+	public int
+	getRequestType()
+	{
+		if ( request.getType() == TRTrackerServerRequest.RT_ANNOUNCE ){
+			
+			return( RT_ANNOUNCE );
+			
+		}else if ( request.getType() == TRTrackerServerRequest.RT_SCRAPE ){
+			
+			return( RT_SCRAPE );
+			
+		}else{
+			
+			return( RT_FULL_SCRAPE );
+		}
+	}
+
 	public Map
 	getResponse()
 	{

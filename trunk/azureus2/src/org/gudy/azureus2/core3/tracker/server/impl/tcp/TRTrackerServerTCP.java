@@ -292,13 +292,14 @@ TRTrackerServerTCP
 	
 	protected void
 	postProcess(
+		TRTrackerServerPeerImpl		peer,
 		TRTrackerServerTorrentImpl	torrent,
 		int							type,
 		Map							response )
 	{
 		if ( request_listeners.size() > 0 ){
 			
-			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, torrent, type, response );
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
 			
 			for (int i=0;i<request_listeners.size();i++){
 				

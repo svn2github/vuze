@@ -297,10 +297,11 @@ TRTrackerServerProcessorUDP
 			hash_bytes	= scrape.getHash();
 		}
 		
-		Map[]	root_out = new Map[1];
+		Map[]						root_out = new Map[1];
+		TRTrackerServerPeerImpl[]	peer_out = new TRTrackerServerPeerImpl[1];
 		
 		processTrackerRequest( 
-				server, root_out,
+				server, root_out, peer_out, 
 				request_type,
 				hash_bytes,
 				peer_id, false,	// currently no "no_peer_id" in the packet and anyway they aren't returned

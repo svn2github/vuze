@@ -31,8 +31,18 @@ import java.util.Map;
 public interface 
 TRHostTorrentRequest
 {
+	public static final int	RT_ANNOUNCE			= 1;
+	public static final int RT_SCRAPE			= 2;
+	public static final int RT_FULL_SCRAPE		= 3;
+	
+	public TRHostPeer
+	getPeer();
+	
 	public TRHostTorrent
 	getTorrent();
+	
+	public int
+	getRequestType();
 	
 	public Map
 	getResponse();

@@ -776,7 +776,8 @@ TRHostImpl
 	postProcess(
 		TRTrackerServerRequest	request )
 	{
-		if ( request.getType() == TRTrackerServerRequest.RT_ANNOUNCE ){
+		if ( 	request.getType() 	== TRTrackerServerRequest.RT_ANNOUNCE  ||
+				request.getType() 	== TRTrackerServerRequest.RT_SCRAPE ){
 			
 			TRTrackerServerTorrent ts_torrent = request.getTorrent();
 		
@@ -786,7 +787,7 @@ TRHostImpl
 			
 			if ( h_torrent != null ){
 				
-				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, request );
+				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, new TRHostPeerHostImpl(request.getPeer()), request );
 			
 				if ( h_torrent instanceof TRHostTorrentHostImpl ){
 				

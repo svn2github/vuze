@@ -68,7 +68,7 @@ TRTrackerServerTorrentImpl
 	}
 	
 	
-	public synchronized void
+	public synchronized TRTrackerServerPeerImpl
 	peerContact(
 		String		event,
 		String		peer_id,
@@ -143,6 +143,8 @@ TRTrackerServerTorrentImpl
 			
 			stats.addCompleted();
 		}
+		
+		return( peer );
 	}
 	
 	protected void

@@ -45,6 +45,49 @@ TrackerTorrentRequestImpl
 		req	= _req;
 	}
 	
+	public int
+	getRequestType()
+	{
+		if ( req.getRequestType() == TRHostTorrentRequest.RT_ANNOUNCE ){
+			
+			return( RT_ANNOUNCE );
+			
+		}else if ( req.getRequestType() == TRHostTorrentRequest.RT_SCRAPE ){
+			
+			return( RT_SCRAPE );
+			
+		}else{
+			
+			return( RT_FULL_SCRAPE );
+		}
+	}
+	
+	public TrackerTorrent
+	getTorrent()
+	{
+		TRHostTorrent	torrent = req.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+		return( new TrackerTorrentImpl( torrent ));
+	}
+	
+	public TrackerPeer
+	getPeer()
+	{
+		TRHostPeer	peer = req.getPeer();
+		
+		if ( peer == null ){
+			
+			return( null );
+		}
+		
+		return( new TrackerPeerImpl( peer ));	
+	}
+
 	public Map
 	getResponse()
 	{

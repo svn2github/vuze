@@ -408,11 +408,12 @@ TRTrackerServerProcessorTCP
 					hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
 				}
 				
-				Map[]	root_out = new Map[1];
+				Map[]						root_out = new Map[1];
+				TRTrackerServerPeerImpl[]	peer_out = new TRTrackerServerPeerImpl[1];
 				
 				specific_torrent = 
 						processTrackerRequest( 
-							server, root_out,
+							server, root_out, peer_out,
 							request_type,
 							hash_bytes,
 							peer_id, no_peer_id,
@@ -428,7 +429,7 @@ TRTrackerServerProcessorTCP
 				
 				if ( root.get( "_data" ) == null ){
 	
-					server.postProcess( specific_torrent, request_type, root );
+					server.postProcess( peer_out[0], specific_torrent, request_type, root );
 				}
 				
 			}catch( Exception e ){

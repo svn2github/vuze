@@ -39,20 +39,21 @@ TRTrackerServerProcessor
 	
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(
-		TRTrackerServerImpl		_server,
-		Map[]					root_out,		// output
-		int						request_type,
-		byte[]					hash,
-		String					peer_id,
-		boolean					no_peer_id,
-		String					event,
-		int						port,
-		String					client_ip_address,
-		long					downloaded,
-		long					uploaded,
-		long					left,
-		int						num_peers,
-		int						num_want )
+		TRTrackerServerImpl			_server,
+		Map[]						root_out,		// output
+		TRTrackerServerPeerImpl[]	peer_out,		// output
+		int							request_type,
+		byte[]						hash,
+		String						peer_id,
+		boolean						no_peer_id,
+		String						event,
+		int							port,
+		String						client_ip_address,
+		long						downloaded,
+		long						uploaded,
+		long						left,
+		int							num_peers,
+		int							num_want )
 	
 		throws Exception
 	{
@@ -103,13 +104,14 @@ TRTrackerServerProcessor
 				
 				long	interval = server.getAnnounceRetryInterval();
 				
-				torrent.peerContact( 	
+				TRTrackerServerPeerImpl peer = 
+					torrent.peerContact( 	
 						event, peer_id, port, client_ip_address,
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
 				root_out[0] = torrent.exportAnnounceToList( left > 0, num_want, interval, no_peer_id );
-								
+				peer_out[0]	= peer;				
 			}else{
 				
 				Map	files = new ByteEncodedKeyHashMap();

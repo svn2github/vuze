@@ -38,6 +38,9 @@ TRTrackerServerRequest
 	public int
 	getType();
 	
+	public TRTrackerServerPeer
+	getPeer();
+	
 	public TRTrackerServerTorrent
 	getTorrent();
 	
