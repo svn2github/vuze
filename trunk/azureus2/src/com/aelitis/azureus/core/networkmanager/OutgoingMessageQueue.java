@@ -44,10 +44,11 @@ public class OutgoingMessageQueue {
 
   private final ArrayList delayed_notifications = new ArrayList();
   private final AEMonitor delayed_notifications_mon = new AEMonitor( "OutgoingMessageQueue:DN" );
+
+  private volatile ArrayList listeners 		= new ArrayList();  //copied-on-write
+  private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   
   private int total_size = 0;
-  private final ArrayList listeners 		= new ArrayList();
-  private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   private ProtocolMessage urgent_message = null;
   private volatile boolean destroyed = false;
   
@@ -141,18 +142,10 @@ public class OutgoingMessageQueue {
       }
     }
     else { //do listener notification now
-      ArrayList listeners_copy;
-      try {
-        listeners_mon.enter();
-      
-        listeners_copy = new ArrayList( listeners );
-      }
-      finally {
-        listeners_mon.exit();
-      }
+      ArrayList listeners_ref = listeners;
     
-      for( int i=0; i < listeners_copy.size(); i++ ) {
-        MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+      for( int i=0; i < listeners_ref.size(); i++ ) {
+        MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
         listener.messageAdded( message );
       }
     }
@@ -212,21 +205,13 @@ public class OutgoingMessageQueue {
 
     if( !manual_listener_notify && messages_removed != null ) {
       //do listener notifications now
-      ArrayList listeners_copy;
-      try {
-        listeners_mon.enter();
-          
-        listeners_copy = new ArrayList( listeners );
-      }
-      finally {
-        listeners_mon.exit();
-      }
+      ArrayList listeners_ref = listeners;
         
       for( int x=0; x < messages_removed.size(); x++ ) {
         ProtocolMessage msg = (ProtocolMessage)messages_removed.get( x );
         
-        for( int i=0; i < listeners_copy.size(); i++ ) {
-          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+        for( int i=0; i < listeners_ref.size(); i++ ) {
+          MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
           listener.messageRemoved( msg );
         }
         msg.destroy();
@@ -286,18 +271,10 @@ public class OutgoingMessageQueue {
         }
       }
       else {   //do listener notification now
-        ArrayList listeners_copy;
-        try {
-          listeners_mon.enter();
-        
-          listeners_copy = new ArrayList( listeners );
-        }
-        finally {
-          listeners_mon.exit();
-        }
+        ArrayList listeners_ref = listeners;
       
-        for( int i=0; i < listeners_copy.size(); i++ ) {
-          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+        for( int i=0; i < listeners_ref.size(); i++ ) {
+          MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
           listener.messageRemoved( msg_removed );
         }
         msg_removed.destroy();
@@ -447,19 +424,11 @@ public class OutgoingMessageQueue {
         }
       }
       else {  //do listener notification now
-        ArrayList listeners_copy;
-        try {
-          listeners_mon.enter();
+        ArrayList listeners_ref = listeners;
         
-          listeners_copy = new ArrayList( listeners );
-        }
-        finally {
-          listeners_mon.exit();
-        }
-        
-        int num_listeners = listeners_copy.size();
+        int num_listeners = listeners_ref.size();
         for( int i=0; i < num_listeners; i++ ) {
-          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
 
           if( data_written > 0 )  listener.dataBytesSent( data_written );
           if( protocol_written > 0 )  listener.protocolBytesSent( protocol_written );
@@ -501,39 +470,30 @@ public class OutgoingMessageQueue {
       delayed_notifications_mon.exit();
     }
     
-    ArrayList listeners_copy;
-    try {
-      listeners_mon.enter();
-    
-      if( listeners.size() == 0 )  return;
-      listeners_copy = new ArrayList( listeners );
-    }
-    finally {
-      listeners_mon.exit();
-    }
+    ArrayList listeners_ref = listeners;
     
     for( int j=0; j < notifications_copy.size(); j++ ) {  //for each notification
       NotificationItem item = (NotificationItem)notifications_copy.get( j );
 
       switch( item.type ) {
         case NotificationItem.MESSAGE_ADDED:
-          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.messageAdded( item.message );
           }
           break;
           
         case NotificationItem.MESSAGE_REMOVED:
-          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.messageRemoved( item.message );
           }
           item.message.destroy();
           break;
           
         case NotificationItem.MESSAGE_SENT:
-          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.messageSent( item.message );
           }
           LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +item.message.getDescription()+ " message to " + item.transport.getDescription() );
@@ -541,15 +501,15 @@ public class OutgoingMessageQueue {
           break;
           
         case NotificationItem.PROTOCOL_BYTES_SENT:
-          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.protocolBytesSent( item.byte_count );
           }
           break;
           
         case NotificationItem.DATA_BYTES_SENT:
-          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.dataBytesSent( item.byte_count );
           }
           break;
@@ -607,14 +567,14 @@ public class OutgoingMessageQueue {
    * @param listener
    */
   public void registerQueueListener( MessageQueueListener listener ) {
-    try{
-      listeners_mon.enter();
-    
-      listeners.add( listener );
+    try{  listeners_mon.enter();
+      //copy-on-write
+      ArrayList new_list = new ArrayList( listeners.size() + 1 );
+      new_list.addAll( listeners );
+      new_list.add( listener );
+      listeners = new_list;
     }
-    finally{
-      listeners_mon.exit();
-    }
+    finally{  listeners_mon.exit();  }
   }
   
   
@@ -623,14 +583,13 @@ public class OutgoingMessageQueue {
    * @param listener
    */
   public void cancelQueueListener( MessageQueueListener listener ) {
-    try{
-      listeners_mon.enter();
-    
-      listeners.remove( listener );
+    try{  listeners_mon.enter();
+      //copy-on-write
+      ArrayList new_list = new ArrayList( listeners );
+      new_list.remove( listener );
+      listeners = new_list;
     }
-    finally{
-      listeners_mon.exit();
-    }
+    finally{  listeners_mon.exit();  }
   }
 
   
