@@ -26,8 +26,11 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -78,6 +81,11 @@ DDBaseImpl
 	
 	private DHTPlugin		dht;
 	
+	private static final int	THREAD_POOL_SIZE	= 8;
+	private AEMonitor			task_mon			= new AEMonitor( "DBase:TaskMon" );
+	private int					tasks_active		= 0;
+	private List				task_queue			= new ArrayList();
+	private ThreadPool			thread_pool;
 	
 	protected
 	DDBaseImpl(
@@ -86,6 +94,8 @@ DDBaseImpl
 		PluginInterface dht_pi = 
 			azureus_core.getPluginManager().getPluginInterfaceByClass(
 						DHTPlugin.class );
+		
+		thread_pool = new ThreadPool("DDBase:queue",8);
 		
 		if ( dht_pi != null ){
 			
@@ -192,41 +202,128 @@ DDBaseImpl
 	
 	public void
 	write(
-		DistributedDatabaseListener		listener,
-		DistributedDatabaseKey			key,
-		DistributedDatabaseValue		value )
+		final DistributedDatabaseListener		listener,
+		final DistributedDatabaseKey			key,
+		final DistributedDatabaseValue		value )
 	
 		throws DistributedDatabaseException
 	{
 		throwIfNotAvailable();
 		
-		dht.put(	((DDBaseKeyImpl)key).getBytes(),
-					((DDBaseValueImpl)value).getBytes(),
-					(byte)0,
-					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key ));
+		queue(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					dht.put(	
+							((DDBaseKeyImpl)key).getBytes(),
+							((DDBaseValueImpl)value).getBytes(),
+							(byte)0,
+							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key ));
+				}
+			});
 	}
 		
 	public void
 	read(
-		DistributedDatabaseListener		listener,
-		DistributedDatabaseKey			key,
-		long							timeout )
+		final DistributedDatabaseListener		listener,
+		final DistributedDatabaseKey			key,
+		final long								timeout )
 	
 		throws DistributedDatabaseException
 	{
 			// TODO: max values?
 		
-		dht.get(	((DDBaseKeyImpl)key).getBytes(), (byte)0, 16, timeout, new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key ));
+		queue(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					dht.get(	((DDBaseKeyImpl)key).getBytes(), (byte)0, 16, timeout, new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key ));
+				}
+			});
 	}
 	
 	public void
 	delete(
-		DistributedDatabaseListener		listener,
-		DistributedDatabaseKey			key )
+		final DistributedDatabaseListener		listener,
+		final DistributedDatabaseKey			key )
 	
 		throws DistributedDatabaseException
 	{
-		dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key ));
+		queue(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key ));
+				}
+			});
+	}
+	
+	protected void
+	queue(
+		final AERunnable	task )
+	{
+		try{
+			task_mon.enter();
+			
+			if ( tasks_active > THREAD_POOL_SIZE ){
+				
+				task_queue.add( task );
+				
+			}else{
+				
+				tasks_active++;
+				
+				thread_pool.run( 
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							AERunnable	current_task	= task;
+
+							while( current_task != null ){
+								
+								try{
+									current_task.runSupport();
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+									
+								}finally{
+									
+									try{
+										task_mon.enter();
+									
+										if ( task_queue.size() > 0 ){
+											
+											current_task = (AERunnable)task_queue.remove(0);
+											
+										}else{
+											
+											current_task	= null;
+											
+											tasks_active--;
+										}
+									}finally{
+										
+										task_mon.exit();
+									}
+								}
+							}
+						}
+					});
+			}
+		}finally{
+			
+			task_mon.exit();
+		}
 	}
 	
 	public void
