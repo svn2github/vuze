@@ -28,4 +28,29 @@ package org.gudy.azureus2.plugins.download;
 public interface 
 Download 
 {
+	public static final int ST_STOPPED		= 1;
+	public static final int ST_STARTED		= 2;
+	
+	/**
+	 * get state from above ST_ set
+	 * @return
+	 */
+	
+	public int
+	getState();
+	
+	public void
+	start()
+	
+		throws DownloadException;
+	
+	public void
+	stop()
+	
+		throws DownloadException;
+	
+	public void
+	remove()
+	
+		throws DownloadException;
 }

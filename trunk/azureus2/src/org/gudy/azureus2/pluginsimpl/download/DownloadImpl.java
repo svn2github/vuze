@@ -26,17 +26,86 @@ package org.gudy.azureus2.pluginsimpl.download;
  *
  */
 
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 
 public class 
 DownloadImpl
 	implements Download
 {
+	protected DownloadManager		download_manager;
+	
 	protected
 	DownloadImpl(
-		DownloadManager		dm )
+		DownloadManager		_dm )
 	{
+		download_manager	= _dm;
+	}
+	
+	public int
+	getState()
+	{
+		int	state = download_manager.getState();
 		
+		switch( state ){
+			case DownloadManager.STATE_DOWNLOADING:
+			case DownloadManager.STATE_SEEDING:
+			{
+				return( ST_STARTED );
+			}
+			default:
+			{
+				return( ST_STOPPED );
+			}
+		}
+	}
+	
+	public void
+	start()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() == DownloadManager.STATE_STOPPED){
+			
+			download_manager.setState(DownloadManager.STATE_WAITING);
+			
+		}else{
+			
+			throw( new DownloadException( "Download::start: download not stopped" ));
+		}
+	}
+	
+	public void
+	stop()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() != DownloadManager.STATE_STOPPED){
+			
+			download_manager.stopIt();
+			
+		}else{
+			
+			throw( new DownloadException( "Download::stop: download already stopped" ));
+		}
+	}
+	
+	public void
+	remove()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() == DownloadManager.STATE_STOPPED){
+			
+			GlobalManager globalManager = download_manager.getGlobalManager();
+			
+			globalManager.removeDownloadManager(download_manager);
+			
+		}else{
+			
+			throw( new DownloadException( "Download::remove: download not stopped" ));
+		}
 	}
 }
