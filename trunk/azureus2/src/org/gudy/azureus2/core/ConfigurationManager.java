@@ -45,6 +45,9 @@ public class ConfigurationManager {
       fin = new FileInputStream(getApplicationPath() + filename);
       bin = new BufferedInputStream(fin);
       propertiesMap = BDecoder.decode(bin);
+      if (propertiesMap == null)
+        // Occurs when file is there but zero size (or b0rked?)
+        propertiesMap = new HashMap();
     } catch (FileNotFoundException e) {
       //create the file!
       try {
