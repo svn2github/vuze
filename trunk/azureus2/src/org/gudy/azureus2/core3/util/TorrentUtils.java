@@ -49,10 +49,12 @@ TorrentUtils
     } catch (TOTorrentException e) {
       e.printStackTrace();
       File torrentBackup = new File(file_name + ".bak");
-      if(torrentBackup.exists())
+      if(torrentBackup.exists()){
         torrent = TOTorrentFactory.deserialiseFromBEncodedFile(torrentBackup);
-      else
+        torrent.setAdditionalStringProperty("torrent filename", torrentBackup.toString());
+      }else{
         throw e;
+      }
     }
     torrent.setAdditionalStringProperty("torrent filename", file_name );
 		return( torrent );

@@ -94,9 +94,14 @@ DownloadManagerImpl
 			
 			DownloadManager	man = (DownloadManager)dls.get(i);
 			
-			if ( man.getTorrent().hasSameHashAs( torrent.getTorrent())){
+				// torrent can be null if download manager torrent file read fails
+			
+			if ( man.getTorrent() != null ){
 				
-				return( new DownloadImpl( man ));
+				if ( man.getTorrent().hasSameHashAs( torrent.getTorrent())){
+				
+					return( new DownloadImpl( man ));
+				}
 			}
 		}
 		
