@@ -21,9 +21,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
-import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier
@@ -31,15 +29,15 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
  */
 public abstract class TorrentItem extends BufferedTableItem {
 
-  protected DownloadManager manager;
+  protected TorrentRow torrentRow;
   
   /**
    * @param row
    * @param position
    */
-  public TorrentItem(DownloadManager manager,BufferedTableRow row, int position) {
-    super(row, position);
-    this.manager = manager;
+  public TorrentItem(TorrentRow torrentRow, int position) {
+    super(torrentRow.getRow(), position);
+    this.torrentRow = torrentRow;
   }
 
 }

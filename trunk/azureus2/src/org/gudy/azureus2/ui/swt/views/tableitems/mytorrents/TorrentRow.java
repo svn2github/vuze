@@ -34,8 +34,6 @@ public class TorrentRow implements SortableItem {
   private List items;
   private DownloadManager manager;
 
-  private String index = ""; //$NON-NLS-1$
-  private String name = ""; //$NON-NLS-1$
   private String size = ""; //$NON-NLS-1$
   private String done = ""; //$NON-NLS-1$
   private String status = ""; //$NON-NLS-1$
@@ -49,6 +47,13 @@ public class TorrentRow implements SortableItem {
   
   //Used when sorting
   public boolean selected;  
+
+  /**
+   * @return Returns the row.
+   */
+  public BufferedTableRow getRow() {
+    return row;
+  }
 
   public TorrentRow(MyTorrentsView view, Table table, DownloadManager manager) {
     this.table = table;
@@ -70,7 +75,8 @@ public class TorrentRow implements SortableItem {
         if (table == null || table.isDisposed())
           return;
         row = new BufferedTableRow(table, SWT.NULL);
-        items.add(new RankItem(row,0,manager));
+        items.add(new RankItem(TorrentRow.this,0));
+        items.add(new NameItem(TorrentRow.this,1));        
         view.setItem(row.getItem(),manager);
       }
     });
@@ -101,13 +107,7 @@ public class TorrentRow implements SortableItem {
       item.refresh();
     }
     
-    String tmp;   
-    
-    tmp = manager.getName();
-    if (tmp != null && !(this.name.equals(tmp))) {
-      name = tmp;      
-      row.setText(1, name);     
-    }
+    String tmp;      
 
     tmp = ""; //$NON-NLS-1$
     tmp = DisplayFormatters.formatByteCountToKBEtc(manager.getSize());

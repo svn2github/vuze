@@ -30,10 +30,16 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
  *
  */
 public class RankItem extends TorrentItem {
-  
+
+  public RankItem(
+    TorrentRow torrentRow,
+    int position) {
+    super(torrentRow, position);    
+  }
+
   public void refresh() {
-    setText("" + (manager.getIndex()+1));
-    String name = manager.getName();
+    setText("" + (torrentRow.getManager().getIndex()+1));
+    String name = torrentRow.getManager().getName();
     if (name != null ) {
       int sep = name.lastIndexOf('.'); //$NON-NLS-1$
       if(sep < 0) sep = 0;

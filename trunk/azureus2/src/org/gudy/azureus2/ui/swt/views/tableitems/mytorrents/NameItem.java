@@ -21,15 +21,23 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+
 /**
  * @author Olivier
  *
  */
 public class NameItem extends TorrentItem {
 
-  public void refresh() {
-    // TODO Auto-generated method stub
+  
+  
+  public NameItem(
+    TorrentRow torrentRow,
+    int position) {
+    super(torrentRow, position);
+  }
 
+  public void refresh() {
+    setText(torrentRow.getManager().getName());
   }
 
 }
