@@ -1857,13 +1857,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                          + " userPath=" + userPath + "\n");
     
       //File updaterJar = FileUtil.getApplicationFile("Updater.jar"); //$NON-NLS-1$
-      File updaterJar = new File(userPath, "Updater.jar");
+      File updaterJar = new File(userPath, "Updater2.jar");
       
       log.write("updateJar:: looking for " + updaterJar.getAbsolutePath() + "\n");
       
       if (!updaterJar.isFile()) {
-        log.write("updateJar:: downloading new Updater.jar file .....");
-        URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
+        log.write("updateJar:: downloading new Updater2.jar file .....");
+        URL reqUrl = new URL("http://azureus.sourceforge.net/Updater2.jar"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         in = con.getInputStream();
@@ -1876,7 +1876,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
         log.write("done\n");
       }
-      else log.write("updateJar:: using existing Updater.jar file\n");
+      else log.write("updateJar:: using existing Updater2.jar file\n");
 
       String exec = javaPath + "java -classpath \"" + updaterJar.getAbsolutePath()
                   + "\" org.gudy.azureus2.update.Updater \"" + classPath
