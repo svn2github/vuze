@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.peermanager.utils;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * Storage class for peer ip address & port connection information.
