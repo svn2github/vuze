@@ -117,8 +117,7 @@ public class UploadManager {
                 
                 //reserve bandwidth for the general pool if needed
                 if( standard_entity_controller.isGeneralPoolWriteNeeded() ) {
-                  int mss = NetworkManager.getSingleton().getTcpMssSize();
-                  global_allowed -= mss * 2;
+                  global_allowed -= NetworkManager.getSingleton().getTcpMssSize();
                   if( global_allowed < 0 )  global_allowed = 0;
                 }
                 
