@@ -182,7 +182,7 @@ TRHostConfigImpl
 		   
 		   	TRHostTorrent[]	torrents = host.getTorrents();
 		   
-		   	StringBuffer	stats_entry = new StringBuffer(2048);
+		   	List	stats_entries = new ArrayList();
 		   	
 		   	for (int i = 0; i < torrents.length; i++){
 		   	
@@ -191,6 +191,8 @@ TRHostConfigImpl
 					TRHostTorrent torrent = (TRHostTorrent)torrents[i];
 					
 					if ( torrent.isPersistent()){
+	
+						StringBuffer	stats_entry = new StringBuffer(2048);
 						
 						Map t_map = new HashMap();
 				 	
@@ -265,6 +267,8 @@ TRHostConfigImpl
 						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( torrent.getTotalLeft()));
 						
 						stats_entry.append( "\r\n");
+						
+						stats_entries.add( stats_entry );
 					}
 				 	
 		  	 	}catch( TOTorrentException e ){
@@ -304,42 +308,50 @@ TRHostConfigImpl
 				 	}catch (Exception e) {}
 			   	}
 			   	
-			   	try{
-			   		Calendar now = GregorianCalendar.getInstance();
+			   	if ( stats_entries.size() > 0 ){
 			   		
-			   		String timeStamp =
-			   		"[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("] ");    
-			   		
-			   		String str = timeStamp + stats_entry.toString();
-			   		
-			   		PrintWriter	pw = null;
-			   		
-			   		File	file_name = new File( log_dir.concat(File.separator).concat(LOG_FILE_NAME) );
-			   		
-			   		try{		
-			   			
-			   			pw = new PrintWriter(new FileWriter( file_name, true ));
-			   			
-			   			pw.print( str );
-			   			
-			   		}catch( Throwable e ){
-			   			
-			   			e.printStackTrace();
-			   			
-			   		}finally{
-			   			
-			   			if ( pw != null ){
-			   				
-			   				try{
-			   					
-			   					pw.close();
-			   					
-			   				}catch( Throwable e ){
-			   				}
-			   			}
-			   		}
-			   	}catch( Throwable e ){
-			   		e.printStackTrace();
+				   	try{
+				   		Calendar now = GregorianCalendar.getInstance();
+				   		
+				   		String timeStamp =
+				   		"[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("] ");    
+				   		
+				   		PrintWriter	pw = null;
+				   		
+				   		File	file_name = new File( log_dir.concat(File.separator).concat(LOG_FILE_NAME) );
+				   		
+				   		try{		
+				   			
+				   			pw = new PrintWriter(new FileWriter( file_name, true ));
+				   
+				   			for (int i=0;i<stats_entries.size();i++){
+				   				
+				   				StringBuffer	stats_entry = (StringBuffer)stats_entries.get(i);
+				   				
+				   				String str = timeStamp + stats_entry.toString();
+				   					
+				   				pw.print( str );
+				   			}
+				   			
+				   		}catch( Throwable e ){
+				   			
+				   			e.printStackTrace();
+				   			
+				   		}finally{
+				   			
+				   			if ( pw != null ){
+				   				
+				   				try{
+				   					
+				   					pw.close();
+				   					
+				   				}catch( Throwable e ){
+				   				}
+				   			}
+				   		}
+				   	}catch( Throwable e ){
+				   		e.printStackTrace();
+				   	}
 			   	}
 		   	}
 		}catch( Throwable e ){

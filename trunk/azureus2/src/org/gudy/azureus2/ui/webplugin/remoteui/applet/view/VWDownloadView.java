@@ -51,7 +51,7 @@ VWDownloadView
 		
 		TableColumnModel cm = table.getColumnModel();
 
-		int[]	widths = { 30, -1, 60, 90, 80, 80, 50, 50 };
+		int[]	widths = { 30, -1, 60, 90, 80, 80, 50, 50, 50, 60, 70, 50, 60 };
 		
 		for (int i=0;i<widths.length;i++){
 			
@@ -61,8 +61,9 @@ VWDownloadView
 			}
 		}
 	
-		int[]	byte_columns 	= { 2, 3 };
-		int[]	rhs_columns		= { 5, 6, 7 };
+		int[]	byte_columns 		= { 2, 3, 8 };
+		int[]	bytesec_columns 	= { 9, 10 };
+		int[]	rhs_columns			= { 5, 6, 7 };
 		
 		for (int i=0;i<byte_columns.length;i++){
 			
@@ -91,6 +92,35 @@ VWDownloadView
 						return( res );
 					}
 				});
+		}
+		
+		for (int i=0;i<bytesec_columns.length;i++){
+			
+			TableColumn column = cm.getColumn( bytesec_columns[i]);
+			
+			column.setCellRenderer(
+					new DefaultTableCellRenderer()
+					{
+						public Component 
+						getTableCellRendererComponent(
+								JTable		table,
+								Object 		o_value,
+								boolean 	isSelected,
+								boolean 	hasFocus,
+								int 		row,
+								int 		column )
+						{
+							long	value = ((Long)o_value).longValue();
+							
+							String	str = DisplayFormatters.formatByteCountToKiBEtcPerSec(value);
+							
+							JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row,column );
+							
+							res.setHorizontalAlignment( JLabel.RIGHT );
+							
+							return( res );
+						}
+					});
 		}
 		
 		for (int i=0;i<rhs_columns.length;i++){
@@ -143,6 +173,39 @@ VWDownloadView
 						pb.setString(""+((double)value)/10+"%");
 						
 						return( pb );
+					}
+				});
+		
+		cm.getColumn(12).setCellRenderer(
+				new DefaultTableCellRenderer()
+				{
+					public Component 
+					getTableCellRendererComponent(
+							JTable		table,
+							Object 		o_value,
+							boolean 	isSelected,
+							boolean 	hasFocus,
+							int 		row,
+							int 		column )
+					{
+						int	value = ((Integer)o_value).intValue();
+						
+						JLabel	res;
+						
+						if ( value >= 0 ){
+
+							double d = ((double)value)/1000;
+							
+							res = (JLabel)super.getTableCellRendererComponent( table, new Double(d), isSelected, hasFocus, row,column );
+							
+						}else{
+							res = (JLabel)super.getTableCellRendererComponent( table, Constants.INFINITY_STRING, isSelected, hasFocus, row,column );
+							
+						}
+							
+						res.setHorizontalAlignment( JLabel.RIGHT );
+							
+						return( res );
 					}
 				});
 		

@@ -36,7 +36,7 @@ public class
 MDDownloadModel
 	extends AbstractTableModel
 {
-	public static String[]	column_names = { "#", "Name", "Size", "Downloaded", "Done", "State", "Seeds", "Peers" };
+	public static String[]	column_names = { "#", "Name", "Size", "Downloaded", "Done", "State", "Seeds", "Peers", "Uploaded", "Up Ave", "Down Ave", "ETA", "Share Ratio" };
 	
 	protected DownloadManager	download_manager;
 	protected Download[]		downloads;
@@ -116,6 +116,26 @@ MDDownloadModel
 		}else if ( col == 7 ){
 			
 			return( announce.getNonSeedCount()+"("+(scrape.getNonSeedCount()==-1?0:scrape.getNonSeedCount())+")");
+			
+		}else if ( col == 8 ){
+			
+			return(new Long( download.getStats().getUploaded()));
+			
+		}else if ( col == 9 ){
+			
+			return(new Long( download.getStats().getDownloadAverage()));
+			
+		}else if ( col == 10 ){
+			
+			return(new Long( download.getStats().getUploadAverage()));
+			
+		}else if ( col == 11 ){
+			
+			return(new String( download.getStats().getETA()));
+			
+		}else if ( col == 12 ){
+			
+			return(new Integer( download.getStats().getShareRatio()));
 		}
 		
 		return( null );

@@ -38,8 +38,13 @@ RPDownloadStats
 	protected transient DownloadStats		delegate;
 
 	protected long				downloaded;
+	protected long				uploaded;
 	protected int				completed;
 	protected String			status;
+	protected long				upload_average;
+	protected long				download_average;
+	protected String			eta;
+	protected int				share_ratio;
 	
 	public static RPDownloadStats
 	create(
@@ -68,9 +73,14 @@ RPDownloadStats
 	{
 		delegate = (DownloadStats)_delegate;
 		
-		downloaded	= delegate.getDownloaded();
-		completed	= delegate.getCompleted();
-		status		= delegate.getStatus();
+		downloaded			= delegate.getDownloaded();
+		uploaded			= delegate.getUploaded();
+		completed			= delegate.getCompleted();
+		status				= delegate.getStatus();
+		upload_average		= delegate.getUploadAverage();
+		download_average	= delegate.getDownloadAverage();
+		eta					= delegate.getETA();
+		share_ratio			= delegate.getShareRatio();
 	}
 	
 	public void
@@ -138,9 +148,7 @@ RPDownloadStats
 	public long
 	getUploaded()
 	{
-		notSupported();
-		
-		return( 0 );
+		return( uploaded );
 	}
 	
 	public long
@@ -154,17 +162,13 @@ RPDownloadStats
 	public long
 	getDownloadAverage()
 	{
-		notSupported();
-		
-		return( 0 );
+		return( download_average );
 	}
 	
 	public long
 	getUploadAverage()
 	{
-		notSupported();
-		
-		return( 0 );
+		return( upload_average );
 	}
 	
 	public long
@@ -186,9 +190,7 @@ RPDownloadStats
 	public String
 	getETA()
 	{
-		notSupported();
-		
-		return( null );
+		return( eta );
 	}
 	
 	public long
@@ -202,12 +204,12 @@ RPDownloadStats
 	public int
 	getShareRatio()
 	{
-		notSupported();
-		
-		return( 0 );
+		return( share_ratio );
 	}
 	
-	public long getTimeStarted() {
+	public long 
+	getTimeStarted() 
+	{
 		 notSupported();
 		 return ( 0 );
 	}
