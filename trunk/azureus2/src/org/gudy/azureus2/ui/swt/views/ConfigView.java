@@ -430,7 +430,7 @@ public class ConfigView extends AbstractIView {
     upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
     upsValues[0] = 0;
     for (int i = 1; i < upRates.length; i++) {
-      upsLabels[i] = " " + upRates[i] + "kB/s"; //$NON-NLS-1$ //$NON-NLS-2$
+      upsLabels[i] = " " + upRates[i] + " KB/s"; //$NON-NLS-1$ //$NON-NLS-2$
       upsValues[i] = 1024 * upRates[i];
     }
     new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$  

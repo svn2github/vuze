@@ -129,7 +129,7 @@ public class TransferPanel extends AbstractWizardPanel {
     upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
     upsValues[0] = 0;
     for (int i = 1; i < upRates.length; i++) {
-      upsLabels[i] = " " + upRates[i] + "kB/s"; //$NON-NLS-1$ //$NON-NLS-2$
+      upsLabels[i] = " " + upRates[i] + " KB/s"; //$NON-NLS-1$ //$NON-NLS-2$
       upsValues[i] = 1024 * upRates[i];
     }
     final Combo cMaxUpSpeed = new Combo(panel, SWT.SINGLE | SWT.READ_ONLY);

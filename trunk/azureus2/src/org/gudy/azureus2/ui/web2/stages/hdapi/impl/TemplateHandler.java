@@ -230,7 +230,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
         }
         h.put("Torrents_Torrent_SeedsConnected", Integer.toString(dm.getNbSeeds()));
         h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));
-        h.put("Torrents_Torrent_ETA", (stats.getETA() == "") ? "&nbsp;" : stats.getETA());
+        h.put("Torrents_Torrent_ETA", (DisplayFormatters.formatETA(stats.getETA()) == "") ? "&nbsp;" : DisplayFormatters.formatETA(stats.getETA()));
         h.put("Torrents_Torrent_SizeDown", DisplayFormatters.formatDownloaded(stats));
         h.put("Torrents_Torrent_SizeUp", DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()));
         h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
