@@ -21,14 +21,14 @@
 
 package org.gudy.azureus2.plugins.peers.protocol;
 
+import java.util.Map;
+import java.util.List;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+
 /**
  * @author parg
  *
  */
-
-import java.util.*;
-
-import org.gudy.azureus2.plugins.peers.PeerManager;
 
 public interface 
 PeerProtocolExtensionHandler 

@@ -21,22 +21,21 @@
 
 package org.gudy.azureus2.plugins.download;
 
-
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /** Management of a Torrent's activity.
  * <PRE>
- * A download's lifecycle:<BR>
- * torrent gets added<BR>
- *    state -> QUEUED<BR>
- * slot becomes available, queued torrent is picked, "restart" executed<BR>
- *    state -> WAITING<BR>
- * state moves through PREPARING to READY<BR>
- *    state -> PREPARING<BR>
- *    state -> READY<BR>
- * execute "start" method<BR>
- *    state -> SEEDING -or- DOWNLOADING<BR>
- * if torrent is DOWNLOADING, and completes, state changes to SEEDING<BR>
+ * A download's lifecycle:
+ * torrent gets added
+ *    state -> QUEUED
+ * slot becomes available, queued torrent is picked, "restart" executed
+ *    state -> WAITING
+ * state moves through PREPARING to READY
+ *    state -> PREPARING
+ *    state -> READY
+ * execute "start" method
+ *    state -> SEEDING -or- DOWNLOADING
+ * if torrent is DOWNLOADING, and completes, state changes to SEEDING
  *
  * Path 1                   | Path 2
  * -------------------------+------------------------------------------------
@@ -44,8 +43,8 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
  *    state -> STOPPING     |     state -> STOPPING
  *    state -> STOPPED      |     state -> STOPPED
  *                          |     state -> QUEUED
- * execute "remove" method -> deletes the download<BR>
- * a "stop" method call can be made when the download is in all states except STOPPED<BR>
+ * execute "remove" method -> deletes the download
+ * a "stop" method call can be made when the download is in all states except STOPPED
  * </PRE>
  *
  * @author parg

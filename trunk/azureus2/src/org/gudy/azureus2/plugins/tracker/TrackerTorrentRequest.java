@@ -21,12 +21,12 @@
 
 package org.gudy.azureus2.plugins.tracker;
 
+import java.util.Map;
+
 /**
  * @author parg
  *
  */
-
-import java.util.Map;
 
 public interface 
 TrackerTorrentRequest 

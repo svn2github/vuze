@@ -21,15 +21,15 @@
 
 package org.gudy.azureus2.plugins;
 
+import java.util.Properties;
+
+import org.gudy.azureus2.pluginsimpl.PluginManagerImpl;
+
 /**
  * @author parg
  * This class allows Azureus to be started as an embedded component and also allows plugins to
  * be dynamically registered
  */
-
-import java.util.Properties;
-
-import org.gudy.azureus2.pluginsimpl.PluginManagerImpl;
 
 
 public class 
