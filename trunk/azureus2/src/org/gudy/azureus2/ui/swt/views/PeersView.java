@@ -355,7 +355,10 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       while (iter.hasNext()) {
         PEPeer peerSocket = (PEPeer) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
-        psItems[item.getIndex()] = item;
+        int index = item.getIndex();
+        if(index == -1)
+          continue;
+        psItems[index] = item;
         long value = getIntField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
@@ -424,7 +427,10 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       while (iter.hasNext()) {
         PEPeer peerSocket = (PEPeer) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
-        psItems[item.getIndex()] = item;
+        int index = item.getIndex();
+        if(index == -1)
+          continue;
+        psItems[index] = item;
         String value = getStringField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {

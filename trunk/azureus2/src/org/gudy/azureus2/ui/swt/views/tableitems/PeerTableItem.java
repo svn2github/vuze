@@ -33,6 +33,7 @@ public class PeerTableItem {
   private PEPeer peerSocket;
   private TableItem item;
   private Listener listener;
+  
   //This is used for caching purposes of the Image
   private boolean valid;
   private Image image;
@@ -53,31 +54,28 @@ public class PeerTableItem {
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";	
 
-    display.syncExec(new Runnable() {
+    display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;
                 
-		item = new TableItem(table, SWT.NULL);                
+          item = new TableItem(table, SWT.NULL);                
                 
-        table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
-          public void handleEvent(Event e) {
-            valid = false;
-          }
-        });
+          table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
+            public void handleEvent(Event e) {
+              valid = false;
+            }
+          });
 
         item.addDisposeListener(new DisposeListener() {
           public void widgetDisposed(DisposeEvent e) {
             if (image != null && !image.isDisposed())
               image.dispose();
           }
-        });
+        });        
+        tableItems.put(item, this);
       }
-    });
-    // Why put only the last item list? could be uninitialized, too
-    // Gudy : because :D tableItems is used to link item (SWT object) to actual item (this object)
-    //        this is done for all items.
-    tableItems.put(item, this);
+    });  
   }
 
   public synchronized void updateImage() {
@@ -361,6 +359,8 @@ public class PeerTableItem {
   }
 
   public int getIndex() {
+    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+      return -1;
     return table.indexOf(item);
   }
 

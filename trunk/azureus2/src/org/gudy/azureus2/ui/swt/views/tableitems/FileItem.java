@@ -206,7 +206,7 @@ public class FileItem {
     this.item = item;
   }
   
-  public int getIndex() {
+  public int getIndex() {    
     return table.indexOf(item);
   }
 

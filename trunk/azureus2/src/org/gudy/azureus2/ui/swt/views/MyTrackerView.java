@@ -268,11 +268,9 @@ MyTrackerView
 		  
 		  	if (item == null){
 		  	
-				item = new TrackerTableItem(table, host_torrent);
+				item = new TrackerTableItem(this,table, host_torrent);
 				
-		  		host_torrent_items.put(host_torrent, item);
-		  		
-				host_torrents.put(item.getTableItem(), host_torrent);
+		  	host_torrent_items.put(host_torrent, item);		  					
 			}	
 		}
 	}
@@ -286,8 +284,8 @@ MyTrackerView
 		if (item != null) {
 			
 			host_torrents.remove( item.getTableItem());
-			
-			item.delete();
+			if(item != null)
+			  item.delete();
 		}		
 	}
 
@@ -344,4 +342,8 @@ MyTrackerView
 	 public String getFullTitle() {
 	   return MessageText.getString("MyTrackerView.mytracker");
 	 }
+   
+   public void putHost(TableItem item, TRHostTorrent host_torrent) {
+     host_torrents.put(item, host_torrent);
+   }
 }

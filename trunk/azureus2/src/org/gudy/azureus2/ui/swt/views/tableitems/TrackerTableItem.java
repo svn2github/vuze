@@ -49,13 +49,14 @@ TrackerTableItem
 	public boolean selected;  
 
 	public TrackerTableItem(
+    MyTrackerView view,
 		Table 			_table, 
 		TRHostTorrent 	_torrent ) 
 	{
 		table		= _table;
 		torrent		= _torrent;
 		
-	  	initialize();
+	  	initialize(view);
 	}
 
 	public TableItem 
@@ -65,18 +66,19 @@ TrackerTableItem
 	}
 
 	private void 
-	initialize() 
+	initialize( final MyTrackerView view) 
 	{
 	  if (table == null || table.isDisposed())
 		return;
 		
 	  display = table.getDisplay();
 	  
-	  display.syncExec(new Runnable() {
+	  display.asyncExec(new Runnable() {
 		public void run() {
 		  if (table == null || table.isDisposed())
 			return;
 		  item = new TableItem(table, SWT.NULL);
+      view.putHost(item,torrent);
 		}
 	  });
 	}
@@ -175,6 +177,8 @@ TrackerTableItem
 	public int 
 	getIndex() 
 	{
+    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+      return -1;
 	  return table.indexOf(item);
 	}
 

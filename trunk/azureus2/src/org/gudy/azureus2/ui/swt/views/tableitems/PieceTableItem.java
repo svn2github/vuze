@@ -41,7 +41,7 @@ public class PieceTableItem {
     this.display = table.getDisplay();
     if (display == null || display.isDisposed())
       return;
-    display.syncExec(new Runnable() {
+    display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;
@@ -149,9 +149,9 @@ public class PieceTableItem {
   }
   
   public int getIndex() {
-    if(table != null && !table.isDisposed())
-      return table.indexOf(item);
-    return 0;
+    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+      return -1;
+    return table.indexOf(item);
   }
 
 }

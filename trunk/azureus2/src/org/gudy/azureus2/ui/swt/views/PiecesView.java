@@ -188,6 +188,8 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
          PEPiece piece = (PEPiece) iter.next();
          PieceTableItem item = (PieceTableItem) items.get(piece);
          int index = item.getIndex();
+         if(index == -1)
+           continue;
          _items[index] = item;
          long value = getIntField(piece, field);
          int i;

@@ -16,6 +16,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 
 /**
  * @author Olivier
@@ -44,25 +45,26 @@ public class ManagerItem {
   //Used when sorting
   public boolean selected;  
 
-  public ManagerItem(Table table, DownloadManager manager) {
+  public ManagerItem(MyTorrentsView view, Table table, DownloadManager manager) {
     this.table = table;
     this.manager = manager;
-    initialize();
+    initialize(view);
   }
 
   public TableItem getTableItem() {
     return this.item;
   }
 
-  private void initialize() {
+  private void initialize(final MyTorrentsView view) {
     if (table == null || table.isDisposed())
       return;
     display = table.getDisplay();
-    display.syncExec(new Runnable() {
+    display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;
         item = new TableItem(table, SWT.NULL);
+        view.setItem(item,manager);
       }
     });
   }
@@ -202,6 +204,8 @@ public class ManagerItem {
   }
 
   public int getIndex() {
+    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+      return -1;
     return table.indexOf(item);
   }
 

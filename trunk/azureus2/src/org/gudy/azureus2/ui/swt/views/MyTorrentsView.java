@@ -739,9 +739,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
      synchronized (managerItems) {
       ManagerItem item = (ManagerItem) managerItems.get(manager);
       if (item == null)
-        item = new ManagerItem(table, manager);
-      managerItems.put(manager, item);
-      managers.put(item.getTableItem(), manager);
+        item = new ManagerItem(this,table, manager);
+        managerItems.put(manager, item);      
     }
   }
 
@@ -839,6 +838,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         DownloadManager manager = (DownloadManager) iter.next();
         ManagerItem item = (ManagerItem) managerItems.get(manager);
         int index = item.getIndex();
+        if(index == -1)
+          continue;
         items[index] = item;
         long value = getIntField(manager, field);
         int i;
@@ -939,7 +940,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       while (iter.hasNext()) {
         DownloadManager manager = (DownloadManager) iter.next();
         ManagerItem item = (ManagerItem) managerItems.get(manager);
-        items[item.getIndex()] = item;
+        int index = item.getIndex();
+        if(index == -1)
+          continue;
+        items[index] = item;
         String value = getStringField(manager, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
@@ -969,5 +973,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           table.selectAll(); // CTRL+a
       }
     };
+  }
+  
+  public void setItem(TableItem item,DownloadManager manager) {
+    managers.put(item,manager);
   }
 }
