@@ -1,13 +1,17 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="style.css">
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+    <script language="javascript" src="/commands.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style.css">
   </head>
   <body>
     <table class="mytorrents" cellspacing="2" cellpadding="0">
       <tr>
-        <th class="mytorrents" width="12">       
+        <th class="mytorrents clickable" width="12"> 
+           x	
         </th>
-        <th class="mytorrents" width="208">
+        <th class="mytorrents" width="100%">
           File
         </th>
         <th class="mytorrents">
@@ -30,19 +34,19 @@
         </th>
       </tr>
       <TMPL_LOOP Torrents_Torrents>
-	      <tr>
+	      <tr class="mytorrents" onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>
 	        <td class="mytorrents" width="12">  
 	          <input type=checkbox name="Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>" value="1">
 	        </td>
 	        <td class="mytorrents" width="208">
-	          <table cellspacing="0" cellpadding="0">
+	          <table cellspacing="0" cellpadding="0" width="100%">
 	            <tr><td class="mytorrents_title">
 	            	<div class="title">
 	              		<a title="<TMPL_VAR Torrents_Torrent_FileName>"><TMPL_VAR Torrents_Torrent_FileName></a>
 	              	</div>
 	            </td></tr>
-	            <tr><td class="mytorrents_completion" width="200">
-	              <img src="img/bar.png" width="<TMPL_VAR Torrents_Torrent_PercentDone>%" height="6">
+	            <tr><td class="mytorrents_completion" width="100%">
+	              <img src="/img/bar.png" width="<TMPL_VAR Torrents_Torrent_PercentDone>%" height="6">
 	            </td></tr>
 	          </table>
 	        </td>
@@ -53,9 +57,9 @@
 		  <TMPL_SELECT Torrents_Torrent_StatusInt>
                     ?
                   <TMPL_CASE "70">
-                    <img src="img/stop.png">
+                    <a title="Stopped"><img src="/img/stop.png"></a>
                   <TMPL_CASE "50">
-	            <img src="img/run.png">
+		            <img src="/img/run.png" name="Running">
 	          </TMPL_SELECT>
 	        </td>
 	        <td class="mytorrents">
@@ -63,13 +67,13 @@
 	        </td>
 	        <td class="mytorrents">
 	        <div align="left">
-	         <img src="img/up.png"><TMPL_VAR Torrents_Torrent_SpeedUp><br>
-	         <img src="img/down.png"><TMPL_VAR Torrents_Torrent_SpeedDown>
+	         <img src="/img/up.png"><TMPL_VAR Torrents_Torrent_SpeedUp><br>
+	         <img src="/img/down.png"><TMPL_VAR Torrents_Torrent_SpeedDown>
 	        </div>       
 	        </td>
 	        <td class="mytorrentsleft">
-	          <img src="img/up.png"><TMPL_VAR Torrents_Torrent_SeedsConnected>/<TMPL_VAR Torrents_Torrent_Seeds> (<TMPL_VAR Torrents_Torrent_SizeUp>)<br>                            
-	          <img src="img/down.png"><TMPL_VAR Torrents_Torrent_PeersConnected>/<TMPL_VAR Torrents_Torrent_Peers> (<TMPL_VAR Torrents_Torrent_SizeDown>)
+	          <img src="/img/up.png"><TMPL_VAR Torrents_Torrent_SeedsConnected>/<TMPL_VAR Torrents_Torrent_Seeds> (<TMPL_VAR Torrents_Torrent_SizeUp>)<br>                            
+	          <img src="/img/down.png"><TMPL_VAR Torrents_Torrent_PeersConnected>/<TMPL_VAR Torrents_Torrent_Peers> (<TMPL_VAR Torrents_Torrent_SizeDown>)
 	        </td>
 	        <td class="mytorrents">
 	        	<TMPL_VAR Torrents_Torrent_ETA>      

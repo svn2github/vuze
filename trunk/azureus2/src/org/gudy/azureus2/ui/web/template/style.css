@@ -66,15 +66,26 @@ body {
 }
 
 .box_title {
-  height : 21px;  
+  height : 21px; 
   background-image : url(img/vblue.png);
   background-repeat: repeat-x;
   font-family : Verdana;
   font-size : 10pt;
   font-weight : bold;
   vertical-align : middle;  
-  text-indent: 5px;
+  #text-indent: 5px;
+  padding-left: 5px;
+  Padding-right: 5px;
+  white-space: nowrap;
   color : #FFFFFF;  
+}
+
+.box_title.act {
+  color: #0000FF;
+}
+
+.clickable:hover {
+  color: #FFD700;
 }
 
 .iframe {
@@ -96,30 +107,40 @@ th.mytorrents {
   font-weight : bold;
   vertical-align : middle;
   horizontal-align : left;
+  white-space: nowrap;
   color : #FFFFFF;
+}
+
+tr.mytorrents{
+  background-color : #C1CEFF;
+}
+
+tr.mytorrents:hover{
+  background-color : #6495ED;
+  cursor: pointer;
 }
 
 td.mytorrents {
   height : 32px;
-  background-color : #C1CEFF;
   font-family : Verdana;
   font-size : 7pt;
   font-weight : normal;
   vertical-align : middle;
   text-align : center;
   padding : 1px 1px 1px 1px;
+  white-space: nowrap;
   color : #000000;
 }
 
 td.mytorrentsleft {
-	height : 32px;
-  background-color : #C1CEFF;
+  height : 32px;
   font-family : Verdana;
   font-size : 7pt;
   font-weight : normal;
   vertical-align : middle;
   text-align : left;
   padding : 1px 1px 1px 1px;
+  white-space: nowrap;
   color : #000000;
 }
 

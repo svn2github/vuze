@@ -1,5 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
   <head>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+    <script language="javascript">
+   <!--
+     function loadMain(load) {
+       headti = document.getElementById('headti');
+       headco = document.getElementById('headco');
+       headlo = document.getElementById('headlo');
+       headti.className = "box_title clickable";
+       headco.className = "box_title clickable";
+       headlo.className = "box_title clickable";
+       switch (load) {
+         case "ti":
+	 headti.className = "box_title act";
+	 //Main.locatio
+	 break;
+         case "co":
+	 headco.className = "box_title act";
+	 Main.location.href="/old/config";
+	 break;
+         case "lo":
+	 headlo.className = "box_title act";
+	 Main.location.href="/old/log";
+	 break;
+       }
+     }
+     
+   //-->
+   </script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Azureus Web Interface</title>
   </head>
@@ -27,7 +56,7 @@
                   My Torrents
                 </td></tr>
                 <tr><td>
-                <iframe FRAMEBORDER=0 class="iframe" src="/newtorrents">
+                <iframe FRAMEBORDER=0 class="iframe" src="/new/torrents">
                 </iframe>
                 </td></tr>
               </table>       
@@ -36,10 +65,22 @@
           <tr height="100%">
             <td class="margins" colspan="2">     
               <table class="box" cellspacing="0" cellpadding="0">
-                <tr><td class="box_title">
-                  Torrent Information
-                </td></tr>
-                <tr><td>
+                <tr>
+	<td class="box_title clickable" id="headti" onMouseDown="loadMain('ti')">
+                     Torrent Information
+            	</td>
+	<td class="box_title" width="100%"></td>
+	<td class="box_title clickable" id="headco" OnMouseDown="loadMain('co')">
+                     Configuration
+	</td>
+	<td class="box_title clickable" id="headlo" OnMouseDown="loadMain('lo')">
+                     Log
+            	</td>
+	<td class="box_title" width="100%">
+            	</td>
+	</tr>
+                <tr><td colspan=4>
+		<iframe FRAMEBORDER=0 class="iframe" name="Main"></iframe>
                 </td></tr>
               </table>       
             </td>
