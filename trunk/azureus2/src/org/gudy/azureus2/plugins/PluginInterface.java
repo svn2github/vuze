@@ -370,11 +370,10 @@ public interface PluginInterface {
   	/**
   	 * Uninstall this plugin if it has been loaded from a plugin directory. Deletes the
   	 * plugin directory 
-  	 * @return	true -> restart required to complete action
   	 * @throws PluginException
   	 */
   
-  public boolean
+  public void
   uninstall()
   
   	throws PluginException;

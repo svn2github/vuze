@@ -458,14 +458,12 @@ RPPluginInterface
 		notSupported();
 	}
 	
-	public boolean
+	public void
 	uninstall()
 	
 		throws PluginException
 	{
 		notSupported();
-		
-		return( false );
 	}
 	
 	public void

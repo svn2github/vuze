@@ -101,10 +101,22 @@ UpdateInstaller
    * @param rights the rights, for example "776"
    * @param to_file absolute
    */
-  public void
-  addChangeRightsAction(
-    String    rights,
-    String    to_file )
+	public void
+	addChangeRightsAction(
+		String    rights,
+		String    to_file )
 
-    throws UpdateException;
+    	throws UpdateException;
+  
+		/**
+		 * Adds an action to remove either a directory (recursively delete) or file
+		 * @param file
+		 * @throws UpdateException
+		 */
+	
+	public void
+	addRemoveAction(
+		String    file )
+
+    	throws UpdateException;
 }

@@ -61,11 +61,10 @@ InstallablePlugin
 	
 		/**
 		 * uninstall this plugin
-		 * @return	true -> restart required to complete the action
 		 * @throws PluginException
 		 */
 	
-	public boolean
+	public void
 	uninstall()
 	
 		throws PluginException;

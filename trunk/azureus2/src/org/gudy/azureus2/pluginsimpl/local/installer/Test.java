@@ -106,9 +106,15 @@ Test
 					install_act.install( true );
 					*/
 					
+					/*
 					FilePluginInstaller inst = installer.installFromFile(new File("C:\\temp\\azshareexporter_0.1.jar"));
 					
 					inst.install( false );
+					*/
+					
+					PluginInterface pi = manager.getPluginInterfaceByID("azshareexporter");
+					
+					pi.uninstall();
 					
 				}catch( Throwable e ){
 					

@@ -28,14 +28,18 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  */
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
@@ -328,7 +332,7 @@ PluginInstallerImpl
 		inst.start();
 	}
 	
-	public boolean
+	public void
 	uninstall(
 		InstallablePlugin		standard_plugin )
 	
@@ -341,12 +345,12 @@ PluginInstallerImpl
 			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is not installed"));
 		}
 		
-		return( pi.uninstall());
+		pi.uninstall();
 	}
 	
-	public boolean
+	public void
 	uninstall(
-		PluginInterface		pi )
+		final PluginInterface		pi )
 	
 		throws PluginException
 	{
@@ -355,32 +359,104 @@ PluginInstallerImpl
 			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
 		}
 		
-		String	plugin_dir = pi.getPluginDirectoryName();
+		final String	plugin_dir = pi.getPluginDirectoryName();
 		
 		if ( plugin_dir == null || !new File(plugin_dir).exists()){
 
-			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
+			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is not loaded from the file system, can't uninstall" ));
 		}
 		
 		try{
-			if ( pi.isUnloadable()){
-				
-				pi.unload();
-				
-				FileUtil.recursiveDelete( new File( plugin_dir ));
-				
-				return( false );
-			}
+			UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
+			
+			UpdateCheckInstance	inst = 
+				uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_UNINSTALL );
+
+			inst.addUpdatableComponent(
+					new UpdatableComponent()
+					{
+						public String
+						getName()
+						{
+							return( pi.getPluginName());
+						}
+					
+						public int
+						getMaximumCheckTime()
+						{
+							return( 0 );
+						}
+						
+						public void
+						checkForUpdate(
+							final UpdateChecker	checker )
+						{
+							try{
+								ResourceDownloader rd = 
+									manager.getDefaultPluginInterface().getUtilities().getResourceDownloaderFactory().create( new File( plugin_dir ));
+								
+								rd.addListener(
+									new ResourceDownloaderAdapter()
+									{
+										public boolean
+										completed(
+											ResourceDownloader	downloader,
+											InputStream			data )
+										{
+											try{
+												if ( pi.isUnloadable()){
+											
+													pi.unload();
+													
+													FileUtil.recursiveDelete( new File( plugin_dir ));
+												
+												}else{
+																
+													UpdateInstaller installer = checker.createInstaller();
+													
+													installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
+												}
+												
+											}catch( Throwable e ){
+												
+												Debug.printStackTrace(e);
+												
+												LGLogger.logAlert( "Plugin uninstall failed", e );
+											}
+												
+											return( true );
+										}
+										
+										public void
+										failed(
+											ResourceDownloader			downloader,
+											ResourceDownloaderException e )
+										{
+											LGLogger.logAlert( "Plugin uninstall failed", e );
+										}
+									});
+	
+								checker.addUpdate(
+									pi.getPluginName(),
+									new String[]{ "Uninstall" },
+									pi.getPluginVersion(),
+									rd,
+									pi.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+									
+							}finally{
+								
+								checker.completed();
+							}
+								
+						}
+					}, false );
+
+			inst.start();
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
 		}
-		
-			// TODO:
-	
-			// need to create an uninstall action to delete this
-		
-		throw( new PluginException( "not imp" ));	
 	}
 	
 	protected PluginInterface

@@ -89,12 +89,12 @@ ResourceDownloaderFileImpl
 		
 		done_sem.reserve();
 		
-		if ( result instanceof InputStream ){
+		if ( result instanceof ResourceDownloaderException ){
 			
-			return((InputStream)result);
+			throw((ResourceDownloaderException)result);
 		}
 		
-		throw((ResourceDownloaderException)result);
+		return((InputStream)result);	
 	}
 	
 	public void
@@ -114,7 +114,16 @@ ResourceDownloaderFileImpl
 						{
 							try{
 								
-								completed( ResourceDownloaderFileImpl.this, new FileInputStream( file ));
+									// download of a local dir -> null inputstream
+								
+								if ( file.isDirectory()){
+									
+									completed( ResourceDownloaderFileImpl.this, null );
+
+								}else{
+								
+									completed( ResourceDownloaderFileImpl.this, new FileInputStream( file ));
+								}
 								
 							}catch( Throwable e ){
 								

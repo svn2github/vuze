@@ -467,12 +467,12 @@ PluginInterfaceImpl
   	initialiser.reloadPlugin( this );
   }
   
-	public boolean
+	public void
 	uninstall()
 	
 		throws PluginException
 	{
-		return( PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this ));
+		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
 	}
 	
   protected void

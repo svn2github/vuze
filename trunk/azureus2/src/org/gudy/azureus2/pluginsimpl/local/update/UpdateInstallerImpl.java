@@ -205,16 +205,24 @@ UpdateInstallerImpl
 	}
   
   
-  public void
-  addChangeRightsAction(
-    String    rights,
-    String    to_file )
+	public void
+	addChangeRightsAction(
+		String    rights,
+		String    to_file )
   
-    throws UpdateException
-  { 
-    appendAction( "chmod," + rights  + "," + to_file );
-  }
+    	throws UpdateException
+	{ 
+		appendAction( "chmod," + rights  + "," + to_file );
+	}
   
+	public void
+	addRemoveAction(
+		String    file )
+  
+    	throws UpdateException
+	{ 
+		appendAction( "remove," + file );
+	}
 	
 	protected void
 	appendAction(

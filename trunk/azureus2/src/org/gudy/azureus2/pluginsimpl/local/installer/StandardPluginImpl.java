@@ -112,12 +112,12 @@ StandardPluginImpl
 		installer.install( this, shared );
 	}
 	
-	public boolean
+	public void
 	uninstall()
 	
 		throws PluginException
 	{
-		return( installer.uninstall( this ));
+		installer.uninstall( this );
 	}
 	
 	public PluginInstaller
