@@ -116,7 +116,7 @@ public class DirectByteBufferPool {
               long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
               long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
               long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
-              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
+              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB\n");
             }
           }
       );
