@@ -156,6 +156,8 @@ DownloadManagerImpl
 	this.state = STATE_DOWNLOADING;
 	
 	peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
+	
+	peerManager.start();
   }
 
 	private void 
@@ -385,6 +387,13 @@ DownloadManagerImpl
 	return( tracker_client );
   }
   
+  public void
+  receivedTrackerResponse(
+	  TRTrackerResponse	response	)
+  {
+	peerManager.processTrackerResponse( response );
+  }
+
   public void
   urlChanged(
   	String		url,

@@ -39,9 +39,10 @@ public class Timer
 	
 	protected
 	Timer(
+		String	name,
 		int		thread_pool_size )
 	{
-		thread_pool = new ThreadPool(thread_pool_size);
+		thread_pool = new ThreadPool(name,thread_pool_size);
 		
 		Thread t = new Thread(this);
 		

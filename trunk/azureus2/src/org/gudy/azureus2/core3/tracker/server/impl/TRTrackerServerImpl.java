@@ -53,7 +53,7 @@ TRTrackerServerImpl
 	
 	protected Vector	listeners = new Vector();
 	
-	ThreadPool	thread_pool = new ThreadPool( THREAD_POOL_SIZE );
+	ThreadPool	thread_pool;
 	
 	public
 	TRTrackerServerImpl(
@@ -63,6 +63,7 @@ TRTrackerServerImpl
 	{
 		port					= _port;
 		
+		thread_pool = new ThreadPool( "TrackerServer:"+port, THREAD_POOL_SIZE );			
 		current_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
 		if ( current_retry_interval < RETRY_MINIMUM_SECS ){

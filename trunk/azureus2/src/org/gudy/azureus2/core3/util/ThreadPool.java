@@ -31,13 +31,19 @@ import java.util.*;
 public class 
 ThreadPool 
 {
+	protected String	name;
+	protected int		thread_name_index	= 1;
+	
 	protected Stack		thread_pool = new Stack();
 	protected Semaphore	thread_sem;
 	
 	public
 	ThreadPool(
+		String	_name,
 		int		max_size )
 	{
+		name	= _name;
+		
 		thread_sem = new Semaphore( max_size );
 	}
 
@@ -74,7 +80,7 @@ ThreadPool
 		protected
 		worker()
 		{
-			Thread t = new Thread()
+			Thread t = new Thread( name + "[" + (thread_name_index++) +  "]")
 				{
 					public void 
 					run()

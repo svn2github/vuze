@@ -42,12 +42,13 @@ import org.gudy.azureus2.core3.peer.impl.*;
 
 public class 
 PEPeerControlImpl
-	extends 	Thread
 	implements 	PEPeerControl
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
 
+  private int peer_manager_state = PS_INITIALISED;
+  
   private int[] _availability;
   private boolean _bContinue;                
   private List _connections;
@@ -78,7 +79,7 @@ PEPeerControlImpl
   private long _timeFinished;
   private Average _averageReceptionSpeed;
   private PEPeerTransport currentOptimisticUnchoke;
-
+  
   private DownloadManager _manager;
   private List requestsToFree;
   private PeerUpdater peerUpdater;
@@ -93,19 +94,28 @@ PEPeerControlImpl
   
   private int nbHashFails;
 
+  private List	listeners = new ArrayList();
+  
   public PEPeerControlImpl(
     DownloadManager 	manager,
     PEPeerServerHelper 	server,
 	TRTrackerClient 	tracker,
     DiskManager 		diskManager) {
     	
-    super("Peer Manager"); //$NON-NLS-1$
+ 	_server = server;
     this._manager = manager;
+	_tracker = tracker;
+	this._diskManager = diskManager;
+ }
+  
+  public void
+  start()
+  {  
     //This torrent Hash
     
     try{
     
-    	_hash = tracker.getTorrent().getHash();
+    	_hash = _tracker.getTorrent().getHash();
     	
     }catch( TOTorrentException e ){
     	
@@ -118,7 +128,6 @@ PEPeerControlImpl
     this.nbHashFails = 0;
 
     //The connection to the tracker
-    _tracker = tracker;
     _tracker.setManager(this);
     _myPeerId = _tracker.getPeerId();
 
@@ -126,10 +135,8 @@ PEPeerControlImpl
     _connections = new ArrayList();
 
     //The Server that handle incoming connections
-    _server = server;
-    _server.setController(this);
+     _server.setController(this);
 
-    this._diskManager = diskManager;
     _diskManager.setPeerManager(this);
 
     //BtManager is threaded, this variable represents the
@@ -144,7 +151,7 @@ PEPeerControlImpl
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
-    setDiskManager(diskManager);
+    setDiskManager(_diskManager);
 
     requestsToFree = new ArrayList();
 
@@ -261,7 +268,7 @@ PEPeerControlImpl
   
 
   //main method
-  public void run() {
+  public void mainLoop() {
     _bContinue = true;
     _manager.setState(DownloadManager.STATE_DOWNLOADING);
     _timeStarted = System.currentTimeMillis() / 1000;
@@ -389,6 +396,13 @@ PEPeerControlImpl
         	_trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
     	}
   	}
+
+	public void
+	processTrackerResponse(
+		TRTrackerResponse	response )
+	{
+		addPeersFromTracker( response.getPeers());
+	}
 
  	private void 
  	addPeersFromTracker(
@@ -1422,7 +1436,13 @@ PEPeerControlImpl
 
     _server.startServer();
 
-    this.start();
+	new Thread( "Peer Manager"){
+		public void
+		run()
+		{
+			mainLoop();
+		}
+	}.start();
   }
 
   public void haveNewPiece() {
@@ -1707,4 +1727,29 @@ PEPeerControlImpl
   	return( _diskManager.createDataQueueItem( req ));
   }
   
+  protected synchronized void
+  changeState(
+  	int		new_state )
+  {
+  	peer_manager_state = new_state;
+  	
+  	for (int i=0;i<listeners.size();i++){
+  		
+  		((PEPeerManagerListener)listeners.get(i)).stateChanged( peer_manager_state );
+  	}
+  }
+	
+  public synchronized void
+  addListener(
+	  PEPeerManagerListener	l )
+  {
+  	listeners.add( l );
+  }
+		
+  public synchronized void
+  removeListener(
+	  PEPeerManagerListener	l )
+  {
+  	listeners.remove(l);
+  }
 }

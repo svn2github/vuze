@@ -25,12 +25,22 @@ package org.gudy.azureus2.core3.peer;
  * @author parg
  *
  */
+
+import org.gudy.azureus2.core3.tracker.client.*;
  
 public interface 
 PEPeerManager 
 {
+	public static final int PS_INITIALISED	= 1;
+	public static final int PS_DOWNLOADING	= 2;
+	public static final int PS_SEEDING		= 3;
+	public static final int PS_STOPPED		= 4;
+	
 	public static final int BLOCK_SIZE = 16384;
- 			
+
+	public void
+	start();
+		
 	public void
 	stopAll();
 		
@@ -62,6 +72,10 @@ PEPeerManager
 	public PEPeerManagerStats
 	getStats();
 
+	public void
+	processTrackerResponse(
+		TRTrackerResponse	response );
+		
 	public void 
 	checkTracker(
 		boolean	force );
@@ -89,4 +103,12 @@ PEPeerManager
 	public long getETA();
 
 	public String getElapsedTime();
+	
+	public void
+	addListener(
+		PEPeerManagerListener	l );
+		
+	public void
+	removeListener(
+		PEPeerManagerListener	l );
 }

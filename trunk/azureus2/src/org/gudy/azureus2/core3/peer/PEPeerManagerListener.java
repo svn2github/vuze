@@ -1,6 +1,6 @@
 /*
- * File    : TRTrackerClientListener.java
- * Created : 03-Nov-2003
+ * File    : PEPeerManagerListener.java
+ * Created : 22-Nov-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,31 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client;
+package org.gudy.azureus2.core3.peer;
 
 /**
  * @author parg
  *
  */
 public interface 
-TRTrackerClientListener 
+PEPeerManagerListener 
 {
 	public void
-	receivedTrackerResponse(
-		TRTrackerResponse	response	);
-
-	/**
-	 * This callback indicates if the tracker client has change URL. If "explicit" is true then
-	 * this was via a call to the "setTrackerURL" method on TRTrackerClient. If false then the selected
-	 * URL has changed because it is a multi-tracker torrent
-	 * 
-	 * @param explicit as above
-	 */
-	public void
-	urlChanged(
-		String		url,
-		boolean		explicit );
-		
-	public void
-	urlRefresh();
+	stateChanged(
+		int		state );
 }

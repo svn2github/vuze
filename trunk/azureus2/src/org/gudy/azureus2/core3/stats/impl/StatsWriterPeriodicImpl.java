@@ -203,7 +203,7 @@ StatsWriterPeriodicImpl
 			if ( start_count == 1 ){
 							
 				current_thread = 
-					new Thread(){
+					new Thread("StatsWriter"){
 						public void
 						run()
 						{
