@@ -17,6 +17,7 @@ CHANGE: Moved icon from Rank column to Name column [TuxPaper]
 CHANGE: Removed Lock Priority.  No longer an issue since priority only gets autochanged once [TuxPaper]
 CHANGE: Remove "Lock Start/Stop" menu option.  Stop now means no auto-starting/stopping [TuxPaper]
 CHANGE: Re-design of Configuration view [TuxPaper]
+CHANGE: Azureus now supports the 'no_peer_id' spec for tracker bandwidth saving [Nolar]
 
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
