@@ -197,10 +197,10 @@ PeerManager
       }
 
       public void run() {
-         PeerSocket pc;
+         PeerSocket testPS;
          
          while (bContinue) {
-            pc = null;
+            testPS = null;
             
             try {
                /* wait until notified of new connection to slow connect */
@@ -209,12 +209,13 @@ PeerManager
                /* dequeue waiting connections and process */
                while ((slowQueue.size() > 0) && bContinue) {
                   /* get next connection */
-                  pc = (PeerSocket)slowQueue.remove(0);
+                  testPS = (PeerSocket)slowQueue.remove(0);
                   /* add the connection */
-                  if (pc != null) {
+                  if (testPS != null) {
                      synchronized (_connections) {
                         //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
-                        _connections.add(pc);
+                        /* add connection */
+                        _connections.add(new PeerSocket(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
                      }
                   }
                   /* wait */
@@ -377,7 +378,7 @@ PeerManager
 				
         	if (!Arrays.equals(this_peer_id, _myPeerId)){
            
-        	  	addPeer( this_peer_id, peer.getIPAddress(), peer.getPort());
+        	   insertPeerSocket( this_peer_id, peer.getIPAddress(), peer.getPort());
         	}                
   		}
  	}
@@ -801,41 +802,67 @@ PeerManager
   }
 
   /**
-    * private method to add a peerConnection
+    * private method to add a new outgoing peerConnection
     * created by Tyler
     * @param pc
     */
-  private synchronized void insertPeerSocket(PeerSocket pc) {
+  private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
     //Get the max number of connections allowed
     int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
-        
-    synchronized (_connections) {
-      //does our list already contain this PeerConnection?  
-      if (!_connections.contains(pc)) //if not
-        {
-        if (maxConnections == 0 || _connections.size() < maxConnections) {
-           /* do we need to slow down new connection creation? */
-           if (slowConnect) {
-              /* add connection to be slow-connected */
-              slowQueue.add(pc);
-              synchronized (slowQueue) { slowQueue.notify(); }
-           }
-           else {
-              _connections.add(pc); //add the connection
-           }
-        } else {
-          pc.closeAll(false);
-          pc = null;
-        }
-      }
-      else //our list already contains this connection
-        {
-        pc.closeAll(false); // NOLAR: fixes stalled connections (bug #795751)
-        pc = null; //do nothing ...
-      }
+    /* create a peer socket for testing purposes */
+    PeerSocket testPS = new PeerSocket(this, peerId, ip, port, true);
+    
+    if (!IpFilter.getInstance().isInRange(ip)) {
+       synchronized (_connections) {
+          if (!_connections.contains(testPS)) {
+             if (maxConnections == 0 || _connections.size() < maxConnections) {
+                /* do we need to slow down new connection creation? */
+                if (slowConnect) {
+                   /* add connection to be slow-connected */
+                   slowQueue.add(testPS);
+                   synchronized (slowQueue) { slowQueue.notify(); }
+                }
+                else {
+                   /* add connection */
+                   _connections.add(new PeerSocket(this, peerId, ip, port, false));
+                }
+             }
+          }
+       }
     }
   }
+  
+  
+ /**
+   * private method to add a new incoming peerConnection
+   * created by Tyler
+   * @param pc
+   */
+ private synchronized void insertPeerSocket(PeerSocket ps) {
+    //Get the max number of connections allowed
+    int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
+    boolean addFailed = false;
+    
+    if (!IpFilter.getInstance().isInRange(ps.getIp())) {
+       synchronized (_connections) {
+          if (!_connections.contains(ps)) {
+             if (maxConnections == 0 || _connections.size() < maxConnections) {
+                /* add connection */
+                _connections.add(ps);
+             }
+             else { addFailed = true; }
+          }
+          else { addFailed = true; }
+       }
+    }
+    else { addFailed = true; }
+    
+    if (addFailed) {
+       ps.closeAll(false);
+    }
+ }
 
+  
   private void unChoke() {
     //1. We retreive the current non-choking peers
     Vector nonChoking = getNonChokingPeers();
@@ -1156,19 +1183,6 @@ PeerManager
     this.insertPeerSocket(new PeerSocket(this, sckClient));
   }
 
-  /**
-   * This method is used to add a peer with its id, ip and port
-   * @param peerId
-   * @param ip
-   * @param port
-   */
-  public void addPeer(byte[] peerId, String ip, int port) {
-    //create a peer connection and insert it to the list
-    if(!IpFilter.getInstance().isInRange(ip))
-      if (!_connections.contains(new PeerSocket(this, peerId, ip, port, true))) {
-      this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, false));
-    }
-  }
 
   /**
    * The way to remove a peer from our peer list.
