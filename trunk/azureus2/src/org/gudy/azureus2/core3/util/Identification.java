@@ -44,7 +44,6 @@ public class Identification {
             name = name.concat(String.valueOf(peerID[i]) + ".");
           }
           name = name + String.valueOf(peerID[3]);
-          System.out.println(name);
           return name;
         }
       }
