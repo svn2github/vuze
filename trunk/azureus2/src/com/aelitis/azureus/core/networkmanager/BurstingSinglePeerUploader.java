@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
 
+//import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Debug;
+
 
 
 /**
@@ -43,20 +46,32 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canWrite() {
-    if( !connection.getTransport().isReadyForWrite() )  return false;
-    if( connection.getOutgoingMessageQueue().getTotalSize() < 1 )  return false;  //no data to send
-    if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send any bytes
+    if( !connection.getTransport().isReadyForWrite() )  {
+      return false;  //underlying transport not ready
+    }
+    if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
+      return false;  //no data to send
+    }
+    if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
+      return false;  //not allowed to send any bytes
+    }
     return true;
   }
   
   public boolean doWrite() {
-    if( !connection.getTransport().isReadyForWrite() )  return false;
+    if( !connection.getTransport().isReadyForWrite() )  {
+      return false;
+    }
     
     int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
-    if( num_bytes_allowed < 1 )  return false;
+    if( num_bytes_allowed < 1 )  {
+      return false;
+    }
     
     int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
-    if( num_bytes_available < 1 )  return false;
+    if( num_bytes_available < 1 ) {
+      return false;
+    }
     
     int num_bytes_to_write = num_bytes_allowed > num_bytes_available ? num_bytes_available : num_bytes_allowed;
     
@@ -68,7 +83,10 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
       connection.notifyOfException( e );
     }
     
-    if( written < 1 )  return false;
+    if( written < 1 )  {
+      Debug.out( "written < 1: " +written);
+      return false;
+    }
     
     rate_handler.bytesWritten( written );
     return true;
