@@ -31,7 +31,6 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.config.*;
@@ -435,6 +434,12 @@ RDResumeHandler
 					Debug.out( "Failed to dump initial resume data to disk" );
 				}
 			}
+		}catch( Throwable e ){
+			
+				// if something went wrong then log and continue. 
+			
+			Debug.printStackTrace(e);
+			
 		}finally{
 			// System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
 		}
