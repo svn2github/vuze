@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -47,7 +48,6 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.config.plugins.PluginBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
@@ -104,12 +104,12 @@ public class ConfigView extends AbstractIView {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
-  public void initialize(Composite composite) {
-    cConfig = new Composite(composite, SWT.NONE);
+  public void initialize(Composite composite) {    
+    cConfig = new Composite(composite, SWT.NONE);      
     GridLayout configLayout = new GridLayout();
     configLayout.marginHeight = 0;
     configLayout.marginWidth = 0;
-    configLayout.numColumns = 2;
+    configLayout.numColumns = 1;
     cConfig.setLayout(configLayout);
 
     tfConfig = new TabFolder(cConfig, SWT.TOP | SWT.FLAT);
@@ -133,8 +133,8 @@ public class ConfigView extends AbstractIView {
     
     initSaveButton(); 
     TabItem[] items = {itemFile};
-    tfConfig.setSelection(items);
-    Utils.changeBackgroundComposite(cConfig,MainWindow.getWindow().getBackground());
+    tfConfig.setSelection(items);   
+    //Utils.changeBackgroundComposite(cConfig,MainWindow.getWindow().getBackground());
   }
 
   private void initSaveButton() {
@@ -721,7 +721,7 @@ public class ConfigView extends AbstractIView {
     //Group gFile = new Group(ctfConfig, SWT.NULL);
 
     GridLayout layout = new GridLayout();
-    layout.numColumns = 9;
+    layout.numColumns = 8;
     gFile.setLayout(layout);
     Label label;
     
@@ -734,12 +734,10 @@ public class ConfigView extends AbstractIView {
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
-    new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
@@ -765,43 +763,91 @@ public class ConfigView extends AbstractIView {
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
     
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
     BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
+          
     label = new Label(gFile, SWT.NULL);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
+    
     final String saveResumeLabels[] = new String[19];
     final int saveResumeValues[] = new int[19];
     for (int i = 2; i < 21; i++) {
       saveResumeLabels[i - 2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
       saveResumeValues[i - 2] = i;
     }
-    Control[] controls = new Control[2];
+    
+    IntListParameter listSave = new IntListParameter(gFile, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    gridData.widthHint = 70;    
+    listSave.setLayoutData(gridData);
+    
+    Control[] controls = new Control[2];    
     controls[0] = label;
-    controls[1] = new IntListParameter(gFile, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues).getControl(); //$NON-NLS-1$    
+    controls[1] = listSave.getControl();
     IAdditionalActionPerformer performer = new ChangeSelectionActionPerformer(controls);
     bpUseResume.setAdditionalActionPerformer(performer);
-    new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.savetorrents"); //$NON-NLS-1$
+    BooleanParameter saveTorrents = new BooleanParameter(gFile, "Save Torrent Files", true); //$NON-NLS-1$    
 
+    Button browse2 = new Button(gFile, SWT.PUSH);
+    Messages.setLanguageText(browse2, "ConfigView.button.browse"); //$NON-NLS-1$
+   
+    gridData = new GridData();
+    gridData.widthHint = 180;
+    gridData.horizontalSpan = 1;
+    final StringParameter torrentPathParameter = new StringParameter(gFile, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    torrentPathParameter.setLayoutData(gridData);
+    
+    browse2.addListener(SWT.Selection, new Listener() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+       */
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+        //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(torrentPathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath")); //$NON-NLS-1$
+        String path = dialog.open();
+        if (path != null) {
+          torrentPathParameter.setValue(path);
+        }
+      }
+    });
+    
+    Label lSaveTorrentBackup = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(lSaveTorrentBackup, "ConfigView.label.savetorrentbackup"); //$NON-NLS-1$
+    BooleanParameter saveTorrentBackup = new BooleanParameter(gFile, "Save Torrent Backup", false); //$NON-NLS-1$    
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    saveTorrentBackup.setLayoutData(gridData);
+    
+    controls = new Control[4];
+    controls[0] = torrentPathParameter.getControl();
+    controls[1] = browse2;
+    controls[2] = lSaveTorrentBackup;
+    controls[3] = saveTorrentBackup.getControl();
+    IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
+    saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
     BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir", true); //$NON-NLS-1$
- 
+    
     Button browse = new Button(gFile, SWT.PUSH);
     Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
     
     gridData = new GridData();
     gridData.widthHint = 180;
-    gridData.horizontalSpan = 6;
+    gridData.horizontalSpan = 5;
     final StringParameter pathParameter = new StringParameter(gFile, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
     
@@ -826,48 +872,7 @@ public class ConfigView extends AbstractIView {
     controls[1] = browse;
     IAdditionalActionPerformer defaultSave = new ChangeSelectionActionPerformer(controls);
     saveDefault.setAdditionalActionPerformer(defaultSave);
-    
-    label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.savetorrents"); //$NON-NLS-1$
-    BooleanParameter saveTorrents = new BooleanParameter(gFile, "Save Torrent Files", true); //$NON-NLS-1$    
-
-    Button browse2 = new Button(gFile, SWT.PUSH);
-    Messages.setLanguageText(browse2, "ConfigView.button.browse"); //$NON-NLS-1$
-   
-    gridData = new GridData();
-    gridData.widthHint = 180;
-    gridData.horizontalSpan = 4;
-    final StringParameter torrentPathParameter = new StringParameter(gFile, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
-    torrentPathParameter.setLayoutData(gridData);
-    
-    browse2.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
-      public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
-        //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
-        dialog.setFilterPath(torrentPathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath")); //$NON-NLS-1$
-        String path = dialog.open();
-        if (path != null) {
-          torrentPathParameter.setValue(path);
-        }
-      }
-    });
-    
-    Label lSaveTorrentBackup = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(lSaveTorrentBackup, "ConfigView.label.savetorrentbackup"); //$NON-NLS-1$
-    BooleanParameter saveTorrentBackup = new BooleanParameter(gFile, "Save Torrent Backup", false); //$NON-NLS-1$    
-
-    controls = new Control[4];
-    controls[0] = torrentPathParameter.getControl();
-    controls[1] = browse2;
-    controls[2] = lSaveTorrentBackup;
-    controls[3] = saveTorrentBackup.getControl();
-    IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
-    saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
-    
+        
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
     BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$    
@@ -877,7 +882,7 @@ public class ConfigView extends AbstractIView {
     
     gridData = new GridData();
     gridData.widthHint = 180;
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 1;
     final StringParameter movePathParameter = new StringParameter(gFile, "Completed Files Directory", "");
     movePathParameter.setLayoutData(gridData);
     
@@ -948,7 +953,6 @@ public class ConfigView extends AbstractIView {
       watchTorrentFolderIntervalValues[i - 1] = i;
     }
     IntListParameter iWatchTorrentFolderIntervalParameter = new IntListParameter(gFile, "Watch Torrent Folder Interval", 1, watchTorrentFolderIntervalLabels, watchTorrentFolderIntervalValues);
-    label = new Label(gFile, SWT.NULL);
     Label lStartWatchedTorrentsStopped = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(lStartWatchedTorrentsStopped, "ConfigView.label.startwatchedtorrentsstopped"); //$NON-NLS-1$
     BooleanParameter startWatchedTorrentsStopped = new BooleanParameter(gFile, "Start Watched Torrents Stopped", true); //$NON-NLS-1$    
@@ -966,11 +970,14 @@ public class ConfigView extends AbstractIView {
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
     
-    gridData = new GridData();
-    gridData.widthHint = 262;
-    gridData.horizontalSpan = 8;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
     new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
 
+    label = new Label(gFile,SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
     	// locale decoder
     
 	label = new Label(gFile, SWT.NULL);
@@ -998,7 +1005,6 @@ public class ConfigView extends AbstractIView {
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
 	
 		// locale always prompt
 
@@ -1011,7 +1017,6 @@ public class ConfigView extends AbstractIView {
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
 	
     itemFile.setControl(gFile);
