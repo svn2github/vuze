@@ -40,6 +40,15 @@ LoggerChannel
 		int		log_type,
 		String	data );
 	
+		/**
+		 * log string with implicit type "information"
+		 * @param data
+		 */
+	
+	public void
+	log(
+		String	data );
+	
 	public void
 	log(
 		Throwable 	error );

@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
+import org.gudy.azureus2.update.CoreUpdateChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 
@@ -67,16 +68,10 @@ PluginInitializer
     		{    TrackerDefaultWeb.class, "<internal>", "TrackerDefault", },
     		{    UpdateLanguagePlugin.class, "<internal>", "UpdateLanguagePlugin" },
     		{	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class, "<internal>", "PluginUpdate" },
-    		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
+	   		{	 CoreUpdateChecker.class, "<internal>", "CoreUpdater" },
+	   		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
         };
-  
-  private String[] builtin_plugin_keys = 
-  		{		"",
-  				"ShareHoster",
-				"TrackerDefault",
-				"UpdateLanguagePlugin",
-				"PluginUpdate",
-  		};
+ 
   
   	// these can be removed one day
   

@@ -85,6 +85,13 @@ LoggerChannelImpl
 	
 	public void
 	log(
+		String	data )
+	{
+		log( LT_INFORMATION, data );
+	}
+	
+	public void
+	log(
 		Throwable 	error )
 	{
 		for (int i=0;i<listeners.size();i++){

@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 20-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,59 +20,52 @@
  *
  */
 
-package org.gudy.azureus2.platform.win32;
+package org.gudy.azureus2.update;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
+	
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-PlatformManagerUpdateChecker
+CoreUpdateChecker
 	implements Plugin, UpdatableComponent
 {
+	public static final int	RD_GET_DETAILS_RETRIES	= 3;
+	
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
+
+	protected PluginInterface		plugin_interface;
 	
-	protected PluginInterface			plugin_interface;
+	protected LoggerChannel			log;
 	
 	public void
 	initialize(
-		PluginInterface	_plugin_interface)
+		PluginInterface		_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
 		
-		String	version = "1.0";
+		log	= plugin_interface.getLogger().getChannel("CoreUpdater");
 		
-		try{
-			PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
-			
-			version = platform.getVersion();
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		Properties	props = plugin_interface.getPluginProperties();
+							
+		props.setProperty( "plugin.version", plugin_interface.getAzureusVersion());
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", version );
-		
-		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
-		
-			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
-		}
+		plugin_interface.getUpdateManager().registerUpdatableComponent( this, true );
 	}
 	
 	public void
@@ -80,16 +73,101 @@ PlatformManagerUpdateChecker
 		final UpdateChecker	checker )
 	{
 		try{			
-			Properties	props = plugin_interface.getPluginProperties();
+			String	current_version = plugin_interface.getAzureusVersion();
 			
-			SFPluginDetails	sf_details = SFPluginDetailsLoaderFactory.getSingleton().getPluginDetails( plugin_interface.getPluginID());
-					
-			String	current_dll_version = plugin_interface.getPluginVersion();
-			
-			LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_dll_version );
+			log.log( "Update check starts: current = " + current_version );
 						
+			String id = COConfigurationManager.getStringParameter("ID",null);
+			
+			String url_str = Constants.SF_WEB_SITE + "version.php";
+			
+			boolean	REMOVE_ID_FOR_TESTING = true;	// !!!!TODO: REMOVE THIS
+			
+			if ( REMOVE_ID_FOR_TESTING ){
+			
+				System.out.println( "CoreUpdater: ID deliberately currently removed!!!!" );
+				
+			}else{
+				if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
+				
+					url_str += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
+				}
+			}
+			
+			URL url = new URL(url_str); 
+			
+			ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+			
+			ResourceDownloader	rd = rdf.create( url );
+			
+			rd = rdf.getRetryDownloader( rd, RD_GET_DETAILS_RETRIES );
+			
+			rd.addListener(
+				new ResourceDownloaderAdapter()
+				{
+					public void
+					reportActivity(
+						ResourceDownloader	downloader,
+						String				activity )
+					{
+						log.log( activity );
+					}
+				});
+			
+			InputStream	data = rd.download();
+			
+			Map decoded = BDecoder.decode(new BufferedInputStream(data));
+			
+			String latest_version 			= null;
+			String latest_file_name			= null;
+			
+			byte[] b_version = (byte[])decoded.get("version");
+			
+			if ( b_version != null ){
+			
+				latest_version = new String( b_version );
+				
+			}else{
+				
+				throw( new Exception( "No version found in reply" ));
+			}
+			
+			byte[] b_filename = (byte[]) decoded.get("filename");
+			
+			if ( b_filename != null ){
+			
+				latest_file_name = new String( b_filename );
+			}
+			
+			log.log( "Retrieved: latest_version = '" + latest_version + "', file = '" + latest_file_name + "'");
+			
+			boolean	latest_is_cvs	= Constants.isCVSVersion( latest_version );
+			String	latest_base		= Constants.getBaseVersion( latest_version );
+			
+			boolean	current_is_cvs	= Constants.isCVSVersion();
+			String	current_base	= Constants.getBaseVersion();
+				
+				// currently we upgrade from, for example
+				//  1) 2.0.8.4     -> 2.0.8.6
+				//	2) 2.0.8.5_CVS -> 2.0.8.6
+				// but not to a CVS version (also currently never reported as latest...)
+				
+			if ( latest_is_cvs ){
+				
+				return;
+			}
+
+			if ( Constants.compareVersions( current_base, latest_base ) >= 0 ){
+				
+				return;
+			}
+			
+			int g = 10;
+			
+			/*
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
-						
+				
+			
 			String	target_dll_version	= null;
 			
 			String sf_plugin_version	= sf_details.getVersion();
@@ -144,7 +222,7 @@ PlatformManagerUpdateChecker
 								installUpdate( checker, downloader, f_target_dll_version, data );
 									
 								return( true );
-							}							
+							}
 						});
 
 				checker.addUpdate(
@@ -154,7 +232,10 @@ PlatformManagerUpdateChecker
 						dll_rd,
 						Update.RESTART_REQUIRED_YES );
 			}
+			*/
 		}catch( Throwable e ){
+			
+			log.log( e );
 			
 			e.printStackTrace();
 			
@@ -166,6 +247,7 @@ PlatformManagerUpdateChecker
 		}
 	}
 	
+	/*
 	protected void
 	installUpdate(
 		UpdateChecker		checker,
@@ -191,4 +273,5 @@ PlatformManagerUpdateChecker
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
 	}
+	*/
 }

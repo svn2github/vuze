@@ -340,22 +340,8 @@ PluginUpdatePlugin
 						final String	f_sf_plugin_version		= sf_plugin_version;
 						
 						rdl.addListener( 
-							new ResourceDownloaderListener()
+							new ResourceDownloaderAdapter()
 							{
-								public void
-								reportPercentComplete(
-									ResourceDownloader	downloader,
-									int					percentage )
-								{								
-								}
-								
-								public void
-								reportActivity(
-									ResourceDownloader	downloader,
-									String				activity )
-								{	
-								}
-									
 								public boolean
 								completed(
 									final ResourceDownloader	downloader,
@@ -401,14 +387,6 @@ PluginUpdatePlugin
 										log.removeListener( list );
 									}
 								}
-								
-								public void
-								failed(
-									ResourceDownloader			downloader,
-									ResourceDownloaderException e )
-								{
-								}
-								
 							});
 						
 						String[]	update_d = new String[update_desc.size()];
