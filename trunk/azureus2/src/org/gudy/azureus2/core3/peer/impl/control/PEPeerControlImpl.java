@@ -1217,7 +1217,7 @@ PEPeerControlImpl
     //  We add the range
     pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
     
-    if(!onlyNonAllocatedPieces && pieceMinAvailability < max_avail && pc.isSeed()) pieceMinAvailability = max_avail;
+    if(!onlyNonAllocatedPieces && pieceMinAvailability < max_avail && ! pc.isSeed()) pieceMinAvailability = max_avail;
     
     //For all pieces
     for (int i = 0; i < _nbPieces; i++) {
