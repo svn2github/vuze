@@ -6,7 +6,6 @@ package org.gudy.azureus2.cl;
 
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.GlobalManager;
 
 /**
  * @author Olivier
@@ -19,8 +18,7 @@ public class Main {
       
     String torrentFile = args[args.length - 2];
     String path = args[args.length - 1];
-    GlobalManager gm = new GlobalManager();
-    DownloadManager manager = new DownloadManager(gm, torrentFile, path);
+    DownloadManager manager = new DownloadManager(null, torrentFile, path);
     final boolean initStoppedDownloads = false;
     while (true) {
       manager.startDownloadInitialized(initStoppedDownloads);
@@ -78,7 +76,8 @@ public class Main {
        buf.append(" ");
       }
       System.out.print("\r" + buf.toString());
-      
+      if(state == DownloadManager.STATE_ERROR)
+        return;
       try {
         Thread.sleep(500);
       } catch (Exception e) {

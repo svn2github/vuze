@@ -917,7 +917,7 @@ public class MainWindow implements IComponentListener {
 
     final Label hint = new Label(gAutomatic, SWT.LEFT);
     hint.setText(MessageText.getString("MainWindow.upgrade.hint1") + "."); //$NON-NLS-1$ //$NON-NLS-2$
-    hint.setLayoutData(gridData = new GridData());
+    hint.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
     gridData.horizontalSpan = 3;
 
     label = new Label(gAutomatic, SWT.LEFT);
@@ -1145,7 +1145,7 @@ public class MainWindow implements IComponentListener {
         int random = (int) (Math.random() * mirrors.size());
         String mirror = (String) (mirrors.get(random));
         
-        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net/" + mirror);
+        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
         String mirrorHtml = readUrl(mirrorUrl);
         pattern = "<META HTTP-EQUIV=\"refresh\" content=\"1; URL=";
         position = mirrorHtml.indexOf("<META HTTP-EQUIV=\"refresh\" content=\"1; URL=");
@@ -1157,7 +1157,7 @@ public class MainWindow implements IComponentListener {
 
       if (reqUrl == null)
         return;
-      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);
+      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);     
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
       in = con.getInputStream();
