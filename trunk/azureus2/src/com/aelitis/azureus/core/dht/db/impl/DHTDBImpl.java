@@ -94,9 +94,17 @@ DHTDBImpl
 				perform(
 					TimerEvent	event )
 				{
-					logger.log( "Republishing original mappings" );
-						
-					republishOriginalMappings();
+					logger.log( "Republish of original mappings starts" );
+					
+					long	start 	= SystemTime.getCurrentTime();
+					
+					int	stats = republishOriginalMappings();
+					
+					long	end 	= SystemTime.getCurrentTime();
+
+					logger.log( "Republish of original mappings completed in " + (end-start) + ": " +
+								"values = " + stats );
+
 				}
 			});
 					
@@ -111,9 +119,17 @@ DHTDBImpl
 					perform(
 						TimerEvent	event )
 					{
-						logger.log( "Republishing cached mappings" );
+						logger.log( "Republish of cached mappings starts" );
 						
-						republishCachedMappings();					
+						long	start 	= SystemTime.getCurrentTime();
+						
+						int[]	stats = republishCachedMappings();		
+						
+						long	end 	= SystemTime.getCurrentTime();
+
+						logger.log( "Republish of cached mappings completed in " + (end-start) + ": " +
+									"values = " + stats[0] + ", keys = " + stats[1] + ", ops = " + stats[2]);
+
 					}
 				});
 	}
@@ -397,9 +413,11 @@ DHTDBImpl
 		}
 	}
 	
-	protected void
+	protected int
 	republishOriginalMappings()
 	{
+		int	values_published	= 0;
+
 		Map	republish = new HashMap();
 		
 		try{
@@ -459,14 +477,22 @@ DHTDBImpl
 			
 			for (int i=0;i<values.size();i++){
 				
+				values_published++;
+				
 				control.put( key.getHash(), (DHTDBValueImpl)values.get(i), 0 );
 			}
 		}
+		
+		return( values_published );
 	}
 	
-	protected void
+	protected int[]
 	republishCachedMappings()
 	{		
+		int	values_published	= 0;
+		int keys_published		= 0;
+		int	republish_ops		= 0;
+		
 			// first refresh any leaves that have not performed at least one lookup in the
 			// last period
 		
@@ -623,6 +649,8 @@ DHTDBImpl
 				byte[][]				store_keys 		= new byte[keys.size()][];
 				DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
 				
+				keys_published += store_keys.length;
+				
 				for (int i=0;i<store_keys.length;i++){
 					
 					HashWrapper	wrapper = (HashWrapper)keys.get(i);
@@ -633,6 +661,8 @@ DHTDBImpl
 					
 					store_values[i] = new DHTTransportValue[values.size()];
 		
+					values_published += store_values[i].length;
+					
 					for (int j=0;j<values.size();j++){
 					
 						DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(j);
@@ -647,6 +677,8 @@ DHTDBImpl
 				List	contacts = new ArrayList();
 				
 				contacts.add( contact );
+				
+				republish_ops++;
 				
 				control.put( 
 						store_keys, 
@@ -666,6 +698,8 @@ DHTDBImpl
 				this_mon.exit();
 			}
 		}
+		
+		return( new int[]{ values_published, keys_published, republish_ops });
 	}
 		
 	protected void
