@@ -78,7 +78,7 @@ public class StartServer extends Thread {
         try {
           if (br != null)
             br.close();
-        } catch (Exception e) {
+        } catch (Exception e) { /*ignore */
         }
       }
     }
@@ -89,7 +89,7 @@ public class StartServer extends Thread {
     try {
       socket.close();
     }
-    catch (Exception e) {}
+    catch (Exception e) {/*ignore */}
   }
   /**
    * @return
