@@ -85,6 +85,64 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		access	= _access;
+		
+		applyPatches();
+	}
+	
+	protected void
+	applyPatches()
+	{
+		try{
+			File	exe_loc = getAureusEXELocation();
+			
+			String	az_exe_string = exe_loc.toString();
+			
+			int	icon_index = getIconIndex();
+			
+			String	current = 
+				access.readStringValue(
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\DefaultIcon",
+					"" );
+
+			//System.out.println( "current = " + current );
+			
+			String	target = az_exe_string + "," + getIconIndex();
+			
+			//System.out.println( "target = " + target );
+			
+			if ( !current.equals(target)){
+				
+				access.writeStringValue( 	
+						AEWin32Access.HKEY_CLASSES_ROOT,
+						"BitTorrent\\DefaultIcon",
+						"",
+						target );
+			}
+		}catch( Throwable e ){
+			
+			//e.printStackTrace();
+		}
+	}
+	
+	protected int
+	getIconIndex()
+	
+		throws PlatformManagerException
+	{
+		/*
+		File	exe_loc = getAureusEXELocation();
+		
+		long	size = exe_loc.length();
+		
+		boolean	old_exe = size < 250000;
+		
+		return( old_exe?0:1);
+		*/
+		
+		// weird, seems like it should be 0 for old and new
+		
+		return( 0 );
 	}
 	
 	protected String
@@ -322,7 +380,7 @@ PlatformManagerImpl
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\DefaultIcon",
 					"",
-					az_exe_string + ",0" );	// this was 1 but it seems it should be 0
+					az_exe_string + "," + getIconIndex());
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
