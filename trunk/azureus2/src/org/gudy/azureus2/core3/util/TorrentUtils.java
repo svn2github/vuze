@@ -759,6 +759,11 @@ TorrentUtils
 	isDecentralised(
 		TOTorrent		torrent )
 	{
+		if ( torrent == null ){
+			
+			return( false );
+		}
+		
 		return( torrent.getAnnounceURL().getProtocol().equalsIgnoreCase( "dht" ));
 	}
 	

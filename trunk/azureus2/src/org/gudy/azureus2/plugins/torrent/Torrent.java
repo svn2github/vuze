@@ -93,6 +93,9 @@ Torrent
 	getAdditionalProperty(
 		String		name );
 
+	public boolean
+	isDecentralised();
+	
 	public Map
 	writeToMap()
 	

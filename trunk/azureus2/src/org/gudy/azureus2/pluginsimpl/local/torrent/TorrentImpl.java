@@ -98,6 +98,12 @@ TorrentImpl
 		return( torrent );
 	}
 	
+	public boolean
+	isDecentralised()
+	{
+		return( TorrentUtils.isDecentralised( torrent ));
+	}
+	
 	public byte[]
 	getHash()
 	{

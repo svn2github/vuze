@@ -242,6 +242,8 @@ DHTPlugin
 			
 			model.getStatus().setText( "Disabled" );
 
+			init_sem.releaseForever();
+			
 			return;
 		}
 		

@@ -138,6 +138,14 @@ RPTorrent
 		return( null );
 	}
 	
+	public boolean
+	isDecentralised()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public byte[]
 	getHash()
 	{

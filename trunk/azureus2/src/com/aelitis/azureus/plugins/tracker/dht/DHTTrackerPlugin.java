@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
@@ -143,35 +145,49 @@ DHTTrackerPlugin
 					
 					if ( dht_pi != null ){
 						
-						Thread	t = 
-							new AEThread( "DHTTrackerPlugin:init" )
-							{
-								public void
-								runSupport()
-								{
-									try{
-										dht = (DHTPlugin)dht_pi.getPlugin();
-									
-										if ( dht != null && dht.isEnabled()){
-										
-											model.getStatus().setText( "Running" );
-											
-											initialise();
-											
-										}else{
-											
-											model.getStatus().setText( "Disabled, DHT not available" );
-										}
-									}catch( Throwable e ){
-										
-										model.getStatus().setText( "Failed" );
-									}
-								}
-							};
+						dht = (DHTPlugin)dht_pi.getPlugin();
+
+						if ( !dht.isEnabled()){
 							
-						t.setDaemon( true );
-						
-						t.start();
+							model.getStatus().setText( "Disabled" );
+							
+							notRunning();
+							
+						}else{
+							
+							Thread	t = 
+								new AEThread( "DHTTrackerPlugin:init" )
+								{
+									public void
+									runSupport()
+									{
+										try{
+										
+											if ( dht.isEnabled()){
+											
+												model.getStatus().setText( "Running" );
+												
+												initialise();
+												
+											}else{
+												
+												model.getStatus().setText( "Disabled, DHT not available" );
+												
+												notRunning();
+											}
+										}catch( Throwable e ){
+											
+											model.getStatus().setText( "Failed" );
+											
+											notRunning();
+										}
+									}
+								};
+								
+							t.setDaemon( true );
+							
+							t.start();
+						}
 					}
 				}
 				
@@ -187,6 +203,168 @@ DHTTrackerPlugin
 					
 				}
 			});
+	}
+	
+	protected void
+	notRunning()
+	{
+		plugin_interface.getDownloadManager().addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						final Download	download )
+					{
+						Torrent	torrent = download.getTorrent();
+						
+						if ( torrent != null && torrent.isDecentralised()){
+							
+							download.addListener(
+								new DownloadListener()
+								{
+									public void
+									stateChanged(
+										final Download		download,
+										int					old_state,
+										int					new_state )
+									{
+										int	state = download.getState();
+										
+										if ( 	state == Download.ST_DOWNLOADING ||
+												state == Download.ST_SEEDING ){
+											
+											download.setAnnounceResult(
+														new DownloadAnnounceResult()
+														{
+															public Download
+															getDownload()
+															{
+																return( download );
+															}
+																										
+															public int
+															getResponseType()
+															{
+																return( DownloadAnnounceResult.RT_ERROR );
+															}
+																									
+															public int
+															getReportedPeerCount()
+															{
+																return( 0 );
+															}
+															
+														
+															public int
+															getSeedCount()
+															{
+																return( 0 );
+															}
+															
+															public int
+															getNonSeedCount()
+															{
+																return( 0 );
+															}
+															
+															public String
+															getError()
+															{
+																return( "DHT Offline" );
+															}
+																										
+															public URL
+															getURL()
+															{
+																return( download.getTorrent().getAnnounceURL());
+															}
+															
+															public DownloadAnnounceResultPeer[]
+															getPeers()
+															{
+																return( new DownloadAnnounceResultPeer[0] );
+															}
+															
+															public long
+															getTimeToWait()
+															{
+																return( 0 );
+															}
+														});
+										}
+									}
+									
+									public void
+									positionChanged(
+										Download		download, 
+										int 			oldPosition,
+										int 			newPosition )
+									{
+										
+									}
+								});
+									
+							
+							download.setScrapeResult(
+									new DownloadScrapeResult()
+									{
+										public Download
+										getDownload()
+										{
+											return( download );
+										}
+										
+										public int
+										getResponseType()
+										{
+											return( RT_ERROR );
+										}
+										
+										public int
+										getSeedCount()
+										{
+											return( -1 );
+										}
+										
+										public int
+										getNonSeedCount()
+										{
+											return( -1 );
+										}
+
+										public long
+										getScrapeStartTime()
+										{
+											return( SystemTime.getCurrentTime());
+										}
+											
+										public void 
+										setNextScrapeStartTime(
+											long nextScrapeStartTime)
+										{
+										}
+											  
+										public String
+										getStatus()
+										{
+											return( "DHT Offline" );
+										}
+
+										public URL
+										getURL()
+										{
+											return( download.getTorrent().getAnnounceURL());
+										}
+									});
+						}
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+					}
+				});
 	}
 	
 	protected void
