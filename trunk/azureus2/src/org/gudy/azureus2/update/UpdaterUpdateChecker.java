@@ -35,9 +35,12 @@ import org.gudy.azureus2.core3.logging.*;
 	
 import org.gudy.azureus2.plugins.*;
 
+	// Note this is unloadable because it shouldn't be loaded in the first place
+	// Hence, on upgrade, a restart isn't required
+
 public class 
 UpdaterUpdateChecker
-	implements Plugin
+	implements UnloadablePlugin
 {
 	public static void
 	checkPlugin()
@@ -97,5 +100,10 @@ UpdaterUpdateChecker
 		}
 		
 		props.setProperty( "plugin.id", "azupdater" );
+	}
+	
+	public void
+	unload()
+	{
 	}
 }
