@@ -106,6 +106,7 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
+import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -1885,7 +1886,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       log.write("updateJar:: executing command: " + exec + "\n");
       if (log != null) log.close();
       
-      Runtime.getRuntime().exec(exec);
+     RestartUtil.exec(exec);
+     
     }
     catch (Exception e1) {
       e1.printStackTrace();

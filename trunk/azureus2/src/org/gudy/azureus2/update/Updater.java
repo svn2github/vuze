@@ -69,14 +69,8 @@ public class Updater {
           }
           log.write("renamed\n");
         
-          String exec = javaPath + "java -classpath \"" + classPath
-                      + "\" -Djava.library.path=\"" + libraryPath
-                      + "\" -Duser.dir=\"" + userPath
-                      + "\" org.gudy.azureus2.ui.swt.Main";
-
-          log.write("Updater:: executing command: " + exec + "\n");
-
-          Runtime.getRuntime().exec(exec);
+          log.write("Updater:: is restarting ");
+          restartAzureus("org.gudy.azureus2.ui.swt.Main",new String[0]);
         }
         else log.write("not found\n");
       }
@@ -93,6 +87,106 @@ public class Updater {
       } catch (IOException ignore) {}
     }
   }
+  
+  
+  /*
+   * Follows a complete copy of RestartUtil, with logging options disabled. 
+   *
+   */
+  private static final String restartScriptName = "restartScript";
+  
+  public static void restartAzureus(String mainClass,String[] parameters) {
+    String osName = System.getProperty("os.name");
+    if(osName.equalsIgnoreCase("Mac OS X")) {
+      restartAzureus_OSX(mainClass,parameters);
+    } else if(osName.equalsIgnoreCase("Linux")) {
+      restartAzureus_Linux(mainClass,parameters);
+    } else {
+      restartAzureus_win32(mainClass,parameters);
+    }
+  }
+  
+  private static void restartAzureus_win32(String mainClass,String[] parameters) {
+    //Classic restart way using Runtime.exec directly on java(w)
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
+    + "\" " + mainClass;
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    try {                
+      Runtime.getRuntime().exec(exec);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  private static void restartAzureus_OSX(String mainClass,String[] parameters) {
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "#!/bin/bash\n\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
+    + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    String fileName = userPath + "/" + restartScriptName;
+    
+    File fUpdate = new File(fileName);
+    try {
+	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+	    fosUpdate.write(exec.getBytes());
+	    fosUpdate.close();
+	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
+	    pChMod.waitFor();
+	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  private static void restartAzureus_Linux(String mainClass,String[] parameters) {
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
+    + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    String fileName = userPath + "/" + restartScriptName;
+    
+    File fUpdate = new File(fileName);
+    try {
+	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+	    fosUpdate.write(exec.getBytes());
+	    fosUpdate.close();
+	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
+	    pChMod.waitFor();
+	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
 }
       
 
