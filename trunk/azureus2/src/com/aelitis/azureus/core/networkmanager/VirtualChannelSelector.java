@@ -147,12 +147,10 @@ public class VirtualChannelSelector {
       }
       
       SelectionKey key = channel.keyFor( selector );
-      if( key != null ) {
+      if( key != null && key.isValid() ) {
         key.interestOps( key.interestOps() & ~INTEREST_OP );
       }
       else {  //channel not (yet?) registered
-        Debug.printStackTrace( new Exception( "pauseSelects( " +channel+ " ):: selection key not found" ) );
-
         try{  register_cancel_list_mon.enter();
           
           paused_states.put( channel, new Boolean( true ) );  //ensure the op is paused upon reg select-time reg
@@ -177,7 +175,7 @@ public class VirtualChannelSelector {
       
       SelectionKey key = channel.keyFor( selector );
       
-      if( key != null ) {
+      if( key != null && key.isValid() ) {
         key.interestOps( key.interestOps() | INTEREST_OP );
       }
       else {  //channel not (yet?) registered
@@ -326,7 +324,7 @@ public class VirtualChannelSelector {
                 // see if already registered
                 SelectionKey key = data.channel.keyFor( selector );
                   
-                if ( key != null && key.isValid()){  //already registered
+                if ( key != null && key.isValid() ) {  //already registered
                   key.attach( data );
                   key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
                 }
