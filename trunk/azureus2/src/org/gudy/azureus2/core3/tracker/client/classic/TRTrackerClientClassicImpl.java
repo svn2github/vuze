@@ -30,7 +30,7 @@ import java.util.Map;
 
 import javax.net.ssl.*;
 
-//import java.util.*;
+import java.util.zip.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
@@ -645,6 +645,10 @@ TRTrackerClientClassicImpl
 	  		
 	  			con = (HttpURLConnection) reqUrl.openConnection();
 	  		}
+	  	
+	  			// some trackers support gzip encoding of replies
+	  		
+	  		con.addRequestProperty("Accept-Encoding","gzip");
 	  		
 	  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 	  	  
@@ -656,8 +660,18 @@ TRTrackerClientClassicImpl
 				
 		  		is = con.getInputStream();
 		  		
+		  		String encoding = con.getHeaderField( "content-encoding");
+		  				  		
+		  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+		  		
+		  		// System.out.println( "encoding = " + encoding );
+		  		
+		  		if ( gzip ){
+		  			
+		  			is = new GZIPInputStream( is );
+		  		}
 				  //      int length = con.getContentLength();
-		  		//      System.out.println(length);
+		  		  //      System.out.println(length);
 		  
 		  		byte[] data = new byte[1024];
 		  		
