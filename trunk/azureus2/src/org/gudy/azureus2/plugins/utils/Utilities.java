@@ -158,4 +158,18 @@ Utilities
   	public ByteArrayWrapper
 	createWrapper(
 		byte[]		data );
+  	
+  	
+  	/**
+  	 * create a dispatcher that will queue runnable items until either the limit
+  	 * is reached or the dispatcher hasn't had an entry added for the defined idle time
+  	 * @param idle_dispatch_time	milliseconds
+  	 * @param max_queue_size		0 -> infinite
+  	 * @return
+  	 */
+  	
+  	public AggregatedDispatcher
+	createAggregatedDispatcher(
+		long	idle_dispatch_time,
+		long	max_queue_size );
 }

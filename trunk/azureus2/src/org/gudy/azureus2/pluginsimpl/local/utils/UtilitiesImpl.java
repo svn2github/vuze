@@ -31,6 +31,8 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -61,6 +63,9 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.ui.common.UIImageRepository;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -382,5 +387,111 @@ UtilitiesImpl
 		byte[]		data )
 	{
 		return( new HashWrapper( data ));
+	}
+	
+	public AggregatedDispatcher
+	createAggregatedDispatcher(
+		final long	idle_dispatch_time,
+		final long	max_queue_size )
+	{
+		return( 
+			new AggregatedDispatcher()
+			{
+				Timer		timer = new Timer( "AggregatedDispatcher" );
+				TimerEvent	event;
+				
+				List		list	= new ArrayList();
+				
+				public void
+				add(
+					Runnable	runnable )
+				{
+					
+					List	dispatch_now = null;
+					
+					synchronized( timer ){
+						
+							// if the list is full kick off a dispatch and reset the list
+						
+						if (	max_queue_size > 0 &&
+								max_queue_size	== list.size()){
+							
+							dispatch_now = list;
+							
+							list	= new ArrayList();
+							
+						}
+							
+						list.add( runnable );
+						
+							// set up a timer to wakeup in required time period 
+						
+						long	now = SystemTime.getCurrentTime();
+					
+						if ( event != null ){
+							
+							event.cancel();
+						}
+						
+						event = 
+							timer.addEvent( 
+									now + idle_dispatch_time,
+									new TimerEventPerformer()
+									{
+										public void
+										perform(
+											TimerEvent	event )
+										{
+											dispatch();
+										}
+									});
+					}
+					
+					if ( dispatch_now != null ){
+						
+						dispatch( dispatch_now );
+					}
+				}
+
+				protected void
+				dispatch()
+				{
+					List	dispatch_list;
+					
+					synchronized( timer ){
+					
+						dispatch_list	= list;
+						
+						list	= new ArrayList();
+						
+					}
+					
+					dispatch( dispatch_list );
+				}
+
+				protected void
+				dispatch(
+					List		l )
+				{
+					for (int i=0;i<l.size();i++){
+						
+						try{
+							((Runnable)l.get(i)).run();
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+				
+				public void
+				destroy()
+				{
+					dispatch();
+					
+					timer.destroy();
+				}
+			});
 	}
 }
