@@ -91,89 +91,14 @@ Initializer
 				
 					throws AzureusCoreException
 				{
-					final AESemaphore				sem 	= new AESemaphore("SWTInit::stopReq");
-					final AzureusCoreException[]	error 	= {null};
-					
-					try{
-						MainWindow.getWindow().getDisplay().asyncExec(
-							new AERunnable()
-							{
-								public void
-								runSupport()
-								{
-									try{
-								
-										if ( !MainWindow.getWindow().dispose(false, true)){
-											
-											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
-										}	
-									}finally{
-											
-										sem.release();
-									}
-								}
-							});
-					}catch( Throwable e ){
-						
-						error[0]	= new AzureusCoreException( "SWT Initializer: closeAzureus fails", e );
-						
-						sem.release();
-					}
-					
-					sem.reserve();
-					
-					if ( error[0] != null ){
-			
-						Debug.printStackTrace( error[0] );
-						
-						return( false );
-					}	
-					
-					return( true );
-				}	
+					return( handleStopRestart(false));
+				}
 				
 				public boolean
 				restartRequested(
 					final AzureusCore		core )
 				{
-					final AESemaphore				sem 	= new AESemaphore("SWTInit:restart");
-					final AzureusCoreException[]	error 	= {null};
-						
-					try{
-						MainWindow.getWindow().getDisplay().asyncExec(
-							new AERunnable()
-							{
-								public void
-								runSupport()
-								{
-									try{				
-										if ( !MainWindow.getWindow().dispose(true,true)){
-												
-											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
-										}	
-										
-									}finally{
-												
-										sem.release();
-									}
-								}
-							});
-					}catch( Throwable e ){
-							
-						error[0]	= new AzureusCoreException( "SWT Initializer: closeAzureus fails", e );
-							
-						sem.release();
-					}
-						
-					sem.reserve();
-						
-					if ( error[0] != null ){
-
-						// removed reporting of error 
-					
-					}
-					
-					return( true );
+					return( handleStopRestart(true));
 				}
 			});
     
@@ -183,7 +108,54 @@ Initializer
     	Debug.printStackTrace( e );
     }
   }  
-    
+
+  public boolean
+  handleStopRestart(
+  	final boolean	restart )
+  {
+	if ( MainWindow.getWindow().getDisplay().getThread() == Thread.currentThread()){
+		
+		return( MainWindow.getWindow().dispose(restart,true));
+		
+	}else{
+		final AESemaphore			sem 	= new AESemaphore("SWTInit::stopRestartRequest");
+		final boolean[]				ok	 	= {false};
+		
+		try{
+			MainWindow.getWindow().getDisplay().asyncExec(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							try{
+								ok[0] = MainWindow.getWindow().dispose(restart,true);
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							
+							}finally{
+								
+								sem.release();
+							}
+						}
+					});
+		
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			sem.release();
+		}
+	
+		sem.reserve();
+	
+		return( ok[0] );
+	}
+  }
+	
+
   public void 
   run() 
   {

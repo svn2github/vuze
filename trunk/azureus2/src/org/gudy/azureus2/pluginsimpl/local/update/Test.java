@@ -102,7 +102,7 @@ implements Plugin, PluginListener
 					
 					installer.addMoveAction( from_file.toString(), to_file.toString());
 					
-					update_man.applyUpdates( true );
+					update_man.applyUpdates( false );
 					
 				}catch( Throwable e ){
 					
