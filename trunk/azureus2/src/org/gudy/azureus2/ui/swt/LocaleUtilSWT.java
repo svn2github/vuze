@@ -214,7 +214,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     String[] titlesPieces = { "filename", "encoding"}; //$NON-NLS-1$ //$NON-NLS-2$
     for (int i = 0; i < titlesPieces.length; i++) {
       TableColumn column = new TableColumn(table, SWT.LEFT);
-      Messages.setLanguageText(column, "LocaleUtil.column." + titlesPieces[i]); //$NON-NLS-1$
+      Messages.setLanguageText(column, "LocaleUtil.column.".concat(titlesPieces[i])); //$NON-NLS-1$
     }
 
     // add candidates to table
@@ -243,7 +243,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     Messages.setLanguageText(label, "LocaleUtil.label.hint.doubleclick"); //$NON-NLS-1$
 
     final Button ok = new Button(gChoose, SWT.PUSH);
-    ok.setText(" "+MessageText.getString("Button.next")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    ok.setText(" ".concat(MessageText.getString("Button.next")).concat(" ")); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
     ok.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
     label = new Label(gChoose, SWT.NULL);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));

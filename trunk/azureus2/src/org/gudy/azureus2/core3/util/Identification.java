@@ -86,7 +86,7 @@ public class Identification {
       String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
       if (bitcomet.equals("exbc")) {
         String name = "BitComet ";
-        name = name.concat(String.valueOf(peerID[4]) + ".");
+        name = name.concat(String.valueOf(peerID[4]).concat("."));
         name = name.concat(String.valueOf(peerID[5]/10));
         name = name.concat(String.valueOf(peerID[5]%10));
         return name;
@@ -95,7 +95,7 @@ public class Identification {
       
       String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
       if (turbobt.equals("turbobt")) {
-        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
+        return "TurboBT ".concat(new String(peerID, 7, 5, Constants.BYTE_ENCODING));
       }
       
   
@@ -153,7 +153,7 @@ public class Identification {
         text = text.replace((char)12, (char)32);
         text = text.replace((char)10, (char)32);
         
-        log.write(" [ " + text + " ]\n");
+        log.write(" [ ".concat(text).concat(" ]\n"));
         
       }
       catch (Exception e) {

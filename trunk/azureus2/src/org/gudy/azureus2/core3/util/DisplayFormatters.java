@@ -74,37 +74,38 @@ DisplayFormatters
 	}
 	public static String formatByteCountToKiBEtc(int n) {
 	  if (n < 1024)
-		return n + " B";
+		return String.valueOf(n).concat(" B");
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + k_unit;
+		return String.valueOf((n / 1024)).concat(".").concat(String.valueOf(((n % 1024) / 102))).concat(k_unit);
 	  if (n < 1024 * 1024 * 1024)
-		return (n / (1024 * 1024))
-		  + "."
-		  + ((n % (1024 * 1024)) / 104857)
-		  + m_unit;
+		return String.valueOf((n / (1024 * 1024))).concat(
+      ".").concat(
+      String.valueOf(((n % (1024 * 1024)) / 104857))).concat(
+      m_unit);
 	  if (n < 1024 * 1024 * 1024 * 1024)
-		return (n / (1024 * 1024 * 1024))
-		  + "."
-		  + ((n % (1024 * 1024 * 1024)) / 107374182)
-		  + g_unit;
+		return String.valueOf((n / (1024 * 1024 * 1024))).concat(
+      ".").concat(
+      String.valueOf(
+      ((n % (1024 * 1024 * 1024)) / 107374182))).concat(
+      g_unit);
 	  return "A lot";
 	}
 
 	public static String formatByteCountToKiBEtc(long n) {
 	  if (n < 1024)
-		return n + " B";
+		return String.valueOf(n).concat(" B");
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + k_unit;
+		return String.valueOf((n / 1024)).concat(".").concat(String.valueOf(((n % 1024) / 102))).concat(k_unit);
 	  if (n < 1024 * 1024 * 1024)
-		return (n / (1024 * 1024))
-		  + "."
-		  + ((n % (1024 * 1024)) / 104857)
-		  + m_unit;
+		return String.valueOf(n / (1024 * 1024)).concat(
+		  ".").concat(
+		  String.valueOf((n % (1024 * 1024)) / 104857)).concat(
+		  m_unit);
 	  if (n < 1024l * 1024l * 1024l * 1024l)
-		return (n / (1024l * 1024l * 1024l))
-		  + "."
-		  + ((n % (1024l * 1024l * 1024l)) / 107374182l)
-		  + g_unit;
+		return String.valueOf(n / (1024l * 1024l * 1024l)).concat(
+		  ".").concat(
+		  String.valueOf((n % (1024l * 1024l * 1024l)) / 107374182l)).concat(
+		  g_unit);
 	  return "A lot !!!";
 	}
 	
@@ -112,7 +113,7 @@ DisplayFormatters
 	formatByteCountToKiBEtcPerSec(
 		long		n )
 	{
-		return( formatByteCountToKiBEtc(n) + "/s");
+		return( formatByteCountToKiBEtc(n).concat("/s"));
 	}
   
 	
@@ -120,19 +121,19 @@ DisplayFormatters
 	
 	public static String formatByteCountToBase10KBEtc(long n) {
 		if (n < 1000)
-			return n + " B";
+			return String.valueOf(n).concat(" B");
 		if (n < 1000 * 1000)
-			return (n / 1000) + "." + ((n % 1000) / 100) + " KB";
+			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(" KB");
 		if (n < 1000 * 1000 * 1000)
-			return (n / (1000 * 1000))
-			+ "."
-			+ ((n % (1000 * 1000)) / (100 * 1000))
-			+ " MB";
+			return String.valueOf(n / (1000 * 1000)).concat(
+			".").concat(
+			String.valueOf((n % (1000 * 1000)) / (100 * 1000))).concat(
+			" MB");
 		if (n < 1000l * 1000l * 1000l * 1000l)
-			return (n / (1000l * 1000l * 1000l))
-			+ "."
-			+ ((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))
-			+ " GB";
+			return String.valueOf(n / (1000l * 1000l * 1000l)).concat(
+			".").concat(
+			String.valueOf((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))).concat(
+			" GB");
 		return "A lot !!!";
 	}
 	
@@ -140,7 +141,7 @@ DisplayFormatters
 	formatByteCountToBase10KBEtcPerSec(
 			long		n )
 	{
-		return( formatByteCountToBase10KBEtc(n) + "/s");
+		return( formatByteCountToBase10KBEtc(n).concat("/s"));
 	}
 	
    public static String formatETA(long eta) {
@@ -148,8 +149,8 @@ DisplayFormatters
      if (eta == -1) return "";
      if (eta > 0) return TimeFormater.format(eta);
      
-     return MessageText.getString("PeerManager.status.finishedin")
-            + " " + TimeFormater.format(eta * -1);
+     return MessageText.getString("PeerManager.status.finishedin").concat(
+            " ").concat(TimeFormater.format(eta * -1));
    }
   
 	
@@ -166,7 +167,7 @@ DisplayFormatters
 			
 		}else{
 			
-			return formatByteCountToKiBEtc(total_received) + " ( " + DisplayFormatters.formatByteCountToKiBEtc(total_discarded) + " " + MessageText.getString("discarded") + " )"; 
+			return formatByteCountToKiBEtc(total_received).concat(" ( ").concat(DisplayFormatters.formatByteCountToKiBEtc(total_discarded)).concat(" ").concat(MessageText.getString("discarded")).concat(" )"); 
 		}
 	}
 	
@@ -185,7 +186,7 @@ DisplayFormatters
 			
 			long size = nbFails * (long)dm.getPieceLength();
 			
-			String result = nbFails + " ( ~ " + formatByteCountToKiBEtc(size) + " )";
+			String result = String.valueOf(nbFails).concat(" ( ~ ").concat(formatByteCountToKiBEtc(size)).concat(" )");
 			
 			return result;
   		}
@@ -222,9 +223,9 @@ DisplayFormatters
 			break;
 		  case DownloadManager.STATE_SEEDING :
          if (manager.getDiskManager().isChecking()) {
-           tmp = MessageText.getString("ManagerItem.seeding")
-                 + " + "
-                 + MessageText.getString("ManagerItem.checking");
+           tmp = MessageText.getString("ManagerItem.seeding").concat(
+                 " + ").concat(
+                 MessageText.getString("ManagerItem.checking"));
          }
          else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
            tmp = MessageText.getString("ManagerItem.superseeding"); //$NON-NLS-1$
@@ -237,7 +238,7 @@ DisplayFormatters
 			tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_ERROR :
-			tmp = MessageText.getString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
+			tmp = MessageText.getString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 		}
 	
@@ -273,9 +274,9 @@ DisplayFormatters
 			break;
 		  case DownloadManager.STATE_SEEDING :
 		  	if (manager.getDiskManager().isChecking()) {
-		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding")
-		  		+ " + "
-		  		+ MessageText.getDefaultLocaleString("ManagerItem.checking");
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding").concat(
+		  		" + ").concat(
+		  		MessageText.getDefaultLocaleString("ManagerItem.checking"));
 		  	}
 		  	else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
 		  		
@@ -289,7 +290,7 @@ DisplayFormatters
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_ERROR :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 		}
 	
@@ -304,24 +305,24 @@ DisplayFormatters
     StringBuffer sb = new StringBuffer();
     Calendar calendar = Calendar.getInstance();    
     calendar.setTimeInMillis(time);
-    sb.append("[");
+    sb.append('[');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.DAY_OF_MONTH)));
-    sb.append(".");
+    sb.append('.');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.MONTH)));
-    sb.append(".");
+    sb.append('.');
     sb.append(calendar.get(Calendar.YEAR));
-    sb.append(" ");
+    sb.append(' ');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.HOUR_OF_DAY)));
-    sb.append(":");
+    sb.append(':');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.MINUTE)));
-    sb.append(":");
+    sb.append(':');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.SECOND)));
-    sb.append("]");
+    sb.append(']');
     return sb.toString();
   }
   
   public static String formatIntToTwoDigits(int n) {
-    return n < 10 ? "0" + n : "" + n;
+    return n < 10 ? "0".concat(String.valueOf(n)) : String.valueOf(n);
   }
   
 }

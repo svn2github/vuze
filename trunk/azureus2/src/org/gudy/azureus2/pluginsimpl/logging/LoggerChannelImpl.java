@@ -53,7 +53,7 @@ LoggerChannelImpl
 		int		log_type,
 		String	data )
 	{
-		data = "["+name+"] " + data;
+		data = "[".concat(name).concat("] ").concat(data);
 		
 		if ( log_type == LT_INFORMATION ){
 			
@@ -73,7 +73,7 @@ LoggerChannelImpl
 	log(
 		Throwable 	error )
 	{
-		LGLogger.log("["+name+"]", error);
+		LGLogger.log("[".concat(name).concat("]"), error);
 	}
 	
 	public void
@@ -81,6 +81,6 @@ LoggerChannelImpl
 		String		str,
 		Throwable 	error )
 	{
-		LGLogger.log("["+name+"] " + str, error);
+		LGLogger.log("[".concat(name).concat("] ").concat(str), error);
 	}
 }

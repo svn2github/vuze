@@ -23,7 +23,7 @@ public class IntParameter {
   public IntParameter(Composite composite, final String name, int defaultValue) {
     inputField = new Text(composite, SWT.BORDER);
     int value = COConfigurationManager.getIntParameter(name, defaultValue);
-    inputField.setText("" + value);
+    inputField.setText(String.valueOf(value));
     inputField.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
         String text = e.text;

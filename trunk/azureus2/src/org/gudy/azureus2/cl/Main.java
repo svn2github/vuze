@@ -60,9 +60,9 @@ public class Main {
       
       int completed = stats.getCompleted();
       buf.append(completed/10);
-      buf.append(".");
+      buf.append('.');
       buf.append(completed%10);
-      buf.append("%");
+      buf.append('%');
       buf.append(" S:");
       buf.append(manager.getNbSeeds());
       buf.append(" P:");
@@ -78,9 +78,9 @@ public class Main {
       buf.append(" T:");
       buf.append(manager.getTrackerStatus());
       while(buf.length() < 80) {
-       buf.append(" ");
+       buf.append(' ');
       }
-      System.out.print("\r" + buf.toString());
+      System.out.print("\r".concat(buf.toString()));
       if(state == DownloadManager.STATE_ERROR)
         return;
       try {

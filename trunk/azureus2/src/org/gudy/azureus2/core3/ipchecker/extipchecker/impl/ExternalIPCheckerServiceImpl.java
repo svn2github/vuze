@@ -355,11 +355,11 @@ ExternalIPCheckerServiceImpl
 	{
 		if ( !completed ){
 		
-			String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+			String	message = MessageText.getString( MSG_KEY_ROOT.concat(".").concat(msg_key) );
 			
 			if ( extra != null ){
 				
-				message += ": " + extra;
+        message = message.concat(": ").concat(extra);
 			}
 			for ( int i=0;i<listeners.size();i++){
 				

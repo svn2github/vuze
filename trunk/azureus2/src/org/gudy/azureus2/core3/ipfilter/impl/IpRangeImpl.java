@@ -167,7 +167,7 @@ IpRangeImpl
    }
    
    public String toString() {
-     return description + " : " + startIp + " - " + endIp; 
+     return description.concat(" : ").concat(startIp).concat(" - ").concat(endIp); 
    }
 
   public boolean isSessionOnly() {

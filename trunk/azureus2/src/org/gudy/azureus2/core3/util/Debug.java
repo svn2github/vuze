@@ -35,8 +35,8 @@ public class Debug {
       lineNumber = st.getLineNumber();
     }
     
-    System.out.println(header + className + methodName + lineNumber + ":");
-    System.out.println("  " + debug_message + "\n");
+    System.out.println(header.concat(className).concat(methodName).concat(String.valueOf(lineNumber)).concat(":"));
+    System.out.println("  ".concat(debug_message).concat("\n"));
   }
 
 	public static void
@@ -65,7 +65,7 @@ public class Debug {
 		 		
 		 		if ( name.startsWith( "AWT" )){
 		 			
-		 			System.out.println( "Interrupting thread '" + t + "'" );
+		 			System.out.println( "Interrupting thread '".concat(t.toString()).concat("'" ));
 		 			
 		 			t.interrupt();
 		 		}
@@ -104,7 +104,7 @@ public class Debug {
 		
 		if ( t != null ){		
 		
-		   System.out.println( indent + "active thread = " + t + ", daemon = " + t.isDaemon());
+		   System.out.println( indent.concat("active thread = ").concat(t.toString()).concat(", daemon = ").concat(String.valueOf(t.isDaemon())));
 		}
 	  }
 	  
@@ -149,7 +149,7 @@ public class Debug {
  			
  			String	name = (String)it.next();
  			
- 			System.out.println( "\t" + name + " = '" + props.get(name) + "'" );
+ 			System.out.println( "\t".concat(name).concat(" = '").concat(props.get(name).toString()).concat("'" ));
  		}
 	}
 }

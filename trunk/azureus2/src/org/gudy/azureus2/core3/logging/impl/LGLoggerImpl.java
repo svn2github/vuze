@@ -107,7 +107,7 @@ LGLoggerImpl
 	{
 		if ( log_to_file ){
 			
-			logToFile( "{" + componentId + ":" + event + ":" + color + "}  " + text + NL );
+			logToFile( "{".concat(String.valueOf(componentId)).concat(":").concat(String.valueOf(event)).concat(":").concat(String.valueOf(color)).concat("}  ").concat(text).concat(NL) );
 		}
 		
 		if( listener !=  null ){
@@ -140,13 +140,13 @@ LGLoggerImpl
 			Calendar now = GregorianCalendar.getInstance();
 			        
 			 String timeStamp =
-			   "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
+			   "[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("]  "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
 	
-			str = timeStamp + str;
+			str = timeStamp.concat(str);
 			
 			PrintWriter	pw = null;
 			
-			File	file_name = new File( log_dir + File.separator + LOG_FILE_NAME );
+			File	file_name = new File( log_dir.concat(File.separator).concat(LOG_FILE_NAME) );
 			
 			try{		
 						
@@ -175,7 +175,7 @@ LGLoggerImpl
 					
 					if ( file_name.length() > max_bytes ){
 						
-						File	back_name = new File( log_dir + File.separator + BAK_FILE_NAME );
+						File	back_name = new File( log_dir.concat(File.separator).concat(BAK_FILE_NAME) );
 						
 						if ( (!back_name.exists()) || back_name.delete()){
 						
@@ -195,8 +195,8 @@ LGLoggerImpl
 	}
 	
 	private static String format(int n) {
-	   if(n < 10) return "0" + n; //$NON-NLS-1$
-	   return "" + n; //$NON-NLS-1$
+	   if(n < 10) return "0".concat(String.valueOf(n)); //$NON-NLS-1$
+	   return String.valueOf(n); //$NON-NLS-1$
 	 }  
 	 
 	protected static class
