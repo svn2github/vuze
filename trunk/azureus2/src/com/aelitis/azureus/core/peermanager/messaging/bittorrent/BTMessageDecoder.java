@@ -54,7 +54,9 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int pre_read_start_position;
   
   private boolean last_received_was_keepalive = false;
-  private boolean destroyed = false;
+  
+  private final String id = "" + new Random( SystemTime.getCurrentTime() ).nextInt( 999999 );
+  private int destroyed_count = 0;
   
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
@@ -78,9 +80,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
-      if( destroyed ) {
-        System.out.println( "BT decoder already destroyed" );
-        throw new IOException( "BT decoder already destroyed!" );
+      if( destroyed_count > 0 ) {
+        String msg = "BT decoder [#" +id+ "] already destroyed [" +destroyed_count+ "] times.";
+        System.out.println( msg );
+        throw new IOException( msg );
       }
       
       int bytes_possible = preReadProcess( bytes_remaining );
@@ -139,7 +142,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
 
   public void destroy() {
-    destroyed = true;
+    destroyed_count++;
 
     if( direct_payload_buffer != null ) {
       direct_payload_buffer.returnToPool();
@@ -173,7 +176,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       ByteBuffer bb = decode_array[ i ];
       
       if( bb == null ) {
-        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
+        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed_count );
       }
       
       
