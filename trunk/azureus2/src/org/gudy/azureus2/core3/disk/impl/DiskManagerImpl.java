@@ -1293,10 +1293,20 @@ DiskManagerImpl
           
 					long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
           
-					if (limit < realLimit) buffer.limit((int)limit);
-
-					fc.write(buffer);
+					if (limit < realLimit) {
+						buffer.limit((int)limit);
+          }
+                    
+          // Patch thanks to Gijs Overvliet
+          if (buffer.position() < buffer.limit()) {
+            fc.write(buffer);
+          }
+          else { 
+            Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
+          }
+                    
 					buffer.limit(realLimit);
+                    
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
