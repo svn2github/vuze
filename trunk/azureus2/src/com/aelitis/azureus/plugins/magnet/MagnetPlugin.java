@@ -37,19 +37,16 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
-import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.net.magneturi.*;
 
 /**
@@ -59,7 +56,7 @@ import com.aelitis.net.magneturi.*;
 
 public class 
 MagnetPlugin
-	implements Plugin, MagnetURIHandlerListener
+	implements Plugin
 {
 	private PluginInterface		plugin_interface;
 		
@@ -109,7 +106,51 @@ MagnetPlugin
 		menu1.addListener( listener );
 		menu2.addListener( listener );
 
-		MagnetURIHandler.getSingleton().addListener( this );
+		MagnetURIHandler.getSingleton().addListener(
+			new MagnetURIHandlerListener()
+			{
+				public byte[]
+				badge()
+				{
+					return( null );
+				}
+							
+				public byte[]
+				download(
+					final MagnetURIHandlerProgressListener		muh_listener,
+					final byte[]								hash,
+					final long									timeout )
+				
+					throws MagnetURIHandlerException
+				{
+					return( MagnetPlugin.this.download(
+							new MagnetPluginProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+									muh_listener.reportSize( size );
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									muh_listener.reportActivity( str );
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+									muh_listener.reportCompleteness( percent );
+								}
+							},
+							hash,
+							timeout ));
+				}
+			});
 		
 		plugin_interface.addListener(
 			new PluginListener()
@@ -151,14 +192,12 @@ MagnetPlugin
 	
 	public byte[]
 	download(
-		final MagnetURIHandlerProgressListener	listener,
+		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
 		final long								timeout )
 	
 		throws MagnetURIHandlerException
 	{
-		System.out.println( "MagnetPlugin: download( " + plugin_interface.getUtilities().getFormatters().encodeBytesToString( hash ) + ")");
-		
 		try{
 			final DistributedDatabase db = plugin_interface.getDistributedDatabase();
 			
@@ -277,7 +316,7 @@ MagnetPlugin
 				}
 					
 				try{
-					System.out.println( "downloading torrent from " + contact.getName());
+					listener.reportActivity( "downloading data from " + contact.getName());
 					
 					DistributedDatabaseValue	value = 
 						contact.read( 
@@ -306,9 +345,7 @@ MagnetPlugin
 								db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
 								db.createKey( hash ),
 								timeout );
-					
-					System.out.println( "download value = " + value );
-					
+										
 					if ( value != null ){
 						
 						return( (byte[])value.getValue(byte[].class));
