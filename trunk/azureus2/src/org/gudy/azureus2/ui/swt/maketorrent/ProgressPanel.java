@@ -112,8 +112,12 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     try {
        URL url = new URL(((NewTorrentWizard)wizard).trackerURL);
       TOTorrent torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
-      this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       torrent.setComment(((NewTorrentWizard)wizard).getComment());
+      if(((NewTorrentWizard)wizard).useMultiTracker) {
+        this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
+        torrent.setAdditionalListProperty("announce-list",((NewTorrentWizard)wizard).trackers);
+      }
+      this.reportCurrentTask(MessageText.getString("wizard.savingfile"));      
       torrent.serialiseToBEncodedFile(new File(((NewTorrentWizard)wizard).savePath));
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
 	  wizard.switchToClose();

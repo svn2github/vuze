@@ -38,10 +38,15 @@ import java.util.Map;
 public class TrackersUtil {
   
   private List trackers;
+  private Map multiTrackers; 
+  
   private static TrackersUtil instance;
+  
+  
   
   private TrackersUtil() {
     trackers = new ArrayList();
+    multiTrackers = new HashMap();
     loadList();
   }
   
@@ -66,6 +71,19 @@ public class TrackersUtil {
     saveList();
   }
   
+  public void addMultiTracker(String configName, List groups) {
+    multiTrackers.put(configName,groups);
+    saveList();
+  }
+  
+  public void removeMultiTracker(String configName) {
+    multiTrackers.remove(configName);
+  }
+  
+  public Map getMultiTrackers() {
+    return new HashMap(multiTrackers);
+  }
+  
   private void loadList() {    
     File fTrackers = FileUtil.getApplicationFile("trackers.config");
     if(fTrackers.exists() && fTrackers.isFile()) {
@@ -76,10 +94,33 @@ public class TrackersUtil {
         bin = new BufferedInputStream(fin);
         Map map = BDecoder.decode(bin);
         List list = (List) map.get("trackers");
-        Iterator iter = list.iterator();
-        while(iter.hasNext()) {
-          String tracker =  new String((byte[])iter.next());
-          trackers.add(tracker);
+        if(list != null) {
+	        Iterator iter = list.iterator();
+	        while(iter.hasNext()) {
+	          String tracker =  new String((byte[])iter.next());
+	          trackers.add(tracker);
+	        }
+        }
+        Map mapMT = (Map) map.get("multi-trackers");
+        if(mapMT != null) {
+          Iterator iter = mapMT.keySet().iterator();
+          while(iter.hasNext()) {
+            String configName =  (String) iter.next();            
+            List groups = (List) mapMT.get(configName);
+            List resGroups = new ArrayList(groups.size());
+            Iterator iterGroups = groups.iterator();
+            while(iterGroups.hasNext()) {
+              List trackers = (List) iterGroups.next();
+              List resTrackers = new ArrayList(trackers.size());
+              Iterator iterTrackers = trackers.iterator();
+              while(iterTrackers.hasNext()) {
+                String tracker = (String) iterTrackers.next();
+                resTrackers.add(tracker);
+              }
+              resGroups.add(resTrackers);
+            }
+            this.multiTrackers.put(configName,resGroups);
+          }
         }
         bin.close();                
         fin.close();
@@ -92,6 +133,7 @@ public class TrackersUtil {
   private void saveList() {
     Map map = new HashMap();
     map.put("trackers",trackers);
+    map.put("multi-trackers",multiTrackers);
     try {
       //  Open the file
       File fTrackers = FileUtil.getApplicationFile("trackers.config");

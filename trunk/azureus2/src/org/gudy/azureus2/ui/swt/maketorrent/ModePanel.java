@@ -84,13 +84,13 @@ public class ModePanel extends AbstractWizardPanel {
     
     final Button btnLocalTracker = new Button(panel, SWT.RADIO);   
     Messages.setLanguageText(btnLocalTracker, "wizard.tracker.local");
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData();
     gridData.horizontalSpan = 2;
     btnLocalTracker.setLayoutData(gridData);    
 
     final Button btnSSL = new Button(panel, SWT.CHECK);
     Messages.setLanguageText(btnSSL, "wizard.tracker.ssl"); 
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.horizontalSpan = 2;
     btnSSL.setLayoutData( gridData );
         
@@ -101,7 +101,7 @@ public class ModePanel extends AbstractWizardPanel {
     Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
     
     final Label localTrackerValue = new Label(panel, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData();
     gridData.horizontalSpan = 3;
     localTrackerValue.setLayoutData(gridData);
     
@@ -109,7 +109,7 @@ public class ModePanel extends AbstractWizardPanel {
     //<blank>
     Label label = new Label(panel,SWT.NULL);
     label.setText(" ");
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData();
     gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
 
@@ -118,7 +118,7 @@ public class ModePanel extends AbstractWizardPanel {
     
     final Button btnExternalTracker = new Button(panel, SWT.RADIO);
     Messages.setLanguageText(btnExternalTracker, "wizard.tracker.external");
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData();
     gridData.horizontalSpan = 4;
     btnExternalTracker.setLayoutData(gridData);
 
@@ -147,7 +147,7 @@ public class ModePanel extends AbstractWizardPanel {
     }
 
     if (((NewTorrentWizard) wizard).localTracker) {
-      ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl[0];
+      setTrackerUrl(localTrackerUrl[0]);
     }
 
     final Label labelExternalAnnounce = new Label(panel, SWT.NULL);
@@ -170,8 +170,6 @@ public class ModePanel extends AbstractWizardPanel {
     while (iter.hasNext()) {
       tracker.add((String) iter.next());
     }
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    tracker.setLayoutData(gridData);
     tracker.addModifyListener(new ModifyListener() {
       /*
 			 * (non-Javadoc)
@@ -179,8 +177,9 @@ public class ModePanel extends AbstractWizardPanel {
 			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
       public void modifyText(ModifyEvent arg0) {
-        String text = tracker.getText();
-        ((NewTorrentWizard) wizard).trackerURL = text;
+        String text = tracker.getText();        
+        setTrackerUrl(text);
+        
         boolean valid = true;
         String errorMessage = "";
         try {
@@ -197,6 +196,23 @@ public class ModePanel extends AbstractWizardPanel {
     updateTrackerURL();
     tracker.setEnabled(!((NewTorrentWizard) wizard).localTracker);
     
+    new Label(panel,SWT.NULL);
+    
+    //Line:
+    // [] add Multi-tracker information
+    
+    final Button btnMultiTracker = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(btnMultiTracker, "wizard.multitracker");
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    btnMultiTracker.setLayoutData(gridData);
+    btnMultiTracker.addListener(SWT.Selection, new Listener() {
+
+	    public void handleEvent(Event arg0) {
+	      ((NewTorrentWizard) wizard).useMultiTracker = btnMultiTracker.getSelection();
+	    }
+    });
+    btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
     //Line:
     // ------------------------------
     
@@ -250,7 +266,7 @@ public class ModePanel extends AbstractWizardPanel {
 			
 			localTrackerUrl[0] = url;
 			
-			((NewTorrentWizard) wizard).trackerURL = url;
+			setTrackerUrl(url);
 	
 		  }
 		});
@@ -258,7 +274,7 @@ public class ModePanel extends AbstractWizardPanel {
     btnLocalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         ((NewTorrentWizard) wizard).localTracker = true;
-        ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl[0];
+        setTrackerUrl(localTrackerUrl[0]);
         btnExternalTracker.setSelection(false);
         btnLocalTracker.setSelection(true);
         tracker.setEnabled(false);
@@ -272,7 +288,7 @@ public class ModePanel extends AbstractWizardPanel {
     btnExternalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         ((NewTorrentWizard) wizard).localTracker = false;
-		((NewTorrentWizard) wizard).trackerURL = tracker.getText();
+        setTrackerUrl(tracker.getText());
         btnLocalTracker.setSelection(false);
         btnExternalTracker.setSelection(true);
         tracker.setEnabled(true);
@@ -282,16 +298,23 @@ public class ModePanel extends AbstractWizardPanel {
         labelExternalAnnounce.setEnabled(true);
       }
     });
+    
+    //Line:
+    // ------------------------------
+    
+    label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
 
     //Line:
     //Comment: [               ]
     label = new Label(panel, SWT.NULL);
-
     Messages.setLanguageText(label, "wizard.comment");
 
     final Text comment = new Text(panel, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
     comment.setText("");
 
@@ -303,13 +326,13 @@ public class ModePanel extends AbstractWizardPanel {
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
     label.setText("\n");
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
     label.setForeground(MainWindow.blue);
     Messages.setLanguageText(label, "wizard.hint.mode");
@@ -321,6 +344,9 @@ public class ModePanel extends AbstractWizardPanel {
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
   public IWizardPanel getNextPanel() {
+    if(((NewTorrentWizard) wizard).useMultiTracker)
+      return new MultiTrackerPanel((NewTorrentWizard) wizard, this);
+
     if (((NewTorrentWizard) wizard).mode) {
       return new DirectoryPanel(((NewTorrentWizard) wizard), this);
     } else {
@@ -347,5 +373,13 @@ public class ModePanel extends AbstractWizardPanel {
 
   void updateTrackerURL() {
     tracker.setText(((NewTorrentWizard) wizard).trackerURL);
+  }
+  
+  void setTrackerUrl(String url) {
+    ((NewTorrentWizard) wizard).trackerURL = url;
+    List list = (List) ((NewTorrentWizard) wizard).trackers.get(0);
+    if(list.size() > 0)
+      list.remove(0);
+    list.add(url);
   }
 }

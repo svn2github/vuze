@@ -20,6 +20,8 @@
 package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -48,13 +50,18 @@ public class NewTorrentWizard extends Wizard {
   boolean localTracker = true;
   String trackerURL = "http://";
   File droppedFile = null;
+  
+  boolean useMultiTracker = false;
+  List trackers = new ArrayList();
 
   public NewTorrentWizard(Display display) {
     super(display, "wizard.title");
+    trackers.add(new ArrayList());
     trackerURL = Utils.getLinkFromClipboard(display);
     ModePanel panel = new ModePanel(this, null);
     this.setFirstPanel(panel);
     createDropTarget(getWizardWindow());
+    
   }
 
   void setComment(String s) {

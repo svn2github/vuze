@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -148,6 +149,8 @@ public class Messages {
          ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
       else if (widget instanceof TabItem)
          ((TabItem) widget).setText(MessageText.getString((String) widget.getData()));
+      else if (widget instanceof TreeItem)
+        ((TreeItem) widget).setText(MessageText.getString((String) widget.getData()));
       else if(widget instanceof Shell) 
         ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
       else
