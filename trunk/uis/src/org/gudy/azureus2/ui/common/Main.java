@@ -123,6 +123,7 @@ public class Main {
     	CommandLine commands = parseCommands(args, true);
 
       if( mi ) {
+        System.out.println( "MULTI_INSTANCE enabled" );
         processArgs(args, core, commands);
         return;
       }
