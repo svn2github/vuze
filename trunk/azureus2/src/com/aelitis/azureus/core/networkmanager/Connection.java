@@ -43,7 +43,7 @@ public class Connection {
   /**
    * Constructor for new OUTbound connection.
    * The connection is not yet established upon instantiation; use connect() to do so.
-   * @param remote_address to connect to
+   * @param _remote_address to connect to
    */
   protected Connection( ConnectionOwner	_owner, InetSocketAddress _remote_address ) {
   	owner = _owner;
@@ -56,7 +56,7 @@ public class Connection {
   /**
    * Constructor for new INbound connection.
    * The connection is assumed to be already established, by the given already-connected channel.
-   * @param remote_channel connected by
+   * @param _remote_channel connected by
    */
   protected Connection( ConnectionOwner _owner, SocketChannel _remote_channel ) {
   	owner	= _owner;
