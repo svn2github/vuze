@@ -37,11 +37,9 @@
                 <th width="6%">Ave Down</th>
                 <th width="6%">Left</th>
                 <th width="6%">Comp</th>
-                <tmpl_if torrent_details_allowed> 
-                <th width="6%">More</th>
-                </tmpl_if> </tr>
-              <tmpl_loop torrent_info> 
-              <tr> 
+                <tmpl_if torrent_details_allowed><th width="6%">More</th></tmpl_if>
+              </tr>
+              <tmpl_loop torrent_info><tr> 
                 <td> <a href="<tmpl_var torrent_download_url>"><tmpl_var torrent_name></a></td>
                 <td><tmpl_var torrent_status></td>
                 <td><tmpl_var torrent_size></td>
@@ -53,10 +51,8 @@
                 <td><tmpl_var torrent_download_speed></td>
                 <td><tmpl_var torrent_total_left></td>
                 <td><tmpl_var torrent_completed></td>
-                <tmpl_if torrent_details_allowed> 
-                <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
-                </tmpl_if> </tr>
-              </tmpl_loop> 
+                <tmpl_if torrent_details_allowed><td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td></tmpl_if>
+              </tr></tmpl_loop> 
             </table>
           </td>
         </tr>
