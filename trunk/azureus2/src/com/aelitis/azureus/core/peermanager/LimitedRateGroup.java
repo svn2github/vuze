@@ -28,7 +28,7 @@ package com.aelitis.azureus.core.peermanager;
 public interface LimitedRateGroup {
   /**
    * Get the current rate limit.
-   * @return rate in bytes per second
+   * @return rate in bytes per second, 0 for unlimited, -1 for disabled
    */
   public int getRateLimitBytesPerSecond();
 }

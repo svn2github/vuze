@@ -75,12 +75,13 @@ public class PeerUploadManager {
   }
   
   
-  public void registerStandardPeerConnection( final Connection connection, final LimitedRateGroup group ) {
+  
+  private void registerConnection( final Connection connection, final LimitedRateGroup group, final boolean force_upgrade ) {
     final ConnectionData conn_data = new ConnectionData();
-    
+        
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
       public void messageAdded( Message message ) {
-        if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {  //is sending piece data
+        if( message.getID().equals( BTMessage.ID_BT_PIECE ) || force_upgrade ) {  //is sending piece data
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
             
             standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
@@ -119,7 +120,7 @@ public class PeerUploadManager {
       }
 
       public void messageSent( Message message ) {
-        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) {  //is done sending piece data
+        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) && !force_upgrade ) {  //is done sending piece data
           if( conn_data.state == ConnectionData.STATE_UPGRADED ) {  //so downgrade it
             standard_entity_controller.downgradePeerConnection( connection );
             conn_data.state = ConnectionData.STATE_NORMAL;
@@ -158,6 +159,35 @@ public class PeerUploadManager {
     
     connection.getOutgoingMessageQueue().registerQueueListener( listener );
     standard_entity_controller.registerPeerConnection( connection );
+  }
+  
+  
+  
+  /**
+   * Register connection that will be automatically upgraded upon registration and never downgraded.
+   * @param connection
+   * @param group
+   */
+  public void registerUpgradedConnection( Connection connection, LimitedRateGroup group ) {
+    registerConnection( connection, group, true );
+  }
+  
+  
+  public void cancelUpgradedConnection( Connection connection ) {
+    cancelStandardPeerConnection( connection );
+  }
+  
+  
+  
+  
+  /**
+   * Register connection that will be auto-upgraded upon addition of bt piece message,
+   * and auto-downgraded upon sending of bt choke message.
+   * @param connection
+   * @param group
+   */
+  public void registerStandardPeerConnection( Connection connection, LimitedRateGroup group ) {
+    registerConnection( connection, group, false );
   }
   
   

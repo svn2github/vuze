@@ -24,6 +24,9 @@ package org.gudy.azureus2.pluginsimpl.local.network;
 
 import org.gudy.azureus2.plugins.network.*;
 
+import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+import com.aelitis.azureus.core.peermanager.PeerManager;
+
 
 /**
  *
@@ -47,7 +50,16 @@ public class ConnectionImpl implements Connection {
   public void connect( final ConnectionListener listener ) {
     core_connection.connect( new com.aelitis.azureus.core.networkmanager.Connection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
-      public void connectSuccess() {  listener.connectSuccess();  }
+      
+      public void connectSuccess() {
+        //register for central write processing
+        PeerManager.getSingleton().getUploadManager().registerUpgradedConnection( core_connection, new LimitedRateGroup() {
+          public int getRateLimitBytesPerSecond() {  return 0;  }  //no write limit for now
+        });  //CHEAP HACK ALERT :)
+        
+        listener.connectSuccess();
+      }
+      
       public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
       public void exceptionThrown( Throwable error ) {  listener.exceptionThrown( error );  }
     });
@@ -56,7 +68,10 @@ public class ConnectionImpl implements Connection {
   }
   
   
-  public void close() {  core_connection.close();  }
+  public void close() {
+    PeerManager.getSingleton().getUploadManager().cancelUpgradedConnection( core_connection );  //cancel central write processing
+    core_connection.close();
+  }
 
   public OutgoingMessageQueue getOutgoingMessageQueue() {  return out_queue;  }
 
