@@ -1261,7 +1261,7 @@ public class ConfigView extends AbstractIView {
    if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
     label = new Label(gStyle, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
-    new IntParameter(gStyle, VerticalAligner.parameterName,0); //$NON-NLS-1$
+    new IntParameter(gStyle, VerticalAligner.parameterName,28); //$NON-NLS-1$
    }
    
    label = new Label(gStyle, SWT.NULL);
