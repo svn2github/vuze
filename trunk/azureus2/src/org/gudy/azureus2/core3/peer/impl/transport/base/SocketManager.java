@@ -77,7 +77,7 @@ public class SocketManager {
           pendingOutboundConnections.put( key, listener );
         }
         catch (Throwable t) {
-          t.printStackTrace();
+          //t.printStackTrace();
           listener.connectionDone( null, t.getMessage() );
           synchronized( connectionsToClose ) {
             connectionsToClose.add( channel );
