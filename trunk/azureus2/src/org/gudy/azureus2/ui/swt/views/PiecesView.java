@@ -23,6 +23,9 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 
 /**
  * @author Olivier
@@ -50,16 +53,18 @@ public class PiecesView extends AbstractIView implements DownloadManagerPeerList
       { "#", "size", "numberofblocks", "blocks", "completed", "availability" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
     int[] alignPieces =
       { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.RIGHT, SWT.RIGHT };
+    int[] widths = 
+      { 50, 60, 65, 300, 80, 80 };
     for (int i = 0; i < titlesPieces.length; i++) {
       TableColumn column = new TableColumn(table, alignPieces[i]);
+      column.setWidth(widths[i]);
       Messages.setLanguageText(column, "PiecesView." + titlesPieces[i]); //$NON-NLS-1$
+      column.addControlListener(new ControlAdapter() {
+        public void controlResized(ControlEvent e) {
+          refresh();
+        }
+      });
     }
-    table.getColumn(0).setWidth(50);
-    table.getColumn(1).setWidth(60);
-    table.getColumn(2).setWidth(65);
-    table.getColumn(3).setWidth(300);
-    table.getColumn(4).setWidth(80);
-    table.getColumn(5).setWidth(80);
     
     sorter = new TableSorter(this, "PiecesView", "#",true);
     

@@ -4,12 +4,17 @@
  */
 package org.gudy.azureus2.ui.swt.views.tableitems;
 
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -30,6 +35,7 @@ public class PieceTableItem implements SortableItem{
   Table table;
   PEPiece piece;
   TableItem item;
+  Canvas cBlockView;
 
   private String[] oldTexts;
 
@@ -52,6 +58,16 @@ public class PieceTableItem implements SortableItem{
           return;
         item = new TableItem(table, SWT.NULL);
         view.setItem(item,piece);
+
+        cBlockView = new Canvas(table, SWT.NULL);
+        cBlockView.addPaintListener(new PaintListener() {
+        	public void paintControl(PaintEvent event) {
+            if (event.count > 0 || event.width == 0 || event.height == 0)
+              return;
+        		updateBlockView();
+        	}
+        });
+        
       }
     });
 
@@ -59,6 +75,7 @@ public class PieceTableItem implements SortableItem{
     for (int i = 0; i < oldTexts.length; i++) {
       oldTexts[i] = "";
     }
+    
   }
 
   public void updateDisplay() {
@@ -97,24 +114,35 @@ public class PieceTableItem implements SortableItem{
       item.setText(5, tmp);
       oldTexts[5] = tmp;
     }
-
+    
+    updateBlockView();
+  }
+  
+  void updateBlockView() {
     Rectangle bounds = item.getBounds(3);
-    int width = bounds.width - 1;
-    int x0 = bounds.x;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
-    int height = bounds.height - 3;
-    if (width < 10 || height < 3)
+    cBlockView.setBounds(bounds);
+
+    int x1 = bounds.width - 2;
+    // + VerticalAligner.getAlignement();
+    int y1 = bounds.height - 3;
+    if (x1 < 10 || y1 < 3)
       return;
-    Image image = new Image(display, width, height);
+    Image image = new Image(display, bounds.width, bounds.height);
     Color blue = MainWindow.blues[4];
     Color green = MainWindow.blues[1];
     Color downloaded = MainWindow.red;
     Color color;
-    GC gc = new GC(table);
     GC gcImage = new GC(image);
+    gcImage.setForeground(MainWindow.grey);
+    gcImage.drawRectangle(0, 0, x1 + 1, y1 + 1);
+    int iPixelsPerBlock = (x1 + 1) / piece.getNbBlocs();
     for (int i = 0; i < piece.getNbBlocs(); i++) {
-      int a0 = (i * width) / piece.getNbBlocs();
-      int a1 = ((i + 1) * width) / piece.getNbBlocs();
+      int nextWidth = iPixelsPerBlock;
+      if (i == piece.getNbBlocs() - 1) {
+        nextWidth = x1 - (iPixelsPerBlock * (piece.getNbBlocs() - 1));
+      }
+      int a0 = (i * x1) / piece.getNbBlocs() + 1;
+      int a1 = ((i + 1) * x1) / piece.getNbBlocs() - 1;
       color = MainWindow.white;
 
       if (piece.getWritten()[i]) {
@@ -130,12 +158,13 @@ public class PieceTableItem implements SortableItem{
       }
 
       gcImage.setBackground(color);
-      gcImage.fillRectangle(a0,1,a1,height);
+      gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,y1);
     }
     gcImage.dispose();
-    gc.setForeground(MainWindow.grey);
-    gc.drawImage(image, x0, y0);
-    gc.drawRectangle(x0, y0, width, height);
+
+    GC gc = new GC(cBlockView);
+    gc.drawImage(image, 0, 0);
+    
     gc.dispose();
     image.dispose();
   }
@@ -146,6 +175,12 @@ public class PieceTableItem implements SortableItem{
     try {
     display.asyncExec(new Runnable() {
       public void run() {
+        if (cBlockView != null) {
+          if (!cBlockView.isDisposed())
+            cBlockView.dispose();
+          cBlockView = null;
+        }
+
         if (table == null || table.isDisposed())
           return;
         table.remove(table.indexOf(item));
