@@ -32,4 +32,8 @@ MagnetURIHandlerListener
 {
 	public byte[]
 	badge();
+	
+	public byte[]
+	download(
+		byte[]		hash );
 }

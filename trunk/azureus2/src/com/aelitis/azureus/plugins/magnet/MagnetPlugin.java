@@ -46,12 +46,21 @@ MagnetPlugin
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Magnet URI Handler" );
 		
-		MagnetURIHandler.addListener( this );
+		MagnetURIHandler.getSingleton().addListener( this );
 	}
 	
 	public byte[]
 	badge()
 	{
+		return( null );
+	}
+	
+	public byte[]
+	download(
+		byte[]		hash )
+	{
+		System.out.println( "MagnetPlugin: download( " + plugin_interface.getUtilities().getFormatters().encodeBytesToString( hash ) + ")");
+		
 		return( null );
 	}
 }

@@ -29,13 +29,26 @@ import com.aelitis.net.magneturi.impl.MagnetURIHandlerImpl;
  *
  */
 
-public class 
+public abstract class 
 MagnetURIHandler 
 {
-	public static void
-	addListener(
-		MagnetURIHandlerListener l )
+	public static MagnetURIHandler
+	getSingleton()
 	{
-		MagnetURIHandlerImpl.addListener( l );
+		return( MagnetURIHandlerImpl.getSingleton());
 	}
+	
+	public abstract int
+	getPort();
+	
+	public abstract void
+	addListener(
+		MagnetURIHandlerListener l );
+	
+	public abstract void
+	removeListener(
+		MagnetURIHandlerListener l );
+	
+	
+
 }
