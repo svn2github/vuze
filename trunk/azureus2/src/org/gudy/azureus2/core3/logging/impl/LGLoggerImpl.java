@@ -39,6 +39,8 @@ LGLoggerImpl
 	public static final String		BAK_FILE_NAME	= "az.log.bak";
 	
 	public static final String		NL = "\r\n";
+	// when adding a new component, don't forget to add it to ConfigurationDefaults
+	public static final int[] components = { 0, 1, 2, 4 };
 	
 	private static boolean			initialised = false;
 	
@@ -47,6 +49,7 @@ LGLoggerImpl
 	private static boolean			log_to_file		= false;
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
+	private static int        log_types[] = new int[components.length];
 	
 	public static synchronized void
 	initialise()
@@ -96,6 +99,12 @@ LGLoggerImpl
 		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
 		
 		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
+		
+		for (int i = 0; i < log_types.length; i++) {
+  		log_types[i] = 0;
+      for (int j = 0; j <= 3; j++)
+    		log_types[i] |= COConfigurationManager.getBooleanParameter("bLog" + components[i] + "-" + j) ? (1 << j) : 0;
+  	}
 	}
 
 	public static synchronized void 
@@ -106,8 +115,15 @@ LGLoggerImpl
 		String text) 
 	{
 		if ( log_to_file ){
-			
-			logToFile( "{".concat(String.valueOf(componentId)).concat(":").concat(String.valueOf(event)).concat(":").concat(String.valueOf(color)).concat("}  ").concat(text).concat(NL) );
+		  int logTypeIndex = 0;
+  		for (int i = 0; i < components.length; i++) {
+  		  if (components[i] == componentId) {
+  		    logTypeIndex = i;
+  		    break;
+  		  }
+  		}
+  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
+  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
 		}
 		
 		if( listener !=  null ){

@@ -140,6 +140,8 @@ public class ConfigView extends AbstractIView {
     | ############################################################## |
     |  [Button]                                                      |
     \----------------------------------------------------------------/
+    
+    TODO:  Auto language change for tree
     */
     cConfig = new Composite(composite, SWT.NONE);
     GridLayout configLayout = new GridLayout();
@@ -1976,6 +1978,7 @@ public class ConfigView extends AbstractIView {
 
 
   private void initLogging() {
+  	int[] components = { 0, 1, 2, 4 };
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     GridLayout layout;
@@ -1985,7 +1988,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gLogging.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 2;
     gLogging.setLayout(layout);
 
     TreeItem itemLogging = new TreeItem(tree, SWT.NULL);
@@ -1993,31 +1996,34 @@ public class ConfigView extends AbstractIView {
     itemLogging.setData(gLogging);
 
     // row
-
     label = new Label(gLogging, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.logging.enable"); //$NON-NLS-1$
-    BooleanParameter enableLogging = new BooleanParameter(gLogging, "Logging Enable", false); //$NON-NLS-1$
-
-    label = new Label(gLogging, SWT.NULL);
-
-    Control[] controls = new Control[4];
+    BooleanParameter enableLogging = new BooleanParameter(gLogging, "Logging Enable"); //$NON-NLS-1$
+    
+    Composite cArea = new Composite(gLogging, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 3;
+    cArea.setLayout(layout);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    cArea.setLayoutData(gridData);
+    
 
     // row
 
-    Label lStatsPath = new Label(gLogging, SWT.NULL);
+    Label lStatsPath = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(lStatsPath, "ConfigView.section.logging.logdir"); //$NON-NLS-1$
 
     gridData = new GridData();
     gridData.widthHint = 150;
-    final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    final StringParameter pathParameter = new StringParameter(cArea, "Logging Dir"); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
-    controls[0] = lStatsPath;
-    controls[1] = pathParameter.getControl();
-    Button browse = new Button(gLogging, SWT.PUSH);
+    Button browse = new Button(cArea, SWT.PUSH);
     browse.setImage(imgOpenFolder);
     imgOpenFolder.setBackground(browse.getBackground());
     browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-    controls[2] = browse;
     browse.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
@@ -2033,7 +2039,7 @@ public class ConfigView extends AbstractIView {
       }
     });
 
-    Label lMaxLog = new Label(gLogging, SWT.NULL);
+    Label lMaxLog = new Label(cArea, SWT.NULL);
 
     Messages.setLanguageText(lMaxLog, "ConfigView.section.logging.maxsize");
     final String lmLabels[] = new String[logFileSizes.length];
@@ -2044,7 +2050,39 @@ public class ConfigView extends AbstractIView {
       lmValues[i] = num;
     }
 
-    controls[3] = new IntListParameter(gLogging, "Logging Max Size", 0, lmLabels, lmValues).getControl();
+    IntListParameter paramMaxSize = new IntListParameter(cArea, "Logging Max Size", lmLabels, lmValues);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    paramMaxSize.setLayoutData(gridData);
+
+    
+    Composite cLogTypes = new Composite(gLogging, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 3;
+    layout.makeColumnsEqualWidth = true;
+    cLogTypes.setLayout(layout);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    cLogTypes.setLayoutData(gridData);
+
+		for (int i = 0; i < components.length; i++) {
+      Group gLogType = new Group(cLogTypes, SWT.NULL);
+      layout = new GridLayout();
+      layout.numColumns = 2;
+      gLogType.setLayout(layout);
+      gLogType.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+      Messages.setLanguageText(gLogType, "ConfigView.section.logging.log" + components[i] + "component");
+      
+      for (int j = 0; j <= 3; j++) {
+        label = new Label(gLogType, SWT.NULL);
+        Messages.setLanguageText(label, "ConfigView.section.logging.log" + j + "type");
+        new BooleanParameter(gLogType, "bLog" + components[i] + "-" + j);
+      }
+    }
+    
+    Control[] controls = { cArea, cLogTypes };
     enableLogging.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
   }
 
