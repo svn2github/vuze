@@ -1512,7 +1512,9 @@ PEPeerControlImpl
         Iterator iter = list.iterator();
         while(iter.hasNext()) {
           PEPieceWrite write = (PEPieceWrite) iter.next();
-          System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
+          try{
+          	System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
+          } catch(Exception ignore) { }
         }
         //_pieces[pieceNumber].free();      
         _pieces[pieceNumber].reset();

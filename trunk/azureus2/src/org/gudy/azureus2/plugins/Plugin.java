@@ -22,9 +22,13 @@
 package org.gudy.azureus2.plugins;
 
 /**
+ * Defines the plugin interface to implement in order to create a Plugin
  * @author Olivier
- * 
  */
 public interface Plugin {  
+	/**
+	 * This method is called when the Plugin is loaded by Azureus
+	 * @param pluginInterface the interface that the plugin must use to communicate with Azureus
+	 */
   public void initialize(PluginInterface pluginInterface);
 }

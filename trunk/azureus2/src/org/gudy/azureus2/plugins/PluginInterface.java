@@ -23,11 +23,27 @@ package org.gudy.azureus2.plugins;
 
 
 /**
+ * Defines the communication interface between Azureus and Plugins
  * @author Olivier
- * 
  */
 public interface PluginInterface {  
+	
+  /**
+   * A Plugin might call this method to add a View to Azureus's views
+   * The View will be accessible from View > Plugins > View name
+   * @param view The PluginView to be added
+   */
   public void addView(PluginView view);
+  
+  /**
+   * A Plugin might ask Azureus to open a Torrent file
+   * @param fileName The Name of the file that azureus must open
+   */
   public void openTorrentFile(String fileName);
+  
+  /**
+   * A Plugin might ask Azureus to open an URL pointing to a torrent
+   * @param url The String representation of the url pointing to a torrent file
+   */
   public void openTorrentURL(String url);
 }

@@ -24,11 +24,16 @@ package org.gudy.azureus2.plugins;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 /**
+ * This Class must be extended by Plugin willing to have their own view in Azureus
  * @author Olivier
  * 
  */
 public abstract class PluginView extends AbstractIView {
   
+
+  /**
+   * @return The name of the Plugin, as seen in the View > Plugins menu
+   */	
   public abstract String getPluginViewName();
 
 }
