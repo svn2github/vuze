@@ -24,6 +24,7 @@ package org.gudy.azureus2.plugins;
 import java.util.Properties;
 
 import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
@@ -92,7 +93,9 @@ public interface PluginInterface {
    */
   
   public ShareManager
-  getShareManager();
+  getShareManager()
+  
+  	throws ShareException;
   
   /**
    * opens a torrent file given its name
@@ -130,4 +133,12 @@ public interface PluginInterface {
    * @return the PluginConfigUIFactory associated with this plugin
    */
   public PluginConfigUIFactory getPluginConfigUIFactory();
+  
+  public void
+  addListener(
+  	PluginListener	l );
+  
+  public void
+  removeListener(
+  	PluginListener	l );
 }

@@ -145,11 +145,18 @@ TOTorrentCreateImpl
 		
 		throws TOTorrentException
 	{
-		File[]	dir_files = dir.listFiles();
+		File[]	dir_file_list = dir.listFiles();
 		
-		for (int i=0;i<dir_files.length;i++){
+			// sort contents so that multiple encodes of a dir always
+			// generate same torrent
+		
+		List file_list = new ArrayList(Arrays.asList(dir_file_list));
+		
+		Collections.sort(file_list);
+		
+		for (int i=0;i<file_list.size();i++){
 			
-			File	file = dir_files[i];
+			File	file = (File)file_list.get(i);;
 			
 			if ( !file.getName().startsWith( "." )){
 				

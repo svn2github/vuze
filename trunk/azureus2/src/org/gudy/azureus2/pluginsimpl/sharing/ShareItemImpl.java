@@ -1,6 +1,6 @@
 /*
- * File    : ShareManager.java
- * Created : 30-Dec-2003
+ * File    : ShareItemImpl.java
+ * Created : 31-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,37 +19,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.sharing;
+package org.gudy.azureus2.pluginsimpl.sharing;
 
 /**
  * @author parg
  *
  */
 
-import java.io.File;
+import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
-public interface 
-ShareManager 
+public class 
+ShareItemImpl
+	implements ShareItem
 {
-	public ShareResource[]
-	getShares();
+	protected Torrent		torrent;
 	
-	public ShareResourceFile
-	addFile(
-		File	file )
+	protected
+	ShareItemImpl(
+		Torrent		_torrent )
+	{
+		torrent = _torrent;
+	}
 	
-		throws ShareException;
-	
-	public ShareResourceDir
-	addDir(
-		File	dir )
-	
-		throws ShareException;
-	
-	public ShareResourceDirContents
-	addDirContents(
-		File	dir,
-		boolean	recursive )
-	
-		throws ShareException;
+	public Torrent
+	getTorrent()
+	{
+		return( torrent );
+	}
 }

@@ -1,6 +1,6 @@
 /*
- * File    : ShareManager.java
- * Created : 30-Dec-2003
+ * File    : PluginListener.java
+ * Created : 31-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,37 +19,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.sharing;
+package org.gudy.azureus2.plugins;
 
 /**
  * @author parg
  *
  */
-
-import java.io.File;
-
 public interface 
-ShareManager 
+PluginListener 
 {
-	public ShareResource[]
-	getShares();
-	
-	public ShareResourceFile
-	addFile(
-		File	file )
-	
-		throws ShareException;
-	
-	public ShareResourceDir
-	addDir(
-		File	dir )
-	
-		throws ShareException;
-	
-	public ShareResourceDirContents
-	addDirContents(
-		File	dir,
-		boolean	recursive )
-	
-		throws ShareException;
+	public void
+	initializationComplete();
 }

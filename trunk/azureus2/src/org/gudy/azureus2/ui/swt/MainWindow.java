@@ -864,6 +864,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
+    
+    new Thread("Init Complete")
+    {
+    	public void
+    	run()
+    	{
+    		PluginInitializer.initialisationComplete();
+    	}
+    }.start();
+    
   }catch( Throwable e ){
 		e.printStackTrace();
 	} }

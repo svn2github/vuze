@@ -21,11 +21,12 @@
  
 package org.gudy.azureus2.pluginsimpl;
 
-import java.util.Properties;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.pluginsimpl.logging.LoggerImpl;
 import org.gudy.azureus2.plugins.tracker.Tracker;
@@ -38,7 +39,7 @@ import org.gudy.azureus2.pluginsimpl.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.peers.protocol.*;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.sharing.ShareManagerImpl;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
@@ -50,9 +51,9 @@ import org.gudy.azureus2.ui.swt.MainWindow;
  */
 public class PluginInterfaceImpl implements PluginInterface {
   
-	protected PluginInitializer	initialiser;
-
-	String pluginConfigKey;
+  protected PluginInitializer	initialiser;
+  protected List				listeners = new ArrayList();
+  String pluginConfigKey;
   Properties props;
   String pluginDir;
   PluginConfig config;
@@ -118,6 +119,8 @@ public class PluginInterfaceImpl implements PluginInterface {
   
   public ShareManager
   getShareManager()
+  
+  	throws ShareException
   {
   	return( ShareManagerImpl.getSingleton());
   }
@@ -130,5 +133,34 @@ public class PluginInterfaceImpl implements PluginInterface {
   getPeerProtocolManager()
   {
   	return( PeerProtocolManagerImpl.getSingleton());
+  }
+  
+  protected void
+  initialisationComplete()
+  {
+  	for (int i=0;i<listeners.size();i++){
+  		
+  		try{
+  			((PluginListener)listeners.get(i)).initializationComplete();
+  			
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  		}
+  	}
+  }
+  
+  public void
+  addListener(
+  	PluginListener	l )
+  {
+  	listeners.add(l);
+  }
+  
+  public void
+  removeListener(
+  	PluginListener	l )
+  {
+  	listeners.remove(l);
   }
 }

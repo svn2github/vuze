@@ -27,8 +27,11 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.io.File;
+import java.net.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 ShareManagerImpl
@@ -38,6 +41,8 @@ ShareManagerImpl
 	
 	public synchronized static ShareManagerImpl
 	getSingleton()
+	
+		throws ShareException
 	{
 		if ( singleton == null ){
 			
@@ -47,6 +52,38 @@ ShareManagerImpl
 		return( singleton );
 	}
 	
+	protected URL		announce_url;
+	
+	protected
+	ShareManagerImpl()
+	
+	throws ShareException
+	{
+		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+
+		if ( tracker_ip.length() == 0 ){
+			
+			throw( new ShareException( "ShareManager: tracker must be configured"));
+		}
+		
+		// port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+								
+		int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+		try{
+			announce_url = new URL( "http://" + tracker_ip + ":" + port + "/announce" );
+			
+		}catch( MalformedURLException e ){
+			
+			throw( new ShareException( "Announce URL invalid", e ));
+		}
+	}
+	
+	protected URL
+	getAnnounceURL()
+	{
+		return( announce_url );
+	}
 	
 	public ShareResource[]
 	getShares()
@@ -57,8 +94,10 @@ ShareManagerImpl
 	public ShareResourceFile
 	addFile(
 		File	file )
+	
+		throws ShareException
 	{
-		return( null );
+		return( new ShareResourceFileImpl( this, file ));
 	}
 	
 	public ShareResourceDir

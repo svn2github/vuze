@@ -29,11 +29,12 @@ import java.io.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 ShareTester
-	implements Plugin
+	implements Plugin, PluginListener
 {
 	protected static Semaphore			init_sem = new Semaphore();
 	
@@ -85,9 +86,29 @@ ShareTester
 		
 		log.log(LoggerChannel.LT_INFORMATION, "Plugin Initialised");
 		
-		ShareManager	sm = plugin_interface.getShareManager();
+		plugin_interface.addListener( this );
+	}
+	
+	public void
+	initializationComplete()
+	{
+		try{
+			ShareManager	sm = plugin_interface.getShareManager();
 		
-		sm.addFile( new File("C:\\temp\\wap.cer"));
+			ShareResourceFile res = sm.addFile( new File("C:\\temp\\wap.cer"));
+			
+			Torrent t = res.getItem().getTorrent();
+			
+			System.out.println( t.getHash());
+			
+		}catch( ShareException e ){
+			
+			e.printStackTrace();
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	
 	}
 	
 	

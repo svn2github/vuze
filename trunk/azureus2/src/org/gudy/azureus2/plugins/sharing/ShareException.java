@@ -1,6 +1,6 @@
 /*
- * File    : ShareManager.java
- * Created : 30-Dec-2003
+ * File    : ShareException.java
+ * Created : 31-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,31 +25,22 @@ package org.gudy.azureus2.plugins.sharing;
  * @author parg
  *
  */
-
-import java.io.File;
-
-public interface 
-ShareManager 
+public class 
+ShareException
+	extends Exception
 {
-	public ShareResource[]
-	getShares();
+	public
+	ShareException(
+		String	str )
+	{
+		super(str);
+	}
 	
-	public ShareResourceFile
-	addFile(
-		File	file )
-	
-		throws ShareException;
-	
-	public ShareResourceDir
-	addDir(
-		File	dir )
-	
-		throws ShareException;
-	
-	public ShareResourceDirContents
-	addDirContents(
-		File	dir,
-		boolean	recursive )
-	
-		throws ShareException;
+	public
+	ShareException(
+		String		str,
+		Throwable 	cause )
+	{
+		super(str,cause);
+	}
 }

@@ -49,11 +49,12 @@ public class PluginInitializer {
   private static List		registration_queue = new ArrayList();
   
   private URLClassLoader classLoader;
-  //private GlobalManager gm;
+ 
   private SplashWindow splash;
   
   private TRHost	tracker_host;
-  
+  private List		plugins				= new ArrayList();
+  private List		plugin_interfaces	= new ArrayList();
   
   public static synchronized PluginInitializer
   getSingleton(
@@ -151,8 +152,16 @@ public class PluginInitializer {
 
       Class c = classLoader.loadClass((String)props.get("plugin.class"));
       Plugin plugin = (Plugin) c.newInstance();
+      
       MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
-      plugin.initialize(new PluginInterfaceImpl(this,directory.getName(),props,directory.getAbsolutePath()));
+      
+      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,directory.getName(),props,directory.getAbsolutePath());
+      
+      plugin.initialize(plugin_interface);
+      
+      plugins.add( plugin );
+      plugin_interfaces.add( plugin_interface );
+      
     } catch(Throwable e) {
       //e.printStackTrace();
       System.out.println("Error while loading class " + ((String)props.get("plugin.class")) + " : " + e);      
@@ -180,7 +189,14 @@ public class PluginInitializer {
  
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
-   		plugin.initialize(new PluginInterfaceImpl(this,"",new Properties(),""));
+  		
+  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,"",new Properties(),"");
+  		
+  		plugin.initialize(plugin_interface);
+  		
+   		plugins.add( plugin );
+   		plugin_interfaces.add( plugin_interface );
+   		
   	} catch(Throwable e) {
   		e.printStackTrace();
   		System.out.println("Error while loading internal plugin class " + plugin_class + " : " + e);      
@@ -191,5 +207,20 @@ public class PluginInitializer {
   getTrackerHost()
   {
   	return( tracker_host );
+  }
+  
+  protected void
+  initialisationCompleteSupport()
+  {
+  	for (int i=0;i<plugin_interfaces.size();i++){
+  		
+  		((PluginInterfaceImpl)plugin_interfaces.get(i)).initialisationComplete();
+  	}
+  }
+  
+  public static void
+  initialisationComplete()
+  {
+  	singleton.initialisationCompleteSupport();
   }
 }
