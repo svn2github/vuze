@@ -28,6 +28,7 @@ FEATURE: UI   | Right-click menu sorting of columns (Sorting for OSX) [TuxPaper]
 FEATURE: UI   | Send text in My Torrents to clipboard [TuxPaper]
 FEATURE: UI   | When torrent data is missing, you can change directory via the context menu [TuxPaper]
 FEATURE: UI   | OSX : About and Preferences items are listed under 'Azureus' menu
+FEATURE: UI   | Added an option not to use units bigger than MB [Gudy]
 FEATURE: WebUI| Web Plugin now can set upload rate [Parg]
 FEATURE: WebUI| Web Plugin support for uploading torrents [Parg]
 FEATURE: WebUI| Webui + xml/http "access" property support for IP range [Parg]
