@@ -641,23 +641,20 @@ PEPeerControlImpl
 		  		try{
 		    		TRTrackerResponse result;
 		    	
-		    	    if ( _trackerState == TRACKER_UPDATE){
-		        
-		        	    result = _tracker.update();
-		        	    
-		        	}else if ( _trackerState == TRACKER_START ){
+		        	if ( _trackerState == TRACKER_START ){
 		        
 		            	result = _tracker.start();
 		            	
+		        	}else if ( _trackerState == TRACKER_UPDATE){
+		        
+						result = _tracker.update();
+		        	    
 		        	}else{
 		        		
 		        		result = _tracker.complete();
 		        	}
-		        
-		        	if ( _trackerState != TRACKER_COMPLETE ){
-		        	
-		        		analyseTrackerResponse(result);
-		        	}
+		        		        	
+		        	analyseTrackerResponse(result);
 		       
 		  		}catch (Throwable e){
 		        
