@@ -567,7 +567,7 @@ public class ConsoleInput extends Thread {
   private void commandStart(String subcommand) {
 	if (subcommand != null) {
 		if (subcommand.toLowerCase().indexOf("now")!=-1) {
-			String su = subcommand.replaceAll("now", "");
+			String su = subcommand.replaceAll("now", "").trim();
 			commandTorrentCommand(TORRENTCOMMAND_STARTNOW, su);
 			return;
 		}
