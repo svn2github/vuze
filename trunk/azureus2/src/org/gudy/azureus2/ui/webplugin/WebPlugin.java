@@ -75,11 +75,22 @@ WebPlugin
 		
 		String	root_dir	= (String)props.get("rootdir");
 		
-		if ( root_dir == null ){
+		if ( root_dir != null ){
 			
-			file_root = FileUtil.getApplicationPath() + "web";
+			root_dir = root_dir.trim();
+		}
+		
+		if ( root_dir == null || root_dir.length() == 0 ){
 			
+			file_root = plugin_interface.getPluginDirectoryName();
+			
+			if ( file_root == null ){
+				
+				file_root = FileUtil.getApplicationPath() + "web";
+			}
 		}else{
+			
+				// absolute or relative
 			
 			if ( root_dir.startsWith(File.separator) || root_dir.indexOf(":") != -1 ){
 				
@@ -127,7 +138,7 @@ WebPlugin
 		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?
 							Tracker.PR_HTTP:Tracker.PR_HTTPS;
 	
-		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str  );
+		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str + ", root = " + root_dir );
 		
 		try{
 			TrackerWebContext	context = tracker.createWebContext( port, protocol );
@@ -149,12 +160,48 @@ WebPlugin
 	{
 		OutputStream os = response.getOutputStream();
 		
-		PrintWriter	pw = new PrintWriter(new OutputStreamWriter(os));
+		String	url = request.getURL();
 		
-		pw.println( "Under Construction!!!!");
+		if (url.equals("/")){
+			
+			for (int i=0;i<welcome_files.length;i++){
+				
+				if ( welcome_files[i].exists()){
+					
+					url = "/" + welcome_pages[i];
+					
+					break;
+				}
+			}			
+		}
 		
-		pw.flush();
+		if ( url.endsWith(".class")){
+			
+			String	class_name = url;
+			
+			if (class_name.startsWith("/")){
+				
+				class_name = class_name.substring(1);
+			}
+						
+			InputStream is = WebPlugin.class.getClassLoader().getResourceAsStream( class_name );
+			
+			System.out.println( class_name + "->" + is );
+			
+			if (is != null ){
+				
+				try{
+					response.useStream( "class", is );
+					
+				}finally{
+					
+					is.close();
+				}
+				
+				return( true );
+			}
+		}
 		
-		return( true );
+		return( response.useFile( file_root, url ));
 	}
 }
