@@ -979,12 +979,12 @@ public class StartStopRulesDefaultPlugin
 								(!download.isForceStart());
 	        // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
 	        // skip check
-			// XXX we want changes to take effect immediately - Gouss 2203
-/*	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
+			// XXX do we want changes to take effect immediately  ?
+	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
 	          long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
 	          okToQueue = (timeAlive >= minTimeAlive);
 	        }
-*/	        
+	        
 	        if (state != Download.ST_QUEUED &&  // Short circuit.
 	            (state == Download.ST_READY ||
 	             state == Download.ST_WAITING ||
@@ -1048,22 +1048,6 @@ public class StartStopRulesDefaultPlugin
 	            }
 	          }
 			  
-			  // Ignore SPratio
-			  if (numPeers !=0 && numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0 && 
-					  dlData.getSeedingRank() != SR_SPRATIOMET) {
-				  if (bDebugLog)
-		              sDebugLine += "\nSP Ratio Met";
-		            dlData.setSeedingRank(SR_SPRATIOMET);
-			  }
-			  
-			  // Ignore 0 Peer
-			  if (numPeers == 0 && (bFirstPriorityIgnore0Peer && shareRatio < minQueueingShareRatio)  && scrapeResultOk(download) &&
-					  dlData.getSeedingRank() != SR_0PEER) {
-				  if (bDebugLog)
-		              sDebugLine += "\n0 Peer";
-		            dlData.setSeedingRank(SR_0PEER);
-			  }
-	
 	        // Change to waiting if queued and we have an open slot
 	        } else if ((state == Download.ST_QUEUED) &&
 	                   (numWaitingOrSeeding < maxSeeders) && 
@@ -1116,7 +1100,7 @@ public class StartStopRulesDefaultPlugin
 	        // if there's more torrents waiting/seeding than our max, or if
 	        // there's a higher ranked torrent queued, stop this one
 	        if (okToQueue &&
-	            (bActivelySeeding || state != Download.ST_SEEDING) &&
+	            (bActivelySeeding || state != Download.ST_SEEDING || (!bActivelySeeding && state == Download.ST_SEEDING && !bAutoStart0Peers)) &&
 	            ((numWaitingOrSeeding > maxSeeders) || 
 	             higherQueued || 
 	             dlData.getSeedingRank() <= -2)) 
@@ -1486,7 +1470,11 @@ public class StartStopRulesDefaultPlugin
 		      // never apply ignore rules to First Priority Matches
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
-			  
+	      	if (num_peers_excluding_us == 0 && bScrapeResultsOk && bIgnore0Peers) {
+	          setSeedingRank(SR_0PEERS);
+	          return SR_0PEERS;
+	        }
+	      
 		    if (iIgnoreShareRatio != 0 && 
 			         shareRatio >= iIgnoreShareRatio && 
 			         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
@@ -1495,33 +1483,6 @@ public class StartStopRulesDefaultPlugin
 			     return sr;
 			}
 							
-/* XXX no ignore rules for ignore FP
- * 			if (num_peers_excluding_us == 0 && bScrapeResultsOk &&
-					( (bFirstPriorityIgnore0Peer && shareRatio <= minQueueingShareRatio) || 
-							bIgnore0Peers )) 
-			{
-		         setSeedingRank(SR_0PEERS);
-		         return SR_0PEERS;
-		    }
-			
-			if (num_peers_excluding_us != 0 && iFirstPriorityIgnoreSPRatio != 0 && 
-					num_seeds_excluding_us / num_peers_excluding_us >= iFirstPriorityIgnoreSPRatio && 
-					bScrapeResultsOk ) 
-			{
-				if ( shareRatio < minQueueingShareRatio ) {
-		          setSeedingRank(SR_SPRATIOMET);
-		          return SR_SPRATIOMET;
-				}
-				else if ( iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio ) {  
-					setSeedingRank(SR_SHARERATIOMET);
-			          return sr;
-				}
-				else { 
-					setSeedingRank(SR_RATIOMET);
-					return SR_RATIOMET;
-				}
-			}
-		    */
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
