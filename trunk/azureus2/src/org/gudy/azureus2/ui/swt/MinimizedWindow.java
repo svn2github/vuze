@@ -16,9 +16,13 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 /**
  * @author Olivier
  * 
@@ -182,8 +186,34 @@ public class MinimizedWindow {
       }
     });
     splash.setSize(xSize + 3, hSize + 2);
-    downloadBars.add(this);
+    
+    Menu menu = new Menu(splash,SWT.POP_UP);
+    MenuItem itemClose = new MenuItem(menu,SWT.NULL);
+    itemClose.setText(MessageText.getString("wizard.close"));
+    itemClose.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        close();
+        MyTorrentsView viewMyTorrents = (MyTorrentsView) Tab.getView(MainWindow.getWindow().getMytorrents().getTabItem());
+        if(viewMyTorrents != null) {
+          viewMyTorrents.removeDownloadBar(MinimizedWindow.this.manager);
+        }
+      }
+    });
+    
+    splash.setMenu(menu);
+    lDrag.setMenu(menu);
+    l1.setMenu(menu);
+    l2.setMenu(menu);
+    splashDown.setMenu(menu);
+    splashFile.setMenu(menu);
+    splashPercent.setMenu(menu);
+    splashUp.setMenu(menu);
+    
+    
+    downloadBars.add(this);        
     splash.setVisible(true);
+    
+    
   }
 
   private void setSnapLocation(Point currentLoc) {

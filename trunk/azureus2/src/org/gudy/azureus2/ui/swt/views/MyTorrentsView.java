@@ -1348,4 +1348,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
   
   
+
+  public void  removeDownloadBar(DownloadManager dm) {
+    synchronized(downloadBars) {
+      downloadBars.remove(dm);
+    }
+  }
+
 }
