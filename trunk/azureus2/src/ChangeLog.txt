@@ -25,6 +25,7 @@ FEATURE: Core | Added ability to not outward connect to a defined set of port nu
 FEATURE: Core | SOCKS V4, V4a and V5 (no auth/user+password methods) support for outgoing data connections [Parg]
 FEATURE: Core | Torrents created by Azureus now include .utf-8 fields [Parg]
 FEATURE: Core | Dynamic piece request queue scaling [Gudy]
+FEATURE: Core | Added torrent name to authentication dialog [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
@@ -47,6 +48,7 @@ CHANGE: UI   | Added a legend to the Pieces View [Gudy]
 CHANGE: UI   | Pieces View now display if the blocks are in the cache or not [Gudy]
 CHANGE: Core | JAR signing for webui (etc) now based on "tools.jar" from Sun JDK due to changes with their 1.5 JRE [Parg]
 CHANGE: Core | "Pause" command now greyed out if there is nothing to pause [Parg]
+CHANGE: Core | create-torrent wizard now remembers comment data on back button + defaults for open/save dirs [Parg]
 
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
@@ -65,7 +67,7 @@ BUGFIX: Core | Random shuffling of multi-tracker torrent URLs fixed [Parg]
 BUGFIX: Core | Fix for some kernel panics under OSX [Nolar]
 BUGFIX: Core | Fix occasional 60sec delay on initial tracker announce [Nolar]
 BUGFIX: Core | Fix for reading piece data from a too-long file [Nolar/Parg]
-
+BUGFIX: Core | Stop scraping all announce URLs in a torrent when removing torrent [Parg]
 
 
 
