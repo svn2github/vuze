@@ -657,10 +657,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return "";
     try {
       //The save path, for a directory torrent, it may be the directory itself
-      String path = dm.getSavePath();
-      //String name = LocaleUtil.getCharsetString(dm.getTorrent().getName());
+      String path = dm.getSavePath();      
       String name = dm.getName();
-      String fullPath = path + System.getProperty("file.separator") + name;
+      String fullPath = path;
       if (path.endsWith(name)) {
         File f = new File(fullPath);
         if(f.exists() && f.isDirectory())

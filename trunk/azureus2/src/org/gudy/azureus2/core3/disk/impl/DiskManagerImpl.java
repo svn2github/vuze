@@ -1580,8 +1580,11 @@ DiskManagerImpl
     String returnName = "";
     
     //make sure the torrent hasn't already been moved
-    if (alreadyMoved) return returnName;
-    alreadyMoved = true;
+    //Added syncrhonized block, so that we're sure it's ok.
+    synchronized(this) {
+      if (alreadyMoved) return returnName;
+      alreadyMoved = true;
+    }
     
     boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
     if (!moveWhenDone) return returnName;
