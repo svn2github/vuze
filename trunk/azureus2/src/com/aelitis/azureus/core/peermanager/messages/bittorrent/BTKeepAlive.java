@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.messages.bittorrent;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
@@ -35,7 +37,7 @@ public class BTKeepAlive implements BTProtocolMessage {
   private final int total_byte_size;
 
   public BTKeepAlive() {
-    buffer = DirectByteBufferPool.getBuffer( 4 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     
     buffer.putInt( 0 );
     buffer.position( 0 );
@@ -58,9 +60,7 @@ public class BTKeepAlive implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return false;  }
   
-  public void destroy() {
-    buffer.returnToPool();
-  }
+  public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }
 }

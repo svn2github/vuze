@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.messages.bittorrent;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
@@ -36,7 +38,7 @@ public class BTUnchoke implements BTProtocolMessage {
   private final int total_byte_size;
   
   public BTUnchoke() {
-    buffer = DirectByteBufferPool.getBuffer( 5 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
     buffer.putInt( 1 );
     buffer.put( (byte)1 );
@@ -60,9 +62,7 @@ public class BTUnchoke implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return false;  }
   
-  public void destroy() {
-    buffer.returnToPool();
-  }
+  public void destroy() { }
   
   public int[] typesToRemove() {  return to_remove;  }
   
