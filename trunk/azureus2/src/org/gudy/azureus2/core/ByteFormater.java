@@ -20,6 +20,19 @@ public class ByteFormater {
     }
     return out;
   }
+  
+
+  public static String nicePrint(byte[] data, boolean tight) {
+    if(data == null)
+      return "";      
+    String out = "";    
+    for (int i = 0; i < data.length; i++) {
+      out = out + nicePrint(data[i]);
+      if (!tight && (i % 4 == 3))
+        out = out + " ";
+    }
+    return out;
+  }
 
 
   public static String nicePrint(byte b) {
