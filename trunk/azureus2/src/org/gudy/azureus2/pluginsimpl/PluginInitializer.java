@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -59,9 +60,7 @@ PluginInitializer
   private static PluginInitializer	singleton;
   
   private static List		registration_queue = new ArrayList();
-  
-  private URLClassLoader classLoader;
- 
+   
   private SplashWindow splash;
   
   private TRHost		tracker_host;
@@ -155,25 +154,54 @@ PluginInitializer
   }
   
   private void initializePluginFromDir(File directory) {
-    classLoader = null;
+  	
+  	ClassLoader classLoader = null;
+  	
     if(!directory.isDirectory()) return;
     String pluginName = directory.getName();
     File[] pluginContents = directory.listFiles();
+    
     for(int i = 0 ; i < pluginContents.length ; i++) {
-      addFileToClassPath(pluginContents[i]);
+      classLoader = addFileToClassPath((URLClassLoader)classLoader, pluginContents[i]);
     }
-    Properties props = null;
+    
+    if ( classLoader == null ){
+    	
+    	classLoader = this.getClass().getClassLoader();
+    }
+    
+    String plugin_class = null;
+    
     try {
-      props = new Properties();
+      Properties props = new Properties();
+      
+      File	properties_file = new File(directory.toString() + File.separator + "plugin.properties");
+ 
       try {
-        URL url = classLoader.findResource("plugin.properties");
-        props.load(url.openStream());
-      } catch (Exception e) {
-            System.out.println("Can't read plugin.properties from plug-in " + pluginName + " : file may be missing.");
-            return;    
+      	
+      		// if properties file exists on its own then override any properties file
+      		// potentially held within a jar
+      	
+      	if ( properties_file.exists()){
+      	
+      		props.load(new FileInputStream( properties_file ));
+      		
+      	}else{
+      		URL url = ((URLClassLoader)classLoader).findResource("plugin.properties");
+      		
+      		props.load(url.openStream());
+      	}
+      }catch (Exception e) {
+      	
+      	
+          System.out.println("Can't read plugin.properties from plug-in " + pluginName + " : file may be missing.");
+          return;    
       }
 
-      Class c = classLoader.loadClass((String)props.get("plugin.class"));
+      plugin_class = (String)props.get( "plugin.class");
+      
+      Class c = classLoader.loadClass(plugin_class);
+      
       Plugin plugin = (Plugin) c.newInstance();
       
       MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
@@ -186,30 +214,41 @@ PluginInitializer
       plugin_interfaces.add( plugin_interface );
       
     } catch(Throwable e) {
-      //e.printStackTrace();
-      System.out.println("Error while loading class " + ((String)props.get("plugin.class")) + " : " + e);      
+      e.printStackTrace();
+      System.out.println("Error while loading class " + plugin_class + " : " + e);      
     }
   }
   
-  private void addFileToClassPath(File f) {
-    if(!f.exists()) return;
-    if(f.isDirectory()) return;
-    if(!f.getName().endsWith(".jar")) return;
-    try {
-      URL[] urls = {f.toURL()};
-      if(classLoader == null) {
-        classLoader = new URLClassLoader(urls);
-      } else {
-        classLoader = new URLClassLoader(urls,classLoader);
-      }
-    } catch(Exception e) {
-      e.printStackTrace();
-    }
+  private URLClassLoader 
+  addFileToClassPath(
+  	URLClassLoader	classLoader,
+	File 			f) 
+  {
+    if ( 	f.exists() &&
+    		(!f.isDirectory())&&
+    		f.getName().endsWith(".jar")){
+    
+    	try {
+    		URL[] urls = {f.toURL()};
+    		
+    		if( classLoader == null ){
+    			
+    			classLoader = new URLClassLoader(urls);
+    			
+    		}else{
+    			
+    			classLoader = new URLClassLoader(urls,classLoader);
+    		}
+    	}catch(Exception e) {
+    		e.printStackTrace();
+    	}
+   	}
+    
+    return( classLoader );
   }
   
   protected void initializePluginFromClass(Class plugin_class) {
-  	classLoader = null;
- 
+  
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		

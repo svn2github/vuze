@@ -1059,7 +1059,14 @@ public class GlobalManagerImpl
     return -1;
   }
   
-  public void startChecker() {
-    checker.start(); 
+  public void 
+  startChecker() 
+  {
+  	synchronized( checker ){
+	  	if ( !checker.isAlive()){
+	  		
+	  		checker.start();
+	  	}
+  	}
   }
 }

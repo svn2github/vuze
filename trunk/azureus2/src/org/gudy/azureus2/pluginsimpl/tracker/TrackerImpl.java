@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TrackerImpl
@@ -98,6 +99,16 @@ TrackerImpl
 		}
 		
 		return( res );
+	}
+	
+	public TrackerWebContext
+	createWebContext(
+		int		port,
+		int		protocol )
+	
+		throws TrackerException
+	{
+		return( new TrackerWebContextImpl( this, port, protocol ));
 	}
 	
 	public void

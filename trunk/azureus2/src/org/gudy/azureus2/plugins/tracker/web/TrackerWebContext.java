@@ -1,6 +1,6 @@
 /*
- * File    : LoggerChannel.java
- * Created : 28-Dec-2003
+ * File    : TrackerWebContext.java
+ * Created : 23-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,33 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.logging;
+package org.gudy.azureus2.plugins.tracker.web;
 
 /**
  * @author parg
  *
  */
 public interface 
-LoggerChannel 
+TrackerWebContext 
 {
-	public static final int	LT_INFORMATION	= 1;
-	public static final int LT_WARNING		= 2;
-	public static final int LT_ERROR		= 3;
-	
-	public String
-	getName();
-	
 	public void
-	log(
-		int		log_type,
-		String	data );
-	
-	public void
-	log(
-		Throwable 	error );
-	
-	public void
-	log(
-		String		data,
-		Throwable 	error );
+	addPageGenerator(
+			TrackerWebPageGenerator	generator );
 }

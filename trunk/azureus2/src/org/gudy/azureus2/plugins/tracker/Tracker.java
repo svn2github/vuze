@@ -31,7 +31,11 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 Tracker 
+	extends TrackerWebContext
 {   
+	public static final int	PR_HTTP			= 1;
+	public static final int	PR_HTTPS		= 2;
+	
 	public TrackerTorrent
 	host(
 		Torrent		torrent,
@@ -41,10 +45,13 @@ Tracker
 	
     public TrackerTorrent[]
     getTorrents();
+        
+    public TrackerWebContext
+    createWebContext(
+    	int		port,
+		int		protocol )
     
-    public void
-    addPageGenerator(
-    	TrackerWebPageGenerator	generator );
+    	throws TrackerException;
     
     public void
     addListener(

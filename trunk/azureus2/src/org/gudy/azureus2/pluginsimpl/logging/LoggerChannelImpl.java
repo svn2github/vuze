@@ -53,7 +53,7 @@ LoggerChannelImpl
 		int		log_type,
 		String	data )
 	{
-		data = "["+name+"]" + ": " + data;
+		data = "["+name+"] " + data;
 		
 		if ( log_type == LT_INFORMATION ){
 			
@@ -74,5 +74,13 @@ LoggerChannelImpl
 		Throwable 	error )
 	{
 		LGLogger.log("["+name+"]", error);
+	}
+	
+	public void
+	log(
+		String		str,
+		Throwable 	error )
+	{
+		LGLogger.log("["+name+"] " + str, error);
 	}
 }
