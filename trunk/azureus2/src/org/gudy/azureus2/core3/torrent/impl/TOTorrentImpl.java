@@ -130,10 +130,12 @@ TOTorrentImpl
               bos = null;
               
               //only use newly saved file if it got this far, i.e. it was written successfully
-              if ( output_file.exists() ) {
-                output_file.delete();
+              if ( temp.length() > 1L ) {
+                if ( output_file.exists() ) {
+                	output_file.delete();
+                }
+                temp.renameTo( output_file );
               }
-              temp.renameTo( output_file );
               
               return null;
 							

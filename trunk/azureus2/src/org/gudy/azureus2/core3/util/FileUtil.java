@@ -235,11 +235,13 @@ public class FileUtil {
         baos = null;
            
         //only use newly saved file if it got this far, i.e. it saved successfully
-        File file = new File( SystemProperties.getUserPath() + file_name );
-        if ( file.exists() ){
-          file.delete();
+        if ( temp.length() > 1L ) {
+        	File file = new File( SystemProperties.getUserPath() + file_name );
+        	if ( file.exists() ){
+        		file.delete();
+        	}
+        	temp.renameTo( file );
         }
-        temp.renameTo( file );
 
 	    }catch (Exception e) {
 	    
