@@ -23,9 +23,7 @@
 package com.aelitis.azureus.core.proxy.socks.impl;
 
 import java.net.InetAddress;
-import java.util.StringTokenizer;
 
-import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;

@@ -182,6 +182,14 @@ AESocksProxyPlugableConnectionDefault
 				throw( new IOException( "finishConnect returned false" ));
 			}
 	           
+				// if we've got a proxy chain, now's the time to negotiate the connection
+			
+			AESocksProxy	proxy = socks_connection.getProxy();
+			
+			if ( proxy.getNextSOCKSProxyHost() != null ){
+				
+			}
+			
 			socks_connection.connected();
 		}
 	}

@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -181,8 +182,30 @@ OpenUrlWindow
       }
     });        
     
-    shell.pack();
+	shell.addListener(SWT.Traverse, new Listener() {
+ 		
+		public void handleEvent(Event e) {
+			
+			if ( e.character == SWT.ESC){
+				shell.dispose();
+			}
+		}
+	});
+	
+	
+	Point p = shell.computeSize( SWT.DEFAULT, SWT.DEFAULT );
+	
+	if ( p.x > 800 ){
+		
+		p.x = 800;
+	}
+	
+    shell.setSize( p );    
+    
     Utils.createURLDropTarget(shell, url);
+    
+    Utils.centreWindow( shell );
+    
     shell.open();
   }
 }

@@ -36,8 +36,12 @@ public class
 AESocksProxyImpl 
 	implements AESocksProxy, AEProxyHandler
 {
-	protected AEProxy									proxy;
-	protected AESocksProxyPlugableConnectionFactory		connection_factory;
+	private AEProxy									proxy;
+	private AESocksProxyPlugableConnectionFactory		connection_factory;
+	
+	private String	proxy_chain_host;
+	private int		proxy_chain_port;
+	private String	proxy_chain_version;
 	
 	public
 	AESocksProxyImpl(
@@ -73,5 +77,34 @@ AESocksProxyImpl
 		throws IOException
 	{
 		return( new AESocksProxyConnectionImpl( this, connection_factory, connection ).getInitialState());
+	}
+	
+	public void
+	setNextSOCKSProxy(
+		String		host,
+		int			port,
+		String		proxy_version )
+	{
+		proxy_chain_host		= host;
+		proxy_chain_port		= port;
+		proxy_chain_version		= proxy_version;
+	}
+	
+	public String
+	getNextSOCKSProxyHost()
+	{
+		return( proxy_chain_host );
+	}
+	
+	public int
+	getNextSOCKSProxyPort()
+	{
+		return( proxy_chain_port );
+	}
+	
+	public String
+	getNextSOCKSProxyVersion()
+	{
+		return( proxy_chain_version );
 	}
 }

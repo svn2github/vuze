@@ -576,4 +576,65 @@ DisplayFormatters
   	
   	return( res );
   }
+  
+  		/**
+  		 * Attempts vaguely smart string truncation by searching for largest token and truncating that
+  		 * @param str
+  		 * @param width
+  		 * @return
+  		 */
+  
+  	public static String
+	truncateString(
+		String	str,
+		int		width )
+  	{
+  		int	excess = str.length() - width;
+  		
+  		if ( excess <= 0 ){
+  			
+  			return( str );
+  		}
+  		
+  		excess += 3;	// for ...
+  		
+  		int	token_start = -1;
+  		int	max_len		= 0;
+  		int	max_start	= 0;
+  		
+  		for (int i=0;i<str.length();i++){
+  			
+  			char	c = str.charAt(i);
+  			
+  			if ( Character.isLetterOrDigit( c ) || c == '-' || c == '~' ){
+  				
+  				if ( token_start == -1 ){
+  					
+  					token_start	= i;
+  					
+  				}else{
+  					
+  					int	len = i - token_start;
+  					
+  					if ( len > max_len ){
+  						
+  						max_len		= len;
+  						max_start	= token_start;
+  					}
+  					
+  					token_start = -1;
+  				}
+  			}
+  		}
+  		
+  		if ( max_len >= excess ){
+  			 			
+  			int	trim_point = max_start + max_len;
+  			
+  			return( str.substring( 0, trim_point - excess ) + "..." + str.substring( trim_point ));
+  		}else{
+  			
+  			return( str.substring( 0, width-3 ) + "..." );
+  		}
+  	}
 }

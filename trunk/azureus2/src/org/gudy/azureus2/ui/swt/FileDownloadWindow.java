@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -41,6 +42,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
@@ -106,7 +108,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
         
     String shortUrl = url;
     if(url.length() > 70) {
-      shortUrl = url.substring(0,70) + "...";
+      shortUrl = DisplayFormatters.truncateString(url,120);
     }
     lLocation.setText(shortUrl);
     lLocation.setToolTipText(url);
@@ -180,9 +182,34 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     data.width = 100;
     cancel.setLayoutData(data);
         
+    shell.setDefaultButton( retry );
     
-    shell.pack();
+	shell.addListener(SWT.Traverse, new Listener() {
+ 		
+		public void handleEvent(Event e) {
+			
+			if ( e.character == SWT.ESC){
+												
+			    downloader.cancel();
+			    
+			    shell.dispose();
+			}
+		}
+	});
+	
+	Point p = shell.computeSize( SWT.DEFAULT, SWT.DEFAULT );
+	
+	if ( p.x > 800 ){
+		
+		p.x = 800;
+	}
+	
+    shell.setSize( p );
+    
+    Utils.centreWindow( shell );
+    
     shell.open();
+    
     downloader = TorrentDownloaderFactory.download(this,url,referrer,dirName);
     downloader.start();
   }    
@@ -214,7 +241,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
               stateText = "";
           }
           if(status != null && ! status.isDisposed()) {
-            status.setText(stateText);
+            status.setText(DisplayFormatters.truncateString( stateText, 120 ));
             status.setToolTipText(stateText);
           }
           
@@ -233,8 +260,18 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
           			retry.setEnabled(true); 
           	}
                     	
-          	shell.pack();
-          	shell.layout();
+        	Point p = shell.computeSize( SWT.DEFAULT, SWT.DEFAULT );
+        	
+        	if ( p.x > 800 ){
+        		
+        		p.x = 800;
+        	}
+        	
+            shell.setSize( p );
+            
+            Utils.centreWindow( shell );
+            
+            shell.layout();
           }
         }
       });

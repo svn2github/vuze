@@ -46,7 +46,7 @@ AESocksProxyConnectionImpl
 {
 	public static final boolean	TRACE	= false;
 	
-	protected AESocksProxy			proxy;
+	protected AESocksProxyImpl		proxy;
 	protected AEProxyConnection		connection;
 	protected boolean				disable_dns_lookups;
 	

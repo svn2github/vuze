@@ -91,11 +91,13 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel fileSize;
   BufferedLabel saveIn;
   BufferedLabel hash;
-  BufferedLabel tracker;
+  BufferedTruncatedLabel tracker;
   BufferedLabel trackerUpdateIn;
   Menu menuTracker;
   MenuItem itemSelect;
-  BufferedLabel trackerUrlValue;
+  
+  BufferedTruncatedLabel trackerUrlValue;
+  
   BufferedLabel pieceNumber;
   BufferedLabel pieceSize;
   BufferedLabel comment;
@@ -590,7 +592,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
     
-    trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);        
+    trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,90);        
     
     trackerUrlValue.addMouseListener(new MouseAdapter() {
       public void mouseUp(MouseEvent event) {        
@@ -624,7 +626,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
-    tracker = new BufferedLabel(gInfo, SWT.LEFT);
+    tracker = new BufferedTruncatedLabel(gInfo, SWT.LEFT,90);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     tracker.setLayoutData(gridData);    
@@ -1102,7 +1104,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
      
     TRTrackerClient	trackerClient = _manager.getTrackerClient();
 	
-	tracker.setText( status);
+	tracker.setText( status );
 		
 	if ( time < 0 ){
 		
@@ -1139,7 +1141,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     if ( trackerURL != null ){
     	
-		trackerUrlValue.setText( trackerURL);
+		trackerUrlValue.setText( trackerURL );
 				
 		if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://"))) {
 		  trackerUrlValue.setForeground(Colors.blue);
