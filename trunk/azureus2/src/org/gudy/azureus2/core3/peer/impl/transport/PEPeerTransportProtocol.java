@@ -23,10 +23,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Arrays;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -35,6 +32,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.transport.protocol.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -111,11 +109,11 @@ PEPeerTransportProtocol
 
 		//The Queue for protocol messages
 		
-	private List protocolQueue = new ArrayList();
+	private ArrayList protocolQueue = new ArrayList();
 
 		//The Queue for data messages
 		
-	private List dataQueue = new ArrayList();
+	private ArrayList dataQueue = new ArrayList();
 	private boolean incoming;
 	private volatile boolean closing;
 	private PEPeerTransportProtocolState currentState;
@@ -126,7 +124,6 @@ PEPeerTransportProtocol
 
   private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
   private DirectByteBuffer cache_buffer;
-  private boolean queues_empty = true;
   private boolean actively_writing = false;
   private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
   
@@ -181,8 +178,6 @@ PEPeerTransportProtocol
 	
 		// PeerConnection Life Cycle
 		
-	private final static String PROTOCOL = "BitTorrent protocol";
-
  
   /*
 	 * This object constructors will let the PeerConnection partially created,
@@ -253,7 +248,6 @@ PEPeerTransportProtocol
     cache_buffer = DirectByteBufferPool.getBuffer( WRITE_CACHE_SIZE );
 
   	this.closing = false;
-  	//TODO
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
   	this.allowed = 0;
@@ -261,55 +255,49 @@ PEPeerTransportProtocol
   	this.loopFactor = 0;
   }
 
-  protected void handShake(
-  	byte[]		data_already_read ) 
-  {
-	try {
-	  byte[] protocol = PROTOCOL.getBytes();
-	  byte[] reserved = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
-	  byte[] hash = manager.getHash();
-	  byte[] myPeerId = manager.getPeerId();
-//  TODO
-    DirectByteBuffer bufferHandshakeS = DirectByteBufferPool.getBuffer( 68 );
-	  bufferHandshakeS.buff.put((byte) PROTOCOL.length()).put(protocol).put(reserved).put(hash).put(myPeerId);
+  
+  protected void handShake( byte[] data_already_read ) {
+  	try {
+  		byte[] hash = manager.getHash();
+  		byte[] myPeerId = manager.getPeerId();
 
-	  bufferHandshakeS.buff.position(0);
-	  bufferHandshakeS.buff.limit(68);
-	  sendProtocol(bufferHandshakeS);
-	  readBuffer = DirectByteBufferPool.getBuffer(68);
-	  if (readBuffer == null) {
-		 closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true, false);
-		 return;
-	  }
-	  readBuffer.buff.limit(68);
-	  readBuffer.buff.position(0);
-	  if ( data_already_read != null ){
-	  	readBuffer.buff.put( data_already_read );
-	  }
-	}
-	catch (Exception e) {
-	  closeAll(ip + " : Exception in handshake : " + e, true, false);
-	}
+  		BTMessage msg = new BTHandshake( hash, myPeerId );
+  		queueProtocolMessage( msg );
+    
+  		readBuffer = DirectByteBufferPool.getBuffer( 68 );
+  		if ( readBuffer == null ) {
+  			closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true, false);
+  			return;
+  		}
+
+  		if ( data_already_read != null ) {
+  			readBuffer.buff.put( data_already_read );
+  		}
+  	}
+  	catch (Exception e) {
+  		closeAll(ip + " : Exception in handshake : " + e, true, false);
+  	}
   }
+  
 
   protected void handleHandShakeResponse() {
 	readBuffer.buff.position(0);
 	//Now test for data...
 
    byte b;
-	if ((b = readBuffer.buff.get()) != (byte) PROTOCOL.length()) {
+	if ((b = readBuffer.buff.get()) != (byte) BTHandshake.PROTOCOL.length()) {
 	   closeAll(ip + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
 	   return;
 	}
 
-	byte[] protocol = PROTOCOL.getBytes();
+	byte[] protocol = BTHandshake.PROTOCOL.getBytes();
 	if (readBuffer.buff.remaining() < protocol.length) {
 	   closeAll(ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.buff.remaining(),true, true);
 	   return;
 	}
 	else {
 	   readBuffer.buff.get(protocol);
-	   if (!(new String(protocol)).equals(PROTOCOL)) {
+	   if (!(new String(protocol)).equals(BTHandshake.PROTOCOL)) {
 		  closeAll(ip + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
 		  return;
 	   }
@@ -409,12 +397,25 @@ PEPeerTransportProtocol
     readBuffer = buffer;
   }
 
-  protected void sendProtocol(DirectByteBuffer buffer) {
-    synchronized( protocolQueue ) {
-    	protocolQueue.add(buffer);
-    }
+  
+  protected void queueProtocolMessage( BTMessage message ) {
+  	synchronized( protocolQueue ) { 
+  		for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
+        BTMessage msg = (BTMessage)i.next();
+        //remove any existing choke/unchoke messages
+        if ( message.getType() == BTMessage.BT_CHOKE || message.getType() == BTMessage.BT_UNCHOKE ) {
+          if ( msg.getType() == BTMessage.BT_CHOKE || msg.getType() == BTMessage.BT_UNCHOKE ) {
+            i.remove();
+            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent" +msg.getDescription()+ " message from protocol queue" );
+          }
+        }
+      }
+
+  		protocolQueue.add( message );
+  	}
   }
 
+  
   protected void sendData(DiskManagerRequest request) {
     synchronized( dataQueue ) {
     	dataQueue.add(manager.createDiskManagerDataQueueItem(request));
@@ -480,9 +481,9 @@ PEPeerTransportProtocol
   	}
     
     synchronized( protocolQueue ) {
-      for (int i=0; i < protocolQueue.size(); i++) {
-        DirectByteBuffer dbb = (DirectByteBuffer)protocolQueue.remove( i );
-        dbb.returnToPool();
+      for ( int i=0; i < protocolQueue.size(); i++ ) {
+        BTMessage msg = (BTMessage)protocolQueue.remove( i );
+        msg.getPayload().returnToPool();
       }
     }
   	
@@ -946,109 +947,63 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	seed = true;
   }
 
-  /*
-   *  (non-Javadoc)
-   * @see org.gudy.azureus2.core3.peer.impl.PEPeerTransport#request(int, int, int)
-   */
-  public boolean request(int pieceNumber, int pieceOffset, int pieceLength) {
-	if (getState() != TRANSFERING) {
-    manager.requestCanceled(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-	  return false;
-  }	
-	DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-	if (!alreadyRequested(request)) {
-		LGLogger.log(
-		  componentID,
-		  evtProtocol,
-		  LGLogger.SENT,
-		  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		addRequest( request );
-//  TODO
-    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
-		buffer.buff.putInt(13);
-		buffer.buff.put(BT_REQUEST);
-		buffer.buff.putInt(pieceNumber);
-		buffer.buff.putInt(pieceOffset);
-		buffer.buff.putInt(pieceLength);
-		buffer.buff.position(0);
-		buffer.buff.limit(17);
-		sendProtocol(buffer);
-    return true;
-	}
-  return false;
-  }
 
-  public void sendCancel(DiskManagerRequest request) {
-	if (getState() != TRANSFERING)
-	  return;	
-	if (alreadyRequested(request)) {
-	  LGLogger.log(
-	      componentID,
-	      evtProtocol,
-				LGLogger.SENT,
-				ip
-				+ " is canceled for #"
-				+ request.getPieceNumber()
-				+ "::"
-				+ request.getOffset()
-				+ "->"
-				+ (request.getOffset() + request.getLength()));
-	  removeRequest(request);
-//  TODO
-    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
-	  buffer.buff.putInt(13);
-	  buffer.buff.put(BT_CANCEL);
-	  buffer.buff.putInt(request.getPieceNumber());
-	  buffer.buff.putInt(request.getOffset());
-	  buffer.buff.putInt(request.getLength());
-	  buffer.buff.position(0);
-	  buffer.buff.limit(17);
-	  sendProtocol(buffer);
-	}
+  public boolean request( int pieceNumber, int pieceOffset, int pieceLength) {
+  	if (getState() != TRANSFERING) {
+  		manager.requestCanceled( manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength ) );
+  		return false;
+  	}	
+  	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
+  	if ( !alreadyRequested( request ) ) {
+  		addRequest( request );
+      BTMessage msg = new BTRequest( pieceNumber, pieceOffset, pieceLength );
+      queueProtocolMessage( msg );
+  		return true;
+  	}
+  	return false;
   }
-
-  public void sendHave(int pieceNumber) {
-	if (getState() != TRANSFERING)
-	  return;
-	LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is notified you have " + pieceNumber);
   
-//TODO
-	DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 9 );
-	buffer.buff.putInt(5);
-	buffer.buff.put(BT_HAVE);
-	buffer.buff.putInt(pieceNumber);
-	buffer.buff.position(0);
-	buffer.buff.limit(9);
-	sendProtocol(buffer);
-	checkInterested();
+
+  public void sendCancel( DiskManagerRequest request ) {
+  	if ( getState() != TRANSFERING ) return;
+		if ( alreadyRequested( request ) ) {
+			removeRequest( request );
+      BTMessage msg = new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() );
+      queueProtocolMessage( msg );
+		}
   }
 
+  
+  public void sendHave( int pieceNumber ) {
+		if ( getState() != TRANSFERING ) return;
+    BTMessage msg = new BTHave( pieceNumber );
+    queueProtocolMessage( msg );
+		checkInterested();
+	}
+
+  
   public void sendChoke() {
-	if (getState() != TRANSFERING)
-	  return;
-	LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is choked");
-	choking = true;
-	sendSimpleCommand(BT_CHOKED);
+  	if ( getState() != TRANSFERING ) return;
+    BTMessage msg = new BTChoke();
+    queueProtocolMessage( msg );
+  	choking = true;
   }
 
+  
   public void sendUnChoke() {
-	if (getState() != TRANSFERING)
-	  return;
-	LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is unchoked");
-	choking = false;
-	sendSimpleCommand(BT_UNCHOKED);
+    if ( getState() != TRANSFERING ) return;
+    BTMessage msg = new BTUnchoke();
+    queueProtocolMessage( msg );
+    choking = false;
   }
 
-  private void sendSimpleCommand(byte command) {
-//  TODO
-  DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 5 );
-	buffer.buff.putInt(1);
-	buffer.buff.put(command);
-	buffer.buff.position(0);
-	buffer.buff.limit(5);
-	sendProtocol(buffer);
-  }
 
+  private void sendKeepAlive() {
+    BTMessage msg = new BTKeepAlive();
+    queueProtocolMessage( msg );
+  }
+  
+  
   private void setBitField(DirectByteBuffer buffer) {
 	byte[] dataf = new byte[(manager.getPiecesNumber() + 7) / 8];
    
@@ -1073,91 +1028,86 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	}
   }
 
+  
   /**
    * Global checkInterested method.
    * Scans the whole pieces to determine if it's interested or not
    */
   private void checkInterested() {
-	boolean newInterested = false;
-	boolean[] myStatus = manager.getPiecesStatus();
-	for (int i = 0; i < myStatus.length; i++) {
-	  if (!myStatus[i] && available[i]) {
-		newInterested = true;
-		break;
-	  }
+		boolean newInterested = false;
+		boolean[] myStatus = manager.getPiecesStatus();
+		for (int i = 0; i < myStatus.length; i++) {
+			if ( !myStatus[i] && available[i] ) {
+				newInterested = true;
+				break;
+			}
+		}
+		if ( newInterested && !interested ) {
+      BTMessage msg = new BTInterested();
+      queueProtocolMessage( msg );
+		}
+    else if ( !newInterested && interested ) {
+    	BTMessage msg = new BTUninterested();
+      queueProtocolMessage( msg );
+		}
+		interested = newInterested;
 	}
 
-	if (newInterested && !interested) {
-	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is interesting");
-	  sendSimpleCommand(BT_INTERESTED);
-	}
-	else if (!newInterested && interested) {
-	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is not interesting");
-	  sendSimpleCommand(BT_UNINTERESTED);
-	}
-	interested = newInterested;
-  }
-
+  
   /**
    * Checks interested given a new piece received
    * @param pieceNumber the piece number that has been received
    */
-  private void checkInterested(int pieceNumber) {
-	boolean[] myStatus = manager.getPiecesStatus();
-	boolean newInterested = !myStatus[pieceNumber];
-	if (newInterested && !interested) {
-	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is interesting");
-	  sendSimpleCommand(BT_INTERESTED);
+  private void checkInterested( int pieceNumber ) {
+		boolean[] myStatus = manager.getPiecesStatus();
+		boolean newInterested = !myStatus[ pieceNumber ];
+		if ( newInterested && !interested ) {
+      BTMessage msg = new BTInterested();
+      queueProtocolMessage( msg );
+		}
+    else if ( !newInterested && interested ) {
+      BTMessage msg = new BTUninterested();
+      queueProtocolMessage( msg );
+		}
+		interested = newInterested;
 	}
-	else if (!newInterested && interested) {
-	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is not interesting");
-	  sendSimpleCommand(BT_UNINTERESTED);
-	}
-	interested = newInterested;
-  }
+  
 
   /**
    * Private method to send the bitfield.
    * The bitfield will only be sent if there is at least one piece available.
-   *
    */
   private void sendBitField() {
-  //In case we're in super seed mode, we don't send our bitfield
-  if(manager.isSuperSeedMode())
-    return;
+		//In case we're in super seed mode, we don't send our bitfield
+		if ( manager.isSuperSeedMode() ) return;
+    
+    //create bitfield
+		ByteBuffer buffer = ByteBuffer.allocate( (manager.getPiecesNumber() + 7) / 8 );
+		boolean atLeastOne = false;
+		boolean[] myStatus = manager.getPiecesStatus();
+		int bToSend = 0;
+		int i = 0;
+		for (; i < myStatus.length; i++) {
+			if ( (i % 8) == 0 ) bToSend = 0;
+			bToSend = bToSend << 1;
+			if ( myStatus[i] ) {
+				bToSend += 1;
+				atLeastOne = true;
+			}
+			if ( (i % 8) == 7 ) buffer.put( (byte)bToSend );
+		}
+		if ( (i % 8) != 0 ) {
+			bToSend = bToSend << (8 - (i % 8));
+			buffer.put( (byte)bToSend );
+		}
+
+		if ( atLeastOne ) {
+			BTMessage msg = new BTBitfield( buffer );
+      queueProtocolMessage( msg );
+		}
+	}
+
   
-  int size = 5 + (manager.getPiecesNumber() + 7) / 8;
-  ByteBuffer buffer = ByteBuffer.allocate( size );
-	buffer.putInt(buffer.capacity() - 4);
-	buffer.put(BT_BITFIELD);
-	boolean atLeastOne = false;
-	boolean[] myStatus = manager.getPiecesStatus();
-	int bToSend = 0;
-	int i = 0;
-	for (; i < myStatus.length; i++) {
-	  if ((i % 8) == 0)
-		bToSend = 0;
-	  bToSend = bToSend << 1;
-	  if (myStatus[i]) {
-		bToSend += 1;
-		atLeastOne = true;
-	  }
-	  if ((i % 8) == 7)
-		buffer.put((byte) bToSend);
-	}
-	if ((i % 8) != 0) {
-	  bToSend = bToSend << (8 - (i % 8));
-	  buffer.put((byte) bToSend);
-	}
-
-	buffer.position(0);
-	if (atLeastOne) {
-	  buffer.limit(buffer.capacity());
-	  sendProtocol(new DirectByteBuffer(buffer));
-	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is sent your bitfield");
-	}
-  }
-
   private void removeRequestFromQueue(DiskManagerRequest request) {
     synchronized( dataQueue ) {
     	for (int i = 0; i < dataQueue.size(); i++) {
@@ -1185,55 +1135,59 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		return PEPeerControl.NO_SLEEP;
       
   	//If we are already sending something, we simply continue
-  	if (writeBuffer != null && cache_buffer != null ) {
+  	if ( cache_buffer != null ) {
   		try {
-        ByteBuffer w_buff = writeBuffer.buff;
+        
         ByteBuffer c_buff = cache_buffer.buff;
         
-  			int realLimit = w_buff.limit();
   			int uploadAllowed = 0;
         int written = 0;
         
-        //compute allowed limited upload bytes
-        int new_limit = realLimit;
-  			if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-  				if ((loopFactor % 10) == 0) {
-  					allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
-  					used = 0;
-  				}
-  				uploadAllowed = allowed - used;
-          new_limit = w_buff.position() + uploadAllowed;
-  				if ((new_limit > realLimit) || (new_limit < 0)) new_limit = realLimit;
-  			}
-        w_buff.limit( new_limit );
+        if ( writeBuffer != null ) {
+          ByteBuffer w_buff = writeBuffer.buff;
+          int realLimit = w_buff.limit();
+          //compute allowed limited upload bytes
+          int new_limit = realLimit;
+          if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
+            if ((loopFactor % 10) == 0) {
+              allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
+              used = 0;
+            }
+            uploadAllowed = allowed - used;
+            new_limit = w_buff.position() + uploadAllowed;
+            if ((new_limit > realLimit) || (new_limit < 0)) new_limit = realLimit;
+          }
+          w_buff.limit( new_limit );
+            
+          //copy write-buffer data into cache buffer
+          if ( w_buff.hasRemaining() ) {
+            if ( !actively_writing ) { // do a normal append
+              int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
+              w_buff.limit( w_buff.position() + copy_len );
+              c_buff.put( w_buff );
+              written = copy_len;
+            }
+            else {  //we're in the middle of a write, so append new data only at the end of existing data
+              int orig_pos = c_buff.position();
+              int orig_lim = c_buff.limit();
+              c_buff.position( orig_lim );
+              c_buff.limit( WRITE_CACHE_SIZE );
+              
+              int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
+              w_buff.limit( w_buff.position() + copy_len );
+              c_buff.put( w_buff );
+              written = copy_len;
+              
+              c_buff.position( orig_pos );
+              c_buff.limit( orig_lim + copy_len );
+            }
+          }
           
-        //copy write-buffer data into cache buffer
-        if ( w_buff.hasRemaining() ) {
-          if ( !actively_writing ) { // do a normal append
-            int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
-            w_buff.limit( w_buff.position() + copy_len );
-            c_buff.put( w_buff );
-            written = copy_len;
-          }
-          else {  //we're in the middle of a write, so append new data only at the end of existing data
-            int orig_pos = c_buff.position();
-            int orig_lim = c_buff.limit();
-            c_buff.position( orig_lim );
-            c_buff.limit( WRITE_CACHE_SIZE );
-            
-            int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
-            w_buff.limit( w_buff.position() + copy_len );
-            c_buff.put( w_buff );
-            written = copy_len;
-            
-            c_buff.position( orig_pos );
-            c_buff.limit( orig_lim + copy_len );
-          }
+          w_buff.limit( realLimit );
         }
         
-        w_buff.limit( realLimit );
-        boolean force_flush = queues_empty && !w_buff.hasRemaining();
-                
+        boolean force_flush = writeBuffer == null && c_buff.position() != 0;
+        
         if ( actively_writing || force_flush || c_buff.position() == WRITE_CACHE_SIZE ) {
           if ( !actively_writing ) c_buff.flip();
 
@@ -1242,7 +1196,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           int wrote = writeData( cache_buffer );
                    
           if ( WRITE_DEBUG ) {  //TODO: remove debug
-            System.out.println("["+ip+"]" + wrote + " [" +poss+ "] " + force_flush );
+            System.out.println("["+ip+"] " + wrote + " [" +poss+ "] " + (writeBuffer == null) );
           }
           
           if ( !c_buff.hasRemaining() ) { //done writing the cache buffer
@@ -1276,7 +1230,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		}
   		
   		//If we have finished sending this buffer
-  		if (!writeBuffer.buff.hasRemaining()) {
+  		if (writeBuffer != null && !writeBuffer.buff.hasRemaining()) {
   			//If we were sending data, we must free the writeBuffer
   			if (writeData) {
   				PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
@@ -1291,27 +1245,24 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       
   		synchronized( protocolQueue ) {
       	//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
-      	if (protocolQueue.size() != 0) {
+      	if ( protocolQueue.size() != 0 ) {
       		//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
       		waitingChokeToBeSent = false;
       		//Assign the current buffer ...
       		keepAlive = 0;
-      		writeBuffer = (DirectByteBuffer) protocolQueue.remove(0);
-  			
-      		if (writeBuffer == null){
-      			closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
-      			return PEPeerControl.NO_SLEEP;
-      		}
-  			
+          BTMessage msg = (BTMessage)protocolQueue.remove( 0 );
+      		writeBuffer = msg.getPayload();
+  			  			
       		//check to make sure we're sending a proper message length
-      		if (!verifyLength(writeBuffer)) {
+      		if ( !verifyLength( writeBuffer ) ) {
       			closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
       			return PEPeerControl.NO_SLEEP;
       		}
   			
-      		writeBuffer.buff.position(0);
+      		writeBuffer.buff.position( 0 );
   			  writeData = false;
-          if ( !protocolQueue.isEmpty() ) queues_empty = false;
+          String log = "Sending " +msg.getDescription()+ " message to " +ip+ ":" +port+ " [" +client+ "]";
+          LGLogger.log( componentID, evtProtocol, LGLogger.SENT, log );
   			  //and loop
   			  write();
   			  return PEPeerControl.NO_SLEEP;
@@ -1358,7 +1309,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       				
       				writeBuffer.buff.position(0);
       				writeData = true;
-              if ( !dataQueue.isEmpty() ) queues_empty = false;
       				PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
       				// and loop
       				write();
@@ -1383,16 +1333,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       synchronized( protocolQueue ) {
         synchronized( dataQueue ) {
         	if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
-            queues_empty = true;
         		keepAlive++;
         		if (keepAlive == 50 * 60 * 3) {
         			keepAlive = 0;
         			sendKeepAlive();
         		}
         	}
-          else {
-            queues_empty = false;
-          }
         }
       }
     
@@ -1408,7 +1354,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
    */
   private boolean verifyLength(DirectByteBuffer buffer) {
     //check for a handshake message
-    if (buffer.buff.get(0) == (byte)PROTOCOL.length()) {
+    if (buffer.buff.get(0) == (byte)BTHandshake.PROTOCOL.length()) {
       //make sure the length is correct for a handshake
       if (buffer.buff.limit() != 68) {
         //make sure it isn't a normal message
@@ -1434,14 +1380,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	return a > b ? a : b;
   }
 
-  private void sendKeepAlive() {
-//  TODO
-  	DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 4 );
-  	buffer.buff.putInt(0);
-  	buffer.buff.limit(4);
-  	buffer.buff.position(0);
-  	sendProtocol( buffer );
-  }
+
 
   public int getMaxUpload() {
 	return maxUpload;
@@ -1760,14 +1699,25 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		}
 		
 		protected void cancelRequests() {
-			if (requested == null)
-				return;
-			synchronized (requested) {
-				for (int i = requested.size() - 1; i >= 0; i--) {
-					DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
-					manager.requestCanceled(request);
-				}
-			}
+			if ( requested != null ) {
+        synchronized (requested) {
+          for (int i = requested.size() - 1; i >= 0; i--) {
+            DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
+            manager.requestCanceled(request);
+          }
+        }
+      }
+      //cancel any unsent requests in the queue
+      synchronized( protocolQueue ) { 
+        for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
+          BTMessage msg = (BTMessage)i.next();
+          if ( msg.getType() == BTMessage.BT_REQUEST ) {
+            i.remove();
+            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent" +msg.getDescription()+ " message from protocol queue" );
+          }
+        }
+      }
+			
 		}
 
 		public int 
