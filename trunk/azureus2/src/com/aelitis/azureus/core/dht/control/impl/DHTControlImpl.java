@@ -584,9 +584,18 @@ DHTControlImpl
 					}
 					
 					contacts_to_query.remove( closest );
-					
+
 					contacts_queried.put( new HashWrapper( closest.getID()), "" );
+								
+						// never search ourselves!
 					
+					if ( router.isID( closest.getID())){
+						
+						search_sem.release();
+						
+						continue;
+					}
+
 					active_searches[0]++;
 					
 					DHTTransportReplyHandlerAdapter	handler = 
