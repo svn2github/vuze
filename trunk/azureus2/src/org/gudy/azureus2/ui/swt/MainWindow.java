@@ -290,6 +290,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     auth_window = new AuthenticatorWindow();
     
+    new CertificateTrustWindow();
+    
     user_alerts = new UserAlerts(gm);
     
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");

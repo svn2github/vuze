@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.security.impl;
  *
  */
 
+import java.util.*;
 import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
@@ -40,6 +41,8 @@ SESecurityManagerImpl
 {
 	protected static String	keystore;
 	protected static String	truststore;
+	
+	protected static List	certificate_listeners = new ArrayList();
 	
 	public static void
 	initialise()
@@ -97,7 +100,7 @@ SESecurityManagerImpl
 		return( factory );
 	}
 	
-	public static boolean
+	public static synchronized boolean
 	installServerCertificates(
 		URL		https_url )
 	{
@@ -146,16 +149,42 @@ SESecurityManagerImpl
 			}
 			
 			java.security.cert.Certificate	cert = serverCerts[0];
+						
+			java.security.cert.X509Certificate x509_cert;
 			
-			PublicKey pk = cert.getPublicKey();
+			if ( cert instanceof java.security.cert.X509Certificate ){
+				
+				x509_cert = (java.security.cert.X509Certificate)cert;
+				
+			}else{
+				
+				java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+				
+				x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+			}
+				
+			String	resource = https_url.toString();
+			
+			int	param_pos = resource.indexOf("?");
+			
+			if ( param_pos != -1 ){
+				
+				resource = resource.substring(0,param_pos);
+			}
+			
+			for (int i=0;i<certificate_listeners.size();i++){
+				
+				if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
 					
-			System.out.println( "got cert: " + cert );
+					String	alias = host + ":" + port;
 			
-			String	alias = host + ":" + port;
+					addCertToTrustStore( alias, cert );
 			
-			addCertToTrustStore( alias, cert );
+					return( true );
+				}
+			}
 			
-			return( true );
+			return( false );
 			
 		}catch( Throwable e ){
 			
@@ -187,7 +216,7 @@ SESecurityManagerImpl
 	{
 		FileInputStream		in 	= null;
 		FileOutputStream	out = null;
-		
+				
 		try {
 			KeyStore keystore = KeyStore.getInstance("JKS");
 			
@@ -241,5 +270,19 @@ SESecurityManagerImpl
 			}
 			
 		}
+	}
+	
+	public static synchronized void
+	addCertificateListener(
+		SECertificateListener	l )
+	{
+		certificate_listeners.add(l);
+	}	
+	
+	public static synchronized void
+	removeCertificateListener(
+		SECertificateListener	l )
+	{
+		certificate_listeners.remove(l);
 	}
 }

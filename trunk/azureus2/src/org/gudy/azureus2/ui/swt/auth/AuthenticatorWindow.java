@@ -58,7 +58,7 @@ AuthenticatorWindow
 				getPasswordAuthentication()
 				{
 					// System.out.println( "getPasswordAuthentication");
-					
+										
 					String	realm = getRequestingPrompt();
 					
 					String	tracker = getRequestingProtocol() + "://" + 
@@ -280,6 +280,13 @@ AuthenticatorWindow
 				 password = password_value.getText();
 			   }});
 			   
+			// line
+			
+			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 3;
+			labelSeparator.setLayoutData(gridData);
+			
 				// buttons
 				
 			Label label = new Label(shell,SWT.NULL);

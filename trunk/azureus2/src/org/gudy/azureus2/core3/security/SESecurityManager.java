@@ -61,4 +61,18 @@ SESecurityManager
 	{
 		return( SESecurityManagerImpl.installServerCertificates(https_url));
 	}
+	
+	public static void
+	addCertificateListener(
+			SECertificateListener	l )
+	{
+		SESecurityManagerImpl.addCertificateListener(l);
+	}	
+	
+	public static void
+	removeCertificateListener(
+		SECertificateListener	l )
+	{
+		SESecurityManagerImpl.removeCertificateListener(l);
+	}
 }

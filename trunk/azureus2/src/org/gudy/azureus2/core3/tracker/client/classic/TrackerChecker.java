@@ -130,7 +130,7 @@ public class TrackerChecker {
     return null;
   }
 
-  public void update() {
+  protected void update() {
     synchronized (trackers) {
       Iterator iter = trackers.values().iterator();
       while (iter.hasNext()) {

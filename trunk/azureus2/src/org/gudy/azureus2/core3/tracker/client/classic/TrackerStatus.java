@@ -58,11 +58,11 @@ public class TrackerStatus {
     data = new byte[1024];
   }
 
-  public TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
+  protected TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
     return (TRTrackerScraperResponseImpl) hashes.get(hash);
   }
 
-  public void asyncUpdate(final HashWrapper hash) {
+  protected void asyncUpdate(final HashWrapper hash) {
     if(hashes.get(hash) == null)
       hashes.put(hash,new TRTrackerScraperResponseImpl(-1,-1));
     Thread t = new Thread("Tracker Checker - Scrape interface") {
@@ -78,7 +78,7 @@ public class TrackerStatus {
     t.start();
   }
 
-  public synchronized void update(HashWrapper hash) {    
+  private synchronized void update(HashWrapper hash) {    
     if(! hashList.contains(hash))
         hashList.add(hash);
     if(scrapeURL == null)
@@ -186,11 +186,11 @@ public class TrackerStatus {
     }
   }
   
-  public Iterator getHashesIterator() {
+  protected Iterator getHashesIterator() {
     return hashList.iterator();  
   }
   
-  public void removeHash(HashWrapper hash) {
+  protected void removeHash(HashWrapper hash) {
     while(hashList.contains(hash))
       hashList.remove(hash);
   }  
