@@ -18,38 +18,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 package org.gudy.azureus2.core3.peer.impl.transport;
 
-/**
- * @author parg
- *
- */
-/*
- * File    : PEPeerTransportImpl
- * Created : 15-Oct-2003
- * By      : Olivier
- * 
- * Azureus - a Java Bittorrent client
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
- 
-  /*
- * Created on 4 juil. 2003
- *
- */
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -959,6 +929,12 @@ PEPeerTransportProtocol
 
   private void setBitField(ByteBuffer buffer) {
 	byte[] data = new byte[(manager.getPiecesNumber() + 7) / 8];
+   
+	if (buffer.remaining() < data.length) {
+     LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent invalid BitField: too short");
+	  return;
+   }
+   
 	buffer.get(data);
 	for (int i = 0; i < available.length; i++) {
 	  int index = i / 8;
