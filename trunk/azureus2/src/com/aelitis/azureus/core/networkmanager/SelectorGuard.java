@@ -51,13 +51,18 @@ public class SelectorGuard {
   private long beforeSelectTime;
   private long afterSelectTime;
   
-  private static final boolean DISABLED = System.getProperty("java.version").startsWith("1.5") ? true : false;
+  private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
+  
+  private HashMap conseq_keys = new HashMap();
+  private static final int CONSEQ_SELECT_THRESHOLD = 10;
+  
+  
   
   
   /**
    * Create a new SelectorGuard with the given failed count threshold.
    */
-  public SelectorGuard( int _count_threshold ) { //TODO make protected again
+  public SelectorGuard( int _count_threshold ) {
     this.countThreshold = _count_threshold;    
   }
   
@@ -66,7 +71,7 @@ public class SelectorGuard {
    * Run this method right before the select() operation to
    * mark the start time.
    */
-  public void markPreSelectTime() {//TODO make protected again
+  public void markPreSelectTime() {
     beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
@@ -75,7 +80,7 @@ public class SelectorGuard {
   /**
    * Checks whether selector is still OK, and not spinning.
    */
-  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {//TODO make protected again    
+  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {
     if (_num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
@@ -113,11 +118,12 @@ public class SelectorGuard {
     return true;
   }
   
+
   
   /**
    * Cleanup bad selector and return a fresh new one.
    */
-  public Selector repairSelector( final Selector _bad_selector ) {//TODO make protected again
+  public Selector repairSelector( Selector _bad_selector ) {
     String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys.\n";
     msg += MessageText.getString( "SelectorGuard.repairmessage" );
     Debug.out( msg );
@@ -153,5 +159,62 @@ public class SelectorGuard {
   }
   
   
+  
+  /**
+   * Detect if any selection keys seem to be select-spinning.
+   * @param selected_keys for the latest select op
+   * @return true if spinning has been detected, false if ok
+   */
+  public boolean detectSpinningKeys( Set selected_keys ) {
+    HashMap new_keys = new HashMap();
+    boolean spin_detected = false;
+    
+    for( Iterator i = selected_keys.iterator(); i.hasNext(); ) {
+      Object key = i.next();
+      
+      Integer count = (Integer)conseq_keys.get( key );
+      
+      if( count == null ) {
+        new_keys.put( key, new Integer(1) );
+      }
+      else {
+        int conseq_selects = count.intValue() + 1;
+        
+        new_keys.put( key, new Integer( conseq_selects ) );
+        
+        if( conseq_selects > CONSEQ_SELECT_THRESHOLD ) {
+          spin_detected = true;
+        }
+      }
+    }
+    
+    conseq_keys = new_keys;    
+    
+    return spin_detected;
+  }
+  
+  
+  
+  /**
+   * Get a report of any detected spinning keys.
+   * @return spin report
+   */
+  public String getSpinningKeyReport() {
+    String report = "Channels with more than " +CONSEQ_SELECT_THRESHOLD+ " consecutive selects: ";
+    
+    for( Iterator i = conseq_keys.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry entry = (Map.Entry)i.next();
+      
+      Integer count = (Integer)entry.getValue();
+      
+      if( count.intValue() > CONSEQ_SELECT_THRESHOLD ) {
+        SelectionKey key = (SelectionKey)entry.getKey();
+        
+        report += "[" +count.intValue()+ "X, " +key.channel()+ "] ";
+      }
+    }
+    
+    return report;
+  }
   
 }

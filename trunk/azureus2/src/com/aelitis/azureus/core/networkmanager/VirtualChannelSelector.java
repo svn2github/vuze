@@ -50,8 +50,9 @@ public class VirtualChannelSelector {
     
     private final int 		INTEREST_OP;
     private final boolean	pause_after_select;
-    
 
+    
+    
     /**
      * Create a new virtual selectable-channel selector, selecting over the given interest-op(s).
      * OP_READ will be left enabled after select, all others disabled.
@@ -388,9 +389,19 @@ public class VirtualChannelSelector {
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
-      if( !selector_guard.isSelectorOK( count, 10 ) ) {
+      if( !selector_guard.isSelectorOK( count, 50 ) ) {
         selector = selector_guard.repairSelector( selector );
       }
+      
+      
+      if( selector_guard.detectSpinningKeys( selector.selectedKeys() ) ) {
+        String op_type = "OP_CONNECT";
+        if( INTEREST_OP == OP_READ )  op_type = "OP_READ";
+        if( INTEREST_OP == OP_WRITE ) op_type = "OP_WRITE";
+        
+        Debug.out( "Spinning keys detected for " +op_type+ ": " +selector_guard.getSpinningKeyReport() );
+      }
+      
       
       //notification of ready keys via listener callback
       if( count > 0 ) {
