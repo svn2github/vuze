@@ -280,7 +280,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     	// dl speed
   
     label = new Label(culdl, SWT.LEFT);
-    label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getKiloBytePerSecUnit()+":");
+    label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
     Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
     
     final Text maxDLSpeed = new Text(culdl, SWT.BORDER);

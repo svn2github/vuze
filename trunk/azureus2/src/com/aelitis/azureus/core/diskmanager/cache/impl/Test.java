@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
@@ -83,9 +84,97 @@ Test
 				files[i].write(bb,0);
 			}
 			
-			while( true ){
+			int	quanitize_to					= 100;
+			int quanitize_to_max_consec_write	= 1;
+			int quanitize_to_max_consec_read	= 3;
+			
+			for (int x=0;x<10000000;x++){
 				
-				CacheFile	fc = files[randomInt(files.length)];
+				int	file_index = randomInt(files.length);
+				
+				CacheFile	cf = files[file_index];
+				
+				byte[]	bytes = file_data[ file_index ];
+				
+				
+				int	p1 = randomInt( bytes.length );
+				int p2 = randomInt( bytes.length );
+				
+				p1 = (p1/quanitize_to)*quanitize_to;
+				p2 = (p2/quanitize_to)*quanitize_to;
+				
+				if ( p1 == p2 ){
+					
+					continue;
+				}
+				
+				int start 	= Math.min(p1,p2);
+				int len	 	= Math.max(p1,p2) - start;
+				
+				int	function = randomInt(100);
+				
+				if ( function < 30){
+					
+					if ( len > quanitize_to*quanitize_to_max_consec_read ){
+						
+						len = quanitize_to*quanitize_to_max_consec_read;
+					}
+					
+					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( len );
+					
+					System.out.println( "read:" + start + "/" + len );
+					
+					cf.read( buffer, start );
+					
+					buffer.position(0);
+					
+					byte[]	data_read = new byte[len];
+					
+					buffer.get( data_read );
+					
+					for (int i=0;i<data_read.length;i++){
+						
+						if ( data_read[i] != bytes[ i+start ]){
+							
+							System.out.println( "data read mismatch" );
+							
+							break;
+						}
+					}
+					
+					buffer.returnToPool();
+					
+				}else if ( function < 80 ){
+					if ( len > quanitize_to*quanitize_to_max_consec_write ){
+						
+						len = quanitize_to*quanitize_to_max_consec_write;
+					}
+					
+					System.out.println( "write:" + start + "/" + len );
+					
+					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( len );
+					
+					for (int i=0;i<len;i++){
+						
+						bytes[start+i] = (byte)randomInt(256);
+						
+						buffer.put( bytes[start+i]);
+					}
+					
+					buffer.position(0);
+					
+					cf.writeAndHandoverBuffer( buffer, start );
+					
+				}else if ( function < 90 ){
+					
+					cf.flushCache();
+					
+				}else if ( function < 93 ){
+					
+					//System.out.println( "closing file" );
+					
+					///cf.close();
+				}
 			}
 			/*
 			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(512);

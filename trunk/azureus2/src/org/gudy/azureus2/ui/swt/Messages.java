@@ -54,7 +54,7 @@ public class Messages {
     if (widget == null || widget.isDisposed())
       return;
 
-    updateLanguageFromData(widget);
+    updateLanguageFromData(widget,null);	// OK, so we loose parameters on language change...
     updateToolTipFromData(widget);
 
     if (widget instanceof CTabFolder) {
@@ -95,7 +95,7 @@ public class Messages {
         Table table = (Table) widget;
         TableColumn[] columns = table.getColumns();
         for (int i = 0; i < columns.length; i++) {
-          updateLanguageFromData(columns[i]);
+          updateLanguageFromData(columns[i], null);
         }
         updateLanguageForControl(table.getMenu());
 
@@ -131,7 +131,7 @@ public class Messages {
       TreeItem treeitem = (TreeItem) widget;
       TreeItem[] treeitems = treeitem.getItems();
       for (int i = 0; i < treeitems.length; i++) {
-        updateLanguageFromData(treeitems[i]);
+        updateLanguageFromData(treeitems[i], null);
       }
     }
     
@@ -141,14 +141,27 @@ public class Messages {
     setLanguageText(paramObject.getControl(), key, false);
   }
 
+  public static void setLanguageText(IParameter paramObject, String key, String[] params) {
+    setLanguageText(paramObject.getControl(), key, params, false );
+  }
+
   public static void setLanguageText(Widget widget, String key) {
     setLanguageText(widget, key, false);
   }
+  
+  public static void setLanguageText(Widget widget, String key, String[]params) {
+    setLanguageText(widget, key, params, false);
+  }
 
   public static void setLanguageText(Widget widget, String key, boolean setTooltipOnly) {
+  	setLanguageText( widget, key, null, setTooltipOnly );
+  }
+  
+  private static void 
+  setLanguageText(Widget widget, String key, String[] params, boolean setTooltipOnly) {
   	widget.setData(key);
   	if(!setTooltipOnly)
-      updateLanguageFromData(widget);
+      updateLanguageFromData(widget, params);
   	updateToolTipFromData(widget);
   }
   
@@ -185,29 +198,40 @@ public class Messages {
   }
   
 
-  public static void updateLanguageFromData(Widget widget) {
+  private static void updateLanguageFromData(Widget widget,String[] params) {
       if (widget.getData() != null) {
         String key = (String) widget.getData();
         if(key.endsWith(".tooltip"))
           return;
+        
+        String	message;
+        
+        if ( params == null ){
+        	
+        	message = MessageText.getString((String) widget.getData());
+        }else{
+        	
+           	message = MessageText.getString((String) widget.getData(), params);         	
+        }
+        
         if (widget instanceof MenuItem)
-           ((MenuItem) widget).setText(MessageText.getString((String) widget.getData()));
+           ((MenuItem) widget).setText(message);
         else if (widget instanceof TableColumn)
-           ((TableColumn) widget).setText(MessageText.getString((String) widget.getData()));
+           ((TableColumn) widget).setText(message);
         else if (widget instanceof Label)
-           ((Label) widget).setText(MessageText.getString((String) widget.getData()));
+           ((Label) widget).setText(message);
         else if (widget instanceof Group)
-           ((Group) widget).setText(MessageText.getString((String) widget.getData()));
+           ((Group) widget).setText(message);
         else if (widget instanceof Button)
-           ((Button) widget).setText(MessageText.getString((String) widget.getData()));
+           ((Button) widget).setText(message);
         else if (widget instanceof CTabItem)
-           ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
+           ((CTabItem) widget).setText(message);
         else if (widget instanceof TabItem)
-           ((TabItem) widget).setText(MessageText.getString((String) widget.getData()));
+           ((TabItem) widget).setText(message);
         else if (widget instanceof TreeItem)
-          ((TreeItem) widget).setText(MessageText.getString((String) widget.getData()));
+          ((TreeItem) widget).setText(message);
         else if(widget instanceof Shell) 
-          ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
+          ((Shell) widget).setText(message);
         else
           System.out.println("No cast for " + widget.getClass().getName());
       } 

@@ -135,6 +135,34 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
 
+    
+    // diskmanager.perf.cache.enable
+    
+    final BooleanParameter disk_cache = new BooleanParameter(cSection, "diskmanager.perf.cache.enable", "ConfigView.section.file.perf.cache.enable");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    disk_cache.setLayoutData(gridData);
+    
+   	// diskmanager.perf.cache.size
+    
+    label = new Label(cSection, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.perf.cache.size", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)});
+    IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size", 2);
+    cache_size.setAllowZero(false);
+    cache_size.setMinimumValue(1);
+    
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    gridData.widthHint = 30;
+    cache_size.setLayoutData( gridData );
+    label = new Label(cSection, SWT.WRAP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData);
+    
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( cache_size.getControls() ));
+    
     return cSection;
   }
 }

@@ -294,7 +294,8 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.friendly.hashchecking", new Long(0) );
     def.put( "Default Start Torrents Stopped", new Long(0));
     def.put( "Server Enable UDP", new Long(1));
-    
+    def.put( "diskmanager.perf.cache.enable", new Long(0));
+    def.put( "diskmanager.perf.cache.size", new Long(2));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -39,13 +41,10 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
-	protected static boolean	cache_enabled			= false;
-	
-	protected static long		cache_size				= 1000000;
-	
-	protected static long		cache_minimum_free_size	= cache_size/4;
-	
-	protected static long		cache_space_free		= cache_size; 
+	protected boolean	cache_enabled;
+	protected long		cache_size;
+	protected long		cache_minimum_free_size;
+	protected long		cache_space_free;
 		
 	protected FMFileManager		file_manager;
 
@@ -62,6 +61,16 @@ CacheFileManagerImpl
 	CacheFileManagerImpl()
 	{
 		file_manager	= FMFileManagerFactory.getSingleton();
+		
+		cache_enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
+		
+		cache_size		= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		
+		cache_minimum_free_size	= cache_size/4;
+		
+		cache_space_free		= cache_size;
+		
+		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", size = " + cache_size + " MB" );
 	}
 	
 	public CacheFile
@@ -143,8 +152,8 @@ CacheFileManagerImpl
 			
 			if ( log ){
 				
-				System.out.println( 
-						"cache:cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
+				LGLogger.log( 
+						"DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
 						",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
 			}
 			

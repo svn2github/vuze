@@ -41,11 +41,12 @@ import org.gudy.azureus2.core3.internat.*;
 public class
 DisplayFormatters
 {
-	final protected static int UNIT_B = 0;
-	final protected static int UNIT_KB = 1;
-	final protected static int UNIT_MB = 2;
-	final protected static int UNIT_GB = 3;
-	final protected static int UNIT_TB = 4;
+	final public static int UNIT_B  = 0;
+	final public static int UNIT_KB = 1;
+	final public static int UNIT_MB = 2;
+	final public static int UNIT_GB = 3;
+	final public static int UNIT_TB = 4;
+	
 	final protected static String UNITS_NUMBER_FORMAT[] = { "0", // B
 	                                                        "0.0", //KB
 	                                                        "0.0", //MB
@@ -174,9 +175,16 @@ DisplayFormatters
   }
 
 	public static String
-	getKiloBytePerSecUnit()
+	getRateUnit(
+		int		unit_size )
 	{
-		return( units_rate[UNIT_KB].substring(units_rate[UNIT_KB].indexOf(" ") + 1, units_rate[UNIT_KB].length()) );
+		return( units_rate[unit_size].substring(units_rate[unit_size].indexOf(" ") + 1, units_rate[unit_size].length()) );
+	}
+	public static String
+	getUnit(
+		int		unit_size )
+	{
+		return( units[unit_size].substring(units[unit_size].indexOf(" ") + 1, units[unit_size].length()) );
 	}
 
 	public static String

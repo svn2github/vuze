@@ -93,6 +93,20 @@ IntParameter
     });
   }
   
+  public void
+  setAllowZero(
+  	boolean		allow )
+  {
+  	allowZero	= allow;
+  }
+  
+  public void
+  setMinimumValue(
+  	int		value )
+  {
+  	iMinValue	= value;
+  }
+  
   protected void
   checkValue()
  {
@@ -100,6 +114,8 @@ IntParameter
     	int	old_val = COConfigurationManager.getIntParameter( sParamName, -1 );
     	
         int new_val = Integer.parseInt(inputField.getText());
+        
+        int	original_new_val	= new_val;
         
         if (new_val < iMinValue) {
           if (!(allowZero && new_val == 0)) {
@@ -116,6 +132,11 @@ IntParameter
         if ( new_val != old_val ){
         	
         	COConfigurationManager.setParameter(sParamName, new_val);
+        	
+        	if ( new_val != original_new_val ){
+        		
+        		inputField.setText(String.valueOf(new_val));
+        	}
         	
         	for (int i=0;i<change_listeners.size();i++){
         		

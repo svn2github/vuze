@@ -128,7 +128,8 @@ CacheFileImpl
 				
 				Iterator	it = cache.iterator();
 				
-				boolean	ok = true;
+				boolean	ok 				= true;
+				int		used_entries	= 0;
 				
 				while( ok && writing_left > 0 && it.hasNext()){
 				
@@ -179,6 +180,8 @@ CacheFileImpl
 										"to write to [" + file_buffer.position() + "/" + file_buffer.limit() + "]" );
 							}
 							
+							used_entries++;
+							
 							file_buffer.put( entry_buffer );
 								
 							manager.cacheEntryUsed( entry );
@@ -200,7 +203,7 @@ CacheFileImpl
 					manager.cacheBytesRead( read_length );
 					
 					if ( TRACE ){
-						System.out.println( "cacheRead: cache use ok" );
+						System.out.println( "cacheRead: cache use ok [entries = " + used_entries + "]" );
 					}
 									
 				}else{
