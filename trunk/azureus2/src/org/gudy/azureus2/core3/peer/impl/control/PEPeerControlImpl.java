@@ -1757,8 +1757,17 @@ PEPeerControlImpl
   }
 
   
-  private void pieceChecked(int pieceNumber, boolean result) {
-    if( result ) pieceRemoved(_pieces[pieceNumber]);
+  private void 
+  pieceChecked(
+  	int pieceNumber, 
+	boolean result) 
+  {
+  		// tidy up - don't know if piece really can be null here but assuming it can be coz
+  		// the existing code did...
+  	
+    PEPieceImpl piece = _pieces[pieceNumber];
+
+    if( result && piece != null ) pieceRemoved(piece);
     
     if( _finished ) {  //this is a recheck, so don't send HAVE msgs
       if( result) { //piece ok
@@ -1775,7 +1784,6 @@ PEPeerControlImpl
     //  the piece has been written correctly
     if (result) {
 
-      PEPieceImpl piece = _pieces[pieceNumber];
       
       if(piece != null) {
         
@@ -1824,6 +1832,7 @@ PEPeerControlImpl
         
         piece.free();
       }
+      
       _pieces[pieceNumber] = null;
 
       //mark this piece as downloaded
@@ -1832,11 +1841,11 @@ PEPeerControlImpl
       //send all clients an have message
       sendHave(pieceNumber);
       
-    }
-    //the piece is corrupt
-    else { 
-      PEPiece piece = _pieces[pieceNumber];
-      if (piece != null) {            
+    }else{
+    	
+    		//    the piece is corrupt
+    	
+       if (piece != null) {            
         PEPeer[] writers = piece.getWriters();
         if((writers.length > 0) && writers[0] != null) {
           PEPeer writer = writers[0];
@@ -1867,9 +1876,9 @@ PEPeerControlImpl
       
       //if we are in end-game mode, we need to re-add all the piece chunks
       //to the list of chunks needing to be downloaded
-      if(endGameMode) {
+      if(endGameMode && piece != null ) {
         synchronized(endGameModeChunks) {
-          int nbChunks = _pieces[pieceNumber].getNbBlocs();
+          int nbChunks = piece.getNbBlocs();
           for(int i = 0 ; i < nbChunks ; i++) {
             endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
           }
