@@ -46,7 +46,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     if ((!isStarted()) || (console == null) || ((console!=null) && (!console.isAlive()))) {
       ConsoleInput.printconsolehelp(System.out);
       System.out.println();
-      console = new ConsoleInput("Main", UIConst.GM, System.in, System.out, true);
+      console = new ConsoleInput("Main", UIConst.GM, System.in, System.out, Boolean.TRUE);
     }
   }
   

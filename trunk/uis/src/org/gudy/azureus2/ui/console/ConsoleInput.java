@@ -57,6 +57,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.UIConst;
 
 import org.pf.file.FileFinder;
@@ -83,16 +84,16 @@ public class ConsoleInput extends Thread {
 	String oldcommand = "sh t";
 
 	/** Creates a new instance of ConsoleInput */
-	public ConsoleInput(String con, GlobalManager _gm, Reader _in, PrintStream _out, boolean _controlling) {
+	public ConsoleInput(String con, GlobalManager _gm, Reader _in, PrintStream _out, Boolean _controlling) {
 		super("Console Input: " + con);
 		gm = _gm;
 		out = _out;
-		controlling = _controlling;
+		controlling = _controlling.booleanValue();
 		br = new CommandReader(_in, new OutputStreamWriter(_out));
 		start();
 	}
 
-	public ConsoleInput(String con, GlobalManager _gm, InputStream _in, PrintStream _out, boolean _controlling) {
+	public ConsoleInput(String con, GlobalManager _gm, InputStream _in, PrintStream _out, Boolean _controlling) {
 		this(con, _gm, new InputStreamReader(_in), _out, _controlling);
 	}
 
@@ -173,18 +174,18 @@ public class ConsoleInput extends Thread {
 					parameter = subcommand.substring(0, subcommand.indexOf(" "));
 					setto = subcommand.substring(subcommand.indexOf(" ") + 1);
 				}
-				if (COConfigurationManager.doesParameterExist(UIConst.parameterlegacy.get(parameter).toString())) {
+				if (COConfigurationManager.doesParameterExist(ExternalUIConst.parameterlegacy.get(parameter).toString())) {
 					try {
 						if (setto==null) {
 							if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-								out.println("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
+								out.println("> "+parameter+": "+COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 							else
-								out.println("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+								out.println("> "+parameter+": "+COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 						} else {
 							if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s")) {
-								COConfigurationManager.setParameter(UIConst.parameterlegacy.get(parameter).toString(), setto);
+								COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), setto);
 							} else {
-								COConfigurationManager.setParameter(UIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
+								COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
 							}
 							COConfigurationManager.save();
 							out.println("> Parameter '" + parameter + "' set to '"+setto+"'.");
@@ -198,21 +199,21 @@ public class ConsoleInput extends Thread {
 		} else {
 			Iterator I = COConfigurationManager.getAllowedParameters().iterator();
 			Hashtable backmap =new Hashtable();
-			Enumeration enum = UIConst.parameterlegacy.keys();
+			Enumeration enum = ExternalUIConst.parameterlegacy.keys();
 			while (enum.hasMoreElements()) {
 				Object o = enum.nextElement();
-				backmap.put(UIConst.parameterlegacy.get(o),o);
+				backmap.put(ExternalUIConst.parameterlegacy.get(o),o);
 			}
 			TreeSet srt = new TreeSet();
 			while (I.hasNext()) {
 				String parameter = (String) I.next();
-				if (UIConst.parameterlegacy.containsValue(parameter))
+				if (ExternalUIConst.parameterlegacy.containsValue(parameter))
 					parameter = (String) backmap.get(parameter);
 				try {
 					if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-						srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
+						srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 					else
-						srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+						srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 				} catch (Exception e) {
 					srt.add("> "+parameter+": Exception '"+e.getMessage()+"' (Probably the parameter type couldn't be deduced from its name).");
 				}

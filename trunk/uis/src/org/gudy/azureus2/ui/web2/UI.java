@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.LGLogger2Log4j;
@@ -104,6 +105,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 
   public void init(boolean first, boolean others) {
     super.init(first, others);
+    ExternalUIConst.registerDefaults();
     System.setProperty("java.awt.headless", "true");
     String defaultargs[] = {
       // Default URL

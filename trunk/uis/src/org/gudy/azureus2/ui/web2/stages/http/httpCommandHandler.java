@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
@@ -86,9 +87,9 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
           }
         }
         if (option.substring(option.indexOf('_') + 1).startsWith("s"))
-          COConfigurationManager.setParameter(UIConst.parameterlegacy.get(option).toString(), value);
+          COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(option).toString(), value);
         else
-          COConfigurationManager.setParameter(UIConst.parameterlegacy.get(option).toString(), Integer.parseInt(value));
+          COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }
     }
     COConfigurationManager.save();

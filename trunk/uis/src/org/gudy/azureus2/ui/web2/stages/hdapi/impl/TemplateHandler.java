@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.SLevel;
 import org.gudy.azureus2.ui.web2.UI;
@@ -80,14 +81,14 @@ public class TemplateHandler implements httpRequestHandlerIF {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    tmpl.setParam("Options_" + name, COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_" + name, COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(name).toString()));
   }
 
   private void handleConfigBool(Template tmpl, String name) {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    if (COConfigurationManager.getBooleanParameter(UIConst.parameterlegacy.get(name).toString()))
+    if (COConfigurationManager.getBooleanParameter(ExternalUIConst.parameterlegacy.get(name).toString()))
       tmpl.setParam("Options_" + name, 1);
   }
 
@@ -95,7 +96,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    tmpl.setParam("Options_" + name, COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_" + name, COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(name).toString()));
   }
 
   private void handleConfig(Template tmpl) {

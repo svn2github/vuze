@@ -41,7 +41,7 @@ public class Main implements ILocaleUtilChooser {
     
   
     server = new Jhttpp2Server(gm, true);
-    ci = new ConsoleInput("Main", gm, System.in, System.out, true);
+    ci = new ConsoleInput("Main", gm, System.in, System.out, Boolean.TRUE);
     org.gudy.azureus2.ui.common.Main.initRootLogger();
     new Thread(server, "Webinterface Server").start();
     System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
