@@ -182,6 +182,7 @@ PEPeerServerImpl
               evtLyfeCycle,
 				  LGLogger.INFORMATION,
 				  "PEPeerServer SocketChannel is null");
+          Thread.sleep(1000);
         }
       } 
     }
