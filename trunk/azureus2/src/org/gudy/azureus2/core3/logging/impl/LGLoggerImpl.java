@@ -46,6 +46,8 @@ LGLoggerImpl
 	
 	private static ILoggerListener listener;
 
+	private static List				alert_listeners	= new ArrayList();
+	
 	private static boolean			log_to_file		= false;
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
@@ -146,6 +148,42 @@ LGLoggerImpl
 	public static synchronized void 
 	removeListener() {
 	  listener = null;
+	}
+	
+	public static void
+	logAlert(
+		int			type,
+		String		message )
+	{
+		for (int i=0;i<alert_listeners.size();i++){
+			
+			((LGAlertListener)alert_listeners.get(i)).alertRaised( type, message );
+		}
+	}
+	
+	public static void
+	logAlert(
+		String		message,
+		Throwable	e )
+	{
+		for (int i=0;i<alert_listeners.size();i++){
+			
+			((LGAlertListener)alert_listeners.get(i)).alertRaised( message, e );
+		}
+	}
+	
+	public static void
+	addAlertListener(
+		LGAlertListener	l )
+	{
+		alert_listeners.add(l);
+	}
+	
+	public static void
+	removeAlertListener(
+		LGAlertListener	l )
+	{
+		alert_listeners.remove(l);
 	}
 	
 	protected static synchronized void

@@ -116,4 +116,34 @@ LGLogger {
 	{
 		LGLoggerImpl.removeListener();
 	}
+	
+	public static void
+	logAlert(
+		int			type,
+		String		message )
+	{
+		LGLoggerImpl.logAlert(type,message);
+	}
+	
+	public static void
+	logAlert(
+		String		message,
+		Throwable	e )
+	{
+		LGLoggerImpl.logAlert(message,e);
+	}
+	
+	public static void
+	addAlertListener(
+		LGAlertListener	l )
+	{
+		LGLoggerImpl.addAlertListener(l);
+	}
+	
+	public static void
+	removeAlertListener(
+		LGAlertListener	l )
+	{
+		LGLoggerImpl.removeAlertListener(l);
+	}
 }
