@@ -182,7 +182,7 @@ public class PeerIdentityManager {
    * @param ip IP address to check for
    * @return true if the IP is found, false if not found
    */
-  public static boolean containsIP( byte[] data_id, String ip ) {
+  public static boolean containsIPAddress( byte[] data_id, String ip ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
     synchronized( dataMap ) {
       DataID dataID = new DataID( data_id );
