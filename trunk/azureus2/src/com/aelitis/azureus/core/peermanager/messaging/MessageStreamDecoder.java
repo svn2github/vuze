@@ -58,6 +58,14 @@ public interface MessageStreamDecoder {
    */
   public int getDataBytesDecoded();
   
+  
+  /**
+   * Get the percentage of the current message that has already been received (read from the transport).
+   * @return percentage complete (0-99), or -1 if no message is currently being received
+   */
+  public int getPercentDoneOfCurrentMessage();
+  
+  
   /**
    * Pause message decoding.
    */

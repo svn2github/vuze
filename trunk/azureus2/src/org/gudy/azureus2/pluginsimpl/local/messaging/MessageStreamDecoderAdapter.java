@@ -48,6 +48,12 @@ public class MessageStreamDecoderAdapter implements com.aelitis.azureus.core.pee
     return plug_decoder.performStreamDecode( new TCPTransportImpl( transport ), max_bytes );
   }
   
+  
+  public int getPercentDoneOfCurrentMessage() {
+    return -1;  //not implemented
+  }
+  
+  
   public com.aelitis.azureus.core.peermanager.messaging.Message[] removeDecodedMessages() {
     Message[] plug_msgs = plug_decoder.removeDecodedMessages();
     

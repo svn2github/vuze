@@ -63,6 +63,9 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
   private volatile boolean is_paused = false;
   
+  private int percent_complete = -1;
+  
+  
   
   
   public AZMessageDecoder() {
@@ -118,6 +121,12 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   }
   
 
+  
+  public int getPercentDoneOfCurrentMessage() {
+    return percent_complete;
+  }
+  
+  
   
   public Message[] removeDecodedMessages() {
     if( messages_last_read.isEmpty() )  return null;
@@ -270,6 +279,10 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         payload_buffer = null;
         direct_payload_buffer = null;
         reading_length_mode = true;  //see if we've already read the next message's length
+        percent_complete = -1;  //reset receive percentage
+      }
+      else {  //only partial received so far       
+        percent_complete = (payload_buffer.position() * 100) / message_length;  //compute receive percentage
       }
     }
     

@@ -70,9 +70,11 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private long paused_loop_count = 0;
   
   private Throwable destroyed_trace;
-  
-  
+
   private TCPTransport orig_transport = null;
+  
+  private int percent_complete = -1;
+  
   
   
   
@@ -161,6 +163,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   }
   
 
+  public int getPercentDoneOfCurrentMessage() {
+    return percent_complete;
+  }
+  
   
   public Message[] removeDecodedMessages() {
     if( messages_last_read.isEmpty() )  return null;
@@ -343,6 +349,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         payload_buffer = null;
         direct_payload_buffer = null;
         reading_length_mode = true;  //see if we've already read the next message's length
+        percent_complete = -1;  //reset receive percentage
+      }
+      else {  //only partial received so far
+        percent_complete = (payload_buffer.position() * 100) / message_length;  //compute receive percentage
       }
     }
     
@@ -364,7 +374,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         if( message_length == HANDSHAKE_FAKE_LENGTH ) {  //handshake message
           reading_handshake_message = true;
           message_length = 64;  //restore 'real' length
-          payload_buffer = ByteBuffer.allocate( message_length );  //we've already read 4 bytes
+          payload_buffer = ByteBuffer.allocate( message_length );
         }
         else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;

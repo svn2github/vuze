@@ -52,6 +52,9 @@ public class OutgoingMessageQueue {
   private MessageStreamEncoder stream_encoder;
   private TCPTransport tcp_transport;
   
+  private int percent_complete = -1;
+  
+  
   
   /**
    * Create a new outgoing message queue.
@@ -71,6 +74,14 @@ public class OutgoingMessageQueue {
     this.stream_encoder = stream_encoder;
   }
   
+  
+  /**
+   * Get the percentage of the current message that has already been sent out.
+   * @return percentage complete (0-99), or -1 if no message is currently being sent
+   */
+  public int getPercentDoneOfCurrentMessage() {
+    return percent_complete;
+  }
   
 
   /**
@@ -423,6 +434,26 @@ public class OutgoingMessageQueue {
             
             if( bb.hasRemaining() ) {  //still data left to send in this message
               stop = true;  //so don't bother checking later messages for completion
+              
+              //compute send percentage
+              int message_size = 0;
+              int written = 0;
+              
+              for( int i=0; i < payloads.length; i++ ) {
+                ByteBuffer buff = payloads[i].getBuffer( DirectByteBuffer.SS_NET );
+                
+                message_size += buff.limit();
+                
+                if( i < x ) {  //if in front of non-empty buffer
+                  written += buff.limit();
+                }
+                else if( i == x ) {  //is non-empty buffer
+                  written += buff.position();
+                }
+              }
+              
+              percent_complete = (written * 100) / message_size;
+
               break;
             }
             else if( x == payloads.length - 1 ) {  //last payload buffer of message is empty
@@ -430,6 +461,8 @@ public class OutgoingMessageQueue {
             
               queue.remove( 0 );
               
+              percent_complete = -1;  //reset send percentage
+                            
               if( manual_listener_notify ) {
                 NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
                 item.message = msg;

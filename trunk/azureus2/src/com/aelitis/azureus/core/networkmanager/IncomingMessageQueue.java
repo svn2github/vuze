@@ -76,6 +76,16 @@ public class IncomingMessageQueue {
   
   
   /**
+   * Get the percentage of the current message that has already been received.
+   * @return percentage complete (0-99), or -1 if no message is currently being received
+   */
+  public int getPercentDoneOfCurrentMessage() {
+    return stream_decoder.getPercentDoneOfCurrentMessage();
+  }
+  
+  
+  
+  /**
    * Receive (read) message(s) data from the underlying transport.
    * @param max_bytes to read
    * @return number of bytes received
