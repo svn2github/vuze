@@ -29,6 +29,7 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 
@@ -44,9 +45,7 @@ public class TCPTransport {
   private boolean is_write_select_pending = false;
   private Throwable write_select_failure = null;
   
-  private boolean is_read_select_requested = false;
   private boolean is_read_select_enabled = false;
-  private ReadListener read_select_listener = null;
   private Throwable read_select_failure = null;
   
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
@@ -218,26 +217,39 @@ public class TCPTransport {
    * Enable transport read selection.
    * @param listener to handle readiness
    */
-  public void requestReadSelects( ReadListener listener ) {
+  public void requestReadSelects( final ReadListener listener ) {
     if( !is_read_select_enabled ) {
-      if( !is_read_select_requested ) {
-        is_read_select_requested = true;
-        
-        if( !is_connected ) {  //socket isnt established yet, so we'll have to register for read selection later
-          read_select_listener = listener;
-          System.out.println( "READ SELECT REQUESTED BEFORE CONNECTED" );
-        } 
-        else {  //start now
-          startReadSelects( listener );
+      is_read_select_enabled = true;
+      
+      if( !is_connected ) {  //socket isnt established yet
+        System.out.println( "["+System.currentTimeMillis()+"] ERROR: READ SELECT REQUESTED WHILE NOT CONNECTED" );
+        return;
+      }
+
+      if( socket_channel == null ) {
+        System.out.println( "startReadSelects: socket_channel == null" );
+        return;
+      }
+
+      NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+          if( !is_read_select_enabled ) {
+            System.out.println( "["+System.currentTimeMillis()+"] selectSuccess() but !is_read_select_enabled" );
+            //TODO disable read type op?
+            return false;
+          }
+          
+          listener.readyToRead();
+          return true;
         }
-      }
-      else {
-        System.out.println( "READ SELECT ALREADY REQUESTED !!!" );
-      }
+
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+          read_select_failure = msg;
+          listener.readyToRead();  //so that the resulting read attempt will throw an exception
+        }
+      }, null );
     }
-    else {
-      System.out.println( "READ SELECT ALREADY ENABLED !!!" );
-    }
+    else  System.out.println( "READ SELECT ALREADY ENABLED !!!" );  
   }
 
   
@@ -245,11 +257,7 @@ public class TCPTransport {
    * Disable transport read selection.
    */
   public void cancelReadSelects() {
-    is_read_select_requested = false;
-    read_select_listener = null;
-    
     if( is_read_select_enabled ) {
-      is_read_select_enabled = false;
       
       if( socket_channel == null ) {
         Debug.out( "cancelReadSelects: socket_channel == null, is_connected=" +is_connected );
@@ -257,32 +265,13 @@ public class TCPTransport {
       }
       
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
+      
+      is_read_select_enabled = false;
     }
   }
   
   
-  
-  private void startReadSelects( final ReadListener listener ) {
-    if( socket_channel == null )  System.out.println( "startReadSelects: socket_channel == null" );
-    
-    NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
-      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-        is_read_select_requested = false;
-        is_read_select_enabled = true;
-        listener.readyToRead();
-        return true;
-      }
 
-      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-        read_select_failure = msg;
-        is_read_select_requested = false;
-        is_read_select_enabled = true;
-        listener.readyToRead();  //so that the resulting read attempt will throw an exception
-      }
-    }, null );
-  }
-  
-  
   
   
   /**
@@ -295,13 +284,14 @@ public class TCPTransport {
    * @throws IOException on read error
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-    if( read_select_failure != null )  throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
+    if( read_select_failure != null ) {
+      throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
+    }
 
     if( !is_connected ) {
+      System.out.println( "TCPTransport read() attempted while not connected!" );
       return 0;
     }
-    
-    
     
     //TODO temp debug code
     if( array_offset < 0 || array_offset >= buffers.length ) {
@@ -413,13 +403,7 @@ public class TCPTransport {
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
         is_ready_for_write = true;
-        
-        if( is_read_select_requested ) {  //delayed start
-          System.out.println( "DELAYED READ SELECT STARTED" );
-          startReadSelects( read_select_listener );
-          read_select_listener = null;
-        }
-                
+                        
         if( use_proxy ) {  //proxy server connection established, login
           System.out.println( "Socket connection established to proxy server [" +description+ "], login initiated..." );
           
@@ -460,6 +444,7 @@ public class TCPTransport {
    */
   public void close() {
     cancelReadSelects();
+    
     is_ready_for_write = false;
     
     if( is_connected ) {

@@ -112,9 +112,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   
   public void close() {
-    incoming_message_queue.destroy();
-    outgoing_message_queue.destroy();
     tcp_transport.close();
+    incoming_message_queue.destroy();
+    outgoing_message_queue.destroy();  
     is_connected = false;
   }
   

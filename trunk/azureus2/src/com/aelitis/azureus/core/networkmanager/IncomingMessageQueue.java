@@ -273,9 +273,9 @@ public class IncomingMessageQueue {
    * Destroy this queue.
    */
   public void destroy() {
-    is_processing_enabled = false;
     stream_decoder.destroy();
     listeners.clear();
+    is_processing_enabled = false;
   }
   
   

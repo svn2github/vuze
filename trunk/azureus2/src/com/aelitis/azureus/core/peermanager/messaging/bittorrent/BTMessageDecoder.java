@@ -81,7 +81,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     while( bytes_remaining > 0 ) {
       if( destroyed_count > 0 ) {
-        String msg = "BT decoder [#" +id+ "] already destroyed [" +destroyed_count+ "] times.";
+        String msg = "BT decoder [#" +id+ "] already destroyed [" +destroyed_count+ "] times, transport closed=" + (transport.getSocketChannel() == null);
         System.out.println( msg );
         throw new IOException( msg );
       }
