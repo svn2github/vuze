@@ -42,6 +42,7 @@ DisplayFormatters
 	protected static String	k_unit;
 	protected static String	m_unit;
 	protected static String	g_unit;
+	protected static String	t_unit;
 	
 	static{
 		boolean si = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
@@ -68,10 +69,12 @@ DisplayFormatters
 			k_unit = " KiB";
 			m_unit = " MiB";
 			g_unit = " GiB";
+			t_unit = " TiB";
 		}else{
 			k_unit = " KB";
 			m_unit = " MB";
 			g_unit = " GB";
+			t_unit = " TB";
 		}
 	}
 	public static String 
@@ -99,6 +102,10 @@ DisplayFormatters
 		}else if (n < 1024L * 1024L * 1024L * 1024L ){
 			
 			return( (n / (1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L)) +  g_unit );
+			
+		}else if (n < 1024L * 1024L * 1024L * 1024L * 1024L){
+			
+			return( (n / (1024L * 1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L*1024L)) +  t_unit );
 			
 		}else{
 			
@@ -131,6 +138,11 @@ DisplayFormatters
 			".").concat(
 			String.valueOf((n % (1000L * 1000L * 1000L)) / (1000L * 1000L * 100L))).concat(
 			" GB");
+		if (n < 1000L * 1000L * 1000L * 1000L* 1000L)
+			return String.valueOf(n / (1000L * 1000L * 1000L* 1000L)).concat(
+			".").concat(
+			String.valueOf((n % (1000L * 1000L * 1000L* 1000L)) / (1000L * 1000L * 1000L* 100L))).concat(
+			" TB");
 		return "A lot !!!";
 	}
 	
