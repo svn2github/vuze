@@ -22,10 +22,12 @@ import org.gudy.azureus2.core2.DataQueueItem;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -635,9 +637,9 @@ public class DiskManager {
                     boolean correct = checkPiece(elt.getPieceNumber());
                     manager.pieceChecked(elt.getPieceNumber(), correct);
                     if (!correct)
-                        Logger.getLogger().log(0, 0, Logger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+                        LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
                     else
-                        Logger.getLogger().log(0, 0, Logger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+                        LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
                 }
                 try {
                     Thread.sleep(15);

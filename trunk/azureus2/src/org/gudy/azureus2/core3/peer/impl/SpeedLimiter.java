@@ -2,11 +2,12 @@
  * Created on 9 juin 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.List;
 import java.util.Vector;
 
+import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeerSocket;
 

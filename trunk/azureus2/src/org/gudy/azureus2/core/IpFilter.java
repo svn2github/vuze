@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -126,7 +127,7 @@ public class IpFilter {
       while(iter.hasNext()) {
         IpRange ipRange = (IpRange) iter.next();
         if(ipRange.isInRange(ipAddress)) {
-          Logger.getLogger().log(0,0,Logger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
+          LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
           return true;
         }
       }

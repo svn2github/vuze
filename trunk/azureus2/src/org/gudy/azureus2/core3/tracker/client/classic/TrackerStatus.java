@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.gudy.azureus2.core.Logger;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -80,7 +80,7 @@ public class TrackerStatus {
       String info_hash = "?info_hash=";
       info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
       URL scrape = new URL(scrapeURL + info_hash);
-      Logger.getLogger().log(0,0,Logger.INFORMATION,"Accessing scrape interface using url : " + scrape);
+      LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + scrape);
       HttpURLConnection con = (HttpURLConnection) scrape.openConnection();
       con.connect();
       is = con.getInputStream();

@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core.ByteBufferPool;
 import org.gudy.azureus2.core.DiskManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.IpFilter;

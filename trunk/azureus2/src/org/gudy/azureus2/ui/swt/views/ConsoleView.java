@@ -13,9 +13,9 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
-import org.gudy.azureus2.core.ILoggerListener;
-import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.logging.ILoggerListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -39,7 +39,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     colors[1] = MainWindow.blues[2];
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
-    Logger.getLogger().setListener(this);
+    LGLogger.setListener(this);
   }
 
   /* (non-Javadoc)
@@ -58,7 +58,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    Logger.getLogger().removeListener();
+    LGLogger.removeListener();
   	MainWindow.getWindow().getShell().setFocus();
     MainWindow.getWindow().setConsole(null);
     consoleText.dispose();    

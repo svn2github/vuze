@@ -27,8 +27,8 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.ILoggerListener;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.util.Constants;
 
 public class Jhttpp2Server implements Runnable, ILoggerListener {
@@ -151,7 +151,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
         Logger.getRootLogger().addAppender(app);
       }catch (Exception e){}
     }
-    org.gudy.azureus2.core.Logger.getLogger().setListener(this);
+    org.gudy.azureus2.core3.logging.LGLogger.setListener(this);
     loggerCore.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelCore")));
     loggerWeb.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelWebinterface")));
   }
@@ -370,11 +370,11 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
 	COConfigurationManager.setParameter("Server_sProxyUserAgent", ua);
   }
   public void log(int componentId,int event,int color,String text) {
-    if (event == org.gudy.azureus2.core.Logger.ERROR)
+    if (event == org.gudy.azureus2.core3.logging.LGLogger.ERROR)
       loggerCore.error(text);
-    else if (event == org.gudy.azureus2.core.Logger.RECEIVED)
+    else if (event == org.gudy.azureus2.core3.logging.LGLogger.RECEIVED)
       loggerCore.log(SLevel.TORRENT_RECEIVED, text);
-    else if (event == org.gudy.azureus2.core.Logger.SENT)
+    else if (event == org.gudy.azureus2.core3.logging.LGLogger.SENT)
       loggerCore.log(SLevel.TORRENT_SENT, text);
     else {
       if (color==0)

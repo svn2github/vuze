@@ -5,6 +5,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 
 /**
@@ -45,10 +46,10 @@ public class Server extends Thread {
         sck.socket().bind(new InetSocketAddress(port));
       }
       catch (Exception e) {
-        Logger.getLogger().log(
+        LGLogger.log(
           componentID,
           evtErrors,
-          Logger.ERROR,
+          LGLogger.ERROR,
           "BT Server was unable to bind port " + port + ", reason : " + e);
         port++;
         sck = null;
@@ -56,14 +57,14 @@ public class Server extends Thread {
     }
 
     if (sck != null) {
-      Logger.getLogger().log(componentID, evtLyfeCycle, Logger.INFORMATION, "BT Server is bound on port " + port);
+      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is bound on port " + port);
       instanceCount++;
     }
     else {
-      Logger.getLogger().log(
+      LGLogger.log(
         componentID,
         evtLyfeCycle,
-        Logger.INFORMATION,
+        LGLogger.INFORMATION,
         "BT was unable to bind on a port from " + lowPort + " to " + highPort);
       port = 0;
     }
@@ -72,18 +73,18 @@ public class Server extends Thread {
   public void run() {
     try {
       sck.configureBlocking(false);
-      Logger.getLogger().log(
+      LGLogger.log(
         componentID,
         evtLyfeCycle,
-        Logger.INFORMATION,
+        LGLogger.INFORMATION,
         "BT Server is ready to accept incoming connections");
       while (bContinue) {
         SocketChannel sckClient = sck.accept();
         if (sckClient != null) {
-          Logger.getLogger().log(
+          LGLogger.log(
             componentID,
             evtNewConnection,
-            Logger.INFORMATION,
+            LGLogger.INFORMATION,
             "BT Server has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
@@ -96,10 +97,10 @@ public class Server extends Thread {
     }
     catch (Exception e) {
       if (bContinue)
-        Logger.getLogger().log(componentID, evtErrors, Logger.ERROR, "BT Server has catched an error : " + e);
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "BT Server has catched an error : " + e);
     }
 
-    Logger.getLogger().log(componentID, evtLyfeCycle, Logger.INFORMATION, "BT Server is stopped");
+    LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopped");
   }
 
   public void stopServer() {
@@ -107,11 +108,11 @@ public class Server extends Thread {
 
     //this will most probably raise an exception ;)
     try {
-      Logger.getLogger().log(componentID, evtLyfeCycle, Logger.INFORMATION, "BT Server is stopping");
+      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopping");
       sck.close();
     }
     catch (Exception e) {
-      Logger.getLogger().log(componentID, evtErrors, Logger.ERROR, "Error catched while stopping server : " + e);
+      LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Error catched while stopping server : " + e);
     }
     instanceCount--;
   }

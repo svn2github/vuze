@@ -33,14 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.gudy.azureus2.core.ByteBufferPool;
-import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Request;
-import org.gudy.azureus2.core.SpeedLimiter;
 import org.gudy.azureus2.core2.DataQueueItem;
+import org.gudy.azureus2.core3.util.ByteBufferPool;
 import org.gudy.azureus2.core3.util.Constants;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 
 /**
@@ -80,7 +79,7 @@ PEPeerSocketImpl
   private void createConnection() {
     this.nbConnections++;
     allocateAll();
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
+    LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
       //Construct the peer's address with ip and port     
@@ -109,7 +108,7 @@ PEPeerSocketImpl
     this.socket = sck;
     this.incoming = true;
     allocateAll();
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating incoming connection from " + ip + " : " + port);
+    LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Creating incoming connection from " + ip + " : " + port);
     handShake();
     this.currentState = new StateHandshaking();
   }
@@ -123,7 +122,6 @@ PEPeerSocketImpl
     super.allocateAll();
 
     this.closing = false;
-    this.logger = Logger.getLogger();
     this.protocolQueue = new ArrayList();
     this.dataQueue = new ArrayList();
     this.lengthBuffer = ByteBuffer.allocate(4);
@@ -328,18 +326,18 @@ PEPeerSocketImpl
     manager.peerRemoved(this);
 
     //7. Send a logger event
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
+    LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
     /*try{
       throw new Exception("Peer Closed");
     } catch(Exception e) {
       StackTraceElement elts[] = e.getStackTrace();
       for(int i = 0 ; i < elts.length ; i++)
-        logger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
+        LGLogger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
     }*/        
     
     //In case it was an outgoing connection, established, we can try to reconnect.   
     if((closedOnError) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
-      logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
+      LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
       createConnection();
     } else {
       this.currentState = new StateClosed();
@@ -355,10 +353,10 @@ PEPeerSocketImpl
         }
       }
       catch (IOException e) {
-        logger.log(
+        LGLogger.log(
           componentID,
           evtErrors,
-          Logger.ERROR,
+          LGLogger.ERROR,
           "Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e);
         closeAll(true);
         return;
@@ -407,10 +405,10 @@ PEPeerSocketImpl
               throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
-            logger.log(
+            LGLogger.log(
                         componentID,
                         evtProtocol,
-                        Logger.INFORMATION,
+                        LGLogger.INFORMATION,
                         "End of Stream Reached from " + ip);
             closeAll(true);
             return;
@@ -535,78 +533,78 @@ PEPeerSocketImpl
     switch (cmd) {
       case BT_CHOKED :
         if (buffer.limit() != 1) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " choking received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
         }
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is choking you");
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
         choked = true;
         cancelRequests();
         readMessage(readBuffer);
         break;
       case BT_UNCHOKED :
         if (buffer.limit() != 1) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " unchoking received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
         }
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is unchoking you");
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
         choked = false;
         readMessage(readBuffer);
         break;
       case BT_INTERESTED :
         if (buffer.limit() != 1) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " interested received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
         }
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is interested");
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
         interesting = true;
         readMessage(readBuffer);
         break;
       case BT_UNINTERESTED :
         if (buffer.limit() != 1) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " uninterested received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
         }
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is not interested");
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
         interesting = false;
         readMessage(readBuffer);
         break;
       case BT_HAVE :
         if (buffer.limit() != 5) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " interested received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
         }
         pieceNumber = buffer.getInt();
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " has " + pieceNumber);
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
         have(pieceNumber);
         readMessage(readBuffer);
         break;
       case BT_BITFIELD :
-        logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " has sent BitField");
+        LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
         setBitField(buffer);
         checkInterested();
         checkSeed();
@@ -614,10 +612,10 @@ PEPeerSocketImpl
         break;
       case BT_REQUEST :
         if (buffer.limit() != 13) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " request received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
@@ -625,19 +623,19 @@ PEPeerSocketImpl
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.getInt();
-        logger.log(
+        LGLogger.log(
           componentID,
           evtProtocol,
-          Logger.RECEIVED,
+          LGLogger.RECEIVED,
           ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
         if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
           sendData(new Request(pieceNumber, pieceOffset, pieceLength));
         }
         else {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtErrors,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip
               + " has requested #"
               + pieceNumber
@@ -656,10 +654,10 @@ PEPeerSocketImpl
            // NOLAR: temp debug output
            System.out.println("PeerSocket::analyseBuffer::BT_PIECE:: buffer.limit < 9: "+ buffer.limit());
            
-           logger.log(
+           LGLogger.log(
              componentID,
              evtProtocol,
-             Logger.ERROR,
+             LGLogger.ERROR,
              ip + " piece received, but message of wrong size : " + buffer.limit());
            closeAll(true);
            break;
@@ -667,10 +665,10 @@ PEPeerSocketImpl
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.limit() - buffer.position();
-        logger.log(
+        LGLogger.log(
           componentID,
           evtProtocol,
-          Logger.RECEIVED,
+          LGLogger.RECEIVED,
           ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
         Request request = new Request(pieceNumber, pieceOffset, pieceLength);
         if (requested.contains(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
@@ -682,10 +680,10 @@ PEPeerSocketImpl
           readMessage(null);      
         }
         else {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtErrors,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip
               + " has sent #"
               + pieceNumber
@@ -701,10 +699,10 @@ PEPeerSocketImpl
         break;
       case BT_CANCEL :
         if (buffer.limit() != 13) {
-          logger.log(
+          LGLogger.log(
             componentID,
             evtProtocol,
-            Logger.ERROR,
+            LGLogger.ERROR,
             ip + " cancel received, but message of wrong size : " + buffer.limit());
           closeAll(true);
           break;
@@ -712,10 +710,10 @@ PEPeerSocketImpl
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.getInt();
-        logger.log(
+        LGLogger.log(
           componentID,
           evtProtocol,
-          Logger.RECEIVED,
+          LGLogger.RECEIVED,
           ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
         removeRequestFromQueue(new Request(pieceNumber, pieceOffset, pieceLength));
         readMessage(readBuffer);
@@ -727,7 +725,7 @@ PEPeerSocketImpl
 
   private void have(int pieceNumber) {
     if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
-       logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " gave invalid pieceNumber:" + pieceNumber);
+       LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " gave invalid pieceNumber:" + pieceNumber);
        closeAll(true);
     }
     else {    
@@ -767,10 +765,10 @@ PEPeerSocketImpl
   public void request(int pieceNumber, int pieceOffset, int pieceLength) {
     if (getState() != TRANSFERING)
       return;
-    logger.log(
+    LGLogger.log(
       componentID,
       evtProtocol,
-      Logger.SENT,
+      LGLogger.SENT,
       ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
     requested.add(new Request(pieceNumber, pieceOffset, pieceLength));
     ByteBuffer buffer = ByteBuffer.allocate(17);
@@ -787,10 +785,10 @@ PEPeerSocketImpl
   public void sendCancel(Request request) {
     if (getState() != TRANSFERING)
       return;
-    logger.log(
+    LGLogger.log(
       componentID,
       evtProtocol,
-      Logger.SENT,
+      LGLogger.SENT,
       ip
         + " is canceled for #"
         + request.getPieceNumber()
@@ -815,7 +813,7 @@ PEPeerSocketImpl
   public void sendHave(int pieceNumber) {
     if (getState() != TRANSFERING)
       return;
-    logger.log(componentID, evtProtocol, Logger.SENT, ip + " is notified you have " + pieceNumber);
+    LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is notified you have " + pieceNumber);
     ByteBuffer buffer = ByteBuffer.allocate(9);
     buffer.putInt(5);
     buffer.put(BT_HAVE);
@@ -829,7 +827,7 @@ PEPeerSocketImpl
   public void sendChoke() {
     if (getState() != TRANSFERING)
       return;
-    logger.log(componentID, evtProtocol, Logger.SENT, ip + " is choked");
+    LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is choked");
     choking = true;
     sendSimpleCommand(BT_CHOKED);
   }
@@ -837,7 +835,7 @@ PEPeerSocketImpl
   public void sendUnChoke() {
     if (getState() != TRANSFERING)
       return;
-    logger.log(componentID, evtProtocol, Logger.SENT, ip + " is unchoked");
+    LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is unchoked");
     choking = false;
     sendSimpleCommand(BT_UNCHOKED);
   }
@@ -882,11 +880,11 @@ PEPeerSocketImpl
     }
 
     if (newInterested && !interested) {
-      logger.log(componentID, evtProtocol, Logger.SENT, ip + " is interesting");
+      LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is interesting");
       sendSimpleCommand(BT_INTERESTED);
     }
     else if (!newInterested && interested) {
-      logger.log(componentID, evtProtocol, Logger.SENT, ip + " is not interesting");
+      LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is not interesting");
       sendSimpleCommand(BT_UNINTERESTED);
     }
     interested = newInterested;
@@ -900,11 +898,11 @@ PEPeerSocketImpl
     boolean[] myStatus = manager.getPiecesStatus();
     boolean newInterested = !myStatus[pieceNumber];
     if (newInterested && !interested) {
-      logger.log(componentID, evtProtocol, Logger.SENT, ip + " is interesting");
+      LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is interesting");
       sendSimpleCommand(BT_INTERESTED);
     }
     else if (!newInterested && interested) {
-      logger.log(componentID, evtProtocol, Logger.SENT, ip + " is not interesting");
+      LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is not interesting");
       sendSimpleCommand(BT_UNINTERESTED);
     }
     interested = newInterested;
@@ -943,7 +941,7 @@ PEPeerSocketImpl
     if (atLeastOne) {
       buffer.limit(buffer.capacity());
       sendProtocol(buffer);
-      logger.log(componentID, evtProtocol, Logger.SENT, ip + " is sent your bitfield");
+      LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is sent your bitfield");
     }
   }
 
@@ -1086,10 +1084,10 @@ PEPeerSocketImpl
               }
             }
             Request request = item.getRequest();
-            logger.log(
+            LGLogger.log(
               componentID,
               evtProtocol,
-              Logger.SENT,
+              LGLogger.SENT,
               ip
                 + " is being sent #"
                 + request.getPieceNumber()
@@ -1198,8 +1196,6 @@ PEPeerSocketImpl
   //Flag to determine when a choke message has really been sent
   private boolean waitingChokeToBeSent;
 
-  //The Logger
-  private Logger logger;
   public final static int componentID = 1;
   public final static int evtProtocol = 0;
   // Protocol Info
