@@ -1284,6 +1284,8 @@ public class MyTorrentsView extends AbstractIView
         }
       }
     }
+
+    Utils.alternateTableBackground(table);
     loopFactor++;
   }
 

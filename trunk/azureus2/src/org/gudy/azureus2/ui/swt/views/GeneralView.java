@@ -823,6 +823,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       GC gcImage = new GC(pImage);
       gcImage.setForeground(MainWindow.grey);
       gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
+      gcImage.drawLine(1,6,xMax-1,6);
 
       int total = 0;
       if (pieces != null) {
@@ -845,7 +846,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
             }
             int index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
             gcImage.setBackground(MainWindow.blues[index]);
-            gcImage.fillRectangle(i+1,4,1,yMax);
+            gcImage.fillRectangle(i+1,7,1,yMax);
           }
         }
   
@@ -862,8 +863,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
         gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+1,1,xMax-limit,5);
       }
-      //gcImage.setForeground(MainWindow.progressBarColor);
-      gcImage.drawRectangle(1,6,xMax-1,0);
       
 
       gcImage.dispose();

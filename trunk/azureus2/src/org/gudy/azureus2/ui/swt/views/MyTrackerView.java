@@ -55,6 +55,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
@@ -375,6 +376,7 @@ MyTrackerView
 			  	item.refresh();
 			}
 		}
+    Utils.alternateTableBackground(table);
 	}	 
 
 	 /* (non-Javadoc)

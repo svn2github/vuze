@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
  */
 public class DownSpeedItem extends TorrentItem implements ParameterListener {
   private int iMinActiveSpeed;
+  private int iLastState;
   
   
   public DownSpeedItem(
@@ -47,24 +48,26 @@ public class DownSpeedItem extends TorrentItem implements ParameterListener {
 
   public void refresh() {
     long iDLAverage = torrentRow.getManager().getStats().getDownloadAverage();
-    if (setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage))) {
-      changeColor(iDLAverage);
+    int iState = torrentRow.getManager().getState();
+    if (setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage)) || 
+        (iState != iLastState)) {
+      changeColor(iDLAverage, iState);
     }
   }
   
   private void changeColor() {
     try {
-      changeColor(torrentRow.getManager().getStats().getDownloadAverage());
+      changeColor(torrentRow.getManager().getStats().getDownloadAverage(), torrentRow.getManager().getState());
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  private void changeColor(long iDLAverage) {
-    try 
-    {
-      int state = torrentRow.getManager().getState();
-      setItemForeground((iDLAverage < iMinActiveSpeed && state == DownloadManager.STATE_DOWNLOADING) ? MainWindow.colorShiftLeft : null);
+  private void changeColor(long iDLAverage, int iState) {
+    try {
+      setItemForeground((iDLAverage < iMinActiveSpeed && 
+                         iState == DownloadManager.STATE_DOWNLOADING) ? MainWindow.colorWarning : null);
+      iLastState = iState;
     } catch (Exception e) {
       e.printStackTrace();
     }

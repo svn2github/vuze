@@ -315,7 +315,7 @@ public class Utils {
     for (int i = 0; i < rows.length; i++) {
       Color newColor = colors[i % colors.length];
       if (!rows[i].getBackground().equals(newColor)) {
-        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
+//        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
         rows[i].setBackground(newColor);
       }
     }

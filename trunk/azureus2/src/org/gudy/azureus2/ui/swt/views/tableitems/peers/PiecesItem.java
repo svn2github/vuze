@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 public class PiecesItem extends PeerGraphicItem  {
   // only supports 1 border width
   private final static int borderSize = 1;
+  private final static int splitAt = 3;
   
   int[] imageBuffer = {};
 
@@ -63,6 +64,7 @@ public class PiecesItem extends PeerGraphicItem  {
       return;
 
     int x1 = bounds.width - borderSize - 1;
+    int y0 = splitAt + 1;
     int y1 = bounds.height - borderSize - 1;
     if (x1 < 10 || y1 < 3)
       return;
@@ -93,12 +95,14 @@ public class PiecesItem extends PeerGraphicItem  {
       gcImage = new GC(image);
       gcImage.setForeground(MainWindow.grey);
       gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
+      gcImage.drawLine(1, splitAt, bounds.width - 2, splitAt);
     } else {
       gcImage = new GC(image);
     }
 
     boolean available[] = peerRow.getPeerSocket().getAvailable();
     if (available != null) {
+      int nbComplete = 0;
       int nbPieces = available.length;
       for (int i = 0; i < x1; i++) {
         int a0 = (i * nbPieces) / (x1);
@@ -111,15 +115,24 @@ public class PiecesItem extends PeerGraphicItem  {
         for (int j = a0; j < a1; j++)
           if (available[j])
             nbAvailable++;
+        nbComplete += nbAvailable;
         int index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
 
         if (!bImageBufferValid || imageBuffer[i] != index) {
           imageBuffer[i] = index;
           bImageChanged = true;
           gcImage.setForeground(MainWindow.blues[index]);
-          gcImage.drawLine(i+borderSize, borderSize, i+borderSize, y1);
+          gcImage.drawLine(i+borderSize, y0, i+borderSize, y1);
         }
       }
+
+      int limit = (x1 * nbComplete) / nbPieces;
+      if (limit < x1) {
+        gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+        gcImage.fillRectangle(limit+1,1,x1-limit,splitAt-1);
+      }
+      gcImage.setBackground(MainWindow.colorProgressBar);
+      gcImage.fillRectangle(1,1,limit, splitAt-1);
     }
     gcImage.dispose();
 
