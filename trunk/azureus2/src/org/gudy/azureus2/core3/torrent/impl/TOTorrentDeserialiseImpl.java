@@ -128,7 +128,7 @@ TOTorrentDeserialiseImpl
 			    iFirstByte != 'i' &&
 			    !(iFirstByte >= '0' && iFirstByte <= '9')) {
   			throw( new TOTorrentException( "TOTorrentDeserialise: Not BEncoded",
-	  										TOTorrentException.RT_READ_FAILS ));
+	  										TOTorrentException.RT_DECODE_FAILS ));
       }
 			      
 			    
