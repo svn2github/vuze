@@ -79,8 +79,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     while( bytes_remaining > 0 ) {
       if( destroyed ) {
-        System.out.println( "already destroy()ed" );
-        break;
+        System.out.println( "BT decoder already destroyed" );
+        throw new IOException( "BT decoder already destroyed!" );
       }
       
       int bytes_possible = preReadProcess( bytes_remaining );

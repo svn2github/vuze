@@ -78,7 +78,10 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
-      if( destroyed )  break;
+      if( destroyed ) {
+        System.out.println( "AZ decoder already destroyed" );
+        throw new IOException( "AZ decoder already destroyed!" );
+      }
       
       int bytes_possible = preReadProcess( bytes_remaining );
       
