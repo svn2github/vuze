@@ -1,5 +1,5 @@
 /*
- * Created on 15-Jun-2004
+ * Created on 24-Jul-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,49 +20,35 @@
  *
  */
 
-package com.aelitis.net.upnp.impl.device;
+package org.gudy.azureus2.plugins.utils.xml.simpleparser;
+
+import java.io.File;
+import java.io.InputStream;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
-
-import com.aelitis.net.upnp.*;
-
-public class 
-UPnPActionImpl
-	implements UPnPAction
+public interface 
+SimpleXMLParserDocumentFactory 
 {
-	protected UPnPServiceImpl		service;
-	protected String				name;
-	
-	protected 
-	UPnPActionImpl(
-		UPnPServiceImpl					_service,
-		SimpleXMLParserDocumentNode		node )
-	{
-		service	= _service;
+	public SimpleXMLParserDocument
+	create(
+		File		file )
 		
-		name	= node.getChild( "name" ).getValue();
-	}
+		throws SimpleXMLParserDocumentException;
+	
+	
+	public SimpleXMLParserDocument
+	create(
+		InputStream		is )
+		
+		throws SimpleXMLParserDocumentException;
 
-	public String
-	getName()
-	{
-		return( name );
-	}
-	
-	public UPnPService
-	getService()
-	{
-		return( service );
-	}
-	
-	public UPnPActionInvocation
-	getInvocation()
-	{
-		return( new UPnPActionInvocationImpl( this ));
-	}
+	public SimpleXMLParserDocument
+	create(
+		String		data )
+		
+		throws SimpleXMLParserDocumentException;
 }

@@ -24,7 +24,6 @@ package org.gudy.azureus2.plugins.disk;
 
 import java.io.File;
 
-import org.gudy.azureus2.plugins.torrent.TorrentFile;
 import org.gudy.azureus2.plugins.download.*;
 
 /**

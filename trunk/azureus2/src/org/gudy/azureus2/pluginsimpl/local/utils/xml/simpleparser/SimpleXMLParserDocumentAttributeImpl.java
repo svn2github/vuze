@@ -1,5 +1,5 @@
 /*
- * File    : SimpleXMLParserDocumentException.java
+ * File    : SimpleXMLParserDocumentAttributeImpl.java
  * Created : 5 Oct. 2003
  * By      : Parg 
  * 
@@ -19,23 +19,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.xml.simpleparser;
+package org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser;
+
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 
 public class 
-SimpleXMLParserDocumentException
-	extends Exception
+SimpleXMLParserDocumentAttributeImpl
+	implements SimpleXMLParserDocumentAttribute
 {
-	public
-	SimpleXMLParserDocumentException(
-		String	str )
+	protected String		name;
+	protected String		value;
+	
+	protected
+	SimpleXMLParserDocumentAttributeImpl(
+		String		_name,
+		String		_value )
 	{
-		super( str );
+		name		= _name;
+		value		= _value;
 	}
 	
-	public
-	SimpleXMLParserDocumentException(
-		Throwable		e )
+	public String
+	getName()
 	{
-		this( e.toString());
+		return( name );
+	}
+	
+	public String
+	getValue()
+	{
+		return( value );
 	}
 }

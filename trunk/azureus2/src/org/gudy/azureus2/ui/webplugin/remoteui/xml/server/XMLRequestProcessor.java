@@ -34,6 +34,10 @@ import java.lang.reflect.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.core3.xml.util.*;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 import org.gudy.azureus2.pluginsimpl.remote.*;
 
 public class 

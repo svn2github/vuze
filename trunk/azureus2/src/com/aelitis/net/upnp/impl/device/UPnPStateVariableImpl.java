@@ -27,7 +27,8 @@ package com.aelitis.net.upnp.impl.device;
  *
  */
 
-import org.gudy.azureus2.core3.xml.simpleparser.*;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 import com.aelitis.net.upnp.*;
 

@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.security.*;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
 
 public interface 
 Utilities 
@@ -83,4 +84,7 @@ Utilities
 	
 	public SESecurityManager
 	getSecurityManager();
+	
+	public SimpleXMLParserDocumentFactory
+	getSimpleXMLParserDocumentFactory();
 }

@@ -29,7 +29,6 @@ package org.gudy.azureus2.core3.security.impl;
 import java.util.*;
 import java.net.*;
 import java.io.*;
-import java.math.BigInteger;
 import javax.net.ssl.*;
 
 import java.security.*;

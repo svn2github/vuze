@@ -33,6 +33,8 @@ import javax.net.ssl.*;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
 public class 
 XMLHTTPClient 

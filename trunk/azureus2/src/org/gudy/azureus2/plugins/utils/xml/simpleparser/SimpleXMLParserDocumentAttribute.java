@@ -1,5 +1,5 @@
 /*
- * Created on 15-Jun-2004
+ * Created on Jul 24, 2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -19,50 +19,15 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
+ 
+ package org.gudy.azureus2.plugins.utils.xml.simpleparser;
 
-package com.aelitis.net.upnp.impl.device;
-
-/**
- * @author parg
- *
- */
-
-import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
-
-import com.aelitis.net.upnp.*;
-
-public class 
-UPnPActionImpl
-	implements UPnPAction
+public interface 
+SimpleXMLParserDocumentAttribute
 {
-	protected UPnPServiceImpl		service;
-	protected String				name;
-	
-	protected 
-	UPnPActionImpl(
-		UPnPServiceImpl					_service,
-		SimpleXMLParserDocumentNode		node )
-	{
-		service	= _service;
-		
-		name	= node.getChild( "name" ).getValue();
-	}
-
 	public String
-	getName()
-	{
-		return( name );
-	}
+	getName();
 	
-	public UPnPService
-	getService()
-	{
-		return( service );
-	}
-	
-	public UPnPActionInvocation
-	getInvocation()
-	{
-		return( new UPnPActionInvocationImpl( this ));
-	}
+	public String
+	getValue();
 }
