@@ -622,7 +622,10 @@ TRHostImpl
 			
 			listeners.dispatch( LDT_TORRENT_REMOVED, host_torrent );
 			
-			config.saveConfig();	
+				// this'll get saved sometime soon anyway - performance problems
+				// here when removing multiple torrents from a large set (e.g. 1000)
+			
+			// config.saveConfig();	
 			
 		}finally{
 			
@@ -739,7 +742,9 @@ TRHostImpl
 				tc.refreshListeners();
 			}
 			
-			config.saveConfig();
+			// config will get saved soon anyway (periodic or on closedown) - perf issues
+			// here with multiple torrent removal if we save each time
+			// config.saveConfig();
 			
 		}finally{
 			
