@@ -22,15 +22,18 @@
 package org.gudy.azureus2.ui.swt.ipchecker;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -81,10 +84,21 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     label = new Label(rootPanel,SWT.NULL);
     label.setText(MessageText.getString("ipCheckerWizard.service.url"));
 
+    Cursor handCursor = new Cursor(rootPanel.getDisplay(), SWT.CURSOR_HAND);
+    
     this.serviceUrl = new Label(rootPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     serviceUrl.setLayoutData(gridData);
     serviceUrl.setForeground(MainWindow.blue);
+    serviceUrl.setCursor(handCursor);
+    serviceUrl.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getText());
+      }
+      public void mouseDown(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getText());
+      }
+    });
     
     servicesList.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -101,6 +115,14 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     serviceDescription.setText(services[selection].getDescription());
     serviceUrl.setText(services[selection].getURL());
     ((IpCheckerWizard)wizard).selectedService = services[selection];
+  }
+    
+  public boolean isFinishEnabled() {
+    return true;
+  }
+  
+  public IWizardPanel getFinishPanel() {
+    return new ProgressPanel((IpCheckerWizard)wizard,this);
   }
 
 }

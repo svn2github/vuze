@@ -37,9 +37,11 @@ public class StringParameter implements IParameter{
     inputField.setLayoutData(layoutData);
   }
   
-  public void setValue(String value) {
-    inputField.setText(value);
-    COConfigurationManager.setParameter(name, value);         
+  public void setValue(String value) {    
+    if(inputField == null || inputField.isDisposed())
+      return;
+    inputField.setText(value);        
+    COConfigurationManager.setParameter(name, value);
   }
   
   public String getValue() {

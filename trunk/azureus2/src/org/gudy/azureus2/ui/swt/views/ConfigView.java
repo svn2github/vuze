@@ -15,11 +15,11 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -36,14 +36,13 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.ipchecker.ChooseServicePanel;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
+import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 
 /**
  * @author Olivier
@@ -977,12 +976,26 @@ public class ConfigView extends AbstractIView {
 	  
 	  Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
 
+    final Display display = gTracker.getDisplay();
+    
 	  check_button.addListener(SWT.Selection, new Listener() {
 
 		 public void 
 		 handleEvent(Event event) 
 		 {
-      new IpCheckerWizard(cConfig.getDisplay()); 
+      IpCheckerWizard wizard = new IpCheckerWizard(cConfig.getDisplay());
+      wizard.setIpSetterCallBack(new IpSetterCallBack() {
+        public void setIp(final String ip) {
+          if(display == null || display.isDisposed())
+            return;
+          display.asyncExec(new Runnable() {
+            public void run() {
+              if(tracker_ip != null)
+                tracker_ip.setValue(ip);
+            }
+          });
+        }
+      });
 		 		// hack for the moment - this will kick off "check ip" wizard
 		 	/*	
 			ExternalIPChecker checker = ExternalIPCheckerFactory.create();
