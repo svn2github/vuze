@@ -27,7 +27,32 @@ package org.gudy.azureus2.core3.util.test;
 public class Sha1AlgorithmHelper {
   
   public static void main(String args[]) {
-  	part2();
+    algorithm2();
+  }
+  
+  public static void algorithm2() {
+    int mask = 0x0000000F;
+  	for(int t = 0 ; t <= 79 ; t++) {
+  		int s = t & mask;
+      if(t >= 16) {
+        System.out.println("w" + s + " = w" + ((s+13) & mask) + " ^ w" + ((s+8) & mask) + " ^ w" + ((s+2) & mask) + " ^ w" + s + "; w" + s + " = (w" + s + " << 1) | (w" + s + " >>> 31) ;");        
+      }
+      System.out.print("temp = ((a << 5) | (a >>> 27)) + e + w" + s + " + ");
+      int ft = t / 20;
+      if(ft == 0) {
+        System.out.println("((b & c) | ((~b) & d)) + 0x5A827999 ;");
+      }
+      if(ft == 1) {
+        System.out.println("(b ^ c ^ d) + 0x6ED9EBA1 ;");
+      }
+      if(ft == 2) {
+        System.out.println("((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC ;");
+      }
+      if(ft == 3) {
+        System.out.println("(b ^ c ^ d) + 0xCA62C1D6 ;");
+      }
+      System.out.println("e=d ; d=c ; c = (b << 30) | (b >>> 2) ; b=a ; a=temp;");
+  	}
   }
   
   public static void part1() {
