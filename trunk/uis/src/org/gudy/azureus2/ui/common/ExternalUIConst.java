@@ -25,6 +25,7 @@ public class ExternalUIConst {
 	
 	static {
 		parameterlegacy = new LegacyHashtable();
+    parameterlegacy.put("Core_sDefaultSavePath", "Default save path");
 		parameterlegacy.put("Core_sOverrideIP", "Override Ip");
 		//parameterlegacy.put("Core_bAllocateNew", "Zero New");
 		parameterlegacy.put("Core_iTCPListenPort", "TCP.Listen.Port");
