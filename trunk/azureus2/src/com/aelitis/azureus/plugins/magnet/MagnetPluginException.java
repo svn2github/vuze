@@ -1,5 +1,5 @@
 /*
- * Created on 03-Mar-2005
+ * Created on 07-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,24 +20,22 @@
  *
  */
 
-package com.aelitis.net.magneturi;
+package com.aelitis.azureus.plugins.magnet;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-MagnetURIHandlerListener 
+public class 
+MagnetPluginException
+	extends Exception
 {
-	public byte[]
-	badge();
-	
-	public byte[]
-	download(
-		MagnetURIHandlerProgressListener	progress,
-		byte[]								hash,
-		long								timeout )
-	
-		throws MagnetURIHandlerException;
+	public
+	MagnetPluginException(
+		String		str,
+		Throwable 	cause )
+	{
+		super( str, cause );
+	}
 }

@@ -1497,8 +1497,6 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		boolean size_reported	= false;
-		
 		long	connection_id 	= getConnectionID();
 		
 		transferQueue	transfer_queue = new transferQueue( connection_id );
@@ -1521,6 +1519,9 @@ DHTTransportUDPImpl
 		
 		int	entire_request_count = 0;
 		
+		int transfer_size 	= -1;
+		int	transferred		= 0;
+		
 		try{
 			long	start = SystemTime.getCurrentTime();
 			
@@ -1536,11 +1537,11 @@ DHTTransportUDPImpl
 				
 				if ( reply != null ){
 	
-					if ( !size_reported ){
+					if ( transfer_size == -1 ){
 						
-						size_reported	= true;
+						transfer_size = reply.getTotalLength();
 						
-						listener.reportSize( reply.getTotalLength());
+						listener.reportSize( transfer_size );
 					}
 					
 					Iterator	it = packets.iterator();
@@ -1551,13 +1552,10 @@ DHTTransportUDPImpl
 						
 						DHTUDPPacketData	p = (DHTUDPPacketData)it.next();
 						
-							// ignore duplicates.
-							// Note that because the packet data size is fixed our re-requests are
-							// always properly synchronised with the replies, which makes things easier
-							// e.g. we're not in a position of having a->b and getting c->d where these
-							// overlap (c>a and c<b)
+							// ignore overlaps
 						
-						if ( p.getStartPosition() == reply.getStartPosition()){
+						if (	p.getStartPosition() < reply.getStartPosition() + reply.getLength() &&
+								p.getStartPosition() + p.getLength() > reply.getStartPosition()){
 							
 							duplicate	= true;
 							
@@ -1569,6 +1567,10 @@ DHTTransportUDPImpl
 						
 						listener.reportActivity( "Received " + reply.getStartPosition() + " to " + (reply.getStartPosition() + reply.getLength()));
 
+						transferred += reply.getLength();
+						
+						listener.reportCompleteness( 100 * transfer_size / transferred );
+						
 						packets.add( reply );
 						
 							// see if we're done				

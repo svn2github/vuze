@@ -93,6 +93,7 @@ DHTPlugin
 	private long				integrated_time;
 	
 	private boolean				enabled;
+	private int					dht_data_port;
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
@@ -108,7 +109,7 @@ DHTPlugin
 				
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
 
-		int	dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
@@ -621,7 +622,13 @@ DHTPlugin
 		
 		return( enabled );
 	}
-		
+	
+	public int
+	getPort()
+	{
+		return( dht_data_port );
+	}
+	
 	public void
 	put(
 		final byte[]						key,

@@ -100,7 +100,12 @@ MagnetConnection
 					break;
 				}
 				
-				status = line;
+				if ( line.startsWith( "X-Report:")){
+					
+					line = line.substring( 9 ).trim();
+					
+					status = Character.toUpperCase( line.charAt(0)) + line.substring(1);
+				}
 				
 				line	= "";
 			}

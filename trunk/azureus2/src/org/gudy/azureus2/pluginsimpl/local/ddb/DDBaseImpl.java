@@ -277,8 +277,6 @@ DDBaseImpl
 			}
 			*/
 		
-			System.out.println( "multi-value-write" );
-
 			byte[]	current_key = ((DDBaseKeyImpl)key).getBytes();
 			
 				// format is: <continuation> <len><len><data>
@@ -412,61 +410,73 @@ DDBaseImpl
 	queue(
 		final AERunnable	task )
 	{
+		boolean	run_it;
+		
 		try{
 			task_mon.enter();
 			
-			if ( tasks_active > THREAD_POOL_SIZE ){
+			if ( tasks_active >= THREAD_POOL_SIZE ){
 				
 				task_queue.add( task );
+				
+				run_it	= false;
 				
 			}else{
 				
 				tasks_active++;
 				
-				thread_pool.run( 
-					new AERunnable()
-					{
-						public void
-						runSupport()
-						{
-							AERunnable	current_task	= task;
-
-							while( current_task != null ){
-								
-								try{
-									current_task.runSupport();
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-									
-								}finally{
-									
-									try{
-										task_mon.enter();
-									
-										if ( task_queue.size() > 0 ){
-											
-											current_task = (AERunnable)task_queue.remove(0);
-											
-										}else{
-											
-											current_task	= null;
-											
-											tasks_active--;
-										}
-									}finally{
-										
-										task_mon.exit();
-									}
-								}
-							}
-						}
-					});
+				run_it	= true;
 			}
 		}finally{
 			
 			task_mon.exit();
+		}
+		
+			// note thread pool will block if > thread_pool_size added, however should never block
+			// here due to above logic regarding active tasks
+				
+		if ( run_it ){
+			
+			thread_pool.run( 
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						AERunnable	current_task	= task;
+
+						while( current_task != null ){
+							
+							try{
+								current_task.runSupport();
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+								
+							}finally{
+								
+								try{
+									task_mon.enter();
+								
+									if ( task_queue.size() > 0 ){
+										
+										current_task = (AERunnable)task_queue.remove(0);
+										
+									}else{
+										
+										current_task	= null;
+										
+										tasks_active--;
+									}
+								}finally{
+									
+									task_mon.exit();
+								}
+							}
+						}
+					}
+				});
 		}
 	}
 	

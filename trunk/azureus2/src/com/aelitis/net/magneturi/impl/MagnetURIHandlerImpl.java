@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
 import com.aelitis.net.magneturi.MagnetURIHandlerListener;
+import com.aelitis.net.magneturi.MagnetURIHandlerProgressListener;
 
 /**
  * @author parg
@@ -53,6 +54,8 @@ MagnetURIHandlerImpl
 		// see http://magnet-uri.sourceforge.net/magnet-draft-overview.txt
 	
 	private static MagnetURIHandlerImpl		singleton;
+	
+	private static final int				DOWNLOAD_TIMEOUT	= 120000;
 	
 	protected static final String	NL			= "\015\012";
 
@@ -128,6 +131,8 @@ MagnetURIHandlerImpl
 										public void
 										runSupport()
 										{
+											boolean	close_socket	= true;
+											
 											try{
 											        String address = sck.getInetAddress().getHostAddress();
 										        
@@ -149,7 +154,7 @@ MagnetURIHandlerImpl
 											        		
 											        		line = line.substring( 0, pos );
 											        		
-											        		process( line, sck.getOutputStream() );
+											        		close_socket = process( line, sck.getOutputStream() );
 											        		
 											        	}else{
 											        								        	
@@ -170,7 +175,12 @@ MagnetURIHandlerImpl
 											}finally{
 												
 												try{
-													sck.close();
+														// leave client to close socket if not requested
+													
+													if ( close_socket ){
+														
+														sck.close();
+													}
 													
 												}catch( Throwable e ){
 												}
@@ -203,7 +213,7 @@ MagnetURIHandlerImpl
 		}
 	}
 	
-	protected void
+	protected boolean
 	process(
 		String			get,
 		OutputStream	os )
@@ -216,7 +226,7 @@ MagnetURIHandlerImpl
 			
         	LGLogger.log("MagentURIHandler: invalid command - '" + get + "'" );
 	
-        	return;
+        	return( true );
 		}
 		
 		Map	params = new HashMap();
@@ -253,12 +263,12 @@ MagnetURIHandlerImpl
 				
 				LGLogger.log("MagentURIHandler: invalid command - '" + get + "'" );
 				
-				return;
+				return( true );
 			}
 			
 			try{
 				
-				PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+				final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
 				
 				pw.print( "HTTP/1.0 200 OK" + NL ); 
 
@@ -273,7 +283,38 @@ MagnetURIHandlerImpl
 				
 				for (int i=0;i<listeners.size();i++){
 				
-					data = ((MagnetURIHandlerListener)listeners.get(i)).download( sha1, 60000 );
+					data = ((MagnetURIHandlerListener)listeners.get(i)).download(
+							new MagnetURIHandlerProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+									pw.print( "X-Report: torrent size: " + size + NL );
+									
+									pw.flush();
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									pw.print( "X-Report: " + str + NL );
+									
+									pw.flush();
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+									pw.print( "X-Report: completed: " + percent + "%" + NL );
+									
+									pw.flush();
+								}
+							},
+							sha1, 
+							DOWNLOAD_TIMEOUT );
 					
 					if ( data != null ){
 						
@@ -293,15 +334,19 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-					pw.print( "X-Report: no sources found for download" + NL );
+					pw.print( "X-Report: error - no sources found for torrent" + NL );
 					
 					pw.flush();
+					
+					return( false );
 				}
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
 			}
 		}
+		
+		return( true );
 	}
 	
 	public int

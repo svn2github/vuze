@@ -1,5 +1,5 @@
 /*
- * Created on 03-Mar-2005
+ * Created on 07-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,16 +28,17 @@ package com.aelitis.net.magneturi;
  */
 
 public interface 
-MagnetURIHandlerListener 
+MagnetURIHandlerProgressListener 
 {
-	public byte[]
-	badge();
+	public void
+	reportSize(
+		long	size );
 	
-	public byte[]
-	download(
-		MagnetURIHandlerProgressListener	progress,
-		byte[]								hash,
-		long								timeout )
+	public void
+	reportActivity(
+		String	str );
 	
-		throws MagnetURIHandlerException;
+	public void
+	reportCompleteness(
+		int		percent );
 }

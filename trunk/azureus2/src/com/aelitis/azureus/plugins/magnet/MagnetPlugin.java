@@ -151,8 +151,11 @@ MagnetPlugin
 	
 	public byte[]
 	download(
-		final byte[]		hash,
-		final long			timeout )
+		final MagnetURIHandlerProgressListener	listener,
+		final byte[]							hash,
+		final long								timeout )
+	
+		throws MagnetURIHandlerException
 	{
 		System.out.println( "MagnetPlugin: download( " + plugin_interface.getUtilities().getFormatters().encodeBytesToString( hash ) + ")");
 		
@@ -165,6 +168,8 @@ MagnetPlugin
 			
 			final int[]			outstanding		= {0};
 
+			listener.reportActivity( "searching..." );
+			
 			db.read(
 				new DistributedDatabaseListener()
 				{
@@ -178,7 +183,7 @@ MagnetPlugin
 							
 							final DistributedDatabaseValue	value = event.getValue();
 							
-							System.out.println( "MagnetPlugin: found " + value.getContact().getName());
+							listener.reportActivity( "found " + value.getContact().getName());
 					
 							outstanding[0]++;
 							
@@ -190,8 +195,8 @@ MagnetPlugin
 									{
 										try{
 											boolean	alive = value.getContact().isAlive(10000);
-												
-											System.out.println( value.getContact().getName() + ": alive = " + alive );
+																							
+											listener.reportActivity( value.getContact().getName() + " is " + (alive?"":"not ") + "alive" );
 											
 											if ( alive ){
 												
@@ -282,25 +287,25 @@ MagnetPlugin
 									reportSize(
 										long	size )
 									{
-										System.out.println( "dl:size=" + size );
+										listener.reportSize( size );
 									}
 									public void
 									reportActivity(
 										String	str )
 									{
-										System.out.println( "dl:act=" + str );
+										listener.reportActivity( str );
 									}
 									
 									public void
 									reportCompleteness(
 										int		percent )
 									{
-										System.out.println( "dl:%=" + percent );
+										listener.reportCompleteness( percent );
 									}
 								},
 								db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
 								db.createKey( hash ),
-								60000 );
+								timeout );
 					
 					System.out.println( "download value = " + value );
 					
@@ -314,11 +319,13 @@ MagnetPlugin
 				}
 			}
 		
+			return( null );		// nothing found
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+			
+			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
-
-		return( null );
 	}
 }
