@@ -1051,6 +1051,7 @@ DiskManagerImpl
           fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
           if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
             //do incremental stuff
+            fileInfo.getFMFile().setLength( 0 );
           }
           else {  //fully allocate
             if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
@@ -1096,16 +1097,21 @@ DiskManagerImpl
 		long written = 0;
 		synchronized (file){
 		  try{
-		    while (written < length && bOverallContinue) {
-					allocateAndTestBuffer.buff.limit(allocateAndTestBuffer.buff.capacity());
-					if ((length - written) < allocateAndTestBuffer.buff.remaining())
-					  allocateAndTestBuffer.buff.limit((int) (length - written));
-					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
-					allocateAndTestBuffer.buff.position(0);
-					written += deltaWriten;
-					allocated += deltaWriten;
-					percentDone = (int) ((allocated * 1000) / totalLength);
-		    }
+		    if( length == 0 ) { //create a zero-length file if it is listed in the torrent
+          fm_file.setLength( 0 );
+        }
+        else {
+          while (written < length && bOverallContinue) {
+            allocateAndTestBuffer.buff.limit(allocateAndTestBuffer.buff.capacity());
+            if ((length - written) < allocateAndTestBuffer.buff.remaining())
+              allocateAndTestBuffer.buff.limit((int) (length - written));
+             int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
+             allocateAndTestBuffer.buff.position(0);
+             written += deltaWriten;
+             allocated += deltaWriten;
+             percentDone = (int) ((allocated * 1000) / totalLength);
+          }
+        }
 				if (!bOverallContinue) {
 				   fm_file.close();
 				   return false;
