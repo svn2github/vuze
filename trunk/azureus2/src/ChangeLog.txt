@@ -19,6 +19,7 @@ FEATURE: Core | Client identification plugin interface [Parg]
 FEATURE: UI   | Keyboard shortcut parsing system [CrazyAlchemist]
 FEATURE: UI   | System tray menus for setting global upload and download bandwidth limits [CrazyAlchemist]
 FEATURE: UI   | Synthesized speech alerts for Mac OS X; Go to Azureus / Preferences to enable it [CrazyAlchemist]
+FEATURE: UI   | New file icon for Mac OS X [CrazyAlchemist]
 FEATURE: Plug | Generic Messaging API: inter-client message passing [Nolar]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
@@ -32,7 +33,6 @@ CHANGE: Core | Decreased cpu usage when downloading and faster speeds in LAN net
 CHANGE: UI   | RFE #1092614: Informational popup messages now auto-close after 5 seconds - unless the message window is closed manually, or if the mouse is over it / details view is open (the timing will be 'reset' then) [CrazyAlchemist]
 CHANGE: UI   | Miscellaneous cosmetics updates for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [CrazyAlchemist]
-CHANGE: UI   | New .torrent file icon for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Main menu bar should now be more streamlined in its arrangement [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
