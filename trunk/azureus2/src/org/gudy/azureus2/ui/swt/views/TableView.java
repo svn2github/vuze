@@ -624,7 +624,10 @@ public class TableView
         objectToSortableItem.put(dataSource, null);
       }
       Display display = panel.getDisplay();
-      display.asyncExec(new Runnable() {
+      // Historically, syncExec would sometimes hang when creating TableItem 
+      // objects.  However, try it for now as we need the row to exist upon 
+      // exit of this function
+      display.syncExec(new Runnable() {
         public void run() {
           TableRowCore row = new TableRowImpl(TableView.this, dataSource, 
                                               bSkipFirstColumn);
@@ -637,18 +640,20 @@ public class TableView
           }
         }
       });
-
+/* If syncExec still causes problems, change it to async and uncomment this
       // Wait for row to be created.  Needed for sort calls right after adding
       // multiple (or one) row.
-      while (!panel.isDisposed() && objectToSortableItem.get(dataSource) == null) {
-        try {
-          if (!display.readAndDispatch())
-            display.sleep();
-        } catch (Exception e) {
-          e.printStackTrace();
+      display.syncExec(new Runnable() {
+        while (!panel.isDisposed() && objectToSortableItem.get(dataSource) == null) {
+          try {
+            if (!display.readAndDispatch())
+              display.sleep();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       }
-
+*/
     } catch (Exception e) {
       System.out.println("Error adding row to " + sTableID + " table");
       e.printStackTrace();
