@@ -29,7 +29,6 @@ package org.gudy.azureus2.ui.webplugin.remoteui.servlet;
 import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
-import java.util.*;
 import java.util.zip.*;
 import java.util.jar.*;
 
@@ -55,6 +54,7 @@ RemoteUIServlet
 		"core3/config/impl/ConfigurationParameterNotFoundException.class",
 		"ui/webplugin/remoteui/plugins/RPFactory.class",
 		"ui/webplugin/remoteui/plugins/RPRequest.class",
+		"ui/webplugin/remoteui/plugins/RPRequestHandler.class",		
 		"ui/webplugin/remoteui/plugins/RPObject.class",
 		"ui/webplugin/remoteui/plugins/RPReply.class",
 		"ui/webplugin/remoteui/plugins/RPPluginInterface.class",
@@ -142,9 +142,7 @@ RemoteUIServlet
 		"core3/torrentdownloader/TorrentDownloaderException.class",
 	};
 	
-	protected boolean	view_mode;
-	
-	protected Map	reply_cache	= new HashMap();
+	protected RPRequestHandler		request_handler;
 	
 	public
 	RemoteUIServlet()
@@ -160,13 +158,7 @@ RemoteUIServlet
 	{	
 		super.initialize( _plugin_interface );
 		
-		Properties properties				= _plugin_interface.getPluginProperties();
-
-		String	mode_str = (String)properties.get("mode");
-		
-		view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
-		
-		
+		request_handler = new RPRequestHandler( _plugin_interface );
 	}
 	
 	public boolean
@@ -212,7 +204,7 @@ RemoteUIServlet
 				
 				// System.out.println( "RemoteUIServlet:got request: " + rp_request.getString());
 				
-				RPReply	reply = processRequest( rp_request );
+				RPReply	reply = request_handler.processRequest( rp_request );
 				
 				if ( reply == null ){
 					
@@ -248,124 +240,5 @@ RemoteUIServlet
 		
 		return( false );
 	}
-	
-	protected RPReply
-	processRequest(
-		RPRequest		request )
-	{
-		Long	connection_id 	= new Long( request.getConnectionId());
-
-		replyCache	cached_reply = (replyCache)reply_cache.get(connection_id);
-		
-		if ( cached_reply != null ){
-			
-			if ( cached_reply.getId() == request.getRequestId()){
-				
-				return( cached_reply.getReply());
-			}
-		}
-		
-		RPReply	reply = processRequestSupport( request );
-		
-		reply_cache.put( connection_id, new replyCache( request.getRequestId(), reply ));
-		
-		return( reply );
-	}
-	
-
-	protected RPReply
-	processRequestSupport(
-		RPRequest		request )
-	{
-		try{
-			RPObject		object 	= request.getObject();
-			String			method	= request.getMethod();
-			
-			if ( method.equals( "getSingleton")){
-				
-				RPReply reply = new RPReply( RPPluginInterface.create(plugin_interface));
-				
-				return( reply );
-				
-			}else{
-				// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
-				
-				object._setLocal();
-				
-				if ( method.equals( "_refresh" )){
-				
-					RPReply	reply = new RPReply( object );
-				
-					return( reply );
-					
-				}else{
-							
-					if ( view_mode ){
-						
-						String	name = object._getName();
-						
-						if ( name.equals( "Download" )){
-							
-							if ( 	method.equals( "start" ) ||
-									method.equals( "stop" ) ||
-									method.equals( "restart" ) ||
-									method.equals( "remove")){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}else if ( name.equals( "DownloadManager" )){
-							
-							if ( 	method.startsWith( "addDownload")){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}else if ( name.equals( "TorrentManager" )){
-							
-							if ( 	method.startsWith( "getURLDownloader")){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}					
-					}
-					
-					return( object._process( request ));
-				}
-			}
-		}catch( RPException e ){
-			
-			return( new RPReply( e ));
-			
-		}catch( Throwable e ){
-			
-			return( new RPReply( new RPException( "server execution fails", e )));
-		}
-	}
-	
-	protected static class
-	replyCache
-	{
-		protected long		id;
-		protected RPReply	reply;
-		
-		protected
-		replyCache(
-			long		_id,
-			RPReply		_reply )
-		{
-			id		= _id;
-			reply	= _reply;
-		}
-		
-		protected long
-		getId()
-		{
-			return( id );
-		}
-		
-		protected RPReply
-		getReply()
-		{
-			return( reply );
-		}
-	}
 }
+

@@ -158,7 +158,7 @@ RPDownloadManager
 	
 		throws DownloadException
 	{
-		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", url )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", url )).getResponse();
 	}
 	
 	
@@ -169,9 +169,9 @@ RPDownloadManager
 		throws DownloadException
 	{
 		try{
-			RPDownload	res = (RPDownload)dispatcher.dispatch( new RPRequest( this, "addDownload[Torrent]", torrent )).getResponse();
+			RPDownload	res = (RPDownload)_dispatcher.dispatch( new RPRequest( this, "addDownload[Torrent]", torrent )).getResponse();
 			
-			res._setRemote( dispatcher );
+			res._setRemote( _dispatcher );
 		
 			return( res );
 			
@@ -227,11 +227,11 @@ RPDownloadManager
 	public Download[]
 	getDownloads()
 	{
-		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads", null )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads", null )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i]._setRemote( dispatcher );
+			res[i]._setRemote( _dispatcher );
 		}
 		
 		return( res );
@@ -240,11 +240,11 @@ RPDownloadManager
 	public Download[]
 	getDownloads(boolean bSort)
 	{
-		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads[bSort]", new Boolean(bSort) )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads[bSort]", new Boolean(bSort) )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i]._setRemote( dispatcher );
+			res[i]._setRemote( _dispatcher );
 		}
 		
 		return( res );

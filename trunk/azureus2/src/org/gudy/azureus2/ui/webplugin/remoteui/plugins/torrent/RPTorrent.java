@@ -42,8 +42,8 @@ RPTorrent
 {
 	protected transient Torrent		delegate;
 
-	protected String		name;
-	protected long			size;
+	public String		name;
+	public long			size;
 	
 	public static RPTorrent
 	create(

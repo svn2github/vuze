@@ -40,10 +40,10 @@ RPDownload
 {
 	protected transient Download		delegate;
 
-	protected RPTorrent					torrent;
-	protected RPDownloadStats			stats;
-	protected RPDownloadAnnounceResult	announce_result;
-	protected RPDownloadScrapeResult	scrape_result;
+	public RPTorrent				torrent;
+	public RPDownloadStats			stats;
+	public RPDownloadAnnounceResult	announce_result;
+	public RPDownloadScrapeResult	scrape_result;
 	
 	public static RPDownload
 	create(
@@ -243,7 +243,7 @@ RPDownload
 		throws DownloadException	
 	{
 		try{
-			dispatcher.dispatch( new RPRequest( this, "initialize", null )).getResponse();
+			_dispatcher.dispatch( new RPRequest( this, "initialize", null )).getResponse();
 			
 		}catch( RPException e ){
 			
@@ -262,7 +262,7 @@ RPDownload
 		throws DownloadException
 	{
 		try{
-			dispatcher.dispatch( new RPRequest( this, "start", null )).getResponse();
+			_dispatcher.dispatch( new RPRequest( this, "start", null )).getResponse();
 			
 		}catch( RPException e ){
 			
@@ -281,7 +281,7 @@ RPDownload
 		throws DownloadException
 	{
 		try{
-			dispatcher.dispatch( new RPRequest( this, "stop", null )).getResponse();
+			_dispatcher.dispatch( new RPRequest( this, "stop", null )).getResponse();
 			
 		}catch( RPException e ){
 			
@@ -300,7 +300,7 @@ RPDownload
 		throws DownloadException
 	{
 		try{
-			dispatcher.dispatch( new RPRequest( this, "restart", null )).getResponse();
+			_dispatcher.dispatch( new RPRequest( this, "restart", null )).getResponse();
 			
 		}catch( RPException e ){
 			
@@ -354,7 +354,7 @@ RPDownload
 		throws DownloadException, DownloadRemovalVetoException
 	{
 		try{
-			dispatcher.dispatch( new RPRequest( this, "remove", null )).getResponse();
+			_dispatcher.dispatch( new RPRequest( this, "remove", null )).getResponse();
 			
 		}catch( RPException e ){
 			

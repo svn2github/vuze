@@ -41,11 +41,42 @@ XMLHTTPClient
 	XMLHTTPClient()
 	{
 		try{
+			long	req_id = 0;
 			
-			SimpleXMLParserDocument	res = sendRequest( "<REQUEST><OID>0</OID><METHOD>getSingleton</METHOD></REQUEST>");
+			SimpleXMLParserDocument	res = 
+				sendRequest( 	"<REQUEST>"+
+									"<METHOD>getSingleton</METHOD>"+
+									"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+								"</REQUEST>");
 			
 			res.print();
+
+			String connection_id = res.getChild( "_connection_id" ).getValue().trim();
 			
+			String plugin_if_oid	= res.getChild( "_object_id" ).getValue().trim();
+			
+			res = sendRequest( 
+					"<REQUEST>" +
+						"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+						"<METHOD>getDownloadManager</METHOD>"+
+						"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+						"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+					"</REQUEST>");
+
+			res.print();
+
+			String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
+		
+			res = sendRequest( 
+					"<REQUEST>" +
+						"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
+						"<METHOD>getDownloads</METHOD>"+
+						"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+						"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+					"</REQUEST>");
+		
+			res.print();
+
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

@@ -37,8 +37,8 @@ RPDownloadAnnounceResult
 {
 	protected transient DownloadAnnounceResult		delegate;
 
-	protected int				seed_count;
-	protected int				non_seed_count;
+	public int				seed_count;
+	public int				non_seed_count;
 	
 	public static RPDownloadAnnounceResult
 	create(

@@ -31,7 +31,7 @@ public class
 RPReply 
 	implements Serializable
 {
-	protected Object	response;
+	public Object	response;
 	
 	public
 	RPReply(

@@ -105,9 +105,9 @@ RPTorrentDownloader
 		throws TorrentException
 	{
 		try{
-			RPTorrent resp = (RPTorrent)dispatcher.dispatch( new RPRequest( this, "download", null )).getResponse();
+			RPTorrent resp = (RPTorrent)_dispatcher.dispatch( new RPRequest( this, "download", null )).getResponse();
 			
-			resp._setRemote( dispatcher );
+			resp._setRemote( _dispatcher );
 			
 			return( resp );
 			

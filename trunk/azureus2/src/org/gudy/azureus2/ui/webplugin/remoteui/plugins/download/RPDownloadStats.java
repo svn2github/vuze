@@ -37,16 +37,16 @@ RPDownloadStats
 {
 	protected transient DownloadStats		delegate;
 
-	protected long				downloaded;
-	protected long				uploaded;
-	protected int				completed;
-	protected int				downloadCompletedLive;
-	protected int				downloadCompletedStored;
-	protected String			status;
-	protected long				upload_average;
-	protected long				download_average;
-	protected String			eta;
-	protected int				share_ratio;
+	public long				downloaded;
+	public long				uploaded;
+	public int				completed;
+	public int				downloadCompletedLive;
+	public int				downloadCompletedStored;
+	public String			status;
+	public long				upload_average;
+	public long				download_average;
+	public String			eta;
+	public int				share_ratio;
 	
 	public static RPDownloadStats
 	create(

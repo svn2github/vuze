@@ -30,7 +30,7 @@ import java.io.Serializable;
 
 import java.util.*;
 
-public abstract class 
+public class 
 RPObject
 	implements Serializable
 {
@@ -45,10 +45,10 @@ RPObject
 	
 	protected static long	next_key		= new Random(System.currentTimeMillis()).nextLong();
 	
-	protected Long	object_id;
+	public Long	_object_id;
 	
 	protected transient Object				_delegate;
-	protected transient	RPRequestDispatcher	dispatcher;
+	protected transient	RPRequestDispatcher	_dispatcher;
 	
 	protected static RPObject
 	_lookupLocal(
@@ -66,7 +66,37 @@ RPObject
 			return( res );
 		}
 	}
+	
+	protected static RPObject
+	_lookupLocal(
+		long		object_id )
+	{
+		synchronized( object_registry ){
 			
+			Object	res = object_registry_reverse.get( new Long(object_id ));
+			
+			if ( res == null ){
+				
+				throw( new RPException( "Object no longer exists"));
+			}
+			
+			RPObject	obj = (RPObject)object_registry.get( res );
+			
+			if ( obj == null ){
+				
+				throw( new RPException( "Object no longer exists"));
+			}
+			
+			return( obj );
+		}
+	}
+	
+		// public constructor for XML deserialiser
+	public
+	RPObject()
+	{	
+	}
+	
 	protected
 	RPObject(
 		Object		key )
@@ -77,15 +107,15 @@ RPObject
 			
 			if ( existing != null ){
 				
-				object_id	= existing.object_id;
+				_object_id	= existing._object_id;
 				
 			}else{
 			
-				object_id	= new Long(next_key++);
+				_object_id	= new Long(next_key++);
 				
 				object_registry.put( key, this );
 				
-				object_registry_reverse.put( object_id, key );
+				object_registry_reverse.put( _object_id, key );
 			}
 		}
 		
@@ -97,12 +127,15 @@ RPObject
 	public long
 	_getOID()
 	{
-		return( object_id.longValue());
+		return( _object_id.longValue());
 	}
 	
-	protected abstract void
+	protected void
 	_setDelegate(
-		Object		_delegate );
+		Object		_delegate )
+	{
+		throw( new RuntimeException( "you've got to implement this"));
+	}
 	
 	protected Object
 	_getDelegate()
@@ -115,7 +148,7 @@ RPObject
 	
 		throws RPException
 	{
-		Object	res = object_registry_reverse.get( object_id );
+		Object	res = object_registry_reverse.get( _object_id );
 		
 		if ( res == null ){
 			
@@ -129,28 +162,34 @@ RPObject
 	
 	public void
 	_setRemote(
-		RPRequestDispatcher		_dispatcher )
+		RPRequestDispatcher		__dispatcher )
 	{
-		dispatcher	= _dispatcher;
+		_dispatcher	= __dispatcher;
 	}
 	
 	protected RPRequestDispatcher
 	getDispatcher()
 	{
-		return( dispatcher );
+		return( _dispatcher );
 	}
 	
-	public abstract RPReply
+	public RPReply
 	_process(
-		RPRequest	request	);
+		RPRequest	request	)
+	{
+		throw( new RuntimeException( "you've got to implement this"));
+	}
 	
-	public abstract Object
-	_setLocal();
+	public Object
+	_setLocal()
+	{
+		throw( new RuntimeException( "you've got to implement this"));
+	}
 	
 	public void
 	_refresh()
 	{
-		RPObject	res = (RPObject)dispatcher.dispatch( new RPRequest( this, "_refresh", null )).getResponse();
+		RPObject	res = (RPObject)_dispatcher.dispatch( new RPRequest( this, "_refresh", null )).getResponse();
 		
 		_setDelegate( res );
 	}

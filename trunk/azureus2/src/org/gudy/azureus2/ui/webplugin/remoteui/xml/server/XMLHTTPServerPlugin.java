@@ -29,9 +29,9 @@ package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
 import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
-import java.util.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 import org.gudy.azureus2.plugins.*;
 
@@ -39,9 +39,7 @@ public class
 XMLHTTPServerPlugin
 	extends WebPlugin
 {
-	protected boolean	view_mode;
-	
-	protected Map	reply_cache	= new HashMap();
+	protected RPRequestHandler		request_handler;
 	
 	public
 	XMLHTTPServerPlugin()
@@ -56,14 +54,8 @@ XMLHTTPServerPlugin
 		throws PluginException
 	{	
 		super.initialize( _plugin_interface );
-		
-		Properties properties				= _plugin_interface.getPluginProperties();
-
-		String	mode_str = (String)properties.get("mode");
-		
-		view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
-		
-		
+				
+		request_handler = new RPRequestHandler( _plugin_interface );		
 	}
 	
 	public boolean
@@ -81,7 +73,7 @@ XMLHTTPServerPlugin
 						
 			try{
 				XMLRequestProcessor processor = 
-						new XMLRequestProcessor( plugin_interface, request.getInputStream(), response.getOutputStream());
+						new XMLRequestProcessor( request_handler, request.getInputStream(), response.getOutputStream());
 
 				return( true );
 								

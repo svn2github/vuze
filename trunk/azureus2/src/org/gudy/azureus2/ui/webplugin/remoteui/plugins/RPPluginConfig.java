@@ -165,7 +165,7 @@ RPPluginConfig
 	  
 	  public int getPluginIntParameter(String key,int defaultValue)
 	  {
-		Integer	res = (Integer)dispatcher.dispatch( new RPRequest( this, "getPluginIntParameter", new Object[]{key,new Integer(defaultValue)} )).getResponse();
+		Integer	res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getPluginIntParameter", new Object[]{key,new Integer(defaultValue)} )).getResponse();
 		
 		return( res.intValue());
 	  }
@@ -200,7 +200,7 @@ RPPluginConfig
 	    
 	  public void setPluginParameter(String key,int value)
 	  {
-		dispatcher.dispatch( new RPRequest( this, "setPluginParameter[int]", new Object[]{key,new Integer(value)} ));
+		_dispatcher.dispatch( new RPRequest( this, "setPluginParameter[int]", new Object[]{key,new Integer(value)} ));
 	  }
 	  
 	  public void setPluginParameter(String key,String value)
@@ -219,7 +219,7 @@ RPPluginConfig
 	  	throws PluginException
 	  {
 	  	try{
-	  		dispatcher.dispatch( new RPRequest( this, "save", null)).getResponse();
+	  		_dispatcher.dispatch( new RPRequest( this, "save", null)).getResponse();
 	  		
 		}catch( RPException e ){
 			

@@ -70,7 +70,7 @@ RPPluginInterface
 		return( res );
 	}	
 	
-	protected long	_connection_id;
+	public long	_connection_id;
 	
 	protected
 	RPPluginInterface(
@@ -189,9 +189,9 @@ RPPluginInterface
 	public DownloadManager
 	getDownloadManager()
 	{
-		RPDownloadManager	res = (RPDownloadManager)dispatcher.dispatch( new RPRequest( this, "getDownloadManager", null )).getResponse();
+		RPDownloadManager	res = (RPDownloadManager)_dispatcher.dispatch( new RPRequest( this, "getDownloadManager", null )).getResponse();
 	
-		res._setRemote( dispatcher );
+		res._setRemote( _dispatcher );
 		
 		return( res );
 	}
@@ -218,9 +218,9 @@ RPPluginInterface
 	 public TorrentManager
 	 getTorrentManager()
 	 {
-		RPTorrentManager	res = (RPTorrentManager)dispatcher.dispatch( new RPRequest( this, "getTorrentManager", null )).getResponse();
+		RPTorrentManager	res = (RPTorrentManager)_dispatcher.dispatch( new RPRequest( this, "getTorrentManager", null )).getResponse();
 		
-		res._setRemote( dispatcher );
+		res._setRemote( _dispatcher );
 			
 		return( res );
 	 }
@@ -245,7 +245,7 @@ RPPluginInterface
 	
 	public Properties getPluginProperties()
 	{
-		return((Properties)dispatcher.dispatch( new RPRequest( this, "getPluginProperties", null )).getResponse());
+		return((Properties)_dispatcher.dispatch( new RPRequest( this, "getPluginProperties", null )).getResponse());
 	}
 	
 	public String getPluginDirectoryName()
@@ -257,9 +257,9 @@ RPPluginInterface
 	
 	public PluginConfig getPluginconfig()
 	{
-		RPPluginConfig	res = (RPPluginConfig)dispatcher.dispatch( new RPRequest( this, "getPluginconfig", null )).getResponse();
+		RPPluginConfig	res = (RPPluginConfig)_dispatcher.dispatch( new RPRequest( this, "getPluginconfig", null )).getResponse();
 		
-		res._setRemote( dispatcher );
+		res._setRemote( _dispatcher );
 			
 		return( res );
 	}

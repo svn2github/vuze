@@ -27,53 +27,51 @@ package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
  */
 
 import java.io.*;
+import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.core3.xml.util.*;
-import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 public class 
 XMLRequestProcessor
 	extends XUXmlWriter
 {
-	protected PluginInterface				plugin_interface;
+	protected RPRequestHandler				request_handler;
 	protected SimpleXMLParserDocument		request;
 	
 	protected
 	XMLRequestProcessor(
-		PluginInterface			_plugin_interface,
+		RPRequestHandler		_request_handler,
 		InputStream				_request,
 		OutputStream			_reply )
 	{
 		super( _reply );
-		
-		plugin_interface	= _plugin_interface;
+			
+		request_handler		= _request_handler;
 		
 		try{
+			writeLine( "<RESPONSE>" );
+			
+			indent();
+			
 			System.out.println( "got:" + _request );
 			
 			request = SimpleXMLParserDocumentFactory.create( _request );
 				
 			process();
-					
+			
 		}catch( Throwable e ){
-			
-				// TODO: need new outputstream here
-			
-			writeLine( "<RESPONSE>" );
-			
-			indent();
-			
+					
 			e.printStackTrace();
 			
 			writeTag("ERROR", e.toString());
+
+		}finally{
 			
 			exdent();
 			
 			writeLine( "</RESPONSE>" );
-
-		}finally{
 			
 			flushOutputStream();
 		}
@@ -82,33 +80,234 @@ XMLRequestProcessor
 	protected void
 	process()
 	{
-		try{
-			writeLine( "<RESPONSE>" );
+		request.print();
 			
-			indent();
-			
-			request.print();
-					
-			SimpleXMLParserDocumentNode oid_node 	= request.getChild( "OID" );
-			SimpleXMLParserDocumentNode method_node = request.getChild( "METHOD" );
-			
-			String	oid		= oid_node.getValue();
-			String	method	= method_node.getValue();
-			
-			System.out.println( "oid=" + oid + ", method = " + method );
-			
-			if ( method.equals( "getSingleton")){
-				
-				RPObject	obj = RPPluginInterface.create(plugin_interface);
-				
-				writeTag( "OID", obj._getOID());
-				
-			}
-		}finally{
+		RPRequest	req_obj = (RPRequest)deserialiseObject( request, RPRequest.class, "" );
 		
-			exdent();
+		RPReply reply = request_handler.processRequest( req_obj );
+
+		try{
+			Object	response = reply.getResponse();
+		
+			serialiseObject( response, "" );
 			
-			writeLine( "</RESPONSE>" );
+		}catch( RPException e ){
+			
+			e.printStackTrace();
+			
+			writeTag("ERROR", e.toString());
+			
+		}
+	}
+	
+	protected Object
+	deserialiseObject(
+		SimpleXMLParserDocumentNode		node,
+		Class							cla,
+		String							indent )
+	{
+		System.out.println(indent + "deser:" + cla.getName());
+		try{
+			Object	obj = cla.newInstance();
+			
+			Field[] fields = cla.getDeclaredFields();
+			
+			for (int i=0;i<fields.length;i++){
+				
+				Field	field = fields[i];
+				
+				int	modifiers = field.getModifiers();
+				
+				if (( modifiers & ( Modifier.TRANSIENT | Modifier.STATIC )) == 0 ){
+					
+					String	name = field.getName();
+					
+					Class	type = field.getType();
+					
+					SimpleXMLParserDocumentNode child = node.getChild( name );
+				
+					System.out.println( indent + "  field:" + field.getName() + " -> " + child );
+					
+					if ( child != null ){
+						
+						if ( type == String.class ){
+							
+							field.set( obj, child.getValue());
+							
+						}else if ( type == long.class ){
+							
+							field.setLong( obj,Long.parseLong( child.getValue()));
+							
+						}else if ( type == boolean.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == byte.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == char.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == double.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == float.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == int.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else if ( type == short.class ){
+							
+							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+					
+						}else if ( type == Long.class || type == long.class ){
+							
+							field.set( obj, new Long(Long.parseLong( child.getValue())));
+							
+						}else{
+							
+							field.set( obj, deserialiseObject( child, type, indent + "    " ));
+						}
+					}
+				}
+			}
+			
+			return( obj );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			throw( new RuntimeException( e.toString()));
+		}
+	}
+	
+	protected void
+	serialiseObject(
+		Object		obj,
+		String		indent )
+	{
+		Class	cla = obj.getClass();
+		
+		System.out.println(indent + "ser:" + cla.getName());
+		
+		if ( cla.isArray()){
+			
+			int	len = Array.getLength( obj );
+			
+			for (int i=0;i<len;i++){
+				
+				Object	entry = Array.get( obj, i );
+				
+				try{
+					writeLine( "<ENTRY index=\""+i+"\">" );
+					
+					indent();
+				
+					serialiseObject( entry, indent+"  ");
+					
+				}finally{
+					
+					exdent();
+					
+					writeLine( "</ENTRY>");
+				}
+			}
+			
+			return;
+		}
+		
+		while( cla != null ){
+			try{
+				Field[] fields = cla.getDeclaredFields();
+				
+				for (int i=0;i<fields.length;i++){
+					
+					Field	field = fields[i];
+					
+					int	modifiers = field.getModifiers();
+					
+					if (( modifiers & ( Modifier.TRANSIENT | Modifier.STATIC )) == 0 ){
+						
+						String	name = field.getName();
+						
+						Class	type = field.getType();
+										
+						System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
+						
+						try{
+							writeLine( "<" + name + ">" );
+							
+							indent();
+													
+							if ( type == String.class ){
+								
+								writeLine( (String)field.get( obj ));
+								
+							}else if ( type == long.class ){
+								
+								writeLine( ""+field.getLong( obj ));
+								
+							}else if ( type == boolean.class ){
+								
+								writeLine( ""+field.getBoolean( obj ));
+								
+							}else if ( type == byte.class ){
+								
+								writeLine( ""+field.getByte( obj ));
+								
+							}else if ( type == char.class ){
+								
+								writeLine( ""+field.getChar( obj ));
+								
+							}else if ( type == double.class ){
+								
+								writeLine( ""+field.getDouble( obj ));
+								
+							}else if ( type == float.class ){
+								
+								writeLine( ""+field.getFloat( obj ));
+								
+							}else if ( type == int.class ){
+								
+								writeLine( ""+field.getInt( obj ));
+								
+							}else if ( type == short.class ){
+								
+								writeLine( ""+field.getShort( obj ));
+								
+							}else if ( type == Long.class ){
+								
+								writeLine( ""+field.get( obj ));
+								
+							}else{
+								
+								serialiseObject( field.get(obj), indent + "    " );
+							}
+							
+						}finally{
+							
+							exdent();
+							
+							writeLine( "</" + name + ">" );
+						}
+					}
+				}
+								
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+				throw( new RuntimeException( e.toString()));
+			}
+			
+			cla = cla.getSuperclass();
 		}
 	}
 }

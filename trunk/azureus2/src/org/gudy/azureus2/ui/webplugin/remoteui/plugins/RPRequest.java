@@ -31,12 +31,19 @@ public class
 RPRequest
 	implements Serializable
 {
-	protected RPObject	object;
-	protected String	method;
-	protected Object	params;
+	public RPObject	object;
+	public String	method;
+	public Object	params;
 	
-	protected long		connection_id;
-	protected long		request_id;
+	public long		connection_id;
+	public long		request_id;
+	
+		// public constructor for XML deserialiser
+	
+	public
+	RPRequest()
+	{
+	}
 	
 	public
 	RPRequest(
