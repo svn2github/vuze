@@ -42,6 +42,8 @@ import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.sharing.ShareManagerImpl;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.download.DownloadManagerImpl;
+import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.pluginsimpl.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
 
@@ -151,6 +153,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   getDownloadManager()
   {
   	return( DownloadManagerImpl.getSingleton(initialiser.getGlobalManager()));
+  }
+  
+  public TorrentManager
+  getTorrentManager()
+  {
+  	return( TorrentManagerImpl.getSingleton());
   }
   
   public Logger getLogger() {

@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -123,6 +124,14 @@ public interface PluginInterface {
   getShareManager()
   
   	throws ShareException;
+  
+  /**
+   * Gives access to the torrent manager
+   * @return
+   */
+  
+  public TorrentManager
+  getTorrentManager();
   
   /**
    * opens a torrent file given its name

@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -201,6 +202,14 @@ RPPluginInterface
 		return( null );
 	}
 	
+	 public TorrentManager
+	 getTorrentManager()
+	 {
+		notSupported();
+		
+		return( null );
+	 }
+	 
 	/**
 	 * @deprecated
 	 */

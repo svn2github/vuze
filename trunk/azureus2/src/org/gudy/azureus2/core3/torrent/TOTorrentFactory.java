@@ -57,6 +57,15 @@ TOTorrentFactory
 	}
 	
 	public static TOTorrent
+	deserialiseFromBEncodedInputStream(
+		InputStream		is )
+		
+		throws TOTorrentException
+	{
+		return( null );//new TOTorrentDeserialiseImpl( is ));
+	}
+	
+	public static TOTorrent
 	deserialiseFromMap(
 		Map			data )
 		
