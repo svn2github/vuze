@@ -143,7 +143,11 @@ public class CommandReader extends Reader {
                 current.append(c);
             }
             if ((state == ENTER) && ((c==' ') || (c=='\n'))) {
-              args.addElement(current.toString().trim());
+              String arg = current.toString().trim();
+              if( arg.length() > 0 )
+              {
+              	args.addElement(arg);
+              }
               current = new StringBuffer();
             }
             break;
