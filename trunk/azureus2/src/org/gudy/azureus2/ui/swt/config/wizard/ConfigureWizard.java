@@ -31,11 +31,11 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 public class ConfigureWizard extends Wizard {
 
   //Transfer settings
-  int upSpeed = 0;
-  int maxUpSpeed = 0;
-  int maxActiveTorrents = 0;
-  int maxDownloads = 0;
-  int nbUploadsPerTorrent = 0;
+  int upSpeed = 1;
+  int maxUpSpeed = 5;
+  int maxActiveTorrents = 1;
+  int maxDownloads = 1;
+  int nbUploadsPerTorrent = 3;
   
   //Server / NAT Settings
   int serverMinPort = 6881;
