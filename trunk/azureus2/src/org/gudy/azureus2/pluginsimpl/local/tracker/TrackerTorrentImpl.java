@@ -183,6 +183,18 @@ TrackerTorrentImpl
 		return( host_torrent.getAverageBytesOut());
 	}
 	
+	public long
+	getScrapeCount()
+	{
+		return( host_torrent.getScrapeCount());
+	}
+	
+	public long
+	getAnnounceCount()
+	{
+		return( host_torrent.getAnnounceCount());
+	}
+	
 	public Object
 	getAdditionalProperty(
 		String		name )

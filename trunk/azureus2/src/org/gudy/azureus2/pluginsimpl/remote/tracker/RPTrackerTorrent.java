@@ -209,6 +209,22 @@ RPTrackerTorrent
 		return( 0 );	
 	}	
 
+	public long
+	getScrapeCount()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}
+	
+	public long
+	getAnnounceCount()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}
+	
 	public Object
 	getAdditionalProperty(
 		String		name )

@@ -105,6 +105,12 @@ TrackerTorrent
 	public long
 	getAverageBytesOut();
 	
+	public long
+	getScrapeCount();
+
+	public long
+	getAnnounceCount();
+
 	public Object
 	getAdditionalProperty(
 		String		name );
