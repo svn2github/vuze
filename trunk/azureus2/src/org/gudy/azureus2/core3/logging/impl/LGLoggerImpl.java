@@ -56,6 +56,8 @@ LGLoggerImpl
 	private static int				log_file_max	= 1;		// MB
 	private static int        log_types[] = new int[components.length];
 	
+	private static boolean logToSystemOut = false;
+	
 	public static synchronized void
 	initialise()
 	{
@@ -75,7 +77,10 @@ LGLoggerImpl
 				
 			checkLoggingConfig();
 			
-			doRedirects();
+			logToSystemOut = System.getProperty("azureus.logout") != null;
+			// stop recursive writing..
+			if (!logToSystemOut)
+  			doRedirects();
 			
 			LGLogger.log( "**** Logging starts ****" );
 			
@@ -136,7 +141,10 @@ LGLoggerImpl
 		String text) 
 	{
 		if ( initialised ){
-			
+			if ( logToSystemOut ){
+			  System.out.println("{" + componentId + ":" + event + ":" + color + "}  " + text);
+			}
+
 			if ( log_to_file ){
 			  int logTypeIndex = 0;
 	  		for (int i = 0; i < components.length; i++) {
