@@ -109,62 +109,46 @@ PEPeerTransportImpl
     connected = false;
     connect_error = false;
     
-		Thread connect = new Thread("Outgoing Socket Connect") {
-			public void run() {
-				Selector sel = null;
-				try {
-				  sel = Selector.open();
-				  
-					socket = SocketChannel.open();
-					
-					socket.configureBlocking(false);
-					
-					socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
-					
-					String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-					if (bindIP.length() > 6) {
-						socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
-					}
-					
-					InetSocketAddress peerAddress = new InetSocketAddress(getIp(), getPort());
-					
-					socket.connect( peerAddress );
-					
-					socket.register( sel, SelectionKey.OP_CONNECT );
-					
-					int keys = sel.select(60*1000); //60 sec timout
-					
-					if ( keys > 0 ) { // Connection established
-
-						if ( socket.finishConnect() ) {
-							connected = true;
-						}
-						else {
-							error_msg = "finishConnect() failed";
-							connect_error = true;
-						}
-	
-					}
-					else {
-						closeConnection();
-						error_msg = "failed to connect within 60 sec";
-						connect_error = true;
-					}
-					
-				} catch (Throwable t) {
-					error_msg = t.getMessage();
-					connect_error = true;
-				} finally {
-					if (sel != null) {
-						try{  sel.close();  } catch (Exception e) { e.printStackTrace(); }
-					}
-				}
+    try {
+      socket = SocketChannel.open();
+      socket.configureBlocking(false);
+			socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
+			
+			String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+			if (bindIP.length() > 6) {
+				socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
 			}
-		};
-		connect.setDaemon( true );
-		connect.start();
-    
+			
+			InetSocketAddress peerAddress = new InetSocketAddress( getIp(), getPort() );
+			socket.connect( peerAddress );
+			
+			OutgoingConnector.addConnection( socket,
+			    new OutgoingConnector.OutgoingConnectorListener() {
+			  			public void done() {
+			  			  try {
+			  			    if ( socket.finishConnect() ) {
+			  			      connected = true;
+			  			    }
+			  			    else {
+			  			      error_msg = "failed to connect within " +OutgoingConnector.TIMEOUT/1000+ " sec";
+			  			      connect_error = true;
+			  			    }
+			  			  }
+			  			  catch (Throwable e) {
+			  			    error_msg = e.getMessage();
+			  			    connect_error = true;
+			  			  }
+			  			}
+					}
+			);
+
+    }
+    catch (Throwable t) {
+			error_msg = t.getMessage();
+			connect_error = true;
+    }
 	}
+
 
   
 	protected void closeConnection() {
