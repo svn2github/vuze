@@ -164,7 +164,7 @@ DownloadManagerImpl
 	 */
 	protected boolean onlySeeding;
 	
-	private int 		state;
+	private int 		state = -1;
 	private boolean 	download_ended;
   
 	private int prevState = -1;
@@ -232,7 +232,8 @@ DownloadManagerImpl
 		readTorrent();
 	
 	  // must be after readTorrent, so that any listeners have a TOTorrent
-		setState( _initialState );
+	  if (state == -1)
+  		setState( _initialState );
     
 	}
 

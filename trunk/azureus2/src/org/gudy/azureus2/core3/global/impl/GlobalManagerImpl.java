@@ -429,6 +429,11 @@ public class GlobalManagerImpl
 	        manager.setPosition(endPosition + 1);
 	      }
 	      
+	      // Even though when the DownloadManager was created, onlySeeding was
+	      // most likely set to true for completed torrents (via the Initializer +
+	      // readTorrent), there's a chance that the torrent file didn't have the
+	      // resume data.  If it didn't, but we marked it as complete in our
+	      // downloads config file, we should set to onlySeeding
 	      manager.setOnlySeeding(isCompleted);
 
         managers.add(manager);
