@@ -1,5 +1,5 @@
 /*
- * File    : RankItem.java
+ * File    : TorrentItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,26 +21,25 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.program.Program;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier
  *
  */
-public class RankItem extends TorrentItem {
+public abstract class TorrentItem extends BufferedTableItem {
+
+  protected DownloadManager manager;
   
-  public void refresh() {
-    setText("" + (manager.getIndex()+1));
-    String name = manager.getName();
-    if (name != null ) {
-      int sep = name.lastIndexOf('.'); //$NON-NLS-1$
-      if(sep < 0) sep = 0;
-      name = name.substring(sep);
-      Program program = Program.findProgram(name);
-      Image icon = ImageRepository.getIconFromProgram(program);
-      setImage(icon);
-    }
+  /**
+   * @param row
+   * @param position
+   */
+  public TorrentItem(DownloadManager manager,BufferedTableRow row, int position) {
+    super(row, position);
+    this.manager = manager;
   }
+
 }
