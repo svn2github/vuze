@@ -68,7 +68,7 @@ class httpPacketReader implements httpConst {
   private SinkIF compQ;
 
   static {
-//    logger.setLevel(org.apache.log4j.Level.DEBUG);
+    logger.setLevel(org.apache.log4j.Level.DEBUG);
   }
 
   /**

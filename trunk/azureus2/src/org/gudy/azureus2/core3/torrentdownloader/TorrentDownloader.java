@@ -51,9 +51,13 @@ public interface TorrentDownloader {
      */
     public java.io.File getFile();
     /**
-     * Returns the amount downloaded in per cent.
+     * Returns the amount downloaded in per cent. Gives -1 if total size is not available.
      */
     public int getPercentDone();
+	/**
+	 * Returns the amount downloaded in bytes.
+	 */
+	public int getTotalRead();
     /**
      * Returns the error string if one occured, "Ok" otherwise.
      */

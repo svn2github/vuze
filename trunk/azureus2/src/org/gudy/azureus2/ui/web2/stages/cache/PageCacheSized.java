@@ -138,8 +138,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
       resourceSink = config.getManager().getStage(RESOURCE_STAGE).getSink();
     } catch (NoSuchStageException ex) {
       resourceSink = null;
-      if (logger.isDebugEnabled())
-        logger.debug("Resource stage not found");
+      logger.error("Warning: Resource stage not found");
     }
 
     if (!missStage) {
