@@ -93,6 +93,25 @@ public class VersionCheckClient {
   
   
   /**
+   * Get the ip address seen by the version check server.
+   * NOTE: This information may be cached, see getVersionCheckInfo().
+   * @return external ip address, or empty string if no address information found
+   */
+  public String getExternalIpAddress() {
+    Map reply = getVersionCheckInfo();
+    
+    byte[] address = (byte[])reply.get("source_ip_address");
+    if( address != null ) {
+      return new String( address );
+    }
+    
+    return new String();
+  }
+  
+  
+  
+  
+  /**
    * Perform the actual version check by connecting to the version server.
    * @param data_to_send version message
    * @return version reply
