@@ -89,4 +89,8 @@ public class PluginInterfaceImpl implements PluginInterface {
     return null;
   }
 
+  public void registerPluginParameter(Parameter toRegister)
+  {
+	// TODO Auto-generated method stub	
+  }
 }

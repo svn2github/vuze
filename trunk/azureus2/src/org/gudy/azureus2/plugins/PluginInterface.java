@@ -82,4 +82,9 @@ public interface PluginInterface {
    * @return
    */
   public PluginConfigUIFactory getPluginConfigUIFactory();
+  
+  /**
+   * TODO : write this
+   */
+  public void registerPluginParameter(Parameter toRegister);
 }
