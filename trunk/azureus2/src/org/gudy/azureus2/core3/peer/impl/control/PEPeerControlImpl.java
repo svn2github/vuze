@@ -76,7 +76,14 @@ PEPeerControlImpl
   private PeerUpdater peerUpdater;
   
   private int nbHashFails;
-  private static final int MAINLOOP_WAIT_TIME   = 500;
+  
+  /**
+   * The loop time is a potential bottleneck for one-to-one xfers:
+   * 500ms = 400kbs, 100ms = 600kbs, 50ms = 625kbs in testing.
+   * The bottleneck method(s) should be moved away from a timed loop someday.
+   */
+  private static final int MAINLOOP_WAIT_TIME   = 100;
+  
   private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; //every 10s
   private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; //every 30s
 
