@@ -135,12 +135,12 @@ public class FileUtil {
       if (f.isDirectory()) {
         File[] files = f.listFiles();
         for (int i = 0; i < files.length; i++) {
-          recursiveDelete(files[i]);
+          recursiveDirDelete(files[i]);
         }
         f.delete();
       }
 
-    } catch (Exception ignore) {/*ignore*/}
+    } catch (Exception e) { Debug.out(e.toString()); }
   }
   
   
