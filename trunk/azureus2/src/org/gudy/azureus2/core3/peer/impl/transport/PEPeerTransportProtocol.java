@@ -1083,7 +1083,7 @@ PEPeerTransportProtocol
     
     supported_messages = (Message[])messages.toArray( new Message[0] );
 
-    System.out.println( "[" +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
+    System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
 
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
     last_data_message_received_time = SystemTime.getCurrentTime();
