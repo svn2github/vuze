@@ -188,7 +188,7 @@ TorrentUtils
 			        
 		}else if ( reason == TOTorrentException.RT_DECODE_FAILS ){
 	 
-			errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo"); //$NON-NLS-1$
+			errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo" ) + " (" + e.getMessage() + ")"; 
 	 		        
 		}else if ( reason == TOTorrentException.RT_UNSUPPORTED_ENCODING ){
 	 	     		

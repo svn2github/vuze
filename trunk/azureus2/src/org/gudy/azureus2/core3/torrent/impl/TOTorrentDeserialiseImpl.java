@@ -123,13 +123,47 @@ TOTorrentDeserialiseImpl
 			
 			// do a check to see if it's a BEncode file.
 			int iFirstByte = is.read();
-			if (iFirstByte != 'd' &&
-			    iFirstByte != 'e' &&
-			    iFirstByte != 'i' &&
-			    !(iFirstByte >= '0' && iFirstByte <= '9')) {
-  			throw( new TOTorrentException( "TOTorrentDeserialise: Not BEncoded",
-	  										TOTorrentException.RT_DECODE_FAILS ));
-      }
+			
+			if (	iFirstByte != 'd' &&
+					iFirstByte != 'e' &&
+					iFirstByte != 'i' &&
+					!(iFirstByte >= '0' && iFirstByte <= '9')){
+				
+					// often people download an HTML file by accident - if it looks like HTML
+					// then produce a more informative 
+				
+				try{
+					metaInfo.write(iFirstByte);
+					
+					int nbRead;
+							
+					while ((nbRead = is.read(buf)) > 0 && metaInfo.size() < 32000 ){
+						
+						metaInfo.write(buf, 0, nbRead);
+					}
+					
+					String	char_data = new String( metaInfo.toByteArray()).toLowerCase();
+					
+					if ( char_data.indexOf( "html") != -1 ){
+						
+						throw( 	new TOTorrentException( 
+									"Contents maybe HTML",
+									TOTorrentException.RT_DECODE_FAILS ));
+					}
+				}catch( Throwable e ){
+				
+					if ( e instanceof TOTorrentException ){
+						
+						throw((TOTorrentException)e);
+					}
+					
+						// ignore this
+				}
+				
+				throw( new TOTorrentException( "Contents invalid - bad header",
+						TOTorrentException.RT_DECODE_FAILS ));
+      
+			}
 			      
 			    
 			
@@ -165,7 +199,7 @@ TOTorrentDeserialiseImpl
 			
 		}catch( IOException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: decode fails: " + e.getMessage(),
+			throw( new TOTorrentException( 	"IO Error: " + e.getMessage(),
 											TOTorrentException.RT_DECODE_FAILS ));
 		}
 	}
@@ -368,14 +402,14 @@ TOTorrentDeserialiseImpl
 						setAnnounceURL( sets[0].getAnnounceURLs()[0]);
 					}else{
 						
-						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "' and no usable announce list",
+						throw( new TOTorrentException( 	"ANNOUNCE_URL malformed ('" + announce_url + "' and no usable announce list",
 														TOTorrentException.RT_DECODE_FAILS ));
 						
 					}
 					
 				}else{
 			
-					throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "'",
+					throw( new TOTorrentException( 	"ANNOUNCE_URL malformed ('" + announce_url + "'",
 													TOTorrentException.RT_DECODE_FAILS ));
 				}
 			}
@@ -384,7 +418,7 @@ TOTorrentDeserialiseImpl
 
 			if ( info == null ){
 				
-				throw( new TOTorrentException( "TOTorrentDeserialise: deserialisation fails, 'info' element not found'",
+				throw( new TOTorrentException( "Decode fails, 'info' element not found'",
 												TOTorrentException.RT_DECODE_FAILS ));
 			}
 		
@@ -489,7 +523,7 @@ TOTorrentDeserialiseImpl
 				throw((TOTorrentException)e);	
 			}
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: deserialisation fails '" + e.toString() + "'",
+			throw( new TOTorrentException( "Decode fails '" + e.toString() + "'",
 											TOTorrentException.RT_DECODE_FAILS ));
 		}
 	}

@@ -122,6 +122,17 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       
       con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
       
+     /*
+      String	referrer = url.toString();
+      int		x_pos	= referrer.indexOf( "://" );
+      x_pos	= referrer.indexOf( "/", x_pos+3);
+      referrer.substring(0,x_pos+1);
+      
+      referrer = "http://69.50.168.139/";
+      
+      con.setRequestProperty( "Referer", referrer );
+     */
+      
       this.con.connect();
 
       int response = this.con.getResponseCode();
