@@ -128,10 +128,15 @@ PEPeerTransport
   
   /**
    * Get the time since the last (most-recent) data (payload) message was received.
-   * NOTE: Received time is initialized to current time only when their handshake is
-   * processed, so this method will always return 0 at any time before that.
-   * @return time count in ms
+   * @return time count in ms, or -1 if we've never received a data message from them
    */
   public long getTimeSinceLastDataMessageReceived();
+  
+  
+  /**
+   * Get the time since the last (most-recent) data (payload) message was sent.
+   * @return time count in ms, or -1 if we've never sent them a data message
+   */
+  public long getTimeSinceLastDataMessageSent();
   
 }

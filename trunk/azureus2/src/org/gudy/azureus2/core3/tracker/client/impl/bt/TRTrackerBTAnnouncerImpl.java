@@ -1530,7 +1530,7 @@ TRTrackerBTAnnouncerImpl
     	
       //calculate how many peers we should ask for
     	
-      int numwant = calculateNumWant() * 2; //send 2X as usually 50% of peers are firewalled
+      int numwant = calculateNumWant();
 
 
       request.append("&numwant=" + numwant);

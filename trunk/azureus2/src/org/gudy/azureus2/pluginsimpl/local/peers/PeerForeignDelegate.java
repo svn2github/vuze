@@ -190,10 +190,10 @@ PeerForeignDelegate
     return 0;
   }
   
-  
-  
-  
-	
+  public long getTimeSinceLastDataMessageSent() {
+    return 0;
+  }
+
 		// PEPeer stuff
 	
 	public PEPeerManager

@@ -38,6 +38,8 @@ CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [Cra
 CHANGE: UI   | Main menu bar should now be more streamlined in its arrangement [CrazyAlchemist]
 CHANGE: UI   | Console view will now display information logged (for the duration of the application session) when the Console view is closed [CrazyAlchemist]
 CHANGE: Core | Network IP_TOS option now sets required registry setting under Win2K/XP [Parg, Nolar]
+CHANGE: Core | Favor establishing inbound peer connections, to increase the health of swarms with firewalled clients [Nolar]
+CHANGE: Core | Improved seeding unchoking algorithm: distributes data more evenly [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
@@ -52,7 +54,7 @@ BUGFIX: UI   | In My Torrents, a category view will no longer prevent its corres
 BUGFIX: UI   | Download bars should no longer disappear when the main window is minimized (Mac OS X) [CrazyAlchemist]
 BUGFIX: UI   | Certain table column contents no longer 'disappear' when a row is selected (Mac OS X) [CrazyAlchemist]
 BUGFIX: Core | Send uninterested message when complete while using do-not-download feature [Nolar]
-
+BUGFIX: Core | Optimistic Connect, when seeding, no longer drops just random connections [Nolar]
 
 
 

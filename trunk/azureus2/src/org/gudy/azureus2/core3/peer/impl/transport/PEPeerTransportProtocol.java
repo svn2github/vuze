@@ -109,7 +109,8 @@ PEPeerTransportProtocol
 
   private long last_message_sent_time = 0;
   private long last_message_received_time = 0;
-  private long last_data_message_received_time = 0;
+  private long last_data_message_received_time = -1;
+  private long last_data_message_sent_time = -1;
   
   private long connection_established_time = 0;
 
@@ -191,7 +192,7 @@ PEPeerTransportProtocol
       }
       
       public void exceptionThrown( Throwable error ) {
-        closeConnection( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true );
+        closeConnection( "connection exception: " + error.getMessage(), true );
       }
     });
   }
@@ -209,7 +210,7 @@ PEPeerTransportProtocol
     peer_stats = manager.createPeerStats();
     
     if( port < 0 || port > 65535 ) {
-      closeConnection( "Given remote port is invalid: " + port, false );
+      closeConnection( "given remote port is invalid: " + port, false );
       return;
     }
 
@@ -235,11 +236,11 @@ PEPeerTransportProtocol
       }
         
       public void connectFailure( Throwable failure_msg ) {
-        closeConnection( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), false );
+        closeConnection( "failed to establish outgoing connection: " + failure_msg.getMessage(), false );
       }
         
       public void exceptionThrown( Throwable error ) {
-        closeConnection( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true );
+        closeConnection( "connection exception: " + error.getMessage(), true );
       }
     });
       
@@ -906,7 +907,7 @@ PEPeerTransportProtocol
       }
       
       if( dead_time > 5*60*1000 ) { //5min timeout
-        closeConnection( toString() + ": Timed out while waiting for messages", true );
+        closeConnection( "timed out while waiting for messages", true );
         return true;
       }
     }
@@ -920,7 +921,7 @@ PEPeerTransportProtocol
       }
       
       if( wait_time > 3*60*1000 ) { //3min timeout
-        closeConnection( toString() + ": Timed out while waiting for handshake", true );
+        closeConnection( "timed out while waiting for handshake", true );
         return true;
       }
     }
@@ -979,20 +980,41 @@ PEPeerTransportProtocol
   public int getConnectionState() {  return connection_state;  }
   
   
+  
+  
   public long getTimeSinceLastDataMessageReceived() {
-    if( last_data_message_received_time == 0 ) {  //fudge it while we're still handshaking
-      return 0;
+    if( last_data_message_received_time == -1 ) {  //never received
+      return -1;
     }
     
-    long time = SystemTime.getCurrentTime() - last_data_message_received_time;
+    long time_since = SystemTime.getCurrentTime() - last_data_message_received_time;
     
-    if( time < 0 ) {  //time went backwards
+    if( time_since < 0 ) {  //time went backwards
       last_data_message_received_time = SystemTime.getCurrentTime();
-      time = 0;
+      time_since = 0;
     }
     
-    return time;
+    return time_since;    
   }
+  
+  
+  
+  public long getTimeSinceLastDataMessageSent() {
+    if( last_data_message_sent_time == -1 ) {  //never sent
+      return -1;
+    }
+    
+    long time_since = SystemTime.getCurrentTime() - last_data_message_sent_time;
+    
+    if( time_since < 0 ) {  //time went backwards
+      last_data_message_sent_time = SystemTime.getCurrentTime();
+      time_since = 0;
+    }
+    
+    return time_since;    
+  }
+  
+  
   
   
   public long getTimeSinceConnectionEstablished() {
@@ -1015,7 +1037,7 @@ PEPeerTransportProtocol
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
       
     if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
-      closeConnection( toString() + " has sent handshake, but infohash is wrong", false );
+      closeConnection( "handshake has wrong infohash", false );
       handshake.destroy();
       return;
     }
@@ -1027,14 +1049,14 @@ PEPeerTransportProtocol
 
     //make sure the client type is not banned
     if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-      closeConnection( toString() + ": " +client+ " client type not allowed to connect, banned", false );
+      closeConnection( client+ " client type not allowed to connect, banned", false );
       handshake.destroy();
       return;
     }
 
     //make sure we are not connected to ourselves
     if( Arrays.equals( manager.getPeerId(), peer_id ) ) {
-      closeConnection( toString() + ": peerID matches myself", false );
+      closeConnection( "given peer id matches myself", false );
       handshake.destroy();
       return;
     }
@@ -1053,13 +1075,13 @@ PEPeerTransportProtocol
     }
       
     if( sameIdentity ) {
-      closeConnection( toString() + " exchanged handshake, but peer matches pre-existing identity", false );
+      closeConnection( "peer matches already-connected peer id", false );
       handshake.destroy();
       return;
     }
     
     if( sameIP ) {
-      closeConnection( toString() + " exchanged handshake, but peer matches pre-existing IP address", false );
+      closeConnection( "peer matches already-connected IP address, duplicate connections not allowed", false );
       handshake.destroy();
       return;
     }
@@ -1067,7 +1089,7 @@ PEPeerTransportProtocol
     //make sure we haven't reached our connection limit
     int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
     if( maxAllowed == 0 ) {
-      closeConnection( toString() + ": Too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ "]", false );
+      closeConnection( "too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ " / " +maxAllowed+ "]", false );
       handshake.destroy();
       return;
     }
@@ -1126,10 +1148,7 @@ PEPeerTransportProtocol
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
      
       connection.getIncomingMessageQueue().startQueueProcessing();  //since BT decoder is auto-paused after initial handshake
-      
-      //fudge to ensure optimistic-connect code processes connections that have never sent a data message
-      last_data_message_received_time = SystemTime.getCurrentTime();
-       
+             
       changePeerState( PEPeer.TRANSFERING );
       
       connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
@@ -1181,9 +1200,6 @@ PEPeerTransportProtocol
     if( mutual.length() > 2 ) {
       System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
     }
-
-    //fudge to ensure optimistic-connect code processes connections that have never sent a data message
-    last_data_message_received_time = SystemTime.getCurrentTime();
      
     changePeerState( PEPeer.TRANSFERING );
     
@@ -1267,7 +1283,7 @@ PEPeerTransportProtocol
     int piece_number = have.getPieceNumber();
     
     if ((piece_number >= other_peer_has_pieces.length) || (piece_number < 0)) {
-      closeConnection( toString() + " gave invalid piece_number: " + piece_number, true );
+      closeConnection( "invalid piece_number: " + piece_number, true );
       have.destroy();
       return;
     }
@@ -1294,7 +1310,7 @@ PEPeerTransportProtocol
     int length = request.getLength();
     
     if( !manager.checkBlock( number, offset, length ) ) {
-      closeConnection( toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " which is an invalid request.", true );
+      closeConnection( "request #" + number + ":" + offset + "->" + (offset + length) + " is an invalid request", true );
       request.destroy();
       return;
     }
@@ -1312,8 +1328,6 @@ PEPeerTransportProtocol
   
   
   private void decodePiece( BTPiece piece ) {
-    last_data_message_received_time = SystemTime.getCurrentTime();
-    
     int number = piece.getPieceNumber();
     int offset = piece.getPieceOffset();
     DirectByteBuffer payload = piece.getPieceData();
@@ -1436,6 +1450,9 @@ PEPeerTransportProtocol
         LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, "Received message [" +message.getDescription()+ "] from " +PEPeerTransportProtocol.this );
         
         last_message_received_time = SystemTime.getCurrentTime();
+        if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+          last_data_message_received_time = SystemTime.getCurrentTime();
+        }
         
         if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
           decodeBTHandshake( (BTHandshake)message );
@@ -1527,6 +1544,9 @@ PEPeerTransportProtocol
       public void messageSent( Message message ) {
         //update keep-alive info
         last_message_sent_time = SystemTime.getCurrentTime();
+        if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+          last_data_message_sent_time = SystemTime.getCurrentTime();
+        }
         LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
       }
   
