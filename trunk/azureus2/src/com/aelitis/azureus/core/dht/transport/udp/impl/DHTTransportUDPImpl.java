@@ -916,28 +916,40 @@ DHTTransportUDPImpl
 			
 				packet_count++;
 				
-						// get a reasonable starting size (currently 8192-200)
+						// get a reasonable starting size (currently 8192-512)
 				
 				int	space = DHTUDPPacket.PACKET_MAX_BYTES - 512;
 				
 				List	key_list	= new ArrayList();
 				List	values_list	= new ArrayList();
-				
+								
 				key_list.add( keys[current_key_index]);
 				
 				space -= ( keys[current_key_index].length + 1 );	// 1 for length marker
 				
 				values_list.add( new ArrayList());
 				
-				while( space > 0 &&  current_key_index < keys.length ){
+				while( 	space > 0 &&  
+						current_key_index < keys.length ){
 					
 					if ( current_value_index == value_sets[current_key_index].length ){
+						
+							// all values from the current key have been processed
 						
 						current_key_index++;
 						
 						current_value_index	= 0;
 						
+						if ( key_list.size() == DHTUDPPacketRequestStore.MAX_KEYS_PER_PACKET ){
+							
+								// no more keys allowed in this packet
+								
+							break;
+						}
+							
 						if ( current_key_index == keys.length ){
+						
+								// no more keys left, job done
 							
 							break;
 						}
@@ -953,12 +965,18 @@ DHTTransportUDPImpl
 					
 					int	entry_size = DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + value.getValue().length;
 					
-					if ( space < entry_size ){
+					List	values = (List)values_list.get(values_list.size()-1);
+					
+					if ( 	space < entry_size || 
+							values.size() == DHTUDPPacketRequestStore.MAX_VALUES_PER_KEY ){
+						
+							// no space left or we've used up our limit on the
+							// number of values permitted per key
 						
 						break;
 					}
 					
-					((List)values_list.get(values_list.size()-1)).add( value );
+					values.add( value );
 					
 					space -= entry_size;
 					

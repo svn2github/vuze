@@ -39,6 +39,9 @@ public class
 DHTUDPPacketRequestStore 
 	extends DHTUDPPacketRequest
 {
+	public static final int	MAX_KEYS_PER_PACKET		= 255; // 1 byte DHTUDPPacket.PACKET_MAX_BYTES / 20;
+	public static final int	MAX_VALUES_PER_KEY		= 255; // 1 byte DHTUDPPacket.PACKET_MAX_BYTES / DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE;
+	
 	private byte[][]				keys;
 	private	DHTTransportValue[][]	value_sets;
 	
@@ -61,11 +64,11 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		keys		= DHTUDPUtils.deserialiseByteArrayArray( is, 64 );
+		keys		= DHTUDPUtils.deserialiseByteArrayArray( is, MAX_KEYS_PER_PACKET );
 		
 			// times receieved are adjusted by + skew
 				
-		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( transport, is, getClockSkew(), 64);
+		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( transport, is, getClockSkew(), MAX_VALUES_PER_KEY );
 	}
 	
 	public void
@@ -76,10 +79,10 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseByteArrayArray( os, keys, 64 );
+		DHTUDPUtils.serialiseByteArrayArray( os, keys, MAX_KEYS_PER_PACKET );
 		
 		try{
-			DHTUDPUtils.serialiseTransportValuesArray( os, value_sets, 0, 64 );
+			DHTUDPUtils.serialiseTransportValuesArray( os, value_sets, 0, MAX_VALUES_PER_KEY );
 			
 		}catch( DHTTransportException e ){
 			
