@@ -61,12 +61,13 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     MainWindow.getWindow().setConsole(null);
     consoleText.dispose();
     Logger.getLogger().removeListener();
+    /*
     if (colors != null) {
       for (int i = 3; i < colors.length; i++) {
         if (colors[i] != null && !colors[i].isDisposed())
           colors[i].dispose();
       }
-    }
+    }*/
 
   }
 
@@ -109,12 +110,12 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
           consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), ""); //$NON-NLS-1$
         Calendar now = GregorianCalendar.getInstance();        
         String timeStamp =
-          "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-        nbLines = consoleText.getLineCount();
+          "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
-        consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);
+        nbLines = consoleText.getLineCount();
+        consoleText.setLineBackground(nbLines - 2, 1, colors[_color]);
         if (autoScroll)
-          consoleText.setTopIndex(nbLines);
+          consoleText.setTopIndex(nbLines-1);
       }
     });
   }
