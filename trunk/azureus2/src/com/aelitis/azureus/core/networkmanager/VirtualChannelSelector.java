@@ -405,7 +405,7 @@ public class VirtualChannelSelector {
         if( INTEREST_OP == OP_READ )  op_type = "OP_READ";
         if( INTEREST_OP == OP_WRITE ) op_type = "OP_WRITE";
         
-        Debug.out( "Spinning keys detected for " +op_type+ ": " +selector_guard.getSpinningKeyReport() );
+        Debug.out( "Possible spinning keys detected for " +op_type+ ": " +selector_guard.getSpinningKeyReport() );
       }
       
       
