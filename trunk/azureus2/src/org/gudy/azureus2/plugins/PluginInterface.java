@@ -267,6 +267,9 @@ public interface PluginInterface {
   public Plugin
   getPlugin();
   
+  public boolean
+  isUnloadable();
+  
   public void
   unload()
   

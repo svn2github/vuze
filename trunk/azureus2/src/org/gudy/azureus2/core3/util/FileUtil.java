@@ -483,6 +483,44 @@ public class FileUtil {
       }
     }
     
+    public static void 
+	copyFile( 
+		InputStream		is,
+		OutputStream	os )
+	
+		throws IOException
+	{
+    	try{
+    		
+    		if ( !(is instanceof BufferedInputStream )){
+    			
+    			is = new BufferedInputStream(is);
+    		}
+    		
+    		byte[]	buffer = new byte[65536];
+			
+    		while(true){
+    			
+    			int	len = is.read(buffer);
+    			
+    			if ( len == -1 ){
+    				
+    				break;
+    			}
+    			
+    			os.write( buffer, 0, len );
+    		}
+    	}finally{
+    		try{
+    			is.close();
+    		}catch( IOException e ){
+    			
+    		}
+    		
+    		os.close();
+    	}
+	}
+    
     
     /**
      * Returns the file handle for the given filename or it's

@@ -315,6 +315,12 @@ PluginInterfaceImpl
   	return( PeerProtocolManagerImpl.getSingleton());
   }
   
+  public boolean
+  isUnloadable()
+  {
+  	return( plugin instanceof UnloadablePlugin );
+  }
+  
   public void
   unload()
   

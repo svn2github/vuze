@@ -387,6 +387,14 @@ RPPluginInterface
 	}
 
 	
+	public boolean
+	isUnloadable()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public void
 	unload()
 	  

@@ -31,6 +31,8 @@ import java.util.*;
 import java.net.URL;
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.FileUtil;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
@@ -263,8 +265,6 @@ PluginUpdatePlugin
 										(plugin_names.length()==0?"":"(" + plugin_names + ") " ) +
 										"is available. ";
 						
-						log.logAlert( LoggerChannel.LT_INFORMATION, msg +"See View->Plugins->Plugin Update");
-						
 						log.log( LoggerChannel.LT_INFORMATION, "" );
 						
 						log.log( 	LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
@@ -330,7 +330,7 @@ PluginUpdatePlugin
 								update_d,
 								sf_plugin_version,
 								rdl,
-								Update.RESTART_REQUIRED_MAYBE );			
+								pi.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );			
 					}
 				}catch( Throwable e ){
 					
@@ -368,6 +368,41 @@ PluginUpdatePlugin
 			// need to remove any zip paths to ensure it ends up in the right place
 			// There's also the issue of overwriting stuff like "plugin.properties"
 			// and any other config files....
+		
+		if ( download.toLowerCase().endsWith(".jar")){
+			
+			String	target = plugin.getPluginDirectoryName() + File.separator + 
+								plugin.getPluginID() + "_" + version + ".jar";
+			
+			System.out.println( "target = " + target );
+			
+			try{				
+				FileUtil.copyFile( data, new FileOutputStream(target));
+			
+				if ( plugin.isUnloadable()){
+					
+					plugin.reload();
+				}
+				
+				String msg =   "Version " + version + " of plugin '" + 
+								plugin.getPluginID() + "' " +
+								"installed successfully";
+
+				log.logAlert( LoggerChannel.LT_INFORMATION, msg );
+				
+			}catch( Throwable e ){
+							
+				String msg =   "Version " + version + " of plugin '" + 
+								plugin.getPluginID() + "' " +
+								"failed to install" + (e.getMessage());
+
+				log.log( msg, e );
+				
+				log.logAlert( LoggerChannel.LT_ERROR, msg );
+			}
+		}
+		
+		// TODO: zip installs!!!!
 	}
 	
 	protected void
