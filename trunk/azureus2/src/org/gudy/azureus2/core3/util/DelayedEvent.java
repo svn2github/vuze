@@ -31,8 +31,8 @@ DelayedEvent
 {
 	public
 	DelayedEvent(
-		long			delay_millis,
-		final Runnable	target )
+		long				delay_millis,
+		final AERunnable	target )
 	{		
 		SimpleTimer.addEvent( SystemTime.getCurrentTime() + delay_millis,
 						new TimerEventPerformer()

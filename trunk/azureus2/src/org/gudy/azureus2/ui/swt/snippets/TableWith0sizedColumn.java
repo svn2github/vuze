@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 
 /**
@@ -51,8 +52,8 @@ public class TableWith0sizedColumn {
         t[0] = 0;
         while(!display.isDisposed()) {
           t[0]++;
-          display.asyncExec(new Runnable() {
-            public void run() {
+          display.asyncExec(new AERunnable(){
+            public void runSupport() {
               if(table.isDisposed())
                 return;
               TableItem[] items = table.getItems();

@@ -31,6 +31,8 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
 import com.aelitis.azureus.core.*;
+
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -89,7 +91,7 @@ public class SplashWindow implements AzureusCoreListener {
   
   public static void create(final Display display,final Initializer initializer) {
     if(display != null && !display.isDisposed()) {
-      display.asyncExec(new Runnable() { public void run() {new SplashWindow(display,initializer);}});
+      display.asyncExec(new AERunnable() { public void runSupport() {new SplashWindow(display,initializer);}});
     }    
   }
   
@@ -117,8 +119,8 @@ public class SplashWindow implements AzureusCoreListener {
       return;
     
     //Post runnable to SWTThread
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         //Ensure than the task Label is created and not disposed
         if(currentTask == null || currentTask.isDisposed())
           return;
@@ -133,8 +135,8 @@ public class SplashWindow implements AzureusCoreListener {
       return;
     
     //Post runnable to SWTThread
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         //Ensure than the percentDone ProgressBar is created and not disposed
         if(percentDone == null || percentDone.isDisposed())
           return;

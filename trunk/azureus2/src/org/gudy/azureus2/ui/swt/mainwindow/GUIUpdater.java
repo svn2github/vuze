@@ -91,8 +91,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   private void update() {
     refreshed = false;
     if (display != null && !display.isDisposed())
-      display.asyncExec(new Runnable() {
-      public void run() {
+      display.asyncExec(new AERunnable(){
+      public void runSupport() {
         try {
           IView view = null;
           if (!mainWindow.getShell().isDisposed() && mainWindow.isVisible() && !mainWindow.getShell().getMinimized()) {

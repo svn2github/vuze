@@ -91,7 +91,7 @@ ThreadPool
 	
 	public threadPoolWorker
 	run(
-		Runnable	runnable )
+		AERunnable	runnable )
 	{
 		// System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue());
 		
@@ -150,7 +150,7 @@ ThreadPool
 							Debug.out( x.getWorkerName() + ": interrupting" );
 						}
 						
-						Runnable r = x.runnable;
+						AERunnable r = x.runnable;
 
 						try{
 							if ( r instanceof ThreadPoolTask ){
@@ -180,9 +180,9 @@ ThreadPool
 		
 		protected AESemaphore my_sem = new AESemaphore("TPWorker");
 		
-		protected Runnable	runnable;
-		protected long		run_start_time;
-		protected int		warn_count;
+		protected AERunnable	runnable;
+		protected long			run_start_time;
+		protected int			warn_count;
 		
 		protected String	state	= "<none>";
 		
@@ -331,7 +331,7 @@ outer:
 		
 		protected void
 		run(
-			Runnable	_runnable )
+			AERunnable	_runnable )
 		{
 			runnable	= _runnable;
 			

@@ -177,10 +177,10 @@ SSDPImpl
 		
 						upnp.getPluginInterface().getUtilities().createThread(
 							"SSDP:listener",
-							new Runnable()
+							new AERunnable()
 							{
 								public void
-								run()
+								runSupport()
 								{
 									handleSocket( ni_address, control_socket );
 								}
@@ -195,10 +195,10 @@ SSDPImpl
 		
 			upnp.getPluginInterface().getUtilities().createThread(
 					"SSDP:queryLoop",
-					new Runnable()
+					new AERunnable()
 					{
 						public void
-						run()
+						runSupport()
 						{
 							queryLoop();
 						}	

@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.animations.shell;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 
 /**
@@ -89,8 +90,8 @@ public class LinearAnimator extends Animator{
       return;
     final int x = startX + ((endX - startX) * step ) / nbSteps;
     final int y = startY + ((endY - startY) * step ) / nbSteps;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
        shell.getShell().setLocation(x,y);
       }    
     });

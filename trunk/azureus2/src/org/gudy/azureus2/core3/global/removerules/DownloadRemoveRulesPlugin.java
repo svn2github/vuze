@@ -94,10 +94,10 @@ DownloadRemoveRulesPlugin
 
 		new DelayedEvent(
 				INITIAL_DELAY,
-				new Runnable()
+				new AERunnable()
 				{
 					public void
-					run()
+					runSupport()
 					{		
 						plugin_interface.getDownloadManager().addListener( DownloadRemoveRulesPlugin.this );
 					}
@@ -273,10 +273,10 @@ DownloadRemoveRulesPlugin
 		
 		plugin_interface.getUtilities().createThread( 
 			"delayedRemoval",
-			new Runnable()
+			new AERunnable()
 			{
 				public void
-				run()
+				runSupport()
 				{
 					try{
 						Thread.sleep(DELAYED_REMOVAL_PERIOD);

@@ -257,8 +257,8 @@ public class NatPanel extends AbstractWizardPanel {
     Display display = wizard.getDisplay();
     if (display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         if (textResults == null || textResults.isDisposed())
           return;
         textResults.append(message);
@@ -270,8 +270,8 @@ public class NatPanel extends AbstractWizardPanel {
     Display display = wizard.getDisplay();
     if (display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         wizard.setNextEnabled(true);
         bTest.setEnabled(true);
         bCancel.setEnabled(false);

@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
@@ -66,8 +67,8 @@ public class TestWindow extends PopupShell implements AnimableShell {
       return;
     }
     if(nbAnimation == 2) {
-     shell.getDisplay().asyncExec(new Runnable() {
-      public void run() {
+     shell.getDisplay().asyncExec(new AERunnable() {
+      public void runSupport() {
         shell.dispose();
       }
     });

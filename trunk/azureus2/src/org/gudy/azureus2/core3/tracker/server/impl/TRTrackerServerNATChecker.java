@@ -191,7 +191,7 @@ TRTrackerServerNATChecker
 						protected	Socket	socket;
 						
 						public void
-						run()
+						runSupport()
 						{
 							boolean	ok = false;
 														

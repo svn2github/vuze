@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
@@ -65,7 +66,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  * @author Olivier Chalouhi
  *
  */
-public class UpdateWindow implements Runnable, ResourceDownloaderListener{
+public class 
+UpdateWindow
+	extends 	AERunnable
+	implements 	ResourceDownloaderListener{
   
   private AzureusCore			azureus_core;
   private UpdateCheckInstance	check_instance;
@@ -112,7 +116,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   }
   
   //The Shell creation process
-  public void run() {
+  public void runSupport() {
     if(display == null || display.isDisposed())
       return;
     
@@ -265,8 +269,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
   
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         if(table == null || table.isDisposed())
           return;
         
@@ -389,8 +393,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
       	checkRestartNeeded();	// gotta recheck coz a maybe might have got to yes
         progress.setSelection(100);
         status.setText(MessageText.getString("swt.update.window.status.done"));
@@ -420,8 +424,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         if(progress != null && !progress.isDisposed())
         progress.setSelection(percent);
       }
@@ -462,8 +466,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         if(status != null && !status.isDisposed())
           status.setText(text);
       }
@@ -474,8 +478,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         if(stDescription != null && !stDescription.isDisposed())
           stDescription.append(text + "\n");
       }

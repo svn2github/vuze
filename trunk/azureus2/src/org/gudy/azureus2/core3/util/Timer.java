@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.util;
 import java.util.*;
 
 public class Timer
-	implements Runnable
+	extends AERunnable
 {	
 	protected ThreadPool	thread_pool;
 		
@@ -61,7 +61,7 @@ public class Timer
 	}
 	
 	public void
-	run()
+	runSupport()
 	{
 		while( true ){
 			

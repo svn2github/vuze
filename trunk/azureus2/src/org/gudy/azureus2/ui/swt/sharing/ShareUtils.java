@@ -55,8 +55,8 @@ ShareUtils
 				final AESemaphore	sem = new AESemaphore("ShareUtils:file");
         
 					
-				display.asyncExec(new Runnable() {
-					public void run()
+				display.asyncExec(new AERunnable() {
+					public void runSupport()
 					{
 						try{
 							FileDialog dialog = new FileDialog(shell, SWT.SYSTEM_MODAL | SWT.OPEN);
@@ -117,8 +117,8 @@ ShareUtils
 				final String[] path = { null };
 				final AESemaphore	sem = new AESemaphore("ShareUtils:dir");
 				
-				display.asyncExec(new Runnable() {
-					public void run()
+				display.asyncExec(new AERunnable() {
+					public void runSupport()
 					{
 						try{
 							DirectoryDialog dialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);

@@ -14,6 +14,7 @@ import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
@@ -60,8 +61,8 @@ public class CarbonUIEnhancer {
    public void earlyStartup() {
       final Display display= Display.getDefault();
       display.syncExec(
-         new Runnable() {
-            public void run() {
+      		new AERunnable() {
+            public void runSupport() {
                hookApplicationMenu(display);
             }
          }
@@ -127,8 +128,8 @@ public class CarbonUIEnhancer {
 
       // schedule disposal of callback object
       display.disposeExec(
-         new Runnable() {
-            public void run() {
+         new AERunnable() {
+            public void runSupport() {
                commandCallback.dispose();
             }
          }

@@ -72,7 +72,7 @@ TRTrackerServerProcessorTCP
 	}
 	
 	public void
-	run()
+	runSupport()
 	{
 		try{
 	

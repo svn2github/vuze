@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
@@ -170,8 +171,8 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   
   private void update() {
     if(display != null && ! display.isDisposed()) {
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
           int percentDone = downloader.getPercentDone();
           if(progressBar != null && !progressBar.isDisposed()) {
             progressBar.setSelection(percentDone);

@@ -823,8 +823,8 @@ public class TableView
 	      final Display display = panel.getDisplay();
 	      // syncExec is evil because we eventually end up in a sync lock.
 	      // So, use async, then wait for it to finish
-	      display.asyncExec(new Runnable() {
-	        public void run() {
+	      display.asyncExec(new AERunnable() {
+	        public void runSupport() {
 	          TableRowImpl row = new TableRowImpl(TableView.this, dataSource, 
 	                                              bSkipFirstColumn);
 	

@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.swt.auth;
  */
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -62,10 +63,10 @@ CertificateCreatorWindow
 		
 		try{
 			display.asyncExec(
-					new Runnable()
+					new AERunnable()
 					{
 						public void
-						run()
+						runSupport()
 						{
 							 new createDialog( display );
 						}

@@ -101,10 +101,10 @@ ConcurrentHasher
 						}
 						
 						pool.run( 
-								new Runnable()
+								new AERunnable()
 								{
 									public void
-									run()
+									runSupport()
 									{
 										try{											
 											req.run( hasher );

@@ -169,8 +169,8 @@ public class AboutWindow {
             finished[0] = true;
             break;
           }
-          display.asyncExec(new Runnable() {
-            public void run() {
+          display.asyncExec(new AERunnable() {
+            public void runSupport() {
               if(labelImage.isDisposed())
                 return;
               GC gcImage = new GC(labelImage);

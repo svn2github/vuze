@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -89,8 +90,8 @@ public class TorrentOpener {
   {
     //catch a http url
     if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
-      Runnable r = new Runnable() {
-        public void run() {
+      AERunnable r = new AERunnable() {
+        public void runSupport() {
           openUrl( azureus_core, fileName );
         }
       };
@@ -118,8 +119,8 @@ public class TorrentOpener {
     }
 
     if(display != null && ! display.isDisposed())
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable(){
+        public void runSupport() {
           if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
             mainWindow.setActive();
           
@@ -202,8 +203,8 @@ public class TorrentOpener {
 
       final AESemaphore sem = new AESemaphore("TorrentOpener");
     
-      display.asyncExec(new Runnable() {
-        public void run()
+      display.asyncExec(new AERunnable() {
+        public void runSupport()
         {
           try{
             if (f_singleFile) {
@@ -256,8 +257,8 @@ public class TorrentOpener {
     final boolean useDefault,
     final boolean forSeeding )
   {
-  display.asyncExec(new Runnable() {
-     public void run()
+  display.asyncExec(new AERunnable(){
+     public void runSupport()
      {
        mainWindow.setActive();
 

@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -568,8 +569,8 @@ public class MainMenu {
     if (display == null || display.isDisposed())
       return;
 
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         createLanguageMenu();
         if (MessageText.changeLocale(MessageText.getCurrentLocale(), true)) {
           setSelectedLanguageItem(selectedLanguageItem);
@@ -579,8 +580,8 @@ public class MainMenu {
   }
   
   public void addPluginView(final PluginView view) {
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         MenuItem item = new MenuItem(pluginMenu,SWT.NULL);
         item.setText(view.getPluginViewName());
         item.addListener(SWT.Selection,new Listener() {

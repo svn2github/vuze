@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -189,8 +190,8 @@ public class DonationWindow2 {
         if(display == null || display.isDisposed())
           return;
         drawingDone = false;
-        display.asyncExec(new Runnable() {
-          public void run() {
+        display.asyncExec(new AERunnable() {
+          public void runSupport() {
            Image tempImage = new Image(display,background,SWT.IMAGE_COPY);
           
            nbchars++;
@@ -253,8 +254,8 @@ public class DonationWindow2 {
   
   private void enableOk() {
     if(display == null || display.isDisposed()) return;
-     display.asyncExec(new Runnable() {
-       public void run() {
+     display.asyncExec(new AERunnable() {
+       public void runSupport() {
          if(shell == null || shell.isDisposed())
            return;
          ok.setEnabled(true);
@@ -264,8 +265,8 @@ public class DonationWindow2 {
   
   private void addControls() {
    /*if(display == null || display.isDisposed()) return;
-   display.asyncExec(new Runnable() {
-		public void run() {
+   display.asyncExec(new AERunnable() {
+		public void runSupport() {
       if(shell == null || shell.isDisposed())
         return;     */       
                   
@@ -449,8 +450,8 @@ public class DonationWindow2 {
 	    final Display display = SWTThread.getInstance().getDisplay();
 	    
 	    if(display != null && !display.isDisposed()) {
-	     display.asyncExec( new Runnable() {
-	      public void run() {
+	     display.asyncExec( new AERunnable() {
+	      public void runSupport() {
 	         new DonationWindow2(display).show();    
 	      }
 	     });

@@ -98,10 +98,10 @@ UpdateMonitor
 	    
 		new DelayedEvent(
 				2500,
-				new Runnable()
+				new AERunnable()
 				{
 					public void
-					run()
+					runSupport()
 					{
 						performAutoCheck(true);
 					}
@@ -136,10 +136,10 @@ UpdateMonitor
 
 			new DelayedEvent(
 					5000,
-					new Runnable()
+					new AERunnable()
 					{
 						public void
-						run()
+						runSupport()
 						{
 							if ( start_of_day ){
 								
@@ -169,8 +169,8 @@ UpdateMonitor
 		}
 
 	    if(current_window != null && ! current_window.isDisposed()) {
-	      SWTThread.getInstance().getDisplay().syncExec(new Runnable() {
-	        public void run() {               
+	      SWTThread.getInstance().getDisplay().syncExec(new AERunnable() {
+	        public void runSupport() {               
 	          current_window.dispose();         
 	        }
 	      });

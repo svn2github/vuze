@@ -192,10 +192,10 @@ DownloadManagerImpl
 		Display	display = MainWindow.getWindow().getDisplay();
 		
 		display.syncExec(
-				new Runnable()
+				new AERunnable()
 				{
 					public void
-					run()
+					runSupport()
 					{
 						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), referer.toString());
 					}

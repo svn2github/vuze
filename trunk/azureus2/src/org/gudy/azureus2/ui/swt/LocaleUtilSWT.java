@@ -170,8 +170,8 @@ LocaleUtilSWT
     
     final AESemaphore[]	lock = { new AESemaphore("LocaleUtilSWT")};
     
-    MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
-      public void run() {
+    MainWindow.getWindow().getDisplay().asyncExec(new AERunnable() {
+      public void runSupport() {
       	try{
         	showChoosableEncodingWindow(lock[0], MainWindow.getWindow().getShell(), candidatesToChoose,selected_candidate);
         	

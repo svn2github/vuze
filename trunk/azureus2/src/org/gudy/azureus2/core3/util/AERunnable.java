@@ -1,6 +1,6 @@
 /*
- * Created on May 1, 2004
- * Created by Olivier Chalouhi
+ * Created on 23-Sep-2004
+ * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,30 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package org.gudy.azureus2.ui.swt.mainwindow;
+
+package org.gudy.azureus2.core3.util;
 
 /**
- * Represents the Application
+ * @author parg
+ *
  */
-public interface Application{
-  
-  public void
-  run();
-  
-  public void stopIt();
+
+public abstract class 
+AERunnable 
+	implements Runnable
+{
+	public void
+	run()
+	{
+		try{
+			runSupport();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public abstract void
+	runSupport();
 }

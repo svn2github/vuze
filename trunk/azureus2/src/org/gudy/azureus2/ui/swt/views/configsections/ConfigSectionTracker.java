@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -294,8 +295,8 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
               public void setIp(final String ip) {
                 if(display == null || display.isDisposed())
                   return;
-                  display.asyncExec(new Runnable() {
-                  public void run() {
+                  display.asyncExec(new AERunnable(){
+                  public void runSupport() {
                     if(tracker_ip != null)
                       tracker_ip.setValue(ip);
                   }

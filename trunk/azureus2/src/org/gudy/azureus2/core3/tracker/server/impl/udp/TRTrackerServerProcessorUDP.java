@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 public class 
 TRTrackerServerProcessorUDP
 	extends		TRTrackerServerProcessor
-	implements 	Runnable
 {
 		// client may connect + then retry announce up to 4 times -> * 6
 	
@@ -68,7 +67,7 @@ TRTrackerServerProcessorUDP
 	}
 	
 	public void
-	run()
+	runSupport()
 	{		
 		byte[]	_data = packet.getData();
 		

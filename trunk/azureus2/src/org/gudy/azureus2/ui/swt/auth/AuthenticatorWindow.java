@@ -222,10 +222,10 @@ AuthenticatorWindow
 		
 		try{
 			display.asyncExec(
-				new Runnable()
+				new AERunnable()
 				{
 					public void
-					run()
+					runSupport()
 					{
 						dialog[0] = new authDialog( sem, display, realm, tracker );
 					}

@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AERunnable;
 
 public class ConfigSectionIPFilter implements ConfigSectionSWT {
   AzureusCore	azureus_core;
@@ -218,8 +219,8 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       
      for (int i=0;i<IpRanges.length;i++){
         final IpRange range = IpRanges[i];
-        display.asyncExec(new Runnable() {
-          public void run() {
+        display.asyncExec(new AERunnable() {
+          public void runSupport() {
             if(table == null || table.isDisposed())
               return;
             TableItem item = new TableItem(table, SWT.NULL);

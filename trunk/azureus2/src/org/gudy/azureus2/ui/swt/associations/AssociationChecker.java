@@ -30,6 +30,7 @@ package org.gudy.azureus2.ui.swt.associations;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.eclipse.swt.*;
@@ -84,10 +85,10 @@ AssociationChecker
 		}
 							
 		display.asyncExec(
-				new Runnable()
+				new AERunnable()
 				{
 					public void
-					run()
+					runSupport()
 					{
 						check();
 					}

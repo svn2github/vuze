@@ -93,9 +93,9 @@ public class Alerts {
   {
   	final Display display = SWTThread.getInstance().getDisplay();
   
-  display.asyncExec(new Runnable() {
+  display.asyncExec(new AERunnable() {
   	public void 
-  	run()
+  	runSupport()
   	{
       
   		String icon_str;

@@ -7,6 +7,7 @@ package org.gudy.azureus2.ui.swt;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -116,8 +117,8 @@ Main
 
   public void showMainWindow() {
     if(MainWindow.getWindow() != null) {
-      MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
-        public void run() {
+      MainWindow.getWindow().getDisplay().asyncExec(new AERunnable(){
+        public void runSupport() {
           if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || MainWindow.getWindow().isVisible())          
             MainWindow.getWindow().setVisible(true);
           else

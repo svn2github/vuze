@@ -19,6 +19,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
@@ -63,8 +64,8 @@ public class SWTManagerImpl
 	    if(window != null) {
 	      window.getMenu().addPluginView(view);
 	      if (bAutoOpen) {
-          window.getDisplay().asyncExec(new Runnable() {
-            public void run() {
+          window.getDisplay().asyncExec(new AERunnable(){
+            public void runSupport() {
     	        window.openPluginView(view);
             }
           });

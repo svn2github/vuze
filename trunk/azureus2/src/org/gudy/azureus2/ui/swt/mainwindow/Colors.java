@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 /**
  * @author Olivier Chalouhi
@@ -130,8 +131,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         if (Colors.colorProgressBar != null
             && !Colors.colorProgressBar.isDisposed())
           Colors.colorProgressBar.dispose();
@@ -166,8 +167,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         colorProgressBar = new AllocateColor("progressBar", colorShiftRight.getRGB(), colorProgressBar).getColor();
       }
     });
@@ -177,8 +178,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError).getColor();
       }
     });
@@ -188,8 +189,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
         HSLColor hslBG = new HSLColor();
         hslBG.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
@@ -208,8 +209,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
     Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
     HSLColor hslColor = new HSLColor();
     hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
@@ -228,7 +229,7 @@ public class Colors implements ParameterListener {
   }
 
   /** Allocates a color */
-  private class AllocateColor implements Runnable {
+  private class AllocateColor extends AERunnable {
     private Color toBeDeleted = null;
     private String sName;
     private RGB rgbDefault;
@@ -245,7 +246,7 @@ public class Colors implements ParameterListener {
       return newColor;
     }
 
-    public void run() {
+    public void runSupport() {
       if (COConfigurationManager.getBooleanParameter("Colors." + sName + ".override")) {
         newColor = new Color(display,
            COConfigurationManager.getIntParameter("Colors." + sName + ".red", 
@@ -270,8 +271,8 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable(){
+      public void runSupport() {
         allocateBlues();
         allocateColorProgressBar();
       }

@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -299,8 +300,8 @@ public class Wizard {
 	{
 		if (display != null && !display.isDisposed()){
 		
-		 	display.asyncExec(new Runnable() {
-				public void run() {
+		 	display.asyncExec(new AERunnable() {
+				public void runSupport() {
 		 	
 			  	Button	default_button = null;
 			  	
@@ -387,11 +388,8 @@ public class Wizard {
 
   public void switchToClose() {
     if (display != null && !display.isDisposed()) {}
-    display.asyncExec(new Runnable() {
-      /* (non-Javadoc)
-       * @see java.lang.Runnable#run()
-       */
-      public void run() {
+    display.asyncExec(new AERunnable() {
+       public void runSupport() {
         if (closeCatcher != null && wizardWindow != null && !wizardWindow.isDisposed()) {
           wizardWindow.removeListener(SWT.Close, closeCatcher);
           cancel.setText(MessageText.getString("wizard.close"));

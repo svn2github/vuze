@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.util;
 
 public abstract class 
 ThreadPoolTask
-	implements Runnable
+	extends AERunnable
 {
 	protected ThreadPool.threadPoolWorker		worker;
 	

@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.sharing.*;
@@ -253,8 +254,8 @@ ProgressWindow
         hideAfter = false;
         if(display == null || display.isDisposed())
           return;
-        display.asyncExec(new Runnable() {          
-          public void run() {
+        display.asyncExec(new AERunnable() {          
+          public void runSupport() {
             shell.setVisible(false);
           }
         });
@@ -299,10 +300,10 @@ ProgressWindow
 	{
 		if (display != null && !display.isDisposed()){
 			
-			display.asyncExec(new Runnable()
+			display.asyncExec(new AERunnable()
 				{
 					public void 
-					run()
+					runSupport()
 					{
 						if (progress != null && !progress.isDisposed()){
 							
@@ -322,9 +323,9 @@ ProgressWindow
 	{
 		if (display != null && !display.isDisposed()){
 			
-			display.asyncExec(new Runnable() 
+			display.asyncExec(new AERunnable() 
 				{
-					public void run()
+					public void runSupport()
 					{
 						if (tasks != null && !tasks.isDisposed()){
 								

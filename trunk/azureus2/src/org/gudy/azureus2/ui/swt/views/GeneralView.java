@@ -1081,8 +1081,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	final String _creation_date ) {
     if (display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
 		fileName.setText(_fileName);
 		fileSize.setText( _fileSize);
 		saveIn.setText( _path);

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeEvent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
@@ -151,8 +152,8 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
       return;
     if(log == null)
       return;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         if(log.isDisposed())
           return;
         String old_value = (String)ev.getOldPropertyValue();

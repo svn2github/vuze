@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 
 /**
@@ -101,8 +102,8 @@ public class OnTopProblem {
   
   public boolean updateDisplay() {
     if(display != null && ! display.isDisposed() ) {
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
           iter++;
           labelIter.setText("" + iter);
           onTopShell.setSize(sizes[iter % sizes.length],20);

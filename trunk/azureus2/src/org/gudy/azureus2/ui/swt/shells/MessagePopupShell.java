@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.animations.Animator;
@@ -195,8 +196,8 @@ public class MessagePopupShell implements AnimableShell {
     if(closeAfterAnimation) {   
       if(display == null || display.isDisposed())
         return;
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable(){
+        public void runSupport() {
           shell.dispose();
           detailsShell.dispose();
           shellImg.dispose();          

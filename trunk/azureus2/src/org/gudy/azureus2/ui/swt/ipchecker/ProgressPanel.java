@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
+import org.gudy.azureus2.core3.util.AERunnable;
 
 import org.gudy.azureus2.ui.swt.wizard.*;
 
@@ -99,8 +100,8 @@ public class ProgressPanel extends AbstractWizardPanel implements ExternalIPChec
     final String message) {
     if(display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {      
-      public void run() {
+    display.asyncExec(new AERunnable() {      
+      public void runSupport() {
         if (tasks != null && !tasks.isDisposed()) {
           tasks.append(service.getName() + " : " + message + Text.DELIMITER);
         }

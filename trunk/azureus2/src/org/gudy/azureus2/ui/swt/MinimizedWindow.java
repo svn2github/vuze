@@ -316,8 +316,8 @@ public class MinimizedWindow {
     if(!splash.isDisposed()) {
       Display display = splash.getDisplay();
       if(display != null && ! display.isDisposed()) {
-       display.asyncExec(new Runnable() {
-        public void run() {
+       display.asyncExec(new AERunnable() {
+        public void runSupport() {
           if(!splash.isDisposed()) {
             splash.dispose();
           }

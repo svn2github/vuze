@@ -69,10 +69,10 @@ CertificateTrustWindow
 		
 		try{
 			display.asyncExec(
-					new Runnable()
+					new AERunnable()
 					{
 						public void
-						run()
+						runSupport()
 						{
 							dialog[0] = new trustDialog( sem, display, resource, cert );
 						}

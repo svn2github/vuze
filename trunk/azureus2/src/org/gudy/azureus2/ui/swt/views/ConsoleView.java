@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
@@ -84,8 +85,8 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
   private void doLog(final int _color, final String _text) {
     if(display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable() {
+      public void runSupport() {
         if (consoleText == null || consoleText.isDisposed())
           return;
         ScrollBar sb = consoleText.getVerticalBar();

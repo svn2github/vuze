@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
@@ -96,10 +97,10 @@ Initializer
 					
 					try{
 						MainWindow.getWindow().getDisplay().asyncExec(
-							new Runnable()
+							new AERunnable()
 							{
 								public void
-								run()
+								runSupport()
 								{
 									try{
 								
@@ -139,10 +140,10 @@ Initializer
 						
 					try{
 						MainWindow.getWindow().getDisplay().asyncExec(
-							new Runnable()
+							new AERunnable()
 							{
 								public void
-								run()
+								runSupport()
 								{
 									try{				
 										if ( !MainWindow.getWindow().dispose()){

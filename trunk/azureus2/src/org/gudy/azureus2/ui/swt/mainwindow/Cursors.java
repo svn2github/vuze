@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.AERunnable;
 
 /**
  * @author Olivier Chalouhi
@@ -34,8 +35,8 @@ public class Cursors {
   public static Cursor handCursor;
   public static void init() {
     final Display display = SWTThread.getInstance().getDisplay();
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
       }
     });
@@ -43,8 +44,8 @@ public class Cursors {
   
   public static void dispose() {
     final Display display = SWTThread.getInstance().getDisplay();
-    display.syncExec(new Runnable() {
-      public void run() {
+    display.syncExec(new AERunnable() {
+      public void runSupport() {
         if (handCursor != null && !handCursor.isDisposed())
           handCursor.dispose();
       }

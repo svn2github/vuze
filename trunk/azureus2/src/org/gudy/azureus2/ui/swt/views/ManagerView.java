@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.TabItem;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -253,8 +254,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     Display display = folder.getDisplay();
     if(display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
-	    public void run() {
+    display.asyncExec(new AERunnable() {
+	    public void runSupport() {
 	      MainWindow.getWindow().refreshIconBar();  
 	    }
     });    

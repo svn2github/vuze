@@ -28,7 +28,8 @@ package org.gudy.azureus2.core3.util;
 
 public class 
 TimerEvent
-	implements Comparable, Runnable
+	extends		AERunnable
+	implements 	Comparable
 {
 	protected Timer					timer;
 	protected long					created;
@@ -68,14 +69,14 @@ TimerEvent
 		return( when );
 	}
 	
-	protected Runnable
+	protected AERunnable
 	getRunnable()
 	{
 		return( this );
 	}
 	
 	public void
-	run()
+	runSupport()
 	{
 		performer.perform( this );
 	}

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -174,11 +175,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
    */
   public void reportCurrentTask(final String task_description) {
     if (display != null && !display.isDisposed()) {
-      display.asyncExec(new Runnable() {
-        /* (non-Javadoc)
-         * @see java.lang.Runnable#run()
-         */
-        public void run() {
+      display.asyncExec(new AERunnable(){
+        public void runSupport() {
           if (tasks != null && !tasks.isDisposed()) {
             tasks.append(task_description + Text.DELIMITER);
           }
@@ -192,11 +190,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
    */
   public void reportProgress(final int percent_complete) {
     if (display != null && !display.isDisposed()) {
-      display.asyncExec(new Runnable() {
-        /* (non-Javadoc)
-         * @see java.lang.Runnable#run()
-         */
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
           if (progress != null && !progress.isDisposed()) {
             progress.setSelection(percent_complete);
           }

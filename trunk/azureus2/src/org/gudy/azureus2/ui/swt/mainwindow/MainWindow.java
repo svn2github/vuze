@@ -99,7 +99,10 @@ import org.gudy.azureus2.ui.swt.sharing.progress.*;
  * Runnable : so that GUI initialization is done via asyncExec(this)
  * STProgressListener : To make it visible once initialization is done
  */
-public class MainWindow implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, AzureusCoreListener, Runnable {
+public class 
+MainWindow
+	extends AERunnable
+	implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, AzureusCoreListener {
   
   private static MainWindow window;
 
@@ -192,7 +195,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   	}
   }
   
-  public void run() {
+  public void runSupport() {
     try{
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
@@ -275,8 +278,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     SelectionAdapter selectionAdapter = new SelectionAdapter() {
       public void widgetSelected(final SelectionEvent event) {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new Runnable() {
-	          public void run() {
+          display.asyncExec(new AERunnable() {
+	          public void runSupport() {
               if(useCustomTab) {
                 CTabItem item = (CTabItem) event.item;
                 if(item != null && ! item.isDisposed() && ! folder.isDisposed()) {
@@ -824,8 +827,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     } else {
       text = this.statusTextKey;
     }
-    display.asyncExec(new Runnable() {
-      public void run() {
+    display.asyncExec(new AERunnable(){
+      public void runSupport() {
         if (statusText != null && !statusText.isDisposed()) {      
           statusText.setText(MessageText.getStringForSentence(text));
         }
@@ -850,9 +853,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   public void closeDownloadBars() {
     if (display == null || display.isDisposed())
       return;
-    display.asyncExec(new Runnable() {
+    display.asyncExec(new AERunnable() {
 
-      public void run() {
+      public void runSupport() {
         try{
         	downloadBars_mon.enter();
         
@@ -912,9 +915,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     /*
 	if (display != null && !display.isDisposed()){
 	
-	   display.asyncExec(new Runnable() {
+	   display.asyncExec(new AERunnable() {
 			public void
-			run()
+			runSupport()
 			{
 			    if (COConfigurationManager.getBooleanParameter("Open Details")){
 			    
@@ -976,8 +979,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         final Tab tab = (Tab) downloadViews.get(removed);
         if (display == null || display.isDisposed())
           return;
-        display.asyncExec(new Runnable() {
-          public void run() {
+        display.asyncExec(new AERunnable(){
+          public void runSupport() {
             tab.dispose();
           }
         });
@@ -1418,8 +1421,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     if(percent > 100) {
       if(display == null || display.isDisposed())
         return;
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable(){
+        public void runSupport() {
           openMainWindow();
         }
       });
@@ -1428,8 +1431,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   private void switchStatusToUpdate() {
     if(display != null && ! display.isDisposed())
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable(){
+        public void runSupport() {
            	if ( statusArea == null || statusArea.isDisposed()){
         		return;
         	}
@@ -1441,8 +1444,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   private void switchStatusToText() {
     if(display != null && ! display.isDisposed())
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
         	if ( statusArea == null || statusArea.isDisposed()){
         		return;
         	}
@@ -1454,8 +1457,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   private void setNbChecks(final int nbChecks) {
     if(display != null && ! display.isDisposed())
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
           if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
             return;
           statusUpdateProgressBar.setMinimum(0);
@@ -1467,8 +1470,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   private void setNextCheck() {
     if(display != null && ! display.isDisposed())
-      display.asyncExec(new Runnable() {
-        public void run() {
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
           if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
             return;
           statusUpdateProgressBar.setSelection(statusUpdateProgressBar.getSelection() + 1);
@@ -1551,8 +1554,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     // if state == STARTED, then open the details window (according to config)
     if(state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
         if(display != null && !display.isDisposed()) {
-          display.asyncExec(new Runnable() {
-            public void run() {
+          display.asyncExec(new AERunnable() {
+            public void runSupport() {
               if (COConfigurationManager.getBooleanParameter("Open Details",false)) {
                 openManagerView(manager);
               }

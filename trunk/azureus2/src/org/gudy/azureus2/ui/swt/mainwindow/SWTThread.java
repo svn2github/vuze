@@ -23,8 +23,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 
 import org.eclipse.swt.widgets.Display;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
 /**
@@ -52,7 +51,7 @@ public class SWTThread {
   private boolean terminated;
   private Thread runner;
   
-  private SWTThread(Application app) { 
+  private SWTThread(final Application app) { 
     
     instance = this;
     
@@ -63,7 +62,7 @@ public class SWTThread {
       new CarbonUIEnhancer();
     }
     
-    runner = new Thread(app,"Main Thread");
+    runner = new Thread( new AERunnable(){ public void runSupport(){app.run();}},"Main Thread");
     runner.start();   
     
     while(!display.isDisposed() && !terminated) {

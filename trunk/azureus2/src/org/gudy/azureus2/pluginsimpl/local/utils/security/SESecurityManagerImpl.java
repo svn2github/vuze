@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.security;
 
 import java.net.Authenticator;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
