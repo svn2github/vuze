@@ -71,6 +71,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createProcess
   (JNIEnv *, jclass, jstring, jboolean);
 
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    moveToRecycleBin
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBin
+  (JNIEnv *, jclass, jstring);
+
 #ifdef __cplusplus
 }
 #endif

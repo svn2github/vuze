@@ -56,4 +56,10 @@ PlatformManager
 		boolean	inherit_handles )
 	
 		throws PlatformManagerException;
+	
+	public void
+	moveToRecycleBin(
+		String	file_name )
+	
+		throws PlatformManagerException;
 }

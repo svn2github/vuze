@@ -51,6 +51,7 @@ AEWin32AccessImpl
 			}
 			
 			return( singleton );
+			
 		}finally{
 			
 			class_mon.exit();
@@ -166,4 +167,13 @@ AEWin32AccessImpl
 	{
 		AEWin32AccessInterface.createProcess( command_line, inherit_handles );
 	}	
+	
+	public void
+	moveToRecycleBin(
+		String	file_name )
+	
+		throws AEWin32AccessException
+	{
+		AEWin32AccessInterface.moveToRecycleBin( file_name );
+	}
 }

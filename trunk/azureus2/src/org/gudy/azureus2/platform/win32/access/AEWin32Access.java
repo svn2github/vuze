@@ -103,4 +103,10 @@ AEWin32Access
 		boolean		inherit_handles )
 	
 		throws AEWin32AccessException;
+	
+	public void
+	moveToRecycleBin(
+		String	file_name )
+	
+		throws AEWin32AccessException;
 }

@@ -28,12 +28,13 @@
 #include "windows.h"
 #include "shlwapi.h"
 #include "process.h"
+#include "shellapi.h"
 
 
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.6"
+#define VERSION "1.7"
 
 
 HMODULE	application_module;
@@ -565,6 +566,57 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 };
 
 
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinW(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _fileName )
+
+{
+	WCHAR		file_name[16000];
+
+    SHFILEOPSTRUCTW opFile;
+    
+	if ( !jstringToCharsW( env, _fileName, file_name, sizeof( file_name )-1)){
+
+		return;
+	}
+
+    HANDLE file = CreateFileW (	file_name, 
+								GENERIC_READ, 
+								FILE_SHARE_READ, 
+								NULL, 
+								OPEN_EXISTING, 
+								FILE_ATTRIBUTE_NORMAL, 
+								NULL );
+    
+		// Checks if file exists
+
+    if ( file == INVALID_HANDLE_VALUE ){
+   
+		throwException( env, "moveToRecycleBin", "file not found" );
+
+        return;
+    }
+    
+    CloseHandle(file);
+
+    file_name[ wcslen(file_name)+1 ] = 0;
+
+    ZeroMemory(&opFile, sizeof(opFile));
+
+    opFile.wFunc = FO_DELETE;
+
+    opFile.pFrom = file_name;
+
+    opFile.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT;
+    
+    if (SHFileOperationW (&opFile)){
+
+        throwException( env, "moveToRecycleBin", "SHFileOperation failed" );
+    }
+}
+
 
 // NON-UNICODE VARIANT FOR WIN95,98,ME
 
@@ -971,6 +1023,60 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 	}
 };
 
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinA(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _fileName )
+
+{
+	char		file_name[16000];
+
+    SHFILEOPSTRUCTA opFile;
+    
+	if ( !jstringToCharsA( env, _fileName, file_name, sizeof( file_name )-1)){
+
+		return;
+	}
+
+    HANDLE file = CreateFileA (	file_name, 
+								GENERIC_READ, 
+								FILE_SHARE_READ, 
+								NULL, 
+								OPEN_EXISTING, 
+								FILE_ATTRIBUTE_NORMAL, 
+								NULL );
+    
+		// Checks if file exists
+
+    if ( file == INVALID_HANDLE_VALUE ){
+   
+		throwException( env, "moveToRecycleBin", "file not found" );
+
+        return;
+    }
+    
+    CloseHandle(file);
+
+    file_name[ strlen(file_name)+1 ] = 0;
+
+    ZeroMemory(&opFile, sizeof(opFile));
+
+    opFile.wFunc = FO_DELETE;
+
+    opFile.pFrom = file_name;
+
+    opFile.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT;
+    
+    if (SHFileOperationA (&opFile)){
+
+        throwException( env, "moveToRecycleBin", "SHFileOperation failed" );
+    }
+}
+
+
+
 // BLAH
 
 JNIEXPORT jstring JNICALL 
@@ -1084,5 +1190,18 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createProcessA( env, cla, _command_line, _inherit_handles );
 	}else{
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createProcessW( env, cla, _command_line, _inherit_handles );
+	}
+}
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBin(
+	JNIEnv*		env,
+	jclass		cla, 
+	jstring		_file_name )
+{
+	if ( non_unicode ){
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinA( env, cla, _file_name );
+	}else{
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinW( env, cla, _file_name );
 	}
 }

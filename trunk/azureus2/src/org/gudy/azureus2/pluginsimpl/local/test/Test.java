@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -121,7 +122,15 @@ Test
 								public void
 								runSupport()
 								{
-									test();
+									//test();
+									
+									try{
+										PlatformManagerFactory.getPlatformManager().moveToRecycleBin( "C:\\temp\\recycle.txt" );
+										
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
 								}
 							};
 							

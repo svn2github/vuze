@@ -106,7 +106,7 @@ PlatformManagerImpl
 			
 			String	az_exe_string = exe_loc.toString();
 			
-			int	icon_index = getIconIndex();
+			//int	icon_index = getIconIndex();
 			
 			String	current = 
 				access.readStringValue(
@@ -429,5 +429,20 @@ PlatformManagerImpl
 			
 			throw( new PlatformManagerException( "Failed to create process", e ));
 		}	
+	}
+	
+	public void
+	moveToRecycleBin(
+		String	file_name )
+	
+		throws PlatformManagerException
+	{
+		try{
+			access.moveToRecycleBin( file_name );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to move file", e ));
+		}
 	}
 }
