@@ -50,6 +50,15 @@ NewTorrentWizard
 	static String	default_open_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
 	static String	default_save_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
 	
+	static{
+			// default the default to the "save torrents to" location
+		
+		if ( default_save_dir.length() == 0 ){
+			
+			default_save_dir = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
+		}
+	}
+	
   //false : singleMode, true: directory
   boolean create_from_dir;
   String singlePath = "";
