@@ -26,12 +26,17 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 
 /**
@@ -43,6 +48,8 @@ public class SpeedView extends AbstractIView {
   GlobalManager manager;
   GlobalManagerStats stats;
   
+  OverallStats totalStats;
+  
   Composite panel;
   
   Canvas downSpeedCanvas;
@@ -51,11 +58,14 @@ public class SpeedView extends AbstractIView {
   Canvas upSpeedCanvas;
   SpeedGraphic upSpeedGraphic;
   
+  BufferedLabel sessionDown,sessionUp,sessionTime,totalDown,totalUp,totalTime;
+  
   UpdateThread updateThread;
   
   public SpeedView(GlobalManager manager) {
     this.manager = manager;
     this.stats = manager.getStats();
+    this.totalStats = StatsFactory.getStats();
   }
   
   private class UpdateThread extends Thread {
@@ -108,6 +118,57 @@ public class SpeedView extends AbstractIView {
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
     
+    Group gStats = new Group(panel,SWT.NULL);
+    Messages.setLanguageText(gStats,"SpeedView.stats.title");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gStats.setLayoutData(gridData);
+    GridLayout gStatsLayout = new GridLayout();
+    gStatsLayout.numColumns = 4;
+    gStatsLayout.makeColumnsEqualWidth = true;
+    gStats.setLayout(gStatsLayout);
+    
+    Label lbl = new Label(gStats,SWT.NULL);
+    
+    lbl = new Label(gStats,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.downloaded");
+    
+    lbl = new Label(gStats,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.uploaded");
+    
+    lbl = new Label(gStats,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.uptime");
+    
+    
+    lbl = new Label(gStats,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.session");
+    sessionDown = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    sessionDown.setLayoutData(gridData);
+    
+    sessionUp = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    sessionUp.setLayoutData(gridData);
+    
+    sessionTime = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    sessionTime.setLayoutData(gridData);
+    
+    lbl = new Label(gStats,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.total");
+    
+    totalDown = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    totalDown.setLayoutData(gridData);
+    
+    totalUp = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    totalUp.setLayoutData(gridData);
+    
+    totalTime = new BufferedLabel(gStats,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    totalTime.setLayoutData(gridData);
+    
+    
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
     updateThread.start();
@@ -132,6 +193,16 @@ public class SpeedView extends AbstractIView {
   public void refresh() {
     downSpeedGraphic.refresh();
     upSpeedGraphic.refresh();
+    refreshStats();
+  }
+  
+  private void refreshStats() {
+    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalReceivedRaw()));
+    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalSentRaw()));
+    
+    totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getDownloadedBytes()));
+    totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getUploadedBytes()));
+    totalTime.setText("" + totalStats.getUpTime() / (60*60));
   }
   
 }

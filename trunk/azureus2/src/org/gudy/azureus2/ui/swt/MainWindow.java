@@ -87,6 +87,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.logging.LGAlertListener;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -115,6 +116,8 @@ import snoozesoft.systray4j.SysTrayMenu;
 public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
+  private static final int DONATIONS_ASK_AFTER = 1;
+  
   private String latestVersion = ""; //$NON-NLS-1$
   private String latestVersionFileName = null;
 
@@ -951,7 +954,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     			isAlreadyDead = true;
     		}
     	}      
-    });
+    });        
     
     mainWindow.open();
     mainWindow.forceActive();
@@ -1048,6 +1051,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     		}
     	}
     }.start();
+    
+    checkForDonationPopup();
     
   }catch( Throwable e ){
 		e.printStackTrace();
@@ -1910,6 +1915,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   {
     if ( created.getState() != DownloadManager.STATE_WAITING )
       return;
+    
+    checkForDonationPopup();
       
 	if (display != null && !display.isDisposed()){
 	
@@ -2827,4 +2834,46 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		}
  	});
    }
+  
+  private synchronized void checkForDonationPopup() {
+   //Check if user has already donated first
+   boolean alreadyDonated = COConfigurationManager.getBooleanParameter("donations.donated",false);
+   if(alreadyDonated)
+     return;
+   
+   //Check for last asked version
+   String lastVersionAsked = COConfigurationManager.getStringParameter("donations.lastVersion","");
+        
+   long upTime = StatsFactory.getStats().getUpTime();
+   int hours = (int) (upTime / (60*60)); //secs * mins
+   
+   //Ask every DONATIONS_ASK_AFTER hours.
+   int nextAsk = (COConfigurationManager.getIntParameter("donations.nextAskTime",0) + 1) * DONATIONS_ASK_AFTER;
+   
+   //if donations.nextAskTime == -1 , then no more ask for same version
+   if(nextAsk == 0) {
+    if(lastVersionAsked.equals(VERSION)) {
+     return; 
+    }
+    else {
+     //Set the re-ask so that we ask in the next %DONATIONS_ASK_AFTER hours
+      COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+      return;
+    }
+   }
+   
+   //If we're still under the ask time, return
+   if(hours < nextAsk)
+    return;
+   
+   //Here we've got to ask !!!
+   COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+   if(display != null && !display.isDisposed()) {
+    display.asyncExec( new Runnable() {
+			public void run() {
+        new DonationWindow(display).show();    
+			}
+    });
+   }   	     
+  }
 }

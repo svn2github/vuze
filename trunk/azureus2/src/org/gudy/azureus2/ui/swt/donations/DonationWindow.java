@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.donations;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -213,10 +215,11 @@ public class DonationWindow {
     msgThanks.setText(MessageText.getString("DonationWindow.thanks.title"));
     msgThanks.setMessage(MessageText.getString("DonationWindow.thanks.text"));
     msgThanks.open();
-    
+    COConfigurationManager.setParameter("donations.donated",true);    
   }
   
   private void stopAsking() {
-   COConfigurationManager.setParameter("donations.keepAsking",false); 
+   COConfigurationManager.setParameter("donations.nextAskTime",-1);
+   COConfigurationManager.setParameter("donations.lastVersion",Constants.AZUREUS_VERSION);
   }
 }
