@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.tracker.server.TRTrackerServerRequestListener;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
+
 public class 
 LoadTest 
 {
@@ -212,7 +214,7 @@ LoadTest
 			state	= ST_READY;
 
 			try{
-				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
+				peer_id = new HashWrapper(ClientIDPlugin.createPeerID());
 				
 			}catch( Throwable e ){
 				Debug.printStackTrace( e );
@@ -261,7 +263,7 @@ LoadTest
 			left	= 100;
 			
 			try{
-				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
+				peer_id = new HashWrapper(ClientIDPlugin.createPeerID());
 				
 			}catch( Throwable e ){
 				Debug.printStackTrace( e );

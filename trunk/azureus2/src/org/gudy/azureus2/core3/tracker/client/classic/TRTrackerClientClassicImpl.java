@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.impl.*;
 
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
@@ -183,27 +184,6 @@ TRTrackerClientClassicImpl
 
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-	public static byte[]
-	createPeerID()
-	{
-		byte[] peerId = new byte[20];
-	
-		byte[] version = Constants.VERSION_ID;
-    
-		for (int i = 0; i < 8; i++) {
-			peerId[i] = version[i];
-		}
-    
-	 	for (int i = 8; i < 20; i++) {
-		  int pos = (int) ( Math.random() * chars.length());
-	     peerId[i] = (byte)chars.charAt(pos);
-		}
-	 	
-		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
-
-	 	return( peerId );
-	}
-
 	public static String
 	createKeyID()
 	{
@@ -219,7 +199,7 @@ TRTrackerClientClassicImpl
 	
   public 
   TRTrackerClientClassicImpl(
-  	TOTorrent		_torrent,
+   	TOTorrent		_torrent,
   	PEPeerServer 	_peer_server ) 
   	
   	throws TRTrackerClientException
@@ -233,11 +213,11 @@ TRTrackerClientClassicImpl
        
 		//Create our unique peerId
 	
-    tracker_peer_id = createPeerID();
+    tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
 
     if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs", false)){
     	
-    	data_peer_id = createPeerID();
+    	data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
     	
     }else{
     	

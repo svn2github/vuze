@@ -64,6 +64,16 @@ AzureusCore
 		throws AzureusCoreException;
 	
 		/**
+		 * checks if restart operation is supported - if not an alert will be raised and an exception thrown
+		 * @throws AzureusCoreException
+		 */
+	
+	public void
+	checkRestartSupported()
+	
+		throws AzureusCoreException;
+	
+		/**
 		 * restart the system
 		 */
 	

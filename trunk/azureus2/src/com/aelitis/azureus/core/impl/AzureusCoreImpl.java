@@ -278,7 +278,7 @@ AzureusCoreImpl
 	{
 		LGLogger.log("Core: Restart operation starts");
 			
-		checkCanRestart();
+		checkRestartSupported();
 		
 		stopSupport( false );
 		
@@ -290,7 +290,7 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		checkCanRestart();
+		checkRestartSupported();
 		
 		for (int i=0;i<lifecycle_listeners.size();i++){
 			
@@ -305,8 +305,8 @@ AzureusCoreImpl
 		restart();
 	}
 	
-	protected void
-	checkCanRestart()
+	public void
+	checkRestartSupported()
 	
 		throws AzureusCoreException
 	{

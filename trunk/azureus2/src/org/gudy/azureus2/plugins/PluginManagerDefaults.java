@@ -42,7 +42,8 @@ PluginManagerDefaults
 	public static final String	PID_CORE_PATCH_CHECKER		= "Core Patch Checker";
 	public static final String	PID_PLATFORM_CHECKER		= "Platform Checker";
 	public static final String	PID_UPNP					= "UPnP";
-		
+	public static final String	PID_CLIENT_ID				= "Client ID";
+	
 	public static final String[] PLUGIN_IDS = {
 			
 			PID_START_STOP_RULES,
@@ -54,6 +55,7 @@ PluginManagerDefaults
 			PID_CORE_PATCH_CHECKER,
 			PID_PLATFORM_CHECKER,
 			PID_UPNP,
+			PID_CLIENT_ID,
 		};
 	
 	public String[]

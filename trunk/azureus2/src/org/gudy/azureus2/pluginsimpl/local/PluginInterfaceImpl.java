@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
@@ -48,6 +49,7 @@ import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.ui.*;
@@ -481,6 +483,12 @@ PluginInterfaceImpl
 		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
 	}
 	
+	 public ClientIDManager
+	 getClientIDManager()
+	 {
+	 	return( ClientIDManagerImpl.getSingleton());
+	 }
+	 
   protected void
   initialisationComplete()
   {

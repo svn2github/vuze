@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.plugins.utils.ShortCuts;
+import org.gudy.azureus2.plugins.clientid.*;
 
 
 /**
@@ -398,6 +399,15 @@ public interface PluginInterface {
    */
   public PluginManager
   getPluginManager();
+  
+  	/**
+  	 * 
+  	 * @return
+  	 * @since 2.2.0.3
+  	 */
+  
+  public ClientIDManager
+  getClientIDManager();
   
   /**
    *

@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
+import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.*;
@@ -474,6 +475,14 @@ RPPluginInterface
 		notSupported();
 	}
 	
+	 public ClientIDManager
+	 getClientIDManager()
+	 {
+	 	notSupported();
+	 	
+	 	return( null );
+	 }
+	 
 	public void
 	addListener(
 			PluginListener	l )

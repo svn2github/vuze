@@ -328,6 +328,14 @@ Initializer
   
   	throws AzureusCoreException
   {
+    if ( azureus_core != null && !close_already_in_progress ){
+
+    	if ( for_restart ){
+
+    		azureus_core.checkRestartSupported();
+    	}
+    }
+    
   	try{
 	    if ( startServer != null ){
 	    

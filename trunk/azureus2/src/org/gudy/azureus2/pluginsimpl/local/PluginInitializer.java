@@ -76,14 +76,17 @@ PluginInitializer
    			//		"org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin", "<internal>", "UpdateLanguagePlugin" },
     		{	 PluginManagerDefaults.PID_PLUGIN_UPDATE_CHECKER, 
    					"org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", "<internal>", "PluginUpdate" },
+			{	 PluginManagerDefaults.PID_CLIENT_ID, 
+				    "com.aelitis.azureus.plugins.clientid.ClientIDPlugin", "<internal>", "Client ID" },
+			{	 PluginManagerDefaults.PID_UPNP, 
+   					"com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
 	   		{	 PluginManagerDefaults.PID_CORE_UPDATE_CHECKER, 
    					"org.gudy.azureus2.update.CoreUpdateChecker", "<internal>", "CoreUpdater" },
 			{	 PluginManagerDefaults.PID_CORE_PATCH_CHECKER, 
    					"org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
    					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform2", "azplatform2" },
-			{	 PluginManagerDefaults.PID_UPNP, 
-   					"com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
+					
         };
  
   
@@ -236,42 +239,79 @@ PluginInitializer
     UpdaterUpdateChecker.checkPlugin();
   }
   
-  public void 
-  loadPlugins(
-  	AzureusCore		core  ) 
-  {
-    PluginManagerImpl.setStartDetails( core );
+  	public void 
+	loadPlugins(
+			AzureusCore		core  ) 
+  	{
+  		PluginManagerImpl.setStartDetails( core );
     
-  		// first do explicit plugins
+  			// first do explicit plugins
   	  	
-    File	user_dir = FileUtil.getUserFile("plugins");
+	    File	user_dir = FileUtil.getUserFile("plugins");
+	    
+	    File	app_dir	 = FileUtil.getApplicationFile("plugins");
+	    
+	    int	user_plugins	= 0;
+	    int app_plugins		= 0;
+	        
+	    if ( user_dir.exists() && user_dir.isDirectory()){
+	    	
+	    	user_plugins = user_dir.listFiles().length;
+	    	
+	    }
+	    
+	    if ( app_dir.exists() && app_dir.isDirectory()){
+	    	
+	    	app_plugins = app_dir.listFiles().length;
+	    	
+	    }
+	    
+	    	// user ones first so they override app ones if present
+	    
+	    loadPluginsFromDir( user_dir, 0, user_plugins + app_plugins );
+	    
+	    if ( !user_dir.equals( app_dir )){
+	    	
+	    	loadPluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
+	    }
+	    
+		LGLogger.log("Loading built-in plugins");
+	    
+  		PluginManagerDefaults	def = PluginManager.getDefaults();
     
-    File	app_dir	 = FileUtil.getApplicationFile("plugins");
-    
-    int	user_plugins	= 0;
-    int app_plugins		= 0;
-        
-    if ( user_dir.exists() && user_dir.isDirectory()){
-    	
-    	user_plugins = user_dir.listFiles().length;
-    	
-    }
-    
-    if ( app_dir.exists() && app_dir.isDirectory()){
-    	
-    	app_plugins = app_dir.listFiles().length;
-    	
-    }
-    
-    	// user ones first so they override app ones if present
-    
-    loadPluginsFromDir( user_dir, 0, user_plugins + app_plugins );
-    
-    if ( !user_dir.equals( app_dir )){
-    	
-    	loadPluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
-    }
-  }
+  		for (int i=0;i<builtin_plugins.length;i++){
+    		
+  			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
+    		
+  				String	key	= builtin_plugins[i][3];
+	    	
+  				try{
+  						// lazyness here, for builtin we use static load method with default plugin interface
+  						// if we need to improve on this then we'll have to move to a system more akin to
+  						// the dir-loaded plugins
+  					
+  					Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
+							      
+  			      	Method	load_method = cla.getMethod( "load", new Class[]{ PluginInterface.class });
+  			      	
+  			      	load_method.invoke( null, new Object[]{ getDefaultInterfaceSupport() });
+  			      	
+  			      }catch( NoSuchMethodException e ){
+  			      	
+  			      }catch( Throwable e ){
+  			      	
+	  			
+  					Debug.printStackTrace( e );
+	  			
+  					LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + key + "' fails", e );
+	  	      
+  				}
+  			}else{
+    		
+  				LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
+  			}
+  		}
+  	}
  
   private void
   loadPluginsFromDir(
