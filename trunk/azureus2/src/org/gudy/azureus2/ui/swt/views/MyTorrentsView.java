@@ -51,7 +51,9 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -358,10 +360,22 @@ public class MyTorrentsView
     Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
     itemOpen.setImage(ImageRepository.getImage("run"));
 
-    final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
+    	// export menu
+    
+    final MenuItem itemExport = new MenuItem(menu, SWT.CASCADE);
+    Messages.setLanguageText(itemExport, "MyTorrentsView.menu.exportmenu"); //$NON-NLS-1$
     itemExport.setImage(ImageRepository.getImage("export"));
 
+    final Menu menuExport = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemExport.setMenu(menuExport);
+
+    final MenuItem itemExportXML = new MenuItem(menuExport, SWT.PUSH);
+    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export"); //$NON-NLS-1$
+    //itemExportXML.setImage(ImageRepository.getImage("export"));
+
+    final MenuItem itemExportTorrent = new MenuItem(menuExport, SWT.PUSH);
+    Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent"); //$NON-NLS-1$
+ 
     final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
     itemHost.setImage(ImageRepository.getImage("host"));
@@ -785,14 +799,51 @@ public class MyTorrentsView
       }
     });
 
-    itemExport.addListener(SWT.Selection, new Listener() {
+    itemExportXML.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
         if (dm != null)
-          new ExportTorrentWizard(azureus_core, itemExport.getDisplay(), dm);
+          new ExportTorrentWizard(azureus_core, itemExportXML.getDisplay(), dm);
       }
     });
 
+    itemExportTorrent.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event event) {
+          DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
+          if (dm != null){
+			FileDialog fd = new FileDialog(getComposite().getShell());
+			
+			fd.setFileName( dm.getTorrentFileName());
+						
+			String path = fd.open();
+			
+			if( path != null ){
+				
+				try{
+					File	target = new File( path );
+					
+						// first copy the torrent - DON'T use "writeTorrent" as this amends the
+						// "filename" field in the torrent
+					
+					TorrentUtils.copyToFile( dm.getDownloadState().getTorrent(), target );
+					
+						// now remove the non-standard entries
+					
+					TOTorrent	dest = TOTorrentFactory.deserialiseFromBEncodedFile( target );
+					
+					dest.removeAdditionalProperties();
+					
+					dest.serialiseToBEncodedFile( target );
+					
+				}catch( Throwable  e){
+					
+					LGLogger.logRepeatableAlert( "Torrent export failed", e );
+				}
+	
+			}    
+          }
+        }
+      });
     itemHost.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         hostSelectedTorrents();
