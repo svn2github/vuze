@@ -86,6 +86,14 @@ TorrentManager
 	
 		throws TorrentException;
 	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url,
+		boolean		include_other_hashes )
+	
+		throws TorrentException;
+	
 		/**
 		 * Gives access to the currently defined torrent attributes. As of 2.1.0.2
 		 * only "category" is defined, however in the future more could be added

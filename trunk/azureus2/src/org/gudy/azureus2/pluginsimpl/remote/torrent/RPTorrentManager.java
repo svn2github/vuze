@@ -201,6 +201,19 @@ RPTorrentManager
 		return( null );
 	}
 	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url,
+		boolean		include_other_hashes )
+	
+		throws TorrentException
+	{
+		notSupported();
+			
+		return( null );
+	}
+	
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{

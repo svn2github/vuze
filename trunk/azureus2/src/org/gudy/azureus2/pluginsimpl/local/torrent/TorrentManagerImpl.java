@@ -130,16 +130,26 @@ TorrentManagerImpl
 	
 		throws TorrentException
 	{
+		return( createFromDataFile( data, announce_url, false ));
+	}
+	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url,
+		boolean		include_other_hashes )
+	
+		throws TorrentException
+	{
 		try{
-			TOTorrent t =  TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, this );
+			TOTorrent t =  TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, include_other_hashes, this );
 			
 			return( new TorrentImpl(t));
 			
 		}catch( TOTorrentException e ){
 			
 			throw( new TorrentException( "TorrentManager::createFromDataFile Fails", e ));
-		}
-	}
+		}	}
 	
 	public TorrentAttribute[]
 	getDefinedAttributes()
