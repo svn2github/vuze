@@ -49,9 +49,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -1111,7 +1108,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     if(table == null || table.isDisposed())
       return;
     TableItem[] tis = table.getSelection();
-    up = down = run = host = start = stop = remove = false;
+    up = down = run = host = publish = start = stop = remove = false;
     if(tis.length > 0) {      
       for (int i = 0; i < tis.length; i++) {
         TableItem ti = tis[i];
