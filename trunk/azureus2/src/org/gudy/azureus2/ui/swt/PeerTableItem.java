@@ -99,7 +99,7 @@ public class PeerTableItem {
       }
 
     });
-
+//:: TODO why put only the last item list? could be uninitialized, too
     tableItems.put(item, this);
   }
 
@@ -250,7 +250,7 @@ public class PeerTableItem {
 
     boolean available[] = peerSocket.getAvailable();
     int sum = 0;
-    int availability[] = peerSocket.getManager().getAvailability();
+//    int availability[] = peerSocket.getManager().getAvailability();
     for (int i = 0; i < available.length; i++) {
       if (available[i]) {
         sum++;

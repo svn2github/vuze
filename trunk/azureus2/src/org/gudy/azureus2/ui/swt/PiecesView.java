@@ -25,7 +25,6 @@ public class PiecesView extends AbstractIView implements IComponentListener {
   DownloadManager manager;
   Table table;
   HashMap items;
-  int loopFactor;
 
   public PiecesView(DownloadManager manager) {
     this.manager = manager;
