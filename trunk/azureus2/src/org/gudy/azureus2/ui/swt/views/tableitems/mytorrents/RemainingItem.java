@@ -73,7 +73,7 @@ public class RemainingItem
       return manager.getSize() - 
              ((long)manager.getStats().getCompleted() * manager.getSize() / 1000L);
     } else {
-      return dm.getRemaining();
+      return dm.getRemainingExcludingDND();
     }
   }
 }

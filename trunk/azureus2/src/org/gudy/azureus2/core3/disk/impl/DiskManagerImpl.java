@@ -95,6 +95,9 @@ DiskManagerImpl
 
 	private boolean alreadyMoved = false;
 
+	private boolean				skipped_file_set_changed;
+	private long				skipped_file_set_size;
+	
 		// DiskManager listeners
 	
 	private static final int LDT_STATECHANGED		= 1;
@@ -772,6 +775,38 @@ DiskManagerImpl
 		return remaining;
 	}
 	
+	public long getRemainingExcludingDND() 
+	{
+		if ( skipped_file_set_changed ){
+			
+			DiskManagerFileInfoImpl[]	current_files = files;
+			
+			if ( current_files != null ){
+				
+				skipped_file_set_changed	= false;
+				
+				try{
+					this_mon.enter();
+					
+					skipped_file_set_size	= 0;
+					
+					for (int i=0;i<current_files.length;i++){
+						
+						if ( current_files[i].isSkipped()){
+							
+							skipped_file_set_size	+= current_files[i].getLength();
+						}
+					}
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
+		}
+		
+		return remaining - skipped_file_set_size;
+	}
+	
 	public void
 	incrementRemaining(
 		long	num )
@@ -1412,7 +1447,11 @@ DiskManagerImpl
 		}
 	}
   
-    
+    protected void
+    skippedFileSetChanged()
+    {
+    	skipped_file_set_changed	= true;
+    }
   
   private void loadFilePriorities() 
   {

@@ -261,6 +261,7 @@ DiskManagerFileInfoImpl
    */
   public void setSkipped(boolean _skipped) {
 	skipped = _skipped;
+	diskManager.skippedFileSetChanged();
   }
 
   public DiskManager getDiskManager() {

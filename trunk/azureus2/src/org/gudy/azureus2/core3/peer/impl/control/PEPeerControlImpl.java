@@ -1831,7 +1831,10 @@ PEPeerControlImpl
       }
     }
     
-    long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
+    long dataRemaining = _diskManager.getRemainingExcludingDND() - writtenNotChecked;
+    if  (dataRemaining < 0 ){
+    	dataRemaining	= 0;
+    }
     if (dataRemaining == 0) {
       long timeElapsed = (_timeFinished - _timeStarted)/1000;
       //if time was spent downloading....return the time as negative

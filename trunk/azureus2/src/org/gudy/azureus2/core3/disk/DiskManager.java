@@ -162,6 +162,9 @@ DiskManager
 	public long
 	getRemaining();
 	
+	public long
+	getRemainingExcludingDND();
+	
 	public int
 	getPercentDone();
 	
