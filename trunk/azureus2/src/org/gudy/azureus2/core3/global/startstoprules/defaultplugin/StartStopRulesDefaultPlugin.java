@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.views.configsections.*;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormater;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -120,7 +121,7 @@ StartStopRulesDefaultPlugin
   initialize(
     PluginInterface _plugin_interface )
   {
-    startedOn = System.currentTimeMillis();
+    startedOn = SystemTime.getCurrentTime();
 
     plugin_interface  = _plugin_interface;
 
@@ -369,7 +370,7 @@ StartStopRulesDefaultPlugin
   }
 
   protected synchronized void process() {
-    long  process_time = System.currentTimeMillis();
+    long  process_time = SystemTime.getCurrentTime();
 
     // TODO: change variables to use "stalled" count instead of "active" count
 
@@ -386,9 +387,9 @@ StartStopRulesDefaultPlugin
     int totalIncompleteQueued = 0;
     int totalFirstPriority = 0;
 
-    boolean recalcQR = ((process_time - lastQRcalcTime) > RECALC_QR_EVERY);
+    boolean recalcQR = ((process_time - lastQRcalcTime) > RECALC_QR_EVERY || SystemTime.isErrorLast30sec());
 	  if (recalcQR)
-  	  lastQRcalcTime = System.currentTimeMillis();
+  	  lastQRcalcTime = SystemTime.getCurrentTime();
 
     // pull the data into an local array, so we don't have to lock/synchronize
     downloadData[] dlDataArray;
@@ -401,7 +402,7 @@ StartStopRulesDefaultPlugin
     // (see logic in 1st loop)
     boolean bSeedHasRanking = (iRankType == RANK_NONE) || 
                               (iRankType == RANK_TIMED) || 
-                              (System.currentTimeMillis() - startedOn > 90000);
+                              (SystemTime.getCurrentTime() - startedOn > 90000);
 
     // Loop 1 of 2:
     // - Build a QR list for sorting
@@ -429,7 +430,7 @@ StartStopRulesDefaultPlugin
         // Only increase activeDLCount if there's downloading
         // or if the torrent just recently started (ie. give it a chance to get some connections)
         if ((stats.getDownloadAverage() >= minSpeedForActiveDL) ||
-            (System.currentTimeMillis() - stats.getTimeStarted() <= 30000)) {
+            (SystemTime.getCurrentTime() - stats.getTimeStarted() <= 30000)) {
           bActivelyDownloading = true;
           activeDLCount++;
         }
@@ -459,7 +460,7 @@ StartStopRulesDefaultPlugin
         } else if (state == Download.ST_SEEDING) {
           totalSeeding++;
           if ((stats.getUploadAverage() >= minSpeedForActiveSeeding) ||
-              (System.currentTimeMillis() - stats.getTimeStartedSeeding() <= 30000)) {
+              (SystemTime.getCurrentTime() - stats.getTimeStartedSeeding() <= 30000)) {
             bActivelySeeding = true;
             activeSeedingCount++;
             if (download.isForceStart())
@@ -486,7 +487,7 @@ StartStopRulesDefaultPlugin
     }
     
     // Don't start for at least 10 seconds, even if there's a scrape avail.
-    if (bSeedHasRanking && (System.currentTimeMillis() - startedOn < 10000)) {
+    if (bSeedHasRanking && (SystemTime.getCurrentTime() - startedOn < 10000)) {
       bSeedHasRanking = false;
     }
 
@@ -758,7 +759,7 @@ StartStopRulesDefaultPlugin
         // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
         // skip check
         if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
-          long timeAlive = (System.currentTimeMillis() - download.getStats().getTimeStarted());
+          long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
           okToQueue = (timeAlive >= minTimeAlive);
         }
         
@@ -1229,7 +1230,7 @@ StartStopRulesDefaultPlugin
           }
 
           // force sort to top
-          int iMsElapsed = (int)(System.currentTimeMillis() - stats.getTimeStartedSeeding());
+          int iMsElapsed = (int)(SystemTime.getCurrentTime() - stats.getTimeStartedSeeding());
           if (iMsElapsed >= minTimeAlive)
             setQR(1);
           else
@@ -1409,7 +1410,7 @@ StartStopRulesDefaultPlugin
         if (iRankType == RANK_TIMED) {
           if (qr > QR_TIMED_QUEUED_ENDS_AT) {
             int timeLeft = (int)(minTimeAlive - 
-                                 (long)(System.currentTimeMillis() - 
+                                (SystemTime.getCurrentTime() - 
                                         dl.getStats().getTimeStartedSeeding())) / 1000;
             sText += TimeFormater.format(timeLeft);
           } else if (qr > 0) {

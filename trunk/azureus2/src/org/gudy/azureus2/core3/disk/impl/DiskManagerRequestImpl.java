@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * 
@@ -57,7 +58,7 @@ DiskManagerRequestImpl
     this.pieceNumber = pieceNumber;
     this.offset = offset;
     this.length = length;
-    timeCreated = System.currentTimeMillis();
+    timeCreated = SystemTime.getCurrentTime();
   }
   
   /**
@@ -66,7 +67,7 @@ DiskManagerRequestImpl
    */
   public boolean isExpired()
   {
-    return ((System.currentTimeMillis() - timeCreated) > EXPIRATION_TIME);    
+    return ((SystemTime.getCurrentTime() - timeCreated) > EXPIRATION_TIME);    
   }
   
   /**
@@ -76,7 +77,7 @@ DiskManagerRequestImpl
    */
   public void reSetTime()
   {
-      timeCreated = System.currentTimeMillis();
+      timeCreated = SystemTime.getCurrentTime();
   }
   
   //Getters  

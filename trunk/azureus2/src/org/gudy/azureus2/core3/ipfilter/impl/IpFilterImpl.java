@@ -326,7 +326,7 @@ IpFilterImpl
 	public void
 	markAsUpToDate()
 	{
-	  	last_update_time	= System.currentTimeMillis();		
+	  	last_update_time	= SystemTime.getCurrentTime();		
 	}
 
 	public long

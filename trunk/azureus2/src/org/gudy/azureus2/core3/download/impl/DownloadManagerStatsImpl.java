@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.download.impl;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
 
 public class 
@@ -331,7 +332,7 @@ DownloadManagerStatsImpl
 	  if (lTimeStartedDL >= 0) {
   	  long lTimeEndedDL = getTimeStartedSeeding();
   	  if (lTimeEndedDL == -1) {
-  	    lTimeEndedDL = System.currentTimeMillis();
+  	    lTimeEndedDL = SystemTime.getCurrentTime();
   	  }
   	  if (lTimeEndedDL > lTimeStartedDL) {
     	  return saved_SecondsDownloading + ((lTimeEndedDL - lTimeStartedDL) / 1000);
@@ -344,7 +345,7 @@ DownloadManagerStatsImpl
 	  long lTimeStarted = getTimeStartedSeeding();
 	  if (lTimeStarted >= 0) {
 	    return saved_SecondsOnlySeeding + 
-	           ((System.currentTimeMillis() - lTimeStarted) / 1000);
+	           ((SystemTime.getCurrentTime() - lTimeStarted) / 1000);
 	  }
 	  return saved_SecondsOnlySeeding;
 	}

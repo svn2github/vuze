@@ -945,7 +945,7 @@ public class GlobalManagerImpl
 				public void
 				run()
 				{
-					long	start = System.currentTimeMillis();
+					long	start = SystemTime.getCurrentTime();
 							
 					while(true){
 								
@@ -955,7 +955,7 @@ public class GlobalManagerImpl
 							e.printStackTrace();
 						}
 								
-						if ( System.currentTimeMillis() - start > 10000 ){
+						if ( SystemTime.getCurrentTime() - start > 10000 ){
 									
 								// java web start problem here...
 								

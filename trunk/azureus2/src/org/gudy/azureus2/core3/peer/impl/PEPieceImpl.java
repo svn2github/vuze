@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 PEPieceImpl
@@ -84,7 +85,7 @@ PEPieceImpl
     written[blocNumber] = true;
     completed++;
     
-    last_write_time	= System.currentTimeMillis();
+    last_write_time	= SystemTime.getCurrentTime();
   }
 
   public long

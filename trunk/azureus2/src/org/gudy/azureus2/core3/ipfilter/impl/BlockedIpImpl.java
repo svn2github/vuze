@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.ipfilter.impl;
 
 import org.gudy.azureus2.core3.ipfilter.BlockedIp;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * @author Olivier
@@ -36,7 +37,7 @@ public class BlockedIpImpl implements BlockedIp {
   public BlockedIpImpl(String ip,IpRange range) {
     this.ip = ip;
     this.range = range;
-    this.time = System.currentTimeMillis();
+    this.time = SystemTime.getCurrentTime();
   }
   
   public String getBlockedIp() {

@@ -226,7 +226,7 @@ public class ConfigurationChecker {
   
   public static String generatePeerId() {
     String uniqueId = "";
-    long currentTime = System.currentTimeMillis();
+    long currentTime = SystemTime.getCurrentTime();
     for(int i = 0 ; i < currentTime % 1000 ; i++)
       Math.random();            
     //Allocate a 10 random chars ID

@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.peer.impl.control;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * @author Olivier
@@ -49,11 +50,11 @@ public class SuperSeedPiece {
   public synchronized void peerHasPiece(PEPeer peer) {
     if(level < 2) {
       firstReceiver = peer;
-      timeFirstDistributed = System.currentTimeMillis();
+      timeFirstDistributed = SystemTime.getCurrentTime();
       //numberOfPeersWhenFirstReceived = manager.getNbPeers();
     } else {
       if(peer != null && firstReceiver != null) {
-        timeToReachAnotherPeer = (int) (System.currentTimeMillis() - timeFirstDistributed);
+        timeToReachAnotherPeer = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
         firstReceiver.setUploadHint(timeToReachAnotherPeer);
       }
     }
@@ -86,7 +87,7 @@ public class SuperSeedPiece {
       return;
     if(firstReceiver == null)
       return;
-    int timeToSend = (int) (System.currentTimeMillis() - timeFirstDistributed);
+    int timeToSend = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
     if(timeToSend > firstReceiver.getUploadHint())
       firstReceiver.setUploadHint(timeToSend);
   }
