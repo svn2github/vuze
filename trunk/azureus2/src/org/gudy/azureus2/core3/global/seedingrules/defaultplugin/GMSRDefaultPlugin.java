@@ -228,7 +228,7 @@ GMSRDefaultPlugin
 		for (int i=0;i<downloads.length;i++){
 			
 			Download	download = downloads[i];
-			
+						
 			downloadData	dl_data = (downloadData)download_data.get( download );
 			
 			if ( dl_data == null ){

@@ -221,6 +221,14 @@ RPDownload
 		return( null );
 	}
 	
+	public int
+	getIndex()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
 	public Torrent
 	getTorrent()
 	{

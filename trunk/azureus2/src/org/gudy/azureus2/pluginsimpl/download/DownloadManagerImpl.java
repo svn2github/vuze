@@ -279,14 +279,31 @@ DownloadManagerImpl
 	public Download[]
 	getDownloads()
 	{
+		List	res_l = new ArrayList();
+	
 		synchronized( listeners ){
+
+				// we have to use the global manager's ordering as it
+				// hold this
+		
+			List dms = global_manager.getDownloadManagers();
+		
+			for (int i=0;i<dms.size();i++){
 			
-			Download[]	res = new Download[downloads.size()];
-			
-			downloads.toArray( res );
-			
-			return( res );
+				Object	dl = download_map.get( dms.get(i));
+				
+				if ( dl != null ){
+					
+					res_l.add( dl );
+				}
+			}
 		}
+		
+		Download[]	res = new Download[res_l.size()];
+			
+		res_l.toArray( res );
+			
+		return( res );
 	}
 	
 	public void

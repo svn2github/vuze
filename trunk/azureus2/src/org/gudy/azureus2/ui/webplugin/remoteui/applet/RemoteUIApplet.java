@@ -145,25 +145,33 @@ RemoteUIApplet
 				
 				// see ConfigurationChecker for SSL client defaults
 				
-				HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+				URLConnection url_con = url.openConnection();
 				
-				// allow for certs that contain IP addresses rather than dns names
+					// Opera doesn't return a javax class
 				
-				ssl_con.setHostnameVerifier(
-						new HostnameVerifier()
-						{
-							public boolean
-							verify(
-									String		host,
-									SSLSession	session )
+				if ( url_con.getClass().getName().startsWith( "javax")){
+									
+					HttpsURLConnection ssl_con = (HttpsURLConnection)url_con;
+					
+					// allow for certs that contain IP addresses rather than dns names
+					
+					ssl_con.setHostnameVerifier(
+							new HostnameVerifier()
 							{
-								return( true );
-							}
-						});
+								public boolean
+								verify(
+										String		host,
+										SSLSession	session )
+								{
+									return( true );
+								}
+							});	
 				
-				
-				con = ssl_con;
-				
+					con = ssl_con;
+				}else{
+					
+					con = (HttpURLConnection)url_con;
+				}
 			}else{
 				
 				con = (HttpURLConnection) url.openConnection();
@@ -171,10 +179,14 @@ RemoteUIApplet
 
 			con.setRequestProperty("Connection", "close" );
 			
+			con.setRequestMethod( "POST" );
+			
+			con.setAllowUserInteraction( true );
+			
 			con.setDoInput( true );
 			
 			con.setDoOutput( true );
-							
+						
 			con.connect();
 		
 			ObjectOutputStream dos = null;

@@ -69,6 +69,9 @@ Download
 	public String
 	getErrorStateDetails();
 	
+	public int
+	getIndex();
+	
 	public Torrent
 	getTorrent();
 	

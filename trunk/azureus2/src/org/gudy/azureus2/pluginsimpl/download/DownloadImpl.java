@@ -160,6 +160,12 @@ DownloadImpl
 		return( download_manager.getErrorDetails());
 	}
 	
+	public int
+	getIndex()
+	{
+		return( download_manager.getIndex());
+	}
+	
 	public Torrent
 	getTorrent()
 	{
