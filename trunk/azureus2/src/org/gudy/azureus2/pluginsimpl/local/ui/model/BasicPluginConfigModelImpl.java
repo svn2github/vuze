@@ -257,7 +257,7 @@ BasicPluginConfigModelImpl
 		
 		for (int i=0;i<parameters.size();i++){
 			
-			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
+			final ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
 		
 			Label label = new Label(gMainTab, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
 			
@@ -335,6 +335,18 @@ BasicPluginConfigModelImpl
 			}else if ( param instanceof ActionParameterImpl ){
 				
 				swt_param = new ButtonParameter( gMainTab, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
+				
+				swt_param.addChangeListener(
+						new ParameterChangeListener()
+						{
+							public void
+							parameterChanged(
+								Parameter	p,
+								boolean		caused_internally )
+							{
+								param.parameterChanged( "" );
+							}
+						});
 			}else{
 				
 					// label

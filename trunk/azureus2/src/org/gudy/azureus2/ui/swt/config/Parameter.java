@@ -27,27 +27,39 @@ package org.gudy.azureus2.ui.swt.config;
  *
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.widgets.Control;
 
 public abstract class 
 Parameter 
 	implements IParameter
 {
+	protected  List	change_listeners;
+
 	public Control[]
 	getControls()
 	{
 		return( new Control[]{ getControl() });
 	}
 	
-	public void
+ 	public synchronized void
 	addChangeListener(
 		ParameterChangeListener	l )
-	{	
+	{
+ 		if ( change_listeners == null ){
+ 			
+ 			change_listeners = new ArrayList(1);
+ 		}
+ 		
+  		change_listeners.add( l );
 	}
-	
+		
 	public void
 	removeChangeListener(
 		ParameterChangeListener	l )
 	{
+		change_listeners.remove(l);
 	}
 }

@@ -83,6 +83,17 @@ UPnPPlugin
 		
 		ActionParameter refresh_param = config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
 		
+		refresh_param.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					System.out.println( "refresh!!!!" );
+				}
+			});
+		
 		enable_param.addEnabledOnSelection( alert_success_param );
 		enable_param.addEnabledOnSelection( grab_ports_param );
 		enable_param.addEnabledOnSelection( refresh_param );

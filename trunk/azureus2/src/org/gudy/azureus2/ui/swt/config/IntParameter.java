@@ -4,8 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt.config;
 
-import java.util.*;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
@@ -30,9 +28,7 @@ IntParameter
   boolean allowZero = false;
 
   boolean value_is_changing_internally;
-  
-  List	change_listeners	= new ArrayList(1);
-  
+    
   public IntParameter(Composite composite, final String name) {
     iDefaultValue = COConfigurationManager.getIntParameter(name);
     initialize(composite,name);
@@ -152,18 +148,4 @@ IntParameter
   {
   	return( inputField );
   }
-  
-  	public void
-	addChangeListener(
-		ParameterChangeListener	l )
-	{
-  		change_listeners.add( l );
-	}
-		
-	public void
-	removeChangeListener(
-		ParameterChangeListener	l )
-	{
-		change_listeners.remove(l);
-	}
 }
