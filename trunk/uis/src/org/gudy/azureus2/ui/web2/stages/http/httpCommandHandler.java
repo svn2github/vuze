@@ -116,7 +116,7 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
 
   private void UpdateDls() {
     dls.clear();
-    List torrents = UIConst.GM.getDownloadManagers();
+    List torrents = UIConst.getGlobalManager().getDownloadManagers();
     if (!torrents.isEmpty()) {
       Iterator torrent = torrents.iterator();
       while (torrent.hasNext()) {
@@ -131,7 +131,7 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
       String subcommand = req.getQuery("subcommand");
       if (logger.isDebugEnabled())
         logger.debug("ProcessTorrent: " + subcommand);
-      List torrents = UIConst.GM.getDownloadManagers();
+      List torrents = UIConst.getGlobalManager().getDownloadManagers();
       if (!torrents.isEmpty()) {
         UpdateDls();
 
@@ -156,7 +156,7 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
               else if (subcommand.equals("Cancel")) {
                 dm.stopIt();
                 try{
-                	UIConst.GM.removeDownloadManager(dm);
+                	UIConst.getGlobalManager().removeDownloadManager(dm);
                 }catch(GlobalManagerDownloadRemovalVetoException e ){
                 	e.printStackTrace();
                 }

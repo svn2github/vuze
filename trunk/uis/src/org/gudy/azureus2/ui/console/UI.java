@@ -42,11 +42,11 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   
   public void startUI() {
     super.startUI();
-    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true);
     if ((!isStarted()) || (console == null) || ((console!=null) && (!console.isAlive()))) {
       ConsoleInput.printconsolehelp(System.out);
       System.out.println();
-      console = new ConsoleInput("Main", UIConst.GM, System.in, System.out, Boolean.TRUE);
+      console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, System.out, Boolean.TRUE);
     }
   }
   
@@ -60,9 +60,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       Logger.getLogger("azureus2.ui.console").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
-    if (UIConst.GM!=null) {
+    if (UIConst.getGlobalManager()!=null) {
       try {
-        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.console").error("The torrent "+fileName+" could not be added.", e);
       }

@@ -18,7 +18,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -120,7 +119,7 @@ public class Torrent implements IConsoleCommand {
         TOTorrent torrent = dm.getTorrent();
         if (torrent != null) {
           try {
-            TRHostFactory.getSingleton().hostTorrent(torrent);
+            ci.azureus_core.getTrackerHost().hostTorrent(torrent);
           } catch (TRHostException e) {
             e.printStackTrace(ci.out);
             return false;

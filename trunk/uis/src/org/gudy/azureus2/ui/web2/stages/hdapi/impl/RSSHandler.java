@@ -52,7 +52,7 @@ public class RSSHandler implements httpRequestHandlerIF {
 										 "  <title>Azureus Status Information "+nowst+"</title>"+tr+
 										 "  <pubDate>"+nowst+"</pubDate>"+tr+
 										 "  <description><![CDATA[";
-		List torrents = UIConst.GM.getDownloadManagers();
+		List torrents = UIConst.getGlobalManager().getDownloadManagers();
 		DownloadManager dm;
 		int dmstate;
 		if (!torrents.isEmpty()) {
@@ -150,7 +150,7 @@ public class RSSHandler implements httpRequestHandlerIF {
 				//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
 				// true));
 			}
-			response += "Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getUploadAverage())+"<br>";
+			response += "Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getUploadAverage())+"<br>";
 			response += "Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded)+"<br>";
 			response += "Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers)+"<br>";
 		} else

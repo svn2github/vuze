@@ -188,7 +188,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   }
 
   public void startUI() {
-    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true);
     if ((!isStarted()) || (storm == null)) {
       try {
         this.storm = new Sandstorm(this.cfg);
@@ -211,9 +211,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       logger.error("Something is wrong with " + fileName + ". Not added. (Reason: " + e.getMessage() + ")");
       return;
     }
-    if (UIConst.GM != null) {
+    if (UIConst.getGlobalManager() != null) {
       try {
-        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         logger.error("The torrent " + fileName + " could not be added.", e);
       }

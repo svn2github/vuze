@@ -43,9 +43,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   
   public void startUI() {
     super.startUI();
-    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true);
     if ((!isStarted()) || (server==null)) {
-      server = new Jhttpp2Server(UIConst.GM, true);
+      server = new Jhttpp2Server(UIConst.getGlobalManager(), true);
       new Thread(server, "Webinterface Server").start();
       System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
     }
@@ -61,9 +61,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       Logger.getLogger("azureus2.ui.web").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
-    if (UIConst.GM!=null) {
+    if (UIConst.getGlobalManager()!=null) {
       try {
-        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.web").error("The torrent "+fileName+" could not be added.", e);
       }

@@ -212,7 +212,7 @@ public class Main {
         try{
 	        new_core.start();
 	        
-	        UIConst.GM = new_core.getGlobalManager();
+	        UIConst.setAzureusCore( new_core );
 	        
         }catch( AzureusCoreException e ){
         	
@@ -237,7 +237,7 @@ public class Main {
       if (commands.hasOption('e')) {
       	if (conConsoleInput != null) {
 	        try {
-	        	Object params[] = {commands.getOptionValue('e'), UIConst.GM, new FileReader(commands.getOptionValue('e')), System.out, Boolean.FALSE};
+	        	Object params[] = {commands.getOptionValue('e'), UIConst.getGlobalManager(), new FileReader(commands.getOptionValue('e')), System.out, Boolean.FALSE};
 	        	conConsoleInput.newInstance(params);
 	        } catch (java.io.FileNotFoundException e) {
 	          Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
@@ -252,7 +252,7 @@ public class Main {
       	if (conConsoleInput != null) {
 	        String comm = commands.getOptionValue('c');
 	        comm+="\nlogout\n";
-	        Object params[] = {commands.getOptionValue('c'), UIConst.GM, new StringReader(comm), System.out, Boolean.FALSE};
+	        Object params[] = {commands.getOptionValue('c'), UIConst.getGlobalManager(), new StringReader(comm), System.out, Boolean.FALSE};
 	        try {
 	        	conConsoleInput.newInstance(params);
 	        } catch (Exception e) {

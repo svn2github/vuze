@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
@@ -40,7 +41,8 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	private static TreeSet helplines = new TreeSet();
 	private static TreeSet helpextra = new TreeSet();
 
-	public GlobalManager gm;
+	public AzureusCore		azureus_core;
+	public GlobalManager	gm;
 	CommandReader br;
 	public PrintStream out;
 	public ArrayList torrents = null;
@@ -112,19 +114,27 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	}
 
 	/** Creates a new instance of ConsoleInput */
-	public ConsoleInput(String con, GlobalManager _gm, Reader _in, PrintStream _out, Boolean _controlling) {
+	public 
+	ConsoleInput(
+		String 		con, 
+		AzureusCore _azureus_core, 
+		Reader 		_in, 
+		PrintStream _out, 
+		Boolean 	_controlling) 
+	{
 		super("Console Input: " + con);
 		oldcommand.add("sh");
 		oldcommand.add("t");
-		gm = _gm;
+		azureus_core	= _azureus_core;
+		gm  			= _azureus_core.getGlobalManager();
 		out = _out;
 		controlling = _controlling.booleanValue();
 		br = new CommandReader(_in, new OutputStreamWriter(_out));
 		start();
 	}
 
-	public ConsoleInput(String con, GlobalManager _gm, InputStream _in, PrintStream _out, Boolean _controlling) {
-		this(con, _gm, new InputStreamReader(_in), _out, _controlling);
+	public ConsoleInput(String con, AzureusCore _azureus_core, InputStream _in, PrintStream _out, Boolean _controlling) {
+		this(con, _azureus_core, new InputStreamReader(_in), _out, _controlling);
 	}
 
 	public static void printconsolehelp(PrintStream os) {

@@ -160,7 +160,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
   }
 
   private void handleTorrents(Template tmpl) {
-    List torrents = UIConst.GM.getDownloadManagers();
+    List torrents = UIConst.getGlobalManager().getDownloadManagers();
     DownloadManager dm;
     int dmstate;
     Hashtable h;
@@ -249,8 +249,8 @@ public class TemplateHandler implements httpRequestHandlerIF {
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
-      tmpl.setParam("Torrents_TotalSpeedDown", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getDownloadAverage()));
-      tmpl.setParam("Torrents_TotalSpeedUp", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getUploadAverage()));
+      tmpl.setParam("Torrents_TotalSpeedDown", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getDownloadAverage()));
+      tmpl.setParam("Torrents_TotalSpeedUp", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getUploadAverage()));
       tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKiBEtc(totalReceived));
       tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKiBEtc(totalSent));
       tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));

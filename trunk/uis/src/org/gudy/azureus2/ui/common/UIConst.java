@@ -8,6 +8,8 @@ package org.gudy.azureus2.ui.common;
 
 import java.util.Date;
 import java.util.HashMap;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
@@ -18,17 +20,39 @@ import org.gudy.azureus2.ui.common.UserInterfaceFactory;
  * To change the template for this generated type comment go to
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
-public class UIConst {
-  public static Date startTime;
-  public static HashMap UIS = null;
-  public static GlobalManager GM = null;
+public class 
+UIConst 
+{
+  public static Date 			startTime;
+  public static HashMap 		UIS;
   
+  private static AzureusCore	azureus_core;
+  
+  public static void
+  setAzureusCore(
+  	AzureusCore		_azureus_core )
+  {
+  	azureus_core	= _azureus_core;
+  }
+  
+  public static AzureusCore
+  getAzureusCore()
+  {
+  	return( azureus_core );
+  }
+  
+  public static GlobalManager
+  getGlobalManager()
+  {
+  	return( azureus_core.getGlobalManager());
+  }
   
   public static void shutdown() {
     Main.shutdown();
   }
   
-  public static synchronized boolean startUI(String ui, String[] args) {
+  public static synchronized boolean 
+  startUI(String ui, String[] args) {
     if (UIS.containsKey(ui))
       return false;
     IUserInterface uif = UserInterfaceFactory.getUI(ui);

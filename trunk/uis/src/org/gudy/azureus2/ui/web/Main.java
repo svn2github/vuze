@@ -49,7 +49,7 @@ Main
 	      
 	    server = new Jhttpp2Server(gm, true);
 	    
-	    ci = new ConsoleInput("Main", gm, System.in, System.out, Boolean.TRUE);
+	    ci = new ConsoleInput("Main", core, System.in, System.out, Boolean.TRUE);
 	    
 	    org.gudy.azureus2.ui.common.Main.initRootLogger();
 	    
