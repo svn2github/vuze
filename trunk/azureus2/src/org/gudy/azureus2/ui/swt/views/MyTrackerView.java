@@ -190,7 +190,8 @@ MyTrackerView
 		   	
 				boolean	start_ok 	= true;
 				boolean	stop_ok		= true;
-						
+				boolean	remove_ok	= true;
+				
 				for (int i=0;i<tis.length;i++){
 					
 					TableItem	ti = tis[i];
@@ -209,10 +210,21 @@ MyTrackerView
 						
 						stop_ok = false;
 					}
+					
+					/*
+					try{
+						
+						host_torrent.canBeRemoved();
+						
+					}catch( TRHostTorrentRemovalVetoException f ){
+						
+						remove_ok = false;
+					}
+					*/
 				}
 		   		itemStart.setEnabled(start_ok);
 			 	itemStop.setEnabled(stop_ok);
-			 	itemRemove.setEnabled(true);
+			 	itemRemove.setEnabled(remove_ok);
 		   }
 		 }
 	   });
@@ -409,6 +421,16 @@ MyTrackerView
         if ( status == TRHostTorrent.TS_STARTED ){          
           stop = true;
         }
+        
+        /*
+        try{     	
+        	host_torrent.canBeRemoved();
+        	
+        }catch( TRHostTorrentRemovalVetoException f ){
+        	
+        	remove = false;
+        }
+        */
       }
     }
   }
@@ -475,7 +497,15 @@ MyTrackerView
       TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
       if (torrent != null){
         
-        torrent.remove();
+      	try{
+      		torrent.remove();
+      		
+      	}catch( TRHostTorrentRemovalVetoException f ){
+      		
+      		String	message = f.getMessage();
+      	      	
+      		MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+      	}
       }
     }
   }

@@ -44,7 +44,8 @@ TRHostTorrentPublishImpl
 	
 	protected TRHostPeer[]		peers = new TRHostPeer[0];
 	
-	protected List				listeners = new ArrayList();
+	protected List				listeners 			= new ArrayList();
+	protected List				removal_listeners	= new ArrayList();
 	
 	protected
 	TRHostTorrentPublishImpl(
@@ -67,10 +68,26 @@ TRHostTorrentPublishImpl
 
 	public synchronized void
 	remove()
+	
+		throws TRHostTorrentRemovalVetoException
 	{
+		canBeRemoved();
+		
 		host.remove( this );
 	}
-
+	
+	public boolean
+	canBeRemoved()
+	
+		throws TRHostTorrentRemovalVetoException
+	{
+		for (int i=0;i<removal_listeners.size();i++){
+			
+			((TRHostTorrentWillBeRemovedListener)removal_listeners.get(i)).torrentWillBeRemoved( this );
+		}
+		
+		return( true );
+	}
 	public int
 	getStatus()
 	{
@@ -210,5 +227,19 @@ TRHostTorrentPublishImpl
 		TRHostTorrentListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	public synchronized void
+	addRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l )
+	{
+		removal_listeners.add(l);
+	}
+	
+	public synchronized void
+	removeRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l )
+	{
+		removal_listeners.remove(l);
 	}
 }

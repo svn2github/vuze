@@ -43,7 +43,20 @@ TRHostTorrent
 	stop();
 	
 	public void
-	remove();
+	remove()
+	
+		throws TRHostTorrentRemovalVetoException;
+	
+	/**
+	 * doesn't guarantee that removal will be successful as conditions may change
+	 * @return true if OK, exception thrown otherwise
+	 * @throws TRHostTorrentRemovalVetoException
+	 */
+	
+	public boolean
+	canBeRemoved()
+	
+		throws TRHostTorrentRemovalVetoException;
 	
 	public int
 	getStatus();
@@ -92,4 +105,12 @@ TRHostTorrent
 	public void
 	removeListener(
 		TRHostTorrentListener	l );
+	
+	public void
+	addRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l );
+	
+	public void
+	removeRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l );
 }

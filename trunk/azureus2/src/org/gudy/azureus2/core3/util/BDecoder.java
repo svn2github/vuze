@@ -165,6 +165,10 @@ public class BDecoder {
       count += len;
     }
 
+    if ( count != tempArray.length ){
+     	throw( new IOException( "BDecoder::getByteArrayFromStream: truncated"));
+    }
+    
     return tempArray;
   }
 }

@@ -122,6 +122,19 @@ ShareResourceFileOrDirImpl
 		item = ShareItemImpl.deserialiseItem( this, _map );
 	}
 	
+	public boolean
+	canBeDeleted()
+	
+		throws ShareResourceDeletionVetoException
+	{		
+		for (int i=0;i<deletion_listeners.size();i++){
+			
+			((ShareResourceWillBeDeletedListener)deletion_listeners.get(i)).resourceWillBeDeleted( this );
+		}	
+		
+		return( true );
+	}
+	
 	protected abstract byte[]
 	getFingerPrint()
 	
@@ -192,7 +205,7 @@ ShareResourceFileOrDirImpl
 				
 				manager.addFileOrDir( file, getType(), true );
 			}
-		}catch( ShareException e ){
+		}catch( Throwable e ){
 						
 			manager.delete( this );
 		}

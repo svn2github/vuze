@@ -173,35 +173,35 @@ TRHostImpl
 		config.loadConfig( finder );
 	}
 
-	public synchronized void
+	public synchronized TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent )
 		
 		throws TRHostException
 	{
-		hostTorrent( torrent, true );
+		return( hostTorrent( torrent, true ));
 	}
 
-	public synchronized void
+	public synchronized TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent,
 		boolean			persistent )
 	
 		throws TRHostException
 	{
-		addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent );
+		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent ));
 	}
 	
-	public synchronized void
+	public synchronized TRHostTorrent
 	publishTorrent(
 		TOTorrent		torrent )
 		
 		throws TRHostException
 	{
-		addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true );
+		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true ));
 	}
 	
-	protected synchronized void
+	protected synchronized TRHostTorrent
 	addTorrent(
 		TOTorrent		torrent,
 		int				state,
@@ -213,7 +213,7 @@ TRHostImpl
 		
 		if ( ht != null ){
 			
-			return;	// already hosted
+			return( ht );
 		}
 		
 			// check that this isn't the explicit publish/host of a torrent already there
@@ -242,8 +242,9 @@ TRHostImpl
 					
 						hti.start();
 					}
-				}				
-				return;
+				}			
+				
+				return( ht );
 			}
 		}catch( TOTorrentException e ){
 			
@@ -335,6 +336,8 @@ TRHostImpl
 		}
 		
 		config.saveConfig();
+		
+		return( host_torrent );
 	}
 	
 	protected synchronized TRTrackerServer

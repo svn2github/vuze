@@ -42,20 +42,20 @@ TRHost
 	initialise(
 		TRHostTorrentFinder	finder );
 		
-	public void
+	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent )
 	
 		throws TRHostException;
 	
-	public void
+	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent,
 		boolean			persistent )
 	
 		throws TRHostException;
 	
-	public void
+	public TRHostTorrent
 	publishTorrent(
 		TOTorrent		torrent )
 		

@@ -2540,7 +2540,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   	
   	mb.setText(MessageText.getString(title_key));
   	
-  	mb.setMessage(	error.getMessage());
+  	String message = error.getMessage();
+  	
+  	if ( message == null ){
+  		
+  		message = error.toString();
+  	}
+  	
+  	mb.setMessage(	message );
   	
   	mb.open();
   }

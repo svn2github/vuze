@@ -295,6 +295,32 @@ DownloadImpl
 		}
 	}
 	
+	public boolean
+	canBeRemoved()
+	
+		throws DownloadRemovalVetoException
+	{
+		if ( 	download_manager.getState() == DownloadManager.STATE_STOPPED || 
+				download_manager.getState() == DownloadManager.STATE_ERROR ){
+			
+			GlobalManager globalManager = download_manager.getGlobalManager();
+			
+			try{
+				globalManager.canDownloadManagerBeRemoved(download_manager);
+				
+			}catch( GlobalManagerDownloadRemovalVetoException e ){
+				
+				throw( new DownloadRemovalVetoException( e.getMessage()));
+			}
+			
+		}else{
+			
+			throw( new DownloadRemovalVetoException( "Download::remove: download not stopped or in error" ));
+		}
+		
+		return( true );
+	}
+	
 	public DownloadStats
 	getStats()
 	{

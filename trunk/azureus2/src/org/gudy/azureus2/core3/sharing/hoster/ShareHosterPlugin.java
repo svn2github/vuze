@@ -47,9 +47,11 @@ ShareHosterPlugin
 	protected ShareManager		share_manager;
 	protected DownloadManager	download_manager;
 
-	protected Map				resource_map = new HashMap();
+	protected Map				resource_dl_map = new HashMap();
+	protected Map				resource_tt_map = new HashMap();
 	
 	protected Download			download_being_removed;
+	protected TrackerTorrent	torrent_being_removed;
 	
 	protected boolean			initialised	= false;
 	
@@ -119,6 +121,19 @@ ShareHosterPlugin
 			
 			try{
 				
+				resource.addDeletionListener(
+					new ShareResourceWillBeDeletedListener()
+					{
+						public void
+						resourceWillBeDeleted(
+							ShareResource	resource )
+						
+							throws ShareResourceDeletionVetoException
+						{
+							canResourceBeDeleted( resource );
+						}
+					});
+				
 				Download	new_download = null;
 				
 				int	type = resource.getType();
@@ -155,13 +170,31 @@ ShareHosterPlugin
 				
 				if ( new_download != null ){
 
-					resource_map.put( resource, new_download );
+					resource_dl_map.put( resource, new_download );
 					
 					Torrent	dl_torrent = new_download.getTorrent();
 					
 					if ( dl_torrent != null ){
 						
-						tracker.host(dl_torrent, false );
+						TrackerTorrent	tt = tracker.host(dl_torrent, false );
+						
+						tt.addRemovalListener(
+								new TrackerTorrentWillBeRemovedListener()
+								{
+									public void
+									torrentWillBeRemoved(
+										TrackerTorrent	tt )
+									
+										throws TrackerTorrentRemovalVetoException
+									{
+										if ( tt != torrent_being_removed ){
+											
+											throw( new TrackerTorrentRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
+										}
+									}								
+								});
+						
+						resource_tt_map.put( resource, tt );
 					}
 					
 					new_download.addDownloadWillBeRemovedListener(
@@ -188,6 +221,51 @@ ShareHosterPlugin
 		}
 	}
 	
+	protected void
+	canResourceBeDeleted(
+		ShareResource	resource )
+	
+		throws ShareResourceDeletionVetoException
+	{
+		Download	dl = (Download)resource_dl_map.get(resource);
+		
+		if ( dl != null ){
+			
+			try{
+				download_being_removed	= dl;
+				
+				dl.canBeRemoved();
+				
+			}catch( DownloadRemovalVetoException e ){
+				
+				throw( new ShareResourceDeletionVetoException( e.getMessage()));
+				
+			}finally{
+				
+				download_being_removed	= null;
+			}
+		}
+		
+		TrackerTorrent	tt = (TrackerTorrent)resource_tt_map.get(resource);
+		
+		if ( tt != null ){
+		
+			try{
+				torrent_being_removed	= tt;
+				
+				tt.canBeRemoved();
+				
+			}catch( TrackerTorrentRemovalVetoException e ){
+				
+				throw( new ShareResourceDeletionVetoException( e.getMessage()));
+				
+			}finally{
+				
+				torrent_being_removed	= null;
+			}
+		}	
+	}
+	
 	public void
 	resourceModified(
 		ShareResource		resource )
@@ -210,7 +288,7 @@ ShareHosterPlugin
 		
 		if ( initialised ){
 		
-			Download	dl = (Download)resource_map.get(resource);
+			Download	dl = (Download)resource_dl_map.get(resource);
 			
 			if ( dl != null ){
 				
@@ -228,8 +306,29 @@ ShareHosterPlugin
 					download_being_removed	= null;
 				}
 				
-				resource_map.remove( resource );
-			}			
+				resource_dl_map.remove( resource );
+			}	
+			
+			TrackerTorrent	tt = (TrackerTorrent)resource_tt_map.get(resource);
+			
+			if ( tt != null ){
+				
+				try{
+					torrent_being_removed	= tt;
+					
+					tt.remove();
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+				}finally{
+					
+					torrent_being_removed	= null;
+				}
+				
+				resource_tt_map.remove( resource );
+			}	
 		}
 	}
 

@@ -41,6 +41,8 @@ ShareResourceImpl
 	protected ShareManagerImpl		manager;
 	protected int					type;
 	
+	protected List	deletion_listeners = new ArrayList();
+	
 	protected
 	ShareResourceImpl(
 		ShareManagerImpl	_manager,
@@ -64,10 +66,29 @@ ShareResourceImpl
 	public void
 	delete()
 	
-		throws ShareException
+		throws ShareException, ShareResourceDeletionVetoException
 	{
+		delete( false );
+	}
+	
+	protected void
+	delete(
+		boolean	force )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
+		if ( !force ){
+	
+			canBeDeleted();
+		}
+		
 		manager.delete(this);
 	}
+	
+	public abstract boolean
+	canBeDeleted()
+	
+		throws ShareResourceDeletionVetoException;
 	
 	protected abstract void
 	deleteInternal();
@@ -189,4 +210,18 @@ ShareResourceImpl
 	checkConsistency()
 	
 		throws ShareException;
+	
+	public void
+	addDeletionListener(
+		ShareResourceWillBeDeletedListener	l )
+	{
+		deletion_listeners.add( l );
+	}
+	
+	public void
+	removeDeletionListener(
+		ShareResourceWillBeDeletedListener	l )
+	{
+		deletion_listeners.remove( l );
+	}
 }

@@ -1,8 +1,8 @@
 /*
- * File    : Tracker.java
- * Created : 30 nov. 2003
- * By      : Olivier
- *
+ * File    : TRHostTorrentRemovalVetoException.java
+ * Created : 22-Jan-2004
+ * By      : parg
+ * 
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,39 +18,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.plugins.tracker;
+
+package org.gudy.azureus2.core3.tracker.host;
 
 /**
- * @author Olivier
+ * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.tracker.web.*;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
-public interface 
-Tracker 
-{   
-	public TrackerTorrent
-	host(
-		Torrent		torrent,
-		boolean		persistent )
-		
-		throws TrackerException;
-	
-    public TrackerTorrent[]
-    getTorrents();
-    
-    public void
-    addPageGenerator(
-    	TrackerWebPageGenerator	generator );
-    
-    public void
-    addListener(
-   		TrackerListener		listener );
-    
-    public void
-    removeListener(
-   		TrackerListener		listener );
+public class 
+TRHostTorrentRemovalVetoException
+	extends Exception
+{
+	public 
+	TRHostTorrentRemovalVetoException(
+		String		str )
+	{
+		super( str );
+	}
 }

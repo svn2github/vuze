@@ -67,7 +67,7 @@ TrackerImpl
 		host.addListener( this );
 	}
 	
-	public void
+	public TrackerTorrent
 	host(
 		Torrent		_torrent,
 		boolean		_persistent )
@@ -77,7 +77,7 @@ TrackerImpl
 		TorrentImpl	torrent = (TorrentImpl)_torrent;
 		
 		try{
-			host.hostTorrent( torrent.getTorrent(), _persistent );
+			return( new TrackerTorrentImpl( host.hostTorrent( torrent.getTorrent(), _persistent )));
 			
 		}catch( Throwable e ){
 			

@@ -528,9 +528,9 @@ MySharesView
       	try{
       		share.delete();
       		
-      	}catch( ShareException e ){
+      	}catch( Throwable e ){
       		
-      		e.printStackTrace();
+      		MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", e );
       	}
       }
     }

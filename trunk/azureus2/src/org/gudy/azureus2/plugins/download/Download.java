@@ -110,6 +110,11 @@ Download
 	
 		throws DownloadException, DownloadRemovalVetoException;
 	
+	public boolean
+	canBeRemoved()
+	
+		throws DownloadRemovalVetoException;
+	
 	public DownloadAnnounceResult
 	getLastAnnounceResult();
 	

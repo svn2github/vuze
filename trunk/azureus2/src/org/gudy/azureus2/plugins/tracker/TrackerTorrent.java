@@ -35,6 +35,17 @@ TrackerTorrent
 	public static final int	TS_STOPPED		= 1;
 	public static final int	TS_PUBLISHED	= 2;
 	
+	public void
+	remove()
+	
+		throws TrackerTorrentRemovalVetoException;
+
+	public boolean
+	canBeRemoved()
+	
+		throws TrackerTorrentRemovalVetoException;
+	
+	
 	public Torrent
 	getTorrent();
 	
@@ -73,4 +84,12 @@ TrackerTorrent
 	public void
 	removeListener(
 		TrackerTorrentListener	listener );
+	
+	public void
+	addRemovalListener(
+		TrackerTorrentWillBeRemovedListener	listener );
+	
+	public void
+	removeRemovalListener(
+		TrackerTorrentWillBeRemovedListener	listener );
 }

@@ -588,7 +588,7 @@ public class GlobalManagerImpl
   }
 
   public void 
-  removeDownloadManager(
+  canDownloadManagerBeRemoved(
   	DownloadManager manager) 
   
   	throws GlobalManagerDownloadRemovalVetoException
@@ -600,6 +600,15 @@ public class GlobalManagerImpl
   		
   		throw((GlobalManagerDownloadRemovalVetoException)e);
   	}
+  }
+  
+  public void 
+  removeDownloadManager(
+  	DownloadManager manager) 
+  
+  	throws GlobalManagerDownloadRemovalVetoException
+  {
+  	canDownloadManagerBeRemoved( manager );
   	
     synchronized (managers){
     	

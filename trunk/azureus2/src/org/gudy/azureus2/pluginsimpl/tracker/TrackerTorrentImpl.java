@@ -35,11 +35,12 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 TrackerTorrentImpl
-	implements TrackerTorrent, TRHostTorrentListener
+	implements TrackerTorrent, TRHostTorrentListener, TRHostTorrentWillBeRemovedListener
 {
 	protected TRHostTorrent		host_torrent;
 
-	protected List	listeners = new ArrayList();
+	protected List	listeners 			= new ArrayList();
+	protected List	removal_listeners	= new ArrayList();
 	
 	protected
 	TrackerTorrentImpl(
@@ -52,6 +53,36 @@ TrackerTorrentImpl
 	getHostTorrent()
 	{
 		return( host_torrent );
+	}
+	
+	public void
+	remove()
+	
+		throws TrackerTorrentRemovalVetoException
+	{
+		try{
+			host_torrent.remove();
+			
+		}catch( TRHostTorrentRemovalVetoException e ){
+			
+			throw( new TrackerTorrentRemovalVetoException(e.getMessage()));
+		}
+	}
+	
+	public boolean
+	canBeRemoved()
+	
+		throws TrackerTorrentRemovalVetoException
+	{
+		try{
+			host_torrent.canBeRemoved();
+			
+		}catch( TRHostTorrentRemovalVetoException e ){
+			
+			throw( new TrackerTorrentRemovalVetoException(e.getMessage()));
+		}
+		
+		return( true );
 	}
 	
 	public Torrent
@@ -166,5 +197,47 @@ TrackerTorrentImpl
 			
 			host_torrent.removeListener(this);
 		}
+	}
+	
+	public void
+	torrentWillBeRemoved(
+		TRHostTorrent	t )
+	
+		throws TRHostTorrentRemovalVetoException
+	{
+		for (int i=0;i<removal_listeners.size();i++){
+			
+			try{
+				((TrackerTorrentWillBeRemovedListener)removal_listeners.get(i)).torrentWillBeRemoved( this );
+				
+			}catch( TrackerTorrentRemovalVetoException e ){
+				
+				throw( new TRHostTorrentRemovalVetoException( e.getMessage()));
+			}
+		}
+	}
+	
+	public synchronized void
+	addRemovalListener(
+		TrackerTorrentWillBeRemovedListener	listener )
+	{
+		removal_listeners.add( listener );
+		
+		if ( removal_listeners.size() == 1 ){
+			
+			host_torrent.addRemovalListener( this );
+		}	
+	}
+	
+	public synchronized void
+	removeRemovalListener(
+		TrackerTorrentWillBeRemovedListener	listener )
+	{
+		removal_listeners.remove( listener );
+		
+		if ( removal_listeners.size() == 0 ){
+			
+			host_torrent.removeRemovalListener(this);
+		}	
 	}
 }

@@ -169,11 +169,11 @@ ShareManagerImpl
 			
 			if ( new_resource != null ){
 				
-				ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
+				ShareResourceImpl	old_resource = (ShareResourceImpl)shares.get(new_resource.getName());
 				
 				if ( old_resource != null ){
 					
-					old_resource.delete();
+					old_resource.delete(true);
 				}
 				
 				shares.put( new_resource.getName(), new_resource );
@@ -196,7 +196,7 @@ ShareManagerImpl
 					}
 				}
 			}
-		}catch( ShareException e ){
+		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
@@ -350,7 +350,7 @@ ShareManagerImpl
 	addFile(
 		File	file )
 	
-		throws ShareException
+		throws ShareException, ShareResourceDeletionVetoException
 	{
 		return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
 	}
@@ -368,7 +368,7 @@ ShareManagerImpl
 	addDir(
 		File	dir )
 	
-		throws ShareException
+		throws ShareException, ShareResourceDeletionVetoException
 	{
 		return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));		
 	}
@@ -377,7 +377,7 @@ ShareManagerImpl
 	getDir(
 		File	file )
 	
-	throws ShareException
+		throws ShareException
 	{
 		return( (ShareResourceDir)ShareResourceDirImpl.getResource( this, file ));
 	}
@@ -388,7 +388,7 @@ ShareManagerImpl
 		int			type,
 		boolean		modified )
 	
-		throws ShareException
+		throws ShareException, ShareResourceDeletionVetoException
 	{
 		ShareResourceImpl new_resource;
 		
@@ -444,13 +444,20 @@ ShareManagerImpl
 		File		dir,
 		boolean		recursive )
 	
-		throws ShareException
+		throws ShareException, ShareResourceDeletionVetoException
 	{
 		reportCurrentTask( "Adding dir contents '" + dir.toString() + "'");
 		
 		ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
 
 		ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
+		
+		if ( old_resource != null ){
+			
+			old_resource.canBeDeleted();
+		}
+		
+			// no need to delete old resource
 		
 		shares.put( new_resource.getName(), new_resource );
 		

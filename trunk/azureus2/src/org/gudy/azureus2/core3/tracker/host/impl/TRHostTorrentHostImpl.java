@@ -42,7 +42,8 @@ TRHostTorrentHostImpl
 	protected TOTorrent			torrent;
 	protected int				port;
 	
-	protected List				listeners	= new ArrayList();
+	protected List				listeners			= new ArrayList();
+	protected List				removal_listeners	= new ArrayList();
 	
 	protected int				status	= TS_STOPPED;
 	protected boolean			persistent;
@@ -116,10 +117,27 @@ TRHostTorrentHostImpl
 	
 	public synchronized void
 	remove()
+	
+		throws TRHostTorrentRemovalVetoException
 	{
+		canBeRemoved();
+		
 		stop();
 		
 		host.remove( this );
+	}
+	
+	public boolean
+	canBeRemoved()
+	
+		throws TRHostTorrentRemovalVetoException
+	{
+		for (int i=0;i<removal_listeners.size();i++){
+			
+			((TRHostTorrentWillBeRemovedListener)removal_listeners.get(i)).torrentWillBeRemoved( this );
+		}
+		
+		return( true );
 	}
 	
 	public int
@@ -335,5 +353,19 @@ TRHostTorrentHostImpl
 		TRHostTorrentListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	public synchronized void
+	addRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l )
+	{
+		removal_listeners.add(l);
+	}
+	
+	public synchronized void
+	removeRemovalListener(
+		TRHostTorrentWillBeRemovedListener	l )
+	{
+		removal_listeners.remove(l);
 	}
 }

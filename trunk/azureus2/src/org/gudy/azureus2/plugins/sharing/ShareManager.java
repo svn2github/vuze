@@ -43,20 +43,20 @@ ShareManager
 	addFile(
 		File	file )
 	
-		throws ShareException;
+		throws ShareException, ShareResourceDeletionVetoException;
 	
 	public ShareResourceDir
 	addDir(
 		File	dir )
 	
-		throws ShareException;
+		throws ShareException, ShareResourceDeletionVetoException;
 	
 	public ShareResourceDirContents
 	addDirContents(
 		File	dir,
 		boolean	recursive )
 	
-		throws ShareException;
+		throws ShareException, ShareResourceDeletionVetoException;
 	
 	public void
 	addListener(

@@ -102,9 +102,7 @@ outer:
 											time_to_die	= true;
 											
 											thread_pool.remove( worker.this );
-											
-											System.out.println( "ThreadPool: thread terminated - " + Thread.currentThread().getName() );
-											
+																						
 											break outer;
 										}
 									}

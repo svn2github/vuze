@@ -41,6 +41,18 @@ ShareResource
 	public void
 	delete()
 	
-		throws ShareException;
+		throws ShareException, ShareResourceDeletionVetoException;
 	
+	public boolean
+	canBeDeleted()
+	
+		throws ShareResourceDeletionVetoException;
+	
+	public void
+	addDeletionListener(
+		ShareResourceWillBeDeletedListener	l );
+	
+	public void
+	removeDeletionListener(
+		ShareResourceWillBeDeletedListener	l );
 }

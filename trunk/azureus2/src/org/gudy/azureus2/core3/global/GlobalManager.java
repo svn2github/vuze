@@ -52,7 +52,13 @@ GlobalManager
 		DownloadManager	dm )
 	
 		throws GlobalManagerDownloadRemovalVetoException;
-		
+	
+	public void
+	canDownloadManagerBeRemoved(
+			DownloadManager	dm )
+	
+		throws GlobalManagerDownloadRemovalVetoException;
+	
 	public List
 	getDownloadManagers();
 	

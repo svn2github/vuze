@@ -97,6 +97,19 @@ ShareResourceDirContentsImpl
 			// deserialised resource, checkConsistency will be called later to trigger sub-share adding
 	}
 	
+	public boolean
+	canBeDeleted()
+	
+		throws ShareResourceDeletionVetoException
+	{
+		for (int i=0;i<children.length;i++){
+			
+			children[i].canBeDeleted();
+		}
+		
+		return( true );
+	}
+	
 	protected void
 	checkConsistency()
 	{
@@ -145,7 +158,7 @@ ShareResourceDirContentsImpl
 							
 							kids.add( res );
 							
-						}catch( ShareException e ){
+						}catch( Throwable e ){
 							
 							e.printStackTrace();
 						}
@@ -162,7 +175,7 @@ ShareResourceDirContentsImpl
 						
 						kids.add( res );
 						
-					}catch( ShareException e ){
+					}catch( Throwable e ){
 						
 						e.printStackTrace();
 					}
@@ -181,7 +194,7 @@ ShareResourceDirContentsImpl
 			try{
 				children[i].delete();
 				
-			}catch( ShareException e ){
+			}catch( Throwable e ){
 				
 				e.printStackTrace();
 			}
@@ -288,6 +301,19 @@ ShareResourceDirContentsImpl
 			throw( new ShareException( "ShareResourceDirContents: can't delete sub-share" ));
 		}
 		
+		public boolean
+		canBeDeleted()
+		
+			throws ShareResourceDeletionVetoException
+		{
+			for (int i=0;i<children.length;i++){
+				
+				children[i].canBeDeleted();
+			}
+			
+			return( true );
+		}
+		
 		public File
 		getRoot()
 		{
@@ -304,6 +330,18 @@ ShareResourceDirContentsImpl
 		getChildren()
 		{
 			return( children );
+		}
+		
+		public void
+		addDeletionListener(
+			ShareResourceWillBeDeletedListener	l )
+		{
+		}
+		
+		public void
+		removeDeletionListener(
+			ShareResourceWillBeDeletedListener	l )
+		{
 		}
 	}
 }
