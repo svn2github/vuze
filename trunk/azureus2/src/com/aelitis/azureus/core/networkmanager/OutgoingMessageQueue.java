@@ -50,7 +50,7 @@ public class OutgoingMessageQueue {
   
   private int total_size = 0;
   private ProtocolMessage urgent_message = null;
-  private volatile boolean destroyed = false;
+  private boolean destroyed = false;
   
   
   /**
@@ -105,7 +105,10 @@ public class OutgoingMessageQueue {
    */
   public void addMessage( ProtocolMessage message, boolean manual_listener_notify ) {
     
-    if( destroyed ) System.out.println("addMessage:: already destroyed");
+    if( destroyed ) {  //queue is shutdown, drop any added messages
+      message.destroy();
+      return;
+    }
     
     removeMessagesOfType( message.typesToRemove(), manual_listener_notify );
     try{

@@ -51,9 +51,8 @@ public class OutgoingBTPieceMessageHandler {
   private final Map queued_messages = new HashMap();
   private int num_messages_loading = 0;
   private int num_messages_in_queue = 0;
-  
   private final AEMonitor	lock_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:lock");
-  
+  private boolean destroyed = false;
 
   
   private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
@@ -62,7 +61,7 @@ public class OutgoingBTPieceMessageHandler {
       try{
       	lock_mon.enter();
 
-      	if( !loading_messages.contains( request ) ) { //was canceled
+      	if( !loading_messages.contains( request ) || destroyed ) { //was canceled
       	  data.returnToPool();
       	  return;
       	}
@@ -127,6 +126,8 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
+    if( destroyed )  return;
+    
     DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
 
     try{
@@ -220,6 +221,7 @@ public class OutgoingBTPieceMessageHandler {
       requests.clear();
       loading_messages.clear();
       num_messages_loading = 0;
+      destroyed = true;
     }
     finally{
       lock_mon.exit();
@@ -228,7 +230,7 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private void doReadAheadLoads() {
-    while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() ) {
+    while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() && !destroyed ) {
       DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
       loading_messages.add( dmr );
       disk_manager.enqueueReadRequest( dmr, read_req_listener );

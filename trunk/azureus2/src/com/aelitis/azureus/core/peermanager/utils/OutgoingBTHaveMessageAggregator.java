@@ -42,6 +42,8 @@ public class OutgoingBTHaveMessageAggregator {
   private final ArrayList 	pending_haves 		= new ArrayList();
   private final AEMonitor	pending_haves_mon	= new AEMonitor( "OutgoingBTHaveMessageAggregator:PH");
 
+  private boolean destroyed = false;
+  
   private final OutgoingMessageQueue outgoing_message_q;
     
   private final OutgoingMessageQueue.MessageQueueListener added_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
@@ -76,6 +78,8 @@ public class OutgoingBTHaveMessageAggregator {
    * @param force if true, send this and any other pending haves right away
    */
   public void queueHaveMessage( int piece_number, boolean force ) {
+    if( destroyed )  return;
+    
     try{
       pending_haves_mon.enter();
     
@@ -106,8 +110,9 @@ public class OutgoingBTHaveMessageAggregator {
       pending_haves_mon.enter();
     
       pending_haves.clear();
-    }finally{
-    	
+      destroyed = true;
+    }
+    finally{ 	
       pending_haves_mon.exit();
     }
   }
@@ -121,7 +126,9 @@ public class OutgoingBTHaveMessageAggregator {
   }
   
   
-  private void sendPendingHaves() {    
+  private void sendPendingHaves() {
+    if( destroyed )  return;
+    
     try{
       pending_haves_mon.enter();
     
