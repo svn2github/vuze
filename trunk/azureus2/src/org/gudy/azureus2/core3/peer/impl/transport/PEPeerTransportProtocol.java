@@ -481,7 +481,7 @@ PEPeerTransportProtocol
   }
 		
   private class StateHandshaking implements PEPeerTransportProtocolState {
-	public void process() {
+	public synchronized void process() {
 	  if (readBuffer.hasRemaining()) {
 		try {
 		  int read = readData(readBuffer);
@@ -504,7 +504,7 @@ PEPeerTransportProtocol
   }
 
   private class StateTransfering implements PEPeerTransportProtocolState {
-	public void process() {      
+	public synchronized void process() {      
 	  if(++processLoop > 10)
 		  return;
           
