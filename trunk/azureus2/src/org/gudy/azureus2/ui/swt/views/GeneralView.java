@@ -485,11 +485,17 @@ public class GeneralView extends AbstractIView {
     });
     
     
-    
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
+    creation_date = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 1;
+    creation_date.setLayoutData(gridData);
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 1;
     trackerUrlValue.setLayoutData(gridData);
+
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
@@ -529,12 +535,7 @@ public class GeneralView extends AbstractIView {
  
     // row
     
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
-    creation_date = new BufferedLabel(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
-    creation_date.setLayoutData(gridData);
+
     
     
     
