@@ -456,12 +456,7 @@ PEPeerTransportProtocol
   	//Send a logger event
   	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
   	
-  	if ( (attemptReconnect)
-		  && (currentState != null)
-		  && (currentState.getState() == TRANSFERING || currentState.getState() == HANDSHAKING || currentState.getState() == CLOSING)
-			&& (incoming == false)
-			&& (nbConnections < 3)) {
-      
+    if( attemptReconnect && incoming == false && nbConnections < 3 ) {      
   		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
   		currentState = new StateConnecting();
   	}
