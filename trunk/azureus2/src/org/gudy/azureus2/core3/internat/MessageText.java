@@ -182,6 +182,14 @@ public class MessageText {
       }
     });
     bundleSet.addAll(Arrays.asList(localBundles));
+    // Add AppDir 2nd
+    File appDir = new File(SystemProperties.getApplicationPath());
+    String appBundles[] = appDir.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.startsWith(prefix) && name.endsWith(extension);
+      }
+    });
+    bundleSet.addAll(Arrays.asList(appBundles));
     // Any duplicates will be ignored
     bundleSet.addAll(Arrays.asList(bundles));
 
@@ -224,9 +232,9 @@ public class MessageText {
       final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
       final String extension = ".properties";
 
-      // First, try Application path
       try {
-        File bundleFile = new File(SystemProperties.getUserPath());
+        File userBundleFile = new File(SystemProperties.getUserPath());
+        File appBundleFile = new File(SystemProperties.getApplicationPath());
         
         // Get the jarURL
         // XXX Is there a better way to get the JAR name?
@@ -235,7 +243,8 @@ public class MessageText {
         sJar = sJar.substring(0, sJar.length() - prefix.length() - extension.length());
         URL jarURL = new URL(sJar);
 
-        URL[] urls = {bundleFile.toURL(), jarURL};
+        // User dir overrides app dir which overrides jar file bundles
+        URL[] urls = {userBundleFile.toURL(), appBundleFile.toURL(), jarURL};
         newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
                                                       new URLClassLoader(urls));
         if (newResourceBundle == null || 
