@@ -30,6 +30,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.BlockedIp;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
  * @author Olivier
@@ -81,5 +86,34 @@ public class BlockedIpsWindow {
     window.setSize(720,320);
     window.layout();
     window.open();    
+  }
+  
+  public static void showBlockedIps(Shell mainWindow) {
+    StringBuffer sb = new StringBuffer();
+    BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
+    String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
+    String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");    
+    for(int i=0;i<blocked.length;i++){
+      BlockedIp bIp = blocked[i];
+      sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
+      sb.append("\t[");
+      sb.append( bIp.getTorrentName() );
+      sb.append("] \t");
+      sb.append(bIp.getBlockedIp());
+      IpRange range = bIp.getBlockingRange();
+      if(range == null) {
+        sb.append(' ');
+        sb.append(notInRange);
+        sb.append('\n');
+      } else {
+        sb.append(' ');
+        sb.append(inRange);
+        sb.append(range.toString());
+        sb.append('\n');
+      }
+    }   
+    if(mainWindow == null || mainWindow.isDisposed())
+      return;
+    BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
   }
 }

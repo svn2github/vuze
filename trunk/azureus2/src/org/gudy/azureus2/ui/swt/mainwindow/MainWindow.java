@@ -7,7 +7,6 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
@@ -61,9 +60,6 @@ import org.gudy.azureus2.core3.disk.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipfilter.BlockedIp;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
@@ -86,10 +82,7 @@ import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
-import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
-
-//import snoozesoft.systray4j.SysTrayMenu;
 
 /**
  * @author Olivier
@@ -102,33 +95,41 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private static MainWindow window;
 
+  private Initializer initializer;  
+  private FolderWatcher folderWatcher = null;
   private GUIUpdater updater;
 
-  private Display display;
-  private Shell mainWindow;
-  
-  private IconBar iconBar;
+  //Package visibility for GUIUpdater
+  GlobalManager       globalManager;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
   public static boolean isDisposeFromListener = false;  
 
-  private boolean useCustomTab;
-  
-  //private TabFolder folder;
-  private Composite folder;
+  private Display display;
+  private Shell mainWindow;
   
   private MainMenu mainMenu;
   
+  private IconBar iconBar;
+  
+  private boolean useCustomTab;
+  private Composite folder;
+      
   private CLabel statusText;
   private String statusTextKey;
   
-  private CLabel ipBlocked;
-  private CLabel statusDown;
-  private CLabel statusUp;
-
-  private GlobalManager 			globalManager;
-    
+  //Package visibility for GUIUpdater
+  CLabel ipBlocked;
+  CLabel statusDown;
+  CLabel statusUp;
+  
+  private TrayWindow tray;
+  SystemTraySWT systemTraySWT;
+  
+  private HashMap downloadViews;
+  HashMap downloadBars;
+     
   private Tab 	mytorrents;
   private IView viewMyTorrents;
   
@@ -139,128 +140,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private IView my_shares_view;
   
   private Tab 	stats_tab;
-  
-  
   private Tab console;
   private Tab config;
-
-  
-
-  private TrayWindow tray;
-  //private SystemTray trayIcon;
-  private SystemTraySWT systemTraySWT;
-  
-
-  private HashMap downloadViews;
-  private HashMap downloadBars;
-
-  private Initializer initializer;
-  
-  private FolderWatcher folderWatcher = null;
   
   
-
-  private class GUIUpdater extends Thread implements ParameterListener {
-    boolean finished = false;
-    boolean refreshed = true;
-    
-    int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
-    boolean alwaysRefreshMyTorrents = COConfigurationManager.getBooleanParameter("config.style.refreshMT");
-    
-    public GUIUpdater() {
-      super("GUI updater"); //$NON-NLS-1$
-      setPriority(Thread.MAX_PRIORITY);
-      COConfigurationManager.addParameterListener("GUI Refresh", this);
-      COConfigurationManager.addParameterListener("config.style.refreshMT", this);
-    }
-
-    public void run() {
-      while (!finished) {
-        if(refreshed)
-          update();
-        try {
-          Thread.sleep(waitTime);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    /**
-     * @param parameterName the name of the parameter that has changed
-     * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
-     */
-    public void parameterChanged(String parameterName) {
-      waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
-      alwaysRefreshMyTorrents = COConfigurationManager.getBooleanParameter("config.style.refreshMT");
-    }
-
-    private void update() {
-      refreshed = false;
-      if (display != null && !display.isDisposed())
-        display.asyncExec(new Runnable() {
-        public void run() {
-          try {
-            IView view = null;
-            if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
-  
-              view = getCurrentView();
-              
-              if (view != null) {
-                view.refresh();
-                Tab.refresh();
-              }
-  
-              ipBlocked.setText( "{"+DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
-              statusDown.setText(MessageText.getString("ConfigView.download.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
-              statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
-  					}
-  
-            if (!mainWindow.isDisposed() && alwaysRefreshMyTorrents) {            
-              if (mytorrents != null) {
-                try {
-                  viewMyTorrents = Tab.getView(mytorrents.getTabItem());
-                } catch (Exception e) {
-                  viewMyTorrents = null;
-                }
-                if (viewMyTorrents != null && viewMyTorrents != view) {
-                  viewMyTorrents.refresh();
-                }
-              }
-            }
-            
-            //if (trayIcon != null)
-            //  trayIcon.refresh();
-            
-            if(systemTraySWT != null)
-              systemTraySWT.update();
-            
-            synchronized (downloadBars) {
-              Iterator iter = downloadBars.values().iterator();
-              while (iter.hasNext()) {
-                MinimizedWindow mw = (MinimizedWindow) iter.next();
-                mw.refresh();
-              }
-            }
-          } catch (Exception e) {
-            LGLogger.log(LGLogger.ERROR, "Error while trying to update GUI");
-            e.printStackTrace();
-          } finally {
-            refreshed = true;
-          }
-        }        
-      });
-    }
-
-    public void stopIt() {
-      finished = true;
-      COConfigurationManager.removeParameterListener("GUI Refresh", this);
-      COConfigurationManager.removeParameterListener("config.style.refreshMT", this);
-    }
-  }
-
-
   public MainWindow(GlobalManager gm, Initializer initializer) {    
     LGLogger.log("MainWindow start");
     this.globalManager = gm;
@@ -460,7 +343,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
     ipBlocked.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
-       showBlockedIps();
+       BlockedIpsWindow.showBlockedIps(MainWindow.this.mainWindow);
       }
     });
     
@@ -625,13 +508,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 }
 
   private void openMainWindow() {
-//  share progress window
     
+    //  share progress window    
     new ProgressWindow();
     
     mainWindow.open();
     mainWindow.forceActive();
-    updater = new GUIUpdater();
+    updater = new GUIUpdater(this);
     updater.start();
 
     try {
@@ -805,11 +688,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   			((TabFolder)folder).update();
   		}
   	}
-    /*
-  	if (trayIcon != null) {
-  		trayIcon.refresh();
-  	} 
-    */
   }
 
   public void closeDownloadBars() {
@@ -842,46 +720,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
       }
       public void drop(DropTargetEvent event) {
-        openDroppedTorrents(event);
+        TorrentOpener.openDroppedTorrents(event);
       }
     });
   }
 
-  public void openDroppedTorrents(DropTargetEvent event) {
-		if(event.data == null)
-			return;
-    if(event.data instanceof String[]) {
-      final String[] sourceNames = (String[]) event.data;
-      if (sourceNames == null)
-        event.detail = DND.DROP_NONE;
-      if (event.detail == DND.DROP_NONE)
-        return;
-      boolean startInStoppedState = event.detail == DND.DROP_COPY;
-      for (int i = 0;(i < sourceNames.length); i++) {
-        final File source = new File(sourceNames[i]);
-        if (source.isFile())
-          TorrentOpener.openTorrent(source.getAbsolutePath(), startInStoppedState, true );
-        else if (source.isDirectory()){
-        	
-        	String	dir_name = source.getAbsolutePath();
-        	
-        	String	drop_action = COConfigurationManager.getStringParameter("config.style.dropdiraction", "0");
-        
-        	if ( drop_action.equals("1")){
-        		ShareUtils.shareDir(dir_name);
-        	}else if ( drop_action.equals("2")){
-        		ShareUtils.shareDirContents( dir_name, false );
-        	}else if ( drop_action.equals("3")){
-        		ShareUtils.shareDirContents( dir_name, true );
-        	}else{
-        		TorrentOpener.openTorrentsFromDirectory(dir_name, startInStoppedState);
-        	}
-        }
-      }
-    } else {
-      TorrentOpener.openUrl(((URLTransfer.URLType)event.data).linkURL);
-    }
-  }
+
 
 	// globalmanagerlistener
 	
@@ -1292,7 +1136,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       currentView.itemActivated(itemKey);    
   }
   
-  private IView getCurrentView() {
+  IView getCurrentView() {
 	  try {
 	    if(!useCustomTab) {
 	      TabItem[] selection = ((TabFolder)folder).getSelection();
@@ -1317,34 +1161,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   
   
-  private void showBlockedIps() {
-    StringBuffer sb = new StringBuffer();
-    BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
-    String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
-    String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");    
-    for(int i=0;i<blocked.length;i++){
-      BlockedIp bIp = blocked[i];
-      sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
-      sb.append("\t[");
-      sb.append( bIp.getTorrentName() );
-      sb.append("] \t");
-      sb.append(bIp.getBlockedIp());
-      IpRange range = bIp.getBlockingRange();
-      if(range == null) {
-        sb.append(' ');
-        sb.append(notInRange);
-        sb.append('\n');
-      } else {
-        sb.append(' ');
-        sb.append(inRange);
-        sb.append(range.toString());
-        sb.append('\n');
-      }
-    }
-    if(mainWindow == null || mainWindow.isDisposed())
-      return;
-    BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
-  }
+
   
   
 

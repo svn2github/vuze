@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileFilter;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -44,6 +46,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.OpenUrlWindow;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 /**
@@ -363,5 +366,41 @@ public class TorrentOpener {
       new FileDownloadWindow(display, linkURL);
     else
       new OpenUrlWindow(display, linkURL);
+  }
+  
+  public static void openDroppedTorrents(DropTargetEvent event) {
+    if(event.data == null)
+      return;
+    if(event.data instanceof String[]) {
+      final String[] sourceNames = (String[]) event.data;
+      if (sourceNames == null)
+        event.detail = DND.DROP_NONE;
+      if (event.detail == DND.DROP_NONE)
+        return;
+      boolean startInStoppedState = event.detail == DND.DROP_COPY;
+      for (int i = 0;(i < sourceNames.length); i++) {
+        final File source = new File(sourceNames[i]);
+        if (source.isFile())
+          TorrentOpener.openTorrent(source.getAbsolutePath(), startInStoppedState, true );
+        else if (source.isDirectory()){
+          
+          String  dir_name = source.getAbsolutePath();
+          
+          String  drop_action = COConfigurationManager.getStringParameter("config.style.dropdiraction", "0");
+        
+          if ( drop_action.equals("1")){
+            ShareUtils.shareDir(dir_name);
+          }else if ( drop_action.equals("2")){
+            ShareUtils.shareDirContents( dir_name, false );
+          }else if ( drop_action.equals("3")){
+            ShareUtils.shareDirContents( dir_name, true );
+          }else{
+            TorrentOpener.openTorrentsFromDirectory(dir_name, startInStoppedState);
+          }
+        }
+      }
+    } else {
+      TorrentOpener.openUrl(((URLTransfer.URLType)event.data).linkURL);
+    }
   }
 }
