@@ -28,16 +28,16 @@ public class SystemProperties {
   
   private static final String AZ_DIR = "Azureus";
   private static final String WIN_DEFAULT = "Application Data";
-  private static final String OSX_DEFAULT = "Library";
+  private static final String OSX_DEFAULT = "Library" + SEP + "Application Support";
   
-   private static String user_path = null;
+  private static String user_path = null;
   
   
   /**
    * Returns the full path to the user's home azureus directory.
    * Under unix, this is usually ~/Azureus/
    * Under Windows, this is usually .../Documents and Settings/username/Application Data/Azureus/
-   * Under OSX, this is usually /Users/username/Library/Azureus/
+   * Under OSX, this is usually /Users/username/Library/Application Support/Azureus/
    */
   public static String getUserPath() {
     
