@@ -65,6 +65,7 @@ BUGFIX: Core | Fix for underlying socket handles not closing under linux ("Too m
 BUGFIX: Core | Individual file priorities remembered after Stop-Start [Nolar]
 BUGFIX: Core | Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 BUGFIX: Core | Simpler and more reliable file allocation...won't b0rk existing data [Nolar]
+BUGFIX: Core | Re-check on completion no longer sends Have messages [Nolar]
 BUGFIX: UI   | Close on OS X should now always be ok [Gudy]
 BUGFIX: UI   | Fix for the General View in a torrent details, not being layout correctly [Gudy]
 BUGFIX: UI   | Fix for the toolbar on linux / OS X [Gudy]
