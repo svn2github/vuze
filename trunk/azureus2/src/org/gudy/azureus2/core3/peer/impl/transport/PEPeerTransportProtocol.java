@@ -317,8 +317,10 @@ PEPeerTransportProtocol
   			this_mon.enter();
   		
   			if (closing){
-  				
-          Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
+          
+          if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 ) {
+            Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
+          }
           
   				return;
   			}
