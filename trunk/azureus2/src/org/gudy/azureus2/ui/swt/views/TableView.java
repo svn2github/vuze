@@ -36,6 +36,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -360,29 +362,27 @@ public class TableView
   		public void handleEvent (Event event) {
   		  System.out.println(event);
   		  Shell shell;
-  		  if (event.widget instanceof Label)
-  		    shell = ((Label)event.widget).getShell();
+  		  if (event.widget instanceof Control)
+  		    shell = ((Control)event.widget).getShell();
   		  else
   		    shell = (Shell)event.widget;
   			switch (event.type) {
   				case SWT.MouseDown:
-  				case SWT.FocusIn:
+  			  case SWT.MouseDoubleClick:
   					Event e = new Event ();
   					TableItem ti = (TableItem)shell.getData("_TABLEITEM");
   					if (!ti.isDisposed()) {
     					e.item = ti;
     					table.setSelection(table.indexOf(ti));
-    					table.notifyListeners(SWT.Selection, e);
+    					table.notifyListeners((event.type == SWT.MouseDown) ? SWT.Selection : SWT.DefaultSelection, e);
    					}
    					if (table != null && !table.isDisposed())
      					table.setFocus();
   					// fall through
+  				case SWT.MouseMove:
   				case SWT.MouseExit:
   				  TableCellCore cell = (TableCellCore)shell.getData("TableCellCore");
             cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVERCOMPLETE);
-            Point pt = shell.getSize();
-            pt.x *= 2;
-            shell.setSize(pt);
   					shell.dispose();
   					break;
   			}
@@ -436,32 +436,36 @@ public class TableView
 						if (d == null)
 						  return;
 
+            // We don't get mouse down notifications on trim or borders..
 						shell = new Shell (table.getShell(), SWT.ON_TOP);
             FillLayout f = new FillLayout();
-            f.marginWidth = 1;
+            f.marginWidth = 3;
             f.marginHeight = 1;
 						shell.setLayout(f);
 						shell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+
 						label = new Label(shell, SWT.WRAP);
 						label.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 						label.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 						shell.setData("_TABLEITEM", item);
 						shell.setData("TableCellCore", cell);
 						label.setText(sToolTip);
-						label.addListener(SWT.MouseExit, labelListener);
+						label.addListener(SWT.MouseMove, labelListener);
 						label.addListener(SWT.MouseDown, labelListener);
-						shell.addListener(SWT.MouseExit, labelListener);
+						label.addListener(SWT.MouseExit, labelListener);
+						shell.addListener(SWT.MouseMove, labelListener);
 						shell.addListener(SWT.MouseDown, labelListener);
-						shell.addListener(SWT.FocusIn, labelListener);
+						shell.addListener(SWT.MouseExit, labelListener);
+						shell.addListener(SWT.MouseDoubleClick, labelListener);
 						// compute size on label instead of shell because label
 						// calculates wrap, while shell doesn't
 						Point size = label.computeSize (SWT.DEFAULT, SWT.DEFAULT);
 						if (size.x > 600) {
   						size = label.computeSize (600, SWT.DEFAULT, true);
 						}
-						size.x += shell.getBorderWidth() * 2 + 2;
-						size.y += shell.getBorderWidth() * 2 + 2;
-						Point pt = table.toDisplay (event.x, event.y - size.y + 2);
+						size.x += shell.getBorderWidth() * 2 + (f.marginWidth * 2);
+						size.y += shell.getBorderWidth() * 2 + (f.marginHeight * 2);
+						Point pt = table.toDisplay (event.x - 1, event.y - size.y + 2);
             Rectangle displayRect;
             try {
             	displayRect = shell.getMonitor().getClientArea();
