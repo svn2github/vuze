@@ -1053,7 +1053,7 @@ DiskManagerImpl
         try {
           File directory = new File( tempPath );
           if( !directory.exists() ) {
-            if( !directory.mkdirs() ) throw new Exception( "directory creation failed" );
+            if( !directory.mkdirs() ) throw new Exception( "directory creation failed: " +directory);
           }
           f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
           fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
