@@ -60,9 +60,10 @@ PEPeerTransportProtocol
 	
 	private int port;
 	
-	private PEPeerStats peer_stats;
-  private ArrayList requested;
-  private AEMonitor	requested_mon;
+	private final PEPeerStats peer_stats;
+  
+  private final ArrayList requested = new ArrayList();
+  private final AEMonitor	requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
 
   private HashMap data;
   
@@ -148,8 +149,9 @@ PEPeerTransportProtocol
     ip    = _connection.getAddress().getAddress().getHostAddress();
     port  = _connection.getAddress().getPort();
     incoming = true;
-    
     connection = _connection;
+    
+    peer_stats = manager.createPeerStats();
 
     changePeerState( PEPeer.CONNECTING );
     
@@ -185,6 +187,8 @@ PEPeerTransportProtocol
     ip    = _ip;
     port  = _port;
     incoming = false;
+    
+    peer_stats = manager.createPeerStats();
     
     if( port < 0 || port > 65535 ) {
       closeConnection( "Given remote port is invalid: " + port, false );
@@ -234,11 +238,6 @@ PEPeerTransportProtocol
 
     other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
     Arrays.fill( other_peer_has_pieces, false );
-    
-    peer_stats = manager.createPeerStats();
-    
-    requested = new ArrayList();
-    requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
 
     recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
       public boolean removeEldestEntry(Map.Entry eldest) {
@@ -320,8 +319,6 @@ PEPeerTransportProtocol
     
     //cancel any pending requests (on the manager side)
     cancelRequests();
-
-    recent_outgoing_requests.clear();
  
     if ( ip_resolver_request != null ){
       ip_resolver_request.cancel();
