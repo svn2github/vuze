@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -364,9 +365,61 @@ public class MyTorrentsView
     final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore"); //$NON-NLS-1$
 
-    	// export menu
+    // advanced menu
     
-    final MenuItem itemExport = new MenuItem(menu, SWT.CASCADE);
+    final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
+    Messages.setLanguageText(itemAdvanced, "MyTorrentsView.menu.advancedmenu"); //$NON-NLS-1$
+    
+    final Menu menuAdvanced = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemAdvanced.setMenu(menuAdvanced);
+    
+    //advanced > networks menu
+    
+    final MenuItem itemNetworks = new MenuItem(menuAdvanced,SWT.CASCADE);
+    Messages.setLanguageText(itemNetworks, "MyTorrentsView.menu.networks"); //$NON-NLS-1$
+    
+    final Menu menuNetworks = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemNetworks.setMenu(menuNetworks);
+    
+    for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
+		final String	nn = AENetworkClassifier.AT_NETWORKS[i];
+		String	msg_text	= "ConfigView.section.connection.networks." + nn;
+		final MenuItem itemNetwork = new MenuItem(menuNetworks,SWT.CHECK);
+		itemNetwork.setData("network",nn);
+		Messages.setLanguageText(itemNetwork, msg_text); //$NON-NLS-1$
+		itemNetwork.addListener(SWT.Selection,new SelectedTableRowsListener() {
+	      public void run(TableRowCore row) {
+	        ((DownloadManager)row.getDataSource(true)).getDownloadState().setNetworkEnabled(nn,itemNetwork.getSelection());
+	      }
+	    });
+    }
+    
+    //advanced > peer sources menu
+    
+    final MenuItem itemPeerSource = new MenuItem(menuAdvanced,SWT.CASCADE);
+    Messages.setLanguageText(itemPeerSource, "MyTorrentsView.menu.peersource"); //$NON-NLS-1$
+    
+    final Menu menuPeerSource = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemPeerSource.setMenu(menuPeerSource);
+    
+    
+    for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
+		
+		final String	p = PEPeerSource.PS_SOURCES[i];
+		String	msg_text	= "ConfigView.section.connection.peersource." + p;
+		final MenuItem itemPS = new MenuItem(menuPeerSource,SWT.CHECK);
+		itemPS.setData("peerSource",p);
+		Messages.setLanguageText(itemPS, msg_text); //$NON-NLS-1$
+		itemPS.addListener(SWT.Selection,new SelectedTableRowsListener() {
+	      public void run(TableRowCore row) {
+	        ((DownloadManager)row.getDataSource(true)).getDownloadState().setPeerSourceEnabled(p,itemPS.getSelection());
+	      }
+	    });
+	}
+    
+    // advanced > export menu
+    
+    final MenuItem itemExport = new MenuItem(menuAdvanced, SWT.CASCADE);
     Messages.setLanguageText(itemExport, "MyTorrentsView.menu.exportmenu"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemExport, "export");
 
@@ -374,8 +427,7 @@ public class MyTorrentsView
     itemExport.setMenu(menuExport);
 
     final MenuItem itemExportXML = new MenuItem(menuExport, SWT.PUSH);
-    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export"); //$NON-NLS-1$
-    //itemExportXML.setImage(ImageRepository.getImage("export"));
+    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export"); //$NON-NLS-1$    
 
     final MenuItem itemExportTorrent = new MenuItem(menuExport, SWT.PUSH);
     Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent"); //$NON-NLS-1$
@@ -413,7 +465,7 @@ public class MyTorrentsView
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemMoveEnd, "bottom");
     
-    final MenuItem itemSpeed = new MenuItem(menu, SWT.CASCADE);
+    final MenuItem itemSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
     Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemSpeed, "speed");
     
@@ -469,7 +521,7 @@ public class MyTorrentsView
 
     // Tracker
     final Menu menuTracker = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    final MenuItem itemTracker = new MenuItem(menu, SWT.CASCADE);
+    final MenuItem itemTracker = new MenuItem(menuAdvanced, SWT.CASCADE);
     Messages.setLanguageText(itemTracker, "MyTorrentsView.menu.tracker");
     itemTracker.setMenu(menuTracker);
 
@@ -543,6 +595,8 @@ public class MyTorrentsView
 
         itemManualUpdate.setEnabled(hasSelection);
 
+        itemAdvanced.setEnabled(hasSelection);
+        
         boolean bChangeDir = false;
         if (hasSelection) {
           bChangeDir = true;
@@ -559,6 +613,17 @@ public class MyTorrentsView
           boolean speedUnlimited = false;
           
           boolean speedDisabled = false;
+          
+          MenuItem itemsNetwork[] = menuNetworks.getItems();
+          for(int j = 0 ; j < itemsNetwork.length ; j++) {
+            itemsNetwork[j].setSelection(true);
+          }
+          
+          MenuItem itemsPeersource[] = menuPeerSource.getItems();
+          for(int j = 0 ; j < itemsPeersource.length ; j++) {
+            itemsPeersource[j].setSelection(true);
+          }
+          
           for (int i = 0; i < dms.length; i++) {
             DownloadManager dm = (DownloadManager)dms[i];
             
@@ -607,6 +672,20 @@ public class MyTorrentsView
             }
            
             bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm.filesExist());
+                          
+            for(int j=0;j<itemsNetwork.length;j++) {
+              String network = (String) itemsNetwork[j].getData("network");
+              if(! dm.getDownloadState().isNetworkEnabled(network)) {
+                itemsNetwork[j].setSelection(false);
+              }
+            }
+            
+            for(int j=0;j<itemsPeersource.length;j++) {
+              String ps = (String) itemsPeersource[j].getData("peerSource");
+              if(! dm.getDownloadState().isPeerSourceEnabled(ps)) {
+                itemsPeersource[j].setSelection(false);
+              }
+            }            
           }
           
           //itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %");  //TODO
