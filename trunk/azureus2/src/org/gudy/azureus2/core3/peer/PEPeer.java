@@ -25,7 +25,7 @@
  */
 package org.gudy.azureus2.core3.peer;
 
-import com.aelitis.azureus.core.networkmanager.Connection;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 
 /**
@@ -139,6 +139,6 @@ PEPeer
    * Get the network connection that backs this peer.
    * @return connection
    */
-  public Connection getConnection();
+  public NetworkConnection getConnection();
   
 }

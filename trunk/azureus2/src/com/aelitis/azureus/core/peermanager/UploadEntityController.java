@@ -58,7 +58,7 @@ public class UploadEntityController {
    * Register a peer connection for upload management by the controller.
    * @param connection to add to the global pool
    */
-  protected void registerPeerConnection( Connection connection ) {
+  protected void registerPeerConnection( NetworkConnection connection ) {
     global_uploader.addPeerConnection( connection );
   }
   
@@ -67,7 +67,7 @@ public class UploadEntityController {
    * Remove a peer connection from the upload entity controller.
    * @param connection to cancel
    */
-  protected void cancelPeerConnection( Connection connection ) {
+  protected void cancelPeerConnection( NetworkConnection connection ) {
     if( !global_uploader.removePeerConnection( connection ) ) {  //if not found in the pool entity
       BurstingSinglePeerUploader upload_entity = (BurstingSinglePeerUploader)upgraded_connections.remove( connection );  //check for it in the upgraded list
       if( upload_entity != null ) {
@@ -85,7 +85,7 @@ public class UploadEntityController {
    * @param connection to upgrade from global management
    * @param handler connection write rate handler
    */
-  protected void upgradePeerConnection( Connection connection, RateHandler handler ) {
+  protected void upgradePeerConnection( NetworkConnection connection, RateHandler handler ) {
     BurstingSinglePeerUploader upload_entity = new BurstingSinglePeerUploader( connection, handler );      
     try {  lock.enter();
       if( !global_uploader.removePeerConnection( connection ) ) {  //remove it from the general upload pool
@@ -104,7 +104,7 @@ public class UploadEntityController {
    * Downgrade (return) a peer connection back into the general pool.
    * @param connection to downgrade back into the global entity
    */
-  protected void downgradePeerConnection( Connection connection ) {
+  protected void downgradePeerConnection( NetworkConnection connection ) {
     try {  lock.enter();
       BurstingSinglePeerUploader upload_entity = (BurstingSinglePeerUploader)upgraded_connections.remove( connection );  //remove from the upgraded list  
 

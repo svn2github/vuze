@@ -27,7 +27,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.Debug;
+
+
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 
 
 
@@ -60,13 +63,16 @@ public class NetworkManager {
   public static NetworkManager getSingleton() {  return instance;  }
   
   
+  
   /**
-   * Create a new unconnected remote peer connection (for outbound-initiated connections).
+   * Create a new unconnected remote network connection (for outbound-initiated connections).
    * @param remote_address to connect to
+   * @param encoder default message stream encoder to use for the outgoing queue
+   * @param decoder default message stream decoder to use for the incoming queue
    * @return a new connection
    */
-  public Connection createNewConnection( InetSocketAddress remote_address ) { 
-    return new Connection( remote_address );
+  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) { 
+    return NetworkConnectionFactory.create( remote_address, encoder, decoder );
   }
   
   
@@ -75,11 +81,13 @@ public class NetworkManager {
    * Request the acceptance and routing of new incoming connections that match the given initial byte sequence.
    * @param matcher initial byte sequence used for routing
    * @param listener for handling new inbound connections
+   * @param encoder default message stream encoder to use for the outgoing queue
+   * @param decoder default message stream decoder to use for the incoming queue
    */
-  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener ) {
+  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamEncoder encoder, final MessageStreamDecoder decoder ) {
     incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
       public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-        listener.connectionRouted( new Connection( channel, read_so_far ) );
+        listener.connectionRouted( NetworkConnectionFactory.create( channel, read_so_far, encoder, decoder ) );
       }
     });
   }
@@ -94,6 +102,7 @@ public class NetworkManager {
   }
   
 
+  
   
   /**
    * Add an upload entity for write processing.
@@ -112,12 +121,22 @@ public class NetworkManager {
     write_controller.removeWriteEntity( entity );
   }
   
+  
+  
 
   /**
    * Get the manager for new incoming socket channel connections.
    * @return manager
    */
   public IncomingSocketChannelManager getIncomingSocketChannelManager() {  return incoming_socketchannel_manager;  }
+  
+
+  /**
+   * Get the socket channel connect / disconnect manager.
+   * @return connect manager
+   */
+  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+  
   
   /**
    * Asynchronously close the given socket channel.
@@ -126,13 +145,6 @@ public class NetworkManager {
   public void closeSocketChannel( SocketChannel channel ) {
     connect_disconnect_manager.closeConnection( channel );
   }
-  
-  
-  /**
-   * Get the socket channel connect / disconnect manager.
-   * @return connect manager
-   */
-  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
   
   
   
@@ -193,7 +205,7 @@ public class NetworkManager {
      * The given incoming connection has been accepted.
      * @param connection accepted
      */
-    public void connectionRouted( Connection connection );
+    public void connectionRouted( NetworkConnection connection );
   }
   
 }

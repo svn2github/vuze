@@ -31,7 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
 
-import com.aelitis.azureus.core.networkmanager.Connection;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 
 public class 
@@ -64,7 +64,7 @@ PEPeerTransportFactory
   createTransport( 
   		PEPeerControl control,
 		String			peer_source,
-		Connection connection ) 
+		NetworkConnection connection ) 
   {
     return new PEPeerTransportProtocol( control, peer_source, connection );
   }

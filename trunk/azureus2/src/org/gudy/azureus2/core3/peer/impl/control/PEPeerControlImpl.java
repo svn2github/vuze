@@ -268,7 +268,7 @@ PEPeerControlImpl
     }.start();
     
     //register as legacy controller
-    PeerManager.getSingleton().registerLegacyPeerManager( this );
+    PeerManager.getSingleton().registerLegacyManager( this );
   }
 
   
@@ -347,7 +347,7 @@ PEPeerControlImpl
     
     
     //remove legacy controller registration
-    PeerManager.getSingleton().deregisterLegacyPeerManager( this );
+    PeerManager.getSingleton().deregisterLegacyManager( this );
     
     	// Close all clients
     

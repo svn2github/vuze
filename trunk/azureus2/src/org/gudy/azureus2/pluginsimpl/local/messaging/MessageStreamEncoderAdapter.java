@@ -1,5 +1,5 @@
 /*
- * Created on Feb 11, 2005
+ * Created on Feb 21, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,34 +20,29 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.local.network;
+package org.gudy.azureus2.pluginsimpl.local.messaging;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
+import org.gudy.azureus2.plugins.network.RawMessage;
+import org.gudy.azureus2.pluginsimpl.local.network.RawMessageAdapter;
 
-import org.gudy.azureus2.plugins.network.Transport;
-
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 /**
  *
  */
-public class TCPTransportImpl implements Transport {
-  private final TCPTransport core_transport;
+public class MessageStreamEncoderAdapter implements com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder {
   
-  public TCPTransportImpl( TCPTransport core_transport ) {
-    this.core_transport = core_transport;
+  private final MessageStreamEncoder plug_encoder;
+  
+  
+  public MessageStreamEncoderAdapter( MessageStreamEncoder plug_encoder ) {
+    this.plug_encoder = plug_encoder;
   }
   
-  
-  
-  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-    return core_transport.read( buffers, array_offset, length );
+  public com.aelitis.azureus.core.networkmanager.RawMessage encodeMessage( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+    RawMessage raw_plug = plug_encoder.encodeMessage( new MessageAdapter( message ) );
+    return new RawMessageAdapter( raw_plug );
   }
   
- 
-  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-    return core_transport.write( buffers, array_offset, length );
-  }
- 
+
 }

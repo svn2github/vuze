@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.disk.*;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
-import com.aelitis.azureus.core.networkmanager.Connection;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 public class 
 PeerForeignDelegate
@@ -365,7 +365,7 @@ PeerForeignDelegate
 	public void setUploadHint(int timeToSpread) {}  
 	
 
-  public Connection getConnection() {
+  public NetworkConnection getConnection() {
     return ((ConnectionImpl)foreign.getConnection()).getCoreConnection();
   }
   

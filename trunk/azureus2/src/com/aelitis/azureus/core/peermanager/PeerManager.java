@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
 
 /**
  *
@@ -76,10 +78,10 @@ public class PeerManager {
   
   
   /**
-   * Register legacy peer manager.
+   * Register legacy peer manager for incoming BT connections.
    * @param manager legacy controller
    */
-  public void registerLegacyPeerManager( final PEPeerControl manager ) {
+  public void registerLegacyManager( final PEPeerControl manager ) {
     NetworkManager.ByteMatcher matcher = new NetworkManager.ByteMatcher() {
       public int size() {  return 48;  }
 
@@ -110,12 +112,16 @@ public class PeerManager {
     
     
     //register for incoming connection routing   
-    NetworkManager.getSingleton().requestIncomingConnectionRouting( matcher, new NetworkManager.RoutingListener() {
-      public void connectionRouted( Connection connection ) {
-        LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
-        manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
-      }
-    });
+    NetworkManager.getSingleton().requestIncomingConnectionRouting(
+        matcher,
+        new NetworkManager.RoutingListener() {
+          public void connectionRouted( NetworkConnection connection ) {
+            LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
+          }
+        },
+        new BTMessageEncoder(),
+        new BTMessageDecoder() );
     
     legacy_managers.put( manager, matcher );
   }
@@ -126,7 +132,7 @@ public class PeerManager {
    * Remove legacy peer manager registration.
    * @param manager legacy controller
    */
-  public void deregisterLegacyPeerManager( final PEPeerControl manager ) {
+  public void deregisterLegacyManager( final PEPeerControl manager ) {
     //remove incoming routing registration 
     NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.get( manager );
     if( matcher != null ) {

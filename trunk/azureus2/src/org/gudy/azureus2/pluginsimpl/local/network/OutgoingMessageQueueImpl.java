@@ -26,7 +26,8 @@ import java.util.HashMap;
 
 import org.gudy.azureus2.plugins.messaging.*;
 import org.gudy.azureus2.plugins.network.*;
-import org.gudy.azureus2.pluginsimpl.local.messaging.AdapterMessageImpl;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter;
 
 
 
@@ -45,17 +46,12 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   
   
   public void setEncoder( final MessageStreamEncoder encoder ) {
-    core_queue.setEncoder( new com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder() {
-      public com.aelitis.azureus.core.networkmanager.RawMessage encodeMessage( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-        RawMessage raw_plug = encoder.encodeMessage( new AdapterMessageImpl( message ) );
-        return new AdapterRawMessageImpl( raw_plug );
-      }
-    });
+    core_queue.setEncoder( new MessageStreamEncoderAdapter( encoder ) );
   }
   
 
   public void sendMessage( Message message ) {
-    core_queue.addMessage( new AdapterMessageImpl( message ), false );
+    core_queue.addMessage( new MessageAdapter( message ), false );
   }
   
 
@@ -64,14 +60,14 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
       new com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener() {
       
         public boolean messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-          return listener.messageAdded( new AdapterMessageImpl( message ) );
+          return listener.messageAdded( new MessageAdapter( message ) );
         }
 
         public void messageQueued( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
         public void messageRemoved( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
 
         public void messageSent( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-          listener.messageSent( new AdapterMessageImpl( message ) );
+          listener.messageSent( new MessageAdapter( message ) );
         }
 
         public void protocolBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }

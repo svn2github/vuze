@@ -78,7 +78,7 @@ PEPeerTransportProtocol
   private volatile boolean closing = false;
   private int current_peer_state;
   
-  private Connection connection;
+  private NetworkConnection connection;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
   private OutgoingBTHaveMessageAggregator outgoing_have_message_aggregator;
   
@@ -141,7 +141,7 @@ PEPeerTransportProtocol
   
   
   //INCOMING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, Connection _connection ) {
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
     manager = _manager;
     peer_source	= _peer_source;
     ip    = _connection.getAddress().getAddress().getHostAddress();
@@ -153,7 +153,7 @@ PEPeerTransportProtocol
     connection = _connection;
     
     //"fake" a connect request to register our listener
-    connection.connect( new Connection.ConnectionListener() {
+    connection.connect( new NetworkConnection.ConnectionListener() {
       public void connectStarted() {
         connection_state = PEPeerTransport.CONNECTION_CONNECTING;
       }
@@ -193,11 +193,11 @@ PEPeerTransportProtocol
       closeAll( "Given remote port is invalid: " + port, false, false );
     }
     
-    connection = NetworkManager.getSingleton().createNewConnection( new InetSocketAddress( ip, port ) );
+    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
       
     current_peer_state = PEPeer.CONNECTING;
     
-    connection.connect( new Connection.ConnectionListener() {
+    connection.connect( new NetworkConnection.ConnectionListener() {
       public void connectStarted() {
         connection_state = PEPeerTransport.CONNECTION_CONNECTING;
       }
@@ -1330,7 +1330,7 @@ PEPeerTransportProtocol
   
   
   
-  public Connection getConnection() {
+  public NetworkConnection getConnection() {
     return connection;
   }
   

@@ -76,7 +76,7 @@ public class PeerUploadManager {
   
   
   
-  private void registerConnection( final Connection connection, final LimitedRateGroup group, final boolean force_upgrade ) {
+  private void registerConnection( final NetworkConnection connection, final LimitedRateGroup group, final boolean force_upgrade ) {
     final ConnectionData conn_data = new ConnectionData();
         
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
@@ -170,12 +170,12 @@ public class PeerUploadManager {
    * @param connection
    * @param group
    */
-  public void registerUpgradedConnection( Connection connection, LimitedRateGroup group ) {
+  public void registerUpgradedConnection( NetworkConnection connection, LimitedRateGroup group ) {
     registerConnection( connection, group, true );
   }
   
   
-  public void cancelUpgradedConnection( Connection connection ) {
+  public void cancelUpgradedConnection( NetworkConnection connection ) {
     cancelStandardPeerConnection( connection );
   }
   
@@ -188,12 +188,12 @@ public class PeerUploadManager {
    * @param connection
    * @param group
    */
-  public void registerStandardPeerConnection( Connection connection, LimitedRateGroup group ) {
+  public void registerStandardPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
     registerConnection( connection, group, false );
   }
   
   
-  public void cancelStandardPeerConnection( Connection connection ) {
+  public void cancelStandardPeerConnection( NetworkConnection connection ) {
     ConnectionData conn_data = null;
     
     try{ standard_peer_connections_mon.enter();

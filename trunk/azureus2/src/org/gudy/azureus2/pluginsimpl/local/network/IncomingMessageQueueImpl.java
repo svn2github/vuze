@@ -22,12 +22,12 @@
 
 package org.gudy.azureus2.pluginsimpl.local.network;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.gudy.azureus2.plugins.messaging.*;
 import org.gudy.azureus2.plugins.network.*;
-import org.gudy.azureus2.pluginsimpl.local.messaging.AdapterMessageImpl;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamDecoderAdapter;
 
 
 
@@ -45,35 +45,8 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
   
   
   
-  public void setDecoder( final MessageStreamDecoder stream_decoder ) {
-    core_queue.setDecoder( new com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder() {
-      public int performStreamDecode( com.aelitis.azureus.core.networkmanager.TCPTransport transport, int max_bytes ) throws IOException {
-        return stream_decoder.performStreamDecode( new TCPTransportImpl( transport ), max_bytes );
-      }
-      
-      public com.aelitis.azureus.core.peermanager.messaging.Message[] getDecodedMessages() {
-        Message[] plug_msgs = stream_decoder.getDecodedMessages();
-        
-        if( plug_msgs == null || plug_msgs.length < 1 ) {
-          return null;
-        }
-        
-        com.aelitis.azureus.core.peermanager.messaging.Message[] core_msgs = new com.aelitis.azureus.core.peermanager.messaging.Message[ plug_msgs.length ];
-        
-        for( int i=0; i < plug_msgs.length; i++ ) {
-          core_msgs[i] = new AdapterMessageImpl( plug_msgs[i] );
-        }
-        
-        return core_msgs;
-      }
-      
-      public int getProtocolBytesDecoded() {  return stream_decoder.getProtocolBytesDecoded();  }
-
-      public int getDataBytesDecoded() {  return stream_decoder.getDataBytesDecoded();  }
-
-      public void destroy() {  stream_decoder.destroy();  }
-      
-    });
+  public void setDecoder( MessageStreamDecoder stream_decoder ) {
+    core_queue.setDecoder( new MessageStreamDecoderAdapter( stream_decoder ) );
   }
   
 
@@ -81,7 +54,7 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener core_listener = 
       new com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener() {
         public boolean messageReceived( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-          return listener.messageReceived( new AdapterMessageImpl( message ) );
+          return listener.messageReceived( new MessageAdapter( message ) );
         }
       
         public void protocolBytesReceived( int byte_count ) {  listener.bytesReceived( byte_count );  }

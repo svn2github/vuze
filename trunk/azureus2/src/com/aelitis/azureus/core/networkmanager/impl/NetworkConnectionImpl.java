@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 
 import java.net.InetSocketAddress;
@@ -28,13 +28,16 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+
 
 
 /**
- * Represents a managed peer connection, over which messages can be sent and received.
+ *
  */
-public class Connection {
+public class NetworkConnectionImpl implements NetworkConnection {
   private final InetSocketAddress remote_address;
   private final TCPTransport tcp_transport;
   private ConnectionListener connection_listener;
@@ -51,13 +54,15 @@ public class Connection {
    * Constructor for new OUTbound connection.
    * The connection is not yet established upon instantiation; use connect() to do so.
    * @param _remote_address to connect to
+   * @param encoder default message stream encoder to use for the outgoing queue
+   * @param decoder default message stream decoder to use for the incoming queue
    */
-  protected Connection( InetSocketAddress _remote_address ) {
+  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     remote_address = _remote_address;
     tcp_transport = new TCPTransport();
     is_connected = false;
-    outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
-    incoming_message_queue = new IncomingMessageQueue( new BTMessageDecoder(), this );  //TODO create proper default decoder
+    outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
+    incoming_message_queue = new IncomingMessageQueue( decoder, this );
   }
   
   
@@ -66,23 +71,19 @@ public class Connection {
    * The connection is assumed to be already established, by the given already-connected channel.
    * @param _remote_channel connected by
    * @param data_already_read bytestream already read during routing
+   * @param encoder default message stream encoder to use for the outgoing queue
+   * @param decoder default message stream decoder to use for the incoming queue
    */
-  protected Connection( SocketChannel _remote_channel, ByteBuffer data_already_read ) {
+  public NetworkConnectionImpl( SocketChannel _remote_channel, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
     tcp_transport = new TCPTransport( _remote_channel, data_already_read );
     is_connected = true;
-    outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
-    incoming_message_queue = new IncomingMessageQueue( new BTMessageDecoder(), this );  //TODO create proper default decoder
+    outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
+    incoming_message_queue = new IncomingMessageQueue( decoder, this );
   }
   
+
   
-  /**
-   * Connect this connection's transport, i.e. establish the peer connection.
-   * If this connection is already established (from an incoming connection for example),
-   * then this provides a mechanism to register the connection listener, in which case
-   * connectSuccess() will be called immediately.
-   * @param listener notified on connect success or failure
-   */
   public void connect( ConnectionListener listener ) {
     this.connection_listener = listener;
     
@@ -110,10 +111,6 @@ public class Connection {
   
 
   
-  
-  /**
-   * Close and shutdown this connection.
-   */
   public void close() {
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();
@@ -121,11 +118,7 @@ public class Connection {
     is_connected = false;
   }
   
-  
-  /**
-   * Inform connection of a thrown exception.
-   * @param error exception
-   */
+
   public void notifyOfException( Throwable error ) {
     if( connection_listener != null ) {
       connection_listener.exceptionThrown( error );
@@ -133,37 +126,15 @@ public class Connection {
     else System.out.println( "connection_listener == null" );
   }
   
-  
 
-  
-  /**
-   * Get the connection's outgoing message queue.
-   * @return outbound message queue
-   */
   public OutgoingMessageQueue getOutgoingMessageQueue() {  return outgoing_message_queue;  }
-  
-  
-  /**
-   * Get the connection's incoming message queue.
-   * @return inbound message queue
-   */
+
   public IncomingMessageQueue getIncomingMessageQueue() {  return incoming_message_queue;  }
   
-  
-  
-  
-  
-  /**
-   * Get the connection's data tcp transport interface.
-   * @return the transport
-   */
+
   public TCPTransport getTCPTransport() {  return tcp_transport;  }
   
 
-  /**
-   * Get the connection's internet address.
-   * @return remote address
-   */
   public InetSocketAddress getAddress() {  return remote_address;  }
 
   
@@ -171,42 +142,5 @@ public class Connection {
   public String toString() {
     return tcp_transport.getDescription();
   }
-  
-  
-  
-  
-  
-  /**
-   * Listener for notification of connection events.
-   */
-  public interface ConnectionListener {
-    /**
-     * The connection establishment process has started,
-     * i.e. the connection is actively being attempted.
-     */
-    public void connectStarted();    
-    
-    /**
-     * The connection attempt succeeded.
-     * The connection is now established.
-     * NOTE: Called only during initial connect attempt.
-     */
-    public void connectSuccess();
-    
-    /**
-     * The connection attempt failed.
-     * NOTE: Called only during initial connect attempt.
-     * @param failure_msg failure reason
-     */
-    public void connectFailure( Throwable failure_msg );
-    
-    /**
-     * Handle exception thrown by this connection.
-     * NOTE: Can be called at any time during connection lifetime.
-     * @param error exception
-     */
-    public void exceptionThrown( Throwable error );
-  }
-
   
 }

@@ -34,17 +34,17 @@ import org.gudy.azureus2.plugins.messaging.*;
 /**
  *
  */
-public class AdapterMessageImpl implements Message, com.aelitis.azureus.core.peermanager.messaging.Message {
+public class MessageAdapter implements Message, com.aelitis.azureus.core.peermanager.messaging.Message {
   private Message plug_msg = null;
   private com.aelitis.azureus.core.peermanager.messaging.Message core_msg = null;
   
   
-  public AdapterMessageImpl( Message plug_msg ) {
+  public MessageAdapter( Message plug_msg ) {
     this.plug_msg = plug_msg;
   }
   
   
-  public AdapterMessageImpl( com.aelitis.azureus.core.peermanager.messaging.Message core_msg ) {
+  public MessageAdapter( com.aelitis.azureus.core.peermanager.messaging.Message core_msg ) {
     this.core_msg = core_msg;
   }
   
@@ -71,7 +71,7 @@ public class AdapterMessageImpl implements Message, com.aelitis.azureus.core.pee
     }
     
     try{
-      return new AdapterMessageImpl( core_msg.deserialize( new DirectByteBuffer( data ) ) );
+      return new MessageAdapter( core_msg.deserialize( new DirectByteBuffer( data ) ) );
     }
     catch( com.aelitis.azureus.core.peermanager.messaging.MessageException e ) {
       throw new MessageException( e.getMessage() );
@@ -124,7 +124,7 @@ public class AdapterMessageImpl implements Message, com.aelitis.azureus.core.pee
     }
     
     try{
-      return new AdapterMessageImpl( plug_msg.create( data.getBuffer( DirectByteBuffer.SS_MSG ) ) );
+      return new MessageAdapter( plug_msg.create( data.getBuffer( DirectByteBuffer.SS_MSG ) ) );
     }
     catch( MessageException e ) {
       throw new com.aelitis.azureus.core.peermanager.messaging.MessageException( e.getMessage() );

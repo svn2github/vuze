@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.network.RawMessage;
-import org.gudy.azureus2.pluginsimpl.local.messaging.AdapterMessageImpl;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
@@ -34,18 +34,18 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 /**
  *
  */
-public class AdapterRawMessageImpl extends AdapterMessageImpl implements RawMessage, com.aelitis.azureus.core.networkmanager.RawMessage {
+public class RawMessageAdapter extends MessageAdapter implements RawMessage, com.aelitis.azureus.core.networkmanager.RawMessage {
   private RawMessage plug_msg = null;
   private com.aelitis.azureus.core.networkmanager.RawMessage core_msg = null;
   
   
-  public AdapterRawMessageImpl( RawMessage plug_msg ) {
+  public RawMessageAdapter( RawMessage plug_msg ) {
     super( plug_msg );
     this.plug_msg = plug_msg;
   }
   
   
-  public AdapterRawMessageImpl( com.aelitis.azureus.core.networkmanager.RawMessage core_msg ) {
+  public RawMessageAdapter( com.aelitis.azureus.core.networkmanager.RawMessage core_msg ) {
     super( core_msg );
     this.core_msg = core_msg;
   }

@@ -75,7 +75,7 @@ public class TCPTransport {
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  protected TCPTransport( SocketChannel channel, ByteBuffer already_read ) {
+  public TCPTransport( SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
     this.data_already_read = already_read;   
     is_connected = true;

@@ -85,7 +85,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           long wait_time = current_time - peer_data.last_message_added_time;
           
           if( wait_time > FLUSH_WAIT_TIME || wait_time < 0 ) {  //time to force flush
-            Connection conn = (Connection)entry.getKey();
+            NetworkConnection conn = (NetworkConnection)entry.getKey();
             
             if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
               conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
@@ -123,7 +123,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       //remove and cancel all connections in waiting list    
       for( Iterator i = waiting_connections.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
-        Connection conn = (Connection)entry.getKey();
+        NetworkConnection conn = (NetworkConnection)entry.getKey();
         PeerData data = (PeerData)entry.getValue();
         conn.getOutgoingMessageQueue().cancelQueueListener( data.queue_listener );
       }
@@ -144,7 +144,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * Add the given connection to be managed by this upload entity.
    * @param peer_connection to be write managed
    */
-  public void addPeerConnection( Connection peer_connection ) {
+  public void addPeerConnection( NetworkConnection peer_connection ) {
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     boolean has_urgent_data = peer_connection.getOutgoingMessageQueue().hasUrgentMessage();
     int num_bytes_ready = peer_connection.getOutgoingMessageQueue().getTotalSize();
@@ -163,7 +163,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * @param peer_connection to be removed
    * @return true if the connection was found and removed, false if not removed
    */
-  public boolean removePeerConnection( Connection peer_connection ) {
+  public boolean removePeerConnection( NetworkConnection peer_connection ) {
     try {
       lists_lock.enter();
       
@@ -190,7 +190,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
 
   //connections with less than a packet's worth of data
-  private void addToWaitingList( final Connection conn ) {
+  private void addToWaitingList( final NetworkConnection conn ) {
     final PeerData peer_data = new PeerData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
@@ -245,7 +245,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   //connections ready to write
-  private void addToReadyList( final Connection conn ) {
+  private void addToReadyList( final NetworkConnection conn ) {
     
     if( conn.getOutgoingMessageQueue().getTotalSize() < 1 ) {
       Debug.out( "~~~ added conn size < 1 " );
@@ -280,7 +280,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       int num_unusable_connections = 0;
       
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
-        Connection conn = (Connection)ready_connections.removeFirst();
+        NetworkConnection conn = (NetworkConnection)ready_connections.removeFirst();
         
         if( !conn.getTCPTransport().isReadyForWrite() ) {  //not yet ready for writing
           ready_connections.addLast( conn );  //re-add to end as currently unusable
@@ -339,14 +339,14 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     
     //manual queue listener notifications
     for( int i=0; i < manual_notifications.size(); i++ ) {
-      Connection conn = (Connection)manual_notifications.get( i );
+      NetworkConnection conn = (NetworkConnection)manual_notifications.get( i );
       conn.getOutgoingMessageQueue().doListenerNotifications();
     }
     
     //exception notifications
     for( Iterator i = connections_to_notify_of_exception.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry entry = (Map.Entry)i.next();
-      Connection conn = (Connection)entry.getKey();
+      NetworkConnection conn = (NetworkConnection)entry.getKey();
       IOException exception = (IOException)entry.getValue();
       conn.notifyOfException( exception );
     }

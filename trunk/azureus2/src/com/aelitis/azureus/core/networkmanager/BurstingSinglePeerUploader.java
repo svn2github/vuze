@@ -32,10 +32,10 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
   
-  private final Connection connection;
+  private final NetworkConnection connection;
   private final RateHandler rate_handler;
   
-  public BurstingSinglePeerUploader( Connection connection, RateHandler rate_handler ) {
+  public BurstingSinglePeerUploader( NetworkConnection connection, RateHandler rate_handler ) {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }

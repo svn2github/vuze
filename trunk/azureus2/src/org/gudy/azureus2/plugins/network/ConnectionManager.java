@@ -24,6 +24,9 @@ package org.gudy.azureus2.plugins.network;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.plugins.messaging.*;
+
+
 /**
  * Manages connections.
  */
@@ -34,6 +37,6 @@ public interface ConnectionManager {
    * @param remote_address to connect to
    * @return not yet established connection
    */
-  public Connection createConnection( InetSocketAddress remote_address );
+  public Connection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder );
   
 }

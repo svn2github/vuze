@@ -24,8 +24,12 @@ package org.gudy.azureus2.pluginsimpl.local.network;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
+import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamDecoderAdapter;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
@@ -45,8 +49,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
   }
   
 
-  public Connection createConnection( InetSocketAddress remote_address ) {
-    com.aelitis.azureus.core.networkmanager.Connection core_conn = NetworkManager.getSingleton().createNewConnection( remote_address );
+  public Connection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {    
+    com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
+      NetworkManager.getSingleton().createConnection( remote_address, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ) );
     return new ConnectionImpl( core_conn );
   }
   

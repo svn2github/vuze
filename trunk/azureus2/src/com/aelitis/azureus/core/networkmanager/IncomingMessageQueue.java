@@ -41,7 +41,7 @@ public class IncomingMessageQueue {
 
   private boolean is_processing_enabled = false;
   private MessageStreamDecoder stream_decoder;
-  private final Connection connection;
+  private final NetworkConnection connection;
   
   
   
@@ -51,7 +51,7 @@ public class IncomingMessageQueue {
    * @param stream_decoder default message stream decoder
    * @param connection owner to read from
    */
-  public IncomingMessageQueue( MessageStreamDecoder stream_decoder, Connection connection ) {
+  public IncomingMessageQueue( MessageStreamDecoder stream_decoder, NetworkConnection connection ) {
     this.connection = connection;
     this.stream_decoder = stream_decoder;
   }

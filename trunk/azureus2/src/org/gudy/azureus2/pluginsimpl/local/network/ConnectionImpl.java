@@ -33,13 +33,13 @@ import com.aelitis.azureus.core.peermanager.PeerManager;
  */
 public class ConnectionImpl implements Connection {
 
-  private final com.aelitis.azureus.core.networkmanager.Connection core_connection;
+  private final com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection;
   private final OutgoingMessageQueueImpl out_queue;
   private final IncomingMessageQueueImpl in_queue;
   private final TCPTransportImpl tcp_transport;
   
   
-  public ConnectionImpl( com.aelitis.azureus.core.networkmanager.Connection core_connection ) {
+  public ConnectionImpl( com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection ) {
     this.core_connection = core_connection;
     this.out_queue = new OutgoingMessageQueueImpl( core_connection.getOutgoingMessageQueue() );
     this.in_queue = new IncomingMessageQueueImpl( core_connection.getIncomingMessageQueue() );
@@ -48,7 +48,7 @@ public class ConnectionImpl implements Connection {
   
   
   public void connect( final ConnectionListener listener ) {
-    core_connection.connect( new com.aelitis.azureus.core.networkmanager.Connection.ConnectionListener() {
+    core_connection.connect( new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
       
       public void connectSuccess() {
@@ -80,7 +80,7 @@ public class ConnectionImpl implements Connection {
   public Transport getTransport() {  return tcp_transport;  }
   
   
-  public com.aelitis.azureus.core.networkmanager.Connection getCoreConnection() {
+  public com.aelitis.azureus.core.networkmanager.NetworkConnection getCoreConnection() {
     return core_connection;
   }
   

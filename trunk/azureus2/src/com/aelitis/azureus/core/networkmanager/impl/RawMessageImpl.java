@@ -20,10 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
@@ -39,8 +40,7 @@ public class RawMessageImpl implements RawMessage {
   private final int priority;
   private final boolean is_no_delay;
   private final Message[] to_remove;
-  
-  //TODO turn this into bt-specific raw message impl?
+
   
   
   /**
