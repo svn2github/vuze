@@ -26,17 +26,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core.DiskManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.Server;
-import org.gudy.azureus2.core2.DataQueueItem;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.DataQueueItem;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.*;
 
 
@@ -127,7 +127,7 @@ PEPeerManagerImpl
     _server.setManager(this);
 
     this._diskManager = diskManager;
-    _diskManager.setManager(this);
+    _diskManager.setPeerManager(this);
 
     //BtManager is threaded, this variable represents the
     // current loop iteration. It's used by some components only called

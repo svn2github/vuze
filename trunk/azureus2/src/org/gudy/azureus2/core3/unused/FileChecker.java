@@ -7,7 +7,7 @@ package org.gudy.azureus2.core3.unused;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
-import org.gudy.azureus2.core.DiskManager;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 /**
@@ -27,7 +27,7 @@ public class FileChecker {
     try {
    		TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( new File(args[0]));
    		
-      DiskManager diskManager = new DiskManager(torrent, args[1]);
+      DiskManager diskManager = DiskManagerFactory.create(torrent, args[1]);
       
       while ( true ){
       	

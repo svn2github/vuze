@@ -4,6 +4,7 @@
  
 package org.gudy.azureus2.core;
 
+import org.gudy.azureus2.core3.disk.*;
 
 // refactored - Moti
 // was a static inner class in DiskManager

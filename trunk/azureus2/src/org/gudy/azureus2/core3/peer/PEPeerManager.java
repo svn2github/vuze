@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core.*;
-import org.gudy.azureus2.core2.*;
+import org.gudy.azureus2.core3.disk.*;
 
 /**
  * @author stuff

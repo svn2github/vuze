@@ -35,10 +35,10 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Request;
-import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core3.util.ByteBufferPool;
 import org.gudy.azureus2.core3.util.Constants;
 
+import org.gudy.azureus2.core3.disk.DataQueueItem;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 

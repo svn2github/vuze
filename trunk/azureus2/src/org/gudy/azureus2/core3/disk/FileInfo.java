@@ -2,7 +2,7 @@
  * Created on 3 juil. 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.disk;
 
 import java.io.File;
 import java.io.RandomAccessFile;

@@ -11,6 +11,7 @@ import java.util.List;
 
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -127,7 +128,7 @@ public class DownloadManager extends Component {
 	try{
     	tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
-		diskManager = new DiskManager( torrent, savePath);
+		diskManager = DiskManagerFactory.create( torrent, savePath);
     
 		this.state = STATE_INITIALIZED;
 									

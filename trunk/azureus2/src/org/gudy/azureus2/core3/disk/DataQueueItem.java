@@ -2,7 +2,7 @@
  * Created on 4 juil. 2003
  *
  */
-package org.gudy.azureus2.core2;
+package org.gudy.azureus2.core3.disk;
 
 import java.nio.ByteBuffer;
 
