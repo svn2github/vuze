@@ -85,6 +85,9 @@ SSDPImpl
 					
 					final InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
 					
+					// turn on loopback to see if it helps for local host UPnP devices
+					
+					/*
 					if ( ni_address.isLoopbackAddress()){
 						
 						upnp.log( "UPnP::SSDP: ignoring loopback address " + ni_address );
@@ -98,7 +101,8 @@ SSDPImpl
 						
 						continue;
 					}
-											
+					*/
+					
 					try{
 							// set up group
 						
@@ -324,7 +328,7 @@ SSDPImpl
 			
 		}
 			
-				// notify event, ignore
+				// notify event
 
 			/*
 			NOTIFY * HTTP/1.1
