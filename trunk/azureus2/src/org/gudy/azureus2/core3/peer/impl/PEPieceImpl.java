@@ -124,10 +124,12 @@ PEPieceImpl
   // This method will return the first non requested bloc and
   // will mark it as requested
   
-  public int getAndMarkBlock() {
-  	try{
-	  	class_mon.enter();
-	
+  	/**
+  	 * Assumption - single threaded access to this
+  	 */
+  public int 
+  getAndMarkBlock() 
+  {
 		int	nbBlocs 	= dm_piece.getBlockCount();
 
 		int blocNumber = -1;
@@ -142,33 +144,35 @@ PEPieceImpl
 		  }
 		}
 		return blocNumber;
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
+
   }
 
-  public void unmarkBlock(int blocNumber) {
-  	try{
-  		class_mon.enter();
-  	
-  		if (!downloaded[blocNumber])
-  			requested[blocNumber] = false;
-  	}finally{
+  	/**
+  	 * This method is safe in a multi-threaded situation as the worst that it can
+  	 * do is mark a block as not requested even though its downloaded which may lead
+  	 * to it being downloaded again
+  	 */
+  
+  public void 
+  unmarkBlock(
+  	int blocNumber) 
+  { 	
+  	if (!downloaded[blocNumber]){
   		
-  		class_mon.exit();
+  		requested[blocNumber] = false;
   	}
   }
   
-  public void markBlock(int blocNumber) {
-  	try{
-  		class_mon.enter();
-  	
-  		if (!downloaded[blocNumber])
-  			requested[blocNumber] = true;
-  	}finally{
+  	/**
+  	 * Assumption - single threaded with getAndMarkBlock
+  	 */
+  
+  public void 
+  markBlock(int blocNumber) 
+  { 	
+  	if (!downloaded[blocNumber]){
   		
-  		class_mon.exit();
+  		requested[blocNumber] = true;
   	}
   }
 
