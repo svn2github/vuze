@@ -233,7 +233,16 @@ CoreUpdateChecker
 			final String	f_latest_file_name	= latest_file_name;
 			
 
-			ResourceDownloader[]	primary_mirrors = getPrimaryDownloaders( latest_file_name );
+			ResourceDownloader[]	primary_mirrors;
+			
+			if ( TESTING ){
+				
+				primary_mirrors = getTestMirrors();
+				
+			}else{
+				
+				primary_mirrors = getPrimaryDownloaders( latest_file_name );
+			}
 
 				// the download hierarchy is primary mirrors first (randomised alternate)
 				// then backup mirrors (randomised alternate)
@@ -376,6 +385,10 @@ CoreUpdateChecker
 			
 			dl = rdf.getMetaRefreshDownloader( dl );
 			
+				// add in a layer to do torrent based downloads if url ends with .torrent
+			
+			dl = rdf.getSuffixBasedDownloader( dl );
+			
 			dls[i] = dl;
 		}
 		
@@ -437,13 +450,39 @@ CoreUpdateChecker
 			log.log( "    Primary mirror:" +url.toString());
 			
 			ResourceDownloader dl = rdf.create( url );
-						
+
+				// add in .torrent decoder if appropriate
+			
+			dl = rdf.getSuffixBasedDownloader( dl );
+
 			dls[i] = dl;
 		}
 		
 		return( dls );
 	}    
  
+	protected ResourceDownloader[]
+	getTestMirrors()
+	{
+		try{
+			ResourceDownloader[]	dls = new ResourceDownloader[1];
+			
+			ResourceDownloader rd = rdf.create( new URL("http://66.90.75.92/suprnova//torrents/1822/DivX511-exe.torrent" ));
+			
+			rd = rdf.getSuffixBasedDownloader( rd );
+	
+			dls[0] = rd;
+	
+			return( dls );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			return( new ResourceDownloader[0]);
+		}
+	}    	
+
 	protected void
 	installUpdate(
 		UpdateChecker		checker,

@@ -54,7 +54,7 @@ Test
 			
 			ResourceDownloader rd = factory.create( new URL("http://66.90.75.92/suprnova//torrents/1822/DivX511-exe.torrent" ));
 			
-			rd = factory.getTorrentDownloader( rd, false );
+			rd = factory.getSuffixBasedDownloader( rd );
 						
 			rd.addListener( this );
 			

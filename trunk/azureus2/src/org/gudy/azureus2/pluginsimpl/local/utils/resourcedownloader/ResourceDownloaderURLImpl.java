@@ -36,11 +36,10 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-ResourceDownloaderImpl
+ResourceDownloaderURLImpl
 	extends ResourceDownloaderBaseImpl
 {
-  
-  private static final int BUFFER_SIZE = 32768;
+	private static final int BUFFER_SIZE = 32768;
   
 	protected URL		original_url;
 	
@@ -51,13 +50,19 @@ ResourceDownloaderImpl
 	protected long			size		 	= -2;	// -1 -> unknown
 	
 	public 
-	ResourceDownloaderImpl(
+	ResourceDownloaderURLImpl(
 		ResourceDownloaderBaseImpl	_parent,
 		URL							_url )
 	{
 		super( _parent );
 		
 		original_url	= _url;
+	}
+
+	protected URL
+	getURL()
+	{
+		return( original_url );
 	}
 	
 	public String
@@ -76,7 +81,7 @@ ResourceDownloaderImpl
 		if ( size == -2 ){
 			
 			try{
-				ResourceDownloaderImpl c = (ResourceDownloaderImpl)getClone( this );
+				ResourceDownloaderURLImpl c = (ResourceDownloaderURLImpl)getClone( this );
 				
 				addReportListener( c );
 				
@@ -192,7 +197,7 @@ ResourceDownloaderImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderImpl c = new ResourceDownloaderImpl( parent, original_url );
+		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url );
 		
 		c.setSize( size );
 		

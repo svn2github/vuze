@@ -40,7 +40,7 @@ ResourceDownloaderFactory
 	public ResourceDownloader
 	create(
 		URL		url );
-	
+		
 		/**
 		 * creates a downloader that will be asked to create a ResourceDownloader
 		 * when required. Useful when used in combination with an alternate downloader
@@ -136,4 +136,17 @@ ResourceDownloaderFactory
 	getTorrentDownloader(
 		ResourceDownloader			downloader,
 		boolean						persistent );
+	
+		/**
+		 * Returns a downloader that does something sensible based on the url suffix.
+		 * In particular will return a torrent downloader if the URL ends with ".torrent"
+		 * The decision is made based on a random child downloader, so don't mix URL 
+		 * suffixes below this point in the hierarchy
+		 * @param url
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	getSuffixBasedDownloader(
+		ResourceDownloader			downloader );
 }

@@ -41,29 +41,67 @@ ResourceDownloaderBaseImpl
 	protected Object		result_informed_data;
 	
 	protected ResourceDownloaderBaseImpl	parent;
+	protected List							children = new ArrayList();
 	
 	protected
 	ResourceDownloaderBaseImpl(
 		ResourceDownloaderBaseImpl	_parent )
 	{
 		parent	= _parent;
+		
+		if ( parent != null ){
+			
+			parent.addChild(this);
+		}
 	}
 	
 	public abstract ResourceDownloader
 	getClone(
-			ResourceDownloaderBaseImpl	_parent );
+		ResourceDownloaderBaseImpl	_parent );
 
 	protected void
 	setParent(
 		ResourceDownloader		_parent )
 	{
+		ResourceDownloaderBaseImpl	old_parent	= parent;
+		
 		parent	= (ResourceDownloaderBaseImpl)_parent;
+		
+		if( old_parent != null ){
+			
+			old_parent.removeChild( this );
+		}
+		
+		if ( parent != null ){
+			
+			parent.addChild( this );
+		}
 	}
 	
 	protected ResourceDownloaderBaseImpl
 	getParent()
 	{
 		return( parent );
+	}
+	
+	protected void
+	addChild(
+		ResourceDownloaderBaseImpl	kid )
+	{
+		children.add( kid );
+	}
+	
+	protected void
+	removeChild(
+		ResourceDownloaderBaseImpl	kid )
+	{
+		children.remove( kid );
+	}
+	
+	protected List
+	getChildren()
+	{
+		return( children );
 	}
 	
 	protected String

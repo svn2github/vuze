@@ -28,8 +28,11 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.net.URL;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 ResourceDownloaderFactoryImpl
@@ -47,7 +50,7 @@ ResourceDownloaderFactoryImpl
 	create(
 		URL		url )
 	{
-		return( new ResourceDownloaderImpl( null, url ));
+		return( new ResourceDownloaderURLImpl( null, url ));
 	}
 	
 	public ResourceDownloader
@@ -133,5 +136,44 @@ ResourceDownloaderFactoryImpl
 		boolean						persistent )
 	{
 		return( new ResourceDownloaderTorrentImpl( null, downloader, persistent ));
+	}
+	
+	public ResourceDownloader
+	getSuffixBasedDownloader(
+		ResourceDownloader			_downloader )
+	{
+		ResourceDownloaderBaseImpl	dl = (ResourceDownloaderBaseImpl)_downloader;
+		
+		URL	target = null;
+		
+		while( true ){
+			
+			List	kids = dl.getChildren();
+			
+			if ( kids.size() == 0 ){
+				
+				target = ((ResourceDownloaderURLImpl)dl).getURL();
+				
+				break;
+			}
+			
+			dl = (ResourceDownloaderBaseImpl)kids.get(0);
+		}
+		
+		if ( target == null ){
+			
+			LGLogger.log( "ResourceDownloader: suffix based downloader failed to find leaf");
+			
+			return( _downloader );
+		}
+		
+		if ( target.toString().toLowerCase().endsWith(".torrent")){
+			
+			return( getTorrentDownloader( _downloader, true ));
+			
+		}else{
+			
+			return( _downloader );
+		}
 	}
 }

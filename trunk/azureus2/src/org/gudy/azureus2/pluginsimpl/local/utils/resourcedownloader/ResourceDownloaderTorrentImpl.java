@@ -264,9 +264,7 @@ ResourceDownloaderTorrentImpl
 						Download		download,
 						int				old_state,
 						int				new_state )
-					{
-						System.out.println( "state changed: " + old_state + " -> " + new_state );
-						
+					{						
 						if ( new_state == Download.ST_SEEDING ){
 							
 							downloadSucceeded( temp_file, temp_dir );
@@ -291,13 +289,11 @@ ResourceDownloaderTorrentImpl
 						int	last_percentage = 0;
 						
 						while( result == null ){
-							
-							long	current = download.getStats().getDownloaded();
+														
+							int	this_percentage = download.getStats().getCompleted()/10;
 							
 							long	total	= torrent.getSize();
-							
-							int	this_percentage= (int)((current*100)/total);
-							
+														
 							if ( this_percentage != last_percentage ){
 								
 								reportPercentComplete( ResourceDownloaderTorrentImpl.this, this_percentage );
@@ -320,6 +316,12 @@ ResourceDownloaderTorrentImpl
 			
 			t.start();
 			
+				// its possible that the d/l has already occurred and it is seeding!
+			
+			if ( download.getState() == Download.ST_SEEDING ){
+				
+				downloadSucceeded( temp_file, temp_dir );
+			}
 		}catch( Throwable e ){
 			
 			failed( this, new ResourceDownloaderException( "Torrent download failed", e ));

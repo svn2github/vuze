@@ -117,7 +117,7 @@ ResourceDownloaderMetaRefreshImpl
 				return( c.getSize());
 			}else{
 				
-				ResourceDownloaderImpl c =  new ResourceDownloaderImpl( getParent(), redirect );
+				ResourceDownloaderURLImpl c =  new ResourceDownloaderURLImpl( getParent(), redirect );
 				
 				addReportListener( c );
 				
@@ -247,7 +247,7 @@ ResourceDownloaderMetaRefreshImpl
 					
 				}else{
 				
-					current_delegate = new ResourceDownloaderImpl( this, redirect );
+					current_delegate = new ResourceDownloaderURLImpl( this, redirect );
 					
 					// informActivity( "meta-refresh -> " + current_delegate.getName());
 					
