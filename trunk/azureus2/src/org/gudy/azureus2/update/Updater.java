@@ -29,8 +29,10 @@ public class Updater {
     }
     
     File targetFile = new File(args[2], "Azureus2.jar"); //$NON-NLS-1$
+    System.out.println("Old JAR: " + targetFile.getAbsolutePath());
     if(targetFile.isFile()) {
       File updateFile = new File(targetFile.getParentFile(), "Azureus2-new.jar");
+      System.out.println("New JAR: " + updateFile.getAbsolutePath());
       if(updateFile.isFile()) {
 //        System.out.println(FOUND);
         while(!targetFile.delete()) {
