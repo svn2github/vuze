@@ -438,17 +438,16 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           continue;  //move on to the next connection
         }
         
-        int num_bytes_allowed = num_bytes_remaining > mss_size ? mss_size : num_bytes_remaining;  //allow a single full packet at most
-        
         int total_size = peer_data.connection.getOutgoingMessageQueue().getTotalSize();
         
         if( total_size < 1 ) { //this can happen because of our async listener notification
-          Debug.out( "total_size < 1: " +total_size );
-          ready_connections.addLast( peer_data );  //re-add to end as currently unusable
-          num_unusable_connections++;
+          System.out.println( "total_size < 1: " +total_size );
+          peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
+          addToStalledList( peer_data.connection );
           continue;  //move on to the next connection
         }
         
+        int num_bytes_allowed = num_bytes_remaining > mss_size ? mss_size : num_bytes_remaining;  //allow a single full packet at most
         int num_bytes_available = total_size > mss_size ? mss_size : total_size;  //allow a single full packet at most
         
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
