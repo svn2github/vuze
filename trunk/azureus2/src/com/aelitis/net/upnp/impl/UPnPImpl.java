@@ -31,6 +31,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
@@ -56,19 +57,28 @@ UPnPImpl
 	public static final String	NL	= "\r\n";
 	
 	protected static UPnPImpl	singleton;
+	protected static AEMonitor	class_mon 	= new AEMonitor( "UPnP:class" );
 	
-	public static synchronized UPnP
+	public static UPnP
 	getSingleton(
 		PluginInterface		plugin_interface )
 	
 		throws UPnPException
 	{
-		if ( singleton == null ){
-			
-			singleton = new UPnPImpl( plugin_interface );
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new UPnPImpl( plugin_interface );
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected PluginInterface		plugin_interface;
@@ -80,11 +90,13 @@ UPnPImpl
 	protected List		log_listeners	= new ArrayList();
 	protected List		log_history		= new ArrayList();
 	
-	protected List		rd_listeners	= new ArrayList();
-	
+	protected List		rd_listeners		= new ArrayList();
+	protected AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
+
 	protected int		trace_index		= 0;
 	
-	
+	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
+
 	protected
 	UPnPImpl(
 		PluginInterface		_plugin_interface )
@@ -138,11 +150,16 @@ UPnPImpl
 		
 			List	listeners;
 			
-			synchronized( rd_listeners ){
+			try{
+				rd_listeners_mon.enter();
 				
 				root_locations.put( location.getHost(), root_device );
 
 				listeners = new ArrayList( rd_listeners );
+				
+			}finally{
+				
+				rd_listeners_mon.exit();
 			}
 			
 			for (int i=0;i<listeners.size();i++){
@@ -177,9 +194,14 @@ UPnPImpl
 	{
 		UPnPRootDeviceImpl	root_device;
 	
-		synchronized( rd_listeners ){
+		try{
+			rd_listeners_mon.enter();
 
 			root_device = (UPnPRootDeviceImpl)root_locations.remove( location.getHost());
+			
+		}finally{
+			
+			rd_listeners_mon.exit();
 		}
 		
 		if ( root_device == null ){
@@ -199,11 +221,16 @@ UPnPImpl
 
 		List	roots;
 		
-		synchronized( rd_listeners ){
+		try{
+			rd_listeners_mon.enter();
 
 			roots = new ArrayList(root_locations.values());
 			
 			root_locations.clear();
+			
+		}finally{
+			
+			rd_listeners_mon.exit();
 		}
 		
 		for (int i=0;i<roots.size();i++){
@@ -458,17 +485,24 @@ UPnPImpl
 		}
 	}
 	
-	protected synchronized File
+	protected File
 	getTraceFile()
 	{
-		trace_index++;
+		try{
+			this_mon.enter();
 		
-		if ( trace_index == 6 ){
+			trace_index++;
 			
-			trace_index = 1;
+			if ( trace_index == 6 ){
+				
+				trace_index = 1;
+			}
+			
+			return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "upnp_trace" + trace_index + ".log" ));
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "upnp_trace" + trace_index + ".log" ));
 	}
 	
 	public PluginInterface
@@ -506,7 +540,8 @@ UPnPImpl
 	{
 		List	old_listeners;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 
 			old_listeners = new ArrayList(log_listeners);
 
@@ -516,6 +551,9 @@ UPnPImpl
 				
 				log_history.remove(0);
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<old_listeners.size();i++){
@@ -530,11 +568,15 @@ UPnPImpl
 	{
 		List	old_logs;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 
 			old_logs = new ArrayList(log_history);
 
 			log_listeners.add( l );
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<old_logs.size();i++){
@@ -556,11 +598,16 @@ UPnPImpl
 	{
 		List	old_locations;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 
 			old_locations = new ArrayList(root_locations.values());
 
 			rd_listeners.add( l );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<old_locations.size();i++){

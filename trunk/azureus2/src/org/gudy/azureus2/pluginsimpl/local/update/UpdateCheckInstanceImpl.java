@@ -50,6 +50,8 @@ UpdateCheckInstanceImpl
 	protected boolean		completed;
 	protected boolean		cancelled;
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "UpdateCheckInstance" );
+
 	protected
 	UpdateCheckInstanceImpl(
 		UpdatableComponentImpl[]	_components )
@@ -109,7 +111,8 @@ UpdateCheckInstanceImpl
 						sem.reserve();
 					}
 					
-					synchronized( UpdateCheckInstanceImpl.this ){
+					try{
+						this_mon.enter();
 						
 						if ( cancelled ){
 							
@@ -117,7 +120,11 @@ UpdateCheckInstanceImpl
 						}
 					
 						completed	= true;
-					}	
+						
+					}finally{
+						
+						this_mon.exit();
+					}
 					
 					boolean	mandatory_failed = false;
 					
@@ -185,7 +192,7 @@ UpdateCheckInstanceImpl
 		t.start();
 	}
 		
-	protected synchronized UpdateImpl
+	protected UpdateImpl
 	addUpdate(
 		UpdatableComponentImpl	comp,
 		String					name,
@@ -194,38 +201,44 @@ UpdateCheckInstanceImpl
 		ResourceDownloader[]	downloaders,
 		int						restart_required )
 	{
-		UpdateImpl	update = 
-			new UpdateImpl( name, desc, new_version, 
-							downloaders, comp.isMandatory(), restart_required );
+		try{
+			this_mon.enter();
 		
-		updates.add( update );
-		
-		boolean	cancel_it = false;
-		
-		synchronized( this ){
+			UpdateImpl	update = 
+				new UpdateImpl( name, desc, new_version, 
+								downloaders, comp.isMandatory(), restart_required );
 			
+			updates.add( update );
+						
 			if ( cancelled ){
 				
-				cancel_it	= true;
+				update.cancel();
 			}
-		}
-		
-		if ( cancel_it ){
 			
-			update.cancel();
+			return( update );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( update );
 	}
 	
-	public synchronized Update[]
+	public Update[]
 	getUpdates()
 	{
-		Update[]	res = new Update[updates.size()];
+		try{
+			this_mon.enter();
 		
-		updates.toArray( res );
+			Update[]	res = new Update[updates.size()];
 		
-		return( res );
+			updates.toArray( res );
+		
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public UpdateChecker[]
@@ -247,7 +260,8 @@ UpdateCheckInstanceImpl
 	{
 		boolean	just_do_updates = false;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( completed ){
 				
@@ -255,6 +269,10 @@ UpdateCheckInstanceImpl
 			}
 		
 			cancelled	= true;
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 			
 		

@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -24,8 +25,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 public class 
 UserAlerts 
 {
-  	private AudioClip audio_clip = null;
-
+  	private AudioClip 	audio_clip 	= null;
+    private AEMonitor	this_mon 	= new AEMonitor( "UserAlerts" );
+    
 	public 
 	UserAlerts(
 		GlobalManager	global_manager ) 
@@ -61,10 +63,11 @@ UserAlerts
 			}); 			
      }
 
-  	protected synchronized void
+  	protected void
   	downloadFinished()
   	{
   		try{
+  			this_mon.enter();
   		
 	    	if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
 	    
@@ -81,6 +84,10 @@ UserAlerts
   		}catch( Throwable e ){
   			
   			e.printStackTrace();
+  			
+  		}finally{
+  			
+  			this_mon.exit();
   		}
   	}
   	

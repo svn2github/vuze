@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.update;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.*;
@@ -48,6 +49,8 @@ UpdateManagerImpl
 	protected List	components 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
+	protected AEMonitor	this_mon 	= new AEMonitor( "UpdateManager" );
+
 	protected
 	UpdateManagerImpl()
 	{
@@ -63,30 +66,45 @@ UpdateManagerImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	registerUpdatableComponent(
 		UpdatableComponent		component,
 		boolean					mandatory )
 	{
-		components.add( new UpdatableComponentImpl( component, mandatory ));
+		try{
+			this_mon.enter();
+			
+			components.add( new UpdatableComponentImpl( component, mandatory ));
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	
-	public synchronized UpdateCheckInstance
+	public UpdateCheckInstance
 	createUpdateCheckInstance()
 	{
-		UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[components.size()];
-		
-		components.toArray( comps );
-		
-		UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
-		
-		for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+	
+			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[components.size()];
 			
-			((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
+			components.toArray( comps );
+			
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
+			}
+			
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( res );
 	}
 	
 	public UpdateInstaller

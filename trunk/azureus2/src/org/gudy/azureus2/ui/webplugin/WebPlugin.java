@@ -466,33 +466,43 @@ WebPlugin
 					String	last_pw		= "";
 					byte[]	last_hash	= {};
 					
-					public synchronized boolean
+					AEMonitor	this_mon = new AEMonitor( "WebPlugin:auth" );
+					
+					public boolean
 					authenticate(
 						URL			resource,
 						String		user,
 						String		pw )
 					{
-						if ( !pw_enable.getValue()){
+						try{
+							this_mon.enter();
+						
+							if ( !pw_enable.getValue()){
+								
+								return( true );
+							}
 							
-							return( true );
-						}
-						
-						if ( !user.equals(user_name.getValue())){
+							if ( !user.equals(user_name.getValue())){
+								
+								return( false );
+							}
 							
-							return( false );
-						}
-						
-						byte[]	hash = last_hash;
-						
-						if (  !last_pw.equals( pw )){
-														
-							hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+							byte[]	hash = last_hash;
 							
-							last_pw		= pw;
-							last_hash	= hash;
+							if (  !last_pw.equals( pw )){
+															
+								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+								
+								last_pw		= pw;
+								last_hash	= hash;
+							}
+							
+							return( Arrays.equals( hash, password.getValue()));
+							
+						}finally{
+							
+							this_mon.exit();
 						}
-						
-						return( Arrays.equals( hash, password.getValue()));
 					}
 				});
 			

@@ -143,6 +143,7 @@ TRTrackerServerImpl
 	protected Vector	listeners 			= new Vector();
 	protected List		auth_listeners		= new ArrayList();
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
 
 	
 	public
@@ -351,49 +352,56 @@ TRTrackerServerImpl
 		return( stats );
 	}
 	
-	public synchronized void
+	public void
 	updateStats(
 		TRTrackerServerTorrentImpl	torrent,
 		int							bytes_in,
 		int							bytes_out )
 	{
-		stats.update( bytes_in, bytes_out );
+		try{
+			this_mon.enter();
 		
-		if ( torrent != null ){
+			stats.update( bytes_in, bytes_out );
 			
-			torrent.updateXferStats( bytes_in, bytes_out );
-			
-		}else{
-			
-			int	num = torrent_map.size();
-			
-			if ( num > 0 ){
-			
-					// full scrape or error - spread the reported bytes across the torrents
-			
-				int	ave_in	= bytes_in/num;
-				int	ave_out	= bytes_out/num;
+			if ( torrent != null ){
 				
-				int	rem_in 	= bytes_in-(ave_in*num);
-				int rem_out	= bytes_out-(ave_out*num);
+				torrent.updateXferStats( bytes_in, bytes_out );
 				
-				Iterator	it = torrent_map.values().iterator();
-			
-				while(it.hasNext()){
-								
-					TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)it.next();
+			}else{
+				
+				int	num = torrent_map.size();
+				
+				if ( num > 0 ){
+				
+						// full scrape or error - spread the reported bytes across the torrents
+				
+					int	ave_in	= bytes_in/num;
+					int	ave_out	= bytes_out/num;
 					
-					if ( it.hasNext()){
+					int	rem_in 	= bytes_in-(ave_in*num);
+					int rem_out	= bytes_out-(ave_out*num);
+					
+					Iterator	it = torrent_map.values().iterator();
+				
+					while(it.hasNext()){
+									
+						TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)it.next();
 						
-						this_torrent.updateXferStats( ave_in, ave_out );
-						
-					}else{
-						
-						this_torrent.updateXferStats( ave_in+rem_in, ave_out+rem_out );
-						
+						if ( it.hasNext()){
+							
+							this_torrent.updateXferStats( ave_in, ave_out );
+							
+						}else{
+							
+							this_torrent.updateXferStats( ave_in+rem_in, ave_out+rem_out );
+							
+						}
 					}
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -424,7 +432,8 @@ TRTrackerServerImpl
 				
 				int	clients = 0;
 				
-				synchronized(this){
+				try{
+					this_mon.enter();
 					
 					Iterator	it = torrent_map.values().iterator();
 					
@@ -434,6 +443,9 @@ TRTrackerServerImpl
 						
 						clients += t.getPeerCount();
 					}
+				}finally{
+					
+					this_mon.exit();
 				}
 				
 				if ( inc_by > 0 && inc_per > 0 ){
@@ -463,7 +475,8 @@ TRTrackerServerImpl
 					
 					time_to_go = TIMEOUT_CHECK;
 					
-					synchronized(this){
+					try{
+						this_mon.enter();
 						
 						Iterator	it = torrent_map.values().iterator();
 						
@@ -473,6 +486,9 @@ TRTrackerServerImpl
 							
 							t.checkTimeouts();
 						}
+					}finally{
+						
+						this_mon.exit();
 					}
 				}
 				
@@ -510,7 +526,8 @@ TRTrackerServerImpl
 			}
 		}
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 		
 			entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
 			
@@ -520,6 +537,9 @@ TRTrackerServerImpl
 			
 				torrent_map.put( hash, entry );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		return( entry );
@@ -544,7 +564,8 @@ TRTrackerServerImpl
 			}
 		}
 
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			TRTrackerServerTorrentImpl	entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
 	
@@ -554,6 +575,10 @@ TRTrackerServerImpl
 			}
 		
 			torrent_map.remove( hash );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -564,14 +589,21 @@ TRTrackerServerImpl
 		return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
 	}
 	
-	public synchronized TRTrackerServerTorrentImpl[]
+	public TRTrackerServerTorrentImpl[]
 	getTorrents()
 	{
-		TRTrackerServerTorrentImpl[]	res = new TRTrackerServerTorrentImpl[torrent_map.size()];
+		try{
+			this_mon.enter();
 		
-		torrent_map.values().toArray( res );
-		
-		return( res );	
+			TRTrackerServerTorrentImpl[]	res = new TRTrackerServerTorrentImpl[torrent_map.size()];
+			
+			torrent_map.values().toArray( res );
+			
+			return( res );	
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public TRTrackerServerTorrentStats
@@ -602,18 +634,34 @@ TRTrackerServerImpl
 		return( torrent.getPeers());
 	}
 	
-	public synchronized void
+	public void
 	addListener(
-			TRTrackerServerListener	l )
+		TRTrackerServerListener	l )
 	{
-		listeners.addElement( l );
+		try{
+			this_mon.enter();
+		
+			listeners.addElement( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		TRTrackerServerListener	l )
 	{
-		listeners.removeElement(l);
+		try{
+			this_mon.enter();
+		
+			listeners.removeElement(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	

@@ -56,7 +56,10 @@ TRTrackerServerNATChecker
 	
 	protected List			check_queue		= new ArrayList();
 	protected AESemaphore	check_queue_sem	= new AESemaphore("TracerServerNATChecker");
-	
+	protected AEMonitor		check_queue_mon	= new AEMonitor( "TRTrackerServerNATChecker:Q" );
+
+	protected AEMonitor 	this_mon 		= new AEMonitor( "TRTrackerServerNATChecker" );
+
 	protected
 	TRTrackerServerNATChecker()
 	{
@@ -89,63 +92,74 @@ TRTrackerServerNATChecker
 		return( enabled );
 	}
 	
-	protected synchronized void
+	protected void
 	checkConfig(
 		String	enable_param,
 		String	timeout_param )
 	{
-		enabled = COConfigurationManager.getBooleanParameter( enable_param );
+		try{
+			this_mon.enter();
 		
-		check_timeout = COConfigurationManager.getIntParameter( timeout_param ) * 1000;
-		
-		if ( check_timeout < 1000 ){
+			enabled = COConfigurationManager.getBooleanParameter( enable_param );
 			
-			Debug.out( "NAT check timeout too small - " + check_timeout );
+			check_timeout = COConfigurationManager.getIntParameter( timeout_param ) * 1000;
 			
-			check_timeout	= 1000;
-		}
-		
-		if ( thread_pool == null ){
+			if ( check_timeout < 1000 ){
+				
+				Debug.out( "NAT check timeout too small - " + check_timeout );
+				
+				check_timeout	= 1000;
+			}
 			
-			thread_pool	= new ThreadPool("Tracker NAT Checker", THREAD_POOL_SIZE );
-			
-			thread_pool.setExecutionLimit( check_timeout );
-			
-			Thread	dispatcher_thread = 
-				new AEThread( "Tracker NAT Checker Dispatcher" )
-				{
-					public void
-					run()
+			if ( thread_pool == null ){
+				
+				thread_pool	= new ThreadPool("Tracker NAT Checker", THREAD_POOL_SIZE );
+				
+				thread_pool.setExecutionLimit( check_timeout );
+				
+				Thread	dispatcher_thread = 
+					new AEThread( "Tracker NAT Checker Dispatcher" )
 					{
-						while(true){
-							
-							check_queue_sem.reserve();
-							
-							ThreadPoolTask	task;
-							
-							synchronized( check_queue ){
+						public void
+						run()
+						{
+							while(true){
 								
-								task = (ThreadPoolTask)check_queue.remove(0);
-							}
-							
-							try{
-								thread_pool.run( task );
+								check_queue_sem.reserve();
 								
-							}catch( Throwable e ){
+								ThreadPoolTask	task;
 								
-								e.printStackTrace();
+								try{
+									check_queue_mon.enter();
+									
+									task = (ThreadPoolTask)check_queue.remove(0);
+								}finally{
+									
+									check_queue_mon.exit();
+								}
+								
+								try{
+									thread_pool.run( task );
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
 							}
 						}
-					}
-				};
+					};
+					
+				dispatcher_thread.setDaemon( true );
 				
-			dispatcher_thread.setDaemon( true );
+				dispatcher_thread.start();
+				
+			}else{
+				
+				thread_pool.setExecutionLimit( check_timeout );
+			}
+		}finally{
 			
-			dispatcher_thread.start();
-			
-		}else{
-			
-			thread_pool.setExecutionLimit( check_timeout );
+			this_mon.exit();
 		}
 	}
 
@@ -160,7 +174,8 @@ TRTrackerServerNATChecker
 			return( false );
 		}
 		
-		synchronized( check_queue ){
+		try{
+			check_queue_mon.enter();
 			
 			if ( check_queue.size() > CHECK_QUEUE_LIMIT ){
 				
@@ -226,6 +241,9 @@ TRTrackerServerNATChecker
 				
 				check_queue_sem.release();
 			}
+		}finally{
+			
+			check_queue_mon.exit();
 		}
 		
 		return( true );

@@ -43,6 +43,8 @@ UpdateInstallerImpl
 	protected static final String	UPDATE_DIR 	= "updates";
 	protected static final String	ACTIONS		= "install.act";
 	
+	protected static AEMonitor	class_mon 	= new AEMonitor( "UpdateInstaller:class" );
+
 	protected File	install_dir;
 	
 	protected static void
@@ -89,7 +91,8 @@ UpdateInstallerImpl
 	
 		throws UpdateException
 	{
-		synchronized( UpdateInstallerImpl.class){
+		try{
+			class_mon.enter();
 			
 				// updates are in general user-specific (e.g. plugin updates) so store here
 				// obviously core ones will affect all users
@@ -117,6 +120,9 @@ UpdateInstallerImpl
 				
 				throw( new UpdateException( "Failed to find a temporary installation dir"));
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

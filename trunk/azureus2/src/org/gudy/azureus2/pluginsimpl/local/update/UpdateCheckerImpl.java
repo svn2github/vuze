@@ -50,7 +50,8 @@ UpdateCheckerImpl
 
 	protected List	listeners	= new ArrayList();
 	
-	
+	protected AEMonitor this_mon 	= new AEMonitor( "UpdateChecker" );
+
 	protected
 	UpdateCheckerImpl(
 		UpdateCheckInstanceImpl	_check_instance,
@@ -109,52 +110,66 @@ UpdateCheckerImpl
 		return( component.getComponent());
 	}
 	
-	public synchronized void
+	public void
 	completed()
 	{
-		if ( !sem_released ){
-			
-			completed	= true;
-			
-			for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			if ( !sem_released ){
 				
-				try{
-					((UpdateCheckerListener)listeners.get(i)).completed( this );
+				completed	= true;
+				
+				for (int i=0;i<listeners.size();i++){
 					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
+					try{
+						((UpdateCheckerListener)listeners.get(i)).completed( this );
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}
+				
+				sem_released	= true;
+				
+				semaphore.release();
 			}
+		}finally{
 			
-			sem_released	= true;
-			
-			semaphore.release();
+			this_mon.exit();
 		}
 	}
 		
-	public synchronized void
+	public void
 	failed()
 	{
-		if ( !sem_released ){
-			
-			failed	= true;
-
-			for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			if ( !sem_released ){
 				
-				try{
-					((UpdateCheckerListener)listeners.get(i)).failed( this );
+				failed	= true;
+	
+				for (int i=0;i<listeners.size();i++){
 					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
+					try{
+						((UpdateCheckerListener)listeners.get(i)).failed( this );
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}
-			}
-
-			sem_released	= true;
+	
+				sem_released	= true;
+				
+				semaphore.release();
+			}	
+		}finally{
 			
-			semaphore.release();
-		}		
+			this_mon.exit();
+		}
 	}
 	
 	protected boolean
@@ -174,32 +189,47 @@ UpdateCheckerImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		UpdateCheckerListener	l )
 	{
-		listeners.add( l );
+		try{
+			this_mon.enter();
 		
-		if ( failed ){
+			listeners.add( l );
 			
-			l.failed( this );
+			if ( failed ){
+				
+				l.failed( this );
+				
+			}else if ( completed ){
+				
+				l.completed( this );
+			}
 			
-		}else if ( completed ){
+			if ( cancelled ){
+				
+				l.cancelled( this );
+				
+			}
+		}finally{
 			
-			l.completed( this );
-		}
-		
-		if ( cancelled ){
-			
-			l.cancelled( this );
-			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		UpdateCheckerListener	l )
 	{
-		listeners.remove(l);
+		try{
+			this_mon.enter();
+		
+			listeners.remove(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

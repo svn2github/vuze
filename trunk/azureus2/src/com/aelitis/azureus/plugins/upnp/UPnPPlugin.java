@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.services.*;
@@ -60,6 +61,8 @@ UPnPPlugin
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
 	
+	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
+	   
 	public void
 	initialize(
 		PluginInterface	_plugin_interface )
@@ -340,106 +343,144 @@ UPnPPlugin
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	addService(
 		UPnPWANConnection	wan_service )
 	
 		throws UPnPException
 	{
-		log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
+		try{
+			this_mon.enter();
 		
-		UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
-		
-		for (int j=0;j<ports.length;j++){
+			log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
 			
-			log.log( "      mapping [" + j  + "] " + ports[j].getExternalPort() + "/" + 
-							(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
+			UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
+			
+			for (int j=0;j<ports.length;j++){
+				
+				log.log( "      mapping [" + j  + "] " + ports[j].getExternalPort() + "/" + 
+								(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
+			}
+			
+			services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
+			
+			checkState();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
-		
-		checkState();
 	}
 	
-	protected synchronized void
+	protected void
 	removeService(
 		UPnPWANConnection	wan_service,
 		boolean				replaced )
 	{
-		String	name = wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection";
-		
-		String	text = 
-			MessageText.getString( 
-					"upnp.alert.lostdevice", 
-					new String[]{ name, wan_service.getGenericService().getDevice().getRootDevice().getLocation().getHost()});
-		
-		log.log( text );
-		
-		if ( (!replaced) && alert_device_probs_param.getValue()){
+		try{
+			this_mon.enter();
 			
-			log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
-		}
-				
-		for (int i=0;i<services.size();i++){
+			String	name = wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection";
 			
-			UPnPPluginService	ps = (UPnPPluginService)services.get(i);
+			String	text = 
+				MessageText.getString( 
+						"upnp.alert.lostdevice", 
+						new String[]{ name, wan_service.getGenericService().getDevice().getRootDevice().getLocation().getHost()});
 			
-			if ( ps.getService() == wan_service ){
+			log.log( text );
+			
+			if ( (!replaced) && alert_device_probs_param.getValue()){
 				
-				services.remove(i);
-				
-				break;
+				log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
 			}
+					
+			for (int i=0;i<services.size();i++){
+				
+				UPnPPluginService	ps = (UPnPPluginService)services.get(i);
+				
+				if ( ps.getService() == wan_service ){
+					
+					services.remove(i);
+					
+					break;
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	addMapping(
 		UPnPMapping		mapping )
 	{
-		mappings.add( mapping );
+		try{
+			this_mon.enter();
 		
-		log.log( "Mapping request: " + mapping.getString() + ", enabled = " + mapping.isEnabled());
-		
-		mapping.addListener( this );
-		
-		checkState();
+			mappings.add( mapping );
+			
+			log.log( "Mapping request: " + mapping.getString() + ", enabled = " + mapping.isEnabled());
+			
+			mapping.addListener( this );
+			
+			checkState();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}	
 	
-	public synchronized void
+	public void
 	mappingChanged(
 		UPnPMapping	mapping )
 	{
 		checkState();
+	
 	}
 	
-	public synchronized void
+	public void
 	mappingDestroyed(
 		UPnPMapping	mapping )
 	{
-		mappings.remove( mapping );
+		try{
+			this_mon.enter();
 		
-		for (int j=0;j<services.size();j++){
+			mappings.remove( mapping );
 			
-			UPnPPluginService	service = (UPnPPluginService)services.get(j);
-			
-			service.removeMapping( log, mapping, false );
-		}
-	}
-	
-	protected synchronized void
-	checkState()
-	{		
-		for (int i=0;i<mappings.size();i++){
-			
-			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
-
 			for (int j=0;j<services.size();j++){
 				
 				UPnPPluginService	service = (UPnPPluginService)services.get(j);
 				
-				service.checkMapping( log, mapping );
+				service.removeMapping( log, mapping, false );
 			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	checkState()
+	{		
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<mappings.size();i++){
+				
+				UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+	
+				for (int j=0;j<services.size();j++){
+					
+					UPnPPluginService	service = (UPnPPluginService)services.get(j);
+					
+					service.checkMapping( log, mapping );
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	

@@ -48,17 +48,26 @@ UpdateMonitor
 	public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
 
 	protected static UpdateMonitor		singleton;
+	protected static AEMonitor			class_mon 	= new AEMonitor( "UpdateMonitor:class" );
 	
-	public static synchronized UpdateMonitor
+	public static UpdateMonitor
 	getSingleton(
 		AzureusCore		core )
 	{
-		if ( singleton == null ){
-			
-			singleton = new UpdateMonitor( core );
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new UpdateMonitor( core );
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 
 	protected AzureusCore			azureus_core;

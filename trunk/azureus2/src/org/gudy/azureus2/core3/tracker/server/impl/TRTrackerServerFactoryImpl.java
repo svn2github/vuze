@@ -31,14 +31,16 @@ import java.util.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.*;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TRTrackerServerFactoryImpl 
 {
-	protected static List	servers		= new ArrayList();
-	protected static List	listeners 	= new ArrayList();
-	
-	public static synchronized TRTrackerServer
+	protected static List		servers		= new ArrayList();
+	protected static List		listeners 	= new ArrayList();
+	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRTrackerServerFactory" );
+
+	public static TRTrackerServer
 	create(
 		String		name,
 		int			protocol,
@@ -48,48 +50,71 @@ TRTrackerServerFactoryImpl
 	
 		throws TRTrackerServerException
 	{
-		TRTrackerServerImpl	server;
+		try{
+			class_mon.enter();
 		
-		if ( protocol == TRTrackerServerFactory.PR_TCP ){
+			TRTrackerServerImpl	server;
 			
-			server = new TRTrackerServerTCP( name, port, ssl, apply_ip_filter );
-			
-		}else{
-			
-			if ( ssl ){
+			if ( protocol == TRTrackerServerFactory.PR_TCP ){
 				
-				throw( new TRTrackerServerException( "TRTrackerServerFactory: UDP doesn't support SSL"));
+				server = new TRTrackerServerTCP( name, port, ssl, apply_ip_filter );
+				
+			}else{
+				
+				if ( ssl ){
+					
+					throw( new TRTrackerServerException( "TRTrackerServerFactory: UDP doesn't support SSL"));
+				}
+				
+				server = new TRTrackerServerUDP( name, port );
 			}
 			
-			server = new TRTrackerServerUDP( name, port );
-		}
-		
-		servers.add( server );
-		
-		for (int i=0;i<listeners.size();i++){
+			servers.add( server );
 			
-			((TRTrackerServerFactoryListener)listeners.get(i)).serverCreated( server );
+			for (int i=0;i<listeners.size();i++){
+				
+				((TRTrackerServerFactoryListener)listeners.get(i)).serverCreated( server );
+			}
+			
+			return( server );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( server );
 	}
 	
-	public static synchronized void
+	public static void
 	addListener(
 		TRTrackerServerFactoryListener	l )
 	{
-		listeners.add( l );
+		try{
+			class_mon.enter();
 		
-		for (int i=0;i<servers.size();i++){
+			listeners.add( l );
 			
-			l.serverCreated((TRTrackerServer)servers.get(i));
+			for (int i=0;i<servers.size();i++){
+				
+				l.serverCreated((TRTrackerServer)servers.get(i));
+			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}	
 	
-	public static synchronized void
+	public static void
 	removeListener(
 		TRTrackerServerFactoryListener	l )
 	{
-		TRTrackerServerFactoryImpl.removeListener( l );
+		try{
+			class_mon.enter();
+		
+			TRTrackerServerFactoryImpl.removeListener( l );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 }

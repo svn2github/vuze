@@ -54,7 +54,8 @@ TRTrackerServerProcessorUDP
 	
 	protected static Map				connection_id_map 	= new LinkedHashMap();
 	protected static SecureRandom		random				= new SecureRandom();
-	
+	protected static AEMonitor			random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
+
 	protected
 	TRTrackerServerProcessorUDP(
 		TRTrackerServerUDP		_server,
@@ -254,7 +255,8 @@ TRTrackerServerProcessorUDP
 	allocateConnectionId(
 		String	client_address )
 	{
-		synchronized( random ){
+		try{
+			random_mon.enter();
 	
 			long	id = random.nextLong();
 			
@@ -290,6 +292,9 @@ TRTrackerServerProcessorUDP
 			// System.out.println( "TRTrackerServerProcessorUDP: allocated:" + id + ", conection id map size = " + connection_id_map.size());
 			
 			return( id );
+		}finally{
+			
+			random_mon.exit();
 		}
 	}
 	
@@ -298,7 +303,8 @@ TRTrackerServerProcessorUDP
 		String	client_address,
 		long	id )
 	{
-		synchronized( random ){
+		try{
+			random_mon.enter();
 			
 			Long	key = new Long(id);
 			
@@ -322,6 +328,9 @@ TRTrackerServerProcessorUDP
 			// System.out.println( "TRTrackerServerProcessorUDP: tested:" + id + "/" + client_address + " -> " + ok );
 			
 			return( ok );
+		}finally{
+			
+			random_mon.exit();
 		}
 	}
 	

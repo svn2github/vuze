@@ -53,6 +53,8 @@ TRTrackerServerTCP
 	
 	protected ThreadPool	thread_pool;
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTCP" );
+
 	public
 	TRTrackerServerTCP(
 		String		_name,
@@ -241,6 +243,8 @@ TRTrackerServerTCP
 	
 	protected static File		dos_log_file;
 	
+	protected static AEMonitor class_mon 	= new AEMonitor( "TRTrackerServerTCP:class" );
+
 	Map	DOS_map = 
 		new LinkedHashMap( 1000, (float)0.75, true )
 		{
@@ -326,7 +330,8 @@ TRTrackerServerTCP
 			
 			if ( dos_list.size() > 0 ){
 				
-				synchronized( TRTrackerServerTCP.class ){
+				try{
+					class_mon.enter();
 					
 					if ( dos_log_file == null ){
 											
@@ -364,6 +369,9 @@ TRTrackerServerTCP
 							}
 						}
 					}
+				}finally{
+					
+					class_mon.exit();
 				}
 			}
 		}
@@ -429,7 +437,8 @@ TRTrackerServerTCP
 			
 			TRTrackerServerListener	listener;
 			
-			synchronized(this){
+			try{
+				this_mon.enter();
 				
 				if ( i >= listeners.size()){
 					
@@ -437,6 +446,10 @@ TRTrackerServerTCP
 				}
 				
 				listener = (TRTrackerServerListener)listeners.elementAt(i);
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			if (listener.handleExternalRequest( client_address, url, header, is, os )){

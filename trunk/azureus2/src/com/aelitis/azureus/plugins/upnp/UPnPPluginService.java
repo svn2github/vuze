@@ -30,6 +30,7 @@ package com.aelitis.azureus.plugins.upnp;
 import java.util.*;
 
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
@@ -46,6 +47,8 @@ UPnPPluginService
 	
 	protected List	service_mappings = new ArrayList();
 	
+	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPluginService" );
+	   
 	protected
 	UPnPPluginService(
 		UPnPWANConnection				_connection,
@@ -91,168 +94,182 @@ UPnPPluginService
 		return( "Azureus UPnP " + port + " " + (TCP?"TCP":"UDP"));
 	}
 	
-	protected synchronized void
+	protected void
 	checkMapping(
 		LoggerChannel		log,
 		UPnPMapping			mapping )
 	{
-		if ( mapping.isEnabled()){
-			
-				// check for change of port number and delete old value if so
-			
-			for (int i=0;i<service_mappings.size();i++){
+		try{
+			this_mon.enter();
+		
+			if ( mapping.isEnabled()){
 				
-				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+					// check for change of port number and delete old value if so
 				
-				if ( sm.getMapping() == mapping ){
-			
-					if ( sm.getPort() != mapping.getPort()){
-						
-						removeMapping( log, sm, false );
+				for (int i=0;i<service_mappings.size();i++){
+					
+					serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+					
+					if ( sm.getMapping() == mapping ){
+				
+						if ( sm.getPort() != mapping.getPort()){
+							
+							removeMapping( log, sm, false );
+						}
 					}
 				}
-			}
-		
-			serviceMapping	grab_in_progress	= null;
 			
-			String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
-			
-			for (int i=0;i<service_mappings.size();i++){
+				serviceMapping	grab_in_progress	= null;
 				
-				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+				String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 				
-				if ( 	sm.isTCP() 		== mapping.isTCP() &&
-						sm.getPort() 	== mapping.getPort()){				
-			
-					if ( sm.getInternalHost().equals( local_address )){
-						
-							// make sure we tie this to the mapping in case it
-							// was external to begin with
-						
-						sm.setMapping( mapping  );
-						
-						if ( !sm.getLogged()){
+				for (int i=0;i<service_mappings.size();i++){
+					
+					serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+					
+					if ( 	sm.isTCP() 		== mapping.isTCP() &&
+							sm.getPort() 	== mapping.getPort()){				
+				
+						if ( sm.getInternalHost().equals( local_address )){
 							
-							sm.setLogged();
+								// make sure we tie this to the mapping in case it
+								// was external to begin with
 							
-							log.log( "Mapping " + mapping.getString() + " already established" );
-						}
-						
-						return;
-						
-					}else{
-						
-						if ( !grab_ports.getValue() ){
-	
+							sm.setMapping( mapping  );
+							
 							if ( !sm.getLogged()){
 								
 								sm.setLogged();
-							
-								String	text = 
-									MessageText.getString( 
-										"upnp.alert.differenthost", 
-										new String[]{ mapping.getString(), sm.getInternalHost()});
-							
-								log.log( text );
-							
-								if ( alert_other_port_param.getValue()){
 								
-									log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
-								}
+								log.log( "Mapping " + mapping.getString() + " already established" );
 							}
 							
 							return;
 							
 						}else{
 							
-								// we're going to grab it
-							
-							sm.setMapping( mapping  );
-
-							grab_in_progress	= sm;
+							if ( !grab_ports.getValue() ){
+		
+								if ( !sm.getLogged()){
+									
+									sm.setLogged();
+								
+									String	text = 
+										MessageText.getString( 
+											"upnp.alert.differenthost", 
+											new String[]{ mapping.getString(), sm.getInternalHost()});
+								
+									log.log( text );
+								
+									if ( alert_other_port_param.getValue()){
+									
+										log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+									}
+								}
+								
+								return;
+								
+							}else{
+								
+									// we're going to grab it
+								
+								sm.setMapping( mapping  );
+	
+								grab_in_progress	= sm;
+							}
 						}
 					}
 				}
-			}
-			
-				// not found - try and establish it + add entry even if we fail so
-				// that we don't retry later
-						
-			try{
-				connection.addPortMapping( 
-					mapping.isTCP(), mapping.getPort(), 
-					getDescriptionForPort( mapping.isTCP(), mapping.getPort()));
+				
+					// not found - try and establish it + add entry even if we fail so
+					// that we don't retry later
 							
-				String	text;
+				try{
+					connection.addPortMapping( 
+						mapping.isTCP(), mapping.getPort(), 
+						getDescriptionForPort( mapping.isTCP(), mapping.getPort()));
+								
+					String	text;
+					
+					if ( grab_in_progress != null ){
+						
+						text = MessageText.getString( 
+								"upnp.alert.mappinggrabbed", 
+								new String[]{ mapping.getString(), grab_in_progress.getInternalHost()});
+					}else{
+						
+						text = MessageText.getString( 
+								"upnp.alert.mappingok", 
+								new String[]{ mapping.getString()});
+					}
+					
+					log.log( text );
+					
+					if ( alert_success.getValue()){
+						
+						log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
+					}
+					
+				}catch( Throwable e ){
+					
+					String	text = 
+						MessageText.getString( 
+								"upnp.alert.mappingfailed", 
+								new String[]{ mapping.getString()});
+					
+					log.log( text, e );
 				
-				if ( grab_in_progress != null ){
+					if ( alert_other_port_param.getValue()){
 					
-					text = MessageText.getString( 
-							"upnp.alert.mappinggrabbed", 
-							new String[]{ mapping.getString(), grab_in_progress.getInternalHost()});
-				}else{
-					
-					text = MessageText.getString( 
-							"upnp.alert.mappingok", 
-							new String[]{ mapping.getString()});
+						log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
+					}
 				}
 				
-				log.log( text );
-				
-				if ( alert_success.getValue()){
+				if ( grab_in_progress == null ){
 					
-					log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
+					serviceMapping	new_mapping = new serviceMapping( mapping );
+				
+					service_mappings.add( new_mapping );
 				}
 				
-			}catch( Throwable e ){
+			}else{
+					// mapping is disabled
 				
-				String	text = 
-					MessageText.getString( 
-							"upnp.alert.mappingfailed", 
-							new String[]{ mapping.getString()});
-				
-				log.log( text, e );
-			
-				if ( alert_other_port_param.getValue()){
-				
-					log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
-				}
+				removeMapping( log, mapping, false );
 			}
+		}finally{
 			
-			if ( grab_in_progress == null ){
-				
-				serviceMapping	new_mapping = new serviceMapping( mapping );
-			
-				service_mappings.add( new_mapping );
-			}
-			
-		}else{
-				// mapping is disabled
-			
-			removeMapping( log, mapping, false );
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	removeMapping(
 		LoggerChannel		log,
 		UPnPMapping			mapping, 
 		boolean				end_of_day )
 	{
-		String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
+		try{
+			this_mon.enter();
 		
-		for (int i=0;i<service_mappings.size();i++){
+			String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 			
-			serviceMapping	sm = (serviceMapping)service_mappings.get(i);
-			
-			if ( 	sm.isTCP() == mapping.isTCP() &&
-					sm.getPort() == mapping.getPort() &&
-					sm.getMapping() != null ){
+			for (int i=0;i<service_mappings.size();i++){
 				
-				removeMapping( log, sm, end_of_day );
-
-				return;
+				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+				
+				if ( 	sm.isTCP() == mapping.isTCP() &&
+						sm.getPort() == mapping.getPort() &&
+						sm.getMapping() != null ){
+					
+					removeMapping( log, sm, end_of_day );
+	
+					return;
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 							

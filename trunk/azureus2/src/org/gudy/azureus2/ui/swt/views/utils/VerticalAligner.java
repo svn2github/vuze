@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 
 /** Workaround Eclipse Bug Bug 42416
@@ -36,11 +37,22 @@ import org.gudy.azureus2.core3.util.Constants;
  */
 public class VerticalAligner implements ParameterListener {
   private static VerticalAligner instance;
+  
+  private static AEMonitor	class_mon = new AEMonitor( "VerticalAligner:class" );
+  
   private boolean bFixGTKBug;
   
-  public synchronized static VerticalAligner getInstance() {
-    if(instance == null) instance = new VerticalAligner();
-    return instance;
+  public static VerticalAligner getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+  		if(instance == null) instance = new VerticalAligner();
+  		
+  		return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   private VerticalAligner() {
