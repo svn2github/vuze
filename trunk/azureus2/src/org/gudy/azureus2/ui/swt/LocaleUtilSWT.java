@@ -70,7 +70,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     String defaultString = candidates[0].getValue();
 
     Arrays.sort(candidates);
-
+   
     int minlength = candidates[0].getValue().length();
    
     // If the default string length == minlength assumes that
@@ -79,8 +79,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
       return defaultString;
     }
 
-        // see if we can try and apply a default encoding
-        
+    // see if we can try and apply a default encoding    
     String	default_name = COConfigurationManager.getStringParameter( "File.Decoder.Default", "" );
     
     if ( default_name.length() > 0 ){
@@ -96,25 +95,36 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     
     ArrayList choosableCandidates = new ArrayList(5);
     choosableCandidates.add(candidates[0]);
-    
+       
     // add all general candidates with names not already in the list
     for (int j = 0; j < generalCharsets.length; j++) {
       for (int i = 1; i < candidates.length; i++) {
+      	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
         if(candidates[i].getValue() != null && generalCharsets[j].equals(candidates[i].getDecoder().getName()) && !choosableCandidates.contains(candidates[i])) {
           choosableCandidates.add(candidates[i]);
           break;
         }
       }
     }
+    
+    // add the remaining possible locales
+    for (int j = 0; j < generalCharsets.length; j++) {
+    	for (int i = 1; i < candidates.length; i++) {
+    		if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
+    		if(candidates[i].getValue() != null && !choosableCandidates.contains(candidates[i])) {
+    			choosableCandidates.add(candidates[i]);
+    			break;
+    		}
+    	}
+    }  
 
     final Candidate[] candidatesToChoose = (Candidate[]) choosableCandidates.toArray(new Candidate[choosableCandidates.size()]);
-    
+       
     waitForUserInput	= true;
     
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
       	try{
-      	
         	showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose);
         	
       	}catch( Throwable e ){
