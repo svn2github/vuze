@@ -159,92 +159,107 @@ PluginInstallerImpl
 					UpdateCheckInstance.UCI_INSTALL,
 					"update.instance.install" );
 		
-		for (int i=0;i<plugins.length;i++){
+		try{
 			
-			InstallablePlugin	plugin	= plugins[i];
-			
-			String	plugin_id = plugin.getId();
-			
-			PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
-			
-			Plugin			existing_plugin	= null;
-			
-			if ( existing_plugin_interface != null ){
+			for (int i=0;i<plugins.length;i++){
 				
-				existing_plugin	= existing_plugin_interface.getPlugin();
+				InstallablePlugin	plugin	= plugins[i];
 				
-					// try to check that the new version is higher than the old one!
+				String	plugin_id = plugin.getId();
 				
-				String	old_version = existing_plugin_interface.getPluginVersion();
+				PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
 				
-				if ( old_version != null ){
+				Plugin			existing_plugin	= null;
+				
+				if ( existing_plugin_interface != null ){
 					
-					int	res = Constants.compareVersions( plugin.getVersion(), old_version );
+					existing_plugin	= existing_plugin_interface.getPlugin();
 					
-					if ( res < 0 ){
+						// try to check that the new version is higher than the old one!
+					
+					String	old_version = existing_plugin_interface.getPluginVersion();
+					
+					if ( old_version != null ){
 						
-						throw( new PluginException( "A higher version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+						int	res = Constants.compareVersions( plugin.getVersion(), old_version );
 						
-					}else if ( res == 0 ){
-						
-						throw( new PluginException( "Version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+						if ( res < 0 ){
+							
+							throw( new PluginException( "A higher version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+							
+						}else if ( res == 0 ){
+							
+							throw( new PluginException( "Version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+						}
 					}
 				}
-			}
-			
-			String	target_dir;
-			
-			if ( shared ){
-			    	    
-				target_dir 	= FileUtil.getApplicationFile( "plugins" ).toString();
 				
-			}else{
+				String	target_dir;
 				
-				target_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
-			}
-			
-			target_dir += File.separator + plugin_id;
+				if ( shared ){
+				    	    
+					target_dir 	= FileUtil.getApplicationFile( "plugins" ).toString();
+					
+				}else{
+					
+					target_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+				}
+				
+				target_dir += File.separator + plugin_id;
+		
+				new File( target_dir ).mkdir();
+				
+				if ( existing_plugin == null ){
+					
+						// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
+						// installed version
+					
+					final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
+					
+					PluginManager.registerPlugin( dummy_plugin, plugin_id );
+				
+					PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+					
+					((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
+							
+					inst.addListener(
+						new UpdateCheckInstanceListener()
+						{
+							public void
+							cancelled(
+								UpdateCheckInstance		instance )
+							{
+								dummy_plugin.requestUnload();
+							}
+							
+							public void
+							complete(
+								UpdateCheckInstance		instance )
+							{
+								dummy_plugin.requestUnload();
+							}
+						});
+				}else{
+					
+					((InstallablePluginImpl)plugin).addUpdate( inst, pup, existing_plugin, existing_plugin_interface );
 	
-			new File( target_dir ).mkdir();
+				}
+			}
+		
+			inst.start();
 			
-			if ( existing_plugin == null ){
-				
-					// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
-					// installed version
-				
-				final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
-				
-				PluginManager.registerPlugin( dummy_plugin, plugin_id );
+		}catch( Throwable e ){
 			
-				PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+			inst.cancel();
+			
+			if ( e instanceof PluginException ){
 				
-				((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
-						
-				inst.addListener(
-					new UpdateCheckInstanceListener()
-					{
-						public void
-						cancelled(
-							UpdateCheckInstance		instance )
-						{
-							dummy_plugin.requestUnload();
-						}
-						
-						public void
-						complete(
-							UpdateCheckInstance		instance )
-						{
-							dummy_plugin.requestUnload();
-						}
-					});
+				throw((PluginException)e);
 			}else{
 				
-				((InstallablePluginImpl)plugin).addUpdate( inst, pup, existing_plugin, existing_plugin_interface );
-
+				throw( new PluginException( "Failed to create installer", e ));
 			}
 		}
-		
-		inst.start();
 	}
 	
 	public void
