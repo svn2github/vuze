@@ -34,9 +34,8 @@ import java.nio.channels.FileChannel;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.disk.file.*;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 
-public class 
+public abstract class 
 FMFileImpl
 	implements FMFile
 {
@@ -58,72 +57,43 @@ FMFileImpl
 		return( file );
 	}
 	
-	public synchronized void
-	setAccessMode(
-		int		mode )
-	
-		throws FMFileManagerException
-	{
-		if( mode == access_mode && raf != null ){
-			
-			return;
-		}
-	
-		access_mode		= mode;
-		
-		if ( raf != null ){
-		
-			try{
-					
-				raf.close();
-				
-			}catch( Throwable e ){
-			
-				e.printStackTrace();
-				
-				throw( new FMFileManagerException( "FMFile::Close Fails", e ));
-			}
-		}
-		
-		try{
-			
-			raf = new RandomAccessFile( file, access_mode==DiskManagerFileInfo.READ?"r":"rwd");
-						
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-			throw( new FMFileManagerException( "FMFile::Open fails", e ));
-		}
-	}
-	
 	public int
 	getAccessMode()
 	{
 		return( access_mode );
 	}
 	
-	public synchronized void
-	close()
+	protected long
+	getLengthSupport()
 	
 		throws FMFileManagerException
 	{
 		try{
-			if ( raf != null ){
-				
-				raf.close();
-			
-				raf	= null;
-			}
+			return( raf.length());
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException("Close fails", e ));
+			throw( new FMFileManagerException( "FMFile::getLength: Fails", e ));
 		}
 	}
 	
-	public long
-	getSize()
+	protected void
+	setLengthSupport(
+		long		length )
+	
+		throws FMFileManagerException
+	{
+		try{			
+			raf.setLength( length );
+			
+		}catch( Throwable e ){
+			
+			throw( new FMFileManagerException( "FMFile::setLength: Fails", e ));
+		}
+	}
+	
+	protected long
+	getSizeSupport()
 	
 		throws FMFileManagerException
 	{
@@ -146,68 +116,79 @@ FMFileImpl
 		}
 	}
 	
-	public long
-	getLength()
+	protected void
+	openSupport()
 	
 		throws FMFileManagerException
 	{
-		try{
-			return( raf.length());
-				
+		try{		
+			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rwd");
+			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::getLength: Fails", e ));
+			e.printStackTrace();
+			
+			throw( new FMFileManagerException( "FMFile::Open fails", e ));
 		}
 	}
 	
-	public void
-	setLength(
-		long		length )
+	protected void
+	closeSupport()
 	
 		throws FMFileManagerException
 	{
+		if ( raf == null ){
+			
+			return;
+		}
+		
 		try{			
-			raf.setLength( length );
+			raf.close();
 			
 		}catch( Throwable e ){
 			
-			throw( new FMFileManagerException( "FMFile::setLength: Fails", e ));
+			throw( new FMFileManagerException("FMFile::close Fails", e ));
+			
+		}finally{
+			
+			raf	= null;
 		}
 	}
-	public synchronized void
-	read(
+	
+	protected void
+	readSupport(
 		ByteBuffer		buffer,
 		long			offset )
 	
 		throws FMFileManagerException
 	{
 		FileChannel fc = raf.getChannel();
-	
+		
 		if ( !fc.isOpen()){
-				
+			
 			Debug.out("FileChannel is closed: " + file.getAbsolutePath());
-				
+			
 			throw( new FMFileManagerException( "FMFile::read - file is closed"));
 		}
 
 		try{
 			fc.position(offset);
-				
+			
 			while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()){
-					
+				
 				fc.read(buffer);
 			}
-								
+			
 		}catch ( Exception e ){
-				
+			
 			e.printStackTrace();
 			
 			throw( new FMFileManagerException( "FMFile::read: " + e.getMessage() + " (readFileInfoIntoBuffer)", e ));
 		}
 	}
 	
-	public synchronized int
-	write(
+	protected int
+	writeSupport(
 		ByteBuffer		buffer,
 		long			position )
 	
@@ -218,20 +199,20 @@ FMFileImpl
 		try{
 			
 			if (fc.isOpen()){
-			
+				
 				fc.position( position );
-	
+				
 				return( fc.write(buffer));
 				
 			}else{
-	
+				
 				Debug.out("file channel is not open !");
-			
+				
 				throw( new FMFileManagerException( "FMFile::write: Fails " ));
 			}
-				
+			
 		}catch (Exception e ){
-	
+			
 			e.printStackTrace();
 			
 			throw( new FMFileManagerException( "FMFile::write: Fails", e ));

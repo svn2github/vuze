@@ -1,5 +1,5 @@
 /*
- * File    : FMFile.java
+ * File    : FMFileUnlimited.java
  * Created : 12-Feb-2004
  * By      : parg
  * 
@@ -19,72 +19,93 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.disk.file;
+package org.gudy.azureus2.core3.disk.file.impl;
 
 /**
  * @author parg
  *
  */
 
-import java.io.File;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.disk.file.*;
 
-public interface 
-FMFile 
+public class 
+FMFileUnlimited
+	extends FMFileImpl
 {
-	public static final int	FM_READ		= 1;
-	public static final int FM_WRITE	= 2;
-	
-	public void
-	setFile(
-		File		file );
-	
-	public File
-	getFile();
-	
-	public void
+	public synchronized void
 	setAccessMode(
 		int		mode )
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		if ( mode == access_mode && raf != null ){
+			
+			return;
+		}
+		
+		access_mode		= mode;
+		
+		if ( raf != null ){
+			
+			closeSupport();
+		}
+		
+		openSupport();
+	}
 	
-	public int
-	getAccessMode();
-	
-	public long
+	public synchronized long
 	getSize()
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		return( getSizeSupport());
+	}
 	
-	public long
+	public synchronized long
 	getLength()
-		
-		throws FMFileManagerException;
+	
+		throws FMFileManagerException
+	{
+		return( getLengthSupport());
+	}
 
-	public void
+	public synchronized void
 	setLength(
 		long		length )
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		setLengthSupport( length );
+	}
 	
-	public void
+	public synchronized void
 	read(
 		ByteBuffer	buffer,
 		long		offset )
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		readSupport( buffer, offset );
+	}
 	
 	
-	public int
+	public synchronized int
 	write(
 		ByteBuffer	buffer,
 		long		position )
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		return( writeSupport( buffer, position ));
+	}
 	
-	public void
+	public synchronized void
 	close()
 	
-		throws FMFileManagerException;
+		throws FMFileManagerException
+	{
+		closeSupport();
+	}
 }

@@ -62,12 +62,15 @@ DiskManagerFileInfoImpl
   
   	throws FMFileManagerException
   {
-  	fm_file.setAccessMode( mode );
+  	fm_file.setAccessMode( mode==DiskManagerFileInfo.READ?FMFile.FM_READ:FMFile.FM_WRITE );
   }
   
   public int 
-  getAccessMode(){
-	return( fm_file.getAccessMode());
+  getAccessMode()
+  {
+  	int	mode = fm_file.getAccessMode();
+  	
+	return( mode == FMFile.FM_READ?DiskManagerFileInfo.READ:DiskManagerFileInfo.WRITE);
   }
 
   /**

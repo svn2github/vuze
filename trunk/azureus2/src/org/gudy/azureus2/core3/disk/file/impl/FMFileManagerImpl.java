@@ -48,6 +48,7 @@ FMFileManagerImpl
 	public FMFile
 	createFile()
 	{
-		return( new FMFileImpl());
+		return( new FMFileLimited(this));
+		// return( new FMFileUnlimited());
 	}
 }
