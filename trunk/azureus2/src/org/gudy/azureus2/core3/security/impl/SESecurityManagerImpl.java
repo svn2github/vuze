@@ -140,7 +140,12 @@ SESecurityManagerImpl
 					
 					public void 
 					checkPermission(Permission perm)
-					{
+					{						
+						if ( perm instanceof RuntimePermission && perm.getName().equals( "stopThread")){
+							
+							throw( new SecurityException( "Thread.stop operation prohibited"));
+						}
+						
 						if ( old_sec_man != null ){
 							
 							old_sec_man.checkPermission( perm );
@@ -152,6 +157,12 @@ SESecurityManagerImpl
 						Permission 	perm, 
 						Object 		context) 
 					{
+						
+						if ( perm instanceof RuntimePermission && perm.getName().equals( "stopThread")){
+							
+							throw( new SecurityException( "Thread.stop operation prohibited"));
+						}
+						
 						if ( old_sec_man != null ){
 							
 							old_sec_man.checkPermission( perm, context );

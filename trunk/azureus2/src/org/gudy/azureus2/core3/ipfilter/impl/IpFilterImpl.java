@@ -30,11 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.*;
@@ -49,7 +45,7 @@ IpFilterImpl
 	private static IpFilterImpl ipFilter;
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
  
-	private List 		all_ip_ranges;
+	private Set 		all_ip_ranges;
 	private AEMonitor	all_ip_ranges_mon	= new AEMonitor( "IpFilter:all" );
 	
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
@@ -178,7 +174,7 @@ IpFilterImpl
 		try{
 			this_mon.enter();
 		
-		  List new_ipRanges = new ArrayList();
+		  Set new_ipRanges = new HashSet();
 	
 		  FileInputStream fin = null;
 		  BufferedInputStream bin = null;
@@ -310,7 +306,7 @@ IpFilterImpl
 	public List 
 	getIpRanges() 
 	{
-	  return all_ip_ranges;
+	  return new ArrayList( all_ip_ranges );
 	}
 	
 	public IpRange[]
@@ -345,6 +341,12 @@ IpFilterImpl
 			all_ip_ranges_mon.enter();
 		
 			all_ip_ranges.add( range );
+			
+				// we only allow the validity check to take effect once its added to
+				// the list of all ip ranges (coz safepeer creates lots of dummy entries
+				// during refresh and then never adds them...
+			
+			range.checkValid();
 			
 		}finally{
 			
@@ -382,16 +384,32 @@ IpFilterImpl
 		IpRange		range,
 		boolean		valid )
 	{
-		if ( valid ){
+		try{
+			all_ip_ranges_mon.enter();
+
+			if ( !all_ip_ranges.contains( range )){
+				
+				return;
+			}
+			
+		}finally{
+			
+			all_ip_ranges_mon.exit();
+		}
 		
+		if ( valid ){
+					
 			range_manager.addRange(range.getStartIp(), range.getEndIp(), range );
+				
 		}else{
 			
 			range_manager.removeRange( range );
 		}
 	}
 	
-	public int getNbIpsBlocked() {
+	public int 
+	getNbIpsBlocked() 
+	{
 	  return ipsBlocked.size();
 	}
 	

@@ -48,16 +48,17 @@ AEMonitor
 	enter()
 	{
 		if ( DEBUG ){
-		
+			
 			debugEntry();
+		}				
 
-		}
+		Thread	current_thread = Thread.currentThread();
 		
 		synchronized( this ){
 			
 			entry_count++;
 			
-			if ( owner == Thread.currentThread()){
+			if ( owner == current_thread ){
 				
 				nests++;
 				
@@ -82,17 +83,18 @@ AEMonitor
 						
 						waiting--;
 
-						owner	= Thread.currentThread();
+						owner	= current_thread;
 						
 						Debug.out( "**** monitor interrupted ****" );
 						
 						throw( new RuntimeException("AEMonitor:interrupted" ));
 					}
 				}else{
+					
 					dont_wait--;
 				}
 			
-				owner	= Thread.currentThread();
+				owner	= current_thread;
 			}
 		}
 	}
@@ -104,6 +106,14 @@ AEMonitor
 			synchronized( this ){
 
 				if ( nests > 0 ){
+					
+					if ( DEBUG ){
+						
+						if ( owner != Thread.currentThread()){
+						
+							Debug.out( "nested exit but current thread not owner");
+						}
+					}
 					
 					nests--;
 					

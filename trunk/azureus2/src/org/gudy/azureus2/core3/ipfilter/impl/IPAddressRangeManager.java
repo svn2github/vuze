@@ -84,9 +84,27 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 		
-			rebuild_required	= true;
+				// see if entry is already there
 			
-			entries.put( user_data, new entry( start_int, end_int, user_data ));
+			entry	old_entry = (entry)entries.get( user_data );
+
+			if( old_entry != null ){
+				
+				if ( old_entry.start == start_int && old_entry.end == end_int ){
+				
+						// no change, bail out
+					
+					return;
+				}
+				
+				old_entry.start = start_int;
+				
+				old_entry.end	= end_int;
+				
+			}else{
+				
+				entries.put( user_data, new entry( start_int, end_int, user_data ));
+			}	
 			
 		}finally{
 			
@@ -104,6 +122,7 @@ IPAddressRangeManager
 			entries.remove( user_data );
 		
 			rebuild_required	= true;
+			
 		}finally{
 			
 			this_mon.exit();
@@ -140,14 +159,25 @@ IPAddressRangeManager
 	isInRange(
 		long	ip_int )
 	{
+		return( isInRange( ip_int, false ));
+	}
+	
+	protected Object
+	isInRange(
+		long	ip_int,
+		boolean	ignore_rebuilds )
+	{
 		try{
 			this_mon.enter();
 		
-			if ( rebuild_required ){
+			if ( !ignore_rebuilds ){
 				
-				rebuild_required	= false;
-				
-				rebuild();
+				if ( rebuild_required ){
+					
+					rebuild_required	= false;
+					
+					rebuild();
+				}
 			}
 					
 			if ( merged_entries.length == 0 ){

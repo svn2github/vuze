@@ -47,23 +47,40 @@ IpRangeImpl
    
    private boolean sessionOnly;
     
-  public IpRangeImpl(String description, String startIp, String endIp) {
-    this(description,startIp,endIp,true);
+  public 
+  IpRangeImpl(
+  	String _description, 
+	String _startIp, 
+	String _endIp) 
+  {
+    this(_description,_startIp,_endIp,true);
   }
    
-   public IpRangeImpl(String description, String startIp, String endIp,boolean sessionOnly) {
-     this.valid = false;
-     this.description = description;
-     this.sessionOnly = sessionOnly;
-     if(startIp == null || endIp == null) {        
-       return;
+   public 
+   IpRangeImpl(
+   	String 	_description, 
+	String 	_startIp, 
+	String 	_endIp,
+	boolean _sessionOnly) 
+   {
+     valid = false;
+     description = _description;
+     sessionOnly = _sessionOnly;
+     
+     if(_startIp == null || _endIp == null) {
+     	
+     	throw( new RuntimeException( "Invalid start/end values - null not supported" ));
      }
-     this.startIp = startIp.trim();
-     this.endIp = endIp.trim();
+     
+     startIp = _startIp.trim();
+     
+     endIp = _endIp.trim();
+     
      checkValid(); 
    }
     
-   public void checkValid() 
+   public void 
+   checkValid() 
    {
    	try{
      this.valid = false;   
@@ -156,6 +173,15 @@ IpRangeImpl
 	setStartIp(
 		String	str )
 	{
+	  	if ( str == null ){
+	   		throw( new RuntimeException( "Invalid start value - null not supported" ));
+	   	}
+
+	   	if ( str.equals( startIp )){
+	   		
+	   		return;
+	   	}
+	   	
 		startIp	= str;
 		
 		checkValid();
@@ -170,10 +196,20 @@ IpRangeImpl
    public void
    setEndIp(
 	   String	str )
+   
    {
-	   endIp	= str;
+   	if ( str == null ){
+   		throw( new RuntimeException( "Invalid end value - null not supported" ));
+   	}
+
+   	if ( str.equals( endIp )){
+   		
+   		return;
+   	}
+   	
+	endIp	= str;
 	   
-	   checkValid();
+	checkValid();
    }
    
    public String toString() {
@@ -181,11 +217,12 @@ IpRangeImpl
    }
 
   public boolean isSessionOnly() {
-    return this.sessionOnly;
+    return sessionOnly;
   }
 
-  public void setSessionOnly(boolean sessionOnly) {
-    this.sessionOnly = sessionOnly;
+  public void 
+  setSessionOnly(boolean _sessionOnly) {
+    sessionOnly = _sessionOnly;
   }
 
  }

@@ -312,254 +312,274 @@ AEMonSem
 	protected void
 	debugEntry()
 	{
-			// bad things are:
-			// A->B and somewhere else B->A
-			// or
-			// A(inst1) -> A(inst2)
-		
-		Stack	stack = (Stack)tls.get();
+		try{
+				// bad things are:
+				// A->B and somewhere else B->A
+				// or
+				// A(inst1) -> A(inst2)
 			
-		if ( stack.size() > 64 ){
-			
-			Debug.out( "**** Whoaaaaaa, AEMonSem debug stack is getting too large!!!! ****" );
-		}
-		
-		if ( !stack.isEmpty()){
-			
-			String	recursion_trace = "";
-			
-			/* not very useful 
-			if (	(!is_monitor) &&
-					((AEMonSem)stack.peek()).is_monitor ){
+			Stack	stack = (Stack)tls.get();
 				
-				if ( !debug_sem_in_mon.contains( name )){
-					
-					recursion_trace += ( recursion_trace.length()==0?"":"\r\n" ) +
-										"Semaphore reservation while holding a monitor: sem = " + name+ ", mon = " + ((AEMonSem)stack.peek()).name;
-								
-					debug_sem_in_mon.add( name );
-				}
+			if ( stack.size() > 64 ){
+				
+				Debug.out( "**** Whoaaaaaa, AEMonSem debug stack is getting too large!!!! ****" );
 			}
-			*/
 			
-			StringBuffer	sb = new StringBuffer();
-	
-				// not very interesting for semaphores as these tend to get left on stack traces when
-				// asymetric usage (which is often)
-			
-			boolean	check_recursion = is_monitor && !debug_recursions.contains( name );
-			
-			String	prev_name	= null;
-			
-			for (int i=0;i<stack.size();i++){
-			
-				AEMonSem	mon = (AEMonSem)stack.get(i);
+			if ( !stack.isEmpty()){
 				
-				if ( check_recursion ){
-					if ( 	mon.name.equals( name ) &&
-							mon != this ){
+				String	recursion_trace = "";
+				
+				/* not very useful 
+				if (	(!is_monitor) &&
+						((AEMonSem)stack.peek()).is_monitor ){
+					
+					if ( !debug_sem_in_mon.contains( name )){
 						
-						recursion_trace += 
-							( recursion_trace.length()==0?"":"\r\n" ) +
-							"Recursive locks on different instances: " + name;
-						
-						debug_recursions.add( name );
+						recursion_trace += ( recursion_trace.length()==0?"":"\r\n" ) +
+											"Semaphore reservation while holding a monitor: sem = " + name+ ", mon = " + ((AEMonSem)stack.peek()).name;
+									
+						debug_sem_in_mon.add( name );
 					}
 				}
-	
-					// remove consecutive duplicates
+				*/
 				
-				if ( prev_name == null || !mon.name.equals( prev_name )){
-					
-					sb.append("$");
-					sb.append(mon.name);
-				}
+				StringBuffer	sb = new StringBuffer();
+		
+					// not very interesting for semaphores as these tend to get left on stack traces when
+					// asymetric usage (which is often)
 				
-				prev_name	= mon.name;
-			}
-			
-			sb.append( "$" );
-			sb.append( name );
-			sb.append( "$" );
-			
-			String trace_key = sb.toString();
-			
-			if ( recursion_trace.length() > 0 ){
+				boolean	check_recursion = is_monitor && !debug_recursions.contains( name );
 				
-				Debug.outNoStack( recursion_trace + "\r\n    " + trace_key );
-			}
-			
-			last_trace_key	= trace_key;
-			
-			if ( !is_monitor ){
-				
-					// only add semaphores to the stack if they aren't already present.
-					// This is because we can reserve a semaphore on one thread and
-					// release it on another. This will grow the stack indefinitely
-				
-				boolean	match 	= false;
+				String	prev_name	= null;
 				
 				for (int i=0;i<stack.size();i++){
+				
+					AEMonSem	mon = (AEMonSem)stack.get(i);
 					
-					AEMonSem	ms = (AEMonSem)stack.get(i);
-					
-					if ( ms.name.equals( name )){
-						
-						match	= true;
-						
-						break;
+					if ( check_recursion ){
+						if ( 	mon.name.equals( name ) &&
+								mon != this ){
+							
+							recursion_trace += 
+								( recursion_trace.length()==0?"":"\r\n" ) +
+								"Recursive locks on different instances: " + name;
+							
+							debug_recursions.add( name );
+						}
 					}
+		
+						// remove consecutive duplicates
+					
+					if ( prev_name == null || !mon.name.equals( prev_name )){
+						
+						sb.append("$");
+						sb.append(mon.name);
+					}
+					
+					prev_name	= mon.name;
 				}
 				
-				if ( !match ){
+				sb.append( "$" );
+				sb.append( name );
+				sb.append( "$" );
+				
+				String trace_key = sb.toString();
+				
+				if ( recursion_trace.length() > 0 ){
+					
+					Debug.outNoStack( recursion_trace + "\r\n    " + trace_key );
+				}
+				
+				last_trace_key	= trace_key;
+				
+				if ( !is_monitor ){
+					
+						// only add semaphores to the stack if they aren't already present.
+						// This is because we can reserve a semaphore on one thread and
+						// release it on another. This will grow the stack indefinitely
+					
+					boolean	match 	= false;
+					
+					for (int i=0;i<stack.size();i++){
+						
+						AEMonSem	ms = (AEMonSem)stack.get(i);
+						
+						if ( ms.name.equals( name )){
+							
+							match	= true;
+							
+							break;
+						}
+					}
+					
+					if ( !match ){
+						
+						stack.push( this );
+					}
+				}else{
 					
 					stack.push( this );
 				}
-			}else{
-				
-				stack.push( this );
-			}
-	
-			synchronized( debug_traces ){
-							
-				if ( debug_traces.get(trace_key) == null ){
-				
-					String	thread_name	= Thread.currentThread().getName();
-					String	stack_trace	= Debug.getCompressedStackTrace(3);
+		
+				synchronized( debug_traces ){
+								
+					if ( debug_traces.get(trace_key) == null ){
 					
-					Iterator	it = debug_traces.keySet().iterator();
-				
-					while( it.hasNext()){
+						String	thread_name	= Thread.currentThread().getName();
+						String	stack_trace	= Debug.getCompressedStackTrace(3);
 						
-						String	old_key = (String)it.next();
-						
-						String[]	data = (String[])debug_traces.get(old_key);
-						
-						String	old_thread_name	= data[0];
-						String	old_trace		= data[1];
-						
-							// find the earliest occurrence of a common monitor - no point in searching
-							// beyond it
-							//    e.g.  a -> b -> c -> g
-						    //          x -> y -> b -> z
-							// stop at b because beyond this things are "protected"
-						
-						
-						int	earliest_common = stack.size();
-						int	common_count	= 0;
-						
-						for (int i=0;i<stack.size();i++){
-				
-							String	n1 = ((AEMonSem)stack.get(i)).name;
-						
-							int	p1 = old_key.indexOf( "$" + n1 + "$");
-	
-							if ( p1 != -1 ){
-						
-								common_count++;
-								
-								earliest_common = Math.min( earliest_common, i+1 );
-							}
-						}
-						
-							// need at least 2 common monitors for chance of deadlock
-						
-						if ( common_count >= 2 ){
+						Iterator	it = debug_traces.keySet().iterator();
+					
+						while( it.hasNext()){
 							
-							for (int i=0;i<earliest_common;i++){
-								
-								AEMonSem	ms1 = (AEMonSem)stack.get(i);
-								
-								if ( !ms1.is_monitor ){
+							String	old_key = (String)it.next();
+							
+							String[]	data = (String[])debug_traces.get(old_key);
+							
+							String	old_thread_name	= data[0];
+							String	old_trace		= data[1];
+							
+								// find the earliest occurrence of a common monitor - no point in searching
+								// beyond it
+								//    e.g.  a -> b -> c -> g
+							    //          x -> y -> b -> z
+								// stop at b because beyond this things are "protected"
+							
+							
+							int	earliest_common = stack.size();
+							int	common_count	= 0;
+							
+							for (int i=0;i<stack.size();i++){
+					
+								String	n1 = ((AEMonSem)stack.get(i)).name;
+							
+								int	p1 = old_key.indexOf( "$" + n1 + "$");
+		
+								if ( p1 != -1 ){
+							
+									common_count++;
 									
-									continue;
+									earliest_common = Math.min( earliest_common, i+1 );
 								}
+							}
+							
+								// need at least 2 common monitors for chance of deadlock
+							
+							if ( common_count >= 2 ){
 								
-								String	n1 = ms1.name;
-	
-								for (int j=i+1;j<stack.size();j++){
+								for (int i=0;i<earliest_common;i++){
 									
-									AEMonSem	ms2 = (AEMonSem)stack.get(j);
+									AEMonSem	ms1 = (AEMonSem)stack.get(i);
 									
-									if ( !ms2.is_monitor ){
+									if ( !ms1.is_monitor ){
 										
 										continue;
 									}
 									
-									String	n2 = ms2.name;
-									
-										// same object recursion already tested above
-									
-									if ( !n1.equals( n2 )){
-									
-										int	p1 = old_key.indexOf( "$" + n1 + "$");
-										int p2 = old_key.indexOf( "$" + n2 + "$");
+									String	n1 = ms1.name;
+		
+									for (int j=i+1;j<stack.size();j++){
 										
-										if ( p1 != -1 && p2 != -1 && p1 > p2 ){
+										AEMonSem	ms2 = (AEMonSem)stack.get(j);
+										
+										if ( !ms2.is_monitor ){
 											
-											String	reciprocal_log = trace_key + " / " + old_key;
+											continue;
+										}
+										
+										String	n2 = ms2.name;
+										
+											// same object recursion already tested above
+										
+										if ( !n1.equals( n2 )){
+										
+											int	p1 = old_key.indexOf( "$" + n1 + "$");
+											int p2 = old_key.indexOf( "$" + n2 + "$");
 											
-											if ( !debug_reciprocals.contains( reciprocal_log )){
+											if ( p1 != -1 && p2 != -1 && p1 > p2 ){
 												
-												debug_reciprocals.add( reciprocal_log );
+												String	reciprocal_log = trace_key + " / " + old_key;
 												
-												Debug.outNoStack(
-														"AEMonSem: Reciprocal usage:\r\n" +
-														"    " + trace_key + "\r\n" + 
-														"        [" + thread_name + "] " + stack_trace + "\r\n" +
-														"    " + old_key + "\r\n" +
-														"        [" + old_thread_name + "] " + old_trace );
+												if ( !debug_reciprocals.contains( reciprocal_log )){
+													
+													debug_reciprocals.add( reciprocal_log );
+													
+													Debug.outNoStack(
+															"AEMonSem: Reciprocal usage:\r\n" +
+															"    " + trace_key + "\r\n" + 
+															"        [" + thread_name + "] " + stack_trace + "\r\n" +
+															"    " + old_key + "\r\n" +
+															"        [" + old_thread_name + "] " + old_trace );
+												}
 											}
 										}
 									}
 								}
 							}
 						}
+						
+						debug_traces.put( trace_key, new String[]{ thread_name, stack_trace });
+				
+							// look through all the traces for an A->B and B->A
 					}
-					
-					debug_traces.put( trace_key, new String[]{ thread_name, stack_trace });
-			
-						// look through all the traces for an A->B and B->A
 				}
+				
+			}else{
+				
+				last_trace_key	= "$" + name + "$";
+				
+				stack.push( this );
+				
 			}
+		}catch( Throwable e ){
 			
-		}else{
-			
-			last_trace_key	= "$" + name + "$";
-			
-			stack.push( this );
-			
+			try{
+				Debug.printStackTrace(e);
+				
+			}catch( Throwable f ){
+				
+			}
 		}
 	}
 	
 	protected void
 	debugExit()
 	{
-		Stack	stack = (Stack)tls.get();
+		try{
+			Stack	stack = (Stack)tls.get();
+			
+			if ( is_monitor ){
 		
-		if ( is_monitor ){
-	
-				// skip over any sem reserves within a sync block
-			
-			while( stack.peek() != this ){
+					// skip over any sem reserves within a sync block
 				
-				stack.pop();
-			}
-			
-			stack.pop();
-			
-		}else{
-			
-				// for semaphores we can release stuff without a matching reserve if
-				// the semaphore has an initial value or if we have one thread releasing
-				// a semaphore and another reserving it
+				while( stack.peek() != this ){
 					
-			if ( !stack.isEmpty()){
-			
-				if ( stack.peek() == this ){
-									
 					stack.pop();
 				}
+				
+				stack.pop();
+				
+			}else{
+				
+					// for semaphores we can release stuff without a matching reserve if
+					// the semaphore has an initial value or if we have one thread releasing
+					// a semaphore and another reserving it
+						
+				if ( !stack.isEmpty()){
+				
+					if ( stack.peek() == this ){
+										
+						stack.pop();
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			try{
+				Debug.printStackTrace(e);
+				
+			}catch( Throwable f ){
+				
 			}
 		}
 	}
