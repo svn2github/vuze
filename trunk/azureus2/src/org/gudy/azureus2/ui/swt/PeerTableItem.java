@@ -5,19 +5,16 @@ import java.util.HashMap;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-
-import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core2.PeerSocket;
 
 /**
  * This class (GUI) represents a row into the the peers table.
@@ -37,8 +34,6 @@ public class PeerTableItem {
   //This is used for caching purposes of the Image
   private boolean valid;
   private Image image;
-  private Color colorGrey;
-  private Color[] blues;
   private String[] oldTexts;
 
   public PeerTableItem(final Table table, PeerSocket pc) {
@@ -52,7 +47,6 @@ public class PeerTableItem {
     this.table = table;
     this.peerSocket = pc;
     this.valid = false;
-    this.blues = new Color[5];
     this.oldTexts = new String[18];
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";
@@ -68,30 +62,10 @@ public class PeerTableItem {
           }
         });
 
-        colorGrey = new Color(table.getDisplay(), new RGB(170, 170, 170));
-        blues[4] = new Color(display, new RGB(0, 128, 255));
-        blues[3] = new Color(display, new RGB(64, 160, 255));
-        blues[2] = new Color(display, new RGB(128, 192, 255));
-        blues[1] = new Color(display, new RGB(192, 224, 255));
-        blues[0] = new Color(display, new RGB(255, 255, 255));
-
         item.addDisposeListener(new DisposeListener() {
           public void widgetDisposed(DisposeEvent e) {
             if (image != null && !image.isDisposed())
               image.dispose();
-            if (colorGrey != null && !colorGrey.isDisposed())
-              colorGrey.dispose();
-            if (blues[0] != null && !blues[0].isDisposed())
-              blues[0].dispose();
-            if (blues[1] != null && !blues[1].isDisposed())
-              blues[1].dispose();
-            if (blues[2] != null && !blues[2].isDisposed())
-              blues[2].dispose();
-            if (blues[3] != null && !blues[3].isDisposed())
-              blues[3].dispose();
-            if (blues[4] != null && !blues[4].isDisposed())
-              blues[4].dispose();
-
           }
         });
 
@@ -126,7 +100,7 @@ public class PeerTableItem {
     gc.setClipping(table.getClientArea());
     if (_valid) {
       //If the image is still valid, simply copy it :)
-      gc.setForeground(colorGrey);
+      gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);
       gc.drawRectangle(new Rectangle(x0, y0, width, height));
       gc.dispose();
@@ -157,13 +131,13 @@ public class PeerTableItem {
               nbAvailable++;
           int index = (nbAvailable * 4) / (a1 - a0);
           //System.out.print(index);
-          gcImage.setBackground(blues[index]);
+          gcImage.setBackground(MainWindow.blues[index]);
           Rectangle rect = new Rectangle(i, 1, 1, height);
           gcImage.fillRectangle(rect);
         }
       }
       gcImage.dispose();
-      gc.setForeground(colorGrey);
+      gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);
       gc.drawRectangle(new Rectangle(x0, y0, width, height));
       gc.dispose();
@@ -189,7 +163,7 @@ public class PeerTableItem {
       item.setText(14, tmp);
       oldTexts[14] = tmp;
       if (peerSocket.isSnubbed())
-        item.setForeground(colorGrey);
+        item.setForeground(MainWindow.grey);
       else
         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
     }
@@ -332,14 +306,6 @@ public class PeerTableItem {
       return;
     display.syncExec(new Runnable() {
       public void run() {
-        if (colorGrey != null && !colorGrey.isDisposed())
-          colorGrey.dispose();
-        if (blues != null) {
-          for (int i = 0; i < blues.length; i++) {
-            if (blues[i] != null && !blues[i].isDisposed())
-              blues[i].dispose();
-          }
-        }
         if (table == null || table.isDisposed())
           return;
         if (item == null || item.isDisposed())

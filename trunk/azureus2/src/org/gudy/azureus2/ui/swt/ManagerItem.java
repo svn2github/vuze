@@ -5,9 +5,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
@@ -40,9 +38,6 @@ public class ManagerItem {
   private String trackerStatus = ""; //$NON-NLS-1$
   private String priority = ""; //$NON-NLS-1$
 
-  private Color blue;
-  private Color red;
-
   public ManagerItem(Table table, DownloadManager manager) {
     this.table = table;
     this.manager = manager;
@@ -61,8 +56,6 @@ public class ManagerItem {
       public void run() {
         if (table == null || table.isDisposed())
           return;
-        blue = new Color(display, new RGB(64, 160, 255));
-        red = new Color(display, new RGB(255, 68, 68));
         item = new TableItem(table, SWT.NULL);
       }
     });
@@ -71,10 +64,6 @@ public class ManagerItem {
   public void delete() {
     display.syncExec(new Runnable() {
       public void run() {
-        if (blue != null && !blue.isDisposed())
-          blue.dispose();
-        if (red != null && !red.isDisposed())
-          red.dispose();
         if (table == null || table.isDisposed())
           return;
         if (item == null || item.isDisposed())
@@ -153,9 +142,9 @@ public class ManagerItem {
       status = tmp;
       item.setText(3, tmp);
       if (state == DownloadManager.STATE_SEEDING)
-        item.setForeground(blue);
+        item.setForeground(MainWindow.blues[3]);
       else if (state == DownloadManager.STATE_ERROR)
-        item.setForeground(red);
+        item.setForeground(MainWindow.red_ManagerItem);
       else
         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 

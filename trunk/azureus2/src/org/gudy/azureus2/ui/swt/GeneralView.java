@@ -7,10 +7,8 @@ package org.gudy.azureus2.ui.swt;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -77,9 +75,6 @@ public class GeneralView extends AbstractIView {
   Label pieceNumber;
   Label pieceSize;
 
-  Color colorGrey;
-  Color[] blues;
-
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
     pieces = new boolean[manager.getNbPieces()];
@@ -89,13 +84,6 @@ public class GeneralView extends AbstractIView {
    */
   public void initialize(Composite composite) {
     this.display = composite.getDisplay();
-    colorGrey = new Color(display, new RGB(170, 170, 170));
-    blues = new Color[5];
-    blues[4] = new Color(display, new RGB(0, 128, 255));
-    blues[3] = new Color(display, new RGB(64, 160, 255));
-    blues[2] = new Color(display, new RGB(128, 192, 255));
-    blues[1] = new Color(display, new RGB(192, 224, 255));
-    blues[0] = new Color(display, new RGB(255, 255, 255));
 
     genComposite = new Composite(composite, SWT.NULL);
     GridLayout genLayout = new GridLayout();
@@ -365,14 +353,6 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    if (colorGrey != null && !colorGrey.isDisposed())
-      colorGrey.dispose();
-    if (blues != null) {
-      for (int i = 0; i < blues.length; i++) {
-        if (blues[i] != null && !blues[i].isDisposed())
-          blues[i].dispose();
-      }
-    }
   }
 
   public String getData() {
@@ -470,7 +450,7 @@ public class GeneralView extends AbstractIView {
           index = 2;
         else if (pond > 0)
           index = 1;
-        gcImage.setBackground(blues[index]);
+        gcImage.setBackground(MainWindow.blues[index]);
         gcImage.fillRectangle(i, 1, 1, height);
       }
     }
@@ -478,7 +458,7 @@ public class GeneralView extends AbstractIView {
     if (availabilityPercent == null || availabilityPercent.isDisposed())
       return;
     availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
-    gc.setForeground(colorGrey);
+    gc.setForeground(MainWindow.grey);
     gc.drawImage(aImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
@@ -535,7 +515,7 @@ public class GeneralView extends AbstractIView {
               nbAvailable++;
             }
             int index = (nbAvailable * 4) / (a1 - a0);
-            gcImage.setBackground(blues[index]);
+            gcImage.setBackground(MainWindow.blues[index]);
             Rectangle rect = new Rectangle(i, 1, 1, height);
             gcImage.fillRectangle(rect);
           }
@@ -548,7 +528,7 @@ public class GeneralView extends AbstractIView {
     }
     if (pImage == null || pImage.isDisposed())
       return;
-    gc.setForeground(colorGrey);
+    gc.setForeground(MainWindow.grey);
     gc.drawImage(pImage, x0, y0);
     gc.drawRectangle(new Rectangle(x0, y0, width, height));
     gc.dispose();
@@ -576,10 +556,10 @@ public class GeneralView extends AbstractIView {
       fImage = new Image(display, width, height);
       GC gcImage = new GC(fImage);
       int limit = (width * total) / 1000;
-      gcImage.setBackground(blues[4]);
+      gcImage.setBackground(MainWindow.blues[4]);
       Rectangle rect = new Rectangle(1, 1, limit, height);
       gcImage.fillRectangle(rect);
-      gcImage.setBackground(blues[0]);
+      gcImage.setBackground(MainWindow.blues[0]);
       rect = new Rectangle(limit, 1, width, height);
       gcImage.fillRectangle(rect);
       gcImage.dispose();
@@ -589,7 +569,7 @@ public class GeneralView extends AbstractIView {
     overall = total;
     if (fImage == null || fImage.isDisposed())
       return;
-    gc.setForeground(colorGrey);
+    gc.setForeground(MainWindow.grey);
     gc.drawImage(fImage, x0, y0);
     gc.drawRectangle(new Rectangle(x0, y0, width, height));
     gc.dispose();

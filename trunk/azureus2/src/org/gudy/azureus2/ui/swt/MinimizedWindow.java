@@ -11,11 +11,8 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -33,8 +30,6 @@ public class MinimizedWindow {
 
   private static final Vector downloadBars = new Vector(); 
 
-  private Color[] blues;
-
   private int xPressed, yPressed;
   private boolean moving;
   private boolean snapped = false;
@@ -47,18 +42,10 @@ public class MinimizedWindow {
   private Label splashUp;
 
   private DownloadManager manager;
-  private Display display;
 
   public MinimizedWindow(DownloadManager manager, Shell main) {
-    this.display = main.getDisplay();
     this.manager = manager;
     
-    blues = new Color[5];
-    blues[4] = new Color(display, new RGB(0, 128, 255));
-    blues[3] = new Color(display, new RGB(64, 160, 255));
-    blues[2] = new Color(display, new RGB(128, 192, 255));
-    blues[1] = new Color(display, new RGB(192, 224, 255));
-    blues[0] = new Color(display, new RGB(255, 255, 255));
     //   The splash Screen setup
     splash = new Shell(main, SWT.ON_TOP);
     lDrag = new Label(splash, SWT.NULL);
@@ -96,16 +83,16 @@ public class MinimizedWindow {
       }
     };
 
-    splash.setBackground(blues[0]);
-    splash.setForeground(blues[4]);
+    splash.setBackground(MainWindow.blues[0]);
+    splash.setForeground(MainWindow.blues[4]);
     splash.addMouseListener(mListener);
     splash.addMouseMoveListener(mMoveListener);
     lDrag.addMouseListener(mListener);
     lDrag.addMouseMoveListener(mMoveListener);
 
     Label l1 = new Label(splash, SWT.NONE);
-    l1.setBackground(blues[0]);
-    l1.setForeground(blues[4]);
+    l1.setBackground(MainWindow.blues[0]);
+    l1.setForeground(MainWindow.blues[4]);
     Messages.setLanguageText(l1, "MinimizedWindow.name"); //$NON-NLS-1$
     l1.addMouseListener(mListener);
     l1.addMouseMoveListener(mMoveListener);
@@ -117,7 +104,7 @@ public class MinimizedWindow {
     hSize = hSizeText > hSizeImage ? hSizeText : hSizeImage;
 
     splashFile = new Label(splash, SWT.NONE);
-    splashFile.setBackground(blues[0]);
+    splashFile.setBackground(MainWindow.blues[0]);
     splashFile.setText(""); //$NON-NLS-1$
     splashFile.addMouseListener(mListener);
     splashFile.addMouseMoveListener(mMoveListener);
@@ -126,8 +113,8 @@ public class MinimizedWindow {
     xSize += 250 + 3;
 
     Label l2 = new Label(splash, SWT.NONE);
-    l2.setBackground(blues[0]);
-    l2.setForeground(blues[4]);
+    l2.setBackground(MainWindow.blues[0]);
+    l2.setForeground(MainWindow.blues[4]);
     l2.setText("C:");
     l2.addMouseListener(mListener);
     l2.addMouseMoveListener(mMoveListener);
@@ -136,7 +123,7 @@ public class MinimizedWindow {
     xSize += l2.getSize().x + 3;
 
     splashPercent = new Label(splash, SWT.NONE);
-    splashPercent.setBackground(blues[0]);
+    splashPercent.setBackground(MainWindow.blues[0]);
     splashPercent.setText(""); //$NON-NLS-1$
     splashPercent.addMouseListener(mListener);
     splashPercent.addMouseMoveListener(mMoveListener);
@@ -145,8 +132,8 @@ public class MinimizedWindow {
     xSize += 45 + 3;
 
     Label l3 = new Label(splash, SWT.NONE);
-    l3.setBackground(blues[0]);
-    l3.setForeground(blues[4]);
+    l3.setBackground(MainWindow.blues[0]);
+    l3.setForeground(MainWindow.blues[4]);
     l3.setText("D:");
     l3.addMouseListener(mListener);
     l3.addMouseMoveListener(mMoveListener);
@@ -155,7 +142,7 @@ public class MinimizedWindow {
     xSize += l3.getSize().x + 3;
 
     splashDown = new Label(splash, SWT.NONE);
-    splashDown.setBackground(blues[0]);
+    splashDown.setBackground(MainWindow.blues[0]);
     splashDown.setText(""); //$NON-NLS-1$
     splashDown.addMouseListener(mListener);
     splashDown.addMouseMoveListener(mMoveListener);
@@ -164,8 +151,8 @@ public class MinimizedWindow {
     xSize += 65 + 3;
 
     Label l4 = new Label(splash, SWT.NONE);
-    l4.setBackground(blues[0]);
-    l4.setForeground(blues[4]);
+    l4.setBackground(MainWindow.blues[0]);
+    l4.setForeground(MainWindow.blues[4]);
     l4.setText("U:");
     l4.addMouseListener(mListener);
     l4.addMouseMoveListener(mMoveListener);
@@ -174,7 +161,7 @@ public class MinimizedWindow {
     xSize += l4.getSize().x + 3;
 
     splashUp = new Label(splash, SWT.NONE);
-    splashUp.setBackground(blues[0]);
+    splashUp.setBackground(MainWindow.blues[0]);
     splashUp.setText(""); //$NON-NLS-1$
     splashUp.addMouseListener(mListener);
     splashUp.addMouseMoveListener(mMoveListener);
@@ -224,12 +211,6 @@ public class MinimizedWindow {
   }
 
   public void close() {
-    if (blues != null) {
-      for (int i = 0; i < blues.length; i++) {
-        if (blues[i] != null && !blues[i].isDisposed())
-          blues[i].dispose();
-      }
-    }
     splash.dispose();
     downloadBars.remove(this);    
   }

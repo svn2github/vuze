@@ -8,7 +8,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
@@ -100,16 +99,15 @@ public class PieceTableItem {
     if (width < 10 || height < 3)
       return;
     Image image = new Image(display, width, height);
-    Color blue = new Color(display, new RGB(0, 128, 255));
-    Color green = new Color(display, new RGB(192, 224, 255));
-    Color white = new Color(display, new RGB(255, 255, 255));
+    Color blue = MainWindow.blues[4];
+    Color green = MainWindow.blues[1];
     Color color;
     GC gc = new GC(table);
     GC gcImage = new GC(image);
     for (int i = 0; i < piece.nbBlocs; i++) {
       int a0 = (i * width) / piece.nbBlocs;
       int a1 = ((i + 1) * width) / piece.nbBlocs;
-      color = white;
+      color = MainWindow.white;
       if (piece.requested[i])
         color = green;
       if (piece.written[i]) {
@@ -120,15 +118,10 @@ public class PieceTableItem {
       gcImage.fillRectangle(rect);
     }
     gcImage.dispose();
-    blue.dispose();
-    green.dispose();
-    white.dispose();
-    Color colorGrey = new Color(display, new RGB(170, 170, 170));
-    gc.setForeground(colorGrey);
+    gc.setForeground(MainWindow.grey);
     gc.drawImage(image, x0, y0);
     gc.drawRectangle(new Rectangle(x0, y0, width, height));
     gc.dispose();
-    colorGrey.dispose();
     image.dispose();
   }
 

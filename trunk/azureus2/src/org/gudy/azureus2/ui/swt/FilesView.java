@@ -14,11 +14,8 @@ import java.util.Locale;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -42,8 +39,6 @@ public class FilesView extends AbstractIView {
   HashMap items;
   HashMap itemsToFile;
 
-  public Color blues[];
-
   public FilesView(DownloadManager manager) {
     this.manager = manager;
     items = new HashMap();
@@ -54,14 +49,6 @@ public class FilesView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    blues = new Color[5];
-    Display display = composite.getDisplay();
-
-    blues[4] = new Color(display, new RGB(0, 128, 255));
-    blues[3] = new Color(display, new RGB(64, 160, 255));
-    blues[2] = new Color(display, new RGB(128, 192, 255));
-    blues[1] = new Color(display, new RGB(192, 224, 255));
-    blues[0] = new Color(display, new RGB(255, 255, 255));
 
     table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
@@ -203,7 +190,7 @@ public class FilesView extends AbstractIView {
       if (files[i] != null) {
         FileItem fileItem = (FileItem) items.get(files[i]);
         if (fileItem == null) {
-          fileItem = new FileItem(table, manager, files[i], blues);
+          fileItem = new FileItem(table, manager, files[i], MainWindow.blues);
           items.put(files[i], fileItem);
           itemsToFile.put(fileItem.getItem(), files[i]);
         }
@@ -221,12 +208,6 @@ public class FilesView extends AbstractIView {
     while (iter.hasNext()) {
       FileItem fileItem = (FileItem) iter.next();
       fileItem.delete();
-    }
-    if (blues != null) {
-      for (int i = 0; i < blues.length; i++) {
-        if (blues[i] != null && !blues[i].isDisposed())
-          blues[i].dispose();
-      }
     }
   }
 

@@ -10,7 +10,6 @@ import java.util.GregorianCalendar;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
@@ -35,10 +34,10 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     display = composite.getDisplay();
     consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);    
     colors = new Color[4];
-    colors[0] = new Color(display, new RGB(64, 160, 255));
-    colors[1] = new Color(display, new RGB(128, 192, 255));
-    colors[2] = new Color(display, new RGB(192, 224, 255));
-    colors[3] = new Color(display, new RGB(255, 192, 192));
+    colors[0] = MainWindow.blues[3];
+    colors[1] = MainWindow.blues[2];
+    colors[2] = MainWindow.blues[1];
+    colors[3] = MainWindow.red_ConsoleView;
     Logger.getLogger().setListener(this);
   }
 
@@ -61,7 +60,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     MainWindow.getWindow().setConsole(null);
     Logger.getLogger().removeListener();
     if (colors != null) {
-      for (int i = 0; i < colors.length; i++) {
+      for (int i = 3; i < colors.length; i++) {
         if (colors[i] != null && !colors[i].isDisposed())
           colors[i].dispose();
       }
@@ -86,14 +85,12 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
    * @see org.gudy.azureus2.core.ILoggerListener#log(int, int, int, java.lang.String)
    */
   public void log(int componentId, int event, int color, String text) {
-    if (color < 0 || color > colors.length)
+    if (color < 0 || color > colors.length || display == null || display.isDisposed())
       return;
     doLog(color, text);
   }
 
   private void doLog(final int _color, final String _text) {
-    if (display == null || display.isDisposed())
-      return;
     display.asyncExec(new Runnable() {
       public void run() {
         if (consoleText == null || consoleText.isDisposed())
