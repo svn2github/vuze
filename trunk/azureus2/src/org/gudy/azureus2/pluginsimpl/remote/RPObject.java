@@ -69,7 +69,7 @@ RPObject
 		}
 	}
 	
-	protected static RPObject
+	public static RPObject
 	_lookupLocal(
 		long		object_id )
 	{

@@ -238,8 +238,24 @@ XMLRequestProcessor
 										Array.set( array, j, new URL(sub_value));
 										
 									}else{
+											// see if its an object
 										
-										throw( new RuntimeException( "not implemented"));
+										SimpleXMLParserDocumentNode	obj_node = array_child.getChild("OBJECT");
+										
+										if ( obj_node != null ){
+											
+											String	oid_str = obj_node.getChild("_object_id").getValue().trim();
+											
+											long oid = Long.parseLong( oid_str );
+											
+											RPObject	local_obj = RPObject._lookupLocal( oid );
+											
+											Array.set( array, j, local_obj );
+																			
+										}else{
+										
+											throw( new RuntimeException( "not implemented"));										
+										}
 									}
 								}else{
 									

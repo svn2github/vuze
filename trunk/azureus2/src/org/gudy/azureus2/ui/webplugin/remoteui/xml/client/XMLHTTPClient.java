@@ -96,7 +96,7 @@ XMLHTTPClient
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + torrent_man_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getURLDownloader[URL]</METHOD>"+
-							"<PARAMS><ENTRY>http://s.d/</ENTRY></PARAMS>" +
+							"<PARAMS><ENTRY>http://69.50.170.99/sn//torrents/1669/RAR_Password_Cracker_4.12[www.elitetopdown.com]-rar.torrent</ENTRY></PARAMS>" +
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
@@ -114,7 +114,19 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
+
+				String torrent_oid	= res.getChild( "_object_id" ).getValue().trim();
 				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
+							"<METHOD>addDownload[Torrent]</METHOD>"+
+							"<PARAMS><ENTRY><OBJECT><_object_id>" + torrent_oid + "</_object_id></OBJECT></ENTRY></PARAMS>" +
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
 				/*
 				res = sendRequest( 
 						"<REQUEST>" +
