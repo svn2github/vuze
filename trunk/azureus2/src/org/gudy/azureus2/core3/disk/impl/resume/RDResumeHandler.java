@@ -112,7 +112,10 @@ RDResumeHandler
 			
 				//disable fast resume if a new file was created
 			
-			if (newfiles) resumeEnabled = false;
+			if (newfiles){
+				
+				resumeEnabled = false;
+			}
 			
 			boolean	resume_data_complete = false;
 			
@@ -133,7 +136,7 @@ RDResumeHandler
 				
 				Map resumeMap = torrent.getAdditionalMapProperty("resume");
 				
-				if (resumeMap != null) {
+				if ( resumeMap != null ){
 					
 						// backward compatability here over path management changes :(
 					
@@ -468,7 +471,10 @@ RDResumeHandler
 				
 				DiskManagerPiece piece = pieces[i];
 				
-				if (piece != null && piece.getCompleteCount() > 0){
+					// save the partial pieces for any pieces that have not yet been completed
+					// and are in-progress (i.e. have at least one block downloaded)
+				
+				if (( !piece.getDone()) && piece.getCompleteCount() > 0){
 					
 					boolean[] downloaded = piece.getWritten();
 					
