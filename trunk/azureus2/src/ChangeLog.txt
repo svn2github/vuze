@@ -53,6 +53,7 @@ CHANGE: UI   | Change context menu selection for queue/stop/force-start/recheck 
 CHANGE: Plug | UPnP information messages now off by default [Parg]
 CHANGE: UI   | More pre-defined speed ranges for queue slot limits [Parg]
 CHANGE: UI   | Improve wording of "delete torrent?" prompt [Parg]
+CHANGE: Core | Added an option to enable the prioritization of most completed Files, default is off [Gudy]
 CHANGE: Core | Default http tracker to disabled [Parg]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
@@ -86,7 +87,7 @@ BUGFIX: Core | Updater problems with non-ascii chars in user dir (again!) [Parg]
 BUGFIX: Core | Created torrents had name.utf-8 tag in wrong place [Parg]
 BUGFIX: Plug | UPnP plugin support for multi-homed machines improved [Parg]
 BUGFIX: Core | UDP scrape responses being handled incorrectly [Parg]
-
+BUGFIX: Core | Fixed the "high priority" for files [Gudy]
 
 2004.10.31 | Azureus 2.2.0.0
 
