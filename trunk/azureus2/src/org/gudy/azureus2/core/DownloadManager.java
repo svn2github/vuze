@@ -85,9 +85,9 @@ public class DownloadManager extends Component {
     if (this.state == STATE_ERROR)
       return;
 
-    trackerConnection = new TrackerConnection(metaData, hash, server.getPort());
-    this.state = STATE_INITIALIZED;
+    trackerConnection = new TrackerConnection(metaData, hash, server.getPort());    
     diskManager = new DiskManager(metaData, savePath);
+    this.state = STATE_INITIALIZED;
   }
 
   public void startDownload() {
@@ -254,6 +254,12 @@ public class DownloadManager extends Component {
       return peerManager.getTrackerStatus();
     return ""; //$NON-NLS-1$
   }
+  
+  public String getTrackerUrl() {
+    if(trackerConnection != null)
+      return trackerConnection.getTrackerUrl();
+    return null;
+  }
 
   public String getETA() {
     if (peerManager != null)
@@ -325,6 +331,10 @@ public class DownloadManager extends Component {
   public String getSavePath() {
     if (diskManager != null)
       return diskManager.getPath();
+    return savePath;
+  }
+  
+  public String getSavePathForSave() {
     return savePath;
   }
 
@@ -401,6 +411,12 @@ public class DownloadManager extends Component {
    */
   public void setTorrentFileName(String string) {
     torrentFileName = string;
+  }
+  
+  public HashData getHashData() {
+    if(trackerConnection != null)
+      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(),hash);
+    else return null;
   }
 
 }

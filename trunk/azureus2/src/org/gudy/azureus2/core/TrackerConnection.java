@@ -171,5 +171,9 @@ public class TrackerConnection
   {
     this.manager = manager;
   }
+  
+  public String getTrackerUrl() {
+    return trackerUrl;
+  }
     
 }
