@@ -9,6 +9,7 @@ FEATURE: Drag-n-Drop moving of downloads in MyTorrents; moving of downloads in M
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
+CHANGE: URL dialogs are initialized with the first valid link beginning with http:// from clipboard [Rele]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 
