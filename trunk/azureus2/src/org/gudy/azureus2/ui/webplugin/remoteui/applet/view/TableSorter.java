@@ -222,6 +222,8 @@ space and avoid unnecessary heap allocation.
         reallocateIndexes();
 
         super.tableChanged(e);
+        
+        sort(this);
     }
 
     public void checkModel()
@@ -319,6 +321,20 @@ space and avoid unnecessary heap allocation.
         return model.getValueAt(indexes[aRow], aColumn);
     }
 
+    public int[]
+    mapRows(
+    	int[]	rows_in )
+    {
+    	int[]	rows_out = new int[rows_in.length];
+    	
+    	for (int i=0;i<rows_in.length;i++){
+    		
+    		rows_out[i] = indexes[rows_in[i]];
+    	}
+    	
+    	return( rows_out );
+    }
+    
     public void setValueAt(Object aValue, int aRow, int aColumn)
     {
         checkModel();
@@ -352,7 +368,7 @@ space and avoid unnecessary heap allocation.
                 if(e.getClickCount() == 1 && column != -1) {
                     //System.out.println("Sorting ..."); 
                     int shiftPressed = e.getModifiers()&InputEvent.SHIFT_MASK; 
-                    boolean ascending = (shiftPressed == 0); 
+                    boolean ascending = !TableSorter.this.ascending; // (shiftPressed == 0); 
                     sorter.sortByColumn(column, ascending); 
                 }
              }

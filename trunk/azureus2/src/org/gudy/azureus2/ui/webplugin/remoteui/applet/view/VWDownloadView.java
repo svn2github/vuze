@@ -39,13 +39,14 @@ VWDownloadView
 {
 	protected JComponent	component;
 	
+	protected TableSorter	sorter;
 	protected JTable		table;
 	
 	public
 	VWDownloadView(
 		MDDownloadModel		model )
 	{
-		TableSorter  sorter = new TableSorter(model);
+		sorter = new TableSorter(model);
 		
 		table = new JTable(sorter);
 		
@@ -233,6 +234,6 @@ VWDownloadView
 	public int[]
 	getSelectedRows()
 	{
-		return(table.getSelectedRows());
+		return(sorter.mapRows(table.getSelectedRows()));
 	}
 }
