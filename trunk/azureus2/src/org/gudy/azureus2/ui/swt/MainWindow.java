@@ -82,7 +82,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  public static final String VERSION = "2.0.2.7"; //$NON-NLS-1$
+  public static final String VERSION = "2.0.3.0"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
