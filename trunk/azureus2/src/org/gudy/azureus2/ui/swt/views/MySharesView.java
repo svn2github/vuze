@@ -122,7 +122,7 @@ MySharesView
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	
-		columnsSize[i] = COConfigurationManager.getIntParameter("MySharesView." + columnsHeader[i], columnsSize[i]);
+		columnsSize[i] = COConfigurationManager.getIntParameter("MySharesView.".concat(columnsHeader[i]), columnsSize[i]);
 	  }
 
 	  ControlListener resizeListener = new ControlAdapter() {
@@ -135,7 +135,7 @@ MySharesView
 	  	
 		TableColumn column = new TableColumn(table, SWT.NULL);
 		
-		Messages.setLanguageText(column, "MySharesView." + columnsHeader[i]);
+		Messages.setLanguageText(column, "MySharesView.".concat(columnsHeader[i]));
 		
 		column.setWidth(columnsSize[i]);
 		

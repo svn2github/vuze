@@ -78,7 +78,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
    */
   public String getFullTitle() {
     int completed = manager.getStats().getCompleted();
-    return (completed / 10) + "." + (completed % 10) + "% : " + manager.getName();
+    return String.valueOf(completed / 10).concat(".").concat(String.valueOf(completed % 10)).concat("% : ").concat(manager.getName());
   }
 
   /* (non-Javadoc)

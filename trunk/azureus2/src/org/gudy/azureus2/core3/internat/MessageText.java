@@ -86,12 +86,12 @@ public class MessageText {
     	urlString = urlString.replaceAll(" ", "%20" );
     	
     	if ( !urlString.startsWith("jar:file:/")){
-    		urlString = "jar:file:/" + urlString.substring(9);
+    		urlString = "jar:file:/".concat(urlString.substring(9));
     	}
       try {
       	// you can see that the '!' must be present and that we can safely use the last occurrence of it
       	
-        int posPling = urlString.lastIndexOf("!");
+        int posPling = urlString.lastIndexOf('!');
         
         String jarName = urlString.substring(4, posPling);
         //        System.out.println("jarName: " + jarName);

@@ -96,7 +96,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
           consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), ""); //$NON-NLS-1$
         Calendar now = GregorianCalendar.getInstance();        
         String timeStamp =
-          "[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY)).concat(":").concat(format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND))).concat("]  "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
+          "[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("]  "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
         nbLines = consoleText.getLineCount();
         consoleText.setLineBackground(nbLines - 2, 1, colors[_color]);
