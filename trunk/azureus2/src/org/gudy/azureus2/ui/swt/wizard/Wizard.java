@@ -372,4 +372,11 @@ public class Wizard {
   		titleFont=null;
   	}
   }  
+  /**
+   * @return Returns the currentPanel.
+   */
+  public IWizardPanel getCurrentPanel() {
+    return currentPanel;
+  }
+
 }

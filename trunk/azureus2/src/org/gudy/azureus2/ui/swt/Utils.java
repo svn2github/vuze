@@ -32,8 +32,11 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
  * @author Olivier
@@ -86,8 +89,30 @@ public class Utils {
    * @author Rene Leonhardt
    */
   public static void setTextLinkFromClipboard(final Shell shell, final GridData gridData, final Text url) {
-    url.setText("http://");
-    Clipboard cb = new Clipboard(shell.getDisplay());
+    String link = getLinkFromClipboard(shell.getDisplay());
+    if(link.length() > 7) {
+      GC gc = new GC(url);
+      FontMetrics fm = gc.getFontMetrics();
+      int width = (link.length() + 10) * fm.getAverageCharWidth();
+      if (width > shell.getDisplay().getBounds().width) {
+        gridData.widthHint = shell.getDisplay().getBounds().width - 20;
+        shell.setLocation(0, 0);
+      } else {
+        gridData.widthHint = width;
+      }
+    }
+    url.setText(link);
+  }
+
+  /**
+   * @param shell
+   * @return first valid link from clipboard, else "http://" 
+   *
+   * @author Rene Leonhardt
+   */
+  public static String getLinkFromClipboard(final Display display) {
+    String link = "http://";
+    Clipboard cb = new Clipboard(display);
     TextTransfer transfer = TextTransfer.getInstance();
     String data = (String) cb.getContents(transfer);
     if (data != null) {
@@ -97,20 +122,38 @@ public class Utils {
         String stringURL = end >= 0 ? data.substring(begin, end - 1) : data.substring(begin);
         try {
           URL parsedURL = new URL(stringURL);
-          url.setText(parsedURL.toExternalForm());
-          GC gc = new GC(url);
-          FontMetrics fm = gc.getFontMetrics();
-          int width = (url.getText().length() + 10) * fm.getAverageCharWidth();
-          if (width > shell.getDisplay().getBounds().width) {
-            gridData.widthHint = shell.getDisplay().getBounds().width - 20;
-            shell.setLocation(0, 0);
-          } else {
-            gridData.widthHint = width;
-          }
+          link = parsedURL.toExternalForm();
         } catch (MalformedURLException e1) {
         }
       }
     }
+    return link;
+  }
+
+  /**
+   * Saves the width from the given column in the configuration.
+   * The data property "configName" must be set to determine the full table column name.
+   * @param t the table column from which to save the width 
+   *
+   * @author Rene Leonhardt
+   */
+  public static void saveTableColumn(TableColumn t) {
+    if(t != null && t.getData("configName") != null) {
+      COConfigurationManager.setParameter((String) t.getData("configName") + ".width", t.getWidth());
+      COConfigurationManager.save();
+    }
+  }
+
+  /**
+   * Saves the width from the given column in the configuration if the user has allowed it.
+   * The data property "configName" must be set to determine the full table column name.
+   * @param t the table column from which to save the width 
+   *
+   * @author Rene Leonhardt
+   */
+  public static void saveTableColumnIfAllowed(TableColumn t) {
+    if(COConfigurationManager.getBooleanParameter("Save detail views column widths", false))
+      saveTableColumn(t);
   }
 
 }
