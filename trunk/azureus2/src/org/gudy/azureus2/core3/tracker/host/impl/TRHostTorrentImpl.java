@@ -1,7 +1,7 @@
 /*
- * File    : TRHostImpl.java
- * Created : 24-Oct-2003
- * By      : parg
+ * File    : TRHostTorrentImpl.java
+ * Created : 26-Oct-2003
+ * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,74 +18,83 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.tracker.host.impl;
 
 /**
  * @author parg
+ *
  */
-
-import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
-TRHostImpl
-	implements TRHost 
+TRHostTorrentImpl
+	implements TRHostTorrent 
 {
-	public static final int RETRY_DELAY = 60*1000;
+	protected TRHostImpl		host;
+	protected TRTrackerServer	server;
+	protected TOTorrent			torrent;
 	
-	protected static TRHostImpl		singleton;
+	protected int				status	= TS_STOPPED;
 	
-	protected Hashtable	server_map 	= new Hashtable();
-	
-	protected List	torrents	= new ArrayList();
-	
-	public static synchronized TRHost
-	create()
+	protected
+	TRHostTorrentImpl(
+		TRHostImpl		_host,
+		TRTrackerServer	_server,
+		TOTorrent		_torrent )
 	{
-		if ( singleton == null ){
-			
-			singleton = new TRHostImpl();
-		}
-		
-		return( singleton );
+		host		= _host;
+		server		= _server;
+		torrent		= _torrent;
 	}
 	
 	public synchronized void
-	addTorrent(
-		TOTorrent		torrent )
+	start()
 	{
-		int	port = torrent.getAnnounceURL().getPort();
+		try{
 		
-		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
+			server.permit( torrent.getHash());
 		
-		if ( server == null ){
+			status = TS_STARTED;
 			
-			try{
+		}catch( TOTorrentException e ){
 			
-				server = TRTrackerServerFactory.create( port, RETRY_DELAY );
-			
-				server_map.put( new Integer( port ), server );
-				
-			}catch( TRTrackerServerException e ){
-				
-				e.printStackTrace();
-			}
+			e.printStackTrace();
 		}
-		
-		torrents.add( new TRHostTorrentImpl( this, server, torrent ));
 	}
 	
-	public TRHostTorrent[]
-	getTorrents()
+	public synchronized void
+	stop()
 	{
-		TRHostTorrent[]	res = new TRHostTorrent[torrents.size()];
+		try{
+			
+			server.deny( torrent.getHash());
 		
-		torrents.toArray( res );
-		
-		return( res );
+			status = TS_STOPPED;
+		}catch( TOTorrentException e ){
+			
+				e.printStackTrace();
+		}
+	}
+	
+	public int
+	getStatus()
+	{
+		return( status );
+	}
+	
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
+	}
+
+	public TRHostPeer[]
+	getPeers()
+	{
+		return( new TRHostPeer[0]); //
 	}
 }

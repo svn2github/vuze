@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerServer.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRHostPeer.java
+ * Created : 26-Oct-2003
+ * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,20 +19,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server;
+package org.gudy.azureus2.core3.tracker.host;
 
-
+/**
+ * @author parg
+ *
+ */
 public interface 
-TRTrackerServer 
+TRHostPeer 
 {
-	public int
-	getRetryInterval();
-	
-	public void
-	permit(
-		byte[]		hash );
-		
-	public void
-	deny(
-		byte[]		hash );
+	public boolean
+	isSeed();
 }

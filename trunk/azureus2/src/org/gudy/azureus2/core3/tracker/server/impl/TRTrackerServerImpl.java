@@ -23,23 +23,39 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 
 import java.net.*;
+import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TRTrackerServerImpl 
-	implements TRTrackerServer
+	implements TRTrackerServer, Runnable
 {
+	protected int	port;
 	protected int	retry_interval;
+	
+	protected Map	torrent_map = new HashMap(); 
 	
 	public
 	TRTrackerServerImpl(
-		int		port,
+		int		_port,
 		int		_retry_interval )
-		
-		throws TRTrackerServerException
 	{
+		port			= _port;
 		retry_interval	= _retry_interval;
+		
+		Thread t = new Thread(this);
+		
+		t.setDaemon( true );
+		
+		t.start();
+	}
+	
+	public void
+	run()
+	{
+		System.out.println( "TRTrackerServerImpl: starts on port " + port );
 		
 		try{
 			ServerSocket ss = new ServerSocket( port );
@@ -52,7 +68,9 @@ TRTrackerServerImpl
 			}
 		}catch( Throwable e ){
 			
-			throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()  ));
+			e.printStackTrace();
+			
+			//throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()  ));
 		}	
 	}
 	
@@ -60,5 +78,37 @@ TRTrackerServerImpl
 	getRetryInterval()
 	{
 		return( retry_interval );
+	}
+	
+	public synchronized void
+	permit(
+		byte[]		_hash )
+	{
+		HashWrapper	hash = new HashWrapper( _hash );
+		
+		TRTrackerServerTorrent	entry = (TRTrackerServerTorrent)torrent_map.get( hash );
+		
+		if ( entry == null ){
+			
+			entry = new TRTrackerServerTorrent( this, hash );
+			
+			torrent_map.put( hash, entry );
+		}
+	}
+		
+	public void
+	deny(
+		byte[]		_hash )
+	{
+		HashWrapper	hash = new HashWrapper( _hash );
+		
+		torrent_map.remove( hash );
+	}
+	
+	protected TRTrackerServerTorrent
+	getTorrent(
+		byte[]		hash )
+	{
+		return((TRTrackerServerTorrent)torrent_map.get(new HashWrapper(hash)));
 	}
 }

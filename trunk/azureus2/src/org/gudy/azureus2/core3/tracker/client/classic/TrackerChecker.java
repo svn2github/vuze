@@ -10,6 +10,7 @@ import java.util.Iterator;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -58,7 +59,7 @@ public class TrackerChecker {
    protected TRTrackerScraperResponseImpl getHashData(String trackerUrl, byte[] hash) 
 	{
   		if(trackerUrl != null)
-			return getHashData(trackerUrl,new Hash(hash));
+			return getHashData(trackerUrl,new HashWrapper(hash));
   		return null;
 	}
 
@@ -68,7 +69,7 @@ public class TrackerChecker {
  	{
    		try{
   	
-	   		removeHash( tracker_client.getTrackerUrl(), new Hash(tracker_client.getTorrent().getHash()));
+	   		removeHash( tracker_client.getTrackerUrl(), new HashWrapper(tracker_client.getTorrent().getHash()));
   		
    		}catch( TOTorrentException e ){
   		
@@ -83,7 +84,7 @@ public class TrackerChecker {
   	{
 		try{
   	
-			removeHash( torrent.getAnnounceURL().toString(), new Hash(torrent.getHash()));
+			removeHash( torrent.getAnnounceURL().toString(), new HashWrapper(torrent.getHash()));
   		
 		}catch( TOTorrentException e ){
   		
@@ -92,7 +93,7 @@ public class TrackerChecker {
   	}	
 
 	protected void 
-	removeHash(String trackerUrl,Hash hash) 
+	removeHash(String trackerUrl,HashWrapper hash) 
 	{
 		// TODO: this doesn't handle multiple tracker torrents yet
 		
@@ -106,7 +107,7 @@ public class TrackerChecker {
 	    }
 	}
   
-	protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,final Hash hash) 
+	protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,final HashWrapper hash) 
   {
     if (trackers.containsKey(trackerUrl)) {
       final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
@@ -136,7 +137,7 @@ public class TrackerChecker {
         TrackerStatus ts = (TrackerStatus) iter.next();
         Iterator iterHashes = ts.getHashesIterator();
         while(iterHashes.hasNext()) {              
-          Hash hash = (Hash) iterHashes.next();
+          HashWrapper hash = (HashWrapper) iterHashes.next();
           ts.asyncUpdate(hash);
         }                      
       }

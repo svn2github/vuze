@@ -38,12 +38,12 @@ TRTrackerServerProcessor
 
 	protected static Map	hash_map = new HashMap();
 						
-	protected TRTrackerServer		server;
+	protected TRTrackerServerImpl		server;
 	
 	protected
 	TRTrackerServerProcessor(
-		TRTrackerServer	_server,
-		Socket			_socket )
+		TRTrackerServerImpl	_server,
+		Socket				_socket )
 	{
 		server	= _server;
 		
@@ -69,7 +69,7 @@ TRTrackerServerProcessor
 				}
 			}
 	
-			// System.out.println( "got header:" + header );
+			System.out.println( "got header:" + header );
 			
 			if ( !header.startsWith( "GET " )){
 				
@@ -117,181 +117,133 @@ TRTrackerServerProcessor
 		
 		throws IOException
 	{
-		long	now = System.currentTimeMillis();
-		
 		try{
 			Map	root = new HashMap();
-
-			root.put( "interval", new Long( server.getRetryInterval()));
-			
-			if ( str.startsWith( "/announce?" )){
-			
-				str = str.substring(10);
 				
-				int	pos = 0;
+			try{
+				if ( str.startsWith( "/announce?" )){
 				
-				String		hash	= null;
-				String		peer_id	= null;
-				int			port	= 0;
-				String		event	= null;
-				
-				while(true){
+					str = str.substring(10);
 					
-					int	p1 = str.indexOf( '&', pos );
+					int	pos = 0;
 					
-					String	token;
+					String		hash	= null;
+					String		peer_id	= null;
+					int			port	= 0;
+					String		event	= null;
 					
-					if ( p1 == -1 ){
+					while(true){
 						
-						token = str.substring( pos );
+						int	p1 = str.indexOf( '&', pos );
 						
-					}else{
+						String	token;
 						
-						token = str.substring( pos, p1 );
-						
-						pos = p1+1;
-					}
-				
-					int	p2 = token.indexOf('=');
-					
-					if ( p2 == -1 ){
-						
-						throw( new IOException( "format invalid" ));
-					}
-					
-					String	lhs = token.substring( 0, p2 );
-					String	rhs = URLDecoder.decode(token.substring( p2+1 ), Constants.BYTE_ENCODING );
-					
-					// System.out.println( "param:" + lhs + " = " + rhs );
-					
-					if ( lhs.equals( "info_hash" )){
-						
-						hash	= rhs;
-						
-					}else if ( lhs.equals( "peer_id" )){
-						
-						peer_id	= rhs;
+						if ( p1 == -1 ){
 							
-					}else if ( lhs.equals( "port" )){
-						
-						port = Integer.parseInt( rhs );
-					
-					}else if ( lhs.equals( "event" )){
-						
-						event = rhs;
-					}
-					
-					if ( p1 == -1 ){
-						
-						break;
-					}
-				}
-			
-				if ( hash != null && peer_id != null ){
-					
-					System.out.println( "event:" + event + " - " + client_ip_address + ":" + port );
-										
-					if ( event != null && event.equalsIgnoreCase( "stopped" )){
-				
-						Map	peer_map = (Map)hash_map.get( hash );
-					
-						if ( peer_map != null ){
-						
-							TRTrackerServerPeer	peer = (TRTrackerServerPeer)peer_map.get( peer_id );
+							token = str.substring( pos );
 							
-							if ( peer != null ){
-								
-								peer_map.remove( peer_id );
+						}else{
 							
-								System.out.println( "removing stopped client '" + peer.getString());
-							}
+							token = str.substring( pos, p1 );
+							
+							pos = p1+1;
 						}
-					}else{
-								
-						Map	peer_map = (Map)hash_map.get( hash );
 					
-						if ( peer_map == null ){
+						int	p2 = token.indexOf('=');
+						
+						if ( p2 == -1 ){
 							
-							peer_map = new HashMap();
-							
-							hash_map.put( hash, peer_map );
+							throw( new Exception( "format invalid" ));
 						}
-			
-						TRTrackerServerPeer	this_peer = (TRTrackerServerPeer)peer_map.get( peer_id );
+						
+						String	lhs = token.substring( 0, p2 );
+						String	rhs = URLDecoder.decode(token.substring( p2+1 ), Constants.BYTE_ENCODING );
+						
+						// System.out.println( "param:" + lhs + " = " + rhs );
+						
+						if ( lhs.equals( "info_hash" )){
+							
+							hash	= rhs;
+							
+						}else if ( lhs.equals( "peer_id" )){
+							
+							peer_id	= rhs;
+								
+						}else if ( lhs.equals( "port" )){
+							
+							port = Integer.parseInt( rhs );
+						
+						}else if ( lhs.equals( "event" )){
+							
+							event = rhs;
+						}
+						
+						if ( p1 == -1 ){
+							
+							break;
+						}
+					}
+				
+					if ( hash != null && peer_id != null ){
+						
+						System.out.println( "event:" + event + " - " + client_ip_address + ":" + port );
+											
+						if ( event != null && event.equalsIgnoreCase( "stopped" )){
 					
-						if ( this_peer == null ){
+							Map	peer_map = (Map)hash_map.get( hash );
+						
+							if ( peer_map != null ){
 							
-							Iterator	it = peer_map.values().iterator();
-							
-							while (it.hasNext()){
-							
-								TRTrackerServerPeer peer = (TRTrackerServerPeer)it.next();
-															
-								if (	peer.getPort() == port &&
-										new String(peer.getIP()).equals( client_ip_address )){
+								TRTrackerServerPeer	peer = (TRTrackerServerPeer)peer_map.get( peer_id );
+								
+								if ( peer != null ){
 									
-									System.out.println( "removing dead client '" + peer.getString());
-									
-									it.remove();
+									peer_map.remove( peer_id );
+								
+									System.out.println( "removing stopped client '" + peer.getString());
 								}
 							}
-							
-							this_peer = new TRTrackerServerPeer( peer_id.getBytes(), client_ip_address.getBytes(), port );
-							
-							peer_map.put( peer_id, this_peer );
-							
 						}
+									
+						TRTrackerServerTorrent	torrent = server.getTorrent( hash.getBytes(Constants.BYTE_ENCODING));
 					
-						this_peer.setLastContactTime( now );
-					
-						List	rep_peers = new ArrayList();
+						if ( torrent == null ){
+							
+							throw( new Exception( "torrent unauthorised "));
+						}
 			
-						root.put( "peers", rep_peers );
-
-						Iterator	it = peer_map.values().iterator();
+						torrent.peerContact( peer_id, port, client_ip_address );
 					
-						while(it.hasNext()){
-
-							TRTrackerServerPeer	peer = (TRTrackerServerPeer)it.next();
-							
-							if ( (now - peer.getLastContactTime()) > server.getRetryInterval()*1000*2 ){
-							
-								System.out.println( "removing timedout client '" + peer.getString());
-								
-								it.remove();
-								
-							}else{
-								
-								Map rep_peer = new HashMap();
-
-								rep_peers.add( rep_peer );
-														 
-								rep_peer.put( "peer id", peer.getPeerId() );
-								rep_peer.put( "ip", peer.getIP() );
-								rep_peer.put( "port", new Long( peer.getPort()));
-							}
-						}
+						torrent.exportPeersToMap( root );
+					}else{
+						
+						throw( new Exception( "Missing information in request" ));
 					}
+				}else{
+				
+					throw( new Exception( "Unsupported request"));
 				}
-			}else{
-			
+	
+				root.put( "interval", new Long( server.getRetryInterval()));
+				
+			}catch( Exception e ){
+				
+				root.put( "failure reason", e.getMessage());
 			}
-
+		
 			byte[] data = BEncoder.encode( root );
-			
+				
 			System.out.println( "sending " + new String(data));
-			
-			String header = "HTTP/1.0 200 OK" + NL + 
-							"Server: PG/1.0.1" + NL +
-							"Mime-version: 1.0" + NL +
-							"Content-type: text/html" + 
+				
+			String header = "HTTP/1.1 200 OK" + NL + 
+							"Content-Type: text/html" + NL +
 							"Content-Length: " + data.length + 
 							NL + NL;
-
+	
 			os.write( header.getBytes());
-			
+				
 			os.write( data );
-						
+							
 			os.flush();
 			
 		}finally{

@@ -33,4 +33,7 @@ TRHost
 	public void
 	addTorrent(
 		TOTorrent		torrent );
+		
+	public TRHostTorrent[]
+	getTorrents();
 }

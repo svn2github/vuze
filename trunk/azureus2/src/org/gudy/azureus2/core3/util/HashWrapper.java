@@ -2,7 +2,7 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.util;
 
 import java.util.Arrays;
 
@@ -10,20 +10,20 @@ import java.util.Arrays;
  * @author Olivier
  * 
  */
-public class Hash {
+public class HashWrapper {
   
   private byte[] hash;
   
-  public Hash(byte[] hash) {
+  public HashWrapper(byte[] hash) {
     this.hash = new byte[hash.length];
     System.arraycopy(hash,0,this.hash,0,this.hash.length);
   }
   
   public boolean equals(Object o) {
-    if(! (o instanceof Hash))
+    if(! (o instanceof HashWrapper))
       return false;
     
-    byte[] otherHash = ((Hash)o).getHash();
+    byte[] otherHash = ((HashWrapper)o).getHash();
 	return Arrays.equals(hash, otherHash);	
   }
   

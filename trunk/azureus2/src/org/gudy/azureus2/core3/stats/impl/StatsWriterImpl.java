@@ -217,6 +217,8 @@ StatsWriterImpl
 						}
 					};
 					
+				current_thread.setDaemon( true );
+				
 				current_thread.start();
 			}
 		}

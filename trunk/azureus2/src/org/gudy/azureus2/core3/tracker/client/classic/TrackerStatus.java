@@ -50,11 +50,11 @@ public class TrackerStatus {
     data = new byte[1024];
   }
 
-  public TRTrackerScraperResponseImpl getHashData(Hash hash) {
+  public TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
     return (TRTrackerScraperResponseImpl) hashes.get(hash);
   }
 
-  public void asyncUpdate(final Hash hash) {
+  public void asyncUpdate(final HashWrapper hash) {
     if(hashes.get(hash) == null)
       hashes.put(hash,new TRTrackerScraperResponseImpl(-1,-1));
     Thread t = new Thread("Tracker Checker - Scrape interface") {
@@ -70,7 +70,7 @@ public class TrackerStatus {
     t.start();
   }
 
-  public synchronized void update(Hash hash) {    
+  public synchronized void update(HashWrapper hash) {    
     if(! hashList.contains(hash))
         hashList.add(hash);
     if(scrapeURL == null)
@@ -110,7 +110,7 @@ public class TrackerStatus {
         //System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();
-        hashes.put(new Hash(key),new TRTrackerScraperResponseImpl(seeds,peers));        
+        hashes.put(new HashWrapper(key),new TRTrackerScraperResponseImpl(seeds,peers));        
       }
     } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
     } catch (Exception ignore) {
@@ -127,7 +127,7 @@ public class TrackerStatus {
     return hashList.iterator();  
   }
   
-  public void removeHash(Hash hash) {
+  public void removeHash(HashWrapper hash) {
     while(hashList.contains(hash))
       hashList.remove(hash);
   }  
