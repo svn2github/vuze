@@ -34,7 +34,7 @@ public class ByteBucket {
   
   private int rate;
   private int burst_rate;
-  private int avail_bytes;
+  private long avail_bytes;  //TODO
   private long prev_update_time;
   
   
@@ -68,7 +68,7 @@ public class ByteBucket {
    */
   public int getAvailableByteCount() {
     update_avail_byte_count();
-    return avail_bytes;
+    return (int)avail_bytes;
   }
   
   
@@ -78,7 +78,7 @@ public class ByteBucket {
    */
   public void setBytesUsed( int bytes_used ) {
     avail_bytes -= bytes_used;
-    //TODO check for negative?
+    if( avail_bytes < 0 ) Debug.out( "avail_bytes < 0: " + avail_bytes);
   }
   
   
@@ -129,7 +129,7 @@ public class ByteBucket {
     long current_time = SystemTime.getCurrentTime();
     long time_diff = current_time - prev_update_time;
     if( time_diff > 0 ) {
-      int num_new_bytes = (int)((time_diff * rate) / 1000);
+      long num_new_bytes = (time_diff * rate) / 1000; //TODO
       prev_update_time = current_time;
       avail_bytes += num_new_bytes;
       if( avail_bytes < 0 )  Debug.out("ERROR: avail_bytes < 0: " + avail_bytes);//TODO
