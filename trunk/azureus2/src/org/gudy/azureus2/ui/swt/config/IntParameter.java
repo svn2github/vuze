@@ -26,6 +26,7 @@ IntParameter
   int iDefaultValue;
   String sParamName;
   boolean allowZero = false;
+  boolean generateIntermediateEvents = true;
 
   boolean value_is_changing_internally;
     
@@ -36,6 +37,13 @@ IntParameter
 
   public IntParameter(Composite composite, final String name, int defaultValue) {
     iDefaultValue = defaultValue;
+    initialize(composite, name);
+  }
+  
+  
+  public IntParameter(Composite composite, final String name, int defaultValue,boolean generateIntermediateEvents) {
+    iDefaultValue = defaultValue;
+    this.generateIntermediateEvents = generateIntermediateEvents;
     initialize(composite, name);
   }
   
@@ -69,12 +77,15 @@ IntParameter
       }
     });
 
-    inputField.addListener(SWT.Modify, new Listener() {
-      public void handleEvent(Event event) {
-      	checkValue();
-      }
-    });
+    if(generateIntermediateEvents) {
+      inputField.addListener(SWT.Modify, new Listener() {
+        public void handleEvent(Event event) {
+        	checkValue();
+        }
+      });
+    }
 
+    
     inputField.addListener(SWT.FocusOut, new Listener() {
       public void handleEvent(Event event) {
       	checkValue();
