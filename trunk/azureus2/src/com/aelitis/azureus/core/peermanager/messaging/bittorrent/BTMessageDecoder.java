@@ -92,9 +92,22 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         destroyed_loop_count++;
         
         if( destroyed_loop_count % 100 == 0 ) {
-          boolean closed = transport.getSocketChannel() == null ? true : false;
+          int read = -1;
           
-          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] is closed=" +closed+ ", original destroy() trace:", destroyed_trace );
+          try{
+            ByteBuffer test = ByteBuffer.allocate( 10 );
+            
+            transport.read( new ByteBuffer[]{ test }, 0, 1 );
+            
+            read = test.position();
+          }
+          catch( Throwable t ) {
+            Debug.out( "test read error:", t );
+          }
+          
+          boolean closed = transport.getSocketChannel() == null ? true : false;
+
+          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] is closed=" +closed+ ", test read bytes="+read+", original destroy() trace:", destroyed_trace );
           
           try{  Thread.sleep( 100 );  }catch(Throwable t){}
           
