@@ -221,7 +221,22 @@ public class Utils {
     int y = (displayRect.height - shellRect.height) / 2;
 
     shell.setLocation(x, y);
-  }  
+  }
+
+  /**
+   * Centers a window relative to a control. That is to say, the window will be located at the center of the control.
+   * @param window
+   * @param control
+   */
+  public static void centreWindowRelativeTo(final Shell window, final Control control)
+  {
+      final Rectangle bounds = control.getBounds();
+      final Point controlSize = control.getSize();
+      window.setLocation(
+              bounds.x + (bounds.width / 2) - controlSize.x,
+              bounds.y + (bounds.height / 2) - controlSize.y
+      );
+  }
 
   /**
    * @param control the control (usually a Shell) to add the DropTarget
