@@ -97,6 +97,7 @@ public class ModePanel extends AbstractWizardPanel {
     final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
 	final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 	final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+	final boolean SSLEnabled = COConfigurationManager.getBooleanParameter("Tracker Port SSL Enable", false );
 	
     final String[] localTrackerUrl = new String[1];
 
@@ -116,7 +117,7 @@ public class ModePanel extends AbstractWizardPanel {
     if (localTrackerHost != null && !localTrackerHost.equals("")) {
       localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
       localTrackerValue.setText("\t" + localTrackerUrl[0]);
-	  btnSSL.setEnabled( true );
+	  btnSSL.setEnabled( SSLEnabled );
     } else {
       localTrackerUrl[0] = "";
       Messages.setLanguageText(localTrackerValue, "wizard.tracker.howToLocal");
@@ -230,7 +231,7 @@ public class ModePanel extends AbstractWizardPanel {
         btnExternalTracker.setSelection(false);
         btnLocalTracker.setSelection(true);
         tracker.setEnabled(false);
-        btnSSL.setEnabled(true);
+        btnSSL.setEnabled(SSLEnabled);
       }
     });
 
