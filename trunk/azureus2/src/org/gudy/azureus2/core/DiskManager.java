@@ -70,7 +70,8 @@ public class DiskManager {
   //The map that associate
   private List[] pieceMap;
   private int pieceCompletion[];
-  private int[][] priorityLists;
+  private List[] priorityLists;
+//private int[][] priorityLists;
 
   private FileInfo[] files;
 
@@ -110,7 +111,8 @@ public class DiskManager {
     //  create the pieces map
     pieceMap = new ArrayList[nbPieces];
     pieceCompletion = new int[nbPieces];
-    priorityLists = new int[10][nbPieces + 1];
+    priorityLists = new List[10];
+//    priorityLists = new int[10][nbPieces + 1];
 
     // the piece numbers for getPiecenumberToDownload
     _priorityPieces = new int[nbPieces + 1];
@@ -1200,12 +1202,20 @@ public class DiskManager {
     }
 
     for (int i = 0; i < priorityLists.length; i++) {
-      priorityLists[i][priorityLists[i][nbPieces]] = 0;
+      ArrayList list = new ArrayList();
+      for (int j = 0; j < pieceCompletion.length; j++) {
+        if (pieceCompletion[j] == i) {
+          list.add(new Integer(j));
+        }
+      }
+      priorityLists[i] = list;
+/*      priorityLists[i][priorityLists[i][nbPieces]] = 0;
       for (int j = 0; j < pieceCompletion.length; j++) {
         if (pieceCompletion[j] == i) {
           priorityLists[i][priorityLists[i][nbPieces]++] = j;
         }
       }
+*/
     }
   }
 
@@ -1258,6 +1268,27 @@ public class DiskManager {
   }
 
   public int getPiecenumberToDownload(boolean[] _piecesRarest) {
+    //Added patch so that we try to complete most advanced files first.
+    List pieces = new ArrayList();
+    Integer pieceInteger; 
+    for (int i = 9; i >= 0; i--) {
+      for (int j = 0; j < nbPieces; j++) {
+        if (_piecesRarest[j] && priorityLists[i].contains(pieceInteger = new Integer(j))) {
+          pieces.add(pieceInteger);
+        }
+      }
+      if (pieces.size() != 0)
+        break;
+    }
+  
+    if(pieces.size() == 0)
+      System.out.println("Size 0");      
+  
+    return ((Integer)pieces.get((int) (Math.random() * pieces.size()))).intValue();    
+  }
+
+/*
+  public int getPiecenumberToDownload(boolean[] _piecesRarest) {
     int pieceNumber;
     //Added patch so that we try to complete most advanced files first.
     _priorityPieces[nbPieces] = 0;
@@ -1278,5 +1309,5 @@ public class DiskManager {
     pieceNumber = _priorityPieces[nPiece];
     return pieceNumber;
   }
-
+*/
 }
