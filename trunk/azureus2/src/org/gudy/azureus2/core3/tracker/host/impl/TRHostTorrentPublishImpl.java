@@ -193,6 +193,12 @@ TRHostTorrentPublishImpl
 		return( 0 );
 	}
 	
+	public int
+	getBadNATCount()
+	{
+		return( 0 );
+	}
+	
 	public long
 	getTotalUploaded()
 	{

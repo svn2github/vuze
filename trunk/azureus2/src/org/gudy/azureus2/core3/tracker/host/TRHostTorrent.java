@@ -83,6 +83,9 @@ TRHostTorrent
 	public int
 	getLeecherCount();
 	
+	public int
+	getBadNATCount();
+
 	public long
 	getAnnounceCount();
 	

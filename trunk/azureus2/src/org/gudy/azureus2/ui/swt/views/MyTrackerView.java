@@ -66,7 +66,8 @@ MyTrackerView
     new StatusItem(),
     new SeedCountItem(),
     new PeerCountItem(),
-    new AnnounceCountItem(),
+    new BadNATCountItem(),
+	new AnnounceCountItem(),
     new ScrapeCountItem(),
     new CompletedCountItem(),
     new UploadedItem(),
@@ -267,6 +268,7 @@ MyTrackerView
   		
   		host_torrent.setData("GUI_PeerCount", new Long(host_torrent.getLeecherCount()));
   		host_torrent.setData("GUI_SeedCount", new Long(seed_count));
+  		host_torrent.setData("GUI_BadNATCount", new Long(host_torrent.getBadNATCount()));
   		host_torrent.setData("GUI_Uploaded", new Long(uploaded));
   		host_torrent.setData("GUI_Downloaded", new Long(downloaded));
   		host_torrent.setData("GUI_Left", new Long(left));

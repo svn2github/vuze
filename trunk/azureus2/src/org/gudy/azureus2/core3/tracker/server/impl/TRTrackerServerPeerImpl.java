@@ -38,7 +38,7 @@ TRTrackerServerPeerImpl
 	protected int			port;
 	protected String		ip_str;
 	protected byte[]		ip_bytes;
-	protected int			NAT_status	= NAT_CHECK_DISABLED;
+	protected byte			NAT_status	= NAT_CHECK_UNKNOWN;
 	
 	protected long			timeout;
 	
@@ -56,7 +56,8 @@ TRTrackerServerPeerImpl
 		byte[]		_ip,
 		int			_port,
 		long		_last_contact_time,
-		boolean		_download_completed )
+		boolean		_download_completed,
+		byte		_last_nat_status )
 	{
 		peer_id				= _peer_id;
 		key_hash_code		= _key_hash_code;
@@ -64,6 +65,7 @@ TRTrackerServerPeerImpl
 		port				= _port;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
+		NAT_status			= _last_nat_status;	
 			
 		resolveAndCheckNAT();
 	}
@@ -113,12 +115,12 @@ TRTrackerServerPeerImpl
 	
 	protected void
 	setNATStatus(
-		int		status )
+		byte		status )
 	{
 		NAT_status	= status;
 	}
 	
-	public int
+	public byte
 	getNATStatus()
 	{
 		return( NAT_status );
@@ -140,13 +142,17 @@ TRTrackerServerPeerImpl
 		
 		HostNameToIPResolver.addResolverRequest( ip_str, this );
 		
-		NAT_status	= NAT_CHECK_INITIATED;
+			// only recheck if we haven't already ascertained the state
 		
-		if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+		if ( NAT_status == NAT_CHECK_UNKNOWN ){
 			
-			NAT_status = NAT_CHECK_DISABLED;
-		}
+			NAT_status	= NAT_CHECK_INITIATED;
 			
+			if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+				
+				NAT_status = NAT_CHECK_DISABLED;
+			}
+		}	
 	}
 	
 	public void

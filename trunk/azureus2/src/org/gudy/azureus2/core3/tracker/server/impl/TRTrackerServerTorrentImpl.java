@@ -130,6 +130,8 @@ TRTrackerServerTorrentImpl
 			
 			String	reuse_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
 			
+			byte	last_NAT_status	= TRTrackerServerPeer.NAT_CHECK_UNKNOWN;
+			
 			new_peer	= true;
 			
 			// check to see if this peer already has an entry against this torrent
@@ -165,6 +167,9 @@ TRTrackerServerTorrentImpl
 						
 						ul_diff	= 0;
 					}
+					
+					last_NAT_status = lws.getNATStatus();
+					
 				}else{
 				
 					last_contact_time	= now;
@@ -179,7 +184,8 @@ TRTrackerServerTorrentImpl
 								ip_address_bytes,
 								port,
 								last_contact_time,
-								already_completed );
+								already_completed,
+								last_NAT_status );
 				
 				peer_map.put( peer_id, peer );
 				
@@ -347,7 +353,11 @@ TRTrackerServerTorrentImpl
 																
 								lightweight_seed_map.put( 
 										this_peer.getPeerId(), 
-										new lightweightSeed( now, new_timeout, this_peer.getUploaded()));
+										new lightweightSeed( 
+												now, 
+												new_timeout, 
+												this_peer.getUploaded(),
+												this_peer.getNATStatus()));
 							}
 							
 							removePeer( this_peer, i );
@@ -1063,16 +1073,19 @@ TRTrackerServerTorrentImpl
 		long	timeout;
 		long	last_contact_time;
 		long	uploaded;
+		byte	nat_status;
 		
 		protected
 		lightweightSeed(
 			long	_now,
 			long	_timeout,
-			long	_uploaded )
+			long	_uploaded,
+			byte	_nat_status )
 		{
 			last_contact_time	= _now;
 			timeout				= _timeout;
 			uploaded			= _uploaded;
+			nat_status			= _nat_status;
 		}
 		
 		protected long
@@ -1090,6 +1103,12 @@ TRTrackerServerTorrentImpl
 		getUploaded()
 		{
 			return( uploaded );
+		}
+		
+		protected byte
+		getNATStatus()
+		{
+			return( nat_status );
 		}
 	}
 }

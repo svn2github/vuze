@@ -206,7 +206,13 @@ TrackerTorrentImpl
 	{
 		return( host_torrent.getLeecherCount());
 	}
-		
+	
+	public int
+	getBadNATCount()
+	{
+		return( host_torrent.getBadNATCount());
+	}
+	
 	public void
 	disableReplyCaching()
 	{

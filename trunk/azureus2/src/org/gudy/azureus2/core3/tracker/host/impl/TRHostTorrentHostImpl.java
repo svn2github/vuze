@@ -296,6 +296,18 @@ TRHostTorrentHostImpl
 		return( 0 );
 	}
 	
+	public int
+	getBadNATCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( stats.getBadNATPeerCount());
+		}
+			
+		return( 0 );
+	}
 	public long
 	getAnnounceCount()
 	{

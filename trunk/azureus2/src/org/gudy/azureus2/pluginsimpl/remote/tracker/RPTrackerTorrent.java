@@ -241,6 +241,13 @@ RPTrackerTorrent
 		return( 0 );	
 	}
 	
+	public int
+	getBadNATCount()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
 	public void
 	disableReplyCaching()
 	{
