@@ -31,8 +31,7 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.torrent.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -81,14 +80,46 @@ CacheFileImpl
 	
 	protected TreeSet					cache	= new TreeSet(comparator);
 			
+	protected long read_ahead_offset			= -1;
+	protected long read_ahead_size				= 0;
 	
 	protected
 	CacheFileImpl(
 		CacheFileManagerImpl	_manager,
-		FMFile					_file )
+		FMFile					_file,
+		TOTorrentFile			_torrent_file )
 	{
 		manager		= _manager;
 		file		= _file;
+		
+		if ( _torrent_file != null ){
+			
+			TOTorrent	torrent = _torrent_file.getTorrent();
+			
+			TOTorrentFile[]	torrent_files = torrent.getFiles();
+			
+			long	size_so_far	= 0;
+			long	piece_size	= torrent.getPieceLength();
+			
+			for (int i=0;i<torrent_files.length;i++){
+				
+				TOTorrentFile	tf = torrent_files[i];
+				
+				if ( tf == _torrent_file ){
+					
+					long	first_piece_offset = size_so_far % piece_size;
+					
+					read_ahead_offset	= first_piece_offset;
+					read_ahead_size		= piece_size;
+					
+					System.out.println( getName() + ": piece offset = " + first_piece_offset );
+					
+				}else{
+					
+					size_so_far += tf.getLength();
+				}
+			}
+		}
 	}
 	
 	

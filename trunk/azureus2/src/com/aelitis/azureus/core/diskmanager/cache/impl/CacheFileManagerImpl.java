@@ -109,7 +109,7 @@ CacheFileManagerImpl
 						}
 					}, file );
 				
-			return( new CacheFileImpl( this, fm_file ));
+			return( new CacheFileImpl( this, fm_file, owner.getCacheFileTorrentFile()));
 			
 		}catch( FMFileManagerException e ){
 			
