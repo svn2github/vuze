@@ -145,7 +145,7 @@ public class IconBar {
     coolItem.setMinimumSize(p.x,p.y);    
   }
   
-  void setLayoutData(Object layoutData) {
+  public void setLayoutData(Object layoutData) {
     coolBar.setLayoutData(layoutData);
   }
   
@@ -166,6 +166,10 @@ public class IconBar {
       if (!display.readAndDispatch ()) display.sleep ();
     }
     display.dispose ();        
+  }
+  
+  public CoolBar getCoolBar() {
+    return coolBar;
   }
 
 }

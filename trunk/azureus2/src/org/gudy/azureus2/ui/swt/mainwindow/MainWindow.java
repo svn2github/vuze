@@ -52,7 +52,6 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
@@ -102,7 +101,6 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.*;
-import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.common.util.HSLColor;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
@@ -123,15 +121,12 @@ import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.OpenUrlWindow;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
-import org.gudy.azureus2.ui.swt.SplashWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
-import org.gudy.azureus2.ui.swt.URLTransfer.URLType;
-import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
 
@@ -152,7 +147,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private String latestVersionFileName = null;
 
   private static MainWindow window;
-  private static SplashWindow splash_maybe_null;
 
   private static boolean jarDownloaded = false;
   private static boolean updateJar = false;
@@ -164,8 +158,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Menu menuBar;
   private Menu languageMenu = null;
   private IconBar iconBar;
-  
-  private boolean created = false;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
@@ -204,10 +196,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private CLabel statusUp;
 
   private GlobalManager 			globalManager;
-  
-  private AuthenticatorWindow		auth_window;
-
-  private UserAlerts				user_alerts;
     
   private Tab 	mytorrents;
   private IView viewMyTorrents;
@@ -428,7 +416,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
 
     formData = new FormData();
-    formData.top = new FormAttachment(iconBar.coolBar);
+    formData.top = new FormAttachment(iconBar.getCoolBar());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
@@ -489,7 +477,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       } catch (NoSuchMethodError e) { /** < SWT 3.0M8 **/ }
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
 
-      Display display = folder.getDisplay();
       try {
         ((CTabFolder)folder).setSelectionBackground(
                 new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
@@ -707,9 +694,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
       }
     });
-        
-    created = true;
-    
+       
   }catch( Throwable e ){
     System.out.println("Initialize Error");
 		e.printStackTrace();
@@ -1275,8 +1260,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     MenuItem itemRefresh = new MenuItem(languageMenu, SWT.PUSH);
     Messages.setLanguageText(itemRefresh, "MainWindow.menu.language.refresh");
     itemRefresh.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        MenuItem item = (MenuItem)event.widget;
+      public void handleEvent(Event event) {        
         refreshLanguage();
       }
     });
@@ -2258,7 +2242,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void openTorrentWindow() {
-    OpenTorrentWindow openWindow = new OpenTorrentWindow(display, globalManager);
+    new OpenTorrentWindow(display, globalManager);
   }
 
   public void openTorrent(final String fileName) {
@@ -3142,9 +3126,5 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
       });
     }
-  }
-  
-  public boolean isCreated() {
-    return created;
   }
 }
