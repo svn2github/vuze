@@ -19,14 +19,25 @@ import org.gudy.azureus2.core3.config.*;
 public class IntParameter {
 
   Text inputField;
+  int iMinValue = 0;
+  int iDefaultValue;
+  String sParamName;
 
   public IntParameter(Composite composite, final String name) {
-    this(composite,name,COConfigurationManager.getIntParameter(name));
+    iDefaultValue = COConfigurationManager.getIntParameter(name);
+    initialize(composite,name);
   }
 
   public IntParameter(Composite composite, final String name, int defaultValue) {
+    iDefaultValue = defaultValue;
+    initialize(composite, name);
+  }
+    
+  public void initialize(Composite composite, final String name) {
+    sParamName = name;
+
     inputField = new Text(composite, SWT.BORDER);
-    int value = COConfigurationManager.getIntParameter(name, defaultValue);
+    int value = COConfigurationManager.getIntParameter(name, iDefaultValue);
     inputField.setText(String.valueOf(value));
     inputField.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -46,13 +57,35 @@ public class IntParameter {
       public void handleEvent(Event event) {
         try {
           int value = Integer.parseInt(inputField.getText());
+          if (value < iMinValue)
+            value = iMinValue;
 		  COConfigurationManager.setParameter(name, value);
         }
         catch (Exception e) {}
       }
     });
+
+    inputField.addListener(SWT.FocusOut, new Listener() {
+      public void handleEvent(Event event) {
+        try {
+          int value = Integer.parseInt(inputField.getText());
+          if (value < iMinValue) {
+            inputField.setText(String.valueOf(iMinValue));
+            COConfigurationManager.setParameter(name, iMinValue);
+          }
+        }
+        catch (Exception e) {}
+      }
+    });
   }
-   
+  
+  public void setMinValue(int iNewMin) {
+    iMinValue = iNewMin;
+    if (COConfigurationManager.getIntParameter(sParamName, iDefaultValue) < iMinValue) {
+      COConfigurationManager.setParameter(sParamName, iMinValue);
+      inputField.setText(String.valueOf(iMinValue));
+    }
+  } 
 
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
