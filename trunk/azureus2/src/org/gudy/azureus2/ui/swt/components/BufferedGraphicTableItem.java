@@ -151,8 +151,8 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       if (gc == null) {
         return;
       }
-      bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
       gc.setClipping(bounds);
+      bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
     }
     gc.drawImage(image, bounds.x, bounds.y);
     //tableRow.debugOut("doPaint()"+gc+": "+ gc.getClipping(), false);
