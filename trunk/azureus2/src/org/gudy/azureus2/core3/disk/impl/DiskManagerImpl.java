@@ -663,38 +663,44 @@ DiskManagerImpl
 			
 			while (bReadContinue){	
 		
-				int	entry_count = readQueueSem.reserveSet( 10 );
-				
-				for (int i=0;i<entry_count;i++){
+				try{
+					int	entry_count = readQueueSem.reserveSet( 10 );
 					
-					DiskManagerDataQueueItemImpl	item;
-					
-					synchronized( readQueue ){
+					for (int i=0;i<entry_count;i++){
 						
-						if ( !bReadContinue){
-													
-							break;
+						DiskManagerDataQueueItemImpl	item;
+						
+						synchronized( readQueue ){
+							
+							if ( !bReadContinue){
+														
+								break;
+							}
+						
+							item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 						}
+		
+						DiskManagerRequest request = item.getRequest();
+		
+							// temporary fix for bug 784306
+						ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+						if (buffer != null) {
+							item.setBuffer(buffer);
+						} else {
+						  item.setLoading(false);
+						  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
+						      item.getRequest().getPieceNumber() + ":" +
+						  		item.getRequest().getOffset() + "->" +
+						  		(item.getRequest().getOffset() + item.getRequest().getLength()));
+						  System.out.println("Read Error");
+						}
+					}
+				}catch( Throwable e ){
 					
-						item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
-					}
-	
-					DiskManagerRequest request = item.getRequest();
-	
-						// temporary fix for bug 784306
-					ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-					if (buffer != null) {
-						item.setBuffer(buffer);
-					} else {
-					  item.setLoading(false);
-					  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
-					      item.getRequest().getPieceNumber() + ":" +
-					  		item.getRequest().getOffset() + "->" +
-					  		(item.getRequest().getOffset() + item.getRequest().getLength()));
-					  System.out.println("Read Error");
-					}
+					e.printStackTrace();
+					
+					Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());
 				}
-        
 			}
 		}
 
@@ -727,81 +733,88 @@ DiskManagerImpl
 		{
 			while (bWriteContinue){
 				
-				int	entry_count = writeCheckQueueSem.reserveSet( 64 );
-				
-				for (int i=0;i<entry_count;i++){
+				try{
+					int	entry_count = writeCheckQueueSem.reserveSet( 64 );
 					
-					QueueElement	elt;
-					boolean			elt_is_write;
-					
-					synchronized( writeCheckQueueLock ){
+					for (int i=0;i<entry_count;i++){
 						
-						if ( !bWriteContinue){
+						QueueElement	elt;
+						boolean			elt_is_write;
+						
+						synchronized( writeCheckQueueLock ){
+							
+							if ( !bWriteContinue){
+															
+								break;
+							}
+							
+							if ( writeQueue.size() > checkQueue.size()){
+								
+								elt	= (QueueElement)writeQueue.remove(0);
+								
+								// System.out.println( "releasing global write slot" );
+	
+								global_write_queue_block_sem.release();
+								
+								elt_is_write	= true;
+								
+							}else{
+								
+								elt	= (QueueElement)checkQueue.remove(0);
+								
+								global_check_queue_block_sem.release();
 														
-							break;
+								elt_is_write	= false;
+							}
 						}
-						
-						if ( writeQueue.size() > checkQueue.size()){
+		
+						if ( elt_is_write ){
 							
-							elt	= (QueueElement)writeQueue.remove(0);
+								//Do not allow to write in a piece marked as done.
 							
-							// System.out.println( "releasing global write slot" );
-
-							global_write_queue_block_sem.release();
+							int pieceNumber = elt.getPieceNumber();
 							
-							elt_is_write	= true;
+							if(!pieceDone[pieceNumber]){
+								
+							  dumpBlockToDisk(elt);
+							  
+							  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+							  
+							}else{
+								
+							  DirectByteBufferPool.freeBuffer(elt.getData());
+							  
+							  elt.data = null;
+							}
 							
 						}else{
 							
-							elt	= (QueueElement)checkQueue.remove(0);
+						  boolean correct = checkPiece(elt.getPieceNumber());
 							
-							global_check_queue_block_sem.release();
-													
-							elt_is_write	= false;
-						}
-					}
-	
-					if ( elt_is_write ){
-						
-							//Do not allow to write in a piece marked as done.
-						
-						int pieceNumber = elt.getPieceNumber();
-						
-						if(!pieceDone[pieceNumber]){
-							
-						  dumpBlockToDisk(elt);
-						  
-						  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
-						  
-						}else{
-							
-						  DirectByteBufferPool.freeBuffer(elt.getData());
-						  
-						  elt.data = null;
-						}
-						
-					}else{
-						
-					  boolean correct = checkPiece(elt.getPieceNumber());
-						
-					  if(!correct){
-					  	
-					    MD5CheckPiece(elt.getPieceNumber(),false);
-					    
-					    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-					    
-					  }else{
-					  	
-					    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-					    
-					    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())){
-					    	
-					      MD5CheckPiece(elt.getPieceNumber(),true);
-					    }
+						  if(!correct){
+						  	
+						    MD5CheckPiece(elt.getPieceNumber(),false);
+						    
+						    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+						    
+						  }else{
+						  	
+						    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+						    
+						    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())){
+						    	
+						      MD5CheckPiece(elt.getPieceNumber(),true);
+						    }
+						  }
+		
+						  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
 					  }
-	
-					  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
-				  }
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());
 				}
         
 			}
