@@ -26,6 +26,8 @@ import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 /**
  * @author Olivier
  *
+ * @deprecated Replaced By TableCell, TableCellCore, TableCellImpl
+ * XXX DeleteMe
  */
 public abstract class TorrentGraphicItem extends BufferedGraphicTableItem2 {
 

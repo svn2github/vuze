@@ -29,7 +29,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificati
 
 /**
  * @author Olivier
- *
+ * @deprecated
+ * XXX DeleteMe
  */
 public class PeersViewEventDispacher implements ITableStructureModificationListener {
 

@@ -1,4 +1,6 @@
 // XXX [TuxPaper] I need to comment this
+// @deprecated Use {link DownloadManagerImpl.getDownload(DownloadManager)}
+// XXX DeleteMe 
 
 package org.gudy.azureus2.pluginsimpl.local.download;
 

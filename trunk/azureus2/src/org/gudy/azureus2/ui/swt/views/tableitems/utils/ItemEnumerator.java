@@ -30,6 +30,7 @@ import java.util.Map;
 /**
  * @author Olivier
  *
+ * XXX DeleteMe
  */
 public class ItemEnumerator {
 

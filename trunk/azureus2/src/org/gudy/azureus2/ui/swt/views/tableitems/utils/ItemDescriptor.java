@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.utils;
 /**
  * @author Olivier
  *
+ * @deprecated use org.gudy.azureus2.plugins.ui.tables.TableColumn
+ * XXX DeleteMe 
  */
 public class ItemDescriptor {
   

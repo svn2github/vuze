@@ -31,6 +31,8 @@ import org.gudy.azureus2.pluginsimpl.local.peers.*;
 /**
  * @author Olivier
  *
+ * @deprecated Replaced by {@link OldPeerPluginItem}
+ * XXX DeleteMe
  */
 public class PluginItem extends PeerItem implements PeerTableItem {
 

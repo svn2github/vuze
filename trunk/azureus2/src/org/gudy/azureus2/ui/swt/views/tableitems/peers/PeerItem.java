@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : PeerItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -24,8 +24,11 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 
 /**
+ *
  * @author Olivier
  *
+ * @deprecated Replaced By TableCell, TableCellCore, TableCellImpl
+ * XXX DeleteMe
  */
 public abstract class PeerItem extends BufferedTableItem {
 

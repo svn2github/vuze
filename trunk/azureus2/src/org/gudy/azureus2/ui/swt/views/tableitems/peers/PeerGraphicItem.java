@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : PeerGraphicItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -26,6 +26,8 @@ import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 /**
  * @author Olivier
  *
+ * @deprecated Replaced By TableCell, TableCellCore, TableCellImpl
+ * XXX DeleteMe
  */
 public abstract class PeerGraphicItem extends BufferedGraphicTableItem2 {
 

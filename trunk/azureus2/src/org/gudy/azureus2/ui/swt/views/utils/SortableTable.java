@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Table;
 /**
  * @author Olivier
  *
+ * XXX DeleteMe. Moved to org.gudy.azureus2.ui.swt.views.table.utils;
  */
 public interface SortableTable {
   

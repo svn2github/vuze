@@ -29,6 +29,8 @@ import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactor
 /**
  * @author Olivier
  *
+ * @deprecated use TableColumnManager
+ * XXX DeleteMe
  */
 public class MyTorrentsTableExtensions {
 

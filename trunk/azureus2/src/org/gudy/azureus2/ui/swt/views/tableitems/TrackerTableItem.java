@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems;
 /**
  * @author parg
  *
+ * @deprecated Replaced by TableRow
+ * XXX DeleteMe
  */
 
 import org.eclipse.swt.SWT;

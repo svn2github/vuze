@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 /**
  * @author Olivier
  *
+ * @deprecated Replaced by {@link OldMyTorrentsPluginItem}
+ * XXX DeleteMe
  */
 public class PluginItem extends TorrentItem implements MyTorrentsTableItem {
 

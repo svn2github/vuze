@@ -31,6 +31,10 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 
 
+/**
+ * @deprecated
+ * XXX DeleteMe
+ */
 public class PeersViewItemEnumerator {
   
   private static final String[] basicItems = {

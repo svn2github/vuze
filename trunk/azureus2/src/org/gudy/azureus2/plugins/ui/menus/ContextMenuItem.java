@@ -25,6 +25,8 @@ package org.gudy.azureus2.plugins.ui.menus;
 /**
  * @author parg
  *
+ * @deprecated Use MenuItem
+ * XXX DeleteMe
  */
 public interface 
 ContextMenuItem 

@@ -26,6 +26,8 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 /**
  * @author Olivier
  *
+ * @deprecated Replaced By TableCell, TableCellCore, TableCellImpl
+ * XXX DeleteMe
  */
 public abstract class TorrentItem extends BufferedTableItem {
 

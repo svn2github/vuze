@@ -26,6 +26,8 @@ import org.eclipse.swt.widgets.TableItem;
 /**
  * @author Olivier
  *
+ * @deprecated Sorting now uses Comparable
+ * XXX DeleteMe
  */
 public interface SortableItem {
   

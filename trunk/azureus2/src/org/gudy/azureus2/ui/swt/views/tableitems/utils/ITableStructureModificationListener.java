@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.utils;
 /**
  * @author Olivier
  *
+ * XXX DeleteMe (Moved to org.gudy.azureus2.ui.swt.views.table)
  */
 public interface ITableStructureModificationListener {
   public void tableStructureChanged();

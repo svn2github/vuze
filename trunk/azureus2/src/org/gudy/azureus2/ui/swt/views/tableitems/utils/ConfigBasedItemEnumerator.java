@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 /**
  * @author Olivier
  *
+ * @deprecated use TableColumnManager
+ * XXX DeleteMe 
  */
 public class ConfigBasedItemEnumerator extends ItemEnumerator {
 

@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 /**
  * @author Olivier
  *  
+ * XXX DeleteMe. Moved to org.gudy.azureus2.ui.swt.views.table.utils;
  */
 public class TableSorter implements ParameterListener {
 

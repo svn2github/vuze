@@ -26,6 +26,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificati
 /**
  * @author Olivier
  *
+ * @deprecated columnSizeChanged added to ITableStructureModificationListener
+ * XXX DeleteMe
  */
 public interface PeersViewListener extends ITableStructureModificationListener {
   public void columnSizeChanged(int columnNumber,int newWidth);
