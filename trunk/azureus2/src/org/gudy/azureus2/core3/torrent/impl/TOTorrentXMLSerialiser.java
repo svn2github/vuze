@@ -89,7 +89,11 @@ TOTorrentXMLSerialiser
 	
 		throws TOTorrentException
 	{
-		writeLine( "<TORRENT>");
+		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		writeLine( "<tor:TORRENT" );
+		writeLine( "\txmlns:tor=\"http://localhost:81/azureus\"" );
+		writeLine( "\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
+		writeLine( "\txsi:schemaLocation=\"http://localhost:81/azureus http://localhost:81/azureus/torrent.xsd\">" );
 			
 		try{
 			indent();
@@ -174,7 +178,7 @@ TOTorrentXMLSerialiser
 			
 			exdent();
 		}
-		writeLine( "</TORRENT>");
+		writeLine( "</tor:TORRENT>");
 	}
 	
 	protected void
