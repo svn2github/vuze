@@ -38,11 +38,11 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
  * single full packet per round.
  */
 public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity {
-  private final RateHandler rate_handler;
-  private boolean destroyed = false;
-  
   private static final int FLUSH_CHECK_LOOP_TIME = 100;  //100ms
   private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
+  
+  private final RateHandler rate_handler;
+  private boolean destroyed = false;
   
   private final HashMap stalled_connections = new HashMap();
   private final HashMap waiting_connections = new HashMap();
@@ -409,15 +409,17 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   private int write( int num_bytes_to_write ) {
+    if( num_bytes_to_write < 1 )  return 0;  //not allowed to write
+    
     //if( total_bytes_ready < 1 ) {
     //  Debug.out( "total_bytes_ready < 1: " + total_bytes_ready );
     //  return 0;
     //}
     
-    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-    if( num_bytes_to_write < mss_size ) {
-      return 0;  //don't bother doing a write if we're not allowed to send at least a full packet
-    }
+    //int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    //if( num_bytes_to_write < mss_size ) {
+    //  return 0;  //don't bother doing a write if we're not allowed to send at least a full packet
+    //}
     
     ArrayList connections_to_notify_of_exception = new ArrayList();
     ArrayList manual_notifications = new ArrayList();
@@ -447,6 +449,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           continue;  //move on to the next connection
         }
         
+        int mss_size = NetworkManager.getSingleton().getTcpMssSize();
         int num_bytes_allowed = num_bytes_remaining > mss_size ? mss_size : num_bytes_remaining;  //allow a single full packet at most
         int num_bytes_available = total_size > mss_size ? mss_size : total_size;  //allow a single full packet at most
         
@@ -454,7 +457,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           int written = 0;
           try {
             written = peer_data.connection.getOutgoingMessageQueue().deliverToTransport( peer_data.connection.getTransport(), num_bytes_available, true );
-            
+                   
             if( written > 0 ) {  
               //total_bytes_ready -= written;
               manual_notifications.add( peer_data );  //register it for manual listener notification
@@ -489,6 +492,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           num_bytes_remaining -= written;
         }
         else {  //we're not allowed enough to maximize the packet payload
+          //System.out.println( "not full payload" );
           ready_connections.addLast( peer_data );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
@@ -540,12 +544,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   public boolean canWrite() {
     if( ready_connections.size() < 1 )  return false;  //no data to send
-    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-    int allowed = rate_handler.getCurrentNumBytesAllowed();
-    if( allowed < mss_size )  {
-      //System.out.println( "<mss: " +allowed);
-      return false; //not allowed to send enough bytes
-    }
+    if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send
     return true;
   }
   
