@@ -158,7 +158,6 @@ public class Transport {
         is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
         is_write_select_pending = false;
         write_select_failure = msg;
-        Debug.out( "~~~ write select failure ~~~" );
       }
     }, null);
   }
