@@ -29,9 +29,56 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
 
 public class 
 StandardPluginImpl 
+	implements StandardPlugin
 {
-
+	protected PluginInstallerImpl	installer;
+	protected SFPluginDetails		details;
+	
+	protected
+	StandardPluginImpl(
+		PluginInstallerImpl	_installer,
+		SFPluginDetails		_details )
+	{
+		installer	= _installer;
+		details		= _details;
+	}
+	
+	public String
+	getId()
+	{
+		return( details.getName());
+	}
+	
+	public String
+	getVersion()
+	{
+		String	version = details.getVersion();
+		
+		return( version==null?"":version );
+	}
+	
+		/**
+		 * Returns the plugin's interface if already installed, null if it isn't
+		 * @return
+		 */
+	
+	public PluginInterface
+	getAlreadyInstalledPlugin()
+	{
+		PluginInterface[]	ifs = installer.getPluginManager().getPluginInterfaces();
+		
+		for (int i=0;i<ifs.length;i++){
+			
+			if ( ifs[i].getPluginID().equals( getId())){
+				
+				return( ifs[i]);
+			}
+		}
+		
+		return( null );
+	}
 }

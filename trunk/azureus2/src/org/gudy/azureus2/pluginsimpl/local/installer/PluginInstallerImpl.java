@@ -29,6 +29,10 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsException;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoader;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
 
 public class 
 PluginInstallerImpl
@@ -57,10 +61,34 @@ PluginInstallerImpl
 		manager	= _manager;
 	}
 	
+	protected PluginManager
+	getPluginManager()
+	{
+		return( manager );
+	}
+	
 	public StandardPlugin[]
 	getStandardPlugins()
+	
+		throws PluginException
 	{
-		return( null );
+		try{
+			SFPluginDetailsLoader	loader = SFPluginDetailsLoaderFactory.getSingleton();
+		
+			SFPluginDetails[]	details = loader.getPluginDetails();
+
+			StandardPlugin[]	res = new StandardPlugin[details.length];
+			
+			for (int i=0;i<res.length;i++){
+				
+				res[i] = new StandardPluginImpl( this, details[i] );
+			}
+			
+			return( res );
+		}catch( SFPluginDetailsException e ){
+			
+			throw( new PluginException("Failed to load standard plugin details", e ));
+		}
 	}
 	
 	public void

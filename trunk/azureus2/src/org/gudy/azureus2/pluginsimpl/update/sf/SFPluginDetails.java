@@ -38,10 +38,7 @@ SFPluginDetails
 		 */
 	
 	public String
-	getVersion()
-	
-		throws SFPluginDetailsException;
-
+	getVersion();
 	
 	public String
 	getDownloadURL()

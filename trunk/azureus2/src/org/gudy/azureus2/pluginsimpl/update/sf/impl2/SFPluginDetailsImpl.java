@@ -105,8 +105,6 @@ SFPluginDetailsImpl
 	
 	public String
 	getVersion()
-	
-		throws SFPluginDetailsException
 	{
 		return( version );
 	}

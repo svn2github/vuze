@@ -38,7 +38,9 @@ PluginInstaller
 		 */
 	
 	public StandardPlugin[]
-	getStandardPlugins();
+	getStandardPlugins()
+	
+		throws PluginException;
 	
 	public void
 	install(
