@@ -168,9 +168,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
     //itemExport.setImage(ImageRepository.getImage("stop"));
     
-  	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
-  	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
-    //itemHost.setImage(ImageRepository.getImage("stop"));
+	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
+	//itemHost.setImage(ImageRepository.getImage("stop"));
+	
+	final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
+	//itemPublish.setImage(ImageRepository.getImage("stop"));
     
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -247,7 +251,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
         itemOpen.setEnabled(false);
         itemExport.setEnabled(false);
-        itemHost.setEnabled(false);
+		itemHost.setEnabled(false);
+		itemPublish.setEnabled(false);
 
         itemMove.setEnabled(false);
         itemPriority.setEnabled(false);
@@ -267,7 +272,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemOpen.setEnabled(true);
           itemExport.setEnabled(true);
-          itemHost.setEnabled(true);
+		  itemHost.setEnabled(true);
+		  itemPublish.setEnabled(true);
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
@@ -560,7 +566,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 			 
 							 	try{
 			 	
-					TRHostFactory.create().addTorrent( torrent );
+					TRHostFactory.create().hostTorrent( torrent );
 					
 			 	}catch( TRHostException e ){
 			 		
@@ -574,6 +580,43 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 					mb.open();
 			 	}
 		 	 }
+		 }
+		 
+		 MainWindow.getWindow().showMyTracker();
+	   }
+	 });
+	 
+	itemPublish.addListener(SWT.Selection, new Listener() {
+	   public void handleEvent(Event event) {
+
+		 TableItem[] tis = table.getSelection();
+
+		 for (int i = 0; i < tis.length; i++) {
+
+		   TableItem ti = tis[i];
+		 
+			 DownloadManager dm = (DownloadManager) managers.get(ti);
+		 	
+			 TOTorrent	torrent = dm.getTorrent();
+			 
+			 if ( torrent != null ){
+			 
+				try{
+			 	
+					TRHostFactory.create().publishTorrent( torrent );
+					
+				}catch( TRHostException e ){
+			 		
+					MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_ERROR | SWT.OK );
+		
+					mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
+		
+					mb.setMessage(	MessageText.getString("MyTorrentsView.menu.host.error.message")+"\n" +
+									e.toString());
+			
+					mb.open();
+				}
+			 }
 		 }
 		 
 		 MainWindow.getWindow().showMyTracker();

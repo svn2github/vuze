@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
-TRHostTorrentImpl
+TRHostTorrentHostImpl
 	implements TRHostTorrent 
 {
 	protected TRHostImpl		host;
@@ -55,7 +55,7 @@ TRHostTorrentImpl
 	protected Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
 	protected
-	TRHostTorrentImpl(
+	TRHostTorrentHostImpl(
 		TRHostImpl		_host,
 		TRTrackerServer	_server,
 		TOTorrent		_torrent,
@@ -140,7 +140,7 @@ TRHostTorrentImpl
 				
 				for (int i=0;i<peers.length;i++){
 					
-					res[i] = new TRHostPeerImpl(peers[i]);
+					res[i] = new TRHostPeerHostImpl(peers[i]);
 				}
 				
 				return( res );

@@ -92,9 +92,17 @@ TRHostImpl
 										
 										for (int i=0;i<host_torrents.size();i++){
 			
-											TRHostTorrentImpl	ht = (TRHostTorrentImpl)host_torrents.get(i);
-									
-											ht.updateStats();
+											TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+											
+											if ( ht instanceof TRHostTorrentHostImpl ){
+																				
+												((TRHostTorrentHostImpl)ht).updateStats();
+												
+											}else{
+												
+												((TRHostTorrentPublishImpl)ht).updateStats();
+												
+											}
 										}
 									}
 									
@@ -121,12 +129,21 @@ TRHostImpl
 	}
 
 	public synchronized void
-	addTorrent(
+	hostTorrent(
 		TOTorrent		torrent )
 		
 		throws TRHostException
 	{
 		addTorrent( torrent, TRHostTorrent.TS_STARTED );
+	}
+	
+	public synchronized void
+	publishTorrent(
+		TOTorrent		torrent )
+		
+		throws TRHostException
+	{
+		addTorrent( torrent, TRHostTorrent.TS_PUBLISHED );
 	}
 	
 	public synchronized void
@@ -147,42 +164,63 @@ TRHostImpl
 				return;
 			}
 		}
+				
+		int	port;
 		
-		int	port = torrent.getAnnounceURL().getPort();
+		if ( state == TRHostTorrent.TS_PUBLISHED ){
 		
-		if ( port == -1 ){
+			port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+						
+		}else{
+		
+			port = torrent.getAnnounceURL().getPort();
 			
-			port = DEFAULT_PORT;
+			if ( port == -1 ){
+				
+				port = DEFAULT_PORT;
+			}
 		}
 		
 		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
-		
+			
 		if ( server == null ){
-			
+				
 			try{
-			
+				
 				server = TRTrackerServerFactory.create( port );
-			
+				
 				server_map.put( new Integer( port ), server );
 				
 				server.addListener( this );
-				
+					
 			}catch( TRTrackerServerException e ){
-				
+					
 				throw( new TRHostException( e.getMessage()));
 			}
 		}
 		
-		TRHostTorrentImpl host_torrent = new TRHostTorrentImpl( this, server, torrent, port );
+		TRHostTorrent host_torrent;
+	
+		if ( state == TRHostTorrent.TS_PUBLISHED ){
+
+			host_torrent = new TRHostTorrentPublishImpl( this, torrent );
+
+		}else{
+		
+			host_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
+		}
 		
 		host_torrents.add( host_torrent );
 		host_torrent_map.put( torrent, host_torrent );
 		
-		startHosting( host_torrent );
+		if ( state != TRHostTorrent.TS_PUBLISHED ){
 		
-		if ( state == TRHostTorrent.TS_STARTED ){
+			startHosting((TRHostTorrentHostImpl)host_torrent );
+		
+			if ( state == TRHostTorrent.TS_STARTED ){
 					
-			host_torrent.start();
+				host_torrent.start();
+			}
 		}
 
 		for (int i=0;i<listeners.size();i++){
@@ -195,7 +233,7 @@ TRHostImpl
 	
 	protected void
 	startHosting(
-		TRHostTorrentImpl	host_torrent )
+		TRHostTorrentHostImpl	host_torrent )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();
 		
@@ -211,17 +249,17 @@ TRHostImpl
 	startHosting(
 		TRTrackerClient	tracker_client )
 	{
-		TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrent_map.get( tracker_client.getTorrent());
+		TRHostTorrent	host_torrent = (TRHostTorrent)host_torrent_map.get( tracker_client.getTorrent());
 			
-		if ( host_torrent != null ){
+		if ( host_torrent instanceof TRHostTorrentHostImpl ){
 			
-			startHosting( host_torrent, tracker_client );
+			startHosting( (TRHostTorrentHostImpl)host_torrent, tracker_client );
 		}
 	}
 	
 	protected void
 	startHosting(
-		TRHostTorrentImpl	host_torrent,
+		TRHostTorrentHostImpl	host_torrent,
 		TRTrackerClient 	tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
@@ -259,14 +297,14 @@ TRHostImpl
 		host_torrents.remove( host_torrent );
 		host_torrent_map.remove( host_torrent.getTorrent());
 		
-		if ( host_torrent != null ){
+		if ( host_torrent instanceof TRHostTorrentHostImpl ){
 			
-			stopHosting((TRHostTorrentImpl)host_torrent );
+			stopHosting((TRHostTorrentHostImpl)host_torrent );
+		}
+		
+		for (int i=0;i<listeners.size();i++){
 			
-			for (int i=0;i<listeners.size();i++){
-			
-				((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
-			}
+			((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
 		}
 		
 		config.saveConfig();		
@@ -274,7 +312,7 @@ TRHostImpl
 	
 	protected void
 	stopHosting(
-		TRHostTorrentImpl	host_torrent )
+		TRHostTorrentHostImpl	host_torrent )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();
 		
@@ -290,18 +328,18 @@ TRHostImpl
 	stopHosting(
 		TRTrackerClient	tracker_client )
 	{
-		TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrent_map.get( tracker_client.getTorrent());
+		TRHostTorrent	host_torrent = (TRHostTorrent)host_torrent_map.get( tracker_client.getTorrent());
 			
-		if ( host_torrent != null ){
+		if ( host_torrent instanceof TRHostTorrentHostImpl ){
 			
-			stopHosting( host_torrent, tracker_client );
+			stopHosting( (TRHostTorrentHostImpl)host_torrent, tracker_client );
 		}
 	}
 	
 	protected void
 	stopHosting(
-		TRHostTorrentImpl	host_torrent,
-		TRTrackerClient 	tracker_client )
+		TRHostTorrentHostImpl	host_torrent,
+		TRTrackerClient 		tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
 				
@@ -318,9 +356,16 @@ TRHostImpl
 		// tracker_client.resetTrackerUrl();	
 	}
 	
+	protected synchronized TRTrackerClient
+	getTrackerClient(
+		TRHostTorrent host_torrent )
+	{
+		return((TRTrackerClient)tracker_client_map.get( host_torrent.getTorrent()));
+	}
+	
 	protected synchronized void
 	hostTorrentStateChange(
-		TRHostTorrentImpl host_torrent )
+		TRHostTorrent host_torrent )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();
 		
@@ -427,89 +472,93 @@ TRHostImpl
 				
 				synchronized( this ){
 				
-						for (int i=0;i<host_torrents.size();i++){
+					for (int i=0;i<host_torrents.size();i++){
+				
+						TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get(i);
 					
-							TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrents.get(i);
+						TOTorrent	torrent = host_torrent.getTorrent();
 						
-							TOTorrent	torrent = host_torrent.getTorrent();
+						String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
+						
+						String	torrent_name = new String(torrent.getName());
+						
+						TRHostPeer[]	peers = host_torrent.getPeers();
+						
+						int	seed_count 		= 0;
+						int non_seed_count	= 0;
+						
+						for (int j=0;j<peers.length;j++){
 							
-							String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
-							
-							String	torrent_name = new String(torrent.getName());
-							
-							TRHostPeer[]	peers = host_torrent.getPeers();
-							
-							int	seed_count 		= 0;
-							int non_seed_count	= 0;
-							
-							for (int j=0;j<peers.length;j++){
+							if ( peers[j].isSeed()){
 								
-								if ( peers[j].isSeed()){
-									
-									seed_count++;
-									
-								}else{
-									
-									non_seed_count++;
-								}
-							}
-							
-							int	status = TRHostTorrent.TS_STARTED;
-							
-							String	status_str;
-							
-							if ( status == TRHostTorrent.TS_STARTED ){
-
-								status_str = "Running";
-								
-							}else if ( status == TRHostTorrent.TS_STOPPED ){
-								
-								status_str = "Stopped";
+								seed_count++;
 								
 							}else{
 								
-								status_str = "Failed";
+								non_seed_count++;
 							}
+						}
+						
+						int	status = host_torrent.getStatus();
+						
+						String	status_str;
+						
+						if ( status == TRHostTorrent.TS_STARTED ){
+
+							status_str = "Running";
 							
-							table_bit.append( "<tr>" );
+						}else if ( status == TRHostTorrent.TS_STOPPED ){
 							
-							table_bit.append( "<td>"+
-											  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
-											  
-							table_bit.append( "<td>" + status_str + "</td>" );
-											  
-							table_bit.append( "<td>" + 
-											  DisplayFormatters.formatByteCountToKBEtc( torrent.getSize()) + "</td>" );
-											  
-							table_bit.append( "<td><b><font color=\"" + (seed_count==0?"#FF0000":"#00CC00")+"\">" +
-											  seed_count + "</font></b></td>" );
-											  
-							table_bit.append( "<td>" + 
-											  non_seed_count + "</td>" );
-											  
-							table_bit.append( "<td>" + 
-												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalUploaded()) + 
-												"</td>" );
-											  
-							table_bit.append( "<td>" + 
-												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalDownloaded()) + 
-												"</td>" );
-											  
-							table_bit.append( "<td>" + 
-												DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageUploaded()) + 
-												"</td>" );
-											  
-							table_bit.append( "<td>" + 
-												DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageDownloaded()) + 
-												"</td>" );
-												
-							table_bit.append( "<td>" + 
-												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalLeft()) + 
-												"</td>" );
-											  
-							table_bit.append( "</tr>" );
-						}	
-					}
+							status_str = "Stopped";
+							
+						}else if ( status == TRHostTorrent.TS_PUBLISHED ){
+							
+							status_str = "Published";
+							
+						}else{
+							
+							status_str = "Failed";
+						}
+						
+						table_bit.append( "<tr>" );
+						
+						table_bit.append( "<td>"+
+										  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
+										  
+						table_bit.append( "<td>" + status_str + "</td>" );
+										  
+						table_bit.append( "<td>" + 
+										  DisplayFormatters.formatByteCountToKBEtc( torrent.getSize()) + "</td>" );
+										  
+						table_bit.append( "<td><b><font color=\"" + (seed_count==0?"#FF0000":"#00CC00")+"\">" +
+										  seed_count + "</font></b></td>" );
+										  
+						table_bit.append( "<td>" + 
+										  non_seed_count + "</td>" );
+										  
+						table_bit.append( "<td>" + 
+											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalUploaded()) + 
+											"</td>" );
+										  
+						table_bit.append( "<td>" + 
+											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalDownloaded()) + 
+											"</td>" );
+										  
+						table_bit.append( "<td>" + 
+											DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageUploaded()) + 
+											"</td>" );
+										  
+						table_bit.append( "<td>" + 
+											DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageDownloaded()) + 
+											"</td>" );
+											
+						table_bit.append( "<td>" + 
+											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalLeft()) + 
+											"</td>" );
+										  
+						table_bit.append( "</tr>" );
+					}	
+				}
 				
 				reply_string += table_bit;
 				
@@ -542,7 +591,7 @@ TRHostImpl
 				
 					for (int i=0;i<host_torrents.size();i++){
 					
-						TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrents.get(i);
+						TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get(i);
 						
 						TOTorrent	torrent = host_torrent.getTorrent();
 						
@@ -562,16 +611,18 @@ TRHostImpl
 							
 								// if tracker ip not set then assume they know what they're doing
 								
-							if ( tracker_ip.length() > 0 ){
-								
-								int	 	tracker_port 	= host_torrent.getPort();
+							if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED ){
 							
-			
-								URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
-								
-								torrent_to_send.setAnnounceURL( announce_url );
-								
-								torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+								if ( tracker_ip.length() > 0 ){
+									
+									int	 	tracker_port 	= ((TRHostTorrentHostImpl)host_torrent).getPort();
+											
+									URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
+									
+									torrent_to_send.setAnnounceURL( announce_url );
+									
+									torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+								}
 							}
 
 							reply_bytes = BEncoder.encode( torrent_to_send.serialiseToMap());

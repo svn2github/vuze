@@ -33,12 +33,19 @@ public class
 TRTrackerScraperImpl
 	implements TRTrackerScraper 
 {
+	protected static TRTrackerScraperImpl	singleton;
+	
 	protected TrackerChecker	tracker_checker;
 	
 	public static synchronized TRTrackerScraperImpl
 	create()
 	{
-		return( new TRTrackerScraperImpl());
+		if ( singleton == null ){
+		
+			singleton =  new TRTrackerScraperImpl();
+		}
+		
+		return( singleton );
 	}
 	
 	protected

@@ -42,7 +42,13 @@ TRHost
 		TRHostTorrentFinder	finder );
 		
 	public void
-	addTorrent(
+	hostTorrent(
+		TOTorrent		torrent )
+		
+		throws TRHostException;
+		
+	public void
+	publishTorrent(
 		TOTorrent		torrent )
 		
 		throws TRHostException;

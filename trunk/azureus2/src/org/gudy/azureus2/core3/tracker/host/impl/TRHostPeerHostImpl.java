@@ -1,7 +1,7 @@
 /*
- * File    : TRHostTorrent.java
- * Created : 26-Oct-2003
- * By      : stuff
+ * File    : TRHostPeerImpl.java
+ * Created : 31-Oct-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,57 +18,56 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-package org.gudy.azureus2.core3.tracker.host;
+ 
+package org.gudy.azureus2.core3.tracker.host.impl;
 
 /**
  * @author parg
- *
  */
 
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.server.*;
 
-public interface 
-TRHostTorrent 
+public class 
+TRHostPeerHostImpl
+	implements TRHostPeer 
 {
-	public static final int	TS_FAILED		= 0;
-	public static final int	TS_STOPPED		= 1;
-	public static final int	TS_STARTED		= 2;
-	public static final int	TS_PUBLISHED	= 3;
+	protected	TRTrackerServerPeer	peer;
 	
-	public void
-	start();
+	protected
+	TRHostPeerHostImpl(
+		TRTrackerServerPeer	_peer )
+	{
+		peer	= _peer;
+	}
 	
-	public void
-	stop();
+	public boolean
+	isSeed()
+	{
+		return( getAmountLeft() == 0 );
+	}
 	
-	public void
-	remove();
+	public long
+	getUploaded()
+	{
+		return( peer.getUploaded());
+	}
+	
+	public long
+	getDownloaded()
+	{
+		return( peer.getDownloaded());
+	}
+	
+	public long
+	getAmountLeft()
+	{
+		return( peer.getAmountLeft());
+	}
 	
 	public int
-	getStatus();
-	
-	public TOTorrent
-	getTorrent();
-	
-	public TRHostPeer[]
-	getPeers();
-	
-	public int
-	getAnnounceCount();
-	
-	public long
-	getTotalUploaded();
-	
-	public long
-	getTotalDownloaded();
-		
-	public long
-	getTotalLeft();
-	
-	public long
-	getAverageUploaded();
-	
-	public long
-	getAverageDownloaded();
+	getNumberOfPeers()
+	{
+		return( peer.getNumberOfPeers());
+	}
 }
