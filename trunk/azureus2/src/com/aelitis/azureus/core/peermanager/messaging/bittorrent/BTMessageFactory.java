@@ -22,10 +22,17 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
+import com.aelitis.azureus.core.networkmanager.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+
 
 /**
  *
@@ -49,6 +56,25 @@ public class BTMessageFactory {
     MessageManager.getSingleton().registerMessage( new BTUninterested() );
   }
 
+  
+  
+  
+  private static final Map legacy_data = new HashMap();
+  static {
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece()}, (byte)0 ) );
+    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()}, (byte)1 ) );
+    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()}, (byte)2 ) );
+    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()}, (byte)3 ) );
+    legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)4 ) );
+    legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)5 ) );
+    legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)6 ) );
+    legacy_data.put( BTMessage.ID_BT_PIECE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)7 ) );
+    legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
+  }
+  
+  
+  
+  
   
   
   /**
@@ -94,9 +120,42 @@ public class BTMessageFactory {
   
   
   
+  /**
+   * Create the proper BT raw message from the given base message.
+   * @param base_message to create from
+   * @return BT raw message
+   */
   public static RawMessage createBTRawMessage( Message base_message ) {
-    //TODO
-    return null;
+    if( base_message instanceof RawMessage ) {  //used for handshake and keep-alive messages
+      return (RawMessage)base_message;
+    }
+    
+    LegacyData ld = (LegacyData)legacy_data.get( base_message.getID() );
+    
+    if( ld == null ) {
+      Debug.out( "legacy message type id not found for [" +base_message.getID()+ "]" );
+      return null;  //message id type not found
+    }
+    
+    DirectByteBuffer[] payload = base_message.getData();
+    
+    int payload_size = 0;
+    for( int i=0; i < payload.length; i++ ) {
+      payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
+    }  
+        
+    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
+    header.putInt( DirectByteBuffer.SS_MSG, 1 + payload_size );
+    header.put( DirectByteBuffer.SS_MSG, ld.bt_id );
+    header.flip( DirectByteBuffer.SS_MSG );
+    
+    DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];
+    raw_buffs[0] = header;
+    for( int i=0; i < payload.length; i++ ) {
+      raw_buffs[i+1] = payload[i];
+    }
+    
+    return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
   }
   
   
@@ -144,4 +203,18 @@ public class BTMessageFactory {
   }
   
 
+  
+  private static class LegacyData {
+    private final int priority;
+    private final boolean is_no_delay;
+    private final Message[] to_remove;
+    private final byte bt_id;
+    
+    private LegacyData( int prio, boolean no_delay, Message[] remove, byte btid ) {
+      this.priority = prio;
+      this.is_no_delay = no_delay;
+      this.to_remove = remove;
+      this.bt_id = btid;
+    }
+  }
 }
