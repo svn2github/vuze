@@ -128,21 +128,38 @@ TOTorrentImpl
         BufferedOutputStream bos = null;
 						
 		try{
-              File temp = new File( output_file.getParentFile(), output_file.getName() + ".saving");
+			File parent = output_file.getParentFile();
+			
+			if ( parent == null ){
+				
+				throw( new Exception( "Path '" + output_file + "' is invalid" ));
+			}
+			
+			parent.mkdirs();
+			
+            File temp = new File( parent, output_file.getName() + ".saving");
               
-              bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
-							bos.write( res );
-							bos.flush();
-              bos.close();
-              bos = null;
+            bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
+			
+            bos.write( res );
+			
+            bos.flush();
+            
+            bos.close();
+            
+            bos = null;
               
               //only use newly saved file if it got this far, i.e. it was written successfully
-              if ( temp.length() > 1L ) {
+            
+            if ( temp.length() > 1L ) {
+            	
                 if ( output_file.exists() ) {
+                	
                 	output_file.delete();
                 }
+                
                 temp.renameTo( output_file );
-              }
+            }
              							
 		}catch( Throwable e){
 							
