@@ -46,6 +46,7 @@ public class
 RemoteUIMainPanel
 	extends JPanel
 {
+	protected Properties				properties;
 	protected DownloadManager			download_manager;
 	
 	protected MDDownloadModel			download_model;
@@ -63,11 +64,19 @@ RemoteUIMainPanel
 	public
 	RemoteUIMainPanel(
 		final PluginInterface	_pi,
-		DownloadManager	_dm )
+		DownloadManager			_dm )
 	{
 		try{
+			properties				= _pi.getPluginProperties();
 			download_manager		= _dm;
 		
+			String	mode_str = (String)properties.get("mode");
+			
+			System.out.println( "mode_str -> " + mode_str );
+			System.out.println( "port -> " + properties.get("port"));
+			
+			boolean view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
+			
 			setLayout( new BorderLayout());
 			
 			JToolBar tb = new JToolBar();
@@ -77,15 +86,15 @@ RemoteUIMainPanel
 			tb.add( refresh );
 			
 			JButton	start = new JButton( "Start");
-			
+			start.setEnabled( !view_mode );
 			tb.add( start );
 			
 			JButton	stop = new JButton( "Stop");
-			
+			stop.setEnabled( !view_mode );
 			tb.add( stop );
 			
 			JButton	remove = new JButton( "Remove");
-			
+			remove.setEnabled( !view_mode );
 			tb.add( remove );
 			
 			final JTextField	tf = new JTextField();
@@ -95,7 +104,7 @@ RemoteUIMainPanel
 			tb.add( tf );
 			
 			JButton	open = new JButton( "Open");
-			
+			open.setEnabled( !view_mode );
 			tb.add( open );
 			
 			add( tb, BorderLayout.NORTH );
