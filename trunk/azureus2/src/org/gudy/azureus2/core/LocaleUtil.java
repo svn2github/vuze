@@ -91,9 +91,11 @@ public class LocaleUtil implements ILocaleUtilChooser {
     for (int i = 0; i < charset.length; i++) {
       candidates[i] = new Candidate();
       try {
-        candidates[j].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
-        candidates[j].charset = charset[i];
-        j++;
+      	if (charsetDecoder[i] != null) {
+        	candidates[j].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
+        	candidates[j].charset = charset[i];
+        	j++;
+      	}
       } catch (Exception ignore) {
       }
     }
