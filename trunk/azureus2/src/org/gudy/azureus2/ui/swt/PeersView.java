@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core2.PeerSocket;
 
 /**
@@ -210,14 +211,14 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("PeersView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("PeersView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("PeersView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("PeersView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.FileInfo;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
 
 /**
@@ -103,22 +104,22 @@ public class FileItem {
       item.setText(5, tmp);
     }
 
-    tmp = Messages.getString("FileItem.read"); //$NON-NLS-1$
+    tmp = MessageText.getString("FileItem.read"); //$NON-NLS-1$
     if (fileInfo.getAccessmode() == FileInfo.WRITE)
-      tmp = Messages.getString("FileItem.write"); //$NON-NLS-1$
+      tmp = MessageText.getString("FileItem.write"); //$NON-NLS-1$
     if (!oldTexts[7].equals(tmp)) {
       oldTexts[7] = tmp;
       item.setText(7, tmp);
-      if(tmp.equals(Messages.getString("FileItem.read"))) { //$NON-NLS-1$
+      if(tmp.equals(MessageText.getString("FileItem.read"))) { //$NON-NLS-1$
         item.setForeground(blues[4]);
       } else {
         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
       }
     }
     
-    tmp = Messages.getString("FileItem.normal"); //$NON-NLS-1$
+    tmp = MessageText.getString("FileItem.normal"); //$NON-NLS-1$
     if (fileInfo.isPriority())
-      tmp = Messages.getString("FileItem.high"); //$NON-NLS-1$
+      tmp = MessageText.getString("FileItem.high"); //$NON-NLS-1$
     if (!oldTexts[8].equals(tmp)) {
           oldTexts[8] = tmp;
           item.setText(8, tmp);

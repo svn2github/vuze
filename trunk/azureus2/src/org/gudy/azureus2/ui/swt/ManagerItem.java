@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
 
 /**
@@ -123,29 +124,29 @@ public class ManagerItem {
     int state = manager.getState();
     switch (state) {
       case DownloadManager.STATE_WAITING :
-        tmp = Messages.getString("ManagerItem.waiting"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.waiting"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_ALLOCATING :
-        tmp = Messages.getString("ManagerItem.allocating"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.allocating"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_CHECKING :
-        tmp = Messages.getString("ManagerItem.checking"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.checking"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_READY :
-        tmp = Messages.getString("ManagerItem.ready"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.ready"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_DOWNLOADING :
-        tmp = Messages.getString("ManagerItem.downloading"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.downloading"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_SEEDING :
-        tmp = Messages.getString("ManagerItem.seeding"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
         break;
 
       case DownloadManager.STATE_STOPPED :
-        tmp = Messages.getString("ManagerItem.stopped"); //$NON-NLS-1$
+        tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
         break;
       case DownloadManager.STATE_ERROR :
-        tmp = Messages.getString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
+        tmp = MessageText.getString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
         break;
     }
     if (!(tmp.equals(this.status))) {
@@ -208,10 +209,10 @@ public class ManagerItem {
 
     int prio = manager.getPriority();
     if (prio == DownloadManager.HIGH_PRIORITY) {
-      tmp = Messages.getString("ManagerItem.high"); //$NON-NLS-1$
+      tmp = MessageText.getString("ManagerItem.high"); //$NON-NLS-1$
     }
     else {
-      tmp = Messages.getString("ManagerItem.low"); //$NON-NLS-1$
+      tmp = MessageText.getString("ManagerItem.low"); //$NON-NLS-1$
     }
     if (!(tmp.equals(this.priority))) {
       priority = tmp;

@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -46,7 +47,7 @@ public class SystemTray extends SysTrayMenuAdapter {
     SysTrayMenuItem item;
     for (int i = menuItems.length-1; i >= 0; i--) {
       if (menuItems[i] != null) {
-        item = new SysTrayMenuItem(Messages.getString("SystemTray.menu." + menuItems[i]), menuItems[i]); //$NON-NLS-1$ //$NON-NLS-2$
+        item = new SysTrayMenuItem(MessageText.getString("SystemTray.menu." + menuItems[i]), menuItems[i]); //$NON-NLS-1$ //$NON-NLS-2$
         item.addSysTrayMenuListener(this);
         menu.addItem(item);
       } else
@@ -58,7 +59,7 @@ public class SystemTray extends SysTrayMenuAdapter {
   public void updateLanguage() {
     for (int i = menu.getItemCount()-1; i >= 0; i--) {
       if(menu.getItemAt(i) != null)
-        menu.getItemAt(i).setLabel(Messages.getString("SystemTray.menu." + menu.getItemAt(i).getActionCommand()));
+        menu.getItemAt(i).setLabel(MessageText.getString("SystemTray.menu." + menu.getItemAt(i).getActionCommand()));
     }
   }
 
@@ -81,9 +82,9 @@ public class SystemTray extends SysTrayMenuAdapter {
 			}
 		}
 		toolTip.append(seeding);
-		toolTip.append(Messages.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
+		toolTip.append(MessageText.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
 		toolTip.append(downloading);
-		toolTip.append(Messages.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
+		toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
 		toolTip.append(main.getGlobalManager().getDownloadSpeed());
 		toolTip.append(", U: ");
 		toolTip.append(main.getGlobalManager().getUploadSpeed());

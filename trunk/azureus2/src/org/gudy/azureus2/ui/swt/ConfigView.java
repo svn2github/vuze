@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core.MessageText;
 
 /**
  * @author Olivier
@@ -112,7 +113,7 @@ public class ConfigView extends AbstractIView {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(gConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
-        dialog.setText(Messages.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
         String path = dialog.open();
         if (path != null) {
           pathParameter.setValue(path);
@@ -202,7 +203,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
     final String upsLabels[] = new String[upRates.length];
     final int upsValues[] = new int[upRates.length];
-    upsLabels[0] = Messages.getString("ConfigView.unlimited"); //$NON-NLS-1$
+    upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
     upsValues[0] = 0;
     for (int i = 1; i < upRates.length; i++) {
       upsLabels[i] = " " + upRates[i] + "kB/s"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -267,14 +268,14 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("ConfigView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("ConfigView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("ConfigView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
   }
 
 }

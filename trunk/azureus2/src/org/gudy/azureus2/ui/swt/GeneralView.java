@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.ByteFormater;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
 
 /**
@@ -377,14 +378,14 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("GeneralView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("GeneralView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("GeneralView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("GeneralView.title.full"); //$NON-NLS-1$
   }
 
   public synchronized void updateAvailability() {

@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Piece;
 
 /**
@@ -87,14 +88,14 @@ public class PiecesView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("PiecesView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("PiecesView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("PiecesView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("PiecesView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

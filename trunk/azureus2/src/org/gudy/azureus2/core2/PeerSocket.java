@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core.ByteBufferPool;
 import org.gudy.azureus2.core.Logger;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerManager;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.SpeedLimiter;
@@ -171,7 +172,7 @@ public class PeerSocket extends PeerConnection {
     }
 
     try {
-      client = Messages.getString("PeerSocket.generic"); //$NON-NLS-1$
+      client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
       String xan = new String(otherPeerId, 0, 11, "ISO-8859-1");
       if (xan.equals("DansClient "))
         client = "Xan'";

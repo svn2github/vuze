@@ -256,7 +256,7 @@ public class PeerManager extends Thread {
     //was any data returned?
     if (data == null) //no data returned
       {
-      _trackerStatus = Messages.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
+      _trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
       _timeToWait = 60; //retry in 60 seconds
       return; //break
     }
@@ -329,14 +329,14 @@ public class PeerManager extends Thread {
           //}		                   
         }
         _trackerState = TRACKER_UPDATE;
-        _trackerStatus = Messages.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
+        _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
         return; //break						
       }
       catch (Exception e) {
         //TODO:: WE SHOULD CLEAN THIS UP
         //tracker not working		
         System.out.println("Problems with Tracker, will retry in 1 minute");
-        _trackerStatus = Messages.getString("PeerManager.status.offline"); //$NON-NLS-1$
+        _trackerStatus = MessageText.getString("PeerManager.status.offline"); //$NON-NLS-1$
         _timeToWait = 60;
       }
     }
@@ -495,7 +495,7 @@ public class PeerManager extends Thread {
     //has the timeout expired?
     if ((time - _timeLastUpdate) > _timeToWait) //if so...
       {
-      _trackerStatus = Messages.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
+      _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
       Thread t = new Thread("Tracker Checker") { //$NON-NLS-1$
         public void run() {
@@ -1253,7 +1253,7 @@ public class PeerManager extends Thread {
       remaining = TimeFormater.format(timeRemaining);
     }
     if (dataRemaining == 0)
-      remaining = Messages.getString("PeerManager.status.finished"); //$NON-NLS-1$
+      remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
     return remaining;
   }
 

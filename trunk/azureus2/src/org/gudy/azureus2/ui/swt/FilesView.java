@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DiskManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.FileInfo;
+import org.gudy.azureus2.core.MessageText;
 
 /**
  * @author Olivier
@@ -230,14 +231,14 @@ public class FilesView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("FilesView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("FilesView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("FilesView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("FilesView.title.full"); //$NON-NLS-1$
   }
 
   //Sorting

@@ -114,23 +114,23 @@ public class DownloadManager extends Component {
       hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
     }
     catch (FileNotFoundException e) {
-      name = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
+      name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
       nbPieces = 0;
       hash = new byte[20];
       this.state = STATE_ERROR;
-      errorDetail = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
+      errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
     }
     catch (UnsupportedEncodingException e) {
       this.state = STATE_ERROR;
-      errorDetail = Messages.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
+      errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
     }
     catch (IOException e) {
       this.state = STATE_ERROR;
-      errorDetail = Messages.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
+      errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
     }
     catch (NoSuchAlgorithmException e) {
       this.state = STATE_ERROR;
-      errorDetail = Messages.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
+      errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
     }
     catch (Exception e) {
       this.state = STATE_ERROR;
@@ -143,7 +143,7 @@ public class DownloadManager extends Component {
     int port = server.getPort();
     if (port == 0) {
       this.state = STATE_ERROR;
-      errorDetail = Messages.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
     }
   }
 

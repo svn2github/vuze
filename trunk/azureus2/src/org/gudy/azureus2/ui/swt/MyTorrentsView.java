@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
+import org.gudy.azureus2.core.MessageText;
 
 /**
  * @author Olivier
@@ -370,14 +371,14 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("MyTorrentsView.mytorrents");
+    return MessageText.getString("MyTorrentsView.mytorrents");
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("MyTorrentsView.mytorrents");
+    return MessageText.getString("MyTorrentsView.mytorrents");
   }
 
   /* (non-Javadoc)

@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core.ILoggerListener;
 import org.gudy.azureus2.core.Logger;
+import org.gudy.azureus2.core.MessageText;
 
 /**
  * @author Olivier
@@ -71,14 +72,14 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return Messages.getString("ConsoleView.title.short"); //$NON-NLS-1$
+    return MessageText.getString("ConsoleView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return Messages.getString("ConsoleView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("ConsoleView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
