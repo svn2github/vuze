@@ -107,7 +107,7 @@ TRTrackerClientUtils
  					url.getPort() == BLACKLISTED_PORTS[i] ){
  		
  				throw( new IOException( "http://" + BLACKLISTED_HOSTS[i] +
- 						":" + BLACKLISTED_PORTS[i] + " is not a tracker" ));
+ 						":" + BLACKLISTED_PORTS[i] + "/ is not a tracker" ));
  			}
  		}
 	}
