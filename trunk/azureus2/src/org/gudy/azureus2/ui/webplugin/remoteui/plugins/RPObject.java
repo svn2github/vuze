@@ -94,6 +94,12 @@ RPObject
 		_setDelegate( _delegate );
 	}
 	
+	public long
+	_getOID()
+	{
+		return( object_id.longValue());
+	}
+	
 	protected abstract void
 	_setDelegate(
 		Object		_delegate );

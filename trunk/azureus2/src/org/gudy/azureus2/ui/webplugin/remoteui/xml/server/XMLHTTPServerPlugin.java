@@ -30,18 +30,42 @@ import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.*;
-import java.util.jar.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
 
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
-import org.gudy.azureus2.ui.webplugin.util.*;
+import org.gudy.azureus2.plugins.*;
 
 public class 
 XMLHTTPServerPlugin
 	extends WebPlugin
 {
+	protected boolean	view_mode;
+	
+	protected Map	reply_cache	= new HashMap();
+	
+	public
+	XMLHTTPServerPlugin()
+	{
+		super();
+	}
+	
+	public void 
+	initialize(
+		PluginInterface _plugin_interface )
+	
+		throws PluginException
+	{	
+		super.initialize( _plugin_interface );
+		
+		Properties properties				= _plugin_interface.getPluginProperties();
+
+		String	mode_str = (String)properties.get("mode");
+		
+		view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
+		
+		
+	}
+	
 	public boolean
 	generateSupport(
 		TrackerWebPageRequest		request,
@@ -49,6 +73,27 @@ XMLHTTPServerPlugin
 	
 		throws IOException
 	{
+		String	url = request.getURL();
+		
+		if ( url.equals( "/process.cgi")){
+	
+			InputStream	is = null;
+						
+			try{
+				XMLRequestProcessor processor = 
+						new XMLRequestProcessor( plugin_interface, request.getInputStream(), response.getOutputStream());
+
+				return( true );
+								
+			}finally{
+				
+				if ( is != null ){
+					
+					is.close();
+				}
+			}
+		}
+		
 		return( false );
 	}
 }
