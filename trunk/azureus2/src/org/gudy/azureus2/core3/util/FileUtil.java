@@ -336,8 +336,28 @@ public class FileUtil {
   		BufferedInputStream bin = null;
    
   		try{
-  			bin = new BufferedInputStream( new FileInputStream(file), 8192 );
-	      
+  			int	retry_limit = 5;
+  			
+  			while(true){
+  				
+  				try{
+  					bin = new BufferedInputStream( new FileInputStream(file), 8192 );
+  				
+  					break;
+  					
+  				}catch( IOException e ){
+  				
+  	 				if ( --retry_limit == 0 ){
+  						
+  						throw( e );
+  					}
+  	 				
+  					LGLogger.log( "Failed to open '" + file.toString() + "' - " + e.getMessage() + ", retrying");
+  					
+  					Thread.sleep(500);
+  				}
+  			}
+  			
 	    	Map	res = BDecoder.decode(bin);
 	    	
 	    	if ( using_backup ){
