@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.GridData;
@@ -27,7 +26,7 @@ public class Tab {
   private CTabFolder folder;
   private CTabItem tabItem;
   private Composite composite;
-  private CLabel title;
+//  private CLabel title;
   private IView view;
 
   static {
@@ -72,6 +71,18 @@ public class Tab {
         if (item.isDisposed())
           continue;
         item.setText(view.getShortTitle());
+      }
+    }
+  }
+
+  public static void updateLanguage() {
+    synchronized (tabs) {
+      Iterator iter = tabs.keySet().iterator();
+      while (iter.hasNext()) {
+        CTabItem item = (CTabItem) iter.next();
+        IView view = (IView) tabs.get(item);
+        view.updateLanguage();
+        view.refresh();
       }
     }
   }

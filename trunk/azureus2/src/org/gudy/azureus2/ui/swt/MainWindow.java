@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -40,6 +41,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.BDecoder;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
@@ -77,6 +79,8 @@ public class MainWindow implements IComponentListener {
   private Tab console;
   private Tab config;
 
+  private MenuItem selectedLanguageItem;
+
   private TrayWindow tray;
   private SystemTray trayIcon;
 
@@ -95,7 +99,7 @@ public class MainWindow implements IComponentListener {
 
     public void run() {
       while (!finished) {
-        final IView view;
+//        final IView view;
         update();
         try {
           Thread.sleep(waitTime);
@@ -155,8 +159,8 @@ public class MainWindow implements IComponentListener {
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         InputStream is = con.getInputStream();
-        int length = con.getContentLength();
-        //System.out.println(length);
+//        int length = con.getContentLength();
+//        System.out.println(length);
         byte[] data = new byte[1024];
 
         while (nbRead != -1) {
@@ -218,19 +222,19 @@ public class MainWindow implements IComponentListener {
     mainWindow.setMenuBar(menuBar);
     //The File Menu
     MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
-    fileItem.setText(Messages.getString("MainWindow.menu.file")); //$NON-NLS-1$
+    Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
     Menu fileMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     fileItem.setMenu(fileMenu);
     MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
-    file_new.setText(Messages.getString("MainWindow.menu.file.open")); //$NON-NLS-1$
+    Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
     new MenuItem(fileMenu, SWT.SEPARATOR);
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-    file_exit.setText(Messages.getString("MainWindow.menu.file.exit")); //$NON-NLS-1$
+    Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
 
     Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     file_new.setMenu(newMenu);
     MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
-    file_new_torrent.setText(".torrent " + Messages.getString("file")); //$NON-NLS-1$ //$NON-NLS-2$
+    Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
     file_new_torrent.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
@@ -246,7 +250,7 @@ public class MainWindow implements IComponentListener {
     // MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
     //file_new_url.setText("URL");
     MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
-    file_new_folder.setText(Messages.getString("MainWindow.menu.file.folder")); //$NON-NLS-1$
+    Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
     file_new_folder.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
@@ -266,12 +270,12 @@ public class MainWindow implements IComponentListener {
 
     //The View Menu
     MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
-    viewItem.setText(Messages.getString("MainWindow.menu.view")); //$NON-NLS-1$
+    Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
     Menu viewMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     viewItem.setMenu(viewMenu);
 
     MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
-    view_torrents.setText(Messages.getString("MainWindow.menu.view.mytorrents")); //$NON-NLS-1$
+    Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
     view_torrents.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (mytorrents == null)
@@ -282,7 +286,7 @@ public class MainWindow implements IComponentListener {
     });
 
     MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
-    view_config.setText(Messages.getString("MainWindow.menu.view.configuration")); //$NON-NLS-1$
+    Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
     view_config.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (config == null)
@@ -293,7 +297,7 @@ public class MainWindow implements IComponentListener {
     });
 
     MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
-    view_console.setText(Messages.getString("MainWindow.menu.view.console")); //$NON-NLS-1$
+    Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
     view_console.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (console == null)
@@ -331,6 +335,19 @@ public class MainWindow implements IComponentListener {
     	});
     */
     addCloseDownloadBarsToMenu(viewMenu);
+
+    //The Language Menu
+    MenuItem languageItem = new MenuItem(menuBar, SWT.CASCADE);
+    Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
+    Menu languageMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    languageItem.setMenu(languageMenu);
+
+    MenuItem language = new MenuItem(languageMenu, SWT.RADIO);
+    createLanguageMenuitem(language, Messages.LOCALE_ENGLISH);
+    language = new MenuItem(languageMenu, SWT.RADIO);
+    createLanguageMenuitem(language, Locale.GERMANY);
+    language = new MenuItem(languageMenu, SWT.RADIO);
+    createLanguageMenuitem(language, Locale.FRANCE);
 
     createDropTarget(mainWindow);
 
@@ -426,9 +443,90 @@ public class MainWindow implements IComponentListener {
 
   }
 
+  private void createLanguageMenuitem(MenuItem language, final Locale locale) {
+    language.setData(locale);
+    language.setText(((Locale)language.getData()).getDisplayLanguage());
+    language.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        if (isSelectedLanguageDifferent(e.widget)) {
+          if (Messages.changeLocale(locale)) {
+            setSelectedLanguageItem((MenuItem) e.widget);
+          } else {
+            ((MenuItem) e.widget).setSelection(false);
+            selectSelectedLanguageItem();
+          }
+        }
+      }
+    });
+    language.setSelection(Messages.isCurrentLocale(locale));
+    if(language.getSelection())
+      setSelectedLanguageItem(language);
+  }
+  
+  private synchronized void setSelectedLanguageItem(MenuItem newLanguage) {
+    selectedLanguageItem = newLanguage;
+    Messages.updateLanguageForControl(mainWindow);
+    updateMenuText(menuBar);
+    if(statusText != null)
+      statusText.update();
+    if(folder != null)
+      folder.update();
+    if(trayIcon != null) {
+      trayIcon.updateLanguage();
+      trayIcon.refresh();
+    }
+    if(tray != null)
+      tray.updateLanguage();
+
+//    if(config != null && config.getTabItem() != null)
+//      Tab.getView(config.getTabItem()).updateLanguage();
+
+    Iterator iter = downloadViews.values().iterator();
+     while (iter.hasNext()) {
+       Tab.getView(((Tab) iter.next()).getTabItem()).updateLanguage();
+     }
+
+    if(mytorrents != null && mytorrents.getTabItem() != null)
+      Tab.getView(mytorrents.getTabItem()).updateLanguage();
+
+    Tab.refresh();
+    Tab.updateLanguage();
+
+    mainWindow.redraw();
+    //    display.update();
+  }
+
+  public static void updateMenuText(Object menu) {
+    if(menu == null)
+      return;
+    if (menu instanceof Menu) {
+      MenuItem[] menus = ((Menu) menu).getItems();
+      for (int i = 0; i < menus.length; i++) {
+        updateMenuText(menus[i]);
+      }
+    } else if (menu instanceof MenuItem) {
+      MenuItem item = (MenuItem) menu;
+      if (item.getData() != null) {
+        if (item.getData() instanceof String)
+          item.setText(Messages.getString((String) item.getData()));
+        else
+          item.setText(((Locale) item.getData()).getDisplayLanguage());
+        updateMenuText(item.getMenu());  
+      }
+    }
+  }
+
+  private boolean isSelectedLanguageDifferent(Widget newLanguage) {
+    return selectedLanguageItem != newLanguage;
+  }
+  
+  private void selectSelectedLanguageItem() {
+    selectedLanguageItem.setSelection(true);
+  }
+  
   protected void addCloseDownloadBarsToMenu(Menu menu) {
     MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
-    view_closeAll.setText(Messages.getString("MainWindow.menu.closealldownloadbars")); //$NON-NLS-1$
+    Messages.setLanguageText(view_closeAll, "MainWindow.menu.closealldownloadbars"); //$NON-NLS-1$
     view_closeAll.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         closeDownloadBars();
@@ -642,7 +740,7 @@ public class MainWindow implements IComponentListener {
         while ((nbRead = fis.read(buf)) > 0)
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
         fis.close();
-        Map map = (Map) BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
+        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
         Map info = (Map) map.get("info");
         Object test = info.get("length");
         if (test != null) {        

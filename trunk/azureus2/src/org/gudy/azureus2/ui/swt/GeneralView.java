@@ -30,7 +30,7 @@ import org.gudy.azureus2.core.PeerStats;
  * @author Olivier
  * 
  */
-public class GeneralView implements IView {
+public class GeneralView extends AbstractIView {
 
   private Display display;
   private DownloadManager manager;
@@ -104,13 +104,13 @@ public class GeneralView implements IView {
     gFile = new Group(genComposite, SWT.SHADOW_OUT);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     gFile.setLayoutData(gridData);
-    gFile.setText(Messages.getString("GeneralView.section.downloaded")); //$NON-NLS-1$
+    Messages.setLanguageText(gFile, "GeneralView.section.downloaded"); //$NON-NLS-1$
     GridLayout fileLayout = new GridLayout();
     fileLayout.numColumns = 3;
     gFile.setLayout(fileLayout);
 
     fileInfo = new Label(gFile, SWT.LEFT);
-    fileInfo.setText(Messages.getString("GeneralView.label.status.file")); //$NON-NLS-1$
+    Messages.setLanguageText(fileInfo, "GeneralView.label.status.file"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     fileInfo.setLayoutData(gridData);
 
@@ -126,7 +126,7 @@ public class GeneralView implements IView {
     filePercent.setLayoutData(gridData);
 
     piecesInfo = new Label(gFile, SWT.LEFT);
-    piecesInfo.setText(Messages.getString("GeneralView.label.status.pieces")); //$NON-NLS-1$
+    Messages.setLanguageText(piecesInfo, "GeneralView.label.status.pieces"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     piecesInfo.setLayoutData(gridData);
 
@@ -142,16 +142,16 @@ public class GeneralView implements IView {
     piecesPercent.setLayoutData(gridData);
 
     gAvailability = new Group(genComposite, SWT.SHADOW_OUT);
+    Messages.setLanguageText(gAvailability, "GeneralView.section.availability"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gAvailability.setLayoutData(gridData);
 
     GridLayout availabilityLayout = new GridLayout();
     availabilityLayout.numColumns = 3;
-    gAvailability.setText(Messages.getString("GeneralView.section.availability")); //$NON-NLS-1$
     gAvailability.setLayout(availabilityLayout);
 
     availabilityInfo = new Label(gAvailability, SWT.LEFT);
-    availabilityInfo.setText(Messages.getString("GeneralView.label.status.pieces_available")); //$NON-NLS-1$
+    Messages.setLanguageText(availabilityInfo, "GeneralView.label.status.pieces_available"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     availabilityInfo.setLayoutData(gridData);
 
@@ -167,34 +167,39 @@ public class GeneralView implements IView {
     availabilityPercent.setLayoutData(gridData);
 
     gTransfer = new Group(genComposite, SWT.SHADOW_OUT);
+    Messages.setLanguageText(gTransfer, "GeneralView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gTransfer.setLayoutData(gridData);
 
-    gTransfer.setText(Messages.getString("GeneralView.section.transfer")); //$NON-NLS-1$
     GridLayout layoutTransfer = new GridLayout();
     layoutTransfer.numColumns = 6;
     gTransfer.setLayout(layoutTransfer);
 
-    new Label(gTransfer, SWT.LEFT).setText(Messages.getString("GeneralView.label.timeelapsed") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    Label label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.timeelapsed"); //$NON-NLS-1$
     timeElapsed = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeElapsed.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.remaining") + ": "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.remaining"); //$NON-NLS-1$
     timeRemaining = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeRemaining.setLayoutData(gridData);
     new Label(gTransfer, SWT.LEFT);
     new Label(gTransfer, SWT.LEFT);
 
-    new Label(gTransfer, SWT.LEFT).setText(Messages.getString("GeneralView.label.downloaded") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.downloaded"); //$NON-NLS-1$
     download = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     download.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.downloadspeed") + ": "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.downloadspeed"); //$NON-NLS-1$
     downloadSpeed = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     downloadSpeed.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.maxuploads") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.maxuploads"); //$NON-NLS-1$
     maxUploads = new Combo(gTransfer, SWT.SINGLE | SWT.READ_ONLY);
     for (int i = 2; i < 101; i++)
       maxUploads.add(" " + i); //$NON-NLS-1$
@@ -206,34 +211,39 @@ public class GeneralView implements IView {
     maxUploads.select(
       manager.getMaxUploads()-2);
 
-    new Label(gTransfer, SWT.LEFT).setText(Messages.getString("GeneralView.label.uploaded") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
     upload = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     upload.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.uploadspeed") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
     uploadSpeed = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     uploadSpeed.setLayoutData(gridData);
     new Label(gTransfer, SWT.LEFT).setText(""); //$NON-NLS-1$
     new Label(gTransfer, SWT.LEFT).setText(""); //$NON-NLS-1$
 
-    new Label(gTransfer, SWT.LEFT).setText(Messages.getString("GeneralView.label.seeds") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
     seeds = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     seeds.setLayoutData(gridData);
 
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.peers") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.peers"); //$NON-NLS-1$
     peers = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     peers.setLayoutData(gridData);
 
-    new Label(gTransfer, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.totalspeed") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.totalspeed"); //$NON-NLS-1$
     totalSpeed = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalSpeed.setLayoutData(gridData);
 
     gInfo = new Group(genComposite, SWT.SHADOW_OUT);
-    gInfo.setText(Messages.getString("GeneralView.section.info")); //$NON-NLS-1$
+    Messages.setLanguageText(gInfo, "GeneralView.section.info"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gInfo.setLayoutData(gridData);
 
@@ -241,42 +251,50 @@ public class GeneralView implements IView {
     layoutInfo.numColumns = 4;
     gInfo.setLayout(layoutInfo);
 
-    new Label(gInfo, SWT.LEFT).setText(Messages.getString("GeneralView.label.filename") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.filename"); //$NON-NLS-1$
     fileName = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     fileName.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.totalsize") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.totalsize"); //$NON-NLS-1$
     fileSize = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     fileSize.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText(Messages.getString("GeneralView.label.savein") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.savein"); //$NON-NLS-1$
     saveIn = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     saveIn.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.hash") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
     hash = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText(Messages.getString("GeneralView.label.numberofpieces") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.numberofpieces"); //$NON-NLS-1$
     pieceNumber = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceNumber.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.size") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
     pieceSize = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceSize.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText(Messages.getString("GeneralView.label.tracker") + " : "); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
     tracker = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     tracker.setLayoutData(gridData);
 
-    new Label(gInfo, SWT.LEFT).setText("   " + Messages.getString("GeneralView.label.updatein") + " : "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
     trackerUpdateIn = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     trackerUpdateIn.setLayoutData(gridData);
@@ -420,14 +438,14 @@ public class GeneralView implements IView {
           pond += min;
         }
         int index = 0;
-        if (pond > 0)
-          index = 1;
-        if (pond > 2)
-          index = 2;
-        if (pond > 5)
-          index = 3;
         if (pond > 10)
           index = 4;
+        else if (pond > 5)
+          index = 3;
+        else if (pond > 2)
+          index = 2;
+        else if (pond > 0)
+          index = 1;
         gcImage.setBackground(blues[index]);
         Rectangle rect = new Rectangle(i, 1, 1, height);
         gcImage.fillRectangle(rect);
@@ -513,7 +531,7 @@ public class GeneralView implements IView {
     if (display.isDisposed())
       return;
     final int total = manager.getCompleted();
-    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
+//    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
 
     if (fileImage.isDisposed())
       return;

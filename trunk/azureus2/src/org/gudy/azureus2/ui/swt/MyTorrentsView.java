@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -36,25 +35,25 @@ import org.gudy.azureus2.core.GlobalManager;
  * @author Olivier
  * 
  */
-public class MyTorrentsView implements IView, IComponentListener {
+public class MyTorrentsView extends AbstractIView implements IComponentListener {
 
-  //see Download Manager ... too lazy to put all state names ;)
+/* see Download Manager ... too lazy to put all state names ;)
   private static final int tabStates[][] = { { 0, 5, 10, 20, 30, 40, 50, 60, 70, 100 }, {
       0, 20, 30, 40 }, {
       50 }, {
       60 }, {
       65, 70 }
   };
-
+*/
   private GlobalManager globalManager;
-  private String title = Messages.getString("MyTorrentsView.mytorrents"); //$NON-NLS-1$
 
   private Composite panel;
   private Table table;
-  private CTabFolder toolBar;
+//  private CTabFolder toolBar;
   private HashMap managerItems;
   private HashMap managers;
-
+  private Menu menu;
+  
   private HashMap downloadBars;
 
 
@@ -84,11 +83,12 @@ public class MyTorrentsView implements IView, IComponentListener {
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     table.setLayoutData(gridData);
     String[] columnsHeader =
-      { Messages.getString("MyTorrentsView.name"), Messages.getString("MyTorrentsView.size"), Messages.getString("MyTorrentsView.done"), Messages.getString("MyTorrentsView.status"), Messages.getString("MyTorrentsView.seeds"), Messages.getString("MyTorrentsView.peers"), Messages.getString("MyTorrentsView.downspeed"), Messages.getString("MyTorrentsView.upspeed"), Messages.getString("MyTorrentsView.eta"), Messages.getString("MyTorrentsView.tracker"), Messages.getString("MyTorrentsView.priority") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
+      { "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
     int[] columnsSize = { 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NULL);
-      column.setText(columnsHeader[i]);
+      column.setData(columnsHeader[i]);
+      column.setText(Messages.getString("MyTorrentsView." + columnsHeader[i]));
       column.setWidth(columnsSize[i]);
     }
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
@@ -106,41 +106,41 @@ public class MyTorrentsView implements IView, IComponentListener {
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
     
-    final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
+    menu = new Menu(composite.getShell(), SWT.POP_UP);
 
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
-    itemDetails.setText(Messages.getString("MyTorrentsView.menu.showdetails")); //$NON-NLS-1$
+    Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
 
     final MenuItem itemBar = new MenuItem(menu, SWT.CHECK);
-    itemBar.setText(Messages.getString("MyTorrentsView.menu.showdownloadbar")); //$NON-NLS-1$
+    Messages.setLanguageText(itemBar, "MyTorrentsView.menu.showdownloadbar"); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    itemOpen.setText(Messages.getString("MyTorrentsView.menu.open")); //$NON-NLS-1$
+    Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    itemPriority.setText(Messages.getString("MyTorrentsView.menu.setpriority")); //$NON-NLS-1$
+    Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-    itemHigh.setText(Messages.getString("MyTorrentsView.menu.setpriority.high")); //$NON-NLS-1$
+    Messages.setLanguageText(itemHigh, "MyTorrentsView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-    itemLow.setText(Messages.getString("MyTorrentsView.menu.setpriority.low")); //$NON-NLS-1$
+    Messages.setLanguageText(itemLow, "MyTorrentsView.menu.setpriority.low"); //$NON-NLS-1$
 
     final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
-    itemStart.setText(Messages.getString("MyTorrentsView.menu.start")); //$NON-NLS-1$
+    Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
 
     final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-    itemStop.setText(Messages.getString("MyTorrentsView.menu.stop")); //$NON-NLS-1$
+    Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
-    itemRemove.setText(Messages.getString("MyTorrentsView.menu.remove")); //$NON-NLS-1$
+    Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -178,7 +178,7 @@ public class MyTorrentsView implements IView, IComponentListener {
 			boolean start = true;
 			boolean stop = true;
 			for (int i = 0; i < tis.length; i++) {
-				DownloadManager dm = (DownloadManager) managers.get((TableItem) tis[i]);
+				DownloadManager dm = (DownloadManager) managers.get(tis[i]);
 				if (dm != null) {
 				  int state = dm.getState();
 				  if (state == DownloadManager.STATE_STOPPED) {
@@ -371,14 +371,14 @@ public class MyTorrentsView implements IView, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return title;
+    return Messages.getString("MyTorrentsView.mytorrents");
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return title;
+    return Messages.getString("MyTorrentsView.mytorrents");
   }
 
   /* (non-Javadoc)
@@ -391,7 +391,7 @@ public class MyTorrentsView implements IView, IComponentListener {
     synchronized (managerItems) {
       ManagerItem item = (ManagerItem) managerItems.get(manager);
       if (item == null)
-        item = new ManagerItem(table, (DownloadManager) manager);
+        item = new ManagerItem(table, manager);
       managerItems.put(manager, item);
       managers.put(item.getTableItem(), manager);
     }
