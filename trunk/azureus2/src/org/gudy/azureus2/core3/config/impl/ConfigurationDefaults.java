@@ -180,7 +180,6 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Password", "" );
     
     //old
-    def.put( "StartStopManager_iIgnoreSeedCount", new Long(-1) );
     def.put( "Start Num Peers", new Long(-1) );
     def.put( "Max Upload Speed", new Long(-1) );
     def.put( "Max Clients", new Long(-1) );
