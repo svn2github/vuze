@@ -1048,7 +1048,7 @@ DiskManagerImpl
 					
 					
 					//if we want to pre-fill file with zeros
-					if (preZero) {
+					if ( preZero && !f.exists() ) {  //don't overwrite with zeros if file already exists
 					  //pre-allocate
 						fileInfo.getFMFile().setLength(length);
 					  //and zero
