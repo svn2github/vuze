@@ -959,10 +959,11 @@ public class DiskManager {
         FileChannel fc = raf.getChannel();
         try {
           fc.position(fileOffset + (offset - previousFilesLength));
-          while(fc.position() < (fc.size()-1) && buffer.hasRemaining())
+          while(fc.position() < (fc.size()-1) && buffer.hasRemaining()) {
             fcposition = fc.position();
             fcsize = fc.size();
             fc.read(buffer);
+          }
         }
         catch (Exception e) {
           // TODO Auto-generated catch block
