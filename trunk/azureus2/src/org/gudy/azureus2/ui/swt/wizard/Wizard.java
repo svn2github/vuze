@@ -227,7 +227,7 @@ public class Wizard {
 	});
 
 		
-    wizardWindow.setSize(400, 400);
+    wizardWindow.setSize(400, 500);
     
 	Utils.centreWindow( wizardWindow );
 
