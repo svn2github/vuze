@@ -850,6 +850,9 @@ Test
     public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
       
     }
+    
+    public boolean isInEndGameMode() {  return false;  }
+    
 			
 		public byte[]
 		getHash()
