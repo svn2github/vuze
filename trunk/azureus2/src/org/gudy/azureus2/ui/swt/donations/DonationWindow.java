@@ -63,7 +63,7 @@ public class DonationWindow {
    OverallStats stats = StatsFactory.getStats();
    fullText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
               + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-              + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
+              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
               + MessageText.getString("DonationWindow.text");
    timeToWait = fullText.length() / 25 ;
   }
