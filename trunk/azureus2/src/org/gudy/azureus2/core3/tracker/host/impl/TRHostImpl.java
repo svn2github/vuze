@@ -158,7 +158,8 @@ TRHostImpl
 										
 										Thread.sleep( STATS_PERIOD_SECS*1000 );
 										
-										synchronized( TRHostImpl.this ){
+										try{
+											this_mon.enter();
 											
 											for (int i=0;i<host_torrents.size();i++){
 				
@@ -174,6 +175,9 @@ TRHostImpl
 													
 												}
 											}
+										}finally{
+											
+											this_mon.exit();
 										}
 										
 										config.saveConfig();

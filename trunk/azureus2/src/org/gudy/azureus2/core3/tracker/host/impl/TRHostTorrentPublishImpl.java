@@ -31,6 +31,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TRHostTorrentPublishImpl
@@ -49,6 +50,8 @@ TRHostTorrentPublishImpl
 	
 	private HashMap data;
 
+	protected AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentPublish" );
+
 	protected
 	TRHostTorrentPublishImpl(
 		TRHostImpl		_host,
@@ -58,24 +61,32 @@ TRHostTorrentPublishImpl
 		torrent		= _torrent;
 	}
 
-	public synchronized void
+	public void
 	start()
 	{
 	}
 
-	public synchronized void
+	public void
 	stop()
 	{
 	}
 
-	public synchronized void
+	public void
 	remove()
 	
 		throws TRHostTorrentRemovalVetoException
 	{
-		canBeRemoved();
+		try{
+			this_mon.enter();
+			
+			canBeRemoved();
 		
-		host.remove( this );
+			host.remove( this );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public boolean
@@ -121,10 +132,17 @@ TRHostTorrentPublishImpl
 		return( -1 );
 	}
 	
-	public synchronized TRHostPeer[]
+	public TRHostPeer[]
 	getPeers()
 	{
-		return( peers );
+		try{
+			this_mon.enter();
+		
+			return( peers );
+		}finally{
+			
+			this_mon.exit();
+		}
 	}	
 
 	public long
@@ -161,7 +179,8 @@ TRHostTorrentPublishImpl
 			resp = TRTrackerScraperFactory.getSingleton().scrape( torrent );
 		}
 				
-		synchronized( this ){
+		try{
+			this_mon.enter();
 		
 			if ( resp != null && resp.isValid()){
 						
@@ -178,6 +197,9 @@ TRHostTorrentPublishImpl
 				
 				peers = new TRHostPeer[0];
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 
@@ -258,46 +280,84 @@ TRHostTorrentPublishImpl
 	{
 	}
 	
-	protected synchronized void
+	protected void
 	postProcess(
 		TRHostTorrentRequest	req )
 	
 		throws TRHostException
 	{
-		for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+			}
+		}finally{
 			
-			((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		TRHostTorrentListener	l )
 	{
-		listeners.add(l);
+		try{
+			this_mon.enter();
+	
+			listeners.add(l);
 		
-		host.torrentListenerRegistered();
+			host.torrentListenerRegistered();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		TRHostTorrentListener	l )
 	{
-		listeners.remove(l);
+		try{
+			this_mon.enter();
+
+			listeners.remove(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	addRemovalListener(
 		TRHostTorrentWillBeRemovedListener	l )
 	{
-		removal_listeners.add(l);
+		try{
+			this_mon.enter();
+			
+			removal_listeners.add(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeRemovalListener(
 		TRHostTorrentWillBeRemovedListener	l )
 	{
-		removal_listeners.remove(l);
+		try{
+			this_mon.enter();
+			
+			removal_listeners.remove(l);
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 
   /** To retreive arbitrary objects against this object. */
@@ -307,15 +367,22 @@ TRHostTorrentPublishImpl
   }
 
   /** To store arbitrary objects against this object. */
-  public synchronized void setData (String key, Object value) {
-  	if (data == null) {
-  	  data = new HashMap();
-  	}
-    if (value == null) {
-      if (data.containsKey(key))
-        data.remove(key);
-    } else {
-      data.put(key, value);
-    }
+  public void setData (String key, Object value) {
+	try{
+		this_mon.enter();
+
+	  	if (data == null) {
+	  	  data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (data.containsKey(key))
+	        data.remove(key);
+	    } else {
+	      data.put(key, value);
+	    }
+	}finally{
+		
+		this_mon.exit();
+	}
   }
 }

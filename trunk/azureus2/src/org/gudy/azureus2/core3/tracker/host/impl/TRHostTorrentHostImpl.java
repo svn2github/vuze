@@ -70,6 +70,8 @@ TRHostTorrentHostImpl
 	
 	private HashMap data;
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRHostTorrentHost" );
+
 	protected
 	TRHostTorrentHostImpl(
 		TRHostImpl		_host,
@@ -89,10 +91,12 @@ TRHostTorrentHostImpl
 		return( port );
 	}
 	
-	public synchronized void
+	public void
 	start()
 	{
 		try{
+			this_mon.enter();
+			
 			// System.out.println( "TRHostTorrentHostImpl::start");
 			
 			status = TS_STARTED;
@@ -109,13 +113,19 @@ TRHostTorrentHostImpl
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	stop()
 	{
 		try{
+			this_mon.enter();
+			
 			// System.out.println( "TRHostTorrentHostImpl::stop");
 			
 			status = TS_STOPPED;
@@ -145,20 +155,31 @@ TRHostTorrentHostImpl
 			
 		}catch( Throwable e ){
 			
-				e.printStackTrace();
+			e.printStackTrace();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	remove()
 	
 		throws TRHostTorrentRemovalVetoException
 	{
-		canBeRemoved();
+		try{
+			this_mon.enter();
 		
-		stop();
+			canBeRemoved();
 		
-		host.remove( this );
+			stop();
+		
+			host.remove( this );
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public boolean
@@ -526,46 +547,84 @@ TRHostTorrentHostImpl
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	postProcess(
 		TRHostTorrentRequest	req )
 	
 		throws TRHostException
 	{
-		for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<listeners.size();i++){
 			
-			((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+				((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+			}
+		}finally{
+
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		TRHostTorrentListener	l )
 	{
-		listeners.add(l);
+		try{
+			this_mon.enter();
+	
+			listeners.add(l);
 		
-		host.torrentListenerRegistered();
+			host.torrentListenerRegistered();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		TRHostTorrentListener	l )
 	{
-		listeners.remove(l);
+		try{
+			this_mon.enter();
+		
+			listeners.remove(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	addRemovalListener(
 		TRHostTorrentWillBeRemovedListener	l )
 	{
-		removal_listeners.add(l);
+		try{
+			this_mon.enter();
+		
+			removal_listeners.add(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeRemovalListener(
 		TRHostTorrentWillBeRemovedListener	l )
 	{
-		removal_listeners.remove(l);
+		try{
+			this_mon.enter();
+		
+			removal_listeners.remove(l);
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 
   /** To retreive arbitrary objects against this object. */
@@ -575,15 +634,22 @@ TRHostTorrentHostImpl
   }
 
   /** To store arbitrary objects against this object. */
-  public synchronized void setData (String key, Object value) {
-  	if (data == null) {
-  	  data = new HashMap();
+  public void setData (String key, Object value) {
+  	try{
+  		this_mon.enter();
+  	
+	  	if (data == null) {
+	  	  data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (data.containsKey(key))
+	        data.remove(key);
+	    } else {
+	      data.put(key, value);
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
   	}
-    if (value == null) {
-      if (data.containsKey(key))
-        data.remove(key);
-    } else {
-      data.put(key, value);
-    }
   }
 }
