@@ -160,7 +160,7 @@ ConcurrentHasher
 												try{  
 													Thread.sleep( 100 );
 						
-												}catch( Exception e ){ 
+												}catch( Throwable e ){ 
 						
 													Debug.printStackTrace( e ); 
 												}
@@ -235,6 +235,7 @@ ConcurrentHasher
 	main(
 		String[]	args )
 	{
+		/*
 		final ConcurrentHasher	hasher = ConcurrentHasher.getSingleton();
 		
 		int		threads			= 1;
@@ -252,13 +253,13 @@ ConcurrentHasher
 					// SHA1Hasher sha1_hasher = new SHA1Hasher();
 					
 					long	start = System.currentTimeMillis();
-					ByteBuffer	buffer = ByteBuffer.allocate((int)buffer_size);
+					//ByteBuffer	buffer = ByteBuffer.allocate((int)buffer_size);
 					
 					for (int j=0;j<loop;j++){
 						
 												
 						//sha1_hasher.calculateHash( buffer );
-						ConcurrentHasherRequest req = hasher.addRequest( buffer );
+						//ConcurrentHasherRequest req = hasher.addRequest( buffer );
 					}
 					
 					long	elapsed = System.currentTimeMillis() - start;
@@ -269,5 +270,6 @@ ConcurrentHasher
 				}
 			}.start();
 		}
+		*/
 	}
 }
