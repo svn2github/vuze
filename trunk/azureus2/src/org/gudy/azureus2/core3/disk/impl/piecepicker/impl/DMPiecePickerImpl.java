@@ -43,7 +43,7 @@ DMPiecePickerImpl
 	protected DiskManagerHelper		disk_manager;
 	
 	protected boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-    
+    protected boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	protected int	nbPieces;
 	protected int 	pieceCompletion[];
 	
@@ -117,23 +117,27 @@ DMPiecePickerImpl
 				//if this is the first piece of the file
 				if (firstPiecePriority && i == fileInfo.getFirstPieceNumber()) {
 				  if (fileInfo.isPriority()) completion = 99;
-				  else completion = 97;
+				  else if (completion < 97) completion = 97;
 				}
         
-        //if the file is high-priority
+				//if the file is high-priority
 				else if (fileInfo.isPriority()) {
-				  completion = 98;
+				  if (completion < 98) completion = 98;
 				}
 				
 				//If the file is started but not completed
-				else {
+				else if(completionPriority) {
 				  int percent = 0;
 				  if (fileInfo.getLength() != 0) {
 				    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
 				  }
-				  if (percent < 100) {
+				  //if percent is less than 100 AND higher than current completion level
+				  if (percent < 100 && completion < percent) {
 				    completion = percent;
 				  }
+				}
+				else {
+				  if(completion < 0) completion = 0;
 				}
 			}
       

@@ -38,7 +38,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionTransfer implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -259,11 +258,18 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.top = new FormAttachment(allowSameIP.getControl());
     firstPiece.setLayoutData(formData);
     
+	// prioritise most completed files
+    
+    BooleanParameter mostCompletedFiles = new BooleanParameter(cTransfer, "Prioritize Most Completed Files", false, "ConfigView.label.prioritizemostcompletedfiles");
+    formData = new FormData();
+    formData.top = new FormAttachment(firstPiece.getControl());
+    mostCompletedFiles.setLayoutData(formData);
+    
    		// ignore ports
     
     StringParameter ignore_ports = new StringParameter(cTransfer, "Ignore.peer.ports","0"); 
     formData = new FormData();
-    formData.top = new FormAttachment(firstPiece.getControl());
+    formData.top = new FormAttachment(mostCompletedFiles.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,100);
     ignore_ports.setLayoutData(formData);
