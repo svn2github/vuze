@@ -111,7 +111,7 @@ public class SplashWindow {
   
   public void setCurrentTask(String task) {
     currentTask.setText(task);
-    
+    while (display.readAndDispatch());    
   }
 
 }
