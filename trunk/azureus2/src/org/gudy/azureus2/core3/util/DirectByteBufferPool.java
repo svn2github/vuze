@@ -141,7 +141,7 @@ public class DirectByteBufferPool {
                     + "To fix: Use the -XX:MaxDirectMemorySize=512m command line option,\n"
                     + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
        	 Debug.out( msg );
-         LGLogger.logAlert( LGLogger.AT_ERROR, "" );         
+         LGLogger.logAlert( LGLogger.AT_ERROR, msg );         
          return null;
        }
     }
