@@ -177,7 +177,7 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+            setStatusVersion();
           }
         });
       }
@@ -188,7 +188,8 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + Messages.getString("MainWindow.status.unknown")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+            latestVersion = Messages.getString("MainWindow.status.unknown");
+            setStatusVersion();
           }
         });
       }
@@ -389,7 +390,8 @@ public class MainWindow implements IComponentListener {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + Messages.getString("MainWindow.status.checking") + "..."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+    latestVersion = Messages.getString("MainWindow.status.checking") + "...";
+    setStatusVersion();
     statusText.setLayoutData(gridData);
 
     Thread versionChecker = new VersionChecker();
@@ -443,6 +445,11 @@ public class MainWindow implements IComponentListener {
 
   }
 
+  private void setStatusVersion() {
+    if(statusText != null)
+      statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + latestVersion);
+  }
+
   private void createLanguageMenuitem(MenuItem language, final Locale locale) {
     language.setData(locale);
     language.setText(((Locale)language.getData()).getDisplayLanguage());
@@ -478,22 +485,13 @@ public class MainWindow implements IComponentListener {
     if(tray != null)
       tray.updateLanguage();
 
-//    if(config != null && config.getTabItem() != null)
-//      Tab.getView(config.getTabItem()).updateLanguage();
-
-    Iterator iter = downloadViews.values().iterator();
-     while (iter.hasNext()) {
-       Tab.getView(((Tab) iter.next()).getTabItem()).updateLanguage();
-     }
-
-    if(mytorrents != null && mytorrents.getTabItem() != null)
-      Tab.getView(mytorrents.getTabItem()).updateLanguage();
-
-    Tab.refresh();
+//    Tab.refresh();
     Tab.updateLanguage();
 
-    mainWindow.redraw();
-    //    display.update();
+    setStatusVersion();
+    
+//    mainWindow.redraw();
+//    display.update();
   }
 
   public static void updateMenuText(Object menu) {

@@ -87,8 +87,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     int[] columnsSize = { 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NULL);
-      column.setData(columnsHeader[i]);
-      column.setText(Messages.getString("MyTorrentsView." + columnsHeader[i]));
+      Messages.setLanguageText(column, "MyTorrentsView." + columnsHeader[i]);
       column.setWidth(columnsSize[i]);
     }
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$

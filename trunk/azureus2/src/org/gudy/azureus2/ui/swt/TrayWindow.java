@@ -106,8 +106,7 @@ public class TrayWindow implements IComponentListener {
     label.setMenu(menu);
 
     MenuItem file_show = new MenuItem(menu, SWT.NULL);
-    file_show.setData("TrayWindow.menu.show");
-    file_show.setText(Messages.getString((String)file_show.getData()));
+    Messages.setLanguageText(file_show, "TrayWindow.menu.show"); //$NON-NLS-1$
     menu.setDefaultItem(file_show);
     file_show.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -120,8 +119,7 @@ public class TrayWindow implements IComponentListener {
     new MenuItem(menu,SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
-    file_exit.setData("TrayWindow.menu.exit");
-    file_exit.setText(Messages.getString((String)file_exit.getData()));
+    Messages.setLanguageText(file_exit, "TrayWindow.menu.exit"); //$NON-NLS-1$
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         main.dispose();

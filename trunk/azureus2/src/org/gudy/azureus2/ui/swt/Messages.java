@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -97,11 +98,17 @@ public class Messages {
         }
         updateLanguageForControl(table.getMenu());
       }
+    } else if(composite instanceof MenuItem) {
+      MenuItem menuItem = (MenuItem) composite;
+      updateLanguageForControl(menuItem.getMenu());
     } else if(composite instanceof Menu) {
       Menu menu = (Menu) composite;
+      if(menu.getStyle() == SWT.POP_UP)
+        System.out.println("POP_UP");
+
       MenuItem[] items = menu.getItems();
       for (int i = 0; i < items.length; i++) {
-        updateLanguageFromData(items[i]);
+        updateLanguageForControl(items[i]);
       } 
     }
 //    composite.update();
