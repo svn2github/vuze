@@ -158,7 +158,8 @@ public class TorrentRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      item.refresh();      
+      if (item.getPosition() != -1)
+        item.refresh();      
     }
     this.setValid(true);
   }
@@ -172,7 +173,7 @@ public class TorrentRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      if(item.needsPainting())
+      if(item.getPosition() != -1 && item.needsPainting())
       	item.doPaint(clipping);
     }    
   }

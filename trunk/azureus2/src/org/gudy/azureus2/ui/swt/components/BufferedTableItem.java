@@ -79,4 +79,8 @@ public abstract class BufferedTableItem {
   
   public void doPaint(Rectangle clipping) {    
   } 
+  
+  public int getPosition() {
+    return position;
+  }
 }
