@@ -67,7 +67,11 @@ DHTTransportLoopbackImpl
 	
 	private int			id_byte_length;
 	
-	private DHTTransportRequestHandler		request_handler;
+	private DHTTransportRequestHandler		original_request_handler;
+	private DHTTransportRequestHandler		delegator_request_handler;
+	
+	private DHTTransportLoopbackStatsImpl	stats = new DHTTransportLoopbackStatsImpl();
+	
 	
 	public
 	DHTTransportLoopbackImpl(
@@ -109,13 +113,64 @@ DHTTransportLoopbackImpl
 	setRequestHandler(
 		DHTTransportRequestHandler	_request_handler )
 	{
-		request_handler = _request_handler;
+		original_request_handler	= _request_handler;
+		
+		delegator_request_handler = 
+			new DHTTransportRequestHandler()
+			{
+				public void
+				pingRequest(
+					DHTTransportContact contact )
+				{
+					stats.pingReceived();
+					
+					original_request_handler.pingRequest( contact );
+				}
+				
+				public void
+				storeRequest(
+					DHTTransportContact contact, 
+					byte[]				key,
+					DHTTransportValue	value )
+				{
+					stats.storeReceived();
+					
+					original_request_handler.storeRequest( contact, key, value );
+				}
+				
+				public DHTTransportContact[]
+				findNodeRequest(
+					DHTTransportContact contact, 
+					byte[]				id )
+				{
+					stats.findNodeReceived();
+					
+					return( original_request_handler.findNodeRequest( contact, id ));
+				}
+				
+				public Object
+				findValueRequest(
+					DHTTransportContact contact, 
+					byte[]				key )
+				{
+					stats.findValueReceived();
+					
+					return( original_request_handler.findValueRequest( contact, key ));
+				}
+					
+				public void
+				contactImported(
+					DHTTransportContact	contact )
+				{
+					original_request_handler.contactImported( contact );
+				}
+			};
 	}
 	
 	protected DHTTransportRequestHandler
 	getRequestHandler()
 	{
-		return( request_handler );
+		return( original_request_handler );
 	}
 	
 	public void
@@ -142,7 +197,7 @@ DHTTransportLoopbackImpl
 		
 		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		
-		request_handler.contactImported( contact );
+		delegator_request_handler.contactImported( contact );
 	}
 	
 	protected void
@@ -174,6 +229,12 @@ DHTTransportLoopbackImpl
 		}
 	}
 	
+	public DHTTransportStats
+	getStats()
+	{
+		return( stats );
+	}
+	
 		// transport
 	
 		// PING 
@@ -203,11 +264,17 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
+		stats.pingSent();
+		
 		if ( target == null ){
+		
+			stats.pingFailed();
 			
 			handler.failed(contact);
 			
 		}else{
+			
+			stats.pingOK();
 			
 			target.getRequestHandler().pingRequest( new DHTTransportLoopbackContactImpl( target, node_id ));
 			
@@ -222,7 +289,7 @@ DHTTransportLoopbackImpl
 		final DHTTransportContact		contact,
 		final DHTTransportReplyHandler	handler,
 		final byte[]					key,
-		final byte[]					value )
+		final DHTTransportValue			value )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -242,15 +309,21 @@ DHTTransportLoopbackImpl
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
-		byte[]						value )
+		DHTTransportValue			value )
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
+		stats.storeSent();
+		
 		if ( target == null ){
+		
+			stats.storeFailed();
 			
 			handler.failed(contact);
 			
 		}else{
+			
+			stats.storeOK();
 			
 			target.getRequestHandler().storeRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
@@ -289,11 +362,17 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
+		stats.findNodeSent();
+		
 		if ( target == null ){
+		
+			stats.findNodeFailed();
 			
 			handler.failed(contact);
 			
 		}else{
+			
+			stats.findNodeOK();
 			
 			DHTTransportContact[] res =
 				target.getRequestHandler().findNodeRequest( 
@@ -340,11 +419,17 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
+		stats.findValueSent();
+		
 		if ( target == null ){
+		
+			stats.findValueFailed();
 			
 			handler.failed(contact);
 			
 		}else{
+			
+			stats.findValueOK();
 			
 			Object o_res =
 				target.getRequestHandler().findValueRequest( 
@@ -366,7 +451,7 @@ DHTTransportLoopbackImpl
 				
 			}else{
 				
-				handler.findValueReply( contact, (byte[])o_res );
+				handler.findValueReply( contact, (DHTTransportValue)o_res );
 			}
 		}
 	}

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTLog 
@@ -191,5 +192,12 @@ DHTLog
 		}
 		
 		return( res + "}" );	
+	}
+	
+	public static String
+	getString(
+		DHTTransportValue	value )
+	{
+		return( getString(value.getValue()) + "<" + value.getCacheDistance() + ">" );
 	}
 }

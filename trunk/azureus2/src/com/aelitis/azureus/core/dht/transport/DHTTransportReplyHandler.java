@@ -46,7 +46,7 @@ DHTTransportReplyHandler
 	public void
 	findValueReply(
 		DHTTransportContact 	contact,
-		byte[]					value );
+		DHTTransportValue		value );
 	
 	public void
 	findValueReply(

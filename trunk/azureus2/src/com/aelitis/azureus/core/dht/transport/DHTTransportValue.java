@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 18-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,35 +28,11 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 public interface 
-DHTTransportRequestHandler 
+DHTTransportValue 
 {
-	public void
-	pingRequest(
-		DHTTransportContact contact );
-		
-	public void
-	storeRequest(
-		DHTTransportContact contact, 
-		byte[]				key,
-		DHTTransportValue	value );
+	public int
+	getCacheDistance();
 	
-	public DHTTransportContact[]
-	findNodeRequest(
-		DHTTransportContact contact, 
-		byte[]				id );
-	
-	public Object
-	findValueRequest(
-		DHTTransportContact contact, 
-		byte[]				key );
-	
-
-		/**
-		 * Mechanism for reporting that a contact has been imported
-		 * @param contact
-		 */
-
-	public void
-	contactImported(
-		DHTTransportContact	contact );
+	public byte[]
+	getValue();
 }

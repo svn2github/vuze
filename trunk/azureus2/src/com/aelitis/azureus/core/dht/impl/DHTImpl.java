@@ -42,6 +42,7 @@ DHTImpl
 {
 	private DHTRouter		router;
 	private DHTControl		control;
+	private DHTTransport	transport;
 	
 	public 
 	DHTImpl(
@@ -70,9 +71,23 @@ DHTImpl
 	
 	public void
 	setTransport(
-		DHTTransport	transport )
+		DHTTransport	_transport )
 	{
+		transport	= _transport;
+		
 		control.setTransport( transport );
+	}
+	
+	public DHTTransport
+	getTransport()
+	{
+		return( transport );
+	}
+	
+	public DHTRouter
+	getRouter()
+	{
+		return( router );
 	}
 	
 	public void

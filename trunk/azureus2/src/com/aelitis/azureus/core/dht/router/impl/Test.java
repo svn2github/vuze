@@ -66,7 +66,7 @@ Test
 		
 		for (int i=0;i<node_ids.length;i++){
 						
-			router.addContact( node_ids[i], null );
+			router.contactKnown( node_ids[i], null );
 		}
 
 			// byte[]	node_id = new byte[]{ 1,1,1,1 }; //new SHA1Hasher().calculateHash( (""+i).getBytes());
@@ -84,7 +84,7 @@ Test
 			
 			byte[]	id = getSHA1();
 			
-			DHTRouterContact cont = router.addContact( id, null);
+			DHTRouterContact cont = router.contactKnown( id, null);
 			
 			DHTRouterContact res = router.findContact( id );
 			

@@ -60,7 +60,7 @@ DHTTransportLoopbackContactImpl
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
-		byte[]						value )
+		DHTTransportValue			value )
 	{
 		transport.sendStore( this, handler, key, value );
 	}

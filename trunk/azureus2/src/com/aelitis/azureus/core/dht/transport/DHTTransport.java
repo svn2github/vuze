@@ -59,4 +59,7 @@ DHTTransport
 	public void
 	setRequestHandler(
 		DHTTransportRequestHandler	receiver );
+	
+	public DHTTransportStats
+	getStats();
 }

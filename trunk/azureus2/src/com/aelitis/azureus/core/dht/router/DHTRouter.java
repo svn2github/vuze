@@ -51,32 +51,63 @@ DHTRouter
 	setAdapter(
 		DHTRouterAdapter	_adapter );
 	
+		/**
+		 * Tells the router to perform its "start of day" functions required to integrate
+		 * it into the DHT (search for itself, refresh buckets)
+		 */
+	
 	public void
 	seed();
 	
+		/**
+		 * Adds a contact to the router. The contact is not known to be alive (e.g.
+		 * we've been returned the contact by someone but we've not either got a reply
+		 * from it, nor has it invoked us.
+		 * @param node_id
+		 * @param attachment
+		 * @return
+		 */
+	
 	public DHTRouterContact
-	addContact(
+	contactKnown(
 		byte[]	node_id,
 		Object	attachment );
 	
-	public DHTRouterContact
-	findContact(
-		byte[]	node_id );
+		/**
+		 * Adds a contact to the router and marks it as "known to be alive"
+		 * @param node_id
+		 * @param attachment
+		 * @return
+		 */
 	
 	public DHTRouterContact
 	contactAlive(
 		byte[]	node_id,
 		Object	attachment );
 
+		/**
+		 * Informs the router that an attempt to interact with the contact failed 
+		 * @param node_id
+		 * @param attachment
+		 * @return
+		 */
+	
 	public DHTRouterContact
 	contactDead(
 		byte[]	node_id,
 		Object	attachment );
 	
+	public DHTRouterContact
+	findContact(
+		byte[]	node_id );	
+
 	public List
 	findClosestContacts(
 		byte[]	node_id );
-			
+		
+	public DHTRouterStats
+	getStats();
+	
 	public void
 	print();
 }

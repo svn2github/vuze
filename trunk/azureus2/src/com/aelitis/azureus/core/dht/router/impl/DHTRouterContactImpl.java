@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
+
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
 /**
@@ -86,10 +89,22 @@ DHTRouterContactImpl
 	}
 	
 	public boolean
+	hasBeenAlive()
+	{
+		return( has_been_alive );
+	}
+	
+	public boolean
 	failed()
 	{
 		fail_count++;
 		
 		return( fail_count >= MAX_FAIL_COUNT );
+	}
+	
+	protected String
+	getString()
+	{
+		return( DHTLog.getString(node_id) + "[" + (has_been_alive?"alive":"unknown" ) + "]");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 18-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,43 +20,37 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.router.impl;
+
+import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHTTransportRequestHandler 
+public class 
+DHTRouterStatsImpl
+	implements DHTRouterStats
 {
-	public void
-	pingRequest(
-		DHTTransportContact contact );
-		
-	public void
-	storeRequest(
-		DHTTransportContact contact, 
-		byte[]				key,
-		DHTTransportValue	value );
+	private DHTRouterImpl		router;
 	
-	public DHTTransportContact[]
-	findNodeRequest(
-		DHTTransportContact contact, 
-		byte[]				id );
+	protected
+	DHTRouterStatsImpl(
+		DHTRouterImpl		_router )
+	{
+		router	= _router;
+	}
 	
-	public Object
-	findValueRequest(
-		DHTTransportContact contact, 
-		byte[]				key );
+	public long
+	getNodeCount()
+	{
+		return( router.getNodeCount());
+	}
 	
-
-		/**
-		 * Mechanism for reporting that a contact has been imported
-		 * @param contact
-		 */
-
-	public void
-	contactImported(
-		DHTTransportContact	contact );
+	public long
+	getContactCount()
+	{
+		return( router.getContactCount());
+	}
 }

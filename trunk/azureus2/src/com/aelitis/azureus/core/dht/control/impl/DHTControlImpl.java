@@ -137,7 +137,7 @@ DHTControlImpl
 
 			byte[]	id = contact.getID();
 		
-			router.addContact( id, contact);
+			router.contactKnown( id, contact);
 				
 		}finally{
 			
@@ -157,25 +157,41 @@ DHTControlImpl
 	
 	public void
 	put(
-		byte[]		unencoded_key,
-		byte[]		value )
+		final byte[]		_unencoded_key,
+		final byte[]		_value )
 	{
 		try{
 			DHTLog.indent( router );
 			
-			final byte[]	encoded_key = encodeKey( unencoded_key );
+			final byte[]	encoded_key = encodeKey( _unencoded_key );
 	
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		
 			List	closest = lookup( encoded_key, false );
 			
+			DHTTransportValue	t_value = 
+				new DHTTransportValue()
+				{
+					public int 
+					getCacheDistance() 
+					{
+						return 0;
+					}
+					
+					public byte[]
+					getValue()
+					{
+						return( _value );
+					}
+				};
+	
 			for (int i=0;i<closest.size();i++){
 			
 				DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
 				
 				if ( router.isID( contact.getID())){
 					
-					stored_values.put( new HashWrapper( encoded_key ), value );
+					stored_values.put( new HashWrapper( encoded_key ), t_value );
 					
 				}else{
 					
@@ -184,32 +200,32 @@ DHTControlImpl
 						{
 							public void
 							storeReply(
-								DHTTransportContact contact )
+								DHTTransportContact _contact )
 							{
 								DHTLog.indent( router );
 								
 								DHTLog.log( "store ok" );
 								
-								router.contactAlive( contact.getID(), contact );
+								router.contactAlive( _contact.getID(), _contact );
 								
 								DHTLog.exdent();
 							}	
 							
 							public void
 							failed(
-								DHTTransportContact 	contact )
+								DHTTransportContact 	_contact )
 							{
 								DHTLog.indent( router );
 								
 								DHTLog.log( "store failed" );
 								
-								router.contactDead( contact.getID(), contact );
+								router.contactDead( _contact.getID(), _contact );
 								
 								DHTLog.exdent();
 							}
 						},
 						encoded_key, 
-						value );
+						t_value );
 				}
 			}
 		}finally{
@@ -242,7 +258,7 @@ DHTControlImpl
 			
 			List	result_and_closest = lookup( encoded_key, true );
 	
-			byte[]	value = (byte[])result_and_closest.get(0);
+			DHTTransportValue	value = (DHTTransportValue)result_and_closest.get(0);
 			
 			if ( value != null ){
 				
@@ -284,7 +300,7 @@ DHTControlImpl
 				}
 			}
 			
-			return( value );
+			return( value==null?null:value.getValue());
 			
 		}finally{
 			
@@ -397,7 +413,7 @@ DHTControlImpl
 			final int[]	idle_searches	= { 0 };
 			final int[]	active_searches	= { 0 };
 			
-			final byte[][]	value_search_result = {null};
+			final DHTTransportValue[]	value_search_result = {null};
 			
 			while( true ){
 				
@@ -501,7 +517,7 @@ DHTControlImpl
 											
 												// dunno if its alive or not, however record its existance
 											
-											router.addContact( contact.getID(), contact );
+											router.contactKnown( contact.getID(), contact );
 											
 											if (	contacts_queried.get( new HashWrapper( contact.getID())) == null &&
 													!contacts_to_query.contains( contact )){
@@ -536,7 +552,7 @@ DHTControlImpl
 							public void
 							findValueReply(
 								DHTTransportContact 	contact,
-								byte[]					value )
+								DHTTransportValue		value )
 							{
 								try{
 									DHTLog.indent( router );
@@ -654,9 +670,9 @@ DHTControlImpl
 		
 	public void
 	storeRequest(
-		DHTTransportContact originating_contact, 
-		byte[]				key,
-		byte[]				value )
+		DHTTransportContact 	originating_contact, 
+		byte[]					key,
+		final DHTTransportValue	value )
 	{
 		try{		
 			DHTLog.indent( router );
@@ -665,7 +681,25 @@ DHTControlImpl
 
 			router.contactAlive( originating_contact.getID(), originating_contact );
 	
-			stored_values.put( new HashWrapper( key ), value );
+			stored_values.put( 
+				new HashWrapper( key ), 
+				new DHTTransportValue()
+				{
+					private int	distance	= value.getCacheDistance() + 1;
+					private byte[] val		= value.getValue();
+					
+					public int
+					getCacheDistance()
+					{
+						return( distance );
+					}
+					
+					public byte[]
+					getValue()
+					{
+						return(val );
+					}
+				});
 			
 		}finally{
 			
@@ -712,7 +746,7 @@ DHTControlImpl
 
 			DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
-			byte[]	value = (byte[])stored_values.get( new HashWrapper( key ));
+			DHTTransportValue	value = (DHTTransportValue)stored_values.get( new HashWrapper( key ));
 			
 			if ( value != null ){
 				

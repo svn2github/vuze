@@ -96,11 +96,78 @@ Test
 			
 			//DHTTransportLoopbackImpl.setLatency( 500);
 			
+			/*
+			System.out.println( "before put:" + transports[99].getStats().getString());
 			dhts[99].put( "fred".getBytes(), new byte[2]);
-			
+			System.out.println( "after put:" + transports[99].getStats().getString());
+
 			System.out.println( "get:"  + dhts[0].get( "fred".getBytes()));
 			System.out.println( "get:"  + dhts[77].get( "fred".getBytes()));
+			*/
 			
+			LineNumberReader	reader = new LineNumberReader( new InputStreamReader( System.in ));
+			
+			while( true ){
+				
+				System.out.print( "> " );
+				
+				String	str = reader.readLine().trim();
+				
+				if ( str == null ){
+					
+					break;
+				}
+				
+				int	pos = str.indexOf(' ');
+				
+				if ( pos == -1 || pos == 0 ){
+					
+					System.out.println( "syntax: [p g] <key>[=<value>]" );
+					
+					continue;
+				}
+				
+				int	dht_index = (int)(Math.random()*dhts.length);
+				
+				DHT	dht = dhts[dht_index];
+				
+				System.out.println( "Using dht " + dht_index );
+				
+				String	lhs = str.substring(0,pos);
+				String	rhs = str.substring(pos+1);
+				
+				DHTTransportStats	stats_before = dht.getTransport().getStats().snapshot();
+				
+				if ( lhs.toLowerCase().startsWith("p")){
+					
+					pos = rhs.indexOf('=');
+					
+					if ( pos == -1 ){
+						
+						System.out.println( "syntax: [p g] <key>[=<value>]" );
+						
+					}else{
+					
+						String	key = rhs.substring(0,pos);
+						String	val = rhs.substring(pos+1);
+						
+						dht.put( key.getBytes(), val.getBytes());
+					}
+				}else{
+					
+					byte[]	res = dht.get( rhs.getBytes());
+					
+					System.out.println( "-> " + (res==null?"null":new String(res)));
+				}
+				
+				dht.print();
+				
+				DHTTransportStats	stats_after = dht.getTransport().getStats().snapshot();
+
+				System.out.println( "before:" + stats_before.getString());
+				System.out.println( "after:" + stats_after.getString());
+				
+			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

@@ -115,34 +115,50 @@ DHTRouterNodeImpl
 		return( replacements );
 	}
 	
-	protected void
+	protected DHTRouterContact
 	addReplacement(
 		DHTRouterContactImpl	replacement )
 	{
-		if ( replacements == null ){
+		if ( MAX_REPLACEMENTS == 0 ){
+			
+			return( null );
+		}
+		
+		if( replacements == null ){
 			
 			replacements = new ArrayList();
 			
 		}else{
-			
-				// check its not already there
-			
-			for (int i=0;i<replacements.size();i++){
 				
-				DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
+			if ( replacements.size() == MAX_REPLACEMENTS ){
 				
-				if ( Arrays.equals( replacement.getID(), r.getID())){
+					// if this replacement is known to be alive, replace any existing
+					// replacements that haven't been known to be alive
+				
+				if ( replacement.hasBeenAlive() ){
 					
-					return;
+					for (int i=0;i<replacements.size();i++){
+						
+						DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
+				
+						if ( !r.hasBeenAlive()){
+							
+							replacements.remove(i);
+							
+							break;
+						}
+					}
+				}
+				
+				if ( replacements.size() == MAX_REPLACEMENTS ){
+		
+					return( null );
 				}
 			}
 			
-			if ( replacements.size() == MAX_REPLACEMENTS ){
-			
-				replacements.remove(0);
-			}
+	
 		}
-			
+		
 		replacements.add( replacement );
 		
 			// we need to find a bucket contact to ping - if it fails then it might be replaced with
@@ -168,6 +184,51 @@ DHTRouterNodeImpl
 				break;
 			}
 		}
+		
+		return( replacement );
+	}
+	
+	protected DHTRouterContactImpl
+	findNode(
+		byte[]		node_id,
+		boolean		known_to_be_alive )
+	{
+			for (int k=0;k<buckets.size();k++){
+			
+			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
+			
+			if ( Arrays.equals(node_id, contact.getID())){
+
+				if ( known_to_be_alive ){
+					
+					alive( contact );
+				}
+
+				return( contact );
+			}
+		}
+		
+			// check replacements as well
+			
+		if ( replacements != null ){
+			
+			for (int k=0;k<replacements.size();k++){
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)replacements.get(k);
+				
+				if ( Arrays.equals(node_id, contact.getID())){
+	
+					if ( known_to_be_alive ){
+						
+						alive( contact );
+					}
+	
+					return( contact );
+				}
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected void
@@ -175,9 +236,7 @@ DHTRouterNodeImpl
 		DHTRouterContactImpl	contact )
 	{
 		DHTLog.log( DHTLog.getString( contact.getID()) + ": alive" );
-		
-			// only action this if still present
-		
+				
 		if ( buckets.remove( contact )){
 			
 			contact.setPingOutstanding( false );
@@ -185,6 +244,14 @@ DHTRouterNodeImpl
 			contact.alive();
 			
 			buckets.add( contact );
+			
+		}else if ( replacements.remove( contact )){
+			
+			contact.setPingOutstanding( false );
+			
+			contact.alive();
+			
+			replacements.add( contact );		
 		}
 	}
 	
@@ -202,12 +269,38 @@ DHTRouterNodeImpl
 				
 				if ( replacements.size() > 0 ){
 					
-						// take most recent and add to buckets
+						// take most recent alive one and add to buckets
 					
-					Object	rep = replacements.remove( replacements.size() - 1 );
+					boolean	replaced	= false;
 					
-					buckets.add( rep );
+					for (int i=replacements.size()-1;i>=0;i--){
+						
+						DHTRouterContactImpl	rep = (DHTRouterContactImpl)replacements.get(i);
+						
+						if ( rep.hasBeenAlive()){
+							
+							replacements.remove( rep );
+							
+							buckets.add( rep );
+							
+							replaced	= true;
+							
+							break;
+						}
+					}
+					
+						// non alive - just take most recently added
+					
+					if ( !replaced ){
+						
+						Object	rep = replacements.remove( replacements.size() - 1 );
+					
+						buckets.add( rep );
+					}
 				}
+			}else{
+				
+				replacements.remove( contact );
 			}
 		}
 	}
@@ -219,7 +312,11 @@ DHTRouterNodeImpl
 	{
 		if ( left == null ){
 			
-			DHTLog.log( indent + prefix + ": buckets = " + buckets.size() + bucketsToString() + (contains_router_node_id?" *":""));
+			DHTLog.log( 
+					indent + prefix + 
+					": buckets = " + buckets.size() + contactsToString( buckets) + 
+					", replacements = " + (replacements==null?"null":( replacements.size() + contactsToString( replacements ))) + 
+					(contains_router_node_id?" *":""));
 			
 		}else{
 			
@@ -232,13 +329,14 @@ DHTRouterNodeImpl
 	}
 	
 	protected String
-	bucketsToString()
+	contactsToString(
+		List	contacts )
 	{
 		String	res = "{";
 		
-		for (int i=0;i<buckets.size();i++){
+		for (int i=0;i<contacts.size();i++){
 			
-			res += (i==0?"":", ") + ByteFormatter.nicePrint(((DHTRouterContact)buckets.get(i)).getID(), true);
+			res += (i==0?"":", ") + ((DHTRouterContactImpl)contacts.get(i)).getString();
 		}
 		
 		return( res + "}" );

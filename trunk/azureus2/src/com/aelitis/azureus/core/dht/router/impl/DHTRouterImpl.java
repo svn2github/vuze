@@ -55,6 +55,9 @@ DHTRouterImpl
 	private static long				random_seed	= SystemTime.getCurrentTime();
 	private Random					random;
 	
+	private DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
+	
+	
 	public
 	DHTRouterImpl(
 		int					_K,
@@ -76,6 +79,12 @@ DHTRouterImpl
 		}
 		
 		SMALLEST_SUBTREE_MAX	+= SMALLEST_SUBTREE_MAX_EXCESS;
+	}
+	
+	public DHTRouterStats
+	getStats()
+	{
+		return( stats );
 	}
 	
 	public int
@@ -123,7 +132,7 @@ DHTRouterImpl
 	}
 	
 	public synchronized DHTRouterContact
-	addContact(
+	contactKnown(
 		byte[]	node_id,
 		Object	attachment )
 	{
@@ -170,21 +179,11 @@ DHTRouterImpl
 		
 					List	buckets = current_node.getBuckets();
 
-						// see if we already know about it
+					DHTRouterContact	existing_contact = current_node.findNode( node_id, known_to_be_alive );
 					
-					for (int k=0;k<buckets.size();k++){
+					if ( existing_contact != null ){
 						
-						DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
-						
-						if ( Arrays.equals(node_id, contact.getID())){
-
-							if ( known_to_be_alive ){
-								
-								current_node.alive( contact );
-							}
-
-							return( contact );
-						}
+						return( existing_contact );
 					}
 
 					if ( buckets.size() == K ){
@@ -277,11 +276,15 @@ DHTRouterImpl
 							
 						}else{
 								
-							current_node.addReplacement( new DHTRouterContactImpl( node_id, attachment, known_to_be_alive ));
+								// split not appropriate, add as a replacemnet
 							
-							return( null );
+							DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
+							
+							return( current_node.addReplacement( new_contact));					
 						}
 					}else{
+						
+							// bucket space free, just add it
 		
 						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
 							
