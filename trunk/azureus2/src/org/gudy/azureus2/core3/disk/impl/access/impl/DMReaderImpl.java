@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.Semaphore;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -86,96 +87,109 @@ DMReaderImpl
 		return( new DiskManagerRequestImpl( pieceNumber, offset, length ));
 	}
 	
-	  public void enqueueReadRequest( DiskManagerRequest request, ReadRequestListener listener ) {
-	    DiskReadRequest drr = new DiskReadRequest( request, listener );
-	    synchronized( readQueue ) {
+	public void 
+	enqueueReadRequest( 
+	  	DiskManagerRequest request, 
+		ReadRequestListener listener ) 
+	{
+		DiskReadRequest drr = new DiskReadRequest( request, listener );
+	    
+	    synchronized( readQueue ){
+	    	
 	      readQueue.add( drr );
 	    }
+	    
 	    readQueueSem.release();
-	  }
+	}
 	  
-		public DirectByteBuffer readBlock(int pieceNumber, int offset, int length) {
+	public DirectByteBuffer 
+	readBlock(
+		int pieceNumber, 
+		int offset, 
+		int length ) 
+	{
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( length );
 
-			DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( length );
+		if (buffer == null) { // Fix for bug #804874
+			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
+			return null;
+		}
 
-			if (buffer == null) { // Fix for bug #804874
-				System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
-				return null;
-			}
-
-			long previousFilesLength = 0;
-			int currentFile = 0;
-			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+		long previousFilesLength = 0;
+		int currentFile = 0;
+		PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 			// temporary fix for bug 784306
-			if (pieceList.size() == 0) {
-				System.out.println("no pieceList entries for " + pieceNumber);
-				return buffer;
-			}
-
-			long fileOffset = pieceList.get(0).getOffset();
-			while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
-				previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
-				currentFile++;
-				fileOffset = 0;
-			}
-
-			// update the offset (we're in the middle of a file)
-			fileOffset += offset - previousFilesLength;
-			// noError is only used for error reporting, it could probably be removed
-			boolean noError = true;
-			while (buffer.hasRemaining()
-				&& currentFile < pieceList.size()
-				&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
-
-				currentFile++;
-				fileOffset = 0;
-			}
-
-			if (!noError) {
-				// continue the error report
-				//PieceMapEntry tempPiece = pieceList.get(currentFile);
-				//System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
-				//System.out.println("BufferLimit: " + buffer.limit());
-				//System.out.println("BufferRemaining: " + buffer.remaining());
-				//System.out.println("PieceNumber: " + pieceNumber);
-				//System.out.println("Offset: " + fileOffset);
-				//System.out.println("Length  " + length);
-				//System.out.println("PieceLength: " + tempPiece.getLength());
-				//System.out.println("PieceOffset: " + tempPiece.getOffset());
-				//System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
-
-
-				// Stop, because if it happened once, it will probably happen everytime
-				// Especially in the case of a CD being removed
-				disk_manager.stopIt();
-				disk_manager.setState( DiskManager.FAULTY );
-			}
-
-			buffer.position(0);
+		if (pieceList.size() == 0) {
+			System.out.println("no pieceList entries for " + pieceNumber);
 			return buffer;
 		}
 
+		long fileOffset = pieceList.get(0).getOffset();
+		while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
+			previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
+			currentFile++;
+			fileOffset = 0;
+		}
+
+		// update the offset (we're in the middle of a file)
+		fileOffset += offset - previousFilesLength;
+		// noError is only used for error reporting, it could probably be removed
+		boolean noError = true;
+		while (buffer.hasRemaining()
+			&& currentFile < pieceList.size()
+			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
+
+			currentFile++;
+			fileOffset = 0;
+		}
+
+		if (!noError) {
+			// continue the error report
+			//PieceMapEntry tempPiece = pieceList.get(currentFile);
+			//System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
+			//System.out.println("BufferLimit: " + buffer.limit());
+			//System.out.println("BufferRemaining: " + buffer.remaining());
+			//System.out.println("PieceNumber: " + pieceNumber);
+			//System.out.println("Offset: " + fileOffset);
+			//System.out.println("Length  " + length);
+			//System.out.println("PieceLength: " + tempPiece.getLength());
+			//System.out.println("PieceOffset: " + tempPiece.getOffset());
+			//System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+
+
+			// Stop, because if it happened once, it will probably happen everytime
+			// Especially in the case of a CD being removed
+	
+			disk_manager.stopIt();
+			
+			disk_manager.setState( DiskManager.FAULTY );
+		}
+
+		buffer.position(0);
+		return buffer;
+	}
+
 		// refactored out of readBlock() - Moti
 		// reads a file into a buffer, returns true when no error, otherwise false.
-		private boolean 
-		readFileInfoIntoBuffer(
-			DiskManagerFileInfoImpl file, 
-			DirectByteBuffer buffer, 
-			long offset) 
-		{
-			try{
-				file.getCacheFile().read( buffer, offset );
+	private boolean 
+	readFileInfoIntoBuffer(
+		DiskManagerFileInfoImpl file, 
+		DirectByteBuffer buffer, 
+		long offset) 
+	{
+		try{
+			file.getCacheFile().read( buffer, offset );
 				
-				return( true );
+			return( true );
 				
-			}catch( CacheFileManagerException e ){
+		}catch( CacheFileManagerException e ){
 				
-				disk_manager.setErrorMessage((e.getCause()!=null?e.getCause().getMessage():e.getMessage()));
+			disk_manager.setErrorMessage((e.getCause()!=null?e.getCause().getMessage():e.getMessage()));
 				
-				return( false );
-			}
+			return( false );
 		}
+	}
 
 	public class DiskReadThread extends Thread {
 		private boolean bReadContinue = true;
@@ -194,7 +208,7 @@ DMReaderImpl
 					
 					for (int i=0;i<entry_count;i++){
 						
-            DiskReadRequest drr;
+						DiskReadRequest drr;
 						
 						synchronized( readQueue ){
 							
@@ -206,17 +220,19 @@ DMReaderImpl
 							drr = (DiskReadRequest)readQueue.remove(0);
 						}
 		
-						DiskManagerRequest request = drr.request;
+						DiskManagerRequest request = drr.getRequest();
 		
 						DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
             
 						if (buffer != null) {
-              drr.listener.readCompleted( request, buffer );              
-						}
-            else {
-              String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
-						  LGLogger.log( LGLogger.ERROR, err_msg );
-						  System.out.println( err_msg );
+							
+							drr.readCompleted( buffer );
+							
+						}else {
+							
+							String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
+							LGLogger.log( LGLogger.ERROR, err_msg );
+							System.out.println( err_msg );
 						}
 					}
 				}catch( Throwable e ){
@@ -237,19 +253,47 @@ DMReaderImpl
 			readQueueSem.releaseForever();
 						
 			while (readQueue.size() != 0) {
-        readQueue.remove(0);
+				readQueue.remove(0);
 			}
 		}
 	}
-	  private static class DiskReadRequest {
-	    private final DiskManagerRequest request;
-	    private final ReadRequestListener listener;
+	 
+	private static class 
+	DiskReadRequest 
+	{
+	    private final DiskManagerRequest 	request;
+	    private final ReadRequestListener 	listener;
 	    
-	    private DiskReadRequest( DiskManagerRequest r, ReadRequestListener l ) {
-	      this.request = r;
-	      this.listener = l;
+	    //private long	queue_time	= SystemTime.getCurrentTime();
+	    
+	    private 
+		DiskReadRequest( 
+			DiskManagerRequest 	r, 
+			ReadRequestListener l ) 
+	    {
+	      request 	= r;
+	      listener = l;
 	    }
-	  }
+	    
+	    protected DiskManagerRequest
+		getRequest()
+	    {
+	    	return( request );
+	    }
+	    
+	    protected void
+		readCompleted(
+			DirectByteBuffer	buffer )
+	    {
+	    	//long	now	= SystemTime.getCurrentTime();    	
+	    	//long	processing_time = now - request.getTimeCreated();
+	    	//long	queueung_time	= now - queue_time;
+	    	
+	    	//System.out.println( "DiskManager req time = " + processing_time + ", queue = " + queueung_time );
+	    	
+	    	listener.readCompleted( request, buffer );
+	    }
+	}
 
 	  
 }
