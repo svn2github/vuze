@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.*;
 
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
@@ -54,6 +55,8 @@ implements SortableItem
 	private BufferedTableRow 	item;
 	private TRHostTorrent		torrent;
  
+	private byte[]	torrent_name;
+	
 		//Used when sorting
 	public boolean selected;  
 
@@ -120,9 +123,13 @@ implements SortableItem
 			return;
 	  	}
 	  		
-	  	if ( item.getText(0) == null ){
+	  	TOTorrent to_torrent = torrent.getTorrent();
+	  	
+	  	if ( to_torrent.getName() != torrent_name ){
 	  		
-		  	String name = TorrentUtils.getLocalisedName( torrent.getTorrent() );
+	  		torrent_name = to_torrent.getName();
+	  		
+		  	String name = TorrentUtils.getLocalisedName( to_torrent );
 	    
 			int sep = name.lastIndexOf('.');
 			 
