@@ -46,13 +46,24 @@ public class SeedToPeerRatioItem
 
   public void refresh(TableCell cell) {
     float ratio = -1;
+    
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     if( dm != null ) {
       TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+      int seeds;
+      int peers;
+      
       if( response != null && response.isValid() ) {
-        ratio = (float)response.getSeeds() / response.getPeers();
+        seeds = Math.max( dm.getNbSeeds(), response.getSeeds() );
+        peers = Math.max( dm.getNbPeers(), response.getPeers() );
       }
+      else {
+        seeds = dm.getNbSeeds();
+        peers = dm.getNbPeers();
+      }
+      
+      ratio = (float)seeds / peers;
     }
 
     if( !cell.setSortValue( ratio ) && cell.isValid() ) {
@@ -64,6 +75,10 @@ public class SeedToPeerRatioItem
     }
     else {
       String value = Float.toString( ratio );
+      
+      if( value.equalsIgnoreCase( "NaN" ) ) {  //no peers
+        value = Float.toString( 0F );
+      }
       
       int dot_index = value.indexOf( (char)46 );
       
