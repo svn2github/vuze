@@ -331,6 +331,7 @@ StartStopRulesDefaultPlugin
     int totalComplete = 0;
     int totalCompleteQueued = 0;
     int totalIncompleteQueued = 0;
+    int totalFirstPriority = 0;
 
     boolean recalcQR = ((process_time - lastQRcalcTime) > RECALC_QR_EVERY);
     if (somethingChanged) {
@@ -358,6 +359,10 @@ StartStopRulesDefaultPlugin
     // - Do anything that doesn't need to be done in Queued order
     for (int i = 0; i < dlDataArray.length; i++) {
       downloadData dl_data = dlDataArray[i];
+      
+      if (dl_data.isFirstPriority()) {
+        totalFirstPriority++;
+      }
 
       int qr = (recalcQR) ? dl_data.recalcQR() : dl_data.getQR();
 
@@ -558,17 +563,32 @@ StartStopRulesDefaultPlugin
           }
         }
 
-        if ((state == Download.ST_QUEUED) &&
-            ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads))) {
-          try {
-            if (bDebugLog)
-              log.log(LoggerChannel.LT_INFORMATION, "   restart()");
-            download.restart();
-            // increase counts
-            numWaitingOrDLing++;
-            totalWaitingToDL++;
-          } catch (Exception ignore) {/*ignore*/}
-          state = download.getState();
+        if (state == Download.ST_QUEUED)
+        {
+          // use a variable to make logic more readable (than an if statement)
+
+          // super rule: can always start if maxDownloads is unlimited (0)
+          boolean canStart = (maxDownloads == 0);
+          if (!canStart && (numWaitingOrDLing < maxDownloads)) {
+            // Not unlimited, but we don't have all our download slots filled
+            // Check to see if "First Priority" is using the download slot
+            // If it is, we can't stop it
+            maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
+            canStart = (totalFirstPriority <= maxSeeders) || 
+                       ((maxActive - numWaitingOrDLing - totalFirstPriority) > 0);
+          }
+
+          if (canStart) {
+            try {
+              if (bDebugLog)
+                log.log(LoggerChannel.LT_INFORMATION, "   restart()");
+              download.restart();
+              // increase counts
+              numWaitingOrDLing++;
+              totalWaitingToDL++;
+            } catch (Exception ignore) {/*ignore*/}
+            state = download.getState();
+          }
         }
 
 
@@ -1082,6 +1102,10 @@ StartStopRulesDefaultPlugin
 
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
+      // FP only applies to completed
+      if (dl.getStats().getDownloadCompleted(false) < 1000)
+        return false;
+
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
       boolean bAnyMatched = bLastMatched;
