@@ -92,27 +92,34 @@ PEPeerTransportImpl
      	socket 			= sck;
   	}
   
-  	protected synchronized void
+  	protected void
 	setupSpeedLimiter()
   	{
-  		final DownloadManager	dm = getControl().getDownloadManager();
+  		try{
+  			this_mon.enter();
   		
-  		data_reader = (DataReader)dm.getData( "PEPeerTransport::DataReader" );
-  		
-  		if ( data_reader == null ){
+	  		final DownloadManager	dm = getControl().getDownloadManager();
+	  		
+	  		data_reader = (DataReader)dm.getData( "PEPeerTransport::DataReader" );
+	  		
+	  		if ( data_reader == null ){
+	  			
+	  			data_reader = 
+	  				DataReaderSpeedLimiter.getSingleton().getDataReader(
+	  						new DataReaderOwner()
+							{
+	  							public int
+	  							getMaximumBytesPerSecond()
+	  							{
+	  								return( dm.getStats().getMaxDownloadKBSpeed() * 1024 );
+	  							}
+							});
+	  			
+	  			dm.setData( "PEPeerTransport::DataReader", data_reader );
+	  		}
+  		}finally{
   			
-  			data_reader = 
-  				DataReaderSpeedLimiter.getSingleton().getDataReader(
-  						new DataReaderOwner()
-						{
-  							public int
-  							getMaximumBytesPerSecond()
-  							{
-  								return( dm.getStats().getMaxDownloadKBSpeed() * 1024 );
-  							}
-						});
-  			
-  			dm.setData( "PEPeerTransport::DataReader", data_reader );
+  			this_mon.exit();
   		}
   	}
   	

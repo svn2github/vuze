@@ -51,6 +51,8 @@ PEPeerServerImpl
   public static final int evtErrors = 2;
 
   protected static serverHelperDelegate	server_delegate;
+
+  private static AEMonitor	class_mon	= new AEMonitor( "PEPeerServer" );
   
   int TCPListenPort;
   private ServerSocketChannel sck;
@@ -58,34 +60,42 @@ PEPeerServerImpl
   private PEPeerServerAdapter adapter;
 
 
-	 public static synchronized PEPeerServerHelper
+	 public static PEPeerServerHelper
 	 create()
 	 {
-	 	int	port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
-
-	 	if ( server_delegate != null ){
-	 		
-	 		server_delegate.setPort( port );
-
-	 	}else{
-	 		
-	 		COConfigurationManager.addParameterListener(
-	 				"TCP.Listen.Port",
-					new ParameterListener()
-					{
-	 					public void
-						parameterChanged(
-							String	param )
-	 					{
-	 						create();
-	 					}
-								
-					});
-	 		
-	 		server_delegate	= new serverHelperDelegate( port );
-	 	}
+	 	try{
+	 		class_mon.enter();
 	 	
-		return( server_delegate );
+		 	int	port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+	
+		 	if ( server_delegate != null ){
+		 		
+		 		server_delegate.setPort( port );
+	
+		 	}else{
+		 		
+		 		COConfigurationManager.addParameterListener(
+		 				"TCP.Listen.Port",
+						new ParameterListener()
+						{
+		 					public void
+							parameterChanged(
+								String	param )
+		 					{
+		 						create();
+		 					}
+									
+						});
+		 		
+		 		server_delegate	= new serverHelperDelegate( port );
+		 	}
+		 	
+			return( server_delegate );
+			
+	 	}finally{
+	 		
+	 		class_mon.exit();
+	 	}
 	 }
 	
   private 

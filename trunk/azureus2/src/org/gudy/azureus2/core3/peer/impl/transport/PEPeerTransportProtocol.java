@@ -72,7 +72,9 @@ PEPeerTransportProtocol
 	private int hashcode;
 	
 	private PEPeerStatsImpl stats;
-  private List requested = new ArrayList();
+  private List 		requested 		= new ArrayList();
+  private AEMonitor	requested_mon	= new AEMonitor( "PEPeerTransportProtocol:Req" );
+
   private HashMap data;
   
   private boolean choked = true;
@@ -131,12 +133,17 @@ PEPeerTransportProtocol
   private long last_bytes_sent_time = 0;
   
   
+  protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
+  
+  
+  
   private final Map recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
     public boolean removeEldestEntry(Map.Entry eldest) {
       return size() > 100;
     }
   };
   
+  private AEMonitor	recent_outgoing_requests_mon	= new AEMonitor( "PEPeerTransportProtocol:ROR" );
   
   private static final boolean SHOW_DISCARD_RATE_STATS;
   
@@ -250,73 +257,85 @@ PEPeerTransportProtocol
 
    
   
-  public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
-    //System.out.println(reason + ", " + closedOnError+ ", " + attemptReconnect);
-    
-  	LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
+  public void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
+  	try{
+  		this_mon.enter();
   	
-  	if (closing) {
-  		return;
+	    //System.out.println(reason + ", " + closedOnError+ ", " + attemptReconnect);
+	    
+	  	LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
+	  	
+	  	if (closing) {
+	  		return;
+	  	}
+	  	closing = true;
+	    
+	    currentState = new StateClosing();
+	  	
+	  	//Cancel any pending requests (on the manager side)
+	  	cancelRequests();
+	  	  	
+	  	//Send removed event ...
+	    manager.peerRemoved(this);
+	    
+	    
+	    if( outgoing_piece_message_handler != null ) {
+	      outgoing_piece_message_handler.removeAllPieceRequests();
+	      outgoing_piece_message_handler.destroy();
+	      outgoing_piece_message_handler = null;
+	    }
+	    
+	    if( outgoing_have_message_aggregator != null ) {
+	      outgoing_have_message_aggregator.destroy();
+	      outgoing_have_message_aggregator = null;
+	    }
+	    
+	    closeConnectionX();  //cleanup of download limiter
+	    
+	    if( connection != null ) {
+	      manager.getConnectionPool().removeConnection( connection );
+	      connection.close();
+	      connection = null;
+	    }
+	    
+	    
+	    try{
+	    	recent_outgoing_requests_mon.enter();
+	    
+	    	recent_outgoing_requests.clear();
+	      
+	    }finally{
+	    	
+	    	recent_outgoing_requests_mon.exit();
+	    }
+	    
+	    
+	    
+	    
+	  	//remove identity
+	  	if ( this.id != null && identityAdded ) {
+	  		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
+	  	}
+	
+	    if ( lengthBuffer != null ) {
+	      lengthBuffer.returnToPool();
+	      lengthBuffer = null;
+	    }
+	  	
+	  	//Send a logger event
+	  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
+	  	
+	    if( attemptReconnect && !incoming ) {      
+	  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
+	  		manager.peerConnectionClosed( this, true );
+	  	}
+	  	else {
+	      manager.peerConnectionClosed( this, false );
+	  	}
+  	}finally{
+  		
+  		this_mon.exit();
   	}
-  	closing = true;
-    
-    currentState = new StateClosing();
-  	
-  	//Cancel any pending requests (on the manager side)
-  	cancelRequests();
-  	  	
-  	//Send removed event ...
-    manager.peerRemoved(this);
-    
-    
-    if( outgoing_piece_message_handler != null ) {
-      outgoing_piece_message_handler.removeAllPieceRequests();
-      outgoing_piece_message_handler.destroy();
-      outgoing_piece_message_handler = null;
-    }
-    
-    if( outgoing_have_message_aggregator != null ) {
-      outgoing_have_message_aggregator.destroy();
-      outgoing_have_message_aggregator = null;
-    }
-    
-    closeConnectionX();  //cleanup of download limiter
-    
-    if( connection != null ) {
-      manager.getConnectionPool().removeConnection( connection );
-      connection.close();
-      connection = null;
-    }
-    
-    
-    synchronized( recent_outgoing_requests ) {
-      recent_outgoing_requests.clear();
-    }
-    
-    
-    
-    
-  	//remove identity
-  	if ( this.id != null && identityAdded ) {
-  		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
-  	}
-
-    if ( lengthBuffer != null ) {
-      lengthBuffer.returnToPool();
-      lengthBuffer = null;
-    }
-  	
-  	//Send a logger event
-  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
-  	
-    if( attemptReconnect && !incoming ) {      
-  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
-  		manager.peerConnectionClosed( this, true );
-  	}
-  	else {
-      manager.peerConnectionClosed( this, false );
-  	}
-  	
   }
 
 	
@@ -352,10 +371,15 @@ PEPeerTransportProtocol
   	}
   }
 		
-  private class StateHandshaking implements PEPeerTransportProtocolState {
+  private class 
+  StateHandshaking 
+  	implements PEPeerTransportProtocolState 
+  {
     DirectByteBuffer handshake_read_buff;
     boolean sent_our_handshake = false;
-    
+  
+    protected AEMonitor	StateHandshaking_this_mon	= new AEMonitor( "PEPeerTransportProtocol:StateHandshaking" );
+
     private StateHandshaking( byte[] data_already_read ) {
       allocateAll();
       startConnectionX();  //sets up the download speed limiter
@@ -371,39 +395,47 @@ PEPeerTransportProtocol
       }
     }
     
-    public synchronized int process() {
-      if( !sent_our_handshake ) {
-        connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ) );
-        sent_our_handshake = true;
-      }
-      
-      if( handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-        try {
-          int read = readData( handshake_read_buff );
-          if( read == 0 ) {
-            return PEPeerControl.DATA_EXPECTED_SLEEP;
-          }
-          else if( read < 0 ) {
-						throw new IOException( "End of Stream reached" );
-          }
-        }
-        catch (IOException e) {
-					closeAll( PEPeerTransportProtocol.this + ": StateHandshaking:: " + e, true, false );
-					handshake_read_buff.returnToPool();
-          return 0;
+    public int process() 
+    {
+    	try{
+    		StateHandshaking_this_mon.enter();
+     
+	      if( !sent_our_handshake ) {
+	        connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ) );
+	        sent_our_handshake = true;
+	      }
+	      
+	      if( handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
+	        try {
+	          int read = readData( handshake_read_buff );
+	          if( read == 0 ) {
+	            return PEPeerControl.DATA_EXPECTED_SLEEP;
+	          }
+	          else if( read < 0 ) {
+							throw new IOException( "End of Stream reached" );
+	          }
+	        }
+	        catch (IOException e) {
+						closeAll( PEPeerTransportProtocol.this + ": StateHandshaking:: " + e, true, false );
+						handshake_read_buff.returnToPool();
+	          return 0;
+					}
 				}
-			}
-      
-      if( !handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) { //we've read all their handshake in
-        handleHandShakeResponse( handshake_read_buff );
+	      
+	      if( !handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) { //we've read all their handshake in
+	        handleHandShakeResponse( handshake_read_buff );
+	      }
+	      
+	      return PEPeerControl.NO_SLEEP;
+	      
+    	}finally{
+    		StateHandshaking_this_mon.exit();
+    	}
       }
-      
-      return PEPeerControl.NO_SLEEP;
-		}
     
-		public int getState() {
+	  public int getState() {
 			return HANDSHAKING;
-		}
+	  }
 	}
 
   
@@ -531,118 +563,127 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   boolean readingLength = true;
   DirectByteBuffer message_read_buff;
   
-  public synchronized int process() {      
-    if( ++processLoop > 10 ) {
-      return PEPeerControl.NO_SLEEP;
-    }
-          
-    if (readingLength) {
-      if (lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER) ) {          
-        try {
-          int read = readData(lengthBuffer);
-          
-          if (read == 0) {
-            //If there's nothing pending on the socket, then
-            //we can quite safely send a request while we wait
-            if(lengthBuffer.remaining(DirectByteBuffer.SS_PEER) == 4) {
-              readyToRequest = true;
-              return PEPeerControl.WAITING_SLEEP;
-            }
-            else {
-              //wait a bit before trying again
-              return PEPeerControl.DATA_EXPECTED_SLEEP;
-            }
-          }
-          else if (read < 0) {
-            throw new IOException("End of Stream Reached");
-          }
-        }
-        catch (IOException e) {
-          closeAll(PEPeerTransportProtocol.this + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
-          return PEPeerControl.NO_SLEEP;
-        }
-			}
+  protected AEMonitor	StateTransfering_this_mon	= new AEMonitor( "PEPeerTransportProtocol:StateTransfering" );
 
-			if (!lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
-				int length = lengthBuffer.getInt(DirectByteBuffer.SS_PEER,0);
-
-        //this message-length-read round is done, time to read the payload
-        readingLength = false;
-        //reset the position for next round
-        lengthBuffer.position( DirectByteBuffer.SS_PEER, 0 );
-        
-				if(length < 0) {
-					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
-					return PEPeerControl.NO_SLEEP;
+  public int process() 
+  {
+  	try{
+  		StateTransfering_this_mon.enter();
+  	
+	    if( ++processLoop > 10 ) {
+	      return PEPeerControl.NO_SLEEP;
+	    }
+	          
+	    if (readingLength) {
+	      if (lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER) ) {          
+	        try {
+	          int read = readData(lengthBuffer);
+	          
+	          if (read == 0) {
+	            //If there's nothing pending on the socket, then
+	            //we can quite safely send a request while we wait
+	            if(lengthBuffer.remaining(DirectByteBuffer.SS_PEER) == 4) {
+	              readyToRequest = true;
+	              return PEPeerControl.WAITING_SLEEP;
+	            }
+	            else {
+	              //wait a bit before trying again
+	              return PEPeerControl.DATA_EXPECTED_SLEEP;
+	            }
+	          }
+	          else if (read < 0) {
+	            throw new IOException("End of Stream Reached");
+	          }
+	        }
+	        catch (IOException e) {
+	          closeAll(PEPeerTransportProtocol.this + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
+	          return PEPeerControl.NO_SLEEP;
+	        }
 				}
-      
-				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
-				if( length > 16393 ) {
-					closeAll(PEPeerTransportProtocol.this + " : incoming message size too large: " + length,true, true);
-					return PEPeerControl.NO_SLEEP;
-				}
-        
-				if (length > 0) {
-          message_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, length );
-          if( message_read_buff == null) {
-            closeAll( PEPeerTransportProtocol.this + ": message_read_buff is null", true, false );
-            return PEPeerControl.NO_SLEEP;
-          }
-          
-					//'piece' data messages are greater than length 13
-          if ( length > 13 ) {
-            readyToRequest = true;
-          }
-          //protocol message, don't request until we know what the message is
-          else {
-            readyToRequest = false;
-          }
-				}
-				else {
-					//length == 0 : Keep alive message, process next.
-					readingLength = true;
+	
+				if (!lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
+					int length = lengthBuffer.getInt(DirectByteBuffer.SS_PEER,0);
+	
+	        //this message-length-read round is done, time to read the payload
+	        readingLength = false;
+	        //reset the position for next round
+	        lengthBuffer.position( DirectByteBuffer.SS_PEER, 0 );
+	        
+					if(length < 0) {
+						closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
+						return PEPeerControl.NO_SLEEP;
+					}
+	      
+					//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
+					if( length > 16393 ) {
+						closeAll(PEPeerTransportProtocol.this + " : incoming message size too large: " + length,true, true);
+						return PEPeerControl.NO_SLEEP;
+					}
+	        
+					if (length > 0) {
+	          message_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, length );
+	          if( message_read_buff == null) {
+	            closeAll( PEPeerTransportProtocol.this + ": message_read_buff is null", true, false );
+	            return PEPeerControl.NO_SLEEP;
+	          }
+	          
+						//'piece' data messages are greater than length 13
+	          if ( length > 13 ) {
+	            readyToRequest = true;
+	          }
+	          //protocol message, don't request until we know what the message is
+	          else {
+	            readyToRequest = false;
+	          }
+					}
+					else {
+						//length == 0 : Keep alive message, process next.
+						readingLength = true;
+					}
 				}
 			}
-		}
-    
-	  if (!readingLength) {
-	  	try {
-	  		int read = readData( message_read_buff );
-        
-        if (read == 0) {
-          //nothing on the socket, wait a bit before trying again
-          return PEPeerControl.DATA_EXPECTED_SLEEP;
-        }
-	  		else if (read < 0) {
-	  			throw new IOException("End of Stream Reached");
-	  		}
-	  		else {
-	  		  if (message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13) {
-	  		    stats.received(read);
-	  		  }
-	  		}
-	  	}
-	  	catch (IOException e) {
-	  		closeAll(PEPeerTransportProtocol.this + " : StateTransfering::End of Stream Reached (reading data)",true, true);
-	  		message_read_buff.returnToPool();
-        return PEPeerControl.NO_SLEEP;
-	  	}
-    
-	  	if( !message_read_buff.hasRemaining(DirectByteBuffer.SS_PEER) ) {
-	  		//After each message has been received, we're not ready to request anymore,
-	  		//Unless we finish the socket's queue, or we start receiving a piece.
-	  		readyToRequest = false;
-        
-        readingLength = analyzeIncomingMessage( message_read_buff );
-        
-	  		if( getState() == TRANSFERING && readingLength ) {
-	  			process();
-	  			return PEPeerControl.NO_SLEEP;
-	  		}
-	  	}
-	  }
-    
-    return PEPeerControl.NO_SLEEP;
+	    
+		  if (!readingLength) {
+		  	try {
+		  		int read = readData( message_read_buff );
+	        
+	        if (read == 0) {
+	          //nothing on the socket, wait a bit before trying again
+	          return PEPeerControl.DATA_EXPECTED_SLEEP;
+	        }
+		  		else if (read < 0) {
+		  			throw new IOException("End of Stream Reached");
+		  		}
+		  		else {
+		  		  if (message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13) {
+		  		    stats.received(read);
+		  		  }
+		  		}
+		  	}
+		  	catch (IOException e) {
+		  		closeAll(PEPeerTransportProtocol.this + " : StateTransfering::End of Stream Reached (reading data)",true, true);
+		  		message_read_buff.returnToPool();
+	        return PEPeerControl.NO_SLEEP;
+		  	}
+	    
+		  	if( !message_read_buff.hasRemaining(DirectByteBuffer.SS_PEER) ) {
+		  		//After each message has been received, we're not ready to request anymore,
+		  		//Unless we finish the socket's queue, or we start receiving a piece.
+		  		readyToRequest = false;
+	        
+	        readingLength = analyzeIncomingMessage( message_read_buff );
+	        
+		  		if( getState() == TRANSFERING && readingLength ) {
+		  			process();
+		  			return PEPeerControl.NO_SLEEP;
+		  		}
+		  	}
+		  }
+	    
+	      return PEPeerControl.NO_SLEEP;
+  	  }finally{
+  		 StateTransfering_this_mon.exit();
+  	  }
 	}
 
 	public int getState() {
@@ -849,8 +890,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           else { //initial request may have already expired, but check if we can use the data anyway
             if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
               boolean ever_requested;
-              synchronized( recent_outgoing_requests ) {
+              try{
+              	recent_outgoing_requests_mon.enter();
+              
                 ever_requested = recent_outgoing_requests.containsKey( request );
+              }finally{
+              	
+              	recent_outgoing_requests_mon.exit();
               }
               if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
                 msg += ", piece block data recovered as useful";
@@ -962,8 +1008,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
   	if( !alreadyRequested( request ) ) {
   		addRequest( request );
-      synchronized( recent_outgoing_requests ) {
+      try{
+      	recent_outgoing_requests_mon.enter();
+      
         recent_outgoing_requests.put( request, null );
+      }finally{
+      	recent_outgoing_requests_mon.exit();
       }
       connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return true;
@@ -1167,16 +1217,22 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   /** To store arbitrary objects against a peer. */
-  public synchronized void setData (String key, Object value) {
-  	if (data == null) {
-  	  data = new HashMap();
+  public void setData (String key, Object value) {
+  	try{
+  		this_mon.enter();
+  	
+	  	if (data == null) {
+	  	  data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (data.containsKey(key))
+	        data.remove(key);
+	    } else {
+	      data.put(key, value);
+	    }
+  	}finally{
+  		this_mon.exit();
   	}
-    if (value == null) {
-      if (data.containsKey(key))
-        data.remove(key);
-    } else {
-      data.put(key, value);
-    }
   }
 
 
@@ -1222,20 +1278,26 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   /////////////////////////////////////////////////////////////////
 
 
-		protected void cancelRequests() {
+		protected void cancelRequests() 
+		{
 			if ( requested != null ) {
-        synchronized (requested) {
-          for (int i = requested.size() - 1; i >= 0; i--) {
-            DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
-            manager.requestCanceled(request);
-          }
-        }
-      }
-      if( !closing ) {
-        //cancel any unsent requests in the queue
-        int[] type = { BTProtocolMessage.BT_REQUEST };
-        connection.getOutgoingMessageQueue().removeMessagesOfType( type );
-      }
+		        try{
+		        	requested_mon.enter();
+		        
+		          for (int i = requested.size() - 1; i >= 0; i--) {
+		            DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
+		            manager.requestCanceled(request);
+		          }
+		        }finally{
+		        	
+		        	requested_mon.exit();
+		        }
+	      }
+	      if( !closing ) {
+	        //cancel any unsent requests in the queue
+	        int[] type = { BTProtocolMessage.BT_REQUEST };
+	        connection.getOutgoingMessageQueue().removeMessagesOfType( type );
+	      }
 		}
 
 		public int 
@@ -1251,24 +1313,29 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		public List 
 		getExpiredRequests() {
 			List result = null;
-	    synchronized (requested) {
-	    	for (int i = 0; i < requested.size(); i++) {
-	    		try {
-	    			DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
-	    			if (request.isExpired()) {
-	    				if ( result == null ){
-	    					result = new ArrayList();
-	    				}
-	    				result.add(request);
-	    			}
-	    		}
-	    		catch (ArrayIndexOutOfBoundsException e) {
-	    			//Keep going, most probably, piece removed...
-	    			//Hopefully we'll find it later :p
-            e.printStackTrace();
-	    		}
-	    	}
-	    }
+			try{
+				requested_mon.enter();
+			
+		    	for (int i = 0; i < requested.size(); i++) {
+		    		try {
+		    			DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
+		    			if (request.isExpired()) {
+		    				if ( result == null ){
+		    					result = new ArrayList();
+		    				}
+		    				result.add(request);
+		    			}
+		    		}
+		    		catch (ArrayIndexOutOfBoundsException e) {
+		    			//Keep going, most probably, piece removed...
+		    			//Hopefully we'll find it later :p
+	            e.printStackTrace();
+		    		}
+		    	}
+		    }finally{
+		    	
+		    	requested_mon.exit();
+		    }
 			return result;
 		}
 		
@@ -1276,8 +1343,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		alreadyRequested(
 			DiskManagerRequest	request )
 		{
-	    synchronized (requested) {
+	    try{
+	    	requested_mon.enter();
+	    
 	      return requested.contains( request );
+	    }finally{
+	    	requested_mon.exit();
 	    }
 		}
 		
@@ -1285,25 +1356,38 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		addRequest(
 			DiskManagerRequest	request )
 		{
-	    synchronized (requested) {
-	    	requested.add(request);
-	    }
+			try{
+				requested_mon.enter();
+			
+				requested.add(request);
+			}finally{
+				
+				requested_mon.exit();
+			}
 		}
 		
 		protected void
 		removeRequest(
 			DiskManagerRequest	request )
 		{
-	    synchronized (requested) {
-	    	requested.remove(request);
-	    }
-      BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
-      connection.getOutgoingMessageQueue().removeMessage( msg );
+	    	try{
+	    		requested_mon.enter();
+	    	
+	    		requested.remove(request);
+	    	}finally{
+	    		
+	    		requested_mon.exit();
+	    	}
+	    	BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
+	    	connection.getOutgoingMessageQueue().removeMessage( msg );
 		}
 		
 		protected void 
-		reSetRequestsTime() {
-	    synchronized (requested) {
+		reSetRequestsTime() 
+		{
+			try{
+			  requested_mon.enter();
+	    
 			  for (int i = 0; i < requested.size(); i++) {
 			  	DiskManagerRequest request = null;
 			  	try {
@@ -1314,8 +1398,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  	if (request != null)
 			  		request.reSetTime();
 			  }
-	    }
-	}
+			}finally{
+				
+				requested_mon.exit();
+			}
+		}
     
 
 	public String toString() {
@@ -1326,7 +1413,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	addListener(
 		PEPeerListener	l )
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( listeners == null ){
 				
@@ -1334,6 +1422,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			
 			listeners.add(l);
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -1341,7 +1432,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	removeListener(
 		PEPeerListener	l )
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( listeners == null ){
 				
@@ -1349,6 +1441,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			
 			listeners.remove(l);
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
   
