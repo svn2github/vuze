@@ -49,7 +49,7 @@ RPObject
 	
 	public Long	_object_id;
 	
-	protected transient Object				_delegate;
+	protected transient Object				__delegate;
 	protected transient	RPRequestDispatcher	_dispatcher;
 	
 	protected static RPObject
@@ -121,9 +121,9 @@ RPObject
 			}
 		}
 		
-		_delegate	= key;
+		__delegate	= key;
 		
-		_setDelegate( _delegate );
+		_setDelegate( __delegate );
 	}
 	
 	public long
@@ -136,13 +136,13 @@ RPObject
 	_setDelegate(
 		Object		_delegate )
 	{
-		throw( new RuntimeException( "you've got to implement this"));
+		throw( new RuntimeException( "you've got to implement this - " + _delegate ));
 	}
 	
 	protected Object
 	_getDelegate()
 	{
-		return( _delegate );
+		return( __delegate );
 	}
 	
 	protected Object
@@ -179,7 +179,7 @@ RPObject
 	_process(
 		RPRequest	request	)
 	{
-		throw( new RuntimeException( "you've got to implement this"));
+		throw( new RuntimeException( "you've got to implement this - " + request ));
 	}
 	
 	public Object
@@ -220,5 +220,12 @@ RPObject
 	notSupported()
 	{
 		throw( new RuntimeException( "RPObject:: method not supported"));
+	}
+	
+	public void
+	notSupported(
+		Object	o )
+	{
+		throw( new RuntimeException( "RPObject:: method not supported - " + o ));
 	}
 }

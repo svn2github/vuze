@@ -109,7 +109,19 @@ RPTracker
 				
 				return( new RPReply( e ));
 			}
-		}					
+		}else if ( method.equals( "getTorrents")){
+			
+			TrackerTorrent[]	torrents = delegate.getTorrents();
+						
+			RPTrackerTorrent[]	res = new RPTrackerTorrent[torrents.length];
+			
+			for (int i=0;i<res.length;i++){
+				
+				res[i] = RPTrackerTorrent.create( torrents[i]);
+			}
+			
+			return( new RPReply( res ));	
+		}
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
@@ -138,14 +150,20 @@ RPTracker
 			}
 			
 			throw( e );
-		}		}
+		}		
+	}
 	
     public TrackerTorrent[]
     getTorrents()
     {
-       	notSupported();
+		RPTrackerTorrent[]	res = (RPTrackerTorrent[])_dispatcher.dispatch( new RPRequest( this, "getTorrents", null )).getResponse();
 		
-		return( null );   	
+		for (int i=0;i<res.length;i++){
+			
+			res[i]._setRemote( _dispatcher );
+		}
+		
+		return( res ); 	
     }
         
     public TrackerWebContext

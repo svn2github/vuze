@@ -178,7 +178,7 @@ RPDownloadManager
 	
 		throws DownloadException
 	{
-		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", new Object[]{url} )).getResponse();
+		_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", new Object[]{url} )).getResponse();
 	}
 	
 	

@@ -111,6 +111,7 @@ XMLHTTPClient
 						"</REQUEST>");
 				*/
 
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -122,7 +123,53 @@ XMLHTTPClient
 				res.print();
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
+				*/
 				
+					// tracker torrents
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getTracker</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
+	
+				String tracker_oid	= res.getChild( "_object_id" ).getValue().trim();			
+	
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + tracker_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getTorrents</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+			
+				res.print();
+				
+				
+				/*
+				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
+				
+				for (int i=0;i<kids.length;i++){
+				
+					String dl_oid	= kids[i].getChild( "_object_id" ).getValue().trim();
+				
+					System.out.println( "kid: oid = " + dl_oid );
+					
+					res = sendRequest( 
+							"<REQUEST>" +
+								"<OBJECT><_object_id>" + dl_oid + "</_object_id></OBJECT>" +
+								"<METHOD>stop</METHOD>"+
+								"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+								"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+							"</REQUEST>");
+					
+					res.print();
+						
+				}
 					// IP Filter
 				
 				/*
@@ -262,6 +309,7 @@ XMLHTTPClient
 				
 				/* stuff for adding a torrent */
 				 
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -324,7 +372,7 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
-				
+				*/
 				
 				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();

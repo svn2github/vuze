@@ -39,6 +39,26 @@ RPTrackerTorrent
 {
 	protected transient TrackerTorrent		delegate;
 	
+		// don't change the names of these, they appear in XML serialisation
+	
+	public int		status;
+	public long		total_uploaded;
+	public long		total_downloaded;
+	public long		average_uploaded;
+	public long		average_downloaded;
+	public long		total_left;
+	public long 	completed_count;
+	public long		total_bytes_in;
+	public long		average_bytes_in;
+	public long		total_bytes_out;
+	public long 	average_bytes_out;
+	public long		scrape_count;
+	public long		announce_count;
+	public int		seed_count;
+	public int		leecher_count;
+	public int		bad_NAT_count;
+	
+	
 	public static RPTrackerTorrent
 	create(
 		TrackerTorrent		_delegate )
@@ -65,6 +85,23 @@ RPTrackerTorrent
 		Object		_delegate )
 	{
 		delegate = (TrackerTorrent)_delegate;
+		
+		status				= delegate.getStatus();
+		total_uploaded		= delegate.getTotalUploaded();
+		total_downloaded	= delegate.getTotalDownloaded();
+		average_uploaded	= delegate.getAverageUploaded();
+		average_downloaded	= delegate.getAverageDownloaded();
+		total_left			= delegate.getTotalLeft();
+		completed_count		= delegate.getCompletedCount();
+		total_bytes_in		= delegate.getTotalBytesIn();
+		average_bytes_in	= delegate.getAverageBytesIn();
+		total_bytes_out		= delegate.getTotalBytesOut();
+		average_bytes_out	= delegate.getAverageBytesOut();
+		scrape_count		= delegate.getScrapeCount();
+		announce_count		= delegate.getAnnounceCount();
+		seed_count			= delegate.getSeedCount();
+		leecher_count		= delegate.getLeecherCount();
+		bad_NAT_count		= delegate.getBadNATCount();
 	}
 	
 	public Object
@@ -81,7 +118,7 @@ RPTrackerTorrent
 		RPRequest	request	)
 	{
 		String		method 	= request.getMethod();
-		Object[]	params	= request.getParams();			
+		// Object[]	params	= request.getParams();			
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
@@ -120,21 +157,23 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( null );	}
+		return( null );	
+	}
 	
 	public int
 	getStatus()
 	{
 		notSupported();
 		
-		return( 0 );	}
+		return( status );	
+	}
 	
 	public long
 	getTotalUploaded()
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( total_uploaded );	
 	}
 	
 	public long
@@ -142,7 +181,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( total_downloaded );	
 	}
 	
 	public long
@@ -150,7 +189,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );
+		return( average_uploaded );
 	}
 	
 	public long
@@ -158,7 +197,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( average_downloaded );	
 	}
 	
 	public long
@@ -166,7 +205,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( total_left );	
 	}
 	
 	public long
@@ -174,7 +213,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( completed_count );	
 	}
 
 	public long
@@ -182,7 +221,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( total_bytes_in );	
 	}	
 	
 	public long
@@ -190,7 +229,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( average_bytes_in );	
 	}
 	
 	public long
@@ -198,7 +237,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( total_bytes_out );	
 	}
 	
 	public long
@@ -206,7 +245,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( average_bytes_out );	
 	}	
 
 	public long
@@ -214,7 +253,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( scrape_count );	
 	}
 	
 	public long
@@ -222,7 +261,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( announce_count );	
 	}
 	
 	public int
@@ -230,7 +269,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( seed_count );	
 	}	
 	
 	public int
@@ -238,7 +277,7 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );	
+		return( leecher_count);	
 	}
 	
 	public int
@@ -246,8 +285,9 @@ RPTrackerTorrent
 	{
 		notSupported();
 		
-		return( 0 );
+		return( bad_NAT_count );
 	}
+	
 	public void
 	disableReplyCaching()
 	{

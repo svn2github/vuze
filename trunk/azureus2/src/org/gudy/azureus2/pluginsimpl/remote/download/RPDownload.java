@@ -138,20 +138,20 @@ RPDownload
 	
 	public void
 	_setRemote(
-		RPRequestDispatcher		_dispatcher )
+		RPRequestDispatcher		dispatcher )
 	{
-		super._setRemote( _dispatcher );
+		super._setRemote( dispatcher );
 		
 		if ( torrent != null ){
 			
-			torrent._setRemote( _dispatcher );
+			torrent._setRemote( dispatcher );
 		}
 		
-		stats._setRemote( _dispatcher );
+		stats._setRemote( dispatcher );
 		
-		announce_result._setRemote( _dispatcher );
+		announce_result._setRemote( dispatcher );
 		
-		scrape_result._setRemote( _dispatcher );
+		scrape_result._setRemote( dispatcher );
 	}
 	
 	public RPReply
@@ -518,8 +518,10 @@ RPDownload
 	
 	public void 
 	setForceStart(
-		boolean force_start ) 
+		boolean _force_start ) 
 	{
+		force_start	= _force_start;
+		
 		_dispatcher.dispatch( new RPRequest( this, "setForceStart[boolean]", new Object[]{new Boolean(force_start )})).getResponse();
 	}
 	
@@ -555,7 +557,7 @@ RPDownload
 	addListener(
 		DownloadPeerListener	l )
 	{
-		notSupported();
+		notSupported(l);
 	}
 	
 	
@@ -563,7 +565,7 @@ RPDownload
 	removeListener(
 		DownloadPeerListener	l )
 	{
-		notSupported();
+		notSupported(l);
 	}
 	
 	public void
