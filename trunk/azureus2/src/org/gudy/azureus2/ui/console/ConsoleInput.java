@@ -95,22 +95,29 @@ public class ConsoleInput extends Thread {
 	}
 
 	public static void printconsolehelp(PrintStream os) {
+		os.println("> -----");
 		os.println("Available console commands:");
 		os.println("Command\t\t\t\tShort\tDescription");
 		os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
-		os.println("check (<#>|all|hash <hash>)\tc\tForce recheck on torrent(s).");
+		os.println("check (<torrentoptions>)\tc\tForce recheck on torrent(s).");
 		os.println("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
 		os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
-		os.println("move <from #> [<to #>]\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
-		os.println("queue (<#>|all|hash <hash>)\tq\tQueue torrent(s).");
-		os.println("remove (<#>|all|hash <hash>)\tr\tRemove torrent(s).");
+		os.println("move <from #> [<to #>]\t\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
+		os.println("queue (<torrentoptions>)\tq\tQueue torrent(s).");
+		os.println("remove (<torrentoptions>)\tr\tRemove torrent(s).");
 		os.println("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
-		os.println("show [<various options>]\t\tsh\tShow info. Use without parameter to get a list of available options.");
-		os.println("start (<#>|all|hash <hash>) [now]\ts\tStart torrent(s).");
-		os.println("stop (<#>|all|hash <hash>)\th\tStop torrent(s).");
+		os.println("show [<various options>]\tsh\tShow info. Use without parameter to get a list of available options.");
+		os.println("start (<torrentoptions>) [now]\ts\tStart torrent(s).");
+		os.println("stop (<torrentoptions>)\t\th\tStop torrent(s).");
 		os.println("ui <interface>\t\t\tu\tStart additional user interface.");
 		os.println("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
 		os.println("quit\t\t\t\t\tShutdown Azureus");
+		os.println();
+		os.println("<torrentoptions> can be one of:");
+		os.println("<#>\t\tNumber of a torrent. You have to use 'show torrents' first. as the number is taken from there.");
+		os.println("all\t\tCommand is applied to all torrents");
+		os.println("hash <hash>\tApplied to torrent with the hash <hash> as given in the xml output or extended torrent info ('show <#>').");
+		os.println("> -----");
 	}
 
 	private void quit(boolean finish) {
@@ -347,7 +354,7 @@ public class ConsoleInput extends Thread {
 			} else {
 				try {
 					int number = Integer.parseInt(subcommand);
-					if ((torrents != null) && torrents.isEmpty()) {
+					if ((torrents==null) || (torrents != null) && torrents.isEmpty()) {
 						out.println("> Command 'show': No torrents in list (try 'show torrents' first).");
 					} else {
 						String name;
@@ -371,7 +378,8 @@ public class ConsoleInput extends Thread {
 							out.println("State: " + Integer.toString(dm.getState()));
 							if (dm.getState()==DownloadManager.STATE_ERROR)
 								out.println("Error: " + dm.getErrorDetails());
-							out.println("- Torrent -");
+							out.println("Hash: "+ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
+							out.println("- Torrent file -");
 							out.println("Filename: " + dm.getTorrentFileName());
 							out.println("Created By: " + dm.getTorrentCreatedBy());
 							out.println("Comment: " + dm.getTorrentComment());
@@ -409,7 +417,7 @@ public class ConsoleInput extends Thread {
 			out.println("'show' options: ");
 			out.println("<#>\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
 			out.println("options\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
-			out.println("torrents\t\tt\tShow list of torrents.");
+			out.println("torrents\tt\tShow list of torrents.");
 			out.println("> -----");
 		}
 	}
@@ -600,7 +608,7 @@ public class ConsoleInput extends Thread {
 		String[] commands = { "start", "stop", "remove", "queue", "start", "check" };
 		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of" };
 		if (subcommand != null) {
-			if ((torrents != null) && torrents.isEmpty()) {
+			if ((torrents==null) || (torrents != null) && torrents.isEmpty()) {
 				out.println("> Command '" + commands[command] + "': No torrents in list (Maybe you forgot to 'show torrents' first).");
 			} else {
 				String name;
@@ -705,7 +713,7 @@ public class ConsoleInput extends Thread {
 						else
 							name = dm.getName();
 						if (moveto) {
-							gm.moveTo(dm, nmoveto);
+							gm.moveTo(dm, nmoveto-1);
 							gm.fixUpDownloadManagerPositions();
 							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
 						} else if (ncommand > 0) {
