@@ -1996,6 +1996,7 @@ PEPeerControlImpl
     
     String key = peer.getIp() + ":" + peer.getPort();
     if( reconnect ) {
+      boolean reconnect_allowed = false;
       try{
       	reconnect_counts_mon.enter();  //only allow 3 reconnect attempts
       
@@ -2004,7 +2005,7 @@ PEPeerControlImpl
         if( reconnect_count != null )  count = reconnect_count.intValue();
         if( count < 3 ) {
           reconnect_counts.put( key, new Integer( count + 1 ) );
-          makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
+          reconnect_allowed = true;
         }
         else { //don't reconnect this time, but allow at some later time if needed
           LGLogger.log(LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
@@ -2014,6 +2015,8 @@ PEPeerControlImpl
       	
       	reconnect_counts_mon.exit();
       }
+      
+      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
     }
     else { //cleanup any reconnect count
       try{
