@@ -300,7 +300,7 @@ PEPeerTransportProtocol
     });
     
     //register the new connection with the upload manager so that peer messages get processed
-    UploadManager.getSingleton().registerStandardPeerConnection( connection );
+    UploadManager.getSingleton().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
     connection_registered = true;
   }
 

@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.*;
 import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
 
 
 /**
@@ -839,6 +840,9 @@ Test
 	 		return( null );
 	 	}
 	 
+    public LimitedRateGroup getUploadLimitedRateGroup() {  return null;  }
+    
+    
 		public void
 		start()
 		{

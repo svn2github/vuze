@@ -40,32 +40,40 @@ public class UploadManager {
   
   private static final UploadManager instance = new UploadManager();
   
-  private int max_write_rate_bytes_per_sec;
-  
+  private int standard_max_rate_bps;
+  private final ByteBucket standard_bucket;
   private final HashMap standard_peer_connections = new HashMap();
   private final AEMonitor standard_peer_connections_mon = new AEMonitor( "UploadManager:SPC" );
+  private final UploadEntityController standard_entity_controller;
   
-  private final UploadEntityController main_entity_controller = new UploadEntityController(
-      new UploadEntityController.RateController() {
-        public int getAllowedBytesPerSecondRate() {
-          return max_write_rate_bytes_per_sec;
-        }
-      }
-  );
-    
-  
+  private final HashMap group_buckets = new HashMap();
+  private final AEMonitor group_buckets_mon = new AEMonitor( "UploadManager:GB" );
   
   
   private UploadManager() {
-    int norm_rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
-    max_write_rate_bytes_per_sec = norm_rateKBs == 0 ? UNLIMITED_WRITE_RATE : norm_rateKBs * 1024;
+    int max_rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
+    standard_max_rate_bps = max_rateKBs == 0 ? UNLIMITED_WRITE_RATE : max_rateKBs * 1024;
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         int rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
-        max_write_rate_bytes_per_sec = rateKBs == 0 ? UNLIMITED_WRITE_RATE : rateKBs * 1024;
+        standard_max_rate_bps = rateKBs == 0 ? UNLIMITED_WRITE_RATE : rateKBs * 1024;
       }
     });
     
+    standard_bucket = new ByteBucket( standard_max_rate_bps, standard_max_rate_bps );  //no burst
+    
+    standard_entity_controller = new UploadEntityController( new RateHandler() {
+      public int getCurrentNumBytesAllowed() {
+        if( standard_bucket.getRate() != standard_max_rate_bps ) { //sync rate
+          standard_bucket.setRate( standard_max_rate_bps, standard_max_rate_bps );  //no burst
+        }
+        return standard_bucket.getAvailableByteCount();
+      }
+      
+      public void bytesWritten( int num_bytes_written ) {
+        standard_bucket.setBytesUsed( num_bytes_written );
+      }
+    });
   }
   
   
@@ -75,20 +83,59 @@ public class UploadManager {
    */
   public static UploadManager getSingleton() {  return instance;  }
   
+
+
   
-  
-  public void registerStandardPeerConnection( final Connection connection ) {
-    final ConnectionData data = new ConnectionData();
+  public void registerStandardPeerConnection( final Connection connection, final LimitedRateGroup group ) {
+    final ConnectionData conn_data = new ConnectionData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
       public void messageAdded( ProtocolMessage message ) {
-        if( message.getType() == BTProtocolMessage.BT_PIECE ) {
-          if( data.state == ConnectionData.STATE_NORMAL ) {  //is sending piece data, so upgrade it
-            data.state = ConnectionData.STATE_UPGRADED;
-            main_entity_controller.upgradePeerConnection( connection, new UploadEntityController.RateController() {
-              public int getAllowedBytesPerSecondRate() {
-                //return UNLIMITED_WRITE_RATE;  //TODO hook in per-torrent values etc
-                return 4 * 1024;
+        if( message.getType() == BTProtocolMessage.BT_PIECE ) {  //is sending piece data
+          if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
+            conn_data.state = ConnectionData.STATE_UPGRADED;
+
+            standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
+              public int getCurrentNumBytesAllowed() {
+                ByteBucket group_bucket;
+                try {  group_buckets_mon.enter(); 
+                  group_bucket = ((GroupData)group_buckets.get( group )).bucket;
+                }
+                finally {  group_buckets_mon.exit();  }
+                
+                //sync global rate
+                if( standard_bucket.getRate() != standard_max_rate_bps ) { 
+                  standard_bucket.setRate( standard_max_rate_bps, standard_max_rate_bps );
+                }
+                //sync group rate
+                int group_rate = getTranslatedLimit( group );
+                if( group_bucket.getRate() != group_rate ) {
+                  group_bucket.setRate( group_rate, group_rate );
+                }
+                
+                int group_allowed = group_bucket.getAvailableByteCount();
+                int global_allowed = standard_bucket.getAvailableByteCount();
+                
+                //reserve bandwidth for the general pool if needed
+                if( standard_entity_controller.isGeneralPoolWriteNeeded() ) {
+                  int mss = NetworkManager.getSingleton().getTcpMssSize();
+                  global_allowed -= mss * 2;
+                  if( global_allowed < 0 )  global_allowed = 0;
+                }
+                
+                int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
+                return allowed;
+              }
+
+              public void bytesWritten( int num_bytes_written ) {
+                ByteBucket group_bucket;
+                try {  group_buckets_mon.enter(); 
+                  group_bucket = ((GroupData)group_buckets.get( group )).bucket;
+                }
+                finally {  group_buckets_mon.exit();  }
+                
+                group_bucket.setBytesUsed( num_bytes_written );
+                standard_bucket.setBytesUsed( num_bytes_written );
               }
             });
           }
@@ -96,47 +143,82 @@ public class UploadManager {
       }
 
       public void messageSent( ProtocolMessage message ) {
-        if( message.getType() == BTProtocolMessage.BT_CHOKE ) {
-          if( data.state == ConnectionData.STATE_UPGRADED ) {  //is done sending piece data, so downgrade it
-            main_entity_controller.downgradePeerConnection( connection );
-            data.state = ConnectionData.STATE_NORMAL;
+        if( message.getType() == BTProtocolMessage.BT_CHOKE ) {  //is done sending piece data
+          if( conn_data.state == ConnectionData.STATE_UPGRADED ) {  //so downgrade it
+            standard_entity_controller.downgradePeerConnection( connection );
+            conn_data.state = ConnectionData.STATE_NORMAL;
           }
         }
       }
 
       public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
       
-      public void bytesSent( int byte_count ) {
-        //TODO ?
-      }
+      public void bytesSent( int byte_count ) {/*nothing*/}
     };
     
-    data.queue_listener = listener;
-    data.state = ConnectionData.STATE_NORMAL;
+    conn_data.queue_listener = listener;
+    conn_data.state = ConnectionData.STATE_NORMAL;
+    conn_data.group = group;
+    
+    //do group registration
+    try {  group_buckets_mon.enter(); 
+      GroupData group_data = (GroupData)group_buckets.get( group );
+      if( group_data == null ) {
+        int limit = getTranslatedLimit( group );
+        group_data = new GroupData( new ByteBucket( limit, limit ) );
+        group_buckets.put( group, group_data );
+      }
+      group_data.group_size++;
+    }
+    finally {  group_buckets_mon.exit();  }
     
     try{ standard_peer_connections_mon.enter();
-      standard_peer_connections.put( connection, data );
+      standard_peer_connections.put( connection, conn_data );
     }
     finally{ standard_peer_connections_mon.exit(); }
     
-    main_entity_controller.registerPeerConnection( connection );
+    standard_entity_controller.registerPeerConnection( connection );
     connection.getOutgoingMessageQueue().registerQueueListener( listener );
   }
   
   
   public void cancelStandardPeerConnection( Connection connection ) {
-    ConnectionData data = null;
+    ConnectionData conn_data = null;
     
     try{ standard_peer_connections_mon.enter();
-      data = (ConnectionData)standard_peer_connections.remove( connection );
+      conn_data = (ConnectionData)standard_peer_connections.remove( connection );
     }
     finally{ standard_peer_connections_mon.exit(); }
     
-    if( data != null ) {
-      connection.getOutgoingMessageQueue().cancelQueueListener( data.queue_listener );
+    if( conn_data != null ) {
+      connection.getOutgoingMessageQueue().cancelQueueListener( conn_data.queue_listener );
+      
+      //do group de-registration
+      try {  group_buckets_mon.enter(); 
+        GroupData group_data = (GroupData)group_buckets.get( conn_data.group );
+        if( group_data.group_size == 1 ) { //last of the group
+          group_buckets.remove( conn_data.group ); //so remove
+        }
+        else {
+          group_data.group_size--;
+        }
+      }
+      finally {  group_buckets_mon.exit();  }
     }
     
-    main_entity_controller.cancelPeerConnection( connection );
+    standard_entity_controller.cancelPeerConnection( connection );
+  }
+  
+  
+  private int getTranslatedLimit( LimitedRateGroup group ) {
+    int limit = group.getRateLimitBytesPerSecond();
+    if( limit == 0 ) {  //unlimited
+      limit = UNLIMITED_WRITE_RATE;
+    }
+    else if( limit < 0 ) {  //disabled
+      limit = 0;
+    }
+    return limit;
   }
   
   
@@ -147,8 +229,16 @@ public class UploadManager {
     
     private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private int state;
+    private LimitedRateGroup group;
   }
-  
-  
+
+    
+  private static class GroupData {
+    private final ByteBucket bucket;
+    private int group_size = 0;
+    private GroupData( ByteBucket bucket ) {
+      this.bucket = bucket;
+    }
+  }
   
 }

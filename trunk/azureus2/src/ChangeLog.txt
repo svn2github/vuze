@@ -26,6 +26,7 @@ FEATURE: Core | SOCKS V4, V4a and V5 (no auth/user+password methods) support for
 FEATURE: Core | Torrents created by Azureus now include .utf-8 fields [Parg]
 FEATURE: Core | Dynamic piece request queue scaling [Gudy]
 FEATURE: Core | Added torrent name to authentication dialog [Parg]
+FEATURE: Core | Per-torrent upload speed limits [Nolar]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]

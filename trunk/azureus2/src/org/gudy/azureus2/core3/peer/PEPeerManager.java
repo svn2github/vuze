@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
+import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+
 
 public interface 
 PEPeerManager 
@@ -188,4 +190,11 @@ PEPeerManager
    * @param reconnect if true, attempt to reestablish this peer connection
    */
   public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect );
+  
+  
+  /**
+   * Get the limited rate group used for upload limiting.
+   * @return upload limit group
+   */
+  public LimitedRateGroup getUploadLimitedRateGroup();
 }

@@ -37,46 +37,22 @@ import com.aelitis.azureus.core.networkmanager.*;
  * each connection has its own specialized entity.
  */
 public class UploadEntityController {
-  private final RateController rate_controller;
-  private final ByteBucket global_bytebucket;
   private final HashMap upgraded_connections = new HashMap();
   private final AEMonitor upgraded_connections_mon = new AEMonitor( "UploadEntityController:UC" );
-  
-  private final PacketFillingMultiPeerUploader global_uploader = new PacketFillingMultiPeerUploader( new RateHandler() {
-    public int getCurrentNumBytesAllowed() {
-      syncBucketRate( global_bytebucket, rate_controller, false );
-      return global_bytebucket.getAvailableByteCount();
-    }
-
-    public void bytesWritten( int num_bytes_written ) {
-      global_bytebucket.setBytesUsed( num_bytes_written );
-    }
-  });
+  private final PacketFillingMultiPeerUploader global_uploader;
   
   
   
   /**
    * Create a new upload entity manager using the given rate handler.
-   * @param rate_controller write rate handler
+   * @param rate_handler global write rate handler
    */
-  protected UploadEntityController( RateController rate_controller ) {
-    this.rate_controller = rate_controller;
-    int rate = rate_controller.getAllowedBytesPerSecondRate();
-    global_bytebucket = new ByteBucket( rate, rate );  //no burst
-    
+  protected UploadEntityController( RateHandler rate_handler ) {
+    global_uploader = new PacketFillingMultiPeerUploader( rate_handler );
     NetworkManager.getSingleton().addWriteEntity( global_uploader );  //register upload entity
   }
   
-  
-  private void syncBucketRate( ByteBucket bucket, RateController controller, boolean allow_burst ) {
-    int current_rate = controller.getAllowedBytesPerSecondRate();
-    if( bucket.getRate() != current_rate ) { //the allowed rate has changed
-      if( allow_burst )  bucket.setRate( current_rate );  //so update it
-      else bucket.setRate( current_rate, current_rate );
-    }
-  }
-  
-  
+
   
   /**
    * Register a peer connection for upload management by the controller.
@@ -113,36 +89,12 @@ public class UploadEntityController {
   
   /**
    * Upgrade a peer connection from the general pool to its own upload entity.
-   * NOTE: The rate controller allows for fine-tuning of the connection's upload
-   * speed, but it is still subject to the global rate limit of this controller.
    * @param connection to upgrade from global management
-   * @param controller write rate handler
+   * @param handler connection write rate handler
    */
-  protected void upgradePeerConnection( Connection connection, final RateController controller ) {
+  protected void upgradePeerConnection( Connection connection, RateHandler handler ) {
     global_uploader.removePeerConnection( connection );  //remove it from the general upload pool
-
-    int global_rate = rate_controller.getAllowedBytesPerSecondRate();
-    int local_rate = controller.getAllowedBytesPerSecondRate();
-    int allowed_rate = local_rate > global_rate ? global_rate : local_rate;
-    final ByteBucket bucket = new ByteBucket( allowed_rate );
-    
-    BurstingSinglePeerUploader upload_entity = new BurstingSinglePeerUploader( connection, new RateHandler() {
-      public int getCurrentNumBytesAllowed() {
-        syncBucketRate( global_bytebucket, rate_controller, false );  //sync global
-        syncBucketRate( bucket, controller, true );  //sync local
-        
-        int global_avail = global_bytebucket.getAvailableByteCount();
-        int local_avail = bucket.getAvailableByteCount();
-        
-        int allowed_bytes = local_avail < global_avail ? local_avail : global_avail;
-        return allowed_bytes;
-      }
-
-      public void bytesWritten( int num_bytes_written ) {
-        bucket.setBytesUsed( num_bytes_written );
-        global_bytebucket.setBytesUsed( num_bytes_written );
-      }
-    });
+    BurstingSinglePeerUploader upload_entity = new BurstingSinglePeerUploader( connection, handler );
         
     try {
       upgraded_connections_mon.enter();
@@ -181,18 +133,16 @@ public class UploadEntityController {
     
     //System.out.println( "downgraded: " + upgraded_connections.size());
   }
-  
 
   
   /**
-   * Rate control listener.
+   * Is the general pool entity in need of a write op.
+   * NOTE: Because the general pool is backed by a PacketFillingMultiPeerUploader
+   * entity, it requires at least MSS available bytes before it will/can perform
+   * a successful write.  This method allows higher-level bandwidth allocation to
+   * determine if it should reserve the necessary MSS bytes for the general pool's
+   * write needs.
+   * @return true of it has data to send, false if not
    */
-  public interface RateController {
-    /**
-     * Get the curent allowed BPS upload rate. 
-     * @return rate in bytes per second
-     */
-    public int getAllowedBytesPerSecondRate();
-  }
-
+  protected boolean isGeneralPoolWriteNeeded() {  return global_uploader.hasWriteDataAvailable();  }
 }

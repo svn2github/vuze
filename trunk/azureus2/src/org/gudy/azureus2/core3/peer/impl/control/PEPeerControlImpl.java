@@ -25,6 +25,8 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
+import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+
 
 public class 
 PEPeerControlImpl
@@ -115,8 +117,14 @@ PEPeerControlImpl
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
 
   private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
-
   
+  private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
+    public int getRateLimitBytesPerSecond() {
+      return _downloadManager.getStats().getUploadRateLimitBytesPerSecond();
+    }
+  };
+  
+
   public 
   PEPeerControlImpl
   (
@@ -2685,5 +2693,8 @@ PEPeerControlImpl
   
   
   public DiskManager getDiskManager() {  return _diskManager;   }
+  
+  
+  public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   
  }
