@@ -101,7 +101,7 @@ public class VersionCheckClient {
   public String getExternalIpAddress() {
     Map reply = getVersionCheckInfo();
     
-    byte[] address = (byte[])reply.get("source_ip_address");
+    byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
       return new String( address );
     }
@@ -109,6 +109,21 @@ public class VersionCheckClient {
     return new String();
   }
   
+  
+  /**
+   * Is the DHT plugin allowed to be enabled.
+   * @return true if DHT can be enabled, false if it should not be enabled
+   */
+  public boolean DHTEnableAllowed() {
+    Map reply = getVersionCheckInfo();
+    
+    byte[] value = (byte[])reply.get( "enable_dht" );
+    if( value != null ) {
+      return Boolean.parseBoolean( new String( value ) );
+    }
+    
+    return false;
+  }
   
   
   
