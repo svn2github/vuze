@@ -37,6 +37,12 @@ import org.gudy.azureus2.core3.util.Debug;
  * Represents a peer TCP transport connection (eg. a network socket).
  */
 public class TCPTransport {
+  
+  public static final int TRANSPORT_MODE_NORMAL = 0;
+  public static final int TRANSPORT_MODE_FAST   = 1;
+  public static final int TRANSPORT_MODE_TURBO  = 2;
+  
+  
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
 
@@ -50,6 +56,9 @@ public class TCPTransport {
   private String description = "<disconnected>";
   private ByteBuffer data_already_read = null;
   private final boolean is_inbound_connection;
+  
+  private int transport_mode = TRANSPORT_MODE_NORMAL;
+  
   
   private int zero_read_count = 0;
   
@@ -274,12 +283,6 @@ public class TCPTransport {
   }
   
   
-  
-  
-  
-  
-  
-  
 
   
   
@@ -467,6 +470,60 @@ public class TCPTransport {
   
     
   
+  
+
+  private void setTransportBuffersSize( int size_in_bytes ) {
+    try{
+      socket_channel.socket().setSendBufferSize( size_in_bytes );
+      socket_channel.socket().setReceiveBufferSize( size_in_bytes );
+      
+      int snd_real = socket_channel.socket().getSendBufferSize();
+      int rcv_real = socket_channel.socket().getReceiveBufferSize();
+      
+      LGLogger.log( "Setting new transport [" +description+ "] buffer sizes: SND=" +size_in_bytes+ " [" +snd_real+ "] , RCV=" +size_in_bytes+ " [" +rcv_real+ "]" );
+    }
+    catch( Throwable t ) {
+      Debug.out( t );
+    }
+  }
+  
+  
+  /**
+   * Set the transport to the given speed mode.
+   * @param mode to change to
+   */
+  public void setTransportMode( int mode ) {
+    if( mode == transport_mode )  return;  //already in mode
+    
+    switch( mode ) {
+      case TRANSPORT_MODE_NORMAL:
+        setTransportBuffersSize( 8 * 1024 );
+        break;
+        
+      case TRANSPORT_MODE_FAST:
+        setTransportBuffersSize( 64 * 1024 );
+        break;
+        
+      case TRANSPORT_MODE_TURBO:
+        setTransportBuffersSize( 512 * 1024 );
+        break;
+        
+      default:
+        Debug.out( "invalid transport mode given: " +mode );
+    }
+    
+    transport_mode = mode;
+  }
+  
+ 
+  /**
+   * Get the transport's speed mode.
+   * @return current mode
+   */
+  public int getTransportMode() {  return transport_mode;  }
+  
+  
+
   
   /**
    * Close the transport connection.

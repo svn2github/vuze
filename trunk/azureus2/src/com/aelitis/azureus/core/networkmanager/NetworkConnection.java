@@ -75,7 +75,7 @@ public interface NetworkConnection {
    * Get the connection's data tcp transport interface.
    * @return the transport
    */
-  public TCPTransport getTCPTransport();  //TODO yuck
+  public TCPTransport getTCPTransport();
   
 
   

@@ -174,12 +174,13 @@ PeerForeignDelegate
   public int getConnectionState() {  return 0;  }
 	  
   
-  //TODO: parg?
   public void doKeepAliveCheck() {}
   
   public boolean doTimeoutChecks() {
     return false;
   }
+  
+  public void doPerformanceTuningCheck() { }
   
   public long getTimeSinceConnectionEstablished() {
     return 0;

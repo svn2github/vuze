@@ -902,6 +902,53 @@ PEPeerTransportProtocol
   }
   
   
+  
+  public void doPerformanceTuningCheck() {
+    if( peer_stats != null && outgoing_piece_message_handler != null ) {
+
+      //send speed -based tuning
+      long send_rate = peer_stats.getDataSendRate() + peer_stats.getProtocolSendRate();
+      
+      if( send_rate >= 3125000 ) {  // 25 Mbit/s
+        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+        outgoing_piece_message_handler.setRequestReadAhead( 256 );
+      }
+      else if( send_rate >= 1250000 ) {  // 10 Mbit/s
+        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+        outgoing_piece_message_handler.setRequestReadAhead( 128 );
+      }
+      else if( send_rate >= 125000 ) {  // 1 Mbit/s
+        if( connection.getTCPTransport().getTransportMode() < TCPTransport.TRANSPORT_MODE_FAST ) {
+          connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_FAST );
+        }
+        outgoing_piece_message_handler.setRequestReadAhead( 32 );
+      }
+      else if( send_rate >= 125000 ) {  // 500 Kbit/s
+        outgoing_piece_message_handler.setRequestReadAhead( 16 );
+      }
+      else {
+        outgoing_piece_message_handler.setRequestReadAhead( 8 );
+      }
+      
+      
+      //receive speed -based tuning
+      long receive_rate = peer_stats.getDataReceiveRate() + peer_stats.getProtocolReceiveRate();
+      
+      if( receive_rate >= 1250000 ) {  // 10 Mbit/s
+        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+      }
+      else if( receive_rate >= 125000 ) {  // 1 Mbit/s
+        if( connection.getTCPTransport().getTransportMode() < TCPTransport.TRANSPORT_MODE_FAST ) {
+          connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_FAST );
+        }
+      }
+      
+    }
+  }
+  
+  
+  
+  
   public int getConnectionState() {  return connection_state;  }
   
   

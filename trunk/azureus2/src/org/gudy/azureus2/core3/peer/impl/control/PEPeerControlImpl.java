@@ -2869,6 +2869,9 @@ PEPeerControlImpl
         
         //keep-alive check
         transport.doKeepAliveCheck();
+        
+        //speed tuning check
+        transport.doPerformanceTuningCheck();
       }
 
       //update storage capacity

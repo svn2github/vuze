@@ -43,7 +43,6 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  * does, before passing the messages onto the outgoing message queue for transmission.
  */
 public class OutgoingBTPieceMessageHandler {
-  private static final int MIN_READ_AHEAD = 256;
   private final OutgoingMessageQueue outgoing_message_queue;
   private final DiskManager disk_manager;
   private final LinkedList requests = new LinkedList();
@@ -53,7 +52,8 @@ public class OutgoingBTPieceMessageHandler {
   private int num_messages_in_queue = 0;
   private final AEMonitor	lock_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:lock");
   private boolean destroyed = false;
-
+  private int request_read_ahead = 16;
+  
   
   private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
     public void readCompleted( DiskManagerReadRequest request, DirectByteBuffer data ) {
@@ -215,6 +215,11 @@ public class OutgoingBTPieceMessageHandler {
       
 
   
+  public void setRequestReadAhead( int num_to_read_ahead ) {
+    request_read_ahead = num_to_read_ahead;
+  }
+  
+  
   
   public void destroy() {
     try{
@@ -232,7 +237,7 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private void doReadAheadLoads() {
-    while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() && !destroyed ) {
+    while( num_messages_loading + num_messages_in_queue < request_read_ahead && !requests.isEmpty() && !destroyed ) {
       DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
       loading_messages.add( dmr );
       disk_manager.enqueueReadRequest( dmr, read_req_listener );

@@ -102,6 +102,14 @@ PEPeerTransport
    * @return true if the connection has been timed-out, false if not
    */
   public boolean doTimeoutChecks();
+
+  
+  /**
+   * Perform checks related to performance optimizations,
+   * i.e. tune buffering related to send/receive speed.
+   */
+  public void doPerformanceTuningCheck();
+  
   
   /**
    * Get the specific peer connection state.
