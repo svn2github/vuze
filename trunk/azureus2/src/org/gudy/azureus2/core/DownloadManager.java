@@ -14,7 +14,6 @@ import java.util.Map;
 
 import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.ui.swt.IComponentListener;
-import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier
@@ -82,7 +81,7 @@ public class DownloadManager extends Component {
   public void initialize() {
     this.state = STATE_INITIALIZING;
     startServer();
-    if (this.state == STATE_ERROR)
+    if (this.state == STATE_WAITING)
       return;
 
     trackerConnection = new TrackerConnection(metaData, hash, server.getPort());    
@@ -96,14 +95,13 @@ public class DownloadManager extends Component {
   }
 
   private void extractMetaInfo() {
-
+    FileInputStream fis = null;
     try {
       byte[] buf = new byte[1024];
       int nbRead;
-      FileInputStream fis = new FileInputStream(torrentFileName);
+      fis = new FileInputStream(torrentFileName);
       while ((nbRead = fis.read(buf)) > 0)
         metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-      fis.close();
       metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
       Map info = (Map) metaData.get("info"); //$NON-NLS-1$
       name = new String((byte[]) info.get("name"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -135,6 +133,12 @@ public class DownloadManager extends Component {
     catch (Exception e) {
       this.state = STATE_ERROR;
       errorDetail = e.getMessage();
+    } finally {
+      try {
+        if (fis != null)
+          fis.close();
+      } catch (Exception e) {
+      }
     }
   }
 
@@ -142,8 +146,8 @@ public class DownloadManager extends Component {
     server = new Server();
     int port = server.getPort();
     if (port == 0) {
-      this.state = STATE_ERROR;
-      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+      this.state = STATE_WAITING;
+//      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
     }
   }
 
@@ -218,6 +222,8 @@ public class DownloadManager extends Component {
           diskManager.stopIt();
         trackerConnection = null;
         state = DownloadManager.STATE_STOPPED;
+
+        globalManager.startWaitingDownloads();
       }
     };
     stopThread.start();
@@ -426,6 +432,15 @@ public class DownloadManager extends Component {
    */
   public void setErrorDetail(String string) {
     errorDetail = string;
+  }
+
+  public void startDownloadInitialized(boolean initStoppedDownloads) {
+    if (getState() == DownloadManager.STATE_WAITING || initStoppedDownloads && getState() == DownloadManager.STATE_STOPPED) {
+      initialize();
+    }
+    if (getState() == DownloadManager.STATE_READY) {
+      startDownload();
+    }
   }
 
 }
