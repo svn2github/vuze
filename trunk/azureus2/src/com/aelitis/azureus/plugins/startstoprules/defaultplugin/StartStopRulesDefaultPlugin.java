@@ -76,10 +76,12 @@ public class StartStopRulesDefaultPlugin
   private static final int SR_TIMED_QUEUED_ENDS_AT    =   10000000;
   private static final int SR_FIRST_PRIORITY_STARTS_AT=   50000000;
   private static final int SR_NOTQUEUED       = -2;
-  private static final int SR_RATIOMET        = -3;
-  private static final int SR_NUMSEEDSMET     = -4;
-  private static final int SR_0PEERS          = -5;
-  private static final int SR_SHARERATIOMET   = -6;
+  private static final int SR_0PEER	    	  = -3;
+  private static final int SR_SPRATIOMET	  = -4;
+  private static final int SR_RATIOMET        = -5;
+  private static final int SR_NUMSEEDSMET     = -6;
+  private static final int SR_0PEERS          = -7;
+  private static final int SR_SHARERATIOMET   = -8;
   
   private static final int FORCE_ACTIVE_FOR = 30000;
 
@@ -492,8 +494,9 @@ public class StartStopRulesDefaultPlugin
 	    iFirstPriorityType = plugin_config.getIntParameter("StartStopManager_iFirstPriority_Type");
 	    iFirstPrioritySeedingMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_SeedingMinutes");
 	    iFirstPriorityDLMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_DLMinutes");
-		iFirstPriorityIgnoreSPRatio = plugin_config.getIntParameter("StartStopManager_iFirstPriority_IgnoreSPRatio");
-		bFirstPriorityIgnore0Peer = plugin_config.getBooleanParameter("StartStopManager_bFirstPriority_Ignore0Peer");
+		// Ignore FP
+		iFirstPriorityIgnoreSPRatio = plugin_config.getIntParameter("StartStopManager_iFirstPriority_ignoreSPRatio");
+		bFirstPriorityIgnore0Peer = plugin_config.getBooleanParameter("StartStopManager_bFirstPriority_ignore0Peer");
 	    
 	    bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
 	    iMaxUploadSpeed = plugin_config.getIntParameter("Max Upload Speed KBs",0);
@@ -1025,6 +1028,7 @@ public class StartStopRulesDefaultPlugin
 	              sDebugLine += "\nShare Ratio Met";
 	            dlData.setSeedingRank(SR_SHARERATIOMET);
 	          }
+
 	  
 	          // Ignore when P:S ratio met
 	          if (iIgnoreRatioPeers != 0 && 
@@ -1041,6 +1045,22 @@ public class StartStopRulesDefaultPlugin
 	              }
 	            }
 	          }
+			  
+			  // Ignore SPratio
+			  if (numPeers !=0 && numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio && 
+					  dlData.getSeedingRank() != SR_SPRATIOMET) {
+				  if (bDebugLog)
+		              sDebugLine += "\nSP Ratio Met";
+		            dlData.setSeedingRank(SR_SPRATIOMET);
+			  }
+			  
+			  // Ignore 0 Peer
+			  if (numPeers == 0 && bFirstPriorityIgnore0Peer && 
+					  dlData.getSeedingRank() != SR_0PEER) {
+				  if (bDebugLog)
+		              sDebugLine += "\n0 Peer";
+		            dlData.setSeedingRank(SR_0PEER);
+			  }
 	
 	        // Change to waiting if queued and we have an open slot
 	        } else if ((state == Download.ST_QUEUED) &&
@@ -1464,18 +1484,42 @@ public class StartStopRulesDefaultPlugin
 		      // never apply ignore rules to First Priority Matches
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
-	        if (num_peers_excluding_us == 0 && bScrapeResultsOk && bIgnore0Peers) {
-	          setSeedingRank(SR_0PEERS);
-	          return SR_0PEERS;
-	        }
-	
+			if (num_peers_excluding_us == 0 && 
+					bScrapeResultsOk && 
+					(bIgnore0Peers || bFirstPriorityIgnore0Peer) && 
+					shareRatio < iIgnoreShareRatio) 
+			{
+		         setSeedingRank(SR_0PEERS);
+		         return SR_0PEERS;
+		    }
+			
+			if (num_peers_excluding_us != 0 && 
+					num_seeds_excluding_us / num_peers_excluding_us >= iFirstPriorityIgnoreSPRatio && 
+					bScrapeResultsOk ) 
+			{
+				if ( shareRatio < minQueueingShareRatio ) {
+		          setSeedingRank(SR_SPRATIOMET);
+		          return SR_SPRATIOMET;
+				}
+				else if ( shareRatio >= iIgnoreShareRatio ) {  
+					setSeedingRank(SR_SHARERATIOMET);
+			          return SR_SHARERATIOMET;
+				}
+				else { 
+					setSeedingRank(SR_RATIOMET);
+					return SR_RATIOMET;
+				}
+			}
+		    
+			
 	        if (iIgnoreShareRatio != 0 && 
 	            shareRatio > iIgnoreShareRatio && 
 	            num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart &&
 	            shareRatio != -1) {
 	          setSeedingRank(SR_SHARERATIOMET);
-	          return sr;
+	          return SR_SHARERATIOMET;
 	        }
+	       
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
@@ -1639,8 +1683,8 @@ public class StartStopRulesDefaultPlugin
       // FP doesn't apply when S:P >= set SPratio (SPratio = 0 means ignore)
       int numPeers = calcPeersNoUs(dl);
       int numSeeds = calcSeedsNoUs(dl);
-      if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0) {
-        if (bDebugLog) sExplainFP += "Not FP: P:S >= "+iFirstPriorityIgnoreSPRatio+":1\n";
+	  if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0) {
+      if (bDebugLog) sExplainFP += "Not FP: P:S >= "+iFirstPriorityIgnoreSPRatio+":1\n";
         return false;
       }
 
@@ -1765,6 +1809,10 @@ public class StartStopRulesDefaultPlugin
           sText += String.valueOf(sr);
         }
       }
+	  else if (sr == SR_0PEER)
+	        sText = MessageText.getString("StartStopRules.0Peers");
+	  else if (sr == SR_SPRATIOMET)
+	        sText = MessageText.getString("StartStopRules.SPratioMet");
       else if (sr == SR_RATIOMET)
         sText = MessageText.getString("StartStopRules.ratioMet");
       else if (sr == SR_NUMSEEDSMET)

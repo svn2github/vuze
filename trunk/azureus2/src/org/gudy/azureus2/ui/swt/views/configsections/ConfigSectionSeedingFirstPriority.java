@@ -209,16 +209,16 @@ public class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
     int ignoreSPRatioValues[] = new int[15];
 	ignoreSPRatioLabels[0] = MessageText.getString("ConfigView.text.ignore");
 	ignoreSPRatioValues[0] = 0;
-    for (int i = 1; i < seedTimeValues.length; i++) {
+    for (int i = 1; i < ignoreSPRatioLabels.length; i++) {
 		ignoreSPRatioLabels[i] = i * 10 + " " + ":1" ;
 		ignoreSPRatioValues[i] = i * 10;
     }
-	new IntListParameter(cIgnoreFP, "StartStopManager_iFirstPriority_ignoreSPratio", 10,
+	new IntListParameter(cIgnoreFP, "StartStopManager_iFirstPriority_ignoreSPRatio", 10,
 							ignoreSPRatioLabels, ignoreSPRatioValues);
 
 	//	 Ignore 0 Peers
     new BooleanParameter(cIgnoreFP,
-                         "StartStopManager_bFirstPriority_Ignore0Peer", true, 
+                         "StartStopManager_bFirstPriority_ignore0Peer", true, 
                          "ConfigView.label.seeding.firstPriority.ignore0Peer");
 	
 	//	 row

@@ -341,6 +341,11 @@ ConfigurationChecker
 	      COConfigurationManager.setParameter("StartStopManager_iFirstPriority_DLMinutes", 60*3);
 	      changed = true;
 	    }
+		
+		int iIgnoreSPRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ignoreSPRatio");
+		if (iIgnoreSPRatio < 10 && iIgnoreSPRatio != 0) {
+			COConfigurationManager.setParameter("StartStopManager_iFirstPriority_ignoreSPRatio", 10);
+		}
 	
 	    String uniqueId = COConfigurationManager.getStringParameter("ID",null);
 	    if(uniqueId == null || uniqueId.length() != 20) {
