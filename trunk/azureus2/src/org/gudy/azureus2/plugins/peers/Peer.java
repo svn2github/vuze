@@ -79,6 +79,8 @@ Peer
 	
 	public int getNumberOfBadChunks();
 	
+	public void resetNbBadChunks();
+	
 	public void
 	initialize();
 	

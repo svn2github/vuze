@@ -2328,27 +2328,47 @@ PEPeerControlImpl
   }
 
   
-  private void badPeerDetected(PEPeer peer) {
+  private void 
+  badPeerDetected(
+  		PEPeer peer) 
+  {
     String ip = peer.getIp();
-    //Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
+    
+    	//Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");
+    
     int nbBadChunks = peer.getNbBadChunks();
-    if(nbBadChunks > BAD_CHUNKS_LIMIT) {
-    	IpFilterManager	filter_manager = IpFilterManagerFactory.getSingleton();
+    
+    if (  nbBadChunks > BAD_CHUNKS_LIMIT) {
     	
-      //Ban fist to avoid a fast reco of the bad peer
+      IpFilterManager	filter_manager = IpFilterManagerFactory.getSingleton();
+    	
+      	//Ban fist to avoid a fast reco of the bad peer
+      
       int nbWarnings = filter_manager.getBadIps().addWarningForIp(ip);
       
       	// no need to reset the bad chunk count as the peer is going to be disconnected and
       	// if it comes back it'll start afresh
       
-      if(nbWarnings > WARNINGS_LIMIT && COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")) {
-      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
-      }
-      //Close connection in 2nd
-      ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
-      //Trace the ban in third
-      if(nbWarnings > WARNINGS_LIMIT) {
-        LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+      if(	nbWarnings > WARNINGS_LIMIT ){
+      	
+      	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
+      	
+	      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
+	      
+	      		//	Close connection in 2nd
+	      	
+	      	((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
+	      	
+	      		//Trace the ban in third
+	      		      		
+	      	LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+	      	
+      	}else{
+      		
+	      	LGLogger.log(LGLogger.ERROR,ip + " : has not been banned as this is disabled. Bad data count has been reset" );
+
+      		peer.resetNbBadChunks();
+      	}
       }
     }
   }

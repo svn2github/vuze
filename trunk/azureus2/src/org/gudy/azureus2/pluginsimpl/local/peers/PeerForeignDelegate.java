@@ -344,7 +344,12 @@ PeerForeignDelegate
 		return( foreign.getNumberOfBadChunks());
 	}
 	
-
+	public void
+	resetNbBadChunks()
+	{
+		foreign.resetNbBadChunks();
+	}
+	
 	public int getUniqueAnnounce() 
 	{
 	    return -1;

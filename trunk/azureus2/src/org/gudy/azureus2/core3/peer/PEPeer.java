@@ -110,6 +110,8 @@ PEPeer
 	
 	public int getNbBadChunks();
 	
+	public void resetNbBadChunks();
+	
 	//Used in super-seed mode
 	//The lower the better
 	public void setUploadHint(int timeToSpread);

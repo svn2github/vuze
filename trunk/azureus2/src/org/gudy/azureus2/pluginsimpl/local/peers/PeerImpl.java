@@ -185,6 +185,12 @@ PeerImpl
 	}
 	
 	public void
+	resetNbBadChunks()
+	{
+		delegate.resetNbBadChunks();
+	}
+	
+	public void
 	initialize()
 	{
 		throw( new RuntimeException( "not supported"));

@@ -1747,7 +1747,8 @@ StateTransfering
   
   public void hasSentABadChunk() {  nbBadChunks++;  }
   public int getNbBadChunks() {  return nbBadChunks;  }
-
+  public void resetNbBadChunks(){ nbBadChunks = 0; }
+  
   public void setUploadHint(int spreadTime) {  spreadTimeHint = spreadTime;  }
   public int getUploadHint() {  return spreadTimeHint;  }
   public void setUniqueAnnounce(int _uniquePiece) {  uniquePiece = _uniquePiece;  }
