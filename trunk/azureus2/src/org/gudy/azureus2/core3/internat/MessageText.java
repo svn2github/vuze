@@ -92,12 +92,18 @@ public class MessageText {
       
       String word = st.nextToken();
       int length = word.length();
-      int position = word.indexOf(".");
-      if(position == -1 || (position+1) < length) {
+      int position = word.lastIndexOf(".");
+      if(position == -1 || (position+1) == length) {
         result.append(word);
       } else {
         //We have a key :
-        result.append(getString(word));
+        String translated = getString(word);
+        if(translated.equals("!" + word + "!")) {
+          result.append(word);
+        }
+        else {
+          result.append(translated);
+        }
       }         
     }    
     return result.toString();

@@ -29,8 +29,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -53,8 +55,10 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 
 /**
  * @author Olivier Chalouhi

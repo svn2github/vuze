@@ -29,15 +29,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -48,6 +43,7 @@ VersionChecker
 	extends Thread 
 {	
   
+  private static final int RECOMMENDED_SWT_VERSION = 3046; // (M8 = 3044) (M7 = 3038)
   public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
   
   private static Timer version_check_timer;
@@ -87,7 +83,7 @@ VersionChecker
   
 	public void run() {
     MainWindow mainWindow = MainWindow.getWindow();
-    mainWindow.setStatusText("MainWindow.status.checking . . .");
+    mainWindow.setStatusText("MainWindow.status.checking ...");
 		ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 
 		int nbRead = 0;
@@ -117,6 +113,13 @@ VersionChecker
 			byte[] bFileName = (byte[]) decoded.get("filename"); //$NON-NLS-1$
 			if (bFileName != null)
 				latestVersionFileName = new String(bFileName);
+      
+      String sText = " . ";
+      int iSWTVer = SWT.getVersion();
+      if (iSWTVer < RECOMMENDED_SWT_VERSION) {
+        sText += "SWT v"+ iSWTVer + " MainWindow.status.tooOld";
+      }
+      mainWindow.setStatusText(Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.latestversion " + latestVersion + sText);
 /*
       final Display display = SWTThread.getInstance().getDisplay();
       

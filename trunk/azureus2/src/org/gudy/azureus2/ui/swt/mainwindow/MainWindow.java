@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -93,9 +92,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.*;
  * STProgressListener : To make it visible once initialization is done
  */
 public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
-
-  private static final int RECOMMENDED_SWT_VERSION = 3044; // M8 (M7 = 3038)
-
+  
   private static MainWindow window;
 
   private Initializer initializer;  
@@ -362,8 +359,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
     
-    final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
-    
+    final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);    
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {
         MenuItem[] items = menuUpSpeed.getItems();
@@ -413,9 +409,63 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
         
       }
-    });
-    
+    });    
     statusUp.setMenu(menuUpSpeed);
+    
+    
+    final Menu menuDownSpeed = new Menu(mainWindow,SWT.POP_UP);    
+    menuDownSpeed.addListener(SWT.Show,new Listener() {
+      public void handleEvent(Event e) {
+        MenuItem[] items = menuDownSpeed.getItems();
+        for(int i = 0 ; i < items.length ; i++) {
+         items[i].dispose(); 
+        }
+        
+        int downLimit = COConfigurationManager.getIntParameter("Max Download Speed KBs",0);
+        
+        MenuItem item = new MenuItem(menuDownSpeed,SWT.RADIO);
+        item.setText(MessageText.getString("ConfigView.unlimited"));
+        item.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            COConfigurationManager.setParameter("Max Download Speed KBs",0); 
+          }
+        });
+        if(downLimit == 0) item.setSelection(true);
+        
+        final Listener speedChangeListener = new Listener() {
+              public void handleEvent(Event e) {
+                int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
+                COConfigurationManager.setParameter("Max Download Speed KBs", iSpeed);
+              }
+            };
+
+        int iRel = 0;
+        for (int i = 0; i < 12; i++) {
+          int[] iAboveBelow;
+          if (iRel == 0) {
+            iAboveBelow = new int[] { downLimit };
+          } else {
+            iAboveBelow = new int[] { downLimit - iRel, downLimit + iRel };
+          }
+          for (int j = 0; j < iAboveBelow.length; j++) {
+            if (iAboveBelow[j] >= 5) {
+              item = new MenuItem(menuDownSpeed, SWT.RADIO, 
+                                  (j == 0) ? 1 : menuDownSpeed.getItemCount());
+              item.setText(iAboveBelow[j] + " KB/s");
+              item.setData("speed", new Long(iAboveBelow[j]));
+              item.addListener(SWT.Selection, speedChangeListener);
+  
+              if (downLimit == iAboveBelow[j]) item.setSelection(true);
+            }
+          }
+          
+          iRel += (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
+        }
+        
+      }
+    });    
+    statusDown.setMenu(menuDownSpeed);
+    
     
     LGLogger.log("Initializing GUI complete");
     
@@ -657,7 +707,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     display.asyncExec(new Runnable() {
       public void run() {
     if (statusText != null && !statusText.isDisposed()) {
-      String sText = "";
+      /*String sText = "";
       int iSWTVer = SWT.getVersion();
       if (iSWTVer < RECOMMENDED_SWT_VERSION) {
         String sParam[] = {"SWT v"+ iSWTVer};
@@ -672,7 +722,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 						}
 					});
 				}
-      }      
+      }  */    
       statusText.setText(MessageText.getStringForSentence(statusTextKey));
     }
       }
