@@ -143,10 +143,45 @@ UPnPMappingManager
 		return( res );
 	}
 	
+	public UPnPMapping
+	getMapping(
+		boolean	tcp,
+		int		port )
+	{
+		for (int i=0;i<mappings.size();i++){
+			
+			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+			
+			if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+				
+				return( mapping );
+			}
+		}
+		
+		return( null );
+	}
+	
 	protected void
 	added(
 		UPnPMapping		mapping )
 	{
+		mapping.addListener(
+			new UPnPMappingListener()
+			{
+				public void
+				mappingChanged(
+					UPnPMapping	mapping )
+				{
+				}
+				
+				public void
+				mappingDestroyed(
+					UPnPMapping	mapping )
+				{
+					mappings.remove( mapping );
+				}
+			});
+		
 		for (int i=0;i<listeners.size();i++){
 			
 			((UPnPMappingManagerListener)listeners.get(i)).mappingAdded( mapping );

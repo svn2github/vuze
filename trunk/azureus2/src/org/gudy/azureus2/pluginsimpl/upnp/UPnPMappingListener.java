@@ -33,4 +33,8 @@ UPnPMappingListener
 	public void
 	mappingChanged(
 		UPnPMapping	mapping );
+	
+	public void
+	mappingDestroyed(
+		UPnPMapping	mapping );
 }

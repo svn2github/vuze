@@ -29,6 +29,9 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.BDecoder;
 
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.pluginsimpl.upnp.*;
+
 /**
  * @author Olivier
  * 
@@ -48,7 +51,35 @@ public class NatChecker {
     String check = "azureus_rand_".concat(String.valueOf((int) (Math.random() * 100000)));
     NatCheckerServer server = new NatCheckerServer(port, check);
     if (server.isValid()) {
+    	
+    	PluginInterface pi_upnp = PluginManager.getPluginInterfaceByClass( UPnPPlugin.class );
+			
+    	UPnPMapping	new_mapping = null;
+		
+		if ( pi_upnp != null ){
+			
+			UPnPPlugin	upnp = (UPnPPlugin)pi_upnp.getPlugin();
+			
+			UPnPMapping	mapping = upnp.getMapping( true, port );
+			
+			if ( mapping == null ){
+				
+				new_mapping = upnp.addMapping( "NAT Tester", true, port, true );
+				
+					// give UPnP a chance to work
+				
+				try{
+					Thread.sleep(500);
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}
+
       try {
+      	
         server.start();
         String urlStr = urls[0].concat("?port=").concat(String.valueOf(port)).concat("&check=").concat(check);
         URL url = new URL(urlStr);
@@ -82,6 +113,12 @@ public class NatChecker {
         return NAT_UNABLE;
       }
       finally {
+      	
+      	if (new_mapping != null ){
+      		
+      		new_mapping.destroy();
+      	}
+      	
         server.stopIt();
       }
     }

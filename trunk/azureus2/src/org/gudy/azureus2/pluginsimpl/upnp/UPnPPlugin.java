@@ -403,6 +403,18 @@ UPnPPlugin
 		checkState();
 	}
 	
+	public synchronized void
+	mappingDestroyed(
+		UPnPMapping	mapping )
+	{
+		for (int j=0;j<services.size();j++){
+			
+			UPnPPluginService	service = (UPnPPluginService)services.get(j);
+			
+			service.removeMapping( log, mapping );
+		}
+	}
+	
 	protected synchronized void
 	checkState()
 	{		
@@ -429,5 +441,13 @@ UPnPPlugin
 		boolean		enabled )
 	{
 		return( UPnPMappingManager.getSingleton().addMapping( desc_resource, tcp, port, enabled ));
+	}
+	
+	public UPnPMapping
+	getMapping(
+		boolean	tcp,
+		int		port )
+	{
+		return( UPnPMappingManager.getSingleton().getMapping( tcp, port ));
 	}
 }

@@ -113,6 +113,15 @@ UPnPMapping
 		return( name + " (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
 	}
 	
+	public void
+	destroy()
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((UPnPMappingListener)listeners.get(i)).mappingDestroyed( this );
+		}
+	}
+	
 	protected void
 	changed()
 	{
@@ -121,6 +130,7 @@ UPnPMapping
 			((UPnPMappingListener)listeners.get(i)).mappingChanged( this );
 		}
 	}
+	
 	public void
 	addListener(
 		UPnPMappingListener	l )
