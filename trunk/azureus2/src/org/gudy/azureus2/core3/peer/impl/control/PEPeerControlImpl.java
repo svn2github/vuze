@@ -585,7 +585,7 @@ PEPeerControlImpl
 	      }
       }
       
-      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
+      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
       
       _manager.setState(DownloadManager.STATE_FINISHING);
       _timeFinished = System.currentTimeMillis() / 1000;

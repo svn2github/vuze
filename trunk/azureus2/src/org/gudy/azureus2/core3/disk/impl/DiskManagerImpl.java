@@ -114,7 +114,7 @@ DiskManagerImpl
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
-  private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", false);
+  private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
   
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
 		this.state = INITIALIZING;
@@ -1743,7 +1743,7 @@ DiskManagerImpl
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", false);
+    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
   }
 
 }

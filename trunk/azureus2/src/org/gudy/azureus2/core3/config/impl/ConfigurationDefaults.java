@@ -95,7 +95,7 @@ public class ConfigurationDefaults {
     def.put("Max Upload Speed", new Long(0));
     // Fast Resume
     //def.put("Core_bUseResume", new Long(0));
-    def.put("Use Resume", new Long(0));
+    def.put("Use Resume", new Long(1));
     // Save Resume Interval (minutes)
     //def.put("Core_iSaveResumeInterval", new Long(5));
     def.put("Save Resume Interval", new Long(5));
