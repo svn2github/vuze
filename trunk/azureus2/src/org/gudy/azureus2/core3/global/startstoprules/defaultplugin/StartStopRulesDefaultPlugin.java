@@ -371,9 +371,11 @@ StartStopRulesDefaultPlugin
                           (totalWaitingToDL == 0) &&
                           (!recalcQR);
 
-			//log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
-      if (quitEarly || downloadIsPreparing)
+	  log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
+      if (quitEarly || downloadIsPreparing){
+      	
         return;
+      }
       
       // Sort by QR
       Collections.sort(download_data);

@@ -84,6 +84,8 @@ Semaphore
 					
 					if ( total_reserve == total_release ){
 							
+						waiting--;
+						
 						return( false );
 					}
 						

@@ -1158,7 +1158,15 @@ public class ConfigView extends AbstractIView {
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.confirm_data_delete");
     new BooleanParameter(gFile, "Confirm Data Delete", true);
-
+    // Max Open Files
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
+    IntParameter file_max_open = new IntParameter(gFile, "File Max Open", 0);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    file_max_open.setLayoutData( gridData );
+    
 
     // Sub-Section: File -> Torrent
     // ----------------------------

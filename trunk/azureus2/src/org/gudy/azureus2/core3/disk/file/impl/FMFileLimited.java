@@ -34,11 +34,11 @@ public class
 FMFileLimited
 	extends FMFileImpl
 {
-	protected FMFileManager		manager;
+	protected FMFileManagerImpl		manager;
 	
 	protected
 	FMFileLimited(
-		FMFileManager	_manager )
+		FMFileManagerImpl	_manager )
 	{
 		manager = _manager;
 	}
@@ -72,19 +72,19 @@ FMFileLimited
 	protected void
 	getSlot()
 	{
-		//System.out.println( "FMFileLimited::getSlot: " + file.toString());
+		manager.getSlot(this);
 	}
 	
 	protected void
 	releaseSlot()
 	{
-		//System.out.println( "FMFileLimited::releaseSlot: " + file.toString());
+		manager.releaseSlot(this);
 	}
 	
 	protected void
 	usedSlot()
 	{	
-		//System.out.println( "FMFileLimited::usedSlot: " + file.toString());
+		manager.usedSlot(this);
 	}
 	
 	public synchronized void
@@ -172,5 +172,10 @@ FMFileLimited
 				releaseSlot();
 			}
 		}
+	}
+	protected synchronized boolean
+	isOpen()
+	{
+		return( raf != null );
 	}
 }
