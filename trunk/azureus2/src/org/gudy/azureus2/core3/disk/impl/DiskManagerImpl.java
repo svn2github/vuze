@@ -1117,6 +1117,11 @@ DiskManagerImpl
 		synchronized (file) {
 			RandomAccessFile raf = file.getRaf();
 			FileChannel fc = raf.getChannel();
+      
+			if (!fc.isOpen()) {
+			  Debug.out("FileChannel is closed: " + file.getFile().getAbsolutePath());
+			  return false;
+			}
 
 			long fcposition = 0;
 			long fcsize = 0;
