@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -290,7 +290,20 @@ public class TableView
 
       String sName = tableColumns[i].getName();
       // +1 for Eclipse Bug 43910 (see above)
-      TableColumn column = table.getColumn(position + (bSkipFirstColumn ? 1 : 0));
+      // user has reported a problem here with index-out-of-bounds - not sure why
+      // but putting in a preventative check so that hopefully the view still opens
+      // so they can fix it
+      
+      int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
+      
+      if ( adjusted_position >= table.getColumnCount()){
+      	
+      	Debug.out( "Incorrect table column setup, skipping column '" + sName + "'" );
+      	
+      	continue;
+      }
+      
+      TableColumn column = table.getColumn(adjusted_position);
       Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
       column.setAlignment(tableColumns[i].getSWTAlign());
       column.setWidth(tableColumns[i].getWidth());
