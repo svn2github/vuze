@@ -37,11 +37,17 @@ TRTrackerServer
 	
 	public void
 	permit(
-		byte[]		hash );
+		byte[]		hash,
+		boolean		explicit  )
+		
+		throws TRTrackerServerException;
 		
 	public void
 	deny(
-		byte[]		hash );
+		byte[]		hash,
+		boolean		explicit )
+		
+		throws TRTrackerServerException;
 		
 	public TRTrackerServerTorrentStats
 	getStats(

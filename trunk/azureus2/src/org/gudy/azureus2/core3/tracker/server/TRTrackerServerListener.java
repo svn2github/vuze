@@ -38,11 +38,13 @@ TRTrackerServerListener
 		
 		throws IOException;
 		
-	public void
+	public boolean
 	permitted(
-		byte[]	hash );
+		byte[]	hash,
+		boolean	explicit );
 		
-	public void
+	public boolean
 	denied(
-		byte[]	hash );
+		byte[]	hash,
+		boolean	explicit );
 }

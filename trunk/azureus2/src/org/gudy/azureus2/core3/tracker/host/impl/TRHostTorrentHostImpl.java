@@ -77,14 +77,15 @@ TRHostTorrentHostImpl
 	start()
 	{
 		try{
-		
-			server.permit( torrent.getHash());
-		
-			status = TS_STARTED;
+			// System.out.println( "TRHostTorrentHostImpl::start");
 			
+			status = TS_STARTED;
+					
+			server.permit( torrent.getHash(), true);
+		
 			host.hostTorrentStateChange( this );
 			
-		}catch( TOTorrentException e ){
+		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
@@ -94,14 +95,15 @@ TRHostTorrentHostImpl
 	stop()
 	{
 		try{
+			// System.out.println( "TRHostTorrentHostImpl::stop");
 			
-			server.deny( torrent.getHash());
-		
 			status = TS_STOPPED;
-	
+				
+			server.deny( torrent.getHash(), true);
+		
 			host.hostTorrentStateChange( this );
 			
-		}catch( TOTorrentException e ){
+		}catch( Throwable e ){
 			
 				e.printStackTrace();
 		}

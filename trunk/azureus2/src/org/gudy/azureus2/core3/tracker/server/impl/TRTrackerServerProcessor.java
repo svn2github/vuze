@@ -272,9 +272,16 @@ TRTrackerServerProcessor
 							
 						}else{
 							
-							server.permit( hash_bytes );
+							try{
 							
-							torrent = server.getTorrent( hash_bytes );
+								server.permit( hash_bytes, false );
+							
+								torrent = server.getTorrent( hash_bytes );
+								
+							}catch( Throwable e ){
+								
+								throw( new Exception( "Torrent unauthorised "));								
+							}
 						}
 					}
 				

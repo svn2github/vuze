@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.tracker.host.impl;
 import java.util.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -90,6 +91,12 @@ TRHostConfigImpl
 			 	if ( torrent != null ){
 			 		
 			 		host.addTorrent( torrent, state );
+			 		
+			 	}else{
+					if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+		 		
+			 			host.addExternalTorrent( hash, state );
+					}
 			 	}
 		   	}
 		}catch (FileNotFoundException e) {

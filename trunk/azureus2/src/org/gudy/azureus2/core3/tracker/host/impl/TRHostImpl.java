@@ -554,17 +554,36 @@ TRHostImpl
 		// the the server is allowing public hosting and this is a new hash
 		// create an 'external' entry for it
 		
-	public synchronized void
+	public synchronized boolean
 	permitted(
-		byte[]		hash )
+		byte[]		hash,
+		boolean		explicit  )
 	{
-		if ( lookupHostTorrentViaHash( hash ) != null ){
-			
-				// nothing to do, torrent already there
+		TRHostTorrent ht = lookupHostTorrentViaHash( hash );
+		
+		if ( ht != null ){
+		
+			if ( !explicit ){
 				
-			return;
+				if ( ht.getStatus() != TRHostTorrent.TS_STARTED ){
+					
+					return( false );
+				}
+			}
+			
+			return( true );
 		}
 		
+		addExternalTorrent( hash, TRHostTorrent.TS_STARTED );
+		
+		return( true );
+	}
+	
+	protected synchronized void
+	addExternalTorrent(
+		byte[]		hash,
+		int			state )
+	{
 		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
 						
 		int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
@@ -572,7 +591,7 @@ TRHostImpl
 		try{
 			TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
 		
-			hostTorrent( external_torrent );	
+			addTorrent( external_torrent, state );	
 			
 		}catch( Throwable e ){
 			
@@ -580,10 +599,12 @@ TRHostImpl
 		}
 	}
 	
-	public synchronized void
+	public synchronized boolean
 	denied(
-		byte[]		hash )
+		byte[]		hash,
+		boolean		permitted )
 	{
+		return( true );
 	}
 	
 	public boolean
@@ -874,7 +895,7 @@ TRHostImpl
 				}
 			}else{
 					
-				System.out.println( "Invalid url '" + url + "'" );
+				System.out.println( "Tracker: Received request for invalid url '" + url + "'" );
 							
 				reply_bytes = new byte[0];
 				

@@ -259,36 +259,52 @@ TRTrackerServerImpl
 		
 	public synchronized void
 	permit(
-		byte[]		_hash )
+		byte[]		_hash,
+		boolean		_explicit )
+		
+		throws TRTrackerServerException
 	{
+		// System.out.println( "TRTrackerServerImpl::permit( " + _explicit + ")");
+		
 		HashWrapper	hash = new HashWrapper( _hash );
 		
 		TRTrackerServerTorrent	entry = (TRTrackerServerTorrent)torrent_map.get( hash );
 		
 		if ( entry == null ){
 			
+			for (int i=0;i<listeners.size();i++){
+			
+				if ( !((TRTrackerServerListener)listeners.elementAt(i)).permitted( _hash, _explicit )){
+		
+					throw( new TRTrackerServerException( "operation denied"));			
+				}
+			}
+			
 			entry = new TRTrackerServerTorrent( this, hash );
 			
 			torrent_map.put( hash, entry );
-			
-			for (int i=0;i<listeners.size();i++){
-			
-				((TRTrackerServerListener)listeners.elementAt(i)).permitted( _hash );
-			}
 		}
 	}
 		
 	public synchronized void
 	deny(
-		byte[]		_hash )
+		byte[]		_hash,
+		boolean		_explicit )
+		
+		throws TRTrackerServerException
 	{
+		// System.out.println( "TRTrackerServerImpl::deny( " + _explicit + ")");
+		
 		HashWrapper	hash = new HashWrapper( _hash );
 		
 		torrent_map.remove( hash );
 
 		for (int i=0;i<listeners.size();i++){
 			
-			((TRTrackerServerListener)listeners.elementAt(i)).denied( _hash );
+			if ( !((TRTrackerServerListener)listeners.elementAt(i)).denied( _hash, _explicit )){				
+		
+				throw( new TRTrackerServerException( "operation denied"));			
+			}
 		}
 	}
 	
