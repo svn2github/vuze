@@ -1367,7 +1367,7 @@ DHTTransportUDPImpl
 		final DHTUDPPacketData	request = 
 			new DHTUDPPacketData( connection_id, local_contact, contact );
 			
-		request.setDetails( transfer_key, key, new byte[0], start_pos, len, 0 );
+		request.setDetails( DHTUDPPacketData.PT_READ_REQUEST, transfer_key, key, new byte[0], start_pos, len, 0 );
 				
 		try{
 			checkAddress( contact );
@@ -1384,7 +1384,7 @@ DHTTransportUDPImpl
 	}
 	
 	protected void
-	sendWriteRequest(
+	sendReadReply(
 		long						connection_id,	
 		DHTTransportUDPContactImpl	contact,
 		byte[]						transfer_key,
@@ -1397,12 +1397,12 @@ DHTTransportUDPImpl
 		final DHTUDPPacketData	request = 
 			new DHTUDPPacketData( connection_id, local_contact, contact );
 			
-		request.setDetails( transfer_key, key, data, start_position, length, total_length );
+		request.setDetails( DHTUDPPacketData.PT_READ_REPLY, transfer_key, key, data, start_position, length, total_length );
 		
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ));
+			logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ));
 
 			packet_handler.send(
 				request,
@@ -1425,11 +1425,23 @@ DHTTransportUDPImpl
 		DHTTransportUDPContactImpl	originator,
 		DHTUDPPacketData			req )
 	{
-		transferQueue	queue = lookupTransferQueue( req.getConnectionId());
+			// both requests and replies come through here. Currently we only support read
+			// requests so we can safely use the data.length == 0 test to discriminate between
+			// a request and a reply to an existing transfer
 		
-		if ( queue != null ){
+		byte	packet_type = req.getPacketType();
+		
+		if (	packet_type == DHTUDPPacketData.PT_READ_REPLY ||
+				packet_type == DHTUDPPacketData.PT_WRITE_REPLY ){
 			
-			queue.add( req );
+			transferQueue	queue = lookupTransferQueue( req.getConnectionId());
+			
+				// unmatched -> drop it
+			
+			if ( queue != null ){
+			
+				queue.add( req );
+			}
 				
 		}else{
 			
@@ -1442,67 +1454,81 @@ DHTTransportUDPImpl
 				logger.log( "No transfer handler for '" + req.getString() + "'" );
 				
 			}else{
-		
-					// incoming request - read-request if data length 0, write request otherwise
-				
-				byte[]	data = req.getData();
-				
-				if ( data.length == 0 ){
+						
+				if ( packet_type == DHTUDPPacketData.PT_READ_REQUEST ){
 					
-					data = handler.handleRead( originator, req.getRequestKey());
+					byte[] data = handler.handleRead( originator, req.getRequestKey());
 					
 					if ( data != null ){
-												
-						int	start = req.getStartPosition();
+							
+							// special case 0 length data
 						
-						if ( start < 0 ){
-							
-							start	= 0;
-							
-						}else if ( start >= data.length ){
-							
-							logger.log( "dataRequest: invalid start position" );
-							
-							return;
-						}
-						
-						int len = req.getLength();
-						
-						if ( len <= 0 ){
-							
-							len = data.length;
-							
-						}else if ( start + len > data.length ){
-							
-							logger.log( "dataRequest: invalid length" );
-							
-							return;
-						}
-						
-						int	end = start+len;
-						
-						while( start < end ){
-							
-							int	chunk = end - start;
-							
-							if ( chunk > DHTUDPPacketData.MAX_DATA_SIZE ){
-								
-								chunk = DHTUDPPacketData.MAX_DATA_SIZE;								
-							}
-							
-							sendWriteRequest( 
+						if ( data.length == 0 ){
+							sendReadReply( 
 									req.getConnectionId(),
 									originator,
 									transfer_key,
 									req.getRequestKey(),
 									data,
-									start,
-									chunk,
-									data.length );
+									0,
+									0,
+									0 );							
+						}else{
+							int	start = req.getStartPosition();
 							
-							start += chunk;
+							if ( start < 0 ){
+								
+								start	= 0;
+								
+							}else if ( start >= data.length ){
+								
+								logger.log( "dataRequest: invalid start position" );
+								
+								return;
+							}
+							
+							int len = req.getLength();
+							
+							if ( len <= 0 ){
+								
+								len = data.length;
+								
+							}else if ( start + len > data.length ){
+								
+								logger.log( "dataRequest: invalid length" );
+								
+								return;
+							}
+							
+							int	end = start+len;
+							
+							while( start < end ){
+								
+								int	chunk = end - start;
+								
+								if ( chunk > DHTUDPPacketData.MAX_DATA_SIZE ){
+									
+									chunk = DHTUDPPacketData.MAX_DATA_SIZE;								
+								}
+								
+								sendReadReply( 
+										req.getConnectionId(),
+										originator,
+										transfer_key,
+										req.getRequestKey(),
+										data,
+										start,
+										chunk,
+										data.length );
+								
+								start += chunk;
+							}
 						}
 					}
+				}else{
+					
+					// write request not supported
+					
 				}
 			}
 		}
@@ -1590,7 +1616,7 @@ DHTTransportUDPImpl
 
 						transferred += reply.getLength();
 						
-						listener.reportCompleteness( 100 * transfer_size / transferred );
+						listener.reportCompleteness( transfer_size==0?100: ( 100 * transferred / transfer_size ));
 						
 						packets.add( reply );
 						

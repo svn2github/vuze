@@ -38,6 +38,12 @@ public class
 DHTUDPPacketData 
 	extends DHTUDPPacketRequest
 {
+	protected static final byte		PT_READ_REQUEST		= 0x00;
+	protected static final byte		PT_READ_REPLY		= 0x01;
+	protected static final byte		PT_WRITE_REQUEST	= 0x02;
+	protected static final byte		PT_WRITE_REPLY		= 0x03;
+	
+	private byte	packet_type;
 	private byte[]	transfer_key;
 	private byte[]	key;
 	private byte[]	data;
@@ -48,7 +54,7 @@ DHTUDPPacketData
 		// assume keys are 20 bytes + 1 len, data len is 2 bytes
 	
 	public static int	MAX_DATA_SIZE = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
-											21 - 21 - 14;
+											1- 21 - 21 - 14;
 	
 	public
 	DHTUDPPacketData(
@@ -69,6 +75,7 @@ DHTUDPPacketData
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_PING, con_id, trans_id );
 		
+		packet_type		= is.readByte();
 		transfer_key	= DHTUDPUtils.deserialiseByteArray( is, 64 );
 		key				= DHTUDPUtils.deserialiseByteArray( is, 64 );
 		start_position	= is.readInt();
@@ -85,6 +92,7 @@ DHTUDPPacketData
 	{
 		super.serialise(os);
 		
+		os.writeByte( packet_type );
 		DHTUDPUtils.serialiseByteArray( os, transfer_key, 64 );
 		DHTUDPUtils.serialiseByteArray( os, key, 64 );
 		os.writeInt( start_position );
@@ -103,6 +111,7 @@ DHTUDPPacketData
 	
 	public void
 	setDetails(
+		byte		_packet_type,
 		byte[]		_transfer_key,
 		byte[]		_key,
 		byte[]		_data,
@@ -110,12 +119,19 @@ DHTUDPPacketData
 		int			_length,
 		int			_total_length )
 	{
+		packet_type			= _packet_type;
 		transfer_key		= _transfer_key;
 		key					= _key;
 		data				= _data;
 		start_position		= _start_pos;
 		length				= _length;
 		total_length		= _total_length;
+	}
+	
+	public byte
+	getPacketType()
+	{
+		return( packet_type );
 	}
 	
 	public byte[]
