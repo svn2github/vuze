@@ -515,7 +515,14 @@ TRTrackerClientClassicImpl
 					
 				if ( metaData == null ){
 					
-					failure_reason = "invalid reply:" + new String( data );
+					String	trace_data = new String(data);
+					
+					if ( trace_data.length() > 20 ){
+						
+						trace_data = trace_data.substring(0,20) + "...";
+					}
+					
+					failure_reason = "invalid reply:" + trace_data;
 				
 				}else{
 					
