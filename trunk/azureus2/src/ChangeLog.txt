@@ -26,6 +26,7 @@ BUGFIX: Non-UTF8 encoded 'comment' fields in torrents not showing properly [Parg
 BUGFIX: Some dead-lock issues (especially on startup) [Gudy]
 BUGFIX: Better recovery on connection closing [Nolar]
 BUGFIX: Text scroll is now ok in irc view [Gudy]
+BUGFIX: Size is now displayed even when the torrent is stopped [Gudy]
 
 TODO: when released (1) update 'export torrent' FAQ (2) update torrent.xsd [Parg]
 
