@@ -416,8 +416,12 @@ public class MyTorrentsView extends AbstractIView
               Category catToDelete = (Category)catButton.getData("Category");
               if (catToDelete != null) {
                 List managers = catToDelete.getDownloadManagers();
-                for (int i = 0; i < managers.size(); i++)
-                  ((DownloadManager)managers.get(i)).setCategory(null);
+                // move to array,since setcategory removed it from the category,
+                // which would mess up our loop
+                DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
+                for (int i = 0; i < dms.length; i++) {
+                  dms[i].setCategory(null);
+                }
                 if (currentCategory == catToDelete)
                    activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
                 CategoryManager.removeCategory(catToDelete);
