@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  */
 public class AZMessageDecoder implements MessageStreamDecoder {
   private static final int MIN_MESSAGE_LENGTH = 6;  //4 byte id length + at least 1 byte for id + 1 byte version
-  private static final int MAX_MESSAGE_LENGTH = 65536;  //64K arbitrary limit
+  private static final int MAX_MESSAGE_LENGTH = 131072;  //128K arbitrary limit
   
   
   private ByteBuffer payload_buffer = null;
