@@ -1,9 +1,5 @@
 In order to compile this Azureus source you will need : 
-
 SWT, available at http://www.eclipse.org 
-PircBot, available at http://www.jibble.org
-Systray for Java, available at http://systray.sf.net
-
 
 NOTE: If you are compiling the web/web2/console UI code,
 you will also need:
