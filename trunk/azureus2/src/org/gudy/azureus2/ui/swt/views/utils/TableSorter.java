@@ -145,10 +145,10 @@ public class TableSorter implements ParameterListener {
           SortableItem itemi = (SortableItem) objectToSortableItem.get(dataSourcei);
           long valuei = itemi.getIntField(field);
           if (ascending) {
-            if (valuei >= value)
+            if (valuei <= value)
               break;
           } else {
-            if (valuei <= value)
+            if (valuei >= value)
               break;
           }
         }

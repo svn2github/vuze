@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -42,8 +45,8 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.MyTorrentsItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
@@ -116,21 +119,30 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     gridData = new GridData(GridData.FILL_BOTH); 
     table.setLayoutData(gridData);
     sorter = new TableSorter(this,"#",true);
-    itemEnumerator = MyTorrentsItemEnumerator.getInstance();
-    /*
-    String[] columnsHeader = { "#", "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
-    int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
-    for (int i = 0; i < columnsHeader.length; i++) {
-      columnsSize[i] = COConfigurationManager.getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);
-    }
-
+    
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
         saveTableColumns((TableColumn) e.widget);
       }
     };
-    */
+    
+    String[] tableItems = {
+           "#;I;25;0"
+          ,"name;S;250;1"
+          ,"size;I;70;2"
+          ,"done;I;55;3"
+          ,"status;I;80;4"
+          ,"seeds;I;45;5"
+          ,"peers;I;45;6"
+          ,"downspeed;I;70;7"
+          ,"upspeed;I;70;8"    
+          ,"eta;I;70;9"
+          ,"tracker;I;70;10"
+          ,"priority;I;70;11"
+        };    
+    itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
     ItemDescriptor[] items = itemEnumerator.getItems();
+    
     //Create all columns
     for (int i = 0; i < items.length; i++) {
       int position = items[i].getPosition();
@@ -151,6 +163,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
        if(items[i].getType() == ItemDescriptor.TYPE_STRING) {
          sorter.addStringColumnListener(column,items[i].getName());
        }
+       column.setData("configName","Table.MyTorrents." + items[i].getName());
+       column.addControlListener(resizeListener);
      }  
     }   
 
@@ -769,7 +783,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
 
   private void saveTableColumns(TableColumn t) {
-    COConfigurationManager.setParameter((String) t.getData(), t.getWidth());
+    COConfigurationManager.setParameter((String) t.getData("configName") + ".width", t.getWidth());
     COConfigurationManager.save();
   }
 
