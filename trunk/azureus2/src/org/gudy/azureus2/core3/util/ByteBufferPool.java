@@ -19,18 +19,16 @@ public class ByteBufferPool {
 
   private static ByteBufferPool pool;
   
-  // Here's the logic of ADD_SIZE:
-  // 'PIECE' messages contain data, plus:
-  // 4 : length in BT protocol (int)
-  // 1 : command in BT protocol (byte)
-  // 4 : pieceNumber in BT protocol (int)
-  // 4 : offset in BT protocol (int) 
-  private static final int ADD_SIZE = 4 + 1 + 4 + 4;
+  // There is no point in allocating buffers smaller than 4K,
+  // as direct ByteBuffers are page-aligned to the underlying
+  // system, which is 4096 byte pages under most OS's.
+  // If we want to save memory, we can distribute smaller-than-4K
+  // buffers by using the slice() method to break up a standard buffer
+  // into smaller chunks, but that's more work.
+  private static final int START_POWER = 12;    // 4096
+  private static final int END_POWER   = 25;    // 33554432
   
-  private static final int START_POWER = 10;    // 1024
-  private static final int END_POWER   = 20;    // 1048576
-  
-  public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue() + ADD_SIZE;
+  public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
   
   private final Map buffersMap;
   
@@ -48,7 +46,7 @@ public class ByteBufferPool {
     
     //create the buffer pool for each buffer size
     for (int p=START_POWER; p <= END_POWER; p++) {
-        Integer size = new Integer(BigInteger.valueOf(2).pow(p).intValue() + ADD_SIZE);
+        Integer size = new Integer(BigInteger.valueOf(2).pow(p).intValue());
         ArrayList bufferPool = new ArrayList();
         buffersMap.put(size, bufferPool);
     }
