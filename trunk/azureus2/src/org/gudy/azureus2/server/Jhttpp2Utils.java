@@ -8,7 +8,7 @@
  * @author Benjamin Kohl
  * @version 0.4.22a
  */
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 public class Jhttpp2Utils
 {

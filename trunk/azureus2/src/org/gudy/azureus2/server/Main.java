@@ -4,7 +4,7 @@
  * Created on 22. August 2003, 00:04
  */
 
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;

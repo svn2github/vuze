@@ -3,7 +3,7 @@
  * This code comes with NO WARRANTY.
  * More Information and documentation: HTTP://jhttp2.sourceforge.net/
  */
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -27,7 +27,6 @@ import org.apache.log4j.Level;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.ILoggerListener;
-import org.gudy.azureus2.server.SLevel;
 
 public class Jhttpp2Server implements Runnable, ILoggerListener {
   private static final String CRLF="\r\n";

@@ -4,16 +4,18 @@
  * Created on 23. August 2003, 01:11
  */
 
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
-import org.gudy.azureus2.core.ConfigurationManager;
+
 import HTML.Template;
+import org.gudy.azureus2.core.ConfigurationManager;
 
 /**
  *

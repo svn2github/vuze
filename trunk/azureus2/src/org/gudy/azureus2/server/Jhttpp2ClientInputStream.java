@@ -2,7 +2,7 @@
  * Distributed under the GNU General Public License; see the README file.
  * This code comes with NO WARRANTY.
  */
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core.ConfigurationManager;
-import org.gudy.azureus2.server.SLevel;
 
 /**
  * File: Jhttpp2BufferedFilterStream.java

@@ -2,7 +2,7 @@
  * Distributed under the GNU General Public License; see the README file.
  * This code comes with NO WARRANTY.
  */
-package org.gudy.azureus2.server2;
+package org.gudy.azureus2.server;
 
 import java.net.Socket;
 import java.net.InetAddress;
@@ -35,8 +35,6 @@ import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
-import org.gudy.azureus2.server.HTTPDownloader;
-import org.gudy.azureus2.server.SLevel;
 
 /**
  * One HTTP connection
