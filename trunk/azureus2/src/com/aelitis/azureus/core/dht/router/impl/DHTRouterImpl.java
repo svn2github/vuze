@@ -919,6 +919,15 @@ DHTRouterImpl
 		}
 	}
 
+	public void
+	refreshRandom()
+	{
+		byte[]	id = new byte[router_node_id.length];
+		
+		random.nextBytes( id );
+	
+		requestLookup( id );
+	}
 	
 	protected void
 	requestLookup(

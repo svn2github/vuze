@@ -116,6 +116,9 @@ DHTRouter
 	refreshIdleLeaves(
 		long	idle_max );
 	
+	public void
+	refreshRandom();
+	
 		/**
 		 * returns a list of best contacts in terms of uptime, best first
 		 * @param max

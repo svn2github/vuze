@@ -54,6 +54,8 @@ DHTControlImpl
 	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 32;
 	private static final int EXTERNAL_PUT_CONCURRENCY		= 16;
 	
+	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
+	
 	private DHTTransport			transport;
 	private DHTTransportContact		local_contact;
 	
@@ -81,6 +83,8 @@ DHTControlImpl
 	private ThreadPool	put_pool;
 	
 	private Map			imported_state	= new HashMap();
+	
+	private long		last_lookup;
 	
 	public
 	DHTControlImpl(
@@ -518,6 +522,29 @@ DHTControlImpl
 				});
 		
 		sem.reserve();
+	}
+	
+	protected void
+	poke()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now - last_lookup > RANDOM_QUERY_PERIOD ){
+			
+			last_lookup	= now;
+			
+				// we don't want this to be blocking as it'll stuff the stats
+			
+			external_lookup_pool.run(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						router.refreshRandom();
+					}
+				});
+		}
 	}
 	
 	public void
@@ -980,7 +1007,9 @@ DHTControlImpl
 		final lookupResultHandler	result_handler )
 	{
 		boolean		timeout_occurred	= false;
-				
+	
+		last_lookup	= SystemTime.getCurrentTime();
+		
 		try{
 			DHTLog.log( "lookup for " + DHTLog.getString( lookup_id ));
 			

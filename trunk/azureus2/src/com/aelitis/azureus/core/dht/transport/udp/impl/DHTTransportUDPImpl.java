@@ -1957,7 +1957,7 @@ DHTTransportUDPImpl
 				
 			}else{
 				
-				throw( new PRUDPPacketHandlerException( "retry no permitted" ));
+				throw( new PRUDPPacketHandlerException( "retry not permitted" ));
 			}
 			
 		}else{

@@ -53,7 +53,7 @@ DHTControlStats
 
 	private DHTTransportStats	transport_snapshot;
 	private long[]				router_snapshot;
-	
+		
 	protected
 	DHTControlStats(
 		DHTControlImpl		_control )
@@ -65,7 +65,7 @@ DHTControlStats
 		router_snapshot		= control.getRouter().getStats().getStats();
 		
 		Timer	timer = new Timer("DHTControl:stats");
-		
+				
 		timer.addPeriodicEvent(
 			UPDATE_INTERVAL,
 			new TimerEventPerformer()
@@ -75,6 +75,8 @@ DHTControlStats
 					TimerEvent	event )
 				{
 					update();
+				
+					control.poke();
 				}
 			});
 	}
