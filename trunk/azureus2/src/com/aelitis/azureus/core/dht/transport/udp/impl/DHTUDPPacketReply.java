@@ -26,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.net.udp.PRUDPPacketReply;
 
 /**
@@ -39,18 +40,22 @@ DHTUDPPacketReply
 {
 	private long	connection_id;
 	private int		version;
+	private int		target_instance_id;
 	
 	public
 	DHTUDPPacketReply(
-		int			_type,
-		int			_trans_id,
-		long		_conn_id )
+		int					_type,
+		int					_trans_id,
+		long				_conn_id,
+		DHTTransportContact	_contact)
 	{
 		super( _type, _trans_id );
 		
 		connection_id	= _conn_id;
 		
 		version			= DHTUDPPacket.VERSION;
+		
+		target_instance_id	= _contact.getInstanceID();
 	}
 	
 	protected
@@ -64,7 +69,16 @@ DHTUDPPacketReply
 		super( _type, _trans_id );
 		
 		connection_id 	= _is.readLong();
+		
 		version			= _is.readShort();
+			
+		target_instance_id	= _is.readInt();
+	}
+	
+	protected int
+	getTargetInstanceID()
+	{
+		return( target_instance_id );
 	}
 	
 	public long
@@ -88,7 +102,10 @@ DHTUDPPacketReply
 		super.serialise(os);
 		
 		os.writeLong( connection_id );
+		
 		os.writeShort( version );
+		
+		os.writeInt( target_instance_id );
 	}
 	
 	public String

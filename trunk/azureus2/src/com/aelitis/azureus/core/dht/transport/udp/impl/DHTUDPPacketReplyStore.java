@@ -28,16 +28,19 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+
 public class 
 DHTUDPPacketReplyStore
 	extends DHTUDPPacketReply
 {
 	public
 	DHTUDPPacketReplyStore(
-		int			trans_id,
-		long		conn_id )
+		int					trans_id,
+		long				conn_id,
+		DHTTransportContact	contact)
 	{
-		super( DHTUDPPacket.ACT_REPLY_STORE, trans_id, conn_id );
+		super( DHTUDPPacket.ACT_REPLY_STORE, trans_id, conn_id, contact );
 	}
 	
 	protected

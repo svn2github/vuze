@@ -38,10 +38,11 @@ DHTUDPPacketReplyFindNode
 	
 	public
 	DHTUDPPacketReplyFindNode(
-		int			trans_id,
-		long		conn_id )
+		int						trans_id,
+		long					conn_id,
+		DHTTransportContact		contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id, conn_id );
+		super( DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id, conn_id, contact );
 	}
 	
 	protected

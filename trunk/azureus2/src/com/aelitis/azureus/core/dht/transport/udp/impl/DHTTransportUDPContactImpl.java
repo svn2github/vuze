@@ -76,6 +76,13 @@ DHTTransportUDPContactImpl
 		return( instance_id );
 	}
 	
+	protected void
+	setInstanceID(
+		int		_instance_id )
+	{
+		instance_id	= _instance_id;
+	}
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

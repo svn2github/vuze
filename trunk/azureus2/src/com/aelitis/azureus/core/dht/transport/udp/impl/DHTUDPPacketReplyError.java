@@ -29,6 +29,8 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.net.InetSocketAddress;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+
 public class 
 DHTUDPPacketReplyError
 	extends DHTUDPPacketReply
@@ -42,10 +44,11 @@ DHTUDPPacketReplyError
 
 	public
 	DHTUDPPacketReplyError(
-		int			trans_id,
-		long		conn_id )
+		int						trans_id,
+		long					conn_id,
+		DHTTransportContact		contact)
 	{
-		super( DHTUDPPacket.ACT_REPLY_ERROR, trans_id, conn_id );
+		super( DHTUDPPacket.ACT_REPLY_ERROR, trans_id, conn_id, contact );
 	}
 	
 	protected

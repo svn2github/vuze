@@ -200,16 +200,16 @@ DHTTransportUDPImpl
 										
 									public void
 									checkFailed(
-										ExternalIPCheckerService	service,
-										String						reason )
+										ExternalIPCheckerService	_service,
+										String						_reason )
 									{
 										sem.release();
 									}
 										
 									public void
 									reportProgress(
-										ExternalIPCheckerService	service,
-										String						message )
+										ExternalIPCheckerService	_service,
+										String						_message )
 									{
 									}
 								};
@@ -349,6 +349,8 @@ DHTTransportUDPImpl
 	importContact(
 		InetSocketAddress	address )
 	{
+			// instance id of 0 means "unknown"
+		
 		request_handler.contactImported( 
 			new DHTTransportUDPContactImpl( this, address, 0 ));
 	}
@@ -435,6 +437,8 @@ DHTTransportUDPImpl
 								
 								throw( new Exception( "connection id mismatch" ));
 							}
+							
+							contact.setInstanceID( packet.getTargetInstanceID());
 							
 							if ( handleErrorReply( packet )){
 								
@@ -550,6 +554,8 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
+							contact.setInstanceID( packet.getTargetInstanceID());
+							
 							if ( handleErrorReply( packet )){
 								
 								retry_count++;
@@ -661,6 +667,8 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 
+							contact.setInstanceID( packet.getTargetInstanceID());
+							
 							if ( handleErrorReply( packet )){
 								
 								retry_count++;
@@ -774,6 +782,8 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
+							contact.setInstanceID( packet.getTargetInstanceID());
+							
 							if ( handleErrorReply( packet )){
 								
 								retry_count++;
@@ -854,7 +864,8 @@ DHTTransportUDPImpl
 				DHTUDPPacketReplyError	reply = 
 					new DHTUDPPacketReplyError(
 							request.getTransactionId(),
-							request.getConnectionId());
+							request.getConnectionId(),
+							local_contact );
 				
 				reply.setErrorType( DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG );
 				
@@ -871,7 +882,8 @@ DHTTransportUDPImpl
 					DHTUDPPacketReplyPing	reply = 
 						new DHTUDPPacketReplyPing(
 								request.getTransactionId(),
-								request.getConnectionId());
+								request.getConnectionId(),
+								local_contact );
 					
 					packet_handler.send( reply, request.getAddress());
 					
@@ -887,7 +899,8 @@ DHTTransportUDPImpl
 					DHTUDPPacketReplyStore	reply = 
 						new DHTUDPPacketReplyStore(
 								request.getTransactionId(),
-								request.getConnectionId());
+								request.getConnectionId(),
+								local_contact );
 					
 					packet_handler.send( reply, request.getAddress());
 					
@@ -903,7 +916,8 @@ DHTTransportUDPImpl
 					DHTUDPPacketReplyFindNode	reply = 
 						new DHTUDPPacketReplyFindNode(
 								request.getTransactionId(),
-								request.getConnectionId());
+								request.getConnectionId(),
+								local_contact );
 								
 					reply.setContacts( res );
 					
@@ -921,7 +935,8 @@ DHTTransportUDPImpl
 					DHTUDPPacketReplyFindValue	reply = 
 						new DHTUDPPacketReplyFindValue(
 							request.getTransactionId(),
-							request.getConnectionId());
+							request.getConnectionId(),
+							local_contact );
 					
 					if ( res instanceof DHTTransportValue ){
 						

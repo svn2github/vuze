@@ -44,6 +44,7 @@ DHTRouterContactImpl
 	private int			fail_count;
 	private long		first_alive_time;
 	private long		first_fail_or_last_alive_time;
+	private long		last_added_time;
 	
 	protected
 	DHTRouterContactImpl(
@@ -140,6 +141,19 @@ DHTRouterContactImpl
 	getLastAliveTime()
 	{
 		return( fail_count==0?first_fail_or_last_alive_time:0 );
+	}
+	
+	protected long
+	getLastAddedTime()
+	{
+		return( last_added_time );
+	}
+	
+	protected void
+	setLastAddedTime(
+		long	l )
+	{
+		last_added_time	= l;
 	}
 	
 	public String

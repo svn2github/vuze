@@ -47,10 +47,10 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 public class 
 Test 
 {
-	static boolean	AELITIS_TEST	= true;
+	static boolean	AELITIS_TEST	= false;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
 	
-	static int	num_dhts	= 1;
+	static int	num_dhts	= 10;
 	static int	num_stores	= 10;
 	static boolean	udp_protocol	= true;
 	static int		udp_timeout		= 1000;

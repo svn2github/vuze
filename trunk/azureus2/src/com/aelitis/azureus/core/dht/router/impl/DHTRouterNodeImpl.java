@@ -122,7 +122,7 @@ DHTRouterNodeImpl
 	{
 		buckets.add( node );
 		
-		router.requestNodeAdd( node );
+		requestNodeAdd( node, false );
 	}
 	
 	protected DHTRouterContact
@@ -212,21 +212,30 @@ DHTRouterNodeImpl
 			if ( Arrays.equals(node_id, contact.getID())){
 
 				if ( known_to_be_alive ){
-					
+										
 					alive( contact );
-			
-						// might be the same node but back after a restart. we need to
-						// treat this differently as we need to kick off the "store"
-						// events as required. 
-			
-					if ( contact.getAttachment().getInstanceID() != attachment.getInstanceID()){
-						
-						router.log( "Instance ID changed for " + DHTLog.getString( contact.getID()));
-						
-						contact.setAttachment( attachment );
-						
-						router.requestNodeAdd( contact );
-					}
+				}
+				
+					// might be the same node but back after a restart. we need to
+					// treat this differently as we need to kick off the "store"
+					// events as required. 
+		
+				int	old_id 	= contact.getAttachment().getInstanceID();
+				int	new_id	= attachment.getInstanceID();
+				
+				if (  old_id != new_id ){
+					
+					router.log( "Instance ID changed for " + 
+								DHTLog.getString( contact.getID())+ 
+								": old = " + old_id + ", new = " + new_id );
+										
+					contact.setAttachment( attachment );
+					
+						// if the instance id was 0, this means that it was unknown
+						// (e.g. contact imported). We still need to go ahead and treat 
+						// as a new node 
+					
+					requestNodeAdd( contact, old_id != 0 );
 				}
 
 				return( contact );
@@ -308,7 +317,7 @@ DHTRouterNodeImpl
 							
 							replaced	= true;
 							
-							router.requestNodeAdd( rep );
+							requestNodeAdd( rep, false );
 							
 							break;
 						}
@@ -327,12 +336,40 @@ DHTRouterNodeImpl
 							// add-node logic will ping the node if its not known to
 							// be alive
 						
-						router.requestNodeAdd( rep );
+						requestNodeAdd( rep, false );
 					}
 				}
 			}else{
 				
 				replacements.remove( contact );
+			}
+		}
+	}
+	
+	protected void
+	requestNodeAdd(
+		DHTRouterContactImpl	contact,
+		boolean					definite_change )
+	{
+		// DOS problem here - if a node deliberately flicked between
+		// instance IDs we'll get into an update frenzy. 
+
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now - contact.getLastAddedTime() > 10000 ){
+
+			contact.setLastAddedTime( now );
+			
+			router.requestNodeAdd( contact );
+			
+		}else{
+			
+				// only produce a warning if this is a definite change from one id to
+				// another (as opposed to a change from "unknown" to another)
+			
+			if ( definite_change ){
+				
+				router.log( "requestNodeAdd for " + contact.getString() + " denied as too soon after previous ");
 			}
 		}
 	}
