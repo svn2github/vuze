@@ -22,8 +22,6 @@
 
 package org.gudy.azureus2.core3.upnp.services;
 
-import org.gudy.azureus2.core3.upnp.UPnPException;
-
 /**
  * @author parg
  *
@@ -31,20 +29,6 @@ import org.gudy.azureus2.core3.upnp.UPnPException;
 
 public interface 
 UPnPWANPPPConnection 
-	extends UPnPSpecificService
+	extends UPnPWANConnection
 {
-		/**
-		 * adda new port mapping from external port X to port X on local host
-		 * @param tcp
-		 * @param port
-		 * @param description
-		 */
-	
-	public void
-	addPortMapping(
-		boolean		tcp,			// false -> UDP
-		int			port,
-		String		description )
-	
-		throws UPnPException;
 }

@@ -27,47 +27,17 @@ package org.gudy.azureus2.core3.upnp;
  *
  */
 
-import java.net.URL;
-
-import org.gudy.azureus2.core3.upnp.services.*;
-
 public interface 
-UPnPService 
+UPnPStateVariable 
 {
 	public String
-	getServiceType();
-
-	public URL
-	getControlURL()
+	getName();
+	
+	public UPnPService
+	getService();
+	
+	public String
+	getValue()
 	
 		throws UPnPException;
-	
-	public UPnPAction[]
-	getActions()
-	
-		throws UPnPException;
-	
-	public UPnPAction
-	getAction(
-		String		name )
-	
-		throws UPnPException;
-	
-	public UPnPStateVariable[]
-	getStateVariables()
-	
-		throws UPnPException;
-	
-	public UPnPStateVariable
-	getStateVariable(
-		String		name )
-	
-		throws UPnPException;
-						
-		/**
-		 * gets a specific service if such is supported
-		 * @return
-		 */
-	public UPnPSpecificService
-	getSpecificService();
 }

@@ -23,8 +23,11 @@
 package org.gudy.azureus2.core3.upnp.impl.device;
 
 import org.gudy.azureus2.core3.upnp.UPnPAction;
+import org.gudy.azureus2.core3.upnp.UPnPActionArgument;
 import org.gudy.azureus2.core3.upnp.UPnPActionInvocation;
 import org.gudy.azureus2.core3.upnp.UPnPException;
+import org.gudy.azureus2.core3.upnp.UPnPStateVariable;
+import org.gudy.azureus2.core3.upnp.services.UPnPWANConnectionPortMapping;
 
 /**
  * @author parg
@@ -66,5 +69,80 @@ UPnPSSWANConnectionImpl
 		
 		inv.invoke();
 		
+	}
+	
+	public UPnPWANConnectionPortMapping[]
+	getPortMappings()
+										
+		throws UPnPException
+	{
+		UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
+		
+		int	entries = Integer.parseInt( noe.getValue());
+		
+		UPnPWANConnectionPortMapping[]	res = new UPnPWANConnectionPortMapping[entries];
+	
+		UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
+
+		for (int i=0;i<entries;i++){
+					
+			UPnPActionInvocation inv = act.getInvocation();
+
+			inv.addArgument( "NewPortMappingIndex", "" + i );
+			
+			UPnPActionArgument[] outs = inv.invoke();
+			
+			int		port	= 0;
+			boolean	tcp		= false;
+			
+			for (int j=0;j<outs.length;j++){
+				
+				UPnPActionArgument	out = outs[j];
+				
+				String	out_name = out.getName();
+				
+				if ( out_name.equalsIgnoreCase("NewExternalPort")){
+					
+					port	= Integer.parseInt( out.getValue());
+					
+				}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
+					
+					tcp = out.getValue().equalsIgnoreCase("TCP");
+				}
+			}
+			
+			res[i] = new portMapping( port, tcp );
+		}
+
+		return( res );
+	}
+	
+	protected class
+	portMapping
+		implements UPnPWANConnectionPortMapping
+	{
+		protected int			external_port;
+		protected boolean		tcp;
+		
+		protected
+		portMapping(
+			int			_external_port,
+			boolean		_tcp )
+		{
+			external_port	= _external_port;
+			tcp				= _tcp;
+		}
+		
+		public boolean
+		isTCP()
+		{
+			return( tcp );
+		}
+		
+		public int
+		getExternalPort()
+		{
+			return( external_port );
+		}
 	}
 }

@@ -34,6 +34,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.upnp.services.UPnPWANConnectionPortMapping;
 import org.gudy.azureus2.core3.upnp.services.UPnPWANIPConnection;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentException;
@@ -169,7 +170,7 @@ UPnPImpl
 					break;
 				}
 				
-				data.append( line.trim());	
+				data.append( line.trim() + "\n" );	
 			}
 					
 			return( SimpleXMLParserDocumentFactory.create( data.toString()));
@@ -186,6 +187,11 @@ UPnPImpl
 			}catch( Throwable f ){
 				
 				f.printStackTrace();
+			}
+			
+			if ( e instanceof SimpleXMLParserDocumentException ){
+				
+				throw((SimpleXMLParserDocumentException)e);
 			}
 			
 			throw( new SimpleXMLParserDocumentException(e ));
@@ -357,9 +363,21 @@ UPnPImpl
 						System.out.println( actions[j].getName());
 					}
 					
+					UPnPStateVariable[]	vars = s.getStateVariables();
+					
+					for (int j=0;j<vars.length;j++){
+						
+						System.out.println( vars[j].getName());
+					}
+					
+					UPnPStateVariable noe = s.getStateVariable("PortMappingNumberOfEntries");
+					
+					System.out.println( "noe = " + noe.getValue());
+					
 					UPnPWANIPConnection wan_ip = (UPnPWANIPConnection)s.getSpecificService();
 					
-
+					UPnPWANConnectionPortMapping[] ports = wan_ip.getPortMappings();
+					
 					wan_ip.addPortMapping( true, 7007, "Moo!" );
 	
 					UPnPAction act	= s.getAction( "GetGenericPortMappingEntry" );

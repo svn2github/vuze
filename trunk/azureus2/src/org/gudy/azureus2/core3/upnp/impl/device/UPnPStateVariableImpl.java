@@ -27,68 +27,57 @@ package org.gudy.azureus2.core3.upnp.impl.device;
  *
  */
 
-import java.util.*;
 import java.io.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 
-import org.gudy.azureus2.core3.upnp.*;
-
 public class 
-UPnPActionInvocationImpl
-	implements UPnPActionInvocation
+UPnPStateVariableImpl
+	implements UPnPStateVariable
 {
-	protected UPnPActionImpl		action;
+	protected UPnPServiceImpl		service;
+	protected String				name;
 	
-	protected List	arg_names	= new ArrayList();
-	protected List	arg_values	= new ArrayList();
-	
-	protected
-	UPnPActionInvocationImpl(
-		UPnPActionImpl		_action )
+	protected 
+	UPnPStateVariableImpl(
+		UPnPServiceImpl					_service,
+		SimpleXMLParserDocumentNode		node )
 	{
-		action		= _action;
-	}
-	
-	public void
-	addArgument(
-		String	name,
-		String	value )
-	{
-		arg_names.add( name );
+		service	= _service;
 		
-		arg_values.add( value );
+		name	= node.getChild( "name" ).getValue();
+	}
+
+	public String
+	getName()
+	{
+		return( name );
 	}
 	
-	public UPnPActionArgument[]
-	invoke()
+	public UPnPService
+	getService()
+	{
+		return( service );
+	}
+	
+	public String
+	getValue()
 	
 		throws UPnPException
-	{	
+	{
 		try{
-			UPnPService	service = action.getService();
-			
-			String	soap_action = service.getServiceType() + "#" + action.getName();
+			String	soap_action = "urn:schemas-upnp-org:control-1-0#QueryStateVariable";
 			
 			String	request =
 				"<?xml version=\"1.0\"?>\n"+
 				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n"+
 					"<s:Body>\n";
 													
-			request += "<u:" + action.getName() + 
-							" xmlns:u=\"" + service.getServiceType()+ "\">\n";
-			
-			
-			for (int i=0;i<arg_names.size();i++){
-			
-				String	name 	= (String)arg_names.get(i);
-				String	value 	= (String)arg_values.get(i);
-				
-				request += "<" + name + ">" + value + "</" + name + ">\n";
-			}
-			
-			request += "</u:" + action.getName() + ">\n";
+			request += 	"<u:QueryStateVariable xmlns:u=\"urn:schemas-upnp-org:control-1-0\">\n" +
+							"<u:varName>" + name + "</u:varName>\n" +
+						"</u:QueryStateVariable>\n";
 
 			request += "</s:Body\n>"+
 						"</s:Envelope>\n";
@@ -153,8 +142,8 @@ UPnPActionInvocationImpl
 				
 				is = con.getInputStream();
 			}
-
-			SimpleXMLParserDocument resp_doc = ((UPnPServiceImpl)action.getService()).getDevice().getUPnP().parseXML( is );
+			
+			SimpleXMLParserDocument resp_doc = service.getDevice().getUPnP().parseXML( is );
 			
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			
@@ -165,23 +154,16 @@ UPnPActionInvocationImpl
 				throw( new UPnPException( "Invoke fails - fault reported: " + fault.getValue()));
 			}
 			
-			SimpleXMLParserDocumentNode	resp_node = body.getChild( action.getName() + "Response" );
+			SimpleXMLParserDocumentNode	resp_node = body.getChild( "QueryStateVariableResponse" );
 			
 			if ( resp_node == null ){
 				
 				throw( new UPnPException( "Invoke fails - response missing: " + body.getValue()));
 			}
 			
-			SimpleXMLParserDocumentNode[]	out_nodes = resp_node.getChildren();
+			SimpleXMLParserDocumentNode	value_node = resp_node.getChild( "return" );
 			
-			UPnPActionArgument[]	resp = new UPnPActionArgument[out_nodes.length];
-			
-			for (int i=0;i<out_nodes.length;i++){
-				
-				resp[i] = new UPnPActionArgumentImpl( out_nodes[i].getName(), out_nodes[i].getValue());
-			}
-			
-			return( resp );
+			return( value_node.getValue());
 			
 		}catch( Throwable e ){
 			

@@ -20,54 +20,36 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.services;
+
+import org.gudy.azureus2.core3.upnp.UPnPException;
 
 /**
  * @author parg
  *
  */
 
-import java.net.URL;
-
-import org.gudy.azureus2.core3.upnp.services.*;
-
 public interface 
-UPnPService 
+UPnPWANConnection
+	extends UPnPSpecificService
 {
-	public String
-	getServiceType();
-
-	public URL
-	getControlURL()
-	
-		throws UPnPException;
-	
-	public UPnPAction[]
-	getActions()
-	
-		throws UPnPException;
-	
-	public UPnPAction
-	getAction(
-		String		name )
-	
-		throws UPnPException;
-	
-	public UPnPStateVariable[]
-	getStateVariables()
-	
-		throws UPnPException;
-	
-	public UPnPStateVariable
-	getStateVariable(
-		String		name )
-	
-		throws UPnPException;
-						
 		/**
-		 * gets a specific service if such is supported
-		 * @return
+		 * adda new port mapping from external port X to port X on local host
+		 * @param tcp
+		 * @param port
+		 * @param description
 		 */
-	public UPnPSpecificService
-	getSpecificService();
+	
+	public void
+	addPortMapping(
+		boolean		tcp,			// false -> UDP
+		int			port,
+		String		description )
+	
+		throws UPnPException;
+	
+	public UPnPWANConnectionPortMapping[]
+	getPortMappings()
+	
+		throws UPnPException;
 }

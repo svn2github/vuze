@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.upnp.services.*;
 
 public class 
 UPnPPlugin
@@ -164,7 +165,17 @@ UPnPPlugin
 			
 				for (int j=0;j<actions.length;j++){
 				
-					log.log( "      " + actions[j].getName());
+					log.log( "      action:" + actions[j].getName());
+				}
+				
+				UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
+				
+				UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
+				
+				for (int j=0;j<ports.length;j++){
+					
+					log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
+									(ports[j].isTCP()?"TCP":"UDP" ));
 				}
 			}
 		}

@@ -49,6 +49,7 @@ UPnPServiceImpl
 	protected String			control_url;
 	
 	protected List				actions;
+	protected List				state_vars;
 	
 	protected
 	UPnPServiceImpl(
@@ -115,6 +116,42 @@ UPnPServiceImpl
 		return( null );
 	}
 	
+	public UPnPStateVariable[]
+	getStateVariables()
+	
+		throws UPnPException
+	{
+		if ( state_vars == null ){
+			
+			loadDescription();
+		}
+		
+		UPnPStateVariable[]	res = new UPnPStateVariable[state_vars.size()];
+		
+		state_vars.toArray( res );
+		
+		return( res );		
+	}
+	
+	public UPnPStateVariable
+	getStateVariable(
+		String	name )
+	
+		throws UPnPException
+	{
+		UPnPStateVariable[]	vars = getStateVariables();
+		
+		for (int i=0;i<vars.length;i++){
+			
+			if ( vars[i].getName().equalsIgnoreCase( name )){
+				
+				return( vars[i] );
+			}
+		}
+		
+		return( null );
+	}
+		
 	public URL
 	getDescriptionURL()
 	
@@ -182,6 +219,8 @@ UPnPServiceImpl
 
 				parseActions( doc.getChild( "ActionList" ));
 				
+				parseStateVars( doc.getChild( "ServiceStateTable"));
+				
 			}catch( Throwable e ){
 				
 				e.printStackTrace();
@@ -208,6 +247,19 @@ UPnPServiceImpl
 		}
 	}
 	
+	protected void
+	parseStateVars(
+		SimpleXMLParserDocumentNode	action_list )
+	{
+		state_vars	= new ArrayList();
+		
+		SimpleXMLParserDocumentNode[]	kids = action_list.getChildren();
+		
+		for (int i=0;i<kids.length;i++){
+			
+			state_vars.add( new UPnPStateVariableImpl( this, kids[i] ));
+		}
+	}
 	public void
 	reportActivity(
 		ResourceDownloader	downloader,
