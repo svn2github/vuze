@@ -13,9 +13,9 @@ package org.gudy.azureus2.core3.torrent.impl;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -34,7 +34,7 @@ TOTorrentImpl
 	protected static final String TK_FILES				= "files";
 	protected static final String TK_PIECE_LENGTH		= "piece length";
 	protected static final String TK_PIECES				= "pieces";
-	
+		
 	private String							torrent_name;
 	private String							comment;
 	private URL								announce_url;
@@ -249,6 +249,13 @@ TOTorrentImpl
 	}
 	
 	protected void
+	setComment(
+		String	_comment )
+	{
+		comment = _comment;
+	}
+	
+	protected void
 	setName(
 		String	_name )
 	{
@@ -401,6 +408,51 @@ TOTorrentImpl
 		return((byte[])additional_properties.get( name ));
 	}
 	
+	public void
+	setAdditionalLongProperty(
+		String		name,
+		Long		value )
+	{
+		additional_properties.put( name, value );
+	}
+		
+	public Long
+	getAdditionalLongProperty(
+		String		name )
+	{
+		return((Long)additional_properties.get( name ));
+	}
+	
+	public void
+	setAdditionalListProperty(
+		String		name,
+		List		value )
+	{
+		additional_properties.put( name, value );
+	}
+		
+	public List
+	getAdditionalListProperty(
+		String		name )
+	{
+		return((List)additional_properties.get( name ));
+	}
+	
+	public void
+	setAdditionalMapProperty(
+		String		name,
+		Map 		value )
+	{
+		additional_properties.put( name, value );
+	}
+		
+	public Map
+	getAdditionalMapProperty(
+		String		name )
+	{
+		return((Map)additional_properties.get( name ));
+	}
+	
 	protected String
 	readStringFromMetaData(
 		Map		meta_data,
@@ -470,6 +522,16 @@ TOTorrentImpl
 			System.out.println( "hash = " + ByteFormatter.nicePrint( hash ));
 			System.out.println( "piece length = " + getPieceLength() );
 			System.out.println( "pieces = " + getPieces().length );
+			
+			Iterator it = additional_properties.keySet().iterator();
+			
+			while( it.hasNext()){
+			
+				String	key = (String)it.next();
+				Object	value = additional_properties.get( key );
+				
+				System.out.println( "prop '" + key + "' = '" + value + "'" );
+			}
 			
 			for (int i=0;i<pieces.length;i++){
 				

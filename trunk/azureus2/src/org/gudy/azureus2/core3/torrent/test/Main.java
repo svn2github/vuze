@@ -85,6 +85,7 @@ Main
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
 				System.out.println( "\turl group sets = " + torrent.getAnnounceURLGroup().getAnnounceURLSets().length);
+				
 				torrent.print();		
 				
 			}else if ( test_type == TT_CREATE ){

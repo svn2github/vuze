@@ -13,8 +13,8 @@ package org.gudy.azureus2.core3.torrent;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import java.io.File;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 
 import org.gudy.azureus2.core3.torrent.impl.*;
 

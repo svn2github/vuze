@@ -13,7 +13,7 @@ package org.gudy.azureus2.core3.torrent;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import java.net.URL;
+import java.net.*;
 
 public interface 
 TOTorrentAnnounceURLSet

@@ -14,8 +14,8 @@ package org.gudy.azureus2.core3.torrent.impl;
  */
 
 import java.io.*;
-import java.util.*;
 import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -61,24 +61,64 @@ TOTorrentDeserialiseImpl
 			
 				// decode the stuff
 			
-			setAnnounceURL( new URL( readStringFromMetaData( meta_data, TK_ANNOUNCE )));
-
-			List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
+			Iterator root_it = meta_data.keySet().iterator();
 			
-			if ( announce_list != null ){
+			while( root_it.hasNext()){
 				
-				for (int i=0;i<announce_list.size();i++){
+				String	key = (String)root_it.next();
+				
+				if ( key.equalsIgnoreCase( TK_ANNOUNCE )){
+							
+					setAnnounceURL( new URL( readStringFromMetaData( meta_data, TK_ANNOUNCE )));
 					
-					List	set = (List)announce_list.get(i);
+				}else if ( key.equalsIgnoreCase( TK_ANNOUNCE_LIST )){
+
+					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
 					
-					URL[]	urls = new URL[set.size()];
-					
-					for (int j=0;j<urls.length;j++){
+					if ( announce_list != null ){
 						
-						urls[j] = new URL( readStringFromMetaData((byte[])set.get(j)));		
+						for (int i=0;i<announce_list.size();i++){
+							
+							List	set = (List)announce_list.get(i);
+							
+							URL[]	urls = new URL[set.size()];
+							
+							for (int j=0;j<urls.length;j++){
+								
+								urls[j] = new URL( readStringFromMetaData((byte[])set.get(j)));		
+							}
+							
+							addTorrentAnnounceURLSet( urls );
+						}
 					}
+				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
 					
-					addTorrentAnnounceURLSet( urls );
+					setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
+					
+				}else if ( key.equalsIgnoreCase( TK_INFO )){
+					
+					// processed later
+					
+				}else{
+					
+					Object	prop = meta_data.get( key );
+					
+					if ( prop instanceof byte[] ){
+						
+						setAdditionalByteArrayProperty( key, (byte[])prop );
+						
+					}else if ( prop instanceof Long ){
+						
+						setAdditionalLongProperty( key, (Long)prop );
+						
+					}else if ( prop instanceof List ){
+						
+						setAdditionalListProperty( key, (List)prop );
+						
+					}else{
+						
+						setAdditionalMapProperty( key, (Map)prop );
+					}
 				}
 			}
 			

@@ -13,8 +13,9 @@ package org.gudy.azureus2.core3.torrent;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import java.io.File;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 public interface 
 TOTorrent
@@ -76,6 +77,34 @@ TOTorrent
 		
 	public byte[]
 	getAdditionalByteArrayProperty(
+		String		name );
+	
+	public void
+	setAdditionalLongProperty(
+		String		name,
+		Long		value );
+		
+	public Long
+	getAdditionalLongProperty(
+		String		name );
+		
+	
+	public void
+	setAdditionalListProperty(
+		String		name,
+		List		value );
+		
+	public List
+	getAdditionalListProperty(
+		String		name );
+		
+	public void
+	setAdditionalMapProperty(
+		String		name,
+		Map		value );
+		
+	public Map
+	getAdditionalMapProperty(
 		String		name );
 		
 	public void

@@ -13,7 +13,7 @@ package org.gudy.azureus2.core3.tracker.server.test;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
 
 public class 
 Main 
