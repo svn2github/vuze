@@ -2166,9 +2166,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               String savePath = getSavePath(fileName);
               if (savePath == null)
                 return;
+              // set to STATE_WAITING if we don't want to startInStoppedState
+              // so that auto-open details will work (even if the torrent
+              // immediately goes to queued)
               globalManager.addDownloadManager(fileName, savePath, 
                                                startInStoppedState ? DownloadManager.STATE_STOPPED 
-                                                                   : DownloadManager.STATE_QUEUED);
+                                                                   : DownloadManager.STATE_WAITING);
             }
           }
           .start();
