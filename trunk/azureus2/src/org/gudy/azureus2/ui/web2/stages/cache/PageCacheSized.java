@@ -35,16 +35,14 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
-import org.gudy.azureus2.ui.web2.stages.http.*;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpBadRequestResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpConnection;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpInternalServerErrorResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpNotFoundResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRedirectResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpBadRequestResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpInternalServerErrorResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpNotFoundResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpOKResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpRedirectResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponder;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
 
 import seda.sandStorm.api.ConfigDataIF;
 import seda.sandStorm.api.EventHandlerIF;
@@ -102,10 +100,10 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
   private String DEFAULT_URL;
   private String ROOT_DIR;
 
-  private SinkIF mysink, sendSink;
+  private SinkIF mysink;
   private Hashtable pageTbl; // Map URL -> cacheEntry
   private Hashtable sizeTbl; // Map size -> linked list of free
-										// cacheEntries
+  // cacheEntries
   private Hashtable aFileTbl; // Map aFile -> cacheEntry
   private int maxCacheSize;
   private Random rand;
@@ -133,7 +131,6 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
   public void init(ConfigDataIF config) throws Exception {
     mysink = config.getStage().getSink();
     logger.info("PageCacheSized: missStage=" + missStage + ", mysink=" + mysink);
-    sendSink = config.getManager().getStage(HTTP_SEND_STAGE).getSink();
     try {
       resourceSink = config.getManager().getStage(RESOURCE_STAGE).getSink();
     } catch (NoSuchStageException ex) {
@@ -146,7 +143,6 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
       sizeTbl = new Hashtable();
       aFileTbl = new Hashtable();
       rand = new Random();
-
 
       DEFAULT_URL = config.getString("defaultURL");
       if (DEFAULT_URL == null)
@@ -204,7 +200,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
       }
       if (baddy != null) {
         UI.numErrors++;
-        HttpSend.sendResponse(new httpResponder(new httpBadRequestResponse(req, baddy), req, true));
+        req.getSink().enqueue_lossy(new httpResponder(new httpBadRequestResponse(req, baddy), req, true));
         return;
       }
 
@@ -269,11 +265,11 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
       entry.done(comp);
 
     } else if (item instanceof SinkClosedEvent) {
-      SinkClosedEvent sce = (SinkClosedEvent) item;
+      /*SinkClosedEvent sce = (SinkClosedEvent) item;
       if (sce.sink instanceof httpConnection) {
         // Pass on to sendSink if not a file close event
         sendSink.enqueue_lossy(sce);
-      }
+      }*/
 
     } else {
       logger.info("PageCacheSized: Got unknown event type: " + item);
@@ -387,7 +383,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
         raf.close();
         entry.pending = false;
         httpResponder respd = new httpResponder(entry.response, req);
-        HttpSend.sendResponse(respd);
+        req.getSink().enqueue_lossy(respd);
         return;
 
       } catch (IOException ioe) {
@@ -396,7 +392,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
         ioe.printStackTrace();
         UI.numErrors++;
         httpNotFoundResponse notfound = new httpNotFoundResponse(req, ioe.getMessage());
-        HttpSend.sendResponse(new httpResponder(notfound, req, true));
+        req.getSink().enqueue_lossy(new httpResponder(notfound, req, true));
         return;
       }
 
@@ -424,14 +420,14 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
             // Redirect to url+"/" (so that img src works in the document)
             String newURL = url + "/";
             httpRedirectResponse redirect = new httpRedirectResponse(req, newURL);
-            HttpSend.sendResponse(new httpResponder(redirect, req, true));
+            req.getSink().enqueue_lossy(new httpResponder(redirect, req, true));
             return;
           }
 
         } catch (IOException ioe) {
           // File not found
           httpResponse resp;
-          if (resourceSink!=null) {
+          if (resourceSink != null) {
             if (resourceSink.enqueue_lossy(req))
               return;
             logger.info("Warning: Could not enqueue_lossy " + req + " to Resource stage");
@@ -440,7 +436,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
             resp = new httpNotFoundResponse(req, ioe.getMessage());
           logger.info("PageCacheSized: Could not open file " + fname + ": " + ioe);
           UI.numErrors++;
-          HttpSend.sendResponse(new httpResponder(resp, req, true));
+          req.getSink().enqueue_lossy(new httpResponder(resp, req, true));
           return;
         }
       }
@@ -566,12 +562,12 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
 
     // Reuse a cache entry
     /*
-	 * FIXME: Avoid reuse of cache entry that is currently being written out to
-	 * another socket? (Maintain 'write count' which is incremented for each
-	 * send, decremented for each SinkDreainedEvent, and SinkClosedEvent (when
-	 * the associated SinkDrainedEvent did not arrive yet due to the conn being
-	 * closed first).
-	 */
+    * FIXME: Avoid reuse of cache entry that is currently being written out to
+    * another socket? (Maintain 'write count' which is incremented for each
+    * send, decremented for each SinkDreainedEvent, and SinkClosedEvent (when
+    * the associated SinkDrainedEvent did not arrive yet due to the conn being
+    * closed first).
+    */
     private synchronized void reuse(httpRequest req, AFile af) {
       if (logger.isDebugEnabled())
         logger.debug("PageCacheSized: entry " + this +" being reused for " + af.getFilename());
@@ -610,7 +606,7 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
         while ((waiter = (httpRequest) waiting.remove_head()) != null) {
           httpNotFoundResponse notfound = new httpNotFoundResponse(waiter, se.getMessage());
           httpResponder respd = new httpResponder(notfound, waiter, true);
-          HttpSend.sendResponse(respd);
+          waiter.getSink().enqueue_lossy(respd);
         }
         free();
       }
@@ -662,14 +658,14 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
 
       while ((waiter = (httpRequest) waiting.remove_head()) != null) {
         httpResponder respd = new httpResponder(response, waiter);
-        HttpSend.sendResponse(respd);
+        waiter.getSink().enqueue_lossy(respd);
       }
     }
 
     // Send cache entry on hit
     void send(httpRequest req) {
       httpResponder respd = new httpResponder(response, req);
-      HttpSend.sendResponse(respd);
+      req.getSink().enqueue_lossy(respd);
     }
 
     public String toString() {

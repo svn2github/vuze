@@ -22,12 +22,9 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
+package org.gudy.azureus2.ui.web2.http.request;
 
-import seda.sandStorm.api.SinkIF;
-import seda.sandStorm.lib.aSocket.ATcpInPacket;
-import seda.sandStorm.lib.aSocket.aSocketInputStream;
-
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,6 +32,11 @@ import java.io.StreamTokenizer;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.gudy.azureus2.ui.web2.http.response.httpBadRequestResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponder;
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
+
+import seda.sandStorm.api.SinkIF;
 
 /**
  * This is a package-internal class which reads HTTP request packets.
@@ -45,17 +47,18 @@ import org.apache.log4j.Logger;
  * 
  * @author Matt Welsh
  */
-class httpPacketReader implements httpConst {
+class httpRequestParser implements HttpConstants {
 
-  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.httpserv.httpPacketReader");
+  private static final Logger logger = Logger.getLogger("azureus2.ui.web.http.httpRequestParser");
 
   private static final int STATE_START = 0;
   private static final int STATE_HEADER = 1;
   private static final int STATE_DONE = 2;
   private static final int STATE_CONTENT = 3;
+  private static final int STATE_ERROR = 4;
 
   private int state;
-  private aSocketInputStream ais;
+  //private aSocketInputStream ais;
   private StreamTokenizer tok;
 
   private String request;
@@ -64,8 +67,10 @@ class httpPacketReader implements httpConst {
   private ByteArrayOutputStream content;
   private int httpver;
   private Vector header;
-  private httpConnection conn;
   private SinkIF compQ;
+  private SinkIF reqQ;
+  private Object tag;
+  private ByteArrayInputStream data;
 
   static {
     //logger.setLevel(org.apache.log4j.Level.DEBUG);
@@ -75,21 +80,24 @@ class httpPacketReader implements httpConst {
    * Create an httpPacketReader with the given httpConnection
    * and completion queue.
    */
-  httpPacketReader(httpConnection conn, SinkIF compQ) {
-    this.conn = conn;
+  httpRequestParser(SinkIF reqQ, SinkIF compQ, Object tag, byte[] data) {
     this.compQ = compQ;
-    this.ais = new aSocketInputStream();
+    this.reqQ = reqQ;
+    this.tag = tag;
+    this.data = new ByteArrayInputStream(data);
+    //this.ais = new aSocketInputStream();
     reset();
   }
 
+  public void send() {
+    while ((data.available()>0) && parse()) {}
+  }
+  
   /**
    * Parse the given packet; returns true if a complete HTTP
    * request has been received and parsed.
    */
-  boolean parsePacket(ATcpInPacket pkt) throws IOException {
-    if (logger.isDebugEnabled())
-      logger.debug("GPR: pushPacket called, size " + pkt.getBytes().length);
-    ais.addPacket(pkt);
+  boolean parse() {
 
     int origstate;
 
@@ -111,6 +119,10 @@ class httpPacketReader implements httpConst {
 
         case STATE_DONE :
           processHeader();
+          reset();
+          return true;
+          
+        case STATE_ERROR:
           reset();
           return true;
 
@@ -149,8 +161,8 @@ class httpPacketReader implements httpConst {
    */
   private void reset() {
     state = STATE_START;
-    ais.clear();
-    tok = new StreamTokenizer(new InputStreamReader(ais));
+    //ais.clear();
+    tok = new StreamTokenizer(new InputStreamReader(data));
     tok.resetSyntax();
     tok.wordChars((char) 0, (char) 255);
     tok.whitespaceChars('\u0000', '\u0020');
@@ -166,13 +178,13 @@ class httpPacketReader implements httpConst {
   /**
    * Parse the first line of the request header.
    */
-  private int parseURL() throws IOException {
-    ais.mark(0);
+  private int parseURL() {
+    data.mark(0);
     String req = nextWord();
     url = nextWord();
     String ver = nextWord();
     if ((req == null) || (url == null) || (ver == null)) {
-      ais.reset();
+      data.reset();
       return STATE_START;
     } else {
       request = req;
@@ -186,7 +198,8 @@ class httpPacketReader implements httpConst {
         return STATE_HEADER;
       } else {
         if (!ver.equals(CRLF)) {
-          throw new IOException("Unknown HTTP version in request: " + httpver);
+          compQ.enqueue_lossy(new httpResponder(new httpBadRequestResponse(null, "Unknown HTTP version in request: " + httpver), compQ, tag, true));
+          return STATE_ERROR;
         }
         httpver = httpRequest.HTTPVER_09;
         return STATE_DONE;
@@ -197,7 +210,7 @@ class httpPacketReader implements httpConst {
   /**
    * Accumulate header lines.
    */
-  private int accumulateHeader() throws IOException {
+  private int accumulateHeader() {
 
     String line;
 
@@ -238,25 +251,34 @@ class httpPacketReader implements httpConst {
   /**
    * Process the header, possibly pushing an httpRequest to the user.
    */
-  private void processHeader() throws IOException {
-    httpRequest req = (content.size() > 0) ? (new httpRequest(conn, request, url, httpver, header, content.toByteArray())) : (new httpRequest(conn, request, url, httpver, header));
+  private void processHeader() {
+    try {
+    httpRequest req = (content.size() > 0) ? (new httpRequest(compQ, tag, request, url, httpver, header, content.toByteArray())) : (new httpRequest(compQ, tag, request, url, httpver, header));
     if (logger.isDebugEnabled())
       logger.debug("httpPacketReader: Pushing req to user");
-    if (!compQ.enqueue_lossy(req)) {
+    if (!reqQ.enqueue_lossy(req)) {
       logger.info("httpPacketReader: WARNING: Could not enqueue_lossy to user: " + req);
+    }
+    } catch (IOException e) {
+      //
     }
   }
 
   /**
    * Read the next whitespace-delimited word from the packet.
    */
-  private String nextWord() throws IOException {
+  private String nextWord() {
     while (true) {
-      int type = tok.nextToken();
+      int type;
+      try {
+        type = tok.nextToken();
+      } catch (Exception e) {
+        return null;
+      }
       switch (type) {
 
         case StreamTokenizer.TT_EOL :
-          return CRLF;
+          return CRLF.toString();
 
         case StreamTokenizer.TT_EOF :
           return null;
@@ -280,11 +302,12 @@ class httpPacketReader implements httpConst {
   /**
    * Read the next line from the packet.
    */
-  private String nextLine() throws IOException {
+  private String nextLine() {
     String line = new String("");
     boolean first = true;
 
     while (true) {
+      try {
       switch (tok.nextToken()) {
 
         case StreamTokenizer.TT_EOL :
@@ -319,6 +342,9 @@ class httpPacketReader implements httpConst {
 
         default :
           continue;
+      }
+      } catch (IOException e) {
+        return null;
       }
     }
   }

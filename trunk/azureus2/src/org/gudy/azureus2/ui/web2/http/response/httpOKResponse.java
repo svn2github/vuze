@@ -22,7 +22,9 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
+package org.gudy.azureus2.ui.web2.http.response;
+
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
 
 import seda.sandStorm.api.QueueElementIF;
 import seda.sandStorm.api.SinkIF;
@@ -33,7 +35,7 @@ import seda.sandStorm.core.BufferElement;
  * 
  * @author Matt Welsh
  */
-public class httpOKResponse extends httpResponse implements httpConst, QueueElementIF {
+public class httpOKResponse extends httpResponse implements HttpConstants, QueueElementIF {
 
   private static final boolean DEBUG = false;
   private String contentType;

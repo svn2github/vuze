@@ -19,7 +19,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
 
 import seda.sandStorm.api.ConfigDataIF;
 import seda.sandStorm.api.EventHandlerException;
@@ -34,7 +34,7 @@ import seda.sandStorm.api.SinkIF;
  * To change the template for this generated type comment go to
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
-public class HttpCommand implements WebConst, EventHandlerIF {
+public class httpCommandHandler implements WebConst, EventHandlerIF {
 
   private ManagerIF mgr;
   private SinkIF mysink;

@@ -22,9 +22,14 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
+package org.gudy.azureus2.ui.web2.http.response;
+
+import org.apache.log4j.Logger;
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
+import org.gudy.azureus2.ui.web2.http.util.HttpOutputBuffer;
 
 import seda.sandStorm.api.QueueElementIF;
+import seda.sandStorm.api.SinkException;
 import seda.sandStorm.api.SinkIF;
 import seda.sandStorm.core.BufferElement;
 
@@ -37,30 +42,34 @@ import seda.sandStorm.core.BufferElement;
  * @see httpOKResponse
  * @see httpNotFoundResponse
  */
-public abstract class httpResponse implements httpConst, QueueElementIF {
+public abstract class httpResponse implements HttpConstants, QueueElementIF {
 
-  /** Code corresponding to '200 OK'. */ 
+  private static final Logger logger = Logger.getLogger("azureus2.ui.web.http.httpResponse");
+
+  static {
+    //logger.setLevel(org.apache.log4j.Level.DEBUG);
+  }
+
+  /** Code corresponding to '200 OK'. */
   public static final int RESPONSE_OK = 200;
-  /** Code corresponding to '301 Moved Permanently'. */ 
+  /** Code corresponding to '301 Moved Permanently'. */
   public static final int RESPONSE_REDIRECT = 301;
-  /** Code corresponding to '400 Bad Request'. */ 
+  /** Code corresponding to '400 Bad Request'. */
   public static final int RESPONSE_BAD_REQUEST = 400;
-  /** Code corresponding to '404 Not Found'. */ 
+  /** Code corresponding to '404 Not Found'. */
   public static final int RESPONSE_NOT_FOUND = 404;
-  /** Code corresponding to '500 Internal Server Error'. */ 
+  /** Code corresponding to '500 Internal Server Error'. */
   public static final int RESPONSE_INTERNAL_SERVER_ERROR = 500;
-  /** Code corresponding to '503 Service Unavailable'. */ 
+  /** Code corresponding to '503 Service Unavailable'. */
   public static final int RESPONSE_SERVICE_UNAVAILABLE = 503;
 
   /** The default MIME type for responses, which is "text/html". */
   public static final String DEFAULT_MIME_TYPE = "text/html";
 
-  private static final boolean DEBUG = false;
-
   /** The code corresponding to the response. */
   protected int code;
   /** The default response header. */
-  protected static String defaultHeader = "Server: Sandstorm (unknown version)"+CRLF;
+  protected static String defaultHeader = "Server: Sandstorm (unknown version)" + CRLF;
 
   /** The actual data of the response. */
   protected BufferElement combinedData;
@@ -239,27 +248,34 @@ public abstract class httpResponse implements httpConst, QueueElementIF {
   private String genHeader() {
     String hdrString;
     switch (code) {
-      case RESPONSE_OK: 
-	hdrString = HTTP_VERSION+" 200 OK\n"; break;
-      case RESPONSE_REDIRECT:
-	hdrString = HTTP_VERSION+" 301 MOVED PERMANENTLY\n"; break;
-      case RESPONSE_BAD_REQUEST: 
-	hdrString = HTTP_VERSION+" 400 BAD REQUEST\n"; break;
-      case RESPONSE_NOT_FOUND:
-	hdrString = HTTP_VERSION+" 404 NOT FOUND\n"; break;
-      case RESPONSE_INTERNAL_SERVER_ERROR:
-      	hdrString = HTTP_VERSION+" 500 INTERNAL SERVER ERROR\n"; break;
-      case RESPONSE_SERVICE_UNAVAILABLE:
-      	hdrString = HTTP_VERSION+" 503 SERVICE UNAVAILABLE\n"; break;
-      default: 
-	throw new Error("Bad code in httpResponse: "+code);
-    } 
-    if (defaultHeader != null) hdrString += defaultHeader;
+      case RESPONSE_OK :
+        hdrString = HTTP_VERSION + " 200 OK\n";
+        break;
+      case RESPONSE_REDIRECT :
+        hdrString = HTTP_VERSION + " 301 MOVED PERMANENTLY\n";
+        break;
+      case RESPONSE_BAD_REQUEST :
+        hdrString = HTTP_VERSION + " 400 BAD REQUEST\n";
+        break;
+      case RESPONSE_NOT_FOUND :
+        hdrString = HTTP_VERSION + " 404 NOT FOUND\n";
+        break;
+      case RESPONSE_INTERNAL_SERVER_ERROR :
+        hdrString = HTTP_VERSION + " 500 INTERNAL SERVER ERROR\n";
+        break;
+      case RESPONSE_SERVICE_UNAVAILABLE :
+        hdrString = HTTP_VERSION + " 503 SERVICE UNAVAILABLE\n";
+        break;
+      default :
+        throw new Error("Bad code in httpResponse: " + code);
+    }
+    if (defaultHeader != null)
+      hdrString += defaultHeader;
     if (contentType != null) {
-      hdrString += "Content-Type: "+contentType+CRLF;
+      hdrString += "Content-Type: " + contentType + CRLF;
     }
     if (contentLength != 0) {
-      hdrString += "Content-Length: "+contentLength+CRLF;
+      hdrString += "Content-Length: " + contentLength + CRLF;
     }
     String ehdr = getEntityHeader();
     if (ehdr != null) {
@@ -268,7 +284,7 @@ public abstract class httpResponse implements httpConst, QueueElementIF {
     hdrString += CRLF;
     return hdrString;
   }
-  
+
   /**
    * Get an array of BufferElements corresponding to this response.
    * Used internally when sending the response to a client.
@@ -276,43 +292,80 @@ public abstract class httpResponse implements httpConst, QueueElementIF {
    * @param sendHeader Indicate whether the header should be included.
    */
   public BufferElement[] getBuffers(boolean sendHeader) {
-    if (DEBUG) System.err.println("httpResponse: getBuffers() called");
+    if (logger.isDebugEnabled())
+      logger.debug("httpResponse: getBuffers() called");
 
     BufferElement bufarr[] = null;
     if (combinedData != null) {
       if (sendHeader) {
-	if (DEBUG) System.err.println("httpResponse: Returning combinedData (len="+combinedData.size+")");
-	bufarr = new BufferElement[1];
-	bufarr[0] = combinedData;
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Returning combinedData (len=" + combinedData.size + ")");
+        bufarr = new BufferElement[1];
+        bufarr[0] = combinedData;
       } else {
-	if (DEBUG) System.err.println("httpResponse: Returning combinedData payload only (len="+payload.size+")");
-	bufarr = new BufferElement[1];
-	bufarr[0] = payload;
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Returning combinedData payload only (len=" + payload.size + ")");
+        bufarr = new BufferElement[1];
+        bufarr[0] = payload;
       }
     } else if (sendHeader) {
       if (payload != null) {
-	if (DEBUG) System.err.println("httpResponse: Returning header and payload (paylen="+payload.size+")");
-	bufarr = new BufferElement[2];
-	bufarr[0] = getHeader();
-	bufarr[1] = getPayload();
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Returning header and payload (paylen=" + payload.size + ")");
+        bufarr = new BufferElement[2];
+        bufarr[0] = getHeader();
+        bufarr[1] = getPayload();
       } else {
-	if (DEBUG) System.err.println("httpResponse: Returning header only (len="+header.size+")");
-	bufarr = new BufferElement[1];
-	bufarr[0] = getHeader();
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Returning header only (len=" + header.size + ")");
+        bufarr = new BufferElement[1];
+        bufarr[0] = getHeader();
       }
     } else {
       // Don't send header
       if (payload != null) {
-	if (DEBUG) System.err.println("httpResponse: Returning payload only (paylen="+payload.size+")");
-	bufarr = new BufferElement[1];
-	bufarr[0] = payload;
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Returning payload only (paylen=" + payload.size + ")");
+        bufarr = new BufferElement[1];
+        bufarr[0] = payload;
       } else {
-	if (DEBUG) System.err.println("httpResponse: Nothing to return!");
-	bufarr = null;
+        if (logger.isDebugEnabled())
+          logger.debug("httpResponse: Nothing to return!");
+        bufarr = null;
       }
     }
-      
+
     return bufarr;
+  }
+
+  /**
+   * @param buffer
+   */
+  public void enqueue(HttpOutputBuffer buffer) {
+    try {
+      if (logger.isDebugEnabled())
+        logger.debug("Enqueueing Header");
+      buffer.enqueue(getHeader(), 0, getHeader().size);
+    } catch (SinkException e) {
+      if (logger.isDebugEnabled())
+        logger.debug("Enqueueing Header failed!");
+    }
+    try {
+      if (logger.isDebugEnabled())
+        logger.debug("Enqueueing Body");
+      buffer.enqueue(getPayload(), 0, getPayload().size);
+    } catch (SinkException e) {
+      if (logger.isDebugEnabled())
+        logger.debug("Enqueueing Body failed!");
+    }
+    try {
+      if (logger.isDebugEnabled())
+        logger.debug("Flushing enqueue buffer");
+      buffer.flush();
+    } catch (SinkException e) {
+      if (logger.isDebugEnabled())
+        logger.debug("Flushing enqueue buffer failed!");
+    }
   }
 
 }

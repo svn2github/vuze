@@ -35,11 +35,10 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
-import org.gudy.azureus2.ui.web2.stages.http.*;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpInternalServerErrorResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpInternalServerErrorResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponder;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
 import org.gudy.azureus2.ui.web2.util.WildcardDictionary;
 
 import seda.sandStorm.api.ConfigDataIF;
@@ -144,7 +143,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 			try {
 				doRequest(req);
 			} catch (Exception e) {
-				HttpSend.sendResponse(
+				req.getSink().enqueue_lossy(
 					new httpResponder(
 						new httpInternalServerErrorResponse(
 							req,
@@ -179,7 +178,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 		// No class registered for this URL -- shouldn't happen as we are
 		// screened by handleRequest()
 		if (classname == null) {
-			HttpSend.sendResponse(
+			req.getSink().enqueue_lossy(
 				new httpResponder(
 					new httpInternalServerErrorResponse(
 						req,
@@ -201,7 +200,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 						logger.info(
 							"DynamicHttp: Loaded class " + classname + " for url " + url);
 					} catch (ClassNotFoundException cnfe) {
-						HttpSend.sendResponse(
+						req.getSink().enqueue_lossy(
 							new httpResponder(
 								new httpInternalServerErrorResponse(req, cnfe.toString()),
 								req,
@@ -217,10 +216,10 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 			resp = handler.handleRequest(req);
 
 			httpResponder respd = new httpResponder(resp, req, CLOSE_CONNECTION);
-			HttpSend.sendResponse(respd);
+			req.getSink().enqueue_lossy(respd);
 			pool.doneWithHandler(handler);
 		} catch (Exception e) {
-			HttpSend.sendResponse(
+			req.getSink().enqueue_lossy(
 				new httpResponder(
 					new httpInternalServerErrorResponse(req, e.toString()),
 					req,

@@ -22,9 +22,13 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
+package org.gudy.azureus2.ui.web2.http.response;
+
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
 
 import seda.sandStorm.api.QueueElementIF;
+import seda.sandStorm.api.SinkIF;
 
 /**
  * This class is used to wrap an HTTP response along with the 
@@ -34,10 +38,11 @@ import seda.sandStorm.api.QueueElementIF;
  * @see httpResponse
  * @see httpConnection
  */
-public class httpResponder implements httpConst, QueueElementIF {
+public class httpResponder implements HttpConstants, QueueElementIF {
 
   private httpResponse resp;
-  private httpConnection conn;
+  private SinkIF compQ;
+  private Object tag;
   private boolean closeConnection;
   private boolean sendHeader;
 
@@ -48,10 +53,10 @@ public class httpResponder implements httpConst, QueueElementIF {
    * @param sendHeader Indicate that the header of the response should
    *   be sent along with the payload.
    */
-  public httpResponder(httpResponse resp, httpConnection conn,
-      boolean closeConnection, boolean sendHeader) {
+  public httpResponder(httpResponse resp, SinkIF compQ, Object tag, boolean closeConnection, boolean sendHeader) {
     this.resp = resp;
-    this.conn = conn;
+    this.compQ = compQ;
+    this.tag = tag;
     this.closeConnection = closeConnection;
     this.sendHeader = sendHeader;
   }
@@ -61,10 +66,10 @@ public class httpResponder implements httpConst, QueueElementIF {
    * @param closeConnection Indicate that the connection should be
    *   closed after sending this response.
    */
-  public httpResponder(httpResponse resp, httpConnection conn,
-      boolean closeConnection) {
+  public httpResponder(httpResponse resp, SinkIF compQ, Object tag, boolean closeConnection) {
     this.resp = resp;
-    this.conn = conn;
+    this.compQ = compQ;
+    this.tag = tag;
     this.closeConnection = closeConnection;
     this.sendHeader = true;
   }
@@ -72,8 +77,8 @@ public class httpResponder implements httpConst, QueueElementIF {
   /**
    * Create an httpResponder with the given response and connection.
    */
-  public httpResponder(httpResponse resp, httpConnection conn) {
-    this(resp, conn, false, true);
+  public httpResponder(httpResponse resp, SinkIF compQ, Object tag) {
+    this(resp, compQ, tag, false, true);
   }
 
   /**
@@ -84,9 +89,8 @@ public class httpResponder implements httpConst, QueueElementIF {
    * @param sendHeader Indicate that the header of the response should
    *   be sent along with the payload.
    */
-  public httpResponder(httpResponse resp, httpRequest req,
-      boolean closeConnection, boolean sendHeader) {
-    this(resp, req.getConnection(), closeConnection, sendHeader);
+  public httpResponder(httpResponse resp, httpRequest req, boolean closeConnection, boolean sendHeader) {
+    this(resp, req.getSink(), req.getTag(), closeConnection, sendHeader);
   }
 
   /**
@@ -95,9 +99,8 @@ public class httpResponder implements httpConst, QueueElementIF {
    * @param closeConnection Indicate that the connection should be
    *   closed after sending this response.
    */
-  public httpResponder(httpResponse resp, httpRequest req,
-      boolean closeConnection) {
-    this(resp, req.getConnection(), closeConnection);
+  public httpResponder(httpResponse resp, httpRequest req, boolean closeConnection) {
+    this(resp, req.getSink(), req.getTag(), closeConnection);
   }
 
   /**
@@ -105,16 +108,22 @@ public class httpResponder implements httpConst, QueueElementIF {
    * connection being derived from the given request.
    */
   public httpResponder(httpResponse resp, httpRequest req) {
-    this(resp, req.getConnection(), 
-	((req.getHttpVer() < httpRequest.HTTPVER_11)?(true):(false)));
+    this(resp, req.getSink(), req.getTag(), ((req.getHttpVer() < httpRequest.HTTPVER_11) ? (true) : (false)));
   }
 
   /**
-   * Return the connection for this responder. 
+   * Return the completion Sink. 
    */
-  public httpConnection getConnection() {
-    return conn;
+  public SinkIF getSink() {
+    return compQ;
   }
+
+	/**
+	 * Return the tag. 
+	 */
+	public Object getTag() {
+		return tag;
+	}
 
   /**
    * Return the response for this responder. 

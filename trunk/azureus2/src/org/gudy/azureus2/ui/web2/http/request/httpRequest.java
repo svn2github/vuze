@@ -23,10 +23,7 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
-
-import seda.sandStorm.api.ClassQueueElementIF;
-import seda.sandStorm.core.TimeStampedEvent;
+package org.gudy.azureus2.ui.web2.http.request;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -35,12 +32,16 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import seda.sandStorm.api.ClassQueueElementIF;
+import seda.sandStorm.api.SinkIF;
+import seda.sandStorm.core.TimeStampedEvent;
+
 /**
  * This class represents a single HTTP client request.
  * 
  * @author Matt Welsh
  */
-public class httpRequest extends TimeStampedEvent implements httpConst, ClassQueueElementIF {
+public class httpRequest extends TimeStampedEvent implements ClassQueueElementIF {
 
   private static final boolean DEBUG = false;
 
@@ -73,12 +74,14 @@ public class httpRequest extends TimeStampedEvent implements httpConst, ClassQue
   /** Default value for a query key. */
   public static final String QUERY_KEY_SET = "true";
 
-  private httpConnection conn;
   private int request;
   private String url;
   private byte[] content;
   private int httpver;
   private int user_class = -2;
+  
+  private SinkIF compQ;
+  private Object tag;
 
   private Vector rawHeader;
   private Hashtable header;
@@ -90,8 +93,9 @@ public class httpRequest extends TimeStampedEvent implements httpConst, ClassQue
    * Package-internal: Create an httpRequest from the given connection,
    * request string, URL, HTTP version, and header.
    */
-  httpRequest(httpConnection conn, String requestStr, String url, int httpver, Vector header) throws IOException {
-    this.conn = conn;
+  httpRequest(SinkIF compQ, Object tag, String requestStr, String url, int httpver, Vector header) throws IOException {
+    this.compQ = compQ;
+    this.tag = tag;
     this.httpver = httpver;
     this.rawHeader = header;
     this.header = null;
@@ -137,8 +141,8 @@ public class httpRequest extends TimeStampedEvent implements httpConst, ClassQue
     }
   }
 
-  httpRequest(httpConnection conn, String requestStr, String url, int httpver, Vector header, byte[] content) throws IOException {
-    this(conn, requestStr, url, httpver, header);
+  httpRequest(SinkIF compQ, Object tag, String requestStr, String url, int httpver, Vector header, byte[] content) throws IOException {
+    this(compQ, tag, requestStr, url, httpver, header);
     this.content = content;
     if (this.request == REQUEST_POST) {
       post = new Hashtable();
@@ -237,11 +241,18 @@ public class httpRequest extends TimeStampedEvent implements httpConst, ClassQue
   }
 
   /**
-   * Return the corresponding HTTP connection.
+   * Return the completion Sink.
    */
-  public httpConnection getConnection() {
-    return conn;
+  public SinkIF getSink() {
+    return this.compQ;
   }
+
+	/**
+	 * Return the tag.
+	 */
+	public Object getTag() {
+		return this.tag;
+	}
 
   /**
    * Return the header line corresponding to the given key.

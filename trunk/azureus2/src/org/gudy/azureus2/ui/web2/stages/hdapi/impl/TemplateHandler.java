@@ -31,11 +31,11 @@ import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.SLevel;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.util.TemplateCache;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpNotFoundResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpOKResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
 import org.gudy.azureus2.ui.web2.stages.hdapi.httpRequestHandlerIF;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpNotFoundResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
 
 /**
  * @author Tobias Minich

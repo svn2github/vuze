@@ -25,8 +25,8 @@
 
 package org.gudy.azureus2.ui.web2.stages.hdapi;
 
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
 
 
 /**

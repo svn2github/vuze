@@ -26,15 +26,13 @@ package org.gudy.azureus2.ui.web2.stages.http;
 
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.common.util.SLevel;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpOKResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponder;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpServiceUnavailableResponse;
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
 import org.gudy.azureus2.ui.web2.stages.hdapi.WildcardDynamicHttp;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpConnection;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpConst;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpServer;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpServiceUnavailableResponse;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
 
@@ -44,7 +42,6 @@ import seda.sandStorm.api.ManagerIF;
 import seda.sandStorm.api.NoSuchStageException;
 import seda.sandStorm.api.QueueElementIF;
 import seda.sandStorm.api.SinkClosedEvent;
-import seda.sandStorm.api.SinkClosedException;
 import seda.sandStorm.api.SinkIF;
 import seda.sandStorm.core.BufferElement;
 import seda.sandStorm.core.ssTimer;
@@ -56,18 +53,18 @@ import seda.util.MDWUtil;
  * page for statistics gathering).
  *
  */
-public class HttpRecv implements EventHandlerIF, WebConst {
+public class httpRequestHandler implements EventHandlerIF, WebConst {
 
-  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.http.HttpRecv");
+  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.httpRequestHandler");
 
   // If true, enable ATLS support
   private boolean USE_ATLS = false;
 
   private static final long TIMER_DELAY = 2000;
   private int HTTP_PORT, HTTP_SECURE_PORT;
-  private httpServer server, secureServer;
+  //private httpServer server, secureServer;
   private ManagerIF mgr;
-  private SinkIF mysink, cacheSink, bottleneckSink, sendSink, dynSink, commandSink;
+  private SinkIF mysink, cacheSink, dynSink, commandSink;
   private int maxConns, maxSimReqs, numConns = 0, numSimReqs = 0;
   private int lastNumConns = 0;
   private String SPECIAL_URL;
@@ -77,30 +74,19 @@ public class HttpRecv implements EventHandlerIF, WebConst {
   // Empty class representing timer event
   class timerEvent implements QueueElementIF {}
 
-  public HttpRecv() {
-    if (UI.httpRecv != null) {
-      throw new Error("HttpRecv: More than one HttpRecv running?");
-    }
-    UI.httpRecv = this;
+  public httpRequestHandler() {
   }
 
   public void init(ConfigDataIF config) throws Exception {
     mysink = config.getStage().getSink();
     this.mgr = config.getManager();
     cacheSink = mgr.getStage(CACHE_STAGE).getSink();
-    sendSink = mgr.getStage(HTTP_SEND_STAGE).getSink();
 
     // These are optional
     try {
       dynSink = mgr.getStage(DYNAMIC_HTTP_STAGE).getSink();
     } catch (NoSuchStageException nsse) {
       dynSink = null;
-    }
-
-    try {
-      bottleneckSink = mgr.getStage(BOTTLENECK_STAGE).getSink();
-    } catch (NoSuchStageException nsse) {
-      bottleneckSink = null;
     }
 
     try {
@@ -116,31 +102,15 @@ public class HttpRecv implements EventHandlerIF, WebConst {
     SPECIAL_URL = config.getString("specialURL");
     if (SPECIAL_URL == null)
       throw new IllegalArgumentException("Must specify specialURL");
-    BOTTLENECK_URL = config.getString("bottleneckURL");
 
     String serverName = config.getString("serverName");
     if (serverName != null)
-      httpResponse.setDefaultHeader("Server: " + serverName + httpConst.CRLF);
-    HTTP_PORT = config.getInt("httpPort");
-
-    HTTP_SECURE_PORT = config.getInt("httpSecurePort");
-    USE_ATLS = (HTTP_SECURE_PORT != -1);
-
-    if (USE_ATLS == false) {
-      if (HTTP_PORT == -1) {
-        throw new IllegalArgumentException("Must specify httpPort");
-      }
-    }
-    if (USE_ATLS == true) {
-      if ((HTTP_PORT == -1) && (HTTP_SECURE_PORT == -1)) {
-        throw new IllegalArgumentException("Must specify either httpPort or httpSecurePort");
-      }
-    }
+      httpResponse.setDefaultHeader("Server: " + serverName + HttpConstants.CRLF);
 
     maxConns = config.getInt("maxConnections");
     maxSimReqs = config.getInt("maxSimultaneousRequests");
     logger.info("HttpRecv: Starting, maxConns=" + maxConns + ", maxSimReqs=" + maxSimReqs);
-
+/*
     if (HTTP_PORT != -1) {
       server = new httpServer(mgr, mysink, HTTP_PORT);
     }
@@ -160,18 +130,7 @@ public class HttpRecv implements EventHandlerIF, WebConst {
     if (logger.isDebugEnabled())
       logger.debug("HttpRecv: GOT QEL: " + item);
 
-    if (item instanceof httpConnection) {
-      UI.numConnectionsEstablished++;
-      numConns++;
-      if (logger.isEnabledFor(SLevel.HTTP))
-        logger.log(SLevel.HTTP, "HttpRecv: Got connection " + (UI.numConnectionsEstablished - UI.numConnectionsClosed));
-
-      if ((maxConns != -1) && (numConns == maxConns)) {
-        logger.info("Suspending accept() after " + numConns + " connections");
-        server.suspendAccept();
-      }
-
-    } else if (item instanceof httpRequest) {
+    if (item instanceof httpRequest) {
       if (logger.isDebugEnabled())
         logger.debug("HttpRecv: Got request " + item);
 
@@ -196,16 +155,6 @@ public class HttpRecv implements EventHandlerIF, WebConst {
         return;
       }
 
-      // Check for bottleneck URL
-      if ((bottleneckSink != null) && (BOTTLENECK_URL != null) && (req.getURL().startsWith(BOTTLENECK_URL))) {
-        if (!bottleneckSink.enqueue_lossy(req)) {
-          //System.err.println("HttpRecv: Warning: Could not enqueue_lossy to bottleneck stage: "+item);
-          // Send not available response
-          HttpSend.sendResponse(new httpResponder(new httpServiceUnavailableResponse(req, "Bottleneck stage is busy!"), req, true));
-        }
-        return;
-      }
-
       // Check for dynamic URLs
       if (dynSink != null) {
         try {
@@ -214,7 +163,7 @@ public class HttpRecv implements EventHandlerIF, WebConst {
         } catch (Exception e) {
           // Send not available response
           //System.err.println("*************** Haboob: Could not enqueue request to HDAPI: "+e);
-          HttpSend.sendResponse(new httpResponder(new httpServiceUnavailableResponse(req, "Could not enqueue request to HDAPI [" + req.getURL() + "]: " + e), req, true));
+          req.getSink().enqueue_lossy(new httpResponder(new httpServiceUnavailableResponse(req, "Could not enqueue request to HDAPI [" + req.getURL() + "]: " + e), req, true));
           return;
         }
       }
@@ -245,11 +194,6 @@ public class HttpRecv implements EventHandlerIF, WebConst {
         logger.debug("HttpRecv: Closed connection " + item);
       UI.numConnectionsClosed++;
 
-      numConns--;
-      if ((maxConns != -1) && (numConns == maxConns - 1)) {
-        logger.info("Resuming accept() for " + numConns + " connections");
-        server.resumeAccept();
-      }
       cacheSink.enqueue_lossy(item);
 
       if (logger.isEnabledFor(SLevel.HTTP))
@@ -289,21 +233,6 @@ public class HttpRecv implements EventHandlerIF, WebConst {
     }
   }
 
-  // Close the given connection; used by HttpSend
-  void closeConnection(httpConnection conn) {
-    UI.numConnectionsClosed++;
-    numConns--;
-    try {
-      conn.close(cacheSink);
-    } catch (SinkClosedException sce) {
-      if (logger.isDebugEnabled())
-        logger.debug("Warning: Tried to close connection " + conn + " multiple times");
-    }
-    if ((maxConns != -1) && (numConns == maxConns - 1)) {
-      logger.info("Resuming accept() for " + numConns + " connections");
-      server.resumeAccept();
-    }
-  }
 
   private void doSpecial(httpRequest req) {
     double pct;
@@ -359,10 +288,10 @@ public class HttpRecv implements EventHandlerIF, WebConst {
     repl += "<br>Cache reject time: " + MDWUtil.format(cacheRejectTime) + " ms avg (" + UI.timeCacheReject + " total, " + UI.numCacheReject + " times)\n";
     repl += "<br>File read time: " + MDWUtil.format(fileReadTime) + " ms avg (" + UI.timeFileRead + " total, " + UI.numFileRead + " times)\n";
 
-    repl += "<p></font></body></html>" + httpConst.CRLF;
+    repl += "<p></font></body></html>" + HttpConstants.CRLF;
 
     httpOKResponse resp = new httpOKResponse("text/html", new BufferElement(repl.getBytes()));
-    HttpSend.sendResponse(new httpResponder(resp, req, true));
+    req.getSink().enqueue_lossy(new httpResponder(resp, req, true));
 
   }
 

@@ -33,8 +33,6 @@ import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.LGLogger2Log4j;
 import org.gudy.azureus2.ui.common.util.SLevel;
-import org.gudy.azureus2.ui.web2.stages.http.HttpRecv;
-import org.gudy.azureus2.ui.web2.stages.http.HttpSend;
 import org.gudy.azureus2.ui.web2.util.LegacyHashtable;
 import org.gudy.azureus2.ui.web2.util.WebLogAppender;
 
@@ -65,9 +63,6 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 
   public static int numConnectionsEstablished;
   public static int numConnectionsClosed;
-
-  public static HttpRecv httpRecv;
-  public static HttpSend httpSend;
 
   public static List logList = new LinkedList();
   public static final Logger logger = Logger.getLogger("azureus2.ui.web");
@@ -136,7 +131,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       // Default URL
       "defaultURL=index.html",
       // Http Port
-      "httpPort=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")),
+      "listen_port=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")),
       // Max http requests. -1 = unlimited
       "maxRequests=-1",
       // Max Connections. -1 = unlimited
@@ -151,8 +146,8 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close",
       // Stats URL
       "specialURL=/stats",
-      // Proxy port
-      "listen_port=8081",
+      // Fake pass through URL
+      "fake_local_server=" + COConfigurationManager.getStringParameter("Server_sAccessHost"),
       // Html root dir
       "rootDir=" + FileUtil.getApplicationPath() + "template" };
     this.cfg = new SandstormConfig();
@@ -168,25 +163,33 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     cfg.putBoolean("global.batchController.enable", false);
     cfg.putBoolean("global.profile.enable", false);
     cfg.putBoolean("global.aSocket.enable", true);
-    try {
+/*    try {
       System.loadLibrary("NBIO");
       cfg.putString("global.aSocket.provider", "NBIO");
     } catch (UnsatisfiedLinkError e) {
-      cfg.putString("global.aSocket.provider", "NIO");
-    }
+*/      cfg.putString("global.aSocket.provider", "NIO");
+//    }
     cfg.putBoolean("global.aDisk.enable", true);
     cfg.putInt("global.aDisk.threadPool.initialThreads", 1);
     cfg.putBoolean("global.aDisk.threadPool.sizeController.enable", true);
     cfg.putInt("global.aDisk.threadPool.sizeController.delay", 1000);
     cfg.putInt("global.aDisk.threadPool.sizeController.threshold", 20);
     try {
+      /*
       cfg.addStage("HttpRecv", STAGES + "http.HttpRecv", defaultargs);
       cfg.addStage("HttpSend", STAGES + "http.HttpSend", defaultargs);
       cfg.addStage("HttpCommand", STAGES + "http.HttpCommand", defaultargs);
       cfg.addStage("CacheStage", STAGES + "cache.PageCacheSized", defaultargs);
       cfg.addStage("ResouceReader", STAGES + "cache.ResourceReader", defaultargs);
       cfg.addStage("DynamicHttp", STAGES + "hdapi.WildcardDynamicHttp", defaultargs);
-      //cfg.addStage("HttpProxy", STAGES + "proxy.HttpProxy", defaultargs);
+      cfg.addStage("HttpProxy", STAGES + "proxy.HttpProxy", defaultargs);
+      */
+      cfg.addStage(COMMAND_STAGE, STAGES + "http.httpCommandHandler", defaultargs);
+      cfg.addStage(CACHE_STAGE, STAGES + "cache.PageCacheSized", defaultargs);
+      cfg.addStage(RESOURCE_STAGE, STAGES + "cache.ResourceReader", defaultargs);
+      cfg.addStage(HTTP_HANDLER_STAGE, STAGES + "http.httpRequestHandler", defaultargs);
+      cfg.addStage(DYNAMIC_HTTP_STAGE, STAGES + "hdapi.WildcardDynamicHttp", defaultargs);
+      cfg.addStage(HTTP_SERVER_STAGE, STAGES + "http.httpProxyServer", defaultargs);
     } catch (Exception e) {
       logger.fatal("Webinterface configuration failed: " + e.getMessage(), e);
     }

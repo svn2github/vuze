@@ -22,27 +22,30 @@
  * 
  */
 
-package org.gudy.azureus2.ui.web2.stages.httpserv;
+package org.gudy.azureus2.ui.web2.http.response;
+
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.util.HttpConstants;
 
 import seda.sandStorm.api.QueueElementIF;
 import seda.sandStorm.core.BufferElement;
 
 /**
- * An httpResponse corresponding to a '404 Bad Request' (i.e. an unknown
- * request type). Use httpNotFoundResponse for a '404 Not Found'.
+ * An httpResponse corresponding to a '500 Internal Server Error' 
+ * Use httpNotFoundResponse for a '404 Not Found'.
  * 
  * @author Matt Welsh
  * @see httpNotFoundResponse
  * 
  */
-public class httpBadRequestResponse extends httpResponse implements httpConst, QueueElementIF {
+public class httpInternalServerErrorResponse extends httpResponse implements HttpConstants, QueueElementIF {
 
   private static final boolean DEBUG = false;
 
-  public httpBadRequestResponse(httpRequest request, String reason) {
-    super(httpResponse.RESPONSE_BAD_REQUEST, "text/html");
+  public httpInternalServerErrorResponse(httpRequest request, String reason) {
+    super(httpResponse.RESPONSE_INTERNAL_SERVER_ERROR, "text/html");
 
-    String str = "<html><head><title>400 Bad Request</title></head><body bgcolor=white><font face=\"helvetica\"><big><big><b>400 Bad Request</b></big></big><p>The URL you requested:<p><blockquote><tt>"+request.getURL()+"</tt></blockquote><p>contained a bad request. The reason given by the server was:<p><blockquote><tt>"+reason+"</tt></blockquote></body></html>\n";
+    String str = "<html><head><title>500 Internal Server Error</title></head><body bgcolor=white><font face=\"helvetica\"><big><big><b>500 Internal Server Error</b></big></big><p>The URL you requested:<p><blockquote><tt>"+request.getURL()+"</tt></blockquote><p>generated an internal server error. The reason given by the server was:<p><blockquote><tt>"+reason+"</tt></blockquote></body></html>\n";
     BufferElement mypayload = new BufferElement(str.getBytes());
     setPayload(mypayload);
   }

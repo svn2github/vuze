@@ -13,12 +13,11 @@ import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
-import org.gudy.azureus2.ui.web2.stages.http.HttpSend;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpNotFoundResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
+import org.gudy.azureus2.ui.web2.http.request.httpRequest;
+import org.gudy.azureus2.ui.web2.http.response.httpNotFoundResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpOKResponse;
+import org.gudy.azureus2.ui.web2.http.response.httpResponder;
+import org.gudy.azureus2.ui.web2.http.response.httpResponse;
 
 import seda.sandStorm.api.ConfigDataIF;
 import seda.sandStorm.api.EventHandlerException;
@@ -49,7 +48,7 @@ public class ResourceReader implements EventHandlerIF, WebConst {
       httpRequest req = (httpRequest) item;
       httpResponse resp;
       String fileres = "org/gudy/azureus2/ui/web/template/" + req.getURL();
-      fileres = fileres.replaceAll("//","/");
+      fileres = fileres.replaceAll("//", "/");
       if (ClassLoader.getSystemResource(fileres) != null) {
         byte[] buf = new byte[1024];
         InputStream res = ClassLoader.getSystemResourceAsStream(fileres);
@@ -66,14 +65,14 @@ public class ResourceReader implements EventHandlerIF, WebConst {
           }
         }
         resp = new httpOKResponse(Mime.getMimeType(req.getURL()), new BufferElement(out.toByteArray()));
-        HttpSend.sendResponse(new httpResponder(resp, req, true));
+        req.getSink().enqueue_lossy(new httpResponder(resp, req, true));
         return;
       } else {
         resp = new httpNotFoundResponse(req, req.getURL() + " not found.");
         logger.info("Could not open resource " + fileres);
         UI.numErrors++;
       }
-      HttpSend.sendResponse(new httpResponder(resp, req, true));
+      req.getSink().enqueue_lossy(new httpResponder(resp, req, true));
       return;
     } else {
       logger.info("ResourceReader: Got unknown event type: " + item);
