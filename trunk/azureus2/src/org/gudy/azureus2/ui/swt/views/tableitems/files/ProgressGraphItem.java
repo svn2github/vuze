@@ -63,7 +63,6 @@ public class ProgressGraphItem
           implements TableCellRefreshListener, TableCellDisposeListener
   {
     int lastPercentDone = 0;
-    int lastWidth = 0;
     private long last_draw_time;
 
     public Cell(TableCell cell) {
@@ -89,8 +88,9 @@ public class ProgressGraphItem
 
       //Compute bounds ...
       int newWidth = cell.getWidth();
-      if (newWidth <= 0)
+      if (newWidth <= 0) {
         return;
+      }
       int newHeight = cell.getHeight();
 
       int x1 = newWidth - borderWidth - 1;
@@ -100,14 +100,12 @@ public class ProgressGraphItem
       }
 
       boolean bImageBufferValid = (lastPercentDone == percentDone) &&
-                                  (lastWidth == newWidth) &&
                                   cell.isValid();
       if (bImageBufferValid) {
         return;
       }
 
       lastPercentDone = percentDone;
-      lastWidth = newWidth;
 
       Image piecesImage = ((TableCellCore)cell).getGraphicSWT();
 

@@ -61,7 +61,6 @@ public class CompletionItem
           implements TableCellRefreshListener, TableCellDisposeListener
   {
     int lastPercentDone = 0;
-    int lastWidth = 0;
     
     public Cell(TableCell cell) {
       cell.addRefreshListener(this);
@@ -96,15 +95,13 @@ public class CompletionItem
 
       boolean bImageBufferValid = (!cell.setSortValue(percentDone)) &&
                                   (lastPercentDone == percentDone) && 
-                                  (lastWidth == newWidth) && 
                                   cell.isValid();
       if (bImageBufferValid) {
         return;
       }
   
       lastPercentDone = percentDone;
-      lastWidth = newWidth;
-  
+
       Image image = ((TableCellCore)cell).getGraphicSWT();
       GC gcImage;
       boolean bImageSizeChanged;
