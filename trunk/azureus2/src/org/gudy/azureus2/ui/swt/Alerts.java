@@ -100,7 +100,7 @@ public class Alerts {
   			icon_str = MessagePopupShell.ICON_ERROR;
   		}
   
-  		MessagePopupShell eps = new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
   	}
   });
    }
@@ -119,7 +119,6 @@ public class Alerts {
   Throwable	error )
   {
   	String error_message = LGLogger.exceptionToString( error );
-    String msg = error.getMessage();
   	showMessageBox( SWT.ICON_ERROR, title, error.getMessage(),error_message );
   }
 
@@ -255,6 +254,7 @@ public class Alerts {
   }
   
   public static void init() {
+    getInstance().initI();
   }
   
   private void initI() {

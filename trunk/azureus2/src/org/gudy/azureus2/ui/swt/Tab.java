@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -36,33 +37,27 @@ public class Tab {
   private static HashMap tabs;
 
   private boolean useCustomTab;
-  //private static TabFolder _folder;
-  //private static CTabFolder _folder;
+
   private static Composite _folder;
 
-  //private TabFolder folder;
-  //private CTabFolder folder;
+
   private Composite folder;
 
-  //private TabItem tabItem;
-  //private CTabItem tabItem;
+
   private Item tabItem;
   private static boolean eventCloseAllowed = true;
   private static Item selectedItem = null;
 
-  private String lastTitle;
-  private String lastTooltip;
 
   private Composite composite;
-  //private CLabel title;
+
   private IView view;
 
   static {
     tabs = new HashMap();
   }
 
-  //public TabItem getTabItem() {
-  //public CTabItem getTabItem() {
+
   public Item getTabItem() {
     return tabItem;
   }
@@ -102,8 +97,7 @@ public class Tab {
 	            }
 	          }
 	        } else {          
-	          selectedItem = (Item) ((CTabFolder) folder).getSelection();
-	          //System.out.println("selected: "+selectedItem.getText());
+	          selectedItem = ((CTabFolder) folder).getSelection();	         
 	        }
 	      }
 	      
@@ -369,17 +363,17 @@ public class Tab {
   }
 
   public void dispose() {
-    IView view = null;
+    IView localView = null;
     synchronized (tabs) {
-      view = (IView) tabs.get(tabItem);
+      localView = (IView) tabs.get(tabItem);
       tabs.remove(tabItem);
     }
     try {
-      if (view != null) {
-        if(view instanceof PluginView) {
-          MainWindow.getWindow().removeActivePluginView((PluginView)view);
+      if (localView != null) {
+        if(localView instanceof PluginView) {
+          MainWindow.getWindow().removeActivePluginView((PluginView)localView);
         }
-        view.delete();
+        localView.delete();
       }
       tabItem.dispose();
     }

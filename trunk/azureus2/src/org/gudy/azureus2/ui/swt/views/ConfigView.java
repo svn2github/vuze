@@ -45,7 +45,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -53,6 +52,7 @@ import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 /**

@@ -20,6 +20,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
  * @author Olivier
@@ -27,7 +28,6 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  */
 public class PasswordWindow {
 
-  private Display display;
   private Shell shell;
   
   private static int nbInstances = 0;
@@ -38,7 +38,6 @@ public class PasswordWindow {
   }
   protected PasswordWindow(Display display) {
     nbInstances++;
-    this.display = display;
     shell = new Shell(display,SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE);
     shell.setText(MessageText.getString("PasswordWindow.title"));
     shell.setImage(ImageRepository.getImage("azureus"));

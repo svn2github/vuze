@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * This class can watch folders for new torrents and imports them.

@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.core3.internat.MessageText;

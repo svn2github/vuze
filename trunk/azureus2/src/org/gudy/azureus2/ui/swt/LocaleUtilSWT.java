@@ -6,8 +6,6 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.io.UnsupportedEncodingException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -31,6 +29,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
  *
@@ -53,7 +52,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
 
   
   /** Creates a new instance of LocaleUtilSWT */
-  public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
+  public String getChoosableCharsetString(byte[] array) {
     Candidate[] candidates = getCandidates(array);
 
     if(rememberEncodingDecision && rememberedDecoder != null) {

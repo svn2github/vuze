@@ -35,9 +35,9 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier Chalouhi

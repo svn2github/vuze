@@ -35,6 +35,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -191,7 +192,7 @@ CertificateTrustWindow
 			
 				// buttons
 			
-			Label label1 = new Label(shell,SWT.NULL);
+			new Label(shell,SWT.NULL);
 			
 			Composite comp = new Composite(shell,SWT.NULL);
 			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);

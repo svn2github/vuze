@@ -41,9 +41,9 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
-import org.gudy.azureus2.ui.swt.MainWindow;
 
 public class ConfigSectionStats implements ConfigSectionSWT {
   private static final int statsPeriods[] =

@@ -21,7 +21,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier

@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 import org.gudy.azureus2.ui.swt.updater.UpdateSWTWindow;
 
@@ -74,7 +75,7 @@ public class Main implements ILocaleUtilChooser {
   
   public Main(String args[]) {
   	
-  	String	mi_str = (String)System.getProperty( PR_MULTI_INSTANCE );
+  	String	mi_str = System.getProperty( PR_MULTI_INSTANCE );
   	
   	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
   	
@@ -99,9 +100,9 @@ public class Main implements ILocaleUtilChooser {
         // is used to get back the long form
         String filename = args[0];
         try {
-          args[0] = new java.io.File(args[0]).getCanonicalPath();
+          args[0] = new java.io.File(filename).getCanonicalPath();
           
-          LGLogger.log( "Main::main: args[0] exists = " + new java.io.File(args[0]).exists());
+          LGLogger.log( "Main::main: args[0] exists = " + new java.io.File(filename).exists());
           
         } catch (java.io.IOException ioe) {
         }

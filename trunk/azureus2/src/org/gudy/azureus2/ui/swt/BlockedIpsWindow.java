@@ -72,6 +72,7 @@ public class BlockedIpsWindow {
     formData.width = 70;
     btnOk.setLayoutData(formData);
     btnOk.addListener(SWT.Selection,new Listener() {
+
     public void handleEvent(Event e) {
       window.dispose();
     }

@@ -25,8 +25,8 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
 /**

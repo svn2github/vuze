@@ -20,8 +20,8 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 

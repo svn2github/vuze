@@ -25,11 +25,10 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier
@@ -130,7 +129,6 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       gcImage.drawImage(bufferScale,0,0);
       
       int oldAverage = 0;
-      Display display = drawCanvas.getDisplay();
       int maxHeight = scale.getScaledValue(max);
       Color background = MainWindow.blues[MainWindow.BLUES_DARKEST];
       Color foreground = MainWindow.blues[MainWindow.BLUES_MIDLIGHT];

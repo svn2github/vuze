@@ -31,7 +31,7 @@ import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 public class 
 PluginManagerImpl 

@@ -76,7 +76,6 @@ import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactor
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
@@ -85,6 +84,7 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;

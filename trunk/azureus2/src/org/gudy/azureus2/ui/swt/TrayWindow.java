@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 /**
  * @author Olivier
  * 

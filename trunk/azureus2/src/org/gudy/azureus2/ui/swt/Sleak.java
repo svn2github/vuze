@@ -275,8 +275,7 @@ public class Sleak {
 	}
 
 	void layout() {
-		Rectangle rect = shell.getClientArea();
-		String[] strings = new String[objects.length];
+		Rectangle rect = shell.getClientArea();		
 		int width = 0;
 		String[] items = list.getItems();
 		GC gc = new GC(list);

@@ -5,7 +5,7 @@
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -110,13 +110,27 @@ import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
-import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.IconBar;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
+import org.gudy.azureus2.ui.swt.OpenUrlWindow;
+import org.gudy.azureus2.ui.swt.PasswordWindow;
+import org.gudy.azureus2.ui.swt.SplashWindow;
+import org.gudy.azureus2.ui.swt.Tab;
+import org.gudy.azureus2.ui.swt.TrayWindow;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
+import org.gudy.azureus2.ui.swt.URLTransfer.URLType;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
@@ -1860,7 +1874,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     selectedLanguageItem.setSelection(true);
   }
 
-  protected void addCloseDownloadBarsToMenu(Menu menu) {
+  public void addCloseDownloadBarsToMenu(Menu menu) {
     MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(view_closeAll, "MainWindow.menu.closealldownloadbars"); //$NON-NLS-1$
     view_closeAll.addListener(SWT.Selection, new Listener() {

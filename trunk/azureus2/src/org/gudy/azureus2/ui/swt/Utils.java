@@ -53,6 +53,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
  * @author Olivier

@@ -45,7 +45,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 public class 
 DownloadManagerImpl

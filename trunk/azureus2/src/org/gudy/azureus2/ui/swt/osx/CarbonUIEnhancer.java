@@ -14,8 +14,8 @@ import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 
 public class CarbonUIEnhancer {

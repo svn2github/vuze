@@ -43,8 +43,8 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /* Simple plugin to retrieve a new MessagesBundle file from the website.

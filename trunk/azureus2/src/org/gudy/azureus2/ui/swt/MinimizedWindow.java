@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 /**
  * @author Olivier

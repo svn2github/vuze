@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 
 
 public class OpenTorrentWindow {
-  private String sDefaultPath;
+
   private boolean bUseFolderBrowse = false;
   private Text lTorrentInfo;
   private Text txtTorrent;

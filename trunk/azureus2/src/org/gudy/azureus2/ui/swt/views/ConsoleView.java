@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier

@@ -43,7 +43,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 public class ConfigSectionTracker implements ConfigSectionSWT {
   public String configSectionGetParentSection() {

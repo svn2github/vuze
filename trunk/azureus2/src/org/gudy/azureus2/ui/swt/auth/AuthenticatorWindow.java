@@ -198,8 +198,6 @@ AuthenticatorWindow
 		
 		final Semaphore	sem = new Semaphore();
 		
-		final String[]	result = new String[2];
-		
 		final authDialog[]	dialog = new authDialog[1];
 		
 		try{
@@ -344,7 +342,7 @@ AuthenticatorWindow
 			
 				// buttons
 				
-			Label label = new Label(shell,SWT.NULL);
+			new Label(shell,SWT.NULL);
 
 			Button bOk = new Button(shell,SWT.PUSH);
 		 	bOk.setText(MessageText.getString("Button.ok"));
