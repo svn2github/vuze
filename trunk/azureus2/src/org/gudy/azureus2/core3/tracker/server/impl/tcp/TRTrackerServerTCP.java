@@ -174,11 +174,11 @@ TRTrackerServerTCP
 				
 				if ( bind_ip.length() < 7 ){
 					
-					ss = new ServerSocket( port, 128 );
+					ss = new ServerSocket( port, 1024 );
 					
 				}else{
 					
-					ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
+					ss = new ServerSocket( port, 1024, InetAddress.getByName(bind_ip));
 				}
 				
 				ss.setReuseAddress(true);

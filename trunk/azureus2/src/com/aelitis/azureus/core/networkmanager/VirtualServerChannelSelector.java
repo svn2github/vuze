@@ -60,7 +60,7 @@ public class VirtualServerChannelSelector {
       try {
         server_channel = ServerSocketChannel.open();
         server_channel.socket().setReuseAddress( true );
-        server_channel.socket().bind( bind_address, 100 );
+        server_channel.socket().bind( bind_address, 1024 );
         
         AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
           public void runSupport() {
