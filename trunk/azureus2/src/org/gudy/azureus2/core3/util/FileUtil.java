@@ -98,6 +98,35 @@ public class FileUtil {
   }
   
   
+  /**
+   * Deletes the given dir and all dirs underneath if empty.
+   */
+  public static void recursiveDirDelete(File f) {
+    String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+    String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+    
+    try {
+      if (f.getCanonicalPath().equals(moveToDir)) {
+        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
+        return;
+      }
+      if (f.getCanonicalPath().equals(defSaveDir)) {
+        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the default data dir !");
+        return;
+      }
+      
+      if (f.isDirectory()) {
+        File[] files = f.listFiles();
+        for (int i = 0; i < files.length; i++) {
+          recursiveDelete(files[i]);
+        }
+        f.delete();
+      }
+
+    } catch (Exception ignore) {/*ignore*/}
+  }
+  
+  
   public static void copyFile(File origin, File destination) throws IOException {
     OutputStream os = new FileOutputStream(destination);
     InputStream is = new FileInputStream(origin);
