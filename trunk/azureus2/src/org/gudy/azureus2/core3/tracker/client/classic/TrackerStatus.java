@@ -120,7 +120,10 @@ public class TrackerStatus {
       }else{
       	
       	con = (HttpURLConnection) reqUrl.openConnection();
+        
       }
+      
+      con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
       
       // some trackers support gzip encoding of replies
       

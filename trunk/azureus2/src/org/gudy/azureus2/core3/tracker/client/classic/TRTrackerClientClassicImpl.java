@@ -646,7 +646,9 @@ TRTrackerClientClassicImpl
 	  			con = (HttpURLConnection) reqUrl.openConnection();
 	  		}
 	  	
-	  			// some trackers support gzip encoding of replies
+         con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
+        
+	  	   // some trackers support gzip encoding of replies
 	  		
 	  		con.addRequestProperty("Accept-Encoding","gzip");
 	  		
