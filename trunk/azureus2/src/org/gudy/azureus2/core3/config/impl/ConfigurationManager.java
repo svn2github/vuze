@@ -8,11 +8,8 @@ package org.gudy.azureus2.core3.config.impl;
 
 import java.io.*;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
@@ -30,8 +27,8 @@ public class ConfigurationManager {
   
   private Map propertiesMap;
   
-  private Vector	listeners = new Vector();
-  private Hashtable parameterListeners = new Hashtable();
+  private List		listeners 			= new ArrayList();
+  private Hashtable parameterListeners 	= new Hashtable();
   
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
@@ -82,31 +79,36 @@ public class ConfigurationManager {
   {
   	FileUtil.writeResilientConfigFile( filename, propertiesMap );
     
+  	List	listeners_copy;
+  	
     try{
     	this_mon.enter();
+    
+    	listeners_copy = new ArrayList( listeners );
     	
-    	for (int i=0;i<listeners.size();i++){
-    		
-    		COConfigurationListener l = (COConfigurationListener)listeners.elementAt(i);
-    		
-    		if (l != null){
-    			
-    			try{
-    				l.configurationSaved();
-    				
-    			}catch( Throwable e ){
-    				
-    				e.printStackTrace();
-    			}
-    		}else{
-    			
-    			Debug.out("COConfigurationListener is null");
-    		}
-    	}
     }finally{
     	
     	this_mon.exit();
     }
+    
+	for (int i=0;i<listeners_copy.size();i++){
+		
+		COConfigurationListener l = (COConfigurationListener)listeners_copy.get(i);
+		
+		if (l != null){
+			
+			try{
+				l.configurationSaved();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}else{
+			
+			Debug.out("COConfigurationListener is null");
+		}
+	}
   }
   
   public void save() {
@@ -290,17 +292,23 @@ public class ConfigurationManager {
   private void notifyParameterListeners(String parameter) {
     Vector parameterListener = (Vector) parameterListeners.get(parameter);
     if(parameterListener != null) {
-      for (Iterator iter = parameterListener.iterator(); iter.hasNext();) {
-        ParameterListener listener = (ParameterListener) iter.next();
+    	try{
+    		for (int i=0;i<parameterListener.size();i++){
         
-        if(listener != null) {
-          listener.parameterChanged(parameter);
-        }
-        else Debug.out("ParameterListener is null");
+    			ParameterListener	listener = (ParameterListener)parameterListener.get(i);
+    			
+    			if(listener != null) {
+    				listener.parameterChanged(parameter);
+    			}
+    		}
+    	}catch( Throwable e ){
+    		
+    			// we're not synchronized so possible but unlikely error here
+    		
+    		e.printStackTrace();
       }
     }
-    //else Debug.out("parameterListener Vector is null for: " + parameter);
-  }
+   }
 
   public void addParameterListener(String parameter, ParameterListener listener){
   	try{
@@ -338,7 +346,7 @@ public class ConfigurationManager {
   	try{
   		this_mon.enter();
 
-  		listeners.addElement(listener);
+  		listeners.add(listener);
   		
   	}finally{
   		
@@ -350,7 +358,7 @@ public class ConfigurationManager {
   	try{
   		this_mon.enter();
   	
-  		listeners.removeElement(listener);
+  		listeners.remove(listener);
   	}finally{
   		
   		this_mon.exit();
