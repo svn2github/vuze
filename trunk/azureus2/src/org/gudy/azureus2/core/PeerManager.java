@@ -20,9 +20,7 @@ public class PeerManager extends Thread {
   private static final boolean DEBUG = false;
 
   private int[] _availability;
-  private boolean _bContinue;
-  //  private List _clients; //:: Try to define by the interface, 
-  //makes the code more portable by forcing you to interfaces -Tyler                
+  private boolean _bContinue;                
   private List _connections;
   private DiskManager _diskManager;
   private boolean[] _downloaded;
@@ -46,6 +44,7 @@ public class PeerManager extends Thread {
   private static final int TRACKER_UPDATE = 2;
   private int _seeds, _peers;
   private long _timeStarted;
+  private long _timeFinished;
   private Average _averageReceptionSpeed;
   private PeerSocket currentOptimisticUnchoke;
 
@@ -56,6 +55,8 @@ public class PeerManager extends Thread {
   private int uploadCount = 0;
 
   private List RequestExpired;
+  
+  private int nbHashFails;
 
   public PeerManager(
     DownloadManager manager,
@@ -67,6 +68,8 @@ public class PeerManager extends Thread {
     this._manager = manager;
     //This torrent Hash
     _hash = hash;
+    
+    this.nbHashFails = 0;
 
     //The connection to the tracker
     _tracker = tracker;
@@ -211,11 +214,7 @@ public class PeerManager extends Thread {
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null)
         pieceRemoved(_pieces[i]);
-    }
-
-    //3.Dump resume Data
-    if (_diskManager.getState() == DiskManager.READY)
-      _diskManager.dumpResumeDataToDisk(true);
+    }    
 
     //Asynchronous cleaner
 
@@ -395,7 +394,7 @@ public class PeerManager extends Thread {
         int maxRequests = MAX_REQUESTS;
         if (pc.isSnubbed())
           maxRequests = 1;
-        while ((pc.getState() == PeerSocket.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
+        while ((pc.isReadyToRequest() && pc.getState() == PeerSocket.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
           found = findPieceToDownload(pc, pc.isSnubbed());
           //is there anything else to download?
         }
@@ -424,6 +423,7 @@ public class PeerManager extends Thread {
     //set finished
     _finished = temp;
     if (_finished) {
+      _timeFinished = System.currentTimeMillis() / 1000;
       _manager.setState(DownloadManager.STATE_SEEDING);
       //_diskManager.changeToReadOnly();
       _diskManager.dumpResumeDataToDisk(true);
@@ -1300,7 +1300,14 @@ public class PeerManager extends Thread {
     }
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
     if (dataRemaining == 0) {
-      remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
+      
+      long timeElapsed = _timeStarted - _timeFinished;
+      if(timeElapsed > 0) {
+        remaining = MessageText.getString("PeerManager.status.finishedin"); //$NON-NLS-1$
+        remaining += " " + TimeFormater.format(timeElapsed);
+      } else {
+        remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
+      }
     }
     else {
       int averageSpeed = _averageReceptionSpeed.getAverage();
@@ -1381,6 +1388,8 @@ public class PeerManager extends Thread {
 
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
+      
+      nbHashFails++;
     }
   }
 
@@ -1432,5 +1441,12 @@ public class PeerManager extends Thread {
     return pc == currentOptimisticUnchoke;
   }
 
+
+  /**
+   * @return
+   */
+  public int getNbHashFails() {
+    return nbHashFails;
+  }
 
 }

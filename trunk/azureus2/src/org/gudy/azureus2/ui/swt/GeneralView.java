@@ -78,6 +78,7 @@ public class GeneralView extends AbstractIView {
   Label pieceNumber;
   Label pieceSize;
   Label comment;
+  Label hashFails;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -191,6 +192,22 @@ public class GeneralView extends AbstractIView {
     downloadSpeed = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     downloadSpeed.setLayoutData(gridData);
+    label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.hashfails");
+    hashFails = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    hashFails.setLayoutData(gridData);
+    
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
+    upload = new Label(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    upload.setLayoutData(gridData);    
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
+    uploadSpeed = new Label(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    uploadSpeed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); //$NON-NLS-1$
     maxUploads = new Combo(gTransfer, SWT.SINGLE | SWT.READ_ONLY);
@@ -202,19 +219,6 @@ public class GeneralView extends AbstractIView {
       }
     });
     maxUploads.select(manager.getMaxUploads() - 2);
-
-    label = new Label(gTransfer, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
-    upload = new Label(gTransfer, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    upload.setLayoutData(gridData);
-    label = new Label(gTransfer, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
-    uploadSpeed = new Label(gTransfer, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    uploadSpeed.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT).setText(""); //$NON-NLS-1$
-    new Label(gTransfer, SWT.LEFT).setText(""); //$NON-NLS-1$
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
@@ -361,7 +365,8 @@ public class GeneralView extends AbstractIView {
       manager.getUploadSpeed(),
       manager.getTotalSpeed(),
       seeds,
-      peers);
+      peers,
+      manager.getHashFails());
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerUrl());
     setInfos(
       manager.getName(),
@@ -624,7 +629,7 @@ public class GeneralView extends AbstractIView {
     timeRemaining.setText(remaining);
   }
 
-  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p) {
+  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails) {
     if (display == null || display.isDisposed())
       return;
 
@@ -656,7 +661,9 @@ public class GeneralView extends AbstractIView {
     if (peers == null || peers.isDisposed())
       return;
     peers.setText(p); //$NON-NLS-1$
-//    if (gTransfer.isDisposed()) return;
+    if(hashFails == null || hashFails.isDisposed())
+      return;
+    hashFails.setText(_hashFails);
   }
 
   public void setTracker(final String status, final int time, String trackerUrl) {

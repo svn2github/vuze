@@ -279,8 +279,11 @@ public class DownloadManager extends Component {
         state = DownloadManager.STATE_STOPPING;
         if (peerManager != null)
           peerManager.stopAll();        
-        if (diskManager != null)
+        if (diskManager != null) {
+          if (diskManager.getState() == DiskManager.READY)
+             diskManager.dumpResumeDataToDisk(true);
           diskManager.stopIt();
+        }
         trackerConnection = null;
         peerManager = null;
         state = DownloadManager.STATE_STOPPED;
@@ -580,5 +583,15 @@ public class DownloadManager extends Component {
     if(globalManager != null)
       globalManager.moveDown(this);
   }      
+  
+  public String getHashFails() {
+    if(peerManager != null) {
+      int nbFails = peerManager.getNbHashFails();
+      long size = nbFails * diskManager.getPieceLength();
+      String result = nbFails + " ( ~ " + PeerStats.format(size) + " )";
+      return result;
+    }
+    return "";
+  }
 
 }

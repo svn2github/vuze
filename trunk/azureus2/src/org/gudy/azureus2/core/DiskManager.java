@@ -827,7 +827,7 @@ public class DiskManager {
         resumeMap.put(path, resumeDirectory);
         resumeDirectory.put("resume data", resumeData);
         Map partialPieces = new HashMap();
-        if (savePartialPieces) {
+        if (savePartialPieces && (pieces != null || manager != null)) {
             if (pieces == null)
                 pieces = manager.getPieces();
             for (int i = 0; i < pieces.length; i++) {

@@ -321,6 +321,8 @@ public class PeerTableItem {
 	        table.getColumn(5).removeListener(SWT.Resize, listener);
 	        table.remove(table.indexOf(item));
 	        item.dispose();
+          if(tableItems == null)
+            return;
 	        tableItems.remove(item);
 	      }
 	    });

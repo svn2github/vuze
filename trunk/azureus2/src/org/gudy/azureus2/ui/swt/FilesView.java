@@ -213,8 +213,19 @@ public class FilesView extends AbstractIView {
         }
         fileItem.refresh();
       }
-    }
+    }    
 
+  }
+  
+  private void removeFileItems() {
+    if(items == null)
+      return;
+    Iterator iter = items.values().iterator();
+    while(iter.hasNext()) {        
+      FileItem fileItem = (FileItem) iter.next();
+      fileItem.delete();
+    }    
+    items.clear();    
   }
 
   /* (non-Javadoc)

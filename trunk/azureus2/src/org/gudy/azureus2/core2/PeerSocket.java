@@ -341,7 +341,7 @@ public class PeerSocket extends PeerConnection {
           return;
           
       if (readingLength) {
-        if (lengthBuffer.hasRemaining() ) {
+        if (lengthBuffer.hasRemaining() ) {          
           try {
             int read = socket.read(lengthBuffer);
             if (read < 0)
@@ -352,6 +352,10 @@ public class PeerSocket extends PeerConnection {
             return;
           }
         }
+        //If there's nothing on the socket, then we can quite safely send a request.
+        if(lengthBuffer.remaining() == 4) {
+          readyToRequest = true;
+        } 
         if (!lengthBuffer.hasRemaining()) {
           int length = lengthBuffer.getInt(0);
           if(length < 0) {
@@ -363,6 +367,7 @@ public class PeerSocket extends PeerConnection {
             readingLength = false;
           }
           else {
+            //readingLength = 0 : Keep alive message, process next.
             readMessage(readBuffer);
           }
         }
@@ -376,6 +381,7 @@ public class PeerSocket extends PeerConnection {
           if (readBuffer.limit() > 8192) {
             stats.received(read);
             manager.received(read);
+            readyToRequest = true;
           }
         }
         catch (IOException e) {
@@ -384,6 +390,9 @@ public class PeerSocket extends PeerConnection {
           return;
         }
         if (!readBuffer.hasRemaining()) {
+          //After each message has been received, we're not ready to request anymore,
+          //Unless we finish the socket's queue, or we start receiving a piece.
+          readyToRequest = false;
           analyseBuffer(readBuffer);
           process();
         }
@@ -952,6 +961,8 @@ public class PeerSocket extends PeerConnection {
     if (writeBuffer == null) {
       //So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
       if (protocolQueue.size() != 0) {
+        //Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
+        waitingChokeToBeSent = false;
         //Assign the current buffer ...
         keepAlive = 0;
         writeBuffer = (ByteBuffer) protocolQueue.remove(0);
@@ -1081,6 +1092,13 @@ public class PeerSocket extends PeerConnection {
   
   //Number of connections made since creation
   private int nbConnections;
+  
+  //Flag to indicate if the connection is in a stable enough state to send a request.
+  //Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
+  private boolean readyToRequest;
+  
+  //Flag to determine when a choke message has really been sent
+  private boolean waitingChokeToBeSent;
 
   //The Logger
   private Logger logger;
@@ -1126,6 +1144,27 @@ public class PeerSocket extends PeerConnection {
 
   public boolean isOptimisticUnchoke() {
     return manager.isOptimisticUnchoke(this);
+  }
+
+  /**
+   * @return
+   */
+  public boolean isReadyToRequest() {
+    return readyToRequest;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isWaitingChokeToBeSent() {
+    return waitingChokeToBeSent;
+  }
+
+  /**
+   * @param waitingChokeToBeSent
+   */
+  public void setWaitingChokeToBeSent(boolean waitingChokeToBeSent) {
+    this.waitingChokeToBeSent = waitingChokeToBeSent;
   }
 
 }
