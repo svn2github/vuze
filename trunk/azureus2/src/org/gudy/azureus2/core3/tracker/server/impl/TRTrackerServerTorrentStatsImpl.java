@@ -31,13 +31,13 @@ public class
 TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
-	protected TRTrackerServerTorrent	torrent;
+	protected TRTrackerServerTorrentImpl	torrent;
 	protected int						announce_count;
 	protected int						completed_count;
 	
 	protected
 	TRTrackerServerTorrentStatsImpl(
-		TRTrackerServerTorrent 	_torrent )
+		TRTrackerServerTorrentImpl 	_torrent )
 	{
 		torrent	= _torrent;
 	}

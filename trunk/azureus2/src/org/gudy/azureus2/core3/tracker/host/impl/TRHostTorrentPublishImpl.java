@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.tracker.host.impl;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -40,6 +42,8 @@ TRHostTorrentPublishImpl
 	protected int				status	= TS_PUBLISHED;
 
 	protected TRHostPeer[]		peers = new TRHostPeer[0];
+	
+	protected List				listeners = new ArrayList();
 	
 	protected
 	TRHostTorrentPublishImpl(
@@ -166,5 +170,31 @@ TRHostTorrentPublishImpl
 	getAverageDownloaded()
 	{
 		return( 0 );
+	}
+	
+	protected synchronized void
+	postProcess(
+		TRHostTorrentRequest	req )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRHostTorrentListener)listeners.get(i)).postProcess(req);
+		}
+	}
+	
+	public synchronized void
+	addListener(
+		TRHostTorrentListener	l )
+	{
+		listeners.add(l);
+		
+		host.torrentListenerRegistered();
+	}
+	
+	public synchronized void
+	removeListener(
+		TRHostTorrentListener	l )
+	{
+		listeners.remove(l);
 	}
 }

@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerServerFactory.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerServerFactoryImpl.java
+ * Created : 13-Dec-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,40 +19,55 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server;
+package org.gudy.azureus2.core3.tracker.server.impl;
 
+/**
+ * @author parg
+ *
+ */
 
-import org.gudy.azureus2.core3.tracker.server.impl.*;
+import java.util.*;
+
+import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
-TRTrackerServerFactory 
+TRTrackerServerFactoryImpl 
 {
-	public static TRTrackerServer
+	protected static List	servers		= new ArrayList();
+	protected static List	listeners 	= new ArrayList();
+	
+	public static synchronized TRTrackerServer
 	create(
-		int		port )
-		
+		int			port,
+		boolean		ssl)
+	
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( port, false ));
-	}
-	
-	public static TRTrackerServer
-	createSSL(
-		int		port )
+		TRTrackerServerImpl	server = new TRTrackerServerImpl( port, ssl );
 		
-		throws TRTrackerServerException
-	{
-		return( TRTrackerServerFactoryImpl.create( port, true ));
+		servers.add( server );
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerServerFactoryListener)listeners.get(i)).serverCreated( server );
+		}
+		
+		return( server );
 	}
 	
-	public static void
+	public static synchronized void
 	addListener(
-			TRTrackerServerFactoryListener	l )
+		TRTrackerServerFactoryListener	l )
 	{
-		TRTrackerServerFactoryImpl.addListener( l );
+		listeners.add( l );
+		
+		for (int i=0;i<servers.size();i++){
+			
+			l.serverCreated((TRTrackerServer)servers.get(i));
+		}
 	}	
 	
-	public static void
+	public static synchronized void
 	removeListener(
 		TRTrackerServerFactoryListener	l )
 	{

@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerServerFactory.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerServerFactoryListener.java
+ * Created : 13-Dec-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -21,41 +21,15 @@
 
 package org.gudy.azureus2.core3.tracker.server;
 
+/**
+ * @author parg
+ *
+ */
 
-import org.gudy.azureus2.core3.tracker.server.impl.*;
-
-public class 
-TRTrackerServerFactory 
+public interface 
+TRTrackerServerFactoryListener 
 {
-	public static TRTrackerServer
-	create(
-		int		port )
-		
-		throws TRTrackerServerException
-	{
-		return( TRTrackerServerFactoryImpl.create( port, false ));
-	}
-	
-	public static TRTrackerServer
-	createSSL(
-		int		port )
-		
-		throws TRTrackerServerException
-	{
-		return( TRTrackerServerFactoryImpl.create( port, true ));
-	}
-	
-	public static void
-	addListener(
-			TRTrackerServerFactoryListener	l )
-	{
-		TRTrackerServerFactoryImpl.addListener( l );
-	}	
-	
-	public static void
-	removeListener(
-		TRTrackerServerFactoryListener	l )
-	{
-		TRTrackerServerFactoryImpl.removeListener( l );
-	}
+	public void
+	serverCreated(
+		TRTrackerServer	server );
 }

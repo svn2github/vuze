@@ -70,9 +70,10 @@ TRTrackerServerImpl
 		
 	protected int	current_retry_interval;
 	
-	protected Vector	listeners = new Vector();
+	protected Vector	listeners 			= new Vector();
+	protected Vector	request_listeners 	= new Vector();
 	
-	ThreadPool	thread_pool;
+	protected ThreadPool	thread_pool;
 	
 	protected boolean	web_password_enabled;
 	protected boolean	tracker_password_enabled;
@@ -299,7 +300,7 @@ TRTrackerServerImpl
 							
 							// this triggers timeouts...
 								
-						TRTrackerServerTorrent	t = (TRTrackerServerTorrent)it.next();
+						TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
 							
 						clients += t.getPeers().length;
 					}
@@ -338,7 +339,7 @@ TRTrackerServerImpl
 							
 								// this triggers timeouts...
 								
-							TRTrackerServerTorrent	t = (TRTrackerServerTorrent)it.next();
+							TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
 							
 							t.exportPeersToMap( temp );
 						}
@@ -406,7 +407,7 @@ TRTrackerServerImpl
 		
 		HashWrapper	hash = new HashWrapper( _hash );
 		
-		TRTrackerServerTorrent	entry = (TRTrackerServerTorrent)torrent_map.get( hash );
+		TRTrackerServerTorrentImpl	entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
 		
 		if ( entry == null ){
 			
@@ -418,7 +419,7 @@ TRTrackerServerImpl
 				}
 			}
 			
-			entry = new TRTrackerServerTorrent( this, hash );
+			entry = new TRTrackerServerTorrentImpl( this, hash );
 			
 			torrent_map.put( hash, entry );
 		}
@@ -446,17 +447,17 @@ TRTrackerServerImpl
 		}
 	}
 	
-	protected TRTrackerServerTorrent
+	protected TRTrackerServerTorrentImpl
 	getTorrent(
 		byte[]		hash )
 	{
-		return((TRTrackerServerTorrent)torrent_map.get(new HashWrapper(hash)));
+		return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
 	}
 	
-	protected synchronized TRTrackerServerTorrent[]
+	protected synchronized TRTrackerServerTorrentImpl[]
 	getTorrents()
 	{
-		TRTrackerServerTorrent[]	res = new TRTrackerServerTorrent[torrent_map.size()];
+		TRTrackerServerTorrentImpl[]	res = new TRTrackerServerTorrentImpl[torrent_map.size()];
 		
 		torrent_map.values().toArray( res );
 		
@@ -467,7 +468,7 @@ TRTrackerServerImpl
 	getStats(
 		byte[]		hash )
 	{
-		TRTrackerServerTorrent	torrent = getTorrent( hash );
+		TRTrackerServerTorrentImpl	torrent = getTorrent( hash );
 		
 		if ( torrent == null ){
 			
@@ -481,7 +482,7 @@ TRTrackerServerImpl
 	getPeers(
 		byte[]		hash )
 	{
-		TRTrackerServerTorrent	torrent = getTorrent( hash );
+		TRTrackerServerTorrentImpl	torrent = getTorrent( hash );
 		
 		if ( torrent == null ){
 			
@@ -509,6 +510,23 @@ TRTrackerServerImpl
 		return( false );
 	}
 	
+	protected void
+	postProcess(
+		TRTrackerServerTorrentImpl	torrent,
+		int							type,
+		Map							response )
+	{
+		if ( request_listeners.size() > 0 ){
+			
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, torrent, type, response );
+			
+			for (int i=0;i<request_listeners.size();i++){
+				
+				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
+			}
+		}
+	}
+	
 	public synchronized void
 	addListener(
 		TRTrackerServerListener	l )
@@ -521,5 +539,19 @@ TRTrackerServerImpl
 		TRTrackerServerListener	l )
 	{
 		listeners.removeElement(l);
+	}
+	
+	public void
+	addRequestListener(
+		TRTrackerServerRequestListener	l )
+	{
+		request_listeners.addElement( l );
+	}
+	
+	public void
+	removeRequestListener(
+		TRTrackerServerRequestListener	l )
+	{
+		request_listeners.removeElement(l);
 	}
 }

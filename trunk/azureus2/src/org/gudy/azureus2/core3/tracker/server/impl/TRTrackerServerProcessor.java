@@ -43,9 +43,6 @@ TRTrackerServerProcessor
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 
-	protected static final int		RT_ANNOUNCE		= 1;
-	protected static final int		RT_SCRAPE		= 2;
-	protected static final int		RT_FULL_SCRAPE	= 3;
 							
 	protected TRTrackerServerImpl		server;
 	protected Socket					socket;
@@ -176,19 +173,19 @@ TRTrackerServerProcessor
 			
 				if ( str.startsWith( "/announce?" )){
 					
-					request_type	= RT_ANNOUNCE;
+					request_type	= TRTrackerServerRequest.RT_ANNOUNCE;
 					
 					str = str.substring(10);
 					
 				}else if ( str.startsWith( "/scrape?" )){
 					
-					request_type	= RT_SCRAPE;
+					request_type	= TRTrackerServerRequest.RT_SCRAPE;
 					
 					str = str.substring(8);
 				
 				}else if ( str.equals( "/scrape" )){
 					
-					request_type	= RT_FULL_SCRAPE;
+					request_type	= TRTrackerServerRequest.RT_FULL_SCRAPE;
 					
 					str = "";
 				
@@ -208,7 +205,9 @@ TRTrackerServerProcessor
 					
 					throw( new Exception( "Unsupported Request Type"));
 				}
-					
+				
+					// OK, here its an announce, scrape or full scrape
+				
 					// check tracker authentication
 					
 				if ( !doAuthentication( header, os, true )){
@@ -216,6 +215,8 @@ TRTrackerServerProcessor
 					return;
 				}
 
+				TRTrackerServerTorrentImpl	torrent = null;
+				
 				int	pos = 0;
 					
 				String		hash_str	= null;
@@ -300,7 +301,7 @@ TRTrackerServerProcessor
 					}
 				}
 
-				if ( request_type != RT_FULL_SCRAPE ){
+				if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
 				
 					if ( hash_str == null ){
 						
@@ -313,7 +314,7 @@ TRTrackerServerProcessor
 										
 					// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
 														
-					TRTrackerServerTorrent	torrent = server.getTorrent( hash_bytes );
+					torrent = server.getTorrent( hash_bytes );
 						
 					if ( torrent == null ){
 							
@@ -336,7 +337,7 @@ TRTrackerServerProcessor
 						}
 					}
 				
-					if ( request_type == RT_ANNOUNCE ){
+					if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 					
 						if ( peer_id == null ){
 							
@@ -395,13 +396,13 @@ TRTrackerServerProcessor
 						
 					Map	hash_entry = new HashMap();
 						
-					TRTrackerServerTorrent[] torrents = server.getTorrents();
+					TRTrackerServerTorrentImpl[] torrents = server.getTorrents();
 						
 					for (int i=0;i<torrents.length;i++){
 						
-						TRTrackerServerTorrent	torrent = torrents[i];
+						TRTrackerServerTorrentImpl	this_torrent = torrents[i];
 						
-						byte[]	torrent_hash = torrent.getHash().getHash();
+						byte[]	torrent_hash = this_torrent.getHash().getHash();
 											
 						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
 						
@@ -409,7 +410,7 @@ TRTrackerServerProcessor
 			
 						files.put( str_hash, hash_entry );
 							
-						TRTrackerServerPeer[]	peers = torrent.getPeers();
+						TRTrackerServerPeer[]	peers = this_torrent.getPeers();
 							
 						long	seeds 		= 0;
 						long	non_seeds	= 0;
@@ -430,6 +431,8 @@ TRTrackerServerProcessor
 						
 					root.put( "files", files );
 				}
+				
+				server.postProcess( torrent, request_type, root );
 				
 			}catch( Exception e ){
 				

@@ -32,7 +32,7 @@ TRTrackerServer
 	
 	public static final int DEFAULT_TRACKER_PORT 		= 6969;
 	public static final int DEFAULT_TRACKER_PORT_SSL	= 7000;
-	
+		
 	public int
 	getRetryInterval();
 	
@@ -65,4 +65,12 @@ TRTrackerServer
 	public void
 	removeListener(
 		TRTrackerServerListener	l );
+	
+	public void
+	addRequestListener(
+			TRTrackerServerRequestListener	l );
+	
+	public void
+	removeRequestListener(
+			TRTrackerServerRequestListener	l );
 }

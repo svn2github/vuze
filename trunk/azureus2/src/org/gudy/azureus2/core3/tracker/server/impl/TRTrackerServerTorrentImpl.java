@@ -33,7 +33,8 @@ import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-TRTrackerServerTorrent 
+TRTrackerServerTorrentImpl 
+	implements TRTrackerServerTorrent
 {
 	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
@@ -43,7 +44,7 @@ TRTrackerServerTorrent
 	protected TRTrackerServerTorrentStatsImpl	stats;
 		
 	protected
-	TRTrackerServerTorrent(
+	TRTrackerServerTorrentImpl(
 		TRTrackerServerImpl	_server,
 		HashWrapper			_hash )
 	{
@@ -185,7 +186,7 @@ TRTrackerServerTorrent
 		return( res );
 	}
 	
-	protected HashWrapper
+	public HashWrapper
 	getHash()
 	{
 		return( hash );

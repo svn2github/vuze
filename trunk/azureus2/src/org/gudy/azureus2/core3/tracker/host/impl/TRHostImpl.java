@@ -31,6 +31,7 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -38,7 +39,9 @@ import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TRHostImpl
-	implements TRHost, TRTrackerClientFactoryListener, TRTrackerServerListener
+	implements 	TRHost, TRTrackerClientFactoryListener, 
+				TRTrackerServerListener, TRTrackerServerFactoryListener,
+				TRTrackerServerRequestListener
 {
 	protected static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
 	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
@@ -57,6 +60,8 @@ TRHostImpl
 	protected Map	tracker_client_map	= new HashMap();
 	
 	protected List	listeners			= new ArrayList();
+	
+	protected boolean	server_factory_listener_added;
 	
 	public static synchronized TRHost
 	create()
@@ -573,6 +578,8 @@ TRHostImpl
 	lookupHostTorrentViaHash(
 		byte[]		hash )
 	{
+			// TODO: should make this more efficient
+		
 		for (int i=0;i<host_torrents.size();i++){
 			
 			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
@@ -697,5 +704,50 @@ TRHostImpl
 		TRHostListener	l )
 	{
 		listeners.remove( l );
+	}
+	
+	protected synchronized void
+	torrentListenerRegistered()
+	{
+		if ( !server_factory_listener_added ){
+			
+			server_factory_listener_added	= true;
+			
+			TRTrackerServerFactory.addListener( this );
+		}
+	}
+	
+	public void
+	serverCreated(
+		TRTrackerServer	server )
+	{
+		server.addRequestListener(this);
+	}
+	
+	public void
+	postProcess(
+		TRTrackerServerRequest	request )
+	{
+		if ( request.getType() == TRTrackerServerRequest.RT_ANNOUNCE ){
+			
+			TRTrackerServerTorrent ts_torrent = request.getTorrent();
+		
+			HashWrapper	hash_wrapper = ts_torrent.getHash();
+			
+			TRHostTorrent h_torrent = lookupHostTorrentViaHash( hash_wrapper.getHash());
+			
+			if ( h_torrent != null ){
+				
+				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, request );
+			
+				if ( h_torrent instanceof TRHostTorrentHostImpl ){
+				
+					((TRHostTorrentHostImpl)h_torrent).postProcess( req );
+				}else{
+					
+					((TRHostTorrentPublishImpl)h_torrent).postProcess( req );	
+				}
+			}
+		}
 	}
 }

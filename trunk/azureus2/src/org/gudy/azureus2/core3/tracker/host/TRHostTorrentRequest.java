@@ -1,7 +1,7 @@
 /*
- * File    : TRHostTorrent.java
- * Created : 26-Oct-2003
- * By      : stuff
+ * File    : TRHostServerRequest.java
+ * Created : 13-Dec-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -26,63 +26,16 @@ package org.gudy.azureus2.core3.tracker.host;
  *
  */
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.torrent.*;
 
 public interface 
-TRHostTorrent 
+TRHostTorrentRequest
 {
-	public static final int	TS_FAILED		= 0;
-	public static final int	TS_STOPPED		= 1;
-	public static final int	TS_STARTED		= 2;
-	public static final int	TS_PUBLISHED	= 3;
-	
-	public void
-	start();
-	
-	public void
-	stop();
-	
-	public void
-	remove();
-	
-	public int
-	getStatus();
-	
-	public TOTorrent
+	public TRHostTorrent
 	getTorrent();
 	
-	public int
-	getPort();
-	
-	public TRHostPeer[]
-	getPeers();
-	
-	public int
-	getAnnounceCount();
-	
-	public int
-	getCompletedCount();
-	
-	public long
-	getTotalUploaded();
-	
-	public long
-	getTotalDownloaded();
-		
-	public long
-	getTotalLeft();
-	
-	public long
-	getAverageUploaded();
-	
-	public long
-	getAverageDownloaded();
-	
-	public void
-	addListener(
-		TRHostTorrentListener	l );
-	
-	public void
-	removeListener(
-		TRHostTorrentListener	l );
+	public Map
+	getResponse();
 }
