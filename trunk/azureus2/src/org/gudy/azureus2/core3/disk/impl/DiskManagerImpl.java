@@ -1637,54 +1637,67 @@ DiskManagerImpl
 		writeCheckQueueSem.release();
 	}
 
+  
 	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
-		if (pieceNumber < 0)
+		if (pieceNumber < 0) {
+      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
 			return false;
-		if (pieceNumber >= this.nbPieces)
+    }
+		if (pieceNumber >= this.nbPieces) {
+      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 			return false;
+    }
 		int length = this.pieceLength;
-		if (pieceNumber == nbPieces - 1)
+		if (pieceNumber == nbPieces - 1) {
 			length = this.lastPieceLength;
-		if (offset < 0)
+    }
+		if (offset < 0) {
+      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
 			return false;
-		if (offset > length)
+    }
+		if (offset > length) {
+      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
+    }
 		int size = data.remaining();
-		if (offset + size > length)
+		if (offset + size > length) {
+      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
+    }
 		return true;
 	}
+  
 
 	public boolean checkBlock(int pieceNumber, int offset, int length) {
 		if (length > 65536) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: length="+length+" > 65536");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > 65536");
 		  return false;
 		}
 		if (pieceNumber < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" < 0");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" < 0");
 		  return false;
       }
 		if (pieceNumber >= this.nbPieces) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 		  return false;
       }
 		int pLength = this.pieceLength;
 		if (pieceNumber == this.nbPieces - 1)
 			pLength = this.lastPieceLength;
 		if (offset < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" < 0");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" < 0");
 		  return false;
 		}
 		if (offset > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" > pLength="+pLength);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" > pLength="+pLength);
 		  return false;
 		}
 		if (offset + length > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" + length="+length+" > pLength="+pLength);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" + length="+length+" > pLength="+pLength);
 		  return false;
 		}
 		if(!this.pieceDone[pieceNumber]) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" not done");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" not done");
 		  return false;
 		}
 		return true;
