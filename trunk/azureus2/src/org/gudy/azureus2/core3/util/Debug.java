@@ -62,6 +62,23 @@ public class Debug {
     }
   }
   
+  public static String getLastCaller() {
+    try {
+      throw new Exception();
+    }
+    catch (Exception e) {
+      // [0] = our throw
+      // [1] = the line that called getLastCaller
+      // [2] = the line that called the function that has getLastCaller
+      StackTraceElement st[] = e.getStackTrace();
+      if (st.length > 1)
+        return st[2].toString();
+      if (st.length > 0)
+        return st[1].toString();
+    }
+    return "??";
+  }
+
   public static void outStackTrace() {
     // skip the last, since they'll most likely be main
     outStackTrace(1);
