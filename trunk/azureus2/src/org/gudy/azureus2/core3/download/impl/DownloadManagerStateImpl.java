@@ -26,11 +26,10 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
-import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -67,7 +66,7 @@ DownloadManagerStateImpl
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
 	
-	private static Map					state_map = new WeakHashMap();
+	private static Map					state_map = new HashMap();
 	
 	private DownloadManagerImpl			download_manager;
 	
@@ -84,17 +83,14 @@ DownloadManagerStateImpl
 	private static DownloadManagerState
 	getDownloadState(
 		DownloadManagerImpl	download_manager,
-		TOTorrent			torrent )
+		TOTorrent			original_torrent,
+		TOTorrent			target_torrent )
 	
 		throws TOTorrentException
 	{
-		byte[]	hash	= torrent.getHash();
+		byte[]	hash	= target_torrent.getHash();
 		
 		DownloadManagerStateImpl	res	= null;
-		
-			// we ensure that there's only one state object in existence at any
-			// one time by using a weak hash map to refer to it.
-			// thus state objects no longer in use will be freed up
 		
 		try{
 			class_mon.enter();
@@ -105,13 +101,16 @@ DownloadManagerStateImpl
 			
 			if ( res == null ){
 			
-				res = new DownloadManagerStateImpl( download_manager, torrent );
+				res = new DownloadManagerStateImpl( download_manager, target_torrent );
 									
 				state_map.put( hash_wrapper, res );
 				
 			}else{
 				
-					// TODO: merge details
+				if ( original_torrent != null ){
+						
+					res.mergeTorrentDetails( original_torrent );
+				}
 			}
 		}finally{
 			
@@ -124,18 +123,16 @@ DownloadManagerStateImpl
 	
 	public static DownloadManagerState
 	getDownloadState(
-		TOTorrent		torrent )
+		TOTorrent		original_torrent )
 	
 		throws TOTorrentException
 	{
-		byte[]	torrent_hash = torrent.getHash();
+		byte[]	torrent_hash = original_torrent.getHash();
 		
 		// System.out.println( "getDownloadState: hash = " + ByteFormatter.encodeString(torrent_hash));
 		
 		TOTorrent saved_state	= null;
-		
-			// first, if we already have the hash then see if we can load the saved state
-		
+				
 		File	saved_file = getStateFile( torrent_hash ); 
 		
 		if ( saved_file.exists()){
@@ -153,12 +150,12 @@ DownloadManagerStateImpl
 		
 		if ( saved_state == null ){
 		
-			saved_state = torrent;
+			saved_state = original_torrent;
 			
-			TorrentUtils.writeToFile( saved_state, getStateFile( torrent_hash ));
+			TorrentUtils.writeToFile( saved_state, saved_file );
 		}
 
-		return( getDownloadState( null, saved_state ));
+		return( getDownloadState( null, original_torrent, saved_state ));
 	}
 	
 	protected static DownloadManagerState
@@ -170,8 +167,9 @@ DownloadManagerStateImpl
 		throws TOTorrentException
 	{
 		// System.out.println( "getDownloadState: hash = " + (torrent_hash==null?"null":ByteFormatter.encodeString(torrent_hash) + ", file = " + torrent_file ));
-		
-		TOTorrent saved_state	= null;
+
+		TOTorrent	original_torrent	= null;
+		TOTorrent 	saved_state			= null;
 		
 			// first, if we already have the hash then see if we can load the saved state
 		
@@ -191,18 +189,36 @@ DownloadManagerStateImpl
 			}
 		}
 		
-			// if saved state not found then recreate from original torrent 
+			// if saved state not found then recreate from original torrent if required
 		
 		if ( saved_state == null ){
 		
-			saved_state = TorrentUtils.readFromFile( new File(torrent_file), true );
+			original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true );
 			
-			torrent_hash = saved_state.getHash();
+			torrent_hash = original_torrent.getHash();
 			
-			TorrentUtils.writeToFile( saved_state, getStateFile( torrent_hash ));
+			File	saved_file = getStateFile( torrent_hash ); 
+			
+			if ( saved_file.exists()){
+				
+				try{
+					saved_state = TorrentUtils.readFromFile( saved_file, true );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to load download state for " + saved_file );
+				}
+			}
+			
+			if ( saved_state == null ){
+				
+				saved_state = original_torrent;
+				
+				TorrentUtils.writeToFile( saved_state, saved_file );
+			}
 		}
 
-		return( getDownloadState( download_manager, saved_state ));
+		return( getDownloadState( download_manager, original_torrent, saved_state ));
 	}
 	
 	protected static File
@@ -226,6 +242,12 @@ DownloadManagerStateImpl
 			
 			tracker_response_cache	= new HashMap();
 		}
+	}
+	
+	protected DownloadManager
+	getDownloadManager()
+	{
+		return( download_manager );
 	}
 	
 	protected void
@@ -266,6 +288,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	/*
 	protected boolean
 	mergeTrackerResponseCache(
 		DownloadManagerStateImpl	other_state )
@@ -283,6 +306,7 @@ DownloadManagerStateImpl
 		
 		return( false );
 	}
+	*/
 	
 	public Map
 	getResumeData()
@@ -331,106 +355,85 @@ DownloadManagerStateImpl
 	public void
 	save()
 	{
-	    if ( torrent == null ){
-	    
-	    	return;
-	    }
-	    
-	  	if ( COConfigurationManager.getBooleanParameter("File.save.peers.enable", true )){
-	  		
-	  		boolean	do_write;
-	  		
+ 		boolean	do_write;
+  		
+  		try{
+  			this_mon.enter();
+  		
+  			do_write	= write_required;
+  			
+  			write_required	= false;
+  			
+  		}finally{
+  			
+  			this_mon.exit();
+  		}
+  		
+	  	if ( do_write ){
+	  				  	
 	  		try{
-	  			this_mon.enter();
+	  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
 	  		
-	  			do_write	= write_required;
-	  			
-	  			write_required	= false;
-	  			
-	  		}finally{
-	  			
-	  			this_mon.exit();
+	  			TorrentUtils.writeToFile( torrent );
+	  		
+	  		}catch( Throwable e ){
+	  		
+	  			Debug.printStackTrace( e );
 	  		}
+	  	}else{
 	  		
-		  	if ( do_write ){
-		  				  	
-		  		try{
-		  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
-		  		
-		  			TorrentUtils.writeToFile( torrent );
-		  		
-		  		}catch( Throwable e ){
-		  		
-		  			Debug.printStackTrace( e );
-		  		}
-		  	}else{
-		  		
-		  		// System.out.println( "not writing download state for '" + new String(torrent.getName()));
-		  	}
+	  		// System.out.println( "not writing download state for '" + new String(torrent.getName()));
 	  	}
 	}
 	
 	public void
 	delete()
 	{
-	    try{
+		try{
+			class_mon.enter();
+
+			state_map.remove( torrent.getHashWrapper());
+			
 	        TorrentUtils.delete( torrent );
 	        
 	    }catch( TOTorrentException e ){
 	    	
 	    	Debug.printStackTrace( e );
-	    }		
+	   
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
-	/*
-	  protected void
-	  mergeTorrentDetails(
-	  	DownloadManager		other_manager )
-	  {
-		try{
-			TOTorrent	other_torrent = other_manager.getTorrent();
-			
-			if ( other_torrent == null ){
-				
-				return;
-			}
-			
+	protected void
+	mergeTorrentDetails(
+		TOTorrent	other_torrent )
+	{
+		try{		
 			boolean	write = TorrentUtils.mergeAnnounceURLs( other_torrent, torrent );
-			
-			DownloadManagerStateImpl	other_state = (DownloadManagerStateImpl)other_manager.getDownloadState();
-			
-				// pick up latest state if available
-			
-			TRTrackerClient	client = tracker_client;
-			
-			if ( client != null ){
 					
-				download_manager_state.setTrackerResponseCache( client.getTrackerResponseCache());
-			}
-			
-			write = write ||
-					download_manager_state.mergeTrackerResponseCache( other_state );
-			
+			// System.out.println( "DownloadManagerState:mergeTorrentDetails -> " + write );
 			
 			if ( write ){
 				
-				download_manager_state.save();
+				save();
 				
-				if ( client != null ){
+				if ( download_manager != null ){
 					
-						// update with latest merged state
-					
-					client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
-					
+					TRTrackerClient	client = download_manager.getTrackerClient();
+
+					if ( client != null ){
+										
 						// pick up any URL changes
 					
-					client.resetTrackerUrl( false );
+						client.resetTrackerUrl( false );
+					}
 				}
 			}
 		}catch( Throwable e ){
 				
 			Debug.printStackTrace( e );
 		}
-	  }
-	  */
+	}
 }

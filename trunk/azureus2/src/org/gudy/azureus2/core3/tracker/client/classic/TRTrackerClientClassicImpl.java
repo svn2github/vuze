@@ -2181,6 +2181,11 @@ TRTrackerClientClassicImpl
 	importTrackerCache(
 		Map		map )
 	{
+		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+			
+			return( 0 );
+		}
+		
 		try{
 			if ( map == null ){
 				
@@ -2238,6 +2243,11 @@ TRTrackerClientClassicImpl
 	addToTrackerCache(
 		TRTrackerResponsePeer[]		peers )
 	{
+		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+			
+			return;
+		}
+		
 		int	max = COConfigurationManager.getIntParameter( "File.save.peers.max", DEFAULT_PEERS_TO_CACHE );
 		
 		// System.out.println( "max peers= " + max );
