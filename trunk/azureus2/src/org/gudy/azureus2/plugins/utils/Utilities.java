@@ -146,4 +146,12 @@ Utilities
 	public String
 	reverseDNSLookup(
 		InetAddress		address );
+  
+  
+  /**
+   * Get the current system time, like System.currentTimeMillis(),
+   * only the time lookup is cached for performance reasons.
+   * @return current system time
+   */
+  public long getCurrentSystemTime();
 }

@@ -59,6 +59,7 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.common.UIImageRepository;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -369,4 +370,9 @@ UtilitiesImpl
 		
 		return( res[0] );
 	}
+  
+  
+  public long getCurrentSystemTime() {
+    return SystemTime.getCurrentTime();
+  }
 }
