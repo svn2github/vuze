@@ -123,4 +123,15 @@ CacheFile
 	close()
 	
 		throws CacheFileManagerException;
+	
+		/**
+		 * Sets any offset associated with the torrent data caused by leading header
+		 * in the data file
+		 * @param file_offset
+		 * @return
+		 */
+	
+	public void
+	setFileOffset(
+		int		file_offset );
 }

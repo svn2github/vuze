@@ -98,7 +98,13 @@ CacheFileImpl
 	
 	protected TreeSet					cache			= new TreeSet(comparator);
 			
-	protected int read_ahead_size				= 0;
+	protected int max_read_ahead_size				= 0;
+	
+	protected int piece_size						= 0;
+	protected int piece_offset						= 0;
+	
+	protected int file_offset						= 0;
+	
 	
 	protected
 	CacheFileImpl(
@@ -114,16 +120,40 @@ CacheFileImpl
 		if ( _torrent_file != null ){
 			
 			TOTorrent	torrent = _torrent_file.getTorrent();
-						
-			read_ahead_size	= (int)torrent.getPieceLength();
+					
+			piece_size	= (int)torrent.getPieceLength();
 			
-			if ( read_ahead_size > READAHEAD_MAX ){
+			max_read_ahead_size	= piece_size;
+			
+			if ( max_read_ahead_size > READAHEAD_MAX ){
 				
-				read_ahead_size	= READAHEAD_MAX;
+				max_read_ahead_size	= READAHEAD_MAX;
 			}
+			
+			long	total_size	= 0;
+			
+			for (int i=0;i<torrent.getFiles().length;i++){
+				
+				TOTorrentFile	f = torrent.getFiles()[i];
+				
+				if ( f == _torrent_file ){
+					
+					break;
+				}
+				
+				total_size	+= f.getLength();
+			}
+			
+			piece_offset	= piece_size - (int)( total_size % piece_size );
+			
+			if ( piece_offset == piece_size ){
+				
+				piece_offset	= 0;
+			}
+			
 		}else{
 			
-			read_ahead_size	= READAHEAD_MAX;
+			max_read_ahead_size	= READAHEAD_MAX;
 		}
 	}
 	
@@ -275,8 +305,8 @@ CacheFileImpl
 					boolean	do_read_ahead	= 
 								!recursive &&
 								READAHEAD_ENABLE &&
-								read_length <  read_ahead_size &&
-								file_position + read_ahead_size <= file.getLength();
+								read_length <  max_read_ahead_size &&
+								file_position + max_read_ahead_size <= file.getLength();
 
 					if ( do_read_ahead ){
 
@@ -295,6 +325,38 @@ CacheFileImpl
 						}
 					}
 					
+					int	actual_read_ahead = max_read_ahead_size;
+					
+					if ( do_read_ahead ){
+					
+							// don't read ahead over the end of a piece
+						
+						int	request_piece_offset = (int)((file_position - ( piece_offset + file_offset )) % piece_size);
+						
+						if ( request_piece_offset < 0 ){
+							
+							request_piece_offset += piece_size;
+						}
+						
+						//System.out.println( "request offset = " + request_piece_offset );
+						
+						int	data_left = piece_size - request_piece_offset;
+						
+						if ( data_left < actual_read_ahead ){
+							
+							actual_read_ahead	= data_left;
+							
+								// no point in using read-ahead logic if actual read ahead
+								// smaller or same as request size!
+							
+							if ( actual_read_ahead <= read_length ){
+								
+								do_read_ahead	= false;
+							}
+							//System.out.println( "    trimmed to " + data_left );
+						}
+					}
+					
 					if ( do_read_ahead ){
 												
 						if ( TRACE ){
@@ -303,11 +365,11 @@ CacheFileImpl
 						}
 							
 						DirectByteBuffer	cache_buffer = 
-								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, read_ahead_size );
+								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, actual_read_ahead );
 							
 						cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
 							
-						cache_buffer.limit( DirectByteBuffer.SS_CACHE, read_ahead_size );
+						cache_buffer.limit( DirectByteBuffer.SS_CACHE, actual_read_ahead );
 							
 						boolean	buffer_cached	= false;
 							
@@ -315,19 +377,23 @@ CacheFileImpl
 							
 								// must allocate space OUTSIDE sync block (see manager for details)
 							
-							CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
-							
+							CacheEntry	entry = 
+								manager.allocateCacheSpace( 
+										CacheEntry.CT_READ_AHEAD,
+										this, 
+										cache_buffer, file_position, actual_read_ahead );
+														
 							entry.setClean();
 			
 							synchronized( this ){
 
 									// flush before read so that any bits in cache get re-read correctly on read
 						
-								flushCache( file_position, read_ahead_size, true, -1 );
+								flushCache( file_position, actual_read_ahead, true, -1 );
 								
 								getFMFile().read( cache_buffer, file_position );
 			
-								manager.fileBytesRead( read_ahead_size );
+								manager.fileBytesRead( actual_read_ahead );
 									
 								cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
 								
@@ -429,7 +495,13 @@ CacheFileImpl
 					
 						// cache this write, allocate outside sync block (see manager for details)
 	
-					CacheEntry	entry = manager.allocateCacheSpace( this, file_buffer, file_position, write_length );
+					CacheEntry	entry = 
+						manager.allocateCacheSpace(
+								CacheEntry.CT_DATA_WRITE,
+								this, 
+								file_buffer, 
+								file_position, 
+								write_length );
 					
 					synchronized( this ){
 
@@ -949,5 +1021,12 @@ CacheFileImpl
 			
 			manager.rethrow(e);
 		}
+	}
+	
+	public void
+	setFileOffset(
+		int		_file_offset )
+	{
+		file_offset		= _file_offset;
 	}
 }

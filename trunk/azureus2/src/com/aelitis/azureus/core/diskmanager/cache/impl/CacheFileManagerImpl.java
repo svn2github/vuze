@@ -195,6 +195,7 @@ CacheFileManagerImpl
 		 */
 	protected CacheEntry
 	allocateCacheSpace(
+		int					entry_type,
 		CacheFileImpl		file,
 		DirectByteBuffer	buffer,
 		long				file_position,
@@ -255,7 +256,7 @@ CacheFileManagerImpl
 			}
 		}
 					
-		CacheEntry	entry = new CacheEntry( file, buffer, file_position, length );
+		CacheEntry	entry = new CacheEntry( entry_type, file, buffer, file_position, length );
 			
 		if ( log ){
 				
@@ -419,6 +420,20 @@ CacheFileManagerImpl
 				throw( new CacheFileManagerException( "Cache inconsistency: entry missing on removal"));
 			}
 
+			/*
+			if ( 	entry.getType() == CacheEntry.CT_READ_AHEAD ){
+				
+				if ( entry.getUsageCount() < 2 ){
+				
+					System.out.println( "ra: not used" );
+				
+				}else{
+				
+					System.out.println( "ra: used" );
+				}
+			}
+			*/
+			
 			// System.out.println( "Total cache space = " + cache_space_free );
 		}
 	}

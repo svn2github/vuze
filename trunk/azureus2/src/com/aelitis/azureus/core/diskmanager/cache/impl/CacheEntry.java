@@ -32,6 +32,9 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 CacheEntry 
 {
+	protected static final int	CT_DATA_WRITE		= 0;
+	protected static final int	CT_READ_AHEAD		= 1;
+	
 	protected CacheFileImpl		file;
 	protected DirectByteBuffer	buffer;
 	protected long				offset;
@@ -43,13 +46,18 @@ CacheEntry
 	
 	protected long				last_used;
 	
+	protected int				entry_type;
+	protected int				usage_count;
+	
 	protected
 	CacheEntry(
+		int					_entry_type,
 		CacheFileImpl		_file,
 		DirectByteBuffer	_buffer,
 		long				_offset,
 		int					_size )
 	{
+		entry_type	= _entry_type;
 		file		= _file;
 		buffer		= _buffer;
 		offset		= _offset;
@@ -113,12 +121,26 @@ CacheEntry
 	used()
 	{
 		last_used = SystemTime.getCurrentTime();
+		
+		usage_count++;
 	}
 	
 	protected long
 	getLastUsed()
 	{
 		return( last_used );
+	}
+	
+	protected int
+	getUsageCount()
+	{
+		return( usage_count );
+	}
+	
+	protected int
+	getType()
+	{
+		return( entry_type );
 	}
 	
 	protected String
