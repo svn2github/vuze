@@ -51,6 +51,20 @@ ShareResourceDirContentsImpl
 		
 		root 		= _dir;
 		recursive	= _recursive;
+		
+		if ( !root.exists()){
+			
+			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
+		}
+		
+		if ( root.isFile()){
+			
+			throw( new ShareException( "Not a directory"));
+		}
+		
+			// new resource, trigger processing
+		
+		checkConsistency();
 	}
 	
 	protected
@@ -66,12 +80,74 @@ ShareResourceDirContentsImpl
 		
 		root 		= _dir;
 		recursive	= _recursive;
+		
+		if ( !root.exists()){
+			
+			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
+		}
+		
+		if ( root.isFile()){
+			
+			throw( new ShareException( "Not a directory"));
+		}
+		
+			// deserialised resource, checkConsistency will be called later to trigger sub-share adding
 	}
 	
 	protected void
 	checkConsistency()
 	{
-		// TODO:
+		// ensure all shares are defined as per dir contents and recursion flag
+		
+		checkConsistency(root);
+	}
+	
+	protected void
+	checkConsistency(
+		File		dir )
+	{
+		File[]	files = dir.listFiles();
+		
+		for (int i=0;i<files.length;i++){
+			
+			File	file = files[i];
+		
+			String	file_name = file.getName();
+			
+			if (!(file_name.equals(".") || file_name.equals(".." ))){
+				
+				if ( file.isDirectory()){
+					
+					if ( recursive ){
+						
+						checkConsistency( file );
+						
+					}else{
+						
+						try{
+							if ( manager.getDir( file ) == null ){
+							
+								manager.addDir( file );
+							}
+						}catch( ShareException e ){
+							
+							e.printStackTrace();
+						}
+					}
+				}else{
+	
+					try{
+						if ( manager.getFile( file ) == null ){
+							
+							manager.addFile( file );
+						}
+					}catch( ShareException e ){
+						
+						e.printStackTrace();
+					}
+				}
+			}
+		}		
 	}
 	
 	protected void

@@ -118,8 +118,6 @@ ShareManagerImpl
 			
 				config.loadConfig(this);
 		
-				reportCurrentTask( "Checking Consistency");	
-			
 				checkConsistency();
 				
 			}finally{
@@ -134,13 +132,20 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		Iterator	it = new HashSet(shares.keySet()).iterator();
+		try{
+			reportCurrentTask( "Consistency Check Starts");	
 		
-		while(it.hasNext()){
+			Iterator	it = new HashSet(shares.keySet()).iterator();
 			
-			ShareResourceImpl	resource = (ShareResourceImpl)it.next();
-			
-			resource.checkConsistency();
+			while(it.hasNext()){
+				
+				ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+				
+				resource.checkConsistency();
+			}
+		}finally{
+		
+			reportCurrentTask( "Consistency Check Complete");
 		}
 	}
 	
@@ -297,6 +302,13 @@ ShareManagerImpl
 		return( res );
 	}
 	
+	protected ShareResourceImpl
+	getResource(
+		Object		key )
+	{
+		return((ShareResourceImpl)shares.get(key));
+	}
+	
 	public ShareResourceFile
 	addFile(
 		File	file )
@@ -306,6 +318,15 @@ ShareManagerImpl
 		return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
 	}
 	
+	public ShareResourceFile
+	getFile(
+		File	file )
+	
+		throws ShareException
+	{
+		return( (ShareResourceFile)ShareResourceFileImpl.getResource( this, file ));
+	}
+	
 	public synchronized ShareResourceDir
 	addDir(
 		File	dir )
@@ -313,6 +334,15 @@ ShareManagerImpl
 		throws ShareException
 	{
 		return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));		
+	}
+	
+	public ShareResourceDir
+	getDir(
+		File	file )
+	
+	throws ShareException
+	{
+		return( (ShareResourceDir)ShareResourceDirImpl.getResource( this, file ));
 	}
 	
 	protected synchronized ShareResource

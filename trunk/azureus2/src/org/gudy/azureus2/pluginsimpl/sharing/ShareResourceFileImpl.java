@@ -36,6 +36,23 @@ ShareResourceFileImpl
 	extends 	ShareResourceFileOrDirImpl
 	implements 	ShareResourceFile
 {
+	protected static ShareResourceFileImpl
+	getResource(
+		ShareManagerImpl	_manager,
+		File				_file )
+	
+		throws ShareException
+	{
+		ShareResourceImpl	res = ShareResourceFileOrDirImpl.getResourceSupport( _manager, _file );
+
+		if ( res instanceof ShareResourceFileImpl ){
+			
+			return((ShareResourceFileImpl)res);
+		}
+		
+		return( null );
+	}
+	
 	protected
 	ShareResourceFileImpl(
 		ShareManagerImpl	_manager,

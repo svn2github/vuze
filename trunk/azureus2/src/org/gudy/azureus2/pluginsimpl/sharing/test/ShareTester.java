@@ -99,11 +99,11 @@ ShareTester
 			
 			sm.initialise();
 			
-			ShareResourceDir res = sm.addDir( new File("C:\\temp\\wapdir"));
+			ShareResourceDirContents res = sm.addDirContents( new File("C:\\temp\\shares\\contents"), true);
 			
-			Torrent t = res.getItem().getTorrent();
+			//Torrent t = res.getItem().getTorrent();
 			
-			System.out.println( t.getHash());
+			//System.out.println( t.getHash());
 			
 		}catch( ShareException e ){
 			

@@ -42,6 +42,22 @@ ShareResourceFileOrDirImpl
 	
 	protected ShareItemImpl		item;
 	
+	protected static ShareResourceImpl
+	getResourceSupport(
+		ShareManagerImpl	_manager,
+		File				_file )
+	
+		throws ShareException
+	{
+		try{
+			return( _manager.getResource( _file.getCanonicalFile() ));
+			
+		}catch( IOException e ){
+	
+			throw( new ShareException( "getCanonicalFile fails", e ));
+		}
+	}
+	
 	protected
 	ShareResourceFileOrDirImpl(
 		ShareManagerImpl	_manager,
