@@ -1202,7 +1202,7 @@ public class MyTorrentsView
   private void hostSelectedTorrents() {
     runForSelectedRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        ManagerUtils.host((DownloadManager)row.getDataSource(true), cTablePanel);
+        ManagerUtils.host(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel);
       }
     });
     MainWindow.getWindow().showMyTracker();
@@ -1211,7 +1211,7 @@ public class MyTorrentsView
   private void publishSelectedTorrents() {
     runForSelectedRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        ManagerUtils.publish((DownloadManager)row.getDataSource(true), cTablePanel);
+        ManagerUtils.publish(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel);
       }
     });
     MainWindow.getWindow().showMyTracker();

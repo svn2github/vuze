@@ -27,6 +27,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -81,13 +83,18 @@ public class ManagerUtils {
     return true;
   }
   
-  public static void host(DownloadManager dm,Composite panel) {
+  public static void 
+  host(
+  	AzureusCore		azureus_core,
+	DownloadManager dm,
+	Composite 		panel) 
+  {
     if(dm == null)
       return;
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
-        TRHostFactory.getSingleton().hostTorrent(torrent);
+      	azureus_core.getTrackerHost().hostTorrent(torrent);
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
@@ -97,13 +104,18 @@ public class ManagerUtils {
     }
   }
   
-  public static void publish(DownloadManager dm,Composite panel) {
+  public static void 
+  publish(
+  		AzureusCore		azureus_core,
+		DownloadManager dm,
+		Composite		 panel) 
+  {
     if(dm == null)
      return;
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
-        TRHostFactory.getSingleton().publishTorrent(torrent);
+      	azureus_core.getTrackerHost().publishTorrent(torrent);
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));

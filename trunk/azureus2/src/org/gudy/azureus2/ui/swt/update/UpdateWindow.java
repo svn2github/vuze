@@ -58,7 +58,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderExce
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.mainwindow.Application;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 

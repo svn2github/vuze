@@ -66,7 +66,6 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.startup.STProgressListener;
-import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -107,9 +106,10 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   private Initializer initializer;  
   private GUIUpdater updater;
 
+  private AzureusCore			azureus_core;
+  
   //Package visibility for GUIUpdater
-  AzureusCore			azureus_core;
-  GlobalManager       	globalManager;
+ GlobalManager       	globalManager;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
@@ -657,7 +657,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     
     addUpdateListener();
     
-    if ( TRHostFactory.getSingleton().getTorrents().length > 0 ){     
+    if ( azureus_core.getTrackerHost().getTorrents().length > 0 ){     
+    	
       showMyTracker();
     }
     
@@ -735,7 +736,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 
   public void showMyTracker() {
   	if (my_tracker_tab == null) {
-  		my_tracker_tab = new Tab(new MyTrackerView(globalManager));
+  		my_tracker_tab = new Tab(new MyTrackerView(azureus_core));
   	} else {
   		my_tracker_tab.setFocus();
   		refreshIconBar();
@@ -907,7 +908,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         refreshIconBar();
       }
       else {
-        Tab tab = new Tab(new ManagerView(downloadManager));
+        Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
         downloadViews.put(downloadManager, tab);
       }
     }

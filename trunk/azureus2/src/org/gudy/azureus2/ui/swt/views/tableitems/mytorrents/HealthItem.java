@@ -27,6 +27,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.*;
+
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -41,7 +43,7 @@ public class HealthItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-	static TRHost	tracker_host	= TRHostFactory.getSingleton();
+	static TRHost	tracker_host	= MainWindow.getWindow().getAzureusCore().getTrackerHost();
 	
   /** Default Constructor */
   public HealthItem(String sTableID) {

@@ -224,11 +224,8 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		if ( !running ){
-			
-			throw( new AzureusCoreException( "core not running" ));
-		}
-
+			// don't test for runnign here, the restart process calls this after terminating the core...
+		
 		return( PluginInitializer.getDefaultInterface().getPluginManager());
 	}
 	

@@ -33,8 +33,9 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -77,15 +78,15 @@ MyTrackerView
     new AverageBytesOutItem()
   };
 
-	private GlobalManager	global_manager;
+	private AzureusCore	azureus_core;
 
 	public 
 	MyTrackerView(
-		GlobalManager globalManager) 
+		AzureusCore		_azureus_core ) 
 	{
     super(TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name", 
           SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
-		global_manager = globalManager;
+    azureus_core = _azureus_core;
 	}
 
 	/* (non-Javadoc)
@@ -97,7 +98,7 @@ MyTrackerView
 	{
     super.initialize(composite0);
 
-		TRHostFactory.getSingleton().addListener( this );
+		azureus_core.getTrackerHost().addListener( this );
 		
 		final Table table = getTable();
 		table.addMouseListener(new MouseAdapter() {
@@ -105,7 +106,7 @@ MyTrackerView
         TRHostTorrent torrent = (TRHostTorrent)getFirstSelectedDataSource();
         if (torrent == null)
           return;
-			  DownloadManager	dm = global_manager.getDownloadManager(torrent.getTorrent());
+			  DownloadManager	dm = azureus_core.getGlobalManager().getDownloadManager(torrent.getTorrent());
 			  if (dm != null)
 				 	MainWindow.getWindow().openManagerView(dm);
 		   }
@@ -114,12 +115,12 @@ MyTrackerView
     
   public void tableStructureChanged() {
     //1. Unregister for item creation
-		TRHostFactory.getSingleton().removeListener( this );
+  	azureus_core.getTrackerHost().removeListener( this );
     
     super.tableStructureChanged();
 
     //5. Re-add as a listener
-		TRHostFactory.getSingleton().addListener( this );
+    azureus_core.getTrackerHost().addListener( this );
   }
 
   public void fillMenu(final Menu menu) {
@@ -285,8 +286,8 @@ MyTrackerView
 	 public void 
 	 delete() 
 	 {
-    super.delete();
-		TRHostFactory.getSingleton().removeListener( this );
+	 	super.delete();
+	 	azureus_core.getTrackerHost().removeListener( this );
 	 }
 
   

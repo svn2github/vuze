@@ -11,6 +11,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -27,7 +29,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
  */
 public class ManagerView extends AbstractIView implements DownloadManagerListener {
 
-  DownloadManager manager;
+  AzureusCore		azureus_core;
+  DownloadManager 	manager;
   TabFolder folder;
   
   TabItem itemGeneral;
@@ -40,8 +43,14 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   IView viewPieces;
   IView viewFiles;
 
-  public ManagerView(DownloadManager manager) {
-    this.manager = manager;
+  public 
+  ManagerView(
+  	AzureusCore		_azureus_core,
+	DownloadManager manager) 
+  {
+  	azureus_core	= _azureus_core;
+    this.manager 	= manager;
+    
     manager.addListener(this);
   }
 
@@ -208,12 +217,12 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	    return;
 	  }
 	  if(itemKey.equals("host")) {
-	    ManagerUtils.host(manager,folder);
+	    ManagerUtils.host(azureus_core, manager,folder);
 	    MainWindow.getWindow().showMyTracker();
 	    return;
 	  }
 	  if(itemKey.equals("publish")) {
-	    ManagerUtils.publish(manager,folder);
+	    ManagerUtils.publish(azureus_core, manager,folder);
 	    MainWindow.getWindow().showMyTracker();
 	    return;
 	  }
