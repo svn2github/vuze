@@ -24,11 +24,11 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 
 /**
  * @author Olivier
@@ -353,12 +353,12 @@ public class GeneralView extends AbstractIView {
     updatePiecesInfo();
     updateOverall();
     setTime(manager.getElapsed(), manager.getETA());
-    HashData hd = manager.getHashData();
+    TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = "" + manager.getNbSeeds();
     String peers = "" + manager.getNbPeers();
     if(hd != null) {
-      seeds += " (" + hd.seeds + ")";
-      peers += " (" + hd.peers + ")";
+      seeds += " (" + hd.getSeeds() + ")";
+      peers += " (" + hd.getPeers() + ")";
     } else {
       seeds += " (?)";
       peers += " (?)";

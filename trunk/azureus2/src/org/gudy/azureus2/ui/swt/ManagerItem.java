@@ -11,8 +11,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
@@ -161,11 +161,11 @@ public class ManagerItem {
 
     }
 
-    HashData hd = manager.getHashData();
+    TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     
     tmp = "" + manager.getNbSeeds(); //$NON-NLS-1$
     if(hd!=null)
-      tmp += " (" + hd.seeds + ")";
+      tmp += " (" + hd.getSeeds() + ")";
     else
       tmp += " (?)";
     if (!(tmp.equals(this.nbSeeds))) {
@@ -175,7 +175,7 @@ public class ManagerItem {
 
     tmp = "" + manager.getNbPeers(); //$NON-NLS-1$
     if(hd!=null)
-          tmp += " (" + hd.peers + ")";
+          tmp += " (" + hd.getPeers() + ")";
         else
           tmp += " (?)";
     if (!(tmp.equals(this.nbPeers))) {

@@ -7,7 +7,6 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.gudy.azureus2.core.HashData;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -20,11 +19,11 @@ public class TrackerChecker {
 
   private HashMap trackers;
 
-  public TrackerChecker() {
+  protected TrackerChecker() {
     trackers = new HashMap();
   }
 
-  public HashData 
+  protected TRTrackerScraperResponseImpl 
   getHashData(
   	TRTrackerClient	tracker_client ) 
   {
@@ -40,7 +39,7 @@ public class TrackerChecker {
   	}
   }	
   
-   public HashData 
+   protected TRTrackerScraperResponseImpl 
    getHashData(
 	 TOTorrent	torrent ) 
    {
@@ -56,14 +55,14 @@ public class TrackerChecker {
 	 }
    }	
 
-	public HashData getHashData(String trackerUrl, byte[] hash) 
+   protected TRTrackerScraperResponseImpl getHashData(String trackerUrl, byte[] hash) 
 	{
   		if(trackerUrl != null)
 			return getHashData(trackerUrl,new Hash(hash));
   		return null;
 	}
 
- 	public void 
+	protected void 
  	removeHash(
    		TRTrackerClient	tracker_client ) 
  	{
@@ -78,7 +77,7 @@ public class TrackerChecker {
 		}
  	}	
   
-  	public void 
+	protected void 
   	removeHash(
 		TOTorrent	torrent ) 
   	{
@@ -92,7 +91,7 @@ public class TrackerChecker {
 		}
   	}	
 
-	public void 
+	protected void 
 	removeHash(String trackerUrl,Hash hash) 
 	{
 		// TODO: this doesn't handle multiple tracker torrents yet
@@ -107,11 +106,11 @@ public class TrackerChecker {
 	    }
 	}
   
-  public HashData getHashData(String trackerUrl,final Hash hash) 
+	protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,final Hash hash) 
   {
     if (trackers.containsKey(trackerUrl)) {
       final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
-      HashData data = ts.getHashData(hash);
+      TRTrackerScraperResponseImpl data = ts.getHashData(hash);
       if(data != null)
         return data;
       else {

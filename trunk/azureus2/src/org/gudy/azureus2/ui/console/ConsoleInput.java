@@ -26,8 +26,8 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.web.Jhttpp2Server;
 
@@ -132,7 +132,7 @@ public class ConsoleInput extends Thread {
                 int nrTorrent = 0;
                 while (torrent.hasNext()) {
                   dm = (DownloadManager) torrent.next();
-                  HashData hd = dm.getHashData();
+                  TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
                   dmstate = dm.getState();
                   try {
                     ps = dm.peerManager.getStats();
@@ -185,8 +185,8 @@ public class ConsoleInput extends Thread {
                     tstate+=Integer.toString(dm.getNbSeeds())+"(?) / ";
                     tstate+=Integer.toString(dm.getNbPeers())+"(?)";
                   } else {
-                    tstate+=Integer.toString(dm.getNbSeeds())+"("+Integer.toString(hd.seeds)+") / ";
-                    tstate+=Integer.toString(dm.getNbPeers())+"("+Integer.toString(hd.peers)+")";
+                    tstate+=Integer.toString(dm.getNbSeeds())+"("+Integer.toString(hd.getSeeds())+") / ";
+                    tstate+=Integer.toString(dm.getNbPeers())+"("+Integer.toString(hd.getPeers())+")";
                   }
                   out.println(tstate);
                   out.println();

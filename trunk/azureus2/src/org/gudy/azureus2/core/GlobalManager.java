@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.tracker.client.classic.*;
+import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.IComponentListener;
 
@@ -29,7 +29,7 @@ public class GlobalManager extends Component {
   private List managers;
   private Checker checker;
   private PeerStats stats;
-  private TrackerChecker trackerChecker;
+  private TRTrackerScraper trackerScraper;
 
   public class Checker extends Thread {
     boolean finished = false;
@@ -60,7 +60,7 @@ public class GlobalManager extends Component {
         // Should be user configurable.
         if (loopFactor >= 1200) {
           loopFactor = 0;          
-          trackerChecker.update();
+          trackerScraper.update();
         }
 
         synchronized (managers) {
@@ -94,10 +94,10 @@ public class GlobalManager extends Component {
               int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Stop Peers Ratio",0);    
               //0 means never stop
               if(minSeedsPerPeersRatio != 0) {
-                HashData hd = manager.getHashData();    
+                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();    
                 if(hd != null) {            
-                  int nbPeers = hd.peers;
-                  int nbSeeds = hd.seeds;
+                  int nbPeers = hd.getPeers();
+                  int nbSeeds = hd.getSeeds();
                   //If there are no seeds, avoid / by 0
                   if(nbSeeds != 0) {
                     int ratio = nbPeers / nbSeeds;
@@ -111,10 +111,10 @@ public class GlobalManager extends Component {
               int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Start Peers Ratio",0); 
               //0 means never start
               if(minSeedsPerPeersRatio != 0) {
-                HashData hd = manager.getHashData();  
+                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();  
                 if(hd != null) {              
-                  int nbPeers = hd.peers;
-                  int nbSeeds = hd.seeds;
+                  int nbPeers = hd.getPeers();
+                  int nbSeeds = hd.getSeeds();
                   //If there are no seeds, avoid / by 0
                   if(nbPeers != 0) {
                     if(nbSeeds != 0) {                  
@@ -192,7 +192,7 @@ public class GlobalManager extends Component {
   public GlobalManager() {
     stats = new PeerStats(0);
     managers = new ArrayList();
-    trackerChecker = new TrackerChecker();
+    trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
     checker = new Checker();
     checker.start();
@@ -232,11 +232,11 @@ public class GlobalManager extends Component {
     
     if ( manager.getTrackerClient() != null ){
     
-    	trackerChecker.removeHash( manager.getTrackerClient());
+    	trackerScraper.remove( manager.getTrackerClient());
     	
     }else if (  manager.getTorrent() != null ){
     	
-    	trackerChecker.removeHash( manager.getTorrent() );
+    	trackerScraper.remove( manager.getTorrent() );
     }
   }
 
@@ -409,8 +409,8 @@ public class GlobalManager extends Component {
   /**
    * @return
    */
-  public TrackerChecker getTrackerChecker() {
-    return trackerChecker;
+  public TRTrackerScraper getTrackerScraper() {
+    return trackerScraper;
   }
   
   public int getIndexOf(DownloadManager manager) {

@@ -31,9 +31,9 @@ import org.apache.log4j.spi.LoggingEvent;
 import HTML.Template;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
@@ -471,7 +471,7 @@ public class Jhttpp2HTTPSession extends Thread {
       PeerStats ps;
       while (torrent.hasNext()) {
         dm = (DownloadManager) torrent.next();
-        HashData hd = dm.getHashData();
+        TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
         dmstate = dm.getState();
         try {
           ps = dm.peerManager.getStats();
@@ -489,7 +489,7 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_Stopped", Boolean.TRUE);
         } else
           h.put("Torrents_Torrent_Command", "Stop");
-        if ((hd == null) || (hd.seeds == 0))
+        if ((hd == null) || (hd.getSeeds() == 0))
           h.put("Torrents_Torrent_Seedless", Boolean.TRUE);
         if (dmstate == DownloadManager.STATE_INITIALIZING)
           h.put("Torrents_Torrent_Initializing", Boolean.TRUE);
@@ -520,8 +520,8 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_Seeds", "?");
           h.put("Torrents_Torrent_Peers", "?");
         } else {
-          h.put("Torrents_Torrent_Seeds", Integer.toString(hd.seeds));
-          h.put("Torrents_Torrent_Peers", Integer.toString(hd.peers));
+          h.put("Torrents_Torrent_Seeds", Integer.toString(hd.getSeeds()));
+          h.put("Torrents_Torrent_Peers", Integer.toString(hd.getPeers()));
         }
         h.put("Torrents_Torrent_SeedsConnected", Integer.toString(dm.getNbSeeds()));
         h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));

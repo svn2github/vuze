@@ -532,12 +532,12 @@ public class DownloadManager extends Component {
     torrentFileName = string;
   }
 
-  public HashData getHashData() {
+  public TRTrackerScraperResponse getTrackerScrapeResponse() {
     if (tracker_client != null  && globalManager != null)
-      return globalManager.getTrackerChecker().getHashData(tracker_client);
+      return globalManager.getTrackerScraper().scrape(tracker_client);
     else
       if(torrent != null && globalManager != null)
-        return globalManager.getTrackerChecker().getHashData(torrent);
+        return globalManager.getTrackerScraper().scrape(torrent);
     return null;
   }
 

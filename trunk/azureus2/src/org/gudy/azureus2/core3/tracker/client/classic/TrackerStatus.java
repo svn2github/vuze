@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core3.util.*;
 
@@ -45,12 +44,12 @@ public class TrackerStatus {
     data = new byte[1024];
   }
 
-  public HashData getHashData(Hash hash) {
-    return (HashData) hashes.get(hash);
+  public TRTrackerScraperResponseImpl getHashData(Hash hash) {
+    return (TRTrackerScraperResponseImpl) hashes.get(hash);
   }
 
   public void asyncUpdate(final Hash hash) {
-    hashes.put(hash,new HashData(0,0));
+    hashes.put(hash,new TRTrackerScraperResponseImpl(0,0));
     Thread t = new Thread("Tracker Checker - Scrape interface") {
       /* (non-Javadoc)
        * @see java.lang.Thread#run()
@@ -65,7 +64,7 @@ public class TrackerStatus {
   }
 
   public synchronized void update(Hash hash) {    
-    hashes.put(hash,new HashData(0,0));
+    hashes.put(hash,new TRTrackerScraperResponseImpl(0,0));
     if(! hashList.contains(hash))
         hashList.add(hash);
     if(scrapeURL == null)
@@ -105,7 +104,7 @@ public class TrackerStatus {
         //System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();
-        hashes.put(new Hash(key),new HashData(seeds,peers));        
+        hashes.put(new Hash(key),new TRTrackerScraperResponseImpl(seeds,peers));        
       }
     } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
     } catch (Exception ignore) {
