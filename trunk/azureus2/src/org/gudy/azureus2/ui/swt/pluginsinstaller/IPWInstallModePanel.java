@@ -71,7 +71,9 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 	layout.numColumns = 1;
 	panel.setLayout(layout);
 
+		// default is shared installation
 	
+	((InstallPluginWizard) wizard).shared = true;
 
 	Button bSharedMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bSharedMode,"installPluginsWizard.installMode.shared");
