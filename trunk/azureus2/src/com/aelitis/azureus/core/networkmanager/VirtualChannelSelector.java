@@ -150,7 +150,7 @@ public class VirtualChannelSelector {
         key.interestOps( key.interestOps() & ~INTEREST_OP );
       }
       else {
-        System.out.println( "pauseSelects( " +channel+ " ):: selection key not found" );
+        Debug.printStackTrace( new Exception( "pauseSelects( " +channel+ " ):: selection key not found" ) );
       }
     }
     
@@ -171,7 +171,7 @@ public class VirtualChannelSelector {
         key.interestOps( key.interestOps() | INTEREST_OP );
       }
       else {
-        System.out.println( "resumeSelects( " +channel+ " ):: selection key not found" );
+        //Debug.printStackTrace( new Exception( "resumeSelects( " +channel+ " ):: selection key not found" ) );
       }
     }
 
