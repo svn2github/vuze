@@ -51,7 +51,7 @@ DMWriterAndChecker
 		Object					user_data );
 	
 	public void 
-	aSyncCheckPiece(
+	enqueueCheckRequest(
 		int 							pieceNumber,
 		DiskManagerCheckRequestListener	listener,
 		Object							user_data ); 

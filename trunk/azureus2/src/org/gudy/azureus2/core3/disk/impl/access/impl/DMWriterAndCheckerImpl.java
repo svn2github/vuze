@@ -51,44 +51,44 @@ DMWriterAndCheckerImpl
 	
 	protected static final int	QUEUE_REPORT_CHUNK	= 32;
 	
+		// global limit on size of write queue
+	
 	private static int			global_write_queue_block_sem_size;
 	private static AESemaphore	global_write_queue_block_sem;
 	private static int			global_write_queue_block_sem_next_report_size;
 	
-	//private static int			global_check_queue_block_sem_size;
-	//private static AESemaphore	global_check_queue_block_sem;
-	//private static int			global_check_queue_block_sem_next_report_size;
+		// global limit on size of check queue
+	
+	private static int			global_check_queue_block_sem_size;
+	private static AESemaphore	global_check_queue_block_sem;
+	private static int			global_check_queue_block_sem_next_report_size;
 	
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
-		global_write_queue_block_sem_size	= write_limit_blocks==0?1024:write_limit_blocks;
+		global_write_queue_block_sem_size	= write_limit_blocks==0?128:write_limit_blocks;
 		
 		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
 		global_write_queue_block_sem = new AESemaphore("writeQ", global_write_queue_block_sem_size);
 		
-		/*
-		if ( write_limit_blocks == 0 ){
+		if ( global_write_queue_block_sem_size == 0 ){
 			
 			global_write_queue_block_sem.releaseForever();
 		}
-		*/
 		
-		// int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
+		int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
 
-		//global_check_queue_block_sem_size	= check_limit_pieces==0?512:check_limit_pieces;
+		global_check_queue_block_sem_size	= check_limit_pieces==0?128:check_limit_pieces;
 		
-		//global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
+		global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
-		//global_check_queue_block_sem = new AESemaphore("checkQ", global_check_queue_block_sem_size);
+		global_check_queue_block_sem = new AESemaphore("checkQ", global_check_queue_block_sem_size);
 		
-		/*
-		if ( check_limit_pieces == 0 ){
+		if ( global_check_queue_block_sem_size == 0 ){
 			
 			global_check_queue_block_sem.releaseForever();
 		}
-		*/
 		
 		// System.out.println( "global writes = " + write_limit_blocks + ", global checks = " + check_limit_pieces );
 	}
@@ -99,7 +99,6 @@ DMWriterAndCheckerImpl
 	private List 			writeQueue;
 	private List 			checkQueue;
 	private AESemaphore		writeCheckQueueSem;
-	private	AEMonitor		writeCheckQueueLock_mon	= new AEMonitor( "DMW&C:WCQ");
 		
 	protected volatile ConcurrentHasherRequest	current_hash_request;
 	
@@ -237,37 +236,37 @@ DMWriterAndCheckerImpl
 	  
 
 	public void 
-	aSyncCheckPiece(
+	enqueueCheckRequest(
 		int 							pieceNumber,
 		DiskManagerCheckRequestListener listener,
 		Object							user_data ) 
 	{  	
-			// recursion here will deadlock the write thread
+		global_check_queue_block_sem.reserve();	   	
 		
-		/*
-		if ( Thread.currentThread() != writeThread ){			
-
-			global_check_queue_block_sem.reserve();
-		}
-	   		
 		if ( global_check_queue_block_sem.getValue() < global_check_queue_block_sem_next_report_size ){
 			
 	    	// Debug.out( "Disk Manager check queue size exceeds " + ( global_check_queue_block_sem_size - global_check_queue_block_sem_next_report_size ));
 
 			global_check_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
 		}
-		*/
 		
 		// System.out.println( "check queue size = " + ( global_check_queue_block_sem_size - global_check_queue_block_sem.getValue()));
 		
 	  	try{
-	  		writeCheckQueueLock_mon.enter();
+	  		this_mon.enter();
 	 		
+	  		if ( !bOverallContinue ){
+	  			
+	  			global_check_queue_block_sem.release();
+	  			
+	  			throw( new RuntimeException( "WriteChecker stopped" ));
+	  		}
+	  		
 	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, user_data, listener ));
 	   		
 	    }finally{
 	    	
-	    	writeCheckQueueLock_mon.exit();
+	    	this_mon.exit();
 	    }
 	   		
 	   	writeCheckQueueSem.release();
@@ -314,18 +313,7 @@ DMWriterAndCheckerImpl
 		try{
 			
 	        buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,this_piece_length);
-
-		    if ( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
-		    	
-		    	try{  
-		    		Thread.sleep( 100 );
-		    		
-		    	}catch( Exception e ){ 
-		    		
-		    		Debug.printStackTrace( e ); 
-		    	}
-		    }
-		       			    
+	    
 		    if ( !bOverallContinue ){
 		    	
 		    	return;
@@ -605,12 +593,7 @@ DMWriterAndCheckerImpl
 		Object 							user_data,
 		DiskManagerWriteRequestListener	listener ) 
 	{		
-			// recursive entry here will deadlock the writeThread
-		
-		if ( Thread.currentThread() != writeThread ){
-			
-			global_write_queue_block_sem.reserve();
-		}
+		global_write_queue_block_sem.reserve();		
 		
 		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
 			
@@ -624,12 +607,19 @@ DMWriterAndCheckerImpl
 		// System.out.println( "reserved global write slot (buffer = " + data.limit() + ")" );
 		
 		try{
-			writeCheckQueueLock_mon.enter();
+			this_mon.enter();
+			
+	  		if ( !bOverallContinue ){
+	  			
+	  			global_check_queue_block_sem.release();
+	  			
+	  			throw( new RuntimeException( "WriteChecker stopped" ));
+	  		}
 			
 			writeQueue.add(new QueueElement(pieceNumber, offset, data, user_data, listener ));
 		}finally{
 			
-			writeCheckQueueLock_mon.exit();
+			this_mon.exit();
 		}
 		
 		writeCheckQueueSem.release();
@@ -723,6 +713,8 @@ DMWriterAndCheckerImpl
 				try{
 					int	entry_count = writeCheckQueueSem.reserveSet( 64 );
 					
+					System.out.println( "wq = " + writeQueue.size() + ", cq = " + checkQueue.size());
+					
 					for (int i=0;i<entry_count;i++){
 						
 						final QueueElement	elt;
@@ -730,7 +722,7 @@ DMWriterAndCheckerImpl
 						boolean			elt_is_write;
 						
 						try{
-							writeCheckQueueLock_mon.enter();
+							this_mon.enter();
 							
 							if ( !bWriteContinue){
 															
@@ -751,13 +743,13 @@ DMWriterAndCheckerImpl
 								
 								elt	= (QueueElement)checkQueue.remove(0);
 								
-								// global_check_queue_block_sem.release();
+								global_check_queue_block_sem.release();
 														
 								elt_is_write	= false;
 							}
 						}finally{
 							
-							writeCheckQueueLock_mon.exit();
+							this_mon.exit();
 						}
 		
 						if ( elt_is_write ){
@@ -849,12 +841,12 @@ DMWriterAndCheckerImpl
 		public void stopIt(){
 			
 			try{
-				writeCheckQueueLock_mon.enter();
+				this_mon.enter();
 				
 				bWriteContinue = false;
 			}finally{
 				
-				writeCheckQueueLock_mon.exit();
+				this_mon.exit();
 			}
 			
 			writeCheckQueueSem.releaseForever();
@@ -876,7 +868,7 @@ DMWriterAndCheckerImpl
 				
 				// System.out.println( "releasing global write slot (tidy up)" );
 
-				// global_check_queue_block_sem.release();
+				global_check_queue_block_sem.release();
 				
 				checkQueue.remove(0);
 			}

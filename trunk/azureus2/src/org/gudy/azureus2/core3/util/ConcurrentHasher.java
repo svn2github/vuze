@@ -30,6 +30,8 @@ package org.gudy.azureus2.core3.util;
 import java.util.*;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 public class 
 ConcurrentHasher 
 {
@@ -124,6 +126,17 @@ ConcurrentHasher
 												requests_mon.exit();
 											}
 
+											if ( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
+					
+												try{  
+													Thread.sleep( 100 );
+						
+												}catch( Exception e ){ 
+						
+													Debug.printStackTrace( e ); 
+												}
+											}
+										       		
 											scheduler_sem.release();
 										}
 									}

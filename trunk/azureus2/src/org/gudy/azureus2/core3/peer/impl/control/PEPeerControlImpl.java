@@ -18,7 +18,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.PieceList;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;

@@ -937,7 +937,7 @@ DiskManagerImpl
 		DiskManagerCheckRequestListener listener,
 		Object							user_data ) 
 	{
-	  	writer_and_checker.aSyncCheckPiece( pieceNumber, listener, user_data );
+	  	writer_and_checker.enqueueCheckRequest( pieceNumber, listener, user_data );
 	}
 	  
 	public boolean isChecking() 
