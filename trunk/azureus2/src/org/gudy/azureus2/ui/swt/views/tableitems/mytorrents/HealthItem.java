@@ -21,7 +21,6 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
@@ -58,10 +57,6 @@ public class HealthItem extends TorrentItem  {
     
     Table	table = row.getTable();
     
-    //Get the table GC
-    GC gc = new GC(table);
-    gc.setClipping(bounds);
-        
     String	image_name = "st_stopped";
     
     DownloadManager manager = torrentRow.getManager();
@@ -96,8 +91,7 @@ public class HealthItem extends TorrentItem  {
     Image image = ImageRepository.getImage(image_name);
     
     if(image != null)
-      gc.drawImage(image, bounds.x + 1, bounds.y + 1);      
-    gc.dispose();    
+      setImage(image);
   }
   
   public void dispose() {    
