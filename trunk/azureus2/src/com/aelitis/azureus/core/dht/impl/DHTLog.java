@@ -208,6 +208,27 @@ DHTLog
 	
 	public static String
 	getString(
+		DHTTransportValue[]	values )
+	{
+		if ( logging_on ){
+			
+			if ( values == null ){
+				
+				return( "<null>");
+			}
+			
+			String	res = "";
+			
+			for (int i=0;i<values.length;i++){
+				
+				res += (i==0?"":",") + getString( values[i] );
+			}
+			return( res );
+		}else{
+			return( "" );
+		}
+	}	public static String
+	getString(
 		DHTTransportValue	value )
 	{
 		if ( logging_on ){

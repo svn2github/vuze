@@ -62,7 +62,7 @@ DHTTransportContact
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
-		DHTTransportValue			value );
+		DHTTransportValue[]			values );
 	
 	public void
 	sendFindNode(

@@ -592,7 +592,7 @@ DHTControlImpl
 						}
 					},
 					encoded_key, 
-					value );
+					new DHTTransportValue[]{ value });
 			}
 		}
 	}
@@ -728,7 +728,7 @@ DHTControlImpl
 											}
 										},
 										encoded_key, 
-										value );
+										new DHTTransportValue[]{ value });
 							}
 						}
 					}
@@ -1061,16 +1061,19 @@ DHTControlImpl
 							public void
 							findValueReply(
 								DHTTransportContact 	contact,
-								DHTTransportValue		value )
+								DHTTransportValue[]		values )
 							{
 								try{
-									DHTLog.log( "findValueReply: " + DHTLog.getString( value ));
+									DHTLog.log( "findValueReply: " + DHTLog.getString( values ));
 									
 									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
 									
-									result_handler.found( contact, value );
+									for (int i=0;i<values.length;i++){
+										
+										result_handler.found( contact, values[i] );
+									}
 									
-									values_found[0]++;
+									values_found[0] += values.length;
 		
 								}finally{
 														
@@ -1154,13 +1157,16 @@ DHTControlImpl
 	storeRequest(
 		DHTTransportContact 	originating_contact, 
 		byte[]					key,
-		DHTTransportValue		value )
+		DHTTransportValue[]		values )
 	{
-		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + value.getString());
+		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
 
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-		database.store( originating_contact, new HashWrapper( key ), value );
+		for (int i=0;i<values.length;i++){
+		
+			database.store( originating_contact, new HashWrapper( key ), values[i] );
+		}
 	}
 	
 	public DHTTransportContact[]
@@ -1194,7 +1200,7 @@ DHTControlImpl
 			
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-			return( value.getTransportValue());
+			return( new DHTTransportValue[]{ value.getTransportValue()});
 			
 		}else{
 			
@@ -1359,6 +1365,8 @@ DHTControlImpl
 				
 				first_value	= false;
 				
+					// TODO: multiple values
+				
 				t_contact.sendStore( 
 						new DHTTransportReplyHandlerAdapter()
 						{
@@ -1394,7 +1402,7 @@ DHTControlImpl
 							}
 						},
 						key.getHash(), 
-						value.getValueForRelay( local_contact ).getTransportValue());
+						new DHTTransportValue[]{ value.getValueForRelay( local_contact ).getTransportValue()});
 						
 			}
 		}else{

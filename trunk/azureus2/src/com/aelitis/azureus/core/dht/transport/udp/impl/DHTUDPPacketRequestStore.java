@@ -88,21 +88,16 @@ DHTUDPPacketRequestStore
 	}
 
 	protected void
-	setValue(
-		DHTTransportValue	_value )
+	setValues(
+		DHTTransportValue[]	_values )
 	{
-		values	= new DHTTransportValue[]{ _value };
+		values	= _values;
 	}
 	
-	protected DHTTransportValue
-	getValue()
+	protected DHTTransportValue[]
+	getValues()
 	{
-		if ( values == null || values.length == 0 ){
-			
-			return( null );
-		}
-		
-		return( values[0] );
+		return( values);
 	}
 	
 	protected void

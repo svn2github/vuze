@@ -42,7 +42,7 @@ DHTTransportRequestHandler
 	storeRequest(
 		DHTTransportContact contact, 
 		byte[]				key,
-		DHTTransportValue	value );
+		DHTTransportValue[]	values );
 	
 	public DHTTransportContact[]
 	findNodeRequest(

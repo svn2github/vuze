@@ -340,7 +340,7 @@ DHTTransportLoopbackImpl
 		final DHTTransportContact		contact,
 		final DHTTransportReplyHandler	handler,
 		final byte[]					key,
-		final DHTTransportValue			value )
+		final DHTTransportValue[]		values )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -348,7 +348,7 @@ DHTTransportLoopbackImpl
 				public void
 				runSupport()
 				{
-					sendStoreSupport( contact, handler, key, value );
+					sendStoreSupport( contact, handler, key, values );
 				}
 			};
 		
@@ -360,7 +360,7 @@ DHTTransportLoopbackImpl
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
-		DHTTransportValue			value )
+		DHTTransportValue[]			values )
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
@@ -378,7 +378,7 @@ DHTTransportLoopbackImpl
 			
 			target.getRequestHandler().storeRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
-					key, value );
+					key, values );
 			
 			handler.storeReply( contact );
 		}
@@ -502,7 +502,7 @@ DHTTransportLoopbackImpl
 				
 			}else{
 				
-				handler.findValueReply( contact, (DHTTransportValue)o_res );
+				handler.findValueReply( contact, (DHTTransportValue[])o_res );
 			}
 		}
 	}

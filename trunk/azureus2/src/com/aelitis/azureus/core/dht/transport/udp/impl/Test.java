@@ -96,42 +96,44 @@ Test
 						}
 					},
 					new byte[23],
-					new DHTTransportValue()
-					{
-						public int
-						getCacheDistance()
+					new DHTTransportValue[]{
+						new DHTTransportValue()
 						{
-							return( 1 );
-						}
-						
-						public long
-						getCreationTime()
-						{
-							return( 2 );
-						}
-						
-						public byte[]
-						getValue()
-						{
-							return( "sdsd".getBytes());
-						}
-						
-						public DHTTransportContact
-						getOriginator()
-						{
-							return( c1 );
-						}
-						
-						public int
-						getFlags()
-						{
-							return(0);
-						}
-						
-						public String
-						getString()
-						{
-							return( new String(getValue()));
+							public int
+							getCacheDistance()
+							{
+								return( 1 );
+							}
+							
+							public long
+							getCreationTime()
+							{
+								return( 2 );
+							}
+							
+							public byte[]
+							getValue()
+							{
+								return( "sdsd".getBytes());
+							}
+							
+							public DHTTransportContact
+							getOriginator()
+							{
+								return( c1 );
+							}
+							
+							public int
+							getFlags()
+							{
+								return(0);
+							}
+							
+							public String
+							getString()
+							{
+								return( new String(getValue()));
+							}
 						}
 					});
 			
@@ -171,7 +173,7 @@ Test
 						public void
 						findValueReply(
 							DHTTransportContact 	contact,
-							DHTTransportValue 		value )
+							DHTTransportValue[]		values )
 						{
 							System.out.println( "findValue value reply" );
 						}
@@ -205,7 +207,7 @@ Test
 	storeRequest(
 		DHTTransportContact contact, 
 		byte[]				key,
-		DHTTransportValue	value )
+		DHTTransportValue[]	values )
 	{
 		System.out.println( "TransportHandler: store" );
 	}

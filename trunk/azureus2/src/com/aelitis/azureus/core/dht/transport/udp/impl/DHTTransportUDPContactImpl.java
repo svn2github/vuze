@@ -153,9 +153,9 @@ DHTTransportUDPContactImpl
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
-		DHTTransportValue			value )
+		DHTTransportValue[]			values )
 	{
-		transport.sendStore( this, handler, key, value );
+		transport.sendStore( this, handler, key, values );
 	}
 	
 	public void

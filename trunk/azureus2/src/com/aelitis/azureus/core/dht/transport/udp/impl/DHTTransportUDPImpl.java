@@ -901,7 +901,7 @@ DHTTransportUDPImpl
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
 		final byte[]						key,
-		final DHTTransportValue				value )
+		final DHTTransportValue[]			values )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -909,7 +909,7 @@ DHTTransportUDPImpl
 				public void
 				runSupport()
 				{
-					sendStoreSupport( contact, handler, key, value );
+					sendStoreSupport( contact, handler, key, values );
 				}
 			};
 		
@@ -921,7 +921,7 @@ DHTTransportUDPImpl
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
 		byte[]								key,
-		DHTTransportValue					value )
+		DHTTransportValue[]					values )
 	{
 		stats.storeSent();
 		
@@ -935,7 +935,7 @@ DHTTransportUDPImpl
 			
 			request.setKey( key );
 			
-			request.setValue( value );
+			request.setValues( values );
 			
 			packet_handler.sendAndReceive(
 				request,
@@ -1218,7 +1218,7 @@ DHTTransportUDPImpl
 								
 								stats.findValueOK();
 								
-								DHTTransportValue	res = reply.getValue();
+								DHTTransportValue[]	res = reply.getValues();
 								
 								if ( res != null ){
 									
@@ -1389,7 +1389,7 @@ DHTTransportUDPImpl
 					request_handler.storeRequest(
 							originating_contact, 
 							store_request.getKey(), 
-							store_request.getValue());
+							store_request.getValues());
 					
 					DHTUDPPacketReplyStore	reply = 
 						new DHTUDPPacketReplyStore(
@@ -1433,9 +1433,9 @@ DHTTransportUDPImpl
 							request.getConnectionId(),
 							local_contact );
 					
-					if ( res instanceof DHTTransportValue ){
+					if ( res instanceof DHTTransportValue[] ){
 						
-						reply.setValue((DHTTransportValue)res);
+						reply.setValues((DHTTransportValue[])res);
 	
 					}else{
 						

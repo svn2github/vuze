@@ -70,11 +70,11 @@ DHTTransportRequestCounter
 	storeRequest(
 		DHTTransportContact contact, 
 		byte[]				key,
-		DHTTransportValue	value )
+		DHTTransportValue[]	values )
 	{
 		stats.storeReceived();
 		
-		delegate.storeRequest( contact, key, value );
+		delegate.storeRequest( contact, key, values );
 	}
 	
 	public DHTTransportContact[]

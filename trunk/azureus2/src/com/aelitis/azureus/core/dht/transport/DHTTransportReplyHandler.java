@@ -51,7 +51,7 @@ DHTTransportReplyHandler
 	public void
 	findValueReply(
 		DHTTransportContact 	contact,
-		DHTTransportValue		value );
+		DHTTransportValue[]		values );
 	
 	public void
 	findValueReply(
