@@ -33,6 +33,8 @@ public abstract class
 PRUDPPacketReply
 	extends PRUDPPacket
 {		
+	public static final int	HEADER_SIZE	= 8;
+	
 	private static Map	packet_decoders	= new HashMap();
 	
 	public static void
@@ -64,7 +66,10 @@ PRUDPPacketReply
 	
 		throws IOException
 	{
+			// add to this and you need to adjust HEADER_SIZE above
+		
 		os.writeInt( getAction());
+		
 		os.writeInt( getTransactionId() );
 	}
 	

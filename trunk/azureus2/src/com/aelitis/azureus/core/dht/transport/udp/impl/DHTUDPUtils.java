@@ -193,7 +193,8 @@ DHTUDPUtils
 		return( data );
 	}
 	
-	public static final int INETSOCKETADDRESS_SIZE	= 18;
+	public static final int INETSOCKETADDRESS_IPV4_SIZE	= 7;
+	public static final int INETSOCKETADDRESS_IPV6_SIZE	= 19;
 	
 	protected static void
 	serialiseAddress(
@@ -211,9 +212,9 @@ DHTUDPUtils
 			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
 		}
 		
-		serialiseByteArray( os, ia.getAddress(), 16);	// 16 (Pv6)
+		serialiseByteArray( os, ia.getAddress(), 16);	// 16 (Pv6) + 1 length
 		
-		os.writeShort( address.getPort());	//18
+		os.writeShort( address.getPort());	//19
 	}
 	
 	protected static InetSocketAddress
@@ -267,7 +268,7 @@ DHTUDPUtils
 		}	
 	}
 	
-	public static final int	DHTTRANSPORTCONTACT_SIZE	= 2 + INETSOCKETADDRESS_SIZE;
+	public static final int	DHTTRANSPORTCONTACT_SIZE	= 2 + INETSOCKETADDRESS_IPV4_SIZE;
 	
 	protected static void
 	serialiseContact(

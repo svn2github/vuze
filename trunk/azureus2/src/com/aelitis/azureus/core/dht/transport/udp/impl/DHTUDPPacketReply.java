@@ -38,6 +38,9 @@ public class
 DHTUDPPacketReply
 	extends PRUDPPacketReply
 {
+	public static final int	HEADER_SIZE	= PRUDPPacketReply.HEADER_SIZE + 13;
+	
+	
 	private long	connection_id;
 	private byte	version;
 	private int		target_instance_id;
@@ -112,6 +115,8 @@ DHTUDPPacketReply
 		throws IOException
 	{
 		super.serialise(os);
+	
+			// add to this and you need to adjust HEADER_SIZE above
 		
 		os.writeLong( connection_id );
 		

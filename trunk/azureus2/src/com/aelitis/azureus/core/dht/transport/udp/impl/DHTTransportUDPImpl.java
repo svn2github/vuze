@@ -915,11 +915,9 @@ DHTTransportUDPImpl
 			while( current_key_index < keys.length ){
 			
 				packet_count++;
-				
-						// get a reasonable starting size (currently 8192-512)
-				
-				int	space = DHTUDPPacket.PACKET_MAX_BYTES - 512;
-				
+								
+				int	space = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketRequest.HEADER_SIZE;
+								
 				List	key_list	= new ArrayList();
 				List	values_list	= new ArrayList();
 								
@@ -963,7 +961,7 @@ DHTTransportUDPImpl
 					
 					DHTTransportValue	value = value_sets[current_key_index][current_value_index];
 					
-					int	entry_size = DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + value.getValue().length;
+					int	entry_size = DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + value.getValue().length + 1;
 					
 					List	values = (List)values_list.get(values_list.size()-1);
 					
@@ -1235,6 +1233,14 @@ DHTTransportUDPImpl
 		stats.findValueSent();
 
 		final long	connection_id = getConnectionID();
+		
+			// value len of 16...
+		
+		int	reply_max = 
+			DHTUDPPacket.PACKET_MAX_BYTES /
+			( DHTUDPPacketReply.HEADER_SIZE + DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + 16 );
+		
+		//System.out.println( "reply_max = " + reply_max );
 		
 		try{
 			checkAddress( contact );

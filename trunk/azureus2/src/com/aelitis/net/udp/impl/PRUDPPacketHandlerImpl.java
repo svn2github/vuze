@@ -295,6 +295,8 @@ PRUDPPacketHandlerImpl
 			byte[]	packet_data = dg_packet.getData();
 			int		packet_len	= dg_packet.getLength();
 			
+			// System.out.println( "received:" + packet_len );
+			
 			PRUDPPacket packet;
 			
 			boolean	request_packet;
@@ -680,6 +682,8 @@ PRUDPPacketHandlerImpl
 					
 					socket.send( packet );
 					
+					// System.out.println( "sent:" + buffer.length );
+					
 					stats.packetSent( buffer.length );
 					
 					if ( TRACE_REQUESTS ){
@@ -737,6 +741,8 @@ PRUDPPacketHandlerImpl
 			byte[]	buffer = baos.toByteArray();
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			
+			// System.out.println( "sent:" + buffer.length );
 			
 			if ( TRACE_REQUESTS ){
 				

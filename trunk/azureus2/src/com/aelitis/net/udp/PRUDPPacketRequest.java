@@ -30,15 +30,13 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestAnnounce;
-import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestAnnounce2;
-import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestConnect;
-import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestScrape;
-
 public abstract class 
 PRUDPPacketRequest
 	extends PRUDPPacket
 {	
+	public static final int	HEADER_SIZE	= 16;
+	
+	
 	private static Map	packet_decoders	= new HashMap();
 
 	protected long		connection_id;
@@ -90,8 +88,12 @@ PRUDPPacketRequest
 	
 		throws IOException
 	{
+			// add to this and you need to adjust HEADER_SIZE above
+		
 		os.writeLong( connection_id );
+		
 		os.writeInt( getAction() );
+		
 		os.writeInt( getTransactionId() );
 	}
 	

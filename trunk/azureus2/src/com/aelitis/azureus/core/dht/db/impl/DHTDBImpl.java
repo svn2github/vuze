@@ -218,7 +218,7 @@ DHTDBImpl
 		
 		if ( !store_it ){
 			
-			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
+			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
 
 			return;
 		}
@@ -261,13 +261,11 @@ DHTDBImpl
 		
 		if ( !store_it ){
 			
-			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
+			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
 			return;
 		}
 		
-		// System.out.println( "Storing " + DHTLog.getString2(key.getHash()));
-
 		try{
 			this_mon.enter();
 						

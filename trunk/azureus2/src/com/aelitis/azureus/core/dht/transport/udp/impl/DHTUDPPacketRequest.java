@@ -41,6 +41,9 @@ public class
 DHTUDPPacketRequest 
 	extends PRUDPPacketRequest
 {
+	public static final int	HEADER_SIZE	= PRUDPPacketRequest.HEADER_SIZE + 13 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+	
+
 	private byte				version;
 	private long				originator_time;
 	private InetSocketAddress	originator_address;
@@ -138,8 +141,10 @@ DHTUDPPacketRequest
 		throws IOException
 	{
 		super.serialise(os);
+
+			// add to this and you need to amend HEADER_SIZE above
 		
-		os.writeByte( version );
+		os.writeByte( version );		
 		
 		try{
 			DHTUDPUtils.serialiseAddress( os, originator_address );
