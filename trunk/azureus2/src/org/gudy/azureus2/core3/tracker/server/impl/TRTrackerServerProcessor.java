@@ -56,16 +56,18 @@ TRTrackerServerProcessor
 			
 			String	header = "";
 			
-			byte[]	parp = new byte[1];
+			byte[]	buffer = new byte[1024];
 			
 			while( header.length()< 4096 ){
 					
-				if ( is.read(parp) < 0 ){
+				int	len = is.read(buffer);
 					
+				if ( len == -1 ){
+				
 					break;
 				}
 								
-				header += (char)parp[0];
+				header += new String( buffer, 0, len );
 								
 				if ( header.endsWith( NL )){
 					
@@ -95,22 +97,11 @@ TRTrackerServerProcessor
 							_socket.getInetAddress().getHostAddress(),
 							_socket.getOutputStream());
 			
-			is.close();
+			// is.close();
 			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
-			
-		}finally{
-		
-			try{
-				
-				_socket.close();
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
-			}	
 		}
 	}
 	
@@ -332,8 +323,6 @@ TRTrackerServerProcessor
 		}finally{
 			
 			os.flush();
-			
-			os.close();
 		}
 	}
 	

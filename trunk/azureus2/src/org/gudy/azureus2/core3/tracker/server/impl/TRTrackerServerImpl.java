@@ -55,7 +55,7 @@ TRTrackerServerImpl
 			
 			if ( bind_ip.length() < 7 ){
 				
-				ss = new ServerSocket( port );
+				ss = new ServerSocket( port, 128 );
 				
 			}else{
 				
@@ -112,7 +112,29 @@ TRTrackerServerImpl
 						public void
 						run()
 						{			
-							new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
+							try{
+							
+								socket.setSoTimeout( 5000 );
+								
+							}catch ( SocketException e ){
+								
+								e.printStackTrace();
+							}
+							
+							try{
+							
+								new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
+								
+							}finally{
+								
+								try{
+									socket.close();
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
+							}
 						}
 					}.start();
 

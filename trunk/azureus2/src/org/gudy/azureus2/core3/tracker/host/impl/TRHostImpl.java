@@ -496,6 +496,7 @@ TRHostImpl
 					content_type 	= "application/x-bittorrent";
 					
 				}else{
+					System.out.println( "Torrent not found at '" + url + "'" );
 					
 					reply_bytes = new byte[0];
 				
@@ -503,7 +504,7 @@ TRHostImpl
 				}
 			}else{
 					
-				System.out.println( "Invalid url" );
+				System.out.println( "Invalid url '" + url + "'" );
 							
 				reply_bytes = new byte[0];
 				
@@ -532,18 +533,6 @@ TRHostImpl
 		os.write( reply_bytes );
 		
 		os.flush();
-		
-		
-			// this really can't be right, but without it Internet Explorer won't
-			// download files properly...
-		
-		try{
-			Thread.sleep(1000);
-			
-		}catch( InterruptedException e ){
-			
-			e.printStackTrace();
-		}
 		
 		return( true );
 	}
