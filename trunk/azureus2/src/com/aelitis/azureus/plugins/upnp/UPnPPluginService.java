@@ -42,6 +42,7 @@ UPnPPluginService
 	protected BooleanParameter 		alert_success;
 	protected BooleanParameter 		grab_ports;
 	protected BooleanParameter 		alert_other_port_param;
+	protected BooleanParameter		release_mappings;
 	
 	protected List	service_mappings = new ArrayList();
 	
@@ -51,12 +52,14 @@ UPnPPluginService
 		UPnPWANConnectionPortMapping[]	_ports,
 		BooleanParameter				_alert_success,
 		BooleanParameter				_grab_ports,
-		BooleanParameter				_alert_other_port_param)
+		BooleanParameter				_alert_other_port_param,
+		BooleanParameter				_release_mappings)
 	{
 		connection				= _connection;
 		alert_success			= _alert_success;
 		grab_ports				= _grab_ports;
 		alert_other_port_param	= _alert_other_port_param;
+		release_mappings		= _release_mappings;
 		
 		for (int i=0;i<_ports.length;i++){
 
@@ -94,7 +97,7 @@ UPnPPluginService
 			
 					if ( sm.getPort() != mapping.getPort()){
 						
-						removeMapping( log, sm );
+						removeMapping( log, sm, false );
 					}
 				}
 			}
@@ -214,14 +217,15 @@ UPnPPluginService
 		}else{
 				// mapping is disabled
 			
-			removeMapping( log, mapping );
+			removeMapping( log, mapping, false );
 		}
 	}
 	
 	protected synchronized void
 	removeMapping(
 		LoggerChannel		log,
-		UPnPMapping			mapping )
+		UPnPMapping			mapping, 
+		boolean				end_of_day )
 	{
 		String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		
@@ -233,7 +237,7 @@ UPnPPluginService
 					sm.getPort() == mapping.getPort() &&
 					sm.getMapping() != null ){
 				
-				removeMapping( log, sm );
+				removeMapping( log, sm, end_of_day );
 
 				return;
 			}
@@ -243,12 +247,17 @@ UPnPPluginService
 	protected void
 	removeMapping(
 		LoggerChannel		log,
-		serviceMapping		mapping )
+		serviceMapping		mapping, 
+		boolean				end_of_day )
 	{
 		if ( mapping.isExternal()){
 		
 			log.log( "Mapping " + mapping.getString() + " not removed as not created by Azureus" );
 			
+		}else if ( end_of_day && !release_mappings.getValue()){
+
+			log.log( "Mapping " + mapping.getString() + " not removed as 'release on closedown' not selected" );
+
 		}else{
 			
 			try{

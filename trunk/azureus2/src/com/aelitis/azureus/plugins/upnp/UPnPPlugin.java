@@ -55,6 +55,7 @@ UPnPPlugin
 	protected BooleanParameter	grab_ports_param;
 	protected BooleanParameter	alert_other_port_param;
 	protected BooleanParameter	alert_device_probs_param;
+	protected BooleanParameter	release_mappings_param;
 	
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
@@ -83,7 +84,7 @@ UPnPPlugin
 				public void
 				closedownComplete()
 				{
-					closeDown();
+					closeDown( true );
 				}
 			});
 		
@@ -104,6 +105,8 @@ UPnPPlugin
 		
 		grab_ports_param = config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
 		
+		release_mappings_param	 = config.addBooleanParameter2( "upnp.releasemappings", "upnp.releasemappings", true );
+
 		ActionParameter refresh_param = config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
 		
 		refresh_param.addListener(
@@ -117,6 +120,7 @@ UPnPPlugin
 				}
 			});
 
+		
 		config.addLabelParameter2( "blank.resource" );
 		
 		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
@@ -125,12 +129,14 @@ UPnPPlugin
 		
 		alert_device_probs_param = config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
 		
+		
 
 		enable_param.addEnabledOnSelection( alert_success_param );
 		enable_param.addEnabledOnSelection( grab_ports_param );
 		enable_param.addEnabledOnSelection( refresh_param );
 		enable_param.addEnabledOnSelection( alert_other_port_param );
 		enable_param.addEnabledOnSelection( alert_device_probs_param );
+		enable_param.addEnabledOnSelection( release_mappings_param );
 		
 		boolean	enabled = enable_param.getValue();
 		
@@ -153,7 +159,7 @@ UPnPPlugin
 							
 						}else{
 							
-							closeDown();
+							closeDown( true );
 						}
 					}
 				});
@@ -255,7 +261,8 @@ UPnPPlugin
 	}
 	
 	protected void
-	closeDown()
+	closeDown(
+		boolean	end_of_day )
 	{
 		for (int i=0;i<mappings.size();i++){
 			
@@ -270,7 +277,7 @@ UPnPPlugin
 				
 				UPnPPluginService	service = (UPnPPluginService)services.get(j);
 				
-				service.removeMapping( log, mapping );
+				service.removeMapping( log, mapping, end_of_day );
 			}
 		}		
 	}
@@ -349,7 +356,7 @@ UPnPPlugin
 							(ports[j].isTCP()?"TCP":"UDP" ) + " -> " + ports[j].getInternalHost());
 		}
 		
-		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param ));
+		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
 		
 		checkState();
 	}
@@ -416,7 +423,7 @@ UPnPPlugin
 			
 			UPnPPluginService	service = (UPnPPluginService)services.get(j);
 			
-			service.removeMapping( log, mapping );
+			service.removeMapping( log, mapping, false );
 		}
 	}
 	
