@@ -111,6 +111,8 @@ public class DonationWindow2 {
     for(int i=0 ; i < fontDataMain.length ; i++) {
       if(!isMacLinux)
       	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
+      else
+        fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.1));
       fontDataMain[i].setStyle(SWT.BOLD);     
     }
     mainFont = new Font(display,fontDataMain);
