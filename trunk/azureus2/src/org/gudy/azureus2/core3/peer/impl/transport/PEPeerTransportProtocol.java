@@ -1114,8 +1114,8 @@ StateTransfering
       
 				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
 				if( length > 16393 ) {
-          Debug.out( PEPeerTransportProtocol.this + " : sent incoming message size too large: " + length );
-					closeAll(PEPeerTransportProtocol.this + " : sent incoming message size too large: " + length,true, true);
+          Debug.out( PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length );
+					closeAll(PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
         

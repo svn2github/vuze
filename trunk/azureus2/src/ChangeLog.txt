@@ -55,7 +55,7 @@ BUGFIX: Core | Fix bug in re-announce interval override calculation when connect
 BUGFIX: UI   | Fix bug with Azureus crashing when quitting on OSX if the Stats view has been opened [Gudy]
 BUGFIX: UI   | Fix the fuzzy Azureus icon bug under OSX [Gudy]
 BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are set [Gudy]
-
+BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
 
 
 
