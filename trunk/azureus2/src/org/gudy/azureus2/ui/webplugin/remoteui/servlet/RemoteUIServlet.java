@@ -105,7 +105,7 @@ RemoteUIServlet
 			
 			if ( method.equals( "getSingleton")){
 				
-				RPReply reply = new RPReply( new RPPluginInterface(plugin_interface));
+				RPReply reply = new RPReply( RPPluginInterface.create(plugin_interface));
 				
 				return( reply );
 				

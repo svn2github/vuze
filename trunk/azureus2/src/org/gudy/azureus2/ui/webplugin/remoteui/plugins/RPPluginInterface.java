@@ -39,6 +39,8 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
+
 public class 
 RPPluginInterface
 	extends		RPObject
@@ -46,7 +48,21 @@ RPPluginInterface
 {
 	protected transient PluginInterface		delegate;
 	
-	public
+	public static RPPluginInterface
+	create(
+		PluginInterface		_delegate )
+	{
+		RPPluginInterface	res =(RPPluginInterface)_lookupLocal( _delegate );
+		
+		if ( res == null ){
+			
+			res = new RPPluginInterface( _delegate );
+		}
+		
+		return( res );
+	}	
+	
+	protected
 	RPPluginInterface(
 		PluginInterface		_delegate )
 	{
@@ -62,6 +78,26 @@ RPPluginInterface
 	{
 		delegate = (PluginInterface)_fixupLocal();
 	}
+	
+	
+	public RPReply
+	_process(
+		RPRequest	request	)
+	{
+		String	method = request.getMethod();
+		
+		if ( method.equals( "getPluginProperties")){
+			
+			return( new RPReply( delegate.getPluginProperties()));
+			
+		}else if ( method.equals( "getDownloadManager")){
+				
+			return( new RPReply( PRDownloadManager.create(delegate.getDownloadManager())));
+		}
+		
+		throw( new RPException( "Unknown method: " + method ));
+	}
+	
 	
 	public void 
 	addView(PluginView view)
@@ -97,9 +133,11 @@ RPPluginInterface
 	public DownloadManager
 	getDownloadManager()
 	{
-		notSupported();
+		PRDownloadManager	res = (PRDownloadManager)dispatcher.dispatch( new RPRequest( this, "getDownloadManager", null )).getResponse();
+	
+		res._setRemote( dispatcher );
 		
-		return( null );
+		return( res );
 	}
 	
 	
@@ -178,19 +216,4 @@ RPPluginInterface
 	{
 		notSupported();
 	}
-	
-	public RPReply
-	_process(
-		RPRequest	request	)
-	{
-		String	method = request.getMethod();
-		
-		if ( method.equals( "getPluginProperties")){
-		
-			return( new RPReply( delegate.getPluginProperties()));
-		}
-		
-		throw( new RPException( "Unknown method: " + method ));
-	}
-	
 }

@@ -48,6 +48,16 @@ RPObject
 	protected Long	object_id;
 	protected transient	RPRequestDispatcher	dispatcher;
 	
+	protected static RPObject
+	_lookupLocal(
+		Object		key )
+	{
+		synchronized( object_registry ){
+			
+			return((RPObject)object_registry.get(key));
+		}
+	}
+			
 	protected
 	RPObject(
 		Object		key )

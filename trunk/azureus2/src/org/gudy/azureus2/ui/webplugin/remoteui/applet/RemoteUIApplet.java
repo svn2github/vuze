@@ -38,12 +38,15 @@ import javax.net.ssl.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.*; 
+
 public class 
 RemoteUIApplet
 	extends 	Applet
 	implements 	RPRequestDispatcher
 {
-	protected RPPluginInterface		plugin_interface;
+	protected PluginInterface		plugin_interface;
 	
 	public
 	RemoteUIApplet()
@@ -62,13 +65,25 @@ RemoteUIApplet
 	start()
 	{
 		try{
-			RPPluginInterface pi = RPFactory.getPlugin( this );
+			PluginInterface pi = RPFactory.getPlugin( this );
 			
 			System.out.println( "got pi:" + pi );
 			
 			Properties props = pi.getPluginProperties();
 			
 			System.out.println( "props = " + props );
+			
+			DownloadManager	dm = pi.getDownloadManager();
+			
+			Download[]	downloads = dm.getDownloads();
+			
+			for (int i=0;i<downloads.length;i++){
+				
+				Download	download = downloads[i];
+				
+				System.out.println( "download:" + download.getTorrent().getName());
+			}
+			
 		}catch( RPException e ){
 			
 			e.printStackTrace();
