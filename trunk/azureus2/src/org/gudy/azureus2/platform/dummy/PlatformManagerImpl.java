@@ -86,13 +86,19 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public String getVersion()
 
     	throws PlatformManagerException
 	{
     	throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
-    
+
+    /**
+     * {@inheritDoc}
+     */
 	public void
 	setTCPTOSEnabled(
 		boolean		enabled )
@@ -101,7 +107,17 @@ public class PlatformManagerImpl implements PlatformManager
 	{
         throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
-	
+
+    /**
+     * {@inheritDoc}
+     */
+    public void showFile(String file_name)
+
+            throws PlatformManagerException
+    {
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+    }
+
     /**
      * {@inheritDoc}
      */

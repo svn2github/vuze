@@ -82,6 +82,17 @@ PlatformManager
 		throws PlatformManagerException;
 
     /**
+     * Reveals the file or directory with the platform's default browser
+     * @param file_name The full path to a file or directory
+     * @throws PlatformManagerException If this operation fails
+     */
+	public void
+    showFile(
+		String	file_name )
+
+		throws PlatformManagerException;
+
+    /**
      * <p>Gets whether the platform manager supports a capability</p>
      * <p>Users of PlatformManager should check for supported capabilities before calling
      * the corresponding methods</p>

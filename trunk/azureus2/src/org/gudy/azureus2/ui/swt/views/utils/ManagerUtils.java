@@ -34,11 +34,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-
-import java.io.IOException;
 
 /**
  * @author Olivier
@@ -58,33 +59,21 @@ public class ManagerUtils {
   */
   public static void open(DownloadManager dm) {
     if(dm != null) {
-        if(!Constants.isOSX && !Constants.isWindows) {
-            Program.launch(dm.getTorrentSaveDir()); // default launcher
-        }
-        else {
-            // Highlights the given file/directory
-            try {
-                if(Constants.isOSX) {
-                    // todo: Path Finder is a popular Finder replacement, and apps tend to keep it in mind
-                    Runtime.getRuntime().exec(new String[] {
-                        "osascript",
-                        "-e", "set hfsname to (POSIX file \""+ dm.getTorrentSaveDirAndFile() + "\") as file",
-                        "-e", "tell application \"System Events\"",
-                        "-e",     "tell application \"Finder\"",
-                        "-e",         "activate",
-                        "-e",         "reveal hfsname as alias",
-                        "-e",     "end tell",
-                        "-e", "end tell"
-                    });
-                }
-                else { // Windows
-                    Runtime.getRuntime().exec("explorer.exe /e,/select," + dm.getTorrentSaveDirAndFile());
-                }
+        PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+
+        if(mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+            try
+            {
+                PlatformManagerFactory.getPlatformManager().showFile(dm.getTorrentSaveDirAndFile());
+                return;
             }
-            catch(IOException e) {
+            catch (PlatformManagerException e)
+            {
                 Debug.printStackTrace(e);
             }
         }
+
+        Program.launch(dm.getTorrentSaveDir()); // default launcher
     }
   }
   

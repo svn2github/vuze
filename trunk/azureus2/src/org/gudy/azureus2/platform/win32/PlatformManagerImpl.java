@@ -38,6 +38,7 @@ import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 
 
@@ -115,6 +116,7 @@ PlatformManagerImpl
         capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
         capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
         capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
+        capabilitySet.add(PlatformManagerCapabilities.ShowFileInBrowser);
         capabilitySet.add(PlatformManagerCapabilities.GetVersion);
         capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
     }
@@ -485,7 +487,25 @@ PlatformManagerImpl
 			throw( new PlatformManagerException( "Failed to write registry details", e ));
 		}		
 	}
-			
+
+    /**
+     * {@inheritDoc}
+     */
+    public void showFile(String file_name)
+
+            throws PlatformManagerException
+    {
+        try
+        {
+            System.out.println("Here");
+            Runtime.getRuntime().exec("explorer.exe /e,/select," + file_name);
+        }
+        catch (IOException e)
+        {
+            throw new PlatformManagerException("Failed to show file " + file_name, e);
+        }
+    }
+
     public boolean
     hasCapability(
             PlatformManagerCapabilities capability)

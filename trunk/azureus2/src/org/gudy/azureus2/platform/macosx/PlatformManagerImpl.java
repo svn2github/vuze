@@ -33,15 +33,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashSet;
 import java.text.MessageFormat;
+import java.util.HashSet;
 
 
 /**
  * Performs platform-specific operations with Mac OS X
- * @see PlatformManager
+ *
  * @author James Yeh
  * @version 1.0 Initial Version
+ * @see PlatformManager
  */
 public class PlatformManagerImpl implements PlatformManager
 {
@@ -54,19 +55,34 @@ public class PlatformManagerImpl implements PlatformManager
     //T: PlatformManagerCapabilities
     private final HashSet capabilitySet = new HashSet();
 
+    protected static boolean NATIVE_AVAILABLE;
+    private static NativeInvocationBridge _bridge;
+
     /**
      * Gets the platform manager singleton, which was already initialized
      */
     public static PlatformManagerImpl getSingleton()
     {
-       return singleton;
+        return singleton;
     }
 
     /**
-     * Instantiates the singleton
+     * Tries to enable cocoa-java access and instantiates the singleton
      */
     static
     {
+        _bridge = NativeInvocationBridge.sharedInstance();
+        NATIVE_AVAILABLE = _bridge.isEnabled();
+
+        if(NATIVE_AVAILABLE)
+        {
+            Debug.outNoStack("[PlatformManager] Using Native bridge for platform invoke");
+        }
+        else
+        {
+            Debug.outNoStack("[PlatformManager] Using OSAScript architecture for platform invoke because Cocoa-Java or equivalent bridge is not available");
+        }
+
         initializeSingleton();
     }
 
@@ -119,7 +135,7 @@ public class PlatformManagerImpl implements PlatformManager
     {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
-    
+
     /**
      * {@inheritDoc}
      * @see org.gudy.azureus2.core3.util.SystemProperties#getUserPath()
@@ -165,20 +181,32 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void performRecoverableFileDelete(String path) throws PlatformManagerException
     {
-        try
+        File file = new File(path);
+        if(!file.exists())
         {
-            StringBuffer sb = new StringBuffer();
-            sb.append("tell application \"");
-            sb.append("Finder");
-            sb.append("\" to move (posix file \"");
-            sb.append(path);
-            sb.append("\" as alias) to the trash");
-
-            performOSAScript(sb);
+            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + file.getName());
+            return;
         }
-        catch (Throwable e)
+
+        boolean useOSA = !NATIVE_AVAILABLE || !_bridge.performRecoverableFileDelete(file);
+
+        if(useOSA)
         {
-            throw new PlatformManagerException("Failed to move file", e);
+            try
+            {
+                StringBuffer sb = new StringBuffer();
+                sb.append("tell application \"");
+                sb.append("Finder");
+                sb.append("\" to move (posix file \"");
+                sb.append(path);
+                sb.append("\" as alias) to the trash");
+
+                performOSAScript(sb);
+            }
+            catch (Throwable e)
+            {
+                throw new PlatformManagerException("Failed to move file", e);
+            }
         }
     }
 
@@ -188,6 +216,29 @@ public class PlatformManagerImpl implements PlatformManager
     public boolean hasCapability(PlatformManagerCapabilities capability)
     {
         return capabilitySet.contains(capability);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setTCPTOSEnabled(boolean enabled) throws PlatformManagerException
+    {
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void showFile(String path) throws PlatformManagerException
+    {
+        File file = new File(path);
+        if(!file.exists())
+        {
+            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + file.getName());
+            throw new PlatformManagerException("File not found");
+        }
+
+        showInFinder(file);
     }
 
     // Public utility methods not shared across the interface
@@ -210,22 +261,13 @@ public class PlatformManagerImpl implements PlatformManager
 
     /**
      * <p>Shows the given file or directory in Finder</p>
-     * <p>If Path Finder is running, it is used instead</p>
-     * @param path Absolute path to the file or directory
-     */
-    public void showInFinder(String path)
-    {
-        showInFinder(new File(path));
-    }
-
-    /**
-     * <p>Shows the given file or directory in Finder</p>
-     * <p>If Path Finder is running, it is used instead</p>
      * @param path Absolute path to the file or directory
      */
     public void showInFinder(File path)
     {
-        if(path.exists())
+        boolean useOSA = !NATIVE_AVAILABLE || !_bridge.showInFinder(path);
+
+        if(useOSA)
         {
             StringBuffer sb = new StringBuffer();
             sb.append("tell application \"");
@@ -242,10 +284,6 @@ public class PlatformManagerImpl implements PlatformManager
             {
                 LGLogger.logUnrepeatableAlert(LGLogger.AT_ERROR, e.getMessage());
             }
-        }
-        else
-        {
-            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + path.getName());
         }
     }
 
@@ -264,10 +302,12 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void showInTerminal(File path)
     {
-        if(path.isFile())
+        if (path.isFile())
+        {
             path = path.getParentFile();
+        }
 
-        if(path != null && path.isDirectory())
+        if (path != null && path.isDirectory())
         {
             StringBuffer sb = new StringBuffer();
             sb.append("tell application \"");
@@ -314,15 +354,17 @@ public class PlatformManagerImpl implements PlatformManager
     {
         long start = System.currentTimeMillis();
         Debug.outNoStack("Executing OSAScript: ");
-         for(int i = 0; i < cmds.length; i++)
-            Debug.outNoStack("\t" + cmds[i]);
-
-        String[] cmdargs = new String[2*cmds.length + 1];
-        cmdargs[0] = "osascript";
-        for(int i = 0; i < cmds.length; i++)
+        for (int i = 0; i < cmds.length; i++)
         {
-            cmdargs[i*2+1] = "-e";
-            cmdargs[i*2+2] = String.valueOf(cmds[i]);
+            Debug.outNoStack("\t" + cmds[i]);
+        }
+
+        String[] cmdargs = new String[2 * cmds.length + 1];
+        cmdargs[0] = "osascript";
+        for (int i = 0; i < cmds.length; i++)
+        {
+            cmdargs[i * 2 + 1] = "-e";
+            cmdargs[i * 2 + 2] = String.valueOf(cmds[i]);
         }
 
         Process osaProcess = performRuntimeExec(cmdargs);
@@ -339,8 +381,10 @@ public class PlatformManagerImpl implements PlatformManager
 
         Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
 
-        if(errorMsg != null)
+        if (errorMsg != null)
+        {
             throw new IOException(errorMsg);
+        }
 
         return line;
     }
@@ -370,15 +414,17 @@ public class PlatformManagerImpl implements PlatformManager
 
         Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
 
-        if(errorMsg != null)
+        if (errorMsg != null)
+        {
             throw new IOException(errorMsg);
+        }
 
         return line;
     }
 
     /**
      * Compiles a new AppleScript instance to the specified location
-     * @param cmd Command to compile; do not surround command with extra quotation marks
+     * @param cmd         Command to compile; do not surround command with extra quotation marks
      * @param destination Destination location of the AppleScript file
      * @return True if compiled successfully
      */
@@ -397,15 +443,17 @@ public class PlatformManagerImpl implements PlatformManager
     {
         long start = System.currentTimeMillis();
         Debug.outNoStack("Compiling OSAScript: " + destination.getPath());
-        for(int i = 0; i < cmds.length; i++)
-            Debug.outNoStack("\t" + cmds[i]);
-
-        String[] cmdargs = new String[2*cmds.length + 3];
-        cmdargs[0] = "osacompile";
-        for(int i = 0; i < cmds.length; i++)
+        for (int i = 0; i < cmds.length; i++)
         {
-            cmdargs[i*2+1] = "-e";
-            cmdargs[i*2+2] = String.valueOf(cmds[i]);
+            Debug.outNoStack("\t" + cmds[i]);
+        }
+
+        String[] cmdargs = new String[2 * cmds.length + 3];
+        cmdargs[0] = "osacompile";
+        for (int i = 0; i < cmds.length; i++)
+        {
+            cmdargs[i * 2 + 1] = "-e";
+            cmdargs[i * 2 + 2] = String.valueOf(cmds[i]);
         }
 
         cmdargs[cmdargs.length - 2] = "-o";
@@ -420,7 +468,7 @@ public class PlatformManagerImpl implements PlatformManager
             errorMsg = reader.readLine();
             reader.close();
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             Debug.outNoStack("OSACompile Execution Failed: " + e.getMessage());
             Debug.printStackTrace(e);
@@ -461,7 +509,7 @@ public class PlatformManagerImpl implements PlatformManager
         try
         {
             // slowwwwwwww
-            if("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\"")))
+            if ("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\"")))
             {
                 Debug.outNoStack("Path Finder is running");
 
@@ -472,7 +520,7 @@ public class PlatformManagerImpl implements PlatformManager
                 return "Finder";
             }
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             Debug.printStackTrace(e);
             LGLogger.log(e.getMessage(), e);
@@ -480,13 +528,4 @@ public class PlatformManagerImpl implements PlatformManager
             return "Finder";
         }
     }
-    
-	public void
-	setTCPTOSEnabled(
-		boolean		enabled )
-		
-		throws PlatformManagerException
-	{
-        throw new PlatformManagerException("Unsupported capability called on platform manager");
-	}
 }
