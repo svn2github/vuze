@@ -367,8 +367,15 @@ TrackerWeb
 			response_type="image/png";
 		}else if (file_type.equals("torrent") || file_type.equals( "tor" )) {
 			response_type="application/x-bittorrent";
+		}else if ( file_type.equals( "zip")){
+			response_type = "application/zip";
+		}else if ( file_type.equals( "txt" )){
+			response_type = "text/plain";
+		}else if ( file_type.equals( "mp3" )){
+			response_type = "audio/x-mpeg";
+		}else{
+			response_type = "application/octet-stream";
 		}
-								
 		if ( response_type == null ){
 				
 			return( false );
