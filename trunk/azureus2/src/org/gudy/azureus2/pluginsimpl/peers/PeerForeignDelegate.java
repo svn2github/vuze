@@ -60,8 +60,10 @@ PeerForeignDelegate
 	public PEPeerTransport
 	getRealTransport()
 	{
-		foreign		= foreign.getRealPeer();
-		
+		foreign.initialize();
+			    
+		manager.addPeer( foreign );	// add here so we see connect errors in the peers view
+
 		return( this );
 	}
 	
@@ -118,6 +120,8 @@ PeerForeignDelegate
 	  boolean attemptReconnect)
 	{
 		foreign.close( reason, closedOnError, attemptReconnect );
+		
+	  	manager.removePeer(foreign);
 	}
 			
 	public boolean isReadyToRequest() {    

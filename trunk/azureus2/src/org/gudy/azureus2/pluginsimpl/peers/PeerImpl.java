@@ -187,8 +187,8 @@ PeerImpl
 		delegate.hasSentABadChunk();
 	}
 	
-	public Peer
-	getRealPeer()
+	public void
+	initialize()
 	{
 		throw( new RuntimeException( "not supported"));
 	}

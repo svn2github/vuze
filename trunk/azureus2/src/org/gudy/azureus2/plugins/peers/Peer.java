@@ -83,8 +83,8 @@ Peer
 	
 	public int getNumberOfBadChunks();
 	
-	public Peer
-	getRealPeer();
+	public void
+	initialize();
 	
 	public List
 	getExpiredRequests();

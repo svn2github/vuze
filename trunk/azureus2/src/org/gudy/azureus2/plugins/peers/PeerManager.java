@@ -49,12 +49,4 @@ PeerManager
 	
 	public PeerStats
 	createPeerStats();
-	
-	public void
-	addPeer(
-		Peer		peer );
-	
-	public void
-	removePeer(
-		Peer		peer );
 }
