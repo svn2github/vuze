@@ -31,6 +31,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -372,9 +374,24 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
                                     IPTOS.getControl(),
                                     ltos
                                    };
-    enable_advanced.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( advanced_controls ) );
     
-
+    enable_advanced.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( advanced_controls ) );
+    enable_advanced.setAdditionalActionPerformer( new IAdditionalActionPerformer() {
+      boolean checked;
+      public void performAction() {
+        if( !checked ) {  //revert all advanced options back to defaults
+          ConfigurationManager.getInstance().removeParameter( "network.tcp.mtu.size" );
+          ConfigurationManager.getInstance().removeParameter( "network.tcp.socket.SO_SNDBUF" );
+          ConfigurationManager.getInstance().removeParameter( "network.tcp.socket.SO_RCVBUF" );
+          ConfigurationManager.getInstance().removeParameter( "network.tcp.socket.IPTOS" );
+        }
+      }
+      public void setSelected(boolean selected) {  checked = selected;  }
+      public void setIntValue(int value) { }
+      public void setStringValue(String value) {}
+    });
+    
+    
  ///////////////////////   
  
     

@@ -329,7 +329,7 @@ public class ConfigurationManager {
    * @param parameter to remove
    * @return true if found and removed, false if not
    */
-  protected boolean removeParameter( String parameter ) {
+  public boolean removeParameter( String parameter ) {
     return propertiesMap.remove( parameter ) == null ? false : true;
   }
   
