@@ -117,6 +117,13 @@ RPTorrent
 		return( null );
 	}
 		
+	public void
+	setAnnounceURL(
+		URL		url )
+	{
+		notSupported();
+	}
+	
 	public TorrentAnnounceURLList
 	getAnnounceURLList()
 	{

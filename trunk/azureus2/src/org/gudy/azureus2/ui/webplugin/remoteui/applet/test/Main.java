@@ -29,11 +29,8 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.test;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.*;
 
