@@ -1506,18 +1506,28 @@ DHTControlImpl
 				
 				Integer key = new Integer( value.getCacheDistance());
 				
-				Integer	i = (Integer)count.get( key );
-				
-				if ( i == null ){
+				Object[]	data = (Object[])count.get( key );
+								
+				if ( data == null ){
 					
-					i = new Integer(1);
+					data = new Object[2];
 					
+					data[0] = new Integer(1);
+					
+					data[1] = "";
+								
+					count.put( key, data );
+
 				}else{
 					
-					i = new Integer(i.intValue() + 1 );
+					data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
 				}
 				
-				count.put( key, i );
+				String	s = (String)data[1];
+				
+				s += (s.length()==0?"":", ") + new String( value.getValue());
+				
+				data[1]	= s;
 			}
 		}
 				
@@ -1527,7 +1537,9 @@ DHTControlImpl
 			
 			Integer	k = (Integer)it.next();
 			
-			DHTLog.log( "    " + k + " -> " + count.get(k));
+			Object[]	data = (Object[])count.get(k);
+			
+			DHTLog.log( "    " + k + " -> " + data[0] + ": " + data[1]);
 		}
 	}
 	
