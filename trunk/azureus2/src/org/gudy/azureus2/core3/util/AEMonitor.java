@@ -229,14 +229,35 @@ AEMonitor
 					
 						while( it.hasNext()){
 							
-							String	key = (String)it.next();
+							String	old_key = (String)it.next();
 							
-							String[]	data = (String[])debug_traces.get(key);
+							String[]	data = (String[])debug_traces.get(old_key);
 							
 							String	old_thread_name	= data[0];
 							String	old_trace		= data[1];
 							
+								// find the earliest occurrence of a common monitor - no point in searching
+								// beyond it
+								//    e.g.  a -> b -> c -> g
+							    //          x -> y -> b -> z
+								// stop at b because beyond this things are "protected"
+							
+							
+							int	earliest_common = stack.size();
+							
 							for (int i=0;i<stack.size();i++){
+					
+								String	n1 = ((AEMonitor)stack.get(i)).name;
+							
+								int	p1 = old_key.indexOf( "$" + n1 + "$");
+
+								if ( p1 != -1 ){
+																	
+									earliest_common = Math.min( earliest_common, i+1 );
+								}
+							}
+							
+							for (int i=0;i<earliest_common;i++){
 								
 								for (int j=i+1;j<stack.size();j++){
 									
@@ -247,12 +268,12 @@ AEMonitor
 									
 									if ( !n1.equals( n2 )){
 									
-										int	p1 = key.indexOf( "$" + n1 + "$");
-										int p2 = key.indexOf( "$" + n2 + "$");
+										int	p1 = old_key.indexOf( "$" + n1 + "$");
+										int p2 = old_key.indexOf( "$" + n2 + "$");
 										
 										if ( p1 != -1 && p2 != -1 && p1 > p2 ){
 											
-											String	reciprocal_log = trace_key + " / " + key;
+											String	reciprocal_log = trace_key + " / " + old_key;
 											
 											if ( !debug_reciprocals.contains( reciprocal_log )){
 												
@@ -262,7 +283,7 @@ AEMonitor
 														"AEMonitor: Reciprocal monitor usage:\n" +
 														"    " + trace_key + "\n" + 
 														"        [" + thread_name + "] " + stack_trace + "\n" +
-														"    " + key + "\n" +
+														"    " + old_key + "\n" +
 														"        [" + old_thread_name + "] " + old_trace );
 											}
 										}
