@@ -98,6 +98,17 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getRanges</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+				res.print();
+				
+				/*
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
 							"<METHOD>createAndAddRange[String,String,String,boolean]</METHOD>"+
 							"<PARAMS>"+
 								"<ENTRY>XML Test</ENTRY>"+
@@ -116,7 +127,8 @@ XMLHTTPClient
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");				
-
+				*/
+				
 				/*
 				
 					// config stuff

@@ -86,7 +86,7 @@ StatsWriterImpl
 	protected void
 	writeSupport()
 	{
-		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		writeLineRaw( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
 		boolean	export_peer_stats = COConfigurationManager.getBooleanParameter("Stats Export Peer Details", false );
 		
@@ -94,17 +94,17 @@ StatsWriterImpl
 		
 		if ( xsl.length() > 0 ){
 			
-			writeLine( "<?xml-stylesheet type=\"text/xsl\" href=\"" + xsl + "\"?>" );
+			writeLineRaw( "<?xml-stylesheet type=\"text/xsl\" href=\"" + xsl + "\"?>" );
 		}
 		
-		writeLine( "<STATS>");
+		writeLineRaw( "<STATS>");
 	
 		try{
 			indent();
 		
 			writeTag( "AZUREUS_VERSION", Constants.AZUREUS_VERSION );
 			
-			writeLine( "<GLOBAL>" );
+			writeLineRaw( "<GLOBAL>" );
 			
 			try{
 				indent();
@@ -119,9 +119,9 @@ StatsWriterImpl
 				exdent();
 			}
 		
-			writeLine( "</GLOBAL>" );
+			writeLineRaw( "</GLOBAL>" );
 			
-			writeLine( "<DOWNLOADS>");
+			writeLineRaw( "<DOWNLOADS>");
 			
 			try{
 				
@@ -135,12 +135,12 @@ StatsWriterImpl
 					
 					DownloadManagerStats	dm_stats = dm.getStats();
 					
-					writeLine( "<DOWNLOAD>");
+					writeLineRaw( "<DOWNLOAD>");
 					
 					try{
 						indent();
 						
-						writeLine( "<TORRENT>" );
+						writeLineRaw( "<TORRENT>" );
 
 						TOTorrent torrent = dm.getTorrent();
 															
@@ -175,7 +175,7 @@ StatsWriterImpl
 							exdent();
 						}
 						
-						writeLine( "</TORRENT>");
+						writeLineRaw( "</TORRENT>");
 						
 						writeTag( "DOWNLOAD_STATUS", DisplayFormatters.formatDownloadStatusDefaultLocale( dm));
 						
@@ -215,7 +215,7 @@ StatsWriterImpl
 						if ( export_peer_stats ){
 							
 							try{
-								writeLine( "<PEERS>");
+								writeLineRaw( "<PEERS>");
 								
 								indent();
 							
@@ -245,7 +245,7 @@ StatsWriterImpl
 											
 											String	type = escapeXML( peer.getClient());
 											
-											writeLine( "<PEER hex_id=\"" + ByteFormatter.encodeString( id ) + "\" printable_id=\""+ peer_id + "\" type=\"" + type + "\">");
+											writeLineRaw( "<PEER hex_id=\"" + ByteFormatter.encodeString( id ) + "\" printable_id=\""+ peer_id + "\" type=\"" + type + "\">");
 										
 											indent();
 										
@@ -265,7 +265,7 @@ StatsWriterImpl
 										
 											exdent();
 											
-											writeLine( "</PEER>");
+											writeLineRaw( "</PEER>");
 										}
 									}
 								}
@@ -273,7 +273,7 @@ StatsWriterImpl
 								
 								exdent();
 								
-								writeLine( "</PEERS>");
+								writeLineRaw( "</PEERS>");
 							}
 						}
 					}finally{
@@ -281,7 +281,7 @@ StatsWriterImpl
 						exdent();
 					}
 					
-					writeLine( "</DOWNLOAD>");
+					writeLineRaw( "</DOWNLOAD>");
 				}
 				
 			}finally{
@@ -289,13 +289,13 @@ StatsWriterImpl
 				exdent();
 			}
 				
-			writeLine( "</DOWNLOADS>" );
+			writeLineRaw( "</DOWNLOADS>" );
 			
 		}finally{
 			
 			exdent();
 		}
-		writeLine( "</STATS>");	
+		writeLineRaw( "</STATS>");	
 
 	}
 	
@@ -304,7 +304,7 @@ StatsWriterImpl
 		String	tag,
 		long	raw )
 	{
-		writeLine( "<" + tag + ">");
+		writeLineRaw( "<" + tag + ">");
 						
 		try{
 			indent();
@@ -317,7 +317,7 @@ StatsWriterImpl
 			exdent();
 		}
 						
-		writeLine( "</" + tag + ">");
+		writeLineRaw( "</" + tag + ">");
 	}
 	
 	protected void
@@ -325,7 +325,7 @@ StatsWriterImpl
 		String	tag,
 		long	raw )
 	{
-		writeLine( "<" + tag + ">");
+		writeLineRaw( "<" + tag + ">");
 						
 		try{
 			indent();
@@ -338,6 +338,6 @@ StatsWriterImpl
 			exdent();
 		}
 								
-		writeLine( "</" + tag + ">");
+		writeLineRaw( "</" + tag + ">");
 	}
 }

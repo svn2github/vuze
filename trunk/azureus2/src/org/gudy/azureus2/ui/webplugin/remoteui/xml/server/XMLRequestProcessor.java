@@ -53,10 +53,10 @@ XMLRequestProcessor
 			
 		request_handler		= _request_handler;
 		
-		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		writeLineRaw( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 		
 		try{
-			writeLine( "<RESPONSE>" );
+			writeLineRaw( "<RESPONSE>" );
 			
 			indent();
 						
@@ -82,7 +82,7 @@ XMLRequestProcessor
 			
 			exdent();
 			
-			writeLine( "</RESPONSE>" );
+			writeLineRaw( "</RESPONSE>" );
 			
 			flushOutputStream();
 		}
@@ -397,7 +397,7 @@ XMLRequestProcessor
 			
 				byte[] data = (byte[])obj;
 				
-				writeLine( ByteFormatter.nicePrint( data, true ));
+				writeLineEscaped( ByteFormatter.nicePrint( data, true ));
 				
 			}else{
 				
@@ -406,7 +406,7 @@ XMLRequestProcessor
 					Object	entry = Array.get( obj, i );
 					
 					try{
-						writeLine( "<ENTRY index=\""+i+"\">" );
+						writeLineRaw( "<ENTRY index=\""+i+"\">" );
 						
 						indent();
 					
@@ -416,7 +416,7 @@ XMLRequestProcessor
 						
 						exdent();
 						
-						writeLine( "</ENTRY>");
+						writeLineRaw( "</ENTRY>");
 					}
 				}
 			}
@@ -426,11 +426,11 @@ XMLRequestProcessor
 		
 		if ( cla == String.class ){
 			
-			writeLine( "" + (String)obj);
+			writeLineEscaped( "" + (String)obj);
 				
 		}else if ( cla == Integer.class ){
 					
-			writeLine( "" + ((Integer)obj).intValue());
+			writeLineEscaped( "" + ((Integer)obj).intValue());
 						
 		}else{
 			
@@ -453,53 +453,53 @@ XMLRequestProcessor
 							// System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
 							
 							try{
-								writeLine( "<" + name + ">" );
+								writeLineRaw( "<" + name + ">" );
 								
 								indent();
 														
 								if ( type == String.class ){
 									
-									writeLine( (String)field.get( obj ));
+									writeLineEscaped( (String)field.get( obj ));
 									
 								}else if ( type == Integer.class ){
 										
-									writeLine( ""+((Integer)field.get( obj )).intValue());
+									writeLineEscaped( ""+((Integer)field.get( obj )).intValue());
 									
 								}else if ( type == long.class ){
 									
-									writeLine( ""+field.getLong( obj ));
+									writeLineEscaped( ""+field.getLong( obj ));
 									
 								}else if ( type == boolean.class ){
 									
-									writeLine( ""+field.getBoolean( obj ));
+									writeLineEscaped( ""+field.getBoolean( obj ));
 									
 								}else if ( type == byte.class ){
 									
-									writeLine( ""+field.getByte( obj ));
+									writeLineEscaped( ""+field.getByte( obj ));
 									
 								}else if ( type == char.class ){
 									
-									writeLine( ""+field.getChar( obj ));
+									writeLineEscaped( ""+field.getChar( obj ));
 									
 								}else if ( type == double.class ){
 									
-									writeLine( ""+field.getDouble( obj ));
+									writeLineEscaped( ""+field.getDouble( obj ));
 									
 								}else if ( type == float.class ){
 									
-									writeLine( ""+field.getFloat( obj ));
+									writeLineEscaped( ""+field.getFloat( obj ));
 									
 								}else if ( type == int.class ){
 									
-									writeLine( ""+field.getInt( obj ));
+									writeLineEscaped( ""+field.getInt( obj ));
 									
 								}else if ( type == short.class ){
 									
-									writeLine( ""+field.getShort( obj ));
+									writeLineEscaped( ""+field.getShort( obj ));
 									
 								}else if ( type == Long.class ){
 									
-									writeLine( ""+field.get( obj ));
+									writeLineEscaped( ""+field.get( obj ));
 									
 								}else{
 									
@@ -510,7 +510,7 @@ XMLRequestProcessor
 								
 								exdent();
 								
-								writeLine( "</" + name + ">" );
+								writeLineRaw( "</" + name + ">" );
 							}
 						}
 					}

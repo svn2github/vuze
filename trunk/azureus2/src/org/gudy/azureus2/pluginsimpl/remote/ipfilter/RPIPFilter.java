@@ -113,6 +113,19 @@ RPIPFilter
 			
 				return( new RPReply( rp_range ));
 			}
+		}else if ( method.equals( "getRanges")){
+				
+				IPRange[] ranges = delegate.getRanges();
+						
+				RPIPRange[] rp_ranges = new RPIPRange[ranges.length];
+				
+				for (int i=0;i<ranges.length;i++){
+					
+					rp_ranges[i] = RPIPRange.create( ranges[i] );
+				}
+				
+				return( new RPReply( rp_ranges ));
+				
 		}else if ( method.equals( "save" )){
 		
 			try{
@@ -195,9 +208,18 @@ RPIPFilter
 	public IPRange[]
 	getRanges()
 	{
-		notSupported();
+		RPIPRange[] resp = (RPIPRange[])_dispatcher.dispatch( 
+				new RPRequest( 
+						this, 
+						"getRanges", 
+						null)).getResponse();
+
+		for (int i=0;i<resp.length;i++){
+			
+			resp[i]._setRemote( _dispatcher );
+		}
 		
-		return( null );
+		return( resp );
 	}
 
 	public boolean 

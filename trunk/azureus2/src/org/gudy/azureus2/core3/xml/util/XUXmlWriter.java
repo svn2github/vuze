@@ -74,7 +74,7 @@ XUXmlWriter
 		String		tag,
 		String		content )
 	{
-		writeLine( "<" + tag + ">" + escapeXML( content ) + "</" + tag + ">" );	
+		writeLineRaw( "<" + tag + ">" + escapeXML( content ) + "</" + tag + ">" );	
 	}
 	
 	protected void
@@ -82,16 +82,23 @@ XUXmlWriter
 		String		tag,
 		long		content )
 	{
-		writeLine( "<" + tag + ">" + content + "</" + tag + ">" );	
+		writeLineRaw( "<" + tag + ">" + content + "</" + tag + ">" );	
 	}
 		
 	protected void
-	writeLine(
+	writeLineRaw(
 		String	str )
 	{
 		writer.println( current_indent_string + str );
 	}
 	
+	protected void
+	writeLineEscaped(
+		String	str )
+	{
+		writer.println( current_indent_string + escapeXML(str));
+	}
+
 	protected void
 	resetIndent()
 	{

@@ -85,11 +85,11 @@ TOTorrentXMLSerialiser
 	
 		throws TOTorrentException
 	{
-		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
-		writeLine( "<tor:TORRENT" );
-		writeLine( "\txmlns:tor=\"http://azureus.sourceforge.net/files\"" );
-		writeLine( "\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
-		writeLine( "\txsi:schemaLocation=\"http://azureus.sourceforge.net/files http://azureus.sourceforge.net/files/torrent.xsd\">" );
+		writeLineRaw( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		writeLineRaw( "<tor:TORRENT" );
+		writeLineRaw( "\txmlns:tor=\"http://azureus.sourceforge.net/files\"" );
+		writeLineRaw( "\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
+		writeLineRaw( "\txsi:schemaLocation=\"http://azureus.sourceforge.net/files http://azureus.sourceforge.net/files/torrent.xsd\">" );
 			
 		try{
 			indent();
@@ -100,7 +100,7 @@ TOTorrentXMLSerialiser
 		
 			if (sets.length > 0 ){
 
-				writeLine( "<ANNOUNCE_LIST>");
+				writeLineRaw( "<ANNOUNCE_LIST>");
 				
 				try{			
 					indent();
@@ -111,7 +111,7 @@ TOTorrentXMLSerialiser
 					
 						URL[]	urls = set.getAnnounceURLs();
 															
-						writeLine( "<ANNOUNCE_ENTRY>");
+						writeLineRaw( "<ANNOUNCE_ENTRY>");
 					
 						try{
 							indent();
@@ -125,13 +125,13 @@ TOTorrentXMLSerialiser
 							exdent();
 						}
 						
-						writeLine( "</ANNOUNCE_ENTRY>");
+						writeLineRaw( "</ANNOUNCE_ENTRY>");
 					}
 				}finally{
 					exdent();
 				}
 				
-				writeLine( "</ANNOUNCE_LIST>");
+				writeLineRaw( "</ANNOUNCE_LIST>");
 			}
 		
 			byte[] comment = torrent.getComment();
@@ -174,7 +174,7 @@ TOTorrentXMLSerialiser
 			
 			exdent();
 		}
-		writeLine( "</tor:TORRENT>");
+		writeLineRaw( "</tor:TORRENT>");
 	}
 	
 	protected void
@@ -182,7 +182,7 @@ TOTorrentXMLSerialiser
 	
 		throws TOTorrentException
 	{
-		writeLine( "<INFO>" );
+		writeLineRaw( "<INFO>" );
 		
 		try{
 			indent();
@@ -201,14 +201,14 @@ TOTorrentXMLSerialiser
 			
 			}else{
 
-				writeLine( "<FILES>");
+				writeLineRaw( "<FILES>");
 		
 				try{
 					indent();
 				
 					for (int i=0;i<files.length;i++){
 					
-						writeLine( "<FILE>");
+						writeLineRaw( "<FILE>");
 						
 						try{
 							
@@ -218,7 +218,7 @@ TOTorrentXMLSerialiser
 											
 							writeTag( "LENGTH", file.getLength());
 						
-							writeLine( "<PATH>");
+							writeLineRaw( "<PATH>");
 							
 							try{				
 								
@@ -236,7 +236,7 @@ TOTorrentXMLSerialiser
 								exdent();
 							}
 							
-							writeLine( "</PATH>");
+							writeLineRaw( "</PATH>");
 				
 							Map additional_properties = file.getAdditionalProperties();
 						
@@ -253,17 +253,17 @@ TOTorrentXMLSerialiser
 							exdent();
 						}
 						
-						writeLine( "</FILE>");
+						writeLineRaw( "</FILE>");
 					}
 				}finally{
 					
 					exdent();
 				}
 				
-				writeLine( "</FILES>");
+				writeLineRaw( "</FILES>");
 			}
 			
-			writeLine( "<PIECES>");
+			writeLineRaw( "<PIECES>");
 					
 			try{
 				indent();
@@ -278,7 +278,7 @@ TOTorrentXMLSerialiser
 				exdent();
 			}
 		
-			writeLine( "</PIECES>");
+			writeLineRaw( "</PIECES>");
 
 			Map additional_properties = torrent.getAdditionalInfoProperties();
 		
@@ -296,7 +296,7 @@ TOTorrentXMLSerialiser
 			exdent();
 		}
 		
-		writeLine( "</INFO>");
+		writeLineRaw( "</INFO>");
 	}
 	
 	protected void
@@ -306,7 +306,7 @@ TOTorrentXMLSerialiser
 		
 		throws TOTorrentException
 	{
-		writeLine( "<KEY name=\"" + escapeXML( name ) + "\">");
+		writeLineRaw( "<KEY name=\"" + escapeXML( name ) + "\">");
 		
 		try{
 			indent();
@@ -317,7 +317,7 @@ TOTorrentXMLSerialiser
 			exdent();
 		}
 		
-		writeLine( "</KEY>");
+		writeLineRaw( "</KEY>");
 	}
 	
 	protected void
@@ -350,7 +350,7 @@ TOTorrentXMLSerialiser
 		
 		throws TOTorrentException
 	{
-		writeLine( "<MAP>" );
+		writeLineRaw( "<MAP>" );
 		
 		try{
 			indent();
@@ -368,7 +368,7 @@ TOTorrentXMLSerialiser
 			exdent();
 		}	
 
-		writeLine( "</MAP>" );
+		writeLineRaw( "</MAP>" );
 	}
 	
 	protected void
@@ -377,7 +377,7 @@ TOTorrentXMLSerialiser
 		
 		throws TOTorrentException
 	{
-		writeLine( "<LIST>" );
+		writeLineRaw( "<LIST>" );
 		
 		try{
 			indent();
@@ -391,7 +391,7 @@ TOTorrentXMLSerialiser
 			exdent();
 		}
 		
-		writeLine( "</LIST>" );
+		writeLineRaw( "</LIST>" );
 	}
 	
 	protected void
@@ -417,7 +417,7 @@ TOTorrentXMLSerialiser
 		
 		throws TOTorrentException
 	{
-		writeLine( "<" + tag + ">" + encodeBytes( content ) + "</" + tag + ">" );	
+		writeLineRaw( "<" + tag + ">" + encodeBytes( content ) + "</" + tag + ">" );	
 	}
 		
 	protected void
@@ -443,7 +443,7 @@ TOTorrentXMLSerialiser
 		}catch( UnsupportedEncodingException e ){
 		}
 		
-		writeLine( "<" + tag + " encoding=\""+(use_bytes?"bytes":"utf8") + "\">" + 
+		writeLineRaw( "<" + tag + " encoding=\""+(use_bytes?"bytes":"utf8") + "\">" + 
 					(use_bytes?encodeBytes( content ):escapeXML(utf_string)) + "</" + tag + ">" );	
 	}
 	
