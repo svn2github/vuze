@@ -138,29 +138,51 @@ public class PeerSocket extends PeerConnection {
     readBuffer.position(0);
     //Now test for data...
 
-    if (readBuffer.get() != (byte) PROTOCOL.length())
-      bContinue = false;
-
-    byte[] protocol = PROTOCOL.getBytes();
-    readBuffer.get(protocol);
-    if (!(new String(protocol)).equals(PROTOCOL))
-      bContinue = false;
-
-    byte[] reserved = new byte[8];
-    readBuffer.get(reserved);
-    //Ignores reserved bytes
-
-    byte[] hash = manager.getHash();
-
-    byte[] otherHash = new byte[20];
-    readBuffer.get(otherHash);
-    for (int i = 0; i < 20; i++) {
-      if (otherHash[i] != hash[i])
-        bContinue = false;
+    if (readBuffer.get() != (byte) PROTOCOL.length()) {
+       bContinue = false;
     }
 
+    if (bContinue) {
+       byte[] protocol = PROTOCOL.getBytes();
+       if (readBuffer.limit() < protocol.length) {
+          bContinue = false;
+       }
+       else {
+          readBuffer.get(protocol);
+          if (!(new String(protocol)).equals(PROTOCOL)) bContinue = false;
+       }
+    }
+
+    if (bContinue) {
+      byte[] reserved = new byte[8];
+      if (readBuffer.limit() < reserved.length) {
+         bContinue = false;
+      }
+      else readBuffer.get(reserved);
+      //Ignores reserved bytes
+    }
+
+    if (bContinue) {
+      byte[] hash = manager.getHash();
+      byte[] otherHash = new byte[20];
+      if (readBuffer.limit() < otherHash.length) {
+         bContinue = false;
+      }
+      else {
+         readBuffer.get(otherHash);
+         for (int i = 0; i < 20; i++) {
+            if (otherHash[i] != hash[i]) bContinue = false;
+         }
+      }
+    }
+    
     byte[] otherPeerId = new byte[20];
-    readBuffer.get(otherPeerId);
+    if (bContinue) {
+       if (readBuffer.limit() < otherPeerId.length) {
+          bContinue = false;
+       }
+       else readBuffer.get(otherPeerId);
+    }
 
     if (bContinue && incoming) {
       //HandShaking is ok so far
@@ -182,20 +204,22 @@ public class PeerSocket extends PeerConnection {
         bContinue = false;
     }
 
-    try {
-      client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
-      String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
-      if (xan.equals("DansClient "))
-        client = "Xan'";
-      String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
-      if (azureus.equals("Azureus"))
-        client = "Azureus";
-      String shadow = new String(otherPeerId, 0, 1);
-      if (shadow.equals("S")) {
-        client = "Shadow";
+    if (bContinue) {
+       try {
+         client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
+         String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
+         if (xan.equals("DansClient "))
+            client = "Xan'";
+         String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
+         if (azureus.equals("Azureus"))
+            client = "Azureus";
+         String shadow = new String(otherPeerId, 0, 1);
+         if (shadow.equals("S")) {
+            client = "Shadow";
+         }
       }
+      catch (Exception e) {}
     }
-    catch (Exception e) {}
 
     if (!bContinue)
       closeAll(true);
@@ -983,6 +1007,7 @@ public class PeerSocket extends PeerConnection {
         //Assign the current buffer ...
         keepAlive = 0;
         writeBuffer = (ByteBuffer) protocolQueue.remove(0);
+        if (writeBuffer == null) System.out.println("null writebuffer");
         writeBuffer.position(0);
         writeData = false;
         //and loop
