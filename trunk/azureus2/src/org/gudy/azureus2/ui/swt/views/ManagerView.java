@@ -8,17 +8,20 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 /**
  * @author Olivier
  * 
  */
-public class ManagerView extends AbstractIView {
+public class ManagerView extends AbstractIView implements DownloadManagerListener {
 
   DownloadManager manager;
   TabFolder folder;
@@ -40,6 +43,7 @@ public class ManagerView extends AbstractIView {
 
   public ManagerView(DownloadManager manager) {
     this.manager = manager;
+    manager.addListener(this);
   }
 
   /* (non-Javadoc)
@@ -152,4 +156,60 @@ public class ManagerView extends AbstractIView {
     } catch (Exception e) {
     }
   }
+  
+  public boolean isEnabled(String itemKey) {
+    if(itemKey.equals("run"))
+      return true;
+    if(itemKey.equals("start"))
+      return ManagerUtils.isStartable(manager);
+    if(itemKey.equals("stop"))
+      return ManagerUtils.isStopable(manager);
+    if(itemKey.equals("host"))
+      return true;
+    if(itemKey.equals("remove"))
+      return ManagerUtils.isRemoveable(manager);
+    return false;
+  }
+  
+  public void itemActivated(String itemKey) {
+	  if(itemKey.equals("run")) {
+	    ManagerUtils.run(manager);
+	    return;
+	  }
+	  if(itemKey.equals("start")) {
+	    ManagerUtils.start(manager);
+	    return;
+	  }
+	  if(itemKey.equals("stop")) {
+	    ManagerUtils.stop(manager,folder);
+	    return;
+	  }
+	  if(itemKey.equals("host")) {
+	    ManagerUtils.host(manager,folder);
+	    MainWindow.getWindow().showMyTracker();
+	    return;
+	  }
+	  if(itemKey.equals("remove")) {
+	    ManagerUtils.remove(manager);
+	    return;
+	  }
+  }
+  
+  
+  public void downloadComplete() {   
+  }
+
+  public void stateChanged(int state) {
+    if(folder == null || folder.isDisposed())
+      return;    
+    Display display = folder.getDisplay();
+    if(display == null || display.isDisposed())
+      return;
+    display.asyncExec(new Runnable() {
+	    public void run() {
+	      MainWindow.getWindow().refreshIconBar();  
+	    }
+    });    
+  }
+
 }

@@ -46,5 +46,17 @@ public abstract class AbstractIView implements IView {
   public void updateLanguage() {
     Messages.updateLanguageForControl(getComposite());
   }
+  
+  
+  public boolean isEnabled(String itemKey) {
+    return false;
+  }
+  
+  public boolean isSelected(String itemKey) {
+    return false;
+  }
+
+  public void itemActivated(String itemKey) {   
+  }
 
 }

@@ -64,6 +64,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -92,7 +93,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  * @author Olivier
  *  
  */
-public class MainWindow implements GlobalManagerListener, ParameterListener {
+public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private String latestVersion = ""; //$NON-NLS-1$
@@ -161,8 +162,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   private StartServer startServer;
 
   private class GUIUpdater extends Thread implements ParameterListener {
-    boolean finished = false;
-    IView view;
+    boolean finished = false;    
     int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
 
     public GUIUpdater() {
@@ -193,20 +193,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       if (display != null && !display.isDisposed())
         display.asyncExec(new Runnable() {
         public void run() {
-          view = null;
+          IView view = null;
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
 
-            try {
-              if(!useCustomTab) {
-                view = Tab.getView(((TabFolder)folder).getSelection()[0]);
-              } else {
-                view = Tab.getView(((CTabFolder)folder).getSelection());
-              }
-
-            }
-            catch (Exception e) {
-              view = null;
-            }
+            view = getCurrentView();
+            
             if (view != null) {
               view.refresh();
               Tab.refresh();
@@ -483,14 +474,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
     file_new_torrent.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
-        String fileName = fDialog.open();
-        if (fileName == null)
-          return;
-        openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
+        openTorrent();
       }
     });
     
@@ -498,15 +482,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
     file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
-        String fileName = fDialog.open();
-        if (fileName == null)
-          return;
-        openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false);
-      }
+        openTorrentNoDefaultSave();
+      }      
     });
 
     MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
@@ -520,23 +497,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
     file_new_folder.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-        
-        if ( COConfigurationManager.getBooleanParameter( "Save Torrent Files", true )){
-        
-			String	default_path = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
-		
-			if ( default_path.length() > 0 ){
-        
-				fDialog.setFilterPath(default_path);
-			}
-        }
-
-        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
-        String fileName = fDialog.open();
-        if (fileName == null)
-          return;
-        openTorrentsFromDirectory(fileName);
+        openDirectory();
       }
     });
 
@@ -704,6 +665,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     mainWindow.setLayout(mainLayout);
     
     this.iconBar = new IconBar(mainWindow);
+    this.iconBar.setCurrentEnabler(this);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     this.iconBar.setLayoutData(gridData);
     
@@ -716,6 +678,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     folder.setLayoutData(gridData);
     
     Tab.setFolder(folder);   
+    SelectionAdapter selectionAdapter = new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+        if(display != null && ! display.isDisposed())
+          display.asyncExec(new Runnable() {
+	          public void run() {
+	            iconBar.setCurrentEnabler(MainWindow.this);
+	          }
+          });       
+      }
+    };
     
     if(!useCustomTab) {
       ((TabFolder)folder).addKeyListener(new KeyAdapter() {
@@ -726,6 +698,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
           }
         }
       });
+      ((TabFolder)folder).addSelectionListener(selectionAdapter);
     } else {    
       ((CTabFolder)folder).setSelectionBackground(new Color[] { white }, new int[0]);
       ((CTabFolder)folder).setLayoutData(gridData);
@@ -735,6 +708,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
           event.doit = true;
         }
       });
+      ((CTabFolder)folder).addSelectionListener(selectionAdapter);
     }
 
     setSplashPercentage(40);
@@ -885,6 +859,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       my_tracker_tab = new Tab(my_tracker_view);
     } else {
       my_tracker_tab.setFocus();
+      refreshIconBar();
     }
   }
 
@@ -896,6 +871,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
         mytorrents = new Tab(viewMyTorrents);
     } else
       mytorrents.setFocus();
+    	refreshIconBar();
   }
 	
   private void minimizeToTray(ShellEvent event) {
@@ -1710,6 +1686,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       if (downloadViews.containsKey(downloadManager)) {
         Tab tab = (Tab) downloadViews.get(downloadManager);
         tab.setFocus();
+        refreshIconBar();
       }
       else {
         Tab tab = new Tab(new ManagerView(downloadManager));
@@ -2183,6 +2160,115 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       tray.setVisible(false);
       tray = null;
     }
+  }
+  
+  
+
+  public boolean isEnabled(String itemKey) {
+    if(itemKey.equals("open"))
+      return true;
+    if(itemKey.equals("open_no_default"))
+      return true;
+    if(itemKey.equals("open_url"))
+      return true;
+    if(itemKey.equals("open_folder"))
+      return true;
+    if(itemKey.equals("new"))
+      return true;
+    IView currentView = getCurrentView();
+    if(currentView != null)
+      return currentView.isEnabled(itemKey);
+    return false;
+  }
+
+  public boolean isSelected(String itemKey) {   
+    return false;
+  }
+
+  public void itemActivated(String itemKey) {   
+    if(itemKey.equals("open")) {        
+     openTorrent();
+     return;
+    }
+    if(itemKey.equals("open_no_default")) {
+      openTorrentNoDefaultSave();
+      return;
+    }
+    if(itemKey.equals("open_url")) {
+      openUrl();
+      return;
+    }
+    if(itemKey.equals("open_folder")) {
+      openDirectory();
+      return;
+    }
+    if(itemKey.equals("new")) {
+      new NewTorrentWizard(display);
+      return;
+    }
+    IView currentView = getCurrentView();
+    if(currentView != null)
+      currentView.itemActivated(itemKey);    
+  }
+  
+  private IView getCurrentView() {
+	  try {
+	    if(!useCustomTab) {
+	      return Tab.getView(((TabFolder)folder).getSelection()[0]);
+	    } else {
+	      return Tab.getView(((CTabFolder)folder).getSelection());
+	    }
+	
+	  }
+	  catch (Exception e) {
+	    return null;
+	  }
+  }
+  
+  private void openTorrent() {
+    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
+  }
+  
+  private void openTorrentNoDefaultSave() {
+    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false);
+  }
+  
+  private void openDirectory() {
+    DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+    
+    if ( COConfigurationManager.getBooleanParameter( "Save Torrent Files", true )){
+      
+      String	default_path = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
+      
+      if ( default_path.length() > 0 ){
+        
+        fDialog.setFilterPath(default_path);
+      }
+    }
+
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    openTorrentsFromDirectory(fileName);
+  }
+  
+  public void refreshIconBar() {
+    iconBar.setCurrentEnabler(this);
   }
 
 }

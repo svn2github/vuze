@@ -122,7 +122,7 @@ public class ConfigView extends AbstractIView {
     initGroupIrc();
     initGroupFilter();
     initGroupPlugins();
-	initStats();
+    initStats();
     initStyle();
     initTracker();
     initLogging();
@@ -1026,8 +1026,9 @@ public class ConfigView extends AbstractIView {
              + "\\bin\\javaw.exe.manifest");
        if (f.exists()) {
          enabled = true;
-       f= new File("javaw.exe.manifest");
-       if(f.exists())
+       }
+       f= FileUtil.getApplicationFile("javaw.exe.manifest");
+       if(f.exists()) {
            valid = true;
        }
      } catch (Exception e) {

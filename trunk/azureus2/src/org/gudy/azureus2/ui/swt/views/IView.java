@@ -5,12 +5,13 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 /**
  * @author Olivier
  * 
  */
-public interface IView {
+public interface IView extends IconBarEnabler {
   /**
    * This method is called when the view is intanciated, it should initialize all GUI
    * components. Must NOT be blocking, or it'll freeze the whole GUI.

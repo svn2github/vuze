@@ -131,6 +131,7 @@ public class Tab {
         e.printStackTrace();
       }
     }
+    MainWindow.getWindow().refreshIconBar();
   }
 
   //public static IView getView(TabItem item) {

@@ -33,7 +33,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -68,6 +67,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
@@ -438,15 +438,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 barsOpened = false;
 
               int state = dm.getState();
-              if (state == DownloadManager.STATE_STOPPED) {
-                stop = false;
-                //recheck = false;
-              }
-              if (state != DownloadManager.STATE_STOPPED
-                && state != DownloadManager.STATE_ERROR
-                && state != DownloadManager.STATE_DUPLICATE) {
-                remove = false;
-              }
+              stop = stop && ManagerUtils.isStopable(dm);
+              remove = remove && ManagerUtils.isRemoveable(dm);
+              start = start && ManagerUtils.isStartable(dm);
+
               if (state != DownloadManager.STATE_STOPPED) {
                 start = false;
                 recheck = false;
@@ -628,7 +623,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
         TableItem ti = tis[0];
         DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-        Program.launch(dm.getFullName());
+        ManagerUtils.run(dm);
       }
     });
 
@@ -651,17 +646,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          TOTorrent torrent = dm.getTorrent();
-          if (torrent != null) {
-            try {
-              TRHostFactory.create().hostTorrent(torrent);
-            } catch (TRHostException e) {
-              MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
-              mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-              mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
-              mb.open();
-            }
-          }
+          ManagerUtils.host(dm,panel);
         }
         MainWindow.getWindow().showMyTracker();
       }
@@ -778,7 +763,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);          
           dm.setStartStopLocked(itemLockStartStop.getSelection());
         }
       }
@@ -1076,10 +1061,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null
-          && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
-        globalManager.removeDownloadManager(dm);
-      }
+      ManagerUtils.remove(dm);
     }
   }
 
@@ -1088,26 +1070,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null) {
-        if (dm.getState() == DownloadManager.STATE_SEEDING
-            && dm.getStats().getShareRatio() >= 0
-            && dm.getStats().getShareRatio() < 1000
-            && COConfigurationManager.getBooleanParameter("Alert on close", true)) {
-          MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-          mb.setText(MessageText.getString("seedmore.title"));
-          mb.setMessage(
-              MessageText.getString("seedmore.shareratio")
-              + (dm.getStats().getShareRatio() / 10)
-              + "%.\n"
-              + MessageText.getString("seedmore.uploadmore"));
-          int action = mb.open();
-          if (action == SWT.YES)
-            dm.stopIt();
-        }
-        else {
-          dm.stopIt();
-        }
-      }
+      ManagerUtils.stop(dm,panel);
     }
   }
 
@@ -1116,9 +1079,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      if (dm != null) {
-        dm.setState(DownloadManager.STATE_WAITING);
-      }
+      ManagerUtils.start(dm);      
     }   
   }
     
