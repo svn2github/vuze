@@ -334,8 +334,11 @@ public class FileUtil {
 	    	return( res );
 	    	
 	    }catch( Throwable e ){
-	    	
-	    		// Occurs when file is there but b0rked
+	    	// Occurs when file is there but b0rked
+        
+        //rename it in case it actually contains useful data, so it won't be overwritten next save
+        File bad = new File( file.getParentFile(), file.getName() + ".bad" );
+        file.renameTo( bad );
 	    	
 	    	if ( using_backup ){
 		
