@@ -919,7 +919,14 @@ public class DiskManager {
   }
 
   public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
+    
     ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer();
+    
+    if (buffer == null) {     // Fix for bug #804874 - why no free buffers?
+        System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
+        return buffer;
+    }
+
     buffer.position(0);
     buffer.limit(length + 13);
     buffer.putInt(length + 9);
