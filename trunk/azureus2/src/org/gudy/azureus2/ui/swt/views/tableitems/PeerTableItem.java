@@ -53,7 +53,7 @@ public class PeerTableItem {
     this.oldTexts = new String[19];
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";	
-
+    final PeerTableItem thisItem = this;
     display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
@@ -73,7 +73,7 @@ public class PeerTableItem {
               image.dispose();
           }
         });        
-        tableItems.put(item, this);
+        tableItems.put(item, thisItem);
       }
     });  
   }
