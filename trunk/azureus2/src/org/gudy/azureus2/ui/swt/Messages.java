@@ -114,20 +114,6 @@ public class Messages {
     }
   }
   
-  /**
-   * Set the given widget's tool tip using the given MessagesBundle property.
-   */
-  /*public static void setToolTip(Widget widget, String key) {
-    String tip = MessageText.getString(key);
-    if (tip.startsWith("!")) tip = "...";
-    
-    if (widget instanceof Label) {
-      ((Label)widget).setToolTipText(tip);   
-      return;
-    }
-    
-  }*/
-  
 
   public static void updateLanguageFromData(Widget widget) {
     if (widget.getData() != null) {
