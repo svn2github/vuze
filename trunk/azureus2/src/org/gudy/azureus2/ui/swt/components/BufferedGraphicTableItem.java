@@ -128,9 +128,9 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       }
     }
     
+    Table table = getTable();
     boolean ourGC = (gc == null);
     if (ourGC) {
-      Table table = getTable();
       Rectangle tableBounds = table.getClientArea();
       // all OSes, scrollbars are excluded (I hope!)
       // some OSes (all?), table header is included in client area
