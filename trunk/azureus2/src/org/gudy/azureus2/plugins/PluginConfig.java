@@ -25,15 +25,18 @@ package org.gudy.azureus2.plugins;
  * @author Olivier
  *
  */
-public interface PluginConfig {  
-
+public interface 
+PluginConfig 
+{  
+	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_BYTES_PER_SEC	= "Max Upload Speed";
+	
   /**
    * returns the value of a core int parameter
    * @param key the parameter name
    * @return the value of the parameter
    */
   public int getIntParameter(String key);
-
+	
   /**
    * returns the value of a core int parameter
    * @param key the parameter name
@@ -43,10 +46,22 @@ public interface PluginConfig {
   public int getIntParameter(String key, int default_value);
   
   /**
+   * sets a core parameter.  
+   * @param key		must be from above core constants
+   * @param value
+   */
+  
+  public void
+  setIntParameter(
+  	String	key, 
+	int		value );
+  
+  /**
    * returns the value of a core String parameter
    * @param key the parameter name
    * @return the value of the parameter
    */
+  
   public String getStringParameter(String key);
   
   /**

@@ -62,7 +62,19 @@ public class PluginConfigImpl
 		return config.getIntParameter(name, default_value);
 	}
 
-
+	public void
+	setIntParameter(
+	  	String	key, 
+		int		value )
+	{
+		if ( key != CORE_PARAM_INT_MAX_UPLOAD_SPEED_BYTES_PER_SEC ){
+			
+			throw( new RuntimeException("Invalid code int parameter"));
+		}
+		
+		config.setParameter( key, value );
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
 	 */

@@ -126,6 +126,14 @@ RPPluginConfig
 	  	
 	  	return(0);
 	  }
+		
+	  public void
+	  setIntParameter(
+		  	String	key, 
+			int		value )
+	  {
+	  	notSupported();
+	  }
 	  
 	  public String getStringParameter(String key)
 	  {

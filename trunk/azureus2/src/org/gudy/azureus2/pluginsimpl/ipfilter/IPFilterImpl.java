@@ -68,13 +68,13 @@ IPFilterImpl
 	public IPRange[]
 	getRanges()
 	{
-		List	l = filter.getIpRanges();
+		IpRange[] l = filter.getRanges();
 		
-		IPRange[]	res = new IPRange[l.size()];
+		IPRange[]	res = new IPRange[l.length];
 		
-		for (int i=0;i<l.size();i++){
+		for (int i=0;i<l.length;i++){
 			
-			res[i] = new IPRangeImpl((IpRange)l.get(i));
+			res[i] = new IPRangeImpl(l[i]);
 		}
 		
 		return( res );
@@ -103,19 +103,19 @@ IPFilterImpl
 			throw( new RuntimeException( "range must be created by createRange"));
 		}
 		
-		filter.getIpRanges().add( range );
+		filter.addRange(((IPRangeImpl)range).getRange());
 	}
 	
 	public IPBlocked[]
 	getBlockedIPs()
 	{
-		List	l = filter.getBlockedIps();
+		BlockedIp[]	l = filter.getBlockedIps();
 		
-		IPBlocked[]	res = new IPBlocked[l.size()];
+		IPBlocked[]	res = new IPBlocked[l.length];
 		
-		for (int i=0;i<l.size();i++){
+		for (int i=0;i<l.length;i++){
 			
-			res[i] = new IPBlockedImpl((BlockedIp)l.get(i));
+			res[i] = new IPBlockedImpl(l[i]);
 		}
 		
 		return( res );

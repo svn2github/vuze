@@ -2288,15 +2288,14 @@ public class ConfigView extends AbstractIView {
   }
 
   private void populateTable() {
-    List ipRanges = filter.getIpRanges();
+   IpRange[] IpRanges = filter.getRanges();
     Display display = cConfig.getDisplay();
     if(display == null || display.isDisposed()) {
       return;
     }
-    synchronized (ipRanges) {
-      Iterator iter = ipRanges.iterator();
-      while (iter.hasNext()) {
-        final IpRange range = (IpRange) iter.next();
+      
+     for (int i=0;i<IpRanges.length;i++){
+        final IpRange range = IpRanges[i];
         display.asyncExec(new Runnable() {
           public void run() {
             if(table == null || table.isDisposed())
@@ -2310,24 +2309,20 @@ public class ConfigView extends AbstractIView {
           }
         });
       }
-    }
   }
 
   public void removeRange(IpRange range) {
-    List ranges = filter.getIpRanges();
-    synchronized (ranges) {
-      ranges.remove(range);
-    }
+  	filter.removeRange( range );
     noChange = false;
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(cConfig.getDisplay(), table, filter.getIpRanges(), range);
+    new IpFilterEditor(cConfig.getDisplay(), table, range);
     noChange = false;
   }
 
   public void addRange() {
-    new IpFilterEditor(cConfig.getDisplay(), table, filter.getIpRanges(), null);
+    new IpFilterEditor(cConfig.getDisplay(), table, null);
     noChange = false;
   }
 

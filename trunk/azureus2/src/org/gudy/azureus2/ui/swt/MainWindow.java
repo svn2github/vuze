@@ -2741,12 +2741,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   private void showBlockedIps() {
     StringBuffer sb = new StringBuffer();
-    List blocked = IpFilter.getInstance().getBlockedIps();
-    Iterator iter = blocked.iterator();
+    BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
     String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
     String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");    
-    while(iter.hasNext()) {
-      BlockedIp bIp = (BlockedIp) iter.next();
+    for(int i=0;i<blocked.length;i++){
+      BlockedIp bIp = blocked[i];
       sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
       sb.append("\t");
       sb.append(bIp.getBlockedIp());

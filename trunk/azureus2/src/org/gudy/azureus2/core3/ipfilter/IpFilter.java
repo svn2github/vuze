@@ -51,18 +51,34 @@ IpFilter
 	
 		throws Exception;
 	
-	public abstract List getIpRanges();
+	/**
+	 * deprecated and to be removed after 2.0.8.0. Left in to support old SafePeer plugin
+	 * version that uses this stuff directly... 
+	 * @return
+	 */
+	public abstract List
+	getIpRanges();
+	
+	public abstract IpRange[] getRanges();
 
 	public abstract boolean isInRange(String ipAddress);
 	
 	public abstract IpRange
 	createRange(boolean sessionOnly);
 	
+	public abstract void
+	addRange(
+		IpRange	range );
+	
+	public abstract void
+	removeRange(
+		IpRange	range );
+	
 	public abstract int getNbRanges();
 	
 	public abstract int getNbIpsBlocked();
 	
-	public abstract List getBlockedIps();
+	public abstract BlockedIp[] getBlockedIps();
 	
 	
 	public abstract void ban(String ipAddress);

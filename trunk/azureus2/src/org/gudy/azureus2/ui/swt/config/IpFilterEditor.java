@@ -21,8 +21,6 @@
 
 package org.gudy.azureus2.ui.swt.config;
 
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -51,15 +49,13 @@ public class IpFilterEditor {
   Display display;
   Table table;
   
-  List ipRanges;
   IpRange range;
 
   boolean newRange;
 
-  public IpFilterEditor(Display display,Table _table, List _ipRanges, final IpRange _range) {
+  public IpFilterEditor(Display display,Table _table, final IpRange _range) {
     this.display = display;
     this.table = _table;
-    this.ipRanges = _ipRanges;
     this.range = _range;
     if (range == null) {
       newRange = true;
@@ -111,12 +107,27 @@ public class IpFilterEditor {
         range.setEndIp( textEndIp.getText());
         range.checkValid();
         if (newRange) {
-          ipRanges.add(range);
+          IpFilter.getInstance().addRange(range);
           TableItem item = new TableItem(table,SWT.NULL);
           item.setData(range);
           item.setImage(0,ImageRepository.getImage("ipfilter"));
-        }        
-        shell.dispose();
+          item.setText(0, range.getDescription());
+          item.setText(1, range.getStartIp());
+          item.setText(2, range.getEndIp());
+        }else{
+        	TableItem[] items = table.getItems();
+        	
+        	for (int i=0;i<items.length;i++){
+        		
+        		if ( items[i].getData() == range ){
+        			
+        	        items[i].setText(0, range.getDescription());
+        	        items[i].setText(1, range.getStartIp());
+        	        items[i].setText(2, range.getEndIp());
+        	   	}
+        	}
+        }
+         shell.dispose();
       }
     });   
     

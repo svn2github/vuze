@@ -210,14 +210,48 @@ IpFilterImpl
 	/**
 	 * @return
 	 */
+	
 	public List getIpRanges() {
-	  return ipRanges;
+		  return ipRanges;
+		}
+	
+	public IpRange[]
+	getRanges()
+	{
+		synchronized( ipRanges ){
+			
+			IpRange[]	res = new IpRange[ipRanges.size()];
+			
+			ipRanges.toArray( res );
+			
+			return( res );
+		}
 	}
 	
 	public IpRange
 	createRange(boolean sessionOnly)
 	{
 		return( new IpRangeImpl("","","",sessionOnly));
+	}
+	
+	public void
+	addRange(
+		IpRange	range )
+	{
+		synchronized( ipRanges ){
+		
+			ipRanges.add( range );
+		}
+	}
+	
+	public void
+	removeRange(
+		IpRange	range )
+	{
+		synchronized( ipRanges ){
+		
+			ipRanges.remove( range );
+		}
 	}
 	
 	public int getNbRanges() {
@@ -228,14 +262,25 @@ IpFilterImpl
 	  return nbIpsBlocked;
 	}
 	
-	public void ban(String ipAddress) {
-	  if(!bannedIps.contains(ipAddress))
-	    bannedIps.add(ipAddress);
+	public void 
+	ban(String ipAddress) 
+	{
+		synchronized(ipsBlocked){
+			if(!bannedIps.contains(ipAddress))
+				bannedIps.add(ipAddress);
+		}
 	}
 	
-  public List getBlockedIps() {
-  	synchronized(ipsBlocked) {
-  	  return new ArrayList(ipsBlocked);
+	public BlockedIp[] 
+	getBlockedIps() 
+	{
+		synchronized(ipsBlocked){
+			
+			BlockedIp[]	res = new BlockedIp[ipsBlocked.size()];
+		
+			ipsBlocked.toArray(res);
+			
+			return( res );
+		}	
   	}
-  }
 }
