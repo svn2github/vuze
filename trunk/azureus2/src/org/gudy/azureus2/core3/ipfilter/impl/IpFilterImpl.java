@@ -45,7 +45,7 @@ IpFilterImpl
 	private static IpFilterImpl ipFilter;
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
  
-	private Set 		all_ip_ranges;
+	private List 		all_ip_ranges;
 	
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
@@ -62,7 +62,7 @@ IpFilterImpl
 	{
 	  ipFilter = this;
 	  
-	  all_ip_ranges	= new HashSet();
+	  all_ip_ranges	= new ArrayList(1024);
 	  
 	  bannedIps = new HashMap();
 	  
@@ -164,7 +164,7 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 		
-		  Set new_ipRanges = new HashSet();
+		  List new_ipRanges = new ArrayList(1024);
 	
 		  FileInputStream fin = null;
 		  BufferedInputStream bin = null;
@@ -343,6 +343,8 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 		
+			((IpRangeImpl)range).setAddedToRangeList(true);
+			
 			all_ip_ranges.add( range );
 			
 				// we only allow the validity check to take effect once its added to
@@ -366,6 +368,8 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 		
+			((IpRangeImpl)range).setAddedToRangeList( false );
+			
 			all_ip_ranges.remove( range );
 			
 			range_manager.removeRange( range );
@@ -384,13 +388,16 @@ IpFilterImpl
 	
 	protected void
 	setValidOrNot(
-		IpRange		range,
-		boolean		valid )
+		IpRangeImpl		range,
+		boolean			valid )
 	{
 		try{
 			class_mon.enter();
 
-			if ( !all_ip_ranges.contains( range )){
+				// this is an optimisation to deal with the way safepeer validates stuff
+				// before adding it in
+			
+			if ( !range.getAddedToRangeList()){
 				
 				return;
 			}

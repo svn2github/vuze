@@ -22,7 +22,7 @@
 package org.gudy.azureus2.core3.ipfilter.impl;
 
 import java.net.UnknownHostException;
-import java.util.Stack;
+import java.util.*;
 
 // import java.util.*;
 
@@ -44,7 +44,8 @@ IpRangeImpl
    private Object endIp;		// Integer if value, String/null otherwise
           
    private boolean sessionOnly;
-    
+   private boolean added_to_range_list;
+   
   public 
   IpRangeImpl(
   	String _description, 
@@ -192,6 +193,12 @@ IpRangeImpl
 		"spider".getBytes(),
 		".com".getBytes(),
 		"ads".getBytes(),
+		"customer".getBytes(),
+		"software".getBytes(),
+		"government".getBytes(),
+		"gmbh".getBytes(),
+		"interconnexion".getBytes(),
+		"backbone".getBytes(),
    	};
 			
    
@@ -259,27 +266,31 @@ IpRangeImpl
        						break;
        					}
        				}
+       				
        				/*
-       				String	w = new String(chars,word_start,word_len);
-       				
-       				Integer	x = (Integer)word_map.get(w);
-       				
-       				if ( x == null ){
-       					
-       					x = new Integer(1);
-       				}else{
-       					
-       					int	ff = x.intValue() + 1;
-       					
-       					x = new Integer( ff );
-       					
-       					if ( ff % 100 == 0 ){
-       						
-       						System.out.println(w + " -> " + ff );
-       					}
+       				if ( false ){
+       
+	       				String	w = new String(bytes,word_start,word_len);
+	       				
+	       				Integer	x = (Integer)word_map.get(w);
+	       				
+	       				if ( x == null ){
+	       					
+	       					x = new Integer(1);
+	       				}else{
+	       					
+	       					int	ff = x.intValue() + 1;
+	       					
+	       					x = new Integer( ff );
+	       					
+	       					if ( ff % 100 == 0 && ff > 500 ){
+	       						
+	       						System.out.println(w + " -> " + ff );
+	       					}
+	       				}
+	       				
+	       				word_map.put( w, x );
        				}
-       				
-       				word_map.put( w, x );
        				*/
        			}
        			
@@ -544,5 +555,18 @@ IpRangeImpl
 		}
 		
 		return( this_b.length - other_b.length );
+	}
+	
+	protected void
+	setAddedToRangeList(
+		boolean		b )
+	{
+		added_to_range_list = b;
+	}
+	
+	protected boolean
+	getAddedToRangeList()
+	{
+		return( added_to_range_list );
 	}
  }

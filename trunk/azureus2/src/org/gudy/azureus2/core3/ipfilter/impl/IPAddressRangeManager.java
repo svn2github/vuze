@@ -58,18 +58,9 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			long	s = addressToInt( start );
+			int	s = addressToInt( start );
 			
-			if ( s < 0 ){
-				
-				s += 0x100000000L;
-			}
-			long	e = addressToInt( end );
-			
-			if ( e < 0 ){
-				
-				e += 0x100000000L;
-			}
+			int	e = addressToInt( end );
 			
 			addRange( s, e,user_data);
 							
@@ -79,10 +70,10 @@ IPAddressRangeManager
 		}
 	}
 	
-	public void
+	private void
 	addRange(
-		long	start_int,
-		long	end_int,
+		int		start_int,
+		int		end_int,
 		Object	user_data )
 	{
 		try{
@@ -94,16 +85,16 @@ IPAddressRangeManager
 
 			if( old_entry != null ){
 				
-				if ( old_entry.getStart() == start_int && old_entry.getEnd() == end_int ){
+				if ( old_entry.getStartInt() == start_int && old_entry.getEndInt() == end_int ){
 				
 						// no change, bail out
 					
 					return;
 				}
 				
-				old_entry.setStart( start_int );
+				old_entry.setStartInt( start_int );
 				
-				old_entry.setEnd( end_int );
+				old_entry.setEndInt( end_int );
 				
 			}else{
 				
@@ -142,14 +133,14 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			long i = addressToInt( ip );
+			long address_long = addressToInt( ip );
 			
-			if ( i < 0 ){
+			if ( address_long < 0 ){
 				
-				i += 0x100000000L;
+				address_long += 0x100000000L;
 			}
 			
-			Object res = isInRange( i );
+			Object res = isInRange( address_long );
 			
 			// LGLogger.log( "IPAddressRangeManager: checking '" + ip + "' against " + entries.size() + "/" + merged_entries.length + " -> " + res );
 			
@@ -169,11 +160,11 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			long	address_int	= PRHelpers.addressToInt( address );
+			long	address_long	= PRHelpers.addressToInt( address );
 				
-	    	if ( address_int < 0 ){
+	    	if ( address_long < 0 ){
 	     		
-	    		address_int += 0x100000000L;
+	    		address_long += 0x100000000L;
 	     	}
 	
 			entry	e = (entry)entries.get( user_data );
@@ -183,7 +174,7 @@ IPAddressRangeManager
 				return( false );
 			}
 			
-			return( address_int >= e.getStart() && address_int <= e.getEnd());
+			return( address_long >= e.getStartLong() && address_long <= e.getEndLong());
 
 		}catch( UnknownHostException e ){
 			
@@ -197,7 +188,7 @@ IPAddressRangeManager
 	
 	protected Object
 	isInRange(
-		long	ip_int )
+		long	address_long )
 	{
 		try{
 			this_mon.enter();
@@ -242,16 +233,16 @@ IPAddressRangeManager
 				
 				entry	e = merged_entries[current];
 				
-				long	this_start 	= e.getStart();
-				long 	this_end	= e.getMergedEnd();
+				long	this_start 	= e.getStartLong();
+				long 	this_end	= e.getMergedEndLong();
 				
-				if ( ip_int == this_start ){
+				if ( address_long == this_start ){
 					
 					break;
 					
-				}else if ( ip_int > this_start ){
+				}else if ( address_long > this_start ){
 					
-					if ( ip_int <= this_end ){
+					if ( address_long <= this_end ){
 						
 						break;
 					}
@@ -260,14 +251,14 @@ IPAddressRangeManager
 					
 					bottom	= current + 1;
 					
-				}else if ( ip_int == this_end ){
+				}else if ( address_long == this_end ){
 					
 					break;
 					
 				}else{
 					// < this_end
 					
-					if ( ip_int >= this_start ){
+					if ( address_long >= this_start ){
 						
 						break;
 					}
@@ -280,12 +271,12 @@ IPAddressRangeManager
 	
 				entry	e = merged_entries[current];
 			
-				if ( ip_int <= e.getEnd()){
+				if ( address_long <= e.getEndLong()){
 					
 					return( e.getUserData());
 				}
 				
-				List	merged = e.getMergedEntries();
+				entry[]	merged = e.getMergedEntries();
 				
 				if ( merged == null ){
 					
@@ -294,11 +285,11 @@ IPAddressRangeManager
 					return( null );
 				}
 				
-				for (int i=0;i<merged.size();i++){
+				for (int i=0;i<merged.length;i++){
 					
-					entry	me = (entry)merged.get(i);
+					entry	me = (entry)merged[i];
 					
-					if ( me.getStart() <= ip_int && me.getEnd() >= ip_int ){
+					if ( me.getStartLong() <= address_long && me.getEndLong() >= address_long ){
 						
 						return( me.getUserData());
 					}
@@ -358,12 +349,12 @@ IPAddressRangeManager
 					entry	e1 = (entry)o1;
 					entry 	e2 = (entry)o2;
 					
-					if ( e1.getStart() < e2.getStart()){
+					if ( e1.getStartLong() < e2.getStartLong()){
 						return( -1 );
-					}else if ( e1.getStart() > e2.getStart()){
+					}else if ( e1.getStartLong() > e2.getStartLong()){
 						return( 1 );
 					}else{
-						long l = e2.getEnd() - e1.getEnd();
+						long l = e2.getEndLong() - e1.getEndLong();
 						
 						if ( l < 0 ){
 							
@@ -405,19 +396,19 @@ IPAddressRangeManager
 			
 			while( pos < ents.length ){
 				
-				long	end_pos = entry.getMergedEnd();
+				long	end_pos = entry.getMergedEndLong();
 				
 				entry	e2 = ents[pos++];
 				
 				if (!e2.getMerged()){
 					
-					if ( end_pos >= e2.getStart()){
+					if ( end_pos >= e2.getStartLong()){
 						
 						e2.setMerged();
 						
-						if ( e2.getEnd() > end_pos ){
+						if ( e2.getEndLong() > end_pos ){
 							
-							entry.setMergedEnd( e2.getEnd());
+							entry.setMergedEndInt( e2.getEndInt());
 							
 							entry.addMergedEntry( e2 );
 						}
@@ -448,7 +439,7 @@ IPAddressRangeManager
 			
 			entry	e = (entry)merged_entries[i];
 			
-			long	span = e.getMergedEnd() - e.getStart();
+			long	span = e.getMergedEndLong() - e.getStartLong();
 			
 			total_span	+= span;
 		}
@@ -467,19 +458,19 @@ IPAddressRangeManager
 	protected class
 	entry
 	{
-		private long		start;
-		private long		end;
+		private int			start;
+		private int			end;
 		private Object		user_data;
 		
 		private boolean		merged;
-		private long		merged_end;
+		private int			merged_end;
 		
-		private List		my_merged_entries;
+		private entry[]		my_merged_entries;
 		
 		protected
 		entry(
-			long		_start,
-			long		_end,
+			int			_start,
+			int			_end,
 			Object		_ud )
 		{
 			start		= _start;
@@ -487,43 +478,62 @@ IPAddressRangeManager
 			user_data	= _ud;
 		}
 		
-		protected long
-		getStart()
+		
+		protected int
+		getStartInt()
 		{
 			return( start );
 		}
 		
+		protected long
+		getStartLong()
+		{
+			return( start<0?(start+0x100000000L):start );
+		}
+		
 		protected void
-		setStart(
-			long	_start )
+		setStartInt(
+			int		_start )
 		{
 			start	= _start;
 		}
 		
-		protected long
-		getEnd()
+		protected int
+		getEndInt()
 		{
 			return( end );
 		}
 		
+		protected long
+		getEndLong()
+		{
+			return( end<0?(end+0x100000000L):end );
+		}
+		
 		protected void
-		setEnd(
-			long		_end )
+		setEndInt(
+			int		_end )
 		{
 			end	= _end;
 		}
 		
 		protected void
-		setMergedEnd(
-			long		_merged_end )
+		setMergedEndInt(
+			int		_merged_end )
 		{
 			merged_end	= _merged_end;
 		}
 		
 		protected long
-		getMergedEnd()
+		getMergedEndInt()
 		{
 			return( merged_end );
+		}
+		
+		protected long
+		getMergedEndLong()
+		{
+			return( merged_end<0?(merged_end+0x100000000L):merged_end );
 		}
 		
 		protected Object
@@ -550,13 +560,21 @@ IPAddressRangeManager
 		{
 			if ( my_merged_entries == null ){
 				
-				my_merged_entries = new ArrayList(1);
+				my_merged_entries = new entry[]{ e2 };
+				
+			}else{
+				
+				entry[]	x = new entry[my_merged_entries.length+1];
+				
+				System.arraycopy( my_merged_entries, 0, x, 0, my_merged_entries.length );
+				
+				x[x.length-1] = e2;
+				
+				my_merged_entries	= x;
 			}
-			
-			my_merged_entries.add(e2);
 		}
 		
-		protected List
+		protected entry[]
 		getMergedEntries()
 		{
 			return( my_merged_entries );
@@ -581,17 +599,18 @@ IPAddressRangeManager
 		
 		manager.addRange( "3.1.1.1", "3.1.1.2", "1" );
 		manager.addRange( "3.1.1.1", "3.1.1.3", "1" );
-		//manager.addRange( "1.1.1.1", "2.2.2.2", "2" );
-		//manager.addRange( "0.1.1.1", "2.2.2.2", "3" );
-		//manager.addRange( "1.1.1.1", "1.2.2.2", "4" );
-		//manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
-		//manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
+		manager.addRange( "1.1.1.1", "2.2.2.2", "2" );
+		manager.addRange( "0.1.1.1", "2.2.2.2", "3" );
+		manager.addRange( "1.1.1.1", "1.2.2.2", "4" );
+		manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
+		manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
 		//manager.addRange( "0.0.0.0", "255.255.255.255", "7" );
-		//manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
-		//manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
+		manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
+		manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
+		manager.addRange( "254.6.6.6", "254.7.0.0", "10" );
 		
 		
-		System.out.println( "inRange -> " + manager.isInRange( "6.6.6.8" ));
+		System.out.println( "inRange -> " + manager.isInRange( "254.6.6.8" ));
 		
 		System.out.println( "Total span = " + manager.getTotalSpan());
 		
