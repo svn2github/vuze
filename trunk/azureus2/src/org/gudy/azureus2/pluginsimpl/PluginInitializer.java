@@ -56,7 +56,6 @@ PluginInitializer
     new Class[]{ org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
                  ShareHosterPlugin.class,
                  TrackerDefaultWeb.class,
-             //    TrackerWebDefaultTrackerPlugin.class,
                  UpdateLanguagePlugin.class,
                 };
   
