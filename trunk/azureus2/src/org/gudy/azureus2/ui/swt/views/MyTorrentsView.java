@@ -686,30 +686,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     globalManager.addListener(this);
   }
 
-  /*private String getFilePath(DownloadManager dm) {
-    if (dm == null)
-      return "";
-    try {
-      //The save path, for a directory torrent, it may be the directory itself
-      String path = dm.getSavePath();      
-      String name = dm.getName();
-      String fullPath = path;
-      if (path.endsWith(name)) {
-        File f = new File(fullPath);
-        if(f.exists() && f.isDirectory())
-          return fullPath;
-        else
-          return path;
-      } else {
-        return fullPath;
-      }
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
-    return "";
-  }*/
-
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
