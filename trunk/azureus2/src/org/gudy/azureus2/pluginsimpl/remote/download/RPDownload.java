@@ -69,12 +69,17 @@ RPDownload
 		Download		_delegate )
 	{
 		super( _delegate );
-				
-		torrent = (RPTorrent)_lookupLocal( delegate.getTorrent());
-		
-		if ( torrent == null ){
 			
-			torrent = RPTorrent.create( delegate.getTorrent());
+			// torrent can be null if broken
+		
+		if ( delegate.getTorrent() != null ){
+			
+			torrent = (RPTorrent)_lookupLocal( delegate.getTorrent());
+		
+			if ( torrent == null ){
+				
+				torrent = RPTorrent.create( delegate.getTorrent());
+			}
 		}
 		
 		stats = (RPDownloadStats)_lookupLocal( delegate.getStats());
@@ -116,7 +121,10 @@ RPDownload
 	{
 		Object res = _fixupLocal();
 		
-		torrent._setLocal();
+		if ( torrent != null ){
+			
+			torrent._setLocal();
+		}
 		
 		stats._setLocal();
 		
@@ -133,7 +141,10 @@ RPDownload
 	{
 		super._setRemote( _dispatcher );
 		
-		torrent._setRemote( _dispatcher );
+		if ( torrent != null ){
+			
+			torrent._setRemote( _dispatcher );
+		}
 		
 		stats._setRemote( _dispatcher );
 		

@@ -90,6 +90,9 @@ RPDownloadManager
 			
 			Download[]	downloads = delegate.getDownloads();
 			
+				// unfortunately downloads with broken torrents can exist and have no associated
+				// Torrent. Easiest fix here is to filter them out.
+			
 			RPDownload[]	res = new RPDownload[downloads.length];
 			
 			for (int i=0;i<res.length;i++){
