@@ -439,6 +439,16 @@ DownloadImpl
 	
 		throws DownloadException, DownloadRemovalVetoException
 	{
+		remove( false, false );
+	}
+	
+	public void
+	remove(
+		boolean	delete_torrent,
+		boolean	delete_data )
+	
+		throws DownloadException, DownloadRemovalVetoException
+	{
 		int	dl_state = download_manager.getState();
 		
 		if ( 	dl_state == DownloadManager.STATE_STOPPED 	|| 
@@ -448,6 +458,11 @@ DownloadImpl
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
 			try{
+				if ( delete_torrent || delete_data ){
+					
+					download_manager.stopIt( dl_state, delete_torrent, delete_data );
+				}
+				
 				globalManager.removeDownloadManager(download_manager);
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){

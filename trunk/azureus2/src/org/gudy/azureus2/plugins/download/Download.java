@@ -307,6 +307,22 @@ Download
 	
 		throws DownloadException, DownloadRemovalVetoException;
 	
+		/**
+		 * Same as "remove" but, if successful, deletes the torrent and/or data
+		 * @param delete_torrent
+		 * @param delete_data
+		 * @throws DownloadException
+		 * @throws DownloadRemovalVetoException
+		 * @since 2.2.0.3
+		 */
+	
+	public void
+	remove(
+		boolean	delete_torrent,
+		boolean	delete_data )
+	
+		throws DownloadException, DownloadRemovalVetoException;
+
 	/**
 	 * Returns the current position in the queue
 	 * Completed and Incompleted downloads have seperate position sets.  This means

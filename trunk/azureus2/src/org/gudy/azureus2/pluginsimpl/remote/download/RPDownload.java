@@ -439,6 +439,16 @@ RPDownload
 		}
 	}
 	
+	public void
+	remove(
+		boolean	delete_torrent,
+		boolean	delete_data )
+	
+		throws DownloadException, DownloadRemovalVetoException
+	{
+		notSupported();
+	}
+	
 	public boolean
 	canBeRemoved()
 	
