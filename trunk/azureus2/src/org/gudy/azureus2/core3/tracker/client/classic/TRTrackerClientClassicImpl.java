@@ -48,7 +48,7 @@ import org.gudy.azureus2.core3.internat.*;
  */
 public class 
 TRTrackerClientClassicImpl
-	implements TRTrackerClient 
+	implements TRTrackerClient, ParameterListener
 {
 	private static final int REFRESH_ERROR_SECS			= 120;
 	private static final int OVERRIDE_PERIOD			= 10*1000;
@@ -64,6 +64,8 @@ TRTrackerClientClassicImpl
 	private TRTrackerResponse	last_response			= new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
 	private int					last_update_time_secs;
 	private int					current_time_to_wait_secs;
+  
+  private int         failure_added_time = 0;
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -86,6 +88,8 @@ TRTrackerClientClassicImpl
 	private String peer_id = "&peer_id=";
 	private String port;
 	private String ip_override;
+  
+  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
   
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 
@@ -143,8 +147,10 @@ TRTrackerClientClassicImpl
 
 		//Get the Tracker url
 		
-	constructTrackerUrlLists( true );     
-
+	constructTrackerUrlLists( true );
+    
+  addConfigListeners();  
+   
 		//Create our unique peerId
 		
 	peerId = new byte[20];
@@ -383,6 +389,8 @@ TRTrackerClientClassicImpl
 	stop()
 	{
 		stopped	= true;
+        
+    removeConfigListeners();
 		
 		requestUpdate();
 	}
@@ -860,45 +868,61 @@ TRTrackerClientClassicImpl
   }
   
   public String constructUrl(String evt,String url) {
-	StringBuffer request = new StringBuffer(url);
-	request.append(info_hash);
-	request.append(peer_id);
-	request.append(port);
-	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
-	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
-	request.append("&left=").append(announce_data_provider.getRemaining());
-	if (evt.length() != 0)
-	  request.append("&event=").append(evt);
-	if (evt.equals("stopped")){
+  	StringBuffer request = new StringBuffer(url);
+  	request.append(info_hash);
+  	request.append(peer_id);
+  	request.append(port);
+  	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
+  	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
+  	request.append("&left=").append(announce_data_provider.getRemaining());
 	
-	  request.append("&num_peers=0");
-	}else{
+    if (evt.length() != 0) {
+    	request.append("&event=").append(evt);
+    }
+    
+    if (evt.equals("stopped")){
+    	request.append("&num_peers=0");
+    }
+    else {
+      //calculate how many peers we should ask for
+      int num_peers;
+      int MAX_PEERS = 100;
+      
+      if (maxConnections != 0) {
+        num_peers = maxConnections - announce_data_provider.getConnectionCount();
+        
+        if (num_peers < 0) num_peers = 0;
+        if (num_peers > MAX_PEERS) num_peers = MAX_PEERS;
+      }
+      else {
+        num_peers = MAX_PEERS;
+      }
+
+    	request.append("&num_peers=" + num_peers);
+    }
 	
-	  request.append("&num_peers=50");
-	}
+    String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
+    
+    if (ip.length() != 0) {
+    	request.append("&ip=").append(ip);
+    }
 	
-	String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
-	
-	if (ip.length() != 0){
-	
-	  request.append("&ip=").append(ip);
-	}
-	
-	return request.toString();
+    return request.toString();
   }
 
-  	public byte[] 
-  	getPeerId() 
-  	{
-  		return peerId;
-  	}
+  
+  public byte[] 
+  getPeerId() 
+  {
+  	return peerId;
+  }
 
-  	public void 
-  	setAnnounceDataProvider(
-  			TrackerClientAnnounceDataProvider _provider) 
-  	{
-  		announce_data_provider = _provider;
-  	}
+ 	public void 
+ 	setAnnounceDataProvider(
+ 			TrackerClientAnnounceDataProvider _provider) 
+ 	{
+ 		announce_data_provider = _provider;
+ 	}
 	
 	public TOTorrent
 	getTorrent()
@@ -1078,33 +1102,54 @@ TRTrackerClientClassicImpl
 					
 					long	time_to_wait;
 										
-					boolean		tracker_ok = false;
 					
 					try{
-						// * In fact we use 2/3 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
+						// * In fact we use 3/4 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
 						
-						time_to_wait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
+						time_to_wait = (3 * ((Long) metaData.get("interval")).intValue()) / 4; //$NON-NLS-1$
+                        
+            //reset failure time on successful connect
+            failure_added_time = 0;
 										
 				   	}catch( Exception e ){
 				   	
-						byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
+				   		byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
 						
-						if ( failure_reason_bytes == null ){
+				   		if ( failure_reason_bytes == null ){
 							
-							System.out.println("Problems with Tracker, will retry in 1 minute");
-													
-							time_to_wait = REFRESH_MINIMUM_SECS;
-	
-							return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, time_to_wait ));
-	
-						}else{
+				   			System.out.println("Problems with Tracker, will retry in 1 minute");
 							
-							failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+				   			//increase re-check time after each failure
+				   			if (failure_added_time == 0) {
+				   				failure_added_time = REFRESH_MINIMUM_SECS;
+				   			}
+				   			else {
+				   				failure_added_time = failure_added_time * 2;
+				   			}
+
+				   			if (failure_added_time > 3600) failure_added_time = 3600;
+							
+				   			time_to_wait = failure_added_time;
 	
-							time_to_wait = REFRESH_ERROR_SECS;
+				   			return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, time_to_wait ));
+	
+				   		}else{
+				   			failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+                            
+				   			//increase re-check time after each failure
+                if (failure_added_time == 0) {
+                	failure_added_time = REFRESH_ERROR_SECS;
+                }
+                else {
+                	failure_added_time = failure_added_time * 2;
+                }
+
+                if (failure_added_time > 3600) failure_added_time = 3600;
+                
+                time_to_wait = failure_added_time;            
 						
-							return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
-						}
+				   			return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
+				   		}
 				 	}
 						
 						//build the list of peers
@@ -1204,6 +1249,22 @@ TRTrackerClientClassicImpl
 	public void
 	destroy()
 	{
+    removeConfigListeners();
+       
 		TRTrackerClientFactoryImpl.destroy( this );
 	}
+    
+  
+  private void addConfigListeners() {
+    COConfigurationManager.addParameterListener("Max Clients", this);
+  }
+  
+  private void removeConfigListeners() {
+    COConfigurationManager.removeParameterListener("Max Clients", this);
+  }
+  
+  public void parameterChanged(String parameterName) {
+    maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  }
+  
 }
