@@ -188,6 +188,8 @@ public class OutgoingMessageQueue {
    */
   protected int deliverToTransport( Transport transport, int max_bytes ) throws IOException {    
     int written = 0;
+    ArrayList messages_sent = new ArrayList();
+    
     try{
       queue_mon.enter();
    
@@ -208,8 +210,6 @@ public class OutgoingMessageQueue {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
         written = new Long( transport.write( buffers, 0, pos + 1 ) ).intValue();
-        notifyByteListeners( written );
-        //System.out.println( peer_transport.getDescription() + " written=" + written );
         buffers[ pos ].limit( orig_limit );
         pos = 0;
         while( !queue.isEmpty() ) {
@@ -220,8 +220,7 @@ public class OutgoingMessageQueue {
             total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
             LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
-            notifySentListeners( msg );
-            msg.destroy();
+            messages_sent.add( msg );
           }
           else {
             total_size -= (bb.limit() - bb.remaining()) - starting_pos[ pos ];
@@ -233,6 +232,17 @@ public class OutgoingMessageQueue {
     }finally{
       queue_mon.exit();
     }
+    
+    if( written > 0 ) {
+      notifyByteListeners( written );
+    }
+    
+    for( int i=0; i < messages_sent.size(); i++ ) {
+      ProtocolMessage msg = (ProtocolMessage)messages_sent.get( i );
+      notifySentListeners( msg );
+      msg.destroy();
+    }
+    
     return written;
   }
 
