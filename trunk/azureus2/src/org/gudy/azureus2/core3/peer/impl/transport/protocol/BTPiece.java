@@ -44,7 +44,7 @@ public class BTPiece implements BTMessage {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     length = data.remaining();
-    buffer = DirectByteBufferPool.getBuffer( length + 13 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( length + 13 ) );
     
     buffer.buff.putInt( length + 9 );
     buffer.buff.put( (byte)7 );

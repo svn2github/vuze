@@ -34,7 +34,7 @@ public class BTBitfield implements BTMessage {
   private final DirectByteBuffer buffer;
   
   public BTBitfield( ByteBuffer bitfield ) {
-    buffer = DirectByteBufferPool.getBuffer( bitfield.capacity() + 5 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( bitfield.capacity() + 5 ) );
     
     bitfield.position( 0 );
     bitfield.limit( bitfield.capacity() );

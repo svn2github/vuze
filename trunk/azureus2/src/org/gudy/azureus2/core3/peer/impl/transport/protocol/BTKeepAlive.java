@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -32,7 +34,7 @@ public class BTKeepAlive implements BTMessage {
   private final DirectByteBuffer buffer;
   
   public BTKeepAlive() {
-    buffer = DirectByteBufferPool.getBuffer( 4 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     
     buffer.buff.putInt( 0 );
     buffer.buff.position( 0 );

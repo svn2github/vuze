@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -38,7 +40,7 @@ public class BTCancel implements BTMessage {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.length = length;
-    buffer = DirectByteBufferPool.getBuffer( 17 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 17 ) );
     
     buffer.buff.putInt( 13 );
     buffer.buff.put( (byte)8 );

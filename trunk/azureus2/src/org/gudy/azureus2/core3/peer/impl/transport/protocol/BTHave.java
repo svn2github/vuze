@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -34,7 +36,7 @@ public class BTHave implements BTMessage {
   
   public BTHave( int piece_number ) {
     this.piece_number = piece_number;
-    buffer = DirectByteBufferPool.getBuffer( 9 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 9 ) );
     
     buffer.buff.putInt( 5 );
     buffer.buff.put( (byte)4 );

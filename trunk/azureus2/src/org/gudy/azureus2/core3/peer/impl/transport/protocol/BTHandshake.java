@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -38,7 +40,7 @@ public class BTHandshake implements BTMessage {
   public BTHandshake( byte[] data_hash, byte[] peer_id ) {
     this.data_hash = data_hash;
     this.peer_id = peer_id;
-    buffer = DirectByteBufferPool.getBuffer( 68 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
     
     buffer.buff.put( (byte)PROTOCOL.length() );
     buffer.buff.put( PROTOCOL.getBytes() );

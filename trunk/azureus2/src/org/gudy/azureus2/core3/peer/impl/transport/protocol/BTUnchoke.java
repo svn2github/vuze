@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -32,7 +34,7 @@ public class BTUnchoke implements BTMessage {
   private final DirectByteBuffer buffer;
   
   public BTUnchoke() {
-    buffer = DirectByteBufferPool.getBuffer( 5 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
     buffer.buff.putInt( 1 );
     buffer.buff.put( (byte)1 );
