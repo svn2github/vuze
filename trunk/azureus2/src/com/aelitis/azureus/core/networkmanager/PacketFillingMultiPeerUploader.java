@@ -246,11 +246,6 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   //connections ready to write
   private void addToReadyList( final NetworkConnection conn ) {
-    
-    if( conn.getOutgoingMessageQueue().getTotalSize() < 1 ) {
-      Debug.out( "~~~ added conn size < 1 " );
-    }
-
     try {
       lists_lock.enter();
       
