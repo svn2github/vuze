@@ -35,20 +35,22 @@ DiskManagerFactory
 {
 	public static DiskManager
 	create(
-		TOTorrent	torrent, 
-		String 		path,
-    DownloadManager manager)
+		TOTorrent		torrent, 
+		String 			path,
+		DownloadManager manager)
 	{
 		DiskManagerImpl dm = new DiskManagerImpl( torrent, path, manager );
+		
 		dm.start();
+		
 		return dm;
 	}
 	
 	public static DiskManager
 	createNoStart(
-		TOTorrent	torrent, 
-		String 		path,
-    DownloadManager manager)
+		TOTorrent		torrent, 
+		String 			path,
+		DownloadManager manager)
 	{
 		return( new DiskManagerImpl( torrent, path, manager ));
 	}
