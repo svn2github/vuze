@@ -117,7 +117,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     folder.setSelection(items);
     viewGeneral.initialize(folder);
     itemGeneral.setControl(viewGeneral.getComposite());
-    refresh();
     viewDetails.initialize(folder);
     itemDetails.setControl(viewDetails.getComposite());
     viewPieces.initialize(folder);
@@ -125,6 +124,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     viewFiles.initialize(folder);
     itemFiles.setControl(viewFiles.getComposite());
 
+    
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
         refresh();
@@ -132,6 +132,10 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       public void widgetDefaultSelected(SelectionEvent e) {
       }
     });
+    
+    
+    refresh();
+    viewGeneral.getComposite().layout(true);
 
   }
 

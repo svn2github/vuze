@@ -595,8 +595,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     loopFactor++;
     if ((loopFactor % graphicsUpdate) == 0) {
       updateAvailability();
-      updatePiecesInfo(false);
+      updatePiecesInfo(false);      
     }
+    
+    
     
     DiskManager dm = manager.getDiskManager();
     setTime(manager.getStats().getElapsedTime(), 
@@ -646,6 +648,13 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       manager.getPieceLength(),
       manager.getTorrentComment(),
 	  DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000));
+    
+    
+    //A special layout, for OS X and Linux, on which for some unknown reason
+    //the initial layout fails.
+    if (loopFactor == 2) {
+      getComposite().layout(true);     
+    }
   }
 
   /* (non-Javadoc)
