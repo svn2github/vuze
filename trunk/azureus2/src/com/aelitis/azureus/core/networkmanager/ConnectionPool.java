@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 
@@ -59,16 +60,26 @@ public class ConnectionPool {
     write_percent_of_max = 1.0F;
     write_bytebucket = new ByteBucket( max_write_rate_bytes_per_sec );
     write_bytebucket.setRate( max_write_rate_bytes_per_sec, max_write_rate_bytes_per_sec );
+    
+    int mss = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+    if( write_bytebucket.getBurstRate() < mss ) { //make sure the bucket will allow at least one full packet
+      write_bytebucket.setRate( write_bytebucket.getRate(), mss );
+    }
   }
   
   
   /**
    * Constructor for creating child pools.
    */
-  protected ConnectionPool( ConnectionPool parent, float write_percent_of_max ) {
+  private ConnectionPool( ConnectionPool parent, float write_percent_of_max ) {
     this.parent_pool = parent;
     this.write_percent_of_max = write_percent_of_max;
     write_bytebucket = new ByteBucket( new Float( NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() * write_percent_of_max ).intValue() );
+    
+    int mss = NetworkManager.getSingleton().getTcpMssSize();
+    if( write_bytebucket.getBurstRate() < mss ) { //make sure the bucket will allow at least one full packet
+      write_bytebucket.setRate( write_bytebucket.getRate(), mss );
+    }
   }
   
 
@@ -206,8 +217,14 @@ public class ConnectionPool {
    * @param inform_parent tell the parent pool of the change
    */
   protected void setWritePercentOfMax( float new_percentage, boolean inform_parent ) {
+    System.out.println("old=" + write_percent_of_max + ", new=" + new_percentage);
     float percent_change = new_percentage - write_percent_of_max;
-    write_percent_of_max = new_percentage;
+    if( parent_pool == null ) {
+      write_percent_of_max = 1.0F;  //make sure the root pool is always 100%
+    }
+    else {
+      write_percent_of_max = new_percentage;
+    }
     synchronized( children_pools ) {
       int num_children = children_pools.size();
       if( num_children > 0 ) {
@@ -260,7 +277,18 @@ public class ConnectionPool {
         child.updateBucketRates();
       }
     }
-    write_bytebucket.setRate( new Float( NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() * write_percent_of_max ).intValue() );
+    int new_rate = new Float( NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() * write_percent_of_max ).intValue();
+    if( parent_pool == null ) { //root pool doesn't burst
+      write_bytebucket.setRate( new_rate, new_rate );
+    }
+    else {
+      write_bytebucket.setRate( new_rate );
+    }
+    
+    int mss = NetworkManager.getSingleton().getTcpMssSize();
+    if( write_bytebucket.getBurstRate() < mss ) { //make sure the bucket will allow at least one full packet
+      write_bytebucket.setRate( write_bytebucket.getRate(), mss );
+    }
   }
   
   
@@ -276,7 +304,11 @@ public class ConnectionPool {
     boolean is_unlimited_rate = NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() == NetworkManager.UNLIMITED_WRITE_RATE ? true : false;
     int remaining = write_bytebucket.getAvailableByteCount();
     if( remaining >= NetworkManager.getSingleton().getTcpMssSize() && !is_unlimited_rate ) {
-      doUncountedRateWrites( remaining );  //use any remaining unclaimed bandwidth
+      int used = doUncountedRateWrites( remaining );  //use any remaining unclaimed bandwidth
+      //System.out.println("remaining=" +remaining+ ", used=" +used);
+      if( used > 0 ) {
+        write_bytebucket.setBytesUsed( used );
+      }
     }
   }
   
@@ -292,8 +324,11 @@ public class ConnectionPool {
       while( num_checked < num_children && write_bytebucket.getAvailableByteCount() >= mss_size ) {
         ConnectionPool child = (ConnectionPool)children_pools.removeFirst();
         int used = child.doLimitedRateWrites();
-        write_bytebucket.setBytesUsed( used );
-        total_bytes_used += used;
+        //System.out.println("  used=" +used);
+        if( used > 0 ) {
+          write_bytebucket.setBytesUsed( used );
+          total_bytes_used += used;
+        }
         children_pools.addLast( child );
         num_checked++;
       }
@@ -302,10 +337,14 @@ public class ConnectionPool {
     int remaining = write_bytebucket.getAvailableByteCount();
     if( remaining >= mss_size ) {
       int used = doConnectionWrites( remaining );
-      write_bytebucket.setBytesUsed( used );
-      total_bytes_used += used;
+      //System.out.println("written="+used);
+      if( used > 0 ) {
+        write_bytebucket.setBytesUsed( used );
+        total_bytes_used += used;
+      }
     }
     
+    //if( parent_pool == null ) System.out.println("total_bytes_used="+total_bytes_used);
     return total_bytes_used;
   }
   
