@@ -117,7 +117,7 @@ import snoozesoft.systray4j.SysTrayMenu;
 public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
-  private static final int DONATIONS_ASK_AFTER = 1;
+  private static final int DONATIONS_ASK_AFTER = 168;
   
   private String latestVersion = ""; //$NON-NLS-1$
   private String latestVersionFileName = null;

@@ -21,8 +21,6 @@
 package org.gudy.azureus2.ui.swt.donations;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Font;
@@ -30,16 +28,27 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -58,15 +67,19 @@ public class DonationWindow2 {
   
   Image workingImage;
   Image background;
+  
   Font mainFont;
+  Font smallFont;
+  Font mediumFont;
   Animator animator;    
+  PaintListener listener;
+  
+  private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
+  private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR";
   
   public DonationWindow2(Display display) {
       this.display = display;   
       stats = StatsFactory.getStats();
-      headerText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
-      + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-      + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n";
       
       mainText = MessageText.getString("DonationWindow.text");
       footerText = MessageText.getString("DonationWindow.text.footer");
@@ -81,35 +94,57 @@ public class DonationWindow2 {
     
     shell.setImage(ImageRepository.getImage("azureus"));
     shell.setText(MessageText.getString("DonationWindow.title"));
+    shell.setBackground(MainWindow.white);
     
-    background = ImageRepository.getImage("donation");
-    workingImage = new Image(display,background,SWT.IMAGE_COPY);
+    background = ImageRepository.getImage("donation");    
     
-    Font tempFont = shell.getFont();
-    FontData fontDataMain[] = tempFont.getFontData();
+    Font tempFont;
+    FontData fontDataMain[];
+    
+    tempFont = shell.getFont();
+    fontDataMain = tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
       fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
       fontDataMain[i].setStyle(SWT.BOLD);     
     }
     mainFont = new Font(display,fontDataMain);
     
-    shell.addPaintListener(new PaintListener() {
-			public void paintControl(PaintEvent event) {
-				if(shell == null || shell.isDisposed())
+    tempFont = shell.getFont();
+    fontDataMain= tempFont.getFontData();
+    for(int i=0 ; i < fontDataMain.length ; i++) {
+      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
+      //fontDataMain[i].setStyle(SWT.BOLD);     
+    }
+    mediumFont = new Font(display,fontDataMain);
+    
+    tempFont = shell.getFont();
+    fontDataMain = tempFont.getFontData();
+    for(int i=0 ; i < fontDataMain.length ; i++) {
+      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.90));     
+    }
+    smallFont = new Font(display,fontDataMain);
+    
+    listener = new PaintListener() {
+      public void paintControl(PaintEvent event) {
+        if(shell == null || shell.isDisposed())
           return;
         paint();
-			}
-    });
+      }};
+      
+    shell.addPaintListener(listener);
     
-    shell.addMouseListener(new MouseAdapter() {
+    /*shell.addMouseListener(new MouseAdapter() {
   		public void mouseUp(MouseEvent arg0) {
   			close();
   		} 
-    });
+    });*/
     
     ImageData data = background.getImageData();
-    shell.setSize(data.width,data.height);
+    shell.setSize(data.width,data.height);        
     Utils.centreWindow(shell);
+    
+    addControls();
+    
     shell.open();
     
     animator = new Animator();
@@ -119,6 +154,7 @@ public class DonationWindow2 {
   private class Animator extends Thread {
    
     boolean ended = false;
+    boolean drawingDone;
     int nbchars = 0;
     
     public Animator() {
@@ -129,6 +165,7 @@ public class DonationWindow2 {
     	while(!ended) {
         if(display == null || display.isDisposed())
           return;
+        drawingDone = false;
         display.asyncExec(new Runnable() {
           public void run() {
            Image tempImage = new Image(display,background,SWT.IMAGE_COPY);
@@ -137,30 +174,36 @@ public class DonationWindow2 {
            if(nbchars <= mainText.length()) {
             String textToSet = mainText.substring(0,nbchars);
             GC tempGC = new GC(tempImage);
-            //tempGC.setForeground(MainWindow.white);
             if(mainFont == null || mainFont.isDisposed()) return;
             tempGC.setFont(mainFont);
-            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes()),85,15,true);
-            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()),240,15,true);
-            tempGC.drawText(stats.getUpTime() / (60*60) + " hours",470,15,true);
+            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes()),80,14,true);
+            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()),235,14,true);
+            tempGC.drawText(stats.getUpTime() / (60*60) + " " + MessageText.getString("DonationWindow.text.hours"),465,14,true);
             tempGC.drawText(textToSet,10,60,true);
+            tempGC.setFont(null);
+            tempGC.drawText(MessageText.getString("DonationWindow.text.downloaded"),70,32,true);
+            tempGC.drawText(MessageText.getString("DonationWindow.text.uploaded"),235,32,true);
             tempGC.dispose();
             Image oldImage = workingImage;
             workingImage = tempImage;
+
             if(oldImage != null && ! oldImage.isDisposed()) oldImage.dispose();
             paint();                        
            } else {
-            ended = true;
-            System.out.println("ended");
-           }           
+            ended = true;            
+           }  
+           drawingDone = true;
           }
         });
     		try {
-    			Thread.sleep(30);          
+          Thread.sleep(30);
+          while(!drawingDone)
+            Thread.sleep(20);     
         } catch (InterruptedException e) {
          ended = true; 
-        }
-      }
+        }            
+      } 
+      enableOk();
    }
     
     public void dispose() {
@@ -171,15 +214,153 @@ public class DonationWindow2 {
   private void close() {
    animator.dispose();
    mainFont.dispose();
+   mediumFont.dispose();
+   smallFont.dispose();
    workingImage.dispose();
    shell.dispose();
   }
   
   private void paint() {
     if(shell == null || shell.isDisposed()) return;
+    if(workingImage == null || workingImage.isDisposed()) return;
     GC gcShell = new GC(shell);
     gcShell.drawImage(workingImage,0,0);
     gcShell.dispose();
   }
   
+  private void enableOk() {
+    if(display == null || display.isDisposed()) return;
+     display.asyncExec(new Runnable() {
+       public void run() {
+         if(shell == null || shell.isDisposed())
+           return;
+         ok.setEnabled(true);
+       }
+    });
+  }
+  
+  private void addControls() {
+   /*if(display == null || display.isDisposed()) return;
+   display.asyncExec(new Runnable() {
+		public void run() {
+      if(shell == null || shell.isDisposed())
+        return;     */       
+                  
+      FormData formData;
+      
+      
+      final Button radioDonate = new Button(shell,SWT.RADIO);
+      Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");
+      radioDonate.setFont(mainFont);
+      radioDonate.setBackground(MainWindow.white);
+      formData = new FormData();
+      formData.top = new FormAttachment(65);
+      formData.left = new FormAttachment(0,140);
+      formData.right = new FormAttachment(100,-5);
+      radioDonate.setLayoutData(formData);        
+      
+      
+      final Label textFooter = new Label(shell,SWT.NULL);    
+      textFooter.setText(footerText);
+      textFooter.setForeground(MainWindow.black);
+      textFooter.setBackground(MainWindow.white);
+      formData = new FormData();
+      formData.top = new FormAttachment(radioDonate);
+      formData.left = new FormAttachment(0,140);
+      formData.right = new FormAttachment(100,-5);
+      textFooter.setLayoutData(formData);
+      
+      
+      final Button radioNoDonate = new Button(shell,SWT.RADIO);
+      Messages.setLanguageText(radioNoDonate,"DonationWindow.options.nodonate");
+      radioNoDonate.setFont(mediumFont);
+      radioNoDonate.setBackground(MainWindow.white);
+      formData = new FormData();
+      formData.top = new FormAttachment(textFooter);
+      formData.left = new FormAttachment(0,140);
+      formData.right = new FormAttachment(100,-5);
+      radioNoDonate.setLayoutData(formData);
+      
+      final Button radioLater = new Button(shell,SWT.RADIO);
+      Messages.setLanguageText(radioLater,"DonationWindow.options.later");
+      radioLater.setFont(mediumFont);
+      radioLater.setBackground(MainWindow.white);
+      formData = new FormData();
+      formData.top = new FormAttachment(radioNoDonate);
+      formData.left = new FormAttachment(0,140);
+      formData.right = new FormAttachment(100,-5);
+      radioLater.setLayoutData(formData);
+      
+      final Button radioAlready = new Button(shell,SWT.RADIO);
+      Messages.setLanguageText(radioAlready,"DonationWindow.options.already");      
+      radioAlready.setFont(mediumFont);
+      radioAlready.setBackground(MainWindow.white);
+      formData = new FormData();
+      formData.top = new FormAttachment(radioLater);
+      formData.left = new FormAttachment(0,140);
+      formData.right = new FormAttachment(100,-5);
+      radioAlready.setLayoutData(formData);
+      
+      
+      final Text textForCopy = new Text(shell,SWT.BORDER);
+      textForCopy.setText(donationUrlShort);      
+      textForCopy.setFont(smallFont);
+      formData = new FormData();
+      formData.bottom = new FormAttachment(100,-7);
+      formData.left = new FormAttachment(0,5);
+      textForCopy.setLayoutData(formData);
+      
+      
+      //By default, donate is selected (of course)
+      radioDonate.setSelection(true);    
+      
+      ok = new Button(shell,SWT.PUSH);     
+      ok.setEnabled(false);
+      Messages.setLanguageText(ok,"DonationWindow.ok");
+      
+      formData = new FormData();
+      formData.bottom = new FormAttachment(100,-5);
+      formData.right = new FormAttachment(100,-5);
+      formData.width = 100;
+      ok.setLayoutData(formData);
+      
+      
+      
+      
+      ok.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event evt) {        
+          if(radioDonate.getSelection()) {
+            Program.launch(donationUrl);
+          }
+          if(radioAlready.getSelection()) {
+            thanks();
+            stopAsking(); 
+          }
+          if(radioNoDonate.getSelection()){
+            stopAsking(); 
+          }
+          if(!radioDonate.getSelection()) {
+            close();
+          }       
+        }
+      });
+      
+      shell.layout();
+		}
+  
+  
+  private void thanks() {
+    MessageBox msgThanks = new MessageBox(shell,SWT.OK);
+    msgThanks.setText(MessageText.getString("DonationWindow.thanks.title"));
+    msgThanks.setMessage(MessageText.getString("DonationWindow.thanks.text"));
+    msgThanks.open();
+    COConfigurationManager.setParameter("donations.donated",true);    
+    COConfigurationManager.save();
+  }
+  
+  private void stopAsking() {
+    COConfigurationManager.setParameter("donations.nextAskTime",-1);
+    COConfigurationManager.setParameter("donations.lastVersion",Constants.AZUREUS_VERSION);
+    COConfigurationManager.save();
+  }
 }
