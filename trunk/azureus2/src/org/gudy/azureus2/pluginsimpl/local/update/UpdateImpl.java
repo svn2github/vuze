@@ -39,6 +39,7 @@ UpdateImpl
 {
 	protected UpdateManagerImpl			manager;
 	protected String					name;
+	protected String					new_version;
 	protected ResourceDownloader[]		downloaders;
 	protected int						restart_required;
 
@@ -48,13 +49,29 @@ UpdateImpl
 	UpdateImpl(
 		UpdateManagerImpl		_manager,
 		String					_name,
+		String					_new_version,
 		ResourceDownloader[]	_downloaders,
 		int						_restart_required )
 	{
 		manager				= _manager;
 		name				= _name;
+		new_version			= _new_version;
 		downloaders			= _downloaders;
 		restart_required	= _restart_required;
+		
+		/*
+		System.out.println( "Update:" + name + "/" + new_version  );
+		
+		for (int i=0;i<downloaders.length;i++){
+			
+			try{
+				System.out.println( "  size:" + downloaders[i].getSize());
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		*/
 	}
 	
 	public String
@@ -63,6 +80,12 @@ UpdateImpl
 		return( name );
 	}
 
+	public String
+	getNewVersion()
+	{
+		return( new_version );
+	}
+	
 	public ResourceDownloader[]
 	getDownloaders()
 	{

@@ -46,6 +46,8 @@ ResourceDownloaderRetryImpl
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
+	protected long						size	= -2;
+	
 	public
 	ResourceDownloaderRetryImpl(
 		ResourceDownloader	_delegate,
@@ -59,6 +61,34 @@ ResourceDownloaderRetryImpl
 	getName()
 	{
 		return( delegate.getName() + ", retry=" + retry_count );
+	}
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException
+	{	
+		if ( size != -2 ){
+			
+			return( size );
+		}
+		
+		try{
+			for (int i=0;i<retry_count;i++){
+				
+				size = delegate.getClone().getSize();
+				
+				return( size );
+			}
+		}finally{
+			
+			if ( size == -2 ){
+				
+				size = -1;
+			}
+		}
+		
+		return( size );
 	}
 	
 	public ResourceDownloader

@@ -47,6 +47,8 @@ ResourceDownloaderTimeoutImpl
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
+	protected long						size = -2;
+	
 	public
 	ResourceDownloaderTimeoutImpl(
 		ResourceDownloader	_delegate,
@@ -60,6 +62,32 @@ ResourceDownloaderTimeoutImpl
 	getName()
 	{
 		return( delegate.getName() + ", timeout=" + timeout_millis );
+	}
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException
+	{	
+		if ( size != -2 ){
+			
+			return( size );
+		}
+		
+		try{
+			ResourceDownloaderTimeoutImpl x = new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis );
+		
+			size = x.getSizeSupport();
+			
+		}finally{
+			
+			if ( size == -2 ){
+				
+				size = -1;
+			}
+		}
+		
+		return( size );
 	}
 	
 	public ResourceDownloader
@@ -105,6 +133,76 @@ ResourceDownloaderTimeoutImpl
 							Thread.sleep( timeout_millis );
 							
 							cancel(new ResourceDownloaderException( "Download timeout"));
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				};
+			
+			t.setDaemon(true);
+	
+			t.start();
+		}
+	}
+	
+	protected long
+	getSizeSupport()
+	
+		throws ResourceDownloaderException
+	{
+		asyncGetSize();
+		
+		done_sem.reserve();
+		
+		if ( result instanceof Long ){
+			
+			return(((Long)result).longValue());
+		}
+		
+		throw((ResourceDownloaderException)result);
+	}
+	
+	public synchronized void
+	asyncGetSize()
+	{		
+		if ( !cancelled ){
+			
+			current_downloader = delegate.getClone();
+					
+			Thread	size_thread = new Thread( "ResourceDownloader:size getter" )
+				{
+					public void
+					run()
+					{
+						try{
+							long	res = current_downloader.getSize();
+							
+							result	= new Long(res);
+							
+							done_sem.release();
+							
+						}catch( ResourceDownloaderException e ){
+							
+							failed( current_downloader, e );
+						}
+					}
+				};
+				
+			size_thread.setDaemon( true );
+		
+			size_thread.start();
+			
+			Thread t = new Thread( "ResourceDownloaderTimeout")
+				{
+					public void
+					run()
+					{
+						try{
+							Thread.sleep( timeout_millis );
+							
+							cancel(new ResourceDownloaderException( "getSize timeout"));
 							
 						}catch( Throwable e ){
 							

@@ -31,16 +31,47 @@ import java.io.InputStream;
 public interface 
 ResourceDownloader 
 {
+		/**
+		 * Get a sensible name for the download based on its details (e.g. URL)
+		 * @return
+		 */
+	
 	public String
 	getName();
+	
+		/**
+		 * Synchronously download. Events are still reported to listeners
+		 * @return
+		 * @throws ResourceDownloaderException
+		 */
 	
 	public InputStream
 	download()
 	
 		throws ResourceDownloaderException;
 	
+		/**
+		 * Asynchronously download.
+		 *
+		 */
+	
 	public void
 	asyncDownload();
+	
+		/**
+		 * attempts to get the size of the download. Returns -1 if the size can't be determined
+		 * @return
+		 * @throws ResourceDownloaderException
+		 */
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException;
+	
+		/**
+		 * Cancel the download. 
+		 */
 	
 	public void
 	cancel();

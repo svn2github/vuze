@@ -45,6 +45,7 @@ ResourceDownloaderImpl
 	protected boolean		cancel_download	= false;
 	
 	protected boolean		download_initiated;
+	protected long			size		 	= -2;	// -1 -> unknown
 	
 	public 
 	ResourceDownloaderImpl(
@@ -57,6 +58,115 @@ ResourceDownloaderImpl
 	getName()
 	{
 		return( original_url.toString());
+	}
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException
+	{
+			// only every try getting the size once
+		
+		if ( size == -2 ){
+			
+			try{
+				size = ((ResourceDownloaderImpl)getClone()).getSizeSupport();
+				
+			}finally{
+				
+				if ( size == -2 ){
+					
+					size = -1;
+				}
+			}
+		}
+		
+		return( size );
+	}
+	
+	protected long
+	getSizeSupport()
+	
+		throws ResourceDownloaderException
+	{
+		try{
+			reportActivity(this, "getting size of " + original_url );
+			
+			try{
+				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
+			      
+				HttpURLConnection	con;
+				
+				if ( url.getProtocol().equalsIgnoreCase("https")){
+			      	
+						// see ConfigurationChecker for SSL client defaults
+	
+					HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+	
+						// allow for certs that contain IP addresses rather than dns names
+	  	
+					ssl_con.setHostnameVerifier(
+							new HostnameVerifier()
+							{
+								public boolean
+								verify(
+										String		host,
+										SSLSession	session )
+								{
+									return( true );
+								}
+							});
+	  	
+					con = ssl_con;
+	  	
+				}else{
+	  	
+					con = (HttpURLConnection) url.openConnection();
+	  	
+				}
+	  
+				con.setRequestMethod( "HEAD" );
+				
+				con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+	  
+				con.connect();
+	
+				int response = con.getResponseCode();
+				
+				if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+					
+					throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+				}
+					
+				return( con.getContentLength());					
+									
+			}catch (java.net.MalformedURLException e){
+				
+				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
+				
+			}catch (java.net.UnknownHostException e){
+				
+				throw( new ResourceDownloaderException("Exception while initializing download of '" + original_url + "': Unknown Host '" + e.getMessage() + "'", e));
+				
+			}catch (java.io.IOException e ){
+				
+				throw( new ResourceDownloaderException("I/O Exception while downloading '" + original_url + "':" + e.toString(), e ));
+			}
+		}catch( Throwable e ){
+			
+			ResourceDownloaderException	rde;
+			
+			if ( e instanceof ResourceDownloaderException ){
+				
+				rde = (ResourceDownloaderException)e;
+				
+			}else{
+				
+				rde = new ResourceDownloaderException( "Unexpected error", e );
+			}
+						
+			throw( rde );
+		}		
 	}
 	
 	public ResourceDownloader
@@ -82,7 +192,7 @@ ResourceDownloaderImpl
 				}
 			};
 			
-		t.setDaemon(false);
+		t.setDaemon(true);
 		
 		t.start();
 	}

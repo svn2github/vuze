@@ -35,8 +35,9 @@ import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.ui.common.UIImageRepository;
 
 public class 
@@ -63,6 +64,12 @@ UtilitiesImpl
 		}
 		
 		return( res );
+	}
+	
+	public boolean
+	isCVSVersion()
+	{
+		return( Constants.isCVSVersion());
 	}
 	
 	public InputStream

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.update;
 
 import java.util.*;
 import java.net.URL;
+import java.io.*;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
@@ -43,6 +44,11 @@ public class
 PluginUpdatePlugin
 	implements Plugin
 {
+	public static final int	RD_SIZE_RETRIES	= 3;
+	public static final int	RD_SIZE_TIMEOUT	= 10000;
+	
+	protected static Map			outstanding_updates = new HashMap();
+	
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
 	
@@ -184,9 +190,16 @@ PluginUpdatePlugin
 			
 			for ( int i=0;i<plugins_to_check.size();i++){
 				
-				PluginInterface	pi = (PluginInterface)plugins_to_check.get(i);
+				final PluginInterface	pi = (PluginInterface)plugins_to_check.get(i);
 				
-				String	plugin_id = pi.getPluginID();
+				final String	plugin_id = pi.getPluginID();
+				
+				if ( outstanding_updates.get( plugin_id ) != null ){
+			
+					log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as update already outstanding");
+
+					continue;
+				}
 				
 				boolean	found	= false;
 				
@@ -215,12 +228,13 @@ PluginUpdatePlugin
 					
 					SFPluginDetails	details = loader.getPluginDetails( plugin_id );
 	
-					boolean az_cvs = plugin_interface.getAzureusVersion().toLowerCase().indexOf( "cvs" ) != -1;
+					boolean az_cvs = plugin_interface.getUtilities().isCVSVersion();
 					
 					String az_plugin_version	= pi.getPluginVersion();
 					
 					String sf_plugin_version	= details.getVersion();
 					String sf_plugin_download	= details.getDownloadURL();
+					
 					String sf_comp_version		= sf_plugin_version;
 					
 					if ( az_cvs ){
@@ -266,10 +280,85 @@ PluginUpdatePlugin
 						log.log( 	LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
 									sf_plugin_download);
 						
-						plugin_interface.getUpdateManager().addUpdate(
-								plugin_id + "/" + plugin_names + ":" + sf_plugin_version,
-								plugin_interface.getUtilities().getResourceDownloaderFactory().create( new URL( sf_plugin_download )),
+						ResourceDownloaderFactory rdf =  plugin_interface.getUtilities().getResourceDownloaderFactory();
+						
+						ResourceDownloader rdl = rdf.create( new URL( sf_plugin_download ));
+
+							// get size so it is cached
+						
+						rdf.getTimeoutDownloader(rdf.getRetryDownloader(rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
+												
+						final String	f_sf_plugin_download 	= sf_plugin_download;
+						final String	f_sf_plugin_version		= sf_plugin_version;
+						
+						rdl.addListener( 
+							new ResourceDownloaderListener()
+							{
+								public void
+								reportPercentComplete(
+									ResourceDownloader	downloader,
+									int					percentage )
+								{								
+								}
+								
+								public void
+								reportActivity(
+									ResourceDownloader	downloader,
+									String				activity )
+								{	
+								}
+									
+								public boolean
+								completed(
+									ResourceDownloader	downloader,
+									InputStream			data )
+								{	
+									outstanding_updates.remove( plugin_id );
+									
+									installUpdate( 
+											pi, 
+											f_sf_plugin_download, 
+											f_sf_plugin_version, 
+											data );
+									
+									return( true );
+								}
+								
+								public void
+								failed(
+									ResourceDownloader			downloader,
+									ResourceDownloaderException e )
+								{
+									outstanding_updates.remove( plugin_id );								
+								}
+								
+							});
+						
+						Update update = plugin_interface.getUpdateManager().addUpdate(
+								plugin_id + "/" + plugin_names,
+								sf_plugin_version,
+								rdl,
 								Update.RESTART_REQUIRED_MAYBE );
+						
+						update.addListener(
+							new UpdateListener()
+							{
+								public void
+								cancelled(
+									Update		update )
+								{
+									outstanding_updates.remove( plugin_id );
+								}
+								
+								public void
+								completed(
+									Update		update )
+								{
+									
+								}
+							});
+						
+						outstanding_updates.put( plugin_id, rdl );
 					}
 				}catch( Throwable e ){
 					
@@ -280,6 +369,24 @@ PluginUpdatePlugin
 			
 			log.log("Failed to load plugin details", e ); 
 		}
+	}
+	
+	protected void
+	installUpdate(
+		PluginInterface		plugin,
+		String				download,
+		String				version,
+		InputStream			data )
+	{
+		log.log( LoggerChannel.LT_INFORMATION,
+				 "Installing plugin " + plugin.getPluginID() + ", version " + version );
+		
+			// .jar files get copied straight in with the right version number
+			// .zip files need to be unzipped. There are various possibilities for
+			// target dir depending on the contents of the zip file. Basically we
+			// need to remove any zip paths to ensure it ends up in the right place
+			// There's also the issue of overwriting stuff like "plugin.properties"
+			// and any other config files....
 	}
 	
 	protected void

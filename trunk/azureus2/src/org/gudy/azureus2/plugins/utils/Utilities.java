@@ -37,6 +37,9 @@ Utilities
 	public String
 	getAzureusUserDir();
 	
+	public boolean
+	isCVSVersion();
+	
 	public InputStream
 	getImageAsStream(
 		String	image_name );

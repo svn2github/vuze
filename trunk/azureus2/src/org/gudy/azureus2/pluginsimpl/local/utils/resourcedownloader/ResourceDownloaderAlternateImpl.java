@@ -46,6 +46,8 @@ ResourceDownloaderAlternateImpl
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
+	protected long						size	= -2;
+	
 	public
 	ResourceDownloaderAlternateImpl(
 		ResourceDownloader[]	_delegates )
@@ -65,6 +67,44 @@ ResourceDownloaderAlternateImpl
 		
 		return( res );
 	}	
+	
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException
+	{		
+		if ( size != -2 ){
+			
+			return( size );
+		}
+		
+		try{
+			for (int i=0;i<delegates.length;i++){
+				
+				try{
+					size = ((ResourceDownloaderBaseImpl)delegates[i]).getClone().getSize();
+					
+					break;
+					
+				}catch( ResourceDownloaderException e ){
+					
+					if ( i == delegates.length-1 ){
+						
+						throw( e );
+					}
+				}
+			}
+		}finally{
+			
+			if ( size == -2 ){
+				
+				size = -1;
+			}
+		}
+		
+		return( size );
+	}
 	
 	public ResourceDownloader
 	getClone()

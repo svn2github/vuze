@@ -55,19 +55,21 @@ UpdateManagerImpl
 	public Update
 	addUpdate(
 		String				name,
+		String				new_version,
 		ResourceDownloader	downloader,
 		int					restart_required )
 	{
-		return( addUpdate( name, new ResourceDownloader[]{ downloader }, restart_required ));
+		return( addUpdate( name, new_version, new ResourceDownloader[]{ downloader }, restart_required ));
 	}
 	
 	public synchronized Update
 	addUpdate(
 		String					name,
+		String					new_version,
 		ResourceDownloader[]	downloaders,
 		int						restart_required )
 	{
-		UpdateImpl	update = new UpdateImpl( this, name, downloaders, restart_required );
+		UpdateImpl	update = new UpdateImpl( this, name, new_version, downloaders, restart_required );
 		
 		updates.add( update );
 		

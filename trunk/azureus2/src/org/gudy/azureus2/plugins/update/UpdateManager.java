@@ -34,27 +34,23 @@ UpdateManager
 {
 		/**
 		 * Add an update with a single downloader
-		 * @param name
-		 * @param downloader
-		 * @param restart_required
 		 */
 	
 	public Update
 	addUpdate(
 		String				name,
+		String				new_version,
 		ResourceDownloader	downloader,
 		int					restart_required );
 	
 		/**
 		 * Add an update with a number of downloaders
-		 * @param name
-		 * @param downloaders
-		 * @param restart_required
 		 */
 	
 	public Update
 	addUpdate(
 		String					name,
+		String					new_version,
 		ResourceDownloader[]	downloaders,
 		int						restart_required );
 	

@@ -41,7 +41,9 @@ import org.gudy.azureus2.pluginsimpl.local.update.*;
 public class 
 PlatformManagerUpdateChecker 
 {
-	
+	public static final int	RD_SIZE_RETRIES	= 3;
+	public static final int	RD_SIZE_TIMEOUT	= 10000;
+
 	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update2/";
 	public static final String	UPDATE_PROPERTIES_FILE	= UPDATE_DIR + PlatformManagerImpl.DLL_NAME + ".dll.properties";
 	
@@ -73,11 +75,11 @@ PlatformManagerUpdateChecker
 		LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_dll_version );
 		
 		try{
-			ResourceDownloaderFactory rf = ResourceDownloaderFactoryImpl.getSingleton();
+			ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 			
-			ResourceDownloader	rd = rf.create( new URL(UPDATE_PROPERTIES_FILE));
+			ResourceDownloader	rd = rdf.create( new URL(UPDATE_PROPERTIES_FILE));
 
-			rd	= rf.getRetryDownloader( rd, 5 );
+			rd	= rdf.getRetryDownloader( rd, 5 );
 			
 			String  current_az_version 	= Constants.getBaseVersion();
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
@@ -124,12 +126,15 @@ PlatformManagerUpdateChecker
 				
 				String	target = UPDATE_DIR + PlatformManagerImpl.DLL_NAME + "_" + target_dll_version + ".dll";
 				
-				ResourceDownloader dll_rd = rf.create( new URL( target ));
-							
-				LGLogger.log( "PlatformManager:Win32 downloaded" );
+				ResourceDownloader dll_rd = rdf.create( new URL( target ));
+			
+					// get size here so it is cached
 				
+				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
+
 				UpdateManagerImpl.getSingleton().addUpdate(
-						PlatformManagerImpl.DLL_NAME + ".dll :" + target_dll_version,
+						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
+						target_dll_version,
 						dll_rd,
 						Update.RESTART_REQUIRED_YES );
 			}

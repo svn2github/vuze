@@ -39,6 +39,9 @@ Update
 	public String
 	getName();
 
+	public String
+	getNewVersion();
+	
 	public ResourceDownloader[]
 	getDownloaders();
 	
