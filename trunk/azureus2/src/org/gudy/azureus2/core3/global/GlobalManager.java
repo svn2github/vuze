@@ -72,11 +72,13 @@ GlobalManager
 	
 		throws GlobalManagerDownloadRemovalVetoException;
 	
+		/**
+		 * returns a COPY of the current set of download managers so iteration is safe
+		 * @return
+		 */
+	
 	public List
 	getDownloadManagers();
-
-	public AEMonitor
-	getDownloadManagersMonitor();
 	
 	public DownloadManager 
 	getDownloadManager(TOTorrent torrent);

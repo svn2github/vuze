@@ -38,15 +38,14 @@ class
 GlobalManagerHostSupport
 	implements 	TRHostTorrentFinder
 {
-	protected List		managers;
-	protected TRHost	host;
+	protected GlobalManager	gm;
+	protected TRHost		host;
 	
 	protected
 	GlobalManagerHostSupport(
-		GlobalManager	_gm,
-		List			_managers )
+		GlobalManager	_gm )
 	{
-		managers	= _managers;
+		gm		= _gm;
 		
 	    host = TRHostFactory.getSingleton();
 		  
@@ -57,6 +56,8 @@ GlobalManagerHostSupport
 	lookupTorrent(
 		byte[]		hash )
 	{
+		List	managers = gm.getDownloadManagers();
+		
 		for (int i=0;i<managers.size();i++){
 			
 			DownloadManager	dm = (DownloadManager)managers.get(i);
