@@ -35,7 +35,7 @@ CacheEntry
 	protected static final int	CT_DATA_WRITE		= 0;
 	protected static final int	CT_READ_AHEAD		= 1;
 	
-	protected CacheFileImpl		file;
+	protected CacheFileWithCache		file;
 	protected DirectByteBuffer	buffer;
 	protected long				offset;
 	protected int				size;
@@ -52,7 +52,7 @@ CacheEntry
 	protected
 	CacheEntry(
 		int					_entry_type,
-		CacheFileImpl		_file,
+		CacheFileWithCache		_file,
 		DirectByteBuffer	_buffer,
 		long				_offset,
 		int					_size )
@@ -75,7 +75,7 @@ CacheEntry
 		last_used	= SystemTime.getCurrentTime();
 	}
 	
-	public CacheFileImpl
+	public CacheFileWithCache
 	getFile()
 	{	
 		return( file );

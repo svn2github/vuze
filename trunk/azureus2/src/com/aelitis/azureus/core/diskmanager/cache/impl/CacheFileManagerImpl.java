@@ -49,6 +49,7 @@ CacheFileManagerImpl
 	public static final int		STATS_UPDATE_FREQUENCY		= 1*1000;	// 1 sec
 	public static final long	DIRTY_CACHE_WRITE_MAX_AGE	= 120*1000;	// 2 mins
 		
+	public static final long	MIN_CACHE_FILE_SIZE			= 1024*1024;
 	static{
 		if ( DEBUG ){
 			
@@ -192,31 +193,39 @@ CacheFileManagerImpl
 				
 			TOTorrentFile	tf = owner.getCacheFileTorrentFile();
 			
-			CacheFile	cf = new CacheFileImpl( this, fm_file, tf );
+			CacheFile	cf;
 			
-			try{
-				this_mon.enter();
-
-				if ( updated_cache_files == null ){
-					
-					updated_cache_files = new WeakHashMap( cache_files );
-				}
-					// copy on write so readers don't need to synchronize or copy
+			if ( tf != null && tf.getLength() < MIN_CACHE_FILE_SIZE  ){
 				
-				updated_cache_files.put( cf, null );
-									
-				if ( tf != null ){
+				cf = new CacheFileWithoutCache( this, fm_file, tf );
+			}else{
+				
+				cf = new CacheFileWithCache( this, fm_file, tf );
+			
+				try{
+					this_mon.enter();
 	
+					if ( updated_cache_files == null ){
+						
+						updated_cache_files = new WeakHashMap( cache_files );
+					}
+						// copy on write so readers don't need to synchronize or copy
+					
+					updated_cache_files.put( cf, null );
+										
+					if ( tf != null ){
+		
+									
+						Map	new_map = new HashMap( torrent_to_cache_file_map );
 								
-					Map	new_map = new HashMap( torrent_to_cache_file_map );
-							
-					new_map.put( tf, cf );
-			
-					torrent_to_cache_file_map	= new_map;
-				}	
-			}finally{
+						new_map.put( tf, cf );
 				
-				this_mon.exit();
+						torrent_to_cache_file_map	= new_map;
+					}	
+				}finally{
+					
+					this_mon.exit();
+				}
 			}
 			
 			return( cf );
@@ -261,7 +270,7 @@ CacheFileManagerImpl
 	protected CacheEntry
 	allocateCacheSpace(
 		int					entry_type,
-		CacheFileImpl		file,
+		CacheFileWithCache		file,
 		DirectByteBuffer	buffer,
 		long				file_position,
 		int					length )
@@ -300,7 +309,7 @@ CacheFileManagerImpl
 				
 				long	old_free	= cache_space_free;
 			
-				CacheFileImpl	oldest_file = oldest_entry.getFile();
+				CacheFileWithCache	oldest_file = oldest_entry.getFile();
 				
 				oldest_file.flushCache( oldest_entry.getFilePosition(), true, cache_minimum_free_size );
 				
@@ -368,7 +377,7 @@ CacheFileManagerImpl
 			
 			while(cf_it.hasNext()){
 				
-				((CacheFileImpl)cf_it.next()).updateStats();
+				((CacheFileWithCache)cf_it.next()).updateStats();
 			}
 			
 			if ( --cleaner_ticks == 0 ){
@@ -420,7 +429,7 @@ CacheFileManagerImpl
 				while( it.hasNext()){
 					
 					try{
-						CacheFileImpl	file = (CacheFileImpl)it.next();
+						CacheFileWithCache	file = (CacheFileWithCache)it.next();
 						
 						TOTorrentFile	tf = file.getTorrentFile();
 						
@@ -466,7 +475,7 @@ CacheFileManagerImpl
 			
 			if ( DEBUG ){
 				
-				CacheFileImpl	file	= new_entry.getFile();
+				CacheFileWithCache	file	= new_entry.getFile();
 								
 				long	total_cache_size	= 0;
 				
@@ -718,7 +727,7 @@ CacheFileManagerImpl
 	
 	protected void
 	closeFile(
-		CacheFileImpl	file )
+		CacheFileWithCache	file )
 	{
 		TOTorrentFile	tf = file.getTorrentFile();
 		
@@ -787,7 +796,7 @@ CacheFileManagerImpl
 			long	bit_start	= target_start>this_start?target_start:this_start;
 			long	bit_end		= target_end<this_end?target_end:this_end;
 			
-			CacheFileImpl	cache_file = (CacheFileImpl)map.get( tf );
+			CacheFileWithCache	cache_file = (CacheFileWithCache)map.get( tf );
 			
 			if ( cache_file != null ){
 				

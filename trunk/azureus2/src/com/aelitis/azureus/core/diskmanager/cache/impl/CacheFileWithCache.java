@@ -39,7 +39,7 @@ import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.*;
 
 public class 
-CacheFileImpl 
+CacheFileWithCache 
 	implements CacheFile
 {
 	protected static Comparator comparator = new
@@ -123,7 +123,7 @@ CacheFileImpl
 	protected AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
 	
 	protected
-	CacheFileImpl(
+	CacheFileWithCache(
 		CacheFileManagerImpl	_manager,
 		FMFile					_file,
 		TOTorrentFile			_torrent_file )
