@@ -30,6 +30,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -52,7 +53,13 @@ TRHostExternalTorrent
 		hash_wrapper	= new HashWrapper( hash );
 		announce_url	= _announce_url;
 		
-		TorrentUtils.setDefaultTorrentEncoding( this );
+		try{
+			LocaleUtil.getSingleton().setDefaultTorrentEncoding( this );
+			
+		}catch( LocaleUtilEncodingException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	public byte[]

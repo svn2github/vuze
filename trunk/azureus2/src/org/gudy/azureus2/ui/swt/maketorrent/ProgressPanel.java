@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -133,7 +134,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       torrent.setComment(_wizard.getComment());
  
-      TorrentUtils.setDefaultTorrentEncoding( torrent );
+	  LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
       
       	// mark this newly created torrent as complete to avoid rechecking on open
       

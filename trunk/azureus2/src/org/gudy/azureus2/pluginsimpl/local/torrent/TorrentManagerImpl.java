@@ -33,6 +33,7 @@ import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
@@ -65,7 +66,7 @@ TorrentManagerImpl
 	
 		throws TorrentException
 	{
-		return( new TorrentDownloaderImpl( url ));
+		return( new TorrentDownloaderImpl( this, url ));
 	}
 	
 	public TorrentDownloader
@@ -76,7 +77,7 @@ TorrentManagerImpl
 	
 		throws TorrentException
 	{
-		return( new TorrentDownloaderImpl( url, user_name, password ));
+		return( new TorrentDownloaderImpl( this, url, user_name, password ));
 	}
 	
 	public Torrent
@@ -178,6 +179,30 @@ TorrentManagerImpl
 							return( task_description );
 						}
 					});
+		}
+	}
+	
+	protected void
+	tryToSetDefaultTorrentEncoding(
+		TOTorrent		torrent )
+	
+		throws TorrentException 
+	{
+		try{
+			LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
+			
+		}catch( LocaleUtilEncodingException e ){
+			
+			String[]	charsets = e.getValidCharsets();
+			
+			if ( charsets == null ){
+				
+				throw( new TorrentEncodingException(e));
+				
+			}else{
+				
+				throw( new TorrentEncodingException(charsets,e.getValidTorrentNames()));
+			}
 		}
 	}
 	

@@ -40,21 +40,18 @@ LocaleUtilDecoderReal
 	implements LocaleUtilDecoder
 {
 	protected CharsetDecoder	decoder;
-	protected String			name;
 	
 	protected
 	LocaleUtilDecoderReal(
-		CharsetDecoder	_decoder,
-		String			_name )
+		CharsetDecoder	_decoder )
 	{
 		decoder		= _decoder;
-		name		= _name;
 	}
 	
 	public String
 	getName()
 	{
-		return( name );
+		return( decoder.charset().name());
 	}
 
 	public String

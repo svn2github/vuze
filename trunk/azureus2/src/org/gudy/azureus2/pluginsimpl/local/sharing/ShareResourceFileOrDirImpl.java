@@ -32,6 +32,7 @@ import java.util.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -154,7 +155,7 @@ ShareResourceFileOrDirImpl
 										manager.getAddHashes(),
 										manager );
 	
-			TorrentUtils.setDefaultTorrentEncoding( to_torrent );
+			LocaleUtil.getSingleton().setDefaultTorrentEncoding( to_torrent );
 			
 			File	save_dir;
 			
@@ -182,7 +183,7 @@ ShareResourceFileOrDirImpl
 				item.writeTorrent();
 			}
 			
-		}catch( TOTorrentException e ){
+		}catch( Throwable e ){
 			
 			throw( new ShareException("ShareResourceFile:Torrent create failed", e));
 		}

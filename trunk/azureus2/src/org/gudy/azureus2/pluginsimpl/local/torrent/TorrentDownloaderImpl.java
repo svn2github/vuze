@@ -41,6 +41,7 @@ public class
 TorrentDownloaderImpl 
 	implements TorrentDownloader
 {
+	protected TorrentManagerImpl		manager;
 	protected URL						url;
 	protected ResourceDownloader		downloader;
 	
@@ -48,19 +49,23 @@ TorrentDownloaderImpl
 	
 	protected
 	TorrentDownloaderImpl(
-		URL		_url )
+		TorrentManagerImpl		_manager,
+		URL						_url )
 	{
-		url		= _url;
+		manager		= _manager;
+		url			= _url;
 		
 		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url );
 	}
 	
 	protected
 	TorrentDownloaderImpl(
-		URL		_url,
-		String	_user_name,
-		String	_password )
+		TorrentManagerImpl	_manager,
+		URL					_url,
+		String				_user_name,
+		String				_password )
 	{
+		manager	= _manager;
 		url		= _url;
 		
 			// assumption here is that if we have a user name and password supplied
@@ -101,7 +106,7 @@ TorrentDownloaderImpl
 			
 			if ( set_encoding ){
 				
-				TorrentUtils.setDefaultTorrentEncoding( torrent );
+				manager.tryToSetDefaultTorrentEncoding( torrent );
 			}
 			
 			return( new TorrentImpl(torrent ));

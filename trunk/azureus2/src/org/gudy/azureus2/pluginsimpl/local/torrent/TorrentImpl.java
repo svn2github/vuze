@@ -287,9 +287,15 @@ TorrentImpl
 	
 		throws TorrentException
 	{		
-		TorrentUtils.setDefaultTorrentEncoding( torrent );
+		try{
+			LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
 		
-		TorrentUtils.setResumeDataCompletelyValid( torrent, data_dir.toString());
+			TorrentUtils.setResumeDataCompletelyValid( torrent, data_dir.toString());
+			
+		}catch( LocaleUtilEncodingException e ){
+			
+			throw( new TorrentException("encoding selection fails", e ));
+		}
 	}
 	
 }

@@ -522,13 +522,6 @@ TorrentUtils
 		DiskManagerFactory.setResumeDataCompletelyValid( torrent, data_location );
 	}
 	
-	public static void
-	setDefaultTorrentEncoding(
-		TOTorrent		torrent )
-	{
-		LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
-	}
-	
 	public static String
 	getLocalisedName(
 		TOTorrent		torrent )

@@ -30,6 +30,12 @@ TorrentException
 	extends Exception
 {
 	public
+	TorrentException()
+	{
+		super();
+	}
+	
+	public
 	TorrentException(
 		String	str )
 	{
@@ -38,9 +44,16 @@ TorrentException
 	
 	public
 	TorrentException(
-		String		str,
 		Throwable 	cause )
 	{
-		super(str,cause);
-	}
+		super(cause);
+	}	
+	
+	public
+	TorrentException(
+			String		str,
+			Throwable 	cause )
+		{
+			super(str,cause);
+		}
 }
