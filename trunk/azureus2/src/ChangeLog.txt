@@ -13,7 +13,7 @@ CHANGE: Added 'comment' field to torrent create [Parg]
 CHANGE: Moving of .torrent to completed dir now optional [Nolar]
 CHANGE: Additional upload speed options [Nolar]
 CHANGE: Cleanup of Configuration tabs [Nolar]
-CHANGE: Rewrite of locale selection code for torrents. Now a torrent's encoding is determined up front (before it could be done later and caused issues). Only one encoding allowed per torrent [Parg]
+CHANGE: Rewrite of locale selection code for torrents. Now a torrent's encoding is determined up front. Only one encoding allowed per torrent [Parg]
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
@@ -25,10 +25,11 @@ BUGFIX: % Completed is now correct again in MyTorrents view on stopped downloads
 BUGFIX: Non-UTF8 encoded 'comment' fields in torrents not showing properly [Parg]
 BUGFIX: Some dead-lock issues (especially on startup) [Gudy]
 BUGFIX: Better recovery on connection closing [Nolar]
+BUGFIX: Uncleaned buffers in peer handling code [Nolar]
+BUGFIX: Outgoing message correctness verification [Nolar]
 BUGFIX: Text scroll is now ok in irc view [Gudy]
 BUGFIX: Size is now displayed even when the torrent is stopped [Gudy]
 
-TODO: when released (1) update 'export torrent' FAQ (2) update torrent.xsd [Parg]
 
 13.11.03 | Azureus 2.0.4.0
 
