@@ -5,10 +5,10 @@
 package org.gudy.azureus2.core;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -144,6 +144,17 @@ public class GlobalManager extends Component {
     saveDownloads();
   }
 
+  public void startWaitingDownloads() {
+    synchronized (managers) {
+      for (int i = 0; i < managers.size(); i++) {
+        DownloadManager manager = (DownloadManager) managers.get(i);
+        if (manager.getState() == DownloadManager.STATE_WAITING) {
+          manager.startDownloadInitialized(false);
+        }
+      }
+    }
+  }
+
   public void stopAll() {
     checker.stopIt();
     saveDownloads();
@@ -151,7 +162,6 @@ public class GlobalManager extends Component {
       DownloadManager manager = (DownloadManager) managers.remove(0);
       manager.stopIt();
     }
-
   }
 
   /* (non-Javadoc)
@@ -184,11 +194,15 @@ public class GlobalManager extends Component {
   }
 
   private void loadDownloads() {
+    FileInputStream fin = null;
+    BufferedInputStream bin = null;
     try {
       //open the file
-      FileInputStream fin = new FileInputStream(this.getApplicationPath() + "downloads.config");
-      BufferedInputStream bin = new BufferedInputStream(fin);
+      File configFile = getApplicationFile("downloads.config");
+      fin = new FileInputStream(configFile);
+      bin = new BufferedInputStream(fin);
       Map map = BDecoder.decode(bin);
+      boolean debug = Boolean.getBoolean("debug");
       Iterator iter = map.values().iterator();
       while (iter.hasNext()) {
         Map mDownload = (Map) iter.next();
@@ -196,7 +210,7 @@ public class GlobalManager extends Component {
           String fileName = new String((byte[]) mDownload.get("torrent"), "ISO-8859-1");
           String savePath = new String((byte[]) mDownload.get("path"), "ISO-8859-1");
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
-          int stopped = ((Long) mDownload.get("stopped")).intValue();
+          int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
           this.addDownloadManager(dm);
@@ -205,18 +219,28 @@ public class GlobalManager extends Component {
           //Do nothing and process next.
         }
       }
-      bin.close();
-      fin.close();
     }
     catch (FileNotFoundException e) {
       //Do nothing
     }
-    catch (IOException e) {
+    catch (Exception e) {
       // TODO Auto-generated catch block     
+    } finally {
+      try {
+        if (bin != null)
+          bin.close();
+      } catch (Exception e) {
+      }
+      try {
+        if (fin != null)
+          fin.close();
+      } catch (Exception e) {
+      }
     }
   }
 
   private void saveDownloads() {
+//    if(Boolean.getBoolean("debug")) return;
 
     Map map = new HashMap();
     for (int i = 0; i < managers.size(); i++) {
@@ -236,24 +260,27 @@ public class GlobalManager extends Component {
     //open a file stream
     FileOutputStream fos = null;
     try {
-      fos = new FileOutputStream(this.getApplicationPath() + "downloads.config");
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    //write the data out
-    try {
+      fos = new FileOutputStream(getApplicationFile("downloads.config"));
+      //write the data out
       fos.write(torrentData);
-      fos.close();
-    }
-    catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      try {
+        if (fos != null)
+          fos.close();
+      } catch (Exception e) {
+      }
     }
   }
 
   //TODO:: Move this to a FileManager class?
-  private String getApplicationPath() {
-    return System.getProperty("user.dir") + System.getProperty("file.separator");
+  public static String getApplicationPath() {
+    return System.getProperty("user.dir");
+  }
+
+  public static File getApplicationFile(String filename) {
+    return new File(getApplicationPath(), filename);
   }
 
   /**
