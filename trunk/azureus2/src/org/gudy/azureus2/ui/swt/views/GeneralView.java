@@ -91,7 +91,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel fileSize;
   BufferedLabel saveIn;
   BufferedLabel hash;
-  BufferedTruncatedLabel tracker;
+  BufferedTruncatedLabel tracker_status;
   BufferedLabel trackerUpdateIn;
   Menu menuTracker;
   MenuItem itemSelect;
@@ -592,7 +592,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
     
-    trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,90);        
+    trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,70);        
     
     trackerUrlValue.addMouseListener(new MouseAdapter() {
       public void mouseUp(MouseEvent event) {        
@@ -626,10 +626,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
-    tracker = new BufferedTruncatedLabel(gInfo, SWT.LEFT,90);
+    tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    tracker.setLayoutData(gridData);    
+    tracker_status.setLayoutData(gridData);    
         
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
@@ -1104,7 +1104,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
      
     TRTrackerClient	trackerClient = _manager.getTrackerClient();
 	
-	tracker.setText( status );
+	tracker_status.setText( status );
 		
 	if ( time < 0 ){
 		

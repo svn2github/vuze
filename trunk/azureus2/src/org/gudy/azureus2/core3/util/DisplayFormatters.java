@@ -621,9 +621,10 @@ DisplayFormatters
   						max_len		= len;
   						max_start	= token_start;
   					}
-  					
-  					token_start = -1;
   				}
+  			}else{
+  				
+  				token_start = -1;
   			}
   		}
   		
