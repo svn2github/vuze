@@ -116,7 +116,6 @@ public class PeerIDByteDecoder {
         }
       }
       
-     
       String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
       if (bitspirit.equals("BS")) {
         if (peerID[1] == (byte)0)  return "BitSpirit v1";
@@ -167,6 +166,18 @@ public class PeerIDByteDecoder {
       for (int i = 0; i < 20; i++) {
         if (peerID[i] != (byte)0) { iFirstNonZeroPos = i; break; }
       }
+      
+      //TODO
+      //BitSpirit HTTPBT-compatable extention?
+      //Bitspirit clients always have a "BS" in front....this seems to be a
+      //client that also supports the httpbt extension
+      //if( iFirstNonZeroPos == 8 ) {
+      //  String httpbt = new String(peerID, 14, 6, Constants.BYTE_ENCODING);
+      //  if( httpbt.equals( "HTTPBT" ) ) {
+      //    return "Unknown HTTPBT client";
+      //  }
+      //}
+      
       
       byte three = (byte)3;
       if ((iFirstNonZeroPos == 9)
