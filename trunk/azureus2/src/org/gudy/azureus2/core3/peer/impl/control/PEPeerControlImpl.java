@@ -292,15 +292,11 @@ PEPeerControlImpl
         
         long start_time = SystemTime.getCurrentTime();
         
-        	// here we unfortunately must process the transports under the monitor
-        	// as if the transport has been closed it'll occassionally fail due
-        	// to invocations been made on a cleared down transport
-        
         try{
-        	peer_transports_mon.enter();
+        	List	peer_transports = peer_transports_cow;
                        	
-	          for (int i=0; i < peer_transports_cow.size(); i++) {
-	            PEPeerTransport ps = (PEPeerTransport) peer_transports_cow.get(i);
+	          for (int i=0; i < peer_transports.size(); i++) {
+	            PEPeerTransport ps = (PEPeerTransport) peer_transports.get(i);
 	
 	            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
 	              ps.setReadSleepTime( ps.processRead() );
@@ -312,11 +308,6 @@ PEPeerControlImpl
         }catch( Throwable e ){
         	
         	Debug.printStackTrace( e );
-	      
-        }finally{
-	          	
-	        peer_transports_mon.exit();
-            
         }
          
         long loop_time = SystemTime.getCurrentTime() - start_time;
@@ -533,7 +524,7 @@ PEPeerControlImpl
 				
 			if ( !peer_transports_cow.contains(transport)){
 				
-				addToPeerTransports( transport.getRealTransport());
+				addToPeerTransports( transport );
 				
 			}else{
 			  
@@ -2041,10 +2032,10 @@ PEPeerControlImpl
 	try{
 		peer_transports_mon.enter();
 		  	
-		connection_found	= true;
-		
 	  	if ( peer_transports_cow.contains( peer )){
 	 
+			connection_found	= true;
+			
 		  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 		  	
 		  	new_peer_transports.remove(peer);

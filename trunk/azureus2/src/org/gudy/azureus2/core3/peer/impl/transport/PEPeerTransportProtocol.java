@@ -85,10 +85,6 @@ PEPeerTransportProtocol
   private boolean snubbed = false;
   private boolean[] other_peer_has_pieces;
   private boolean seed = false;
-
-	//The Buffer for reading the length of the messages
-	private DirectByteBuffer lengthBuffer;
-
   
   private boolean connection_registered = false;
   
@@ -266,7 +262,6 @@ PEPeerTransportProtocol
     other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
   	Arrays.fill( other_peer_has_pieces, false );
   	stats = (PEPeerStatsImpl)manager.createPeerStats();
-  	this.lengthBuffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_LENGTH,4 );
 
     //link in outgoing piece handler
     outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
@@ -304,7 +299,12 @@ PEPeerTransportProtocol
 
    
   
-  public void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
+  public void 
+  closeAll(
+  		String 		reason, 
+		boolean 	closedOnError, 
+		boolean 	attemptReconnect ) 
+  {
   	
 	  	if (closing) {
 	  		return;
@@ -313,7 +313,7 @@ PEPeerTransportProtocol
 
 	    currentState = new StateClosing();
       
-      LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
+        LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
       
 	  	//Cancel any pending requests (on the manager side)
 	  	cancelRequests();
@@ -336,11 +336,11 @@ PEPeerTransportProtocol
 	    closeConnectionX();  //cleanup of download limiter
 	    
 	    if( connection != null ) {
-        if( connection_registered ) {
-          UploadManager.getSingleton().cancelStandardPeerConnection( connection );
-        }
-	      connection.close();
-	      connection = null;
+	    	if( connection_registered ) {
+	    		UploadManager.getSingleton().cancelStandardPeerConnection( connection );
+	    	}
+	    	connection.close();
+	    	connection = null;
 	    }
 	    
 	    
@@ -366,24 +366,14 @@ PEPeerTransportProtocol
 	  	
 	  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
 	  	
-	  		// bit crap this. The peer-updater thread can be running async to this process
-	  		// the call to peerConnectionClosed below forces synchronization between the 
-	  		// updater and this code such that when it returns we are guaranteed not
-	  		// to be invoked again. To avoid problems with an already running updated
-	  		// move the lengthBuffer clearing down until after this event
-	  	
-	    if( attemptReconnect && !incoming ) {      
+	  	if( attemptReconnect && !incoming ) {      
 	  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
 	  		manager.peerConnectionClosed( this, true );
-	  	}
-	  	else {
+	  		
+	  	}else{
+	  		
 	      manager.peerConnectionClosed( this, false );
 	  	}
-
-	    if ( lengthBuffer != null ) {
-		      lengthBuffer.returnToPool();
-		      lengthBuffer = null;
-		}
   }
 
 	
@@ -1014,8 +1004,13 @@ PEPeerTransportProtocol
   
   
   
-private class StateTransfering implements PEPeerTransportProtocolState {
-  boolean readingLength = true;
+private class 
+StateTransfering 
+	implements PEPeerTransportProtocolState 
+{
+  DirectByteBuffer	lengthBuffer 	= new DirectByteBuffer(ByteBuffer.allocate(4));
+  boolean 			readingLength 	= true;
+  
   DirectByteBuffer message_read_buff;
   
   public int process() 

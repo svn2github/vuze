@@ -33,18 +33,7 @@ import org.gudy.azureus2.core3.disk.*;
 public interface
 PEPeerTransport
 	extends PEPeer
-{
- 	
-	/**
-	 * Fake transports are created to permit equivalence testing prior to adding to 
-	 * the active transport set. This method exists to convert such fake transports into
-	 * real transports if it is found they are new
-	 * @return
-	 */
-	
-	public PEPeerTransport
-	getRealTransport();
-	
+{	
 	public int
 	processRead();
   	
@@ -67,7 +56,7 @@ PEPeerTransport
    * @param pieceNumber
    * @param pieceOffset
    * @param pieceLength
-   * @return true is the piece is really requested
+   * @return true if the piece is really requested
    */
 	public boolean 
 	request(

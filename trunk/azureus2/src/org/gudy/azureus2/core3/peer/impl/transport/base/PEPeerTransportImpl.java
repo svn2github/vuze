@@ -120,14 +120,6 @@ PEPeerTransportImpl
   			this_mon.exit();
   		}
   	}
-  	
-	public PEPeerTransport
-	getRealTransport()
-	{
-		return( this );
-	}
-	
-  
   
   //TODO
 	protected void startConnectionX() {
