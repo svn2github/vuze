@@ -2072,12 +2072,12 @@ PEPeerControlImpl
     try{
     		// may have already been removed
     	
+    	peer_transports_mon.enter();
+  	
      	if ( peer_transports_cow.contains( peer )){
      		 
      		connection_found	= true;
      		
-	    	peer_transports_mon.enter();
-	  
 	     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 	      	
 	      	new_peer_transports.remove(peer);
