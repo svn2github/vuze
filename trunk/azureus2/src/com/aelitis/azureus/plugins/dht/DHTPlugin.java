@@ -119,7 +119,9 @@ DHTPlugin
 											}
 										}else{
 											
-											dht.get( rhs.getBytes(), 10000);
+											byte[] res = dht.get( rhs.getBytes(), 10000);
+											
+											log.log( "Get result:" + ( res==null?"<null>":new String( res )));
 										}
 									}
 								}

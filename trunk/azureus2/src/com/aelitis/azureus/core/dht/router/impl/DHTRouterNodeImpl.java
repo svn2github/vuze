@@ -220,22 +220,31 @@ DHTRouterNodeImpl
 					// treat this differently as we need to kick off the "store"
 					// events as required. 
 		
-				int	old_id 	= contact.getAttachment().getInstanceID();
 				int	new_id	= attachment.getInstanceID();
+
+					// if the new-id is zero this represents us hearing about a contact
+					// indirectly (imported or returned as a query). In this case we 
+					// don't use this information as an indication of the target's
+					// instance identity because it isn't!
 				
-				if (  old_id != new_id ){
+				if ( new_id != 0 ){
 					
-					router.log( "Instance ID changed for " + 
-								DHTLog.getString( contact.getID())+ 
-								": old = " + old_id + ", new = " + new_id );
-										
-					contact.setAttachment( attachment );
+					int	old_id 	= contact.getAttachment().getInstanceID();
 					
-						// if the instance id was 0, this means that it was unknown
-						// (e.g. contact imported). We still need to go ahead and treat 
-						// as a new node 
-					
-					requestNodeAdd( contact, old_id != 0 );
+					if (  old_id != new_id ){
+						
+						router.log( "Instance ID changed for " + 
+									DHTLog.getString( contact.getID())+ 
+									": old = " + old_id + ", new = " + new_id );
+											
+						contact.setAttachment( attachment );
+						
+							// if the instance id was 0, this means that it was unknown
+							// (e.g. contact imported). We still need to go ahead and treat 
+							// as a new node 
+						
+						requestNodeAdd( contact, old_id != 0 );
+					}
 				}
 
 				return( contact );
