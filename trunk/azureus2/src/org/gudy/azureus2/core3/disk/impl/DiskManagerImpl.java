@@ -1573,15 +1573,11 @@ DiskManagerImpl
    * Returns a string path to the new torrent file.
    */
   public String moveCompletedFiles() {
-    boolean DBG = false;
-    
     String fullPath;
     String subPath;
     File destDir;
     File delDir;
     String returnName = "";
-    
-    if (DBG) System.out.println("======START=======");    
     
     //make sure the torrent hasn't already been moved
     //Added synchronized block, so that we're sure it's ok.
@@ -1602,31 +1598,30 @@ DiskManagerImpl
           //get old file pointer
           File oldFile = files[i].getFile();
           
-          if (DBG) System.out.println("oldFile=" + oldFile.getCanonicalPath());
+          //make sure the 'path' var isn't refering to multi-file torrent dir
+          if (path.endsWith(fileName)) {
+            File fTest = new File(path);
+            if(fTest.exists() && fTest.isDirectory()) {
+              path = fTest.getParent();
+            }
+          }
           
           //get old file's parent path
           fullPath = oldFile.getParent();
+          
           //compute the file's sub-path off from the default save path
           subPath = fullPath.substring(fullPath.indexOf(path) + path.length());
-
-          if (DBG) System.out.println("subPath=" + subPath);
     
           //create the destination dir
           destDir = new File(moveToDir + subPath);
-          
-          if (DBG) System.out.println("destDir=" + destDir.getCanonicalPath());
      
           destDir.mkdirs();
           //points to the file's parent dir, used for later deletion
           delDir = new File(fullPath);
-          
-          if (DBG) System.out.println("delDir=" + delDir.getCanonicalPath());
-    
+
           //create the destination file pointer
           File newFile = new File(destDir, oldFile.getName());
-          
-          if (DBG) System.out.println("newFile=" + newFile.getCanonicalPath());
-           
+
           if (newFile.exists()) {
             System.out.println("DiskManagerImpl::ERROR: " + oldFile.getName() + " already exists in MoveTo destination dir");
             continue;
@@ -1674,9 +1669,7 @@ DiskManagerImpl
       }
       
     } catch (Exception e) { e.printStackTrace(); }
-    
-    if (DBG) System.out.println("======END=======");
- 
+
     return returnName;
   }
    
