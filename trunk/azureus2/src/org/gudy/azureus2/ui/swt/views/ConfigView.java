@@ -42,6 +42,8 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.ipchecker.ChooseServicePanel;
+import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 
 /**
  * @author Olivier
@@ -980,8 +982,9 @@ public class ConfigView extends AbstractIView {
 		 public void 
 		 handleEvent(Event event) 
 		 {
+      new IpCheckerWizard(cConfig.getDisplay()); 
 		 		// hack for the moment - this will kick off "check ip" wizard
-		 		
+		 	/*	
 			ExternalIPChecker checker = ExternalIPCheckerFactory.create();
 			
 			ExternalIPCheckerService[]	services = checker.getServices();
@@ -1028,6 +1031,7 @@ public class ConfigView extends AbstractIView {
 			});
 			
 			services[0].initiateCheck(10000);
+      */
 		 }
 	   });
 		
