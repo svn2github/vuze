@@ -30,6 +30,22 @@ public class TorrentRow implements SortableItem {
   private BufferedTableRow row;
   private List items;
   private DownloadManager manager;
+  
+  private boolean valid;
+
+  /**
+   * @return Returns the valid.
+   */
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * @param valid The valid to set.
+   */
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
 
   /**
    * @return Returns the row.
@@ -75,6 +91,8 @@ public class TorrentRow implements SortableItem {
         items.add(new ShareRatioItem(TorrentRow.this,itemEnumerator.getPositionByName("shareRatio")));
         items.add(new DownItem(TorrentRow.this,itemEnumerator.getPositionByName("down")));
         items.add(new UpItem(TorrentRow.this,itemEnumerator.getPositionByName("up")));
+        items.add(new PiecesItem(TorrentRow.this,itemEnumerator.getPositionByName("pieces")));
+        items.add(new CompletionItem(TorrentRow.this,itemEnumerator.getPositionByName("completion")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -110,7 +128,8 @@ public class TorrentRow implements SortableItem {
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
-    }    
+    }
+    this.setValid(true);
   }
 
   public int getIndex() {
@@ -147,6 +166,12 @@ public class TorrentRow implements SortableItem {
       return manager.getSize();
   
     if (field.equals("done")) //$NON-NLS-1$
+      return manager.getStats().getCompleted();
+    
+    if (field.equals("pieces")) //$NON-NLS-1$
+      return manager.getStats().getCompleted();
+    
+    if (field.equals("completion")) //$NON-NLS-1$
       return manager.getStats().getCompleted();
     
     if (field.equals("downspeed")) //$NON-NLS-1$
@@ -186,6 +211,7 @@ public class TorrentRow implements SortableItem {
   }  
   
   public void invalidate() {
+    valid = false;
   }
 
   public void setDataSource(Object dataSource) {

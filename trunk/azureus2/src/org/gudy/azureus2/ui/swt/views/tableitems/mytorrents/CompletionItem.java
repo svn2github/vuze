@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.ui.swt.views.tableitems.peers;
+package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -32,7 +32,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
  * @author Olivier
  *
  */
-public class PiecesItem extends PeerItem  {
+public class CompletionItem extends TorrentItem  {
   
   //The Buffered image;
   Image image;
@@ -43,14 +43,13 @@ public class PiecesItem extends PeerItem  {
    * @param row
    * @param position
    */
-  public PiecesItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+  public CompletionItem(TorrentRow torrentRow, int position) {
+    super(torrentRow, position);
   }
   
   public void refresh() {
-    boolean valid = peerRow.isValid();
-    peerRow.setValid(true);
-    BufferedTableRow row = peerRow.getRow();
+    boolean valid = torrentRow.isValid();    
+    BufferedTableRow row = torrentRow.getRow();
     
     if (row == null || row.isDisposed())
       return;
@@ -77,40 +76,16 @@ public class PiecesItem extends PeerItem  {
       gc.dispose();
     }
     else {
- // no need to reallocate the image each time.
- //     Image is not valid anymore ... so 1st free it :)
- //     Image oldImage = null;//image;      
- //     image = new Image(peerRow.getTableItem().getDisplay(), width, height);
     	Image oldImage = null;
       if (image == null || ! imageSize.equals(new Point(width,height))) {
         oldImage = image;
-    		image = new Image(peerRow.getTableItem().getDisplay(), width, height);
+    		image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
         imageSize = new Point(width,height);
      	}
       GC gcImage = new GC(image);
-      boolean available[] = peerRow.getPeerSocket().getAvailable();
-      if (available != null) {
-        int nbPieces = available.length;
-        for (int i = 0; i < width; i++) {
-          int a0 = (i * nbPieces) / width;
-          int a1 = ((i + 1) * nbPieces) / width;
-          if (a1 == a0)
-            a1++;
-          if (a1 > nbPieces)
-            a1 = nbPieces;
-          int nbAvailable = 0;
-          for (int j = a0; j < a1; j++)
-            if (available[j])
-              nbAvailable++;
-          int index = (nbAvailable * 4) / (a1 - a0);
-          //System.out.print(index);
-//          gcImage.setBackground(MainWindow.blues[index]);
-          gcImage.setForeground(MainWindow.blues[index]);
-          gcImage.drawLine(i,1,i,1+height);
-          // no need to draw a one pixel wide rect
-         // gcImage.fillRectangle(i,1,1,height);
-        }
-      }
+      int percentDone = torrentRow.getManager().getStats().getCompleted();        
+      gcImage.setBackground(MainWindow.blues[4]);
+      gcImage.fillRectangle(0,1,(percentDone*width)/1000,1+height);        
       gcImage.dispose();
       gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);

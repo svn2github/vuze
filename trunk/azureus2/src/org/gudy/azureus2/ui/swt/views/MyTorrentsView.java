@@ -105,6 +105,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       ,"shareRatio;L;I;70;-1"
       ,"down;R;I;70;-1"
       ,"up;R;I;70;-1"
+      ,"pieces;C;I;100;-1"
+      ,"completion;C;I;100;-1"
   };
   
 	// table item index, where the drag has started
@@ -201,8 +203,15 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     sorter = new TableSorter(this,"#",true);
     
     ControlListener resizeListener = new ControlAdapter() {
-      public void controlResized(ControlEvent e) {
+      public void controlResized(ControlEvent e) {        
         Utils.saveTableColumn((TableColumn) e.widget);
+        synchronized(objectToSortableItem) {
+          Iterator iter = objectToSortableItem.values().iterator();
+          while(iter.hasNext()) {
+            TorrentRow row = (TorrentRow) iter.next();
+            row.invalidate();
+          }
+        }
       }
     };
         
