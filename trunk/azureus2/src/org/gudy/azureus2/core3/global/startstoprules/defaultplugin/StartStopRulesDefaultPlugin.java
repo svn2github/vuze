@@ -27,7 +27,6 @@ import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormater;
 import org.gudy.azureus2.plugins.Plugin;
@@ -36,8 +35,12 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 
 /** Handles Starting and Stopping of torrents.
  *
@@ -117,12 +120,16 @@ public class StartStopRulesDefaultPlugin
   
   boolean bPreferLargerSwarms;
   boolean bDebugLog;
+  TableContextMenuItem debugMenuItem = null;
+  
   int minQueueingShareRatio;
   int iFirstPriorityType;
   int iFirstPrioritySeedingMinutes;
   int iFirstPriorityDLMinutes;
   
   boolean bAutoStart0Peers;
+
+  TableColumn seedingRankColumn;
 
   public void initialize(PluginInterface _plugin_interface) {
     startedOn = SystemTime.getCurrentTime();
@@ -146,20 +153,19 @@ public class StartStopRulesDefaultPlugin
     COConfigurationManager.addListener(this);
 
     plugin_config = plugin_interface.getPluginconfig();
-    reloadConfigParams();
 
     try {
       TableManager tm = plugin_interface.getUIManager().getTableManager();
-      TableColumn column = tm.createColumn(TableManager.TABLE_MYTORRENTS_COMPLETE,
-                                           "SeedingRank");
-      column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80,
-                        TableColumn.INTERVAL_LIVE);
+      seedingRankColumn = tm.createColumn(TableManager.TABLE_MYTORRENTS_COMPLETE,
+                                          "SeedingRank");
+      seedingRankColumn.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST,
+                                   80, TableColumn.INTERVAL_LIVE);
   
       SeedingRankColumnListener columnListener = new SeedingRankColumnListener();
-      column.addCellRefreshListener(columnListener);
-      column.addCellAddedListener(columnListener);
-      tm.addColumn(column);
-
+      seedingRankColumn.addCellRefreshListener(columnListener);
+      seedingRankColumn.addCellAddedListener(columnListener);
+      tm.addColumn(seedingRankColumn);
+      
       plugin_interface.addConfigSection(new ConfigSectionQueue());
       plugin_interface.addConfigSection(new ConfigSectionSeeding());
       plugin_interface.addConfigSection(new ConfigSectionSeedingAutoStarting());
@@ -173,6 +179,7 @@ public class StartStopRulesDefaultPlugin
     } catch( Throwable e ){
       e.printStackTrace();
     }
+    reloadConfigParams();
 
     download_manager = plugin_interface.getDownloadManager();
     download_manager.addListener(new StartStopDMListener());
@@ -426,9 +433,26 @@ public class StartStopRulesDefaultPlugin
     }
     recalcAllSeedingRanks(true);
     somethingChanged = true;
-    if (bDebugLog) 
+    if (bDebugLog) {
       log.log(LoggerChannel.LT_INFORMATION,
               "somethingChanged: config reload");
+      if (debugMenuItem == null && seedingRankColumn != null) {
+        debugMenuItem = ((TableColumnCore)seedingRankColumn).addContextMenuItem("StartStopRules.menu.viewDebug");
+        debugMenuItem.addListener(new MenuItemListener() {
+          public void selected(MenuItem _menu, Object _target) {
+  				  Download dl = (Download)((TableRow)_target).getDataSource();
+            downloadData dlData = (downloadData)downloadDataMap.get(dl);
+
+            if (dlData != null) {
+              new TextViewerWindow(null, null, dlData.sExplainFP + "\n" + dlData.sTrace);
+            }
+          }
+        });
+      }
+    } else {
+      ((TableColumnCore)seedingRankColumn).removeContextMenuItem(debugMenuItem);
+      debugMenuItem = null;
+    }
   }
   
   private int calcMaxSeeders(int iDLs) {
@@ -595,6 +619,7 @@ public class StartStopRulesDefaultPlugin
       downloadData dlData = dlDataArray[i];
       Download download = dlData.getDownloadObject();
       boolean bStopAndQueued = false;
+      dlData.sTrace = "";
 
       // Initialize STATE_WAITING torrents
       if ((download.getState() == Download.ST_WAITING) &&
@@ -622,9 +647,8 @@ public class StartStopRulesDefaultPlugin
 
       // Handle incomplete DLs
       if (download.getStats().getDownloadCompleted(false) != 1000) {
-        if (bDebugLog)
-          log.log(LoggerChannel.LT_INFORMATION, 
-                  ">> "+download.getTorrent().getName()+
+        if (bDebugLog) {
+          String s = ">> "+download.getTorrent().getName()+
                   "]: state="+sStates.charAt(download.getState())+
                   ";shareRatio="+download.getStats().getShareRatio()+
                   ";numW8tngorDLing="+numWaitingOrDLing+
@@ -632,7 +656,10 @@ public class StartStopRulesDefaultPlugin
                   ";forced="+download.isForceStart()+
                   ";forcedStart="+download.isForceStart()+
                   ";actvDLs="+activeDLCount+
-                  "");
+                  "";
+          log.log(LoggerChannel.LT_INFORMATION, s);
+          dlData.sTrace += s + "\n";
+        }
 
         if (download.isForceStart())
           continue;
@@ -654,8 +681,11 @@ public class StartStopRulesDefaultPlugin
               (numWaitingOrDLing >= maxDownloads - iExtraFPs) &&
               (bActivelyDownloading || state != Download.ST_DOWNLOADING)) {
             try {
-              if (bDebugLog)
-                log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
+              if (bDebugLog) {
+                String s = "   stopAndQueue() > maxDownloads";
+                log.log(LoggerChannel.LT_INFORMATION, s);
+                dlData.sTrace += s + "\n";
+              }
               download.stopAndQueue();
               // reduce counts
               if (state == Download.ST_DOWNLOADING) {
@@ -677,8 +707,11 @@ public class StartStopRulesDefaultPlugin
         if (state == Download.ST_QUEUED) {
           if ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads - iExtraFPs)) {
             try {
-              if (bDebugLog)
-                log.log(LoggerChannel.LT_INFORMATION, "   restart()");
+              if (bDebugLog) {
+                String s = "   restart()";
+                log.log(LoggerChannel.LT_INFORMATION, s);
+                dlData.sTrace += s + "\n";
+              }
               download.restart();
 
               // increase counts
@@ -693,8 +726,11 @@ public class StartStopRulesDefaultPlugin
         if (state == Download.ST_READY) {
           if ((maxDownloads == 0) || (activeDLCount < maxDownloads - iExtraFPs)) {
             try {
-              if (bDebugLog)
-                log.log(LoggerChannel.LT_INFORMATION, "   start() activeDLCount < maxDownloads");
+              if (bDebugLog) {
+                String s = "   start() activeDLCount < maxDownloads";
+                log.log(LoggerChannel.LT_INFORMATION, s);
+                dlData.sTrace += s + "\n";
+              }
               download.start();
 
               // adjust counts
@@ -707,9 +743,8 @@ public class StartStopRulesDefaultPlugin
           }
         }
 
-        if (bDebugLog)
-          log.log(LoggerChannel.LT_INFORMATION, 
-                  "<< "+download.getTorrent().getName()+
+        if (bDebugLog) {
+          String s = "<< "+download.getTorrent().getName()+
                   "]: state="+sStates.charAt(download.getState())+
                   ";shareRatio="+download.getStats().getShareRatio()+
                   ";numW8tngorDLing="+numWaitingOrDLing+
@@ -717,7 +752,10 @@ public class StartStopRulesDefaultPlugin
                   ";forced="+download.isForceStart()+
                   ";forcedStart="+download.isForceStart()+
                   ";actvDLs="+activeDLCount+
-                  "");
+                  "";
+          log.log(LoggerChannel.LT_INFORMATION, s);
+          dlData.sTrace += s + "\n";
+        }
       }
       else if (bSeedHasRanking || totalFirstPriority > 0) { // completed
         String[] debugEntries = null;
@@ -958,7 +996,7 @@ public class StartStopRulesDefaultPlugin
                            "activeCDingCount="+activeSeedingCount,
                            "ActCding="+bActivelySeeding
                           };
-          printDebugChanges(download.getName() + "] ", debugEntries, debugEntries2, sDebugLine, "  ", true);
+          printDebugChanges(download.getName() + "] ", debugEntries, debugEntries2, sDebugLine, "  ", true, dlData);
         }
 
       } // getDownloadCompleted == 1000
@@ -978,7 +1016,7 @@ public class StartStopRulesDefaultPlugin
           "mxCdrs="+maxSeeders,
           "t1stPr="+totalFirstPriority
                   };
-      printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2, "", "", true);
+      printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2, "", "", true, null);
     }
 
   } // process()
@@ -988,7 +1026,8 @@ public class StartStopRulesDefaultPlugin
                                  String[] newEntries,
                                  String sDebugLine,
                                  String sPrefix, 
-                                 boolean bAlwaysPrintNoChangeLine) {
+                                 boolean bAlwaysPrintNoChangeLine,
+                                 downloadData dlData) {
       boolean bAnyChanged = false;
       String sDebugLineNoChange = sPrefixFirstLine;
       String sDebugLineOld = "";
@@ -1008,7 +1047,9 @@ public class StartStopRulesDefaultPlugin
       if (!sDebugLineOut.equals("")) {
         String[] lines = sDebugLineOut.split("\n");
         for (int i = 0; i < lines.length; i++) {
-          log.log(LoggerChannel.LT_INFORMATION, sPrefix + ((i>0)?"  ":"") + lines[i]);
+          String s = sPrefix + ((i>0)?"  ":"") + lines[i];
+          log.log(LoggerChannel.LT_INFORMATION, s);
+          if (dlData != null) dlData.sTrace += s + "\n";
         }
       }
   }
@@ -1088,6 +1129,8 @@ public class StartStopRulesDefaultPlugin
     protected Download dl;
     private boolean bActivelyDownloading;
     private boolean bActivelySeeding;
+    public String sExplainFP = "";
+    public String sTrace = "";
     
     /** Sort first by SeedingRank Descending, then by Position Ascending.
       */
@@ -1228,11 +1271,8 @@ public class StartStopRulesDefaultPlugin
 
       int newSR = 0;
 
-      // First Priority Calculations
-      if (isFirstPriority(false)) {
-        newSR += SR_FIRST_PRIORITY_STARTS_AT;
-      }
-      
+      if (isFirstPriority())
+        newSR = SR_FIRST_PRIORITY_STARTS_AT;
 
       /** 
        * Check ignore rules
@@ -1386,52 +1426,74 @@ public class StartStopRulesDefaultPlugin
 
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
-      return isFirstPriority(true);
-    }
+      if (bDebugLog) sExplainFP = "FP Calculations:\n";
 
-    public boolean isFirstPriority(boolean bSkip0Peers) {
       // FP only applies to completed
-      if (dl.getStats().getDownloadCompleted(false) < 1000)
+      if (dl.getStats().getDownloadCompleted(false) < 1000) {
+        if (bDebugLog) sExplainFP += "Not FP: Download not complete\n";
         return false;
+      }
 
       if (dl.getState() == Download.ST_ERROR ||
-          dl.getState() == Download.ST_STOPPED)
+          dl.getState() == Download.ST_STOPPED) {
+        if (bDebugLog) sExplainFP += "Not FP: Download is ERROR or STOPPED\n";
         return false;
-/*
-      // A torrent with 0 seeds really shouldn't be the first priority
-      if (bSkip0Peers && calcPeersNoUs(dl) == 0)
-        return false;
-*/
+      }
+
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
-      boolean bAnyMatched = bLastMatched;
       
-      if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
-          (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
-        bLastMatched = (iFirstPrioritySeedingMinutes == 0);
-        if (!bLastMatched) {
-          long timeSeeding = dl.getStats().getSecondsOnlySeeding();
-          if (timeSeeding > 0) {
-            bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
-            bAnyMatched |= bLastMatched;
+      if (bDebugLog) sExplainFP += "  shareRatio("+shareRatio+") < "+minQueueingShareRatio+"="+bLastMatched+"\n";
+      if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
+        if (bDebugLog) sExplainFP += "..Not FP\n";
+        return false;
+      }
+      if (bLastMatched) {
+        if (bDebugLog) sExplainFP += "..Is FP\n";
+        return true;
+      }
+      
+      bLastMatched = (iFirstPrioritySeedingMinutes == 0);
+      if (!bLastMatched) {
+        long timeSeeding = dl.getStats().getSecondsOnlySeeding();
+        if (timeSeeding > 0) {
+          bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
+          if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+iFirstPrioritySeedingMinutes+"="+bLastMatched+"\n";
+          if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
+            if (bDebugLog) sExplainFP += "..Not FP\n";
+            return false;
+          }
+          if (bLastMatched) {
+            if (bDebugLog) sExplainFP += "..Is FP\n";
+            return true;
           }
         }
       }
 
-      if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
-          (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
-        bLastMatched = (iFirstPriorityDLMinutes == 0);
-        if (!bLastMatched) {
-          long timeDLing = dl.getStats().getSecondsDownloading();
-          if (timeDLing > 0) {
-            bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
-            bAnyMatched |= bLastMatched;
+      bLastMatched = (iFirstPriorityDLMinutes == 0);
+      if (!bLastMatched) {
+        long timeDLing = dl.getStats().getSecondsDownloading();
+        if (timeDLing > 0) {
+          bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
+          if (bDebugLog) sExplainFP += "  DLTime("+timeDLing+") < "+iFirstPriorityDLMinutes+"="+bLastMatched+"\n";
+          if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
+            if (bDebugLog) sExplainFP += "..Not FP\n";
+            return false;
+          }
+          if (bLastMatched) {
+            if (bDebugLog) sExplainFP += "..Is FP\n";
+            return true;
           }
         }
       }
-      
-      return ((iFirstPriorityType == FIRSTPRIORITY_ANY && bAnyMatched) ||
-              (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched));
+
+      if (iFirstPriorityType == FIRSTPRIORITY_ALL) {
+        if (bDebugLog) sExplainFP += "..Is FP\n";
+        return true;
+      }
+
+      if (bDebugLog) sExplainFP += "..Not FP\n";
+      return false;
     }
   }
                                  
@@ -1460,8 +1522,8 @@ public class StartStopRulesDefaultPlugin
 
       int sr = dlData.getSeedingRank();
 
+      String sText = "";
       if (sr >= 0) {
-        String sText = "";
         if (sr >= SR_FIRST_PRIORITY_STARTS_AT) {
           sText += MessageText.getString("StartStopRules.firstPriority") + " ";
           sr -= SR_FIRST_PRIORITY_STARTS_AT;
@@ -1488,21 +1550,21 @@ public class StartStopRulesDefaultPlugin
             sText += "* ";
           sText += String.valueOf(sr);
         }
-        cell.setText(sText);
       }
       else if (sr == SR_RATIOMET)
-        cell.setText(MessageText.getString("StartStopRules.ratioMet"));
+        sText = MessageText.getString("StartStopRules.ratioMet");
       else if (sr == SR_NUMSEEDSMET)
-        cell.setText(MessageText.getString("StartStopRules.numSeedsMet"));
+        sText = MessageText.getString("StartStopRules.numSeedsMet");
       else if (sr == SR_NOTQUEUED)
-        cell.setText("");
+        sText = "";
       else if (sr == SR_0PEERS)
-        cell.setText(MessageText.getString("StartStopRules.0Peers"));
+        sText = MessageText.getString("StartStopRules.0Peers");
       else if (sr == SR_SHARERATIOMET)
-        cell.setText(MessageText.getString("StartStopRules.shareRatioMet"));
+        sText = MessageText.getString("StartStopRules.shareRatioMet");
       else {
-        cell.setText("ERR" + sr);
+        sText = "ERR" + sr;
       }
+      cell.setText(sText);
     }
   }
 } // class
