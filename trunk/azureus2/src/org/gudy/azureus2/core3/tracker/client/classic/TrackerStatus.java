@@ -124,7 +124,7 @@ public class TrackerStatus {
   }
 
   protected void updateSingleHash(byte[] hash, boolean force, boolean async) {      
-    LGLogger.log("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
+    //LGLogger.log("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
     if (scrapeURL == null)  {
       return;
     }
@@ -219,7 +219,7 @@ public class TrackerStatus {
         return;
       }
       
-      LGLogger.log( "ThreadedScrapeRunner:: responses.size()=" +responses.size()+ ", bSingleHashScrapes=" +bSingleHashScrapes );
+      //LGLogger.log( "ThreadedScrapeRunner:: responses.size()=" +responses.size()+ ", bSingleHashScrapes=" +bSingleHashScrapes );
             
       boolean	original_bSingleHashScrapes = bSingleHashScrapes;
       
@@ -269,9 +269,7 @@ public class TrackerStatus {
         	scrapeUDP( reqUrl, message, ((TRTrackerScraperResponseImpl)responses.get(0)).getHash());
         	bSingleHashScrapes = true;
         }else{
-          LGLogger.log( "scrapeHTTP started" );
         	scrapeHTTP( reqUrl, message );
-          LGLogger.log( "scrapeHTTP completed" );
         }
                 
         Map map = BDecoder.decode(message.toByteArray());
@@ -353,7 +351,7 @@ public class TrackerStatus {
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           
-          LGLogger.log( "decoding response #" +i+ ": " + ByteFormatter.nicePrint( response.getHash(), true ) );
+          //LGLogger.log( "decoding response #" +i+ ": " + ByteFormatter.nicePrint( response.getHash(), true ) );
           
           
           //retrieve the scrape data for the relevent infohash
@@ -489,7 +487,7 @@ public class TrackerStatus {
             response.setStatus(TRTrackerScraperResponse.ST_ONLINE, 
                                MessageText.getString("Scrape.status.ok") );
 
-            LGLogger.log("finished decoding #" +i);
+            //LGLogger.log("finished decoding #" +i);
             
             //notifiy listeners
             scraper.scrapeReceived( response );
