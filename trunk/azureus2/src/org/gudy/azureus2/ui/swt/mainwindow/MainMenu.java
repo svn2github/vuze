@@ -65,7 +65,7 @@ public class MainMenu {
     
   private Menu menuBar;
   
-  private MenuItem menu_view_plugin;
+  private MenuItem menu_plugin;
   private Menu pluginMenu;
   
   private Menu languageMenu;
@@ -375,13 +375,7 @@ public class MainMenu {
           mainWindow.showStats();
         }
       });
-              
-      menu_view_plugin = new MenuItem(menuBar, SWT.CASCADE);
-      Messages.setLanguageText(menu_view_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
-      pluginMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
-      menu_view_plugin.setEnabled(false);
-      menu_view_plugin.setMenu(pluginMenu);
-      
+  
       new MenuItem(viewMenu, SWT.SEPARATOR);
   
       MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
@@ -393,7 +387,16 @@ public class MainMenu {
       });
   
       addCloseDownloadBarsToMenu(viewMenu);
-  
+      
+      //the Plugins menu
+      menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
+      pluginMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
+      menu_plugin.setEnabled(false);
+      menu_plugin.setMenu(pluginMenu);
+      
+      
+      //Language menu
       createLanguageMenu(menuBar, mainWindow.getShell(), locales);
   
       //The Help Menu
@@ -595,7 +598,7 @@ public class MainMenu {
             mainWindow.openPluginView(view);
           }
         });
-        menu_view_plugin.setEnabled(true);
+        menu_plugin.setEnabled(true);
       }
     }); 
   }
