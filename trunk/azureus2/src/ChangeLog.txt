@@ -53,6 +53,7 @@ CHANGE: UI   | Change context menu selection for queue/stop/force-start/recheck 
 CHANGE: Plug | UPnP information messages now off by default [Parg]
 CHANGE: UI   | More pre-defined speed ranges for queue slot limits [Parg]
 CHANGE: UI   | Improve wording of "delete torrent?" prompt [Parg]
+CHANGE: Core | Default http tracker to disabled [Parg]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
