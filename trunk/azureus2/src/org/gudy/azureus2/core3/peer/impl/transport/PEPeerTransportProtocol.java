@@ -38,10 +38,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHandshake;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -63,7 +60,7 @@ PEPeerTransportProtocol
 	
 	private int port;
 	
-	private PEPeerStatsImpl stats;
+	private PEPeerStats peer_stats;
   private List 		requested 		= new ArrayList();
   private AEMonitor	requested_mon	= new AEMonitor( "PEPeerTransportProtocol:Req" );
 
@@ -239,7 +236,7 @@ PEPeerTransportProtocol
   private void init() {
     uniquePiece = -1;
     
-    stats = (PEPeerStatsImpl)manager.createPeerStats();
+    peer_stats = manager.createPeerStats();
   }
   
   
@@ -286,14 +283,14 @@ PEPeerTransportProtocol
 	
 	      public void protocolBytesSent( int byte_count ) {
 	        //update stats
-	        stats.protocol_sent( byte_count );
-	        manager.protocol_sent( byte_count );
+	        peer_stats.protocolBytesSent( byte_count );
+	        manager.protocolBytesSent( byte_count );
 	      }
 	      
 	      public void dataBytesSent( int byte_count ) {
 	        //update stats
-	        stats.sent( byte_count );
-	        manager.sent( byte_count );
+	        peer_stats.dataBytesSent( byte_count );
+	        manager.dataBytesSent( byte_count );
 	      }
 	    });
 	    
@@ -647,7 +644,7 @@ PEPeerTransportProtocol
   
   public PEPeerControl getControl() {  return manager;  }
   public PEPeerManager getManager() {  return manager;  }
-  public PEPeerStats getStats() {  return stats;  }
+  public PEPeerStats getStats() {  return peer_stats;  }
   
   public boolean[] getAvailable() {  return other_peer_has_pieces;  }
   
@@ -1069,9 +1066,11 @@ PEPeerTransportProtocol
   
   
   private void decodeAZHandshake( AZHandshake handshake ) {
-    
     client = handshake.getClient()+ " " +handshake.getClientVersion();
     
+    if( handshake.getTCPListenPort() > 0 ) {
+      System.out.println( handshake.getDescription() );
+    }
     
     //find mutually available message types
     ArrayList messages = new ArrayList();
@@ -1202,7 +1201,7 @@ PEPeerTransportProtocol
 
     other_peer_has_pieces[piece_number] = true;
     int pieceLength = manager.getPieceLength(piece_number);
-    stats.haveNewPiece(pieceLength);
+    peer_stats.hasNewPiece(pieceLength);
     manager.havePiece(piece_number, pieceLength, this);
     
     if (!interested_in_other_peer) {
@@ -1267,7 +1266,7 @@ PEPeerTransportProtocol
     
     if( !manager.checkBlock( number, offset, payload ) ) {
       LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as invalid." );
-      stats.discarded( length );
+      peer_stats.bytesDiscarded( length );
       manager.discarded( length );
       requests_discarded++;
       printRequestStats();
@@ -1291,14 +1290,14 @@ PEPeerTransportProtocol
         }
         else {
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as already written." );
-          stats.discarded( length );
+          peer_stats.bytesDiscarded( length );
           manager.discarded( length );
           requests_discarded++;
           printRequestStats();
         }
       }
       else {  //successfully received piece!
-        manager.received( length );
+        manager.dataBytesReceived( length );
         manager.writeBlock( number, offset, payload, this );
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
@@ -1315,7 +1314,7 @@ PEPeerTransportProtocol
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "expired piece block data recovered as useful." );
-          manager.received( length );
+          manager.dataBytesReceived( length );
           setSnubbed( false );
           reSetRequestsTime();
           manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
@@ -1325,7 +1324,7 @@ PEPeerTransportProtocol
         }
         else {
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as never requested." );
-          stats.discarded( length );
+          peer_stats.bytesDiscarded( length );
           manager.discarded( length );
           requests_discarded++;
           printRequestStats();
@@ -1333,7 +1332,7 @@ PEPeerTransportProtocol
       }
       else {
         LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as already written." );
-        stats.discarded( length );
+        peer_stats.bytesDiscarded( length );
         manager.discarded( length );
         requests_discarded++;
         printRequestStats();
@@ -1434,14 +1433,14 @@ PEPeerTransportProtocol
       
       public void protocolBytesReceived( int byte_count ) {
         //update stats
-        stats.protocol_received( byte_count );
-        manager.protocol_received( byte_count );
+        peer_stats.protocolBytesReceived( byte_count );
+        manager.protocolBytesReceived( byte_count );
       }
       
       public void dataBytesReceived( int byte_count ) {
         //update stats
-        stats.received( byte_count );
-        //we dont call manager.received(byte_count) here, as piece message handler will do it if piece is ok
+        peer_stats.dataBytesReceived( byte_count );
+        //we dont call manager.dataBytesReceived(byte_count) here, as piece message handler will do it if piece is ok
       }
     });
     

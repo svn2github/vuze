@@ -22,68 +22,145 @@
  package org.gudy.azureus2.core3.peer;
 
 /**
- * Provides Statistic upon a peer.
- * It uses Average to compute its different averages. 
- * 
- * @author Olivier
- *
+ * Provides peer statistics.
+ * It uses Average to compute its different averages.
  */
 
 public interface 
 PEPeerStats 
 {   
+
+  ////// SET METHODS ///////
+  /**
+   * The given number of data (payload) bytes have been sent to the peer.
+   * @param num_bytes
+   */
+  public void dataBytesSent( int num_bytes );
   
   /**
-   * Get the average speed at which this peer is uploading to us.
-   * @return average in bytes per second
-   */  
-  public long getDownloadAverage();
+   * The given number of protocol (overhead) bytes have been sent to the peer.
+   * @param num_bytes
+   */
+  public void protocolBytesSent( int num_bytes );
+  
+  /**
+   * The given number of data (payload) bytes have been received from the peer.
+   * @param num_bytes
+   */
+  public void dataBytesReceived( int num_bytes );
+  
+  /**
+   * The given number of protocol (overhead) bytes have been received from the peer.
+   * @param num_bytes
+   */
+  public void protocolBytesReceived( int num_bytes );
+  
+  
+  /**
+   * The given number of bytes received from the peer were discarded.
+   * @param num_bytes
+   */
+  public void bytesDiscarded( int num_bytes );
+  
+  /**
+   * The peer has completed a piece of the given byte size.
+   * @param piece_size
+   */
+  public void hasNewPiece( int piece_size );
+  
+  
+  /**
+   * The peer has statistically sent a piecce of the given byte size.
+   * @param piece_size
+   */
+  public void statisticalSentPiece( int piece_size );
+  
+  
+  
+  //////GET METHODS ///////
+  /**
+   * Get the the average bytes-per-second speed that we are receiving piece data from the peer.
+   * @return average speed.
+   */
+  public long getDataReceiveRate();
+  
+  /**
+   * Get the the average bytes-per-second speed that we are receiving protocol messages from the peer.
+   * @return average speed.
+   */
+  public long getProtocolReceiveRate();
+
+  
+  /**
+   * Get the total number of data (payload) bytes received from the peer.
+   * @return total
+   */
+  public long getTotalDataBytesReceived();
+  
+  /**
+   * Get the total number of protocol (overhead) bytes received from the peer.
+   * @return total
+   */
+  public long getTotalProtocolBytesReceived();
+  
+  
+  /**
+   * Get the the average bytes-per-second speed that we are sending piece data to the peer.
+   * @return average speed.
+   */
+  public long getDataSendRate();
+  
+  /**
+   * Get the the average bytes-per-second speed that we are sending protocol messages to the peer.
+   * @return average speed.
+   */
+  public long getProtocolSendRate();
+  
 
   /**
-   * Get the longer-term average speed at which this peer is uploading to us.
-   * @return average in bytes per second
-   */  
-  public long getReception();
-
-  /**
-   * Get the average speed at which we are uploading data to this peer.
-   * @return average in bytes per second
+   * Get the total number of data (payload) bytes sent to the peer.
+   * @return total
    */
-  public long getUploadAverage();
-   
+  public long getTotalDataBytesSent();
   
-  public long getTotalAverage();
-   
-  public long getTotalDiscarded();
- 
+  /**
+   * Get the total number of protocol (overhead) bytes sent to the peer.
+   * @return total
+   */
+  public long getTotalProtocolBytesSent();
+  
   
   
   /**
-   * Get the total number of data bytes uploaded to the peer this session.
-   * @return total bytes sent
+   * Get the the longer-average bytes-per-second speed at which the peer is uploading data to us.
+   * @return average speed
    */
-  public long getTotalSent();
+  public long getSmoothReceiveRate();
+  
+  /**
+   * Get the total number of discarded bytes received from the peer.
+   * @return total discarded
+   */
+  public long getTotalBytesDiscarded();
   
   
   /**
-   * Get the total number of data bytes downloaded from the peer this session.
-   * @return total bytes received
+   * Get the estimated total download rate of the peer.
+   * @return estimated rate in bytes-per-second
    */
-  public long getTotalReceived();
- 
+  public long getEstimatedDownloadRateOfPeer();
   
+  /**
+   * Get the estimated total upload rate of the peer.
+   * @return estimated rate in bytes-per-second
+   */
+  public long getEstimatedUploadRateOfPeer();
   
+  /**
+   * Get the number of bytes downloaded in total by this peer
+   * (includes data downloaded from all other peers).
+   * @return total download bytes done
+   */
+  public long getTotalBytesDownloadedByPeer();
   
-  public long getStatisticSentAverage();
-  
-  /** Bytes the peer downloaded while we have been connected to it (not necessarily from us */
-	public long getBytesDone();
-
-  public void
-  received(
-  	int		bytes );
-  
-  public void
-  discarded(
-  	int		bytes );
 }

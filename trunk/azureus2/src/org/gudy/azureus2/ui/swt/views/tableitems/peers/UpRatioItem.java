@@ -47,8 +47,8 @@ public class UpRatioItem
     long lDivisor = 0;
     long lDivident = 0;
     if (peer != null) {
-      lDivisor = peer.getStats().getBytesDone() - peer.getStats().getTotalSent();
-      lDivident = peer.getStats().getTotalSent();
+      lDivisor = peer.getStats().getTotalBytesDownloadedByPeer() - peer.getStats().getTotalDataBytesSent();
+      lDivident = peer.getStats().getTotalDataBytesSent();
       // skip if divisor is small (most likely handshake) or 0 (DivisionByZero)
       if (lDivisor > 1024) {
         value = lDivident / (float)lDivisor;

@@ -74,7 +74,7 @@ PEPeerControlImpl
   private byte[] _myPeerId;
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
-  private PEPeerManagerStatsImpl 		_stats;
+  private PEPeerManagerStats 		_stats;
   private TRTrackerAnnouncer _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
@@ -203,12 +203,12 @@ PEPeerControlImpl
     			public long
     			getTotalSent()
     			{
-    				return(getStats().getTotalSent());
+    				return(getStats().getTotalDataBytesSent());
     			}
     			public long
     			getTotalReceived()
     			{
-    				return(getStats().getTotalReceived());
+    				return(getStats().getTotalDataBytesReceived());
     			}
     			
     			public long
@@ -686,7 +686,7 @@ PEPeerControlImpl
 	    PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 
 	    if (pc.transferAvailable()) {
-	    	long upRate = pc.getStats().getReception();
+	    	long upRate = pc.getStats().getSmoothReceiveRate();
         updateLargestValueFirstSort( upRate, upRates, pc, bestUploaders, 0 );
 	    }
 	  }
@@ -701,7 +701,7 @@ PEPeerControlImpl
       if (pc.transferAvailable()) {
         boolean found = true;
         //If queue is too low, we will enqueue another request
-        int maxRequests = MIN_REQUESTS + (int) (pc.getStats().getDownloadAverage() / SLOPE_REQUESTS);
+        int maxRequests = MIN_REQUESTS + (int) (pc.getStats().getDataReceiveRate() / SLOPE_REQUESTS);
         if(maxRequests > MAX_REQUESTS || maxRequests < 0) maxRequests = MAX_REQUESTS;
         
         
@@ -999,7 +999,7 @@ PEPeerControlImpl
   private boolean findPieceToDownload(PEPeerTransport pc) {
     
     //Slower than 2KB/s is a slow peer
-    boolean slowPeer = pc.getStats().getDownloadAverage() < 2 * 1024;
+    boolean slowPeer = pc.getStats().getDataReceiveRate() < 2 * 1024;
     
     //get the rarest pieces list
     getRarestPieces(pc,90,false);
@@ -1338,7 +1338,7 @@ PEPeerControlImpl
       boolean interesting = seeding_mode ? true : pc.isInterestingToMe();
       
       if( interesting && pc.isInterestedInMe() && !pc.isSnubbed() ) {
-        long upRate = seeding_mode ? pc.getStats().getUploadAverage() : pc.getStats().getReception();
+        long upRate = seeding_mode ? pc.getStats().getDataSendRate() : pc.getStats().getSmoothReceiveRate();
         if( upRate > 256 ) {  //need to be uploading at least 256kbs to qualify
           updateLargestValueFirstSort( upRate, best_rates, pc, best_peers, 0 );
         }
@@ -1355,9 +1355,9 @@ PEPeerControlImpl
         if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
         
         if( pc.isInterestingToMe() && pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) { 
-          long uploaded_ratio = pc.getStats().getTotalSent() / (pc.getStats().getTotalReceived() + 16383); //assumes 16KB piece chunks
+          long uploaded_ratio = pc.getStats().getTotalDataBytesSent() / (pc.getStats().getTotalDataBytesReceived() + 16383); //assumes 16KB piece chunks
           if( uploaded_ratio < 10 ) {  //make sure we haven't already uploaded 10 times as much data as they've sent us
-            updateLargestValueFirstSort( pc.getStats().getTotalReceived(), best_rates, pc, best_peers, sort_start_pos );
+            updateLargestValueFirstSort( pc.getStats().getTotalDataBytesReceived(), best_rates, pc, best_peers, sort_start_pos );
           }
         }
       }
@@ -1375,7 +1375,7 @@ PEPeerControlImpl
         boolean allowed = seeding_mode ? !pc.isSnubbed() : true;  //when downloading, allow upload to snubbed peer as last resort
         
         if( pc.isInterestedInMe() && allowed && !best_peers.contains( pc ) ) {
-          long total = pc.getStats().getTotalReceived();  //either 0 or >=16384
+          long total = pc.getStats().getTotalDataBytesReceived();  //either 0 or >=16384
             
           if( total == 0 ) {  //has never sent us any data
             total = 1000 - pc.getPercentDoneInThousandNotation();  //so prioritize least-completed peers
@@ -1551,11 +1551,11 @@ PEPeerControlImpl
     return _diskManager.getRemaining();
   }
 
-  //:: possibly rename to setRecieved()? -Tyler
+
   //set recieved bytes
-  public void received(int length) {
+  public void dataBytesReceived(int length) {
     if (length > 0) {
-      _stats.received(length);
+      _stats.dataBytesReceived(length);
       _averageReceptionSpeed.addValue(length);
     }
     _downloadManager.getStats().received(length);
@@ -1567,20 +1567,20 @@ PEPeerControlImpl
     }
     _downloadManager.getStats().discarded(length);
   }
-  //::possibly update to setSent() -Tyler
+
   //set the send value
-  public void sent(int length) {
+  public void dataBytesSent(int length) {
     if (length > 0)
-      _stats.sent(length);
+      _stats.dataBytesSent(length);
     _downloadManager.getStats().sent(length);
   }
 
   
-  public void protocol_sent( int length ) {  //TODO
+  public void protocolBytesSent( int length ) {  //TODO
     
   }
 
-  public void protocol_received( int length ) {  //TODO
+  public void protocolBytesReceived( int length ) {  //TODO
     
   }
   
@@ -1625,10 +1625,10 @@ PEPeerControlImpl
     _stats = new PEPeerManagerStatsImpl();
   }
 
-  public void blockWritten(int pieceNumber, int offset, Object user_data) {
+  public void blockWritten(int pieceNumber, int offset, Object _user_data) {
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
-      piece.setWritten((PEPeer)user_data,offset / DiskManager.BLOCK_SIZE);
+      piece.setWritten( (PEPeer)_user_data, offset / DiskManager.BLOCK_SIZE );
     }    
   }
 
@@ -1782,7 +1782,7 @@ PEPeerControlImpl
           if (pc != pcOrigin && pc.getPeerState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
-              ((PEPeerStatsImpl)pc.getStats()).statisticSent(pieceLength / availability);
+              ((PEPeerStatsImpl)pc.getStats()).statisticalSentPiece(pieceLength / availability);
           }
         }
     }
@@ -2140,12 +2140,12 @@ PEPeerControlImpl
 	pieceChecked( 
 		int 		pieceNumber, 
 		boolean 	result,
-		Object		user_data )
+		Object		_user_data )
   	{
         try{
 	       	piece_check_result_list_mon.enter();
 	        
-	       	piece_check_result_list.add(new Object[]{new Integer(pieceNumber), new Boolean(result), user_data });
+	       	piece_check_result_list.add(new Object[]{new Integer(pieceNumber), new Boolean(result), _user_data });
 	    }finally{
 	        	
 	    	piece_check_result_list_mon.exit();
@@ -2156,9 +2156,9 @@ PEPeerControlImpl
   processPieceCheckResult(
   	int 		pieceNumber, 
 	boolean 	result,
-	Object		user_data ) 
+	Object		_user_data ) 
   {
-  	boolean	recheck_on_completion = ((Boolean)user_data).booleanValue();
+  	boolean	recheck_on_completion = ((Boolean)_user_data).booleanValue();
   	
   	try{  		
   		

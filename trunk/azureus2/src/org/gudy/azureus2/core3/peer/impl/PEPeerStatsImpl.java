@@ -33,107 +33,88 @@ public class
 PEPeerStatsImpl 
 	implements PEPeerStats
 {
-	  private long totalReceived;
-	  private long totalSent;
-	  
-	  private long totalDiscarded;
-	  private long totalHave;
+  
+    private long total_data_bytes_received = 0;
+    private long total_protocol_bytes_received = 0;
 
-	  private Average receptionSpeed;
-	  private Average chokingReceptionSpeed;
-	  private Average sendingSpeed;
-	  private Average overallSpeed;
-	  private Average statisticSentSpeed;
-
+    private final Average data_receive_speed = Average.getInstance( 1000, 10 );  //update every 1s, average over 10s
+    private final Average protocol_receive_speed = Average.getInstance( 1000, 10 );
+    
+    private long total_data_bytes_sent = 0;
+    private long total_protocol_bytes_sent = 0;
+    
+    private final Average data_send_speed = Average.getInstance( 1000, 5 );   //update every 1s, average over 5s
+    private final Average protocol_send_speed = Average.getInstance( 1000, 5 );
+    
+    private final Average receive_speed_for_choking = Average.getInstance( 1000, 20 );  //update every 1s, average over 20s
+    private final Average estimated_download_speed = Average.getInstance( 5000, 100 );  //update every 5s, average over 100s
+    private final Average estimated_upload_speed = Average.getInstance( 3000, 60 );  //update every 3s, average over 60s
+    
+    private long total_bytes_discarded = 0;
+    private long total_bytes_downloaded = 0;
 
 
 	  public PEPeerStatsImpl() {
-
-	    //average over 10s, update every 1000ms.
-	    receptionSpeed = Average.getInstance(1000, 10);
-
-	    //average over 20s, update every 1s.
-	    chokingReceptionSpeed = Average.getInstance(1000, 20);
-    
-	    //average over 5s, update every 1000ms.
-	    sendingSpeed = Average.getInstance(1000, 5);
-
-	    //average over 100s, update every 5s
-	    overallSpeed = Average.getInstance(5000, 100);
-
-	    //average over 60s, update every 3s
-	    statisticSentSpeed = Average.getInstance(3000, 60);
-
+	    /* nothing */
 	  }
   
-	  public void discarded(int length) {
-	    this.totalDiscarded += length;
-	  }
 
-	  public void received(int length) {  //data received
-	    totalReceived += length;
-	    receptionSpeed.addValue(length);
-	    chokingReceptionSpeed.addValue(length);
-	  }
-
-	  public void sent(int length) { //data_sent
-	    totalSent += length;
-	    sendingSpeed.addValue(length);
-	  }
-    
-    public void protocol_sent( int length ) {  //TODO
-      
+    public void dataBytesSent( int num_bytes ) {
+      total_data_bytes_sent += num_bytes;
+      data_send_speed.addValue( num_bytes );
     }
     
-    public void protocol_received( int length ) {  //TODO
-      
+    public void protocolBytesSent( int num_bytes ) {
+      total_protocol_bytes_sent += num_bytes;
+      protocol_send_speed.addValue( num_bytes );
+    }
+    
+    public void dataBytesReceived( int num_bytes ) {
+      total_data_bytes_received += num_bytes;
+      data_receive_speed.addValue( num_bytes );
+      receive_speed_for_choking.addValue( num_bytes );
+    }
+    
+    public void protocolBytesReceived( int num_bytes ) {
+      total_protocol_bytes_received += num_bytes;
+      protocol_receive_speed.addValue( num_bytes );
+      //dont count protocol overhead towards a peer's choke/unchoke value, only piece data
+    }
+    
+    public void bytesDiscarded( int num_bytes ) {
+      total_bytes_discarded += num_bytes;
+    }
+
+    public void hasNewPiece( int piece_size ) {
+      total_bytes_downloaded += piece_size;
+      estimated_download_speed.addValue( piece_size );
+    }
+    
+    public void statisticalSentPiece( int piece_size ) {
+      estimated_upload_speed.addValue( piece_size );
     }
     
 
-	  public void haveNewPiece(int pieceLength) {
-	    totalHave += pieceLength;
-	    overallSpeed.addValue(pieceLength);
-	  }
+    public long getDataReceiveRate() {  return data_receive_speed.getAverage();  }
+    public long getProtocolReceiveRate() {  return protocol_receive_speed.getAverage();  }
 
-	  public void statisticSent(int length) {
-	    statisticSentSpeed.addValue(length);
-	  }
+    public long getDataSendRate() {  return data_send_speed.getAverage();  }
+    public long getProtocolSendRate() {  return protocol_send_speed.getAverage();  }
 
-	  public long getDownloadAverage() { 
-	    return( receptionSpeed.getAverage());
-	  }
+    public long getSmoothReceiveRate() {  return receive_speed_for_choking.getAverage();  }
 
-	  public long getReception() {
-	    return chokingReceptionSpeed.getAverage();
-	  }
-
-	  public long getUploadAverage() {
-	    return( sendingSpeed.getAverage());
-	  }
-  
-	  public long getTotalDiscarded() {
-	    return( totalDiscarded );
-	  }  
-
-  	public long getBytesDone() {
-  	  return totalHave;
-  	}
-
-	  public long getTotalSent() {
-	    return totalSent;
-	  }
-  
-	  public long getTotalReceived() {
-	    return totalReceived;
-	  }
+    public long getTotalBytesDiscarded() {  return total_bytes_discarded;  }
     
-	  public long 
-	  getTotalAverage() 
-	  {
-	  	return( overallSpeed.getAverage());
-	  }
+    public long getTotalBytesDownloadedByPeer() {  return total_bytes_downloaded;  }
 
-	  public long getStatisticSentAverage() {
-	    return statisticSentSpeed.getAverage();
-	  }
+    public long getEstimatedDownloadRateOfPeer() {  return estimated_download_speed.getAverage();  }
+    public long getEstimatedUploadRateOfPeer() {  return estimated_upload_speed.getAverage();  }
+
+    public long getTotalDataBytesReceived() {  return total_data_bytes_received;  }
+    public long getTotalProtocolBytesReceived() {  return total_protocol_bytes_received;  }
+    
+    public long getTotalDataBytesSent() {  return total_data_bytes_sent;  }
+    public long getTotalProtocolBytesSent() {  return total_protocol_bytes_sent;  }
+    
+
 }

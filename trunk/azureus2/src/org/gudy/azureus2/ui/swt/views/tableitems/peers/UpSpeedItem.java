@@ -47,7 +47,7 @@ public class UpSpeedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getUploadAverage();
+    long value = (peer == null) ? 0 : peer.getStats().getDataSendRate();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

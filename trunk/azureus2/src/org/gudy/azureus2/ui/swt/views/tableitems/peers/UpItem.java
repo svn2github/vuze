@@ -47,7 +47,7 @@ public class UpItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getTotalSent();
+    long value = (peer == null) ? 0 : peer.getStats().getTotalDataBytesSent();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

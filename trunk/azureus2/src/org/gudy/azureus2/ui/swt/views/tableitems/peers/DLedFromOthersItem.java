@@ -43,7 +43,7 @@ public class DLedFromOthersItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getBytesDone() - peer.getStats().getTotalSent();
+    long value = (peer == null) ? 0 : peer.getStats().getTotalBytesDownloadedByPeer() - peer.getStats().getTotalDataBytesSent();
     // Just because we sent data doesn't mean the peer has told us the piece is done yet
     if (value < 0) value = 0;
 

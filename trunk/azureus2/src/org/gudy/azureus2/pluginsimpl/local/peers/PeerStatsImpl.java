@@ -54,58 +54,58 @@ PeerStatsImpl
 	
 	public int getDownloadAverage()
 	{
-		return( (int)delegate.getDownloadAverage());
+		return( (int)delegate.getDataReceiveRate());
 	}
 
 	public int getReception()
 	{
-		return( (int)delegate.getReception());
+		return( (int)delegate.getSmoothReceiveRate());
 	}
 
 	public int getUploadAverage()
 	{
-		return( (int)delegate.getUploadAverage());
+		return( (int)delegate.getDataSendRate());
 	}
   
 	public int getTotalAverage()
 	{
-		return( (int)delegate.getTotalAverage());
+		return( (int)delegate.getEstimatedDownloadRateOfPeer());
 	}
   
 	public long getTotalDiscarded()
 	{
-		return( delegate.getTotalDiscarded());
+		return( delegate.getTotalBytesDiscarded());
 	}
  
 	public long getTotalSent()
 	{
-		return( delegate.getTotalSent());
+		return( delegate.getTotalDataBytesSent());
 	}
   
 	public long getTotalReceived()
 	{
-		return( delegate.getTotalReceived());
+		return( delegate.getTotalDataBytesReceived());
 	}
  
 	public int getStatisticSentAverage()
 	{
-		return( (int)delegate.getStatisticSentAverage());
+		return( (int)delegate.getEstimatedUploadRateOfPeer());
 	}
 	
 	public void
 	received(
 		int		bytes )
 	{
-		delegate.received( bytes );
+		delegate.dataBytesReceived( bytes );
 		
-		manager.received( bytes );
+		manager.dataBytesReceived( bytes );
 	}
 	
 	public void
 	discarded(
 		int		bytes )
 	{
-		delegate.discarded( bytes );
+		delegate.bytesDiscarded( bytes );
 		
 		manager.discarded( bytes );
 	}

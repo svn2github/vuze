@@ -47,7 +47,7 @@ public class StatUpItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getStatisticSentAverage();
+    long value = (peer == null) ? 0 : peer.getStats().getEstimatedUploadRateOfPeer();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

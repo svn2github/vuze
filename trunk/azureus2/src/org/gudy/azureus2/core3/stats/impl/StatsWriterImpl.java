@@ -293,11 +293,11 @@ StatsWriterImpl
 											
 											writeTag( "IS_SEED", peer.isSeed());
 											
-											writeRawCookedTag( "DOWNLOADED", peer_stats.getTotalReceived());
-											writeRawCookedTag( "UPLOADED", peer_stats.getTotalSent());
+											writeRawCookedTag( "DOWNLOADED", peer_stats.getTotalDataBytesReceived());
+											writeRawCookedTag( "UPLOADED", peer_stats.getTotalDataBytesSent());
 											
-											writeRawCookedAverageTag( "DOWNLOAD_SPEED", peer_stats.getDownloadAverage());
-											writeRawCookedAverageTag( "UPLOAD_SPEED", peer_stats.getUploadAverage());
+											writeRawCookedAverageTag( "DOWNLOAD_SPEED", peer_stats.getDataReceiveRate());
+											writeRawCookedAverageTag( "UPLOAD_SPEED", peer_stats.getDataSendRate());
 											
 										}catch( Throwable e ){
 											

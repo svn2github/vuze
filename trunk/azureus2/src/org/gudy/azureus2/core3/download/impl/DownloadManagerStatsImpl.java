@@ -107,7 +107,7 @@ DownloadManagerStatsImpl
 		
 	  	if (pm != null){
 	  	
-			return pm.getStats().getDownloadAverage();
+			return pm.getStats().getDataReceiveRate();
 	  	}
 	  	
 	  	return 0;
@@ -120,7 +120,7 @@ DownloadManagerStatsImpl
 		
 	  	if (pm != null){
 	  	
-			return pm.getStats().getUploadAverage();
+			return pm.getStats().getDataSendRate();
 	  	}
 	  	
 	  	return 0;
@@ -231,7 +231,7 @@ DownloadManagerStatsImpl
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null) {
-	    return saved_downloaded + pm.getStats().getTotalReceived();
+	    return saved_downloaded + pm.getStats().getTotalDataBytesReceived();
 	  }
 	  return(saved_downloaded);
 	}	
@@ -239,7 +239,7 @@ DownloadManagerStatsImpl
 	public long getUploaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null) {
-	    return saved_uploaded + pm.getStats().getTotalSent();
+	    return saved_uploaded + pm.getStats().getTotalDataBytesSent();
     }
 	  return( saved_uploaded );
 	}
@@ -291,8 +291,8 @@ DownloadManagerStatsImpl
 	  long downloaded,uploaded;
 	  PEPeerManager	pm = download_manager.getPeerManager();
 	  if(pm != null) {
-		downloaded = saved_downloaded + pm.getStats().getTotalReceived();
-		uploaded = saved_uploaded + pm.getStats().getTotalSent();
+		downloaded = saved_downloaded + pm.getStats().getTotalDataBytesReceived();
+		uploaded = saved_uploaded + pm.getStats().getTotalDataBytesSent();
 	  } else {
 		downloaded = this.saved_downloaded;
 		uploaded = this.saved_uploaded;

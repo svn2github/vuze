@@ -1080,7 +1080,7 @@ Test
 
 	  
 		public void
-		received(
+		dataBytesReceived(
 			int		l )
 		{
 			
@@ -1088,15 +1088,15 @@ Test
 
 		
 		public void
-		sent(
+		dataBytesSent(
 			int		l )
 		{
 			
 		}
 
-    public void protocol_sent( int length ) {}
+    public void protocolBytesSent( int length ) {}
     
-    public void protocol_received( int length ) {}
+    public void protocolBytesReceived( int length ) {}
 		
 		public void
 		discarded(

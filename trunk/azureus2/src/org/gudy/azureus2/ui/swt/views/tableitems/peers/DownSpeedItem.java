@@ -46,7 +46,7 @@ public class DownSpeedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getDownloadAverage();
+    long value = (peer == null) ? 0 : peer.getStats().getDataReceiveRate();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

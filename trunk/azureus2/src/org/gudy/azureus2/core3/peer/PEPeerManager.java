@@ -47,10 +47,9 @@ PEPeerManager
 	public static final int PS_STOPPED		= 4;
 	
 	/**
-	 * get the state from above PS_ set
-	 * @return
+	 * Get the state from above PS_ set
+	 * @return current state
 	 */
-	
 	public int
 	getState();
 	
@@ -76,7 +75,7 @@ PEPeerManager
 
 	public int getAvailability(int pieceNumber);
 	
-    public float getMinAvailability();
+	public float getMinAvailability();
 
 	public PEPiece[] getPieces();
 
@@ -132,25 +131,25 @@ PEPeerManager
    * Data bytes received.
    * @param l
    */
-	public void	received(	int	l );	
+	public void	dataBytesReceived(	int	l );	
 	
   /**
    * Data bytes sent.
    * @param l
    */
-	public void	sent( int	l );
+	public void	dataBytesSent( int	l );
 	
   /**
    * Protocol bytes sent.
    * @param length
    */
-  public void protocol_sent( int length );
+  public void protocolBytesSent( int length );
   
   /**
    * Protocol bytes received.
    * @param length
    */
-  public void protocol_received( int length );
+  public void protocolBytesReceived( int length );
   
   
   

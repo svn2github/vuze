@@ -21,25 +21,36 @@
 
 package org.gudy.azureus2.core3.peer;
 
-/**
- * @author parg
- *
- */
+
 public interface 
 PEPeerManagerStats 
 {
-	public long getDownloadAverage();
-
-	public long getUploadAverage();
+  
+  public void discarded(int length);
+  
+  public void dataBytesReceived(int length);
+  public void protocolBytesReceived(int length);
+  
+  public void dataBytesSent(int length);
+  public void protocolBytesSent(int length);
+  
+  public void haveNewPiece(int pieceLength);
+  
+	public long getDataReceiveRate();
+  public long getProtocolReceiveRate();
+  
+	public long getDataSendRate();
+  public long getProtocolSendRate();
    
+  public long getTotalDataBytesSent();
+  public long getTotalProtocolBytesSent();
+  
+  public long getTotalDataBytesReceived();
+  public long getTotalProtocolBytesReceived();
+  
 	public long getTotalAverage();
    
 	public long getTotalDiscarded();
-  
-   public void setTotalDiscarded(long total);
- 
-	public long getTotalSent();
-  
-	public long getTotalReceived();
+	public void setTotalDiscarded(long total);
 
 }

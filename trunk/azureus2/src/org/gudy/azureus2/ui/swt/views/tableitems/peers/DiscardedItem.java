@@ -46,7 +46,7 @@ public class DiscardedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getTotalDiscarded();
+    long value = (peer == null) ? 0 : peer.getStats().getTotalBytesDiscarded();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
