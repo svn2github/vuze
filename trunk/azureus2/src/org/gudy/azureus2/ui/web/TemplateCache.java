@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class TemplateCache {
   
-  private static final boolean CACHE = false;
+  private static final boolean CACHE = true;
   
   private static TemplateCache templatecache;
   
