@@ -598,15 +598,16 @@ TRTrackerServerTorrentImpl
 					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
 									
 					if ( peer == null ){
-						
-						continue;
-					}
-					
-					if ( now > peer.getTimeout()){
+												
+					}else if ( now > peer.getTimeout()){
 									
 							// System.out.println( "removing timed out client '" + peer.getString());
 						
 						removePeer( peer, i );									
+						
+					}else if ( peer.getPort() == 0 ){
+						
+							// a port of 0 means that the peer definitely can't accept incoming connections
 						
 					}else if ( include_seeds || !peer.isSeed()){
 										
@@ -698,15 +699,16 @@ TRTrackerServerTorrentImpl
 				
 								if ( peer == null ){
 									
-									continue;
-								}
-								
-								if ( now > peer.getTimeout()){
+								}else if ( now > peer.getTimeout()){
 									
 									removePeer( peer );
 									
 									peer_removed	= true;
 									
+								}else if ( peer.getPort() == 0 ){
+									
+										// a port of 0 means that the peer definitely can't accept incoming connections
+							
 								}else if ( include_seeds || !peer.isSeed()){
 							
 									boolean	bad_nat = peer.isNATStatusBad();
@@ -786,6 +788,10 @@ TRTrackerServerTorrentImpl
 						if ( now > peer.getTimeout()){
 							
 							removePeer( peer );
+							
+						}else if ( peer.getPort() == 0 ){
+							
+								// a port of 0 means that the peer definitely can't accept incoming connections
 							
 						}else if ( include_seeds || !peer.isSeed()){
 							
