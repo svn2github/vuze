@@ -41,7 +41,7 @@ ShareResourceDirContentsImpl
 	protected File		root;
 	protected boolean	recursive;
 	
-	protected ShareResourceImpl[]		children;
+	protected ShareResource[]		children;
 	
 	protected
 	ShareResourceDirContentsImpl(
@@ -118,7 +118,7 @@ ShareResourceDirContentsImpl
 		
 		List	kids = checkConsistency(root);
 		
-		children = new ShareResourceImpl[kids.size()];
+		children = new ShareResource[kids.size()];
 		
 		kids.toArray( children );
 	}
@@ -186,7 +186,15 @@ ShareResourceDirContentsImpl
 		
 		for (int i=0;i<kids.size();i++){
 			
-			((ShareResourceImpl)kids.get(i)).setParent(this);
+			Object	o = kids.get(i);
+			
+			if ( o instanceof ShareResourceImpl ){
+		
+				((ShareResourceImpl)o).setParent(this);
+			}else{
+				
+				((shareNode)o).setParent(this);
+			}
 		}
 		
 		return( kids );
@@ -198,8 +206,14 @@ ShareResourceDirContentsImpl
 		for (int i=0;i<children.length;i++){
 			
 			try{
-				children[i].delete(true);
+				if ( children[i] instanceof ShareResourceImpl ){
 				
+					((ShareResourceImpl)children[i]).delete(true);
+				}else{
+					
+					((shareNode)children[i]).delete(true);
+					
+				}
 			}catch( Throwable e ){
 				
 				e.printStackTrace();
@@ -289,7 +303,16 @@ ShareResourceDirContentsImpl
 			
 			for (int i=0;i<children.length;i++){
 				
-				((ShareResourceImpl)children[i]).setParent( this );
+				Object	o = children[i];
+				
+				if ( o instanceof ShareResourceImpl ){
+					
+					((ShareResourceImpl)o).setParent( this );
+				}else{
+					
+					((shareNode)o).setParent( this );
+
+				}
 			}
 		}
 		
@@ -325,6 +348,28 @@ ShareResourceDirContentsImpl
 		{
 			throw( new ShareResourceDeletionVetoException( MessageText.getString("plugin.sharing.remove.veto")));
 		}
+		
+		protected void
+		delete(
+			boolean	force )
+		
+			throws ShareException, ShareResourceDeletionVetoException
+		{
+			for (int i=0;i<children.length;i++){
+				
+				Object	o = children[i];
+				
+				if ( o instanceof ShareResourceImpl ){
+					
+					((ShareResourceImpl)o).delete(force);
+				}else{
+					
+					((shareNode)o).delete(force);
+
+				}
+			}
+		}
+		
 		
 		public boolean
 		canBeDeleted()

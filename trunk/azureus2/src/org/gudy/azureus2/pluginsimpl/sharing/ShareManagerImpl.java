@@ -421,29 +421,31 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		String	name = file.toString();
+		
+		ShareResource	old_resource = (ShareResource)shares.get(name);
+		
+		if ( old_resource != null ){
+	
+			old_resource.delete();
+		}
+		
 		ShareResourceImpl new_resource;
 		
 		if ( type == ShareResource.ST_FILE ){
 	
-			reportCurrentTask( "Adding file '".concat(file.toString()).concat("'"));
+			reportCurrentTask( "Adding file '" + name + "'");
 			
 			new_resource = new ShareResourceFileImpl( this, file );
 			
 		}else{
 			
-			reportCurrentTask( "Adding dir '".concat(file.toString()).concat("'"));
+			reportCurrentTask( "Adding dir '" + name + "'");
 			
 			new_resource = new ShareResourceDirImpl( this, file );
 		}
 		
-		ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
-				
-		if ( old_resource != null ){
-			
-			old_resource.delete();
-		}
-		
-		shares.put( new_resource.getName(), new_resource );
+		shares.put(name, new_resource );
 		
 		config.saveConfig();
 		
@@ -478,20 +480,20 @@ ShareManagerImpl
 		throws ShareException, ShareResourceDeletionVetoException
 	{
 		try{
-			reportCurrentTask( "Adding dir contents '".concat(dir.toString()).concat("'"));
+			String	name = dir.toString();
 			
-			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
+			reportCurrentTask( "Adding dir contents '" + name + "', recursive = " + recursive );
 	
-			ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
+			ShareResource	old_resource = (ShareResource)shares.get( name );
 			
 			if ( old_resource != null ){
 				
-				old_resource.canBeDeleted();
+				old_resource.delete();
 			}
-			
-				// no need to delete old resource
-			
-			shares.put( new_resource.getName(), new_resource );
+
+			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
+						
+			shares.put( name, new_resource );
 			
 			config.saveConfig();
 			
@@ -499,14 +501,8 @@ ShareManagerImpl
 				
 				try{
 					
-					if ( old_resource != null ){
-						
-						((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
-						
-					}else{
-						
-						((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
-					}
+					((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );
+					
 				}catch( Throwable e ){
 					
 					e.printStackTrace();
