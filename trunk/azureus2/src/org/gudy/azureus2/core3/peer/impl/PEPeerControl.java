@@ -38,8 +38,8 @@ PEPeerControl
 	extends PEPeerManager, PEPeerServerAdapter
 {
   
-  public static final int WAITING_SLEEP        = 70;
-  public static final int DATA_EXPECTED_SLEEP  = 30;
+  public static final int WAITING_SLEEP        = 75;
+  public static final int DATA_EXPECTED_SLEEP  = 35;
   public static final int NO_SLEEP             = 10;
   
   	public DownloadManager
