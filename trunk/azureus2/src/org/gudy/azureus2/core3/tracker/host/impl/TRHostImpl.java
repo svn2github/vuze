@@ -118,7 +118,7 @@ TRHostImpl
 		}		
 	}
 	
-	public TRHostTorrent[]
+	public synchronized TRHostTorrent[]
 	getTorrents()
 	{
 		TRHostTorrent[]	res = new TRHostTorrent[torrents.size()];
