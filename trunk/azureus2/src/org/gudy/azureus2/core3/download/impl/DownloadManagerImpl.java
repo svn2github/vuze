@@ -287,9 +287,11 @@ DownloadManagerImpl
   }
 
   public long getSize() {
-	if (diskManager == null)
-	  return 0;
-	return diskManager.getTotalLength();
+	if (diskManager != null)
+	  return diskManager.getTotalLength();
+  if(torrent != null)
+    return torrent.getSize();
+  return 0;
   }
 
   public boolean[] getPiecesStatus() {
