@@ -7,6 +7,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.util.Properties;
 
 
 /**
@@ -14,10 +15,18 @@ import java.io.*;
  */
 public class SystemProperties {
   
-  public static final String SEPARATOR = System.getProperty("file.separator");
-  private static final String USER_DIR = "Azureus";
-  private static final String USER_DIR_WIN = "Application Data" + SEPARATOR + USER_DIR;
-  private static final String USER_DIR_OSX = "Library" + SEPARATOR + USER_DIR;
+  /**
+   * Path separator charactor.
+   */
+  public static final String SEP = System.getProperty("file.separator");
+  
+  private static final String AZ_DIR = "Azureus";
+  private static final String WIN_DEFAULT = "Application Data";
+  private static final String OSX_DEFAULT = "Library";
+  
+  private static String user_dir_win = null;
+  private static String user_path = null;
+  
   
   /**
    * Returns the full path to the user's home azureus directory.
@@ -26,24 +35,41 @@ public class SystemProperties {
    * Under OSX, this is usually /Users/username/Library/Azureus/
    */
   public static String getUserPath() {
-    String path;
-    if ( System.getProperty("os.name").indexOf("Windows") >= 0 ) {
-      path = System.getProperty("user.home") + SEPARATOR + USER_DIR_WIN + SEPARATOR;
+    
+    if ( user_path != null ) {
+      return user_path;
     }
-    else if ( System.getProperty("os.name").equals("Mac OS X")) {
-      path = System.getProperty("user.home") + SEPARATOR + USER_DIR_OSX + SEPARATOR;
+    
+    String OS = System.getProperty("os.name").toLowerCase();
+    String userhome = System.getProperty("user.home");
+    
+    if ( OS.indexOf("windows") >= 0 ) {
+      if ( user_dir_win == null ) {
+        user_dir_win = getEnvironmentalVariable( "APPDATA" );
+      }
+      
+      if ( user_dir_win.length() < 1 ) {  //couldn't find env var, use default
+        user_dir_win = userhome + SEP + WIN_DEFAULT;
+      }
+      
+      user_path = user_dir_win + SEP + AZ_DIR + SEP;
     }
+    
+    else if ( OS.indexOf("mac os x") >= 0 ) {
+      user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
+    }
+    
     else {
-    	path = System.getProperty("user.home") + SEPARATOR + USER_DIR + SEPARATOR;
+      user_path = userhome + SEP + AZ_DIR + SEP;
     }
     
     //if the directory doesn't already exist, create it
-    File dir = new File( path );
+    File dir = new File( user_path );
     if (!dir.exists()) {
       dir.mkdirs();
     }
     
-    return path;
+    return user_path;
   }
   
   
@@ -52,7 +78,7 @@ public class SystemProperties {
    * and running from.
    */
   public static String getApplicationPath() {
-    return System.getProperty("user.dir") + SEPARATOR;
+    return System.getProperty("user.dir") + SEP;
   }
   
   
@@ -70,5 +96,46 @@ public class SystemProperties {
       return false;
     }
   }
+  
+  
+  
+  /**
+   * Will attempt to retrieve an OS-specific environmental var.
+   */
+  private static String getEnvironmentalVariable( final String _var) {
+  	Process p = null;
+  	Properties envVars = new Properties();
+  	Runtime r = Runtime.getRuntime();
+    BufferedReader br = null;
+    String OS = System.getProperty("os.name").toLowerCase();
+
+    try {
+    	if (OS.indexOf("windows 9") > -1) {
+    		p = r.exec( "command.com /c set" );
+    	}
+    	else if ( (OS.indexOf("nt") > -1) || (OS.indexOf("windows") > -1) ) {
+    		p = r.exec( "cmd.exe /c set" );
+    	}
+    	else { //we assume unix
+    		p = r.exec( "env" );
+    	}
+    
+    	br = new BufferedReader( new InputStreamReader( p.getInputStream()), 8192);
+    	String line;
+    	while( (line = br.readLine()) != null ) {
+    		int idx = line.indexOf( '=' );
+    		String key = line.substring( 0, idx );
+    		String value = line.substring( idx+1 );
+    		envVars.setProperty( key, value );
+    	}
+      br.close();
+    }
+    catch (Throwable t) {
+      if (br != null) try {  br.close();  } catch (Exception ingore) {}
+    }
+    
+    return envVars.getProperty( _var, "" );
+  }
+
 
 }
