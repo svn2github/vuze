@@ -12,6 +12,7 @@ package org.gudy.azureus2.ui.web;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
@@ -46,7 +47,7 @@ public class Main implements ILocaleUtilChooser {
     new Thread(server, "Webinterface Server").start();
     System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
     
-    new Thread("Plugin Init Complete")
+    new AEThread("Plugin Init Complete")
     {
     	public void
     	run()

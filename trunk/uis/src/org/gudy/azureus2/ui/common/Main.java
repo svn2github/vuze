@@ -36,6 +36,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -176,7 +177,7 @@ public class Main {
         
         PluginInitializer.getSingleton(UIConst.GM,null).initializePlugins( PluginManager.UI_NONE );
         
-        new Thread("Plugin Init Complete")
+        new AEThread("Plugin Init Complete")
         {
         	public void
         	run()
