@@ -243,6 +243,7 @@ public class TableView
     table.setLinesVisible(false);
     table.setMenu(menu);
     table.setData("Name", sTableID);
+    table.setData("TableView", this);
 
     sorter = new TableSorter(this, sTableID, sDefaultSortOn, true);
 
@@ -358,7 +359,6 @@ public class TableView
   	// Implement a "fake" tooltip
   	final Listener labelListener = new Listener () {
   		public void handleEvent (Event event) {
-  		  System.out.println(event);
   		  Shell shell;
   		  if (event.widget instanceof Control)
   		    shell = ((Control)event.widget).getShell();
@@ -870,11 +870,7 @@ public class TableView
       return;
     }
     if (parameterName.startsWith("Color")) {
-      runForAllRows(new GroupTableRowRunner() {
-        public void run(TableRowCore row) {
-          row.setValid(false);
-        }
-      });
+      tableInvalidate();
     }
   }
   
@@ -930,6 +926,15 @@ public class TableView
         TableCellCore cell = row.getTableCellCore(sColumnName);
         if (cell != null)
           cell.setValid(false);
+      }
+    });
+  }
+
+  public void tableInvalidate() {
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        row.setValid(false);
+        row.refresh(true);
       }
     });
   }
