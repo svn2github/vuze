@@ -48,6 +48,9 @@ ShareResource
 	
 		throws ShareResourceDeletionVetoException;
 	
+	public ShareResourceDirContents
+	getParent();
+	
 	public void
 	addDeletionListener(
 		ShareResourceWillBeDeletedListener	l );

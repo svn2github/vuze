@@ -352,7 +352,15 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
+		try{
+			return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
+			
+		}catch( ShareException e ){
+			
+			reportError(e);
+			
+			throw(e);
+		}
 	}
 	
 	public ShareResourceFile
@@ -370,7 +378,15 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));		
+		try{
+			return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));
+			
+		}catch( ShareException e ){
+			
+			reportError(e);
+			
+			throw(e);
+		}	
 	}
 	
 	public ShareResourceDir
@@ -446,42 +462,51 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		reportCurrentTask( "Adding dir contents '" + dir.toString() + "'");
-		
-		ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
-
-		ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
-		
-		if ( old_resource != null ){
+		try{
+			reportCurrentTask( "Adding dir contents '" + dir.toString() + "'");
 			
-			old_resource.canBeDeleted();
-		}
-		
-			// no need to delete old resource
-		
-		shares.put( new_resource.getName(), new_resource );
-		
-		config.saveConfig();
-		
-		for (int i=0;i<listeners.size();i++){
+			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
+	
+			ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
 			
-			try{
+			if ( old_resource != null ){
 				
-				if ( old_resource != null ){
-					
-					((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
-					
-				}else{
-					
-					((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
-				}
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
+				old_resource.canBeDeleted();
 			}
+			
+				// no need to delete old resource
+			
+			shares.put( new_resource.getName(), new_resource );
+			
+			config.saveConfig();
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					
+					if ( old_resource != null ){
+						
+						((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
+						
+					}else{
+						
+						((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+			
+			return( new_resource );
+			
+		}catch( ShareException e ){
+			
+			reportError(e);
+			
+			throw(e);
 		}
 		
-		return( new_resource );
 	}	
 	
 	protected synchronized void
@@ -543,6 +568,21 @@ ShareManagerImpl
 		}			
 	}
 
+	protected void
+	reportError(
+		Throwable e )
+	{
+		String	message = e.getMessage();
+		
+		if ( message != null ){
+			
+			reportCurrentTask( message );
+			
+		}else{
+			
+			reportCurrentTask( e.toString());
+		}
+	}
 	public void
 	addListener(
 		ShareManagerListener		l )

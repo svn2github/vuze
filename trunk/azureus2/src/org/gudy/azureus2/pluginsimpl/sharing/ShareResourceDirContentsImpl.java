@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.*;
 
 public class 
 ShareResourceDirContentsImpl
@@ -40,7 +41,7 @@ ShareResourceDirContentsImpl
 	protected File		root;
 	protected boolean	recursive;
 	
-	protected ShareResource[]		children;
+	protected ShareResourceImpl[]		children;
 	
 	protected
 	ShareResourceDirContentsImpl(
@@ -117,7 +118,7 @@ ShareResourceDirContentsImpl
 		
 		List	kids = checkConsistency(root);
 		
-		children = new ShareResource[kids.size()];
+		children = new ShareResourceImpl[kids.size()];
 		
 		kids.toArray( children );
 	}
@@ -183,6 +184,11 @@ ShareResourceDirContentsImpl
 			}
 		}
 		
+		for (int i=0;i<kids.size();i++){
+			
+			((ShareResourceImpl)kids.get(i)).setParent(this);
+		}
+		
 		return( kids );
 	}
 	
@@ -192,7 +198,7 @@ ShareResourceDirContentsImpl
 		for (int i=0;i<children.length;i++){
 			
 			try{
-				children[i].delete();
+				children[i].delete(true);
 				
 			}catch( Throwable e ){
 				
@@ -266,19 +272,38 @@ ShareResourceDirContentsImpl
 	shareNode
 		implements ShareResourceDirContents
 	{
-		protected File				node;
-		protected ShareResource[]	children;
+		protected ShareResourceDirContents	parent;
+		protected File						node;
+		protected ShareResource[]			children;
 		
 		protected
 		shareNode(
-			File		_node,
-			List		kids )
+			File						_node,
+			List						kids )
 		{
 			node	=_node;
 			
 			children = new ShareResource[kids.size()];
 			
 			kids.toArray( children );
+			
+			for (int i=0;i<children.length;i++){
+				
+				((ShareResourceImpl)children[i]).setParent( this );
+			}
+		}
+		
+		public ShareResourceDirContents
+		getParent()
+		{
+			return( parent );
+		}
+		
+		protected void
+		setParent(
+			ShareResourceDirContents	_parent )
+		{
+			parent	= _parent;
 		}
 		
 		public int
@@ -296,9 +321,9 @@ ShareResourceDirContentsImpl
 		public void
 		delete()
 		
-			throws ShareException
+			throws ShareResourceDeletionVetoException
 		{
-			throw( new ShareException( "ShareResourceDirContents: can't delete sub-share" ));
+			throw( new ShareResourceDeletionVetoException( MessageText.getString("plugin.sharing.remove.veto")));
 		}
 		
 		public boolean

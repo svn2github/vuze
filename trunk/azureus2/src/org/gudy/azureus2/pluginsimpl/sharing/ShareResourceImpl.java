@@ -31,6 +31,7 @@ import java.io.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.*;
 
 public abstract class 
 ShareResourceImpl
@@ -38,8 +39,9 @@ ShareResourceImpl
 {
 	protected static Md5Hasher	hasher = new Md5Hasher();
 	
-	protected ShareManagerImpl		manager;
-	protected int					type;
+	protected ShareManagerImpl				manager;
+	protected int							type;
+	protected ShareResourceDirContents		parent;
 	
 	protected List	deletion_listeners = new ArrayList();
 	
@@ -56,6 +58,20 @@ ShareResourceImpl
 	serialiseResource(
 		Map		map );
 	
+	
+	public ShareResourceDirContents
+	getParent()
+	{
+		return( parent );
+	}
+	
+	protected void
+	setParent(
+		ShareResourceDirContents	_parent )
+	{
+		parent	= _parent;
+	}
+	
 	public int
 	getType()
 	{
@@ -68,6 +84,12 @@ ShareResourceImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		if ( getParent() != null ){
+			
+		
+			throw( new ShareResourceDeletionVetoException( MessageText.getString("plugin.sharing.remove.veto")));
+		}
+		
 		delete( false );
 	}
 	

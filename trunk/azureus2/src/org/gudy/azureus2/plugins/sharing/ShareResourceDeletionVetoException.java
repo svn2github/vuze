@@ -27,7 +27,7 @@ package org.gudy.azureus2.plugins.sharing;
  */
 public class 
 ShareResourceDeletionVetoException 
-	extends Exception
+	extends ShareException
 {
 	public
 	ShareResourceDeletionVetoException(
