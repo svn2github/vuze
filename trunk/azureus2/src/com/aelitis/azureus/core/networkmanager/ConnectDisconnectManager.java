@@ -218,8 +218,9 @@ public class ConnectDisconnectManager {
       String hostname = request.address.getHostName();
       int port = request.address.getPort();
       boolean unresolved = request.address.isUnresolved();
-      String full_sub = request.address.getAddress().toString();
-      String host_address = request.address.getAddress().getHostAddress();
+      InetAddress	inet_address = request.address.getAddress();
+      String full_sub = inet_address==null?request.address.toString():inet_address.toString();
+      String host_address = inet_address==null?request.address.toString():inet_address.getHostAddress();
       
       String msg = "full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
       if( request.channel != null ) {
@@ -264,7 +265,7 @@ public class ConnectDisconnectManager {
       for( Iterator can_it = canceled_requests.iterator(); can_it.hasNext(); ) {
         ConnectListener key = (ConnectListener)can_it.next();
         
-        boolean found = false;      
+        //boolean found = false;      
         for( Iterator pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext(); ) {
           ConnectionRequest request = (ConnectionRequest)pen_it.next();
           if( request.listener == key ) {
@@ -279,7 +280,7 @@ public class ConnectDisconnectManager {
               pending_closes_mon.exit();
             }
             
-            found = true;
+            //found = true;
             pen_it.remove();
             break;
           }
@@ -436,9 +437,9 @@ public class ConnectDisconnectManager {
     private long connect_start_time;
     private SocketChannel channel;
     
-    private ConnectionRequest( InetSocketAddress address, ConnectListener listener ) {
-      this.address = address;
-      this.listener = listener;
+    private ConnectionRequest( InetSocketAddress _address, ConnectListener _listener ) {
+      address = _address;
+      listener = _listener;
       request_start_time = SystemTime.getCurrentTime();
     }
   }
