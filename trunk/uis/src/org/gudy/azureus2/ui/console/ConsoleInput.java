@@ -409,6 +409,7 @@ public class ConsoleInput extends Thread {
 					if (oldcommand != null) {
 						comargs.clear();
 						comargs.addAll(oldcommand);
+						command = (String) oldcommand.get(0);
 					} else {
 						out.println("No old command. Remove commands are not repeated to prevent errors");
 					}
