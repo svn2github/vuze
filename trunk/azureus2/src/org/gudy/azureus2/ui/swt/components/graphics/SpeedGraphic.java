@@ -68,8 +68,10 @@ public class SpeedGraphic extends ScaledGraphic {
     super.drawScale();    
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;
+    
     drawScale();
     drawShart();
+    
     
     Rectangle bounds = drawCanvas.getClientArea();
     if(bounds.height < 30 || bounds.width  < 100)
@@ -87,16 +89,17 @@ public class SpeedGraphic extends ScaledGraphic {
       Rectangle bounds = drawCanvas.getClientArea();
       if(bounds.height < 30 || bounds.width  < 100)
         return;
-      GC gcImage = new GC(super.bufferImage);
-      gcImage.setForeground(MainWindow.blues[4]);
+      GC gcImage = new GC(super.bufferImage);        
+      
+      gcImage.setForeground(MainWindow.blues[3]);
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x;
         if(position < 0)
           position+= 2000;
         int value = values[position];
         int xDraw = bounds.width - 71 - x;
-        int height = bounds.height - scale.getScaledValue(value) - 2;
-        gcImage.drawLine(xDraw,bounds.height - 2,xDraw,height);
+        int height = bounds.height - scale.getScaledValue(value) - 2;       
+        gcImage.drawLine(xDraw,bounds.height - 2,xDraw, height);        
       }      
       gcImage.dispose();
     }

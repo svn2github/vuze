@@ -80,8 +80,7 @@ public class ScaledGraphic implements Graphic {
     gcImage.setForeground(MainWindow.white);
     gcImage.fillRectangle(1,1,bounds.width-2,bounds.height-2);
     gcImage.setForeground(MainWindow.black);
-    gcImage.drawRectangle(0,0,bounds.width-1,bounds.height-1);
-    gcImage.setForeground(MainWindow.grey);
+    gcImage.drawRectangle(0,0,bounds.width-1,bounds.height-1);   
     
     scale.setNbPixels(bounds.height - 16);
     int[] levels = scale.getScaleValues();
