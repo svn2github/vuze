@@ -45,6 +45,7 @@ public class
 WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
+	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
@@ -56,18 +57,36 @@ WebPlugin
 	public static final String	CONFIG_PASSWORD			= "Password";
 	public static final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
 	
-	public static final String DEFAULT_PORT		= "8089";
-	public static final String DEFAULT_PROTOCOL	= "HTTP";
-	public static final String DEFAULT_ACCESS	= "all";
+	public static final String 	CONFIG_PORT						= "Port";
+	public static final int	 	CONFIG_PORT_DEFAULT				= 8089;
+	
+	public static final String 	CONFIG_PROTOCOL					= "Protocol";
+	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
+	
+	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
+	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
+	
+	public static final String 	CONFIG_ROOT_DIR					= "Root Dir";
+	public static final String 	CONFIG_ROOT_DIR_DEFAULT			= "";
+	
+	public static final String 	CONFIG_ROOT_RESOURCE			= "Root Resource";
+	public static final String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
+	
+	public static final String 	CONFIG_MODE						= "Mode";
+	public static final String 	CONFIG_MODE_DEFAULT				= "full";
+	
+	public static final String 	CONFIG_ACCESS					= "Access";
+	public static final String 	CONFIG_ACCESS_DEFAULT			= "all";
 	
 	protected static final String	NL			= "\r\n";
 	
 	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
-	protected PluginInterface		plugin_interface;
-	protected LoggerChannel			log;
-	protected Tracker				tracker;
+	protected PluginInterface			plugin_interface;
+	protected LoggerChannel				log;
+	protected Tracker					tracker;
+	protected BasicPluginConfigModel	config_model;
 	
 	protected String				home_page;
 	protected String				file_root;
@@ -116,13 +135,13 @@ WebPlugin
 		
 		PluginConfig	plugin_config = plugin_interface.getPluginconfig();
 		
-		BasicPluginConfigModel	config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
+		config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
 		
 		if ( !plugin_config.getPluginBooleanParameter( CONFIG_MIGRATED, false )){
 			
 			plugin_config.setPluginParameter( CONFIG_MIGRATED, true );
 			
-			System.out.println( "migrating" );
+			System.out.println( "migrating tracker config" );
 			
 			plugin_config.setPluginParameter(
 					CONFIG_PASSWORD_ENABLE,
@@ -140,6 +159,64 @@ WebPlugin
 							"Tracker Password", CONFIG_PASSWORD_DEFAULT ));
 					
 		}
+		
+		if ( !plugin_config.getPluginBooleanParameter( PROPERTIES_MIGRATED, false )){
+			
+			plugin_config.setPluginParameter( PROPERTIES_MIGRATED, true );
+			
+			System.out.println( "migrating properties" );
+			
+			Properties	props = plugin_interface.getPluginProperties();
+			
+			String	prop_port		= props.getProperty( "port",			""+CONFIG_PORT_DEFAULT );
+			String	prop_protocol	= props.getProperty( "protocol", 		CONFIG_PROTOCOL_DEFAULT );
+			String	prop_home		= props.getProperty( "homepage", 		CONFIG_HOME_PAGE_DEFAULT );
+			String	prop_rootdir	= props.getProperty( "rootdir", 		CONFIG_ROOT_DIR_DEFAULT );
+			String	prop_rootres	= props.getProperty( "rootresource", 	CONFIG_ROOT_RESOURCE_DEFAULT );
+			String	prop_mode		= props.getProperty( "mode", 			CONFIG_MODE_DEFAULT );
+			String	prop_access		= props.getProperty( "access", 			CONFIG_ACCESS_DEFAULT );
+
+			int	prop_port_int = CONFIG_PORT_DEFAULT;
+			
+			try{
+				prop_port_int	= Integer.parseInt( prop_port );
+				
+			}catch( Throwable e ){
+			}
+	
+			plugin_config.setPluginParameter(CONFIG_PORT, prop_port_int );
+			plugin_config.setPluginParameter(CONFIG_PROTOCOL, prop_protocol );
+			plugin_config.setPluginParameter(CONFIG_HOME_PAGE, prop_home );
+			plugin_config.setPluginParameter(CONFIG_ROOT_DIR, prop_rootdir );
+			plugin_config.setPluginParameter(CONFIG_ROOT_RESOURCE, prop_rootres );
+			plugin_config.setPluginParameter(CONFIG_MODE, prop_mode );
+			plugin_config.setPluginParameter(CONFIG_ACCESS, prop_access );
+			
+			// TODO: Fix up properties file
+			
+		}
+		
+		
+		
+		IntParameter	param_port = config_model.addIntParameter2(	CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
+		
+		StringListParameter	param_protocol = 
+			config_model.addStringListParameter2(
+					CONFIG_PROTOCOL, "webui.protocol", new String[]{ "http", "https" }, CONFIG_PROTOCOL_DEFAULT );
+		
+		StringParameter	param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
+		StringParameter	param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
+		StringParameter	param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
+		
+		config_model.addLabelParameter2( "webui.mode.info" );
+		StringListParameter	param_mode		= 
+			config_model.addStringListParameter2(	
+					CONFIG_MODE, "webui.mode", new String[]{ "full", "view" }, CONFIG_MODE_DEFAULT );
+		
+		
+		config_model.addLabelParameter2( "webui.access.info" );
+		StringParameter	param_access	= config_model.addStringParameter2(	CONFIG_ACCESS, "webui.access", CONFIG_ACCESS_DEFAULT );
+		
 		
 		final BooleanParameter	pw_enable = 
 			config_model.addBooleanParameter2( 
@@ -164,49 +241,32 @@ WebPlugin
 		pw_enable.addEnabledOnSelection( password );
 		
 		tracker = plugin_interface.getTracker();
-	
-		Properties	props = plugin_interface.getPluginProperties();
 		
-		home_page = (String)props.get("homepage");
+		home_page = param_home.getValue().trim();
 		
-		if ( home_page != null ){
-			
-			home_page = home_page.trim();
-			
-			if ( home_page.length() == 0 ){
+		if ( home_page.length() == 0 ){
 				
-				home_page = null;
+			home_page = null;
 				
-			}else if (!home_page.startsWith("/" )){
+		}else if (!home_page.startsWith("/" )){
 			
-				home_page = "/" + home_page;
-			}
+			home_page = "/" + home_page;
 		}
 		
-		resource_root = (String)props.get("rootresource");
-		
-		if ( resource_root != null ){
-			
-			resource_root = resource_root.trim();
-			
-			if ( resource_root.length() == 0 ){
+		resource_root = param_rootres.getValue().trim();
 				
-				resource_root = null;
+		if ( resource_root.length() == 0 ){
 				
-			}else if ( resource_root.startsWith("/" )){
+			resource_root = null;
+				
+		}else if ( resource_root.startsWith("/" )){
 			
-				resource_root = resource_root.substring(1);
-			}
+			resource_root = resource_root.substring(1);
 		}
 		
-		String	root_dir	= (String)props.get("rootdir");
+		String	root_dir	= param_rootdir.getValue().trim();
 		
-		if ( root_dir != null ){
-			
-			root_dir = root_dir.trim();
-		}
-		
-		if ( root_dir == null || root_dir.length() == 0 ){
+		if ( root_dir.length() == 0 ){
 			
 			file_root = plugin_interface.getPluginDirectoryName();
 			
@@ -257,16 +317,16 @@ WebPlugin
 		}
 		
 					
-		int port	= Integer.parseInt( props.getProperty( "port", DEFAULT_PORT ));
+		int port	= param_port.getValue();
 
-		String	protocol_str = props.getProperty( "protocol", DEFAULT_PROTOCOL );
+		String	protocol_str = param_protocol.getValue().trim();
 		
 		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?
 							Tracker.PR_HTTP:Tracker.PR_HTTPS;
 	
 		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str + ", root = " + root_dir );
 		
-		String	access_str = props.getProperty( "access", DEFAULT_ACCESS ).trim();
+		String	access_str = param_access.getValue().trim();
 		
 		if ( access_str.length() > 7 && Character.isDigit(access_str.charAt(0))){
 			

@@ -152,6 +152,20 @@ BasicPluginConfigModelImpl
 		return( res );	
 	}
 	
+	public org.gudy.azureus2.plugins.ui.config.StringListParameter
+	addStringListParameter2(
+		String 		key,
+		String 		resource_name,
+		String[]	values,
+		String	 	defaultValue )
+	{
+		StringListParameterImpl res = new StringListParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, values, values );
+		
+		parameters.add( res );
+			
+		return( res );			
+	}
+	
 	public org.gudy.azureus2.plugins.ui.config.PasswordParameter
 	addPasswordParameter2(
 		String 		key,
@@ -260,6 +274,18 @@ BasicPluginConfigModelImpl
 				gridData.widthHint = 150;
 
 				swt_param = new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue());
+				
+				swt_param.setLayoutData( gridData );
+				
+			}else if ( param instanceof StringListParameterImpl ){
+				
+				StringListParameterImpl	sl_param = (StringListParameterImpl)param;
+				
+				GridData gridData = new GridData();
+				
+				gridData.widthHint = 150;
+
+				swt_param = new StringListParameter(gMainTab, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getValues());
 				
 				swt_param.setLayoutData( gridData );
 				

@@ -80,9 +80,9 @@ public class ParameterRepository
       } else if(parameter instanceof IntsParameter) {
         def.addParameter(sKey,
                          ((IntsParameter)parameter).getDefaultValue());
-      } else if(parameter instanceof StringsParameter) {
+      } else if(parameter instanceof StringListParameterImpl) {
         def.addParameter(sKey,
-                         ((StringsParameter)parameter).getDefaultValue());
+                         ((StringListParameterImpl)parameter).getDefaultValue());
       } else if(parameter instanceof ColorParameter) {
         def.addParameter(sKey + ".red",
                          ((ColorParameter)parameter).getDefaultRed());

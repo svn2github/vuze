@@ -86,7 +86,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 			String defaultValue,
 			String[] values,
 			String[] labels) {
-	  return new StringsParameter(config,pluginKey + "." + key,label,defaultValue,values,labels);
+	  return new StringListParameterImpl(config,pluginKey + "." + key,label,defaultValue,values,labels);
 	}
 
 	public Parameter createFileParameter(

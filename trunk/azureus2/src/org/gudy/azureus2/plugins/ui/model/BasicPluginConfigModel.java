@@ -75,6 +75,13 @@ BasicPluginConfigModel
 		String 		resource_name,
 		String	 	defaultValue );
 	
+	public StringListParameter
+	addStringListParameter2(
+		String 		key,
+		String 		resource_name,
+		String[]	values,
+		String	 	defaultValue );
+
 	public PasswordParameter
 	addPasswordParameter2(
 		String 		key,

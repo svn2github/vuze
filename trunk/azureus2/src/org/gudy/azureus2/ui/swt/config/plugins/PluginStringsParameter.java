@@ -25,7 +25,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.StringsParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.StringListParameterImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 
 /**
@@ -36,7 +36,7 @@ public class PluginStringsParameter implements PluginParameterImpl {
   
   Control[] controls;
   
-  public PluginStringsParameter(Composite pluginGroup,StringsParameter parameter) {
+  public PluginStringsParameter(Composite pluginGroup,StringListParameterImpl parameter) {
     controls = new Control[2];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);

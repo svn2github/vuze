@@ -29,15 +29,16 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.ui.config.StringListParameter;
 
-public class StringsParameter extends ParameterImpl
+public class StringListParameterImpl extends ParameterImpl implements StringListParameter
 {
 	private String defaultValue;
 	private String[] values;
 	private String[] labels;
 	
 	
-	public StringsParameter(
+	public StringListParameterImpl(
 			PluginConfig	config,
 			String key,
 			String label,
@@ -68,5 +69,10 @@ public class StringsParameter extends ParameterImpl
 	{
 	  return labels;
 	}
-
+	
+	public String
+	getValue()
+	{
+		return( config.getStringParameter( getKey(), getDefaultValue()));
+	}
 }

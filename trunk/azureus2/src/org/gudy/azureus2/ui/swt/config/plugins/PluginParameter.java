@@ -30,7 +30,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntsParameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.StringParameterImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.StringsParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.StringListParameterImpl;
 import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 
 /**
@@ -54,8 +54,8 @@ public class PluginParameter {
       implementation = new PluginDirectoryParameter(pluginGroup,(DirectoryParameterImpl)parameter);
     } else if(parameter instanceof IntsParameter) {
       implementation = new PluginIntsParameter(pluginGroup,(IntsParameter)parameter);
-    } else if(parameter instanceof StringsParameter) {
-      implementation = new PluginStringsParameter(pluginGroup,(StringsParameter)parameter);
+    } else if(parameter instanceof StringListParameterImpl) {
+      implementation = new PluginStringsParameter(pluginGroup,(StringListParameterImpl)parameter);
     } else if(parameter instanceof ColorParameter) {
       implementation = new PluginColorParameter(pluginGroup,(ColorParameter)parameter);
     }
