@@ -381,7 +381,7 @@ DownloadManagerImpl
   }
 
   public String getSavePathForSave() {
-	return savePath;
+    return getSavePath();
   }
 
   public String getPieceLength() {

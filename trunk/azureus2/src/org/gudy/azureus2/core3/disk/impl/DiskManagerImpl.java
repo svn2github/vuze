@@ -1632,6 +1632,9 @@ DiskManagerImpl
         }
       }
       
+      //update internal path
+      path = moveToDir;
+      
       //move the torrent file as well
       synchronized (torrent) {
         String oldFullName = torrent.getAdditionalStringProperty("torrent filename");
