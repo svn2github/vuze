@@ -69,6 +69,13 @@ PluginInitializer
 				"PluginUpdate",
   		};
   
+  	// these can be removed one day
+  
+  private static String[][]default_version_details =
+  {
+  		{ "org.gudy.azureus2.ui.webplugin.remoteui.servlet.RemoteUIServlet", "webui", "1.2.3" },
+  };
+  
   private static PluginInitializer	singleton;
   
   private static List		registration_queue = new ArrayList();
@@ -314,6 +321,22 @@ PluginInitializer
       		  }
       		  
       		  Properties new_props = (Properties)props.clone();
+      		  
+      		  for (int j=0;j<default_version_details.length;j++){
+      		  	
+      		  	if ( plugin_class.equals( default_version_details[j][0] )){
+      		  
+    		  		if ( new_props.get( "plugin.id") == null ){
+      		  			
+      		  			new_props.put( "plugin.id", default_version_details[j][1]);
+      		  		}
+    		  		
+    		  		if ( new_props.get( "plugin.version") == null ){
+      		  			
+      		  			new_props.put( "plugin.version", default_version_details[j][2]);
+      		  		}
+      		  	}
+      		  }
       		  
       		  new_props.put( "plugin.class", plugin_class );
       		  

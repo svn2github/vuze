@@ -199,7 +199,9 @@ PluginInterfaceImpl
   public String
   getPluginID()
   {
-  	return( plugin_id==null?"<none>":plugin_id );
+  	String	id = plugin_id==null?(String)props.get("plugin.id"):plugin_id;
+  	
+  	return( id==null?"<none>":id );
   }
   
   public Properties getPluginProperties() {
