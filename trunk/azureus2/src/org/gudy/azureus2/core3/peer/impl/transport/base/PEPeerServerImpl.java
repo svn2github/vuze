@@ -160,7 +160,7 @@ PEPeerServerImpl
           if ( size != null ) sckClient.socket().setSendBufferSize( Integer.parseInt( size ) );
 
           String ip_tos = System.getProperty("socket.IPTOS");
-          if ( ip_tos != null ) sckClient.socket().setTrafficClass( Integer.parseInt( ip_tos ) );
+          if ( ip_tos != null ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
           //System.out.println( "iTOS=" + sckClient.socket().getTrafficClass() );
           
           sckClient.configureBlocking(false);

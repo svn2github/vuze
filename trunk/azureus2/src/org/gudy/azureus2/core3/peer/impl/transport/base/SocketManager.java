@@ -73,7 +73,7 @@ public class SocketManager {
           if ( size != null ) channel.socket().setSendBufferSize( Integer.parseInt( size ) );
           
           String ip_tos = System.getProperty("socket.IPTOS");
-          if ( ip_tos != null ) channel.socket().setTrafficClass( Integer.parseInt( ip_tos ) );
+          if ( ip_tos != null ) channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
           //System.out.println( "oTOS=" + channel.socket().getTrafficClass() );
           
           String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
