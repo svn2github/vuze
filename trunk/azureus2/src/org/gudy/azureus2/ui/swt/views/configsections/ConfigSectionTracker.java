@@ -211,7 +211,23 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
 
     label = new Label(gMainTab, SWT.NULL);
 
-     // row
+    	// seed retention limit
+    
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained", 0 );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    seedRetentionLimit.setLayoutData( gridData );
+
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention.info");
+  
+    	// row
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.ip");
@@ -344,11 +360,16 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
     // row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 1;
     new BooleanParameter(gMainTab, "Tracker Public Enable", false,
                          "ConfigView.section.tracker.publicenable").setLayoutData( gridData );
 
-
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable.info");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+    
     // row
 
     gridData = new GridData();
