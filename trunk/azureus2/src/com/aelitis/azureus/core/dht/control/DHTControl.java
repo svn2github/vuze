@@ -122,9 +122,9 @@ DHTControl
 	
 	public void
 	put(
-		byte[]				key,
-		DHTTransportValue	value,
-		List				closest );
+		byte[][]				keys,
+		DHTTransportValue[][]	value_sets,
+		List					contacts );
 	
 	public void
 	print();

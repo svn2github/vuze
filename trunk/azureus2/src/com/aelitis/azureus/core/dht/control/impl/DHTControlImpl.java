@@ -578,36 +578,40 @@ DHTControlImpl
 					closest(
 						List				_closest )
 					{
-						put( encoded_key, value, _closest, listener );		
+						put( new byte[][]{ encoded_key }, new DHTTransportValue[][]{{ value }}, _closest, listener );		
 					}
 				});
 	}
 	
 	public void
 	put(
-		byte[]					encoded_key,
-		DHTTransportValue		value,
-		List					closest )
+		byte[][]				encoded_keys,
+		DHTTransportValue[][]	value_sets,
+		List					contacts )
 	{
-		put( encoded_key, value, closest, null );
+		put( encoded_keys, value_sets, contacts, null );
 	}
 		
 	public void
 	put(
-		byte[]					encoded_key,
-		DHTTransportValue		value,
-		List					closest,
+		byte[][]				encoded_keys,
+		DHTTransportValue[][]	value_sets,
+		List					contacts,
 		DHTOperationListener	listener )
 	{
-		for (int i=0;i<closest.size();i++){
+		for (int i=0;i<contacts.size();i++){
 		
-			DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
+			DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
 			
 			if ( !router.isID( contact.getID())){
 					
 				if ( listener != null ){
 					
-					listener.wrote( contact, value );
+					for (int j=0;j<value_sets.length;j++){
+						for (int k=0;k<value_sets[j].length;k++){
+							listener.wrote( contact, value_sets[j][k] );
+						}
+					}
 				}
 				
 				contact.sendStore( 
@@ -632,8 +636,8 @@ DHTControlImpl
 							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 						}
 					},
-					new byte[][]{ encoded_key }, 
-					new DHTTransportValue[][]{{ value }});
+					encoded_keys, 
+					value_sets );
 			}
 		}
 	}

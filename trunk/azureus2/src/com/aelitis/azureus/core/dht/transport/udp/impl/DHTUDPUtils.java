@@ -193,6 +193,42 @@ DHTUDPUtils
 		return( data );
 	}
 	
+	public static final int INETSOCKETADDRESS_SIZE	= 18;
+	
+	protected static void
+	serialiseAddress(
+		DataOutputStream	os,
+		InetSocketAddress	address )
+	
+		throws IOException, DHTTransportException
+	{
+		InetAddress	ia = address.getAddress();
+		
+		if ( ia == null ){
+			
+			Debug.out( "Address '" + address + "' is unresolved" );
+			
+			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
+		}
+		
+		serialiseByteArray( os, ia.getAddress(), 16);	// 16 (Pv6)
+		
+		os.writeShort( address.getPort());	//18
+	}
+	
+	protected static InetSocketAddress
+	deserialiseAddress(
+		DataInputStream		is )
+	
+		throws IOException
+	{
+		byte[]	bytes = deserialiseByteArray( is, 16 );
+				
+		int	port = is.readShort()&0xffff;
+		
+		return( new InetSocketAddress( InetAddress.getByAddress( bytes ), port ));
+	}
+	
 	protected static DHTTransportValue[][]
 	deserialiseTransportValuesArray(
 		DHTTransportUDPImpl		transport,
@@ -231,6 +267,56 @@ DHTUDPUtils
 		}	
 	}
 	
+	public static final int	DHTTRANSPORTCONTACT_SIZE	= 2 + INETSOCKETADDRESS_SIZE;
+	
+	protected static void
+	serialiseContact(
+		DataOutputStream		os,
+		DHTTransportContact		contact )
+	
+		throws IOException, DHTTransportException
+	{
+		if ( contact instanceof DHTTransportUDPContactImpl ){
+			
+			os.writeByte( CT_UDP );		// 1
+			
+			os.writeByte( contact.getProtocolVersion());	// 2
+			
+			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
+								
+			serialiseAddress( os, c.getExternalAddress() );	// 2 + address
+			
+		}else{
+			
+			throw( new IOException( "Unsupported contact type:" + contact.getClass().getName()));
+		}
+	}
+	
+	protected static DHTTransportContact
+	deserialiseContact(
+		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
+		DataInputStream			is )
+	
+		throws IOException, DHTTransportException
+	{
+		byte	ct = is.readByte();
+		
+		if ( ct != CT_UDP ){
+			
+			throw( new IOException( "Unsupported contact type:" + ct ));
+		}
+			
+		byte	version = is.readByte();
+		
+			// we don't transport instance ids around via this route as they are just
+			// cached versions and not useful
+				
+		InetSocketAddress	external_address = deserialiseAddress( is );
+		
+		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0, 0 ));
+	}
+	
+
 	protected static DHTTransportValue[]
 	deserialiseTransportValues(
 		DHTTransportUDPImpl		transport,
@@ -347,6 +433,8 @@ DHTUDPUtils
 		return( value );
 	}
 	
+	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 13 + DHTTRANSPORTCONTACT_SIZE;
+		
 	protected static void
 	serialiseTransportValue(
 		DataOutputStream	os,
@@ -364,15 +452,17 @@ DHTUDPUtils
 			new Exception().printStackTrace();
 		}
 		
-		os.writeInt( distance );
+			// Don't forget to change the CONSTANT above if you change the size of this!
 		
-		os.writeLong( value.getCreationTime() + skew );
+		os.writeInt( distance );	// 4
 		
-		serialiseByteArray( os, value.getValue(), 256 );
+		os.writeLong( value.getCreationTime() + skew );	// 12
 		
-		serialiseContact( os, value.getOriginator());
+		serialiseByteArray( os, value.getValue(), 256 );	// 12+X
 		
-		os.writeByte( value.getFlags());
+		serialiseContact( os, value.getOriginator());	// 12 + X + contact
+		
+		os.writeByte( value.getFlags());	// 13 + X + contact
 	}
 	
 	protected static void
@@ -429,89 +519,7 @@ DHTUDPUtils
 		
 		return( res );
 	}
-											
-	protected static void
-	serialiseContact(
-		DataOutputStream		os,
-		DHTTransportContact		contact )
-	
-		throws IOException, DHTTransportException
-	{
-		if ( contact instanceof DHTTransportUDPContactImpl ){
-			
-			os.writeByte( CT_UDP );
-			
-			os.writeByte( contact.getProtocolVersion());
-			
-			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
-								
-			serialiseAddress( os, c.getExternalAddress() );
-			
-		}else{
-			
-			throw( new IOException( "Unsupported contact type:" + contact.getClass().getName()));
-		}
-	}
-	
-	protected static DHTTransportContact
-	deserialiseContact(
-		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
-		DataInputStream			is )
-	
-		throws IOException, DHTTransportException
-	{
-		byte	ct = is.readByte();
-		
-		if ( ct != CT_UDP ){
-			
-			throw( new IOException( "Unsupported contact type:" + ct ));
-		}
-			
-		byte	version = is.readByte();
-		
-			// we don't transport instance ids around via this route as they are just
-			// cached versions and not useful
 				
-		InetSocketAddress	external_address = deserialiseAddress( is );
-		
-		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0, 0 ));
-	}
-	
-	
-	protected static void
-	serialiseAddress(
-		DataOutputStream	os,
-		InetSocketAddress	address )
-	
-		throws IOException, DHTTransportException
-	{
-		InetAddress	ia = address.getAddress();
-		
-		if ( ia == null ){
-			
-			Debug.out( "Address '" + address + "' is unresolved" );
-			
-			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
-		}
-		
-		serialiseByteArray( os, ia.getAddress(), 16);
-		
-		os.writeShort( address.getPort());
-	}
-	
-	protected static InetSocketAddress
-	deserialiseAddress(
-		DataInputStream		is )
-	
-		throws IOException
-	{
-		byte[]	bytes = deserialiseByteArray( is, 16 );
-				
-		int	port = is.readShort()&0xffff;
-		
-		return( new InetSocketAddress( InetAddress.getByAddress( bytes ), port ));
-	}
-	
 	protected static void
 	serialiseStats(
 		DataOutputStream		os,

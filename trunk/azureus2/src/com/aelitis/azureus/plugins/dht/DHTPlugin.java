@@ -295,7 +295,7 @@ DHTPlugin
 									/*
 									System.out.println( "FRIGGED REFRESH PERIOD" );
 									
-									props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 15*60*1000 ));
+									props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
 									*/
 									
 									long	start = SystemTime.getCurrentTime();

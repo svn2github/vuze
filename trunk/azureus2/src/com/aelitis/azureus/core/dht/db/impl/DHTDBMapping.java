@@ -26,7 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
-import com.aelitis.azureus.core.dht.impl.DHTLog;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
@@ -102,7 +102,9 @@ DHTDBMapping
 	//	2)	stop one contact deleting or overwriting another contact's entry
 	//	3)	support garbage collection for contacts that don't delete entries on exit
 
-
+	// TODO: we should enforce a max-values-per-sender restriction to stop a sender from spamming
+	// lots of keys - however, for a small DHT we need to be careful
+	
 	protected void
 	add(
 		DHTDBValueImpl		new_value )

@@ -556,10 +556,8 @@ PRUDPPacketHandlerImpl
 					try{
 						send_queue_mon.enter();
 						
-						if ( send_queue_lp.size() + send_queue_hp.size() > 1024 ){
-							
-							Debug.out( "Send queue max limit exceeded" );
-							
+						if ( send_queue_lp.size() + send_queue_hp.size() > 2048 ){
+														
 							request.sent();
 							
 								// synchronous write holding lock to block senders

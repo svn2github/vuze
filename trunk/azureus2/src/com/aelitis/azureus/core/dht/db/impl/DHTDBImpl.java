@@ -224,9 +224,7 @@ DHTDBImpl
 		
 		try{
 			this_mon.enter();
-			
-				// TODO:size
-			
+						
 			if ( getSize() >= max_values_stored ){
 				
 					// just drop it
@@ -410,7 +408,8 @@ DHTDBImpl
 			
 			List		values	= (List)entry.getValue();
 			
-				// TODO: multiple values
+				// no point in worry about multi-value puts here as it is extremely unlikely that
+				// > 1 value will locally stored, or > 1 value will go to the same contact
 			
 			for (int i=0;i<values.size();i++){
 				
@@ -505,61 +504,110 @@ DHTDBImpl
 			
 			List	stop_caching = new ArrayList();
 			
+				// build a map of contact -> list of keys to republish
+			
+			Map	contact_map	= new HashMap();
+			
 			while( it.hasNext()){
 				
 				Map.Entry	entry = (Map.Entry)it.next();
 				
 				HashWrapper			key		= (HashWrapper)entry.getKey();
 				
-				List				values	= (List)entry.getValue();
+				byte[]	lookup_id	= key.getHash();
 				
-				for (int i=0;i<values.size();i++){
-					
-					DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(i);
-					
-					byte[]	lookup_id	= key.getHash();
-					
-						// just use the closest contacts - if some have failed then they'll
-						// get flushed out by this operation. Grabbing just the live ones
-						// is a bad idea as failures may rack up against the live ones due
-						// to network problems and kill them, leaving the dead ones!
-					
-					List	contacts = control.getClosestKContactsList( lookup_id, false );
-								
-						// if we are no longer one of the K closest contacts then we shouldn't
-						// cache the value
-					
-					boolean	keep_caching	= false;
-					
-					for (int j=0;j<contacts.size();j++){
-					
-						if ( router.isID(((DHTTransportContact)contacts.get(j)).getID())){
+					// just use the closest contacts - if some have failed then they'll
+					// get flushed out by this operation. Grabbing just the live ones
+					// is a bad idea as failures may rack up against the live ones due
+					// to network problems and kill them, leaving the dead ones!
+				
+				List	contacts = control.getClosestKContactsList( lookup_id, false );
 							
-							keep_caching	= true;
-							
-							break;
-						}
+					// if we are no longer one of the K closest contacts then we shouldn't
+					// cache the value
+				
+				boolean	keep_caching	= false;
+				
+				for (int j=0;j<contacts.size();j++){
+				
+					if ( router.isID(((DHTTransportContact)contacts.get(j)).getID())){
+						
+						keep_caching	= true;
+						
+						break;
+					}
+				}
+				
+				if ( !keep_caching ){
+					
+					DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+					
+					stop_caching.add( key );
+					
+						// we carry on and do one last publish
+					
+				}
+				
+				for (int j=0;j<contacts.size();j++){
+					
+					DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
+					
+					Object[]	data = (Object[])contact_map.get( new HashWrapper(contact.getID()));
+					
+					if ( data == null ){
+						
+						data	= new Object[]{ contact, new ArrayList()};
+						
+						contact_map.put( new HashWrapper(contact.getID()), data );
 					}
 					
-					if ( !keep_caching ){
-						
-						DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
-						
-						stop_caching.add( key );
-					}
-					
-						// we reduce the cache distance by 1 here as it is incremented by the
-						// recipients
-					
-						// TODO: multiple values
-										
-					control.put( 
-							lookup_id, 
-							(DHTDBValueImpl)value.getValueForRelay(local_contact), 
-							contacts );
+					((List)data[1]).add( key );
 				}
 			}
+		
+			it = contact_map.values().iterator();
 			
+			while( it.hasNext()){
+				
+				Object[]	data = (Object[])it.next();
+				
+				DHTTransportContact	contact = (DHTTransportContact)data[0];
+				List				keys	= (List)data[1];
+					
+				byte[][]				store_keys 		= new byte[keys.size()][];
+				DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
+				
+				for (int i=0;i<store_keys.length;i++){
+					
+					HashWrapper	wrapper = (HashWrapper)keys.get(i);
+					
+					store_keys[i] = wrapper.getHash();
+					
+					List		values	= (List)republish.get( wrapper );
+					
+					store_values[i] = new DHTTransportValue[values.size()];
+		
+					for (int j=0;j<values.size();j++){
+					
+						DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(j);
+							
+							// we reduce the cache distance by 1 here as it is incremented by the
+							// recipients
+						
+						store_values[i][j] = value.getValueForRelay(local_contact);
+					}
+				}
+					
+				List	contacts = new ArrayList();
+				
+				contacts.add( contact );
+				
+				control.put( 
+						store_keys, 
+						store_values,
+						contacts );
+			}
+		
 			try{
 				this_mon.enter();
 				

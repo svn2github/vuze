@@ -43,6 +43,8 @@ DHTUDPPacket
 {
 	public static final byte	VERSION					= DHTTransportUDP.PROTOCOL_VERSION;
 	
+	public static final int		PACKET_MAX_BYTES		= PRUDPPacket.MAX_PACKET_SIZE;
+	
 		// these actions have to co-exist with the tracker ones when the connection
 		// is shared, hence 1024
 	

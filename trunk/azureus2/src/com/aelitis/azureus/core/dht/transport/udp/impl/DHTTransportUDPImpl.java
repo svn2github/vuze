@@ -894,92 +894,214 @@ DHTTransportUDPImpl
 		
 		final long	connection_id = getConnectionID();
 		
+		/*
+		int	total_values = 0;
+		for (int i=0;i<keys.length;i++){
+			total_values += value_sets[i].length;
+		}
+		System.out.println( "store: keys = " + keys.length +", values = " + total_values );
+		*/
+		
+			// only report to caller the outcome of the first packet
+		
+		int	packet_count	= 0;
+		
 		try{
 			checkAddress( contact );
 			
-			final DHTUDPPacketRequestStore	request = 
-				new DHTUDPPacketRequestStore( connection_id, local_contact );
+			int		current_key_index	= 0;
+			int		current_value_index	= 0;
 			
-			request.setKeys( keys );
+			while( current_key_index < keys.length ){
 			
-			request.setValueSets( value_sets );
-			
-			packet_handler.sendAndReceive(
-				request,
-				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
-				{
-					private int	retry_count	= 0;
+				packet_count++;
+				
+						// get a reasonable starting size (currently 8192-200)
+				
+				int	space = DHTUDPPacket.PACKET_MAX_BYTES - 512;
+				
+				List	key_list	= new ArrayList();
+				List	values_list	= new ArrayList();
+				
+				key_list.add( keys[current_key_index]);
+				
+				space -= ( keys[current_key_index].length + 1 );	// 1 for length marker
+				
+				values_list.add( new ArrayList());
+				
+				while( space > 0 &&  current_key_index < keys.length ){
 					
-					public void
-					packetReceived(
-						PRUDPPacket			_packet,
-						InetSocketAddress	from_address )
+					if ( current_value_index == value_sets[current_key_index].length ){
+						
+						current_key_index++;
+						
+						current_value_index	= 0;
+						
+						if ( current_key_index == keys.length ){
+							
+							break;
+						}
+						
+						key_list.add( keys[current_key_index]);
+						
+						space -= ( keys[current_key_index].length + 1 );	// 1 for length marker
+						
+						values_list.add( new ArrayList());
+					}
+					
+					DHTTransportValue	value = value_sets[current_key_index][current_value_index];
+					
+					int	entry_size = DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + value.getValue().length;
+					
+					if ( space < entry_size ){
+						
+						break;
+					}
+					
+					((List)values_list.get(values_list.size()-1)).add( value );
+					
+					space -= entry_size;
+					
+					current_value_index++;
+				}
+				
+				int	packet_entries = key_list.size();
+
+				if ( packet_entries > 0 ){
+				
+						// if last entry has no values then ignore it
+					
+					if ( ((List)values_list.get( packet_entries-1)).size() == 0 ){
+						
+						packet_entries--;
+					}
+				}
+				
+				if ( packet_entries == 0 ){
+					
+					break;
+				}
+	
+				byte[][]				packet_keys 		= new byte[packet_entries][];
+				DHTTransportValue[][]	packet_value_sets 	= new DHTTransportValue[packet_entries][];
+				
+				//int	packet_value_count = 0;
+				
+				for (int i=0;i<packet_entries;i++){
+					
+					packet_keys[i] = (byte[])key_list.get(i);
+					
+					List	values = (List)values_list.get(i);
+					
+					packet_value_sets[i] = new DHTTransportValue[values.size()];
+					
+					for (int j=0;j<values.size();j++){
+						
+						packet_value_sets[i][j] = (DHTTransportValue)values.get(j);
+						
+						//packet_value_count++;
+					}
+				}
+				
+				// System.out.println( "    packet " + packet_count + ": keys = " + packet_entries + ", values = " + packet_value_count );
+				
+				final DHTUDPPacketRequestStore	request = 
+					new DHTUDPPacketRequestStore( connection_id, local_contact );
+			
+				request.setKeys( packet_keys );
+				
+				request.setValueSets( packet_value_sets );
+				
+				final int f_packet_count	= packet_count;
+				
+				packet_handler.sendAndReceive(
+					request,
+					contact.getTransportAddress(),
+					new PRUDPPacketReceiver()
 					{
-						try{
-							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-							
-							if ( packet.getConnectionId() != connection_id ){
+						private int	retry_count	= 0;
+						
+						public void
+						packetReceived(
+							PRUDPPacket			_packet,
+							InetSocketAddress	from_address )
+						{
+							try{
+								DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
 								
-								throw( new Exception( "connection id mismatch" ));
-							}
-							
-							contact.setInstanceID( packet.getTargetInstanceID());
-							
-							if ( handleErrorReply( contact, packet )){
-								
-								retry_count++;
-								
-								if ( retry_count > 1 ){
+								if ( packet.getConnectionId() != connection_id ){
 									
-									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									throw( new Exception( "connection id mismatch" ));
+								}
+								
+								contact.setInstanceID( packet.getTargetInstanceID());
+								
+								if ( handleErrorReply( contact, packet )){
 									
+									retry_count++;
+									
+									if ( retry_count > 1 ){
+										
+										error( new PRUDPPacketHandlerException("retry limit exceeded"));
+										
+									}else{
+										
+										request.setOriginatorAddress(local_contact.getExternalAddress());
+										
+										packet_handler.sendAndReceive(
+												request,
+												contact.getTransportAddress(),
+												this,
+												store_timeout, true );
+									}
 								}else{
 									
-									request.setOriginatorAddress(local_contact.getExternalAddress());
+									stats.storeOK();
 									
-									packet_handler.sendAndReceive(
-											request,
-											contact.getTransportAddress(),
-											this,
-											store_timeout, true );
+									if ( f_packet_count == 1 ){
+										
+										handler.storeReply( contact );
+									}
 								}
-							}else{
 								
-								stats.storeOK();
-															
-								handler.storeReply( contact );
+							}catch( PRUDPPacketHandlerException e ){
+								
+								error( e );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+								
+								error( new PRUDPPacketHandlerException( "store failed", e ));
 							}
-							
-						}catch( PRUDPPacketHandlerException e ){
-							
-							error( e );
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-							
-							error( new PRUDPPacketHandlerException( "store failed", e ));
 						}
-					}
-					
-					public void
-					error(
-						PRUDPPacketHandlerException	e )
-					{
-						stats.storeFailed();
-												
-						handler.failed( contact, e );
-					}
-				},
-				store_timeout,
-				true );	// low priority
-			
+						
+						public void
+						error(
+							PRUDPPacketHandlerException	e )
+						{
+							stats.storeFailed();
+							
+							if ( f_packet_count == 1 ){
+								
+								handler.failed( contact, e );
+							}
+						}
+					},
+					store_timeout,
+					true );	// low priority
+
+			}
 		}catch( Throwable e ){
-						
+				
+			e.printStackTrace();
+			
 			stats.storeFailed();
-						
-			handler.failed( contact, e );
+			
+			if ( packet_count <= 1 ){
+								
+				handler.failed( contact, e );
+			}
 		}
 	}
 	
