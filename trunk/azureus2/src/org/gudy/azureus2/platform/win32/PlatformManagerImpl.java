@@ -184,7 +184,7 @@ PlatformManagerImpl
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\DefaultIcon",
 					"",
-					az_exe.toString() + ",1" );
+					az_exe.toString() + ",0" );	// this was 1 but it seems it should be 0
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
