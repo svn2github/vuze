@@ -446,8 +446,8 @@ public class MainWindow implements GlobalManagerListener {
     file_new_torrent.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent" }); //$NON-NLS-1$
-        fDialog.setFilterNames(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
@@ -461,8 +461,8 @@ public class MainWindow implements GlobalManagerListener {
     file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent" }); //$NON-NLS-1$
-        fDialog.setFilterNames(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
