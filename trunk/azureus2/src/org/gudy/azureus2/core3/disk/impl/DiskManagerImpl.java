@@ -120,27 +120,14 @@ DiskManagerImpl
 		this.percentDone = 0;
 		this.torrent = _torrent;
 		this.path = path;
-    
-		//if the torrent is already in the completed files dir,
-		//we want to use the data already moved there  
-		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-		String torrentFullName = torrent.getAdditionalStringProperty("torrent filename");
-		if (moveWhenDone && completedDir.length() > 0) {
-		  //if the torrent file resides in the completed files dir
-		  if (new File(torrentFullName).getParent().startsWith(completedDir)) {
-		    //set the completed dir as the save path
-		    this.path = FileUtil.smartPath(completedDir, fileName);
-          alreadyMoved = true;
-		  }
-		}
 
-    md5 = new Md5Hasher();
-    md5Result = ByteBuffer.allocate(16);
+		md5 = new Md5Hasher();
+		md5Result = ByteBuffer.allocate(16);
+    
 		try {
 			hasher = new SHA1Hasher();
-		} catch (NoSuchAlgorithmException ignore) {
-		}
+		} catch (NoSuchAlgorithmException ignore) {/*ignore*/}
+    
 		Thread init = new Thread() {
 			public void run() {
 				initialize();
@@ -181,6 +168,19 @@ DiskManagerImpl
 			} else {
 				fileName = f.getName();
 				path = f.getParent();
+			}
+      
+			//if the data file is already in the completed files dir, we want to use it
+			boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+			String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+   
+			if (moveWhenDone && completedDir.length() > 0) {
+			  //if the data file already resides in the completed files dir
+			  if (new File(completedDir, fileName).exists()) {
+			    //set the completed dir as the save path
+			    this.path = FileUtil.smartPath(completedDir, fileName);
+			    alreadyMoved = true;
+			  }
 			}
 		} catch (UnsupportedEncodingException e) {
 			this.state = FAULTY;
@@ -1563,29 +1563,31 @@ DiskManagerImpl
       
       //remove the old dir
       File tFile = new File(rPath, fileName);
-      if (tFile.isDirectory() && (!moveToDir.equals(rPath))) FileUtil.recursiveDelete(tFile);
+      if (tFile.isDirectory() && (!moveToDir.equals(rPath))) FileUtil.recursiveDirDelete(tFile);
 
       
       //update internal path
       path = FileUtil.smartPath(moveToDir, fileName);
       
       //move the torrent file as well
-      synchronized (torrent) {
-        String oldFullName = torrent.getAdditionalStringProperty("torrent filename");
-        File oldTorrentFile = new File(oldFullName);
-        String oldFileName = oldTorrentFile.getName();
-        File newTorrentFile = new File(moveToDir, oldFileName);
-        if (!newTorrentFile.equals(oldTorrentFile)) {
-          //save torrent to new file
-          torrent.serialiseToBEncodedFile(newTorrentFile);
-          //remove old torrent file
-          oldTorrentFile.delete();
-          //update torrent meta-info to point to new torrent file
-          torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
-          returnName = newTorrentFile.getCanonicalPath();
+      boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
+      if (moveTorrent) {
+        synchronized (torrent) {
+          String oldFullName = torrent.getAdditionalStringProperty("torrent filename");
+          File oldTorrentFile = new File(oldFullName);
+          String oldFileName = oldTorrentFile.getName();
+          File newTorrentFile = new File(moveToDir, oldFileName);
+          if (!newTorrentFile.equals(oldTorrentFile)) {
+            //save torrent to new file
+            torrent.serialiseToBEncodedFile(newTorrentFile);
+            //remove old torrent file
+            oldTorrentFile.delete();
+            //update torrent meta-info to point to new torrent file
+            torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
+            returnName = newTorrentFile.getCanonicalPath();
+          }
         }
       }
-      
     } catch (Exception e) { e.printStackTrace(); }
 
     return returnName;
