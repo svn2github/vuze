@@ -41,7 +41,7 @@ PRHelpers
 		
 		byte[]	bytes = i_address.getAddress();
 		
-		int	resp = bytes[0]<<24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3];
+		int	resp = (bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff;
 	
 		// System.out.println( "addressToInt: " + address + " -> " + Integer.toHexString(resp));
 		
@@ -56,7 +56,11 @@ PRHelpers
 	{
 		byte[]	bytes = { (byte)(value>>24), (byte)(value>>16),(byte)(value>>8),(byte)value };
 		
-		return( InetAddress.getByAddress(bytes).getHostAddress());
+		String	res = InetAddress.getByAddress(bytes).getHostAddress();
+		
+		// System.out.println( "intToAddress: " + Integer.toHexString(value) + " -> " + res );
+		
+		return( res );
 	}
 	
 	public static void

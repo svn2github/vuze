@@ -29,9 +29,19 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.*;
+
 public abstract class 
 PRUDPPacket 
 {
+	public static int VERSION = 2;
+	
+	static{
+		VERSION = COConfigurationManager.getIntParameter( "Tracker Port UDP Version", 2 );
+		
+		// System.out.println( "UDP Version = " + VERSION );
+	}
+	
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 15000;
 	public static final int DEFAULT_RETRY_COUNT		= 4;

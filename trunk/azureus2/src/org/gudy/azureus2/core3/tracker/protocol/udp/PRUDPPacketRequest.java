@@ -89,7 +89,11 @@ PRUDPPacketRequest
 			}
 			case ACT_REQUEST_ANNOUNCE:
 			{
-				return( new PRUDPPacketRequestAnnounce(is, connection_id,transaction_id));
+				if ( PRUDPPacket.VERSION == 1 ){
+					return( new PRUDPPacketRequestAnnounce(is, connection_id,transaction_id));
+				}else{
+					return( new PRUDPPacketRequestAnnounce2(is, connection_id,transaction_id));				
+				}
 			}
 			case ACT_REQUEST_SCRAPE:
 			{

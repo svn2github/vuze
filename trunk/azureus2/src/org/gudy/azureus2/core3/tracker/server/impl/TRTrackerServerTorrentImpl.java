@@ -537,7 +537,7 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
-	protected synchronized Map
+	public synchronized Map
 	exportScrapeToMap(
 		boolean		allow_cache )
 	{

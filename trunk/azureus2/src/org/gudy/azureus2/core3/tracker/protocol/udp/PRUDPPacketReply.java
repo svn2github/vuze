@@ -66,11 +66,19 @@ PRUDPPacketReply
 			}
 			case ACT_REPLY_ANNOUNCE:
 			{
-				return( new PRUDPPacketReplyAnnounce(is, transaction_id));
+				if ( PRUDPPacket.VERSION == 1 ){
+					return( new PRUDPPacketReplyAnnounce(is, transaction_id));
+				}else{
+					return( new PRUDPPacketReplyAnnounce2(is, transaction_id));			
+				}
 			}
 			case ACT_REPLY_SCRAPE:
 			{
-				return( new PRUDPPacketReplyScrape(is, transaction_id));
+				if ( PRUDPPacket.VERSION == 1 ){
+					return( new PRUDPPacketReplyScrape(is, transaction_id));
+				}else{
+					return( new PRUDPPacketReplyScrape2(is, transaction_id));				
+				}
 			}
 			case ACT_REPLY_ERROR:
 			{

@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.tracker.client.classic;
 
+import java.math.*;
 import java.io.*;
 import java.net.*;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Random;
 
 import javax.net.ssl.*;
 
@@ -97,8 +99,9 @@ TRTrackerClientClassicImpl
 	private byte[] peerId;
 	private String peer_id = "&peer_id=";
 	
-	private String key_id			= "";
-	private int	   key_id_length	= 8;
+	private String 	key_id			= "";
+	private int	   	key_id_length	= 8;
+	private int		key_udp;
 	
 	private String port;
 	private String ip_override;
@@ -185,6 +188,8 @@ TRTrackerClientClassicImpl
 		int pos = (int) ( Math.random() * chars.length());
 	    key_id +=  chars.charAt(pos);
 	}
+	
+	key_udp	= (int)(Math.random() *  (double)0xFFFFFFFFL );
 	
 	try {
 	
@@ -942,89 +947,184 @@ TRTrackerClientClassicImpl
 		 				
 		 				long	my_connection = connect_reply.getConnectionId();
 		 			
-		 				PRUDPPacketRequestAnnounce announce_request = new PRUDPPacketRequestAnnounce( my_connection );
+		 				PRUDPPacketRequest request;
+		 				
+		 				if ( PRUDPPacket.VERSION == 1 ){
+		 					
+		 					PRUDPPacketRequestAnnounce announce_request = new PRUDPPacketRequestAnnounce( my_connection );
 		 		
+		 					request = announce_request;
+		 					
+			 					// bit of a hack this...
+			 				
+			 				String	url_str = reqUrl.toString();
+			 				
+			 				int		p_pos = url_str.indexOf("?");
+			 				
+			 				url_str	= url_str.substring(p_pos+1);
+			 				
+			 				String event_str = getURLParam( url_str, "event" );
+			 				
+			 				int	event = PRUDPPacketRequestAnnounce.EV_UPDATE;
+			 				
+			 				if ( event_str != null ){
+			 					
+			 					if ( event_str.equals( "started" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_STARTED;
+			 						
+			 					}else if ( event_str.equals( "stopped" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_STOPPED;
+			 						
+			 					}else if ( event_str.equals( "completed" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_COMPLETED;
+			 					}
+			 				}
+			 				
+			 				String	ip_str = getURLParam( url_str, "ip" );
+			 				
+			 				int	ip = 0;
+			 				
+			 				if ( ip_str != null ){
+			 					
+			 					ip = PRHelpers.addressToInt( ip_str);
+			 				}
+			 				
+			 				announce_request.setDetails(
+			 					torrent_hash,
+			 					peerId,
+								getLongURLParam( url_str, "downloaded" ), 
+								event,
+								ip,
+								(int)getLongURLParam( url_str, "numwant" ), 
+								getLongURLParam( url_str, "left" ), 
+								(short)getLongURLParam( url_str, "port" ),
+								getLongURLParam( url_str, "uploaded" ));
+		 				
+		 				}else{
+		 					PRUDPPacketRequestAnnounce2 announce_request = new PRUDPPacketRequestAnnounce2( my_connection );
+		 					
+		 					request = announce_request;
+		 					
 		 					// bit of a hack this...
-		 				
-		 				String	url_str = reqUrl.toString();
-		 				
-		 				int		p_pos = url_str.indexOf("?");
-		 				
-		 				url_str	= url_str.substring(p_pos+1);
-		 				
-		 				String event_str = getURLParam( url_str, "event" );
-		 				
-		 				int	event = PRUDPPacketRequestAnnounce.EV_UPDATE;
-		 				
-		 				if ( event_str != null ){
-		 					
-		 					if ( event_str.equals( "started" )){
-		 						
-		 						event = PRUDPPacketRequestAnnounce.EV_STARTED;
-		 						
-		 					}else if ( event_str.equals( "stopped" )){
-		 						
-		 						event = PRUDPPacketRequestAnnounce.EV_STOPPED;
-		 						
-		 					}else if ( event_str.equals( "completed" )){
-		 						
-		 						event = PRUDPPacketRequestAnnounce.EV_COMPLETED;
-		 					}
+			 				
+			 				String	url_str = reqUrl.toString();
+			 				
+			 				int		p_pos = url_str.indexOf("?");
+			 				
+			 				url_str	= url_str.substring(p_pos+1);
+			 				
+			 				String event_str = getURLParam( url_str, "event" );
+			 				
+			 				int	event = PRUDPPacketRequestAnnounce.EV_UPDATE;
+			 				
+			 				if ( event_str != null ){
+			 					
+			 					if ( event_str.equals( "started" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_STARTED;
+			 						
+			 					}else if ( event_str.equals( "stopped" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_STOPPED;
+			 						
+			 					}else if ( event_str.equals( "completed" )){
+			 						
+			 						event = PRUDPPacketRequestAnnounce.EV_COMPLETED;
+			 					}
+			 				}
+			 				
+			 				String	ip_str = getURLParam( url_str, "ip" );
+			 				
+			 				int	ip = 0;
+			 				
+			 				if ( ip_str != null ){
+			 					
+			 					ip = PRHelpers.addressToInt( ip_str);
+			 				}
+			 				
+			 				announce_request.setDetails(
+			 					torrent_hash,
+			 					peerId,
+								getLongURLParam( url_str, "downloaded" ), 
+								event,
+								ip,
+								key_udp,
+								(int)getLongURLParam( url_str, "numwant" ), 
+								getLongURLParam( url_str, "left" ), 
+								(short)getLongURLParam( url_str, "port" ),
+								getLongURLParam( url_str, "uploaded" ));	
 		 				}
 		 				
-		 				String	ip_str = getURLParam( url_str, "ip" );
-		 				
-		 				int	ip = 0;
-		 				
-		 				if ( ip_str != null ){
-		 					
-		 					ip = PRHelpers.addressToInt( ip_str);
-		 				}
-		 				
-		 				announce_request.setDetails(
-		 					torrent_hash,
-		 					peerId,
-							getLongURLParam( url_str, "downloaded" ), 
-							event,
-							ip,
-							(int)getLongURLParam( url_str, "numwant" ), 
-							getLongURLParam( url_str, "left" ), 
-							(short)getLongURLParam( url_str, "port" ),
-							getLongURLParam( url_str, "uploaded" ));
-		 				
-		 				reply = handler.sendAndReceive( announce_request, destination );
+		 				reply = handler.sendAndReceive( request, destination );
 		 			
 		 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
 		 					
-		 					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
+		 					if ( PRUDPPacket.VERSION == 1 ){
+			 					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
+			 					
+			 					Map	map = new HashMap();
+			 					
+			 					map.put( "interval", new Long( announce_reply.getInterval()));
+			 					
+			 					int[]	addresses 	= announce_reply.getAddresses();
+			 					short[]	ports		= announce_reply.getPorts();
+			 					
+			 					List	peers = new ArrayList();
+			 					
+			 					map.put( "peers", peers );
+			 					
+			 					for (int i=0;i<addresses.length;i++){
+			 						
+			 						Map	peer = new HashMap();
+			 						
+			 						peers.add( peer );
+			 						
+			 						peer.put( "ip", PRHelpers.intToAddress(addresses[i]).getBytes());
+			 						peer.put( "port", new Long( ports[i]));
+			 					}
+			 					
+			 					byte[] data = BEncoder.encode( map );
+			 					
+			 					message.write( data );
+			 					
+			 					return( null );
+			 					
+		 					}else{
 		 					
-		 					Map	map = new HashMap();
-		 					
-		 					map.put( "interval", new Long( announce_reply.getInterval()));
-		 					
-		 					int[]	addresses 	= announce_reply.getAddresses();
-		 					short[]	ports		= announce_reply.getPorts();
-		 					
-		 					List	peers = new ArrayList();
-		 					
-		 					map.put( "peers", peers );
-		 					
-		 					for (int i=0;i<addresses.length;i++){
-		 						
-		 						Map	peer = new HashMap();
-		 						
-		 						peers.add( peer );
-		 						
-		 						peer.put( "ip", PRHelpers.intToAddress(addresses[i]).getBytes());
-		 						peer.put( "port", new Long( ports[i]));
+			 					PRUDPPacketReplyAnnounce2	announce_reply = (PRUDPPacketReplyAnnounce2)reply;
+			 					
+			 					Map	map = new HashMap();
+			 					
+			 					map.put( "interval", new Long( announce_reply.getInterval()));
+			 					
+			 					int[]	addresses 	= announce_reply.getAddresses();
+			 					short[]	ports		= announce_reply.getPorts();
+			 					
+			 						// not doing anything with leecher/seeder totals
+			 					
+			 					List	peers = new ArrayList();
+			 					
+			 					map.put( "peers", peers );
+			 					
+			 					for (int i=0;i<addresses.length;i++){
+			 						
+			 						Map	peer = new HashMap();
+			 						
+			 						peers.add( peer );
+			 						
+			 						peer.put( "ip", PRHelpers.intToAddress(addresses[i]).getBytes());
+			 						peer.put( "port", new Long( ports[i]));
+			 					}
+			 					
+			 					byte[] data = BEncoder.encode( map );
+			 					
+			 					message.write( data );
+			 					
+			 					return( null );
 		 					}
-		 					
-		 					byte[] data = BEncoder.encode( map );
-		 					
-		 					message.write( data );
-		 					
-		 					return( null );
-		 					
 		 				}else{
 		 			
 		 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();

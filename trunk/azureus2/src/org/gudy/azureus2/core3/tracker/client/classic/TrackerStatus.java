@@ -290,48 +290,89 @@ public class TrackerStatus {
 				
 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
 					
-					PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
-					
-					Map	map = new HashMap();
-					
-					/*
-					int	interval = scrape_reply.getInterval();
-					
-					if ( interval != 0 ){
+					if ( PRUDPPacket.VERSION == 1 ){
+						PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
 						
-						map.put( "interval", new Long(interval ));
-					}
-					*/
-					
-					byte[][]	hashes 		= scrape_reply.getHashes();
-					int[]		complete 	= scrape_reply.getComplete();
-					int[]		downloaded 	= scrape_reply.getComplete();
-					int[]		incomplete 	= scrape_reply.getComplete();
-					
-					Map	files = new ByteEncodedKeyHashMap();
-					
-					map.put( "files", files );
-					
-					for (int i=0;i<hashes.length;i++){
+						Map	map = new HashMap();
 						
+						/*
+						int	interval = scrape_reply.getInterval();
+						
+						if ( interval != 0 ){
+							
+							map.put( "interval", new Long(interval ));
+						}
+						*/
+						
+						byte[][]	hashes 		= scrape_reply.getHashes();
+						int[]		complete 	= scrape_reply.getComplete();
+						int[]		downloaded 	= scrape_reply.getComplete();
+						int[]		incomplete 	= scrape_reply.getComplete();
+						
+						Map	files = new ByteEncodedKeyHashMap();
+						
+						map.put( "files", files );
+						
+						for (int i=0;i<hashes.length;i++){
+							
+							Map	file = new HashMap();
+							
+							byte[]	resp_hash = hashes[i];
+							
+							// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
+						
+							files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
+							
+							file.put( "complete", new Long(complete[i]));
+							file.put( "downloaded", new Long(downloaded[i]));
+							file.put( "incomplete", new Long(incomplete[i]));
+						}
+						
+						byte[] data = BEncoder.encode( map );
+						
+						message.write( data );
+						
+						return;
+					}else{
+						PRUDPPacketReplyScrape2	scrape_reply = (PRUDPPacketReplyScrape2)reply;
+						
+						Map	map = new HashMap();
+						
+						/*
+						int	interval = scrape_reply.getInterval();
+						
+						if ( interval != 0 ){
+							
+							map.put( "interval", new Long(interval ));
+						}
+						*/
+						
+						int[]		complete 	= scrape_reply.getComplete();
+						int[]		downloaded 	= scrape_reply.getComplete();
+						int[]		incomplete 	= scrape_reply.getComplete();
+						
+						Map	files = new ByteEncodedKeyHashMap();
+						
+						map.put( "files", files );
+													
 						Map	file = new HashMap();
-						
-						byte[]	resp_hash = hashes[i];
+							
+						byte[]	resp_hash = hash;
 						
 						// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
 					
 						files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
 						
-						file.put( "complete", new Long(complete[i]));
-						file.put( "downloaded", new Long(downloaded[i]));
-						file.put( "incomplete", new Long(incomplete[i]));
+						file.put( "complete", new Long(complete[0]));
+						file.put( "downloaded", new Long(downloaded[0]));
+						file.put( "incomplete", new Long(incomplete[0]));
+						
+						byte[] data = BEncoder.encode( map );
+						
+						message.write( data );
+						
+						return;
 					}
-					
-					byte[] data = BEncoder.encode( map );
-					
-					message.write( data );
-					
-					return;
 				}else{
 					
 					LGLogger.log(LGLogger.ERROR, 

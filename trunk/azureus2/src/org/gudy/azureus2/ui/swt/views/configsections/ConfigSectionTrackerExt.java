@@ -22,9 +22,11 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.gudy.azureus2.ui.swt.Messages;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -54,7 +56,7 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gExtTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 1;
+    layout.numColumns = 2;
     gExtTab.setLayout(layout);
 
 
@@ -63,19 +65,32 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
     new BooleanParameter(gExtTab, "Tracker Send Peer IDs", true, 
                          "ConfigView.section.tracker.sendpeerids");
 
+    Label label = new Label(gExtTab, SWT.NULL);
+    
     // row
     new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false, 
                          "ConfigView.section.tracker.enableudp");
+
+    label = new Label(gExtTab, SWT.NULL);
+    // row
+    
+    label = new Label(gExtTab, SWT.NULL);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.udpversion");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(gExtTab, "Tracker Port UDP Version", 2).setLayoutData(gridData);
 
     // row
     new BooleanParameter(gExtTab, "Tracker Compact Enable", true,
                          "ConfigView.section.tracker.enablecompact");
 
+    label = new Label(gExtTab, SWT.NULL);
     // row
 
     new BooleanParameter(gExtTab, "Tracker Key Enable", true,
                          "ConfigView.section.tracker.enablekey");
 
+    label = new Label(gExtTab, SWT.NULL);
     
     return gExtTab;
   }
