@@ -11,28 +11,23 @@
 
 package org.gudy.azureus2.ui.console;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Reader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.lang.reflect.Method;
-
 import java.text.DecimalFormat;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
@@ -43,11 +38,9 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.DenyAllFilter;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -65,7 +58,6 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
-
 import org.pf.file.FileFinder;
 
 /**
@@ -79,6 +71,8 @@ public class ConsoleInput extends Thread {
 	private static final int TORRENTCOMMAND_QUEUE = 3;
 	private static final int TORRENTCOMMAND_STARTNOW = 4;
 	private static final int TORRENTCOMMAND_CHECK = 5;
+	
+	private static final String commandclasses[] = {"XML", "Hack"};
 	
 	public static HashMap commands = new HashMap();
 	public static TreeSet helplines = new TreeSet();
@@ -94,8 +88,9 @@ public class ConsoleInput extends Thread {
 	String oldcommand = "sh t";
 	
 	static {
+		/*
         byte[] buf = new byte[1024];
-        InputStream res = ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/console/commands");
+        InputStream res = ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/console/commands/");
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         while (true) {
           try {
@@ -108,24 +103,25 @@ public class ConsoleInput extends Thread {
             break;
           }
         }
-		String cls[] = bao.toString().split("\n");
+		String cls[] = bao.toString().split("\n");*/
+		String cls[] = commandclasses;
 		for (int i=0; i<cls.length;i++) {
-			if (cls[i].indexOf(".class") != -1) {
-				String cl = cls[i].substring(0, cls[i].indexOf(".class"));
+			//if (cls[i].indexOf(".class") != -1) {
+				String cl = cls[i]/*.substring(0, cls[i].indexOf(".class"))*/;
 				try {
 					Class regme = Class.forName("org.gudy.azureus2.ui.console.commands."+cl);
-					Class intf[] = regme.getInterfaces();
+					/*Class intf[] = regme.getInterfaces();
 					if (intf == null) continue;
 					boolean implemented = false;
 					for (int j=0; j<intf.length;j++)
 						if (intf[j]==IConsoleCommand.class) implemented=true;
-					if (!implemented) continue;
+					if (!implemented) continue;*/
 					Method regit = regme.getMethod("RegisterCommands", null);
 					regit.invoke(null, null);
 				} catch (Exception e) {
 					
 				}
-			}
+			//}
 		}
 	}
 
