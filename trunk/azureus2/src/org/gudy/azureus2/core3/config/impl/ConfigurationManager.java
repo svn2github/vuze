@@ -320,6 +320,27 @@ public class ConfigurationManager {
     }
   }
   
+  
+  /**
+   * Remove the given configuration parameter completely.
+   * @param parameter to remove
+   * @return true if found and removed, false if not
+   */
+  protected boolean removeParameter( String parameter ) {
+    return propertiesMap.remove( parameter ) == null ? false : true;
+  }
+  
+  /**
+   * Does the given parameter exist.
+   * @param parameter to check
+   * @return true if exists, false if not present
+   */
+  protected boolean doesParameterExist( String parameter ) {
+    return propertiesMap.containsKey( parameter );
+  }
+  
+  
+  
   private boolean  notifyParameterListenersIfChanged(String parameter, Long newValue, Long oldValue) {
     if(oldValue == null || 0 != newValue.compareTo(oldValue)) {
       notifyParameterListeners(parameter);

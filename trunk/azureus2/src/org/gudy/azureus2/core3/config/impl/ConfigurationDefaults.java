@@ -135,9 +135,7 @@ public class ConfigurationDefaults {
     def.put("Send Version Info",new Long(1));
     def.put("Show Download Basket",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
-    def.put("Open Details", new Long(0));
-    def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
-    def.put("General_bEnableLanguageUpdate", new Long(0));
+    def.put("Open Details", new Long(0));    
     def.put("Use default data dir", new Long(1));
     String	default_save_path = SystemProperties.getUserPath()+"downloads";
     File	default_save_path_file = new File( default_save_path );

@@ -76,6 +76,12 @@ import org.gudy.azureus2.ui.swt.Utils;
  * 
  * 
  * NOTE: Disabled in 2.1.0.5.
+ * 
+ */
+
+
+/**
+ * @deprecated in 2105
  */
 public class
 UpdateLanguagePlugin

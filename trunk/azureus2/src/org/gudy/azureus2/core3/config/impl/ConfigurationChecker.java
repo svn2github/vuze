@@ -23,7 +23,7 @@ package org.gudy.azureus2.core3.config.impl;
 
 
 import java.util.HashMap;
-import java.io.File;
+import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
@@ -295,6 +295,35 @@ ConfigurationChecker
 	        changed = true;
 	      }
 	    }
+      
+      
+      //2105 removed the language file web-update functionality,
+      //but old left-over MessagesBundle.properties files in the user dir
+      //cause display text problems, so let's delete them.
+	    if( ConfigurationManager.getInstance().doesParameterExist( "General_bEnableLanguageUpdate" ) ) {        
+        File user_dir = new File( SystemProperties.getUserPath() );
+        File[] files = user_dir.listFiles( new FilenameFilter() {
+          public boolean accept(File dir, String name) {
+            if( name.startsWith( "MessagesBundle" ) && name.endsWith( ".properties" ) ) {
+              return true;
+            }
+            return false;
+          }
+        });
+        
+        for( int i=0; i < files.length; i++ ) {
+          File file = files[ i ];
+          if( file.exists() ) {
+            LGLogger.log( "ConfigurationChecker:: removing old language file: " + file.getAbsolutePath() );
+            file.delete();
+          }
+        }
+
+        ConfigurationManager.getInstance().removeParameter( "General_bEnableLanguageUpdate" );
+        changed = true;
+      }
+      
+      
 	
 	    if(changed) {
 	      COConfigurationManager.save();
