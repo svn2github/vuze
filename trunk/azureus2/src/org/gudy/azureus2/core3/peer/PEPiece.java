@@ -49,7 +49,10 @@ PEPiece
  
   public boolean[] getWritten();
   
-  public boolean[] getRequested(); 
+  public boolean[] getRequested();
+  
+  public boolean[] getDownloaded();
+  
   
   /**
    * record details of a piece's blocks that have been completed for bad peer detection purposes

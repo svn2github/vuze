@@ -98,25 +98,31 @@ PEPieceImpl
   }
 
   public boolean isComplete() {
-	boolean complete = true;
-	for (int i = 0; i < nbBlocs; i++) {
-	  complete = complete && written[i];
-     if (!complete) return false;
-	}
-	return complete;
+  	boolean complete = true;
+  	for (int i = 0; i < nbBlocs; i++) {
+  		complete = complete && written[i];
+  		if (!complete) return false;
+  	}
+	  return complete;
   }
 
   public boolean isWritten(int blockNumber) {
-	return written[blockNumber];
+  	return written[blockNumber];
   }
-  public boolean[] getWritten()
-  {
+  
+  public boolean[] getWritten() {
   	return( written );
   }
 
   public boolean[] getRequested(){
   	return( requested );
   }
+  
+  public boolean[] getDownloaded(){
+    return( downloaded );
+  }
+  
+  
   public void setBlockWritten(int blocNumber) {
 	downloaded[blocNumber] = true;    
   }

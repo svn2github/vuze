@@ -107,6 +107,7 @@ public class PieceTableItem implements SortableItem{
     Image image = new Image(display, width, height);
     Color blue = MainWindow.blues[4];
     Color green = MainWindow.blues[1];
+    Color downloaded = MainWindow.red;
     Color color;
     GC gc = new GC(table);
     GC gcImage = new GC(image);
@@ -114,11 +115,19 @@ public class PieceTableItem implements SortableItem{
       int a0 = (i * width) / piece.getNbBlocs();
       int a1 = ((i + 1) * width) / piece.getNbBlocs();
       color = MainWindow.white;
-      if (piece.getRequested()[i])
-        color = green;
+
       if (piece.getWritten()[i]) {
         color = blue;
       }
+      
+      else if (piece.getDownloaded()[i]) {
+        color = downloaded;
+      }
+      
+      else if (piece.getRequested()[i]) {
+        color = green;
+      }
+
       gcImage.setBackground(color);
       gcImage.fillRectangle(a0,1,a1,height);
     }
