@@ -934,11 +934,17 @@ public class GlobalManagerImpl
           state != DownloadManager.STATE_STOPPING ) {
         
         try {
-          manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
-          try {  paused_list_mon.enter();
-            paused_list.add( manager.getTorrent().getHashWrapper() );
-          }
-          finally {  paused_list_mon.exit();  }
+        	boolean	forced = manager.isForceStart();
+        	
+        	manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+          
+        	try {  paused_list_mon.enter();
+          
+            	paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), new Boolean(forced)});
+        	}
+        	finally {  
+        		paused_list_mon.exit();  
+        	}
         }
         catch( TOTorrentException e ) {  Debug.printStackTrace( e );  }
       }
@@ -970,12 +976,22 @@ public class GlobalManagerImpl
 
   public void resumeDownloads() {
     try {  paused_list_mon.enter();
-      for( int i=0; i < paused_list.size(); i++ ) {      
-        HashWrapper hash = (HashWrapper)paused_list.get( i );
+      for( int i=0; i < paused_list.size(); i++ ) {     
+      	Object[]	data = (Object[])paused_list.get(i);
+      	
+        HashWrapper hash = (HashWrapper)data[0];
+        boolean		force = ((Boolean)data[1]).booleanValue();
+        
         DownloadManager manager = getDownloadManager( hash.getHash() );
       
         if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
-          manager.startDownloadInitialized( true );
+          
+          if ( force ){
+          	manager.setForceStart(true);
+          }else{
+          	
+          	manager.startDownloadInitialized( true );
+          }
         }
       }
       paused_list.clear();
@@ -986,8 +1002,9 @@ public class GlobalManagerImpl
 
   public boolean canResumeDownloads() {
     try {  paused_list_mon.enter();
-      for( int i=0; i < paused_list.size(); i++ ) {      
-        HashWrapper hash = (HashWrapper)paused_list.get( i );
+      for( int i=0; i < paused_list.size(); i++ ) {  
+      	Object[]	data = (Object[])paused_list.get(i);
+        HashWrapper hash = (HashWrapper)data[0];
         DownloadManager manager = getDownloadManager( hash.getHash() );
       
         if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
@@ -1129,8 +1146,22 @@ public class GlobalManagerImpl
       if( pause_data != null ) {
         try {  paused_list_mon.enter();
           for( int i=0; i < pause_data.size(); i++ ) {
-            byte[] key = (byte[])pause_data.get( i );
-            paused_list.add( new HashWrapper( key ) );
+          	Object	pd = pause_data.get(i);
+          	
+          	byte[]		key;
+          	boolean		force;
+          	
+          	if ( pd instanceof byte[]){
+          			// old style, migration purposes
+          		key 	= (byte[])pause_data.get( i );
+          		force	= false;
+          	}else{
+          		Map	m = (Map)pd;
+          		
+          		key 	= (byte[])m.get("hash");
+          		force 	= ((Long)m.get("force")).intValue() == 1;
+          	}
+            paused_list.add( new Object[]{ new HashWrapper( key ), new Boolean( force )} );
           }
         }
         finally {  paused_list_mon.exit();  }
@@ -1237,8 +1268,17 @@ public class GlobalManagerImpl
 	      if( !paused_list.isEmpty() ) {
 	        ArrayList pause_data = new ArrayList();
 	        for( int i=0; i < paused_list.size(); i++ ) {
-	          HashWrapper hash = (HashWrapper)paused_list.get( i );
-	          pause_data.add( hash.getHash() );
+	        	Object[] data = (Object[])paused_list.get(i);
+	        	
+	        	HashWrapper hash 	= (HashWrapper)data[0];
+	        	Boolean		force 	= (Boolean)data[1];
+	        	
+	        	Map	m = new HashMap();
+	        	
+	        	m.put( "hash", hash.getHash());
+	        	m.put( "force", new Long(force.booleanValue()?1:0));
+	        	
+	        	pause_data.add( m );
 	        }
 	        map.put( "pause_data", pause_data );
 	      }
