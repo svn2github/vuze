@@ -26,8 +26,8 @@ package org.gudy.azureus2.ui.swt.components;
  *
  */
 
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
@@ -43,10 +43,10 @@ BufferedLabel
 	
 	public
 	BufferedLabel(
-		Group		group,
+		Composite		composite,
 		int			attrs )
 	{
-		super( new Label( group, attrs ));
+		super( new Label( composite, attrs ));
 		
 		label = (Label)getWidget();
 	}

@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
 
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -72,7 +73,12 @@ UIManagerImpl
 	createPluginView(
 		PluginViewModel	model )
 	{
-		return( null ); // TODO:!!!!
+	  if(model instanceof BasicPluginViewModel) {
+	    return new BasicPluginViewImpl((BasicPluginViewModel)model);
+	  } else {
+	    //throw new Exception("Unsupported Model : " + model.getClass());
+	    return null;
+	  }
 	}
 	
 	public MyTracker
