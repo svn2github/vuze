@@ -37,14 +37,13 @@ DiskManagerPieceImpl
 {
 	protected DiskManagerImpl	disk_manager;
 	protected int				piece_index;
-	protected int				length;
 	protected boolean			done;
 	
 
 	protected boolean[] written;
 
 	protected long		last_write_time;
-	protected int 		completed;
+	protected short		completed;
 
 	protected
 	DiskManagerPieceImpl(
@@ -54,9 +53,8 @@ DiskManagerPieceImpl
 	{
 		disk_manager	= _disk_manager;
 		piece_index		= _piece_index;
-		length 			= _length;
 		
-		int	nbBlocs = (length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
+		int	nbBlocs = (_length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
 
 		written 	= new boolean[nbBlocs];
 	}
@@ -70,7 +68,14 @@ DiskManagerPieceImpl
 	public int
 	getLength()
 	{
-		return( length );
+		if ( piece_index == disk_manager.getNumberOfPieces() - 1 ){
+			
+			return( disk_manager.getLastPieceLength());
+			
+		}else{
+			
+			return( disk_manager.getPieceLength());
+		}
 	}
 	
 	public int

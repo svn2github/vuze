@@ -15,20 +15,28 @@ import java.util.List;
 public class PieceList {
 	
 	final private PieceMapEntry[] pieces;	
-	final private long[] cumulativeLengths;
+	final private int[] cumulativeLengths;
 	
-	static public PieceList convert(List pieceList) {
+	static public PieceList 
+	convert(
+		List pieceList) 
+	{
 		return new PieceList((PieceMapEntry[])pieceList.toArray(new PieceMapEntry[pieceList.size()]));	
 	}
 	
-	public PieceList(PieceMapEntry[] _pieces) {
+	protected
+	PieceList(
+		PieceMapEntry[] _pieces) 
+	{
 		pieces = _pieces;
-		cumulativeLengths = new long[pieces.length];
+		cumulativeLengths = new int[pieces.length];
 		
 		initializeCumulativeLengths();
 	}
 
-	private void initializeCumulativeLengths() {
+	private void 
+	initializeCumulativeLengths() 
+	{
 		int runningLength = 0;
 		for (int i = 0; i < pieces.length; i++) {
 			runningLength += pieces[i].getLength();
@@ -48,7 +56,7 @@ public class PieceList {
 		return pieces[index];	
 	}
 	
-	public long getCumulativeLengthToPiece(int index) {
+	public int getCumulativeLengthToPiece(int index) {
 		return cumulativeLengths[index];	
 	}
 }

@@ -132,6 +132,8 @@ PEPeerTransportImpl
     if( data_reader != null ) {
       data_reader.destroy();
       data_reader = null;
+  	  DownloadManager	dm = getControl().getDownloadManager();
+      dm.setData( "PEPeerTransport::DataReader", null );
     }
 	}
 

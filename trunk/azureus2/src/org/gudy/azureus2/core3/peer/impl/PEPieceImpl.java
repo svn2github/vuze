@@ -39,10 +39,12 @@ public class
 PEPieceImpl
 	implements PEPiece
 {  
-  protected DiskManagerPiece	dm_piece;
-	 
-  public boolean[] downloaded;
-  public boolean[] requested;
+  private DiskManagerPiece	dm_piece;
+	
+  private int		piece_length;
+  
+  private boolean[] downloaded;
+  private boolean[] requested;
   
   private PEPeer[] 	writers;
   private List 		writes;
@@ -74,9 +76,9 @@ PEPieceImpl
 	dm_piece	= _dm_piece;
 	slowPiece	= _slow_piece;
 	
-	int	length 		= dm_piece.getLength();
+	piece_length 		= dm_piece.getLength();
 	
-	int	nbBlocs 	= (length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
+	int	nbBlocs 	= (piece_length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
 	
 	downloaded 	= new boolean[nbBlocs];
 	requested 	= new boolean[nbBlocs];
@@ -182,7 +184,7 @@ PEPieceImpl
   {
 	if ( blocNumber == (dm_piece.getBlockCount() - 1)){
 	
-		int	length = dm_piece.getLength();
+		int	length = piece_length;
 		
 		if ((length % DiskManager.BLOCK_SIZE) != 0){
 		
@@ -197,7 +199,7 @@ PEPieceImpl
   	return( dm_piece.getPieceNumber() );
   }
   public int getLength(){
-  	return( dm_piece.getLength() );
+  	return( piece_length );
   }
   public int getNbBlocs(){
   	return( dm_piece.getBlockCount() );  
