@@ -34,6 +34,7 @@ public class
 PluginPEPeerWrapper 
 	implements Peer
 {
+	protected PeerManager	manager;
 	protected PEPeer		delegate;
 	
 	public
@@ -41,8 +42,17 @@ PluginPEPeerWrapper
 		PEPeer		_delegate )
 	{
 		delegate	= _delegate;
+		
+		manager = new PeerManagerImpl( delegate.getManager());
+		
 	}
 
+	public PeerManager
+	getManager()
+	{
+		return( manager );
+	}
+	
 	public int 
 	getState()
 	{
@@ -123,7 +133,7 @@ PluginPEPeerWrapper
  
 	public PeerStats getStats()
 	{
-		return( new PluginPEPeerStatsWrapper( delegate.getStats()));
+		return( new PluginPEPeerStatsWrapper( this, delegate.getStats()));
 	}
  	
 	public int getMaxUpload()

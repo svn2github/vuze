@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  */
 
 
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 public class 
@@ -46,7 +47,6 @@ PEPeerImpl
     this.hashcode = (ip + String.valueOf(port)).hashCode();
 	}
 
-
 	/**
 	 * @return
 	 */
@@ -64,8 +64,15 @@ PEPeerImpl
 	/**
 	 * @return
 	 */
-	public PEPeerControl getManager() {
+	public PEPeerControl 
+	getControl() {
 	  return manager;
+	}
+
+	public PEPeerManager
+	getManager()
+	{
+		return( manager );
 	}
 
 	/**

@@ -327,7 +327,7 @@ PEPeerControlImpl
                      synchronized (_peer_transports) {
                         //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
                         /* add connection */
-                     	addToPeerTransports(PEPeerTransportFactory.createTransport(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));               
+                     	addToPeerTransports(PEPeerTransportFactory.createTransport(testPS.getControl(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));               
                      }
                   }
                   /* wait */

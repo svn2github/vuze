@@ -38,13 +38,19 @@ public class
 PeerManagerImpl
 	implements PeerManager
 {
-	protected PEPeerControl	manager;
+	protected PEPeerManager	manager;
 	
 	public
 	PeerManagerImpl(
-		PEPeerControl	_manager )
+		PEPeerManager	_manager )
 	{
 		manager	= _manager;
+	}
+
+	protected PEPeerManager
+	getDelegate()
+	{
+		return( manager );
 	}
 	
 	public boolean
@@ -59,11 +65,5 @@ PeerManagerImpl
 		throws DownloadException
 	{
 		return( DownloadManagerImpl.getDownloadStatic( manager.getDownloadManager()));
-	}
-	
-	public Object
-	getInternalManager()
-	{
-		return( manager );
 	}
 }

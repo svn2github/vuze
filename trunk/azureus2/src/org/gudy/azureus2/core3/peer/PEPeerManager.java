@@ -27,7 +27,8 @@ package org.gudy.azureus2.core3.peer;
  */
 
 import org.gudy.azureus2.core3.tracker.client.*;
- 
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 public interface 
 PEPeerManager 
 {
@@ -46,6 +47,9 @@ PEPeerManager
 	public int
 	getState();
 	
+ 	public DownloadManager
+	getDownloadManager();
+ 
 	public void
 	start();
 		
@@ -73,7 +77,7 @@ PEPeerManager
 
 	public int getAvailability(int pieceNumber);
 	
-  public float getMinAvailability();
+    public float getMinAvailability();
 
 	public boolean[] getPiecesStatus();
 
@@ -125,4 +129,16 @@ PEPeerManager
   isSuperSeedMode();
   
   public int getNbRemoteConnections();
+  
+	public void
+	received(
+		int		l );	
+	
+	public void
+	sent(
+		int		l );	
+	
+	public void
+	discarded(
+		int		l );		
 }

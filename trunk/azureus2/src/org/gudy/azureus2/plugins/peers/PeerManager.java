@@ -42,6 +42,16 @@ PeerManager
 	public boolean
 	isSeeding();
 	
-	public Object
-	getInternalManager();
+	/*
+	public PeerStats
+	createPeerStats();
+	
+	public void
+	addPeer(
+		Peer		peer );
+	
+	public void
+	removePeer(
+		Peer		peer );
+		*/
 }

@@ -34,13 +34,22 @@ public class
 PluginPEPeerStatsWrapper 
 	implements PeerStats
 {
+	protected Peer				peer;
 	protected PEPeerStats		delegate;
 	
 	public
 	PluginPEPeerStatsWrapper(
+		Peer			_peer,
 		PEPeerStats		_delegate )
 	{
+		peer		= _peer;
 		delegate	= _delegate;
+	}
+	
+	public Peer
+	getPeer()
+	{
+		return( peer );
 	}
 	
 	public int getDownloadAverage()
@@ -81,5 +90,23 @@ PluginPEPeerStatsWrapper
 	public int getStatisticSentAverage()
 	{
 		return( (int)delegate.getStatisticSentAverage());
+	}
+	
+	public void
+	received(
+		int		bytes )
+	{
+		delegate.received( bytes );
+		
+		((PeerManagerImpl)peer.getManager()).getDelegate().received( bytes );
+	}
+	
+	public void
+	discarded(
+		int		bytes )
+	{
+		delegate.discarded( bytes );
+		
+		((PeerManagerImpl)peer.getManager()).getDelegate().discarded( bytes );
 	}
 }

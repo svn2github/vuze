@@ -128,7 +128,7 @@ PEPeerTransport
 	getPercentDone();
 	
 	public PEPeerControl
-	getManager();
+	getControl();
 	
 	public String 
 	getIp();

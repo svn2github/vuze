@@ -47,4 +47,12 @@ PEPeerStats
   public long getTotalReceived();
  
   public long getStatisticSentAverage();
+  
+  public void
+  received(
+  	int		bytes );
+  
+  public void
+  discarded(
+  	int		bytes );
 }

@@ -39,6 +39,9 @@ PEPeer
 	public final static int TRANSFERING 	= 30;
 	public final static int DISCONNECTED 	= 40;
 	
+	public PEPeerManager
+	getManager();
+	
 	public int getState();	// from above set
 
 	public byte[] getId();
