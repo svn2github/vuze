@@ -934,11 +934,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	
 	tracker.setText( status);
 		
-	if ( trackerClient == null ){
-		
-		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.stopped"));
-	
-	}else if ( time < 0 ){
+	if ( time < 0 ){
 		
 		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.querying"));
 		
