@@ -75,7 +75,8 @@ public class PeersView
     new UniquePieceItem(),
     new TimeToSendPieceItem(),
     new DLedFromOthersItem(),
-    new UpRatioItem()
+    new UpRatioItem(),
+    new StateItem()
   };
   private DownloadManager manager;
 
@@ -108,9 +109,8 @@ public class PeersView
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         PEPeer peer = (PEPeer)getFirstSelectedDataSource();
-        
-        boolean seeding = peer.getManager().getDownloadManager().isDownloadComplete();
-        if( peer == null || !seeding ) {  //only allow upload blocking when seeding
+
+        if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding
           block_item.setSelection( false );
           block_item.setEnabled( false );
           return;
