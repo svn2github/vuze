@@ -115,6 +115,7 @@ PEPeerControlImpl
     this._manager = manager;
 	_tracker = tracker;
 	this._diskManager = diskManager;
+  COConfigurationManager.addParameterListener("Max Clients", this);
  }
   
   public void
