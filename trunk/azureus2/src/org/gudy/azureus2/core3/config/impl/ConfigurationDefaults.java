@@ -300,6 +300,7 @@ public class ConfigurationDefaults {
     def.put( "network.experimental.osx.kernel.panic.fix", new Long(0) );
     def.put( "File.truncate.if.too.large", new Long(0));
     def.put( "diskmanager.perf.cache.trace", new Long(1));
+    def.put( "Enable System Tray", new Long(1));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

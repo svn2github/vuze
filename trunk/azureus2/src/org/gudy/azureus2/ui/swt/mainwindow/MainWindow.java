@@ -620,8 +620,13 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     mainWindow.layout();
     
     mainWindow.addShellListener(new ShellAdapter() {
-      public void shellClosed(ShellEvent event) {
-        if (COConfigurationManager.getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
+      public void 
+	  shellClosed(ShellEvent event) 
+      {
+        if (	systemTraySWT != null &&
+        		COConfigurationManager.getBooleanParameter("Enable System Tray") && 
+        		COConfigurationManager.getBooleanParameter("Close To Tray", true)){
+        	
           minimizeToTray(event);
         }
         else {
@@ -629,8 +634,13 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         }
       }
 
-      public void shellIconified(ShellEvent event) {
-        if (COConfigurationManager.getBooleanParameter("Minimize To Tray", false)) { //$NON-NLS-1$
+      public void 
+	  shellIconified(ShellEvent event) 
+      {
+        if ( 	systemTraySWT != null &&
+        		COConfigurationManager.getBooleanParameter("Enable System Tray") &&
+        		COConfigurationManager.getBooleanParameter("Minimize To Tray", false)) {
+        	
           minimizeToTray(event);
         }
       }
@@ -680,24 +690,29 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     updater = new GUIUpdater(azureus_core,this);
     updater.start();
 
-    try {
-      systemTraySWT = new SystemTraySWT(this);
-    } catch (Throwable e) {
-      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
-    }
-    
+     
     
 
+    if ( COConfigurationManager.getBooleanParameter("Enable System Tray")){
+    	
+   	   try {
+    	      systemTraySWT = new SystemTraySWT(this);
+    	      
+   	    } catch (Throwable e) {
+   	    	
+    	      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
+   	    }
 
-    if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
-      minimizeToTray(null);
-    }
-    //Only show the password if not started minimized
-    //Correct bug #878227
-    else {
-	    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
+	    if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
 	      minimizeToTray(null);
-	      PasswordWindow.showPasswordWindow(display);
+	    }
+	    //Only show the password if not started minimized
+	    //Correct bug #878227
+	    else {
+		    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
+		      minimizeToTray(null);
+		      PasswordWindow.showPasswordWindow(display);
+		    }
 	    }
     }
 
@@ -1316,9 +1331,16 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 
   public synchronized void setSelectedLanguageItem() {   
     Messages.updateLanguageForControl(mainWindow.getShell());
-    Messages.updateLanguageForControl(systemTraySWT.getMenu());    
-    if (statusText != null)
-      statusText.update();
+    
+    if ( systemTraySWT != null ){
+    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
+    }
+    
+    if (statusText != null){
+    
+    	statusText.update();
+    }
+    
     if (folder != null) {
       if(useCustomTab) {
         ((CTabFolder)folder).update();
@@ -1327,9 +1349,10 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       }
     }
 
-    if (tray != null)
+    if (tray != null){
       tray.updateLanguage();
-  
+    }
+    
     Tab.updateLanguage();
   
     setStatusText(statusTextKey);

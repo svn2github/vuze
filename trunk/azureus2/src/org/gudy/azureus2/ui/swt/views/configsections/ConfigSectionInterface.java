@@ -81,8 +81,15 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     new BooleanParameter(cDisplay, "Open Bar", false, "ConfigView.label.openbar");
 
     if(!Constants.isOSX) {
-      new BooleanParameter(cDisplay, "Close To Tray", true, "ConfigView.label.closetotray");
-      new BooleanParameter(cDisplay, "Minimize To Tray", false, "ConfigView.label.minimizetotray");
+    	
+      BooleanParameter est = new BooleanParameter(cDisplay, "Enable System Tray", true, "ConfigView.section.interface.enabletray");
+
+      BooleanParameter ctt = new BooleanParameter(cDisplay, "Close To Tray", true, "ConfigView.label.closetotray");
+      BooleanParameter mtt = new BooleanParameter(cDisplay, "Minimize To Tray", false, "ConfigView.label.minimizetotray");
+      
+      est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ctt.getControls()));
+      est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( mtt.getControls()));
+
     }
     
     new BooleanParameter(cDisplay, "Send Version Info",true, "ConfigView.label.allowSendVersion");
