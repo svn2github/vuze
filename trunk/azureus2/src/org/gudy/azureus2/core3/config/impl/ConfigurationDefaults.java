@@ -244,6 +244,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Password", null );
     def.put( "Tracker Poll Inc By", new Long( TRTrackerServer.DEFAULT_INC_BY ) );
     def.put( "Tracker Poll Inc Per", new Long( TRTrackerServer.DEFAULT_INC_PER ) );
+    def.put( "Tracker Max Seeds Retained", new Long( 0 ) );
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );
