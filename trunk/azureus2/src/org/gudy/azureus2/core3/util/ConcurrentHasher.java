@@ -158,7 +158,7 @@ ConcurrentHasher
 											if ( friendly_hashing ){
 					
 												try{  
-													Thread.sleep( 100 );
+													Thread.sleep( 50 );
 						
 												}catch( Throwable e ){ 
 						
