@@ -42,7 +42,7 @@ SFPluginDetailsLoaderImpl
 	
 	public static final String	page_url 	= site_prefix + "plugin_list.php";
 
-	protected SFPluginDetailsImpl[]		plugin_details;
+	protected List		plugin_details	= new ArrayList();
 	
 	public
 	SFPluginDetailsLoaderImpl()
@@ -51,6 +51,8 @@ SFPluginDetailsLoaderImpl
 	
 	public void
 	load()
+	
+		throws SFPluginDetailsException
 	{
 		ResourceDownloader dl = ResourceDownloaderFactory.create( page_url );
 		
@@ -78,12 +80,8 @@ SFPluginDetailsLoaderImpl
 					
 						HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download());
 						
-						System.out.println( plugin_page.getContent());
-						
-						dumpTables( "", plugin_page.getTables());
-						
-						// details.add( new SFPluginDetailsImpl( link.substring(8) ));
-						
+						processPluginPage( plugin_name, plugin_page );
+							
 					}catch( Throwable e ){
 						
 						e.printStackTrace();
@@ -94,7 +92,86 @@ SFPluginDetailsLoaderImpl
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+			
+			throw( new SFPluginDetailsException( "Plugin list load failed", e ));
 		}
+	}
+	
+	protected void
+	processPluginPage(
+		String			name,
+		HTMLPage		page )
+	
+		throws SFPluginDetailsException
+	{
+		processPluginPage( name, page.getTables());
+	}
+	
+	protected boolean
+	processPluginPage(
+		String			name,
+		HTMLTable[]		tables )
+	
+		throws SFPluginDetailsException
+	{
+		for (int i=0;i<tables.length;i++){
+			
+			HTMLTable	table = tables[i];
+			
+			HTMLTableRow[]	rows = table.getRows();
+		
+			if ( rows.length == 9 ){
+				
+				HTMLTableCell[]	cells = rows[0].getCells();
+				
+				if ( cells.length == 6 &&
+						cells[0].getContent().trim().equals("Name") &&
+						cells[5].getContent().trim().equals("Contact")){
+				
+					
+					// got the plugin details table
+				
+					HTMLTableCell[]	detail_cells = rows[2].getCells();
+					
+					String	plugin_name			= detail_cells[0].getContent();
+					String	plugin_version		= detail_cells[1].getContent();
+					String	plugin_auth			= detail_cells[4].getContent();
+					
+					String[]	dl_links = detail_cells[2].getLinks();
+					
+					String	plugin_download;
+					
+					if ( dl_links.length == 0 ){
+						
+						plugin_download	= "<unknown>";
+						
+					}else{
+						
+						plugin_download = site_prefix + dl_links[0];
+					}
+					
+					System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
+					
+					plugin_details.add(
+							new SFPluginDetailsImpl(
+									plugin_name,
+									plugin_version,
+									plugin_download,
+									plugin_auth ));
+							
+					return( true );
+				}
+			}
+			
+			HTMLTable[]	sub_tables = table.getTables();
+			
+			if (processPluginPage( name, sub_tables )){
+					
+				return( true );
+			}
+		}
+		
+		return( false );
 	}
 	
 	protected void
@@ -132,6 +209,10 @@ SFPluginDetailsLoaderImpl
 	public SFPluginDetails[]
 	getPluginDetails()
 	{
-		return( plugin_details );
+		SFPluginDetails[]	res = new SFPluginDetails[plugin_details.size()];
+		
+		plugin_details.toArray( res );
+		
+		return( res );
 	}
 }

@@ -26,11 +26,14 @@ package org.gudy.azureus2.pluginsimpl.update.sf;
  * @author parg
  *
  */
+
 public interface 
 SFPluginDetailsLoader 
 {
 	public void
-	load();
+	load()
+	
+		throws SFPluginDetailsException;
 	
 	public SFPluginDetails[]
 	getPluginDetails();

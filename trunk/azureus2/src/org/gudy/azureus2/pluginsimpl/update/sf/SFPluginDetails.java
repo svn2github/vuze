@@ -39,4 +39,10 @@ SFPluginDetails
 	
 	public String
 	getVersion();
+	
+	public String
+	getDownloadURL();
+	
+	public String
+	getAuthor();
 }

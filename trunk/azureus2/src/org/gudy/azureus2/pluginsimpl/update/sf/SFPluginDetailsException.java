@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 28-Apr-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,58 +20,29 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.pluginsimpl.update.sf;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
-
 public class 
-SFPluginDetailsImpl
-	implements SFPluginDetails
+SFPluginDetailsException
+	extends Exception
 {
-	protected String		name;
-	protected String		version;
-	protected String		download_url;
-	protected String		author;
-	
-	protected
-	SFPluginDetailsImpl(
-		String	_name,
-		String	_version,
-		String	_download_url,
-		String	_author )
+	public
+	SFPluginDetailsException(
+		String		str )
 	{
-		name			= _name;
-		version			= _version;
-		download_url	= _download_url;
-		author			= _author;
+		super(str);
 	}
 	
-	public String
-	getName()
+	public
+	SFPluginDetailsException(
+		String		str,
+		Throwable	e )
 	{
-		return( name );
-	}
-	
-	public String
-	getVersion()
-	{
-		return( version );
-	}
-
-	public String
-	getDownloadURL()
-	{
-		return( download_url );
-	}
-	
-	public String
-	getAuthor()
-	{
-		return( author );
+		super(str, e);
 	}
 }

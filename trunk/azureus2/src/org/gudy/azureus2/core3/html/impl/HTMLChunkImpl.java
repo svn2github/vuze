@@ -96,26 +96,36 @@ HTMLChunkImpl
 					continue;
 				}
 				
-				hr_start += 4;
-				
-				hr_start = lc_tag.indexOf("\"", hr_start );
+				hr_start = lc_tag.indexOf("=", hr_start);
 				
 				if ( hr_start == -1 ){
 					
 					continue;
 				}
 				
-				hr_start++;
+				hr_start += 1;
 				
-				int	hr_end = lc_tag.indexOf("\"", hr_start );
-				
-				if ( hr_end == -1 ){
+				while( 	hr_start < lc_tag.length() &&
+						Character.isWhitespace(lc_tag.charAt(hr_start))){
 					
-					continue;
+					hr_start++;
 				}
-
+				
+				int hr_end = hr_start;
+				
+				while(	hr_end < lc_tag.length() &&
+						!Character.isWhitespace(lc_tag.charAt(hr_end))){
+										
+					hr_end++;
+				}
+				
 				String	href = tag.substring(hr_start, hr_end ).trim();
+				
+				if ( href.startsWith("\"")){
 					
+					href = href.substring(1,href.length()-1);
+				}
+				
 				res.add( href );
 			}
 		}

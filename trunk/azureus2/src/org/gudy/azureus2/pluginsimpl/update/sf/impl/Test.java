@@ -38,6 +38,12 @@ Test
 	{
 		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
 		
-		dl.load();
+		try{
+			dl.load();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }
