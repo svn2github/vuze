@@ -9,15 +9,17 @@
  *
  */
 package org.gudy.azureus2.ui.console.commands;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 /**
- * @author tobi
+ * @author Tobias Minich
  * 
  * To change the template for this generated type comment go to Window -
  * Preferences - Java - Code Generation - Code and Comments
@@ -44,6 +46,18 @@ public class Hack implements IConsoleCommand {
 				ci.out.println("> -----");
 				return;
 			}
+			if (command.equalsIgnoreCase("tracker") || command.equalsIgnoreCase("t")) {
+				ci.out.println("hack <torrent id> tracker [command] <new value>");
+				ci.out.println();
+				ci.out.println("[command] can be one of the following:");
+				ci.out.println("url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).");
+				ci.out.println("host\t\th\tChange the host.");
+				ci.out.println("port\t\tp\tChange the port.");
+				ci.out.println();
+				ci.out.println("You can also omit [command] and only give a new full URL (just like the [command] 'url').");
+				ci.out.println("> -----");
+				return;
+			}
 		}
 		ci.out.println("hack <torrent id> <command> <command options>");
 		ci.out.println();
@@ -54,6 +68,7 @@ public class Hack implements IConsoleCommand {
 		ci.out.println();
 		ci.out.println("Available <command>s:");
 		ci.out.println("file\t\tf\tModify priority of a single file of a batch torrent.");
+		ci.out.println("tracker\t\tt\tModify Tracker URL of a torrent.");
 		ci.out.println("> -----");
 	}
 	
@@ -138,6 +153,73 @@ public class Hack implements IConsoleCommand {
 					} else {
 						ci.out.println("> Command 'hack': Unknown priority '" + c + "' for command parameter '" + sSubcommands[commandoffset] + "'.");
 						return;
+					}
+				} catch (Exception e) {
+					ci.out.println("> Command 'hack': Exception while parsing command parameter '" + sSubcommands[commandoffset] + "': " + e.getMessage());
+					return;
+				}
+			} else if (sSubcommands[commandoffset].equalsIgnoreCase("tracker") || sSubcommands[commandoffset].equalsIgnoreCase("t")) {
+				if (sSubcommands.length < (commandoffset + 1)) {
+					ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
+					return;
+				}
+				try {
+					String trackercommand = sSubcommands[commandoffset+1];
+					TRTrackerClient client = dm.getTrackerClient();
+					if (client == null) {
+						ci.out.println("> Command 'hack': Tracker interface not available.");
+						return;
+					}
+					if (trackercommand.equalsIgnoreCase("url") || trackercommand.equalsIgnoreCase("u")) {
+						if (sSubcommands.length < (commandoffset + 2)) {
+							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
+							return;
+						}
+						try {
+							URI test = new URI(sSubcommands[commandoffset+2]);
+						} catch (Exception e) {
+							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
+							return;
+						}
+						client.setTrackerUrl(sSubcommands[commandoffset+2]);
+						ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+client.getTrackerUrl()+"'");
+					} else if (trackercommand.equalsIgnoreCase("host") || trackercommand.equalsIgnoreCase("h")) {
+						if (sSubcommands.length < (commandoffset + 2)) {
+							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
+							return;
+						}
+						URI uold = new URI(sSubcommands[commandoffset+2]);
+						try {
+							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), sSubcommands[commandoffset+2], uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
+							client.setTrackerUrl(unew.toString());
+							ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+client.getTrackerUrl()+"'");
+						} catch (Exception e) {
+							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
+							return;
+						}
+					} else if (trackercommand.equalsIgnoreCase("port") || trackercommand.equalsIgnoreCase("p")) {
+						if (sSubcommands.length < (commandoffset + 2)) {
+							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
+							return;
+						}
+						URI uold = new URI(sSubcommands[commandoffset+2]);
+						try {
+							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(sSubcommands[commandoffset+2]), uold.getPath(), uold.getQuery(), uold.getFragment());
+							client.setTrackerUrl(unew.toString());
+							ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+client.getTrackerUrl()+"'");
+						} catch (Exception e) {
+							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
+							return;
+						}
+					} else {
+						try {
+							URI test = new URI(sSubcommands[commandoffset+2]);
+						} catch (Exception e) {
+							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
+							return;
+						}
+						client.setTrackerUrl(sSubcommands[commandoffset+2]);
+						ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+client.getTrackerUrl()+"'");
 					}
 				} catch (Exception e) {
 					ci.out.println("> Command 'hack': Exception while parsing command parameter '" + sSubcommands[commandoffset] + "': " + e.getMessage());
