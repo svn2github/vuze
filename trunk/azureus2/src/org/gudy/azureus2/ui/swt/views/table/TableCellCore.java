@@ -61,6 +61,9 @@ public interface TableCellCore
   boolean setForeground(Color color);
 
   /** Refresh the cell */
+  public void refresh(boolean bDoGraphics);
+
+  /** Refresh the cell */
   public void refresh();
   
   /** dispose of the cell */

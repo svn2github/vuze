@@ -29,6 +29,7 @@ import java.util.Map;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -64,8 +65,6 @@ public class TableRowImpl
   /** List of cells in this column.  They are not stored in display order */
   private Map mTableCells;
   private String sTableID;
-  
-  private int loopFactor;
   
   private Object coreDataSource;
   private Object pluginDataSource;
@@ -171,15 +170,8 @@ public class TableRowImpl
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
       TableCellCore item = (TableCellCore)iter.next();
-      int iInterval = item.getTableColumn().getRefreshInterval();
-      if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
-          (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
-          (iInterval > 0 && (loopFactor % iInterval) == 0) ||
-          !item.isValid()) && item.isShown()) {
-        item.refresh();
-      }
+      item.refresh();
     }
-    loopFactor++;
   }
   
   public void locationChanged(int iStartColumn) {
@@ -274,6 +266,7 @@ public class TableRowImpl
     return pluginDataSource;
   }
   
+  // Flicker
   public boolean setIndex(int newIndex) {
     if (super.setIndex(newIndex)) {
       getItem().setData("TableRow", this);

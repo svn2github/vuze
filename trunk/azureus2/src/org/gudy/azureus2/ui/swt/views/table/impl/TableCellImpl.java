@@ -75,6 +75,7 @@ public class TableCellImpl
   private TableColumnCore tableColumn;
   private boolean valid;
   private int refreshErrLoopCount;
+  private int loopFactor;
   
   public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn) {
     this(tableRow, tableColumn, false);
@@ -91,6 +92,7 @@ public class TableCellImpl
     this.tableRow = tableRow;
     valid = false;
     refreshErrLoopCount = 0;
+    loopFactor = 0;
     int position = tableColumn.getPosition();
     position = (position >= 0 && bSkipFirstColumn) ? position + 1 : position;
     if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
@@ -332,6 +334,10 @@ public class TableCellImpl
   }
 
   public void refresh() {
+    refresh(true);
+  }
+
+  public void refresh(boolean bDoGraphics) {
     if (bufferedTableItem == null || refreshErrLoopCount > 2)
       return;
     int iErrCount = tableColumn.getConsecutiveErrCount();
@@ -339,7 +345,12 @@ public class TableCellImpl
       return;
 
     try {
-      if (bufferedTableItem.isShown()) {
+      int iInterval = tableColumn.getRefreshInterval();
+      if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
+          (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
+          (iInterval > 0 && (loopFactor % iInterval) == 0) ||
+          !valid) && bufferedTableItem.isShown()) 
+      {
         tableColumn.invokeCellRefreshListeners(this);
         if (refreshListeners != null)
           for (int i = 0; i < refreshListeners.size(); i++)
@@ -347,6 +358,7 @@ public class TableCellImpl
 
         setValid(true);
       }
+      loopFactor++;
       refreshErrLoopCount = 0;
       if (iErrCount > 0)
         tableColumn.setConsecutiveErrCount(0);
