@@ -30,6 +30,7 @@ public class Identification {
     FileWriter log = null;
     File logFile = FileUtil.getUserFile("identification.log");
     
+    int iFirstNonZeroPos = 0;
     try {
       if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent" )) != null ) return decoded;
@@ -148,8 +149,8 @@ public class Identification {
      		return "Shareaza";
       }
       
-      int iFirstNonZeroPos = 20;
-      for (int i=0; i < 20; i++) {
+      iFirstNonZeroPos = 20;
+      for (int i = 0; i < 20; i++) {
         if (peerID[i] != (byte)0) { iFirstNonZeroPos = i; break; }
       }
       
@@ -200,10 +201,10 @@ public class Identification {
       
     }
 
-    String sPeerID = getPrintablePeerID( peerID );
+    String sPeerID = getPrintablePeerID( peerID, iFirstNonZeroPos );
 
     
-    return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
+    return MessageText.getString("PeerSocket.unknown") + " " + iFirstNonZeroPos +"[" + sPeerID + "]";
 }
   
   
@@ -273,20 +274,29 @@ public class Identification {
   
   public static String
   getPrintablePeerID(
-  	byte[]		peerID )
+  	byte[]		peerID)
+  {
+    return getPrintablePeerID(peerID, 0);
+  }
+
+  public static String
+  getPrintablePeerID(
+  	byte[]		peerID,
+  	int iStartAtPos )
   {
   	String	sPeerID = "";
   	
     try {
-    	for (int i = 0; i < peerID.length; i++) {
-    		if ((0xFF & peerID[i]) < 32)
-    			peerID[i] = 32;
-    		if ((0xFF & peerID[i]) > 127)
-    			peerID[i] = 32;
+    	for (int i = iStartAtPos; i < peerID.length; i++) {
+    	  int b = (0xFF & peerID[i]);
+    		if (b < 32 || b > 127)
+    			peerID[i] = '-';
     	}
-    	sPeerID = new String(peerID, Constants.BYTE_ENCODING).replaceAll(" ", "-");
+    	sPeerID = new String(peerID, iStartAtPos, peerID.length - iStartAtPos, 
+    	                     Constants.BYTE_ENCODING);
     }
     catch (UnsupportedEncodingException ignore) {}
+    catch (Exception e) {}
     
     return( sPeerID );
   }
