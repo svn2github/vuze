@@ -470,6 +470,7 @@ TRHostImpl
 		
 		byte[]		reply_bytes		= null;
 		String		content_type	= "text/html";
+		String		extra_headers	= null;
 		String		reply_status	= "200";
 		
 		try{
@@ -698,11 +699,14 @@ TRHostImpl
 					reply_status	= "404";
 				}
 			}else if ( url.equalsIgnoreCase("/favicon.ico" )){
+									
+				content_type = "image/x-icon";
+				//content_type = "application/octet-stream";
 				
-				//content_type = "image/x-icon";
-				content_type = "application/octet-stream";
-				
-				InputStream is = host_adapter.getImageAsStream( "azureus.gif" );
+				extra_headers = "Last Modified: Fri,05 Sep 2003 01:01:01 GMT" + NL +
+								"Expires: Sun, 17 Jan 2038 01:01:01 GMT" + NL;
+								
+				InputStream is = host_adapter.getImageAsStream( "favicon.ico" );
 				
 				if ( is == null ){
 				
@@ -729,7 +733,7 @@ TRHostImpl
 					}
 				
 					reply_bytes = new byte[pos];
-										
+															
 					System.arraycopy( data, 0, reply_bytes, 0, pos );
 				}
 			}else{
@@ -751,7 +755,8 @@ TRHostImpl
 		}
 		
 		String reply_header = 
-						"HTTP/1.1 " + reply_status + (reply_status.equals( "200" )?" OK":" BAD") + NL + 
+						"HTTP/1.1 " + reply_status + (reply_status.equals( "200" )?" OK":" BAD") + NL +
+						(extra_headers==null?"":extra_headers)+ 
 						"Content-Type: " + content_type + NL +
 						"Content-Length: " + reply_bytes.length + NL +
 						NL;
