@@ -114,7 +114,7 @@ TOTorrentCreateImpl
 	
 		throws TOTorrentException
 	{
-		setCreationDate( System.currentTimeMillis());
+		setCreationDate( System.currentTimeMillis() / 1000);
 		
 		setCreatedBy( Constants.AZUREUS_NAME + "/" + Constants.AZUREUS_VERSION );
 		
