@@ -5,13 +5,14 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 /**
  * @author Olivier
@@ -112,6 +113,14 @@ public class ManagerView extends AbstractIView {
     folder.setSelection(items);
     manager.addListener((PiecesView)viewPieces);
     manager.addListener((PeersView)viewDetails);
+    folder.addSelectionListener(new SelectionListener() {
+      public void widgetSelected(SelectionEvent e) {
+        refresh();
+      }
+      public void widgetDefaultSelected(SelectionEvent e) {
+      }
+    });
+    refresh();
   }
 
   /* (non-Javadoc)
@@ -142,9 +151,5 @@ public class ManagerView extends AbstractIView {
       }
     } catch (Exception e) {
     }
-  }
-
-  public ParameterListener getPeersViewParameterListener() {
-    return (ParameterListener) viewDetails;
   }
 }
