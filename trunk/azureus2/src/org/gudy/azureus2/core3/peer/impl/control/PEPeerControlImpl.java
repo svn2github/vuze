@@ -107,9 +107,9 @@ PEPeerControlImpl
   private static final int PEER_UPDATER_WAIT_TIME = 50;
   private static final int MAINLOOP_WAIT_TIME   = 100;
   
-  private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; //every 10s
-  private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; //every 30s
-
+  private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; 	//every 10s
+  private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; 	//every 30s
+  private static final int TRACKER_CHECK_TIME	= 5000 / MAINLOOP_WAIT_TIME;	// every 5 secs
   
   
   
@@ -363,8 +363,6 @@ PEPeerControlImpl
         
         unChoke();
 
-        _loopFactor++; //increment the loopFactor
-        
         long timeWait = MAINLOOP_WAIT_TIME - (SystemTime.getCurrentTime() - timeStart);
         
         if (!SystemTime.isErrorLast5sec() && timeWait > 10) {
@@ -375,6 +373,8 @@ PEPeerControlImpl
       	
       	Debug.printStackTrace( e );
       }
+      
+      _loopFactor++;
     }
   }
 
@@ -896,13 +896,15 @@ PEPeerControlImpl
       }
   }
 
-  /**
-   * This method will check the tracker. It creates a new thread so requesting the url won't freeze the program.
-   *
-   */
+ 
   private void 
   checkTracker() 
   {
+  	if ( _loopFactor % TRACKER_CHECK_TIME != 0 ){
+  		
+  		return;
+  	}
+  	
   	int		percentage 			= 100;
     final int LIMIT = 100;
   	
