@@ -30,14 +30,58 @@ package org.gudy.azureus2.core3.peer;
  * @author Olivier
  *
  */
+
+import java.util.*;
+
 public interface 
 PEPeerSocket 
-	extends PEPeerConnection 
 {
 	public final static int CONNECTING 		= 10;
 	public final static int HANDSHAKING 	= 20;
 	public final static int TRANSFERING 	= 30;
 	public final static int DISCONNECTED 	= 40;
+	
+	
+	public byte[] getId();
+
+	public String getIp();
+
+	public PEPeerManager getManager();
+ 
+	public int getPort();
+	
+	public boolean[] getAvailable();
+ 
+  
+	public boolean isChoked();
+
+	public boolean isChoking();
+
+	public boolean isInterested();
+
+	public boolean isInteresting();
+
+	public Vector getRequested();
+	
+	public Vector getRequesting();
+
+	public boolean isSeed();
+ 
+	public boolean isSnubbed();
+ 
+	public PEPeerStats getStats();
+ 
+	public void setChoked(boolean b);
+
+	public void setChoking(boolean b);
+ 
+	public void setInterested(boolean b);
+  
+	public void setInteresting(boolean b);
+
+	public void setSeed(boolean b);
+
+	public void setSnubbed(boolean b);
 	
 	public int getState();
 

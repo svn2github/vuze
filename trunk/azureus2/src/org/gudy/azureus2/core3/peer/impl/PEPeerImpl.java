@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.peer.*;
 
 public class 
 PEPeerImpl
-	implements PEPeer
 {
 	PEPeerManagerImpl manager;
 	byte[] id;

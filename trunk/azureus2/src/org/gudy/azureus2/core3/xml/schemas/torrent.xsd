@@ -1,7 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+/*
+ * File    : torrent.xsd
+ * Created : 5 Oct. 2003
+ * By      : Parg 
+ * 
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+-->
+
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-            xmlns:tor="http://localhost:81/azureus" 
-            targetNamespace="http://localhost:81/azureus">
+            xmlns:tor="http://azureus.sourceforge.net/files" 
+            targetNamespace="http://azureus.sourceforge.net/files">
 
    <xsd:annotation>
       <xsd:documentation xml:lang="en">
@@ -16,9 +40,16 @@
          <xsd:element name="ANNOUNCE_URL" type="xsd:string"/>
          <xsd:element name="ANNOUNCE_LIST" type="tor:torrentAnnounceList" minOccurs="0"/>
          <xsd:element name="COMMENT" type="xsd:string" minOccurs="0"/>
-         <xsd:element name="CREATED_BY" type="xsd:string" minOccurs="0"/>
          <xsd:element name="CREATION_DATE" type="xsd:unsignedLong" minOccurs="0"/>
+         <xsd:element name="CREATED_BY" type="xsd:string" minOccurs="0"/>
+         
+         	<!-- torrent hash is created on export and is the hash of the "INFO" portion of the document
+         		 On import this is rechecked. If changes have been made that alter this hash then the
+         		 changes are most likely to prevent the operation of the torrent -->
+         		 
          <xsd:element name="TORRENT_HASH" type="tor:torrentHash" minOccurs="0"/>
+         
+         <xsd:element name="INFO" type="tor:torrentInfoType"/>
          
          <xsd:group ref="tor:torrentGenericData"/>
       </xsd:sequence>
@@ -30,18 +61,81 @@
       </xsd:sequence>
    </xsd:complexType>
    
-    <xsd:complexType name="torrentAnnounceEntry">
+   <xsd:complexType name="torrentAnnounceEntry">
       <xsd:sequence>
          <xsd:element name="ANNOUNCE_URL" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
       </xsd:sequence>
    </xsd:complexType>
+   
+   <xsd:complexType name="torrentInfoType">
+     <xsd:sequence>
+     	<!-- unfortunately there is no fixed character set for the NAME torrent attribute. As this is
+     		 included in hash calculation it is essential that character set decoding/encoding issues
+     		 don't stuff the value of NAME up. Therefore, for the moment this is dumped as hex encoded
+     		 bytes. Not user friendly but safe. Suggestions for improvement to parg@users.sourceforge.net!
+     	-->
+     	
+     	<xsd:element name="NAME" type="xsd:string"/>
+     	<xsd:element name="PIECE_LENGTH" type="xsd:unsignedLong"/>
+     	<xsd:choice>
+     		<xsd:group ref="tor:torrentInfoSimple"/>
+     		<xsd:group ref="tor:torrentInfoComplex"/>
+     	</xsd:choice>
+     	<xsd:element name="PIECES">
+	     	<xsd:complexType>
+	     		<xsd:sequence>
+    	 			<xsd:element name="BYTES" type="tor:torrentHash" minOccurs="1" maxOccurs="unbounded"/>
+     			</xsd:sequence>
+	     	</xsd:complexType>
+	     </xsd:element>
+        <xsd:group ref="tor:torrentGenericData"/>
+     </xsd:sequence>  	
+   </xsd:complexType>
+   
+   <xsd:group name="torrentInfoSimple">
+   	<xsd:sequence>
+   		<xsd:element name="LENGTH" type="xsd:unsignedLong"/>
+  	</xsd:sequence>
+   </xsd:group>
+   
+   <xsd:group name="torrentInfoComplex">
+   	<xsd:sequence>
+   		<xsd:element name="FILES">
+   			<xsd:complexType>
+   				<xsd:sequence>
+   					<xsd:element name="FILE" minOccurs="1" maxOccurs="unbounded">
+    					<xsd:complexType>
+			   				<xsd:sequence>
+			   					<xsd:element name="LENGTH" type="xsd:unsignedLong"/>
+			   					<xsd:element name="PATH">
+			   						<xsd:complexType>
+			   							<xsd:sequence>
+			   								<!-- again, file name character set is not fixed so dumped as hex encoded bytes. See above -->
+			   								
+			   								<xsd:element name="COMPONENT" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+			   							</xsd:sequence>
+			   						</xsd:complexType>
+			   					</xsd:element>
+			   			       <xsd:group ref="tor:torrentGenericData"/>
+ 			  				</xsd:sequence>
+			   			</xsd:complexType>
+   					</xsd:element>
+   				</xsd:sequence>
+   			</xsd:complexType>
+   		</xsd:element>
+  	</xsd:sequence>
+   </xsd:group>
+   
+   <!-- hashes are always SHA1 hashes of 20 bytes which encoded to 40 chars in hex -->
    
    <xsd:simpleType name="torrentHash">
      <xsd:restriction base="xsd:string">
        <xsd:length value="40" fixed="true"/>
     </xsd:restriction>
   </xsd:simpleType>
-   
+  
+  <!-- the generic data corresponds to generic b-encoded data -->
+  
   <xsd:group name="torrentGenericData">
     <xsd:sequence>
    	  <xsd:element name="KEY" minOccurs="0" maxOccurs="unbounded">

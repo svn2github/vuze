@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.peer.*;
 public class 
 PEPeerConnectionImpl
 	extends PEPeerImpl
-	implements PEPeerConnection
 {
 
 	/**

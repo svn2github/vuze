@@ -51,7 +51,7 @@ SimpleXMLParserDocumentNodeImpl
 	public String
 	getName()
 	{
-		return( node.getNodeName());
+		return( node.getLocalName());
 	}
 	
 	public String

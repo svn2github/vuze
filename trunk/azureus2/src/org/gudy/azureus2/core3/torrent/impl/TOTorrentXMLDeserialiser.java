@@ -69,7 +69,7 @@ TOTorrentXMLDeserialiser
 		throws TOTorrentException
 	{
 		String root_name = doc.getName();
-		
+				
 		if ( root_name.equalsIgnoreCase("TORRENT")){
 			
 			TOTorrentImpl	torrent = new TOTorrentImpl();
@@ -169,7 +169,8 @@ TOTorrentXMLDeserialiser
 			
 				if ( !Arrays.equals( torrent.getHash(), torrent_hash )){
 					
-					System.out.println( "hash differs from expected"); // !!!!	
+					throw( 	new TOTorrentException( "Hash differs - declared TORRENT_HASH and computed hash differ. If this really is the intent (unlikely) then remove the TORRENT_HASH element", 
+							TOTorrentException.RT_DECODE_FAILS));
 				}
 			}
 			

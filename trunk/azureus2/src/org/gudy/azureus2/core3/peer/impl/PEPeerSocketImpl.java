@@ -49,7 +49,7 @@ import org.gudy.azureus2.core3.peer.*;
 public class 
 PEPeerSocketImpl 
 	extends PEPeerConnectionImpl
-	implements PEPeerSocket 
+	implements PEPeerSocket
 {
 	//The SocketChannel associated with this peer
 	private SocketChannel socket;

@@ -91,9 +91,9 @@ TOTorrentXMLSerialiser
 	{
 		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 		writeLine( "<tor:TORRENT" );
-		writeLine( "\txmlns:tor=\"http://localhost:81/azureus\"" );
+		writeLine( "\txmlns:tor=\"http://azureus.sourceforge.net/files\"" );
 		writeLine( "\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" );
-		writeLine( "\txsi:schemaLocation=\"http://localhost:81/azureus http://localhost:81/azureus/torrent.xsd\">" );
+		writeLine( "\txsi:schemaLocation=\"http://azureus.sourceforge.net/files http://azureus.sourceforge.net/files/torrent.xsd\">" );
 			
 		try{
 			indent();
@@ -191,9 +191,9 @@ TOTorrentXMLSerialiser
 		try{
 			indent();
 			
-			writeTag( "PIECE_LENGTH", torrent.getPieceLength());
-		
 			writeTag( "NAME", torrent.getName());		
+		
+			writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 		
 			TOTorrentFileImpl[] files = (TOTorrentFileImpl[])torrent.getFiles();
 			
@@ -267,17 +267,6 @@ TOTorrentXMLSerialiser
 				writeLine( "</FILES>");
 			}
 			
-			Map additional_properties = torrent.getAdditionalInfoProperties();
-		
-			Iterator it = additional_properties.keySet().iterator();
-		
-			while( it.hasNext()){
-		
-				String	key = (String)it.next();
-			
-				writeGenericMapEntry( key, additional_properties.get( key ));	
-			}
-			
 			writeLine( "<PIECES>");
 					
 			try{
@@ -294,6 +283,18 @@ TOTorrentXMLSerialiser
 			}
 		
 			writeLine( "</PIECES>");
+
+			Map additional_properties = torrent.getAdditionalInfoProperties();
+		
+			Iterator it = additional_properties.keySet().iterator();
+		
+			while( it.hasNext()){
+		
+				String	key = (String)it.next();
+			
+				writeGenericMapEntry( key, additional_properties.get( key ));	
+			}
+			
 			
 		}finally{
 			exdent();
