@@ -241,16 +241,17 @@ Restarter
     if ( log != null ){
     	log.println( "  " + exec );
     }
-    String fileName = userPath + "/" + restartScriptName;
+    String fileName = userPath + "/Azureus.app/" + restartScriptName;
     
     File fUpdate = new File(fileName);
+    
     try {
 	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
 	    fosUpdate.write(exec.getBytes());
 	    fosUpdate.close();
 	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
 	    pChMod.waitFor();
-	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+	    Process p = Runtime.getRuntime().exec("./Azureus.app/" + restartScriptName);
     } catch(Exception e) {
       e.printStackTrace(log);
     }
