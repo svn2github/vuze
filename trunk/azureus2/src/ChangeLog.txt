@@ -16,7 +16,7 @@ CHANGE: Additional upload speed options [Nolar]
 CHANGE: Cleanup of Configuration tabs [Nolar]
 CHANGE: Rewrite of locale selection code for torrents. Only one encoding allowed per torrent [Parg]
 CHANGE: File->Open... now opens to the default download/torrent dirs set in config [Parg]
-CHANGE: ETA/TimeRemaining now just uses two significant measures, and "kB" changed to "KB"  [Nolar] 
+CHANGE: ETA/TimeRemaining now uses just two significant measures, and "kB" changed to "KB"  [Nolar] 
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]

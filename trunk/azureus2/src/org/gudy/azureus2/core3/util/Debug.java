@@ -5,6 +5,8 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import java.util.*;
+
 /**
  * Debug-assisting class.
  */
@@ -18,6 +20,7 @@ public class Debug {
    */
   public static void out(String debug_message) {
     String header = "DEBUG::";
+    header = header + new Date(System.currentTimeMillis()).toString() + "::";
     String className;
     String methodName;
     int lineNumber;
