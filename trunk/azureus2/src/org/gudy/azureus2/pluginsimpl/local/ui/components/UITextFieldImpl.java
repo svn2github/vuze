@@ -20,25 +20,30 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui.components;
+package org.gudy.azureus2.pluginsimpl.local.ui.components;
 
 /**
  * @author parg
  *
  */
-public interface 
-UIProgressBar
-	extends UIComponent
+
+import org.gudy.azureus2.plugins.ui.components.*;
+
+public class 
+UITextFieldImpl 
+	extends		UIComponentImpl
+	implements 	UITextField
 {
-		/**
-		 * Setting values results in a PT_VALUE property change with an Integer value
-		 * @param precentage
-		 */
-	
 	public void
-	setPercentageComplete(
-		int		percentage );
-	
-	public int
-	getPercentageComplete();
+	setText(
+		String		text )
+	{
+		setProperty( PT_VALUE, text );
+	}
+		
+	public String
+	getText()
+	{
+		return((String)getProperty( PT_VALUE ));
+	}
 }

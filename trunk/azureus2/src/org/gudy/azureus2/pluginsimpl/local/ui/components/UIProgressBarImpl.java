@@ -20,25 +20,36 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui.components;
+package org.gudy.azureus2.pluginsimpl.local.ui.components;
 
 /**
  * @author parg
  *
  */
-public interface 
-UIProgressBar
-	extends UIComponent
+
+import org.gudy.azureus2.plugins.ui.components.*;
+
+public class 
+UIProgressBarImpl 	
+	extends		UIComponentImpl
+	implements 	UIProgressBar
 {
-		/**
-		 * Setting values results in a PT_VALUE property change with an Integer value
-		 * @param precentage
-		 */
+	public
+	UIProgressBarImpl()
+	{
+		setPercentageComplete(0);
+	}
 	
 	public void
 	setPercentageComplete(
-		int		percentage );
-	
+		int		percentage )
+	{
+		setProperty( PT_VALUE, new Integer(percentage));
+	}
+		
 	public int
-	getPercentageComplete();
+	getPercentageComplete()
+	{
+		return(((Integer)getProperty( PT_VALUE )).intValue());
+	}
 }
