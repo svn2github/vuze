@@ -16,6 +16,9 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.host.TRHostException;
+import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -32,6 +35,7 @@ public class Torrent implements IConsoleCommand {
 	private static final int TORRENTCOMMAND_QUEUE = 3;
 	private static final int TORRENTCOMMAND_STARTNOW = 4;
 	private static final int TORRENTCOMMAND_CHECK = 5;
+  private static final int TORRENTCOMMAND_HOST = 6;
 	
 	private static boolean performTorrentCommand(ConsoleInput ci, int command, DownloadManager dm) {
 		switch (command) {
@@ -110,13 +114,27 @@ public class Torrent implements IConsoleCommand {
 						return false;
 					}
 				}
+      case TORRENTCOMMAND_HOST :
+      {       
+        TOTorrent torrent = dm.getTorrent();
+        if (torrent != null) {
+          try {
+            TRHostFactory.create().hostTorrent(torrent);
+          } catch (TRHostException e) {
+            e.printStackTrace(ci.out);
+            return false;
+          }
+          return true;
+        }
+        return false;
+      }
 		}
 		return false;
 	}
 
 	private static void commandTorrentCommand(ConsoleInput ci, int command, List args) {
-		String[] commands = { "start", "stop", "remove", "queue", "start", "check" };
-		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of" };
+		String[] commands = { "start", "stop", "remove", "queue", "start", "check" ,"host"};
+		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of","Hosting" };
 		if ((args != null) && (!args.isEmpty())) {
 		    String subcommand = (String) args.get(0);
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
