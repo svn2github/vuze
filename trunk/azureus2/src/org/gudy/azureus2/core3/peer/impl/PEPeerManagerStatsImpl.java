@@ -49,10 +49,10 @@ PEPeerManagerStatsImpl
 //		timeCreated = SystemTime.getCurrentTime() / 100;
 
 	  //average over 10s, update every 2000ms.
-	  receptionSpeed = Average.getInstance(2000, 15);
+	  receptionSpeed = Average.getInstance(1000, 10);
 
 	  //average over 5s, update every 100ms.
-	  sendingSpeed = Average.getInstance(2000, 15);
+	  sendingSpeed = Average.getInstance(1000, 5);
 
 	  //average over 100s, update every 5s
 	  overallSpeed = Average.getInstance(5000, 100);

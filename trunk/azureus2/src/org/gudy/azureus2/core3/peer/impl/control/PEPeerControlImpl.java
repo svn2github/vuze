@@ -98,7 +98,7 @@ PEPeerControlImpl
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
   
-  private ConnectionPool connection_pool = NetworkManager.getSingleton().getRootConnectionPool();
+  private ConnectionPool connection_pool = NetworkManager.getSingleton().getRootConnectionPool().createChildConnectionPool();
   
   private final NewPeerManager.Listener new_peer_manager_listener = new NewPeerManager.Listener() {
     public boolean isNewPeerNeeded() {
