@@ -137,6 +137,25 @@ RPIPFilter
 				
 				return( new RPReply( e ));
 			}
+		}else if ( method.equals( "getInRangeAddressesAreAllowed")){
+			
+			return( new RPReply( new Boolean( delegate.getInRangeAddressesAreAllowed())));
+			
+		}else if ( method.equals( "setInRangeAddressesAreAllowed[boolean]")){
+			
+			delegate.setInRangeAddressesAreAllowed(((Boolean)params[0]).booleanValue());
+			
+			return( null );
+			
+		}else if ( method.equals( "isEnabled")){
+			
+			return( new RPReply( new Boolean( delegate.isEnabled())));
+			
+		}else if ( method.equals( "setEnabled[boolean]")){
+			
+			delegate.setEnabled(((Boolean)params[0]).booleanValue());
+			
+			return( null );
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -248,18 +267,33 @@ RPIPFilter
 	}
 	
 	public boolean
+	getInRangeAddressesAreAllowed()
+	{
+		Boolean res = (Boolean)_dispatcher.dispatch( new RPRequest( this, "getInRangeAddressesAreAllowed", null )).getResponse();
+				
+		return( res.booleanValue());		
+	}
+	
+	public void
+	setInRangeAddressesAreAllowed(
+		boolean	value )
+	{
+		_dispatcher.dispatch( new RPRequest( this, "setInRangeAddressesAreAllowed[boolean]", new Object[]{new Boolean(value)} )).getResponse();		
+	}
+	
+	public boolean
 	isEnabled()
 	{
-		notSupported();
+		Boolean res = (Boolean)_dispatcher.dispatch( new RPRequest( this, "isEnabled", null )).getResponse();
 		
-		return( false );
+		return( res.booleanValue());	
 	}
 	
 	public void
 	setEnabled(
-		boolean	enabled )
+		boolean	value )
 	{
-		notSupported();
+		_dispatcher.dispatch( new RPRequest( this, "setEnabled[boolean]", new Object[]{new Boolean(value)} )).getResponse();		
 	}
 	
 	public void

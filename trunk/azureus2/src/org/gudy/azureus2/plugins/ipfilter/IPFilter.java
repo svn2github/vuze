@@ -145,6 +145,23 @@ IPFilter
 	block(
 		String IPAddress);
 	
+		/**
+		 * The filter either allows defined ranges to be allowed or denied access
+		 * @return
+		 */
+	
+	public boolean
+	getInRangeAddressesAreAllowed();
+
+		/**
+		 * Set the behaviour of the filter to either allow or deny access for defined ranges
+		 * @param b
+		 */
+	
+	public void
+	setInRangeAddressesAreAllowed(
+		boolean	b );
+
 	
 		/**
 		 * Test if ipfilter is enabled or not

@@ -93,6 +93,13 @@ IpFilter
 	setEnabled(
 		boolean	enabled );
 	
+	public abstract boolean
+	getInRangeAddressesAreAllowed();
+	
+	public abstract void
+	setInRangeAddressesAreAllowed(
+		boolean	b );
+
 	public abstract void
 	markAsUpToDate();
 	

@@ -232,6 +232,21 @@ IpFilterImpl
 	  }
 	}
   
+	public boolean
+	getInRangeAddressesAreAllowed()
+	{
+	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
+	  
+	  return( allow );
+	}
+	
+	public void
+	setInRangeAddressesAreAllowed(
+		boolean	b )
+	{
+		COConfigurationManager.setParameter("Ip Filter Allow", b );
+	}
+	
 	/**
 	 * @return
 	 * @deprecated

@@ -205,6 +205,19 @@ IPFilterImpl
 		filter.setEnabled( enabled );
 	}
 	
+	public boolean
+	getInRangeAddressesAreAllowed()
+	{
+		return( filter.getInRangeAddressesAreAllowed());
+	}
+	
+	public void
+	setInRangeAddressesAreAllowed(
+		boolean	b )
+	{
+		filter.setInRangeAddressesAreAllowed( b );
+	}
+	
 	public void
 	markAsUpToDate()
 	{
