@@ -104,8 +104,18 @@ ConfigurationChecker
 	  	
 	  		// socket connect/read timeouts
 	  	
-	  	System.setProperty("sun.net.client.defaultConnectTimeout", "120000");
-	  	System.setProperty("sun.net.client.defaultReadTimeout", "60000");
+	  	int	connect_timeout = COConfigurationManager.getIntParameter( "Tracker Client Connect Timeout");
+	  	int	read_timeout 	= COConfigurationManager.getIntParameter( "Tracker Client Read Timeout");
+	  	
+	  	LGLogger.log( "TrackerClient: connect timeout = " + connect_timeout + ", read timeout = " + read_timeout );
+	  	
+	  	System.setProperty(
+	  			"sun.net.client.defaultConnectTimeout", 
+				String.valueOf( connect_timeout*1000 ));
+	  			
+	  	System.setProperty(
+	  			"sun.net.client.defaultReadTimeout", 
+	  			String.valueOf( read_timeout*1000 ));
 	    
 	    // proxy
 	    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy", false) ) {

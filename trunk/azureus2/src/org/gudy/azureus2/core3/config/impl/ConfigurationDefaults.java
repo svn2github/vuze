@@ -256,6 +256,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker Key Enable Client", new Long(1) );
     def.put( "Tracker Key Enable Server", new Long(1) );
     def.put( "Tracker Separate Peer IDs", new Long(0));
+    def.put( "Tracker Client Connect Timeout", new Long(120));
+    def.put( "Tracker Client Read Timeout", new Long(60));
     def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
     def.put( "Tracker Public Enable", new Long(0) );
     def.put( "Tracker Log Enable", new Long(0) );

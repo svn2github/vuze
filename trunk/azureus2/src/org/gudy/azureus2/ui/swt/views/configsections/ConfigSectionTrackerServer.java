@@ -502,17 +502,24 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 3;
  
-    new BooleanParameter(gMainTab, "Tracker Port UDP Enable", false, 
-                         "ConfigView.section.tracker.enableudp").setLayoutData(gridData);
+    BooleanParameter	enable_udp = 
+    	new BooleanParameter(gMainTab, "Tracker Port UDP Enable", false, 
+                         "ConfigView.section.tracker.enableudp");
 
+    enable_udp.setLayoutData(gridData);
+    
     // row
     
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label,  "ConfigView.section.tracker.udpversion");
+    Label udp_version_label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(udp_version_label,  "ConfigView.section.tracker.udpversion");
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gMainTab, "Tracker Port UDP Version", 2).setLayoutData(gridData);
+    IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version", 2);
+    udp_version.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
+
+    enable_udp.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( new Control[]{ udp_version_label, udp_version.getControl() }));
 
     // row
     

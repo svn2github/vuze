@@ -26,35 +26,18 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.program.Program;
 
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.core3.tracker.host.TRHost;
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
-import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.ui.swt.auth.*;
 
-public class ConfigSectionTracker implements ConfigSectionSWT {
+public class 
+ConfigSectionTracker 
+	implements ConfigSectionSWT 
+{
 	
 	protected	AzureusCore	azureus_core;
 	
@@ -83,7 +66,6 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
-    Label label;
 
     // main tab set up
     Composite gMainTab = new Composite(parent, SWT.NULL);

@@ -59,30 +59,54 @@ ConfigSectionTrackerClient
     GridLayout layout;
 
     // extensions tab set up
-    Composite gExtTab = new Composite(parent, SWT.NULL);
+    Composite gMainTab = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gExtTab.setLayoutData(gridData);
+    gMainTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
-    gExtTab.setLayout(layout);
+    layout.numColumns = 3;
+    gMainTab.setLayout(layout);
 
+    // row
+    
+    Label  label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.connecttimeout");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    IntParameter	connect_timeout = new IntParameter(gMainTab, "Tracker Client Connect Timeout" );
+    connect_timeout.setLayoutData(gridData);
+    label = new Label(gMainTab, SWT.NULL);
 
- 
+    // row
+    
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.readtimeout");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    IntParameter	read_timeout = new IntParameter(gMainTab, "Tracker Client Read Timeout" );
+    read_timeout.setLayoutData(gridData);
+    label = new Label(gMainTab, SWT.NULL);
+
     // row
 
-    new BooleanParameter(gExtTab, "Tracker Key Enable Client", true,
-                         "ConfigView.section.tracker.enablekey");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+  
+    new BooleanParameter(gMainTab, "Tracker Key Enable Client", true,
+                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
 
-    Label label = new Label(gExtTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
     
     // row
 
-    new BooleanParameter(gExtTab, "Tracker Separate Peer IDs", false,
-                         "ConfigView.section.tracker.separatepeerids");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+ 
+    new BooleanParameter(gMainTab, "Tracker Separate Peer IDs", false,
+                         "ConfigView.section.tracker.separatepeerids").setLayoutData(gridData);
   
-    label = new Label(gExtTab, SWT.WRAP);
+    label = new Label(gMainTab, SWT.WRAP);
     Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
 
-    return gExtTab;
+    return gMainTab;
   }
 }
