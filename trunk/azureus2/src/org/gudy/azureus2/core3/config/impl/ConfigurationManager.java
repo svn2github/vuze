@@ -6,11 +6,7 @@
  */
 package org.gudy.azureus2.core3.config.impl;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,46 +54,41 @@ public class ConfigurationManager {
   }
   
   public void load(String filename) {
-    FileInputStream fin = null;
     BufferedInputStream bin = null;
+    
     try {
       //open the file
-      String file_name = FileUtil.getApplicationPath() + filename;
+      File file = new File( FileUtil.getApplicationPath() + filename );
       
-      //System.out.println("file name = " + file_name );
+      //make sure the file exists and isn't zero-length
+      if ( file.length() <= 1L ) {
+        //if so, try using the backup file
+        file = new File( FileUtil.getApplicationPath() + filename + ".bak" );
+        if ( file.length() <= 1L ) {
+          throw new FileNotFoundException();
+        }
+      }
       
-      fin = new FileInputStream(file_name);
-      
-      bin = new BufferedInputStream(fin);
+      bin = new BufferedInputStream( new FileInputStream(file), 8192 );
+        
       try{
       	propertiesMap = BDecoder.decode(bin);
-      }catch( IOException e ){
-        // Occurs when file is there but zero size (or b0rked?)
-        propertiesMap = new HashMap();
       }
-    } catch (FileNotFoundException e) {
-      //create the file!
-      try {
-        File newConfigFile = new File(FileUtil.getApplicationPath() + filename);
-        if (System.getProperty("os.name").equals("Linux"))
-          newConfigFile.getParentFile().mkdir();
-        newConfigFile.createNewFile();
-        //create an instance of properties map
-        propertiesMap = new HashMap();
-      } catch (IOException e1) {
-        e1.printStackTrace();
+      catch( IOException e ){
+      	// Occurs when file is there but b0rked
+      	propertiesMap = new HashMap();
       }
-    } finally {
-      try {
-        if (fin != null)
-          fin.close();
-      } catch (Exception e) {
-      }
-      try {
-        if (bin != null)
-          bin.close();
-      } catch (Exception e) {
-      }
+
+    }
+    catch (FileNotFoundException e) {
+    	propertiesMap = new HashMap();
+    }
+    finally {
+    	try {
+    		if (bin != null)
+    			bin.close();
+    	} catch (Exception e) {
+    	}
     }
   }
   
@@ -107,23 +98,33 @@ public class ConfigurationManager {
   
   public void save(String filename) {
     //open a file stream
-    FileOutputStream fos = null;
+    BufferedOutputStream bos = null;
     try {
     	//re-encode the data
     	
     	byte[] torrentData = BEncoder.encode(propertiesMap);
+      
+      File file = new File( FileUtil.getApplicationPath() + filename );
+      
+    	//backup
+      if ( file.length() > 1L ) {
+        File bakfile = new File( file + ".bak" );
+        if ( bakfile.exists() ) bakfile.delete();
+        file.renameTo( bakfile );
+      }
     	
-    	fos = new FileOutputStream(FileUtil.getApplicationPath() + filename);
+      bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
     	
     	//write the data out
-    	
-    	fos.write(torrentData);
+    	bos.write(torrentData);
+      bos.flush();
+      
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
       try {
-        if (fos != null)
-          fos.close();
+        if (bos != null)
+          bos.close();
       } catch (Exception e) {
       }
     }
