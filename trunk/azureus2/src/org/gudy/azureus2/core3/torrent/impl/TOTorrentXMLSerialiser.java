@@ -444,7 +444,7 @@ TOTorrentXMLSerialiser
 		}
 		
 		writeLine( "<" + tag + " encoding=\""+(use_bytes?"bytes":"utf8") + "\">" + 
-					(use_bytes?encodeBytes( content ):utf_string) + "</" + tag + ">" );	
+					(use_bytes?encodeBytes( content ):escapeXML(utf_string)) + "</" + tag + ">" );	
 	}
 	
 	protected String
