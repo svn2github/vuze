@@ -25,8 +25,6 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
-import com.aelitis.azureus.core.networkmanager.*;
-
 
 public class 
 PEPeerControlImpl
@@ -2270,9 +2268,7 @@ PEPeerControlImpl
   }
 
 
-  /**
-   * @return
-   */
+
   public List get_connections() {
     return _peer_transports;
   }
@@ -2291,9 +2287,7 @@ PEPeerControlImpl
   }
 
 
-  /**
-   * @return
-   */
+  
   public int getNbHashFails() {
     return nbHashFails;
   }
