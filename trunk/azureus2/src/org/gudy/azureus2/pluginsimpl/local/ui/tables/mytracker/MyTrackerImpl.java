@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.local.ui.mytracker;
+package org.gudy.azureus2.pluginsimpl.local.ui.tables.mytracker;
 
 /**
  * @author parg

@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.local.ui.mytracker;
+package org.gudy.azureus2.pluginsimpl.local.ui.tables.mytracker;
 
 import java.util.ArrayList;
 import java.util.List;

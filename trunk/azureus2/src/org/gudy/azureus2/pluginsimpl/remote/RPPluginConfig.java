@@ -204,6 +204,13 @@ RPPluginConfig
 	  	return(null);
 	  }
 	  
+	  public String getStringParameter(String name, String _default )
+	  {
+	  	notSupported();
+	  	
+	  	return(null);
+	  }
+	  
 	  public boolean getBooleanParameter(String key)
 	  {	
 	  	notSupported();

@@ -31,8 +31,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
 
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;

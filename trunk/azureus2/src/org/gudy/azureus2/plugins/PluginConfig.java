@@ -77,6 +77,15 @@ PluginConfig
   public String getStringParameter(String key);
   
   /**
+   * returns the value of a core string parameter or the default value if not defined
+   * @param key
+   * @param _default
+   * @return
+   */
+  
+  public String getStringParameter(String key, String _default );
+  
+  /**
    * returns the value of a core boolean parameter
    * @param key the parameter name
    * @return the value of the parameter

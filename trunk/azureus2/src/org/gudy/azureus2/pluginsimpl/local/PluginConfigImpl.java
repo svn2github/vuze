@@ -68,6 +68,11 @@ PluginConfigImpl
 		return config.getStringParameter(mapKeyName(name));
 	}
 
+    public String getStringParameter(String name, String _default )
+	{
+		return config.getStringParameter(mapKeyName(name), _default);
+    }
+
 	public float getFloatParameter(String name) {
 		return config.getFloatParameter(mapKeyName(name));
 	}
