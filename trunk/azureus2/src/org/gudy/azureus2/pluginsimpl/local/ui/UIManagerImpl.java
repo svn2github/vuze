@@ -22,8 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
@@ -57,6 +56,20 @@ UIManagerImpl
 		pi		=_pi;
 	}
 	
+	protected boolean
+	isSWTAvailable()
+	{
+		try{
+			org.eclipse.swt.SWT.getVersion();
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
 	public BasicPluginViewModel
 	getBasicPluginViewModel(
 		String			name )
@@ -68,24 +81,30 @@ UIManagerImpl
 	createPluginView(
 		PluginViewModel	model )
 	{
-	  if(model instanceof BasicPluginViewModel) {
-	    return new BasicPluginViewImpl((BasicPluginViewModel)model);
-	  } else {
-	    //throw new Exception("Unsupported Model : " + model.getClass());
-	    return null;
-	  }
+		if ( isSWTAvailable()){
+			
+		  if(model instanceof BasicPluginViewModel) {
+		    return new BasicPluginViewImpl((BasicPluginViewModel)model);
+		  } else {
+		    //throw new Exception("Unsupported Model : " + model.getClass());
+		    return null;
+		  }
+		}else{
+			return( null );
+		}
 	}
 	
 	public BasicPluginConfigModel
 	createBasicPluginConfigModel(
 		String		section_name )
 	{
-		try{
-			return( new BasicPluginConfigModelImpl( pi, null, section_name ));
-		}catch( Throwable e ){
-			// no SWT probably
+		if ( isSWTAvailable()){
 			
-			return( null );
+			return( new BasicPluginConfigModelImpl( pi, null, section_name ));
+	
+		}else{
+			
+			return( new dummyConfigModel());
 		}
 	}
 	
@@ -95,12 +114,13 @@ UIManagerImpl
 		String		parent_section,
 		String		section_name )
 	{
-		try{
-			return( new BasicPluginConfigModelImpl( pi, parent_section, section_name ));
-		}catch( Throwable e ){
-			// no SWT probably
+		if ( isSWTAvailable()){
 			
-			return( null );
+			return( new BasicPluginConfigModelImpl( pi, parent_section, section_name ));
+			
+		}else{
+			
+			return( new dummyConfigModel());
 		}
 	}
 	
@@ -110,14 +130,16 @@ UIManagerImpl
 	
 		throws UIException
 	{
-		try{
-			ClipboardCopy.copyToClipBoard( data );
+		if ( isSWTAvailable()){
 			
-		}catch( Throwable e ){
-			
-			throw( new UIException( "Failed to copy to clipboard", e ));
+			try{
+				ClipboardCopy.copyToClipBoard( data );
+				
+			}catch( Throwable e ){
+				
+				throw( new UIException( "Failed to copy to clipboard", e ));
+			}
 		}
-
 	}
 
   public TableManager getTableManager() {
@@ -126,5 +148,26 @@ UIManagerImpl
 
   public SWTManager getSWTManager() {
     return SWTManagerImpl.getSingleton();
+  }
+  
+  protected class
+  dummyConfigModel
+  	implements BasicPluginConfigModel
+  {
+	public void
+	addBooleanParameter(
+		String 		key,
+		String 		resource_name,
+		boolean 	defaultValue )
+	{		
+	}
+			
+	public void
+	addStringParameter(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue )
+	{
+	}
   }
 }
