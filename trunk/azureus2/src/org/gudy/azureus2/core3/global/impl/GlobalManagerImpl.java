@@ -125,9 +125,7 @@ public class GlobalManagerImpl
 	
 	private List 	managers			= new ArrayList();
 	private Map		manager_map			= new HashMap();
-	
-	private Object	tracker_host;	// don't make this TRHost as it drags in hosting support
-	
+		
 	private Checker checker;
 	private GlobalManagerStatsImpl		stats;
 	private TRTrackerScraper 			trackerScraper;
@@ -631,7 +629,34 @@ public class GlobalManagerImpl
                 + " : " + fileName
                 );
           }
-          String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
+          
+          	// migration from using a single savePath to a separate dir and file entry
+          
+          byte[] savePathBytes = (byte[]) mDownload.get("path");
+          
+          String	torrent_save_dir;
+          String	torrent_save_file;
+          
+          if ( savePathBytes == null ){
+          	
+          	byte[] torrent_save_dir_bytes 	= (byte[]) mDownload.get("save_dir");
+          	byte[] torrent_save_file_bytes 	= (byte[]) mDownload.get("save_file");
+          	       
+          	torrent_save_dir	= new String(torrent_save_dir_bytes, Constants.DEFAULT_ENCODING);
+          	  
+          	if ( torrent_save_file_bytes != null ){
+          		
+          		torrent_save_file	= new String(torrent_save_file_bytes, Constants.DEFAULT_ENCODING);       		
+          	}else{
+          		
+          		torrent_save_file	= null;
+          	}
+          }else{
+          	
+          	torrent_save_dir 	= new String(savePathBytes, Constants.DEFAULT_ENCODING);
+          	torrent_save_file	= null;
+          }
+          
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int maxDL = mDownload.get("maxdl")==null?0:((Long) mDownload.get("maxdl")).intValue();
           int state = DownloadManager.STATE_WAITING;
@@ -668,7 +693,7 @@ public class GlobalManagerImpl
           String sCategory = null;
           if (mDownload.containsKey("category"))
             sCategory = new String((byte[]) mDownload.get("category"), Constants.DEFAULT_ENCODING);
-          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true, true );
+          DownloadManager dm = DownloadManagerFactory.create(this, fileName, torrent_save_dir, torrent_save_file, state, true, true );
           DownloadManagerStats stats = dm.getStats();
           stats.setMaxUploads(nbUploads);
           stats.setMaxDownloadKBSpeed( maxDL );
@@ -794,7 +819,8 @@ public class GlobalManagerImpl
 	      	DownloadManagerStats stats = dm.getStats();
 		      Map dmMap = new HashMap();
 		      dmMap.put("torrent", dm.getTorrentFileName());
-		      dmMap.put("path", dm.getFullName());
+		      dmMap.put("save_dir", dm.getTorrentSaveDir());
+		      dmMap.put("save_file", dm.getTorrentSaveFile());
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long(stats.getMaxDownloadKBSpeed()));
           int state = dm.getState();
@@ -1112,12 +1138,12 @@ public class GlobalManagerImpl
             lastSelectedIndex = -1;
           lastSelectedIndex++;
           for (int i = lastSelectedIndex; i < managers.size(); i++) {
-            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getName().charAt(0));
+            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getDisplayName().charAt(0));
             if(test == c)
               return i;
           }
           for (int i = 0; i < lastSelectedIndex; i++) {
-            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getName().charAt(0));
+            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getDisplayName().charAt(0));
             if(test == c)
               return i;
           }

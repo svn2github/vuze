@@ -1118,11 +1118,14 @@ public class MyTorrentsView
     if (sSavePath != null) {
       for (int i = 0; i < dataSources.length; i++) {
         DownloadManager dm = (DownloadManager)dataSources[i];
-        if (dm.getState() == DownloadManager.STATE_ERROR &&
-            dm.setSavePath(sSavePath) &&
-            dm.filesExist()) {
-          dm.setState(DownloadManager.STATE_STOPPED);
-          ManagerUtils.queue(dm, cTablePanel);
+        if (dm.getState() == DownloadManager.STATE_ERROR ){
+        	
+            dm.setTorrentSaveDir(sSavePath);
+        	
+            if ( dm.filesExist()) {
+            	dm.setState(DownloadManager.STATE_STOPPED);
+            	ManagerUtils.queue(dm, cTablePanel);
+            }
         }
       }
     }
@@ -1133,12 +1136,12 @@ public class MyTorrentsView
     if (ManagerUtils.isRemoveable(dm)) {
       int choice;
       if (confirmDataDelete && bDeleteData) {
-        String path = dm.getFullName();
+        String path = dm.getTorrentSaveDirAndFile();
         MessageBox mb = new MessageBox(cTablePanel.getShell(), 
                                        SWT.ICON_WARNING | SWT.YES | SWT.NO);
         mb.setText(MessageText.getString("deletedata.title"));
         mb.setMessage(MessageText.getString("deletedata.message1")
-                      + dm.getName() + " :\n"
+                      + dm.getDisplayName() + " :\n"
                       + path
                       + MessageText.getString("deletedata.message2"));
 

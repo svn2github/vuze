@@ -146,10 +146,8 @@ DownloadManager
 		TRTrackerScraperResponse	response );
 	
 	public String
-	getName();
+	getDisplayName();
   
-    public String getFullName();
-	
 	public long
 	getSize();
 	
@@ -160,10 +158,22 @@ DownloadManager
 	setTorrentFileName(String string);
 	
 	public String
-	getSavePath();
+	getTorrentSaveDirAndFile();
+	
+	public String
+	getTorrentSaveDir();
+	
+	public String
+	getTorrentSaveFile();
 
-  public boolean 
-  setSavePath(String sPath);
+		/**
+		 * changes the save directory. Only call this if you know what you are doing!!!!
+		 * @param sPath
+		 */
+	
+ 	public void 
+	setTorrentSaveDir(
+		String sPath );
 	
 	public int
 	getPriority();

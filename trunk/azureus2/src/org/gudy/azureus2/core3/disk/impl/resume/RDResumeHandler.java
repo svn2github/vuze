@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -119,7 +120,7 @@ RDResumeHandler
 		
 		boolean	resume_data_complete = false;
 		
-		if (resumeEnabled) {
+		if (resumeEnabled){
 			boolean resumeValid = false;
 			byte[] resumeArray = null;
 			Map partialPieces = null;
@@ -127,6 +128,14 @@ RDResumeHandler
 			
 			if (resumeMap != null) {
 				
+					// backward compatability here over path management changes :(
+				
+				String resume_key = 
+					torrent.isSimpleTorrent()?
+						disk_manager.getDownloadManager().getTorrentSaveDir():
+						disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
+				
+			
 				// see bug 869749 for explanation of this mangling
 				
 				/*
@@ -143,7 +152,7 @@ RDResumeHandler
 				String mangled_path;
 				
 				try{
-					mangled_path = new String( disk_manager.getPath().getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+					mangled_path = new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
 					
 					// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
 					
@@ -151,7 +160,7 @@ RDResumeHandler
 					
 					e.printStackTrace();
 					
-					mangled_path = disk_manager.getPath();
+					mangled_path = resume_key;
 				}
 				
 				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
@@ -162,7 +171,7 @@ RDResumeHandler
 						// mangling with not yet have taken place. So we have to also try the 
 						// original key (see 878015)
 					
-					resumeDirectory = (Map)resumeMap.get(disk_manager.getPath());
+					resumeDirectory = (Map)resumeMap.get(resume_key);
 				}
 				
 				if ( resumeDirectory != null ){
@@ -176,7 +185,10 @@ RDResumeHandler
 							// if the torrent download is complete we don't need to invalidate the
 							// resume data
 						
-						if ( isTorrentResumeDataComplete( torrent, disk_manager.getPath() )){
+						if ( isTorrentResumeDataComplete( 
+								torrent, 
+								disk_manager.getDownloadManager().getTorrentSaveDir(),
+								disk_manager.getDownloadManager().getTorrentSaveFile())){
 							
 							resume_data_complete	= true;
 									
@@ -270,7 +282,10 @@ RDResumeHandler
 		if(!useFastResume)
 		  return;
     
-		boolean	was_complete = isTorrentResumeDataComplete( torrent, disk_manager.getPath());
+		boolean	was_complete = isTorrentResumeDataComplete( 
+									torrent, 
+									disk_manager.getDownloadManager().getTorrentSaveDir(), 
+									disk_manager.getDownloadManager().getTorrentSaveFile());
 		
 		boolean[]	pieceDone	= disk_manager.getPiecesDone();
 
@@ -292,7 +307,13 @@ RDResumeHandler
 	  
 	  // System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
 	  
-	  resumeMap.put(disk_manager.getPath(), resumeDirectory);
+	  String resume_key = 
+			torrent.isSimpleTorrent()?
+				disk_manager.getDownloadManager().getTorrentSaveDir():
+				disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
+		
+
+	  resumeMap.put(resume_key, resumeDirectory);
 	  
 	  resumeDirectory.put("resume data", resumeData);
 	  
@@ -335,8 +356,12 @@ RDResumeHandler
 	    resumeDirectory.put("valid", new Long(0));
 	  }
 		
-	  boolean	is_complete = isTorrentResumeDataComplete( torrent, disk_manager.getPath() );
-	  
+	  boolean	is_complete = 
+	  	isTorrentResumeDataComplete( 
+	  			torrent, 
+				disk_manager.getDownloadManager().getTorrentSaveDir(),
+				disk_manager.getDownloadManager().getTorrentSaveFile());
+
 	  if ( was_complete && is_complete ){
 	 
 	  		// no change, no point in writing
@@ -384,8 +409,17 @@ RDResumeHandler
 	public static boolean
 	isTorrentResumeDataComplete(
 		TOTorrent	torrent,
-		String		data_dir )
+		String		torrent_save_dir,
+		String		torrent_save_file )
 	{
+			// backwards compatability, resume data key is the dir
+		
+		String	resume_key = torrent.isSimpleTorrent()?
+								torrent_save_dir:
+								(torrent_save_dir + File.separator + torrent_save_file );
+		
+		// System.out.println( "resume key = " + resume_key );
+		
 		try{
 			int	piece_count = torrent.getPieces().length;
 		
@@ -398,13 +432,13 @@ RDResumeHandler
 				String mangled_path;
 				
 				try{
-					mangled_path = new String(data_dir.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+					mangled_path = new String(resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
 									
 				}catch( Throwable e ){
 					
 					e.printStackTrace();
 					
-					mangled_path = data_dir;
+					mangled_path = resume_key;
 				}
 				
 				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
@@ -415,7 +449,7 @@ RDResumeHandler
 					// mangling with not yet have taken place. So we have to also try the 
 					// original key (see 878015)
 					
-					resumeDirectory = (Map)resumeMap.get(data_dir);
+					resumeDirectory = (Map)resumeMap.get(resume_key);
 				}
 				
 				if (resumeDirectory != null) {

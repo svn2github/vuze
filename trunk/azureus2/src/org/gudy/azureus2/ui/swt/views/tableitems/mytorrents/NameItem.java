@@ -50,7 +50,7 @@ public class NameItem
     String name = null;
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     if (dm != null)
-      name = dm.getName();
+      name = dm.getDisplayName();
     if (name == null)
       name = "";
 

@@ -706,9 +706,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     setTracker(manager);
     
     setInfos(
-      manager.getName(),
+      manager.getDisplayName(),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
-      manager.getSavePath(),
+      manager.getTorrentSaveDirAndFile(),
       ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),
       manager.getPieceLength(),

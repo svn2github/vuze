@@ -37,10 +37,9 @@ DiskManagerFactory
 	public static DiskManager
 	create(
 		TOTorrent		torrent, 
-		String 			path,
 		DownloadManager manager)
 	{
-		DiskManagerImpl dm = new DiskManagerImpl( torrent, path, manager );
+		DiskManagerImpl dm = new DiskManagerImpl( torrent, manager );
 		
 		dm.start();
 		
@@ -50,10 +49,9 @@ DiskManagerFactory
 	public static DiskManager
 	createNoStart(
 		TOTorrent		torrent, 
-		String 			path,
 		DownloadManager manager)
 	{
-		return( new DiskManagerImpl( torrent, path, manager ));
+		return( new DiskManagerImpl( torrent, manager ));
 	}
 
 		/**
@@ -74,12 +72,18 @@ DiskManagerFactory
 	public static boolean
 	isTorrentResumeDataComplete(
 		TOTorrent	torrent,
-		String		data_location )
+		String		torrent_save_dir,
+		String		torrent_save_file)
 	{
-		return RDResumeHandler.isTorrentResumeDataComplete( torrent, data_location );
+		return RDResumeHandler.isTorrentResumeDataComplete( torrent, torrent_save_dir,torrent_save_file );
 	}
 
-	public static void deleteDataFiles(TOTorrent torrent, String sPath) {
-	  DiskManagerImpl.deleteDataFiles(torrent, sPath);
+	public static void 
+	deleteDataFiles(
+		TOTorrent 	torrent, 
+		String		torrent_save_dir,
+		String		torrent_save_file ) 
+	{
+	  DiskManagerImpl.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
 	}
 }

@@ -195,7 +195,7 @@ public class TrayWindow implements GlobalManagerListener {
         DownloadManager manager = (DownloadManager) managers.get(i);
 		DownloadManagerStats	stats = manager.getStats();
 		
-        String name = manager.getName();
+        String name = manager.getDisplayName();
         String completed = (stats.getCompleted() / 10) + "." + (stats.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
         toolTip.append(separator);
         toolTip.append(name);

@@ -69,18 +69,14 @@ DiskManagerImpl
 
 	//  private int[] _priorityPieces;
 
-	private byte[][] piecesHash;
-	private int nbPieces;
-	private long totalLength;
-	private boolean pieceDone[];
-	private int percentDone;
-	private long allocated;
+	private byte[][]	piecesHash;
+	private int 		nbPieces;
+	private long 		totalLength;
+	private boolean 	pieceDone[];
+	private int 		percentDone;
+	private long 		allocated;
+	private long 		remaining;
 
-	private long remaining;
-
-	private String rootPath = null;
-	private String path;
-	private String fileName = "";
     
 	private	TOTorrent		torrent;
 
@@ -132,11 +128,9 @@ DiskManagerImpl
 	public 
 	DiskManagerImpl(
 		TOTorrent			_torrent, 
-		String 				_path, 
 		DownloadManager 	_dmanager) 
 	{
 	    torrent 	= _torrent;
-	    path 		= _path;
 	    dmanager 	= _dmanager;
 	 
 	    setState( INITIALIZING );
@@ -149,46 +143,11 @@ DiskManagerImpl
 			
 			return;
 		}
-    
-		    //Insure that save folder exists
-		    /*
-		    File testPath = new File(path);
-		    if(testPath.isFile()) {
-		      testPath = testPath.getParentFile();
-		      if(!testPath.exists()) {
-		        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
-		        setState( FAULTY );
-		        return;
-		      }
-		    } else if(testPath.isDirectory()) {
-		      if(!testPath.exists()) {
-		        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
-		        setState( FAULTY );
-		        return;
-		      }
-		    }*/
    
 		LocaleUtilDecoder	locale_decoder = null;
 		
 		try{
 			locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-	
-			fileName = "";
-		
-			File f = new File(path);
-			
-			if (f.isDirectory()){
-				
-				fileName = locale_decoder.decodeString( torrent.getName());
-				
-			}else{
-				
-				fileName = f.getName();
-			  
-				path = f.getParent();
-			}
-			
-			fileName = FileUtil.convertOSSpecificChars( fileName );
 
 			dm_name	= ByteFormatter.nicePrint(torrent.getHash(),true);
 			
@@ -218,30 +177,10 @@ DiskManagerImpl
 		if ( torrent.isSimpleTorrent()){
 			
 			totalLength = torrent_files[0].getLength();
-  				
-			rootPath = "";
-				
-			piece_mapper.buildFileLookupTables( torrent_files[0], fileName );
+  								
+			piece_mapper.buildFileLookupTables( torrent_files[0], dmanager.getTorrentSaveFile());
 
 		}else{
-			
-			char separator = File.separatorChar;
-
-				//get the root
-			
-			rootPath = fileName + separator;
-
-				//:: Directory patch 08062003 - Tyler
-				//	check for a user selecting the full path
-			
-			String fullPath = path + separator;
-			
-			int fullPathIndex = fullPath.lastIndexOf(rootPath);
-			
-			if (fullPathIndex >= 0 && fullPathIndex == (fullPath.length() - rootPath.length())) {
-				
-				rootPath = ""; //null out rootPath
-			}
 
 			piece_mapper.buildFileLookupTables( torrent_files, locale_decoder );
 			
@@ -307,24 +246,18 @@ DiskManagerImpl
 		
 		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
 		
-		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+		String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
    
-		if (moveWhenDone && completedDir.length() > 0) {
+		if ( moveWhenDone && moveToDir.length() > 0 ){
 		
 				//if the data file already resides in the completed files dir
-			
-			String	path_copy = path;
-			
-			path = FileUtil.smartPath(completedDir, fileName);
-			
-			if ( filesExist()){
+					
+			if ( filesExist( moveToDir )){
 				
 				alreadyMoved = true;
-				
-			}else{
-				
-				path = path_copy;
-		  }
+		
+				dmanager.setTorrentSaveDir( moveToDir );
+			}
 		}
 
 		writer_and_checker.start();
@@ -339,8 +272,6 @@ DiskManagerImpl
       
 		if (getState() == FAULTY) return;
     
-        path = FileUtil.smartPath(path, fileName);
-
         pieceMap = piece_mapper.constructPieceMap();
 
 		constructFilesPieces();
@@ -365,35 +296,22 @@ DiskManagerImpl
 		setState( READY );
 	}
 
+	public boolean
+	filesExist()
+	{
+		return( filesExist( dmanager.getTorrentSaveDir()));
+	}
 
-
-	public boolean filesExist() {
-	  if (rootPath == null) {
-			this.errorMessage = "filesExist() called while rootPath null!";
-			setState( FAULTY );
-	    return false;
-	  }
-		//String basePath = path + System.getProperty("file.separator") + rootPath;
-		
-		// ok, we sometimes end up here with
-		// path=d:\temp, rootPath=test\
-		// for an original path of d:\temp\test
-		// So we need to make sure that the basePath ends up back as
-		// d:\temp\test\
-		
-		String	tempRoot 	= rootPath;
-		
-		if ( tempRoot.endsWith(File.separator)){
+	protected boolean 
+	filesExist(
+		String	root_dir )
+	{
+		if ( !torrent.isSimpleTorrent()){
 			
-			tempRoot = tempRoot.substring(0,tempRoot.length()-1);
+			root_dir += File.separator + dmanager.getTorrentSaveFile();
 		}
 		
-		String basePath = FileUtil.smartFullName( path, tempRoot );
-		
-		if ( !basePath.endsWith(File.separator)){
-			
-			basePath += File.separator;
-		}
+		root_dir	+= File.separator;
 		
 		//System.out.println( "path=" + path + ", root=" + rootPath + ", base = " + basePath );
 		
@@ -403,7 +321,7 @@ DiskManagerImpl
 			//get the BtFile
 			DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
 			//get the path
-			String tempPath = basePath + tempFile.getPath();
+			String tempPath = root_dir + tempFile.getPath();
 			//get file name
 			String tempName = tempFile.getName();
 			//System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
@@ -428,27 +346,15 @@ DiskManagerImpl
 		setState( ALLOCATING );
 		allocated = 0;
 		int numNewFiles = 0;
-		// String basePath = path + System.getProperty("file.separator") + rootPath;
+
+		String	root_dir = dmanager.getTorrentSaveDir();
 		
-		// ok, we sometimes end up here with
-		// path=d:\temp, rootPath=test\
-		// for an original path of d:\temp\test
-		// So we need to make sure that the basePath ends up back as
-		// d:\temp\test\
-		
-		String	tempRoot 	= rootPath;
-		
-		if ( tempRoot.endsWith(File.separator)){
+		if ( !torrent.isSimpleTorrent()){
 			
-			tempRoot = tempRoot.substring(0,tempRoot.length()-1);
+			root_dir += File.separator + dmanager.getTorrentSaveFile();
 		}
 		
-		String basePath = FileUtil.smartFullName( path, tempRoot );
-		
-		if ( !basePath.endsWith(File.separator)){
-			
-			basePath += File.separator;
-		}
+		root_dir	+= File.separator;	
 		
 		List btFileList	= piece_mapper.getFileList();
 	
@@ -456,7 +362,7 @@ DiskManagerImpl
 			//get the BtFile
 			final DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
 			//get the path
-			final String tempPath = basePath + tempFile.getPath();
+			final String tempPath = root_dir + tempFile.getPath();
 			//get file name
 			final String tempName = tempFile.getName();
 			//get file length
@@ -674,10 +580,6 @@ DiskManagerImpl
 			listeners.dispatch( LDT_STATECHANGED, params);
 		}
 	}
-	
-	public String getFileName() {
-		return fileName;
-	}
 
 
 	public void setPeerManager(PEPeerManager manager) {
@@ -768,11 +670,6 @@ DiskManagerImpl
 				fileInfo.setNbPieces(fileInfo.getNbPieces() + 1);
 			}
 		}
-	}
-
-
-	public String getPath() {
-		return path;
 	}
 
 	public String getErrorMessage() {
@@ -882,7 +779,7 @@ DiskManagerImpl
   public String moveCompletedFiles() {
     String fullPath;
     String subPath;
-    String rPath = path;
+    String rPath = dmanager.getTorrentSaveDir();
     File destDir;
     String returnName = "";
     
@@ -906,11 +803,7 @@ DiskManagerImpl
     if (moveToDir.length() == 0) return returnName;
 
     try {
-      //make sure the 'path' var isn't refering to multi-file torrent dir
-      if (rPath.endsWith(fileName)) {
-        File fTest = new File(rPath);
-        if(fTest.isDirectory()) rPath = fTest.getParent();
-      }
+
       
       boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir");
       if (moveOnlyInDefault) {
@@ -1020,17 +913,16 @@ DiskManagerImpl
       }
       
       //remove the old dir
-      File tFile = new File(rPath, fileName);
+      
+      File tFile = new File(dmanager.getTorrentSaveDir(), dmanager.getTorrentSaveFile());
       
       if (	tFile.isDirectory() && 
       		!moveToDir.equals(rPath)){
       	
-      	deleteDataFiles(torrent, tFile.toString());
+      		deleteDataFiles(torrent, dmanager.getTorrentSaveDir(), dmanager.getTorrentSaveFile());
       }
-
-      
-      //update internal path
-      path = FileUtil.smartPath(moveToDir, fileName);
+        
+      dmanager.setTorrentSaveDir( moveToDir );
       
       //move the torrent file as well
       boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
@@ -1099,60 +991,65 @@ DiskManagerImpl
   
 	public static void 
 	deleteDataFiles(
-		TOTorrent torrent, 
-		String sPath) 
-	{
-		if (torrent == null){
+		TOTorrent 	torrent, 
+		String		torrent_save_dir,		// enclosing dir, not for deletion 
+		String		torrent_save_file ) 	// file or dir for torrent
+	{	
+		if (torrent == null || torrent_save_file == null ){
 	  
 			return;
 		}
 	  	  
 		try{
-			LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			if (torrent.isSimpleTorrent()){
 
-			TOTorrentFile[] files = torrent.getFiles();
-
-				// delete all files, then empty directories
-
-			for (int i=0;i<files.length;i++){
-			
-				byte[][]path_comps = files[i].getPathComponents();
-			
-				String	path_str = sPath + File.separator;
+				new File( torrent_save_dir, torrent_save_file ).delete();
 				
-				for (int j=0;j<path_comps.length;j++){
+			}else{
+				
+				LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+	
+				TOTorrentFile[] files = torrent.getFiles();
+	
+					// delete all files, then empty directories
+	
+				for (int i=0;i<files.length;i++){
+				
+					byte[][]path_comps = files[i].getPathComponents();
+				
+					String	path_str = torrent_save_dir + File.separator + torrent_save_file + File.separator;
 					
-					try{
+					for (int j=0;j<path_comps.length;j++){
 						
-						String comp = locale_decoder.decodeString( path_comps[j] );
+						try{
+							
+							String comp = locale_decoder.decodeString( path_comps[j] );
+							
+							comp = FileUtil.convertOSSpecificChars( comp );
+							
+							path_str += (j==0?"":File.separator) + comp;
 						
-						comp = FileUtil.convertOSSpecificChars( comp );
-						
-						path_str += (j==0?"":File.separator) + comp;
+						}catch( UnsupportedEncodingException e ){
+							
+							System.out.println( "file - unsupported encoding!!!!");	
+						}
+					}
+				
+					File file = new File(path_str);
 					
-					}catch( UnsupportedEncodingException e ){
-						System.out.println( "file - unsupported encoding!!!!");	
+					if (file.exists() && !file.isDirectory()){
+				  
+						try{
+							file.delete();
+							
+						}catch (Exception e){
+							
+							Debug.out(e.toString());
+						}
 					}
 				}
-			
-				File file = new File(path_str);
-				
-				if (file.exists() && !file.isDirectory()){
-			  
-					try{
-						file.delete();
-					}catch (Exception e){
-						
-						Debug.out(e.toString());
-					}
-				}
-			}
-		
-			if (!torrent.isSimpleTorrent()){
-				
-				File fPath = new File(sPath);
-				
-				FileUtil.recursiveEmptyDirDelete(fPath);
+							
+				FileUtil.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
 			}
 		}catch( Throwable e ){
 		

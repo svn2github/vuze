@@ -331,7 +331,7 @@ public class MinimizedWindow {
   public void refresh() {
     if (splash.isDisposed())
       return;
-    splashFile.setText(manager.getName());
+    splashFile.setText(manager.getDisplayName());
     int percent = manager.getStats().getCompleted();
     splashPercent.setText((percent / 10) + "." + (percent % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
     splashDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDownloadAverage()));

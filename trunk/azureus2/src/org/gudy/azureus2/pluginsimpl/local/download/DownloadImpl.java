@@ -364,7 +364,7 @@ DownloadImpl
 	public String 
 	getName()
 	{
-		return download_manager.getName();
+		return download_manager.getDisplayName();
 	}
 
   public String getTorrentFileName() {
@@ -809,7 +809,7 @@ DownloadImpl
 	public String
 	getSavePath()
  	{
-		return( download_manager.getSavePath());
+		return( download_manager.getTorrentSaveDirAndFile());
  	}
 	
  	public void

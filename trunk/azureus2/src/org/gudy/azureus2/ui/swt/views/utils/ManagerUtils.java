@@ -45,7 +45,7 @@ public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-      Program.launch(dm.getFullName());
+      Program.launch(dm.getTorrentSaveDirAndFile());
     }
   }
   

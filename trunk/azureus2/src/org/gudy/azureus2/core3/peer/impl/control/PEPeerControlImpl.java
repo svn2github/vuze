@@ -165,7 +165,7 @@ PEPeerControlImpl
     			public String
 				getName()
     			{
-    				return( getDownloadManager().getName());
+    				return( getDownloadManager().getDisplayName());
     			}
     			
     			public long
@@ -1016,7 +1016,7 @@ PEPeerControlImpl
     * private method to add a new outgoing peerConnection
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ip, _downloadManager.getName())) {
+    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ip, _downloadManager.getDisplayName())) {
       //create a 'light' peer transport
       PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
       NewPeerManager.registerNewPeer( new_peer_manager_listener, testPS );
@@ -1031,7 +1031,7 @@ PEPeerControlImpl
     //Get the max number of connections allowed
     boolean addFailed = false;
     String reason = "";
-    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ps.getIp(), _downloadManager.getName())) {
+    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ps.getIp(), _downloadManager.getDisplayName())) {
        synchronized (_peer_transports) {
           if (!_peer_transports.contains(ps)) {
           	/* add connection */
@@ -1886,7 +1886,7 @@ PEPeerControlImpl
       	// if it comes back it'll start afresh
       
       if(nbWarnings > WARNINGS_LIMIT) {
-      	IpFilterManagerFactory.getSingleton().getIPFilter().ban(ip, _downloadManager.getName());                    
+      	IpFilterManagerFactory.getSingleton().getIPFilter().ban(ip, _downloadManager.getDisplayName());                    
       }
       //Close connection in 2nd
       ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
@@ -1986,7 +1986,7 @@ PEPeerControlImpl
       synchronized( _peer_transports ) {
         for (int i=0; i < _peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
-          if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getName() )) {
+          if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
         }
@@ -2011,7 +2011,7 @@ PEPeerControlImpl
     }    
     computeEndGameModeChunks();
     endGameMode = true;
-    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getName());
+    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
     //System.out.println("End-Game Mode activated");
   }
   

@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 
@@ -147,7 +146,7 @@ StatsWriterImpl
 						try{
 							indent();
 					
-							writeTag( "NAME", dm.getName());
+							writeTag( "NAME", dm.getDisplayName());
                                                                 
 							writeTag( "TORRENT_FILE", dm.getTorrentFileName());
 							
@@ -179,20 +178,15 @@ StatsWriterImpl
 						
 						writeTag( "DOWNLOAD_STATUS", DisplayFormatters.formatDownloadStatusDefaultLocale( dm));
 						
-						writeTag( "DOWNLOAD_DIR", dm.getSavePath());
+						writeTag( "DOWNLOAD_DIR", dm.getTorrentSaveDirAndFile());
 						
-						DiskManager	disk_manager = dm.getDiskManager();
+						if ( torrent.isSimpleTorrent()){
 						
-						if ( disk_manager != null ){
-						
-							if ( torrent.isSimpleTorrent()){
+							writeTag( "TARGET_FILE", dm.getTorrentSaveDirAndFile());
 							
-								writeTag( "TARGET_FILE", disk_manager.getFileName());
-								
-							}else{
-								
-								writeTag( "TARGET_DIR", disk_manager.getFileName());
-							}
+						}else{
+							
+							writeTag( "TARGET_DIR", dm.getTorrentSaveDirAndFile());
 						}
 						
 						writeTag( "TRACKER_STATUS", dm.getTrackerStatus());

@@ -198,10 +198,13 @@ DownloadManagerImpl
 	private GlobalManager globalManager;
 
 	private String torrentFileName;
-	private String name;
 
 	private int nbPieces;
-	private String savePath;
+	
+	private String	display_name;
+	private String	torrent_save_dir;
+	private String	torrent_save_file;
+	
   
 	// Position in Queue
 	private int position = -1;
@@ -231,18 +234,21 @@ DownloadManagerImpl
 	private PEPeerManager 			peerManager;
 	private PEPeerManagerListener	peer_manager_listener;
 
-  private HashMap data;
+	private HashMap data;
   
-  private boolean data_already_allocated = false;
+	private boolean data_already_allocated = false;
   
-  private long	creation_time	= SystemTime.getCurrentTime();
+	private long	creation_time	= SystemTime.getCurrentTime();
    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
+	
+	
 	public 
 	DownloadManagerImpl(
 		GlobalManager 	_gm, 
 		String 			_torrentFileName, 
-		String 			_savePath,
+		String 			_torrent_save_dir,
+		String			_torrent_save_file,
 		int   			_initialState,
 		boolean			_persistent,
 		boolean			_recovered ) 
@@ -261,14 +267,19 @@ DownloadManagerImpl
 	
 		torrentFileName = _torrentFileName;
 	
-		savePath = _savePath;
+		torrent_save_dir	= _torrent_save_dir;	
+		torrent_save_file	= _torrent_save_file;
 	
+			// readTorrent adjusts the save dir and file to be sensible values
+			
 		readTorrent( persistent && !_recovered );
-	
-	  // must be after readTorrent, so that any listeners have a TOTorrent
-	  if (state == -1)
-  		setState( _initialState );
-    
+		
+			// must be after readTorrent, so that any listeners have a TOTorrent
+		
+		if (state == -1){
+			
+			setState( _initialState );
+		}
 	}
 
   public void initialize() 
@@ -373,15 +384,99 @@ DownloadManagerImpl
 	readTorrent(
 		boolean		new_torrent )
 	{
-		name				= torrentFileName;	// default if things go wrong decoding it
-		//trackerUrl			= "";
-		torrent_comment		= "";
-		torrent_created_by	= "";
-		nbPieces			= 0;
+		display_name				= torrentFileName;	// default if things go wrong decoding it
+		//trackerUrl				= "";
+		torrent_comment				= "";
+		torrent_created_by			= "";
+		nbPieces					= 0;
 		
 		try {
 
 			 torrent = TorrentUtils.readFromFile( torrentFileName );
+		
+			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			 	
+			 	// if its a simple torrent and an explicit save file wasn't supplied, use
+			 	// the torrent name itself
+			 
+			 display_name = locale_decoder.decodeString( torrent.getName());
+             
+			 display_name = FileUtil.convertOSSpecificChars( display_name );
+		
+			 	// now we know if its a simple torrent or not we can make some choices about
+			 	// the save dir and file. On initial entry the save_dir will have the user-selected
+			 	// save location and the save_file will be null
+			 
+			 File	save_dir_file	= new File( torrent_save_dir );
+			 
+			 // System.out.println( "before: " + torrent_save_dir + "/" + torrent_save_file );
+			 
+			 	// if save file is non-null then things have already been sorted out
+			 
+			 if ( torrent_save_file == null ){
+			 		 	
+			 	if ( torrent.isSimpleTorrent()){
+			 		
+			 			// if target save location is a directory then we use that as the save
+			 			// dir and use the torrent display name as the target. Otherwise we
+			 			// use the file name
+			 		
+			 		if ( save_dir_file.exists()){
+			 			
+			 			if ( save_dir_file.isDirectory()){
+			 				
+			 				torrent_save_file	= display_name;
+			 				
+			 			}else{
+			 				
+			 				torrent_save_dir	= save_dir_file.getParent().toString();
+			 				
+			 				torrent_save_file	= save_dir_file.getName();
+			 			}
+			 		}else{
+			 			
+			 				// doesn't exist, assume it refers directly to the file
+			 			
+		 				torrent_save_dir	= save_dir_file.getParent().toString();
+		 				
+		 				torrent_save_file	= save_dir_file.getName(); 			
+			 		}
+			 		
+			 	}else{
+			 	
+			 			// torrent is a folder. It is possible that the natural location
+			 			// for the folder is X/Y and that in fact 'Y' already exists and
+			 			// has been selected. If ths is the case the select X as the dir and Y
+			 			// as the file name
+			 		
+			 		if ( save_dir_file.exists()){
+			 			
+			 			if ( !save_dir_file.isDirectory()){
+			 				
+			 				throw( new Exception( "'" + torrent_save_dir + "' is not a directory" ));
+			 			}
+			 			
+			 			if ( save_dir_file.getName().equals( display_name )){
+			 				
+			 				torrent_save_dir	= save_dir_file.getParent().toString();
+			 			}
+			 		}
+			 		
+			 		torrent_save_file	= display_name;		
+			 	}
+			 }
+			 
+			 // System.out.println( "after: " + torrent_save_dir + "/" + torrent_save_file );
+
+			 save_dir_file	= torrent.isSimpleTorrent()?new File( torrent_save_dir ):new File( torrent_save_dir, torrent_save_file );
+
+			 if ( !save_dir_file.exists()){
+			 	
+			 	if ( !save_dir_file.mkdirs()){
+			 	
+			 		throw( new Exception( "Directory '" + torrent_save_dir + "' creation fails" ));
+			 	}
+			 }	
 			 
 			 	// if this is a newly introduced torrent trash the tracker cache. We do this to
 			 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
@@ -399,21 +494,7 @@ DownloadManagerImpl
 			  	torrent.removeAdditionalProperty("resume");
 			 }
 			 
-			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-			 	
-			 name = locale_decoder.decodeString( torrent.getName());
-                 
-			 name = FileUtil.convertOSSpecificChars( name );
-			 
-         	 if (torrent.isSimpleTorrent()){
-          	
-            	File testFile = new File(savePath);
-            
-            	if (!testFile.isDirectory()){
-            		 name = testFile.getName(); 
-            	}
-          	 }
-          
+	         
 			 //trackerUrl = torrent.getAnnounceURL().toString();
          
 			 torrent_comment = locale_decoder.decodeString(torrent.getComment());
@@ -436,20 +517,16 @@ DownloadManagerImpl
 			 	
 			 	tracker_response_cache	= new HashMap();
 			 }
-			 
-			// Fixup the SavePath (again!)
-			String path = FileUtil.smartFullName(savePath, name);
-      File f = new File(path);
-			if (!f.isDirectory())
-			  path = f.getParent();
-
-      if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, path)) {
+     
+			 if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, torrent_save_dir, torrent_save_file )) {
+			 	
 			  stats.setDownloadCompleted(1000);
+			  
 			  setOnlySeeding(true);
-			} else {
+			 } else {
 			  setOnlySeeding(false);
 			}
-			 
+			
 		}catch( TOTorrentException e ){
 		
 			nbPieces = 0;
@@ -465,6 +542,15 @@ DownloadManagerImpl
 			setState( STATE_ERROR );
 			
 			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
+			
+		}catch( Exception e ){
+			
+			nbPieces = 0;
+    		
+			setState( STATE_ERROR );
+			
+			errorDetail = e.getMessage();
+			
 		}
 	}
 
@@ -543,7 +629,7 @@ DownloadManagerImpl
 		String strErrMessage = "";
 		// currently can only seed if whole torrent exists
 		if (diskManager == null) {
-  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name), this);
+  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, this);
   		if (dm.getState() == DiskManager.FAULTY)
   		  strErrMessage = dm.getErrorMessage();
   		else if (!dm.filesExist()) 
@@ -584,10 +670,10 @@ DownloadManagerImpl
   }
   
 
-  public String getName() {
-	if (diskManager == null)
-	  return name;
-	return diskManager.getFileName();
+  public String 
+  getDisplayName() 
+  {
+  	return( display_name );
   }	
 
   public String getErrorDetails() {
@@ -675,12 +761,9 @@ DownloadManagerImpl
 						  }
 				      
 						  saveTrackerResponseCache();
+						  					  
+						  diskManager.storeFilePriorities();
 						  
-						  //update path+name info before termination
-						  savePath = diskManager.getPath();
-						  name = diskManager.getFileName();
-						  
-						  diskManager.storeFilePriorities();        
 						  diskManager.stopIt();
 						  	
 						  diskManager.removeListener( disk_manager_listener );
@@ -839,21 +922,36 @@ DownloadManagerImpl
 	return( torrent );
   }
 
-  /**
-   * @return
-   */
-  public String getSavePath() {
-	if (diskManager != null)
-	  return diskManager.getPath();
-	return savePath;
-  }
 
-  public boolean setSavePath(String sPath) {
-  	if (diskManager != null)
-  	  return false;
+  	public String 
+	getTorrentSaveDirAndFile() 
+  	{	  
+  		return( torrent_save_dir + ( torrent_save_file==null?"":(File.separator + torrent_save_file )));
+  	}
 
-    savePath = sPath;
-    return true;
+  	public String
+	getTorrentSaveDir()
+  	{		
+  		return( torrent_save_dir );
+  	}
+	
+	public String
+	getTorrentSaveFile()
+	{
+		return( torrent_save_file );
+	}
+	
+  public void 
+  setTorrentSaveDir(
+  	String sPath) 
+  {
+  		// assumption here is that the caller really knows what they are doing. You can't
+  		// just change this willy nilly, it must be synchronised with reality. For example,
+  		// the disk-manager calls it after moving files on completing
+  		// The UI can call it as long as the torrent is stopped.
+  		// Calling it while a download is active will in general result in unpredictable behaviour!
+  
+  	torrent_save_dir	= sPath;
   }
 
   public String getPieceLength(){
@@ -862,21 +960,6 @@ DownloadManagerImpl
   	}
   	return( "" );
   }
-
-  /**
-   * Returns the full path including file/dir name
-   */
-  public String getFullName() {
-	//if diskmanager is already running, use its values
-   if (diskManager != null) {
-    String path = savePath = diskManager.getPath();
-    String fname = name = diskManager.getFileName();
-    return FileUtil.smartFullName(path, fname); 
-	}
-   //otherwise use downloadmanager's values
-   else return FileUtil.smartFullName(savePath, name);
-  }
-
 
   /**
    * @return
@@ -1260,9 +1343,9 @@ DownloadManagerImpl
 
   public void initializeDiskManager() 
   {
-  	if(diskManager == null) {
+  	if( diskManager == null) {
 
-  		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name), this);
+  		diskManager = DiskManagerFactory.create( torrent, this);
       
   		disk_manager_listener = 
   			new DiskManagerListener()
@@ -1431,8 +1514,10 @@ DownloadManagerImpl
   		tracker_listeners.removeListener( listener );
   }
   
-  public void deleteDataFiles() {
-    DiskManagerFactory.deleteDataFiles(torrent, FileUtil.smartPath(savePath, name));
+  public void 
+  deleteDataFiles() 
+  {
+  	DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
   }
 
   protected Map

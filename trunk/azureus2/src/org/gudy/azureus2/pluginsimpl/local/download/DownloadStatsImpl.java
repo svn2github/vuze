@@ -27,7 +27,6 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  */
 
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.download.DownloadStats;
@@ -56,21 +55,13 @@ DownloadStatsImpl
 	public String
 	getDownloadDirectory()
 	{
-		return( dm.getSavePath());
+		return( dm.getTorrentSaveDir());
 	}
 	
 	public String
 	getTargetFileOrDir()
 	{		
-		DiskManager	disk_manager = dm.getDiskManager();
-		
-		if ( disk_manager != null ){
-							
-			return( disk_manager.getFileName());
-				
-		}
-		
-		return( null );
+		return( dm.getTorrentSaveDirAndFile());
 	}
 	
 	public String

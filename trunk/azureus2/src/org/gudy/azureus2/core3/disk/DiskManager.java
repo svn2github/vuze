@@ -119,12 +119,6 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	public int
 	getState();
 	
-	public String
-	getPath();
-	
-	public String
-	getFileName();
-	
 	public long
 	getTotalLength();
 	
