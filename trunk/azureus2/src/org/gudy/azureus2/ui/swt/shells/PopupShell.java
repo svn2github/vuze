@@ -59,7 +59,7 @@ public class PopupShell {
     int[] corner4 = { 244,0  , 244,6 , 243,6 , 243,4 , 239,1, 237,1, 237,0};
     region.subtract(corner4);
     
-    shell.setRegion(region);
+    //shell.setRegion(region);
     
     Rectangle size = region.getBounds();
     shell.setSize(size.width, size.height);
