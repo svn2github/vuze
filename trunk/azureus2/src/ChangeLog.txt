@@ -1,6 +1,18 @@
 CHANGELOG
 ---------
 
+
+xx.xx.04 | Azureus 2.0.8.3
+
+FEATURE: 
+
+CHANGE: 
+
+BUGFIX: 
+
+
+
+
 15.03.04 | Azureus 2.0.8.2
 
 FEATURE: Show last time IPFilter list was updated in status area [Parg]
