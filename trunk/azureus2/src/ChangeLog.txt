@@ -1,6 +1,11 @@
 AZUREUS CHANGELOG
 ---------
 
+
+2004.07.xx | Azureus 2.1.0.5
+
+
+
 2004.07.08 | Azureus 2.1.0.4
 
 FEATURE: Core | Show built-in plugins in config view [Parg]
