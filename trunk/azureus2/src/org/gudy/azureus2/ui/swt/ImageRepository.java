@@ -117,9 +117,13 @@ public class ImageRepository {
   }
   
   public static Image loadImage(Display display, String res, String name,int alpha) {
+    return loadImage(ImageRepository.class.getClassLoader(),display,res,name,alpha);
+  }
+  
+  public static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
     Image im = getImage(name);
     if(null == im) {
-      InputStream is = ImageRepository.class.getClassLoader().getResourceAsStream(res);
+      InputStream is = loader.getResourceAsStream(res);
       if(null != is) {
         if(alpha == 255) {
           im = new Image(display, is);          
