@@ -30,6 +30,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 
@@ -42,32 +43,44 @@ TorrentUtils
 		
 		throws TOTorrentException
 	{
-		TOTorrent torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(file_name));
-
-		torrent.setAdditionalStringProperty("torrent filename", file_name );
-		
+		TOTorrent torrent;
+    try {
+      torrent = TOTorrentFactory.deserialiseFromBEncodedFile(new File(file_name));
+    } catch (TOTorrentException e) {
+      e.printStackTrace();
+      File torrentBackup = new File(file_name + ".bak");
+      if(torrentBackup.exists())
+        torrent = TOTorrentFactory.deserialiseFromBEncodedFile(torrentBackup);
+      else
+        throw e;
+    }
+    torrent.setAdditionalStringProperty("torrent filename", file_name );
 		return( torrent );
 	}
 
 	public static void
 	writeToFile(
 		TOTorrent		torrent )
-		
-		throws TOTorrentException
-	{	
-		synchronized( torrent ){
-			
-			String	str = torrent.getAdditionalStringProperty( "torrent filename");
-			
-			if ( str == null ){
-				
-				throw( new TOTorrentException( "TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND ));
-			}
-			
-			File torrent_file = new File( str );
-				
-			torrent.serialiseToBEncodedFile( torrent_file );
-		}
+		throws TOTorrentException {
+    synchronized (torrent) {
+      String str = torrent.getAdditionalStringProperty("torrent filename");
+      if (str == null) {
+        throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
+      }
+
+      File torrent_file = new File(str);
+      if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", true) && torrent_file.exists()) {
+        File torrent_file_bak = new File(str + ".bak");
+        try {
+          if (torrent_file_bak.exists())
+            torrent_file_bak.delete();
+          torrent_file.renameTo(torrent_file_bak);
+        } catch (SecurityException e) {
+          e.printStackTrace();
+        }
+      }
+      torrent.serialiseToBEncodedFile(torrent_file);
+    }
 	}
 	
 	public static String

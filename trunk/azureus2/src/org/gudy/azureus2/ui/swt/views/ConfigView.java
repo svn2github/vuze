@@ -778,7 +778,7 @@ public class ConfigView extends AbstractIView {
    
     gridData = new GridData();
     gridData.widthHint = 180;
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 2;
     final StringParameter torrentPathParameter = new StringParameter(gFile, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
     torrentPathParameter.setLayoutData(gridData);
     
@@ -798,9 +798,15 @@ public class ConfigView extends AbstractIView {
       }
     });
     
-    controls = new Control[2];
+    Label lSaveTorrentBackup = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(lSaveTorrentBackup, "ConfigView.label.savetorrentbackup"); //$NON-NLS-1$
+    BooleanParameter saveTorrentBackup = new BooleanParameter(gFile, "Save Torrent Backup", true); //$NON-NLS-1$    
+
+    controls = new Control[4];
     controls[0] = torrentPathParameter.getControl();
     controls[1] = browse2;
+    controls[2] = lSaveTorrentBackup;
+    controls[3] = saveTorrentBackup.getControl();
     IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
     saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
     
