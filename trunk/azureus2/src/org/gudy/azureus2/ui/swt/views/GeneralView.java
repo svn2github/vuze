@@ -40,11 +40,13 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
 
 /**
@@ -329,17 +331,75 @@ public class GeneralView extends AbstractIView {
     Messages.setLanguageText(itemSelect, "GeneralView.menu.selectTracker");
     MenuItem itemEdit = new MenuItem(menuTracker,SWT.NULL);
     Messages.setLanguageText(itemEdit, "MyTorrentsView.menu.editTracker");
-    //TODO : (parg) add the SWT.Selection event listener to the edit item
+     
+    itemEdit.addListener(
+    	SWT.Selection,
+    	new Listener()
+    	{
+    		public void 
+    		handleEvent(Event e)
+    		{
+    			final TOTorrent	torrent = manager.getTorrent();
+    		
+	    		List	group = TorrentUtils.announceGroupsToList( torrent );
+	    		
+	    		new MultiTrackerEditor(null,group,
+	    				new TrackerEditorListener()
+	    				{
+	    					public void
+	    					trackersChanged(
+	    							String	str,
+									String	str2,
+									List	group )
+	    					{
+	    						TorrentUtils.listToAnnounceGroups( group, torrent );
+	    						
+	    						try{
+	    							TorrentUtils.writeToFile( torrent );
+	    						}catch( Throwable e ){
+	    							
+	    							e.printStackTrace();
+	    						}
+	    						
+	    						TRTrackerClient	tc = manager.getTrackerClient();
+	    						
+	    						if ( tc != null ){
+	    							
+	    							tc.resetTrackerUrl( true );
+	    						}
+	    					}
+	    				}, true);	
+    		}  		
+    	});
     
-    
-    final Listener menuListener = new Listener() {
-      public void handleEvent(Event e) {
-        if(e.item instanceof MenuItem) {
-          String text = ((MenuItem)e.item).getText();
-          //TODO : (parg) Make this work
-          if(manager != null) {
-            manager.getTrackerClient().setTrackerUrl(text);
+    final Listener menuListener = new Listener() 
+    {
+      public void 
+      handleEvent(Event e)
+      {
+         if( e.widget instanceof MenuItem) {
+        	
+          String text = ((MenuItem)e.widget).getText();
+                   
+          	
+          TOTorrent	torrent = manager.getTorrent();
+          	
+          TorrentUtils.announceGroupsSetFirst(torrent,text);   
+          	
+          try{
+          	TorrentUtils.writeToFile(torrent);
+          	
+          }catch( TOTorrentException f){
+          		
+          	f.printStackTrace();
           }
+          	
+          TRTrackerClient	tc = manager.getTrackerClient();
+          	
+          if ( tc != null ){
+          		
+          	tc.resetTrackerUrl( false );
+          }    	
         }
       }
     };
@@ -352,10 +412,7 @@ public class GeneralView extends AbstractIView {
     		}
     		if(manager == null || genComposite == null || genComposite.isDisposed())
     		  return;
-    		TRTrackerClient tracker = manager.getTrackerClient();
-    		if(tracker == null)
-    		  return;
-    		List groups = TorrentUtils.announceGroupsToList(tracker.getTorrent());        		
+     		List groups = TorrentUtils.announceGroupsToList(manager.getTorrent());        		
     		menuSelect = new Menu(genComposite.getShell(),SWT.DROP_DOWN);
     		itemSelect.setMenu(menuSelect);
     		Iterator iterGroups = groups.iterator();

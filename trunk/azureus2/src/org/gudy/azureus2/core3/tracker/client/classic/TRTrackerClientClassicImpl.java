@@ -109,7 +109,7 @@ TRTrackerClientClassicImpl
 
 		//Get the Tracker url
 		
-	constructTrackerUrlLists();     
+	constructTrackerUrlLists( true );     
 
 		//Create our unique peerId
 		
@@ -859,16 +859,19 @@ TRTrackerClientClassicImpl
   }
   
   public void
-  resetTrackerUrl()
+  resetTrackerUrl(
+  	boolean		shuffle )
   {
-	constructTrackerUrlLists();
+	constructTrackerUrlLists(shuffle);
  	
 	if ( trackerUrlLists.size() == 0 ){
 		
 		return;
 	}
 	
-	informURLChange((String)((List)trackerUrlLists.get(0)).get(0), true );       	
+	String	first_url = (String)((List)trackerUrlLists.get(0)).get(0);
+		
+	informURLChange( first_url, true );       	
  }
 	
   public void
@@ -891,7 +894,8 @@ TRTrackerClientClassicImpl
   }
 		
   private void 
-  constructTrackerUrlLists()
+  constructTrackerUrlLists(
+  	boolean	shuffle )
   {
 	try {
 	  trackerUrlLists = new ArrayList();
@@ -945,7 +949,7 @@ TRTrackerClientClassicImpl
 		
 					//Shuffle
 					
-				int pos = (int)(Math.random() *  stringUrls.size());
+				int pos = shuffle?(int)(Math.random() *  stringUrls.size()):j;
 				
 				stringUrls.add(pos,url);
 			

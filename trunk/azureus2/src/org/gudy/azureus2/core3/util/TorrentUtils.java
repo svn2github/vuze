@@ -225,4 +225,44 @@ TorrentUtils
 			e.printStackTrace();
 		}
 	}
+	
+	public static void
+	announceGroupsSetFirst(
+		TOTorrent	torrent,
+		String		first_url )
+	{
+		List	groups = announceGroupsToList( torrent );
+		
+		boolean	found = false;
+	
+		outer:
+		for (int i=0;i<groups.size();i++){
+			
+			List	set = (List)groups.get(i);
+			
+			for (int j=0;j<set.size();j++){
+		
+				if ( first_url.equals(set.get(j))){
+			
+					set.remove(j);
+					
+					set.add(0, first_url);
+					
+					groups.remove(set);
+					
+					groups.add(0,set);
+	
+					found = true;
+					
+					break outer;
+				}
+			}
+		}
+		
+		if ( !found ){
+			
+			System.out.println( "TorrentUtils::announceGroupsSetFirst - failed to find '" + first_url + "'" );
+		}
+		listToAnnounceGroups( groups, torrent );
+	}
 }

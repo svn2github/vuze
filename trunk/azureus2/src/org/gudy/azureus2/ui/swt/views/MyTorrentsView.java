@@ -6,7 +6,6 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -634,7 +633,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     								
     								if ( dm.getTrackerClient() != null ){
     									
-    									dm.getTrackerClient().resetTrackerUrl();
+    									dm.getTrackerClient().resetTrackerUrl( true );
     								}
     							}
     						}, true);

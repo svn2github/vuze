@@ -54,7 +54,8 @@ TRTrackerClient
 		String		url );
 		
 	public void
-	resetTrackerUrl();
+	resetTrackerUrl(
+		boolean	shuffle );
 	
 	public void
 	setIPOverride(

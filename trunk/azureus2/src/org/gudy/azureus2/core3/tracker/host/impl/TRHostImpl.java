@@ -484,7 +484,7 @@ TRHostImpl
 					
 							tracker_client.clearIPOverride();
 		
-							tracker_client.resetTrackerUrl();							
+							tracker_client.resetTrackerUrl( true );							
 						}
 					}
 				}
