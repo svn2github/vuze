@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+
 /**
  * 
  * This class handles communication with the tracker
@@ -660,137 +662,22 @@ TRTrackerClientClassicImpl
  		
 	  		String	failure_reason = null;
 	  	
-			try{      
+			try{  
+				String	protocol = reqUrl.getProtocol();
+				
 		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
 		  
-				HttpURLConnection con;
-				
-		  		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-		  			
-		  				// see ConfigurationChecker for SSL client defaults
-		  						  			
-		  			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
-		  			
-		  				// allow for certs that contain IP addresses rather than dns names
+		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  				
-		  			ssl_con.setHostnameVerifier(
-		  				new HostnameVerifier()
-		  				{
-		  					public boolean
-		  					verify(
-		  						String		host,
-		  						SSLSession	session )
-		  					{
-		  						return( true );
-		  					}
-		  				});
+		  		if ( protocol.equalsIgnoreCase("udp")){
 		  			
-		  			
-		  			con = ssl_con;
+		  			failure_reason = UDPRequest( reqUrl, message );
 		  			
 		  		}else{
-		  		
-		  			con = (HttpURLConnection) reqUrl.openConnection();
-		  		}
-		  	
-		  		con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-		  		
-		  		con.setRequestProperty("Connection", "close" );
-		  		
-		  			// some trackers support gzip encoding of replies
-		  		
-		  		con.addRequestProperty("Accept-Encoding","gzip");
-		  		
-		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
-		  	  
-		  		try{
 		  			
-		 	  		con.connect();
-			  	  		 	  		
-			  		InputStream is = null;
-			  
-					try{
-						
-				  		is = con.getInputStream();
-				  		
-				  		String encoding = con.getHeaderField( "content-encoding");
-				  				  		
-				  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
-				  		
-				  		// System.out.println( "encoding = " + encoding );
-				  		
-				  		if ( gzip ){
-				  			
-				  			is = new GZIPInputStream( is );
-				  		}
-						
-				  		int content_length = con.getContentLength();
-				  		
-				  		  //      System.out.println(length);
-				  
-				  		byte[] data = new byte[1024];
-				  		
-				  		int	num_read = 0;
-				  		
-				  			// some trackers don't return content-length
-				  		
-				  		while ( content_length <= 0 || num_read < content_length ){
-				  			
-							try{
-					  			int	len = is.read(data);
-					  			
-					  			if ( len > 0 ){
-					  			
-									message.write(data, 0, len);
-									
-									num_read += len;
-									
-					  			}else if ( len == 0 ){
-					  			
-					  				Thread.sleep(20);
-					  				
-					  			}else{
-					  				
-					  				break;
-					  			}
-					  			
-							}catch (Exception e){
-								
-					  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
-					  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
-					  										
-					  			failure_reason = exceptionToString( e );
-					  			
-					  			break;
-							}
-				  		}
-				  			  		
-				  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
-				  
-				
-					}catch (Exception e){
-					
-						// e.printStackTrace();
-					
-						failure_reason = exceptionToString( e );
-					
-					}finally{
-						
-						if (is != null) {
-				  			
-							try {
-					  			is.close();
-					  			
-							}catch (Exception e) {
-							}
-					
-							is = null;
-						}
-					}
-		  		}finally{
-		  			con.disconnect();
+		  			failure_reason = HTTPRequest( reqUrl, message );
+		  			
 		  		}
-			
 					// if we've got some kind of response then return it
 				
 				if ( message.size() > 0 ){
@@ -844,9 +731,174 @@ TRTrackerClientClassicImpl
  		throw( new Exception( "Internal Error: should never get here" ));
   	}
   
+ 	
+ 	protected String
+ 	HTTPRequest(
+ 		URL						reqUrl,
+ 		ByteArrayOutputStream	message )
+ 	
+ 		throws IOException
+ 	{
+ 		String	failure_reason = null;
+ 		
+ 		HttpURLConnection con;
+ 		
+ 		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+ 			
+ 			// see ConfigurationChecker for SSL client defaults
+ 			
+ 			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+ 			
+ 			// allow for certs that contain IP addresses rather than dns names
+ 			
+ 			ssl_con.setHostnameVerifier(
+ 					new HostnameVerifier()
+ 					{
+ 						public boolean
+ 						verify(
+ 								String		host,
+								SSLSession	session )
+ 						{
+ 							return( true );
+ 						}
+ 					});
+ 			
+ 			
+ 			con = ssl_con;
+ 			
+ 		}else{
+ 			
+ 			con = (HttpURLConnection) reqUrl.openConnection();
+ 		}
+ 		
+ 		con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
+ 		
+ 		con.setRequestProperty("Connection", "close" );
+ 		
+ 		// some trackers support gzip encoding of replies
+ 		
+ 		con.addRequestProperty("Accept-Encoding","gzip");
+ 		
+ 		try{
+ 			
+ 			con.connect();
+ 			
+ 			InputStream is = null;
+ 			
+ 			try{
+ 				
+ 				is = con.getInputStream();
+ 				
+ 				String encoding = con.getHeaderField( "content-encoding");
+ 				
+ 				boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+ 				
+ 				// System.out.println( "encoding = " + encoding );
+ 				
+ 				if ( gzip ){
+ 					
+ 					is = new GZIPInputStream( is );
+ 				}
+ 				
+ 				int content_length = con.getContentLength();
+ 				
+ 				//      System.out.println(length);
+ 				
+ 				byte[] data = new byte[1024];
+ 				
+ 				int	num_read = 0;
+ 				
+ 				// some trackers don't return content-length
+ 				
+ 				while ( content_length <= 0 || num_read < content_length ){
+ 					
+ 					try{
+ 						int	len = is.read(data);
+ 						
+ 						if ( len > 0 ){
+ 							
+ 							message.write(data, 0, len);
+ 							
+ 							num_read += len;
+ 							
+ 						}else if ( len == 0 ){
+ 							
+ 							Thread.sleep(20);
+ 							
+ 						}else{
+ 							
+ 							break;
+ 						}
+ 						
+ 					}catch (Exception e){
+ 						
+ 						LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+ 						LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+ 						
+ 						failure_reason = exceptionToString( e );
+ 						
+ 						break;
+ 					}
+ 				}
+ 				
+ 				LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+ 				
+ 				
+ 			}catch (Exception e){
+ 				
+ 				// e.printStackTrace();
+ 				
+ 				failure_reason = exceptionToString( e );
+ 				
+ 			}finally{
+ 				
+ 				if (is != null) {
+ 					
+ 					try {
+ 						is.close();
+ 						
+ 					}catch (Exception e) {
+ 					}
+ 					
+ 					is = null;
+ 				}
+ 			}
+ 		}finally{
+ 			con.disconnect();
+ 		}
+ 		
+ 		return( failure_reason );
+ 	}
+ 	
+ 	protected String
+ 	UDPRequest(
+ 		URL						reqUrl,
+		ByteArrayOutputStream	message )
+ 	
+ 		throws IOException
+ 	{
+ 		String	failure_reason = null;
+ 		
+ 		try{
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( 6881 );	// TODO:
+ 			
+ 			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort());
+ 			
+ 			PRUDPPacket request_packet = new PRUDPPacketRequestConnect(0);
+ 			
+ 			PRUDPPacket reply_packet = handler.sendAndReceive( request_packet, destination );
+ 			
+ 		}catch( Throwable e ){
+ 		
+ 			failure_reason = exceptionToString(e);
+ 		}
+ 		
+ 		return( failure_reason );
+ 	}
+ 	
   protected String
   exceptionToString(
-  	Exception 	e )
+  	Throwable 	e )
   {
   	String class_name = e.getClass().getName();
   	

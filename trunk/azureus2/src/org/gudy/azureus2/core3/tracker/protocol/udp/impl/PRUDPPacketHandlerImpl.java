@@ -54,22 +54,27 @@ PRUDPPacketHandlerImpl
 	{
 		port		= _port;
 		
+		final Semaphore init_sem = new Semaphore();
+		
 		Thread t = new Thread( "PRUDPPacketReciever:" + port )
 			{
 				public void
 				run()
 				{
-					receiveLoop();
+					receiveLoop(init_sem);
 				}
 			};
 		
 		t.setDaemon(true);
 		
 		t.start();
+		
+		init_sem.reserve();
 	}
 	
 	protected void
-	receiveLoop()
+	receiveLoop(
+		Semaphore	init_sem )
 	{
 		try{
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
@@ -90,6 +95,8 @@ PRUDPPacketHandlerImpl
 			socket.setReuseAddress(true);
 			
 			socket.setSoTimeout( RECEIVE_TIMEOUT );
+			
+			init_sem.release();
 			
 			LGLogger.log( "PRUDPPacketReceiver: receiver established on port " + port ); 
 	

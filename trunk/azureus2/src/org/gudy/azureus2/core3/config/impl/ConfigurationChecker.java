@@ -56,9 +56,7 @@ public class ConfigurationChecker {
   	}
   	
   	System.setProperty( "java.protocol.handler.pkgs", handlers );
-  	
-  	System.out.println( "protocol handlers = " + handlers );
-  	
+  	 	
   		// DNS cache timeouts
   	
   	System.setProperty("sun.net.inetaddr.ttl", "60");

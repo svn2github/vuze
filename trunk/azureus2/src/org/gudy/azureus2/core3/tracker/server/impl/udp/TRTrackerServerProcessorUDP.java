@@ -84,9 +84,7 @@ TRTrackerServerProcessorUDP
 			byte[]	buffer = baos.toByteArray();
 			
 			DatagramPacket reply_packet = new DatagramPacket(buffer, buffer.length,address,packet.getPort());
-			
-			System.out.println( "sending packet");
-			
+						
 			socket.send( reply_packet );
 			
 		}catch( Throwable e ){
