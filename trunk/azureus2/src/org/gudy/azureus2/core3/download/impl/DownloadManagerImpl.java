@@ -219,8 +219,6 @@ DownloadManagerImpl
 	 
 		forceStarted = false;
   
-		setState( _initialState );
-    
 		priority = HIGH_PRIORITY;
 	
 		torrentFileName = _torrentFileName;
@@ -229,6 +227,9 @@ DownloadManagerImpl
 	
 		readTorrent();
 	
+	  // must be after readTorrent, so that any listeners have a TOTorrent
+		setState( _initialState );
+    
 	}
 
   public void initialize() 
@@ -386,6 +387,13 @@ DownloadManagerImpl
 			}
 			 
 			 nbPieces = torrent.getPieces().length;
+			 
+      if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, FileUtil.smartFullName(savePath, name))) {
+			  stats.setCompleted(1000);
+			  setOnlySeeding(true);
+			} else {
+			  setOnlySeeding(false);
+			}
 			 
 		}catch( TOTorrentException e ){
 		
@@ -1090,6 +1098,7 @@ DownloadManagerImpl
   
   public boolean canForceRecheck() {
     return (state == STATE_STOPPED) ||
+           (state == STATE_QUEUED) ||
            (state == STATE_ERROR && diskManager == null);
   }
 

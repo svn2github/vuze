@@ -64,4 +64,12 @@ DiskManagerFactory
 	{
 		DiskManagerImpl.setTorrentResumeDataComplete( torrent, data_location );
 	}
+
+	public static boolean
+	isTorrentResumeDataComplete(
+		TOTorrent	torrent,
+		String		data_location )
+	{
+		return DiskManagerImpl.isTorrentResumeDataComplete( torrent, data_location );
+	}
 }

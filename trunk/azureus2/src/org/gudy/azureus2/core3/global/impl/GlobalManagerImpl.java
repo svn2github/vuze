@@ -726,6 +726,8 @@ public class GlobalManagerImpl
           // XXX: Add "&& SeedingQREnabled"
           if (state == DownloadManager.STATE_SEEDING)
             state = DownloadManager.STATE_QUEUED;
+          else if (state == DownloadManager.STATE_ERROR)
+            state = DownloadManager.STATE_STOPPED;
           else if (state != DownloadManager.STATE_STOPPED &&
                   state != DownloadManager.STATE_QUEUED &&
                   state != DownloadManager.STATE_WAITING)
