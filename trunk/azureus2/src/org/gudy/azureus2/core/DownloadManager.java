@@ -13,6 +13,7 @@ import org.gudy.azureus2.core2.PeerSocket;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -63,7 +64,7 @@ public class DownloadManager extends Component {
   private TOTorrent			torrent;
   private TRTrackerClient 	tracker_client;
   public DiskManager diskManager;
-  public PeerManager peerManager;
+  public PEPeerManager peerManager;
   
   //saved downloaded and uploaded
   private long downloaded;
@@ -141,7 +142,7 @@ public class DownloadManager extends Component {
 
   public void startDownload() {
     this.state = STATE_DOWNLOADING;
-    peerManager = new PeerManager(this, server, tracker_client, diskManager);
+    peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
     peerManager.getStats().setTotalReceivedRaw(downloaded);
     peerManager.getStats().setTotalSent(uploaded);
   }
@@ -370,7 +371,7 @@ public class DownloadManager extends Component {
 
   public String getDownloaded() {
     if (peerManager != null) {
-      PeerStats ps = peerManager.getStats();
+      PEPeerStats ps = peerManager.getStats();
       return ps.getReallyReceived();
     }
     return ""; //$NON-NLS-1$
@@ -437,7 +438,7 @@ public class DownloadManager extends Component {
             objectAdded(ps);
         }
       }
-      Piece[] pieces = peerManager.getPieces();
+      PEPiece[] pieces = peerManager.getPieces();
       for (int i = 0; i < pieces.length; i++) {
         if (pieces[i] != null) {
           objectAdded(pieces[i]);

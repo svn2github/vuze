@@ -15,9 +15,9 @@ import java.util.Vector;
 import org.gudy.azureus2.core.ByteBufferPool;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.PeerManager;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.SpeedLimiter;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Constants;
 
 /**
@@ -40,7 +40,7 @@ public class PeerSocket extends PeerConnection {
    * @param ip the peer Ip Address
    * @param port the peer port
    */
-  public PeerSocket(PeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
+  public PeerSocket(PEPeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake)
       return;
@@ -77,7 +77,7 @@ public class PeerSocket extends PeerConnection {
    * @param table the graphical table in which this PeerConnection should display its info
    * @param sck the SocketChannel that handles the connection
    */
-  public PeerSocket(PeerManager manager, SocketChannel sck) {
+  public PeerSocket(PEPeerManager manager, SocketChannel sck) {
     super(manager, sck.socket().getInetAddress().getHostAddress(), sck.socket().getPort());
     this.socket = sck;
     this.incoming = true;

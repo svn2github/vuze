@@ -22,6 +22,7 @@ import org.gudy.azureus2.core2.DataQueueItem;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -85,12 +86,12 @@ public class DiskManager {
     //long[] filesDone;
     //RandomAccessFile[] fileArray;
 
-    private PeerManager manager;
+    private PEPeerManager manager;
     private SHA1Hasher hasher;
 
     private boolean bContinue = true;
 
-    private Piece[] pieces;
+    private PEPiece[] pieces;
 
     public DiskManager(TOTorrent	_torrent, String path) {
         this.state = INITIALIZING;
@@ -411,16 +412,16 @@ public class DiskManager {
                 }
             }
             if (partialPieces != null && resumeValid) {
-                pieces = new Piece[nbPieces];
+                pieces = new PEPiece[nbPieces];
                 Iterator iter = partialPieces.entrySet().iterator();
                 while (iter.hasNext()) {
                     Map.Entry key = (Map.Entry)iter.next();
                     int pieceNumber = Integer.parseInt((String)key.getKey());
-                    Piece piece;
+                    PEPiece piece;
                     if (pieceNumber < nbPieces - 1)
-                        piece = new Piece(null, getPieceLength(), pieceNumber);
+                        piece = PEPieceFactory.create(null, getPieceLength(), pieceNumber);
                     else
-                        piece = new Piece(null, getLastPieceLength(), pieceNumber);
+                        piece = PEPieceFactory.create(null, getLastPieceLength(), pieceNumber);
                     List blocks = (List)partialPieces.get(key.getKey());
                     Iterator iterBlock = blocks.iterator();
                     while (iterBlock.hasNext()) {
@@ -901,9 +902,9 @@ public class DiskManager {
                 pieces = manager.getPieces();
             if(pieces != null) {
             for (int i = 0; i < pieces.length; i++) {
-                Piece piece = pieces[i];
+                PEPiece piece = pieces[i];
                 if (piece != null && piece.getCompleted() > 0) {
-                    boolean[] downloaded = piece.written;
+                    boolean[] downloaded = piece.getWritten();
                     List blocks = new ArrayList();
                     for (int j = 0; j < downloaded.length; j++) {
                         if (downloaded[j])
@@ -1281,7 +1282,7 @@ public class DiskManager {
       }
     }*/
 
-    public void setManager(PeerManager manager) {
+    public void setManager(PEPeerManager manager) {
         this.manager = manager;
     }
 
@@ -1513,7 +1514,7 @@ public class DiskManager {
     /**
      * @return
      */
-    public Piece[] getPieces() {
+    public PEPiece[] getPieces() {
         return pieces;
     }
 

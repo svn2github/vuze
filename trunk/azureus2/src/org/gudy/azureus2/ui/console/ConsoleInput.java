@@ -26,8 +26,8 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.HTTPDownloader;
@@ -127,7 +127,7 @@ public class ConsoleInput extends Thread {
                 long totalDiscarded = 0;
                 int connectedSeeds = 0;
                 int connectedPeers = 0;
-                PeerStats ps;
+                PEPeerStats ps;
                 int nrTorrent = 0;
                 while (torrent.hasNext()) {
                   dm = (DownloadManager) torrent.next();

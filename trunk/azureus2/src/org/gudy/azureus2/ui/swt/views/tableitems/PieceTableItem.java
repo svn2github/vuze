@@ -12,8 +12,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core.Piece;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -24,12 +24,12 @@ public class PieceTableItem {
 
   Display display;
   Table table;
-  Piece piece;
+  PEPiece piece;
   TableItem item;
 
   private String[] oldTexts;
 
-  public PieceTableItem(Table table, Piece piece) {
+  public PieceTableItem(Table table, PEPiece piece) {
     this.table = table;
     this.piece = piece;
     initialize();
@@ -63,30 +63,30 @@ public class PieceTableItem {
 
     String tmp;
 
-    tmp = "" + piece.pieceNumber;
+    tmp = "" + piece.getPieceNumber();
     if (!oldTexts[0].equals(tmp)) {
       item.setText(0, tmp);
       oldTexts[0] = tmp;
     }
 
-    tmp = DisplayFormatters.formatByteCountToKBEtc(piece.length);
+    tmp = DisplayFormatters.formatByteCountToKBEtc(piece.getLength());
     if (!oldTexts[1].equals(tmp)) {
       item.setText(1, tmp);
       oldTexts[1] = tmp;
     }
 
-    tmp = "" + piece.nbBlocs;
+    tmp = "" + piece.getNbBlocs();
     if (!oldTexts[2].equals(tmp)) {
       item.setText(2, tmp);
       oldTexts[2] = tmp;
     }
-    tmp = "" + piece.completed;
+    tmp = "" + piece.getCompleted();
     if (!(oldTexts[4].equals(tmp))) {
       item.setText(4, tmp);
       oldTexts[4] = tmp;
     }
 
-    tmp = "" + piece.manager.getAvailability(piece.pieceNumber);
+    tmp = "" + piece.getManager().getAvailability(piece.getPieceNumber());
     if (!(oldTexts[5].equals(tmp))) {
       item.setText(5, tmp);
       oldTexts[5] = tmp;
@@ -105,13 +105,13 @@ public class PieceTableItem {
     Color color;
     GC gc = new GC(table);
     GC gcImage = new GC(image);
-    for (int i = 0; i < piece.nbBlocs; i++) {
-      int a0 = (i * width) / piece.nbBlocs;
-      int a1 = ((i + 1) * width) / piece.nbBlocs;
+    for (int i = 0; i < piece.getNbBlocs(); i++) {
+      int a0 = (i * width) / piece.getNbBlocs();
+      int a1 = ((i + 1) * width) / piece.getNbBlocs();
       color = MainWindow.white;
-      if (piece.requested[i])
+      if (piece.getRequested()[i])
         color = green;
-      if (piece.written[i]) {
+      if (piece.getWritten()[i]) {
         color = blue;
       }
       gcImage.setBackground(color);
@@ -144,7 +144,7 @@ public class PieceTableItem {
   /**
    * @param piece
    */
-  public void setPiece(Piece piece) {
+  public void setPiece(PEPiece piece) {
     this.piece = piece;
   }
   

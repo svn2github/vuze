@@ -31,8 +31,8 @@ import org.apache.log4j.spi.LoggingEvent;
 import HTML.Template;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -467,7 +467,7 @@ public class Jhttpp2HTTPSession extends Thread {
       long totalDiscarded = 0;
       int connectedSeeds = 0;
       int connectedPeers = 0;
-      PeerStats ps;
+      PEPeerStats ps;
       while (torrent.hasNext()) {
         dm = (DownloadManager) torrent.next();
         TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();

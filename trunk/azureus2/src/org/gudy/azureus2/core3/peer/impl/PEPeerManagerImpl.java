@@ -1,10 +1,17 @@
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.peer.impl;
 
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
+import org.gudy.azureus2.core.ByteBufferPool;
+import org.gudy.azureus2.core.DiskManager;
+import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.IpFilter;
+import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core.Request;
+import org.gudy.azureus2.core.Server;
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
 
@@ -16,11 +23,10 @@ import org.gudy.azureus2.core3.peer.*;
 
 
 public class 
-PeerManager 
+PEPeerManagerImpl
 	extends 	Thread
-	implements 	PEPeerManager 
+	implements 	PEPeerManager
 {
-  public static final int BLOCK_SIZE = 16384;
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
 
@@ -36,9 +42,9 @@ PeerManager
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
-  private Piece[] _pieces;
+  private PEPiece[] _pieces;
   private Server _server;
-  private PeerStats _stats;
+  private PEPeerStats _stats;
   private long _timeLastUpdate;
   private int _timeToWait;
   private TRTrackerClient _tracker;
@@ -67,7 +73,7 @@ PeerManager
   
   private int nbHashFails;
 
-  public PeerManager(
+  public PEPeerManagerImpl(
     DownloadManager manager,
     Server server,
 	TRTrackerClient tracker,
@@ -392,7 +398,7 @@ PeerManager
   private void checkCompletedPieces() {
     //for every piece
     for (int i = 0; i < _nbPieces; i++) {
-      Piece currentPiece = _pieces[i]; //get the piece
+      PEPiece currentPiece = _pieces[i]; //get the piece
 
       //if piece is loaded, and completed
       if (currentPiece != null && currentPiece.isComplete() && !currentPiece.isBeingChecked()) {
@@ -518,7 +524,7 @@ PeerManager
               //get the piece number
               int pieceOffset = request.getOffset();
               //get the piece offset
-              Piece piece = _pieces[pieceNumber]; //get the piece
+              PEPiece piece = _pieces[pieceNumber]; //get the piece
               if (piece != null)
                 piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
               //unmark the block
@@ -535,7 +541,7 @@ PeerManager
               //get the piece number
               int pieceOffset = request.getOffset();
               //get the piece offset
-              Piece piece = _pieces[pieceNumber]; //get the piece
+              PEPiece piece = _pieces[pieceNumber]; //get the piece
               if (piece != null)
                 piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
               //unmark the block
@@ -749,13 +755,13 @@ PeerManager
     if (pieceNumber == -1)
       return false;
     //Now we should have a piece with least presence on network    
-    Piece piece = null;
+    PEPiece piece = null;
 
     //We need to know if it's last piece or not when creating the BtPiece Object
     if (pieceNumber < _nbPieces - 1)
-      piece = new Piece(this, _diskManager.getPieceLength(), pieceNumber);
+      piece = new PEPieceImpl(this, _diskManager.getPieceLength(), pieceNumber);
     else
-      piece = new Piece(this, _diskManager.getLastPieceLength(), pieceNumber);
+      piece = new PEPieceImpl(this, _diskManager.getLastPieceLength(), pieceNumber);
 
     pieceAdded(piece);
     //Assign the created piece to the pieces array.
@@ -1166,7 +1172,7 @@ PeerManager
   public void requestCanceled(Request request) {
     int pieceNumber = request.getPieceNumber(); //get the piece number
     int pieceOffset = request.getOffset(); //get the piece offset    
-    Piece piece = _pieces[pieceNumber]; //get the piece
+    PEPiece piece = _pieces[pieceNumber]; //get the piece
     if (piece != null)
       piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
     //set as not being retrieved
@@ -1264,7 +1270,7 @@ PeerManager
     //the pieces
     _pieces = diskManager.getPieces();
     if (_pieces == null)
-      _pieces = new Piece[_nbPieces];
+      _pieces = new PEPiece[_nbPieces];
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null) {
         _pieces[i].setManager(this);
@@ -1276,7 +1282,7 @@ PeerManager
     _availability = new int[_nbPieces];
 
     //the stats
-    _stats = new PeerStats(diskManager.getPieceLength());
+    _stats = new PEPeerStatsImpl(diskManager.getPieceLength());
 
     _server.start();
 
@@ -1296,14 +1302,14 @@ PeerManager
   }
 
   public void blockWritten(int pieceNumber, int offset) {
-    Piece piece = _pieces[pieceNumber];
+    PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
       piece.setWritten(offset / BLOCK_SIZE);
     }
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-    Piece piece = _pieces[pieceNumber];
+    PEPiece piece = _pieces[pieceNumber];
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBloc(blockNumber);
@@ -1374,7 +1380,7 @@ PeerManager
     return _seeds;
   }
 
-  public PeerStats getStats() {
+  public PEPeerStats getStats() {
     return _stats;
   }
 
@@ -1422,11 +1428,11 @@ PeerManager
     _manager.objectRemoved(pc);
   }
 
-  public void pieceAdded(Piece p) {
+  public void pieceAdded(PEPiece p) {
     _manager.objectAdded(p);
   }
 
-  public void pieceRemoved(Piece p) {
+  public void pieceRemoved(PEPiece p) {
     _manager.objectRemoved(p);
   }
 
@@ -1463,7 +1469,7 @@ PeerManager
     //  the piece has been written correctly
     if (result) {
 
-      Piece piece = _pieces[pieceNumber];
+      PEPiece piece = _pieces[pieceNumber];
       if(piece != null)
         piece.free();
       _pieces[pieceNumber] = null;
@@ -1504,7 +1510,7 @@ PeerManager
     return _connections;
   }
 
-  public Piece[] getPieces() {
+  public PEPiece[] getPieces() {
     return _pieces;
   }
 
@@ -1547,6 +1553,12 @@ PeerManager
    */
   public int getNbHashFails() {
     return nbHashFails;
+  }
+  
+  public PEPeerStats
+  createPeerStats()
+  {
+  	return( new PEPeerStatsImpl( getPieceLength()));
   }
 
 }

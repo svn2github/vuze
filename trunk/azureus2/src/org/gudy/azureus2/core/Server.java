@@ -5,6 +5,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.peer.*;
 
 /**
  * The Bittorrent server to accept incoming connections.
@@ -22,7 +23,7 @@ public class Server extends Thread {
   private int port;
   private ServerSocketChannel sck;
   private boolean bContinue;
-  private PeerManager manager;
+  private PEPeerManager manager;
 
   private static int instanceCount = 0;
 
@@ -128,7 +129,7 @@ public class Server extends Thread {
     return port;
   }
 
-  public void setManager(PeerManager manager) {
+  public void setManager(PEPeerManager manager) {
     this.manager = manager;
   }
 

@@ -13,8 +13,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -254,7 +254,7 @@ public class PeerTableItem {
     if (item == null || item.isDisposed())
       return;
     String tmp;
-    PeerStats stats = peerSocket.getStats();
+    PEPeerStats stats = peerSocket.getStats();
 
     tmp = stats.getReceptionSpeed();
     if (!(oldTexts[7].equals(tmp))) {

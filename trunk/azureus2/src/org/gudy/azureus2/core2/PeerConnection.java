@@ -7,8 +7,8 @@ package org.gudy.azureus2.core2;
 import java.util.Arrays;
 import java.util.Vector;
 
-import org.gudy.azureus2.core.PeerManager;
-import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 
 /**
  * @author Olivier
@@ -21,7 +21,7 @@ public class PeerConnection extends Peer {
    * @param ip
    * @param port
    */
-  public PeerConnection(PeerManager manager, String ip, int port) {
+  public PeerConnection(PEPeerManager manager, String ip, int port) {
     super(manager, ip, port);
   }
 
@@ -31,7 +31,7 @@ public class PeerConnection extends Peer {
    * @param ip
    * @param port
    */
-  public PeerConnection(PeerManager manager, byte[] id, String ip, int port) {
+  public PeerConnection(PEPeerManager manager, byte[] id, String ip, int port) {
     super(manager, id, ip, port);
   }
 
@@ -49,10 +49,10 @@ public class PeerConnection extends Peer {
     available = new boolean[manager.getPiecesNumber()];
     Arrays.fill(available, false);
 
-    stats = new PeerStats(manager.getPieceLength());
+    stats = manager.createPeerStats();
   }
 
-  protected PeerStats stats;
+  protected PEPeerStats stats;
 
   protected boolean choked;
   protected boolean interested;
@@ -133,7 +133,7 @@ public class PeerConnection extends Peer {
   /**
    * @return
    */
-  public PeerStats getStats() {
+  public PEPeerStats getStats() {
     return stats;
   }
 

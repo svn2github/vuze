@@ -32,7 +32,7 @@ public class GlobalManager extends Component {
 
   private List managers;
   private Checker checker;
-  private PeerStats stats;
+  private GlobalManagerStats stats;
   private TRTrackerScraper trackerScraper;
   private boolean isStopped = false;
 
@@ -222,7 +222,7 @@ public class GlobalManager extends Component {
   }
 
   public GlobalManager() {
-    stats = new PeerStats(0);
+    stats = new GlobalManagerStats(0);
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();

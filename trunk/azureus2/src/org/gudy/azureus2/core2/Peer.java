@@ -6,7 +6,7 @@ package org.gudy.azureus2.core2;
 
 import java.util.Arrays;
 
-import org.gudy.azureus2.core.PeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 
 /**
  * @author Olivier
@@ -14,19 +14,19 @@ import org.gudy.azureus2.core.PeerManager;
  */
 public class Peer {
 
-  public Peer(PeerManager manager, String ip, int port) {
+  public Peer(PEPeerManager manager, String ip, int port) {
     this.manager = manager;
     this.ip = ip;
     this.port = port;
     this.id = null;
   }
 
-  public Peer(PeerManager manager, byte[] id, String ip, int port) {
+  public Peer(PEPeerManager manager, byte[] id, String ip, int port) {
     this(manager, ip, port);
     this.id = id;
   }
 
-  PeerManager manager;
+  PEPeerManager manager;
   byte[] id;
   String ip;
   int port;
@@ -48,7 +48,7 @@ public class Peer {
   /**
    * @return
    */
-  public PeerManager getManager() {
+  public PEPeerManager getManager() {
     return manager;
   }
 

@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.Piece;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
 
@@ -126,12 +126,12 @@ public class PiecesView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
   public void objectAdded(Object created) {
-    if (!(created instanceof Piece))
+    if (!(created instanceof PEPiece))
       return;
     synchronized (items) {
       if (items.containsKey(created))
         return;
-      PieceTableItem item = new PieceTableItem(table, (Piece) created);
+      PieceTableItem item = new PieceTableItem(table, (PEPiece) created);
       items.put(created, item);
     }
   }
@@ -174,14 +174,14 @@ public class PiecesView extends AbstractIView implements IComponentListener {
        PieceTableItem _items[] = new PieceTableItem[items.size()];
        Iterator iter = items.keySet().iterator();
        while (iter.hasNext()) {
-         Piece piece = (Piece) iter.next();
+         PEPiece piece = (PEPiece) iter.next();
          PieceTableItem item = (PieceTableItem) items.get(piece);
          int index = item.getIndex();
          _items[index] = item;
          long value = getIntField(piece, field);
          int i;
          for (i = 0; i < ordered.size(); i++) {
-           Piece piecei = (Piece) ordered.get(i);
+           PEPiece piecei = (PEPiece) ordered.get(i);
            long valuei = getIntField(piecei, field);
            if (ascending) {
              if (valuei >= value)
@@ -205,7 +205,7 @@ public class PiecesView extends AbstractIView implements IComponentListener {
      TableItem[] selection = table.getSelection();
      List selected = new ArrayList(selection.length);
      for(int i = 0 ; i < selection.length ; i++) {                
-       Piece piece = (Piece) items.get(selection[i]);
+       PEPiece piece = (PEPiece) items.get(selection[i]);
        if(piece != null)
          selected.add(piece);
      }
@@ -214,7 +214,7 @@ public class PiecesView extends AbstractIView implements IComponentListener {
 
    private void sort(PieceTableItem[] _items, List ordered, List selected) {
      for (int i = 0; i < ordered.size(); i++) {
-       Piece piece = (Piece) ordered.get(i);
+       PEPiece piece = (PEPiece) ordered.get(i);
 
        _items[i].setPiece(piece);
 
@@ -250,22 +250,22 @@ public class PiecesView extends AbstractIView implements IComponentListener {
      }
    }
    
-  private long getIntField(Piece piece, String field) {
+  private long getIntField(PEPiece piece, String field) {
 
       if (field.equals("#")) //$NON-NLS-1$
-        return piece.pieceNumber;
+        return piece.getPieceNumber();
 
       if (field.equals("size")) //$NON-NLS-1$
-        return piece.length;
+        return piece.getLength();
 
       if (field.equals("nbBlocs")) //$NON-NLS-1$
-        return piece.nbBlocs;
+        return piece.getNbBlocs();
 
       if (field.equals("done")) //$NON-NLS-1$
-        return piece.completed;
+        return piece.getCompleted();
 
       if (field.equals("availability")) //$NON-NLS-1$
-        return piece.manager.getAvailability(piece.pieceNumber);
+        return piece.getManager().getAvailability(piece.getPieceNumber());
 
       return 0;
     }

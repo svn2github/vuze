@@ -21,6 +21,14 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import java.util.List;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+
+import org.gudy.azureus2.core.*;
+import org.gudy.azureus2.core2.*;
+
 /**
  * @author stuff
  *
@@ -30,9 +38,92 @@ package org.gudy.azureus2.core3.peer;
 public interface 
 PEPeerManager 
 {
+	public static final int BLOCK_SIZE = 16384;
+ 
+ 	public void
+ 	addPeer(
+		SocketChannel		chan);
+		
+	public void peerAdded(PeerSocket pc);
+
+	public void peerRemoved(PeerSocket pc);
+	
+	public boolean validateHandshaking(PeerSocket pc, byte[] peerId);
+
+	public void
+	stopAll();
+	
+	public PEPeerStats
+	createPeerStats();
+	
+	public byte[]
+	getHash();
+	
+	public byte[]
+	getPeerId();
+	
+	public void blockWritten(int pieceNumber, int offset);
+
+	public boolean checkBlock(int pieceNumber, int offset, int length);
+	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data);
+	public void enqueueReadRequest(DataQueueItem item);
+	public void writeBlock(int pieceNumber, int offset, ByteBuffer data);
+	public void requestCanceled(Request request);
+ 	
+	public void freeRequest(DataQueueItem item);
+
+	public int[] getAvailability();
+	
+	public boolean[] getPiecesStatus();
+
+	public void pieceChecked(int pieceNumber, boolean result);
+
+	public PEPiece[] getPieces();
+	public void havePiece(int pieceNumber, PeerSocket pcOrigin);
+	
+	public boolean isOptimisticUnchoke(PeerSocket pc);
+
+	public PEPeerStats
+	getStats();
+
+	public void 
+	checkTracker();
+
+	public void discarded( int i );
+	public void	received( int i );
+	public void	sent( int i );
+	
+	public void haveNewPiece();
+
+	public String getTrackerStatus();
+
+	public List get_connections();
+	
+	public int getAvailability(int pieceNumber);
+
+	public int getNbPeers();
+
+	public int getNbSeeds();
+	
+	public int getNbHashFails();
+
+	public int getPiecesNumber();
+
+	public int getPieceLength();
+
+	public String getUploaded();
+	public String getTotalSpeed();
+	public int getTrackerTime();
+
 	public long downloaded();
 
 	public long uploaded();
 	
 	public long getRemaining();
+
+	public int getDownloadPriority();
+
+	public String getETA();
+
+	public String getElpased();
 }
