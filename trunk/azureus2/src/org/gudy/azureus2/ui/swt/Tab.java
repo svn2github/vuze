@@ -33,6 +33,11 @@ public class Tab {
   static {
     tabs = new HashMap();
   }
+
+  public CTabItem getTabItem() {
+		return tabItem;
+  }
+
   public Tab(IView _view) {
     this.view = _view;
     this.folder = _folder;
@@ -70,6 +75,17 @@ public class Tab {
       }
     }
   }
+
+  public static void closeAll() {
+		synchronized (tabs) {
+			CTabItem[] tab_items =
+				(CTabItem[]) tabs.keySet().toArray(new CTabItem[tabs.size()]);
+			for (int i = 0; i < tab_items.length; i++) {
+				Tab.closed(tab_items[i]);
+			}
+		}
+		tabs.clear();
+	}
 
   public static void setFolder(CTabFolder folder) {
     _folder = folder;
