@@ -25,4 +25,6 @@ public class Constants {
   public static final String AZUREUS_NAME	    = "Azureus";
   public static final String AZUREUS_VERSION  = "2.0.8.5_CVS";
   public static final byte[] VERSION_ID       = ("-" + "AZ" + "2085" + "-").getBytes();  //MUST be 8 chars long!
+  
+  public static final int MINIMAL_SWT_VERSION = 3044;
 }

@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
@@ -87,12 +88,12 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
-      gm = GlobalManagerFactory.create(false);
+      gm = GlobalManagerFactory.create(false);  
       
       mainWindow = new MainWindow(gm, startServer);
-      
       mainWindow.waitForClose();
       return;
+      
     }
     
     if (args.length != 0) {
@@ -111,17 +112,34 @@ public class Main implements ILocaleUtilChooser {
     
     if (startServer.getState() == StartServer.STATE_LISTENING) {
     	
-      startServer.start();
-      
-      gm = GlobalManagerFactory.create(false);
-      
-      mainWindow = new MainWindow(gm, startServer);
-      
-      if (args.length != 0) {
+      if(checkForSWT()) {      
+        startServer.start();
+        
+        gm = GlobalManagerFactory.create(false);
+        
+        mainWindow = new MainWindow(gm, startServer);
+        
+        if (args.length != 0) {
 
-        mainWindow.openTorrent( args[0]);
+          mainWindow.openTorrent( args[0]);
+        }
+        
+        
+        mainWindow.waitForClose();
+        
+        return;
       }
-      mainWindow.waitForClose();
+      
+      else {
+        
+        startServer.stopIt();
+        
+        new UpdateSWTWindow();  
+        
+        return;
+      }
+      
+      
       
     }else{
     	
@@ -177,4 +195,8 @@ public class Main implements ILocaleUtilChooser {
     }
   }
 
+  
+  public boolean checkForSWT() {    
+    return (SWT.getVersion() >= Constants.MINIMAL_SWT_VERSION);
+  }
 }

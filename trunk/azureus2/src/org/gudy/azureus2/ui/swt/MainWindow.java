@@ -109,6 +109,7 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
+import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
@@ -207,6 +208,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private TrayWindow tray;
   private SystemTray trayIcon;
+  private SystemTraySWT systemTraySWT;
+  
 
   private HashMap downloadViews;
   private HashMap downloadBars;
@@ -295,8 +298,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               }
             }
             
-            if (trayIcon != null)
-              trayIcon.refresh();
+            //if (trayIcon != null)
+            //  trayIcon.refresh();
+            
+            if(systemTraySWT != null)
+              systemTraySWT.update();
             
             synchronized (downloadBars) {
               Iterator iter = downloadBars.values().iterator();
@@ -375,7 +381,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 					}
     			});
     	
-	COConfigurationManager.checkConfiguration();
+	  COConfigurationManager.checkConfiguration();
 
     auth_window = new AuthenticatorWindow();
     
@@ -747,7 +753,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     updater = new GUIUpdater();
     updater.start();
 
-    boolean available = false;
+    /*boolean available = false;
     try {
       available = SysTrayMenu.isAvailable();
     }
@@ -767,7 +773,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }else{
     	
       tray = new TrayWindow(this);
-    }
+    }*/
+    
+    systemTraySWT = new SystemTraySWT(this);
     
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
@@ -1485,6 +1493,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private synchronized void setSelectedLanguageItem(MenuItem newLanguage) {
     selectedLanguageItem = newLanguage;
     Messages.updateLanguageForControl(mainWindow);
+    Messages.updateLanguageForControl(systemTraySWT.getMenu());
     updateMenuText(menuBar);
     if (statusText != null)
       statusText.update();
@@ -2262,7 +2271,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public boolean dispose() {
     if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation())
       return false;
-      
+    
+    if(systemTraySWT != null) {
+      systemTraySWT.dispose();
+    }
+    
     // close all tabs
     Tab.closeAllTabs();
 
@@ -2316,6 +2329,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     	// problem with closing down web start as AWT threads don't close properly
 
+  
+    
 	if ( SystemProperties.isJavaWebStartInstance()){    	
  	
 		Thread close = new Thread( "JWS Force Terminate")
