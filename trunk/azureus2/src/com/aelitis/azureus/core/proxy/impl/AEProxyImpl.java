@@ -177,6 +177,8 @@ AEProxyImpl
 					socket_channel.close();
 				}
 						
+				socket_channel.socket().setReuseAddress(true);
+				
 				socket_channel.configureBlocking(false);
 
 				AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);

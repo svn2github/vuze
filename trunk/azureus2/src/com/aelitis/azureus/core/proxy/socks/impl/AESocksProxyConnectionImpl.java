@@ -113,7 +113,10 @@ AESocksProxyConnectionImpl
 		protected
 		proxyState()
 		{
-			trace();
+			if ( TRACE ){
+				
+				LGLogger.log( getName() + ":" + getStateName());
+			}
 		}
 		
 		public String
@@ -993,6 +996,9 @@ AESocksProxyConnectionImpl
 		protected ByteBuffer		source_buffer;
 		protected ByteBuffer		target_buffer;
 		
+		protected long				outward_bytes	= 0;
+		protected long				inward_bytes	= 0;
+		
 		protected
 		proxyStateRelayData()
 		
@@ -1039,8 +1045,17 @@ AESocksProxyConnectionImpl
 					
 					read_buffer.flip();
 					
-					chan2.write( read_buffer );
-										
+					int	written = chan2.write( read_buffer );
+									
+					if ( chan1 == source_channel ){
+						
+						outward_bytes += written;
+						
+					}else{
+						
+						inward_bytes += written;
+					}
+					
 					if ( read_buffer.hasRemaining()){
 						
 						connection.cancelReadSelect( chan1 );
@@ -1071,8 +1086,17 @@ AESocksProxyConnectionImpl
 			
 			ByteBuffer	read_buffer = sc==source_channel?target_buffer:source_buffer;
 			
-			chan1.write( read_buffer );
+			int written = chan1.write( read_buffer );
 						
+			if ( chan1 == target_channel ){
+				
+				outward_bytes += written;
+				
+			}else{
+				
+				inward_bytes += written;
+			}
+			
 			if ( read_buffer.hasRemaining()){
 								
 				connection.requestWriteSelect( chan1 );
@@ -1084,6 +1108,15 @@ AESocksProxyConnectionImpl
 				read_buffer.limit( read_buffer.capacity());
 				
 				connection.requestReadSelect( chan2 );
+			}
+		}
+		
+		protected void
+		trace()
+		{
+			if ( TRACE ){
+				
+				LGLogger.log( getName() + ":" + getStateName() + "[out=" + outward_bytes +",in=" + inward_bytes +"] " + source_buffer + " / " + target_buffer );
 			}
 		}
 	}
