@@ -1229,6 +1229,8 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(passwordMatch == null || passwordMatch.isDisposed())
+      return;
     byte[] password = COConfigurationManager.getByteParameter("Password", "".getBytes());
     COConfigurationManager.setParameter("Password enabled", false);
     if (password.length == 0) {
