@@ -102,7 +102,13 @@ DHTRouterContactImpl
 		return( has_been_alive && fail_count == 0 );
 	}
 	
-	protected long
+	public boolean
+	isFailing()
+	{
+		return( fail_count > 0 );
+	}
+	
+	public long
 	getTimeAlive()
 	{
 		if ( fail_count > 0 || first_alive_time == 0 ){

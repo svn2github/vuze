@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.plugins.dht;
 
+import java.io.*;
+
 import java.net.InetSocketAddress;
 import java.util.Properties;
 
@@ -259,6 +261,20 @@ DHTPlugin
 							
 							transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
 							
+							importContacts();
+							
+							plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
+									10*60*1000,
+									new UTTimerEventPerformer()
+									{
+										public void
+										perform(
+											UTTimerEvent		event )
+										{
+											exportContacts();
+										}
+									});
+							
 							dht.integrate();
 							
 							long	end = SystemTime.getCurrentTime();
@@ -293,6 +309,90 @@ DHTPlugin
 		}else{
 			
 			model.getStatus().setText( "Disabled administratively due to network problems" );
+		}
+	}
+	
+	protected File
+	getDataDir()
+	{
+		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
+		
+		dir.mkdirs();
+		
+		return( dir );
+	}
+	
+	protected synchronized void
+	importContacts()
+	{
+		try{
+			File	dir = getDataDir();
+			
+			File	target = new File( dir, "contacts.dat" );
+
+			if ( target.exists()){
+				
+				DataInputStream	dis = null;
+				
+				try{
+				
+					dis = new DataInputStream( new FileInputStream( target ));
+					
+					dht.importState( dis );
+					
+				}finally{
+					
+					if ( dis != null ){
+						
+						dis.close();	
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
+	protected synchronized void
+	exportContacts()
+	{
+		try{
+			File	dir = getDataDir();
+			
+			File	saving = new File( dir, "contacts.saving" );
+			File	target = new File( dir, "contacts.dat" );
+
+			saving.delete();
+			
+			DataOutputStream	dos	= null;
+			
+			boolean	ok = false;
+			
+			try{
+				dos = new DataOutputStream( new FileOutputStream( saving ));
+					
+				dht.exportState( dos, 32 );
+			
+				ok	= true;
+				
+			}finally{
+				
+				if ( dos != null ){
+					
+					dos.close();
+					
+					if ( ok ){
+						
+						target.delete();
+						
+						saving.renameTo( target );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
 		}
 	}
 }

@@ -192,7 +192,7 @@ DHTTransportLoopbackImpl
 		os.write( contact.getID());
 	}
 	
-	public void
+	public DHTTransportContact
 	importContact(
 		DataInputStream		is )
 	
@@ -219,6 +219,8 @@ DHTTransportLoopbackImpl
 		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		
 		request_handler.contactImported( contact );
+		
+		return( contact );
 	}
 	
 	protected void

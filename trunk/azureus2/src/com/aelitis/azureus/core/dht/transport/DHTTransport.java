@@ -40,7 +40,7 @@ DHTTransport
 	public DHTTransportContact
 	getLocalContact();
 	
-	public void
+	public DHTTransportContact
 	importContact(
 		DataInputStream		is )
 	

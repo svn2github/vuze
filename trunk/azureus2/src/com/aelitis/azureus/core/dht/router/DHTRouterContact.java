@@ -45,8 +45,30 @@ DHTRouterContact
 	public boolean
 	hasBeenAlive();
 	
+		/**
+		 * Whether or not the contact has failed once or more since last alive (if ever)
+		 * @return
+		 */
+	
+	public boolean
+	isFailing();
+	
+		/**
+		 * Whether or not the contact's last interaction was successful
+		 * @return
+		 */
+	
 	public boolean
 	isAlive();
+	
+		/**
+		 * time between first establishing the contact was alive and now, assuming that its
+		 * not failing. 0 -> failing
+		 * @return
+		 */
+	
+	public long
+	getTimeAlive();
 	
 	public String
 	getString();

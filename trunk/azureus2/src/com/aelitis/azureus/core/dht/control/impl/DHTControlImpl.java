@@ -69,6 +69,8 @@ DHTControlImpl
 	
 	private ThreadPool	lookup_pool;
 	
+	private Map			imported_state	= new HashMap();
+	
 	public
 	DHTControlImpl(
 		DHTTransport	_transport,
@@ -216,15 +218,95 @@ DHTControlImpl
 	
 		throws IOException
 	{
-		List	contacts = router.findBestContacts( max );
-				
-		daos.writeInt( contacts.size());
-				
+			/*
+			 * We need to be a bit smart about exporting state to deal with the situation where a
+			 * DHT is started (with good import state) and then stopped before the goodness of the
+			 * state can be re-established. So we remember what we imported and take account of this
+			 * on a re-export
+			 */
+		
+			// get all the contacts
+		
+		List	contacts = router.findBestContacts( 0 );
+		
+			// give priority to any that were alive before and are alive now
+		
+		List	to_save 	= new ArrayList();
+		List	reserves	= new ArrayList();
+		
+		System.out.println( "Exporting" );
+		
+		for (int i=0;i<contacts.size();i++){
+		
+			DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+			
+			Object[]	imported = (Object[])imported_state.get( new HashWrapper( contact.getID()));
+			
+			if ( imported != null ){
+
+				if ( contact.isAlive()){
+					
+						// definitely want to keep this one
+					
+					to_save.add( contact );
+					
+				}else if ( !contact.isFailing()){
+					
+						// dunno if its still good or not, however its got to be better than any
+						// new ones that we didn't import who aren't known to be alive
+					
+					reserves.add( contact );
+				}
+			}
+		}
+		
+		System.out.println( "    initial to_save = " + to_save.size() + ", reserves = " + reserves.size());
+		
+			// now pull out any live ones
+		
 		for (int i=0;i<contacts.size();i++){
 			
 			DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+		
+			if ( contact.isAlive() && !to_save.contains( contact )){
+				
+				to_save.add( contact );
+			}
+		}
+		
+		System.out.println( "    after adding live ones = " + to_save.size());
+		
+			// now add any reserve ones
+		
+		to_save.addAll( reserves );
+		
+		System.out.println( "    after adding reserves = " + to_save.size());
+
+			// now add in the rest!
+		
+		for (int i=0;i<contacts.size();i++){
+			
+			DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+		
+			if (!to_save.contains( contact )){
+				
+				to_save.add( contact );
+			}
+		}	
+		
+		System.out.println( "    finally = " + to_save.size());
+
+		int	num_to_write = Math.min( max, to_save.size());
+		
+		daos.writeInt( num_to_write );
+				
+		for (int i=0;i<num_to_write;i++){
+			
+			DHTRouterContact	contact = (DHTRouterContact)to_save.get(i);
 			
 			System.out.println( "export:" + contact.getString());
+			
+			daos.writeLong( contact.getTimeAlive());
 			
 			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
 			
@@ -258,7 +340,11 @@ DHTControlImpl
 			
 			try{
 				
-				transport.importContact( dais );
+				long	time_alive = dais.readLong();
+				
+				DHTTransportContact	contact = transport.importContact( dais );
+								
+				imported_state.put( new HashWrapper( contact.getID()), new Object[]{ new Long( time_alive ), contact });
 				
 			}catch( DHTTransportException e ){
 				

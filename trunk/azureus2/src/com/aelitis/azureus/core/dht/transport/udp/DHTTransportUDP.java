@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.transport.udp;
 import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 
 /**
@@ -36,7 +37,7 @@ public interface
 DHTTransportUDP
 	extends DHTTransport
 {
-	public void
+	public DHTTransportContact
 	importContact(
 		InetSocketAddress	address )
 	

@@ -516,17 +516,22 @@ DHTTransportUDPImpl
 		return( local_contact );
 	}
 	
-	public void
+	public DHTTransportContact
 	importContact(
 		DataInputStream		is )
 	
 		throws IOException, DHTTransportException
 	{
-		request_handler.contactImported( 
-				DHTUDPUtils.deserialiseContact( this, is ));
+		DHTTransportContact	contact = DHTUDPUtils.deserialiseContact( this, is );
+		
+		request_handler.contactImported( contact );
+				
+		logger.log( "Imported contact " + contact.getString());
+		
+		return( contact );
 	}
 	
-	public void
+	public DHTTransportContact
 	importContact(
 		InetSocketAddress	address )
 	
@@ -534,8 +539,13 @@ DHTTransportUDPImpl
 	{
 			// instance id of 0 means "unknown"
 		
-		request_handler.contactImported( 
-			new DHTTransportUDPContactImpl( this, address, address, 0 ));
+		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, 0 );
+		
+		request_handler.contactImported( contact );
+		
+		logger.log( "Imported contact " + contact.getString());
+
+		return( contact );
 	}
 	
 	public void

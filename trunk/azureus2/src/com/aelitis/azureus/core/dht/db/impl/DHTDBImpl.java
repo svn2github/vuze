@@ -203,7 +203,7 @@ DHTDBImpl
 				
 					// just drop it
 				
-				DHTLog.log( "Max entries exceeded" );
+				logger.log( "Max entries exceeded" );
 				
 				return( null );
 				
@@ -423,7 +423,7 @@ DHTDBImpl
 				
 				if ( !keep_caching ){
 					
-					logger.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+					DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
 					
 					stop_caching.add( key );
 				}
@@ -547,7 +547,7 @@ DHTDBImpl
 				
 				String	s = (String)data[1];
 				
-				s += (s.length()==0?"":", ") + "key=" + DHTLog.getString(value_key.getHash()) + ",val=" + value.getString();
+				s += (s.length()==0?"":", ") + "key=" + DHTLog.getString2(value_key.getHash()) + ",val=" + value.getString();
 				
 				data[1]	= s;
 			}

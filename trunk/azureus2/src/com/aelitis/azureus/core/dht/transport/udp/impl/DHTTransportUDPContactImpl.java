@@ -171,6 +171,11 @@ DHTTransportUDPContactImpl
 	public String
 	getString()
 	{
+		if ( transport_address.equals( external_address )){
+			
+			return( transport_address.toString());
+		}
+		
 		return( "tran="+transport_address.toString()+",ext="+external_address);
 	}
 }
