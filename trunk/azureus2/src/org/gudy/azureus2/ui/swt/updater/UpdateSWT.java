@@ -102,7 +102,10 @@ public class UpdateSWT {
       if(zipEntry.getName().equals("swt-pi.jar")) {        
         writeFile(zipFile,zipEntry,userDir);
       }
-      if(zipEntry.getName().startsWith("swt") && zipEntry.getName().endsWith(".so")) {        
+      if(zipEntry.getName().equals("swt-mozilla.jar")) {        
+        writeFile(zipFile,zipEntry,userDir);
+      }     
+      if(zipEntry.getName().startsWith("libswt") && zipEntry.getName().endsWith(".so")) {        
         writeFile(zipFile,zipEntry,userDir);
       }
       if(zipEntry.getName().startsWith("swt-win32-") && zipEntry.getName().endsWith(".dll")) {
