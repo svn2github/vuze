@@ -171,8 +171,6 @@ Test
 		String[]		args )
 	{
 		
-		DHTLog.setLoggingEnabled( false );
-		
 		try{
 			
 			DHT[]			dhts 		= new DHT[num_dhts*2];
@@ -284,8 +282,6 @@ Test
 			
 			LineNumberReader	reader = new LineNumberReader( new InputStreamReader( System.in ));
 			
-			DHTLog.setLoggingEnabled( true );
-
 			while( true ){
 				
 				System.out.print( "> " );

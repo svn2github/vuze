@@ -109,7 +109,10 @@ DHT
 	
 	public void
 	integrate();
-	
+
+	public void
+	setLogging(
+		boolean	on );
 
 	public void
 	print();

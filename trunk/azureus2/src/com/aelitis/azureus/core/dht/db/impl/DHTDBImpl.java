@@ -482,7 +482,7 @@ DHTDBImpl
 				
 				if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
 					
-					DHTLog.log( "removing cache entry at level " + distance );
+					DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
 					
 					it.remove();
 				}
@@ -499,7 +499,7 @@ DHTDBImpl
 				
 				if ( now - value.getStoreTime() >= permitted ){
 					
-					DHTLog.log( "removing cache entry at level " + distance );
+					DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
 					
 					it.remove();
 				}
@@ -514,7 +514,7 @@ DHTDBImpl
 		
 		synchronized( stored_values ){
 			
-			DHTLog.log( "Stored values = " + stored_values.size()); 
+			logger.log( "Stored values = " + stored_values.size()); 
 
 			Iterator	it = stored_values.entrySet().iterator();
 			
@@ -561,7 +561,7 @@ DHTDBImpl
 			
 			Object[]	data = (Object[])count.get(k);
 			
-			DHTLog.log( "    " + k + " -> " + data[0] + ": " + data[1]);
+			logger.log( "    " + k + " -> " + data[0] + ": " + data[1]);
 		}
 	}
 	

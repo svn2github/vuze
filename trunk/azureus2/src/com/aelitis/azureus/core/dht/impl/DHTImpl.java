@@ -159,6 +159,13 @@ DHTImpl
 	}
 	
 	public void
+	setLogging(
+		boolean	on )
+	{
+		DHTLog.setLogging( on );
+	}
+	
+	public void
 	print()
 	{
 		control.print();

@@ -85,7 +85,7 @@ DHTTransportUDPImpl
 	
 	private DHTTransportUDPStatsImpl	stats;
 
-	private static final int CONTACT_HISTORY_MAX = 100;
+	private static final int CONTACT_HISTORY_MAX = 32;
 	
 	private Map	contact_history = 
 		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
@@ -180,7 +180,8 @@ DHTTransportUDPImpl
 		try{
 			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact_history.values().iterator().next();
 			
-			externalAddressChange( c, new InetSocketAddress( "192.168.0.7", 6881 ));
+			externalAddressChange( c, c.getExternalAddress());
+			//externalAddressChange( c, new InetSocketAddress( "192.168.0.7", 6881 ));
 			
 		}catch( Throwable e ){
 			
@@ -205,10 +206,13 @@ DHTTransportUDPImpl
 				
 				try{
 					
+					log.log( "Obtaining external address" );
+					
 					if ( TEST_EXTERNAL_IP ){
 						
 						new_external_address	= "192.168.0.2";
 						
+						log.log( "    External IP address obtained from test data: " + new_external_address );
 					}
 										
 					if ( new_external_address == null ){
@@ -230,7 +234,7 @@ DHTTransportUDPImpl
 						
 						int		search_lim = Math.min(10, contacts.size());
 						
-						log.log( "    : contacts to search = " + search_lim );
+						log.log( "    Contacts to search = " + search_lim );
 						
 						for (int i=0;i<search_lim;i++){
 							
@@ -238,7 +242,7 @@ DHTTransportUDPImpl
 														
 							InetSocketAddress a = askContactForExternalAddress( contact );
 							
-							if ( a != null && a.getAddress() != null && a.getPort() == port ){
+							if ( a != null && a.getAddress() != null ){
 								
 								String	ip = a.getAddress().getHostAddress();
 								
@@ -260,16 +264,21 @@ DHTTransportUDPImpl
 										
 										new_external_address	= returned_address;
 										
-										log.log( "External IP address obtained from contacts: "  + returned_address );
+										log.log( "    External IP address obtained from contacts: "  + returned_address );
 										
 										break;
 									}
 								}else{
 									
+									log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "', abandoning due to mismatch" );
+									
 										// mismatch - give up
 									
 									break;
 								}
+							}else{
+								
+								log.log( "    : contact " + contact.getString() + " didn't reply" );
 							}
 						}
 
@@ -281,7 +290,7 @@ DHTTransportUDPImpl
 						
 						if ( vc_ip != null && vc_ip.length() > 0 ){
 							
-							log.log( "External IP address obtained from version-check: " + vc_ip );
+							log.log( "    External IP address obtained from version-check: " + vc_ip );
 							
 							new_external_address	= vc_ip;
 						}
@@ -311,7 +320,7 @@ DHTTransportUDPImpl
 											ExternalIPCheckerService	_service,
 											String						_ip )
 										{
-											log.log( "External IP address obtained from " + service.getName() + ": " + _ip );
+											log.log( "    External IP address obtained from " + service.getName() + ": " + _ip );
 	
 											ip[0]	= _ip;
 											
@@ -364,7 +373,7 @@ DHTTransportUDPImpl
 				
 					new_external_address =	default_address;
 				
-					log.log( "External IP address defaulted:  " + new_external_address );
+					log.log( "    External IP address defaulted:  " + new_external_address );
 				}
 				
 				external_address = new_external_address;
@@ -396,17 +405,7 @@ DHTTransportUDPImpl
 			 * Only in the case where the above check fails do we believe the address
 			 * that we've been told about
 			 */
-		
-		if ( new_address.getPort() != port ){
-
-			// port differs. we don't support anything automatic here as it is
-			// indicative of the notifier being proxied or something
-		
-			logger.log(	"Node " + reporter.getString() + " has reported differing port (current=" + port + ", reported = " + new_address + ")" );
-			
-			return( false );
-		}
-		
+				
 		InetAddress	ia = new_address.getAddress();
 		
 		if ( ia == null ){
@@ -420,7 +419,8 @@ DHTTransportUDPImpl
 		
 		if ( new_ip.equals( external_address )){
 			
-				// probably just be a second notification of an address change
+				// probably just be a second notification of an address change, return
+				// "ok to retry" as it should now work
 							
 			return( true );
 		}
@@ -432,7 +432,29 @@ DHTTransportUDPImpl
 			return( false );
 		}
 		
-		logger.log( "Node " + reporter.getString() + " has reported that your external IP address is '" + new_address + "'" );
+		logger.log( "Node " + reporter.getString() + " has reported that the external IP address is '" + new_address + "'" );
+
+			// check for dodgy addresses that shouldn't appear as an external address!
+		
+		if ( 	ia.isLinkLocalAddress() ||
+				ia.isLoopbackAddress() ||
+				new_ip.startsWith( "192.168." )){
+			
+			logger.log( "     This is invalid as it is a private address." );
+
+			return( false );
+		}
+
+			// another situation to ignore is where the reported address is the same as
+			// the reporter (they must be seeing it via, say, socks connection on a local
+			// interface
+		
+		if ( reporter.getExternalAddress().getAddress().getHostAddress().equals( new_ip )){
+			
+			logger.log( "     This is invalid as it is the same as the reporter's address." );
+
+			return( false );		
+		}
 		
 		last_address_change	= now;
 		
@@ -736,9 +758,9 @@ DHTTransportUDPImpl
 						}
 					}
 				},
-				request_timeout );
+				5000 );
 			
-			sem.reserve( request_timeout );
+			sem.reserve( 5000 );
 			
 			return( result[0] );
 			

@@ -34,80 +34,36 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
-import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTLog 
 {
-	public static final boolean	ADD_TRACE	= true;
-	
-	private static boolean	LOGGING_DEFAULT	= true;
-	
-	private static ThreadLocal		tls;
-	
+	public static boolean	logging_on	= false;
+			
 	private static LoggerChannel	logger;
 	
-	
-	static{
-		if (ADD_TRACE ){ 
-	
-			tls = 
-				new ThreadLocal()
-				{
-					public Object
-					initialValue()
-					{
-						Object[]	data = new Object[3];
-						
-						data[0] = new Stack();
-						
-						data[1] = "";
-						
-						data[2] = new Boolean(LOGGING_DEFAULT);
-						
-						return( data );
-					}
-				};
-		}
+	protected static void
+	setLogging(
+		boolean	on )
+	{
+		logging_on 	= on;
 	}
 
 	public static void
 	log(
 		String	str )
 	{
-		if ( ADD_TRACE ){
-			Object[]	data = (Object[])tls.get();
-			
-			Stack	stack 			= (Stack)data[0];
-			String	indent			= (String)data[1];
-			boolean	logging_enabled = ((Boolean)data[2]).booleanValue();
-			
-			if ( logging_enabled ){
+		if ( logging_on ){
+						
+			if ( logger != null ){
 				
-				if ( stack.isEmpty()){
-						
-					if ( logger != null ){
-						
-						logger.log( str );
-						
-					}else{
-						
-						System.out.println( str );
-					}
-				}else{
-					
-					String	log_str = indent + ":" + getString((byte[])stack.peek()) + ":" + str;
-					
-					if ( logger != null ){
-						
-						logger.log( log_str );
-					}else{
-						
-						System.out.println( log_str );
-					}
-				}
+				logger.log( str );
+				
+			}else{
+				
+				System.out.println( str );
 			}
 		}
 	}
@@ -119,52 +75,12 @@ DHTLog
 		logger	= l;
 	}
 	
-	public static void
-	setLoggingEnabled(
-		boolean	b )
-	{
-		if ( ADD_TRACE ){
-			
-			Object[]	data = (Object[])tls.get();
-	
-			data[2] = new Boolean(b);
-		}
-	}
-	
-	public static void
-	indent(
-		DHTRouter	router )
-	{
-		if ( ADD_TRACE ){
-			Object[]	data = (Object[])tls.get();
-				
-			Stack	stack = (Stack)data[0];
-				
-			stack.push( router.getID());
-				
-			data[1] = (String)data[1] + "  ";
-		}
-	}
-	
-	public static void
-	exdent()
-	{
-		if ( ADD_TRACE ){
-			Object[]	data = (Object[])tls.get();
-				
-			Stack	stack = (Stack)data[0];
-				
-			stack.pop();
-				
-			data[1] = ((String)data[1]).substring( 0, ((String)data[1]).length()-2);
-		}
-	}
 	
 	public static String
 	getString(
 		byte[]	b )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			
 			String res = ByteFormatter.nicePrint(b);
 			
@@ -185,7 +101,7 @@ DHTLog
 	getString(
 		HashWrapper	w )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			
 			return( getString( w.getHash()));
 			
@@ -198,7 +114,7 @@ DHTLog
 	getString(
 		DHTTransportContact[]	contacts )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			
 			String	res = "{";
 			
@@ -217,7 +133,7 @@ DHTLog
 	getString(
 		DHTTransportContact	contact )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			return( getString(contact.getID()));
 		}else{
 			return( "" );
@@ -228,7 +144,7 @@ DHTLog
 	getString(
 		List		l )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			String	res = "{";
 			
 			for (int i=0;i<l.size();i++){
@@ -246,7 +162,7 @@ DHTLog
 	getString(
 		Set			s )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			String	res = "{";
 			
 			Iterator it = s.iterator();
@@ -266,7 +182,7 @@ DHTLog
 	getString(
 		Map			s )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			String	res = "{";
 			
 			Iterator it = s.keySet().iterator();
@@ -286,7 +202,7 @@ DHTLog
 	getString(
 		DHTTransportValue	value )
 	{
-		if ( ADD_TRACE ){
+		if ( logging_on ){
 			
 			if ( value == null ){
 				

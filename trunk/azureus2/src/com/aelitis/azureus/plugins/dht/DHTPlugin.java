@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -47,6 +48,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 /**
  * @author parg
@@ -85,6 +87,22 @@ DHTPlugin
 		
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
 		
+		final BooleanParameter	logging = config.addBooleanParameter2( "dht.logging", "dht.logging", false );
+
+		logging.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					if ( dht != null ){
+						
+						dht.setLogging( logging.getValue());
+					}
+				}
+			});
+		
 		execute.addListener(
 			new ParameterListener()
 			{
@@ -98,6 +116,11 @@ DHTPlugin
 							public void
 							runSupport()
 							{
+								if ( dht == null ){
+									
+									return;
+								}
+								
 								String	c = command.getValue().trim();
 								
 								String	lc = c.toLowerCase();
@@ -168,97 +191,108 @@ DHTPlugin
 					}
 				});
 		
-		model.getStatus().setText( "Initialising" );
+			// TODO: When DHT is known to work OK remove this feature!!!! 
 		
-		Thread t = 
-			new AEThread( "DTDPlugin.init" )
-			{
-				public void
-				runSupport()
-				{
-					try{
-						int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
-						
-						transport = 
-							DHTTransportFactory.createUDP( 
-									port, 
-									5,
-									3,
-									30000, 	// udp timeout - tried less but a significant number of 
-											// premature timeouts occurred
-									log );
-						
-						plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-								60000,
-								new UTTimerEventPerformer()
-								{
-									public void
-									perform(
-										UTTimerEvent		event )
-									{
-										DHTRouterStats	r_stats = dht.getRouter().getStats();
-										
-										long[]	rs = r_stats.getStats();
-	
-										log.log( "Router Stats   " +
-													":no=" + rs[DHTRouterStats.ST_NODES] +
-													",le=" + rs[DHTRouterStats.ST_LEAVES] +
-													",co=" + rs[DHTRouterStats.ST_CONTACTS] +
-													",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-													",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-													",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-													",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-														
-										DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
-										
-										log.log( "Transport Stats" + 
-													":ps=" + t_stats.getPacketsSent() +
-													",pr=" + t_stats.getPacketsReceived() +
-													",bs=" + t_stats.getBytesSent() +
-													",br=" + t_stats.getBytesReceived() +
-													",to=" + t_stats.getRequestsTimedOut());
-									}
-								});
-						
-						Properties	props = new Properties();
-						
-						// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
-						
-						long	start = SystemTime.getCurrentTime();
-						
-						dht = DHTFactory.create( transport, props, log );
-						
-						transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
-						
-						dht.integrate();
-						
-						long	end = SystemTime.getCurrentTime();
-
-						log.log( "DHT integration complete: elapsed = " + (end-start));
-						
-						dht.print();
-						
-						model.getStatus().setText( "Running" );
-						
-							// test put
-						
-						byte[]	 key = transport.getLocalContact().getString().getBytes();
-						
-						dht.put( key, key );
-						
-						log.log( "Performed test put of '" + new String( key ) + "'" );
-						
-					}catch( Throwable e ){
-						
-						log.log( "DHT integrtion fails", e );
-						
-						model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
-					}
-				}
-			};
+		if ( VersionCheckClient.getSingleton().DHTEnableAllowed()){
 			
-		t.setDaemon(true);
+			model.getStatus().setText( "Initialising" );
+			
+			Thread t = 
+				new AEThread( "DTDPlugin.init" )
+				{
+					public void
+					runSupport()
+					{
+						try{
+							int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+							
+							transport = 
+								DHTTransportFactory.createUDP( 
+										port, 
+										5,
+										3,
+										30000, 	// udp timeout - tried less but a significant number of 
+												// premature timeouts occurred
+										log );
+							
+							plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
+									60000,
+									new UTTimerEventPerformer()
+									{
+										public void
+										perform(
+											UTTimerEvent		event )
+										{
+											DHTRouterStats	r_stats = dht.getRouter().getStats();
+											
+											long[]	rs = r_stats.getStats();
 		
-		t.start();
+											log.log( "Router Stats    " +
+														":no=" + rs[DHTRouterStats.ST_NODES] +
+														",le=" + rs[DHTRouterStats.ST_LEAVES] +
+														",co=" + rs[DHTRouterStats.ST_CONTACTS] +
+														",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+														",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+														",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+														",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+															
+											DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
+											
+											log.log( "Transport Stats" + 
+														":ps=" + t_stats.getPacketsSent() +
+														",pr=" + t_stats.getPacketsReceived() +
+														",bs=" + t_stats.getBytesSent() +
+														",br=" + t_stats.getBytesReceived() +
+														",to=" + t_stats.getRequestsTimedOut());
+										}
+									});
+							
+							Properties	props = new Properties();
+							
+							// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
+							
+							long	start = SystemTime.getCurrentTime();
+							
+							dht = DHTFactory.create( transport, props, log );
+							
+							dht.setLogging( logging.getValue());
+							
+							transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
+							
+							dht.integrate();
+							
+							long	end = SystemTime.getCurrentTime();
+	
+							log.log( "DHT integration complete: elapsed = " + (end-start));
+							
+							dht.print();
+							
+							model.getStatus().setText( "Running" );
+							
+								// test put
+							
+							byte[]	 key = transport.getLocalContact().getString().getBytes();
+							
+							dht.put( key, key );
+							
+							log.log( "Performed test put of '" + new String( key ) + "'" );
+							
+						}catch( Throwable e ){
+							
+							log.log( "DHT integrtion fails", e );
+							
+							model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
+						}
+					}
+				};
+				
+			t.setDaemon(true);
+			
+			t.start();
+			
+		}else{
+			
+			model.getStatus().setText( "Disabled administratively due to network problems" );
+		}
 	}
 }

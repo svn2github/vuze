@@ -260,7 +260,7 @@ DHTRouterNodeImpl
 					
 					if (  old_id != new_id ){
 						
-						router.log( "Instance ID changed for " + 
+						DHTLog.log( "Instance ID changed for " + 
 									DHTLog.getString( contact.getID())+ 
 									": old = " + old_id + ", new = " + new_id );
 											
@@ -305,7 +305,7 @@ DHTRouterNodeImpl
 	alive(
 		DHTRouterContactImpl	contact )
 	{
-		DHTLog.log( DHTLog.getString( contact.getID()) + ": alive" );
+		// DHTLog.log( DHTLog.getString( contact.getID()) + ": alive" );
 			
 		contact.setPingOutstanding( false );
 		
@@ -351,7 +351,7 @@ DHTRouterNodeImpl
 	dead(
 		DHTRouterContactImpl	contact )
 	{
-		DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
+		// DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
 		
 		contact.setPingOutstanding( false );
 
@@ -466,7 +466,7 @@ DHTRouterNodeImpl
 	{
 		if ( left == null ){
 			
-			DHTLog.log( 
+			router.log( 
 					indent + prefix + 
 					": buckets = " + buckets.size() + contactsToString( buckets) + 
 					", replacements = " + (replacements==null?"null":( replacements.size() + contactsToString( replacements ))) + 
@@ -476,7 +476,7 @@ DHTRouterNodeImpl
 			
 		}else{
 			
-			DHTLog.log( indent + prefix + ":" + (contains_router_node_id?" *":" ") +
+			router.log( indent + prefix + ":" + (contains_router_node_id?" *":" ") +
 							(this==router.getSmallestSubtree()?"SST":""));
 			
 			left.print( indent + "  ", prefix + "1"  );
