@@ -62,31 +62,27 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     layout.numColumns = 2;
     cTransfer.setLayout(layout);
 
-    
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed");
+
     gridData = new GridData();
     gridData.widthHint = 30;
     IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 5, -1, true);
     paramMaxUploadSpeed.setLayoutData(gridData);
-
-    
-    
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxclients");
+    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed");
+
     gridData = new GridData();
     gridData.widthHint = 30;
     new IntParameter(cTransfer, "Max Clients", 100).setLayoutData(gridData);
-
-    
-
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploads");
+    Messages.setLanguageText(label, "ConfigView.label.maxclients");
+
     gridData = new GridData();
     gridData.widthHint = 30;
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
     paramMaxUploads.setLayoutData(gridData);
-
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploads");
+    
     
     Composite cTransfer2 = new Composite(cTransfer, SWT.NULL);
     layout = new GridLayout();
