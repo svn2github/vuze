@@ -22,6 +22,6 @@ public class Constants {
   public static final String INFINITY_STRING	= "\u221E"; // "oo";
   
   public static final String AZUREUS_NAME	    = "Azureus";
-  public static final String AZUREUS_VERSION  = "2.0.8.3_CVS";
-  public static final byte[] VERSION_ID       = ("-" + "AZ" + "2083" + "-").getBytes();  //MUST be 8 chars long!
+  public static final String AZUREUS_VERSION  = "2.0.8.4";
+  public static final byte[] VERSION_ID       = ("-" + "AZ" + "2084" + "-").getBytes();  //MUST be 8 chars long!
 }
