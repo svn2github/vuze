@@ -33,6 +33,7 @@ import java.util.Vector;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerStatsImpl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 
 public class 
 PEPeerConnectionImpl
@@ -42,11 +43,11 @@ PEPeerConnectionImpl
 
 	protected boolean choked;
 	protected boolean interested;
-	protected Vector requested;
+	private Vector requested;
 
 	protected boolean choking;
 	protected boolean interesting;
-	protected Vector requesting;
+	private Vector requesting;
 
 	protected boolean snubbed;
 
@@ -192,4 +193,73 @@ PEPeerConnectionImpl
 	public void setSnubbed(boolean b) {
 	  snubbed = b;
 	}
+	
+	protected void cancelRequests() {
+		if (requested == null)
+			return;
+		synchronized (requested) {
+			for (int i = requested.size() - 1; i >= 0; i--) {
+				DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
+				manager.requestCanceled(request);
+			}
+		}
+	}
+
+	public int 
+	getNbRequests() {
+		return requested.size();
+	}
+
+	public List 
+	getExpiredRequests() {
+		Vector result = new Vector();
+		for (int i = 0; i < requested.size(); i++) {
+			try {
+				DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
+				if (request.isExpired()) {
+					result.add(request);
+				}
+			}
+			catch (ArrayIndexOutOfBoundsException e) {
+				//Keep going, most probably, piece removed...
+				//Hopefully we'll find it later :p
+			}
+		}
+		return result;
+	}
+	
+	protected boolean
+	alreadyRequested(
+		DiskManagerRequest	request )
+	{
+		return( requested.contains( request ));
+	}
+	
+	protected void
+	addRequest(
+		DiskManagerRequest	request )
+	{
+		requested.add(request);
+	}
+	
+	protected void
+	removeRequest(
+		DiskManagerRequest	request )
+	{
+		requested.remove(request);
+	}
+	
+	protected void 
+	reSetRequestsTime() {
+		for (int i = 0; i < requested.size(); i++) {
+			DiskManagerRequest request = null;
+			try {
+				request = (DiskManagerRequest) requested.get(i);
+			}
+			catch (Exception e) {}
+			if (request != null)
+				request.reSetTime();
+		}
+	}
+	
 }

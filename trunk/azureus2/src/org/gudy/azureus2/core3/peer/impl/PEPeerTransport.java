@@ -95,13 +95,7 @@ PEPeerTransport
 	
 	public List
 	getExpiredRequests();
-  
-  public List
-  getRequested();
-  
-  public List
-  getRequesting();
-	
+  	
 	public boolean[]
 	getAvailable();
 	

@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -741,8 +740,8 @@ PEPeerTransportProtocol
 		  LGLogger.RECEIVED,
 		  ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 		DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-		if (requested.contains(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
-		  requested.remove(request);
+		if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
+		  removeRequest( request );
 		  manager.received(pieceLength);
 		  setSnubbed(false);
 		  reSetRequestsTime();
@@ -815,31 +814,19 @@ PEPeerTransportProtocol
 	seed = true;
   }
 
-  private void reSetRequestsTime() {
-	for (int i = 0; i < requested.size(); i++) {
-	  DiskManagerRequest request = null;
-	  try {
-		request = (DiskManagerRequest) requested.get(i);
-	  }
-	  catch (Exception e) {}
-	  if (request != null)
-		request.reSetTime();
-	}
-  }
-
   public void request(int pieceNumber, int pieceOffset, int pieceLength) {
 	if (getState() != TRANSFERING) {
     manager.requestCanceled(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 	  return;
   }	
 	DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-	if (!requested.contains(request)) {
+	if (!alreadyRequested(request)) {
 		LGLogger.log(
 		  componentID,
 		  evtProtocol,
 		  LGLogger.SENT,
 		  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		requested.add(request);
+		addRequest( request );
 		ByteBuffer buffer = ByteBuffer.allocate(17);
 		buffer.putInt(13);
 		buffer.put(BT_REQUEST);
@@ -855,7 +842,7 @@ PEPeerTransportProtocol
   public void sendCancel(DiskManagerRequest request) {
 	if (getState() != TRANSFERING)
 	  return;	
-	if (requested.contains(request)) {
+	if (alreadyRequested(request)) {
 	  LGLogger.log(
 	      componentID,
 	      evtProtocol,
@@ -867,7 +854,7 @@ PEPeerTransportProtocol
 				+ request.getOffset()
 				+ "->"
 				+ (request.getOffset() + request.getLength()));
-	  requested.remove(request);
+	  removeRequest(request);
 	  ByteBuffer buffer = ByteBuffer.allocate(17);
 	  buffer.putInt(13);
 	  buffer.put(BT_CANCEL);
@@ -1039,38 +1026,7 @@ PEPeerTransportProtocol
 	}
   }
 
-  public void cancelRequests() {
-	if (requested == null)
-	  return;
-	synchronized (requested) {
-	  for (int i = requested.size() - 1; i >= 0; i--) {
-		DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
-		manager.requestCanceled(request);
-	  }
-	}
-  }
-
-  public int getNbRequests() {
-	return requested.size();
-  }
-
-  public List getExpiredRequests() {
-	Vector result = new Vector();
-	for (int i = 0; i < requested.size(); i++) {
-	  try {
-		DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
-		if (request.isExpired()) {
-		  result.add(request);
-		}
-	  }
-	  catch (ArrayIndexOutOfBoundsException e) {
-		//Keep going, most probably, piece removed...
-		//Hopefully we'll find it later :p
-	  }
-	}
-	return result;
-  }
-
+ 
   protected synchronized void write() {
 	if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
 	  return;       
