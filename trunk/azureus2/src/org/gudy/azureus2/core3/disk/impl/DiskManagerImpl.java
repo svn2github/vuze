@@ -2263,7 +2263,12 @@ DiskManagerImpl
       
       //remove the old dir
       File tFile = new File(rPath, fileName);
-      if (tFile.isDirectory() && (!moveToDir.equals(rPath))) FileUtil.recursiveDirDelete(tFile);
+      
+      if (	tFile.isDirectory() && 
+      		!moveToDir.equals(rPath)){
+      	
+      	deleteDataFiles(torrent, tFile.toString());
+      }
 
       
       //update internal path
@@ -2375,38 +2380,62 @@ DiskManagerImpl
    *
    * TODO: only remove empty directories that are created for the torrent
    */
-	public static void deleteDataFiles(TOTorrent torrent, String sPath) {
-	  if (torrent == null)
-	    return;
-	  TOTorrentFile[] files = torrent.getFiles();
+  
+	public static void 
+	deleteDataFiles(
+		TOTorrent torrent, 
+		String sPath) 
+	{
+		if (torrent == null){
+	  
+			return;
+		}
+	  	  
+		try{
+			LocaleUtilDecoder locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
 
-		// delete all files, then empty directories
+			TOTorrentFile[] files = torrent.getFiles();
 
-		for (int i=0;i<files.length;i++){
-			byte[][]path_comps = files[i].getPathComponents();
+				// delete all files, then empty directories
+
+			for (int i=0;i<files.length;i++){
 			
-			String	path_str = sPath + File.separator;
-			for (int j=0;j<path_comps.length;j++){
-				try{
-					path_str += (j==0?"":File.separator) + new String( path_comps[j], Constants.DEFAULT_ENCODING );
-				}catch( UnsupportedEncodingException e ){
-					System.out.println( "file - unsupported encoding!!!!");	
+				byte[][]path_comps = files[i].getPathComponents();
+			
+				String	path_str = sPath + File.separator;
+				
+				for (int j=0;j<path_comps.length;j++){
+					
+					try{
+						path_str += (j==0?"":File.separator) + locale_decoder.decodeString( path_comps[j] );
+					
+					}catch( UnsupportedEncodingException e ){
+						System.out.println( "file - unsupported encoding!!!!");	
+					}
+				}
+			
+				File file = new File(path_str);
+				
+				if (file.exists() && !file.isDirectory()){
+			  
+					try{
+						file.delete();
+					}catch (Exception e){
+						
+						Debug.out(e.toString());
+					}
 				}
 			}
-			
-			File file = new File(path_str);
-			if (file.exists() && !file.isDirectory()) {
-			  try {
-  			  file.delete();
-  			} catch (Exception e) {
-  			  Debug.out(e.toString());
-  			}
-      }
-		}
 		
-		if (!torrent.isSimpleTorrent()) {
-  		File fPath = new File(sPath);
-      FileUtil.recursiveDirDelete(fPath);
-    }
+			if (!torrent.isSimpleTorrent()){
+				
+				File fPath = new File(sPath);
+				
+				FileUtil.recursiveEmptyDirDelete(fPath);
+			}
+		}catch( Throwable e ){
+		
+			e.printStackTrace();
+		}
 	}
 }
