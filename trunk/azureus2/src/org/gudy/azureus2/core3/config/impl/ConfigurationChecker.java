@@ -135,6 +135,7 @@ public class ConfigurationChecker {
     	int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
       COConfigurationManager.setParameter("TCP.Listen.Port", lp);
       COConfigurationManager.setParameter("Server.shared.port", true);
+      changed = true;
     }
     
     
