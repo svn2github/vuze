@@ -22,6 +22,10 @@
 
 package com.aelitis.azureus.plugins.magnet;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +44,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -112,7 +117,43 @@ MagnetPlugin
 				public byte[]
 				badge()
 				{
-					return( null );
+					InputStream is = getClass().getClassLoader().getResourceAsStream( "com/aelitis/azureus/plugins/magnet/Magnet.gif" );
+					
+					if ( is == null ){
+						
+						return( null );
+					}
+					
+					try{
+						ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+						
+						try{
+							byte[]	buffer = new byte[8192];
+							
+							while( true ){
+	
+								int	len = is.read( buffer );
+				
+								if ( len <= 0 ){
+									
+									break;
+								}
+		
+								baos.write( buffer, 0, len );
+							}
+						}finally{
+							
+							is.close();
+						}
+						
+						return( baos.toByteArray());
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+						
+						return( null );
+					}
 				}
 							
 				public byte[]
@@ -149,6 +190,24 @@ MagnetPlugin
 							},
 							hash,
 							timeout ));
+				}
+				
+				public boolean
+				download(
+					URL		url )
+				
+					throws MagnetURIHandlerException
+				{
+					try{
+						
+						plugin_interface.getDownloadManager().addDownload( url );
+						
+						return( true );
+						
+					}catch( DownloadException e ){
+						
+						throw( new MagnetURIHandlerException( "Operation failed", e ));
+					}
 				}
 			});
 		

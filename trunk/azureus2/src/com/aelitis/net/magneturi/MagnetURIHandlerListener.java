@@ -22,6 +22,8 @@
 
 package com.aelitis.net.magneturi;
 
+import java.net.URL;
+
 /**
  * @author parg
  *
@@ -38,6 +40,12 @@ MagnetURIHandlerListener
 		MagnetURIHandlerProgressListener	progress,
 		byte[]								hash,
 		long								timeout )
+	
+		throws MagnetURIHandlerException;
+	
+	public boolean
+	download(
+		URL			magnet_url )
 	
 		throws MagnetURIHandlerException;
 }

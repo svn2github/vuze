@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
@@ -227,45 +228,137 @@ MagnetURIHandlerImpl
 	process(
 		String			get,
 		OutputStream	os )
+	
+		throws IOException
 	{
+		//System.out.println( "get = " + get );
+		
 			// magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C
 		
+		Map	params = new HashMap();
+	
 		int	pos	= get.indexOf( '?' );
 		
-		if ( pos == -1 ){
-			
-        	LGLogger.log("MagentURIHandler: invalid command - '" + get + "'" );
-	
-        	return( true );
-		}
-		
-		Map	params = new HashMap();
-		
-		StringTokenizer	tok = new StringTokenizer( get.substring( pos+1 ), "&" );
-		
-		while( tok.hasMoreTokens()){
-			
-			String	arg = tok.nextToken();
-			
-			pos	= arg.indexOf( '=' );
-			
-			if ( pos == -1 ){
-				
-				params.put( arg.trim(), "" );
-				
-			}else{
-				
-				try{
-					params.put( arg.substring( 0, pos ).trim(), URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING));
+		if ( pos != -1 ){
 					
-				}catch( UnsupportedEncodingException e ){
+			StringTokenizer	tok = new StringTokenizer( get.substring( pos+1 ), "&" );
+			
+			while( tok.hasMoreTokens()){
+				
+				String	arg = tok.nextToken();
+				
+				pos	= arg.indexOf( '=' );
+				
+				if ( pos == -1 ){
 					
-					Debug.printStackTrace( e );
+					params.put( arg.trim(), "" );
+					
+				}else{
+					
+					try{
+						params.put( arg.substring( 0, pos ).trim(), URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING));
+						
+					}catch( UnsupportedEncodingException e ){
+						
+						Debug.printStackTrace( e );
+					}
 				}
 			}
 		}
 		
-		if ( get.startsWith( "/download" )){
+
+		if ( get.equals( "/magnet10/badge.img" )){
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+					
+				if ( data != null ){
+					
+					writeReply( os, "image/gif", data );
+					
+					return( true );
+				}
+			}
+			
+			writeNotFound( os );
+			
+			return( true );
+			
+		}else if ( get.startsWith( "/magnet10/options.js?" )){
+		
+			String	resp = "";
+			
+			resp += getJS( "magnetOptionsPreamble" );
+			
+			resp += getJSS( "<a href=\\\"http://127.0.0.1:\"+(45100+magnetCurrentSlot)+\"/select/?\"+magnetQueryString+\"\\\" target=\\\"_blank\\\">" );
+			resp += getJSS( "<img src=\\\"http://127.0.0.1:\"+(45100+magnetCurrentSlot)+\"/magnet10/badge.img\\\">" );
+			resp += getJSS( "Download with Azureus" );
+			resp += getJSS( "</a>" );
+
+			resp += getJS( "magnetOptionsPostamble" );
+			
+			resp += "magnetOptionsPollSuccesses++";
+			
+			writeReply( os, "application/x-javascript", resp );
+		
+			return( true );
+			
+		}else if ( get.startsWith( "/magnet10/pause" )){
+			
+			try{
+				Thread.sleep( 250 );
+				
+			}catch( Throwable e ){
+				
+			}
+			writeNotFound( os );
+			
+			return( true );
+			
+		}else if ( get.startsWith( "/select/" )){
+
+			int	query	= get.indexOf( '?' );
+
+			boolean	ok = false;
+			
+			String	fail_reason = "";
+			
+			try{
+			
+				URL	magnet = new URL( "magnet:" + get.substring( query ));;
+			
+				for (int i=0;i<listeners.size();i++){
+					
+					if (((MagnetURIHandlerListener)listeners.get(i)).download( magnet )){
+						
+						ok = true;
+						
+						break;
+					}
+				}
+				
+				if ( !ok ){
+					
+					fail_reason = "No listeners accepted the operation";
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				fail_reason	= Debug.getNestedExceptionMessage(e);
+			}
+			
+			if ( ok ){
+				
+				writeReply( os, "text/plain", "Download initiated" );
+				
+			}else{
+				
+				writeReply( os, "text/plain", "Download initiation failed: " + fail_reason );
+			}
+			
+		}else if ( get.startsWith( "/download/" )){
 			
 			String urn = (String)params.get( "xt" );
 			
@@ -365,6 +458,66 @@ MagnetURIHandlerImpl
 		return( true );
 	}
 	
+	protected String
+	getJS(
+		String	s )
+	{
+		return( "document.write(" + s + ");" + NL );
+	}
+	
+	protected String
+	getJSS(
+		String	s )
+	{
+		return( "document.write(\"" + s + "\");" + NL );
+	}
+	
+	protected void
+	writeReply(
+		OutputStream		os,
+		String				content_type,
+		String				content )
+	
+		throws IOException
+	{
+		writeReply( os, content_type, content.getBytes());
+	}
+	
+	protected void
+	writeReply(
+		OutputStream		os,
+		String				content_type,
+		byte[]				content )
+	
+		throws IOException
+	{
+		PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+
+		pw.print( "HTTP/1.0 200 OK" + NL );
+		pw.print( "Content-type: " + content_type + NL );
+		pw.print( "Content-length: " + content.length + NL );
+		
+		pw.print( NL );
+
+		pw.flush();
+		
+		os.write( content );
+
+	}
+	
+	protected void
+	writeNotFound(
+		OutputStream		os )
+	
+		throws IOException
+	{
+		PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+
+		pw.print( "HTTP/1.0 404 Not Found" + NL + NL );
+
+		pw.flush();
+	}
+	
 	public int
 	getPort()
 	{
@@ -383,5 +536,18 @@ MagnetURIHandlerImpl
 		MagnetURIHandlerListener	l )
 	{
 		listeners.remove( l );
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		new MagnetURIHandlerImpl();
+		
+		try{
+			Thread.sleep(1000000);
+		}catch( Throwable e ){
+			
+		}
 	}
 }
