@@ -8,7 +8,7 @@
  * Created on 16. August 2003, 23:16
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import org.apache.log4j.Level;
 /**

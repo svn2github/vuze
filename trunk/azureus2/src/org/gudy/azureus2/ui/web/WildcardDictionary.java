@@ -27,7 +27,7 @@
 // fine Java utilities: http://www.acme.com/java/
 
 // package Acme;
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.util.*;
 

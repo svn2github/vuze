@@ -8,7 +8,7 @@
  * Created on 26. August 2003, 02:18
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.util.List;
 

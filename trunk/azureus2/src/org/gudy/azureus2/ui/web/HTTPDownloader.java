@@ -8,7 +8,7 @@
  * Created on 17. August 2003, 22:22
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

@@ -8,7 +8,7 @@
  * Created on 27. September 2003, 01:08
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

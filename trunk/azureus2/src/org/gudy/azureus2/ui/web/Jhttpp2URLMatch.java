@@ -4,7 +4,7 @@
  * @author Benjamin Kohl
  * @version 0.2.8
  */
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 public class Jhttpp2URLMatch implements java.io.Serializable
 {

@@ -8,7 +8,7 @@
  * Created on 12. September 2003, 22:00
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.net.InetAddress;
 import java.util.List;

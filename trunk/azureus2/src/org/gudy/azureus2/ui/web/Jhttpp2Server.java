@@ -3,7 +3,7 @@
  * This code comes with NO WARRANTY.
  * More Information and documentation: HTTP://jhttp2.sourceforge.net/
  */
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,6 +32,8 @@ import org.apache.log4j.Level;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.ILoggerListener;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.console.ConsoleInput;
 
 public class Jhttpp2Server implements Runnable, ILoggerListener {
   private static final String CRLF="\r\n";
@@ -46,9 +48,9 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   
   //private String http_useragent = "Mozilla/4.0 (compatible; MSIE 4.0; WindowsNT 5.0)";
   private ServerSocket listen;
-  private BufferedWriter logfile;
+  /*private BufferedWriter logfile;
   private BufferedWriter access_logfile;
-  private Properties serverproperties = null;
+  private Properties serverproperties = null;*/
   
   private long bytesread;
   private long byteswritten;
@@ -100,7 +102,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     ConfigurationManager cm = ConfigurationManager.getInstance();
     initLoggers();
     initAccess();
-    
+    /*
     try {
       logfile=new BufferedWriter(new FileWriter(MAIN_LOGFILE,true));
     }
@@ -108,7 +110,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
       loggerWeb.error("Unable to open the main log file.", e_logfile);
       if (logfile==null)
         loggerWeb.error("jHTTPp2 need write permission for the file " + MAIN_LOGFILE);
-    }
+    }*/
     loggerWeb.info("server startup...");
     
     try {
@@ -209,7 +211,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     init(_gm);
   }
   public Jhttpp2Server(GlobalManager _gm, boolean b) {
-    System.out.println("Azureus WebInterface\r\n"
+    System.out.println("Azureus "+Constants.AZUREUS_VERSION+" WebInterface\r\n"
     +"Copyright (c) 2001-2003 by the Azureus Developer Team\r\n"
     +"This software comes with ABSOLUTELY NO WARRANTY OF ANY KIND.\r\n"
     +"http://azureus.sourceforge.net/\r\n\r\n"
@@ -309,11 +311,11 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //    serverproperties.setProperty("server.webconfig.username",config_user);
     //    serverproperties.setProperty("server.webconfig.password",config_password);
     //storeServerProperties();
-    
+    /*
     ObjectOutputStream file=new ObjectOutputStream(new FileOutputStream(DATA_FILE));
     file.writeObject(dic);
     file.writeObject(urlactions);
-    file.close();
+    file.close();*/
   }
   /** restores all Jhttpp2 options from "settings.dat"
    * @since 0.2.10
@@ -337,7 +339,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //    www_server = new Boolean(serverproperties.getProperty("server.www","true")).booleanValue();
     //    config_user = serverproperties.getProperty("server.webconfig.username","root");
     //    config_password = serverproperties.getProperty("server.webconfig.password","geheim");
-    
+    /*
     try {
       
       access_logfile = new BufferedWriter(new FileWriter(ConfigurationManager.getInstance().getStringParameter("Server_sLogFile"), true));
@@ -357,7 +359,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     } catch (IOException e) {
       loggerWeb.error("restoreSettings()", e);
     } catch (ClassNotFoundException e_class_not_found) {
-    }
+    }*/
   }
   /**
    * @return the HTTP version used by jHTTPp2

@@ -8,7 +8,7 @@
  * Created on 29. August 2003, 20:57
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.io.UnsupportedEncodingException;
 

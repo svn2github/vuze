@@ -132,7 +132,7 @@ public class ConfigurationDefaults {
     // Connection Timeout in seconds.
     def.put("Server_iTimeout", new Long(10));
     // Path to the html templates.
-    def.put("Server_sTemplate_Directory", getApplicationPath()+"org/gudy/azureus2/server/template");
+    def.put("Server_sTemplate_Directory", getApplicationPath()+"org/gudy/azureus2/ui/web/template");
     // Maximal simultaneous connections
     def.put("Server_iMaxHTTPConnections", new Long(5));
     // Auto-refresh torrents every (seconds, 0 = off);

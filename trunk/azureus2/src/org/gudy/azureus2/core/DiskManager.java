@@ -20,9 +20,12 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 
-import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * 

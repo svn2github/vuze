@@ -7,7 +7,7 @@
  * Copyright:    Copyright (c) 2001 Benjamin Kohl
  * @author Benjamin Kohl
  */
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 public class OnURLAction implements java.io.Serializable
 {

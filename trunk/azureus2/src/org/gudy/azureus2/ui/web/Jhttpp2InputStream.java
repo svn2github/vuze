@@ -2,7 +2,7 @@
  * Distributed under the GNU General Public License; see the README file.
  * This code comes with NO WARRANTY.
  */
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.io.IOException;
 

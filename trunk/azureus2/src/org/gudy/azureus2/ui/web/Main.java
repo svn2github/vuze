@@ -8,7 +8,7 @@
  * Created on 22. August 2003, 00:04
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.util.Properties;
 
@@ -16,6 +16,7 @@ import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  *

@@ -8,7 +8,7 @@
  * Created on 23. August 2003, 01:11
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.web;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class TemplateCache {
     
     cacheddir=ConfigurationManager.getInstance().getStringParameter("Server_sTemplate_Directory");
     paths[0]=cacheddir;
-    paths[1]="RES:org/gudy/azureus2/server/template";
+    paths[1]="RES:org/gudy/azureus2/ui/web/template";
     //paths[2]="template";
     //paths[2]="/home/tobi/devel/azureus2/org/gudy/azureus2/server/template";
     

@@ -8,7 +8,7 @@
  * Created on 6. Oktober 2003, 23:26
  */
 
-package org.gudy.azureus2.server;
+package org.gudy.azureus2.ui.console;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
@@ -29,6 +29,7 @@ import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.web.Jhttpp2Server;
 
 /**
  *
@@ -40,6 +41,7 @@ public class ConsoleInput extends Thread {
   GlobalManager gm;
   BufferedReader br;
   PrintStream out;
+  ArrayList torrents = null;
   
   /** Creates a new instance of ConsoleInput */
   public ConsoleInput(GlobalManager _gm, Jhttpp2Server _server, InputStream _in, PrintStream _out) {
@@ -57,6 +59,8 @@ public class ConsoleInput extends Thread {
     os.println("help [torrents]\tShow this help. 'torrents' shows info about the show torrents display.");
     os.println("log (on|off)\tTurn on/off console logging");
     os.println("show torrents\tShow running torrents.");
+    os.println("start (#|all)\tStart torrent(s).");
+    os.println("stop (#|all)\tStop torrent(s).");
     os.println("quit\t\tShutdown Azureus");
   }
   
@@ -88,7 +92,7 @@ public class ConsoleInput extends Thread {
             printconsolehelp(out);
           } else {
             if (subcommand.equalsIgnoreCase("torrents")) {
-              out.println("[state] PercentDone Name (Filesize) ETA\r\n\tDownSpeed / UpSpeed\tDownloaded/Uploaded\tConnectedSeeds(total) / ConnectedPeers(total)");
+              out.println("# [state] PercentDone Name (Filesize) ETA\r\n\tDownSpeed / UpSpeed\tDownloaded/Uploaded\tConnectedSeeds(total) / ConnectedPeers(total)");
               out.println();
               out.println("States:");
               out.println(" > Downloading");
@@ -114,7 +118,7 @@ public class ConsoleInput extends Thread {
           if (subcommand != null) {
             if (subcommand.equalsIgnoreCase("torrents")) {
               out.println("> -----");
-              List torrents = gm.getDownloadManagers();
+              torrents = (ArrayList) ((ArrayList)gm.getDownloadManagers()).clone();
               DownloadManager dm;
               int dmstate;
               if (!torrents.isEmpty()) {
@@ -125,6 +129,7 @@ public class ConsoleInput extends Thread {
                 int connectedSeeds = 0;
                 int connectedPeers = 0;
                 PeerStats ps;
+                int nrTorrent = 0;
                 while (torrent.hasNext()) {
                   dm = (DownloadManager) torrent.next();
                   HashData hd = dm.getHashData();
@@ -139,7 +144,8 @@ public class ConsoleInput extends Thread {
                     connectedSeeds += dm.getNbSeeds();
                     connectedPeers += dm.getNbPeers();
                   }
-                  String tstate="[";
+                  nrTorrent+=1;
+                  String tstate=((nrTorrent<10)?" ":"")+Integer.toString(nrTorrent)+" [";
                   if (dmstate == DownloadManager.STATE_INITIALIZING)
                     tstate+="I";
                   else if (dmstate == DownloadManager.STATE_ALLOCATING)
@@ -183,8 +189,8 @@ public class ConsoleInput extends Thread {
                     tstate+=Integer.toString(dm.getNbPeers())+"("+Integer.toString(hd.peers)+")";
                   }
                   out.println(tstate);
+                  out.println();
                 }
-                out.println();
                 out.println("Total Speed (down/up): "+gm.getDownloadSpeed()+" / "+gm.getUploadSpeed());
                 out.println("Transferred Volume (down/up/discarded): "+DisplayFormatters.formatByteCountToKBEtc(totalReceived)+" / "+DisplayFormatters.formatByteCountToKBEtc(totalSent)+" / "+DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));
                 out.println("Total Connected Peers (seeds/peers): "+Integer.toString(connectedSeeds)+" / "+Integer.toString(connectedPeers));
@@ -196,6 +202,86 @@ public class ConsoleInput extends Thread {
             }
           } else {
             out.println("> Missing subcommand for 'show'\r\n> show syntax: show torrents");
+          }
+        } else if (command.equalsIgnoreCase("start")) {
+          if (subcommand != null) {
+            if (torrents.isEmpty()) {
+              out.println("> Command 'start': No torrents in list.");
+            } else {
+              String name;
+              DownloadManager dm;
+              try {
+                int number = Integer.parseInt(subcommand);
+                if ((number>0) && (number<=torrents.size())) {
+                  dm = (DownloadManager) this.torrents.get(number-1);
+                  if (dm.getName()==null)
+                    name="?";
+                  else
+                    name=dm.getName();
+                  dm.startDownloadInitialized(true);
+                  out.println("> Torrent #"+subcommand+" ("+name+") started.");
+                } else
+                  out.println("> Command 'start': Torrent #"+subcommand+" unknown.");
+              } catch (NumberFormatException e) {
+                if (subcommand.equalsIgnoreCase("all")) {
+                  Iterator torrent = torrents.iterator();
+                  int nr = 0;
+                  while (torrent.hasNext()) {
+                    dm = (DownloadManager) torrent.next();
+                    if (dm.getName()==null)
+                      name="?";
+                    else
+                      name=dm.getName();
+                    dm.startDownloadInitialized(true);
+                    out.println("> Torrent #"+Integer.toString(++nr)+" ("+name+") started.");
+                  }
+                } else {
+                  out.println("> Command 'start': Subcommand '"+subcommand+"' unknown.");
+                }
+              }
+            }
+          } else {
+            out.println("> Missing subcommand for 'start'\r\n> start syntax: start (#|all)");
+          }
+        } else if (command.equalsIgnoreCase("stop")) {
+          if (subcommand != null) {
+            if (torrents.isEmpty()) {
+              out.println("> Command 'stop': No torrents in list.");
+            } else {
+              String name;
+              DownloadManager dm;
+              try {
+                int number = Integer.parseInt(subcommand);
+                if ((number>0) && (number<=torrents.size())) {
+                  dm = (DownloadManager) this.torrents.get(number-1);
+                  if (dm.getName()==null)
+                    name="?";
+                  else
+                    name=dm.getName();
+                  dm.stopIt();
+                  out.println("> Torrent #"+subcommand+" ("+name+") stopped.");
+                } else
+                  out.println("> Command 'stop': Torrent #"+subcommand+" unknown.");
+              } catch (NumberFormatException e) {
+                if (subcommand.equalsIgnoreCase("all")) {
+                  Iterator torrent = torrents.iterator();
+                  int nr = 0;
+                  while (torrent.hasNext()) {
+                    dm = (DownloadManager) torrent.next();
+                    if (dm.getName()==null)
+                      name="?";
+                    else
+                      name=dm.getName();
+                    dm.stopIt();
+                    out.println("> Torrent #"+Integer.toString(++nr)+" ("+name+") stopped.");
+                  }
+                } else {
+                  out.println("> Command 'stop': Subcommand '"+subcommand+"' unknown.");
+                }
+              }
+            }
+          } else {
+            out.println("> Missing subcommand for 'stop'\r\n> stop syntax: stop (#|all)");
           }
         } else if (command.equalsIgnoreCase("log")) {
           Appender con = Logger.getRootLogger().getAppender("ConsoleAppender");
