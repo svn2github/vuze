@@ -362,8 +362,10 @@ public class DownloadManager extends Component {
   }
 
   public String getDownloaded() {
-    if (peerManager != null)
-      return peerManager.getDownloaded();
+    if (peerManager != null) {
+      PeerStats ps = peerManager.getStats();
+      return ps.getReallyReceived();
+    }
     return ""; //$NON-NLS-1$
   }
 
@@ -444,6 +446,12 @@ public class DownloadManager extends Component {
   public void received(int length) {
     if (length > 0 && globalManager != null) {
       globalManager.received(length);
+    }
+  }
+  
+  public void discarded(int length) {
+    if (length > 0 && globalManager != null) {
+      globalManager.discarded(length);
     }
   }
 

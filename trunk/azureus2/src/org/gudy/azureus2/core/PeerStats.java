@@ -15,6 +15,7 @@ public class PeerStats {
   private int pieceLength;
 
   private long totalReceived;
+  private long totalDiscarded;
   private long totalSent;
   private long totalHave;
 
@@ -23,6 +24,8 @@ public class PeerStats {
   private Average sendingSpeed;
   private Average overallSpeed;
   private Average statisticSentSpeed;
+
+
 
   public PeerStats(int pieceLength) {
 //    timeCreated = System.currentTimeMillis() / 100;
@@ -44,6 +47,10 @@ public class PeerStats {
     //average over 60s, update every 3s
     statisticSentSpeed = Average.getInstance(3000, 60);
 
+  }
+  
+  public void discarded(int length) {
+    this.totalDiscarded += length;
   }
 
   public void received(int length) {
@@ -97,6 +104,18 @@ public class PeerStats {
   public String getTotalReceived() {
     return format(totalReceived);
   }
+  
+  public String getReallyReceived() {
+    if(totalDiscarded == 0)
+      return format(totalReceived);
+    else {
+      return format(totalReceived-totalDiscarded) + " + ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + ")"; 
+    }
+  }
+  
+  public String getTotalDiscarded() {
+    return format(totalDiscarded);
+  }  
 
   public long getTotalSentRaw() {
     return totalSent;
@@ -104,6 +123,10 @@ public class PeerStats {
 
   public long getTotalReceivedRaw() {
     return totalReceived;
+  }
+  
+  public long getTotalDiscardedRaw() {
+      return totalDiscarded;
   }
 
   public String getStatisticSent() {

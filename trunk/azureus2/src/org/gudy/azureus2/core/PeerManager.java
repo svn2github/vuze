@@ -1115,7 +1115,13 @@ public class PeerManager extends Thread {
         }
         _manager.received(length);
     }
-
+    
+    public void discarded(int length) {
+      if (length > 0) {
+          _stats.discarded(length);
+      }
+      _manager.discarded(length);
+    }
     //::possibly update to setSent() -Tyler
     //set the send value
     public void sent(int length) {

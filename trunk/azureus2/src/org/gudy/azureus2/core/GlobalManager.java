@@ -213,6 +213,10 @@ public class GlobalManager extends Component {
   public void received(int length) {
     stats.received(length);
   }
+  
+  public void discarded(int length) {
+      stats.discarded(length);
+    }
 
   public void sent(int length) {
     stats.sent(length);

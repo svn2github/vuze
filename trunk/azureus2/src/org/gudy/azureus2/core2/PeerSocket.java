@@ -598,6 +598,7 @@ public class PeerSocket extends PeerConnection {
               + "->"
               + (pieceOffset + pieceLength)
               + " but piece was discarded (either not requested or invalid)");
+          stats.discarded(pieceLength);
           readMessage(readBuffer);
         }
         break;
