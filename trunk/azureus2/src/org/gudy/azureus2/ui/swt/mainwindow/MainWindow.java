@@ -9,8 +9,8 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
@@ -26,7 +26,6 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
-
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -56,30 +55,28 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-
-import com.aelitis.azureus.core.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
-import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
 import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
 import org.gudy.azureus2.plugins.update.UpdateManagerListener;
-
-import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
-import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
-import org.gudy.azureus2.ui.swt.wizard.WizardListener;
-import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.IconBar;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
@@ -90,12 +87,27 @@ import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.components.ColorUtils;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
+import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
+import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
-import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.ConfigView;
+import org.gudy.azureus2.ui.swt.views.ConsoleView;
+import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.ManagerView;
+import org.gudy.azureus2.ui.swt.views.MySharesView;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
+import org.gudy.azureus2.ui.swt.views.MyTrackerView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
-import org.gudy.azureus2.ui.swt.sharing.progress.*;
-import org.gudy.azureus2.ui.swt.update.*;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.AzureusCoreListener;
 
 /**
  * @author Olivier
@@ -276,6 +288,16 @@ MainWindow
       folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     } else {
       folder = new CTabFolder(mainWindow, SWT.CLOSE | SWT.FLAT);
+      final Color bg = ColorUtils.getShade(folder.getBackground(), -25);
+      final Color fg = ColorUtils.getShade(folder.getForeground(), 25);
+      folder.setBackground(bg);
+      folder.setForeground(fg);
+      folder.addDisposeListener(new DisposeListener() {
+          public void widgetDisposed(DisposeEvent event) {
+              bg.dispose();
+              fg.dispose();
+          }
+      });
     }    
     
     Tab.setFolder(folder);   
@@ -334,7 +356,7 @@ MainWindow
         ((CTabFolder)folder).setSelectionBackground(
                 new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
                              display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
-                             folder.getBackground() },
+                             display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND) },
                 new int[] {10, 90}, true);
       } catch (NoSuchMethodError e) { 
         /** < SWT 3.0M8 **/ 
