@@ -56,10 +56,10 @@ LGLogger
 	
 	public static void 
 	log(
-		int color, 
+		int category, 
 		String text ) 
 	{
-		log(0,0,color,text );
+		log(0,category,0,text );
 	}	
 	
 	public static void 
