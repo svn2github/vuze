@@ -896,12 +896,10 @@ PEPeerControlImpl
   updateTrackerAnnounceInterval() 
   {
   	if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL != 0 ){
-  		
   		return;
   	}
   	
-  	int		percentage 			= 100;
-    final int LIMIT = 200;
+    final int WANT_LIMIT = 200;
   	
     //if we're not downloading, use normal re-check rate
     if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
@@ -916,41 +914,47 @@ PEPeerControlImpl
         num_wanted = (int)(num_wanted / 1.5);
       }
       
-      if ( num_wanted < 0 || num_wanted > LIMIT ) {
-        num_wanted = LIMIT;
+      if ( num_wanted < 0 || num_wanted > WANT_LIMIT ) {
+        num_wanted = WANT_LIMIT;
       }
       
       //include number of pending connection establishments in calculation
       int num_pending = peer_info_storage.getStoredCount();
       num_wanted -= num_pending;
-      if( num_wanted < 0 )  num_wanted = 0;
+      
+      if( num_wanted < 1 ) {  //we dont need any more connections
+        _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
+        return;
+      }
 
+      int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
+      
       TRTrackerScraperResponse tsr = _downloadManager.getTrackerScrapeResponse();
+      
+      if( tsr != null && tsr.isValid() ) {  //we've got valid scrape info
+        int num_seeds = tsr.getSeeds();   
+        int num_peers = tsr.getPeers();
 
-      //get current scrape values
-      int swarmPeers = -1;
-      int swarmSeeds = -1;
-      if (tsr != null && tsr.isValid()) {
-        swarmPeers = tsr.getPeers();
-        swarmSeeds = tsr.getSeeds();
+        int swarm_size = seeding_mode ? num_peers : num_peers + num_seeds;  //if seeding, only use peer count
+        
+        if( swarm_size < 1 ) {  //there are no peers to connect to in the swarm
+          _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
+          return;
+        }
+
+        if( swarm_size < num_wanted ) {  //lower limit to swarm size if necessary
+          num_wanted = swarm_size;
+        }
       }
       
-      //lower limit to swarm size if necessary
-      int swarmSize = seeding_mode ? swarmPeers : swarmPeers + swarmSeeds;  //if seeding, only use peer count
-      if (swarmSize > 0 && num_wanted > swarmSize) {
-        num_wanted = swarmSize;
+      if( current_connection_count == 0 ) {  //we're not connected to anybody yet
+        _tracker.setRefreshDelayOverrides( 0 );  //so recheck in 1 min
+        return;
       }
-      
-      int currConnectionCount = PeerIdentityManager.getIdentityCount( _hash );
-      if ( currConnectionCount == 0 ) {
-        percentage = 0;  //no current connections, recheck in 1 min
-      }
-      else if( num_wanted >= 0 ) {
-        float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + num_wanted);
-        percentage = (int)(currConnectionPercent * 100);
-      }
-      
-      _tracker.setRefreshDelayOverrides( percentage );
+
+      int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
+      _tracker.setRefreshDelayOverrides( current_percent );  //set dynamic interval override
+      return;
     }
   }
   	
