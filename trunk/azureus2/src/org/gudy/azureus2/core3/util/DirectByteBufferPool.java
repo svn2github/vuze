@@ -112,7 +112,7 @@ public class DirectByteBufferPool {
           60*1000,
           new TimerEventPerformer() {
             public void perform( TimerEvent ev ) {
-              System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB");
+              System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
               long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
               long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
               long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
@@ -325,6 +325,10 @@ public class DirectByteBufferPool {
   }
   
   
+  
+  
+  
+  
   /**
    * Fairly removes free buffers from the pools to limit memory usage.
    */
@@ -416,5 +420,23 @@ public class DirectByteBufferPool {
   	}
   	
     free( buffer ); 
+  }
+  
+  
+  
+  
+  private long bytesFree() {
+    long bytesUsed = 0;
+    synchronized( poolsLock ) {
+      //count up total bytes used by free buffers
+      Iterator it = buffersMap.keySet().iterator();
+      while (it.hasNext()) {
+        Integer keyVal = (Integer)it.next();
+        ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
+      
+        bytesUsed += keyVal.intValue() * bufferPool.size();
+      }
+    }
+    return bytesUsed;
   }
 }
