@@ -100,6 +100,7 @@ import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
+import org.gudy.azureus2.ui.swt.sharing.progress.*;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -296,7 +297,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     new CertificateTrustWindow();
     
     user_alerts = new UserAlerts(gm);
-    
+       
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     
 
@@ -836,6 +837,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
 
     closeSplashWindow();
+    
+    // share progress window
+    
+    new ProgressWindow();
     
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());

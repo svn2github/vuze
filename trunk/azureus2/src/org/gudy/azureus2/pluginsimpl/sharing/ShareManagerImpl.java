@@ -91,9 +91,7 @@ ShareManagerImpl
 			share_dir = FileUtil.getApplicationFile( TORRENT_STORE );
 			
 			share_dir.mkdirs();
-				
-			reportCurrentTask( "Loading configuration");
-			
+							
 			config = new ShareConfigImpl();
 			
 			try{
@@ -137,22 +135,15 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		try{
-			reportCurrentTask( "Consistency Check Starts");	
+			// copy set for iteration as consistency check can delete resource
 		
-				// copy set for iteration as consistency check can delete resource
-			
-			Iterator	it = new HashSet(shares.values()).iterator();
-			
-			while(it.hasNext()){
-				
-				ShareResourceImpl	resource = (ShareResourceImpl)it.next();
-				
-				resource.checkConsistency();
-			}
-		}finally{
+		Iterator	it = new HashSet(shares.values()).iterator();
 		
-			reportCurrentTask( "Consistency Check Complete");
+		while(it.hasNext()){
+			
+			ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+			
+			resource.checkConsistency();
 		}
 	}
 	
