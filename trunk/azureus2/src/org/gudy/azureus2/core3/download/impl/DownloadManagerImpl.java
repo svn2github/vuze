@@ -309,7 +309,9 @@ DownloadManagerImpl
     }
 
     if ( torrent == null ) {
-      setState( STATE_ERROR );
+    	
+      setFailed();
+      
       return;
     }
 
@@ -318,6 +320,7 @@ DownloadManagerImpl
     startServer();
     
     if ( state == STATE_WAITING || state == STATE_ERROR ){
+    	
       return;
     }
     
@@ -354,16 +357,22 @@ DownloadManagerImpl
 
       tracker_client.addListener( tracker_client_listener );
 
-      initializeDiskManager();
-	
       if ( getState() != STATE_ERROR ){
       	
+      		// we need to set the state to "initialized" before kicking off the disk manager
+      		// initialisation as it should only report its status while in the "initialized"
+      		// state (see getState for how this works...)
+      	
       	setState( STATE_INITIALIZED );
+          
+      	initializeDiskManager();
       }
 
+
     }catch( TRTrackerClientException e ){
-    	Debug.printStackTrace( e );
-      setState( STATE_ERROR );
+ 		
+    	setFailed( e );
+			 
     }
   }
 
@@ -575,31 +584,24 @@ DownloadManagerImpl
 			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
-        		
-			setState( STATE_ERROR );
- 			
-			errorDetail = TorrentUtils.exceptionToText( e );
+        		 			
+			setFailed( TorrentUtils.exceptionToText( e ));
  			
 		}catch( UnsupportedEncodingException e ){
 		
 			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
-        		
-			setState( STATE_ERROR );
-			
-			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
+        					
+			setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
 			
 		}catch( Exception e ){
 			
 			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
-    		
-			setState( STATE_ERROR );
-			
-			errorDetail = e.getMessage();
-			
+    					
+			setFailed( e );		
 		}
 	}
 
@@ -612,9 +614,7 @@ DownloadManagerImpl
 		
 			// single port - this situation isn't going to clear easily
 		
-		errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver");
-		
-		setState( STATE_ERROR );
+		setFailed( MessageText.getString("DownloadManager.error.unabletostartserver"));
 	}
   }
 
@@ -690,8 +690,8 @@ DownloadManagerImpl
   	}
   	
   	if (!strErrMessage.equals("")) {
-      setState(STATE_ERROR);
-      errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage;
+     
+      setFailed( MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage );
   	}
 
     return strErrMessage;
@@ -737,24 +737,62 @@ DownloadManagerImpl
   return 0;
   }
 
+  protected void
+  setFailed()
+  {
+  	setFailed((String)null );
+  }
+  
+  protected void
+  setFailed(
+  	Throwable 	e )
+  {
+  	setFailed( Debug.getNestedExceptionMessage(e));
+  }
+  
+  protected void
+  setFailed(
+  	String		reason )
+  {
+  	if ( reason != null ){
+  		
+  		errorDetail = reason;
+  	}
+  	
+  	stopIt( DownloadManager.STATE_ERROR, false, false );
+  }
 
-  public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data )
+  public void 
+  stopIt(
+  	final int 			_stateAfterStopping, 
+	final boolean 		remove_torrent, 
+	final boolean 		remove_data )
   {
     if( state == DownloadManager.STATE_STOPPED ||
         state == DownloadManager.STATE_ERROR ) {
-      //already in stopped state, just do removals if necessary
+    
+    		//already in stopped state, just do removals if necessary
+    	
       if( remove_data )  deleteDataFiles();
+      
       if( remove_torrent )  deleteTorrentFile();
-      setState( _stateAfterStopping ); 
+      
+      setState( _stateAfterStopping );
+      
       return;
     }
     
     
-    if (state == DownloadManager.STATE_STOPPING)
-      return;
-
+    if (state == DownloadManager.STATE_STOPPING){
+    
+    	return;
+    }
+    
   	setState( DownloadManager.STATE_STOPPING );
 
+  		// this will run synchronously but on a non-daemon thread so that it will under
+  		// normal circumstances complete, even if we're closing
+  	
   	try{
 	  	NonDaemonTaskRunner.run(
 			new NonDaemonTask()
@@ -819,7 +857,7 @@ DownloadManagerImpl
 						  		
 						  	}catch( Exception e ){
 						  		
-								errorDetail = "Resume data save fails: " + e.getMessage();
+								errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
 								
 								stateAfterStopping	= STATE_ERROR;
 						  	}
@@ -840,9 +878,17 @@ DownloadManagerImpl
 								  
 					   forceStarted = false;
              
-             if( remove_data )  deleteDataFiles();
-             if( remove_torrent )  deleteTorrentFile();
-             setState( stateAfterStopping );
+					   if( remove_data ){
+					   
+					   		deleteDataFiles();
+					   }
+					   
+					   if( remove_torrent ){
+					   	
+					   	deleteTorrentFile();
+					   }
+             
+					   setState( stateAfterStopping );
              
 					 }
 				  	
@@ -865,9 +911,7 @@ DownloadManagerImpl
     		
     	}catch( Exception e ){
     		
-			errorDetail = "Resume data save fails: " + e.getMessage();
-
-			setState( STATE_ERROR );
+			setFailed( errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
     	}
     }
     
@@ -1182,9 +1226,7 @@ DownloadManagerImpl
 	    
   	}catch( Exception e ){
   		
-		errorDetail = "Resume data save fails: " + e.getMessage();
-
-		setState( STATE_ERROR );
+		setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
   	}
   }
     
@@ -1535,17 +1577,19 @@ DownloadManagerImpl
   			new DiskManagerListener()
   			{
   				public void
-  				stateChanged(int oldDMState,
+  				stateChanged(
+  					int 	oldDMState,
   					int		newDMState )
   				{
   					if ( newDMState == DiskManager.FAULTY ){
   						
-  						setErrorDetail( diskManager.getErrorMessage());
-              stopIt( DownloadManager.STATE_ERROR, false, false );
-  					}
+  						setFailed( diskManager.getErrorMessage());						
+   					}
   					
   					if (oldDMState == DiskManager.CHECKING) {
+  						
   						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+  						
   						DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
   					}
   					  
@@ -1583,7 +1627,9 @@ DownloadManagerImpl
   	return( res );
   }
   
-  public boolean canForceRecheck() {
+  public boolean 
+  canForceRecheck() 
+  {
     return (state == STATE_STOPPED) ||
            (state == STATE_QUEUED) ||
            (state == STATE_ERROR && diskManager == null);
@@ -1639,7 +1685,7 @@ DownloadManagerImpl
 				
 				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				
-				if (recheck_disk_manager.getState() == DiskManager.READY){
+				if ( recheck_disk_manager.getState() == DiskManager.READY ){
 					
 				  	try{
 				  		recheck_disk_manager.dumpResumeDataToDisk(true, false);
@@ -1652,7 +1698,7 @@ DownloadManagerImpl
 						
 						if (start_state == STATE_ERROR){
 							
-							setState(STATE_STOPPED);
+							setState( STATE_STOPPED );
 							
 						}else{
 							
@@ -1660,22 +1706,18 @@ DownloadManagerImpl
 						}
 				  	}catch( Exception e ){
 				  		
-						errorDetail = "Resume data save fails: " + e.getMessage();
-	
-						setState( STATE_ERROR );
+						setFailed( errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
 				  	}
 				  	
 				  }else{ // Faulty
-				  	
-				  	setErrorDetail( recheck_disk_manager.getErrorMessage());
-					
+				  						
 				  	recheck_disk_manager.stop();
 					
 				  	setOnlySeeding(false);
 					
 				  	diskManager = null;
 					
-				  	setState(STATE_ERROR);
+					setFailed( recheck_disk_manager.getErrorMessage());	 
 				  }
 				}
 			};

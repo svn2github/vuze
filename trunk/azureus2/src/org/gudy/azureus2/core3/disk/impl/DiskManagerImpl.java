@@ -92,9 +92,9 @@ DiskManagerImpl
 	private DiskManagerPieceImpl[]	pieces;
 	private PieceList[] 			pieceMap;
 
-	private DiskManagerFileInfoImpl[] files;
+	private DiskManagerFileInfoImpl[] 	files;
 	
-    private DownloadManager dmanager;
+    private DownloadManager 			download_manager;
 
 	private boolean alreadyMoved = false;
 
@@ -131,7 +131,7 @@ DiskManagerImpl
 		DownloadManager 	_dmanager) 
 	{
 	    torrent 	= _torrent;
-	    dmanager 	= _dmanager;
+	    download_manager 	= _dmanager;
 	 
 	    pieces		= new DiskManagerPieceImpl[0];	// in case things go wrong later
 	    
@@ -182,7 +182,7 @@ DiskManagerImpl
 
 		if ( torrent.isSimpleTorrent()){
 			 								
-			piece_mapper.buildFileLookupTables( torrent_files[0], dmanager.getTorrentSaveFile());
+			piece_mapper.buildFileLookupTables( torrent_files[0], download_manager.getTorrentSaveFile());
 
 		}else{
 
@@ -291,7 +291,7 @@ DiskManagerImpl
 				
 				alreadyMoved = true;
 		
-				dmanager.setTorrentSaveDir( moveToDir );
+				download_manager.setTorrentSaveDir( moveToDir );
 			}
 		}
 
@@ -334,7 +334,8 @@ DiskManagerImpl
 		setState( READY );
 	}
 
-	public void stop() 
+	public void 
+	stop() 
 	{	
 		if ( !started ){
 			
@@ -376,7 +377,7 @@ DiskManagerImpl
 	public boolean
 	filesExist()
 	{
-		return( filesExist( dmanager.getTorrentSaveDir()));
+		return( filesExist( download_manager.getTorrentSaveDir()));
 	}
 
 	protected boolean 
@@ -385,7 +386,7 @@ DiskManagerImpl
 	{
 		if ( !torrent.isSimpleTorrent()){
 			
-			root_dir += File.separator + dmanager.getTorrentSaveFile();
+			root_dir += File.separator + download_manager.getTorrentSaveFile();
 		}
 		
 		File	root_dir_file = new File( root_dir );
@@ -527,11 +528,11 @@ DiskManagerImpl
 		allocated = 0;
 		int numNewFiles = 0;
 
-		String	root_dir = dmanager.getTorrentSaveDir();
+		String	root_dir = download_manager.getTorrentSaveDir();
 		
 		if ( !torrent.isSimpleTorrent()){
 			
-			root_dir += File.separator + dmanager.getTorrentSaveFile();
+			root_dir += File.separator + download_manager.getTorrentSaveFile();
 		}
 		
 		root_dir	+= File.separator;	
@@ -661,7 +662,7 @@ DiskManagerImpl
       }else {  //we need to allocate it
         
         //make sure it hasn't previously been allocated
-        if( dmanager.isDataAlreadyAllocated() ){
+        if( download_manager.isDataAlreadyAllocated() ){
         	
           this.errorMessage = "Data file missing: " + f.getAbsolutePath();
           
@@ -740,7 +741,7 @@ DiskManagerImpl
     
     loadFilePriorities();
     
-    dmanager.setDataAlreadyAllocated( true );
+    download_manager.setDataAlreadyAllocated( true );
     
 		return numNewFiles;
 	}	
@@ -935,11 +936,32 @@ DiskManagerImpl
 	}
 
 	public void
-	setErrorMessage(
-		String	str )
+	setFailed(
+		final String		reason )
 	{
-		errorMessage	= str;
+			/**
+			 * need to run this on a separate thread to avoid deadlock with the stopping
+			 * process - setFailed tends to be called from within the read/write activities
+			 * and stopping these requires this.
+			 */
+    	new AEThread("DiskManager:setFailed") 
+		{
+			public void 
+			runSupport() 
+			{
+				errorMessage	= reason;
+				
+				LGLogger.logAlert( LGLogger.AT_ERROR, errorMessage );
+				
+
+				setState( DiskManager.FAULTY );
+									
+				DiskManagerImpl.this.stop();
+			}
+		}.start();
+
 	}
+
 	
 	public PieceList
 	getPieceList(
@@ -1045,13 +1067,13 @@ DiskManagerImpl
     	this_mon.enter();
 	    String fullPath;
 	    String subPath;
-	    String rPath = dmanager.getTorrentSaveDir();
+	    String rPath = download_manager.getTorrentSaveDir();
 	    File destDir;
 	    String returnName = "";
 	    
 	    	// don't move non-persistent files as these aren't managed by us
 	    
-	    if (!dmanager.isPersistent()){
+	    if (!download_manager.isPersistent()){
 	    	
 	    	return( returnName );
 	    }
@@ -1178,15 +1200,15 @@ DiskManagerImpl
 	      
 	      //remove the old dir
 	      
-	      File tFile = new File(dmanager.getTorrentSaveDir(), dmanager.getTorrentSaveFile());
+	      File tFile = new File(download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile());
 	      
 	      if (	tFile.isDirectory() && 
 	      		!moveToDir.equals(rPath)){
 	      	
-	      		deleteDataFiles(torrent, dmanager.getTorrentSaveDir(), dmanager.getTorrentSaveFile());
+	      		deleteDataFiles(torrent, download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile());
 	      }
 	        
-	      dmanager.setTorrentSaveDir( moveToDir );
+	      download_manager.setTorrentSaveDir( moveToDir );
 	      
 	      //move the torrent file as well
 	      boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
@@ -1331,7 +1353,7 @@ DiskManagerImpl
   	//  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
     try {
     	if ( files == null ) return;
-    	List file_priorities = (List)dmanager.getData( "file_priorities" );
+    	List file_priorities = (List)download_manager.getData( "file_priorities" );
     	if ( file_priorities == null ) return;
     	for (int i=0; i < files.length; i++) {
     		DiskManagerFileInfo file = files[i];
@@ -1359,11 +1381,11 @@ DiskManagerImpl
       else if ( priority ) value = 1;
       file_priorities.add( i, new Long(value));            
     }
-    dmanager.setData( "file_priorities", file_priorities );
+    download_manager.setData( "file_priorities", file_priorities );
   }
   
   public DownloadManager getDownloadManager() {
-    return dmanager;
+    return download_manager;
   }
     
   	public void 

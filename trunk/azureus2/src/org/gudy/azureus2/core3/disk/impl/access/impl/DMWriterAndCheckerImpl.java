@@ -204,7 +204,7 @@ DMWriterAndCheckerImpl
 			this_mon.exit();
 		}
 					
-		writeThread.stopIt();
+		writeThread.stopWriteThread();
 		
 			// wait until the thread has stopped
 		
@@ -306,7 +306,7 @@ DMWriterAndCheckerImpl
 		final DiskManagerCheckRequestListener 	listener,
 		final Object							user_data ) 
 	{  	
-	 	Thread t = new AEThread("PEPeerControl:checker")
+	 	Thread t = new AEThread("DMW&C::checker")
 		{
 	  		public void
 			runSupport()
@@ -314,19 +314,19 @@ DMWriterAndCheckerImpl
 	  			try{
 	  				complete_recheck_in_progress	= true;
 	  					
-	  				final AESemaphore	sem = new AESemaphore( "PEPeerControl:checker" );
+	  				final AESemaphore	sem = new AESemaphore( "DMW&C::checker" );
 	  				
 	  				int	checks_submitted	= 0;
 	  				
-            int delay = 0;  //if friendly hashing is enabled, no need to delay even more here
-
-            if( !friendly_hashing ) {
-              //delay a bit normally anyway, as we don't want to kill the user's system
-              //during the post-completion check (10k of piece = 1ms of sleep)
-              delay = pieceLength /1024 /10;
-              delay = Math.min( delay, 409 );
-              delay = Math.max( delay, 12 );
-            }
+		            int delay = 0;  //if friendly hashing is enabled, no need to delay even more here
+		
+		            if( !friendly_hashing ) {
+		              //delay a bit normally anyway, as we don't want to kill the user's system
+		              //during the post-completion check (10k of piece = 1ms of sleep)
+		              delay = pieceLength /1024 /10;
+		              delay = Math.min( delay, 409 );
+		              delay = Math.max( delay, 12 );
+		            }
             
             
 	  				for ( int i=0; i < nbPieces; i++ ){
@@ -725,10 +725,8 @@ DMWriterAndCheckerImpl
 			Debug.printStackTrace( e );
 			
 			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getName();
-						
-			disk_manager.setErrorMessage( Debug.getNestedExceptionMessage(e) + " when processing file '" + file_name + "'" );
-			
-			LGLogger.logAlert( LGLogger.AT_ERROR, disk_manager.getErrorMessage() );
+				
+			disk_manager.setFailed( Debug.getNestedExceptionMessage(e) + " when processing file '" + file_name + "'" );
 			
 			buffer.position(DirectByteBuffer.SS_DW, initial_buffer_position);
 			
@@ -929,18 +927,13 @@ DMWriterAndCheckerImpl
 									elt.data.returnToPool();
 											
 									elt.data = null;
-									  
-									stopIt();
-									
-									disk_manager.setState( DiskManager.FAULTY );
-									
 								  }
 								  
 								}else{
 			  
 									elt.data.returnToPool();
 									
-								  elt.data = null;
+									elt.data = null;
 								}
 								
 							}else{
@@ -993,7 +986,8 @@ DMWriterAndCheckerImpl
 			}
 		}
 
-		public void stopIt(){
+		protected void 
+		stopWriteThread(){
 			
 			try{
 				this_mon.enter();

@@ -2180,11 +2180,16 @@ PEPeerControlImpl
 	      int length = piece.getBlockSize(i);
 	      PEPeer peer = writers[i];
 	      if(peer != null) {
+	      	
 	        DirectByteBuffer buffer = _diskManager.readBlock(piece.getPieceNumber(),offset,length);
-	        byte[] hash = computeMd5Hash(buffer);
-	        buffer.returnToPool();
-	        buffer = null;
-	        piece.addWrite(i,peer,hash,correct);        
+	        
+	        if ( buffer != null ){
+	        	
+		        byte[] hash = computeMd5Hash(buffer);
+		        buffer.returnToPool();
+		        buffer = null;
+		        piece.addWrite(i,peer,hash,correct);  
+	        }
 	      }
 	      offset += length;
 	    }        

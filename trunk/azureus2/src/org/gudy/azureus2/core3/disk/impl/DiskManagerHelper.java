@@ -46,9 +46,15 @@ DiskManagerHelper
 	setState(
 		int	state );
 	
+	/**
+	 * Stops the disk manager and informs the download manager that things have gone
+	 * wrong. 
+	 * @param reason
+	 */
+
 	public void
-	setErrorMessage(
-		String	str );
+	setFailed(
+		String		reason );
 	
 	public long
 	getAllocated();

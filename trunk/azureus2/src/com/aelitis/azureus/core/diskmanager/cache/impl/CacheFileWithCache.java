@@ -386,156 +386,177 @@ CacheFileWithCache
 						
 					file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
 					
-					try{
-						boolean	do_read_ahead	= 
-									!recursive &&
-									manager.isReadCacheEnabled() &&
-									read_length <  current_read_ahead_size &&
-									file_position + current_read_ahead_size <= file.getLength();
-	
-						if ( do_read_ahead ){
-	
-								// only read ahead if this is a continuation of a prior read within history
-							
-							do_read_ahead	= false;
-							
-							for (int i=0;i<READAHEAD_HISTORY;i++){
+						// If read-ahead fails then we resort to a straight read
+						// Read-ahead can fail if a cache-flush fails (e.g. out of disk space
+						// on a file belonging to a different torrent than this.
+						// We don't want such a failure to break this read operation 
+					
+					for (int i=0;i<2;i++){
+						
+						try{
+							boolean	do_read_ahead	= 
+										i == 0 &&		// first time round
+										!recursive &&
+										manager.isReadCacheEnabled() &&
+										read_length <  current_read_ahead_size &&
+										file_position + current_read_ahead_size <= file.getLength();
+		
+							if ( do_read_ahead ){
+		
+									// only read ahead if this is a continuation of a prior read within history
 								
-								if ( read_history[i] == file_position ){
+								do_read_ahead	= false;
+								
+								for (int j=0;j<READAHEAD_HISTORY;j++){
 									
-									do_read_ahead	= true;
-									
-									break;
+									if ( read_history[j] == file_position ){
+										
+										do_read_ahead	= true;
+										
+										break;
+									}
 								}
 							}
-						}
-						
-						int	actual_read_ahead = current_read_ahead_size;
-						
-						if ( do_read_ahead ){
-						
-								// don't read ahead over the end of a piece
 							
-							int	request_piece_offset = (int)((file_position - ( piece_offset + file_offset )) % piece_size);
+							int	actual_read_ahead = current_read_ahead_size;
 							
-							if ( request_piece_offset < 0 ){
+							if ( do_read_ahead ){
+							
+									// don't read ahead over the end of a piece
 								
-								request_piece_offset += piece_size;
-							}
-							
-							//System.out.println( "request offset = " + request_piece_offset );
-							
-							int	data_left = piece_size - request_piece_offset;
-							
-							if ( data_left < actual_read_ahead ){
+								int	request_piece_offset = (int)((file_position - ( piece_offset + file_offset )) % piece_size);
 								
-								actual_read_ahead	= data_left;
-								
-									// no point in using read-ahead logic if actual read ahead
-									// smaller or same as request size!
-								
-								if ( actual_read_ahead <= read_length ){
+								if ( request_piece_offset < 0 ){
 									
-									do_read_ahead	= false;
+									request_piece_offset += piece_size;
 								}
-								//System.out.println( "    trimmed to " + data_left );
-							}
-						}
-						
-						if ( do_read_ahead ){
 								
-							if ( TRACE ){
+								//System.out.println( "request offset = " + request_piece_offset );
+								
+								int	data_left = piece_size - request_piece_offset;
+								
+								if ( data_left < actual_read_ahead ){
 									
-								LGLogger.log( "\tperforming read-ahead" );
+									actual_read_ahead	= data_left;
+									
+										// no point in using read-ahead logic if actual read ahead
+										// smaller or same as request size!
+									
+									if ( actual_read_ahead <= read_length ){
+										
+										do_read_ahead	= false;
+									}
+									//System.out.println( "    trimmed to " + data_left );
+								}
 							}
+							
+							if ( do_read_ahead ){
+									
+								if ( TRACE ){
+										
+									LGLogger.log( "\tperforming read-ahead" );
+								}
+									
+								DirectByteBuffer	cache_buffer = 
+										DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, actual_read_ahead );
+																
+								boolean	buffer_cached	= false;
+									
+								try{
+									
+										// must allocate space OUTSIDE sync block (see manager for details)
+									
+									CacheEntry	entry = 
+										manager.allocateCacheSpace( 
+												CacheEntry.CT_READ_AHEAD,
+												this, 
+												cache_buffer, file_position, actual_read_ahead );
+																
+									entry.setClean();
+					
+									try{
+										
+										this_mon.enter();
+		
+											// flush before read so that any bits in cache get re-read correctly on read
 								
-							DirectByteBuffer	cache_buffer = 
-									DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, actual_read_ahead );
-															
-							boolean	buffer_cached	= false;
+										flushCache( file_position, actual_read_ahead, true, -1, 0, -1 );
+										
+										getFMFile().read( cache_buffer, file_position );
+					
+										read_ahead_bytes_made	+= actual_read_ahead;
+										
+										manager.fileBytesRead( actual_read_ahead );
+											
+										cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
+										
+										cache.add( entry );
+										
+										manager.addCacheSpace( entry );
+										
+									}finally{
+										
+										this_mon.exit();
+									}
+										
+									buffer_cached	= true;
+																		
+								}finally{
+										
+									if ( !buffer_cached ){
+											
+											// if the read operation failed, and hence the buffer
+											// wasn't added to the cache, then release it here
+											
+										cache_buffer.returnToPool();
+									}
+								}
+																
+									// recursively read from the cache, should hit the data we just read although
+									// there is the possibility that it could be flushed before then - hence the
+									// recursion flag that will avoid this happening next time around
 								
-							try{
-								
-									// must allocate space OUTSIDE sync block (see manager for details)
-								
-								CacheEntry	entry = 
-									manager.allocateCacheSpace( 
-											CacheEntry.CT_READ_AHEAD,
-											this, 
-											cache_buffer, file_position, actual_read_ahead );
-															
-								entry.setClean();
-				
+								readCache( file_buffer, file_position, true );
+							
+							}else{
+									
+								if ( TRACE ){
+										
+									LGLogger.log( "\tnot performing read-ahead" );
+								}
+									
 								try{
 									
 									this_mon.enter();
-	
-										// flush before read so that any bits in cache get re-read correctly on read
-							
-									flushCache( file_position, actual_read_ahead, true, -1, 0, -1 );
 									
-									getFMFile().read( cache_buffer, file_position );
-				
-									read_ahead_bytes_made	+= actual_read_ahead;
-									
-									manager.fileBytesRead( actual_read_ahead );
-										
-									cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
-									
-									cache.add( entry );
-									
-									manager.addCacheSpace( entry );
+									flushCache( file_position, read_length, true, -1, 0, -1 );
+								
+									getFMFile().read( file_buffer, file_position );
 									
 								}finally{
 									
 									this_mon.exit();
 								}
-									
-								buffer_cached	= true;
-																	
-							}finally{
-									
-								if ( !buffer_cached ){
-										
-										// if the read operation failed, and hence the buffer
-										// wasn't added to the cache, then release it here
-										
-									cache_buffer.returnToPool();
-								}
+								
+								manager.fileBytesRead( read_length );
 							}
-															
-								// recursively read from the cache, should hit the data we just read although
-								// there is the possibility that it could be flushed before then - hence the
-								// recursion flag that will avoid this happening next time around
-							
-							readCache( file_buffer, file_position, true );
 						
-						}else{
-								
-							if ( TRACE ){
-									
-								LGLogger.log( "\tnot performing read-ahead" );
-							}
-								
-							try{
-								
-								this_mon.enter();
-								
-								flushCache( file_position, read_length, true, -1, 0, -1 );
+							break;
 							
-								getFMFile().read( file_buffer, file_position );
+						}catch( CacheFileManagerException e ){
+							
+							if ( i == 1 ){
 								
-							}finally{
-								
-								this_mon.exit();
+								throw( e );
 							}
 							
-							manager.fileBytesRead( read_length );
+						}catch( FMFileManagerException e ){
+							
+							if ( i == 1 ){
+								
+								manager.rethrow(e);
+							}
 						}
-							
-					}catch( FMFileManagerException e ){
-							
-						manager.rethrow(e);
 					}				
 				}
 			}else{

@@ -164,6 +164,8 @@ DMReaderImpl
 		// System.out.println( "read queue size = " + queue_size );
 	}
 	  
+		// returns null if the read can't be performed
+	
 	public DirectByteBuffer 
 	readBlock(
 		int pieceNumber, 
@@ -173,12 +175,16 @@ DMReaderImpl
 		if ( !bOverallContinue ){
 			
 			Debug.out( "DMReader:readBlock: called when stopped" );
+			
+			return( null );
 		}
 		
 		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
 
 		if (buffer == null) { // Fix for bug #804874
+			
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
+			
 			return null;
 		}
 
@@ -199,10 +205,9 @@ DMReaderImpl
 			fileOffset = 0;
 		}
 
-		// update the offset (we're in the middle of a file)
+			// update the offset (we're in the middle of a file)
+		
 		fileOffset += offset - previousFilesLength;
-		// noError is only used for error reporting, it could probably be removed
-		boolean noError = true;
 		
 		while (buffer.hasRemaining(DirectByteBuffer.SS_DR) && currentFile < pieceList.size() ) {
      
@@ -222,13 +227,15 @@ DMReaderImpl
 			
 			buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
       
-			noError = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
+			boolean	ok = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
       
 			buffer.limit ( DirectByteBuffer.SS_DR, length );
       
-			if( !noError ){
+			if( !ok ){
 				
-				break;
+				buffer.returnToPool();
+				
+				return( null );
 			}
       
 			currentFile++;
@@ -236,29 +243,8 @@ DMReaderImpl
 			fileOffset = 0;
 		}
 
-		if (!noError) {
-			// continue the error report
-			//PieceMapEntry tempPiece = pieceList.get(currentFile);
-			//System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
-			//System.out.println("BufferLimit: " + buffer.limit());
-			//System.out.println("BufferRemaining: " + buffer.remaining());
-			//System.out.println("PieceNumber: " + pieceNumber);
-			//System.out.println("Offset: " + fileOffset);
-			//System.out.println("Length  " + length);
-			//System.out.println("PieceLength: " + tempPiece.getLength());
-			//System.out.println("PieceOffset: " + tempPiece.getOffset());
-			//System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
-
-
-			// Stop, because if it happened once, it will probably happen everytime
-			// Especially in the case of a CD being removed
-	
-			disk_manager.stop();
-			
-			disk_manager.setState( DiskManager.FAULTY );
-		}
-
 		buffer.position(DirectByteBuffer.SS_DR,0);
+		
 		return buffer;
 	}
 	
@@ -277,7 +263,7 @@ DMReaderImpl
 				
 		}catch( CacheFileManagerException e ){
 				
-			disk_manager.setErrorMessage((e.getCause()!=null?e.getCause().getMessage():e.getMessage()));
+			disk_manager.setFailed( Debug.getNestedExceptionMessage(e));
 				
 			return( false );
 		}
@@ -333,7 +319,9 @@ DMReaderImpl
 							}else {
 								
 								String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
+								
 								LGLogger.log( LGLogger.ERROR, err_msg );
+								
 								System.out.println( err_msg );
 							}
 						}

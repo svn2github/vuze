@@ -162,9 +162,7 @@ DiskManagerPieceMapper
 					fileLength));
 		}catch( UnsupportedEncodingException e ){
 
-			disk_manager.setErrorMessage( e.getMessage() + " (buildFileLookupTable)" );
-			
-			disk_manager.setState( DiskManager.FAULTY );
+			disk_manager.setFailed( e.getMessage() + " (buildFileLookupTable)" );
 		}
 	}
 

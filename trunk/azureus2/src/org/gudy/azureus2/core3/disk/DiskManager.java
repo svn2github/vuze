@@ -47,7 +47,6 @@ DiskManager
 	public void
 	stop();
 
-
 	/**
 	  * @return whether all files exist and sizes match
 	  */
