@@ -121,6 +121,13 @@ TRTrackerClientClassicImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerClientClassic" );
 
+	private static final boolean	socks_proxy_enable;
+
+	static{
+	  	socks_proxy_enable	= 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
+	  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
+	}
+	
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
 	public final static int evtFullTrace = 1;
@@ -336,7 +343,27 @@ TRTrackerClientClassicImpl
   	protected void
 	setPort()
   	{
-  		port = "&port=" + peer_server.getPort();
+  			// we currently don't support incoming connections when SOCKs proxying
+  		
+  		int	port_num;
+  		
+  		if ( socks_proxy_enable ){
+  			
+  			port_num	= 0;
+  			
+  		}else{
+  		
+  			port_num	= peer_server.getPort();
+  		}
+  		
+		port = "&port=" + port_num;
+
+			// BitComet extension for no incoming connections
+		
+		if ( port_num == 0 ){
+			
+			port += "&hide=1";
+		}
   	}
   	
 	protected long
