@@ -47,6 +47,7 @@ TRTrackerUtilsImpl
 		{ 81 };
 
 	private static String		tracker_ip;
+	private static String		override_ip;
 	private static String		bind_ip;
 	
 	static{
@@ -69,6 +70,8 @@ TRTrackerUtilsImpl
 	{
 		tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
 	
+		override_ip		= COConfigurationManager.getStringParameter("Override Ip", "");
+		
 		bind_ip 		= COConfigurationManager.getStringParameter("Bind IP", "");
 	}
 	
@@ -137,18 +140,25 @@ TRTrackerUtilsImpl
 	{
 		if ( tracker_ip.length() > 0 ){
 				
+			String	target_ip = override_ip;
+			
+			if ( target_ip.length() == 0 ){
+				
+				target_ip	= tracker_ip;
+			}
+			
 			if ( host_in.equals( "127.0.0.1")){
 				
 				//System.out.println( "adjustHostFromHosting: " + host_in + " -> " + tracker_ip );
 				
-				return( tracker_ip );
+				return( target_ip );
 			}
 			
 			if ( host_in.equals( bind_ip )){
 				
 				//System.out.println( "adjustHostFromHosting: " + host_in +  " -> " + tracker_ip );
 
-				return( tracker_ip );
+				return( target_ip );
 			}
 		}
 		

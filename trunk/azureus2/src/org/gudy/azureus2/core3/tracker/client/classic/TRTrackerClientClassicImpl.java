@@ -30,8 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.Set;
-import java.util.HashSet;
 
 import javax.net.ssl.*;
 
@@ -1429,7 +1427,12 @@ TRTrackerClientClassicImpl
       
     }
 	
-    String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
+    	// any explicit override takes precedence over any implicit override added 
+    	// when hosting torrents
+    
+    String explicit_ip = COConfigurationManager.getStringParameter("Override Ip", "");
+    
+    String ip = explicit_ip.length()>0?explicit_ip:(ip_override==null?"":ip_override);
     
     if (ip.length() != 0) {
     	
