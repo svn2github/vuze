@@ -37,11 +37,14 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   
   TabItem itemGeneral;
   TabItem itemDetails;
+  TabItem itemGraphic;
   TabItem itemPieces;
   TabItem itemFiles;
+  
 
   IView viewGeneral;
   IView viewDetails;
+  IView viewGraphic;
   IView viewPieces;
   IView viewFiles;
 
@@ -81,6 +84,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       viewGeneral.delete();
     if (viewDetails != null)
       viewDetails.delete();
+    if(viewGraphic != null)
+      viewGraphic.delete();
     if (viewPieces != null)
       viewPieces.delete();
     if (viewFiles != null)
@@ -119,16 +124,19 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  	
     itemGeneral = new TabItem(folder, SWT.NULL);
     itemDetails = new TabItem(folder, SWT.NULL);
+    itemGraphic = new TabItem(folder, SWT.NULL);
     itemPieces  = new TabItem(folder, SWT.NULL);
     itemFiles   = new TabItem(folder, SWT.NULL);
 
     viewGeneral = new GeneralView(manager);
     viewDetails = new PeersView(manager);
+    viewGraphic = new PeersGraphicView(manager);
     viewPieces = new PiecesView(manager);
     viewFiles = new FilesView(manager);
     
     Messages.setLanguageText(itemGeneral, viewGeneral.getData());
     Messages.setLanguageText(itemDetails, viewDetails.getData());
+    Messages.setLanguageText(itemGraphic, viewGraphic.getData());
     Messages.setLanguageText(itemPieces, viewPieces.getData());
     Messages.setLanguageText(itemFiles, viewFiles.getData());
     
@@ -138,6 +146,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     itemGeneral.setControl(viewGeneral.getComposite());
     viewDetails.initialize(folder);
     itemDetails.setControl(viewDetails.getComposite());
+    viewGraphic.initialize(folder);
+    itemGraphic.setControl(viewGraphic.getComposite());
     viewPieces.initialize(folder);
     itemPieces.setControl(viewPieces.getComposite());
     viewFiles.initialize(folder);
@@ -176,10 +186,14 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
           viewDetails.refresh();
           break;
         case 2 :
+          if (viewGraphic != null && !itemGraphic.isDisposed())
+            viewGraphic.refresh();
+            break;  
+        case 3:
         if (viewPieces != null && !itemPieces.isDisposed())
           viewPieces.refresh();
           break;
-        case 3 :
+        case 4 :
         if (viewFiles != null && !itemFiles.isDisposed())
           viewFiles.refresh();
           break;
