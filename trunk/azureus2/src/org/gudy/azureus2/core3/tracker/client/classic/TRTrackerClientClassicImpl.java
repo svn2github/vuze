@@ -268,6 +268,14 @@ TRTrackerClientClassicImpl
 	
 	peer_server.addListener( this );
 	
+	COConfigurationManager.addParameterListener("TCP.Announce.Port",new ParameterListener() {
+	    public void parameterChanged(String parameterName) {
+	      if("TCP.Announce.Port".equals(parameterName)) {
+	        setPort();
+	      }
+	    }
+	});
+	
 	setPort();
 	   
 	timer_event_action =  
@@ -366,14 +374,24 @@ TRTrackerClientClassicImpl
   			port_num	= peer_server.getPort();
   		}
   		
-		port = "&port=" + port_num;
+  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+  		if(! portOverride.equals("")) {
+  		  
+  		  port = "&port=" + portOverride;
+  		  
+  		} else {
+  		  
+  		  port = "&port=" + port_num;
+  		  
+  		  //  BitComet extension for no incoming connections
+  		
+  		  if ( port_num == 0 ){
+  			
+  				port += "&hide=1";
+  		  }
+  		}
 
-			// BitComet extension for no incoming connections
 		
-		if ( port_num == 0 ){
-			
-			port += "&hide=1";
-		}
   	}
   	
 	protected long

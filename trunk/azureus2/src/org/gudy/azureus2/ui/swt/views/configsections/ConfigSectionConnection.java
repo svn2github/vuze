@@ -102,9 +102,25 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
  //////////////////////
     
+    StringParameter tcpAnnounce = new StringParameter(cServer, "TCP.Announce.Port", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(overrideip.getControl()); 
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 40;
+    tcpAnnounce.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.announceport");
+    formData = new FormData();
+    formData.top = new FormAttachment(overrideip.getControl(),5);
+    formData.left = new FormAttachment(tcpAnnounce.getControl());
+    label.setLayoutData(formData);
+     
+ ///////////////////////
+    
     StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
     formData = new FormData();
-    formData.top = new FormAttachment(overrideip.getControl());
+    formData.top = new FormAttachment(tcpAnnounce.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     bindip.setLayoutData(formData);
@@ -112,7 +128,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip");
     formData = new FormData();
-    formData.top = new FormAttachment(overrideip.getControl(),5);
+    formData.top = new FormAttachment(tcpAnnounce.getControl(),5);
     formData.left = new FormAttachment(bindip.getControl());
     label.setLayoutData(formData);
     
