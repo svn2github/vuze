@@ -73,12 +73,21 @@ DownloadManagerStats
 	public void 
 	setDownloadCompleted(int completed);
 				
-	public long
-	getDownloaded();
+  
+  /**
+   * Get the total number of bytes ever downloaded.
+   * @return total bytes downloaded
+   */
+	public long	getDownloaded();
 	
-	public long
-	getUploaded();
+  
+  /**
+   * Get the total number of bytes ever uploaded.
+   * @return total bytes uploaded
+   */
+	public long	getUploaded();
 	
+  
 	public long
 	getDiscarded();
   

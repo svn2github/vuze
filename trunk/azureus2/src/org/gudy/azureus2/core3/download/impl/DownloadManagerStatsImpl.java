@@ -231,8 +231,7 @@ DownloadManagerStatsImpl
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null) {
-		PEPeerManagerStats ps = pm.getStats();
-		return saved_downloaded + ps.getTotalReceived();
+	    return saved_downloaded + pm.getStats().getTotalReceived();
 	  }
 	  return(saved_downloaded);
 	}
@@ -244,10 +243,12 @@ DownloadManagerStatsImpl
 		saved_downloaded = l; 
 	}
 	
+  
 	public long getUploaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();
-	  if (pm != null)
-		return saved_uploaded + pm.getStats().getTotalSent();
+	  if (pm != null) {
+	    return saved_uploaded + pm.getStats().getTotalSent();
+    }
 	  return( saved_uploaded );
 	}
 	

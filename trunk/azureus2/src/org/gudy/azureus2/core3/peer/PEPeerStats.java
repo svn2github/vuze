@@ -32,20 +32,48 @@
 public interface 
 PEPeerStats 
 {   
+  
+  /**
+   * Get the average speed at which this peer is uploading to us.
+   * @return average in bytes per second
+   */  
   public long getDownloadAverage();
 
+  /**
+   * Get the longer-term average speed at which this peer is uploading to us.
+   * @return average in bytes per second
+   */  
   public long getReception();
 
+  /**
+   * Get the average speed at which we are uploading data to this peer.
+   * @return average in bytes per second
+   */
   public long getUploadAverage();
    
+  
   public long getTotalAverage();
    
   public long getTotalDiscarded();
  
+  
+  
+  /**
+   * Get the total number of data bytes uploaded to the peer this session.
+   * @return total bytes sent
+   */
   public long getTotalSent();
   
+  
+  /**
+   * Get the total number of data bytes downloaded from the peer this session.
+   * @return total bytes received
+   */
   public long getTotalReceived();
  
+  
+  
+  
   public long getStatisticSentAverage();
   
   /** Bytes the peer downloaded while we have been connected to it (not necessarily from us */

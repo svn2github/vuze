@@ -48,38 +48,37 @@ PEPeerStatsImpl
 
 
 	  public PEPeerStatsImpl() {
-//		  timeCreated = SystemTime.getCurrentTime() / 100;
 
-		//average over 10s, update every 2000ms.
-		receptionSpeed = Average.getInstance(1000, 10);
+	    //average over 10s, update every 1000ms.
+	    receptionSpeed = Average.getInstance(1000, 10);
 
-		//average over 5s, update every 100ms.
-		sendingSpeed = Average.getInstance(1000, 5);
+	    //average over 20s, update every 1s.
+	    chokingReceptionSpeed = Average.getInstance(1000, 20);
+    
+	    //average over 5s, update every 1000ms.
+	    sendingSpeed = Average.getInstance(1000, 5);
 
-		//average over 20s, update every 1s.
-		chokingReceptionSpeed = Average.getInstance(1000, 20);
+	    //average over 100s, update every 5s
+	    overallSpeed = Average.getInstance(5000, 100);
 
-		//average over 100s, update every 5s
-		overallSpeed = Average.getInstance(5000, 100);
-
-		//average over 60s, update every 3s
-		statisticSentSpeed = Average.getInstance(3000, 60);
+	    //average over 60s, update every 3s
+	    statisticSentSpeed = Average.getInstance(3000, 60);
 
 	  }
   
 	  public void discarded(int length) {
-		this.totalDiscarded += length;
+	    this.totalDiscarded += length;
 	  }
 
-	  public void received(int length) {
-		totalReceived += length;
-		receptionSpeed.addValue(length);
-		chokingReceptionSpeed.addValue(length);
+	  public void received(int length) {  //data received
+	    totalReceived += length;
+	    receptionSpeed.addValue(length);
+	    chokingReceptionSpeed.addValue(length);
 	  }
 
-	  public void sent(int length) {
-		totalSent += length;
-		sendingSpeed.addValue(length);
+	  public void sent(int length) { //data_sent
+	    totalSent += length;
+	    sendingSpeed.addValue(length);
 	  }
     
     public void protocol_sent( int length ) {
@@ -87,28 +86,28 @@ PEPeerStatsImpl
     }
 
 	  public void haveNewPiece(int pieceLength) {
-		totalHave += pieceLength;
-		overallSpeed.addValue(pieceLength);
+	    totalHave += pieceLength;
+	    overallSpeed.addValue(pieceLength);
 	  }
 
 	  public void statisticSent(int length) {
-		statisticSentSpeed.addValue(length);
+	    statisticSentSpeed.addValue(length);
 	  }
 
 	  public long getDownloadAverage() { 
-		return( receptionSpeed.getAverage());
+	    return( receptionSpeed.getAverage());
 	  }
 
 	  public long getReception() {
-		return chokingReceptionSpeed.getAverage();
+	    return chokingReceptionSpeed.getAverage();
 	  }
 
 	  public long getUploadAverage() {
-		return( sendingSpeed.getAverage());
+	    return( sendingSpeed.getAverage());
 	  }
   
 	  public long getTotalDiscarded() {
-		return( totalDiscarded );
+	    return( totalDiscarded );
 	  }  
 
   	public long getBytesDone() {
@@ -116,11 +115,11 @@ PEPeerStatsImpl
   	}
 
 	  public long getTotalSent() {
-		return totalSent;
+	    return totalSent;
 	  }
   
 	  public long getTotalReceived() {
-		return totalReceived;
+	    return totalReceived;
 	  }
     
 	  public long 
@@ -130,6 +129,6 @@ PEPeerStatsImpl
 	  }
 
 	  public long getStatisticSentAverage() {
-		return statisticSentSpeed.getAverage();
+	    return statisticSentSpeed.getAverage();
 	  }
 }
