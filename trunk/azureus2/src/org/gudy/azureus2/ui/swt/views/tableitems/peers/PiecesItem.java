@@ -26,12 +26,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  * @author Olivier
  *
  */
 public class PiecesItem extends PeerGraphicItem  {
+  private final static int INDEX_COLOR_INVERSE = MainWindow.BLUES_DARKEST + 1;
   // only supports 0 or 1 border width
   private final static int borderHorizontalSize = 1;
   private final static int borderVerticalSize = 1;
@@ -47,6 +49,7 @@ public class PiecesItem extends PeerGraphicItem  {
   }
 
   public void dispose() {
+    super.dispose();
     //if (peerRow.getPeerSocket() == null) System.out.println("crap! infoObj == null! Graphic possibly == " + getGraphic());
 
     PEPeer infoObj = peerRow.getPeerSocket();
@@ -77,6 +80,7 @@ public class PiecesItem extends PeerGraphicItem  {
       return;
 
     PEPeer infoObj = peerRow.getPeerSocket();
+    DownloadManager dm = infoObj.getManager().getDownloadManager();
 
     int x0 = borderVerticalSize;
     int x1 = bounds.width - 1 - borderVerticalSize;
@@ -136,6 +140,8 @@ public class PiecesItem extends PeerGraphicItem  {
     }
 
     boolean available[] = infoObj.getAvailable();
+    boolean pieces[] = dm.getPiecesStatus();
+    
     if (available != null && available.length > 0) {
       int nbComplete = 0;
       int nbPieces = available.length;
@@ -155,23 +161,36 @@ public class PiecesItem extends PeerGraphicItem  {
         }
 
         int index;
+        boolean needed = false;
 
         if (a1 <= a0) {
           index = imageBuffer[i - 1];
         } else {
           int nbAvailable = 0;
-          for (int j = a0; j < a1; j++)
-            if (available[j])
+          for (int j = a0; j < a1; j++) {
+            if (available[j]) {
+            	if (!pieces[j]) {
+            	  needed = true;
+            	}
               nbAvailable++;
+            }
+          }
           nbComplete += nbAvailable;
-          index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
-          //System.out.println("i="+i+";nbAvailable="+nbAvailable+";nbComplete="+nbComplete+";nbPieces="+nbPieces+";a0="+a0+";a1="+a1);
+          if (needed) {
+            // cheat
+            index = INDEX_COLOR_INVERSE;
+          } else {
+            index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
+          }
         }
 
         if (!bImageBufferValid || imageBuffer[i] != index) {
           imageBuffer[i] = index;
           bImageChanged = true;
-          gcImage.setForeground(MainWindow.blues[index]);
+          if (imageBuffer[i] == INDEX_COLOR_INVERSE)
+            gcImage.setForeground(MainWindow.colorInverse);
+          else
+            gcImage.setForeground(MainWindow.blues[index]);
           gcImage.drawLine(i + x0, y0, i + x0, y1);
         }
       }
