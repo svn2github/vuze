@@ -24,21 +24,36 @@
 
 package org.gudy.azureus2.ui.web2.stages.hdapi;
 
-import seda.sandStorm.api.*;
-import seda.sandStorm.core.*;
-import seda.sandStorm.lib.http.*;
-import seda.sandStorm.lib.aDisk.*;
-import java.io.*;
-import java.util.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
 import org.gudy.azureus2.ui.web2.stages.http.*;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpInternalServerErrorResponse;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
 import org.gudy.azureus2.ui.web2.util.WildcardDictionary;
+
+import seda.sandStorm.api.ConfigDataIF;
+import seda.sandStorm.api.EventHandlerIF;
+import seda.sandStorm.api.QueueElementIF;
+import seda.sandStorm.api.SinkIF;
+import seda.sandStorm.api.StageIF;
+import seda.sandStorm.core.BufferElement;
+import seda.sandStorm.lib.aDisk.AFileIOCompleted;
+import seda.sandStorm.lib.aDisk.AFileReadRequest;
 
 public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 
-	private static final boolean DEBUG = false;
+	private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.WildcardDynamicHttp");
 
 	// Whether to close the HTTP connection after each request
 	private static final boolean CLOSE_CONNECTION = false;
@@ -81,10 +96,10 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 			stageCache = new Hashtable();
 //			af.read(configfile);
 
-			System.err.println("DynamicHttp: Started");
+			logger.info("DynamicHttp: Started");
 
 		} else {
-			System.err.println("DynamicHttp handlerStage [" + myurl + "]: Started");
+			logger.info("DynamicHttp handlerStage [" + myurl + "]: Started");
 		}
 	}
 
@@ -117,11 +132,11 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 	}
 
 	public void handleEvent(QueueElementIF item) {
-		if (DEBUG) {
+		if (logger.isDebugEnabled()) {
 			if (myurl == null)
-				System.err.println("DynamicHttp: GOT QEL: " + item);
+				logger.debug("DynamicHttp: GOT QEL: " + item);
 			else
-				System.err.println("DynamicHttp [" + myurl + "]: GOT QEL: " + item);
+				logger.debug("DynamicHttp [" + myurl + "]: GOT QEL: " + item);
 		}
 
 		if (item instanceof httpRequest) {
@@ -141,10 +156,10 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 		} else if (item instanceof AFileIOCompleted) {
 			AFileIOCompleted comp = (AFileIOCompleted) item;
 			process_config(comp);
-			System.err.println("DynamicHttp: finished reading config file");
+			logger.info("DynamicHttp: finished reading config file");
 
 		} else {
-			System.err.println("DynamicHttp: Don't know what to do with " + item);
+			logger.info("DynamicHttp: Don't know what to do with " + item);
 		}
 	}
 
@@ -171,7 +186,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 						"Got dynamic URL with no class -- this is a bug, please contact mdw@cs.berkeley.edu"),
 					req,
 					true));
-			System.err.println(
+			logger.info(
 				"DynamicHttp: Warning: Got dynamic URL with no class: " + url);
 			return;
 		}
@@ -183,7 +198,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 				if (pool == null) {
 					try {
 						pool = new handlerPool(classname);
-						System.err.println(
+						logger.info(
 							"DynamicHttp: Loaded class " + classname + " for url " + url);
 					} catch (ClassNotFoundException cnfe) {
 						HttpSend.sendResponse(
@@ -255,7 +270,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 	}
 
 	private void addURL(String url, String classname) {
-		System.err.println(
+		logger.info(
 			"DynamicHttp: Adding URL [" + url + "] class [" + classname + "]");
 		dynPages.put(url, classname);
 	}
@@ -281,7 +296,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 				if (st.hasMoreElements()) {
 					class_name = st.nextToken();
 				} else {
-					System.out.println(
+					logger.info(
 						"DynamicHttp: Bad line format in configuration file: " + tmp);
 					continue;
 				}
@@ -289,7 +304,7 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 				addURL(url, class_name);
 			}
 		} catch (IOException ioe) {
-			System.err.println(
+			logger.error(
 				"DynamicHttp: IOException processing configuration file:" + ioe);
 		}
 	}

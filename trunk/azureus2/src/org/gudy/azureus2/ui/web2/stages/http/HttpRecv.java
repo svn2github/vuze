@@ -24,14 +24,34 @@
 
 package org.gudy.azureus2.ui.web2.stages.http;
 
+import java.util.Enumeration;
+
+import org.apache.log4j.Logger;
+import org.gudy.azureus2.ui.common.util.SLevel;
 import org.gudy.azureus2.ui.web2.stages.hdapi.WildcardDynamicHttp;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpConnection;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpConst;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpServer;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpServiceUnavailableResponse;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
 
-import seda.sandStorm.api.*;
-import seda.sandStorm.core.*;
-import seda.sandStorm.lib.http.*;
-import seda.util.*;
+import seda.sandStorm.api.ConfigDataIF;
+import seda.sandStorm.api.EventHandlerIF;
+import seda.sandStorm.api.ManagerIF;
+import seda.sandStorm.api.NoSuchStageException;
+import seda.sandStorm.api.QueueElementIF;
+import seda.sandStorm.api.SinkClosedEvent;
+import seda.sandStorm.api.SinkClosedException;
+import seda.sandStorm.api.SinkIF;
+import seda.sandStorm.core.BufferElement;
+import seda.sandStorm.core.ssTimer;
+import seda.util.MDWUtil;
+
 
 /**
  * This stage is responsible for accepting new HTTP requests and forwarding
@@ -41,11 +61,10 @@ import seda.util.*;
  */
 public class HttpRecv implements EventHandlerIF, WebConst {
 
-	private static final boolean DEBUG = false;
-	private static final boolean VERBOSE = false;
+    private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.HttpRecv");
 
 	// If true, enable ATLS support
-	private static final boolean USE_ATLS = false;
+	private boolean USE_ATLS = false;
 
 	private static final long TIMER_DELAY = 2000;
 	private int HTTP_PORT, HTTP_SECURE_PORT;
@@ -101,12 +120,14 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 			httpResponse.setDefaultHeader("Server: " + serverName + httpConst.CRLF);
 		HTTP_PORT = config.getInt("httpPort");
 
+        HTTP_SECURE_PORT = config.getInt("httpSecurePort");
+        USE_ATLS = (HTTP_SECURE_PORT != -1);
+        
 		if (USE_ATLS == false) {
 			if (HTTP_PORT == -1) {
 				throw new IllegalArgumentException("Must specify httpPort");
 			}
 		}
-		HTTP_SECURE_PORT = config.getInt("httpSecurePort");
 		if (USE_ATLS == true) {
 			if ((HTTP_PORT == -1) && (HTTP_SECURE_PORT == -1)) {
 				throw new IllegalArgumentException("Must specify either httpPort or httpSecurePort");
@@ -115,7 +136,7 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 
 		maxConns = config.getInt("maxConnections");
 		maxSimReqs = config.getInt("maxSimultaneousRequests");
-		System.err.println(
+		logger.info(
 			"HttpRecv: Starting, maxConns="
 				+ maxConns
 				+ ", maxSimReqs="
@@ -138,39 +159,45 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 	}
 
 	public void handleEvent(QueueElementIF item) {
-		if (DEBUG)
-			System.err.println("HttpRecv: GOT QEL: " + item);
+		if (logger.isDebugEnabled())
+			logger.debug("HttpRecv: GOT QEL: " + item);
 
 		if (item instanceof httpConnection) {
 			UI.numConnectionsEstablished++;
 			numConns++;
-			if (VERBOSE)
-				System.err.println(
+			if (logger.isEnabledFor(SLevel.HTTP))
+				logger.log(SLevel.HTTP,
 					"HttpRecv: Got connection "
 						+ (UI.numConnectionsEstablished
 							- UI.numConnectionsClosed));
 
 			if ((maxConns != -1) && (numConns == maxConns)) {
-				System.err.println(
+				logger.info(
 					"Suspending accept() after " + numConns + " connections");
 				server.suspendAccept();
 			}
 
 		} else if (item instanceof httpRequest) {
-			if (DEBUG)
-				System.err.println("HttpRecv: Got request " + item);
+			if (logger.isDebugEnabled())
+				logger.debug("HttpRecv: Got request " + item);
 
 			httpRequest req = (httpRequest) item;
+      
+            if (req.getQueryKeys()!=null) for(Enumeration r = req.getQueryKeys();r.hasMoreElements();) {
+              String s = (String) r.nextElement();
+              System.err.println(s);
+            }
+            
 
 			// Record time for controller
 			req.timestamp = System.currentTimeMillis();
 
 			// Check for special URL
-			if (DEBUG)
-				System.err.println("HttpRecv: URL is [" + req.getURL() + "]");
+			if (logger.isDebugEnabled())
+              logger.debug("HttpRecv: URL is [" + req.getURL() + "]");
 			if (req.getURL().startsWith(SPECIAL_URL)) {
-				if (DEBUG)
-					System.err.println("HttpRecv: Doing special");
+				if (logger.isDebugEnabled())
+                  logger.debug("HttpRecv: Doing special");
 				doSpecial(req);
 				return;
 			}
@@ -229,29 +256,29 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 				}
 			}
 
-			if (DEBUG)
-				System.err.println("HttpRecv: Sending to cacheSink");
+			if (logger.isDebugEnabled())
+              logger.debug("HttpRecv: Sending to cacheSink");
 			if (!cacheSink.enqueue_lossy(item)) {
-				System.err.println(
+				logger.info(
 					"HttpRecv: Warning: Could not enqueue_lossy " + item);
 			}
 
 		} else if (item instanceof SinkClosedEvent) {
 			// Connection closed by remote peer
-			if (DEBUG)
-				System.err.println("HttpRecv: Closed connection " + item);
+			if (logger.isDebugEnabled())
+              logger.debug("HttpRecv: Closed connection " + item);
 			UI.numConnectionsClosed++;
 
 			numConns--;
 			if ((maxConns != -1) && (numConns == maxConns - 1)) {
-				System.err.println(
+				logger.info(
 					"Resuming accept() for " + numConns + " connections");
 				server.resumeAccept();
 			}
 			cacheSink.enqueue_lossy(item);
 
-			if (VERBOSE)
-				System.err.println(
+			if (logger.isEnabledFor(SLevel.HTTP))
+				logger.log(SLevel.HTTP,
 					"HttpRecv: Closed connection "
 						+ (UI.numConnectionsEstablished
 							- UI.numConnectionsClosed));
@@ -262,9 +289,7 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 				(UI.numConnectionsEstablished
 					- UI.numConnectionsClosed);
 			if (nc != lastNumConns) {
-				System.err.println(
-					"Haboob: "
-						+ (UI.numConnectionsEstablished
+				logger.info((UI.numConnectionsEstablished
 							- UI.numConnectionsClosed)
 						+ " active connections");
 			}
@@ -272,8 +297,8 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 			timer.registerEvent(TIMER_DELAY, item, mysink);
 
 		} else {
-			if (DEBUG)
-				System.err.println("HttpRecv: Got unknown event type: " + item);
+			if (logger.isDebugEnabled())
+              logger.debug("HttpRecv: Got unknown event type: " + item);
 		}
 
 	}
@@ -303,12 +328,12 @@ public class HttpRecv implements EventHandlerIF, WebConst {
 		try {
 			conn.close(cacheSink);
 		} catch (SinkClosedException sce) {
-			if (DEBUG)
-				System.err.println(
+			if (logger.isDebugEnabled())
+              logger.debug(
 					"Warning: Tried to close connection " + conn + " multiple times");
 		}
 		if ((maxConns != -1) && (numConns == maxConns - 1)) {
-			System.err.println("Resuming accept() for " + numConns + " connections");
+			logger.info("Resuming accept() for " + numConns + " connections");
 			server.resumeAccept();
 		}
 	}

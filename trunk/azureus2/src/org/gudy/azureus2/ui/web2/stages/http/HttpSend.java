@@ -24,12 +24,20 @@
 
 package org.gudy.azureus2.ui.web2.stages.http;
 
-import seda.sandStorm.api.*;
-import seda.sandStorm.lib.http.*;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
 import org.gudy.azureus2.ui.web2.UI;
 import org.gudy.azureus2.ui.web2.WebConst;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpConnection;
+import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponder;
+
+import seda.sandStorm.api.ConfigDataIF;
+import seda.sandStorm.api.EventHandlerIF;
+import seda.sandStorm.api.QueueElementIF;
+import seda.sandStorm.api.SinkClosedEvent;
+import seda.sandStorm.api.SinkClosedException;
+import seda.sandStorm.api.SinkIF;
 
 /**
  * This stage simply forwards httpResponders to the appropriate 
@@ -39,7 +47,7 @@ import org.gudy.azureus2.ui.web2.WebConst;
  */
 public class HttpSend implements EventHandlerIF, WebConst {
 
-  private static final boolean DEBUG = false;
+  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.HttpSend");
 
   // If true, handle sends from this stage - otherwise inline into
   // sendResponse() call
@@ -80,10 +88,10 @@ public class HttpSend implements EventHandlerIF, WebConst {
   private static final void doResponse(httpResponder resp) {
     UI.httpRecv.doneWithReq();
 
-    if (DEBUG) System.err.println("HttpSend: Got response "+resp);
+    if (logger.isDebugEnabled()) logger.debug("HttpSend: Got response "+resp);
     if (!resp.getConnection().enqueue_lossy(resp)) {
       // This is OK if we have already closed the connection
-      if (DEBUG) System.err.println("HttpSend: Could not enqueue response "+resp.getResponse()+" to connection "+resp.getConnection());
+      if (logger.isDebugEnabled()) logger.debug("HttpSend: Could not enqueue response "+resp.getResponse()+" to connection "+resp.getConnection());
       return;
     }
 
@@ -94,7 +102,7 @@ public class HttpSend implements EventHandlerIF, WebConst {
 	conn.close(cacheSink);
 	if (maxReqs != -1) respTable.remove(conn);
       } catch (SinkClosedException sce) {
-	if (DEBUG) System.err.println("Warning: Tried to close connection "+conn+" multiple times");
+	if (logger.isDebugEnabled()) logger.debug("Warning: Tried to close connection "+conn+" multiple times");
       }
       return;
     }
@@ -118,7 +126,7 @@ public class HttpSend implements EventHandlerIF, WebConst {
   }
 
   public void handleEvent(QueueElementIF item) {
-    if (DEBUG) System.err.println("HttpSend: GOT QEL: "+item);
+    if (logger.isDebugEnabled()) logger.debug("HttpSend: GOT QEL: "+item);
 
     if (item instanceof httpResponder) {
       doResponse((httpResponder)item);
@@ -130,7 +138,7 @@ public class HttpSend implements EventHandlerIF, WebConst {
       if (maxReqs != -1) respTable.remove(hc);
 
     } else {
-      System.err.println("HttpSend: Got unknown event type: "+item);
+      logger.info("Got unknown event type: "+item);
     }
 
   }

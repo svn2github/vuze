@@ -66,7 +66,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public static HttpSend httpSend;
   
   public static List logList = new LinkedList();
-  public static Logger loggerWeb = Logger.getLogger("azureus2.ui.web");
+  public static final Logger logger = Logger.getLogger("azureus2.ui.web");
   
   SandstormConfig cfg = null;
   Sandstorm storm = null;
@@ -131,7 +131,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       //seda.sandStorm.lib.http.httpResponse.setDefaultHeader("Cache-Control: no-cache, must-revalidate\r\nConnection: close\r\n");
       cfg.addStage("DynamicHttp", "org.gudy.azureus2.ui.web2.stages.hdapi.WildcardDynamicHttp", defaultargs);
     } catch (Exception e) {
-      Logger.getLogger("azureus2.ui.web").fatal("Webinterface configuration failed: "+e.getMessage(), e);
+      logger.fatal("Webinterface configuration failed: "+e.getMessage(), e);
     }      
     
   }
@@ -149,7 +149,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
         initLoggers();
         System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
       } catch (Exception e) {
-        Logger.getLogger("azureus2.ui.web").fatal("Startup of webinterface failed: "+e.getMessage(), e);
+        logger.fatal("Startup of webinterface failed: "+e.getMessage(), e);
       }      
     }
   }
@@ -157,18 +157,18 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public void openTorrent(String fileName) {
     try {
       if (!FileUtil.isTorrentFile(fileName)) {//$NON-NLS-1$
-        Logger.getLogger("azureus2.ui.web").error(fileName+" doesn't seem to be a torrent file. Not added.");
+        logger.error(fileName+" doesn't seem to be a torrent file. Not added.");
         return;
       }
     } catch (Exception e) {
-      Logger.getLogger("azureus2.ui.web").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
+      logger.error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
     if (UIConst.GM!=null) {
       try {
         UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
-        Logger.getLogger("azureus2.ui.web").error("The torrent "+fileName+" could not be added.", e);
+        logger.error("The torrent "+fileName+" could not be added.", e);
       }
     }
   }
@@ -190,7 +190,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       }catch (Exception e){}
     }
     LGLogger2Log4j.core.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelCore")));
-    loggerWeb.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelWebinterface")));
+    logger.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelWebinterface")));
   }
   
 }

@@ -18,23 +18,38 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Author: Eric Wagner <eric@xcf.berkeley.edu>
+ * Author: Matt Welsh <mdw@cs.berkeley.edu>
  * 
  */
 
-
-package org.gudy.azureus2.ui.web2.stages.hdapi;
-
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
-import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
-
+package org.gudy.azureus2.ui.web2.stages.httpserv;
 
 /**
- * HDAPI modules must export this interface, which accept an httpRequest
- * and return an httpResponse.
+ * This interface defines various constants used by the HTTP
+ * protocol implementation.
+ * 
+ * @author Matt Welsh
  */
-public interface httpRequestHandlerIF {
+public interface httpConst {
 
-    public httpResponse handleRequest( httpRequest req );
+  /**
+   * The default port on which httpServer listens.
+   */
+  final static int DEFAULT_HTTP_PORT = 80;
 
+  /**
+   * The threshold for outgoing TCP connections; currently set to
+   * -1, meaning infinite threshold.
+   */
+  final static int WRITE_CLOG_THRESHOLD = -1;
+
+  /**
+   * Standard HTTP end-of-line marker, equal to <tt>"\r\n"</tt>.
+   */
+  final static String CRLF = "\r\n";
+
+  /**
+   * The HTTP version sent in the response header.
+   */
+  final static String HTTP_VERSION = "HTTP/1.1";
 }
