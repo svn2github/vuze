@@ -691,7 +691,7 @@ public class GlobalManagerImpl
 
           //load file priorities
           Map file_priorities = (Map) mDownload.get("file_priorities");
-          dm.setData( "file_priorities", file_priorities );
+          if ( file_priorities != null ) dm.setData( "file_priorities", file_priorities );
 
           
           this.addDownloadManager(dm, false);
@@ -768,7 +768,7 @@ public class GlobalManagerImpl
           DiskManager disk_manager = dm.getDiskManager();
           if ( disk_manager != null ) disk_manager.storeFilePriorities();
           Map file_priorities = (Map)dm.getData( "file_priorities" );
-          dmMap.put( "file_priorities" , file_priorities );
+          if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
 
           
 		      list.add(dmMap);
