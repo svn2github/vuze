@@ -2035,7 +2035,7 @@ StateTransfering
         return false;
       }
       
-      if( dead_time > 10*60*1000 ) { //10min timeout
+      if( dead_time > 5*60*1000 ) { //5min timeout
         closeAll( toString() + ": Timed out while waiting for messages", true, true );
         return true;
       }
