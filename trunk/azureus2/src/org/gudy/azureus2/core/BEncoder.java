@@ -31,7 +31,9 @@ public class BEncoder {
             String tempString = (String)object;
             
             try{
-                baos.write(((tempString.length()) + ":" + tempString).getBytes());
+              baos.write((String.valueOf(tempString.length())).getBytes());
+              baos.write(':');
+              baos.write(tempString.getBytes());
             }catch(IOException e){
                 e.printStackTrace();
             }
@@ -71,10 +73,11 @@ public class BEncoder {
             
             //encode all of the keys
             for(int i = 0; i<keyList.size(); i++){
+                Object key = keyList.get(i);
                 //encode the key
-                BEncoder.encode(baos, keyList.get(i));
+                BEncoder.encode(baos, key);
                 //encode the value
-                BEncoder.encode(baos, tempMap.get(keyList.get(i)));
+                BEncoder.encode(baos, tempMap.get(key));
             }           
             
             baos.write('e');
@@ -95,7 +98,9 @@ public class BEncoder {
             Long tempLong = (Long)object;         
             //write out the l       
             try{
-                baos.write(new String('i' + tempLong.toString() + 'e').getBytes());
+                baos.write('i');
+                baos.write(tempLong.toString().getBytes());
+                baos.write('e');
             }catch(IOException e){
                 e.printStackTrace();
             }
@@ -103,7 +108,9 @@ public class BEncoder {
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
 			try{
-				baos.write(new String('i' + tempInteger.toString() + 'e').getBytes());
+        baos.write('i');
+        baos.write(tempInteger.toString().getBytes());
+        baos.write('e');
 			}catch(IOException e){
 				e.printStackTrace();
 			}
@@ -111,7 +118,7 @@ public class BEncoder {
             byte[] tempByteArray = (byte[])object;
             try{
                 baos.write((String.valueOf(tempByteArray.length)).getBytes());
-                baos.write(":".getBytes());
+                baos.write(':');
                 baos.write(tempByteArray);
             }catch(IOException e){
                 e.printStackTrace();
