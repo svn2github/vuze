@@ -33,6 +33,8 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
@@ -162,8 +164,13 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	save_dir = f.getParentFile();
       }
       
-      TorrentUtils.setResumeDataCompletelyValid( torrent, save_dir.toString());
-      
+	  DownloadManagerState	download_manager_state = 
+			DownloadManagerStateFactory.getDownloadState( torrent ); 
+
+	  TorrentUtils.setResumeDataCompletelyValid( download_manager_state, save_dir.toString());
+
+	  download_manager_state.saveNonTorrentData();
+     
       if(_wizard.useMultiTracker) {
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
         TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);

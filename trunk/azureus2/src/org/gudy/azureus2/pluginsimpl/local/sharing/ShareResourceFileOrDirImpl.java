@@ -32,6 +32,8 @@ import java.util.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -181,7 +183,12 @@ ShareResourceFileOrDirImpl
 				save_dir = file;
 			}
 			
-			TorrentUtils.setResumeDataCompletelyValid( to_torrent, save_dir.toString());
+			DownloadManagerState	download_manager_state = 
+				DownloadManagerStateFactory.getDownloadState( to_torrent ); 
+
+			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, save_dir.toString());
+
+			download_manager_state.saveNonTorrentData();
 			
 			if ( item == null ){
 				

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.*;
@@ -51,6 +52,8 @@ RDResumeHandler
 {
 	protected DiskManagerHelper		disk_manager;
 	protected DMWriterAndChecker	writer_and_checker;
+	protected DownloadManagerState	download_manager_state;
+	
 	protected TOTorrent				torrent;
 		
 	protected int					nbPieces;
@@ -68,6 +71,8 @@ RDResumeHandler
 	{
 		disk_manager		= _disk_manager;
 		writer_and_checker	= _writer_and_checker;
+		
+		download_manager_state	= disk_manager.getDownloadManager().getDownloadState();
 		
 		torrent			= disk_manager.getTorrent();
 		nbPieces		= disk_manager.getNumberOfPieces();
@@ -134,7 +139,7 @@ RDResumeHandler
 				
 				Map partialPieces = null;
 				
-				Map resumeMap = torrent.getAdditionalMapProperty("resume");
+				Map resumeMap = download_manager_state.getResumeData();
 				
 				if ( resumeMap != null ){
 					
@@ -222,7 +227,7 @@ RDResumeHandler
 								// resume data
 							
 							if ( isTorrentResumeDataComplete( 
-									torrent, 
+									download_manager_state, 
 									disk_manager.getDownloadManager().getTorrentSaveDir(),
 									disk_manager.getDownloadManager().getTorrentSaveFile())){
 								
@@ -232,7 +237,7 @@ RDResumeHandler
 								
 								resumeDirectory.put("valid", new Long(0));
 								
-								saveTorrent();
+								download_manager_state.save();
 							}
 							
 						}catch(Exception ignore){
@@ -465,7 +470,7 @@ RDResumeHandler
 		}
 
 		boolean	was_complete = isTorrentResumeDataComplete( 
-									torrent, 
+									download_manager_state, 
 									disk_manager.getDownloadManager().getTorrentSaveDir(), 
 									disk_manager.getDownloadManager().getTorrentSaveFile());
 		
@@ -559,11 +564,11 @@ RDResumeHandler
 		
 	  		// OK, we've got valid resume data and flushed the cache
 	  
-		torrent.setAdditionalMapProperty("resume", resumeMap);
+		download_manager_state.setResumeData( resumeMap );
 
 		boolean	is_complete = 
 			isTorrentResumeDataComplete( 
-	  			torrent, 
+				download_manager_state, 
 				disk_manager.getDownloadManager().getTorrentSaveDir(),
 				disk_manager.getDownloadManager().getTorrentSaveFile());
 
@@ -573,7 +578,7 @@ RDResumeHandler
 	  		  	
 		}else{
 	  	
-			saveTorrent();
+			download_manager_state.save();
 		}
 	}
 
@@ -585,9 +590,11 @@ RDResumeHandler
 	
 	public static void
 	setTorrentResumeDataComplete(
-		TOTorrent	torrent,
-		String		resume_key  )
+		DownloadManagerState	download_manager_state,
+		String					resume_key  )
 	{
+		TOTorrent	torrent = download_manager_state.getTorrent();
+		
 		resume_key	= getCanonicalResumeKey( resume_key );
 
 		int	piece_count = torrent.getNumberOfPieces();
@@ -601,8 +608,6 @@ RDResumeHandler
 
 		Map resumeMap = new HashMap();
 		
-		torrent.setAdditionalMapProperty("resume", resumeMap);
-
 		Map resumeDirectory = new HashMap();
 		
 		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
@@ -617,15 +622,19 @@ RDResumeHandler
 		resumeDirectory.put("blocks", partialPieces);
 		
 		resumeDirectory.put("valid", new Long(1));	
+				
+		download_manager_state.setResumeData( resumeMap );
 	}
 	
 	public static void
 	setTorrentResumeDataNearlyComplete(
-		TOTorrent	torrent,
-		String		torrent_save_dir,
-		String		torrent_save_file )
+		DownloadManagerState	download_manager_state,
+		String					torrent_save_dir,
+		String					torrent_save_file )
 	{
 			// backwards compatability, resume data key is the dir
+		
+		TOTorrent	torrent = download_manager_state.getTorrent();
 		
 		String	resume_key = torrent.isSimpleTorrent()?
 								torrent_save_dir:
@@ -653,8 +662,6 @@ RDResumeHandler
 		
 		Map resumeMap = new HashMap();
 		
-		torrent.setAdditionalMapProperty("resume", resumeMap);
-
 		Map resumeDirectory = new HashMap();
 		
 		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
@@ -669,14 +676,18 @@ RDResumeHandler
 		resumeDirectory.put("blocks", partialPieces);
 		
 		resumeDirectory.put("valid", new Long(0));	
+			
+		download_manager_state.setResumeData( resumeMap );
 	}
 	
 	public static boolean
 	isTorrentResumeDataComplete(
-		TOTorrent	torrent,
-		String		torrent_save_dir,
-		String		torrent_save_file )
+		DownloadManagerState	download_manager_state,
+		String					torrent_save_dir,
+		String					torrent_save_file )
 	{
+		TOTorrent	torrent = download_manager_state.getTorrent();
+		
 			// backwards compatability, resume data key is the dir
 		
 		String	resume_key = torrent.isSimpleTorrent()?
@@ -690,7 +701,7 @@ RDResumeHandler
 		try{
 			int	piece_count = torrent.getNumberOfPieces();
 		
-			Map resumeMap = torrent.getAdditionalMapProperty("resume");
+			Map resumeMap = download_manager_state.getResumeData();
 		
 			if (resumeMap != null) {
 			
@@ -753,19 +764,6 @@ RDResumeHandler
 		}	
 		
 		return( false );
-	}
-	
-	private void 
-	saveTorrent() 
-	{
-		try{
-			
-			TorrentUtils.writeToFile( torrent );
-						
-		} catch (TOTorrentException e) {
-			
-			Debug.printStackTrace( e );
-		}
 	}
 
 	protected static String

@@ -130,7 +130,10 @@ DownloadManager
 	public void
 	removePiece(
 		PEPiece		piece );
-		
+	
+	public DownloadManagerState 
+	getDownloadState();
+	
 	public TOTorrent
 	getTorrent();
 	

@@ -119,10 +119,13 @@ Test
 			
 			File	torrent_file = new File( "C:\\temp\\dmtest.torrent" );
 			
-			TorrentUtils.setResumeDataCompletelyValid( torrent, "C:\\temp" );
-			
 			TorrentUtils.writeToFile( torrent, torrent_file );
 			
+			DownloadManagerState	download_manager_state = DownloadManagerStateFactory.getDownloadState( torrent ); 
+				
+			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, "C:\\temp" );
+			
+			download_manager_state.save();
 			
 			PEPeerManagerDummy	pm = new PEPeerManagerDummy();
 			
@@ -292,7 +295,13 @@ Test
 		{
 			
 		}
-			
+		
+		public DownloadManagerState 
+		getDownloadState()
+		{
+			return( null );
+		}
+		
 		public void
 		startDownload()
 		{

@@ -226,15 +226,13 @@ DownloadManagerImpl
 	// private String trackerUrl;
   
 	private PEPeerServer server;
-	private TOTorrent			torrent;
-	private String torrent_comment;
-	private String torrent_created_by;
 	
-	private static String				TRACKER_CACHE_KEY	= "tracker_cache";
+	private	DownloadManagerStateImpl		download_manager_state;
 	
-	private Map							initial_tracker_response_cache;
-	private Map							tracker_response_cache; 
-  
+	private TOTorrent		torrent;
+	private String 			torrent_comment;
+	private String 			torrent_created_by;
+	
 	private TRTrackerClient 			tracker_client;
 	private TRTrackerClientListener		tracker_client_listener;
 	
@@ -270,6 +268,8 @@ DownloadManagerImpl
   	
 		stats = new DownloadManagerStatsImpl( this );
   	
+		download_manager_state	= new DownloadManagerStateImpl();
+		
 		globalManager = _gm;
 	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
@@ -297,9 +297,7 @@ DownloadManagerImpl
   initialize() 
   {
     setState( STATE_INITIALIZING );
-    
-  	initial_tracker_response_cache	= null;
-  	
+         	
     // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
     if (onlySeeding && !filesExist()) {
       // If the user wants to re-download the missing files, they must
@@ -331,7 +329,7 @@ DownloadManagerImpl
 
       tracker_client = TRTrackerClientFactory.create( torrent, server );
     
-      tracker_client.setTrackerResponseCache( tracker_response_cache );
+      tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 
       tracker_client_listener = new TRTrackerClientListener() {
         public void receivedTrackerResponse(TRTrackerResponse	response) {
@@ -426,7 +424,9 @@ DownloadManagerImpl
 			 torrent = TorrentUtils.readFromFile( new File(torrentFileName), true );
 		
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-			 	
+		
+			 download_manager_state.setTorrent( torrent );
+			 
 			 	// if its a simple torrent and an explicit save file wasn't supplied, use
 			 	// the torrent name itself
 			 
@@ -526,22 +526,20 @@ DownloadManagerImpl
 			 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
 			 	// in it and a bad tracker URL. This could be used as a DOS attack
 
-			 initial_tracker_response_cache	= (Map)torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
-			 
 			 if ( new_torrent ){
 			 	
-			 	torrent.setAdditionalMapProperty( TRACKER_CACHE_KEY, new HashMap());
+			 	download_manager_state.setTrackerResponseCache( new HashMap());
 			 	
 			 		// also remove resume data incase someone's published a torrent with resume
 			 		// data in it
 			 	
 			 	if ( open_for_seeding ){
 			 		
-			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(torrent, torrent_save_dir, torrent_save_file );
+			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state, torrent_save_dir, torrent_save_file );
 
 			 	}else{
 			 		
-			 		torrent.removeAdditionalProperty("resume");
+			 		download_manager_state.clearResumeData();
 			 	}
 			 }
 			 
@@ -564,23 +562,16 @@ DownloadManagerImpl
 			 
 			 	// only restore the tracker response cache for non-seeds
 	   
-			 if ( DiskManagerFactory.isTorrentResumeDataComplete(torrent, torrent_save_dir, torrent_save_file )) {
+			 if ( DiskManagerFactory.isTorrentResumeDataComplete(download_manager_state, torrent_save_dir, torrent_save_file )) {
 			 	
-				  tracker_response_cache	= new HashMap();
+				  download_manager_state.clearTrackerResponseCache();
 					
 				  stats.setDownloadCompleted(1000);
 			  
 				  setOnlySeeding(true);
 			  
 			 }else{
-			 	
-				 tracker_response_cache	= torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
-				 
-				 if ( tracker_response_cache == null ){
-				 	
-				 	tracker_response_cache	= new HashMap();
-				 }
-	  
+			 					 
 				 setOnlySeeding(false);
 			}
 		}catch( TOTorrentException e ){
@@ -818,7 +809,8 @@ DownloadManagerImpl
 						
 							tracker_client.removeListener( tracker_client_listener );
 					
-							tracker_response_cache = tracker_client.getTrackerResponseCache();
+							download_manager_state.setTrackerResponseCache(
+									tracker_client.getTrackerResponseCache());
 							
 							tracker_client.destroy();
 							
@@ -874,7 +866,7 @@ DownloadManagerImpl
 						  
 						  if ( !onlySeeding ){
 						  	
-						  	saveTrackerResponseCache();
+						  	download_manager_state.save();
 						  }
 						  					  
 						  diskManager.storeFilePriorities();
@@ -931,7 +923,7 @@ DownloadManagerImpl
 	  
 	  if ( !onlySeeding ){
 	  	
-	  	saveTrackerResponseCache();
+	  	download_manager_state.save();
 	  }
   }
   
@@ -944,34 +936,6 @@ DownloadManagerImpl
     	
     	disk_manager.storeFilePriorities();
     }
-  }
-  protected void
-  saveTrackerResponseCache()
-  {
-    if (torrent == null)
-      return;
-
-  	if ( COConfigurationManager.getBooleanParameter("File.save.peers.enable", true )){
-  		
-	  	if ( !BEncoder.mapsAreIdentical(
-	  				tracker_response_cache,
-					torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY ))){
-	  		
-	  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
-	  	
-	  		try{
-	  			// System.out.println( "writing tracker_cache");
-	  		
-	  			TorrentUtils.writeToFile( torrent );
-	  		
-	  		}catch( Throwable e ){
-	  		
-	  			Debug.printStackTrace( e );
-	  		}
-	  	}else{
-	  		// System.out.println( "maps identical" );
-	  	}
-  	}
   }
   
   public void setState(int _state){
@@ -1667,7 +1631,7 @@ DownloadManagerImpl
 				
 					// remove resume data
 				
-				torrent.removeAdditionalProperty("resume");
+				download_manager_state.clearResumeData();
 				
 				// For extra protection from a plugin stopping a checking torrent,
 				// fake a forced start. 
@@ -1839,12 +1803,10 @@ DownloadManagerImpl
     }
   }
   
-  
-
-  protected Map
-  getInitialTrackerCache()
+  public DownloadManagerState 
+  getDownloadState()
   {
-  	return( initial_tracker_response_cache );
+  	return( download_manager_state );
   }
   
   public void
@@ -1861,31 +1823,32 @@ DownloadManagerImpl
 		
 		boolean	write = TorrentUtils.mergeAnnounceURLs( other_torrent, torrent );
 		
-		Map  other_cache	= ((DownloadManagerImpl)other_manager).getInitialTrackerCache();
-
+		DownloadManagerStateImpl	other_state = (DownloadManagerStateImpl)other_manager.getDownloadState();
+		
+			// pick up latest state if available
+		
 		TRTrackerClient	client = tracker_client;
 		
-		if ( other_cache != null && other_cache.size() > 0 ){
-			
-			if ( client != null ){
+		if ( client != null ){
 				
-				tracker_response_cache = client.getTrackerResponseCache();			
-			}
-			
-			tracker_response_cache = TRTrackerUtils.mergeResponseCache( tracker_response_cache, other_cache );
-		
-	  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
-	  		
-	  		write	= true;
+			download_manager_state.setTrackerResponseCache( client.getTrackerResponseCache());
 		}
+		
+		write = write ||
+				download_manager_state.mergeTrackerResponseCache( other_state );
+		
 		
 		if ( write ){
 			
-			TorrentUtils.writeToFile( torrent );
-						
+			download_manager_state.save();
+			
 			if ( client != null ){
 				
-				client.setTrackerResponseCache( tracker_response_cache );
+					// update with latest merged state
+				
+				client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
+				
+					// pick up any URL changes
 				
 				client.resetTrackerUrl( false );
 			}

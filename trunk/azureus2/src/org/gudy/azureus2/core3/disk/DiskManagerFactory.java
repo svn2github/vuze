@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.disk;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.*;
 
 public class 
 DiskManagerFactory 
@@ -66,10 +66,10 @@ DiskManagerFactory
 	
 	public static void
 	setResumeDataCompletelyValid(
-		TOTorrent	torrent,
-		String		data_location )
+		DownloadManagerState	download_manager_state,
+		String					data_location )
 	{
-		RDResumeHandler.setTorrentResumeDataComplete( torrent, data_location );
+		RDResumeHandler.setTorrentResumeDataComplete( download_manager_state, data_location );
 	}
 
 		/**
@@ -83,20 +83,20 @@ DiskManagerFactory
 	
 	public static void
 	setTorrentResumeDataNearlyComplete(
-		TOTorrent	torrent,
-		String		torrent_save_dir,
-		String		torrent_save_file )
+		DownloadManagerState	dms,
+		String					torrent_save_dir,
+		String					torrent_save_file )
 	{
-		RDResumeHandler.setTorrentResumeDataNearlyComplete( torrent, torrent_save_dir,torrent_save_file );
+		RDResumeHandler.setTorrentResumeDataNearlyComplete( dms, torrent_save_dir,torrent_save_file );
 	}
 	
 	public static boolean
 	isTorrentResumeDataComplete(
-		TOTorrent	torrent,
-		String		torrent_save_dir,
-		String		torrent_save_file)
+		DownloadManagerState	download_manager_state,
+		String					torrent_save_dir,
+		String					torrent_save_file)
 	{
-		return RDResumeHandler.isTorrentResumeDataComplete( torrent, torrent_save_dir,torrent_save_file );
+		return RDResumeHandler.isTorrentResumeDataComplete( download_manager_state, torrent_save_dir,torrent_save_file );
 	}
 
 	public static void 

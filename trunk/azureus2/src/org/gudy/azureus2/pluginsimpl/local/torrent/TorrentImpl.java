@@ -31,6 +31,8 @@ import java.net.*;
 import java.util.Map;
 import java.io.File;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -290,7 +292,12 @@ TorrentImpl
 		try{
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
 		
-			TorrentUtils.setResumeDataCompletelyValid( torrent, data_dir.toString());
+			DownloadManagerState	download_manager_state = 
+				DownloadManagerStateFactory.getDownloadState( torrent ); 
+
+			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, data_dir.toString());
+
+			download_manager_state.saveNonTorrentData();
 			
 		}catch( LocaleUtilEncodingException e ){
 			

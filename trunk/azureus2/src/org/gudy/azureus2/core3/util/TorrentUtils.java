@@ -75,6 +75,24 @@ TorrentUtils
 		try{
 			torrent = TOTorrentFactory.deserialiseFromBEncodedFile(file);
 			
+				// make an immediate backup if requested and one doesn't exist 
+			
+	    	if ( COConfigurationManager.getBooleanParameter("Save Torrent Backup", false )) {
+	    		
+	    		File torrent_file_bak = new File(file.getParent(), file.getName() + ".bak");
+
+	    		if ( !torrent_file_bak.exists()){
+	    			
+	    			try{
+	    				torrent.serialiseToBEncodedFile(torrent_file_bak);
+	    				
+	    			}catch( Throwable e ){
+	    				
+	    				Debug.printStackTrace(e);
+	    			}
+	    		}
+	    	}
+	    	
 		}catch (TOTorrentException e){
       
 			Debug.printStackTrace( e );
@@ -560,10 +578,10 @@ TorrentUtils
 	
 	public static void
 	setResumeDataCompletelyValid(
-		TOTorrent		torrent,
-		String			data_location )
+		DownloadManagerState	download_manager_state,
+		String					data_location )
 	{
-		DiskManagerFactory.setResumeDataCompletelyValid( torrent, data_location );
+		DiskManagerFactory.setResumeDataCompletelyValid( download_manager_state, data_location );
 	}
 	
 	public static String
