@@ -46,10 +46,6 @@ TRTrackerClient
 	getTrackerUrl();
 	
 	public void
-	addTrackerUrl(
-		String		url );
-		
-	public void
 	setTrackerUrl(
 		String		url );
 		

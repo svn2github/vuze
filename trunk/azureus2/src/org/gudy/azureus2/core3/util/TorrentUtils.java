@@ -174,6 +174,8 @@ TorrentUtils
 		TOTorrent	torrent )
 	{
 		try{
+			TOTorrentAnnounceURLGroup tg = torrent.getAnnounceURLGroup();
+			
 			if ( groups.size() == 1 ){
 				
 				List	set = (List)groups.get(0);
@@ -182,11 +184,12 @@ TorrentUtils
 					
 					torrent.setAnnounceURL( new URL((String)set.get(0)));
 					
+					tg.setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+					
 					return;
 				}
 			}
 			
-			TOTorrentAnnounceURLGroup tg = torrent.getAnnounceURLGroup();
 			
 			Vector	g = new Vector();
 			
@@ -226,6 +229,43 @@ TorrentUtils
 		}
 	}
 	
+	public static void
+	announceGroupsInsertFirst(
+		TOTorrent	torrent,
+		String		first_url )
+	{
+		try{
+		
+			TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+			
+			TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+	
+			TOTorrentAnnounceURLSet set1 = group.createAnnounceURLSet(new URL[]{new URL(first_url)});
+			
+			
+			if ( sets.length > 0 ){
+				
+				TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[sets.length+1];
+				
+				new_sets[0] = set1;
+				
+				System.arraycopy( sets, 0, new_sets, 1, sets.length );
+				
+				group.setAnnounceURLSets( new_sets );
+						
+			}else{
+				
+				TOTorrentAnnounceURLSet set2 = group.createAnnounceURLSet(new URL[]{torrent.getAnnounceURL()});
+				
+				group.setAnnounceURLSets(
+					new  TOTorrentAnnounceURLSet[]{ set1, set2 });
+			}
+		}catch( MalformedURLException e ){
+			
+			e.printStackTrace();
+		}
+	}
+		
 	public static void
 	announceGroupsSetFirst(
 		TOTorrent	torrent,

@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 
@@ -61,8 +63,15 @@ public class TrackerChangerWindow {
        */
       public void handleEvent(Event event) {
         try {
-          trackerConnection.addTrackerUrl(url.getText());
-          shell.dispose();
+        	TOTorrent	torrent = trackerConnection.getTorrent();
+        	
+        	TorrentUtils.announceGroupsInsertFirst( torrent, url.getText());
+        	
+        	TorrentUtils.writeToFile( torrent );
+        	
+        	trackerConnection.resetTrackerUrl(false);
+        	
+        	shell.dispose();
         }
         catch (Exception e) {
           e.printStackTrace();

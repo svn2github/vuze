@@ -804,42 +804,7 @@ TRTrackerClientClassicImpl
 	
   public String getTrackerUrl() {
 	return lastUsedUrl;
-  }
-
-
-  /**
-   * @param trackerUrl
-   */
-  
-  public void 
-  addTrackerUrl(
-  	String trackerUrl ) 
-  {
-	trackerUrl = trackerUrl.replaceAll(" ", "");
-	
-  		// put it in at the front of the list if not already present
-  		
-  	for (int i=0;i<trackerUrlLists.size();i++){
-  		
-  		List	list = (List)trackerUrlLists.get(i);
-  		
-  		if ( list.size() == 1 ){
-  	
-  			if (trackerUrl.equalsIgnoreCase((String)list.get(0))){
-  				
-  				return;		
-  			}
-  		}
-  	}
-  	
-  	List list = new ArrayList(1);
-  	
-  	list.add( trackerUrl );
-  	
-  	trackerUrlLists.add(0, list);
-  	
-	informURLChange( trackerUrl, true );       	
-  }
+  } 
   
   public void 
   setTrackerUrl(
