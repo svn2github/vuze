@@ -111,44 +111,76 @@ GMSRDefaultPlugin
 			
 				int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
 				
-				/*
-				TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
+				
+				DownloadScrapeResult sr = download.getLastScrapeResult();
 
 				boolean mayStop = false;
-				if (hd != null && hd.isValid()) {
-					if (hd.getSeeds() > nbMinSeeds) {
+				
+				if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+					
+					if (sr.getSeedCount() > nbMinSeeds) {
+						
 						mayStop = true;
 					}
-				}
-				else {
+				}else{
+					
 					mayStop = true;
 				}
 	
-				//Checks if any condition to stop seeding is met
+					//Checks if any condition to stop seeding is met
+				
 				int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
-				int shareRatio = manager.getStats().getShareRatio();
-				//0 means unlimited
-				if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! manager.isStartStopLocked()) {
-					manager.stopIt();
+				
+				int shareRatio = download.getStats().getShareRatio();
+				
+					//0 means unlimited
+				
+				if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! download.isStartStopLocked()){
+					
+					try{
+						download.stop();
+						
+					}catch( DownloadException e ){
+						
+						e.printStackTrace();
+					}
 				}
 
 				int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio", 0);
-				//0 means never stop
+				
+					//0 means never stop
+				
 				if (mayStop && minSeedsPerPeersRatio != 0) {
-					if (hd != null && hd.isValid()) {
-						int nbPeers = hd.getPeers();
-						int nbSeeds = hd.getSeeds();
+					
+					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS) {
+						
+						int nbPeers = sr.getNonSeedCount();
+						
+						int nbSeeds = sr.getSeedCount();
+						
 						//If there are no seeds, avoid / by 0
+						
 						if (nbSeeds != 0) {
+							
 							int ratio = nbPeers / nbSeeds;
-							//Added a test over the shareRatio greater than 500
-							//Avoids disconnecting too early, even with many peers
-							if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! manager.isStartStopLocked())
-								manager.stopIt();
+							
+								//Added a test over the shareRatio greater than 500
+								//Avoids disconnecting too early, even with many peers
+							
+							if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! download.isStartStopLocked()){
+								
+								try{
+									download.stop();
+									
+								}catch( DownloadException e ){
+									
+									e.printStackTrace();
+								}
+							}
 						}
 					}
 				}
-				*/
+				
 			}else if ( state == Download.ST_STOPPED && download.getStats().getCompleted() == 1000){
 								
 				//Checks if any condition to start seeding is met
@@ -161,38 +193,61 @@ GMSRDefaultPlugin
 				
 				if ( minSeedsPerPeersRatio != 0 && ! download.isStartStopLocked()){
 					
-					/*
-					TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
+					DownloadScrapeResult sr = download.getLastScrapeResult();
 					
-					if (hd != null && hd.isValid()) {
-						int nbPeers = hd.getPeers();
-						int nbSeeds = hd.getSeeds();
-						//If there are no seeds, avoid / by 0
-						if (nbPeers != 0) {
-							if (nbSeeds != 0) {
-								int ratio = nbPeers / nbSeeds;
-								if (ratio >= minSeedsPerPeersRatio)
-									manager.setState(DownloadManager.STATE_WAITING);
-							}else{
-								//No seeds, at least 1 peer, let's start download.
-								manager.setState(DownloadManager.STATE_WAITING);
+					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+						
+						int nbPeers = sr.getNonSeedCount();
+						
+						int nbSeeds = sr.getSeedCount();
+						
+							//If there are no seeds, avoid / by 0
+						
+						if (nbPeers != 0){
+							
+							try{							
+						
+								if (nbSeeds != 0){
+									
+									int ratio = nbPeers / nbSeeds;
+									
+									if (ratio >= minSeedsPerPeersRatio){
+									
+										download.start();
+									}
+								}else{
+										//No seeds, at least 1 peer, let's start download.
+									
+									download.start();
+								}
+							}catch( DownloadException e ){
+								
+								e.printStackTrace();
 							}
 						}
 					}
-					*/
 				}
 				
 				if (nbMinSeeds > 0 && ! download.isStartStopLocked()) {
 					
-					/*
-					TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-					if (hd != null && hd.isValid()) {
-						int nbSeeds = hd.getSeeds();
-						if (nbSeeds < nbMinSeeds) {
-							manager.setState(DownloadManager.STATE_WAITING);
+					DownloadScrapeResult sr = download.getLastScrapeResult();
+					
+					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+						
+						int nbSeeds = sr.getSeedCount();
+						
+						if (nbSeeds < nbMinSeeds){
+							
+							try{
+								
+								download.start();
+								
+							}catch( DownloadException e ){
+								
+								e.printStackTrace();
+							}
 						}
 					}
-					*/
 				}
 			}
 		}

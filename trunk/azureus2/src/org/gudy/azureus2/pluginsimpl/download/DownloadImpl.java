@@ -54,6 +54,9 @@ DownloadImpl
 	
 	protected int		latest_state		= ST_STOPPED;
 	
+	protected DownloadAnnounceResult	last_announce_result;
+	protected DownloadScrapeResult		last_scrape_result;
+	
 	protected List		listeners 			= new ArrayList();
 	protected List		tracker_listeners	= new ArrayList();
 	protected List		removal_listeners 	= new ArrayList();
@@ -310,18 +313,51 @@ DownloadImpl
 		}
 	}
 	
+	public DownloadAnnounceResult
+	getLastAnnounceResult()
+	{
+		return( last_announce_result );
+	}
+	
+	public DownloadScrapeResult
+	getLastScrapeResult()
+	{
+		// TODO: scraping is *NOT* yet event driven from download manager
+		
+		TRTrackerScraperResponse response = download_manager.getTrackerScrapeResponse();
+	
+		last_scrape_result = new DownloadScrapeResultImpl( response );
+		
+		return( last_scrape_result );
+	}
+	
+	
 	public void
 	scrapeResult(
 		TRTrackerScraperResponse	response )
 	{
+		last_scrape_result		= new DownloadScrapeResultImpl( response );
 		
+		synchronized( tracker_listeners ){
+			
+			for (int i=0;i<tracker_listeners.size();i++){
+				
+				try{						
+					((DownloadTrackerListener)tracker_listeners.get(i)).scrapeResult( last_scrape_result );
+
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}	
 	}
 	
 	public void
 	announceResult(
 		TRTrackerResponse			response )
 	{
-		DownloadAnnounceResult	res = new DownloadAnnounceResultImpl(this, response);
+		last_announce_result = new DownloadAnnounceResultImpl(this, response);
 		
 
 		synchronized( tracker_listeners ){
@@ -329,7 +365,7 @@ DownloadImpl
 			for (int i=0;i<tracker_listeners.size();i++){
 				
 				try{						
-					((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( res );
+					((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( last_announce_result );
 
 				}catch( Throwable e ){
 					

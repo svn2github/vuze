@@ -70,6 +70,12 @@ Download
 	
 		throws DownloadException, DownloadRemovalVetoException;
 	
+	public DownloadAnnounceResult
+	getLastAnnounceResult();
+	
+	public DownloadScrapeResult
+	getLastScrapeResult();
+	
 	public DownloadStats
 	getStats();
 	

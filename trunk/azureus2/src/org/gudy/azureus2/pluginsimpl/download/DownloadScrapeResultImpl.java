@@ -1,6 +1,6 @@
 /*
- * File    : DownloadScrapeResult.java
- * Created : 12-Jan-2004
+ * File    : DownloadScrapeResultImpl.java
+ * Created : 13-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,25 +19,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.download;
+package org.gudy.azureus2.pluginsimpl.download;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DownloadScrapeResult 
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+
+import org.gudy.azureus2.core3.tracker.client.*;
+
+public class 
+DownloadScrapeResultImpl
+	implements DownloadScrapeResult
 {
-	public static final int	RT_SUCCESS	= 1;
-	public static final int RT_ERROR	= 2;
+	protected TRTrackerScraperResponse	response;
+	
+	protected
+	DownloadScrapeResultImpl(
+		TRTrackerScraperResponse	_response )
+	{
+		response	= _response;
+	}
 	
 	public int
-	getResponseType();	// either RT_SUCCESS or RT_ERROR
+	getResponseType()
+	{
+		if ( response != null && response.isValid()){
+			
+			return( RT_SUCCESS );
+			
+		}else{
+			
+			return( RT_ERROR );
+		}
+	}
 	
 	public int
-	getSeedCount();
+	getSeedCount()
+	{
+		return( response.getSeeds());
+	}
 	
 	public int
-	getNonSeedCount();
+	getNonSeedCount()
+	{
+		return( response.getPeers());
+	}
 }
