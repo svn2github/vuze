@@ -225,7 +225,7 @@ PEPeerTransportImpl
 	}
   
   
-  protected int doubleSendBufferSize() {
+  protected int increaseSendBufferSize() {
     try {
       int size = socket.socket().getSendBufferSize();
       if ( size >= 64*1024 ) return size;
