@@ -150,8 +150,14 @@ public class StartStopRulesDefaultPlugin
     plugin_interface.addListener(new PluginListener() {
       public void initializationComplete() { /* not implemented */ }
 
-      public void closedownInitiated() {
+      public void 
+	  closedownInitiated() 
+      {
         closingDown = true;
+      
+        	// we don't want to go off recalculating stuff when config is saved on closedown
+        
+        COConfigurationManager.removeListener(StartStopRulesDefaultPlugin.this);
       }
 
       public void closedownComplete() { /* not implemented */ }
