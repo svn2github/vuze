@@ -26,15 +26,14 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.RawMessage;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
 /**
  * BitTorrent handshake message.
  */
-public class BTHandshake implements BTProtocolMessage, RawMessage {
+public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
   public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
   
@@ -43,39 +42,94 @@ public class BTHandshake implements BTProtocolMessage, RawMessage {
   private final String description;
   
   
+  /**
+   * Used for outgoing handshake message.
+   * @param data_hash
+   * @param peer_id
+   */
   public BTHandshake( byte[] data_hash, byte[] peer_id ) {
+    this( null, data_hash, peer_id );
+  }
+  
+  
+  private BTHandshake( byte[] reserved, byte[] data_hash, byte[] peer_id ) {
     DirectByteBuffer dbb = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
     dbb.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
     dbb.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
-    dbb.put( DirectByteBuffer.SS_BT, RESERVED );
+    dbb.put( DirectByteBuffer.SS_BT, reserved == null ? RESERVED : reserved );
     dbb.put( DirectByteBuffer.SS_BT, data_hash );
     dbb.put( DirectByteBuffer.SS_BT, peer_id );
     dbb.flip( DirectByteBuffer.SS_BT );
     buffer = new DirectByteBuffer[] { dbb };
 
-    description = BTProtocolMessage.ID_BT_HANDSHAKE +
+    description = BTMessage.ID_BT_HANDSHAKE +
                   " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) +
                   " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
-    
-    /* for( int i=7; i >= 0; i-- ) {
-         byte b = (byte) (RESERVED[0] >> i);
-         int val = b & 0x01;
-         System.out.print( val == 1 ? "x" : "." );
-       }
-       System.out.println();  */
+      
+      /* for( int i=7; i >= 0; i-- ) {
+           byte b = (byte) (RESERVED[0] >> i);
+           int val = b & 0x01;
+           System.out.print( val == 1 ? "x" : "." );
+         }
+         System.out.println(); */
   }
   
 
+  
 
   // message
-  public String getID() {  return BTProtocolMessage.ID_BT_HANDSHAKE;  }
+  public String getID() {  return BTMessage.ID_BT_HANDSHAKE;  }
   
-  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+  
+  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
   public String getDescription() {  return description;  }
   
   public DirectByteBuffer[] getData() {  return buffer;  }
 
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    if( !id.equals( getID() ) ) {
+      throw new MessageException( "decode error: invalid id" );
+    }
+    
+    if( version != getVersion()  ) {
+      throw new MessageException( "decode error: invalid version" );
+    }
+    
+    if( data == null ) {
+      throw new MessageException( "decode error: data == null" );
+    }
+    
+    if( data.remaining( DirectByteBuffer.SS_MSG ) < 68 ) {
+      throw new MessageException( "decode error: payload.remaining() < 68" );
+    }
+    
+    if( data.get( DirectByteBuffer.SS_MSG ) != (byte)PROTOCOL.length() ) {
+      throw new MessageException( "decode error: payload.get() != (byte)PROTOCOL.length()" );
+    }
+    
+    byte[] header = new byte[ PROTOCOL.getBytes().length ];
+    data.get( DirectByteBuffer.SS_MSG, header );
+    
+    if( !PROTOCOL.equals( new String( header ) ) ) {
+      throw new MessageException( "decode error: !PROTOCOL.equals( new String( header ) )" );
+    }
+    
+    byte[] reserved = new byte[ 8 ];
+    data.get( DirectByteBuffer.SS_MSG, reserved );          
+    
+    byte[] infohash = new byte[ 20 ];
+    data.get( DirectByteBuffer.SS_MSG, infohash );
+    
+    byte[] peerid = new byte[ 20 ];
+    data.get( DirectByteBuffer.SS_MSG, peerid );
+    
+    data.returnToPool();
+    
+    return new BTHandshake( reserved, infohash, peerid );
+  }
+  
   
   
   // raw message
@@ -84,8 +138,6 @@ public class BTHandshake implements BTProtocolMessage, RawMessage {
   public int getPriority() {  return RawMessage.PRIORITY_HIGH;  }
 
   public boolean isNoDelay() {  return true;  }
-
-  public boolean isDataMessage() {  return false;  }
  
   public Message[] messagesToRemove() {  return null;  }
 

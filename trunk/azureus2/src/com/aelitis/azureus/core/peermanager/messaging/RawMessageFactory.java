@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager.messaging;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -37,15 +38,15 @@ public class RawMessageFactory {
   
   private static final Map legacy_data = new HashMap();
   static {
-    legacy_data.put( BTProtocolMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, false, new Message[]{new BTUnchoke(), new BTPiece()}, (byte)0 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, false, new Message[]{new BTChoke()}, (byte)1 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, false, new Message[]{new BTUninterested()}, (byte)2 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, false, new Message[]{new BTInterested()}, (byte)3 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, false, null, (byte)4 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, false, null, (byte)5 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, false, null, (byte)6 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_PIECE, new LegacyData( RawMessage.PRIORITY_LOW, false, true, null, (byte)7 ) );
-    legacy_data.put( BTProtocolMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, false, null, (byte)8 ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece()}, (byte)0 ) );
+    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()}, (byte)1 ) );
+    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()}, (byte)2 ) );
+    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()}, (byte)3 ) );
+    legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)4 ) );
+    legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)5 ) );
+    legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)6 ) );
+    legacy_data.put( BTMessage.ID_BT_PIECE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)7 ) );
+    legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
   }
   
   
@@ -66,7 +67,7 @@ public class RawMessageFactory {
     }
     
     //create and fill header buffer
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 9 + id_bytes.length );
+    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 9 + id_bytes.length ) );
     header.putInt( DirectByteBuffer.SS_MSG, id_bytes.length );
     header.put( DirectByteBuffer.SS_MSG, id_bytes );
     header.put( DirectByteBuffer.SS_MSG, message.getVersion() );
@@ -79,7 +80,9 @@ public class RawMessageFactory {
       raw_buffs[i+1] = payload[i];
     }
     
-    return new RawMessageImpl( message, raw_buffs, RawMessage.PRIORITY_NORMAL, true, false, null );
+    //TODO bt protocol message special queue values
+    
+    return new RawMessageImpl( message, raw_buffs, RawMessage.PRIORITY_NORMAL, true, null );
   }
   
    
@@ -113,7 +116,7 @@ public class RawMessageFactory {
       payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
     }  
         
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 5 + payload_size );
+    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     header.putInt( DirectByteBuffer.SS_MSG, 1 + payload_size );
     header.put( DirectByteBuffer.SS_MSG, ld.bt_id );
     header.flip( DirectByteBuffer.SS_MSG );
@@ -124,22 +127,21 @@ public class RawMessageFactory {
       raw_buffs[i+1] = payload[i];
     }
     
-    return new RawMessageImpl( message, raw_buffs, ld.priority, ld.is_no_delay, ld.is_data_message, ld.to_remove );
+    return new RawMessageImpl( message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
   }
   
   
+
   
   private static class LegacyData {
     private final int priority;
     private final boolean is_no_delay;
-    private final boolean is_data_message;
     private final Message[] to_remove;
     private final byte bt_id;
     
-    private LegacyData( int prio, boolean no_delay, boolean is_data, Message[] remove, byte btid ) {
+    private LegacyData( int prio, boolean no_delay, Message[] remove, byte btid ) {
       this.priority = prio;
       this.is_no_delay = no_delay;
-      this.is_data_message = is_data;
       this.to_remove = remove;
       this.bt_id = btid;
     }

@@ -28,13 +28,14 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.RawMessage;
 
 
 /**
  * BitTorrent keep-alive message.
  */
-public class BTKeepAlive implements BTProtocolMessage, RawMessage {
+public class BTKeepAlive implements BTMessage, RawMessage {
   private DirectByteBuffer[] buffer = null;
   
   
@@ -44,14 +45,33 @@ public class BTKeepAlive implements BTProtocolMessage, RawMessage {
 
   
   // message
-  public String getID() {  return BTProtocolMessage.ID_BT_KEEP_ALIVE;  }
+  public String getID() {  return BTMessage.ID_BT_KEEP_ALIVE;  }
   
-  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+  
+  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return BTProtocolMessage.ID_BT_KEEP_ALIVE;  }
+  public String getDescription() {  return BTMessage.ID_BT_KEEP_ALIVE;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  }
 
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    if( !id.equals( getID() ) ) {
+      throw new MessageException( "decode error: invalid id" );
+    }
+    
+    if( version != getVersion()  ) {
+      throw new MessageException( "decode error: invalid version" );
+    }
+    
+    if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
+      throw new MessageException( "decode error: payload not empty" );
+    }
+    
+    if( data != null )  data.returnToPool();
+    
+    return new BTKeepAlive();
+  }
   
   
   // raw message
@@ -68,8 +88,6 @@ public class BTKeepAlive implements BTProtocolMessage, RawMessage {
   public int getPriority() {  return RawMessage.PRIORITY_LOW;  }
 
   public boolean isNoDelay() {  return false;  }
-
-  public boolean isDataMessage() {  return false;  }
  
   public Message[] messagesToRemove() {  return null;  }
 

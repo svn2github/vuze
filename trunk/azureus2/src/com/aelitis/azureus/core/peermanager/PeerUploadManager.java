@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 /**
@@ -80,7 +80,7 @@ public class PeerUploadManager {
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
       public void messageAdded( Message message ) {
-        if( message.getID().equals( BTProtocolMessage.ID_BT_PIECE ) ) {  //is sending piece data
+        if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {  //is sending piece data
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
             
             standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
@@ -119,7 +119,7 @@ public class PeerUploadManager {
       }
 
       public void messageSent( Message message ) {
-        if( message.getID().equals( BTProtocolMessage.ID_BT_CHOKE ) ) {  //is done sending piece data
+        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) {  //is done sending piece data
           if( conn_data.state == ConnectionData.STATE_UPGRADED ) {  //so downgrade it
             standard_entity_controller.downgradePeerConnection( connection );
             conn_data.state = ConnectionData.STATE_NORMAL;

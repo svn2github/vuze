@@ -320,7 +320,7 @@ public class OutgoingMessageQueue {
    * @param max_bytes maximum number of bytes to deliver
    * @param manual_listener_notify true for manual notification, false for automatic
    * @return number of bytes delivered
-   * @throws IOException
+   * @throws IOException on delivery error
    */
   public int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
     if( max_bytes < 1 ) {
@@ -388,7 +388,7 @@ public class OutgoingMessageQueue {
             int bytes_written = (bb.limit() - bb.remaining()) - ((Integer)orig_positions.get( pos )).intValue();
             total_size -= bytes_written;
             
-            if( msg.isDataMessage() ) {
+            if( msg.getType() == Message.TYPE_DATA_PAYLOAD ) {
               data_written += bytes_written;
             }
             else {
@@ -562,7 +562,7 @@ public class OutgoingMessageQueue {
   /////////////////////////////////////////////////////////////////
   
   /**
-   * Receive notification when a new message is added to the queue.
+   * Receive notification of queue events.
    */
   public interface MessageQueueListener {
     /**

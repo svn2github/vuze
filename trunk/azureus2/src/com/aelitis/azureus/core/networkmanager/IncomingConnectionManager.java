@@ -334,7 +334,7 @@ public class IncomingConnectionManager {
             ic.last_read_time = now;
           }
           else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
-            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read]" );
+            System.out.println( "Incoming TCP connection [" +ic.channel.socket().getInetAddress().getHostAddress()+ ":" +ic.channel.socket().getPort()+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read]" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
@@ -344,7 +344,7 @@ public class IncomingConnectionManager {
             ic.initial_connect_time = now;
           }
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
-            LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
+            LGLogger.log( "Incoming TCP connection [" +ic.channel.socket().getInetAddress().getHostAddress()+ ":" +ic.channel.socket().getPort()+ "] forcibly timed out after 60sec due to socket inactivity" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }

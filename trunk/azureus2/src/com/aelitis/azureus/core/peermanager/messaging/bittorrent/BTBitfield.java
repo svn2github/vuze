@@ -22,33 +22,51 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 
 
 /**
  * BitTorrent bitfield message.
  */
-public class BTBitfield implements BTProtocolMessage {
+public class BTBitfield implements BTMessage {
   private final DirectByteBuffer[] buffer;
 
   
-  public BTBitfield( ByteBuffer bitfield ) {
-    buffer = new DirectByteBuffer[] { new DirectByteBuffer( bitfield ) };
+  public BTBitfield( DirectByteBuffer bitfield ) {
+    buffer = new DirectByteBuffer[] { bitfield };
   }
   
 
-  public String getID() {  return BTProtocolMessage.ID_BT_BITFIELD;  }
+  public String getID() {  return BTMessage.ID_BT_BITFIELD;  }
   
-  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+  
+  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return BTProtocolMessage.ID_BT_BITFIELD;  }
+  public String getDescription() {  return BTMessage.ID_BT_BITFIELD;  }
   
   public DirectByteBuffer[] getData() {  return buffer;  }
 
-  
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    if( !id.equals( getID() ) ) {
+      throw new MessageException( "decode error: invalid id" );
+    }
+    
+    if( version != getVersion()  ) {
+      throw new MessageException( "decode error: invalid version" );
+    }
+    
+    if( data == null ) {
+      throw new MessageException( "decode error: data == null" );
+    }
+        
+    return new BTBitfield( data );
+  }
   
 
   

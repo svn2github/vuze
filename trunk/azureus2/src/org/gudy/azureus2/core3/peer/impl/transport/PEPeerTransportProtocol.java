@@ -1745,7 +1745,7 @@ StateTransfering
     buffer.flip();
     
 		if ( atLeastOne ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTBitfield( buffer ), false );
+      connection.getOutgoingMessageQueue().addMessage( new BTBitfield( new DirectByteBuffer( buffer ) ), false );
 		}
 	}
 

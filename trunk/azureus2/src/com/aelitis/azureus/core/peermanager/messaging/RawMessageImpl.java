@@ -34,7 +34,6 @@ public class RawMessageImpl implements RawMessage {
   private final DirectByteBuffer[] payload;
   private final int priority;
   private final boolean is_no_delay;
-  private final boolean is_data_message;
   private final Message[] to_remove;
   
   
@@ -44,20 +43,17 @@ public class RawMessageImpl implements RawMessage {
    * @param raw_payload headers + original message data
    * @param priority in queue
    * @param is_no_delay is an urgent message
-   * @param is_data_message contains file data payload
    * @param to_remove message types to auto-remove upon queue
    */  
   protected RawMessageImpl( Message source,
                             DirectByteBuffer[] raw_payload,
                             int priority,
                             boolean is_no_delay,
-                            boolean is_data_message,
                             Message[] to_remove ) {
     this.message = source;
     this.payload = raw_payload;
     this.priority = priority;
     this.is_no_delay = is_no_delay;
-    this.is_data_message = is_data_message;
     this.to_remove = to_remove;
   }
   
@@ -66,9 +62,15 @@ public class RawMessageImpl implements RawMessage {
   
   public byte getVersion() {  return message.getVersion();  }
   
+  public int getType() {  return message.getType();  }
+  
   public String getDescription() {  return message.getDescription();  }
   
   public DirectByteBuffer[] getData() {  return message.getData();  }
+  
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    return message.deserialize( id, version, data );
+  }
   
   
   //rawmessage impl
@@ -77,8 +79,6 @@ public class RawMessageImpl implements RawMessage {
   public int getPriority() {  return priority;  }
   
   public boolean isNoDelay() {  return is_no_delay;  }
-  
-  public boolean isDataMessage() {  return is_data_message;  }
   
   public Message[] messagesToRemove() {  return to_remove;  }
   

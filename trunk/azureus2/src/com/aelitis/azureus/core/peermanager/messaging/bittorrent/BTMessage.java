@@ -27,7 +27,7 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 /**
  * A bittorrent peer protocol message.
  */
-public interface BTProtocolMessage extends Message {
+public interface BTMessage extends Message {
   
   public static final String ID_BT_HANDSHAKE    = "BT_HANDSHAKE";
   public static final String ID_BT_CHOKE        = "BT_CHOKE";

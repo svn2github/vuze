@@ -45,6 +45,9 @@ public class MessageManager {
   
   private MessageManager() {
     /* nothing */
+    
+    
+    //TODO register default messages
   }
   
   public static MessageManager getSingleton() {  return instance;  }

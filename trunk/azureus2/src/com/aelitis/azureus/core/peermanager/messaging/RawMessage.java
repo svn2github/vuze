@@ -55,12 +55,6 @@ public interface RawMessage extends Message {
    * @return true if a no-delay message
    */
   public boolean isNoDelay();
-  
-  /**
-   * Is this a message containing (piece) data payload.
-   * @return true if data message, false if protocol message
-   */
-  public boolean isDataMessage();
     
   /**
    * Get the yet-unsent message types that should be removed

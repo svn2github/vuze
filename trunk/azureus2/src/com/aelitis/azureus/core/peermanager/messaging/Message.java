@@ -30,19 +30,38 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
  * Basic peer message.
  * A message type is uniquely identified by the combination of ID and version.
  */
-public interface Message {
-
+public interface Message { 
+  
   /**
-   * Get message type id.
+   * Is a protocol-bearing message, i.e. messaging/overhead data.
+   */
+  public static final int TYPE_PROTOCOL_PAYLOAD = 0;
+  
+  /**
+   * Is a data-bearing message, i.e. file data.
+   */
+  public static final int TYPE_DATA_PAYLOAD     = 1;
+
+  
+  
+  
+  /**
+   * Get message id.
    * @return id
    */
   public String getID();
   
   /**
-   * Get message type version.
+   * Get message version.
    * @return version
    */
   public byte getVersion();
+  
+  /**
+   * Get message type.
+   * @return type
+   */
+  public int getType();
     
   /**
    * Get textual description of this particular message.
@@ -55,4 +74,17 @@ public interface Message {
    * @return message data buffers
    */
   public DirectByteBuffer[] getData();
+  
+  
+  /**
+   * Create a new instance of this message by decoding the given byte serialization.
+   * @param id of message
+   * @param version of message
+   * @param data to deserialize
+   * @return decoded message instance
+   * @throws MessageException if the decoding process fails
+   */
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException;
+    
+  
 }

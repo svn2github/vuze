@@ -32,7 +32,7 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import com.aelitis.azureus.core.networkmanager.TransportDebugger;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 public class 

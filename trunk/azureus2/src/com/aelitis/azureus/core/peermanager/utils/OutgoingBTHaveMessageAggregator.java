@@ -49,7 +49,7 @@ public class OutgoingBTHaveMessageAggregator {
   private final OutgoingMessageQueue.MessageQueueListener added_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageAdded( Message message ) {
       //if another message is going to be sent anyway, add our haves as well
-      if( !message.getID().equals( BTProtocolMessage.ID_BT_HAVE ) ) {
+      if( !message.getID().equals( BTMessage.ID_BT_HAVE ) ) {
         sendPendingHaves();
       }
     }

@@ -26,10 +26,13 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
+
 /**
  * BitTorrent have message.
  */
-public class BTHave implements BTProtocolMessage {
+public class BTHave implements BTMessage {
   private final DirectByteBuffer buffer;
   private final String description;
 
@@ -38,17 +41,47 @@ public class BTHave implements BTProtocolMessage {
     buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
     buffer.flip( DirectByteBuffer.SS_BT );
     
-    description = BTProtocolMessage.ID_BT_HAVE + " piece #" + piece_number;
+    description = BTMessage.ID_BT_HAVE + " piece #" + piece_number;
   }
   
   
 
-  public String getID() {  return BTProtocolMessage.ID_BT_HAVE;  }
+  public String getID() {  return BTMessage.ID_BT_HAVE;  }
   
-  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+  
+  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
   public String getDescription() {  return description;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    if( !id.equals( getID() ) ) {
+      throw new MessageException( "decode error: invalid id" );
+    }
+    
+    if( version != getVersion()  ) {
+      throw new MessageException( "decode error: invalid version" );
+    }
+    
+    if( data == null ) {
+      throw new MessageException( "decode error: data == null" );
+    }
+    
+    if( data.remaining( DirectByteBuffer.SS_MSG ) < 4 ) {
+      throw new MessageException( "decode error: payload.remaining() < 4" );
+    }
+    
+    int piece_number = data.getInt( DirectByteBuffer.SS_MSG );
+    
+    if( piece_number < 0 ) {
+      throw new MessageException( "decode error: piece_number < 0" );
+    }
+    
+    data.returnToPool();
+    
+    return new BTHave( piece_number );
+  }
 
 }

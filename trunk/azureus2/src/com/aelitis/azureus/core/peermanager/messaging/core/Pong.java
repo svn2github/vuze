@@ -25,22 +25,41 @@ package com.aelitis.azureus.core.peermanager.messaging.core;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 
 /**
  *
  */
 public class Pong implements Message {
-  private static final String id = "PONG";
-  private static final byte version = (byte)1;
+  private static final String msg_id = "PONG";
+  private static final byte msg_version = (byte)1;
   
-  public String getID() {  return id;  }
+  public String getID() {  return msg_id;  }
 
-  public byte getVersion() {  return version;  }
+  public byte getVersion() {  return msg_version;  }
+  
+  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
 
-  public String getDescription() {  return id;  }
+  public String getDescription() {  return msg_id;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  } 
   
-  
+  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
+    if( !id.equals( getID() ) ) {
+      throw new MessageException( "decode error: invalid id" );
+    }
+    
+    if( version != getVersion()  ) {
+      throw new MessageException( "decode error: invalid version" );
+    }
+    
+    if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
+      throw new MessageException( "decode error: payload not empty" );
+    }
+    
+    if( data != null )  data.returnToPool();
+    
+    return new Pong();
+  }
 }

@@ -84,7 +84,7 @@ public class OutgoingBTPieceMessageHandler {
   
   private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageSent( Message message ) {
-      if( message.getID().equals( BTProtocolMessage.ID_BT_PIECE ) ) {
+      if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         try{
           lock_mon.enter();
         
