@@ -99,8 +99,6 @@ public class SelectorGuard {
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
-    if( consecutiveZeroSelects > 100 )  System.out.println("consecutiveZeroSelects > 100: " +consecutiveZeroSelects);
-    
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error
       consecutiveZeroSelects = 0;
