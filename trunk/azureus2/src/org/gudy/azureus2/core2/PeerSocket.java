@@ -194,7 +194,7 @@ public class PeerSocket extends PeerConnection {
 				client = "Xan'";
 			String azureus = new String(otherPeerId, 5, 7, "ISO-8859-1");
 			if (azureus.equals("Azureus"))
-				client = "Azureus'";
+				client = "Azureus";
 		} catch (Exception e) {
 
 		}

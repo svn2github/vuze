@@ -55,6 +55,7 @@ public class GlobalManager extends Component {
             int nbMax = ConfigurationManager.getInstance().getIntParameter("max active torrents", 4);
             if (manager.getState() == DownloadManager.STATE_READY && ((nbMax == 0) || (nbStarted < nbMax))) {
               manager.startDownload();
+              nbStarted++;
             }
 
             if (((manager.getState() == DownloadManager.STATE_ALLOCATING)

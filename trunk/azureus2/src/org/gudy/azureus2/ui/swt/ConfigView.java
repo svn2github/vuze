@@ -16,7 +16,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.BooleanParameter;
 import org.gudy.azureus2.core.ConfigurationManager;
 
 /**

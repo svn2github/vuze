@@ -104,9 +104,9 @@ public class PeersView implements IView, IComponentListener {
     table.getColumn(12).setWidth(70);
     table.getColumn(13).setWidth(70);
     table.getColumn(14).setWidth(20);
-    table.getColumn(15).setWidth(40);
-    table.getColumn(16).setWidth(40);
-    table.getColumn(17).setWidth(40);
+    table.getColumn(15).setWidth(60);
+    table.getColumn(16).setWidth(30);
+    table.getColumn(17).setWidth(60);
     
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip"));
     table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port"));

@@ -10,7 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +29,7 @@ public class DiskManager {
   public static final int ALLOCATING = 2;
   public static final int CHECKING = 3;
   public static final int READY = 4;
+  public static final int FAULTY = 10;
 
   private int state;
   private int pieceLength;
@@ -56,21 +56,23 @@ public class DiskManager {
   private DiskWriteThread writeThread;
   private DiskReadThread readThread;
 
-  //for multi-file downloads... CLEAN THIS UP SOME
-  private HashMap pieceMap;
-  String rootPath = null;
-  RandomAccessFile[] fileArray;
-  File[] files;
-  long[] filesDone;
+  private String rootPath = null;
+
+  //The map that associate
+  private List[] pieceMap;
+  private int pieceCompletion[];
+  private List priorityLists[];
+
+  private FileInfo[] files;
+
+  //long[] filesDone;
+  //RandomAccessFile[] fileArray;
 
   private PeerManager manager;
 
   private boolean bContinue = true;
 
   public DiskManager(Map metaData, String path) {
-    //create the pieces map
-    pieceMap = new HashMap();
-
     this.state = INITIALIZING;
     this.percentDone = 0;
     this.metaData = metaData;
@@ -94,11 +96,16 @@ public class DiskManager {
       piecesHash = new String((byte[]) info.get("pieces"), "ISO-8859-1");
     }
     catch (UnsupportedEncodingException e) {
-      //TODO CLEAN THIS UP	
-      e.printStackTrace();
+      this.state = FAULTY;
+      return;
     }
 
     nbPieces = piecesHash.length() / 20;
+    //  create the pieces map
+    pieceMap = new ArrayList[nbPieces];
+    pieceCompletion = new int[nbPieces];
+    priorityLists = new List[10];
+
     pieceDone = new boolean[nbPieces];
 
     fileName = "";
@@ -106,8 +113,8 @@ public class DiskManager {
       fileName = new String((byte[]) info.get("name"), "ISO-8859-1");
     }
     catch (UnsupportedEncodingException e) {
-      // TODO CLEAN THIS UP
-      e.printStackTrace();
+      this.state = FAULTY;
+      return;
     }
 
     //build something to hold the filenames/sizes
@@ -141,7 +148,6 @@ public class DiskManager {
       //define a variable to keep track of what piece we're on
       int currentPiece = 0;
 
-      //TODO:: CORRECT THIS
       //get the root
       rootPath = fileName;
       rootPath = rootPath + System.getProperty("file.separator");
@@ -174,8 +180,8 @@ public class DiskManager {
               pathBuffer.append(new String((byte[]) fileList.get(j), "ISO-8859-1"));
             }
             catch (UnsupportedEncodingException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              this.state = FAULTY;
+              return;
             }
 
             pathBuffer.append(System.getProperty("file.separator"));
@@ -188,8 +194,8 @@ public class DiskManager {
                 new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "ISO-8859-1"), fileLength));
             }
             catch (UnsupportedEncodingException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              this.state = FAULTY;
+              return;
             }
           }
         }
@@ -206,13 +212,11 @@ public class DiskManager {
 
     //we now have a list of files and their lengths
     //allocate / check every file
-    fileArray = new RandomAccessFile[btFileList.size()];
-    files = new File[btFileList.size()];
-    filesDone = new long[btFileList.size()];
-    Arrays.fill(filesDone, 0);
+    //fileArray = new RandomAccessFile[btFileList.size()];
+    files = new FileInfo[btFileList.size()];
     boolean newFiles = this.allocateFiles(rootPath, btFileList);
-    //build a path to  	
-
+    if (this.state == FAULTY)
+      return;
     //for every piece, except the last one
     //add files to the piece list until we have built enough space to hold the piece
     //see how much space is available in the file
@@ -243,7 +247,7 @@ public class DiskManager {
         if (availableSpace < (pieceLength - usedSpace)) {
           //use the rest of the file's space
             tempPieceEntry =
-              new PieceMapEntry(tempFile.getFile(), fileOffset, (int) availableSpace //safe to convert here
+              new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int) availableSpace //safe to convert here
   );
 
           //update the used space
@@ -255,7 +259,7 @@ public class DiskManager {
         }
         else //we don't need to use the whole file
           {
-          tempPieceEntry = new PieceMapEntry(tempFile.getFile(), fileOffset, pieceLength - usedSpace);
+          tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceLength - usedSpace);
 
           //update the file offset
           fileOffset += pieceLength - usedSpace;
@@ -268,15 +272,15 @@ public class DiskManager {
       }
 
       //add the list to the map
-      pieceMap.put(new Integer(i), pieceToFileList);
+      pieceMap[i] = pieceToFileList;
     }
 
     //take care of final piece if there was more than 1 piece in the torrent
     if (nbPieces > 1) {
-      pieceMap.put(
-        new Integer(nbPieces - 1),
-        this.buildPieceToFileList(btFileList, currentFile, fileOffset, lastPieceLength));
+      pieceMap[nbPieces - 1] = this.buildPieceToFileList(btFileList, currentFile, fileOffset, lastPieceLength);
     }
+
+    constructFilesPieces();
 
     //if all files existed, check pieces
     if (!newFiles)
@@ -290,10 +294,15 @@ public class DiskManager {
     state = CHECKING;
     ConfigurationManager config = ConfigurationManager.getInstance();
     boolean resumeEnabled = config.getBooleanParameter("Use Resume", false);
-    //TODO:: CLEAN THIS UP SOME.. POSSIBLY MAKE METHODS FOR CONVERSIONS..
-    byte[] resumeArray = (byte[]) metaData.get("resume data");
+    byte[] resumeArray = null;
+    Map resumeMap = (Map) metaData.get("resume");
+    if (resumeMap != null) {
+      Map resumeDirectory = (Map) resumeMap.get(this.path);
+      if (resumeDirectory != null)
+        resumeArray = (byte[]) resumeDirectory.get("resume data");
+    }
 
-    if (resumeEnabled  && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
+    if (resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
       for (int i = 0; i < resumeArray.length; i++) //parse the array
         {
         //mark the pieces
@@ -301,6 +310,7 @@ public class DiskManager {
           pieceDone[i] = false;
         }
         else {
+          computeFilesDone(i);
           pieceDone[i] = true;
           if (i < nbPieces - 1) {
             remaining -= pieceLength;
@@ -338,7 +348,7 @@ public class DiskManager {
       //how much space do we need to use?																
       if (availableSpace < (pieceLength - usedSpace)) {
         //use the rest of the file's space
-        tempPieceEntry = new PieceMapEntry(tempFile.getFile(), fileOffset, (int) availableSpace);
+        tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int) availableSpace);
 
         //update the used space
         usedSpace += availableSpace;
@@ -349,7 +359,7 @@ public class DiskManager {
       }
       else //we don't need to use the whole file
         {
-        tempPieceEntry = new PieceMapEntry(tempFile.getFile(), fileOffset, pieceSize - usedSpace);
+        tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceSize - usedSpace);
 
         //update the file offset
         fileOffset += pieceLength - usedSpace;
@@ -365,7 +375,7 @@ public class DiskManager {
   }
 
   private class BtFile {
-    private RandomAccessFile _file;
+    private FileInfo _file;
     private String _path;
     private String _name;
     private long _length;
@@ -384,28 +394,28 @@ public class DiskManager {
     public String getName() {
       return _name;
     }
-    public RandomAccessFile getFile() {
+    public FileInfo getFileInfo() {
       return _file;
     }
-    public void setFile(RandomAccessFile file) {
+    public void setFileInfo(FileInfo file) {
       _file = file;
     }
   }
 
   private class PieceMapEntry {
-    private RandomAccessFile _file;
+    private FileInfo _file;
     private int _offset;
     private int _length;
 
-    public PieceMapEntry(RandomAccessFile file, int offset, int length) {
+    public PieceMapEntry(FileInfo file, int offset, int length) {
       _file = file;
       _offset = offset;
       _length = length;
     }
-    public RandomAccessFile getFile() {
+    public FileInfo getFile() {
       return _file;
     }
-    public void setFile(RandomAccessFile file) {
+    public void setFile(FileInfo file) {
       _file = file;
     }
     public int getOffset() {
@@ -528,11 +538,10 @@ public class DiskManager {
           raf.setLength(length);
         }
         catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          this.state = FAULTY;
+          return false;
         }
 
-        //TODO:: Put this back in for gudy -Tyler
         ConfigurationManager config = ConfigurationManager.getInstance();
         boolean allocateNew = config.getBooleanParameter("Allocate New", true);
         if (allocateNew)
@@ -544,17 +553,30 @@ public class DiskManager {
           raf = new RandomAccessFile(f, "rw");
         }
         catch (FileNotFoundException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          this.state = FAULTY;
+          return false;
         }
         allocated += length;
       }
 
-      //add the file to the array        	
-      fileArray[i] = raf;
-      files[i] = f;
+      //add the file to the array
+
+      FileInfo fileInfo = new FileInfo();
+      fileInfo.setPath(tempPath);
+      fileInfo.setName(tempName);
+      int separator = tempName.lastIndexOf(".");
+      if (separator == -1)
+        separator = 0;
+      fileInfo.setExtension(tempName.substring(separator));
+      fileInfo.setLength(length);
+      fileInfo.setDownloaded(0);
+      fileInfo.setFile(f);
+      fileInfo.setRaf(raf);
+      fileInfo.setAccessmode(FileInfo.WRITE);
+      files[i] = fileInfo;
+
       //setup this files RAF reference
-      tempFile.setFile(raf);
+      tempFile.setFileInfo(files[i]);
     }
     return newFiles;
   }
@@ -566,8 +588,8 @@ public class DiskManager {
       length = file.length();
     }
     catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      this.state = FAULTY;
+      return;
     }
     long writen = 0;
     synchronized (file) {
@@ -619,16 +641,16 @@ public class DiskManager {
     }
 
     //get the piece list
-    List pieceList = (List) pieceMap.get(new Integer(pieceNumber));
+    List pieceList = pieceMap[pieceNumber];
     //for each piece
     for (int i = 0; i < pieceList.size(); i++) {
       //get the piece and the file 
-      PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(i);
-      RandomAccessFile raf = tempPiece.getFile();
-      FileChannel fc = raf.getChannel();
-      synchronized (raf) {
+      PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(i);      
+      synchronized (tempPiece.getFile()) {
         //grab it's data and return it
         try {
+          RandomAccessFile raf = tempPiece.getFile().getRaf();
+                FileChannel fc = raf.getChannel();
           fc.position(tempPiece.getOffset());
           fc.read(allocateAndTestBuffer);
         }
@@ -648,7 +670,7 @@ public class DiskManager {
         if (!pieceDone[pieceNumber]) {
           pieceDone[pieceNumber] = true;
           remaining -= length;
-          //computeFilesDone(pieceNumber);
+          computeFilesDone(pieceNumber);
         }
         return true;
       }
@@ -673,7 +695,14 @@ public class DiskManager {
     }
 
     //Attach the resume data
-    metaData.put("resume data", resumeData);
+    Map resumeMap = (Map) metaData.get("resume");
+    if (resumeMap == null) {
+      resumeMap = new HashMap();
+      metaData.put("resume", resumeMap);
+    }
+    Map resumeDirectory = new HashMap();
+    resumeMap.put(path, resumeDirectory);
+    resumeDirectory.put("resume data", resumeData);
 
     //TODO:: CLEAN UP - fix the conversion to a string...
     //open the torrent file    		
@@ -714,7 +743,7 @@ public class DiskManager {
   //MODIFY THIS TO WORK WITH PATH/FILES
   public byte[] readPiece(int pieceNumber) {
     //get the piece list
-    List pieceList = (List) pieceMap.get(new Integer(pieceNumber));
+    List pieceList = pieceMap[pieceNumber];
     //build the byte buffer
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
@@ -722,7 +751,7 @@ public class DiskManager {
     for (int i = 0; i < pieceList.size(); i++) {
       //get the piece and the file 
       PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(i);
-      RandomAccessFile raf = tempPiece.getFile();
+      RandomAccessFile raf = tempPiece.getFile().getRaf();
 
       //grab it's data and return it
       try {
@@ -751,7 +780,7 @@ public class DiskManager {
 
     int previousFilesLength = 0;
     int currentFile = 0;
-    List pieceList = (List) pieceMap.get(new Integer(pieceNumber));
+    List pieceList = pieceMap[pieceNumber];
     PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(currentFile);
     long fileOffset = tempPiece.getOffset();
     while ((previousFilesLength + tempPiece.getLength()) < offset) {
@@ -763,11 +792,12 @@ public class DiskManager {
 
     //System.out.println(pieceNumber + "," + offset + "," + length + ":" + fileOffset + "," + previousFilesLength);
     //Now tempPiece points to the first file that contains data for this block
-    while (buffer.hasRemaining()) {
-      tempPiece = (PieceMapEntry) pieceList.get(currentFile);
-      RandomAccessFile raf = tempPiece.getFile();
-      FileChannel fc = raf.getChannel();
-      synchronized (raf) {
+    boolean noError = true;
+    while (buffer.hasRemaining() && noError) {
+      tempPiece = (PieceMapEntry) pieceList.get(currentFile);      
+      synchronized (tempPiece.getFile()) {
+        RandomAccessFile raf = tempPiece.getFile().getRaf();
+        FileChannel fc = raf.getChannel();
         try {
           fc.position(fileOffset + (long) (offset - previousFilesLength));
           fc.read(buffer);
@@ -775,6 +805,8 @@ public class DiskManager {
         catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
+          System.out.println(path + fileName + " :: " + tempPiece.getFile().getName());
+          noError = false;
         }
       }
       currentFile++;
@@ -834,7 +866,7 @@ public class DiskManager {
 
     int previousFilesLength = 0;
     int currentFile = 0;
-    List pieceList = (List) pieceMap.get(new Integer(pieceNumber));
+    List pieceList = pieceMap[pieceNumber];
     PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(currentFile);
     long fileOffset = tempPiece.getOffset();
     while ((previousFilesLength + tempPiece.getLength()) < offset) {
@@ -849,10 +881,11 @@ public class DiskManager {
       //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "r:" + buffer.remaining());      
       tempPiece = (PieceMapEntry) pieceList.get(currentFile);
       //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "," + tempPiece.getLength());
-      RandomAccessFile raf = tempPiece.getFile();
-      FileChannel fc = raf.getChannel();
-      synchronized (raf) {
+      
+      synchronized (tempPiece.getFile()) {
         try {
+          RandomAccessFile raf = tempPiece.getFile().getRaf();
+                FileChannel fc = raf.getChannel();
           fc.position(fileOffset + (long) (offset - previousFilesLength));
           //System.out.print(" remaining:" + buffer.remaining());
           //System.out.print(" position:" + buffer.position());
@@ -981,24 +1014,25 @@ public class DiskManager {
     return fileName;
   }
 
-  public void changeToReadOnly() {
+  /*public void changeToReadOnly() {
     for (int i = 0; i < files.length; i++) {
-      synchronized (fileArray[i]) {
+      synchronized (files[i]) {
         try {
-          fileArray[i].close();
-          RandomAccessFile oldRaf = fileArray[i];
-          fileArray[i] = new RandomAccessFile(files[i], "r");
+          RandomAccessFile oldRaf = files[i].getRaf();
+          oldRaf.close();
+          files[i].setRaf(new RandomAccessFile(files[i].getFile(), "r"));
+          files[i].setAccessmode(FileInfo.READ);
           //Now changes all pieces ...
           for (int j = 0; j < nbPieces; j++) {
             //Get the piece list for this piece
-            List pieceList = (List) pieceMap.get(new Integer(j));
+            List pieceList = pieceMap[j];
             //for each piece
             for (int k = 0; k < pieceList.size(); k++) {
               //get the piece and the file 
               PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(k);
-              RandomAccessFile raf = tempPiece.getFile();
+              RandomAccessFile raf = tempPiece.getFile().getRaf();
               if (raf == oldRaf)
-                tempPiece.setFile(fileArray[i]);
+                tempPiece.setFile(files[i]);
             }
           }
         }
@@ -1007,7 +1041,7 @@ public class DiskManager {
         }
       }
     }
-  }
+  }*/
 
   public void setManager(PeerManager manager) {
     this.manager = manager;
@@ -1017,12 +1051,43 @@ public class DiskManager {
     writeThread.stopIt();
     readThread.stopIt();
     this.bContinue = false;
-    for(int i = 0 ; i < fileArray.length ; i++) {
+    for (int i = 0; i < files.length; i++) {
       try {
-        if(fileArray[i] != null)
-          fileArray[i].close();        
-      } catch(Exception e) {
+        if (files[i] != null)
+          files[i].getRaf().close();
+      }
+      catch (Exception e) {
         e.printStackTrace();
+      }
+    }
+  }
+
+  public void computeFilesDone(int pieceNumber) {
+    for (int i = 0; i < files.length; i++) {
+      RandomAccessFile raf = files[i].getRaf();
+      List pieceList = pieceMap[pieceNumber];
+      //for each piece
+
+      for (int k = 0; k < pieceList.size(); k++) {
+        //get the piece and the file 
+        PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(k);
+        if (raf == tempPiece.getFile().getRaf()) {
+          long done = files[i].getDownloaded();
+          done += tempPiece.getLength();
+          files[i].setDownloaded(done);
+          if (done == files[i].getLength())
+            try {
+              synchronized (files[i]) {
+                RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
+                files[i].setRaf(newRaf);
+                raf.close();
+                files[i].setAccessmode(FileInfo.READ);
+              }
+            }
+            catch (Exception e) {
+              e.printStackTrace();
+            }
+        }
       }
     }
   }
@@ -1030,22 +1095,22 @@ public class DiskManager {
   public String[][] getFilesStatus() {
     String[][] result = new String[files.length][2];
     for (int i = 0; i < result.length; i++) {
-      result[i][0] = files[i].getAbsolutePath();
-      RandomAccessFile raf = fileArray[i];
+      result[i][0] = files[i].getFile().getAbsolutePath();
+      RandomAccessFile raf = files[i].getRaf();
       result[i][1] = "";
-      long length = files[i].length();
+      long length = files[i].getLength();
       long done = 0;
       for (int j = 0; j < nbPieces; j++) {
         if (!pieceDone[j])
           continue;
         //get the piece list
-        List pieceList = (List) pieceMap.get(new Integer(j));
+        List pieceList = pieceMap[j];
         //for each piece
 
         for (int k = 0; k < pieceList.size(); k++) {
           //get the piece and the file 
           PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(k);
-          if (raf == tempPiece.getFile()) {
+          if (raf == tempPiece.getFile().getRaf()) {
             done += tempPiece.getLength();
           }
         }
@@ -1056,6 +1121,62 @@ public class DiskManager {
       result[i][1] = done + "/" + length + " : " + (percent / 10) + "." + (percent % 10) + " % ";
     }
     return result;
+  }
+
+  /**
+   * @return
+   */
+  public FileInfo[] getFiles() {
+    return files;
+  }
+
+  public void computePriorityIndicator() {
+    for (int i = 0; i < pieceCompletion.length; i++) {
+      List pieceList = pieceMap[i];
+      int completion = 0;
+      for (int k = 0; k < pieceList.size(); k++) {
+        //get the piece and the file 
+        FileInfo fileInfo = ((PieceMapEntry) pieceList.get(k)).getFile();
+        //If the file is started but not completed
+        if (fileInfo.isPriority())
+          completion = 9;
+        int percent = 0;
+        if (fileInfo.getLength() > 0)
+          percent = (int) ((fileInfo.getDownloaded() * 10) / fileInfo.getLength());
+        if (percent > completion && percent < 10)
+          completion = percent;
+      }
+      pieceCompletion[i] = completion;
+    }
+
+    for (int i = 0; i < priorityLists.length; i++) {
+      ArrayList list = new ArrayList();
+      for (int j = 0; j < pieceCompletion.length; j++) {
+        if (pieceCompletion[j] == i) {
+          list.add(new Integer(j));
+        }
+      }
+      priorityLists[i] = list;
+    }
+  }
+
+  public List[] getPriorityLists() {
+    return priorityLists;
+  }
+
+  private void constructFilesPieces() {
+    for (int i = 0; i < pieceMap.length; i++) {
+      List pieceList = pieceMap[i];
+      //for each piece
+
+      for (int j = 0; j < pieceList.size(); j++) {
+        //get the piece and the file 
+        FileInfo fileInfo = ((PieceMapEntry) pieceList.get(j)).getFile();
+        if (fileInfo.getFirstPieceNumber() == -1)
+          fileInfo.setFirstPieceNumber(i);
+        fileInfo.setNbPieces(fileInfo.getNbPieces() + 1);
+      }
+    }
   }
 
 }

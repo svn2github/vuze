@@ -22,6 +22,7 @@ public class ManagerView implements IView {
   IView viewGeneral;
   IView viewDetails;
   IView viewPieces;
+  IView viewFiles;
 
   public ManagerView(DownloadManager manager) {
     this.manager = manager;
@@ -38,6 +39,8 @@ public class ManagerView implements IView {
       viewDetails.delete();
     if (viewPieces != null)
       viewPieces.delete();
+    if (viewFiles != null)
+    viewFiles.delete();
   }
 
   /* (non-Javadoc)
@@ -71,18 +74,23 @@ public class ManagerView implements IView {
     CTabItem itemGeneral = new CTabItem(folder, SWT.NULL);
     CTabItem itemDetails = new CTabItem(folder, SWT.NULL);
     CTabItem itemPieces = new CTabItem(folder, SWT.NULL);
+    CTabItem itemFiles = new CTabItem(folder, SWT.NULL);
     viewGeneral = new GeneralView(manager);
     viewGeneral.initialize(folder);
     viewDetails = new PeersView(manager);
     viewDetails.initialize(folder);
     viewPieces = new PiecesView(manager);
     viewPieces.initialize(folder);
+    viewFiles = new FilesView(manager);
+    viewFiles.initialize(folder);
     itemGeneral.setText(viewGeneral.getShortTitle());
     itemGeneral.setControl(viewGeneral.getComposite());
     itemDetails.setText(viewDetails.getShortTitle());
     itemDetails.setControl(viewDetails.getComposite());
     itemPieces.setText(viewPieces.getShortTitle());
     itemPieces.setControl(viewPieces.getComposite());
+    itemFiles.setText(viewFiles.getShortTitle());
+    itemFiles.setControl(viewFiles.getComposite());
     folder.setSelection(itemGeneral);
   }
 
@@ -100,6 +108,9 @@ public class ManagerView implements IView {
         break;
       case 2 :
         viewPieces.refresh();
+        break;
+      case 3 :
+        viewFiles.refresh();
         break;
     }
   }

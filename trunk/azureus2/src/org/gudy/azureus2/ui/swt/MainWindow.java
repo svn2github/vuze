@@ -47,7 +47,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.0.6";
+  private static final String VERSION = "2.0.0.7";
   private String latestVersion = "";
 
   private static MainWindow window;
@@ -161,7 +161,15 @@ public class MainWindow implements IComponentListener {
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (display == null || display.isDisposed())
+                  return;
+                display.asyncExec(new Runnable() {
+                  public void run() {
+                    if (statusText.isDisposed())
+                      return;
+                    statusText.setText("Azureus " + VERSION + " / Latest : unknown");
+                  }
+                });
       }
     }
   }

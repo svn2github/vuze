@@ -160,6 +160,7 @@ public class PeerManager extends Thread {
           {
           //::moved check finished to the front -Tyler
           checkFinished(); //see if we've finished
+          _diskManager.computePriorityIndicator();
           checkRequests(); //check the requests           		
           checkDLPossible(); //look for downloadable pieces          
         }
@@ -195,13 +196,14 @@ public class PeerManager extends Thread {
     if (_diskManager.getState() == DiskManager.READY)
       _diskManager.dumpResumeDataToDisk();
 
-    //4. Close all clients
-    synchronized (_connections) {
-      while (_connections.size() > 0) {
-        PeerSocket pc = (PeerSocket) _connections.remove(0);
-        pc.closeAll();
+    //  4. Close all clients
+    if (_connections != null)
+      synchronized (_connections) {
+        while (_connections.size() > 0) {
+          PeerSocket pc = (PeerSocket) _connections.remove(0);
+          pc.closeAll();
+        }
       }
-    }
 
     //1. Send disconnect to Tracker
     Thread t = new Thread() {
@@ -399,7 +401,7 @@ public class PeerManager extends Thread {
     _finished = temp;
     if (_finished) {
       _manager.setState(DownloadManager.STATE_SEEDING);
-      _diskManager.changeToReadOnly();
+      //_diskManager.changeToReadOnly();
       _diskManager.dumpResumeDataToDisk();
       synchronized (_connections) {
         for (int i = 0; i < _connections.size(); i++) {
@@ -613,19 +615,26 @@ public class PeerManager extends Thread {
     //If we get to this point we haven't found a block from a piece being downloaded
     //So we'll find a new one		       
 
-    //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.    
-    int nPiece = (int) (Math.random() * nbPiecesRarest);
-    pieceNumber = -1;
-    for (int i = 0; i < _nbPieces; i++) {
-      if (piecesRarest[i]) {
-        if (nPiece == 0) {
-          pieceNumber = i;
-          break;
+    //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.
+
+    //Added patch so that we try to complete most advanced files first.
+    List pieces = new ArrayList();
+    List priorityLists[] = _diskManager.getPriorityLists();
+    for (int i = 9; i >= 0; i--) {
+      for (int j = 0; j < _nbPieces; j++) {
+        if (piecesRarest[j] && priorityLists[i].contains(new Integer(j))) {
+          pieces.add(new Integer(j));
         }
-        else
-          nPiece--;
       }
+      if (pieces.size() > 0)
+        break;
     }
+
+    if(pieces.size() == 0)
+      System.out.println("Size 0");      
+
+    int nPiece = (int) (Math.random() * pieces.size());
+    pieceNumber = ((Integer)pieces.get(nPiece)).intValue();    
 
     if (pieceNumber == -1)
       return false;
@@ -1324,9 +1333,9 @@ public class PeerManager extends Thread {
       }
     }
   }
-  
+
   public boolean isOptimisticUnchoke(PeerSocket pc) {
-  	return pc == currentOptimisticUnchoke;
+    return pc == currentOptimisticUnchoke;
   }
 
 }

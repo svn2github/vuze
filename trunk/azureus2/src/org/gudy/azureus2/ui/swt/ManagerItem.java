@@ -6,7 +6,9 @@ package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -91,7 +93,14 @@ public class ManagerItem {
     tmp = manager.getName();
     if (!(tmp.equals(this.name))) {
       name = tmp;
-      item.setText(0, tmp);
+      int sep = tmp.lastIndexOf(".");
+      if(sep == -1) sep = 0;
+      tmp = tmp.substring(sep);
+      Program program = Program.findProgram(tmp);
+      Image icon = ImageRepository.getIconFromProgram(program);
+      item.setText(0, name);
+      item.setImage(icon);
+      
     }
 
     tmp = "";
