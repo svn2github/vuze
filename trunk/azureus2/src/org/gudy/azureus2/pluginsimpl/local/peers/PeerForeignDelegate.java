@@ -338,9 +338,9 @@ PeerForeignDelegate
 
 	
 	public void 
-	hasSentABadChunk()
+	hasSentABadChunk( int piece_number )
 	{
-		foreign.hasSentABadChunk();
+		foreign.hasSentABadChunk( piece_number );
 	}
 	
 	public int 

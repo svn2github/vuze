@@ -80,7 +80,7 @@ Peer
 
 	public boolean isOptimisticUnchoke();
 	
-	public void hasSentABadChunk();
+  public void hasSentABadChunk( int piece_number );
 	
 	public int getNumberOfBadChunks();
 	

@@ -71,6 +71,8 @@ public class MessageManagerImpl implements MessageManager {
                     }
                   }
                 }
+                
+                public void sentBadChunk( int piece_num, int total_bad_chunks ) { /*nothing*/ }
               });
             }
 

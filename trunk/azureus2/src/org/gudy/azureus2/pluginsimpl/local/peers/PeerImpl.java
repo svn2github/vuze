@@ -210,9 +210,9 @@ PeerImpl
 	}
 	
 	public void
-	hasSentABadChunk()
+  hasSentABadChunk( int piece_number )
 	{
-		delegate.hasSentABadChunk();
+		delegate.hasSentABadChunk( piece_number );
 	}
 	
 	public void
@@ -272,6 +272,10 @@ PeerImpl
     PEPeerListener core_listener = new PEPeerListener() {
       public void stateChanged( int new_state ) {
         l.stateChanged( new_state );
+      }
+      
+      public void sentBadChunk( int piece_num, int total_bad_chunks ){
+        l.sentBadChunk( piece_num, total_bad_chunks );
       }
     };
     

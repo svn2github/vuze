@@ -657,7 +657,18 @@ PEPeerTransportProtocol
   public void setSnubbed(boolean b) {  snubbed = b;  }
 
 
-  public void hasSentABadChunk() {  nbBadChunks++;  }
+  public void hasSentABadChunk( int piece_number ) {
+    nbBadChunks++;
+    
+    if( peer_listeners != null ) {
+      for( int i=0; i < peer_listeners.size(); i++ ) {
+        PEPeerListener l = (PEPeerListener)peer_listeners.get( i );
+      
+        l.sentBadChunk( piece_number, nbBadChunks );
+      }
+    }
+  }
+  
   public int getNbBadChunks() {  return nbBadChunks;  }
   public void resetNbBadChunks(){ nbBadChunks = 0; }
   

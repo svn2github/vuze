@@ -127,7 +127,11 @@ PEPeer
 
 	public boolean isOptimisticUnchoke();
 	
-	public void hasSentABadChunk();
+  /**
+   * Peer sent bad piece data chunk.
+   * @param piece_number that failed hash check
+   */
+	public void hasSentABadChunk( int piece_number );
 	
 	public int getNbBadChunks();
 	

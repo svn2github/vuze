@@ -2235,7 +2235,7 @@ PEPeerControlImpl
 	                if(! Arrays.equals(write.getHash(),correctHash)) {
 	                  //Bad peer found here
 	                  PEPeer peer = write.getSender();
-	                  peer.hasSentABadChunk();
+	                  peer.hasSentABadChunk( pieceNumber );
 	                  if(!peersToDisconnect.contains(peer))
 	                    peersToDisconnect.add(peer);                  
 	              }
@@ -2278,7 +2278,7 @@ PEPeerControlImpl
 	          	
 	          	for (int i=0;i<writers.length;i++){
 	          		
-	          		writer.hasSentABadChunk();
+	          		writer.hasSentABadChunk( pieceNumber );
 	          	}
 	          	
 	            badPeerDetected(writer);
