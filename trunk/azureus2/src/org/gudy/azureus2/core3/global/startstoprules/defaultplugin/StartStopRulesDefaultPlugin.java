@@ -484,6 +484,11 @@ StartStopRulesDefaultPlugin
         }
       }
     }
+    
+    // Don't start for at least 10 seconds, even if there's a scrape avail.
+    if (bSeedHasRanking && (System.currentTimeMillis() - startedOn < 10000)) {
+      bSeedHasRanking = false;
+    }
 
     int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
     int iExtraFPs = (maxActive != 0) && (maxDownloads != 0) && 
@@ -725,7 +730,7 @@ StartStopRulesDefaultPlugin
                   ";activeDLCount="+activeDLCount+
                   "");
       }
-      else if (bSeedHasRanking) { // completed
+      else if (bSeedHasRanking || totalFirstPriority > 0) { // completed
         String[] debugEntries = null;
         String sDebugLine = "";
         // Queuing process:
@@ -740,10 +745,13 @@ StartStopRulesDefaultPlugin
         //    c) other
         // 7) Seeding Torrent changes to Queued.  Go to step 1.
 
+        boolean isFP = dl_data.isFirstPriority();
+        if (!bSeedHasRanking && !isFP)
+          continue;
+
         int shareRatio = download.getStats().getShareRatio();
         int state = download.getState();
         boolean bActivelySeeding = dl_data.getActivelySeeding();
-        boolean isFP = dl_data.isFirstPriority();
         boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
                             (!download.isForceStart()) &&
                             (!isFP);
@@ -1300,11 +1308,11 @@ StartStopRulesDefaultPlugin
       if (dl.getState() == Download.ST_ERROR ||
           dl.getState() == Download.ST_STOPPED)
         return false;
-
+/*
       // A torrent with 0 seeds really shouldn't be the first priority
       if (bSkip0Peers && calcPeersNoUs(dl) == 0)
         return false;
-
+*/
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
       boolean bAnyMatched = bLastMatched;
