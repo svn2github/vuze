@@ -69,12 +69,22 @@ public class ConfigurationManager {
     synchronized( this  ){
     	
     	for (int i=0;i<listeners.size();i++){
+    		
     		COConfigurationListener l = (COConfigurationListener)listeners.elementAt(i);
     		
-    		if (l != null) {
-    			l.configurationSaved();
+    		if (l != null){
+    			
+    			try{
+    				l.configurationSaved();
+    				
+    			}catch( Throwable e ){
+    				
+    				e.printStackTrace();
+    			}
+    		}else{
+    			
+    			Debug.out("COConfigurationListener is null");
     		}
-    		else Debug.out("COConfigurationListener is null");
     	}
     }
   }
