@@ -20,58 +20,66 @@
  *
  */
 
-package org.gudy.azureus2.plugins.torrent;
+package org.gudy.azureus2.pluginsimpl.local.torrent;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-TorrentAttribute 
-{
-	public static final String	TA_CATEGORY						= "Category";
-	public static final String	TA_NETWORKS						= "Networks";
-	public static final String	TA_PEER_SOURCES					= "PeerSources";
-	public static final String	TA_TRACKER_CLIENT_EXTENSIONS	= "TrackerClientExtensions";
-	
+import java.util.*;
 
-	public String
-	getName();
+import org.gudy.azureus2.plugins.torrent.*;
+
+public class 
+TorrentAttributeTrackerClientExtImpl
+	implements TorrentAttribute
+{
+	private List	listeners = new ArrayList();
 	
-		/**
-		 * Returns the currently defined values for this attribute
-		 * @return
-		 */
+	protected
+	TorrentAttributeTrackerClientExtImpl()
+	{
+	}
+	
+	public String
+	getName()
+	{
+		return( TA_TRACKER_CLIENT_EXTENSIONS );
+	}
 	
 	public String[]
-	getDefinedValues();
-	
-		/**
-		 * Adds a new value to the attribute set
-		 * @param name
-		 */
+	getDefinedValues()
+	{
+		return( new String[0] );
+	}
 	
 	public void
 	addDefinedValue(
-		String		name );
+		String		name )
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
 	
-		/**
-		 * Removes a value from the attribute set
-		 * @param name
-		 */
 	
 	public void
 	removeDefinedValue(
-		String		name );
+		String		name )
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
 	
 	public void
 	addTorrentAttributeListener(
-		TorrentAttributeListener	l );
+		TorrentAttributeListener	l )
+	{
+		listeners.add( l );
+	}
 	
 	public void
 	removeTorrentAttributeListener(
-		TorrentAttributeListener	l );
-	
-	
+		TorrentAttributeListener	l )
+	{
+		listeners.remove( l );
+	}
 }

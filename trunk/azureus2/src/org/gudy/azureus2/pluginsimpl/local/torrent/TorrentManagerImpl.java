@@ -48,6 +48,7 @@ TorrentManagerImpl
 	private static TorrentAttribute	category_attribute = new TorrentAttributeCategoryImpl();
 	private static TorrentAttribute	networks_attribute = new TorrentAttributeNetworksImpl();
 	private static TorrentAttribute	peer_sources_attribute = new TorrentAttributePeerSourcesImpl();
+	private static TorrentAttribute	tr_ext_attribute = new TorrentAttributeTrackerClientExtImpl();
 	
 	private static Map	attribute_map = new HashMap();
 	
@@ -55,6 +56,7 @@ TorrentManagerImpl
 		attribute_map.put( TorrentAttribute.TA_CATEGORY, 	category_attribute );
 		attribute_map.put( TorrentAttribute.TA_NETWORKS, 	networks_attribute );
 		attribute_map.put( TorrentAttribute.TA_PEER_SOURCES, peer_sources_attribute );
+		attribute_map.put( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS, tr_ext_attribute );
 	}
 	
 	public static TorrentManagerImpl

@@ -600,7 +600,20 @@ DownloadManagerStateImpl
 			setStringAttribute( AT_CATEGORY, null );
 		}
 	}
-		
+	
+	public String
+	getTrackerClientExtensions()
+	{
+		return( getStringAttribute( AT_TRACKER_CLIENT_EXTENSIONS ));
+	}
+	
+	public void
+	setTrackerClientExtensions(
+		String		value )
+	{
+		setStringAttribute( AT_TRACKER_CLIENT_EXTENSIONS, value );
+	}
+	
 	public String[]
 	getNetworks()
 	{
@@ -1211,6 +1224,18 @@ DownloadManagerStateImpl
 			String		name )
 		{
 			return( null );
+		}
+		
+		public String
+		getTrackerClientExtensions()
+		{
+			return( null );
+		}
+		
+		public void
+		setTrackerClientExtensions(
+			String		value )
+		{
 		}
 		
 		public String[]

@@ -34,10 +34,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 public interface 
 DownloadManagerState 
 {
-	public static final String AT_CATEGORY		= "category";
-	public static final String AT_NETWORKS		= "networks";
-	public static final String AT_USER			= "user";
-	public static final String AT_PEER_SOURCES	= "peersources";
+	public static final String AT_CATEGORY					= "category";
+	public static final String AT_NETWORKS					= "networks";
+	public static final String AT_USER						= "user";
+	public static final String AT_PEER_SOURCES				= "peersources";
+	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
 	
 	public TOTorrent
 	getTorrent();
@@ -71,6 +72,13 @@ DownloadManagerState
 	public void 
 	setCategory(
 		Category cat );
+	
+	public String
+	getTrackerClientExtensions();
+	
+	public void
+	setTrackerClientExtensions(
+		String		value );
 	
 	public String[]		// from AENetworkClassifier constants
 	getNetworks();

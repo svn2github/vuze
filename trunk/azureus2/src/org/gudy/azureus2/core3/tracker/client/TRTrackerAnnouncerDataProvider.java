@@ -40,4 +40,7 @@ TRTrackerAnnouncerDataProvider
 	
 	public long
 	getRemaining();
+	
+	public String
+	getExtensions();
 }

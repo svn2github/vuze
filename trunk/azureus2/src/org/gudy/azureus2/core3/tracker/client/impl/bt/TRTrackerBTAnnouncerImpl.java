@@ -1648,6 +1648,13 @@ TRTrackerBTAnnouncerImpl
       	request.append( "&key=" + key_id);
     }
     
+	String	ext = announce_data_provider.getExtensions();
+	
+	if ( ext != null ){
+		
+		request.append( ext );
+	}
+	
     return new URL( request.toString());
   }
 
@@ -1673,7 +1680,7 @@ TRTrackerBTAnnouncerImpl
 
  	public void 
  	setAnnounceDataProvider(
- 			TRTrackerAnnouncerDataProvider _provider) 
+ 		TRTrackerAnnouncerDataProvider _provider) 
  	{
  		announce_data_provider = _provider;
  	}

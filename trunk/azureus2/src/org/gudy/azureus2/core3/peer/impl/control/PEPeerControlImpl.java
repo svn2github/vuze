@@ -215,6 +215,12 @@ PEPeerControlImpl
     			{
     				return( PEPeerControlImpl.this.getRemaining());
     			}
+				
+				public String
+				getExtensions()
+				{
+					return( getDownloadManager().getDownloadState().getTrackerClientExtensions());
+				}
     		});
     
     _myPeerId = _tracker.getPeerId();
