@@ -213,17 +213,17 @@ PEPeerTransportProtocol
    */
 	public 
 	PEPeerTransportProtocol(
-  		PEPeerControl 	manager,
-  		String 			ip, 
-  		int 			port,
-  		boolean			incoming_connection,
+  		PEPeerControl 	_manager,
+  		String 			_ip, 
+  		int 			_port,
+  		boolean			_incoming_connection,
       SocketChannel channel,  //hack for incoming connections. null otherwise
   		final byte[]			data_already_read,
   		boolean 		fake ) 
 	{		
-		this.manager	= manager;
-		this.ip 		= ip;
-		this.port 		= port;
+		manager	= _manager;
+		ip 		= _ip;
+		port 	= _port;
 	 	
 	 	this.hashcode = (ip + String.valueOf(port)).hashCode();
     
@@ -233,7 +233,7 @@ PEPeerTransportProtocol
 	
 		uniquePiece = -1;
 		
-		incoming = incoming_connection;
+		incoming = _incoming_connection;
     
 		
 		if( incoming ) {
@@ -670,7 +670,10 @@ PEPeerTransportProtocol
 	      				
 	      					// reply from hello
 	      				
-				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+	      					// version byte
+	      				
+				        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        
 				        byte	method 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
 		        
 				        if ( method != 0 && method != 2 ){
@@ -690,7 +693,10 @@ PEPeerTransportProtocol
 	      				
 	      					// reply from auth
 	      				
-				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+	      					// version byte
+	      				
+				        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        
 				        byte	status 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
 		        
 				        if ( status != 0 ){
@@ -704,7 +710,10 @@ PEPeerTransportProtocol
 	      				
 	      					// reply from request, first part
 	      				
-				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+	      					// version byte
+	      				
+				        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        
 				        byte	rep 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );		        
 				        
 				        if ( rep != 0 ){
@@ -714,8 +723,13 @@ PEPeerTransportProtocol
 							return 0;
 				        }
 				        
-				        byte	reserv 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        	// reserved byte
+				        
+				        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        
 				        byte	atype 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+
+				        byte	first_address_byte 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
 
 				        int	address_len;
 				        
@@ -724,10 +738,10 @@ PEPeerTransportProtocol
 				        	address_len = 3;	// already read one
 				        	
 				        }else if ( atype == 3 ){
+				        		
+				        		// domain name, first byte gives length of remainder
 				        	
-					        byte	alen 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-					        
-				        	address_len = alen;
+				        	address_len = first_address_byte;
 				        	
 				        }else{
 				        	
@@ -1095,6 +1109,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     }
   }
 
+  /*
   private static class StateClosed implements PEPeerTransportProtocolState {
   	public int process() { return PEPeerControl.NO_SLEEP; }
 
@@ -1102,7 +1117,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		return DISCONNECTED;
   	}
   }
-  
+  */
 
   
   public int processRead() {
@@ -1597,8 +1612,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
   public void setUploadHint(int spreadTime) {  spreadTimeHint = spreadTime;  }
   public int getUploadHint() {  return spreadTimeHint;  }
-  public void setUniqueAnnounce(int uniquePiece) {  this.uniquePiece = uniquePiece;  }
-  public int getUniqueAnnounce() {  return this.uniquePiece;  }
+  public void setUniqueAnnounce(int _uniquePiece) {  uniquePiece = _uniquePiece;  }
+  public int getUniqueAnnounce() {  return uniquePiece;  }
 
   public int getReadSleepTime() { return readSleepTime; }
   public void setReadSleepTime(int time) { readSleepTime = time; }
