@@ -77,6 +77,14 @@ public class Identification {
         return "Plus! " + v1 + "." + v2 + "." + v3;
       }
       
+      String xbt = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
+      if( xbt.equals( "XBT" ) ) {
+        String v1 = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+        String v2 = new String(peerID, 4, 1, Constants.BYTE_ENCODING);
+        String v3 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
+        return "XBT " + v1 + "." + v2 + "." + v3;
+      }
+      
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
         
@@ -132,7 +140,6 @@ public class Identification {
       
       // Shareaza check
       boolean bShareaza = true;
-      byte[] m_pGUID = peerID;
       for (int i = 0; i < 16; i++) {
         if (peerID[i] == (byte)0) {
           bShareaza = false;
