@@ -725,7 +725,7 @@ DownloadManagerImpl
       if (state == STATE_SEEDING) {
         setOnlySeeding(true);
       } else if (state == STATE_QUEUED) {
-        if (!filesExist())
+        if (onlySeeding && !filesExist())
           return;
       }
       informStateChanged( state );

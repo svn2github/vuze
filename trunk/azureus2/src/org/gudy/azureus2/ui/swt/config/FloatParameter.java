@@ -48,9 +48,13 @@ public class FloatParameter {
     inputField.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
         String text = e.text;
-        if (!text.matches("^[0-9]*\\.?[0-9]{0," + iDigitsAfterDecimal + "}$")) {
-          e.doit = false;
-          return;
+        char[] chars = new char[text.length()];
+        text.getChars(0, chars.length, chars, 0);
+        for (int i = 0; i < chars.length; i++) {
+          if ( !((chars[i] >= '0' && chars[i] <= '9') || chars[i] == '.') ) {
+            e.doit = false;
+            return;
+          }
         }
       }
     });
