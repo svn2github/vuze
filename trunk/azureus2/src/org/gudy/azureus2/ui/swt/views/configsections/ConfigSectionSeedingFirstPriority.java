@@ -79,22 +79,7 @@ public class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.info");
 
-    // ** Begin No Touch area
-
-/*    cArea = new Composite(cFirstPriorityArea, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 3;
-    cArea.setLayout(layout);
-//    gridData = new GridData();
-	gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 2;
-    cArea.setLayoutData(gridData);
-
-    label = new Label(cArea, SWT.NULL);
-*/
-	
+    // ** Begin No Touch area	
 	
 // Group FP
 	
