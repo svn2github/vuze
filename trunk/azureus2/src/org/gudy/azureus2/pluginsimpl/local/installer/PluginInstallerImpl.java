@@ -33,10 +33,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsException;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoader;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
+import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
+import org.gudy.azureus2.pluginsimpl.update.sf.*;
+
+import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 
 public class 
 PluginInstallerImpl
@@ -97,7 +98,8 @@ PluginInstallerImpl
 	
 	public void
 	install(
-		StandardPlugin		standard_plugin )
+		StandardPlugin		standard_plugin,
+		boolean				shared )
 	
 		throws PluginException
 	{
@@ -108,7 +110,61 @@ PluginInstallerImpl
 			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is already installed"));
 		}
 		
-		System.out.println( "install '" + standard_plugin.getId() + "'" );
+		String	plugin_id	= standard_plugin.getId();
+		
+		System.out.println( "install '" + plugin_id + "'" );
+		
+		String	target_dir;
+		
+		if ( shared ){
+		    	    
+			target_dir 	= FileUtil.getApplicationFile( "plugins" ).toString();
+			
+		}else{
+			
+			target_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+		}
+		
+		target_dir += File.separator + plugin_id;
+
+		new File( target_dir ).mkdir();
+		
+			// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
+			// installed version
+		
+		final dummyPlugin	p = new dummyPlugin( plugin_id, target_dir );
+		
+		PluginManager.registerPlugin( p, plugin_id );
+		
+		PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
+		
+		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
+		
+		UpdateCheckInstance	inst = 
+			uman.createEmptyUpdateCheckInstance();
+		
+		inst.addUpdatableComponent(
+				pup.getCustomUpdateableComponent( plugin_id, false), false );
+		
+		inst.addListener(
+			new UpdateCheckInstanceListener()
+			{
+				public void
+				cancelled(
+					UpdateCheckInstance		instance )
+				{
+					p.requestUnload();
+				}
+				
+				public void
+				complete(
+					UpdateCheckInstance		instance )
+				{
+					p.requestUnload();
+				}
+			});
+		
+		inst.start();
 	}
 	
 	public boolean
@@ -164,5 +220,54 @@ PluginInstallerImpl
 			// need to create an uninstall action to delete this
 		
 		throw( new PluginException( "not imp" ));	
+	}
+	
+	protected class
+	dummyPlugin
+		implements UnloadablePlugin
+	{
+		protected String			plugin_name;
+		protected String			plugin_dir;
+		
+		protected PluginInterfaceImpl	plugin_interface;
+		
+		protected
+		dummyPlugin(
+			String	_name,
+			String	_target_dir )
+		{
+			plugin_name	= _name;
+			plugin_dir	= _target_dir;
+		}
+		
+		public void
+		initialize(
+			PluginInterface	_plugin_interface )
+		{
+			plugin_interface	= (PluginInterfaceImpl)_plugin_interface;
+			
+			plugin_interface.setPluginVersion( "0.0" );
+			
+			plugin_interface.setPluginName( plugin_name );
+			
+			plugin_interface.setPluginDirectoryName( plugin_dir );
+		}
+		
+		public void
+		unload()
+		{	
+		}
+		
+		protected void
+		requestUnload()
+		{
+			try{
+				plugin_interface.unload();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 }

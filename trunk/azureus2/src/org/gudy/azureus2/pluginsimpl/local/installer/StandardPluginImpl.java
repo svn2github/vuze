@@ -83,11 +83,12 @@ StandardPluginImpl
 	}
 	
 	public void
-	install()
+	install(
+		boolean		shared )
 	
 		throws PluginException
 	{
-		installer.install( this );
+		installer.install( this, shared );
 	}
 	
 	public boolean

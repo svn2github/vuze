@@ -48,7 +48,9 @@ UpdateMonitor
 	public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
 
 	protected static UpdateMonitor		singleton;
+	
 	protected static AEMonitor			class_mon 	= new AEMonitor( "UpdateMonitor:class" );
+	
 	
 	public static UpdateMonitor
 	getSingleton(
@@ -71,10 +73,10 @@ UpdateMonitor
 	}
 
 	protected AzureusCore			azureus_core;
-	protected UpdateWindow 			current_window;
-	  
-	protected UpdateCheckInstance	current_instance;
-		
+	protected UpdateWindow 			current_update_window;
+	protected UpdateCheckInstance	current_update_instance;
+	
+	  		
 	
 	protected 
 	UpdateMonitor(
@@ -82,6 +84,19 @@ UpdateMonitor
 	{
 		azureus_core	= _azureus_core;
 		
+	  	UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
+
+	  	um.addListener(
+	  		new UpdateManagerListener()
+			{
+	  			public void
+				checkInstanceCreated(
+					UpdateCheckInstance	instance )
+	  			{
+	  				instance.addListener( UpdateMonitor.this );
+	  			}
+			});
+	  	
 	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,
 	            new TimerEventPerformer()
@@ -168,12 +183,19 @@ UpdateMonitor
 			return;
 		}
 
-	    if(current_window != null && ! current_window.isDisposed()) {
-	      SWTThread.getInstance().getDisplay().syncExec(new AERunnable() {
-	        public void runSupport() {               
-	          current_window.dispose();         
-	        }
-	      });
+			// kill any existing update window
+		
+	    if ( current_update_window != null && ! current_update_window.isDisposed()){
+	    	
+	      SWTThread.getInstance().getDisplay().syncExec(
+	      		new AERunnable() 
+				{
+	      			public void 
+					runSupport() 
+	      			{               
+	      				current_update_window.dispose();
+	      			}
+	      		});
 	    }
 	    
 		MainWindow mainWindow = MainWindow.getWindow();
@@ -182,32 +204,31 @@ UpdateMonitor
 	    
 	  	UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
 		
-	  	current_instance = um.createUpdateCheckInstance();
-		  	
-	  	current_instance.addListener( this );
-		  	
-	  	UpdateChecker[]	checkers = current_instance.getCheckers();
+	  	current_update_instance = um.createUpdateCheckInstance();
 	  	
-	  	current_instance.start();		
+	  	current_update_instance.start();
 	}
 	
 	public void
 	complete(
 		UpdateCheckInstance		instance )
 	{
-		PluginInterface core_plugin = azureus_core.getPluginManager().getPluginInterfaceByClass( CoreUpdateChecker.class );
+			// we can get here for either update actions (triggered above) or for plugin
+			// install actions (triggered by the plugin installer)
 		
-		String latest_version = core_plugin.getPluginProperties().getProperty( CoreUpdateChecker.LATEST_VERSION_PROPERTY );
+		boolean	update_action = instance == current_update_instance;
 		
-		MainWindow mainWindow = MainWindow.getWindow();
-	
-	    mainWindow.setStatusText( 
-	    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
-				" / MainWindow.status.latestversion " + (latest_version==null?"Unknown":latest_version ));
-	    
-		if ( instance != current_instance ){
+		if ( update_action ){
+		
+			PluginInterface core_plugin = azureus_core.getPluginManager().getPluginInterfaceByClass( CoreUpdateChecker.class );
 			
-			return;
+			String latest_version = core_plugin.getPluginProperties().getProperty( CoreUpdateChecker.LATEST_VERSION_PROPERTY );
+			
+			MainWindow mainWindow = MainWindow.getWindow();
+		
+		    mainWindow.setStatusText( 
+		    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
+					" / MainWindow.status.latestversion " + (latest_version==null?"Unknown":latest_version ));
 		}
 		
 	    Update[] us = instance.getUpdates();
@@ -230,28 +251,45 @@ UpdateMonitor
 	    	// this controls whether or not the update window is displayed
 	    	// note that we just don't show the window if this is set, we still do the
 	    	// update check (as amongst other things we want ot know the latest
-	    	// version of the core anyway
-	   
-	    //show_window = 	show_window && 
-			//			COConfigurationManager.getBooleanParameter( "update.opendialog", true );
-	    
+	    	// version of the core anyway	    
 	    
     	if ( show_window ){
     		
-    			// don't show another if one's already there!
+    			// don't show another update if one's already there!
     		
-    		if ( current_window == null || current_window.isDisposed()){
+    		UpdateWindow	this_window = null;
+    		
+    		if ( update_action ){
     			
-	    		current_window = new UpdateWindow( azureus_core, instance );
-				
+    			if ( current_update_window == null || current_update_window.isDisposed()){
+    			
+    				this_window = current_update_window = new UpdateWindow( azureus_core, instance, true );
+    			}
+    		}else{
+
+    				// always show an installer window
+    			
+    			this_window = new UpdateWindow( azureus_core, instance, false );
+    		}
+    		
+    		if ( this_window != null ){
+    			
 	    		for( int i = 0 ;  i < us.length; i++ ){
 				
 	    			if ( us[i].getDownloaders().length > 0 ){
 	    				
-	    				current_window.addUpdate(us[i]);
+	    				this_window.addUpdate(us[i]);
 	    			}
 	    		}
+    		}else{
+    			
+    			LGLogger.log( "UpdateMonitor: user dialog already in progress, updates skipped");
+
     		}
+    	}else{
+    		
+			LGLogger.log( "UpdateMonitor: check instance resulted in no user-actionable updates");
+
     	}
 	} 
 	

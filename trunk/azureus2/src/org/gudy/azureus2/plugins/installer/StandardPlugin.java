@@ -47,7 +47,8 @@ StandardPlugin
 	getAlreadyInstalledPlugin();
 	
 	public void
-	install()
+	install(
+		boolean		shared )
 	
 		throws PluginException;
 	

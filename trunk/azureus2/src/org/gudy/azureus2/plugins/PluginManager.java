@@ -124,6 +124,13 @@ PluginManager
 		PluginManagerImpl.registerPlugin( plugin_class );
 	}
 
+	public static void
+	registerPlugin(
+		Plugin		plugin,
+		String		id )
+	{
+		PluginManagerImpl.registerPlugin( plugin, id );
+	}
 	
 	/**
 	 * returns the plugin interface with a given id, or null if not found

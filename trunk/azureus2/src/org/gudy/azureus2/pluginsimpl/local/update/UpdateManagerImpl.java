@@ -32,7 +32,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.plugins.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -120,6 +119,29 @@ UpdateManagerImpl
 		}
 	}
 	
+	public UpdateCheckInstance
+	createEmptyUpdateCheckInstance()
+	{
+		try{
+			this_mon.enter();
+	
+			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
+			
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
+			}
+			
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}		
+	}
+
 	public UpdateInstaller
 	createInstaller()
 		

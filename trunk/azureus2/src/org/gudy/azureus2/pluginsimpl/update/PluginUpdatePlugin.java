@@ -179,7 +179,7 @@ PluginUpdatePlugin
 				checkForUpdate(
 					UpdateChecker	checker )
 				{
-					checkForUpdateSupport( checker, false );
+					checkForUpdateSupport( checker, null, false );
 				}
 				
 			}, false );
@@ -203,14 +203,44 @@ PluginUpdatePlugin
 					checkForUpdate(
 						UpdateChecker	checker )
 					{
-						checkForUpdateSupport( checker, true );
+						checkForUpdateSupport( checker, null, true );
 					}			
 				}, true );	
 		}
 	
+	public UpdatableComponent
+	getCustomUpdateableComponent(
+		final String		id,
+		final boolean		mandatory )
+	{
+		return(
+			new UpdatableComponent()
+			{
+				public String
+				getName()
+				{
+					return( "Installation of '" + id + "'" );
+				}
+				
+				public int
+				getMaximumCheckTime()
+				{
+					return( ( RD_SIZE_RETRIES * RD_SIZE_TIMEOUT )/1000 );
+				}
+				
+				public void
+				checkForUpdate(
+					UpdateChecker	checker )
+				{
+					checkForUpdateSupport( checker, new String[]{ id }, mandatory );
+				}			
+			});
+	}
+	
 	protected  void
 	checkForUpdateSupport(
 		UpdateChecker	checker,
+		String[]		ids_to_check,	// explicit ids or null for all
 		boolean			mandatory )
 	{
 		try{
@@ -218,6 +248,7 @@ PluginUpdatePlugin
 		
 			try{
 				if ( 	(!mandatory) &&
+						(ids_to_check == null ) && 	// allow custom actions through
 						(!plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true ))){
 									
 					return;
@@ -248,6 +279,26 @@ PluginUpdatePlugin
 					String	id 		= pi.getPluginID();
 					String	version = pi.getPluginVersion();
 					String	name	= pi.getPluginName();
+					
+					if ( ids_to_check != null ){
+					
+						boolean	id_selected = false;
+						
+						for (int j=0;j<ids_to_check.length;j++){
+							
+							if ( ids_to_check[j].equals( id )){
+								
+								id_selected = true;
+								
+								break;
+							}
+						}
+						
+						if ( !id_selected ){
+							
+							continue;
+						}
+					}
 					
 					if ( version != null && !id.startsWith("<")){
 						

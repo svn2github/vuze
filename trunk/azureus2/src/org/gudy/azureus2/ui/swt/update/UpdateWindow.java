@@ -74,7 +74,8 @@ UpdateWindow
   
   private AzureusCore			azureus_core;
   private UpdateCheckInstance	check_instance;
-	
+  private boolean				update_action;
+  
   Display display;  
   
   Shell updateWindow;
@@ -104,10 +105,12 @@ UpdateWindow
   public 
   UpdateWindow(
   		AzureusCore			_azureus_core,
-  		UpdateCheckInstance	_check_instance ) 
+  		UpdateCheckInstance	_check_instance,
+		boolean				_update_action ) 
   {
   	azureus_core	= _azureus_core;
   	check_instance 	= _check_instance;
+  	update_action	= _update_action;
   	
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
@@ -135,7 +138,7 @@ UpdateWindow
     if(! Constants.isOSX) {
       updateWindow.setImage(ImageRepository.getImage("azureus"));
     }
-    Messages.setLanguageText(updateWindow,"swt.update.window.title");
+    Messages.setLanguageText(updateWindow,update_action?"swt.update.window.title":"swt.install.window.title");
     
     FormLayout layout = new FormLayout();
     try {
@@ -147,7 +150,7 @@ UpdateWindow
     updateWindow.setLayout(layout);
     
     Label lHeaderText = new Label(updateWindow,SWT.WRAP);
-    Messages.setLanguageText(lHeaderText,"swt.update.window.header");
+    Messages.setLanguageText(lHeaderText,update_action?"swt.update.window.header":"swt.install.window.header");
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
@@ -184,7 +187,7 @@ UpdateWindow
  
     
     btnOk = new Button(updateWindow,SWT.PUSH);
-    Messages.setLanguageText(btnOk,"swt.update.window.ok");
+    Messages.setLanguageText(btnOk,update_action?"swt.update.window.ok":"swt.install.window.ok");
     
     updateWindow.setDefaultButton( btnOk );
     lOk = new Listener() {
@@ -305,7 +308,7 @@ UpdateWindow
         
         checkRestartNeeded();
         
-        if(COConfigurationManager.getBooleanParameter("update.opendialog")) {
+        if( COConfigurationManager.getBooleanParameter("update.opendialog")|| !update_action ) {
           show();
         } else {
           MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);

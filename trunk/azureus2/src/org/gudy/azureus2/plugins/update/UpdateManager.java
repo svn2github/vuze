@@ -51,6 +51,14 @@ UpdateManager
 	createUpdateCheckInstance();
 	
 		/**
+		 * creates an update check instance with no attached updateable components (as opposed
+		 * to automatically including all registered
+		 * @return
+		 */
+	public UpdateCheckInstance
+	createEmptyUpdateCheckInstance();
+
+		/**
 		 * create a stand alone update installer. you will need to restart Azureus for it to
 		 * be installed
 		 * @return

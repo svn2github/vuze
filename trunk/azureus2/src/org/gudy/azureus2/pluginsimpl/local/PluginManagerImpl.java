@@ -221,6 +221,14 @@ PluginManagerImpl
 		PluginInitializer.queueRegistration( plugin_class );
 	}
 	
+	public static void
+	registerPlugin(
+		Plugin		plugin,
+		String		id )
+	{
+		PluginInitializer.queueRegistration( plugin, id );
+	}
+	
 	public PluginInterface
 	getPluginInterfaceByID(
 		String		id )

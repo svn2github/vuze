@@ -178,6 +178,13 @@ PluginInterfaceImpl
     new FileDownloadWindow(initialiser.getAzureusCore(),MainWindow.getWindow().getDisplay(),url, null);
   }
       
+  public void
+  setPluginName(
+  	String	name )
+  {
+  	props.put( "plugin.name", name );
+  }
+  
   public String getPluginName()
   {
   	String	name = null;
@@ -206,6 +213,13 @@ PluginInterfaceImpl
   	return( name );
   }
 
+  public void
+  setPluginVersion(
+  	String	version )
+  {
+	props.put( "plugin.version", version );
+  }
+  
   public String
   getPluginVersion()
   {
@@ -249,6 +263,15 @@ PluginInterfaceImpl
     return pluginDir;
   }
 
+  public void
+  setPluginDirectoryName(
+  	String		name )
+  {
+  	initialiser_key	= new File(name);
+  	
+  	pluginDir	= name;
+  }
+  
   public void addConfigUIParameters(Parameter[] parameters, String displayName) {
   	ParameterRepository.getInstance().addPlugin(parameters, displayName);
   }

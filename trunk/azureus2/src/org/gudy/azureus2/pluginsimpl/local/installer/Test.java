@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
@@ -71,33 +72,42 @@ Test
 	public void
 	initializationComplete()
 	{
-		PluginInstaller	installer = manager.getPluginInstaller();
-		
-		try{
-			StandardPlugin[]	sps = installer.getStandardPlugins();
-			
-			String	install_name = "azshareexporter";
-			
-			StandardPlugin	install_act = null;
-			
-			for (int i=0;i<sps.length;i++){
-				
-				StandardPlugin	sp = sps[i];
-				
-				System.out.println( "Standard Plugin: " + sp.getId() + " - " + sp.getVersion() + ", installed = " + sp.getAlreadyInstalledPlugin());
-				
-				if ( sp.getId().equals( install_name )){
+		new AEThread("install tester" )
+		{
+			public void
+			runSupport()
+			{	
+				try{
+					sleep(10000);
 					
-					install_act = sp;
+					PluginInstaller	installer = manager.getPluginInstaller();					
+
+					StandardPlugin[]	sps = installer.getStandardPlugins();
+					
+					String	install_name = "azshareexporter";
+					
+					StandardPlugin	install_act = null;
+					
+					for (int i=0;i<sps.length;i++){
+						
+						StandardPlugin	sp = sps[i];
+						
+						System.out.println( "Standard Plugin: " + sp.getId() + " - " + sp.getVersion() + ", installed = " + sp.getAlreadyInstalledPlugin());
+						
+						if ( sp.getId().equals( install_name )){
+							
+							install_act = sp;
+						}
+					}
+					
+					install_act.install( true );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
 				}
 			}
-			
-			install_act.install();
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		}.start();
 	}
 	
 	public void

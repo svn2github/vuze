@@ -47,6 +47,18 @@ UpdateCheckInstance
 		
 		throws UpdateException;
 	
+		/**
+		 * Add a further updatable component to this instance. Must be called before
+		 * the check process is started
+		 * @param component
+		 * @param mandatory
+		 */
+	
+	public void
+	addUpdatableComponent(
+		UpdatableComponent		component,
+		boolean					mandatory );
+	
 	public void
 	addListener(
 		UpdateCheckInstanceListener	l );

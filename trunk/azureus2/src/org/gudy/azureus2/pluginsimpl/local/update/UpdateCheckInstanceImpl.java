@@ -64,14 +64,40 @@ UpdateCheckInstanceImpl
 			
 			UpdatableComponentImpl	comp = components[i];
 			
-			UpdateCheckerImpl checker = checkers[i] = 
-				new UpdateCheckerImpl( 
-						this,
-						comp,
-						sem );
+			checkers[i] = new UpdateCheckerImpl( this, comp, sem );
 		}
 	}
 
+	public void
+	addUpdatableComponent(
+		UpdatableComponent		component,
+		boolean					mandatory )
+	{
+			// add new component
+		
+		UpdatableComponentImpl	comp = new UpdatableComponentImpl( component, mandatory );
+		
+		UpdatableComponentImpl[]	new_comps = new UpdatableComponentImpl[components.length+1];
+		
+		System.arraycopy( components, 0, new_comps, 0, components.length );
+		
+		new_comps[components.length]	= comp;
+		
+		components	= new_comps;
+		
+			// add a new checker
+		
+		UpdateCheckerImpl	checker = new UpdateCheckerImpl( this, comp, sem );
+		
+		UpdateCheckerImpl[]	new_checkers = new UpdateCheckerImpl[checkers.length+1];
+		
+		System.arraycopy( checkers, 0, new_comps, 0, checkers.length );
+		
+		new_checkers[checkers.length]	= checker;
+		
+		checkers	= new_checkers;
+	}
+	
 	public void
 	start()
 	{

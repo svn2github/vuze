@@ -141,10 +141,22 @@ PluginInitializer
 	  		for (int i=0;i<registration_queue.size();i++){
 	  			
 	  			try{
-	  				Class cla = (Class)registration_queue.get(i);
+	  				Object	entry = registration_queue.get(i);
 	  				
-	  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
+	  				if ( entry instanceof Class ){
+	  					
+		  				Class cla = (Class)entry;
+		  				
+		  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
 	  				
+	  				}else{
+	  					
+	  					Object[]	x = (Object[])entry;
+	  					
+	  					Plugin	plugin = (Plugin)x[0];
+	  					
+	  					singleton.initializePluginFromInstance(plugin, (String)x[1], plugin.getClass().getName());
+	  				}
 	  			}catch(PluginException e ){
 	  				
 	  			}
@@ -187,16 +199,43 @@ PluginInitializer
 	}  	
   }
   
+  protected static void
+  queueRegistration(
+  	Plugin		plugin,
+	String		id )
+  {
+  	try{
+  		class_mon.enter();
+  		
+	   	if ( singleton == null ){
+	  		
+	  		registration_queue.add( new Object[]{ plugin, id });
+	 
+	  	}else{
+	  		
+	  		try{
+	  			singleton.initializePluginFromInstance( plugin, id, plugin.getClass().getName());
+	  			
+			}catch(PluginException e ){
+	  				
+	  		}
+	  	}
+	}finally{
+  		
+		class_mon.exit();
+	}  	
+  }
+  
   protected 
   PluginInitializer(
   	AzureusCore 		_azureus_core,
-  	AzureusCoreListener	listener) 
+  	AzureusCoreListener	_listener) 
   {
   	azureus_core	= _azureus_core;
   	
   	azureus_core.getGlobalManager().addListener( this );
   	
-    this.listener 	= listener;
+    listener 	= _listener;
     
     UpdateManagerImpl.getSingleton( azureus_core );	// initialise the update manager
        
@@ -742,6 +781,47 @@ PluginInitializer
   		
   		throw( new PluginException( msg, e ));
   	}
+  }
+  
+  protected void
+  initializePluginFromInstance(
+  	Plugin		plugin,
+	String		plugin_id,
+	String		plugin_config_key )
+  
+  	throws PluginException
+  {
+  	try{  		
+  		PluginInterfaceImpl plugin_interface = 
+  			new PluginInterfaceImpl(
+  						plugin, 
+						this,
+						plugin.getClass(),
+						plugin.getClass().getClassLoader(),
+						plugin_config_key,
+						new Properties(),
+						"",
+						plugin_id,
+						null );
+  		
+  		plugin.initialize(plugin_interface);
+  		
+   		plugins.add( plugin );
+   		
+   		plugin_interfaces.add( plugin_interface );
+   		
+  	}catch(Throwable e){
+  		
+  		Debug.printStackTrace( e );
+  		
+  		String	msg = "Error loading internal plugin '" + plugin.getClass().getName() + "'";
+  		
+    	LGLogger.logAlert( msg, e );
+
+  		System.out.println(msg + " : " + e);
+  		
+  		throw( new PluginException( msg, e ));
+  	} 	
   }
   
   protected void
