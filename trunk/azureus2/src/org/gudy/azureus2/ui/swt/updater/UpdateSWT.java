@@ -28,40 +28,35 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.eclipse.swt.program.Program;
-
 /**
  * @author Olivier Chalouhi
  *
  */
 public class UpdateSWT {
   
-  static FileOutputStream fosLog;
   static String userDir;
   public static void main(String args[]) throws Exception {
     userDir = System.getProperty("user.dir") + System.getProperty("file.separator");
-    File f = new File(userDir + "updateSWT.log");
-    fosLog = new FileOutputStream(f,true);
-    String toLog = "SWT Updater started with parameters : \n";
+    
+    
+    UpdateLogger.log("SWT Updater started with parameters : ");
     for(int i = 0 ; i < args.length ; i++) {
-      toLog += args[i] + "\n";
+      UpdateLogger.log(args[i]);
     }
-    toLog += "-----------------\n";
-    fosLog.write(toLog.getBytes());    
+    UpdateLogger.log("-----------------");
+    
     if(args.length < 4)
       return;
     try {
       
-      toLog = "user.dir="  + userDir + "\n";
-      fosLog.write(toLog.getBytes());
-      
-      toLog = "SWT Updater is waiting 1 sec\n";
-      fosLog.write(toLog.getBytes()); 
+      UpdateLogger.log("user.dir="  + userDir);      
+      UpdateLogger.log("SWT Updater is waiting 1 sec");
+
       Thread.sleep(1000);
       
       String platform = args[0];
-      toLog = "SWT Updater has detected platform : " + platform + "\n";
-      fosLog.write(toLog.getBytes()); 
+      
+      UpdateLogger.log("SWT Updater has detected platform : " + platform );
       
       if(platform.equals("carbon"))
         updateSWT_carbon(args[1]);
@@ -71,32 +66,25 @@ public class UpdateSWT {
       
       restart(args[2],args[3]);
       
-      toLog = "SWT Updater has finished\n";
-      fosLog.write(toLog.getBytes());    
+      UpdateLogger.log("SWT Updater has finished");     
       
     } catch(Exception e) {
-      toLog = "SWT Updater has encountered an exception : " + e + "\n";
-      fosLog.write(toLog.getBytes());
+      UpdateLogger.log("SWT Updater has encountered an exception : " + e);
       e.printStackTrace();
-    } finally {
-      fosLog.close();
     }
   }
   
   public static void updateSWT_generic(String zipFileName) throws Exception {
-    String toLog = "SWT Updater is doing Generic Update\n";
-    fosLog.write(toLog.getBytes()); 
+    UpdateLogger.log("SWT Updater is doing Generic Update");
     
-    toLog = "SWT Updater is opening zip file : " + userDir + zipFileName + "\n";
-    fosLog.write(toLog.getBytes());
+    UpdateLogger.log("SWT Updater is opening zip file : " + userDir + zipFileName);
     
     ZipFile zipFile = new ZipFile(userDir + zipFileName);
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
       
-      toLog = "\tSWT Updater is processing : " + zipEntry.getName() + "\n";
-      fosLog.write(toLog.getBytes());
+      UpdateLogger.log("\tSWT Updater is processing : " + zipEntry.getName());
       
       if(zipEntry.getName().equals("swt.jar")) {        
         writeFile(zipFile,zipEntry,userDir);
@@ -117,19 +105,16 @@ public class UpdateSWT {
   }
   
   public static void updateSWT_carbon(String zipFileName) throws Exception{
-    String toLog = "SWT Updater is doing Carbon (OSX) Update\n";
-    fosLog.write(toLog.getBytes());
+    UpdateLogger.log("SWT Updater is doing Carbon (OSX) Update");
     
-    toLog = "SWT Updater is opening zip file : " + userDir + zipFileName + "\n";
-    fosLog.write(toLog.getBytes());
+    UpdateLogger.log("SWT Updater is opening zip file : " + userDir + zipFileName);
     
     ZipFile zipFile = new ZipFile(userDir +  zipFileName);
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {     
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
       
-      toLog = "\tSWT Updater is processing : " + zipEntry.getName() + "\n";
-      fosLog.write(toLog.getBytes());
+      UpdateLogger.log("\tSWT Updater is processing : " + zipEntry.getName());
       
       if(zipEntry.getName().equals("java_swt")) {                
         writeFile(zipFile,zipEntry,userDir + "Azureus.app/Contents/MacOS/");
@@ -151,11 +136,10 @@ public class UpdateSWT {
   public static void writeFile(ZipFile zipFile,ZipEntry zipEntry,String path) throws Exception {
     String toLog = "";
     if(path != null) {
-      toLog = "\t\t Unzipping file " + zipEntry.getName() + "to path " + path + "\n";
+      UpdateLogger.log("\t\tUnzipping file " + zipEntry.getName() + "to path " + path);
     } else {
-      toLog = "\t\t Unzipping file " + zipEntry.getName() + "\n";
+      UpdateLogger.log("\t\tUnzipping file " + zipEntry.getName());
     }    
-    fosLog.write(toLog.getBytes());
     
     String fileName = zipEntry.getName();
         
@@ -164,15 +148,13 @@ public class UpdateSWT {
     
     //If file already exists, rename to .old
     if(f.exists()) {
-      toLog = "\t\tFile exists, renaming to .old\n";
-      fosLog.write(toLog.getBytes());
+      UpdateLogger.log("\t\tFile exists, renaming to .old");
       
       String backUpName = fileName + ".old";
       File backup =  openFile(path,backUpName);
       if(backup.exists()) {backup.delete(); Thread.sleep(500); }
       if(!f.renameTo(backup)) {
-        toLog = "\t\tCouldn't rename file\n";
-        fosLog.write(toLog.getBytes());
+        UpdateLogger.log("\t\tCouldn't rename file");
         
         throw new IOException("File " + fileName + " cannot be renamed into " + backUpName);
       }
@@ -196,8 +178,7 @@ public class UpdateSWT {
       fileName = path + name;            
     }
     
-    String toLog = "\t\t\tOpening : " + fileName + "\n";
-    fosLog.write(toLog.getBytes());
+    UpdateLogger.log("\t\t\tOpening : " + fileName );
     
     return new File(fileName);
   }
@@ -215,8 +196,7 @@ public class UpdateSWT {
     + "\" -Duser.dir=\"" + userPath
     + "\" org.gudy.azureus2.ui.swt.Main";
              
-    String toLog = "Restarting with command line : " + exec + "\n";
-    fosLog.write(toLog.getBytes());
+    UpdateLogger.log("Restarting with command line : " + exec);
     
     Runtime.getRuntime().exec(exec);
   }

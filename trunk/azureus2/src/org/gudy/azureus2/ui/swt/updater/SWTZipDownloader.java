@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.updater;
 import java.io.InputStream;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
 
 /**
  * @author Olivier Chalouhi
@@ -49,7 +50,11 @@ public class SWTZipDownloader implements DownloadListener{
   public void reportData(InputStream is) {
     if(is != null) {
       this.listener.reportData(is);
+      LGLogger.log("SWT Updater has downloaded the SWT package");
+      UpdateLogger.log("SWT Updater has downloaded the SWT package");
     } else {
+      LGLogger.log("SWT Updater : failed to download");
+      UpdateLogger.log("SWT Updater : failed to download");
       index++;
       if(index < urls.length && !canceled) {
         download();
@@ -66,6 +71,8 @@ public class SWTZipDownloader implements DownloadListener{
   private void download() {
     String url = urls[index];
     listener.processName(MessageText.getString("swt.updater.downloader.downloading") + "\n" + url);
+    LGLogger.log("SWT Updater is downloading from " + url);
+    UpdateLogger.log("SWT Updater is downloading from " + url);
     downloader = new URLDownloader(this,url);
   }
   

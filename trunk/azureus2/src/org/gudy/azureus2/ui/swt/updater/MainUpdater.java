@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.program.Program;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 /**
@@ -58,8 +57,12 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
   
   public void reportURLs(String[] urls) {
     if(urls != null) {
+      LGLogger.log("SWT Updater found " + urls.length + " urls");
+      UpdateLogger.log("SWT Updater found " + urls.length + " urls");
       zipDownloader = new SWTZipDownloader(this,urls);
     } else {
+      LGLogger.log("SWT Updater fails : no urls found");
+      UpdateLogger.log("SWT Updater fails : no urls found");
       listener.processFailed();
     }
   }
@@ -94,21 +97,9 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
                       + System.getProperty("file.separator")
                       + "bin"
                       + System.getProperty("file.separator");
-      
-      /*String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
-      + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
-      + userPath + "\" \"" + libraryPath + "\"";*/
-      
-      
-      
-      
-      //System.out.println(exec);
-      
-      
-          
-      
-                  
+                    
       if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
+        
         File fUpdate = new File(userPath + "/updateSWT");
         String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
@@ -119,34 +110,20 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
         pChMod.waitFor();
         Process p = Runtime.getRuntime().exec("./updateSWT");
-        //Program.launch(exec);
+        
       } else {
-        String exec[] = {
-            javaPath + "java" ,
-            "-classpath",
-            classPath,
-            "-Duser.dir=\"" + userPath + "\"",
-            "org.gudy.azureus2.ui.swt.updater.UpdateSWT",
-            platform,
-            "swtTemp.zip",
-            userPath,
-            libraryPath         
-        };
-        String execLog = "";
-        for(int i = 0 ; i < exec.length ; i++) {
-          execLog += exec[i] + " ";
-        }
         
-        LGLogger.log("SWT Updater is about to execute : " + execLog);
+        String exec = javaPath + "java -classpath \"" + classPath
+        + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
+        + userPath + "\" \"" + libraryPath + "\"";
         
-        File f = new File("updateSWT.log");
-        FileOutputStream fosLog = new FileOutputStream(f,true);
-        fosLog.write(("SWT Updater is about to execute : " + execLog + "\n").getBytes());     
+        LGLogger.log("SWT Updater is about to execute (win32) : " + exec);
+        UpdateLogger.log("SWT Updater is about to execute (win32): " + exec);
+                
         
         File userDir = new File(userPath);
         String[] env = {"user.dir=" + userPath };
-        fosLog.close();
-        //Runtime.getRuntime().exec(exec,env,userDir);
+        Runtime.getRuntime().exec(exec,env,userDir);
       
       }
     } catch(Exception e) {
