@@ -42,8 +42,8 @@ import org.gudy.azureus2.plugins.Plugin;
  */
 public class PluginInitializer {
 
-  private Class[]	builtin_plugins = new Class[]{ 	TrackerWebDefaultTrackerPlugin.class,
-  													TrackerWebDefaultStaticPlugin.class};
+  private Class[]	builtin_plugins = new Class[]{ 	TrackerWebDefaultStaticPlugin.class,
+  													TrackerWebDefaultTrackerPlugin.class,};
   
   URLClassLoader classLoader;
   private GlobalManager gm;

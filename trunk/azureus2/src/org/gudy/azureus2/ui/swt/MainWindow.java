@@ -15,7 +15,15 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Locale;
+import java.util.StringTokenizer;
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -162,6 +170,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private StartServer startServer;
 
+  public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;	// 23 hours
+
+  private Shell			current_upgrade_window;
+  private Timer			version_check_timer;
+  
+
+
   private class GUIUpdater extends Thread implements ParameterListener {
     boolean finished = false;    
     int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
@@ -251,102 +266,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
   }
 
-  private class VersionChecker extends Thread {
-    
-    public VersionChecker() {
-      super("Version Checker");
-      
-      setDaemon(true);
-    }
-    public void run() {
-      latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
-      setStatusVersionFromOtherThread();
-      ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
-
-      int nbRead = 0;
-      HttpURLConnection con = null;
-      InputStream is = null;
-      try {
-        String id = COConfigurationManager.getStringParameter("ID",null);        
-        String url = "http://azureus.sourceforge.net/version.php";
-        if(id != null && COConfigurationManager.getBooleanParameter("Send Version Info")) {
-          url += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
-        }
-        URL reqUrl = new URL(url); //$NON-NLS-1$
-        con = (HttpURLConnection) reqUrl.openConnection();
-        con.connect();
-        is = con.getInputStream();
-        //        int length = con.getContentLength();
-        //        System.out.println(length);
-        byte[] data = new byte[1024];
-        while (nbRead >= 0) {
-          nbRead = is.read(data);
-          if (nbRead >= 0) {
-            message.write(data, 0, nbRead);
-          }
-        }
-        Map decoded = BDecoder.decode(message.toByteArray());
-        latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$
-        byte[] bFileName = (byte[]) decoded.get("filename"); //$NON-NLS-1$
-        if (bFileName != null)
-          latestVersionFileName = new String(bFileName);
-
-        if (display == null || display.isDisposed())
-          return;
-        display.asyncExec(new Runnable() {
-          public void run() {
-            if (statusText.isDisposed())
-              return;
-            if (VERSION.compareTo(latestVersion) < 0) {
-              latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
-              setStatusVersion();
-              statusText.setForeground(red);
-              statusText.setCursor(handCursor);
-              statusText.addMouseListener(new MouseAdapter() {
-                public void mouseDoubleClick(MouseEvent arg0) {
-                  showUpgradeWindow();
-                }
-                public void mouseDown(MouseEvent arg0) {
-                  showUpgradeWindow();
-                }
-              });
-              if (COConfigurationManager.getBooleanParameter("Auto Update", true)) {
-                showUpgradeWindow();
-              }
-            }
-            else {
-              setStatusVersion();
-            }
-          }
-        });
-      }
-      catch (Exception e) {
-        if (display == null || display.isDisposed())
-          return;
-        display.asyncExec(new Runnable() {
-          public void run() {
-            if (statusText.isDisposed())
-              return;
-            latestVersion = MessageText.getString("MainWindow.status.unknown"); //$NON-NLS-1$
-            setStatusVersion();
-          }
-        });
-      }
-      finally {
-        if (is != null) {
-          try {
-            is.close();
-          }
-          catch (IOException e1) {}
-          is = null;
-        }
-        if (con != null) {
-          con.disconnect();
-          con = null;
-        }
-      }
-    }
-  }
 
   public MainWindow(GlobalManager gm, StartServer server) {
     if (window != null) {
@@ -639,7 +558,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
     help_checkupdate.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new VersionChecker().start();
+        checkForNewVersion();
       }
     });
     }
@@ -745,7 +664,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
 	if ( !FileUtil.isJavaWebStart()){
 		
-    new VersionChecker().start();
+		checkForNewVersion();
 	}
 
 		gridData = new GridData();
@@ -1103,6 +1022,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private void showUpgradeWindow() {
     final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
+
+	current_upgrade_window = s;
+
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     s.setText(MessageText.getString("MainWindow.upgrade.assistant")); //$NON-NLS-1$
     s.setSize(250, 300);
@@ -1236,6 +1158,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         if (jarDownloaded) {
           if (event.widget == finish) {
             updateJar = true;
+			current_upgrade_window = null;
             s.dispose();
             dispose();
           }
@@ -1252,6 +1175,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
         else {
           if (event.widget == finish) {
+			current_upgrade_window = null;
             s.dispose();
           }
           else {
@@ -1271,6 +1195,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     cancel.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         s.dispose();
+		current_upgrade_window = null;
       }
     });
 
@@ -2274,4 +2199,132 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     iconBar.setCurrentEnabler(this);
   }
 
+  private synchronized void
+  checkForNewVersion()
+  {
+  	if ( version_check_timer == null ){
+  		
+  		version_check_timer = new Timer("Auto-update timer",1);
+
+		version_check_timer.addPeriodicEvent( 
+			AUTO_UPDATE_CHECK_PERIOD,
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	ev )
+				{
+					checkForNewVersion();
+				}
+			});
+  	}
+
+	Shell current_window = current_upgrade_window;
+
+	if ( current_window == null || current_window.isDisposed()){
+
+		new VersionChecker().start();
+	}
+  }
+  
+  private class 
+  VersionChecker 
+  	extends Thread 
+  {	
+  	public VersionChecker() {
+  		super("Version Checker");
+  		
+  		setDaemon(true);
+  	}
+  	public void run() {
+		// System.out.println( "Update check start" );
+
+  		latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
+  		setStatusVersionFromOtherThread();
+  		ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
+
+  		int nbRead = 0;
+  		HttpURLConnection con = null;
+  		InputStream is = null;
+  		try {
+  			String id = COConfigurationManager.getStringParameter("ID",null);        
+  			String url = "http://azureus.sourceforge.net/version.php";
+  			if(id != null && COConfigurationManager.getBooleanParameter("Send Version Info")) {
+  				url += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
+  			}
+  			URL reqUrl = new URL(url); //$NON-NLS-1$
+  			con = (HttpURLConnection) reqUrl.openConnection();
+  			con.connect();
+  			is = con.getInputStream();
+  			//        int length = con.getContentLength();
+  			//        System.out.println(length);
+  			byte[] data = new byte[1024];
+  			while (nbRead >= 0) {
+  				nbRead = is.read(data);
+  				if (nbRead >= 0) {
+  					message.write(data, 0, nbRead);
+  				}
+  			}
+  			Map decoded = BDecoder.decode(message.toByteArray());
+  			latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$
+  			byte[] bFileName = (byte[]) decoded.get("filename"); //$NON-NLS-1$
+  			if (bFileName != null)
+  				latestVersionFileName = new String(bFileName);
+
+  			if (display == null || display.isDisposed())
+  				return;
+  			display.asyncExec(new Runnable() {
+  				public void run() {
+  					if (statusText.isDisposed())
+  						return;
+  					if (VERSION.compareTo(latestVersion) < 0) {
+  						latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
+  						setStatusVersion();
+  						statusText.setForeground(red);
+  						statusText.setCursor(handCursor);
+  						statusText.addMouseListener(new MouseAdapter() {
+  							public void mouseDoubleClick(MouseEvent arg0) {
+  								showUpgradeWindow();
+  							}
+  							public void mouseDown(MouseEvent arg0) {
+  								showUpgradeWindow();
+  							}
+  						});
+  						if (COConfigurationManager.getBooleanParameter("Auto Update", true)) {
+  							showUpgradeWindow();
+  						}
+  					}
+  					else {
+  						setStatusVersion();
+  					}
+  				}
+  			});
+  		}
+  		catch (Exception e) {
+  			if (display == null || display.isDisposed())
+  				return;
+  			display.asyncExec(new Runnable() {
+  				public void run() {
+  					if (statusText.isDisposed())
+  						return;
+  					latestVersion = MessageText.getString("MainWindow.status.unknown"); //$NON-NLS-1$
+  					setStatusVersion();
+  				}
+  			});
+  		}
+  		finally {
+  			if (is != null) {
+  				try {
+  					is.close();
+  				}
+  				catch (IOException e1) {}
+  				is = null;
+  			}
+  			if (con != null) {
+  				con.disconnect();
+  				con = null;
+  			}
+  		}
+  	}
+  }
 }

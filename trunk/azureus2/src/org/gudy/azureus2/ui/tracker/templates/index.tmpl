@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>Azureus : Java BitTorrent Client Tracker</title>
+<meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<meta HTTP-EQUIV="Expires" CONTENT="-1">
+<meta name="keywords" content="BitTorrent, bt, java, client, azureus">
+</head>
+
+<body bgcolor="#EBEFFF">
+
+<table align="center" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+    <table border="0" cellpadding="0" cellspacing="0" bordercolor="#111111" width="100%">
+      <tr>
+        <td width="100"><a href="http://azureus.sourceforge.net/">
+        <img src="images/Azureus_banner.gif" border="0" alt="Azureus" hspace="0" width="100" height="40" /></a></td>
+        <td align="center">
+        <p align="center"><font size="5">Azureus: BitTorrent Client Tracker</font></p>
+        </td>
+      </tr>
+    </table>
+    <table align="center" width="100%" bgcolor="#526ED6" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td valign="top" height="20"></td>
+      </tr>
+      <tr>
+        <td valign="top">
+        <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
+          <thead>
+            <tr>
+              <td width="30%" bgcolor="#FFDEAD">Torrent</td>
+              <td width="10%" bgcolor="#FFDEAD">Status</td>
+              <td width="10%" bgcolor="#FFDEAD">Size</td>
+              <td width="8%" bgcolor="#FFDEAD">Seeds</td>
+              <td width="6%" bgcolor="#FFDEAD">Peers</td>
+              <td width="6%" bgcolor="#FFDEAD">Tot Up</td>
+              <td width="6%" bgcolor="#FFDEAD">Tot Down</td>
+              <td width="6%" bgcolor="#FFDEAD">Ave Up</td>
+              <td width="6%" bgcolor="#FFDEAD">Ave Down</td>
+              <td width="6%" bgcolor="#FFDEAD">Left</td>
+              <td width="6%" bgcolor="#FFDEAD">Comp</td>
+            </tr>
+            </thread>
+
+		<tmpl_loop torrent_info>
+
+            <tr>
+              <td>
+              <a href"<tmpl_var url>><tmpl_var name></a></td>
+              <td><tmpl_var status></td>
+              <td><tmpl_var size></td>
+              <td><b>
+			<tmpl_if seeds>
+				<font color="#00CC00">
+			<tmpl_else>
+				<font color="#FF0000">
+			</tmpl_if>
+			<tmpl_var seeds></font></b></td>
+              <td><tmpl_var peers></td>
+              <td><tmpl_var total_upload></td>
+              <td><tmpl_var total_download></td>
+              <td><tmpl_var upload_speed></td>
+              <td><tmpl_var download_speed></td>
+              <td><tmpl_var total_left></td>
+              <td><tmpl_var completed></td>
+            </tr>
+
+		</tmpl_loop>
+          </thead>
+        </table>
+        </td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        </td>
+        </td>
+      </tr>
+    </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+
+</html>
