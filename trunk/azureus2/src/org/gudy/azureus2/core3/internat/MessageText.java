@@ -1,8 +1,8 @@
 /*
  * Created on 24.07.2003
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * 
+ * To change the template for this generated file go to Window - Preferences -
+ * Java - Code Generation - Code and Comments
  */
 package org.gudy.azureus2.core3.internat;
 
@@ -11,59 +11,59 @@ import java.io.FilenameFilter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
  * @author Arbeiten
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * 
+ * To change the template for this generated type comment go to Window -
+ * Preferences - Java - Code Generation - Code and Comments
  */
 public class MessageText {
 
   public static final Locale LOCALE_ENGLISH = new Locale("en", "EN");
-  public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
+  public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
+  private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
+  private static Vector pluginLocalizationPaths = new Vector();
   private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT);
+//  private static ResourceBundle RESOURCE_BUNDLE = new IntegratedResourceBundle(ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT), pluginLocalizationPaths);
   private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
-  
+
   /**
    * @param key
    * @return
    */
   public static String getString(String key) {
-	// TODO Auto-generated method stub
-	try {
-	  return RESOURCE_BUNDLE.getString(key);
-	} catch (MissingResourceException e) {
-	  return '!' + key + '!';
-	}
+    // TODO Auto-generated method stub
+    try {
+      return RESOURCE_BUNDLE.getString(key);
+    } catch (MissingResourceException e) {
+      return '!' + key + '!';
+    }
   }
-  
+
   public static String getDefaultLocaleString(String key) {
-	// TODO Auto-generated method stub
-	try {
-	  return DEFAULT_BUNDLE.getString(key);
-	} catch (MissingResourceException e) {
-	  return '!' + key + '!';
-	}
+    // TODO Auto-generated method stub
+    try {
+      return DEFAULT_BUNDLE.getString(key);
+    } catch (MissingResourceException e) {
+      return '!' + key + '!';
+    }
   }
 
   public static Locale getCurrentLocale() {
-    Locale currentLocale = RESOURCE_BUNDLE.getLocale();
-    if (LOCALE_DEFAULT.equals(currentLocale))
-    currentLocale = LOCALE_ENGLISH;
-    return currentLocale;
+    return LOCALE_DEFAULT.equals(LOCALE_CURRENT) ? LOCALE_ENGLISH : LOCALE_CURRENT;
   }
 
   public static boolean isCurrentLocale(Locale locale) {
-    if (LOCALE_ENGLISH.equals(locale))
-      locale = LOCALE_DEFAULT;
-    return RESOURCE_BUNDLE.getLocale().equals(locale);
+    return LOCALE_ENGLISH.equals(locale) ? LOCALE_CURRENT.equals(LOCALE_DEFAULT) : LOCALE_CURRENT.equals(locale);
   }
 
   public static Locale[] getLocales() {
@@ -71,8 +71,7 @@ public class MessageText {
     final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
     final String extension = ".properties";
 
-    String urlString =
-      ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
+    String urlString = ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
     //    System.out.println("urlString: " + urlString);
     String[] bundles = null;
     if (urlString.startsWith("jar:file:/")) {
@@ -100,7 +99,8 @@ public class MessageText {
       }
     } else {
       File bundleDirectory = new File(URI.create(urlString)).getParentFile();
-      //      System.out.println("bundleDirectory: " + bundleDirectory.getAbsolutePath());
+      //      System.out.println("bundleDirectory: " +
+      // bundleDirectory.getAbsolutePath());
 
       bundles = bundleDirectory.list(new FilenameFilter() {
         public boolean accept(File dir, String name) {
@@ -122,7 +122,7 @@ public class MessageText {
   public static boolean changeLocale(Locale newLocale) {
     if (LOCALE_ENGLISH.equals(newLocale))
       newLocale = LOCALE_DEFAULT;
-    if (!RESOURCE_BUNDLE.getLocale().equals(newLocale)) {
+    if (!LOCALE_CURRENT.equals(newLocale)) {
       ResourceBundle newResourceBundle = null;
       try {
         newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
@@ -132,12 +132,23 @@ public class MessageText {
         return false;
       }
       if (newResourceBundle.getLocale().equals(newLocale)) {
-        RESOURCE_BUNDLE = newResourceBundle;
         Locale.setDefault(newLocale);
+        LOCALE_CURRENT = newLocale;
+        RESOURCE_BUNDLE = new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths);
         return true;
       } else
         System.out.println("changeLocale: no message properties for Locale " + newLocale.getDisplayLanguage());
     }
     return false;
+  }
+
+  public static boolean integratePluginMessages(String localizationPath) {
+    boolean integratedSuccessfully = false;
+    if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.contains(localizationPath)) {
+      pluginLocalizationPaths.add(localizationPath);
+      RESOURCE_BUNDLE = new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths);
+      integratedSuccessfully = true;
+    }
+    return integratedSuccessfully;
   }
 }
