@@ -380,8 +380,10 @@ PluginUpdatePlugin
 		
 		if ( download.toLowerCase().endsWith(".jar")){
 			
+			String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
+			
 			String	target = plugin.getPluginDirectoryName() + File.separator + 
-								plugin.getPluginID() + "_" + version + ".jar";
+								plugin.getPluginID() + "_" + target_version + ".jar";
 			
 			try{				
 				FileUtil.copyFile( data, new FileOutputStream(target));
