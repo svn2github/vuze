@@ -10,7 +10,9 @@ package org.gudy.azureus2.core;
  */
 public class ByteFormater {
   public static String nicePrint(byte[] data) {
-    String out = "";
+    if(data == null)
+      return "";      
+    String out = "";    
     for (int i = 0; i < data.length; i++) {
       out = out + nicePrint(data[i]);
       if (i % 4 == 3)

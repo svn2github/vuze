@@ -90,7 +90,7 @@ public class PeerManager extends Thread {
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
     setDiskManager(diskManager);
-    
+
     requestsToFree = new ArrayList();
 
     peerUpdater = new PeerUpdater();
@@ -196,9 +196,11 @@ public class PeerManager extends Thread {
       _diskManager.dumpResumeDataToDisk();
 
     //4. Close all clients
-    while (_connections.size() > 0) {
-      PeerSocket pc = (PeerSocket) _connections.remove(0);
-      pc.closeAll();
+    synchronized (_connections) {
+      while (_connections.size() > 0) {
+        PeerSocket pc = (PeerSocket) _connections.remove(0);
+        pc.closeAll();
+      }
     }
 
     //1. Send disconnect to Tracker
@@ -337,20 +339,23 @@ public class PeerManager extends Thread {
   private void checkDLPossible() {
     //::updated this method to work with List -Tyler
     //for all peers
-    int[] upRates = new int[_connections.size()];
-    Arrays.fill(upRates, -1);
     Vector bestUploaders = new Vector();
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = null;
-      try {
-        pc = (PeerSocket) _connections.get(i);
-      }
-      catch (Exception e) {
-        break;
-      }
-      if (pc.transfertAvailable()) {
-        int upRate = pc.getStats().getReception();
-        testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
+    synchronized (_connections) {
+      int[] upRates = new int[_connections.size()];
+      Arrays.fill(upRates, -1);
+
+      for (int i = 0; i < _connections.size(); i++) {
+        PeerSocket pc = null;
+        try {
+          pc = (PeerSocket) _connections.get(i);
+        }
+        catch (Exception e) {
+          break;
+        }
+        if (pc.transfertAvailable()) {
+          int upRate = pc.getStats().getReception();
+          testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
+        }
       }
     }
 
@@ -368,25 +373,6 @@ public class PeerManager extends Thread {
           found = findPieceToDownload(pc, pc.isSnubbed());
           //is there anything else to download?
         }
-      }
-    }
-  }
-
-  private void removeDisconnected() {
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket ps = (PeerSocket) _connections.get(i);
-      if (ps.getState() == PeerSocket.DISCONNECTED) {
-        _connections.remove(ps);
-        i--;
-      }
-    }
-  }
-
-  private void sendReceive() {
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket ps = (PeerSocket) _connections.get(i);
-      if (ps.getState() != PeerSocket.DISCONNECTED) {
-        ps.process();
       }
     }
   }
@@ -415,10 +401,12 @@ public class PeerManager extends Thread {
       _manager.setState(DownloadManager.STATE_SEEDING);
       _diskManager.changeToReadOnly();
       _diskManager.dumpResumeDataToDisk();
-      for (int i = 0; i < _connections.size(); i++) {
-        PeerSocket pc = (PeerSocket) _connections.get(i);
-        if (pc != null) {
-          pc.setSnubbed(false);
+      synchronized (_connections) {
+        for (int i = 0; i < _connections.size(); i++) {
+          PeerSocket pc = (PeerSocket) _connections.get(i);
+          if (pc != null) {
+            pc.setSnubbed(false);
+          }
         }
       }
       if (DEBUG) {
@@ -433,30 +421,32 @@ public class PeerManager extends Thread {
    */
   private void checkRequests() {
     //for every connection
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = (PeerSocket) _connections.get(i);
-      if (pc.getState() == PeerSocket.TRANSFERING) {
-        List expired = pc.getExpiredRequests();
-        //::May want to make this an ArrayList unless you
-        //::need the synchronization a vector offers -Tyler
-        if (expired.size() > 0) {
-          pc.setSnubbed(true);
-        }
-        //for every expired request
-        for (int j = 0; j < expired.size(); j++) {
-          Request request = (Request) expired.get(j);
-          //get the request object
-          pc.sendCancel(request); //cancel the request object
-          int pieceNumber = request.getPieceNumber();
-          //get the piece number
-          int pieceOffset = request.getOffset();
-          //get the piece offset
-          Piece piece = _pieces[pieceNumber]; //get the piece
-          if (piece != null)
-            piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
-          //unmark the block
-          _downloading[pieceNumber] = false;
-          //set piece to not being downloaded
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) {
+        PeerSocket pc = (PeerSocket) _connections.get(i);
+        if (pc.getState() == PeerSocket.TRANSFERING) {
+          List expired = pc.getExpiredRequests();
+          //::May want to make this an ArrayList unless you
+          //::need the synchronization a vector offers -Tyler
+          if (expired.size() > 0) {
+            pc.setSnubbed(true);
+          }
+          //for every expired request
+          for (int j = 0; j < expired.size(); j++) {
+            Request request = (Request) expired.get(j);
+            //get the request object
+            pc.sendCancel(request); //cancel the request object
+            int pieceNumber = request.getPieceNumber();
+            //get the piece number
+            int pieceOffset = request.getOffset();
+            //get the piece offset
+            Piece piece = _pieces[pieceNumber]; //get the piece
+            if (piece != null)
+              piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
+            //unmark the block
+            _downloading[pieceNumber] = false;
+            //set piece to not being downloaded
+          }
         }
       }
     }
@@ -496,19 +486,21 @@ public class PeerManager extends Thread {
     Arrays.fill(_availability, 0); //:: should be faster -Tyler
 
     //for all clients
-    for (int i = 0; i < _connections.size(); i++) //::Possible optimization to break early when you reach 100%
-      {
-      //get the peer connection
-      PeerSocket pc = (PeerSocket) _connections.get(i);
-
-      //get an array of available pieces		
-      boolean[] piecesAvailable = pc.getAvailable();
-      if (piecesAvailable != null) //if the list is not null
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) //::Possible optimization to break early when you reach 100%
         {
-        for (int j = 0; j < _nbPieces; j++) //loop for every piece
+        //get the peer connection
+        PeerSocket pc = (PeerSocket) _connections.get(i);
+
+        //get an array of available pieces		
+        boolean[] piecesAvailable = pc.getAvailable();
+        if (piecesAvailable != null) //if the list is not null
           {
-          if (piecesAvailable[j]) //set the piece to available
-            _availability[j]++;
+          for (int j = 0; j < _nbPieces; j++) //loop for every piece
+            {
+            if (piecesAvailable[j]) //set the piece to available
+              _availability[j]++;
+          }
         }
       }
     }
@@ -719,16 +711,18 @@ public class PeerManager extends Thread {
   private void unChoke() {
     //1. We retreive the current non-choking peers
     Vector nonChoking = new Vector();
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = null;
-      try {
-        pc = (PeerSocket) _connections.get(i);
-      }
-      catch (Exception e) {
-        continue;
-      }
-      if (!pc.isChoking()) {
-        nonChoking.add(pc);
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) {
+        PeerSocket pc = null;
+        try {
+          pc = (PeerSocket) _connections.get(i);
+        }
+        catch (Exception e) {
+          continue;
+        }
+        if (!pc.isChoking()) {
+          nonChoking.add(pc);
+        }
       }
     }
 
@@ -791,50 +785,7 @@ public class PeerManager extends Thread {
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = null;
-      try {
-        pc = (PeerSocket) _connections.get(i);
-      }
-      catch (Exception e) {
-        continue;
-      }
-      if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
-        int upRate = 0;
-        if (_finished) {
-          upRate = pc.getStats().getStatisticSentRaw();
-          if (pc.isSnubbed())
-            upRate = -1;
-        }
-        else
-          upRate = pc.getStats().getReception();
-        if (upRate > 256)
-          testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
-      }
-    }
-
-    if (!_finished && bestUploaders.size() < upRates.length) {
-      for (int i = 0; i < _connections.size(); i++) {
-        PeerSocket pc = null;
-        try {
-          pc = (PeerSocket) _connections.get(i);
-        }
-        catch (Exception e) {
-          break;
-        }
-        if (pc != currentOptimisticUnchoke
-          && pc.isInteresting()
-          && pc.isInterested()
-          && bestUploaders.size() < upRates.length
-          && !pc.isSnubbed()
-          && (pc.getStats().getTotalSentRaw() / (pc.getStats().getTotalReceivedRaw() + 16000)) < 10) {
-          bestUploaders.add(pc);
-        }
-      }
-    }
-
-    if (bestUploaders.size() < upRates.length) {
-      int start = bestUploaders.size();
+    synchronized (_connections) {
       for (int i = 0; i < _connections.size(); i++) {
         PeerSocket pc = null;
         try {
@@ -845,18 +796,66 @@ public class PeerManager extends Thread {
         }
         if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
           int upRate = 0;
-          //If peer we'll use the overall uploaded value
-          if (!_finished)
-            upRate = (int) pc.getStats().getTotalReceivedRaw();
-          else {
-            upRate = pc.getPercentDone();
+          if (_finished) {
+            upRate = pc.getStats().getStatisticSentRaw();
             if (pc.isSnubbed())
               upRate = -1;
           }
-          testAndSortBest(upRate, upRates, pc, bestUploaders, start);
+          else
+            upRate = pc.getStats().getReception();
+          if (upRate > 256)
+            testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
         }
       }
+    }
 
+    if (!_finished && bestUploaders.size() < upRates.length) {
+      synchronized (_connections) {
+        for (int i = 0; i < _connections.size(); i++) {
+          PeerSocket pc = null;
+          try {
+            pc = (PeerSocket) _connections.get(i);
+          }
+          catch (Exception e) {
+            break;
+          }
+          if (pc != currentOptimisticUnchoke
+            && pc.isInteresting()
+            && pc.isInterested()
+            && bestUploaders.size() < upRates.length
+            && !pc.isSnubbed()
+            && (pc.getStats().getTotalSentRaw() / (pc.getStats().getTotalReceivedRaw() + 16000)) < 10) {
+            bestUploaders.add(pc);
+          }
+        }
+      }
+    }
+
+    if (bestUploaders.size() < upRates.length) {
+      int start = bestUploaders.size();
+      synchronized (_connections) {
+        for (int i = 0; i < _connections.size(); i++) {
+          PeerSocket pc = null;
+          try {
+            pc = (PeerSocket) _connections.get(i);
+          }
+          catch (Exception e) {
+            continue;
+          }
+          if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
+            int upRate = 0;
+            //If peer we'll use the overall uploaded value
+            if (!_finished)
+              upRate = (int) pc.getStats().getTotalReceivedRaw();
+            else {
+              upRate = pc.getPercentDone();
+              if (pc.isSnubbed())
+                upRate = -1;
+            }
+            testAndSortBest(upRate, upRates, pc, bestUploaders, start);
+          }
+        }
+      }
     }
 
     //  optimistic unchoke
@@ -939,11 +938,13 @@ public class PeerManager extends Thread {
   //send the have requests out
   private void sendHave(int pieceNumber) {
     //for all clients
-    for (int i = 0; i < _connections.size(); i++) {
-      //get a peer connection
-      PeerSocket pc = (PeerSocket) _connections.get(i);
-      //send the have message
-      pc.sendHave(pieceNumber);
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) {
+        //get a peer connection
+        PeerSocket pc = (PeerSocket) _connections.get(i);
+        //send the have message
+        pc.sendHave(pieceNumber);
+      }
     }
   }
 
@@ -952,10 +953,12 @@ public class PeerManager extends Thread {
     //If we are not ourself a seed, return
     if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed", false))
       return;
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = (PeerSocket) _connections.get(i);
-      if (pc != null && pc.getState() == PeerSocket.TRANSFERING && pc.isSeed()) {
-        pc.closeAll();
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) {
+        PeerSocket pc = (PeerSocket) _connections.get(i);
+        if (pc != null && pc.getState() == PeerSocket.TRANSFERING && pc.isSeed()) {
+          pc.closeAll();
+        }
       }
     }
   }
@@ -963,13 +966,15 @@ public class PeerManager extends Thread {
   private void updateStats() {
     _seeds = _peers = 0;
     //calculate seeds vs peers
-    for (int i = 0; i < _connections.size(); i++) {
-      PeerSocket pc = (PeerSocket) _connections.get(i);
-      if (pc.getState() == PeerSocket.TRANSFERING)
-        if (pc.isSeed())
-          _seeds++;
-        else
-          _peers++;
+    synchronized (_connections) {
+      for (int i = 0; i < _connections.size(); i++) {
+        PeerSocket pc = (PeerSocket) _connections.get(i);
+        if (pc.getState() == PeerSocket.TRANSFERING)
+          if (pc.isSeed())
+            _seeds++;
+          else
+            _peers++;
+      }
     }
   }
   /**
@@ -1013,7 +1018,9 @@ public class PeerManager extends Thread {
    * @param pc
    */
   public void removePeer(PeerSocket pc) {
-    _connections.remove(pc);
+    synchronized (_connections) {
+      _connections.remove(pc);
+    }
   }
 
   //get the hash value
@@ -1143,12 +1150,14 @@ public class PeerManager extends Thread {
       if (availability <= 0)
         return;
       //for all peers
-      for (int i = 0; i < _connections.size(); i++) {
-        PeerSocket pc = (PeerSocket) _connections.get(i);
-        if (pc != null && pc != pcOrigin && pc.getState() == PeerSocket.TRANSFERING) {
-          boolean[] peerAvailable = pc.getAvailable();
-          if (peerAvailable[pieceNumber])
-            pc.getStats().staticticSent(length / availability);
+      synchronized (_connections) {
+        for (int i = 0; i < _connections.size(); i++) {
+          PeerSocket pc = (PeerSocket) _connections.get(i);
+          if (pc != null && pc != pcOrigin && pc.getState() == PeerSocket.TRANSFERING) {
+            boolean[] peerAvailable = pc.getAvailable();
+            if (peerAvailable[pieceNumber])
+              pc.getStats().staticticSent(length / availability);
+          }
         }
       }
     }
@@ -1162,7 +1171,9 @@ public class PeerManager extends Thread {
 
   public synchronized boolean validateHandshaking(PeerSocket pc, byte[] peerId) {
     PeerSocket pcTest = new PeerSocket(this, peerId, pc.getIp(), pc.getPort(), true);
-    return !_connections.contains(pcTest);
+    synchronized (_connections) {
+      return !_connections.contains(pcTest);
+    }
   }
 
   public int getNbPeers() {
@@ -1300,6 +1311,8 @@ public class PeerManager extends Thread {
   }
 
   private void freeRequests() {
+    if (requestsToFree == null)
+      return;
     synchronized (requestsToFree) {
       for (int i = 0; i < requestsToFree.size(); i++) {
         DataQueueItem item = (DataQueueItem) requestsToFree.get(i);

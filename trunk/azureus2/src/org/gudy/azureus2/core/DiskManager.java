@@ -699,6 +699,7 @@ public class DiskManager {
     //write the data out
     try {
       fos.write(torrentData);
+      fos.close();
     }
     catch (IOException e) {
       // TODO Auto-generated catch block

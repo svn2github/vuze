@@ -21,6 +21,7 @@ public class StringParameter {
   Text inputField;
 
   public StringParameter(Composite composite,final String name, String defaultValue) {
+    this.name = name;
     inputField = new Text(composite, SWT.BORDER);
     String value = ConfigurationManager.getInstance().getStringParameter(name, defaultValue);
     inputField.setText(value);
@@ -33,6 +34,15 @@ public class StringParameter {
 
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
+  }
+  
+  public void setValue(String value) {
+    inputField.setText(value);
+    ConfigurationManager.getInstance().setParameter(name, value);         
+  }
+  
+  public String getValue() {
+    return inputField.getText();
   }
 
 }

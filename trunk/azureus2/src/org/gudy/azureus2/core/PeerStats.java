@@ -29,20 +29,20 @@ public class PeerStats {
 
     this.pieceLength = pieceLength;
 
-    //average over 5s, update every 200ms.
-    receptionSpeed = Average.getInstance(200, 5);
+    //average over 5s, update every 1000ms.
+    receptionSpeed = Average.getInstance(1000, 5);
 
-    //average over 1s, update every 100ms.
-    sendingSpeed = Average.getInstance(100, 1);
+    //average over 5s, update every 100ms.
+    sendingSpeed = Average.getInstance(1000, 5);
 
     //average over 20s, update every 1s.
     chokingReceptionSpeed = Average.getInstance(1000, 20);
 
-    //average over 60s, update every 1s
-    overallSpeed = Average.getInstance(1000, 60);
+    //average over 100s, update every 5s
+    overallSpeed = Average.getInstance(5000, 100);
 
-    //average over 60s, update every 1s
-    statisticSentSpeed = Average.getInstance(1000, 60);
+    //average over 60s, update every 3s
+    statisticSentSpeed = Average.getInstance(3000, 60);
 
   }
 

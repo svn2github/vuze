@@ -39,12 +39,12 @@ public class PiecesView implements IView, IComponentListener {
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
     String[] titlesPieces =
-      { "#", "Size", "Nb Blocks", "Blocks", "Completed", "Availability" };
+      { "#", "Size", "# of Blocks", "Blocks", "Completed", "Availability" };
     int[] alignPieces =
       { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.RIGHT, SWT.RIGHT };
     for (int i = 0; i < titlesPieces.length; i++) {
       TableColumn column = new TableColumn(table, alignPieces[i]);
-      column.setText(titlesPieces[i]);
+      column.setText(titlesPieces[i]);      
     }
     table.getColumn(0).setWidth(50);
     table.getColumn(1).setWidth(60);

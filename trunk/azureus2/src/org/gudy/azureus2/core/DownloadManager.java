@@ -58,6 +58,14 @@ public class DownloadManager extends Component {
 
   private int maxUploads = 4;
 
+  public DownloadManager(GlobalManager gm, String torrentFileName, String savePath,boolean stopped) {
+   this(gm,torrentFileName,savePath);
+   if (this.state == STATE_ERROR)
+     return;
+   if(stopped)
+    this.state = STATE_STOPPED;
+  }
+
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath) {
     this.globalManager = gm;
     this.maxUploads = ConfigurationManager.getInstance().getIntParameter("Max Uploads", 4);
@@ -95,6 +103,7 @@ public class DownloadManager extends Component {
       FileInputStream fis = new FileInputStream(torrentFileName);
       while ((nbRead = fis.read(buf)) > 0)
         metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1"));
+      fis.close();
       metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
       Map info = (Map) metaData.get("info");
       name = new String((byte[]) info.get("name"), "ISO-8859-1");
@@ -105,6 +114,9 @@ public class DownloadManager extends Component {
       hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info")));
     }
     catch (FileNotFoundException e) {
+      name = "File Not Found";
+      nbPieces = 0;
+      hash = new byte[20];      
       this.state = STATE_ERROR;
       errorDetail = "File Not Found";
     }

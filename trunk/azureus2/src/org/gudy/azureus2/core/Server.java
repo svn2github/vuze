@@ -34,7 +34,7 @@ public class Server extends Thread
     sck = null;
     bContinue = true;
     int highPort = ConfigurationManager.getInstance().getIntParameter("High Port",6889);
-    while(sck == null && port < highPort)
+    while(sck == null && port <= highPort)
     {
       try {
         sck = ServerSocketChannel.open(); 

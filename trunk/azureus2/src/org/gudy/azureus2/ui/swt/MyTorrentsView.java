@@ -54,6 +54,7 @@ public class MyTorrentsView implements IView, IComponentListener {
 
   private HashMap downloadBars;
 
+
   public MyTorrentsView(GlobalManager globalManager) {
     this.ascending = true;
     this.lastField = "";
@@ -66,7 +67,7 @@ public class MyTorrentsView implements IView, IComponentListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
-  public void initialize(Composite composite) {
+  public void initialize(Composite composite) {    
     panel = new Composite(composite, SWT.NULL);
     GridLayout layout = new GridLayout(1, false);
     layout.marginHeight = 0;
@@ -303,6 +304,9 @@ public class MyTorrentsView implements IView, IComponentListener {
     table.setMenu(menu);
 
     //toolBar.setSelection(itemAll);
+    /*DropTarget dt = new DropTarget(table,DND.DROP_LINK);
+    Transfer[] transfers = {FileTransfer.getInstance()};
+    dt.setTransfer(transfers);*/
 
     globalManager.addListener(this);
   }
@@ -335,7 +339,7 @@ public class MyTorrentsView implements IView, IComponentListener {
    */
   public void delete() {
     globalManager.removeListener(this);
-    MainWindow.getWindow().setMytorrents(null);
+    MainWindow.getWindow().setMytorrents(null);   
   }
 
   /* (non-Javadoc)
@@ -550,5 +554,4 @@ public class MyTorrentsView implements IView, IComponentListener {
       }
     }
   }
-
 }

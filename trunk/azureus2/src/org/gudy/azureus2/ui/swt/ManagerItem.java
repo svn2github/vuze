@@ -5,10 +5,13 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.*;
+import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.PeerStats;
 
 /**
  * @author Olivier
@@ -33,11 +36,14 @@ public class ManagerItem {
   private String trackerStatus = "";
   private String priority = "";
 
+  private Color blue;
+  private Color red;
+
   public ManagerItem(Table table, DownloadManager manager) {
     this.table = table;
     this.manager = manager;
     initialize();
-  } 
+  }
 
   public TableItem getTableItem() {
     return this.item;
@@ -51,6 +57,8 @@ public class ManagerItem {
       public void run() {
         if (table == null || table.isDisposed())
           return;
+        blue = new Color(display, new RGB(64, 160, 255));
+        red = new Color(display, new RGB(255, 68, 68));
         item = new TableItem(table, SWT.NULL);
       }
     });
@@ -59,6 +67,10 @@ public class ManagerItem {
   public void delete() {
     display.syncExec(new Runnable() {
       public void run() {
+        if (blue != null && !blue.isDisposed())
+          blue.dispose();
+        if (red != null && !red.isDisposed())
+          red.dispose();
         if (table == null || table.isDisposed())
           return;
         if (item == null || item.isDisposed())
@@ -74,6 +86,7 @@ public class ManagerItem {
       return;
     if (item == null || item.isDisposed())
       return;
+
     String tmp;
     tmp = manager.getName();
     if (!(tmp.equals(this.name))) {
@@ -128,6 +141,13 @@ public class ManagerItem {
     if (!(tmp.equals(this.status))) {
       status = tmp;
       item.setText(3, tmp);
+      if (state == DownloadManager.STATE_SEEDING)
+        item.setForeground(blue);
+      else if (state == DownloadManager.STATE_ERROR)
+        item.setForeground(red);
+      else
+        item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+
     }
 
     tmp = "" + manager.getNbSeeds();
@@ -178,15 +198,15 @@ public class ManagerItem {
       item.setText(10, tmp);
     }
   }
-  
+
   public void setManager(DownloadManager manager) {
     this.manager = manager;
   }
-  
+
   public int getIndex() {
     return table.indexOf(item);
   }
-  
+
   public DownloadManager getManager() {
     return this.manager;
   }

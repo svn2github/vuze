@@ -11,7 +11,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.BooleanParameter;
 import org.gudy.azureus2.core.ConfigurationManager;
 
@@ -74,55 +78,110 @@ public class ConfigView implements IView {
     GridLayout configLayout = new GridLayout();
     configLayout.numColumns = 2;
     gConfig.setLayout(configLayout);
+    Group gFile = new Group(gConfig, SWT.NULL);
+    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gFile.setLayoutData(gridData);
 
-    new Label(gConfig, SWT.NULL).setText("Override IP address sent to tracker");
-    GridData gridData = new GridData();
+    gFile.setText("Files");
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 3;
+    gFile.setLayout(layout);
+    new Label(gFile, SWT.NULL).setText("Use Fast Resume Mode");
+    new BooleanParameter(gFile, "Use Resume", false);
+    new Label(gFile, SWT.NULL);
+
+    new Label(gFile, SWT.NULL).setText("Allocate new files");
+    new BooleanParameter(gFile, "Allocate New", true);
+    new Label(gFile, SWT.NULL);
+
+    new Label(gFile, SWT.NULL).setText("Default save path");
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    final StringParameter pathParameter = new StringParameter(gFile, "Default save path", "");
+    pathParameter.setLayoutData(gridData);
+    Button browse = new Button(gFile, SWT.PUSH);
+    browse.setText("Browse...");
+    browse.addListener(SWT.Selection, new Listener() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+       */
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(gConfig.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(pathParameter.getValue());
+        dialog.setText("Please Choose the default save directory");
+        String path = dialog.open();
+        if (path != null) {
+          pathParameter.setValue(path);
+        }
+      }
+    });
+
+    Group gServer = new Group(gConfig, SWT.NULL);
+    gServer.setText("Server");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gServer.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gServer.setLayout(layout);
+
+    new Label(gServer, SWT.NULL).setText("Override IP address sent to tracker");
+    gridData = new GridData();
     gridData.widthHint = 100;
-    new StringParameter(gConfig, "Override Ip", "").setLayoutData(gridData);
+    new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData);
 
-    new Label(gConfig, SWT.NULL).setText("Use Fast Resume Mode");
-    new BooleanParameter(gConfig, "Use Resume", false);
-
-    new Label(gConfig, SWT.NULL).setText("Allocate new files");
-    final Button bAllocate = new Button(gConfig, SWT.CHECK);
-    bAllocate.setSelection(config.getBooleanParameter("Allocate New", true));
-
-    new Label(gConfig, SWT.NULL).setText("Disconnect seeds when seed");
-    new BooleanParameter(gConfig, "Disconnect Seed", false);
-
-    new Label(gConfig, SWT.NULL).setText("Auto-Switch to low-priority when seeding");
-    new BooleanParameter(gConfig, "Switch Priority", true);
-
-    new Label(gConfig, SWT.NULL).setText("Servers lowest port");
+    new Label(gServer, SWT.NULL).setText("Servers lowest port");
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gConfig, "Low Port", 6881).setLayoutData(gridData);
+    new IntParameter(gServer, "Low Port", 6881).setLayoutData(gridData);
 
-    new Label(gConfig, SWT.NULL).setText("Servers highest port");
+    new Label(gServer, SWT.NULL).setText("Servers highest port");
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gConfig, "High Port", 6889).setLayoutData(gridData);
+    new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData);
 
-    new Label(gConfig, SWT.NULL).setText("Max active torrents (0 : unlimited)\nNew torrents won't start if you are downloading/seeding more");
+    Group gGlobal = new Group(gConfig, SWT.NULL);
+    gGlobal.setText("Global");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gGlobal.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gGlobal.setLayout(layout);
+
+    new Label(gGlobal, SWT.NULL).setText("Disconnect seeds when seed");
+    new BooleanParameter(gGlobal, "Disconnect Seed", false);
+
+    new Label(gGlobal, SWT.NULL).setText("Auto-Switch to low-priority when seeding");
+    new BooleanParameter(gGlobal, "Switch Priority", true);
+
+    new Label(gGlobal, SWT.NULL).setText(
+      "Max active torrents (0 : unlimited)\nNew torrents won't start if you are downloading/seeding more");
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gConfig, "max active torrents", 4).setLayoutData(gridData);
-    
-    new Label(gConfig, SWT.NULL).setText("Maximum number of connections per torrent (0 : unlimited) ");
+    new IntParameter(gGlobal, "max active torrents", 4).setLayoutData(gridData);
+
+    Group gTransfer = new Group(gConfig, SWT.NULL);
+    gTransfer.setText("Transfer");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gTransfer.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gTransfer.setLayout(layout);
+
+    new Label(gTransfer, SWT.NULL).setText("Maximum number of connections per torrent (0 : unlimited) ");
     gridData = new GridData();
     gridData.widthHint = 30;
-    new IntParameter(gConfig, "Max Clients", 0).setLayoutData(gridData);
+    new IntParameter(gTransfer, "Max Clients", 0).setLayoutData(gridData);
 
-    new Label(gConfig, SWT.NULL).setText("Default max uploads per torrent");
+    new Label(gTransfer, SWT.NULL).setText("Default max uploads per torrent");
     final String upLabels[] = new String[99];
     final int upValues[] = new int[99];
     for (int i = 0; i < 99; i++) {
       upLabels[i] = " " + (i + 2);
       upValues[i] = i + 2;
     }
-    new IntListParameter(gConfig, "Max Uploads", 4, upLabels, upValues);
+    new IntListParameter(gTransfer, "Max Uploads", 4, upLabels, upValues);
 
-    new Label(gConfig, SWT.NULL).setText("Max Upload Speed (globally)");
+    new Label(gTransfer, SWT.NULL).setText("Max Upload Speed (globally)");
     final String upsLabels[] = new String[upRates.length];
     final int upsValues[] = new int[upRates.length];
     upsLabels[0] = "Unlimited";
@@ -131,11 +190,25 @@ public class ConfigView implements IView {
       upsLabels[i] = " " + upRates[i] + "kB/s";
       upsValues[i] = 1024 * upRates[i];
     }
-    new IntListParameter(gConfig, "Max Upload Speed", 0, upsLabels, upsValues);
+    new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues);
+
+    Group gDisplay = new Group(gConfig, SWT.NULL);
+    gDisplay.setText("Display");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gDisplay.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gDisplay.setLayout(layout);
+    new Label(gDisplay, SWT.NULL).setText("Auto open details tab");
+    new BooleanParameter(gDisplay, "Open Details", true);
+    
+    new Label(gDisplay, SWT.NULL).setText("Auto open download bar");
+    new BooleanParameter(gDisplay, "Open Bar", false);
+    
 
     Button enter = new Button(gConfig, SWT.PUSH);
     enter.setText("Save");
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_END);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.horizontalSpan = 2;
     enter.setLayoutData(gridData);
 

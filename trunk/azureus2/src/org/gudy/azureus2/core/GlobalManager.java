@@ -69,6 +69,10 @@ public class GlobalManager extends Component {
               manager.setPriority(DownloadManager.LOW_PRIORITY);
             }
 
+            if ((manager.getState() == DownloadManager.STATE_ERROR)
+              && (manager.getErrorDetails().equals("File Not Found"))) {
+              removeDownloadManager(manager);
+            }
           }
         }
         try {
@@ -165,19 +169,22 @@ public class GlobalManager extends Component {
           String savePath = new String((byte[]) mDownload.get("path"), "ISO-8859-1");
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int stopped = ((Long) mDownload.get("stopped")).intValue();
-          DownloadManager dm = new DownloadManager(this, fileName, savePath);
+          DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
-          if (stopped == 1)
-            dm.stopIt();
           this.addDownloadManager(dm);
         }
         catch (UnsupportedEncodingException e1) {
           //Do nothing and process next.
         }
       }
+      bin.close();
+      fin.close();
     }
     catch (FileNotFoundException e) {
       //Do nothing
+    }
+    catch (IOException e) {
+      // TODO Auto-generated catch block     
     }
   }
 
@@ -209,6 +216,7 @@ public class GlobalManager extends Component {
     //write the data out
     try {
       fos.write(torrentData);
+      fos.close();
     }
     catch (IOException e) {
       e.printStackTrace();
