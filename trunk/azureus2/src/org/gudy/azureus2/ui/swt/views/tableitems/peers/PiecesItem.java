@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
@@ -35,6 +36,8 @@ public class PiecesItem extends PeerItem  {
   
   //The Buffered image;
   Image image;
+  //And its size
+  Point imageSize;
   
   /**
    * @param row
@@ -69,7 +72,7 @@ public class PiecesItem extends PeerItem  {
     if (valid) {
       //If the image is still valid, simply copy it :)
       gc.setForeground(MainWindow.grey);
-      gc.drawImage(image, x0, y0);
+      gc.drawImage(image, 0, 0, width, height, x0,y0,width,height);
       gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
     }
@@ -78,8 +81,11 @@ public class PiecesItem extends PeerItem  {
  //     Image is not valid anymore ... so 1st free it :)
  //     Image oldImage = null;//image;      
  //     image = new Image(peerRow.getTableItem().getDisplay(), width, height);
-    	if (image == null) {
+    	Image oldImage = null;
+      if (image == null || ! imageSize.equals(new Point(width,height))) {
+        oldImage = image;
     		image = new Image(peerRow.getTableItem().getDisplay(), width, height);
+        imageSize = new Point(width,height);
      	}
       GC gcImage = new GC(image);
       boolean available[] = peerRow.getPeerSocket().getAvailable();
@@ -110,8 +116,8 @@ public class PiecesItem extends PeerItem  {
       gc.drawImage(image, x0, y0);
       gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
- //     if (oldImage != null && !oldImage.isDisposed())
- //       oldImage.dispose();
+      if (oldImage != null && !oldImage.isDisposed())
+        oldImage.dispose();
     }
   }
   
