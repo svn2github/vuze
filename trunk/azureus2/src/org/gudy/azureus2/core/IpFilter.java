@@ -144,20 +144,22 @@ public class IpFilter {
     try {
       //open the file
       File filtersFile = getApplicationFile("filters.config");
-      fin = new FileInputStream(filtersFile);
-      bin = new BufferedInputStream(fin);
-      Map map = BDecoder.decode(bin);
-      List list = (List) map.get("ranges");
-      Iterator iter = list.listIterator();
-      while(iter.hasNext()) {
-        Map range = (Map) iter.next();
-        String description =  new String((byte[])range.get("description"));
-        String startIp =  new String((byte[])range.get("start"));
-        String endIp = new String((byte[])range.get("end"));
-        
-        IpRange ipRange = new IpRange(description,startIp,endIp);
-        if(ipRange.isValid())
-          this.ipRanges.add(ipRange);
+      if (filtersFile.exists()) {
+	      fin = new FileInputStream(filtersFile);
+	      bin = new BufferedInputStream(fin);
+	      Map map = BDecoder.decode(bin);
+	      List list = (List) map.get("ranges");
+	      Iterator iter = list.listIterator();
+	      while(iter.hasNext()) {
+	        Map range = (Map) iter.next();
+	        String description =  new String((byte[])range.get("description"));
+	        String startIp =  new String((byte[])range.get("start"));
+	        String endIp = new String((byte[])range.get("end"));
+	        
+	        IpRange ipRange = new IpRange(description,startIp,endIp);
+	        if(ipRange.isValid())
+	          this.ipRanges.add(ipRange);
+	      }
       }
     } catch(Exception e) {
       e.printStackTrace();
