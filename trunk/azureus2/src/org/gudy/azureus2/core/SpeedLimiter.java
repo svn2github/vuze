@@ -78,7 +78,7 @@ public class SpeedLimiter {
   }
 
   /**
-   * Same as incUploads, but to tell that an upload is ended. 
+   * Same as addUploader, but to tell that an upload is ended. 
    */
   public void removeUploader(PeerSocket wt) {
     synchronized (uploaders) {
@@ -87,7 +87,7 @@ public class SpeedLimiter {
   }
 
   /**
-   * Method used to know is there is a limitation or not.
+   * Method used to know if there is a limitation or not.
    * @return true if speed is limited
    */
   public boolean isLimited(PeerSocket wt) {

@@ -65,7 +65,7 @@ public class PeerSocket extends PeerConnection {
   }
 
   /**
-   * The default Contructor for incoming conenctions
+   * The default Contructor for incoming connections
    * @param manager the manager that will handle this PeerConnection
    * @param table the graphical table in which this PeerConnection should display its info  
    * @param sck the SocketChannel that handles the connection 
