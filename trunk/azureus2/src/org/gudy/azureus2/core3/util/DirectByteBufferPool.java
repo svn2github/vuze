@@ -1,7 +1,9 @@
 /*
- * Created on Jan 30, 2004 by Alon Rohter
+ * Created on Jan 30, 2004
+ * Created by Alon Rohter
+ * Copyright (C) 2004 Alon Rohter, All Rights Reserved.
+ * 
  */
-
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
