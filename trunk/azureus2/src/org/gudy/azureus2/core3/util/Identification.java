@@ -22,52 +22,56 @@ public class Identification {
     final boolean DEBUG_ALL = false;
     final boolean DEBUG_UNKNOWN = false;
     
-    String generic = MessageText.getString("PeerSocket.generic");
-    String unknown = MessageText.getString("PeerSocket.unknown");
-        
     try {
-
       if (DEBUG_ALL) System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
-      
-      String azureus     = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
-      String shadow      = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
-    
+
+      String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
-        
         if (peerID[8] == (byte)0) return "Shadow";
-        
         String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
         String name = "Shadow ";
-        
         for (int i = 0; i < 2; i++) {
           name = name.concat(version.charAt(i) + ".");
         }
         name = name + version.charAt(2);
-        
         return name;
       }
       
-      if (old_azureus.equals("Azureus")) return "Azureus";
       
+      String azureus = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       if (azureus.equals("AZ")) {
         String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
         String name = "Azureus ";
-        
         for (int i = 0; i < 3; i++) {
           name = name.concat(version.charAt(i) + ".");
         }
         name = name + version.charAt(3);
-        
         return name;
       }
+      
+      
+      String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
+      if (old_azureus.equals("Azureus")) return "Azureus";
+      
+      
+      String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
+      if (upnp.equals("U")) {
+        String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
+        String name = "UPnP ";
+        for (int i = 0; i < 2; i++) {
+          name = name.concat(version.charAt(i) + ".");
+        }
+        name = name + version.charAt(2);
+        return name;
+      }
+      
       
       //check for generic client
       boolean allZero = true;
       for (int i = 0; i < 12; i++) {
         if (peerID[i] != (byte)0) { allZero = false; break; }
       }
-      if (allZero) return generic;
+      if (allZero) return MessageText.getString("PeerSocket.generic");
       
     }
     catch (Exception ignore) {/*ignore*/}
@@ -78,7 +82,7 @@ public class Identification {
       } catch (Exception ignore) {/*ignore*/} 
     }
     
-    return unknown;  
+    return MessageText.getString("PeerSocket.unknown");
   }
 
 }
