@@ -40,6 +40,8 @@ TRHostExternalTorrent
 	protected byte[]	hash;
 	protected URL		announce_url;
 	
+	protected Map		additional_properties = new HashMap();
+	
 	protected
 	TRHostExternalTorrent(
 		byte[]	_hash,
@@ -47,6 +49,8 @@ TRHostExternalTorrent
 	{
 		hash			= _hash;
 		announce_url	= _announce_url;
+		
+		TorrentUtils.setDefaultTorrentEncoding( this );
 	}
 	
 	public byte[]
@@ -168,13 +172,30 @@ TRHostExternalTorrent
 		String		name,
 		String		value )
 	{
+		try{
+		
+			additional_properties.put(name,value.getBytes(Constants.DEFAULT_ENCODING));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 		
 	public String
 	getAdditionalStringProperty(
 		String		name )
 	{
-		return( null );
+		try{
+			
+			return( new String((byte[])additional_properties.get(name),Constants.DEFAULT_ENCODING));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
 	}
 		
 	public void
@@ -182,13 +203,14 @@ TRHostExternalTorrent
 		String		name,
 		byte[]		value )
 	{
+		additional_properties.put(name,value);
 	}
 		
 	public byte[]
 	getAdditionalByteArrayProperty(
 		String		name )
 	{
-		return( null );
+		return( (byte[])additional_properties.get(name));
 	}
 	
 	public void
@@ -196,13 +218,14 @@ TRHostExternalTorrent
 		String		name,
 		Long		value )
 	{
+		additional_properties.put(name,value);
 	}
 		
 	public Long
 	getAdditionalLongProperty(
 		String		name )
 	{
-		return(null);
+		return((Long)additional_properties.get(name));
 	}
 		
 	
@@ -211,39 +234,42 @@ TRHostExternalTorrent
 		String		name,
 		List		value )
 	{
+		additional_properties.put(name,value);
 	}
 		
 	public List
 	getAdditionalListProperty(
 		String		name )
 	{
-		return( null );
+		return((List)additional_properties.get(name));
 	}
 		
 	public void
 	setAdditionalMapProperty(
-		String		name,
+		String	name,
 		Map		value )
 	{
+		additional_properties.put(name,value);
 	}
 		
 	public Map
 	getAdditionalMapProperty(
 		String		name )
 	{
-		return( null );
+		return( (Map)additional_properties.get(name));
 	}
 		
 	public Object
 	getAdditionalProperty(
 		String		name )
 	{
-		return( null );
+		return( additional_properties.get(name));
 	}
 	
 	public void
 	removeAdditionalProperties()
 	{
+		additional_properties.clear();
 	}
 	
 	public void
