@@ -63,6 +63,8 @@ ShareResourceImpl
 	
 	public void
 	delete()
+	
+		throws ShareException
 	{
 		manager.delete(this);
 	}
@@ -171,6 +173,7 @@ ShareResourceImpl
 	}
 	
 	protected abstract void
-	checkConsistency();
+	checkConsistency()
 	
+		throws ShareException;
 }

@@ -144,6 +144,8 @@ ShareResourceFileOrDirImpl
 	
 	protected void
 	checkConsistency()
+	
+		throws ShareException
 	{
 		try{
 			if ( Arrays.equals(getFingerPrint(), item.getFingerPrint())){

@@ -45,6 +45,9 @@ ShareManagerImpl
 	public static final String		TORRENT_STORE 		= "shares";
 	public static final String		TORRENT_SUBSTORE	= "cache";
 	
+	public static final int			MAX_FILES_PER_DIR	= 1000;
+	public static final int			MAX_DIRS			= 1000;
+	
 	protected static ShareManagerImpl	singleton;
 	
 	public synchronized static ShareManagerImpl
@@ -110,16 +113,26 @@ ShareManagerImpl
 			
 			config = new ShareConfigImpl();
 			
-			config.loadConfig(this);
-		
-			reportCurrentTask( "Checking Consistency");	
+			try{
+				config.suspendSaving();
 			
-			checkConsistency();
+				config.loadConfig(this);
+		
+				reportCurrentTask( "Checking Consistency");	
+			
+				checkConsistency();
+				
+			}finally{
+			
+				config.resumeSaving();
+			}
 		}
 	}
 	
 	protected void
 	checkConsistency()
+	
+		throws ShareException
 	{
 		Iterator	it = new HashSet(shares.keySet()).iterator();
 		
@@ -186,7 +199,7 @@ ShareManagerImpl
 	{
 		Random rand = new Random(System.currentTimeMillis());
 		
-		for (int i=1;i<1024;i++){
+		for (int i=1;i<=MAX_DIRS;i++){
 			
 			String	cache_dir_str = share_dir + File.separator + TORRENT_SUBSTORE + i;
 			
@@ -197,15 +210,20 @@ ShareManagerImpl
 				cache_dir.mkdirs();
 			}
 			
-			for (int j=0;j<1024;j++){
+			if ( cache_dir.listFiles().length < MAX_FILES_PER_DIR ){
 				
-				long	file = Math.abs(rand.nextLong());
-		
-				File	file_name = new File(cache_dir_str + File.separator + file + ".torrent");
-				
-				if ( !file_name.exists()){
+				for (int j=0;j<MAX_FILES_PER_DIR;j++){
 					
-					return( TORRENT_SUBSTORE + i + File.separator + file + ".torrent" );
+					long	file = Math.abs(rand.nextLong());
+			
+					File	file_name = new File(cache_dir_str + File.separator + file + ".torrent");
+					
+					if ( !file_name.exists()){
+						
+							// return path relative to cache_dir to save space 
+						
+						return( TORRENT_SUBSTORE + i + File.separator + file + ".torrent" );
+					}
 				}
 			}
 		}
@@ -367,6 +385,8 @@ ShareManagerImpl
 	protected synchronized void
 	delete(
 		ShareResourceImpl	resource )
+	
+		throws ShareException
 	{
 		shares.remove(resource);
 		

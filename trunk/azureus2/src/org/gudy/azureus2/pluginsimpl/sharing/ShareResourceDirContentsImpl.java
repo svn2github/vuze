@@ -53,6 +53,21 @@ ShareResourceDirContentsImpl
 		recursive	= _recursive;
 	}
 	
+	protected
+	ShareResourceDirContentsImpl(
+		ShareManagerImpl	_manager,
+		File				_dir,
+		boolean				_recursive,
+		Map					_map )
+
+		throws ShareException
+	{
+		super( _manager, ST_DIR_CONTENTS );
+		
+		root 		= _dir;
+		recursive	= _recursive;
+	}
+	
 	protected void
 	checkConsistency()
 	{
@@ -69,17 +84,23 @@ ShareResourceDirContentsImpl
 	serialiseResource(
 		Map		map )
 	{
-		// TODO:
+		map.put( "recursive", new Long(recursive?1:0));
+		
+		map.put( "file", root.toString());
 	}
 	
 	protected static ShareResourceImpl
 	deserialiseResource(
-		ShareManagerImpl	_manager,
-		Map					_map )
+		ShareManagerImpl	manager,
+		Map					map )
+	
+		throws ShareException
 	{
-		// TODO:
+		File root = new File(new String((byte[])map.get("file")));
 		
-		return( null );
+		boolean	recursive = ((Long)map.get("recursive")).longValue() == 1;
+		
+		return( new ShareResourceDirContentsImpl( manager, root, recursive, map ));
 	}
 	
 	public String

@@ -37,6 +37,9 @@ ShareConfigImpl
 {
 	protected ShareManagerImpl		manager;
 	
+	protected boolean				saving_suspended;
+	protected boolean				save_outstanding;
+	
 	protected void
 	loadConfig(
 		ShareManagerImpl	_manager )
@@ -101,7 +104,16 @@ ShareConfigImpl
 
 	protected synchronized void
 	saveConfig()
+	
+		throws ShareException
 	{
+		if ( saving_suspended ){
+			
+			save_outstanding = true;
+			
+			return;
+		}
+		
 		Map map = new HashMap();
 		
 		List list = new ArrayList();
@@ -137,12 +149,41 @@ ShareConfigImpl
 		}catch (Exception e){
 			
 			e.printStackTrace();
+			
+			throw( new ShareException("ShareConfig::saveConfig failed", e ));
 		}finally{
 			
 			try {
-				if (fos != null)
+				if (fos != null){
+					
 					fos.close();
-			}catch (Exception e) {}
+				}
+				
+			}catch (Exception e){
+				
+				throw( new ShareException("ShareConfig::saveConfig failed", e ));
+				
+			}
+		}
+	}
+	
+	protected synchronized void
+	suspendSaving()
+	{
+		saving_suspended	= true;
+	}
+	
+	protected synchronized void
+	resumeSaving()
+		throws ShareException
+	{
+		saving_suspended	= false;
+		
+		if ( save_outstanding ){
+			
+			save_outstanding	= false;
+			
+			saveConfig();
 		}
 	}
 }

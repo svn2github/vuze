@@ -39,5 +39,8 @@ ShareResource
 	getName();
 	
 	public void
-	delete();
+	delete()
+	
+		throws ShareException;
+	
 }
