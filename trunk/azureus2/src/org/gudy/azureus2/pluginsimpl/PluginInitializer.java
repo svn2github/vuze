@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
 
 import org.gudy.azureus2.ui.swt.SplashWindow;
 
@@ -133,6 +134,8 @@ PluginInitializer
 	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
 	    	
 	      if(splash != null) {
+          LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
+
 	      	
 	        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
 	      }
@@ -150,6 +153,7 @@ PluginInitializer
     }
     
     	// now do built in ones
+    LGLogger.log("Initializing built-in plugins");
     
      for (int i=0;i<builtin_plugins.length;i++){
     	

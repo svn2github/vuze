@@ -401,6 +401,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         
     ImageRepository.loadImages(display);
     
+    LGLogger.log("Loading images complete");
     splashNextTask();
     setSplashTask("splash.initializeGui");
     
@@ -731,6 +732,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     });
     
 
+    LGLogger.log("Initializing GUI tabs");
+
     createDropTarget(mainWindow);
 
     GridLayout mainLayout = new GridLayout();
@@ -791,11 +794,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
     }
 
+    LGLogger.log("Initializing GUI complete");
     splashNextTask();
     setSplashTask( "splash.initializePlugins");
 
     PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
 
+    LGLogger.log("Initializing Plugins complete");
     splashNextTask();
     setSplashTask( "splash.openViews");
     
