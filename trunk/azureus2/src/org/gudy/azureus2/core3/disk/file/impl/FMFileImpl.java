@@ -110,7 +110,7 @@ FMFileImpl
 		
 		close();
 		
-		if ( file.renameTo(new_file)) {
+		if ( FileUtil.renameFile( file, new_file)) {
 			
 			file			= new_file;
 			canonical_path	= new_canonical_path;

@@ -11,7 +11,6 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -662,4 +661,93 @@ public class FileUtil {
     	return( null );
     }
 
+    public static boolean
+	renameFile(
+		File		from_file,
+		File		to_file )
+    {
+    	if ( to_file.exists()){
+    		
+    		return( false );
+    	}
+    	
+		if ( from_file.renameTo( to_file )){
+	  					
+			return( true );
+
+		}else{
+
+			// can't rename across file systems under Linux - try copy+delete
+
+			FileInputStream		fis = null;
+			
+			FileOutputStream	fos = null;
+			
+			try{
+				fis = new FileInputStream( from_file );
+				
+				fos = new FileOutputStream( to_file );
+			
+				byte[]	buffer = new byte[65536];
+				
+				while( true ){
+					
+					int	len = fis.read( buffer );
+					
+					if ( len <= 0 ){
+						
+						break;
+					}
+					
+					fos.write( buffer, 0, len );
+				}
+				
+				fos.close();
+				
+				fos	= null;
+				
+				fis.close();
+				
+				fis = null;
+				
+				if ( !from_file.delete()){
+					
+					throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
+				}
+				
+				return( true );
+				
+			}catch( Throwable e ){		
+
+				LGLogger.logAlert( "Failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
+				
+				return( false );
+				
+			}finally{
+				
+				if ( fis != null ){
+					
+					try{
+						fis.close();
+						
+					}catch( Throwable e ){
+					}
+				}
+				
+				if ( fos != null ){
+					
+					try{
+						fos.close();
+						
+					}catch( Throwable e ){
+					}
+				}
+				
+				if ( to_file.exists()){
+					
+					to_file.delete();
+				}
+			}
+		}
+    }
 }

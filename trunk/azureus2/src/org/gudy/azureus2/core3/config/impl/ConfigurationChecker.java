@@ -325,7 +325,7 @@ public class ConfigurationChecker {
       for( int i=0; i < files.length; i++ ) {
         File source_file = files[ i ];
         File dest_file = new File( dest_dir, source_file.getName() );
-        boolean ok = source_file.renameTo( dest_file );
+        boolean ok = FileUtil.renameFile( source_file, dest_file );
         if( ok ) result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : OK\n";
         else result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : FAILED\n";
       }
