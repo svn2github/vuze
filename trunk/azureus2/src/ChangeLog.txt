@@ -46,6 +46,7 @@ CHANGE: Core | Scrape interval now based on # of seeds (15min minimum) [TuxPaper
 CHANGE: Core | Socket writes now done in full MSS-sized chunks [Nolar]
 CHANGE: Core | Upload limit can now be set less than 5KB/sec. However, doing so limits download speed too [Parg]
 CHANGE: Core | User config/pref/plugins dir culled from Windows' Registry (needs aereg.dll) [Parg]
+CHANGE: Core | OSX user- pref/plugin dir moved from ~/Library/Azureus/ to ~/Library/Application Support/Azureus/ to meet osx standards [Nolar]
 CHANGE: UI   | All progress/piece bars re-done (again) [TuxPaper]
 CHANGE: UI   | Azureus should work with SWT 2.12 until we break backwards compat. again [TuxPaper]
 CHANGE: UI   | Shrink "My Torrents" Context menu [TuxPaper]
