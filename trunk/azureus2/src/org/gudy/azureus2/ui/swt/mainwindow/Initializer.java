@@ -109,7 +109,7 @@ public class Initializer implements STProgressListener, Application {
     reportCurrentTaskByKey("splash.initializeGui");
     new Colors();
     Cursors.init();
-    new MainWindow(gm,this);
+    
     
     nextTask();  
     reportCurrentTaskByKey( "splash.initializePlugins");
@@ -124,6 +124,7 @@ public class Initializer implements STProgressListener, Application {
     //Tell listeners that all is initialized :
     Alerts.initComplete();
     
+    new MainWindow(gm,this);
     nextTask();
      
   }
