@@ -31,7 +31,7 @@ import java.util.*;
 public class 
 NonDaemonTaskRunner 
 {
-	public static final int	LINGER_PERIOD	= 2000;
+	public static final int	LINGER_PERIOD	= 5000;
 	
 	protected static NonDaemonTaskRunner	singleton;
 	
