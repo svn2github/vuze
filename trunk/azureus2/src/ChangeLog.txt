@@ -16,7 +16,7 @@ FEATURE: Tracker support for multiple pages [IAmChrist]
 FEATURE: Tracker pages skinable by placing pages in %azhome%/web [Parg]
 FEATURE: Major extensions to plugin interfaces [Parg]
 FEATURE: Simple Swing based remote admin interface (over SSL+password auth) - email parg@users.sourceforge.net for details [Parg]
-FEATURE: click on hash in general view to copy hash to clipboard [Parg]
+FEATURE: Click on hash in general view to copy hash to clipboard [Parg]
 
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
 CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK) [Gudy]
