@@ -40,7 +40,6 @@ import javax.net.ssl.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
-import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 
 public class 
@@ -48,7 +47,9 @@ RemoteUIApplet
 	extends 	Applet
 	implements 	RPRequestDispatcher
 {
-	protected PluginInterface		plugin_interface;
+	public static final int REQUEST_RETRY_LIMIT	= 5;
+	
+	protected RPPluginInterface		plugin_interface;
 	
 	public
 	RemoteUIApplet()
@@ -76,13 +77,13 @@ RemoteUIApplet
 	start()
 	{
 		try{
-			final PluginInterface pi = RPFactory.getPlugin( this );
+			plugin_interface = RPFactory.getPlugin( this );
 			
 			//System.out.println( "got pi:" + pi );
 			//Properties props = pi.getPluginProperties();
 			//System.out.println( "props = " + props );
 			
-			final DownloadManager		download_manager	= pi.getDownloadManager();
+			final DownloadManager		download_manager	= plugin_interface.getDownloadManager();
 				
 			RemoteUIMainPanel	panel = new RemoteUIMainPanel( download_manager );
 			
@@ -126,8 +127,43 @@ RemoteUIApplet
 		}
 	}
 	
+	public RPPluginInterface
+	getPlugin()
+	{
+		return( plugin_interface );
+	}
+	
 	public RPReply
 	dispatch(
+		RPRequest	request )
+	
+		throws RPException
+	{
+		Throwable 	last_error = null;
+		
+		for (int i=0;i<REQUEST_RETRY_LIMIT;i++){
+			
+			try{
+				RPReply	reply = dispatchSupport( request );
+			
+				return( reply );
+				
+			}catch( Throwable e ){
+				
+				last_error	= e;
+			}
+		}
+		
+		if ( last_error instanceof RPException ){
+			
+			throw((RPException)last_error);
+		}
+		
+		throw( new RPException( "RemoteUIApplet::dispatch failed", last_error ));
+	}
+	
+	protected RPReply
+	dispatchSupport(
 		RPRequest	request )
 	
 		throws RPException

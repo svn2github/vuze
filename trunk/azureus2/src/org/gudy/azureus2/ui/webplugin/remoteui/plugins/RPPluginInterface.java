@@ -47,7 +47,10 @@ RPPluginInterface
 	extends		RPObject
 	implements 	PluginInterface
 {
+	protected static long	connection_id_next	= new Random().nextLong();
+	
 	protected transient PluginInterface		delegate;
+	protected transient long				request_id_next;
 	
 	public static RPPluginInterface
 	create(
@@ -63,11 +66,30 @@ RPPluginInterface
 		return( res );
 	}	
 	
+	protected long	_connection_id;
+	
 	protected
 	RPPluginInterface(
 		PluginInterface		_delegate )
 	{
 		super( _delegate );
+		
+		synchronized( RPPluginInterface.class ){
+			
+			_connection_id = connection_id_next++;
+		}
+	}
+	
+	protected long
+	_getConectionId()
+	{
+		return( _connection_id );
+	}
+	
+	protected synchronized long
+	_getNextRequestId()
+	{
+		return( request_id_next++ );
 	}
 	
 	protected void

@@ -28,6 +28,9 @@ package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
 public interface 
 RPRequestDispatcher 
 {
+	public RPPluginInterface
+	getPlugin();
+	
 	public RPReply
 	dispatch(
 		RPRequest	request )

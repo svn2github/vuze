@@ -34,7 +34,7 @@ RPFactory
 	
 		throws RPException
 	{
-		RPRequest	request = new RPRequest(null, "getSingleton", null );
+		RPRequest	request = new RPRequest( null, "getSingleton", null );
 		
 		RPReply		reply	= dispatcher.dispatch( request );
 		

@@ -126,6 +126,12 @@ RPObject
 		dispatcher	= _dispatcher;
 	}
 	
+	protected RPRequestDispatcher
+	getDispatcher()
+	{
+		return( dispatcher );
+	}
+	
 	public abstract RPReply
 	_process(
 		RPRequest	request	);

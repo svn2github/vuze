@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.servlet;
 import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.zip.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
@@ -39,6 +40,8 @@ public class
 RemoteUIServlet
 	extends WebPlugin
 {
+	protected Map	reply_cache	= new HashMap();
+	
 	public boolean
 	generateSupport(
 		TrackerWebPageRequest		request,
@@ -100,6 +103,30 @@ RemoteUIServlet
 	processRequest(
 		RPRequest		request )
 	{
+		Long	connection_id 	= new Long( request.getConnectionId());
+
+		replyCache	cached_reply = (replyCache)reply_cache.get(connection_id);
+		
+		if ( cached_reply != null ){
+			
+			if ( cached_reply.getId() == request.getRequestId()){
+				
+				return( cached_reply.getReply());
+			}
+		}
+		
+		RPReply	reply = processRequestSupport( request );
+		
+		reply_cache.put( connection_id, new replyCache( request.getRequestId(), reply ));
+		
+		return( reply );
+	}
+	
+
+	protected RPReply
+	processRequestSupport(
+		RPRequest		request )
+	{
 		try{
 			RPObject		object 	= request.getObject();
 			String			method	= request.getMethod();
@@ -111,6 +138,7 @@ RemoteUIServlet
 				return( reply );
 				
 			}else{
+				System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
 				object._setLocal();
 				
 				if ( method.equals( "_refresh" )){
@@ -131,6 +159,34 @@ RemoteUIServlet
 		}catch( Throwable e ){
 			
 			return( new RPReply( new RPException( "server execution fails", e )));
+		}
+	}
+	
+	protected static class
+	replyCache
+	{
+		protected long		id;
+		protected RPReply	reply;
+		
+		protected
+		replyCache(
+			long		_id,
+			RPReply		_reply )
+		{
+			id		= _id;
+			reply	= _reply;
+		}
+		
+		protected long
+		getId()
+		{
+			return( id );
+		}
+		
+		protected RPReply
+		getReply()
+		{
+			return( reply );
 		}
 	}
 }

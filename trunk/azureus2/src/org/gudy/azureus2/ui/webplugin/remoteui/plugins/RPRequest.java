@@ -35,15 +35,38 @@ RPRequest
 	protected String	method;
 	protected Object	params;
 	
+	protected long		connection_id;
+	protected long		request_id;
+	
 	public
 	RPRequest(
-		RPObject		_object,
-		String			_method,
-		Object			_params )
+		RPObject			_object,
+		String				_method,
+		Object				_params )
 	{
 		object		= _object;
 		method		= _method;
 		params		= _params;
+		
+		if ( object != null ){
+			
+			RPPluginInterface	pi = object.getDispatcher().getPlugin();
+			
+			connection_id	= pi._getConectionId();
+			request_id		= pi._getNextRequestId();
+		}
+	}
+	
+	public long
+	getConnectionId()
+	{
+		return( connection_id );
+	}
+	
+	public long
+	getRequestId()
+	{
+		return( request_id );
 	}
 	
 	public String
