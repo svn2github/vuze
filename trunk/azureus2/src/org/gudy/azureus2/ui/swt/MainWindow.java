@@ -420,7 +420,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       allocateBlues();
       
       black = new Color(display, new RGB(0, 0, 0));
-      blue = new Color(display, new RGB(128, 128, 255));
+      blue = new Color(display, new RGB(0, 0, 170));
       grey = new Color(display, new RGB(170, 170, 170));
       red = new Color(display, new RGB(255, 0, 0));
       white = new Color(display, new RGB(255, 255, 255));
