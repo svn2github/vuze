@@ -68,7 +68,7 @@ public class PeersViewItemEnumerator {
     while(iter.hasNext()) {
       String name = (String) iter.next();
       PluginPeerItemFactory ppif = (PluginPeerItemFactory) extensions.get(name);
-      items.add(ppif.getName() + ";L;" + ppif.getType() + ";" + ppif.getDefaultSize() + ";-1");
+      items.add(ppif.getName().concat(";L;").concat(ppif.getType()).concat(";").concat(String.valueOf(ppif.getDefaultSize())).concat(";-1"));
     }
     return ConfigBasedItemEnumerator.getInstance("Peers",(String[])items.toArray(new String[items.size()]));
   }
