@@ -1301,7 +1301,7 @@ public class PeerManager extends Thread {
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
     if (dataRemaining == 0) {
       
-      long timeElapsed = _timeStarted - _timeFinished;
+      long timeElapsed = _timeFinished - _timeStarted;
       if(timeElapsed > 0) {
         remaining = MessageText.getString("PeerManager.status.finishedin"); //$NON-NLS-1$
         remaining += " " + TimeFormater.format(timeElapsed);

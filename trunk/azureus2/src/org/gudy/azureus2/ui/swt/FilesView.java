@@ -50,7 +50,7 @@ public class FilesView extends AbstractIView {
    */
   public void initialize(Composite composite) {
 
-    table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table(composite, SWT.MULTI | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
     String[] columnsHeader = { "name", "size", "done", "%", "firstpiece", "numberofpieces", "pieces", "mode", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
@@ -97,14 +97,19 @@ public class FilesView extends AbstractIView {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           itemOpen.setEnabled(false);
+          itemPriority.setEnabled(false);
           return;
         }
         itemOpen.setEnabled(false);
-        TableItem ti = tis[0];
-        FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-        if (fileInfo.getAccessmode() == FileInfo.READ)
-        itemOpen.setEnabled(true);
-
+        itemPriority.setEnabled(true);
+        boolean open = true;
+        for(int i = 0 ; i < tis.length ; i++) {
+          TableItem ti = tis[0];
+          FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+          if (fileInfo.getAccessmode() != FileInfo.READ)
+            open = false;
+        }
+        itemOpen.setEnabled(open);
       }
     });       
 
@@ -114,10 +119,12 @@ public class FilesView extends AbstractIView {
         if (tis.length == 0) {
           return;
         }
-        TableItem ti = tis[0];
-        FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-        if (fileInfo != null && fileInfo.getAccessmode() == FileInfo.READ)
-          Program.launch(fileInfo.getPath() + fileInfo.getName());
+        for(int i = 0 ; i < tis.length ; i++) {
+          TableItem ti = tis[i];
+          FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+          if (fileInfo != null && fileInfo.getAccessmode() == FileInfo.READ)
+            Program.launch(fileInfo.getPath() + fileInfo.getName());
+        }
       }
     });
     
@@ -127,11 +134,14 @@ public class FilesView extends AbstractIView {
             if (tis.length == 0) {
               return;
             }
-            TableItem ti = tis[0];
-            FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-            if (fileInfo != null)
-              fileInfo.setPriority(true);
-              fileInfo.setSkipped(false);
+            for(int i = 0 ; i < tis.length ; i++) {
+              TableItem ti = tis[i];
+              FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+              if (fileInfo != null) {
+                fileInfo.setPriority(true);
+                fileInfo.setSkipped(false);
+              }
+            }
           }
         });
         
@@ -141,11 +151,14 @@ public class FilesView extends AbstractIView {
             if (tis.length == 0) {
               return;
             }
-            TableItem ti = tis[0];
-            FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-            if (fileInfo != null)
-              fileInfo.setPriority(false);
-              fileInfo.setSkipped(false);
+            for(int i = 0 ; i < tis.length ; i++) {
+              TableItem ti = tis[i];
+              FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+              if (fileInfo != null) {
+                fileInfo.setPriority(false);
+                fileInfo.setSkipped(false);
+              }
+            }
           }
         });
         
@@ -155,10 +168,12 @@ public class FilesView extends AbstractIView {
                 if (tis.length == 0) {
                   return;
                 }
-                TableItem ti = tis[0];
-                FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-                if (fileInfo != null)
-                  fileInfo.setSkipped(true);
+                for(int i = 0 ; i < tis.length ; i++) {
+                  TableItem ti = tis[i];
+                  FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+                  if (fileInfo != null)
+                    fileInfo.setSkipped(true);
+                }
               }
             });
     
