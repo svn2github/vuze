@@ -213,8 +213,10 @@ public class FilesView extends AbstractIView {
       return;
 
     DiskManager diskManager = manager.diskManager;
-    if (diskManager == null)
-      return;
+    if (diskManager == null) {      
+      return;      
+    }
+    removeInvalidFileItems();
     FileInfo files[] = diskManager.getFiles();
     if (files == null)
       return;
@@ -228,19 +230,36 @@ public class FilesView extends AbstractIView {
         }
         fileItem.refresh();
       }
-    }    
-
+    }
   }
   
-  private void removeFileItems() {
-    if(items == null)
+  private void removeInvalidFileItems() {
+    DiskManager diskManager = manager.diskManager;
+    if(items == null || diskManager == null)
       return;
+    FileInfo files[] = diskManager.getFiles();
     Iterator iter = items.values().iterator();
     while(iter.hasNext()) {        
       FileItem fileItem = (FileItem) iter.next();
-      fileItem.delete();
+      FileInfo fileInfo = (FileInfo) itemsToFile.get(fileItem.getItem());
+      if(! containsFileInfo(files,fileInfo)) {        
+        itemsToFile.remove(fileItem.getItem());
+        fileItem.delete();
+        iter.remove();
+      }
     }    
-    items.clear();    
+  }
+  
+  private boolean containsFileInfo(FileInfo[] files,FileInfo file) {
+    //This method works with reference comparision
+    if(files == null || file == null) {
+      return true;
+    }
+    for(int i = 0 ; i < files.length ; i++) {
+      if(files[i] == file)
+        return true;
+    }
+    return false;
   }
 
   /* (non-Javadoc)
