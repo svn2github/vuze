@@ -48,10 +48,10 @@ public class SWTZipDownloader implements DownloadListener{
   
 
   public void reportData(InputStream is) {
-    if(is != null) {
-      this.listener.reportData(is);
+    if(is != null) {      
       LGLogger.log("SWT Updater has downloaded the SWT package");
       UpdateLogger.log("SWT Updater has downloaded the SWT package");
+      this.listener.reportData(is);
     } else {
       LGLogger.log("SWT Updater : failed to download");
       UpdateLogger.log("SWT Updater : failed to download");

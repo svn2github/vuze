@@ -183,21 +183,30 @@ public class UpdateSWT {
     return new File(fileName);
   }
   
-  public static void restart(String userPath,String libPath) throws IOException{            
+  public static void restart(String userPath,String libPath) throws IOException{
+    String osName = System.getProperty("os.name");
+    if(osName.equalsIgnoreCase("Linux")) {
+      restartLinux(userPath,libPath);
+    } else if(osName.equalsIgnoreCase("Mac OS X")) {
+      restartOSX(userPath,libPath);
+    } else {
+      restartWindows(userPath,libPath);
+    }
+  }
+  
+  public static void restartLinux(String userPath,String libPath) throws IOException{
     
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$   
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
+  }
+  
+  public static void restartOSX(String userPath,String libPath) throws IOException{
     
-    String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
-    + "\" -Djava.library.path=\"" + libPath
-    + "\" -Duser.dir=\"" + userPath
-    + "\" org.gudy.azureus2.ui.swt.Main";
-             
+  }
+  
+  public static void restartWindows(String userPath,String libPath) throws IOException{            
+    String exec = userPath + "\\Azureus.exe";
     UpdateLogger.log("Restarting with command line : " + exec);
-    
     Runtime.getRuntime().exec(exec);
   }
+  
+  
 }
