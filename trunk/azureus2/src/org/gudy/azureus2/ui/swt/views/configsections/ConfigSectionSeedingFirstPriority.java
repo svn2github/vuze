@@ -198,12 +198,12 @@ public class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
 		ignoreSPRatioLabels[i] = i * 10 + " " + ":1" ;
 		ignoreSPRatioValues[i] = i * 10;
     }
-	new IntListParameter(cIgnoreFP, "StartStopManager_iFirstPriority_ignoreSPRatio", 10,
+	new IntListParameter(cIgnoreFP, "StartStopManager_iFirstPriority_ignoreSPRatio", 0,
 							ignoreSPRatioLabels, ignoreSPRatioValues);
 
 	//	 Ignore 0 Peers
     new BooleanParameter(cIgnoreFP,
-                         "StartStopManager_bFirstPriority_ignore0Peer", true, 
+                         "StartStopManager_bFirstPriority_ignore0Peer", false, 
                          "ConfigView.label.seeding.firstPriority.ignore0Peer");
 	
 	//	 row

@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.Ignore;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.Plugin;
@@ -1030,7 +1029,6 @@ public class StartStopRulesDefaultPlugin
 	              sDebugLine += "\nShare Ratio Met";
 	            dlData.setSeedingRank(SR_SHARERATIOMET);
 	          }
-
 	  
 	          // Ignore when P:S ratio met
 	          if (iIgnoreRatioPeers != 0 && 
@@ -1047,7 +1045,7 @@ public class StartStopRulesDefaultPlugin
 	              }
 	            }
 	          }
-			  
+	
 	        // Change to waiting if queued and we have an open slot
 	        } else if ((state == Download.ST_QUEUED) &&
 	                   (numWaitingOrSeeding < maxSeeders) && 
@@ -1099,11 +1097,17 @@ public class StartStopRulesDefaultPlugin
 	
 	        // if there's more torrents waiting/seeding than our max, or if
 	        // there's a higher ranked torrent queued, stop this one
+			// XXX Gouss - stop non active torrents if lower in the queue than 
+			// the last seeding torrent
 	        if (okToQueue &&
-	            (bActivelySeeding || state != Download.ST_SEEDING || (!bActivelySeeding && state == Download.ST_SEEDING && !bAutoStart0Peers)) &&
+	            (((bActivelySeeding || state != Download.ST_SEEDING) &&
 	            ((numWaitingOrSeeding > maxSeeders) || 
 	             higherQueued || 
-	             dlData.getSeedingRank() <= -2)) 
+	             dlData.getSeedingRank() <= -2)) ||
+	             ((!bActivelySeeding && state == Download.ST_SEEDING) &&
+				            ((numWaitingOrSeeding >= maxSeeders) || 
+				             higherQueued || 
+				             dlData.getSeedingRank() <= -2)))) 
 	        {
 	          try {
 	            if (bDebugLog) {
@@ -1465,24 +1469,29 @@ public class StartStopRulesDefaultPlugin
 	      }else{
 	      
 		      /** 
-		       * Check ignore rules
+		       * XXX Check ignore rules
 		       */
 		      // never apply ignore rules to First Priority Matches
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
-	      	if (num_peers_excluding_us == 0 && bScrapeResultsOk && bIgnore0Peers) {
-	          setSeedingRank(SR_0PEERS);
-	          return SR_0PEERS;
+	        if (num_peers_excluding_us == 0 && bScrapeResultsOk) {
+				if ( (iIgnoreShareRatio != 0 && shareRatio > iIgnoreShareRatio) ||
+						( iIgnoreShareRatio == 0 && shareRatio > minQueueingShareRatio) &&
+						shareRatio != -1 &&
+						bIgnore0Peers){
+					setSeedingRank(SR_0PEERS);
+			          return SR_0PEERS;
+				}
+	          
 	        }
-	      
-		    if (iIgnoreShareRatio != 0 && 
+	
+	        if (iIgnoreShareRatio != 0 && 
 			         shareRatio >= iIgnoreShareRatio && 
 			         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
 			         shareRatio != -1) {
-			     setSeedingRank(SR_SHARERATIOMET);
-			     return sr;
-			}
-							
+	          setSeedingRank(SR_SHARERATIOMET);
+	          return sr;
+	        }
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {

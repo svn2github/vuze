@@ -345,6 +345,7 @@ ConfigurationChecker
 		int iIgnoreSPRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ignoreSPRatio");
 		if (iIgnoreSPRatio < 10 && iIgnoreSPRatio != 0) {
 			COConfigurationManager.setParameter("StartStopManager_iFirstPriority_ignoreSPRatio", 10);
+			changed = true;
 		}
 	
 	    String uniqueId = COConfigurationManager.getStringParameter("ID",null);
