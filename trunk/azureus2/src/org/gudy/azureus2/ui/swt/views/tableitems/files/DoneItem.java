@@ -44,7 +44,10 @@ public class DoneItem
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
     long value = (fileInfo == null) ? 0 : fileInfo.getDownloaded();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

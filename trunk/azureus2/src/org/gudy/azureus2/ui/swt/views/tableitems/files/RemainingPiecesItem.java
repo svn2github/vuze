@@ -54,7 +54,10 @@ public class RemainingPiecesItem
       }
     }
 
-    cell.setSortValue( remaining );
+    if( !cell.setSortValue( remaining ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText( "" + remaining );
   }
 }

@@ -42,7 +42,10 @@ public class FirstPieceItem
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
     long value = (fileInfo == null) ? 0 : fileInfo.getFirstPieceNumber();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

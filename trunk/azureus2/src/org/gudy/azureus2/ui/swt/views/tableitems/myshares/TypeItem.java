@@ -41,24 +41,29 @@ public class TypeItem
 
   public void refresh(TableCell cell) {
     ShareResource item = (ShareResource)cell.getDataSource();
-    if (item == null) {
-      cell.setText("");
-    } else {
-      long type = item.getType();
-      String sText = "";
+    
+    String text = "";
+    
+    if( item != null ) {
+      int type = item.getType();
+      
+      if( !cell.setSortValue( type ) && cell.isValid() ) {
+        return;
+      }
+      
       if (type == ShareResource.ST_DIR)
-        sText = "MySharesView.type.dir";
+        text = MessageText.getString( "MySharesView.type.dir" );
       else if (type == ShareResource.ST_FILE)
-        sText = "MySharesView.type.file";
+        text = MessageText.getString( "MySharesView.type.file" );
       else if (type == ShareResource.ST_DIR_CONTENTS) {
         ShareResourceDirContents s = (ShareResourceDirContents)item;
         if (s.isRecursive())
-          sText = "MySharesView.type.dircontentsrecursive";
+          text = MessageText.getString( "MySharesView.type.dircontentsrecursive" );
         else
-          sText = "MySharesView.type.dircontents";
+          text = MessageText.getString( "MySharesView.type.dircontents" );
       }
-
-      cell.setText((sText == "") ? "" : MessageText.getString(sText));
     }
+    
+    cell.setText( text );
   }
 }

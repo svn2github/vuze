@@ -45,7 +45,10 @@ public class PercentItem
     if (fileInfo != null && fileInfo.getLength() != 0)
       percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
 
-    cell.setSortValue(percent);
+    if( !cell.setSortValue( percent ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText((percent / 10) + "." + (percent % 10) + "%");
   }
 }
