@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
@@ -67,10 +68,14 @@ DownloadImpl
 	protected DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
 	protected DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
 	
-	protected List		listeners 			= new ArrayList();
-	protected List		tracker_listeners	= new ArrayList();
-	protected List		removal_listeners 	= new ArrayList();
-	protected List		peer_listeners		= new ArrayList();
+	protected List		listeners 				= new ArrayList();
+	protected AEMonitor	listeners_mon			= new AEMonitor( "Download:L");
+	protected List		tracker_listeners		= new ArrayList();
+	protected AEMonitor	tracker_listeners_mon	= new AEMonitor( "Download:TL");
+	protected List		removal_listeners 		= new ArrayList();
+	protected AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
+	protected List		peer_listeners			= new ArrayList();
+	protected AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
 	
 	protected
 	DownloadImpl(
@@ -467,7 +472,8 @@ DownloadImpl
 	isRemovable()
 		throws DownloadRemovalVetoException
 	{
-		synchronized( removal_listeners ){
+		try{
+			removal_listeners_mon.enter();
 			
 			for (int i=0;i<removal_listeners.size();i++){
 				
@@ -483,6 +489,9 @@ DownloadImpl
 					e.printStackTrace();
 				}
 			}
+		}finally{
+			
+			removal_listeners_mon.exit();
 		}
 	}
 	
@@ -512,7 +521,8 @@ DownloadImpl
 			
 			latest_forcedStart = curr_forcedStart;
 			
-			synchronized( listeners ){
+			try{
+				listeners_mon.enter();
 				
 				for (int i=0;i<listeners.size();i++){
 					
@@ -524,6 +534,9 @@ DownloadImpl
 						e.printStackTrace();
 					}
 				}
+			}finally{
+				
+				listeners_mon.exit();
 			}
 		}
 	}
@@ -542,7 +555,9 @@ DownloadImpl
 	
   public void positionChanged(DownloadManager download, 
                               int oldPosition, int newPosition) {
-		synchronized(listeners){
+		try{
+			listeners_mon.enter();
+		
 			for (int i = 0; i < listeners.size(); i++) {
 				try {
 					((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
@@ -550,6 +565,9 @@ DownloadImpl
 					e.printStackTrace();
 				}
 			}
+		}finally{
+			
+			listeners_mon.exit();
 		}
   }
 
@@ -557,9 +575,13 @@ DownloadImpl
 	addListener(
 		DownloadListener	l )
 	{
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 			
 			listeners.add(l);
+		}finally{
+			
+			listeners_mon.exit();
 		}
 	}
 	
@@ -567,9 +589,14 @@ DownloadImpl
 	removeListener(
 		DownloadListener	l )
 	{
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 			
 			listeners.remove(l);
+			
+		}finally{
+			
+			listeners_mon.exit();
 		}
 	}
 	
@@ -596,7 +623,8 @@ DownloadImpl
 	{
 		last_scrape_result.setContent( response );
 		
-		synchronized( tracker_listeners ){
+		try{
+			tracker_listeners_mon.enter();
 			
 			for (int i=0;i<tracker_listeners.size();i++){
 				
@@ -608,7 +636,10 @@ DownloadImpl
 					e.printStackTrace();
 				}
 			}
-		}	
+		}finally{
+			
+			tracker_listeners_mon.exit();
+		}
 	}
 	
 	public void
@@ -617,7 +648,8 @@ DownloadImpl
 	{
 		last_announce_result.setContent( response );
 		
-		synchronized( tracker_listeners ){
+		try{
+			tracker_listeners_mon.enter();
 			
 			for (int i=0;i<tracker_listeners.size();i++){
 				
@@ -629,6 +661,9 @@ DownloadImpl
 					e.printStackTrace();
 				}
 			}
+		}finally{
+			
+			tracker_listeners_mon.exit();
 		}
 	}
 	
@@ -647,7 +682,8 @@ DownloadImpl
 	addTrackerListener(
 		DownloadTrackerListener	l )
 	{
-		synchronized( tracker_listeners ){
+		try{
+			tracker_listeners_mon.enter();
 	
 			tracker_listeners.add( l );
 			
@@ -655,6 +691,9 @@ DownloadImpl
 				
 				download_manager.addTrackerListener( this );
 			}
+		}finally{
+			
+			tracker_listeners_mon.exit();
 		}
 		
 		l.announceResult( last_announce_result );
@@ -666,7 +705,8 @@ DownloadImpl
 	removeTrackerListener(
 		DownloadTrackerListener	l )
 	{
-		synchronized( tracker_listeners ){
+		try{
+			tracker_listeners_mon.enter();
 			
 			tracker_listeners.remove( l );
 			
@@ -674,6 +714,9 @@ DownloadImpl
 				
 				download_manager.removeTrackerListener( this );
 			}
+		}finally{
+			
+			tracker_listeners_mon.exit();
 		}
 	}
 	
@@ -681,9 +724,13 @@ DownloadImpl
 	addDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l )
 	{
-		synchronized( removal_listeners ){
+		try{
+			removal_listeners_mon.enter();
 			
 			removal_listeners.add(l);
+		}finally{
+			
+			removal_listeners_mon.exit();
 		}
 	}
 	
@@ -691,34 +738,52 @@ DownloadImpl
 	removeDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l ) 
 	{
-		synchronized( removal_listeners ){
+		try{
+			removal_listeners_mon.enter();
 			
 			removal_listeners.remove(l);
+		}finally{
+			
+			removal_listeners_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addPeerListener(
 		DownloadPeerListener	l )
 	{
-		peer_listeners.add( l );
+		try{
+			peer_listeners_mon.enter();
 		
-		if ( peer_listeners.size() == 1 ){
+			peer_listeners.add( l );
 			
-			download_manager.addPeerListener( this );
+			if ( peer_listeners.size() == 1 ){
+				
+				download_manager.addPeerListener( this );
+			}
+		}finally{
+			
+			peer_listeners_mon.exit();
 		}
 	}
 	
 	
-	public synchronized void
+	public void
 	removePeerListener(
 		DownloadPeerListener	l )
 	{
-		peer_listeners.remove( l );
-		
-		if ( peer_listeners.size() == 0 ){
+		try{
+			peer_listeners_mon.enter();
+
+			peer_listeners.remove( l );
 			
-			download_manager.removePeerListener( this );
+			if ( peer_listeners.size() == 0 ){
+				
+				download_manager.removePeerListener( this );
+			}
+		}finally{
+			
+			peer_listeners_mon.exit();
 		}
 	}
 	

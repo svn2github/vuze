@@ -32,7 +32,7 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.*;
 
 public abstract class 
 ExternalIPCheckerServiceImpl 
@@ -48,6 +48,8 @@ ExternalIPCheckerServiceImpl
 	protected boolean		completed;
 	
 	protected Vector		listeners	= new Vector();
+	protected AEMonitor		this_mon	= new AEMonitor( "ExtIPCheckServ");
+	
 	
 	protected
 	ExternalIPCheckerServiceImpl(
@@ -301,85 +303,138 @@ ExternalIPCheckerServiceImpl
 		return( url );
 	}
 	
-	protected synchronized void
+	protected  void
 	informSuccess(
 		String		ip )
 	{
-		if ( !completed ){
+		try{
+			this_mon.enter();
 			
-			for ( int i=0;i<listeners.size();i++){
+			if ( !completed ){
 				
-				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkComplete( this, ip );
+				for ( int i=0;i<listeners.size();i++){
+					
+					((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkComplete( this, ip );
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	informFailure(
 		String		msg_key )
 	{
-		informFailure( msg_key, null );
+		try{
+			this_mon.enter();
+	
+			informFailure( msg_key, null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	informFailure(
 		String		msg_key,
 		String		extra )
 	{
-		if ( !completed ){
-		
-			String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+		try{
+			this_mon.enter();
+	
+			if ( !completed ){
 			
-			if ( extra != null ){
+				String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
 				
-				message += ": " + extra;
+				if ( extra != null ){
+					
+					message += ": " + extra;
+				}
+				
+				for ( int i=0;i<listeners.size();i++){
+					
+					((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkFailed( this, message );
+				}
 			}
+		}finally{
 			
-			for ( int i=0;i<listeners.size();i++){
-				
-				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkFailed( this, message );
-			}
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	reportProgress(
 		String		msg_key )
 	{
-		reportProgress( msg_key,  null );
+		try{
+			this_mon.enter();
+	
+			reportProgress( msg_key,  null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	reportProgress(
 			String		msg_key,
 			String		extra )
 	{
-		if ( !completed ){
-		
-			String	message = MessageText.getString( MSG_KEY_ROOT.concat(".").concat(msg_key) );
+		try{
+			this_mon.enter();
+	
+			if ( !completed ){
 			
-			if ( extra != null ){
+				String	message = MessageText.getString( MSG_KEY_ROOT.concat(".").concat(msg_key) );
 				
-        message = message.concat(": ").concat(extra);
+				if ( extra != null ){
+					
+	        message = message.concat(": ").concat(extra);
+				}
+				for ( int i=0;i<listeners.size();i++){
+					
+					((ExternalIPCheckerServiceListener)listeners.elementAt(i)).reportProgress( this, message );
+				}
 			}
-			for ( int i=0;i<listeners.size();i++){
-				
-				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).reportProgress( this, message );
-			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		ExternalIPCheckerServiceListener	l )
 	{
-		listeners.addElement( l );
+		try{
+			this_mon.enter();
+	
+			listeners.addElement( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 		
-	public synchronized void
+	public void
 	removeListener(
 		ExternalIPCheckerServiceListener	l )
 	{
-		listeners.removeElement( l );
+		try{
+			this_mon.enter();
+	
+			listeners.removeElement( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

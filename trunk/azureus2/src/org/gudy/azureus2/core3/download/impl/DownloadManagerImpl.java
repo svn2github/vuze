@@ -166,8 +166,10 @@ DownloadManagerImpl
 				}
 			});	
 	
-	private Vector	current_peers 	= new Vector();
-	private Vector	current_pieces	= new Vector();
+	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DownloadManager:PL" );
+	
+	private List	current_peers 	= new ArrayList();
+	private List	current_pieces	= new ArrayList();
   
 	private DownloadManagerStatsImpl	stats;
 	
@@ -387,11 +389,15 @@ DownloadManagerImpl
 		
 	temp.start();
 	
-	synchronized( peer_listeners ){
+	try{
+		peer_listeners_mon.enter();
 		
 		peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
 	
 		peer_listeners.dispatch( LDT_PE_PM_ADDED, temp );
+	}finally{
+		
+		peer_listeners_mon.exit();
 	}
 	
 	tracker_client.update( true );
@@ -788,8 +794,14 @@ DownloadManagerImpl
 						  
 						  peerManager.stopAll(); 
 						  
-						  synchronized( peer_listeners ){
+						  try{
+						  	peer_listeners_mon.enter();
+						  
 						  	peer_listeners.dispatch( LDT_PE_PM_REMOVED, peerManager );
+						  	
+						  }finally{
+						  	
+						  	peer_listeners_mon.exit();
 						  }
 			
 						  peerManager = null; 
@@ -1290,18 +1302,19 @@ DownloadManagerImpl
   addPeerListener(
 	  DownloadManagerPeerListener	listener )
   {
-  	synchronized( peer_listeners ){
+  	try{
+  		peer_listeners_mon.enter();
   		
   		peer_listeners.addListener( listener );
   		
 		for (int i=0;i<current_peers.size();i++){
   			
-			peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.elementAt(i));
+			peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.get(i));
 		}
 		
 		for (int i=0;i<current_pieces.size();i++){
   			
-			peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.elementAt(i));
+			peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
 		}
 		
 		PEPeerManager	temp = peerManager;
@@ -1310,6 +1323,9 @@ DownloadManagerImpl
 	
 			peer_listeners.dispatch( listener, LDT_PE_PM_ADDED, temp );
 		}
+  	}finally{
+  		
+  		peer_listeners_mon.exit();
   	}
   }
 		
@@ -1325,11 +1341,16 @@ DownloadManagerImpl
   addPeer(
 	  PEPeer 		peer )
   {
-  	synchronized( peer_listeners ){
-  		
-  		current_peers.addElement( peer );
+  	try{
+  		peer_listeners_mon.enter();
+ 	
+  		current_peers.add( peer );
   		
   		peer_listeners.dispatch( LDT_PE_PEER_ADDED, peer );
+  		
+	}finally{
+		
+		peer_listeners_mon.exit();
 	}
   }
 		
@@ -1337,11 +1358,16 @@ DownloadManagerImpl
   removePeer(
 	  PEPeer		peer )
   {
-    synchronized( peer_listeners ){
+    try{
+    	peer_listeners_mon.enter();
     	
-    	current_peers.removeElement( peer );
+    	current_peers.remove( peer );
     	
     	peer_listeners.dispatch( LDT_PE_PEER_REMOVED, peer );
+    	
+    }finally{
+    	
+    	peer_listeners_mon.exit();
     }
  }
 		
@@ -1349,11 +1375,16 @@ DownloadManagerImpl
   addPiece(
 	  PEPiece 	piece )
   {
-  	synchronized( peer_listeners ){
+  	try{
+  		peer_listeners_mon.enter();
   		
-  		current_pieces.addElement( piece );
+  		current_pieces.add( piece );
   		
   		peer_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
+  		
+  	}finally{
+  		
+  		peer_listeners_mon.exit();
   	}
  }
 		
@@ -1361,11 +1392,16 @@ DownloadManagerImpl
   removePiece(
 	  PEPiece		piece )
   {
-  	synchronized( peer_listeners ){
+  	try{
+  		peer_listeners_mon.enter();
   		
-  		current_pieces.removeElement( piece );
+  		current_pieces.remove( piece );
   		
   		peer_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
+  		
+  	}finally{
+  		
+  		peer_listeners_mon.exit();
   	}
  }
 
@@ -1720,16 +1756,23 @@ DownloadManagerImpl
   }
 
   /** To store arbitrary objects against a download. */
-  public synchronized void setData (String key, Object value) {
-  	if (data == null) {
-  	  data = new HashMap();
+  public void setData (String key, Object value) {
+  	try{
+  		peer_listeners_mon.enter();
+  	
+	  	if (data == null) {
+	  	  data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (data.containsKey(key))
+	        data.remove(key);
+	    } else {
+	      data.put(key, value);
+	    }
+  	}finally{
+  		
+  		peer_listeners_mon.exit();
   	}
-    if (value == null) {
-      if (data.containsKey(key))
-        data.remove(key);
-    } else {
-      data.put(key, value);
-    }
   }
   
   

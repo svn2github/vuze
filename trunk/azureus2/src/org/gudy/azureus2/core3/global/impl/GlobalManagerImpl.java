@@ -59,7 +59,7 @@ public class GlobalManagerImpl
 	implements 	GlobalManager, DownloadManagerListener
 {
 		// GlobalManagerListener support
-		// Must be an async listener to support the non-synchronized invocation of
+		// Must be an async listener to support the non-synchronised invocation of
 		// listeners when a new listener is added and existing downloads need to be
 		// reported
 	
@@ -123,7 +123,9 @@ public class GlobalManagerImpl
 				}
 			});
 	
-	private List 	managers			= new ArrayList();
+	private List 		managers		= new ArrayList();
+	private AEMonitor	managers_mon	= new AEMonitor( "GM:Managers" );
+	
 	private Map		manager_map			= new HashMap();
 		
 	private Checker checker;
@@ -168,7 +170,9 @@ public class GlobalManagerImpl
 	        loopFactor++;
 	        determineSaveResumeDataInterval();
 
-	        synchronized (managers) {
+	        try{
+	        	managers_mon.enter();
+	        
 	          if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
 	            saveDownloads();
 	            needsSaving = false;
@@ -197,6 +201,9 @@ public class GlobalManagerImpl
 	              }
 	            }
 	          }
+	        }finally{
+	        	
+	        	managers_mon.exit();
 	        }
       	}catch( Throwable e ){
       		
@@ -397,7 +404,8 @@ public class GlobalManagerImpl
 
    protected DownloadManager addDownloadManager(DownloadManager manager, boolean save) {
     if (!isStopped) {
-      synchronized (managers) {
+      try{
+      	managers_mon.enter();
       	
       	int	existing_index = managers.indexOf( manager );
       	
@@ -446,6 +454,9 @@ public class GlobalManagerImpl
 
         listeners.dispatch( LDT_MANAGER_ADDED, manager );
         manager.addListener(this);
+      }finally{
+      	
+      	managers_mon.exit();
       }
  
       if (save)
@@ -504,7 +515,8 @@ public class GlobalManagerImpl
   {
   	canDownloadManagerBeRemoved( manager );
   	
-    synchronized (managers){
+    try{
+    	managers_mon.enter();
     	
       managers.remove(manager);
       
@@ -520,6 +532,9 @@ public class GlobalManagerImpl
       		e.printStackTrace();
       	}
       }
+    }finally{
+    	
+    	managers_mon.exit();
     }
     
     fixUpDownloadManagerPositions();
@@ -933,7 +948,9 @@ public class GlobalManagerImpl
   {
     //    if(Boolean.getBoolean("debug")) return;
 
-  	synchronized( managers ){
+  	try{
+  		managers_mon.enter();
+  	
       LGLogger.log("Saving Download List (" + managers.size() + " items)");
 	    Map map = new HashMap();
 	    List list = new ArrayList(managers.size());
@@ -1000,6 +1017,9 @@ public class GlobalManagerImpl
 	    map.put("downloads", list);
         
 	    FileUtil.writeResilientConfigFile("downloads.config", map );
+  	}finally{
+  		
+  		managers_mon.exit();
   	}
   }
 
@@ -1064,16 +1084,23 @@ public class GlobalManagerImpl
 
   public void moveTop(DownloadManager[] manager) {
     if (managers != null)
-      synchronized (managers) {
+      try{
+      	managers_mon.enter();
+      
       	int newPosition = 1;
         for (int i = 0; i < manager.length; i++)
         	moveTo(manager[i], newPosition++);
+      }finally{
+      	
+      	managers_mon.exit();
       }
   }
 
   public void moveEnd(DownloadManager[] manager) {
     if (managers != null)
-      synchronized (managers) {
+      try{
+      	managers_mon.enter();
+      
         int endPosComplete = 0;
         int endPosIncomplete = 0;
         for (int j = 0; j < managers.size(); j++) {
@@ -1090,6 +1117,8 @@ public class GlobalManagerImpl
             moveTo(manager[i], endPosIncomplete--);
           }
         }
+      }finally{
+      	managers_mon.exit();
       }
   }
   
@@ -1098,7 +1127,9 @@ public class GlobalManagerImpl
       return;
 
     if (managers != null)
-      synchronized (managers) {
+      try{
+      	managers_mon.enter();
+      
         int curPosition = manager.getPosition();
         if (newPosition > curPosition) {
           // move [manager] down
@@ -1143,12 +1174,17 @@ public class GlobalManagerImpl
           }
           manager.setPosition(newPosition);
         }
+      }finally{
+      	
+      	managers_mon.exit();
       }
   }
 	
 	public void fixUpDownloadManagerPositions() {
     if (managers != null) {
-      synchronized (managers) {
+      try{
+      	managers_mon.enter();
+      
       	int posComplete = 1;
       	int posIncomplete = 1;
 		    Collections.sort(managers, new Comparator () {
@@ -1163,6 +1199,9 @@ public class GlobalManagerImpl
          	else
           	dm.setPosition(posIncomplete++);
         }
+      }finally{
+      	
+      	managers_mon.exit();
       }
     }
 	}
@@ -1228,10 +1267,16 @@ public class GlobalManagerImpl
 			listeners.addListener(listener);
 
 			// Don't use Dispatch.. async is bad (esp for plugin initialization)
-			synchronized( managers ){
+			try{
+				managers_mon.enter();
+			
 				for (int i=0;i<managers.size();i++){
+					
 				  listener.downloadManagerAdded((DownloadManager)managers.get(i));
 				}	
+			}finally{
+				
+				managers_mon.exit();
 			}
 		}
 	}
@@ -1269,7 +1314,9 @@ public class GlobalManagerImpl
     if(c >= '0' && c <= 'z') {
       c = Character.toLowerCase(c);
       if (managers != null) {
-        synchronized (managers) {
+        try{
+        	managers_mon.enter();
+        
           if(lastSelectedIndex < 0 || lastSelectedIndex >= managers.size())
             lastSelectedIndex = -1;
           lastSelectedIndex++;
@@ -1283,6 +1330,9 @@ public class GlobalManagerImpl
             if(test == c)
               return i;
           }
+        }finally{
+        	
+        	managers_mon.exit();
         }
       }
     }

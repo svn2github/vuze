@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -54,22 +55,33 @@ DownloadManagerImpl
 	implements org.gudy.azureus2.plugins.download.DownloadManager
 {
 	protected static DownloadManagerImpl	singleton;
+	protected static AEMonitor				class_mon	= new AEMonitor( "DownloadManager:class");
 	
-	public synchronized static DownloadManagerImpl
+	public static DownloadManagerImpl
 	getSingleton(
 		AzureusCore	azureus_core )
 	{
-		if ( singleton == null ){
+		try{
+			class_mon.enter();
+	
+			if ( singleton == null ){
+				
+				singleton = new DownloadManagerImpl( azureus_core );
+			}
 			
-			singleton = new DownloadManagerImpl( azureus_core );
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( singleton );
 	}
 	
 	protected AzureusCore	azureus_core;
 	protected GlobalManager	global_manager;
 	protected List			listeners		= new ArrayList();
+	protected AEMonitor		listeners_mon	= new AEMonitor( "DownloadManager:L");
+	
 	protected List			downloads		= new ArrayList();
 	protected Map			download_map	= new HashMap();
 	
@@ -94,7 +106,8 @@ DownloadManagerImpl
 				downloadManagerRemoved(
 					DownloadManager	dm )
 				{
-					synchronized( listeners ){
+					try{
+						listeners_mon.enter();
 						
 						DownloadImpl	dl = (DownloadImpl)download_map.get( dm );
 						
@@ -115,6 +128,9 @@ DownloadManagerImpl
 								((DownloadManagerListener)listeners.get(i)).downloadRemoved( dl );
 							}
 						}
+					}finally{
+						
+						listeners_mon.exit();
 					}
 				}
 				
@@ -182,7 +198,8 @@ DownloadManagerImpl
 	addDownloadManager(
 		DownloadManager	dm )
 	{
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 			
 			if ( download_map.get(dm) == null ){
 	
@@ -203,6 +220,9 @@ DownloadManagerImpl
 					}
 				}
 			}
+		}finally{
+			
+			listeners_mon.exit();
 		}
 	}
 	
@@ -436,7 +456,8 @@ DownloadManagerImpl
 	{
 		List	res_l = new ArrayList();
 	
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 
 				// we have to use the global manager's ordering as it
 				// hold this
@@ -452,6 +473,9 @@ DownloadManagerImpl
 					res_l.add( dl );
 				}
 			}
+		}finally{
+			
+			listeners_mon.exit();
 		}
 		
 		Download[]	res = new Download[res_l.size()];
@@ -467,10 +491,14 @@ DownloadManagerImpl
 	  if (bSorted)
 	    return getDownloads();
 
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
+		
 			Download[]	res = new Download[downloads.size()];
 			downloads.toArray( res );
 			return( res );
+		}finally{
+			listeners_mon.exit();
 		}
 	}
 
@@ -478,7 +506,8 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	l )
 	{
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 			
 			listeners.add( l );
 			
@@ -493,16 +522,21 @@ DownloadManagerImpl
 					e.printStackTrace();
 				}
 			}
-		}
+		}finally{
+			listeners_mon.exit();
+		}	
 	}
 	
 	public void
 	removeListener(
 		DownloadManagerListener	l )
 	{
-		synchronized( listeners ){
+		try{
+			listeners_mon.enter();
 			
 			listeners.remove(l);
-		}
+		}finally{
+			listeners_mon.exit();
+		}	
 	}
 }
