@@ -33,6 +33,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -86,6 +87,10 @@ public class TableView
    * TableItem uses setImage
    */
   protected int iCellHeight = 0;
+  /** Sets the icon size when the row is initialized.  Any TableItem.setImage
+   * will use this size
+   */
+  protected Point ptIconSize = null;
 
   /** Basic (pre-defined) Column Definitions */
   private TableColumnCore[] basicItems;
@@ -660,15 +665,21 @@ public class TableView
         // call here.  So, add it now and null it
         objectToSortableItem.put(dataSource, null);
       }
-      Display display = panel.getDisplay();
+      final Display display = panel.getDisplay();
       // syncExec is evil because we eventually end up in a sync lock.
       // So, use async, then wait for it to finish
       display.asyncExec(new Runnable() {
         public void run() {
-          TableRowCore row = new TableRowImpl(TableView.this, dataSource, 
+          TableRowImpl row = new TableRowImpl(TableView.this, dataSource, 
                                               bSkipFirstColumn);
 
-          if (iCellHeight > 0)
+          if (ptIconSize != null) {
+            // set row height by setting image
+            Image image = new Image(display, ptIconSize.x, ptIconSize.y);
+            row.setImage(0, image);
+            row.setImage(0, null);
+            image.dispose();
+          } else if (iCellHeight > 0)
             row.setHeight(iCellHeight);
 
           if (objectToSortableItem.containsKey(dataSource)) {
