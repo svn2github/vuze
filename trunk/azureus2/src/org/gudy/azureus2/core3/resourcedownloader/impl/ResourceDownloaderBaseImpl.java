@@ -58,19 +58,24 @@ ResourceDownloaderBaseImpl
 			((ResourceDownloaderListener)listeners.get(i)).reportActivity(this,activity);
 		}
 	}
-	protected void
+	protected boolean
 	informComplete(
 		InputStream	is )
 	{
 		if ( !result_informed ){
 			
-			result_informed	= true;
-		
 			for (int i=0;i<listeners.size();i++){
 				
-				((ResourceDownloaderListener)listeners.get(i)).completed(this,is);
+				if ( !((ResourceDownloaderListener)listeners.get(i)).completed(this,is)){
+					
+					return( false );
+				}
 			}
+			
+			result_informed	= true;
 		}
+		
+		return( true );
 	}
 	
 	protected void

@@ -39,7 +39,7 @@ Test
 	Test()
 	{
 		ResourceDownloader rd1 = ResourceDownloaderFactory.create( "http://localhost:6967/");
-		ResourceDownloader rd2 = ResourceDownloaderFactory.create( "http://localhost:6968/");
+		ResourceDownloader rd2 = ResourceDownloaderFactory.create( "http://www.microsoft.com/sdsdsd");
 		
 		ResourceDownloader[]	rds = { rd1, rd2 };
 		
@@ -76,12 +76,14 @@ Test
 		System.out.println( "activity = " + activity );
 	}
 	
-	public void
+	public boolean
 	completed(
 		ResourceDownloader	downloader,
 		InputStream			data )
 	{
 		System.out.println( "Completed" );
+		
+		return( true );
 	}
 	
 	public void

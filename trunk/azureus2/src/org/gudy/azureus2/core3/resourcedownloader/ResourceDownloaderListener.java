@@ -41,7 +41,16 @@ ResourceDownloaderListener
 		ResourceDownloader	downloader,
 		String				activity );
 	
-	public void
+		/**
+		 * 
+		 * @param downloader
+		 * @param data
+		 * @return return true if the completed download is OK. If false is returned then
+		 * if there are alternative download sources they will be tried. If there are no
+		 * other sources then the download will be "failed" 
+		 */
+	
+	public boolean
 	completed(
 		ResourceDownloader	downloader,
 		InputStream			data );

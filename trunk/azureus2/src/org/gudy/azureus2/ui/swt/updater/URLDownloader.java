@@ -72,11 +72,12 @@ public class URLDownloader implements ResourceDownloaderListener{
 	reportActivity(ResourceDownloader dl, String act) {
     }
     
-	public void
+	public boolean
 	completed(
 		ResourceDownloader 	dl, 
 		InputStream			data )
 	{
+		return( true );
 	}
 	
 	public void

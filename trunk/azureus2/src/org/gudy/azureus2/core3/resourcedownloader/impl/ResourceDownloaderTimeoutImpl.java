@@ -140,16 +140,21 @@ ResourceDownloaderTimeoutImpl
 		}
 	}	
 	
-	public void
+	public boolean
 	completed(
 		ResourceDownloader	downloader,
 		InputStream			data )
 	{
-		result	= data;
+		if (informComplete( data )){
+			
+			result	= data;
+			
+			done_sem.release();
+			
+			return( true );
+		}
 		
-		done_sem.release();
-		
-		informComplete( data );
+		return( false );
 	}
 	
 	public void

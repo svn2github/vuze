@@ -177,9 +177,12 @@ ResourceDownloaderImpl
 	
 				InputStream	res = new ByteArrayInputStream( baos.toByteArray());
 				
-				informComplete( res );
+				if ( informComplete( res )){
 				
-				return( res );
+					return( res );
+				}
+				
+				throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
 				
 			}catch (java.net.MalformedURLException e){
 				
