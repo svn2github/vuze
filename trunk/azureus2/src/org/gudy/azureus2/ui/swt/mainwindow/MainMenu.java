@@ -99,9 +99,6 @@ public class MainMenu {
       MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
   
-      MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
-      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-  
       new MenuItem(fileMenu, SWT.SEPARATOR);
   
       MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
@@ -109,10 +106,24 @@ public class MainMenu {
   
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
-        
+      
+      new MenuItem(fileMenu, SWT.SEPARATOR);
+      
+      MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
       
       //No need for exit on OS X
       if(! Constants.isOSX) {
+        
+        
+        MenuItem view_config = new MenuItem(fileMenu, SWT.NULL);
+        Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
+        view_config.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.showConfig();
+          }
+        });
+        
         new MenuItem(fileMenu, SWT.SEPARATOR);
   
         MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
@@ -347,14 +358,7 @@ public class MainMenu {
         mainWindow.showMyShares();
     	}
     });
-    
-      MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
-      Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
-      view_config.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          mainWindow.showConfig();
-        }
-      });
+
   
       MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
       Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
@@ -371,10 +375,8 @@ public class MainMenu {
           mainWindow.showStats();
         }
       });
-  
-      new MenuItem(viewMenu, SWT.SEPARATOR);
-      
-      menu_view_plugin = new MenuItem(viewMenu, SWT.CASCADE);
+              
+      menu_view_plugin = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(menu_view_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
       pluginMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
       menu_view_plugin.setEnabled(false);
