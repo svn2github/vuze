@@ -30,6 +30,7 @@ public class FileItem implements SortableItem{
   private Table table;
   private TableItem item;
   private Color blues[];
+  private Color black;
 
   private Image piecesImage;
   private boolean valid;
@@ -43,6 +44,7 @@ public class FileItem implements SortableItem{
   public FileItem(Table table, DownloadManager manager, DiskManagerFileInfo fileInfo, Color blues[]) {
     this.display = table.getDisplay();
     this.blues = blues;
+    this.black = display.getSystemColor(SWT.COLOR_BLACK);
     this.table = table;
     this.manager = manager;
     this.fileInfo = fileInfo;
@@ -64,11 +66,7 @@ public class FileItem implements SortableItem{
 
     String tmp;
 
-    if (fileInfo.getDownloaded() == fileInfo.getLength())
-      item.setForeground(blues[4]);
-    else
-      item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-
+    
     tmp = fileInfo.getName();
     if (!oldTexts[0].equals(tmp)) {
       oldTexts[0] = tmp;
@@ -171,6 +169,7 @@ public class FileItem implements SortableItem{
         int index = (nbAvailable * 4) / (a1 - a0);
         //System.out.print(index);
         gcImage.setBackground(blues[index]);
+        gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[4] : black );
         gcImage.fillRectangle(i,1,1,height);
       }
       gcImage.dispose();
