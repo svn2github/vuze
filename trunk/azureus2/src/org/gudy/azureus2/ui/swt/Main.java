@@ -36,6 +36,7 @@ public class Main implements ILocaleUtilChooser {
       PrintWriter pw = null;
       try {  
       	LGLogger.log( "Main::startSocket: starting connect to 6880");
+        System.out.println("StartSocket: passing startup args to already-running process.");
       	
         sck = new Socket("127.0.0.1", 6880);
         

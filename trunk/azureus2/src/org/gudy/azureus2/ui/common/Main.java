@@ -246,7 +246,9 @@ public class Main {
     public StartSocket(String args[]) {
       Socket sck = null;
       PrintWriter pw = null;
-      try {      
+      try {
+        System.out.println("StartSocket: passing startup args to already-running process.");
+        
         sck = new Socket("127.0.0.1",6880);
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
         StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING+";args;");
