@@ -49,6 +49,10 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
   }
   
   
+  public Message getPluginMessage() {  return plug_msg;  }
+
+  public com.aelitis.azureus.core.peermanager.messaging.Message getCoreMessage() {  return core_msg;  }
+  
   
   
   //plugin Message implementation

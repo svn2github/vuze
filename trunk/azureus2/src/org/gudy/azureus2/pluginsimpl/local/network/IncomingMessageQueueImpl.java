@@ -54,6 +54,13 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener core_listener = 
       new com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener() {
         public boolean messageReceived( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          if( message instanceof MessageAdapter ) {
+            //the message must have been originally decoded by plugin decoder
+            //so just use original plugin message...i.e. unwrap out of MessageAdapter
+            return listener.messageReceived( ((MessageAdapter)message).getPluginMessage() );
+          }
+          
+          //message originally decoded by core
           return listener.messageReceived( new MessageAdapter( message ) );
         }
       
