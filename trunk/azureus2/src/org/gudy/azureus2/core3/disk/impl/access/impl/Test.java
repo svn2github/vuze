@@ -306,17 +306,10 @@ Test
 			
 		}
 			
-		public void
-		stopIt()
-		{
-			
-		}
 		
-	    public void 
-	    stopIt(final int stateAfterStopping)
-		{
-			
-		}
+    public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data ) {
+      
+    }
 
 		public GlobalManager
 		getGlobalManager()

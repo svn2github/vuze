@@ -201,7 +201,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     if(itemKey.equals("publish"))
       return true;
     if(itemKey.equals("remove"))
-      return ManagerUtils.isRemoveable(manager);
+      return true;
     return false;
   }
   
@@ -230,7 +230,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  }
 	  if(itemKey.equals("remove")) {
 	  	try{
-	  		ManagerUtils.remove(manager);
+        manager.getGlobalManager().removeDownloadManager( manager );
 	  		
 	  	}catch( GlobalManagerDownloadRemovalVetoException e ){
 	  		

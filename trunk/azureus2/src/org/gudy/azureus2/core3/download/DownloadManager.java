@@ -47,6 +47,8 @@ DownloadManager
 	// Queued: Same as stopped, except can be automatically started
 	public static final int STATE_QUEUED = 75;
 	public static final int STATE_ERROR = 100;
+  
+   
 	
 	public static final int WEALTH_STOPPED    = 1;
 	public static final int WEALTH_NO_TRACKER = 2;
@@ -71,11 +73,14 @@ DownloadManager
 	startDownloadInitialized(
 		boolean		initStoppedDownloads );
 		
-	public void
-	stopIt();
 	
-    public void 
-    stopIt(final int stateAfterStopping);
+  /**
+   * Stop the download manager, and do any file/torrent removals.
+   * @param _stateAfterStopping
+   * @param remove_torrent remove the .torrent file after stopping
+   * @param remove_data remove the data file after stopping
+   */
+  public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data );
 
 	public GlobalManager
 	getGlobalManager();
@@ -283,7 +288,6 @@ DownloadManager
 	
 	public void setCategory(Category cat);
 	
-	public void deleteDataFiles();
 	
 		/**
 		 * merges the details of the torrent into the current one (e.g. announce url
@@ -342,4 +346,7 @@ DownloadManager
   public void
   setCreationTime(
   	long		t );
+  
+  
+  
 }

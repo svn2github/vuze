@@ -18,6 +18,7 @@ CHANGE: Core | Support azureus.install.path parameter, used by new linux launche
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
 CHANGE: Core | Moved config items for tracker client overrides + UDP to tracker client config [Parg]
 CHANGE: UI   | Obey "start stopped" config item for dropped torrents [Parg]
+CHANGE: UI   | Torrents no longer need to be stopped before removal is allowed [Nolar]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
@@ -31,7 +32,7 @@ BUGFIX: Core | Default save dir was defaulting to ON, changed to OFF [Parg]
 BUGFIX: Core | Tidied up UPnP error handing if action missing [Parg]
 BUGFIX: UI   | Fixed up opening of torrent files not ending in ".tor" or ".torrent" [Parg]
 BUGFIX: Core | Scrape mult-tracker torrents correctly when download not running [Parg]
-BUGFIX: Core | upload/download/share ratio frig for newly added seeds made consistent [Parg]
+BUGFIX: Core | Upload/download/share ratio frig for newly added seeds made consistent [Parg]
 
 
 

@@ -737,12 +737,19 @@ DownloadManagerImpl
   return 0;
   }
 
-  public void stopIt() {
-    stopIt(DownloadManager.STATE_STOPPED);
-  }
 
-  public void stopIt(final int _stateAfterStopping)
+  public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data )
   {
+    if( state == DownloadManager.STATE_STOPPED ||
+        state == DownloadManager.STATE_ERROR ||
+        state == DownloadManager.STATE_QUEUED ) {
+      //already in stopped state, just do removals if necessary
+      if( remove_data )  deleteDataFiles();
+      if( remove_torrent )  deleteTorrentFile();
+      return;
+    }
+    
+    
     if (state == DownloadManager.STATE_STOPPING)
       return;
 
@@ -831,11 +838,15 @@ DownloadManagerImpl
 					
 					 }finally{
 								
-					 	setState( stateAfterStopping );                
-					 	forceStarted = false;
-				  	 }
+					   setState( stateAfterStopping );                
+					   forceStarted = false;
+             
+             if( remove_data )  deleteDataFiles();
+             if( remove_torrent )  deleteTorrentFile();
+             
+					 }
 				  	
-				  	return( null );
+					 return( null );
 				}
 			  });	
   	}catch( Throwable e ){
@@ -1161,7 +1172,7 @@ DownloadManagerImpl
 	      readTorrent( false, false );
 	    }
 	    
-	    stopIt();
+	    stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    
 	    try {
 	      while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
@@ -1530,7 +1541,7 @@ DownloadManagerImpl
   					if ( newDMState == DiskManager.FAULTY ){
   						
   						setErrorDetail( diskManager.getErrorMessage());
-  						stopIt(STATE_ERROR);
+              stopIt( DownloadManager.STATE_ERROR, false, false );
   					}
   					
   					if (oldDMState == DiskManager.CHECKING) {
@@ -1747,11 +1758,30 @@ DownloadManagerImpl
   		tracker_listeners.removeListener( listener );
   }
   
-  public void 
+  private void 
   deleteDataFiles() 
   {
   	DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
   }
+  
+  private void deleteTorrentFile() {
+    if( torrent != null ) {
+      try {
+        TorrentUtils.delete( torrent );
+      }
+      catch( TOTorrentException te ) {
+        Debug.printStackTrace( te );
+      }
+    }
+    else {
+      // if torrent is broken, try and delete the file directly
+      if ( torrentFileName != null ){
+        new File( torrentFileName ).delete();
+      }
+    }
+  }
+  
+  
 
   protected Map
   getInitialTrackerCache()

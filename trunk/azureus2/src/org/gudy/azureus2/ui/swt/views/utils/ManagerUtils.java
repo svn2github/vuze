@@ -31,8 +31,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -69,18 +67,6 @@ public class ManagerUtils {
     return true;
   }
   
-  public static boolean isRemoveable(DownloadManager dm) {
-    if(dm == null)
-      return false;
-    int state = dm.getState();
-    if (state != DownloadManager.STATE_STOPPED
-        && state != DownloadManager.STATE_QUEUED
-        && state != DownloadManager.STATE_ERROR ){
-       
-      return false;
-    }
-    return true;
-  }
   
   public static void 
   host(
@@ -124,13 +110,6 @@ public class ManagerUtils {
     }
   }
   
-  public static void remove(DownloadManager dm)
-  	throws GlobalManagerDownloadRemovalVetoException{
-    if (isRemoveable(dm)) {
-      GlobalManager globalManager = dm.getGlobalManager();
-      globalManager.removeDownloadManager(dm);
-    }
-  }
   
   public static void start(DownloadManager dm) {
     if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
@@ -176,10 +155,10 @@ public class ManagerUtils {
             + MessageText.getString("seedmore.uploadmore"));
         int action = mb.open();
         if (action == SWT.YES)
-          dm.stopIt(stateAfterStopped);
+          dm.stopIt( stateAfterStopped, false, false );
       }
       else {
-        dm.stopIt(stateAfterStopped);
+        dm.stopIt( stateAfterStopped, false, false );
       }
     }
   }

@@ -527,9 +527,9 @@ public class MyTorrentsView
         boolean bChangeDir = false;
         if (hasSelection) {
           bChangeDir = true;
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened,
+          boolean moveUp, moveDown, start, stop, changeUrl, barsOpened,
                   forceStart, forceStartEnabled, recheck, manualUpdate, changeSpeed;
-          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened =
+          moveUp = moveDown = start = stop = changeUrl = barsOpened =
                    forceStart = forceStartEnabled = recheck = manualUpdate = changeSpeed = true;
           
           long totalSpeed = 0;
@@ -556,7 +556,6 @@ public class MyTorrentsView
 
             int state = dm.getState();
             stop = stop && ManagerUtils.isStopable(dm);
-            remove = remove && ManagerUtils.isRemoveable(dm);
             start = start && ManagerUtils.isStartable(dm);
 
             if (state != DownloadManager.STATE_STOPPED)
@@ -597,8 +596,8 @@ public class MyTorrentsView
           itemForceStart.setEnabled(forceStartEnabled);
           itemQueue.setEnabled(start);
           itemStop.setEnabled(stop);
-          itemRemove.setEnabled(remove);
-          itemRemoveAnd.setEnabled(remove);
+          itemRemove.setEnabled( true );
+          itemRemoveAnd.setEnabled( true );
 
           StringBuffer speedText = new StringBuffer();
           String separator = "";
@@ -1229,53 +1228,34 @@ public class MyTorrentsView
     }
   }
 
-  private void removeTorrent(DownloadManager dm, boolean bDeleteTorrent, 
-                             boolean bDeleteData) {
-    if (ManagerUtils.isRemoveable(dm)) {
-      int choice;
-      if (confirmDataDelete && bDeleteData) {
-        String path = dm.getTorrentSaveDirAndFile();
-        MessageBox mb = new MessageBox(cTablePanel.getShell(), 
-                                       SWT.ICON_WARNING | SWT.YES | SWT.NO);
-        mb.setText(MessageText.getString("deletedata.title"));
-        mb.setMessage(MessageText.getString("deletedata.message1")
-                      + dm.getDisplayName() + " :\n"
-                      + path
-                      + MessageText.getString("deletedata.message2"));
+  private void removeTorrent(DownloadManager dm, boolean bDeleteTorrent, boolean bDeleteData) {
+    int choice;
+    if (confirmDataDelete && bDeleteData) {
+      String path = dm.getTorrentSaveDirAndFile();
+      MessageBox mb = new MessageBox(cTablePanel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
+      mb.setText(MessageText.getString("deletedata.title"));
+      mb.setMessage(MessageText.getString("deletedata.message1")
+          + dm.getDisplayName() + " :\n"
+          + path
+          + MessageText.getString("deletedata.message2"));
 
-        choice = mb.open();
-      } else {
-        choice = SWT.YES;
+      choice = mb.open();
+    } else {
+      choice = SWT.YES;
+    }
+
+    if (choice == SWT.YES) {
+      try {
+        dm.stopIt( DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData );
+        dm.getGlobalManager().removeDownloadManager( dm );
       }
-
-      if (choice == SWT.YES) {
-        try {
-          ManagerUtils.remove(dm);
-          if (bDeleteData)
-            dm.deleteDataFiles();
-          if (bDeleteTorrent) {
-          	TOTorrent torrent = dm.getTorrent();
-          	if ( torrent != null ){
-              TorrentUtils.delete( torrent );
-          	}else{
-          		String	torrent_file_name = dm.getTorrentFileName();
-
-          			// if torrent is broken we get no Torrent object back - try
-          			// and delete the file directly
-          		
-          		if ( torrent_file_name != null ){
-          			
-          			new File(torrent_file_name).delete();
-          		}
-          	}
-          }
-        } catch (GlobalManagerDownloadRemovalVetoException f) {
-          Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
-        } catch (Exception ex) {
-        	Debug.printStackTrace( ex );
-        }
-      } // if choice
-    } // if state
+      catch (GlobalManagerDownloadRemovalVetoException f) {
+        Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
+      }
+      catch (Exception ex) {
+        Debug.printStackTrace( ex );
+      }
+    }
   }
 
   private void removeSelectedTorrents() {
@@ -1416,8 +1396,6 @@ public class MyTorrentsView
         start =  true;
       if(!stop && ManagerUtils.isStopable(dm))
         stop = true;
-      if(remove && !ManagerUtils.isRemoveable(dm))
-        remove = false;
       if(!top && dm.isMoveableUp())
         top = true;
       if(!bottom && dm.isMoveableDown())

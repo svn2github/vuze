@@ -818,7 +818,7 @@ public class GlobalManagerImpl
       if( state != DownloadManager.STATE_STOPPED &&
           state != DownloadManager.STATE_STOPPING ) {
         
-        manager.stopIt( stateAfterStopping );
+        manager.stopIt( stateAfterStopping, false, false );
       }
     }
   }
@@ -854,7 +854,7 @@ public class GlobalManagerImpl
           state != DownloadManager.STATE_STOPPING ) {
         
         try {
-          manager.stopIt( DownloadManager.STATE_STOPPED );
+          manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
           try {  paused_list_mon.enter();
             paused_list.add( manager.getTorrent().getHashWrapper() );
           }

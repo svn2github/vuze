@@ -272,7 +272,7 @@ DownloadImpl
 	{
 		if ( download_manager.getState() != DownloadManager.STATE_STOPPED){
 			
-			download_manager.stopIt();
+			download_manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
 			
 		}else{
 			
@@ -286,7 +286,7 @@ DownloadImpl
 		throws DownloadException
 	{
 		if ( download_manager.getState() != DownloadManager.STATE_QUEUED)
-			download_manager.stopIt(DownloadManager.STATE_QUEUED);
+			download_manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
 		else
 			throw( new DownloadException( "Download::stopAndQueue: download already queued" ));
 	}
