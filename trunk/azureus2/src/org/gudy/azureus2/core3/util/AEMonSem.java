@@ -403,7 +403,9 @@ AEMonSem
 				
 				for (int i=0;i<stack.size();i++){
 					
-					if ( stack.get(i) == this ){
+					AEMonSem	ms = (AEMonSem)stack.get(i);
+					
+					if ( ms.name.equals( name )){
 						
 						match	= true;
 						
