@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
  * @author Olivier
@@ -106,7 +106,7 @@ public class ManagerItem {
     }
 
     tmp = ""; //$NON-NLS-1$
-    tmp = PeerStats.format(manager.getSize());
+    tmp = DisplayFormatters.formatByteCountToKBEtc(manager.getSize());
     if (tmp != null && !(tmp.equals(this.size))) {
       size = tmp;
       item.setText(2, tmp);

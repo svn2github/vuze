@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.FileInfo;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
  * @author Olivier
@@ -71,13 +71,13 @@ public class FileItem {
       item.setImage(0, icon);
     }
 
-    tmp = PeerStats.format(fileInfo.getLength());
+    tmp = DisplayFormatters.formatByteCountToKBEtc(fileInfo.getLength());
     if (!oldTexts[1].equals(tmp)) {
       oldTexts[1] = tmp;
       item.setText(1, tmp);
     }
 
-    tmp = PeerStats.format(fileInfo.getDownloaded());
+    tmp = DisplayFormatters.formatByteCountToKBEtc(fileInfo.getDownloaded());
     if (!oldTexts[2].equals(tmp)) {
       oldTexts[2] = tmp;
       item.setText(2, tmp);

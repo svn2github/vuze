@@ -12,7 +12,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core.Piece;
 
 /**
@@ -68,7 +68,7 @@ public class PieceTableItem {
       oldTexts[0] = tmp;
     }
 
-    tmp = PeerStats.format(piece.length);
+    tmp = DisplayFormatters.formatByteCountToKBEtc(piece.length);
     if (!oldTexts[1].equals(tmp)) {
       item.setText(1, tmp);
       oldTexts[1] = tmp;

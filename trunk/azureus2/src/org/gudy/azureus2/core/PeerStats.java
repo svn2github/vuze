@@ -7,6 +7,9 @@ package org.gudy.azureus2.core;
  * @author Olivier
  *
  */
+
+import org.gudy.azureus2.core3.util.*;
+
 public class PeerStats {
 //  private final int avgTime = 12;
 
@@ -73,8 +76,8 @@ public class PeerStats {
     statisticSentSpeed.addValue(length);
   }
 
-  public String getReceptionSpeed() {
-    return format(receptionSpeed.getAverage()) + "/s";
+  public String getReceptionSpeed() { 
+    return DisplayFormatters.formatByteCountToKBEtc(receptionSpeed.getAverage()) + "/s";
   }
 
   public int getReception() {
@@ -82,7 +85,7 @@ public class PeerStats {
   }
 
   public String getSendingSpeed() {
-    return format(sendingSpeed.getAverage()) + "/s";
+    return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
   }
   
   public int getDownloadSpeedRaw() {
@@ -94,27 +97,27 @@ public class PeerStats {
     }
 
   public String getOverAllDownloadSpeed() {
-    return format(overallSpeed.getAverage()) + "/s";
+    return DisplayFormatters.formatByteCountToKBEtc(overallSpeed.getAverage()) + "/s";
   }
 
   public String getTotalSent() {
-    return format(totalSent);
+    return DisplayFormatters.formatByteCountToKBEtc(totalSent);
   }
 
   public String getTotalReceived() {
-    return format(totalReceived);
+    return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
   }
   
   public String getReallyReceived() {
     if(totalDiscarded == 0)
-      return format(totalReceived);
+      return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
     else {
-      return format(totalReceived) + " ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + " )"; 
+      return DisplayFormatters.formatByteCountToKBEtc(totalReceived) + " ( " + DisplayFormatters.formatByteCountToKBEtc(totalDiscarded) + " " + MessageText.getString("discarded") + " )"; 
     }
   }
   
   public String getTotalDiscarded() {
-    return format(totalDiscarded);
+    return DisplayFormatters.formatByteCountToKBEtc(totalDiscarded);
   }  
 
   public long getTotalSentRaw() {
@@ -138,46 +141,12 @@ public class PeerStats {
   }
 
   public String getStatisticSent() {
-    return format(statisticSentSpeed.getAverage()) + "/s";
+    return DisplayFormatters.formatByteCountToKBEtc(statisticSentSpeed.getAverage()) + "/s";
   }
 
   public int getStatisticSentRaw() {
     return statisticSentSpeed.getAverage();
   }
 
-  public static String format(int n) {
-    if (n < 1024)
-      return n + " B";
-    if (n < 1024 * 1024)
-      return (n / 1024) + "." + ((n % 1024) / 103) + " kB";
-    if (n < 1024 * 1024 * 1024)
-      return (n / (1024 * 1024))
-        + "."
-        + ((n % (1024 * 1024)) / (103 * 1024))
-        + " MB";
-    if (n < 1024 * 1024 * 1024 * 1024)
-      return (n / (1024 * 1024 * 1024))
-        + "."
-        + ((n % (1024 * 1024 * 1024)) / (103 * 1024 * 1024))
-        + " GB";
-    return "A lot";
-  }
 
-  public static String format(long n) {
-    if (n < 1024)
-      return n + " B";
-    if (n < 1024 * 1024)
-      return (n / 1024) + "." + ((n % 1024) / 103) + " kB";
-    if (n < 1024 * 1024 * 1024)
-      return (n / (1024 * 1024))
-        + "."
-        + ((n % (1024 * 1024)) / (103 * 1024))
-        + " MB";
-    if (n < 1024l * 1024l * 1024l * 1024l)
-      return (n / (1024l * 1024l * 1024l))
-        + "."
-        + ((n % (1024l * 1024l * 1024l)) / (103l * 1024l * 1024l))
-        + " GB";
-    return "A lot !!!";
-  }
 }

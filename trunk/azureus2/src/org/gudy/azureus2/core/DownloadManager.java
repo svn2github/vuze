@@ -462,7 +462,7 @@ public class DownloadManager extends Component {
 
   public String getPieceLength() {
     if (diskManager != null)
-      return PeerStats.format(diskManager.getPieceLength());
+      return DisplayFormatters.formatByteCountToKBEtc(diskManager.getPieceLength());
     return ""; //$NON-NLS-1$
   }
 
@@ -631,7 +631,7 @@ public class DownloadManager extends Component {
     if(peerManager != null) {
       int nbFails = peerManager.getNbHashFails();
       long size = nbFails * diskManager.getPieceLength();
-      String result = nbFails + " ( ~ " + PeerStats.format(size) + " )";
+      String result = nbFails + " ( ~ " + DisplayFormatters.formatByteCountToKBEtc(size) + " )";
       return result;
     }
     return "";

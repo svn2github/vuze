@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
 /**
@@ -381,7 +381,7 @@ public class GeneralView extends AbstractIView {
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerUrl());
     setInfos(
       manager.getName(),
-      PeerStats.format(manager.getSize()),
+	DisplayFormatters.formatByteCountToKBEtc(manager.getSize()),
       manager.getSavePath(),
       ByteFormatter.nicePrint(manager.getHash()),
       manager.getNbPieces(),

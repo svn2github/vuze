@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core.MessageText;
 
 public class 
@@ -115,7 +116,7 @@ TOTorrentCreateImpl
 	{
 		setPieceLength( _piece_length );
 		
-		report( MessageText.getString("Torrent.create.progress.piecelength") + _piece_length );
+		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKBEtc(_piece_length ));
 		
 		TOTorrentFileHasher	hasher = new TOTorrentFileHasher((int)_piece_length, progress_listener==null?null:this );
 		
@@ -254,7 +255,7 @@ TOTorrentCreateImpl
 		
 		long res = getTotalFileSizeSupport( file );
 		
-		report( MessageText.getString("Torrent.create.progress.totalfilesize") + res );
+		report( MessageText.getString("Torrent.create.progress.totalfilesize") + DisplayFormatters.formatByteCountToKBEtc(res));
 
 		report( MessageText.getString("Torrent.create.progress.totalfilecount") + total_file_count );
 		
