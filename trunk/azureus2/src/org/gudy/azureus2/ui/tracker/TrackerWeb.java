@@ -139,6 +139,7 @@ TrackerWeb
 		*/
 		
 		args.put( "loop_context_vars", "true" );
+		args.put( "global_vars", "true" );
 		
 		Template t = new Template( args );
 
@@ -191,7 +192,7 @@ TrackerWeb
 			
 			String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
 			
-			String	torrent_name = new String(torrent.getName());
+			String	torrent_name = torrent.getName();
 			
 			TrackerPeer[]	peers = tracker_torrent.getPeers();
 			
@@ -261,8 +262,42 @@ TrackerWeb
 			t_row.put( "torrent_total_left", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalLeft())); 
 			
 			t_row.put( "torrent_completed",  "" + tracker_torrent.getCompletedCount());
+		
 			
 			if ( specific_torrent != -1 ){
+			
+				t_row.put( "torrent_hash", ByteFormatter.nicePrint(torrent.getHash(),true));
+							
+					// size is 0 for external torrents about which we know no more
+				
+				if ( torrent.getSize() > 0 ){
+			
+					t_row.put( "torrent_comment", torrent.getComment());
+					
+					t_row.put( "torrent_created_by", torrent.getCreatedBy());
+					
+					t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKBEtc(torrent.getPieceSize()));
+					
+					t_row.put( "torrent_piece_count", ""+torrent.getPieceCount());
+					
+					Vector	file_info = new Vector();
+					
+					TorrentFile[]	files = torrent.getFiles();
+					
+					for (int j=0;j<files.length;j++){
+						
+						Hashtable	f_row = new Hashtable();
+						
+						file_info.add( f_row );
+						
+						f_row.put( "file_name", files[j].getName());
+						
+						f_row.put( "file_size", DisplayFormatters.formatByteCountToKBEtc(files[j].getSize()));
+					}
+					
+					t_row.put( "file_info", file_info );
+					t_row.put( "file_info_count", ""+files.length );
+				}
 				
 				Vector	peer_info = new Vector();
 				
@@ -282,11 +317,13 @@ TrackerWeb
 				}
 				
 				t_row.put( "peer_info", peer_info );
+				t_row.put( "peer_info_count", ""+peers.length );
 			}
 		}
 		
 		t.setParam("torrent_info", torrent_info);
-
+		t.setParam("torrent_info_count", tracker_torrents.length);
+		
 		String	data = t.output();
 		
 		os.write( data.getBytes());

@@ -24,22 +24,99 @@
       <tr>
         <td valign="top" height="20"></td>
       </tr>
-      <tr>
-        <td valign="top">
-        <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
-          <thead>
-            <tr>
-              <td width="20%" bgcolor="#FFDEAD">Seed</td>
-              <td width="20%" bgcolor="#FFDEAD">Uploaded</td>
-              <td width="20%" bgcolor="#FFDEAD">Downloaded</td>
-              <td width="20%" bgcolor="#FFDEAD">Left</td>
-              <td width="20%" bgcolor="#FFDEAD">IP</td>
-            </tr>
-            </thead>
+ 	  <tmpl_loop torrent_info>	
+        <tr>
+          <td valign="top"> 
+            <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
+              <thead>
+                <tr>
+                  <td width="28%" bgcolor="#FFDEAD">Torrent</td>
+                  <td width="12%" bgcolor="#FFDEAD">Status</td>
+                  <td width="12%" bgcolor="#FFDEAD">Size</td>
+                  <td width="6%" bgcolor="#FFDEAD">Seeds</td>
+                  <td width="6%" bgcolor="#FFDEAD">Peers</td>
+                  <td width="6%" bgcolor="#FFDEAD">Tot Up</td>
+                  <td width="6%" bgcolor="#FFDEAD">Tot Down</td>
+                  <td width="6%" bgcolor="#FFDEAD">Ave Up</td>
+                  <td width="6%" bgcolor="#FFDEAD">Ave Down</td>
+                  <td width="6%" bgcolor="#FFDEAD">Left</td>
+                  <td width="6%" bgcolor="#FFDEAD">Comp</td>
+                </tr>
+              </thead>
 
-		<tmpl_loop torrent_info>
+              <tr>
+                <td>
+                  <a href="<tmpl_var torrent_download_url>"><tmpl_var torrent_name></a></td>
+                <td><tmpl_var torrent_status></td>
+                <td><tmpl_var torrent_size></td>
+                <td><b>
+			      <tmpl_if torrent_seeds>
+			  	    <font color="#00CC00">
+			      <tmpl_else>
+				    <font color="#FF0000">
+		  	      </tmpl_if>
+			      <tmpl_var torrent_seeds></font></b></td>
+                <td><tmpl_var torrent_peers></td>
+                <td><tmpl_var torrent_total_upload></td>
+                <td><tmpl_var torrent_total_download></td>
+                <td><tmpl_var torrent_upload_speed></td>
+                <td><tmpl_var torrent_download_speed></td>
+                <td><tmpl_var torrent_total_left></td>
+                <td><tmpl_var torrent_completed></td>
+              </tr>
 
-			<tmpl_loop peer_info>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+         <td>
+            <table align="center" border="1" cellpadding="0" cellspacing="0" bordercolor="#888888" width="96%" bgcolor="#D7E0FF">
+              <tr>
+	            <td>Hash</td>           <td colspan="2"><tmpl_var torrent_hash></td>
+	          </tr>
+	          <tr>
+	            <td>Comment</td>        <td colspan="2"><tmpl_var torrent_comment>&nbsp;</td>
+	          </tr>
+	          <tr>
+	            <td>Created By</td>     <td colspan="2"><tmpl_var torrent_created_by>&nbsp;</td>
+	          </tr>
+	          <tr>
+	            <td>Piece Size</td>     <td colspan="2"><tmpl_var torrent_piece_size></td>
+	          </tr>
+	          <tr>
+	            <td>Piece Count</td>    <td colspan="2"><tmpl_var torrent_piece_count></td>
+	          </tr>
+    		  <tmpl_loop file_info>
+	            <tr>
+	              <tmpl_if __FIRST__>
+	              <td rowspan="<tmpl_var file_info_count>">Files</td>
+	              </tmpl_if>
+                  <td><tmpl_var file_name></td>
+                  <td><tmpl_var file_size></td>
+                </tr>
+		 	  </tmpl_loop>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>
+            <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
+              <thead>
+                <tr>
+                  <td width="20%" bgcolor="#FFDEAD">Seed</td>
+                  <td width="20%" bgcolor="#FFDEAD">Uploaded</td>
+                  <td width="20%" bgcolor="#FFDEAD">Downloaded</td>
+                  <td width="20%" bgcolor="#FFDEAD">Left</td>
+                  <td width="20%" bgcolor="#FFDEAD">IP</td>
+                </tr>
+              </thead>
+			  <tmpl_loop peer_info>
 	            <tr>
 	              <td><tmpl_var peer_is_seed></td>
 	              <td><tmpl_var peer_uploaded></td>
@@ -47,11 +124,11 @@
 	              <td><tmpl_var peer_left></td>
 	              <td><tmpl_var peer_ip></td>
 	            </tr>
-			</tmpl_loop>
-		</tmpl_loop>
-        </table>
-        </td>
-      </tr>
+		 	  </tmpl_loop>
+            </table>
+          </td>
+        </tr>
+      </tmpl_loop>
       <tr>
         <td>&nbsp;</td>
         </td>
@@ -61,7 +138,5 @@
     </td>
   </tr>
 </table>
-
 </body>
-
 </html>

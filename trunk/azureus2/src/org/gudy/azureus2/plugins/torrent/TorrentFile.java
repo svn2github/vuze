@@ -1,6 +1,6 @@
 /*
- * File    : Torrent.java
- * Created : 08-Dec-2003
+ * File    : TorrentFile.java
+ * Created : 12-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -26,37 +26,11 @@ package org.gudy.azureus2.plugins.torrent;
  *
  */
 public interface 
-Torrent
+TorrentFile
 {
 	public String
 	getName();
 	
-	public byte[]
-	getHash();
-	
-	/**
-	 * If size is 0 then this is an "external" torrent and we only know its hash (and name 
-	 * constructed from hash). e.g. we don't know file details
-	 * @return
-	 */
 	public long
 	getSize();
-	
-	public String
-	getComment();
-	
-	public long
-	getCreationDate();
-	
-	public String
-	getCreatedBy();
-		
-	public long
-	getPieceSize();
-	
-	public long
-	getPieceCount();
-	
-	public TorrentFile[]
-	getFiles();
 }

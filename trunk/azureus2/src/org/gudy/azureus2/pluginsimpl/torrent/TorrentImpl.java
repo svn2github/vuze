@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.torrent;
  *
  */
 
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
@@ -33,19 +34,27 @@ public class
 TorrentImpl
 	implements Torrent
 {
-	protected TOTorrent		torrent;
+	protected TOTorrent				torrent;
+	protected LocaleUtilDecoder		decoder;
 	
 	public
 	TorrentImpl(
 		TOTorrent	_torrent )
 	{
 		torrent	= _torrent;
+		
+		try{
+			decoder = LocaleUtil.getTorrentEncoding( torrent );
+			
+		}catch( Throwable e ){
+			
+		}
 	}
 	
-	public byte[]
+	public String
 	getName()
 	{
-		return( torrent.getName());
+		return( decode( torrent.getName()));
 	}
 	
 	public byte[]
@@ -66,5 +75,84 @@ TorrentImpl
 	getSize()
 	{
 		return( torrent.getSize());
+	}
+	
+	public String
+	getComment()
+	{
+		return( decode(torrent.getComment()));
+	}
+	
+	public long
+	getCreationDate()
+	{
+		return( torrent.getCreationDate());
+	}
+	
+	public String
+	getCreatedBy()
+	{
+		return( decode( torrent.getCreatedBy()));
+	}
+	
+
+	public long
+	getPieceSize()
+	{
+		return( torrent.getPieceLength());
+	}
+	
+	public long
+	getPieceCount()
+	{
+		return( torrent.getPieces().length);
+	}
+	
+	public TorrentFile[]
+	getFiles()
+	{
+		TOTorrentFile[]	files = torrent.getFiles();
+		
+		TorrentFile[]	res = new TorrentFile[files.length];
+		
+		for (int i=0;i<res.length;i++){
+		
+			TOTorrentFile	tf = files[i];
+			
+			byte[][]	comps = tf.getPathComponents();
+			
+			String	name = "";
+			
+			for (int j=0;j<comps.length;j++){
+				
+				name += (j==0?"":"/")+decode(comps[j]);
+			}
+			
+			res[i] = new TorrentFileImpl(name, tf.getLength());
+		}
+		
+		return( res );
+	}
+	
+	protected String
+	decode(
+		byte[]		data )
+	{
+		
+		if ( data != null ){
+			
+			if ( decoder != null ){
+				
+				try{
+					return( decoder.decodeString(data));
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			return( new String(data));
+		}
+		
+		return( "" );
 	}
 }
