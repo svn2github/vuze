@@ -1016,13 +1016,6 @@ public class ConfigView extends AbstractIView {
   }
 
   /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("ConfigView.title.short"); //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
