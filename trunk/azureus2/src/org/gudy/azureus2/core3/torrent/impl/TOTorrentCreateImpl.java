@@ -97,7 +97,7 @@ TOTorrentCreateImpl
 		
 		setPieceLength( _piece_length );
 		
-		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKBEtc(_piece_length ));
+		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKiBEtc(_piece_length ));
 		
 		TOTorrentFileHasher	hasher = new TOTorrentFileHasher((int)_piece_length, progress_listener==null?null:this );
 		
@@ -236,7 +236,7 @@ TOTorrentCreateImpl
 		
 		long res = getTotalFileSizeSupport( file );
 		
-		report( MessageText.getString("Torrent.create.progress.totalfilesize") + DisplayFormatters.formatByteCountToKBEtc(res));
+		report( MessageText.getString("Torrent.create.progress.totalfilesize") + DisplayFormatters.formatByteCountToKiBEtc(res));
 
 		report( MessageText.getString("Torrent.create.progress.totalfilecount") + total_file_count );
 		

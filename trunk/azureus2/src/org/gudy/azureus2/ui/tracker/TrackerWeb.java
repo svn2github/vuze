@@ -249,21 +249,21 @@ TrackerWeb
 			
 			t_row.put( "torrent_status", status_str );
 			
-			t_row.put( "torrent_size", (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKBEtc( torrent.getSize())));
+			t_row.put( "torrent_size", (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKiBEtc( torrent.getSize())));
 			
 			t_row.put( "torrent_seeds", "" + seed_count );
 			
 			t_row.put( "torrent_peers", "" + non_seed_count );
 
-			t_row.put( "torrent_total_upload", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalUploaded())); 
+			t_row.put( "torrent_total_upload", DisplayFormatters.formatByteCountToKiBEtc( tracker_torrent.getTotalUploaded())); 
 			
-			t_row.put( "torrent_total_download", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalDownloaded())); 
+			t_row.put( "torrent_total_download", DisplayFormatters.formatByteCountToKiBEtc( tracker_torrent.getTotalDownloaded())); 
 			
-			t_row.put( "torrent_upload_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageUploaded())); 
+			t_row.put( "torrent_upload_speed", DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker_torrent.getAverageUploaded())); 
 			
-			t_row.put( "torrent_download_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageDownloaded())); 
+			t_row.put( "torrent_download_speed", DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker_torrent.getAverageDownloaded())); 
 			
-			t_row.put( "torrent_total_left", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalLeft())); 
+			t_row.put( "torrent_total_left", DisplayFormatters.formatByteCountToKiBEtc( tracker_torrent.getTotalLeft())); 
 			
 			t_row.put( "torrent_completed",  "" + tracker_torrent.getCompletedCount());
 		
@@ -281,7 +281,7 @@ TrackerWeb
 						
 						t_row.put( "torrent_created_by", torrent.getCreatedBy());
 						
-						t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKBEtc(torrent.getPieceSize()));
+						t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKiBEtc(torrent.getPieceSize()));
 						
 						t_row.put( "torrent_piece_count", ""+torrent.getPieceCount());
 						
@@ -297,7 +297,7 @@ TrackerWeb
 							
 							f_row.put( "file_name", files[j].getName());
 							
-							f_row.put( "file_size", DisplayFormatters.formatByteCountToKBEtc(files[j].getSize()));
+							f_row.put( "file_size", DisplayFormatters.formatByteCountToKiBEtc(files[j].getSize()));
 						}
 						
 						t_row.put( "file_info", file_info );
@@ -319,9 +319,9 @@ TrackerWeb
 							TrackerPeer	peer = peers[j];
 							
 							p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
-							p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
-							p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
-							p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
+							p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKiBEtc(peer.getUploaded()));
+							p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKiBEtc(peer.getDownloaded()));
+							p_row.put( "peer_left", DisplayFormatters.formatByteCountToKiBEtc(peer.getAmountLeft()));
 							p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
 							p_row.put( "peer_ip_full", peer.getIP());
 						}

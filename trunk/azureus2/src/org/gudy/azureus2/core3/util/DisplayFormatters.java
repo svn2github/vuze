@@ -34,47 +34,72 @@ import org.gudy.azureus2.core3.internat.*;
 public class 
 DisplayFormatters 
 {
-	public static String formatByteCountToKBEtc(int n) {
+	public static String formatByteCountToKiBEtc(int n) {
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + " KB";
+		return (n / 1024) + "." + ((n % 1024) / 102) + " KiB";
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
-		  + ((n % (1024 * 1024)) / 104857 )
-		  + " MB";
+		  + ((n % (1024 * 1024)) / 104857)
+		  + " MiB";
 	  if (n < 1024 * 1024 * 1024 * 1024)
 		return (n / (1024 * 1024 * 1024))
 		  + "."
-		  + ((n % (1024 * 1024 * 1024)) / 107374182 )
-		  + " GB";
+		  + ((n % (1024 * 1024 * 1024)) / 107374182)
+		  + " GiB";
 	  return "A lot";
 	}
 
-	public static String formatByteCountToKBEtc(long n) {
+	public static String formatByteCountToKiBEtc(long n) {
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + " KB";
+		return (n / 1024) + "." + ((n % 1024) / 102) + " KiB";
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
-		  + ((n % (1024 * 1024)) / 104857 )
-		  + " MB";
+		  + ((n % (1024 * 1024)) / 104857)
+		  + " MiB";
 	  if (n < 1024l * 1024l * 1024l * 1024l)
 		return (n / (1024l * 1024l * 1024l))
 		  + "."
 		  + ((n % (1024l * 1024l * 1024l)) / 107374182l)
-		  + " GB";
+		  + " GiB";
+	  return "A lot !!!";
+	}
+	
+	public static String formatByteCountToKBEtc(long n) {
+	  if (n < 1000)
+	    return n + " B";
+	  if (n < 1000 * 1000)
+	    return (n / 1000) + "." + ((n % 1000) / 100) + " KB";
+	  if (n < 1000 * 1000 * 1000)
+	    return (n / (1000 * 1000))
+	    + "."
+	    + ((n % (1000 * 1000)) / (100 * 1000))
+	    + " MB";
+	  if (n < 1000l * 1000l * 1000l * 1000l)
+	    return (n / (1000l * 1000l * 1000l))
+	    + "."
+	    + ((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))
+	    + " GB";
 	  return "A lot !!!";
 	}
 	
 	public static String
-	formatByteCountToKBEtcPerSec(
+	formatByteCountToKiBEtcPerSec(
 		long		n )
 	{
-		return( formatByteCountToKBEtc(n) + "/s");
+		return( formatByteCountToKiBEtc(n) + "/s");
+	}
+	
+	public static String
+	formatByteCountToKBEtcPerSec(
+	    long		n )
+	{
+	  return( formatByteCountToKBEtc(n) + "/s");
 	}
   
   
@@ -98,11 +123,11 @@ DisplayFormatters
 		
 		if(total_discarded == 0){
 		
-			return formatByteCountToKBEtc(total_received);
+			return formatByteCountToKiBEtc(total_received);
 			
 		}else{
 			
-			return formatByteCountToKBEtc(total_received) + " ( " + DisplayFormatters.formatByteCountToKBEtc(total_discarded) + " " + MessageText.getString("discarded") + " )"; 
+			return formatByteCountToKiBEtc(total_received) + " ( " + DisplayFormatters.formatByteCountToKiBEtc(total_discarded) + " " + MessageText.getString("discarded") + " )"; 
 		}
 	}
 	
@@ -119,7 +144,7 @@ DisplayFormatters
 		
 			long size = nbFails * dm.getPieceLength();
 			
-			String result = nbFails + " ( ~ " + formatByteCountToKBEtc(size) + " )";
+			String result = nbFails + " ( ~ " + formatByteCountToKiBEtc(size) + " )";
 			
 			return result;
   		}
