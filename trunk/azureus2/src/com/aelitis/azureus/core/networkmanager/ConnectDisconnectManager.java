@@ -285,7 +285,7 @@ public class ConnectDisconnectManager {
           }
         }
         
-        if( !found )  Debug.out( "~~~ canceled request not found ~~~" );
+        //if( !found )  Debug.out( "~~~ canceled request not found ~~~" );
       }
       
       canceled_requests.clear();
