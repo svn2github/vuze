@@ -45,7 +45,27 @@ PEPeerControlImpl
   private static final int WARNINGS_LIMIT = 3;
   
   private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
-
+  private static boolean disconnect_seeds_when_seeding;
+  
+  static{
+  	
+  	disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
+  	
+  	COConfigurationManager.addParameterListener(
+  		"Disconnect Seed",
+  		new ParameterListener()
+		{
+  			public void
+			parameterChanged(
+				String	str )
+  			{
+  			 	disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);				
+  			}
+		});
+  }
+  
+  
+  
   private int peer_manager_state = PS_INITIALISED;
   
   private int[] 	availability_cow;
@@ -150,6 +170,7 @@ PEPeerControlImpl
   	  this._diskManager = diskManager;
   	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
+      
  }
   
 	public DownloadManager
@@ -1563,9 +1584,10 @@ PEPeerControlImpl
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
     //If we are not ourself a seed, return
-    if (!forceDisconnect && ((!_finished) || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
+    if (!forceDisconnect && ((!_finished) || !disconnect_seeds_when_seeding )){
       return;
-
+    }
+    
     List	peer_transports = peer_transports_cow;
           
       for (int i = 0; i < peer_transports.size(); i++) {
@@ -2507,11 +2529,11 @@ PEPeerControlImpl
   	}
   }
 
-  /**
-   * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
-   */
-  public void parameterChanged(String parameterName) {
+ 
+  public void 
+  parameterChanged(
+  		String parameterName)
+  {
     oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
     
     //if ipfiltering becomes enabled, remove any existing filtered connections
@@ -2672,8 +2694,8 @@ PEPeerControlImpl
     return endGameMode;
   }
   
-  public void setSuperSeedMode(boolean superSeedMode) {
-    this.superSeedMode = superSeedMode;
+  public void setSuperSeedMode(boolean _superSeedMode) {
+    superSeedMode = _superSeedMode;
   }    
   
   private void updatePeersInSuperSeedMode() {
