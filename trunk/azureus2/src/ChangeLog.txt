@@ -7,7 +7,7 @@ FEATURE: Full scrape of tracker now supported as SN requires this for hosting [P
 
 CHANGE: Client identification now includes Experimental, BitComet, and better Shadow [Nolar]
 CHANGE: Added AZ version + torrent size to stats [Parg]
-CHANGE: Added 'comment' field to torrent create
+CHANGE: Added 'comment' field to torrent create [Parg]
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
