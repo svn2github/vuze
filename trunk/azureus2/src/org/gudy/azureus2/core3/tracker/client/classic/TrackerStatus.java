@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
@@ -582,7 +583,13 @@ public class TrackerStatus {
 		
 	http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
 		
-	ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+	try{
+		ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+		
+	}catch( ClientIDException e ){
+		
+		throw( new IOException( e.getMessage()));
+	}
 	
 	reqUrl = (URL)http_properties.get( ClientIDGenerator.PR_URL );
 

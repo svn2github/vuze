@@ -47,7 +47,9 @@ ClientIDGenerator
 	public byte[]
 	generatePeerID(
 		Torrent		torrent,
-		boolean		for_tracker );
+		boolean		for_tracker )
+	
+		throws ClientIDException;
 	
 		/**
 		 * generate appropriate properties to be supplied to HTTP(S) URL connection
@@ -60,7 +62,9 @@ ClientIDGenerator
 	
 	public void
 	generateHTTPProperties(
-		Properties	properties );
+		Properties	properties )
+	
+		throws ClientIDException;
 	
 		/**
 		 * For more complex situations a filter approach is used. The lines of the request are
@@ -72,5 +76,7 @@ ClientIDGenerator
 	
 	public String[]
 	filterHTTP(
-		String[]	lines_in );
+		String[]	lines_in )
+	
+		throws ClientIDException;
 }

@@ -32,4 +32,12 @@ TRTrackerClientException
 	{
 		super( str );
 	}
+	
+	public
+	TRTrackerClientException(
+		String		str,
+		Throwable	cause )
+	{
+		super( str, cause );
+	}
 }

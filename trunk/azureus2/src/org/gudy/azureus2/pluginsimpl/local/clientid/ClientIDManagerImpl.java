@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -32,10 +33,12 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.ThreadPoolTask;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
@@ -160,6 +163,8 @@ ClientIDManagerImpl
 	generatePeerID(
 		TOTorrent	torrent,
 		boolean		for_tracker )
+	
+		throws ClientIDException
 	{
 		return( generator.generatePeerID( new TorrentImpl( torrent ), for_tracker ));
 	}
@@ -167,6 +172,8 @@ ClientIDManagerImpl
 	public void
 	generateHTTPProperties(
 		Properties	properties )
+	
+		throws ClientIDException
 	{
 		if ( use_filter ){
 		
@@ -362,23 +369,38 @@ ClientIDManagerImpl
 					}
 					
 					socket.getOutputStream().write( buffer, 0,len );
+				}	
+				
+			}catch( ClientIDException e ){
+									
+				Map	failure = new HashMap();
+				
+				failure.put("failure reason", e.getMessage());
+				
+				try{
+					byte[] x = BEncoder.encode( failure );
+				
+					socket.getOutputStream().write( x );
+					
+				}catch( IOException f ){
+					
+					Debug.printStackTrace(f);
 				}
-				
-				socket.getOutputStream().flush();
-				
-				socket.close();
 				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
+					
+			}finally{
 				
 				try{
+					socket.getOutputStream().flush();
+					
 					socket.close();
 					
 				}catch( Throwable f ){
 					
-				}
-					
+				}			
 			}
 		}
 		

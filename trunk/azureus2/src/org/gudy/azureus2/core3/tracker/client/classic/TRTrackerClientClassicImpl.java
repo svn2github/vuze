@@ -222,16 +222,21 @@ TRTrackerClientClassicImpl
        
 		//Create our unique peerId
 	
-    tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
+	try{
+	    tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
+	
+	    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs", false)){
+	    	
+	    	data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
+	    	
+	    }else{
+	    	
+	    	data_peer_id	= tracker_peer_id;
+	    }
+	}catch( ClientIDException e ){
 
-    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs", false)){
-    	
-    	data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
-    	
-    }else{
-    	
-    	data_peer_id	= tracker_peer_id;
-    }
+		 throw( new TRTrackerClientException( "TRTrackerClient: Peer ID generation fails", e ));
+	}
 
     key_id	= createKeyID();
     
@@ -983,7 +988,13 @@ TRTrackerClientClassicImpl
  		
  		http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
  		
- 		ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+ 		try{
+ 			ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+ 			
+ 		}catch( ClientIDException e ){
+ 			
+ 			throw( new IOException( e.getMessage()));
+ 		}
 		
  		reqUrl = (URL)http_properties.get( ClientIDGenerator.PR_URL );
  		
