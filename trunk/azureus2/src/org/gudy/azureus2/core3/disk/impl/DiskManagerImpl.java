@@ -1148,10 +1148,10 @@ DiskManagerImpl
   
 
 	private synchronized boolean checkPiece(int pieceNumber) {
-            
-    if (bOverallContinue == false) return false;
     
     try{  Thread.sleep( 100 );  }catch(Exception e) {e.printStackTrace();}
+            
+    if (bOverallContinue == false) return false;
 
 		allocateAndTestBuffer.position(0);
 
