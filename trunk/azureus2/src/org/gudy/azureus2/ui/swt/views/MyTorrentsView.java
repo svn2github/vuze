@@ -1633,10 +1633,6 @@ public class MyTorrentsView extends AbstractIView
 	// categorymanagerlistener Functions
   public void downloadManagerAdded(Category category, DownloadManager manager)
   {
-    if (category == null)
-      LGLogger.log("CategoryListener.downloadManagerAdded: null::"+manager.getName());
-    else
-      LGLogger.log("CategoryListener.downloadManagerAdded: "+category.getName()+"::"+manager.getName());
     if ((manager.getStats().getCompleted() == 1000 && isSeedingView) ||
         (manager.getStats().getCompleted() != 1000 && !isSeedingView)) {
       synchronized (objectToSortableItem) {
@@ -1689,7 +1685,6 @@ public class MyTorrentsView extends AbstractIView
         if ((isSeedingView && completed) ||
             (!isSeedingView && !completed)) {
           // Add to view
-					//LGLogger.log(0,"AddTo"+ (isSeedingView ? "S" : "D") + ": stateChanged to "+ state+ "C="+ manager.getStats().getCompleted()+";"+ manager.getName());
           item = new TorrentRow(this,table, manager);
           objectToSortableItem.put(manager, item);
         }
@@ -1697,7 +1692,6 @@ public class MyTorrentsView extends AbstractIView
         // does it belong?
         if ((isSeedingView && !completed) ||
             (!isSeedingView && completed)) {
-					//LGLogger.log(0,"RemoveFrom"+ (isSeedingView ? "S" : "D") + ": stateChanged to "+ state+ "C="+ manager.getStats().getCompleted()+";"+ manager.getName());
           TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(manager);
           if (managerItem != null) {
             TableItem tableItem = managerItem.getTableItem();
@@ -1718,7 +1712,6 @@ public class MyTorrentsView extends AbstractIView
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      LGLogger.log("AsignSelectedToCategory: "+category.getName()+";DM="+dm.getName());
       dm.setCategory(category);
     }
   }
@@ -1731,9 +1724,6 @@ public class MyTorrentsView extends AbstractIView
 
     currentCategory = category;
 
-    if (currentCategory != null)
-    LGLogger.log("New Tab Selected: "+currentCategory.getName());
-    
     int catType = (currentCategory == null) ? Category.TYPE_ALL : currentCategory.getType();
     List managers;
     if (catType == Category.TYPE_USER)
