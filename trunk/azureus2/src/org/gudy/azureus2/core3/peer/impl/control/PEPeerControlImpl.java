@@ -1539,6 +1539,10 @@ PEPeerControlImpl
     try{
       _peer_transports_mon.enter();
     
+      	// although we should take a copy of the list here (as closeAll removes from it)
+      	// we don't (for perf reasons) as checkSeeds is called often and any missed entries will be picked up
+      	// next iteration
+      
       for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
@@ -2434,8 +2438,12 @@ PEPeerControlImpl
       try{
       	_peer_transports_mon.enter();
       
-        for (int i=0; i < _peer_transports.size(); i++) {
-          PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
+      		// copy as closeAll removed from list
+      	
+      	ArrayList	pt_copy = new ArrayList( _peer_transports );
+      	
+        for (int i=0; i < pt_copy.size(); i++) {
+          PEPeerTransport conn = (PEPeerTransport)pt_copy.get( i );
           if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
