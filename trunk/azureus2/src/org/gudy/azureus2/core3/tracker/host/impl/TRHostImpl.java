@@ -430,7 +430,7 @@ TRHostImpl
 							table_bit.append( "<tr>" );
 							
 							table_bit.append( "<td width=\"50%\">"+
-											  "<a href=\"/torrents/" + torrent_name + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
+											  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
 											  
 							table_bit.append( "<td width=\"10%\">" + status_str + "</td>" );
 											  
