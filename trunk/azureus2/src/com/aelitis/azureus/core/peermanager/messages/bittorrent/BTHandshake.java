@@ -35,7 +35,7 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
  */
 public class BTHandshake implements BTProtocolMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  public static final byte[] RESERVED = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
+  public byte[] RESERVED = new byte[] { (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
   
   private final DirectByteBuffer buffer;
   private final byte[] data_hash;
@@ -46,6 +46,15 @@ public class BTHandshake implements BTProtocolMessage {
     this.data_hash = data_hash;
     this.peer_id = peer_id;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
+    
+    /*
+    for( int i=7; i >= 0; i-- ) {
+      byte b = (byte) (RESERVED[0] >> i);
+      int val = b & 0x01;
+      System.out.print( val == 1 ? "x" : "." );
+    }
+    System.out.println();
+    */
     
     buffer.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
     buffer.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
