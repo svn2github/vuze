@@ -21,6 +21,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
@@ -88,17 +90,14 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     
     gm = _gm;
     ConfigurationManager cm = ConfigurationManager.getInstance();
-    BasicConfigurator.configure();
-    Logger.getRootLogger().addAppender(new WebLogAppender(logList));
-    org.gudy.azureus2.core.Logger.getLogger().setListener(this);
-    //loggerCore.setLevel(Level.OFF);
+    initLoggers();
     
     try {
       logfile=new BufferedWriter(new FileWriter(MAIN_LOGFILE,true));
     }
     catch (Exception e_logfile) {
       loggerWeb.error("Unable to open the main log file.", e_logfile);
-      if (logfile==null) 
+      if (logfile==null)
         loggerWeb.error("jHTTPp2 need write permission for the file " + MAIN_LOGFILE);
     }
     loggerWeb.info("server startup...");
@@ -129,6 +128,21 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //if (debug) remote_debug_vector=new Vector();
     //remote_debug=false;
   }
+  public void initLoggers() {
+    ConfigurationManager cm = ConfigurationManager.getInstance();
+    Logger.getRootLogger().removeAllAppenders();
+    BasicConfigurator.configure();
+    Logger.getRootLogger().addAppender(new WebLogAppender(logList));
+    if (cm.getBooleanParameter("Server_bLogFile")) {
+      try{
+        Logger.getRootLogger().addAppender(new FileAppender(new PatternLayout(), cm.getStringParameter("Server_sLogFile"),true));
+      }catch (Exception e){}
+    }
+    org.gudy.azureus2.core.Logger.getLogger().setListener(this);
+    loggerCore.setLevel(SLevel.toLevel(cm.getIntParameter("Server_iLogLevelCore")));
+    loggerWeb.setLevel(SLevel.toLevel(cm.getIntParameter("Server_iLogLevelWebinterface")));
+  }
+  
   public Jhttpp2Server(GlobalManager _gm) {
     init(_gm);
   }
@@ -198,21 +212,21 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
    * @since 0.2.10
    */
   public void saveSettings()throws IOException {
-//    serverproperties.setProperty("server.http-proxy",new Boolean(use_proxy).toString());
-//    serverproperties.setProperty("server.http-proxy.hostname",proxy.getHostAddress());
-//    serverproperties.setProperty("server.http-proxy.port",new Integer(proxy_port).toString());
-//    serverproperties.setProperty("server.filter.http",new Boolean(filter_http).toString());
-//    serverproperties.setProperty("server.filter.url",new Boolean(block_urls).toString());
-//    serverproperties.setProperty("server.filter.http.useragent",http_useragent);
-//    serverproperties.setProperty("server.enable-cookies-by-default",new Boolean(enable_cookies_by_default).toString());
-//    serverproperties.setProperty("server.debug-logging",new Boolean(debug).toString());
-//    serverproperties.setProperty("server.port",new Integer(port).toString());
-//    serverproperties.setProperty("server.access.log",new Boolean(log_access).toString());
-//    serverproperties.setProperty("server.access.log.filename",log_access_filename);
-//    serverproperties.setProperty("server.webconfig",new Boolean(webconfig).toString());
-//    serverproperties.setProperty("server.www",new Boolean(www_server).toString());
-//    serverproperties.setProperty("server.webconfig.username",config_user);
-//    serverproperties.setProperty("server.webconfig.password",config_password);
+    //    serverproperties.setProperty("server.http-proxy",new Boolean(use_proxy).toString());
+    //    serverproperties.setProperty("server.http-proxy.hostname",proxy.getHostAddress());
+    //    serverproperties.setProperty("server.http-proxy.port",new Integer(proxy_port).toString());
+    //    serverproperties.setProperty("server.filter.http",new Boolean(filter_http).toString());
+    //    serverproperties.setProperty("server.filter.url",new Boolean(block_urls).toString());
+    //    serverproperties.setProperty("server.filter.http.useragent",http_useragent);
+    //    serverproperties.setProperty("server.enable-cookies-by-default",new Boolean(enable_cookies_by_default).toString());
+    //    serverproperties.setProperty("server.debug-logging",new Boolean(debug).toString());
+    //    serverproperties.setProperty("server.port",new Integer(port).toString());
+    //    serverproperties.setProperty("server.access.log",new Boolean(log_access).toString());
+    //    serverproperties.setProperty("server.access.log.filename",log_access_filename);
+    //    serverproperties.setProperty("server.webconfig",new Boolean(webconfig).toString());
+    //    serverproperties.setProperty("server.www",new Boolean(www_server).toString());
+    //    serverproperties.setProperty("server.webconfig.username",config_user);
+    //    serverproperties.setProperty("server.webconfig.password",config_password);
     storeServerProperties();
     
     ObjectOutputStream file=new ObjectOutputStream(new FileOutputStream(DATA_FILE));
@@ -226,22 +240,22 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   public void restoreSettings()//throws Exception
   {
     getServerProperties();
-//    use_proxy = new Boolean(serverproperties.getProperty("server.http-proxy","false")).booleanValue();
-//    try { proxy = InetAddress.getByName(ConfigurationManager.getInstance().getStringParameter("Server_sDownstreamProxyHost"));
-//    } catch ( UnknownHostException e) {}
-//    proxy_port = new Integer(serverproperties.getProperty("server.http-proxy.port","8080")).intValue();
-//    block_urls = new Boolean(serverproperties.getProperty("server.filter.url","false")).booleanValue();
-//    http_useragent = serverproperties.getProperty("server.filter.http.useragent","Mozilla/4.0 (compatible; MSIE 4.0; WindowsNT 5.0)");
-//    filter_http = new Boolean(serverproperties.getProperty("server.filter.http","false")).booleanValue();
-//    enable_cookies_by_default=  new Boolean(serverproperties.getProperty("server.enable-cookies-by-default","true")).booleanValue();
-//    debug = new Boolean(serverproperties.getProperty("server.debug-logging","false")).booleanValue();
-//    port = new Integer(serverproperties.getProperty("server.port","8088")).intValue();
-//    log_access = new Boolean(serverproperties.getProperty("server.access.log","false")).booleanValue();
-//    log_access_filename = serverproperties.getProperty("server.access.log.filename","paccess.log");
-//    webconfig = new Boolean(serverproperties.getProperty("server.webconfig","true")).booleanValue();
-//    www_server = new Boolean(serverproperties.getProperty("server.www","true")).booleanValue();
-//    config_user = serverproperties.getProperty("server.webconfig.username","root");
-//    config_password = serverproperties.getProperty("server.webconfig.password","geheim");
+    //    use_proxy = new Boolean(serverproperties.getProperty("server.http-proxy","false")).booleanValue();
+    //    try { proxy = InetAddress.getByName(ConfigurationManager.getInstance().getStringParameter("Server_sDownstreamProxyHost"));
+    //    } catch ( UnknownHostException e) {}
+    //    proxy_port = new Integer(serverproperties.getProperty("server.http-proxy.port","8080")).intValue();
+    //    block_urls = new Boolean(serverproperties.getProperty("server.filter.url","false")).booleanValue();
+    //    http_useragent = serverproperties.getProperty("server.filter.http.useragent","Mozilla/4.0 (compatible; MSIE 4.0; WindowsNT 5.0)");
+    //    filter_http = new Boolean(serverproperties.getProperty("server.filter.http","false")).booleanValue();
+    //    enable_cookies_by_default=  new Boolean(serverproperties.getProperty("server.enable-cookies-by-default","true")).booleanValue();
+    //    debug = new Boolean(serverproperties.getProperty("server.debug-logging","false")).booleanValue();
+    //    port = new Integer(serverproperties.getProperty("server.port","8088")).intValue();
+    //    log_access = new Boolean(serverproperties.getProperty("server.access.log","false")).booleanValue();
+    //    log_access_filename = serverproperties.getProperty("server.access.log.filename","paccess.log");
+    //    webconfig = new Boolean(serverproperties.getProperty("server.webconfig","true")).booleanValue();
+    //    www_server = new Boolean(serverproperties.getProperty("server.www","true")).booleanValue();
+    //    config_user = serverproperties.getProperty("server.webconfig.username","root");
+    //    config_password = serverproperties.getProperty("server.webconfig.password","geheim");
     
     try {
       
@@ -284,11 +298,15 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     if (event == org.gudy.azureus2.core.Logger.ERROR)
       loggerCore.error(text);
     else if (event == org.gudy.azureus2.core.Logger.RECEIVED)
-      loggerCore.log(SLevel.TORRENT_RECIEVED, text);
+      loggerCore.log(SLevel.TORRENT_RECEIVED, text);
     else if (event == org.gudy.azureus2.core.Logger.SENT)
       loggerCore.log(SLevel.TORRENT_SENT, text);
-    else
-      loggerCore.info(text);
+    else {
+      if (color==0)
+        loggerCore.info(text);
+      else
+        loggerCore.log(SLevel.CORE_INFO, text);
+    }
   }
   /**
    * writes into the server log file and adds a new line
@@ -351,7 +369,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   }
   public void AuthenticateUser(String u,String p) {
     //if (config_user.equals(u) && config_password.equals(p)) {
-      config_auth = 1;
+    config_auth = 1;
     //} else config_auth = 0;
   }
   public String getGMTString() {

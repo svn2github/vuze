@@ -263,6 +263,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
       if (pos == -1) { // occours with "GET / HTTP/1.1"
         url = a.substring(a.indexOf(" ")+1,a.lastIndexOf(" "));
         statuscode = connection.SC_FILE_REQUEST;
+        server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
         return null;
       }
       f = a.substring(pos+3); //removes "http://"
@@ -298,7 +299,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     else remote_port = 80;
     remote_host_name = f;
     InetAddress address = null;
-    if (cm.getBooleanParameter("Server_bLogAccess")) server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
+    server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
     if (f.equals(cm.getStringParameter("Server_sAccessHost"))) {
       statuscode = connection.SC_FILE_REQUEST;
       return null;

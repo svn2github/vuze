@@ -71,8 +71,12 @@ public class Jhttpp2HTTPSession extends Thread {
   private BufferedOutputStream HTTP_out;
   private Jhttpp2ServerInputStream HTTP_in;
   
+  private boolean turnserveroff = false;
+  
   private static Locale locale = new Locale("", "");
   private static Hashtable status = null;
+  private static Hashtable parameterlegacy = null;
+  private static Hashtable messagetextmap = null;
   
   public Jhttpp2HTTPSession(Jhttpp2Server server,Socket client) {
     try {
@@ -80,6 +84,22 @@ public class Jhttpp2HTTPSession extends Thread {
       out = new BufferedOutputStream(client.getOutputStream());
       this.server=server;
       this.client=client;
+      if (parameterlegacy==null) {
+        parameterlegacy = new LegacyHashtable();
+        parameterlegacy.put("Core_sOverrideIP", "Override Ip");
+        parameterlegacy.put("Core_bAllocateNew", "Allocate New");
+        parameterlegacy.put("Core_iLowPort", "Low Port");
+        parameterlegacy.put("Core_iHighPort", "High Port");
+        parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
+        parameterlegacy.put("Core_iMaxDownloads", "max downloads");
+        parameterlegacy.put("Core_iMaxClients", "Max Clients");
+        parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
+        parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
+        messagetextmap = new LegacyHashtable();
+        messagetextmap.put("allocatenew", "allocatenewfiles");
+        messagetextmap.put("lowport", "serverportlow");
+        messagetextmap.put("highport", "serverporthigh");
+      }
       if ((this.status == null) || (locale != this.server.locale)) {
         if (status != null)
           status.clear();
@@ -339,28 +359,63 @@ public class Jhttpp2HTTPSession extends Thread {
    * @since 0.4.04
    */
   private void handleConfigInt(Template tmpl, String name) {
-    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getIntParameter(name));
+    String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
+    if (!po.startsWith("!"))
+      tmpl.setParam("Options_"+name+"_D", po);
+    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getIntParameter(parameterlegacy.get(name).toString()));
+  }
+  
+  private void handleConfigBool(Template tmpl, String name) {
+    String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
+    if (!po.startsWith("!"))
+      tmpl.setParam("Options_"+name+"_D", po);
+    if (ConfigurationManager.getInstance().getBooleanParameter(parameterlegacy.get(name).toString()))
+      tmpl.setParam("Options_"+name, 1);
   }
   
   private void handleConfigStr(Template tmpl, String name) {
-    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getStringParameter(name));
+    String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
+    if (!po.startsWith("!"))
+      tmpl.setParam("Options_"+name+"_D", po);
+    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getStringParameter(parameterlegacy.get(name).toString()));
   }
   
   private void handleConfig(Template tmpl) {
     ConfigurationManager config = ConfigurationManager.getInstance();
     handleConfigStr(tmpl, "General_sDefaultSave_Directory");
     handleConfigStr(tmpl, "General_sDefaultTorrent_Directory");
-    handleConfigStr(tmpl, "Server_sTemplate_Directory");
-    //    if (config.getIntParameter("Server_iVerbosity") != this.server.verbosity())
-    //      tmpl.setParam("Override_Verbosity", "Verbosity overridden via command line to "+this.server.verbosity());
-    handleConfigInt(tmpl, "Server_iVerbosity");
+    handleConfigStr(tmpl, "Core_sOverrideIP");
+    handleConfigBool(tmpl,"Core_bAllocateNew");
+    handleConfigInt(tmpl, "Core_iLowPort");
+    handleConfigInt(tmpl, "Core_iHighPort");
+    handleConfigInt(tmpl, "Core_iMaxActiveTorrents");
+    handleConfigInt(tmpl, "Core_iMaxDownloads");
+    handleConfigInt(tmpl, "Core_iMaxClients");
+    handleConfigInt(tmpl, "Core_iMaxUploads");
+    handleConfigInt(tmpl, "Core_iMaxUploadSpeed");
+    handleConfigStr(tmpl, "Server_sName");
     handleConfigStr(tmpl, "Server_sBindIP");
     handleConfigInt(tmpl, "Server_iPort");
-    handleConfigStr(tmpl, "Server_sName");
     handleConfigInt(tmpl, "Server_iTimeout");
+    handleConfigStr(tmpl, "Server_sTemplate_Directory");
     handleConfigInt(tmpl, "Server_iMaxHTTPConnections");
-    handleConfigInt(tmpl, "Server_iLogCount");
     handleConfigInt(tmpl, "Server_iRefresh");
+    handleConfigStr(tmpl, "Server_sAccessHost");
+    handleConfigBool(tmpl,"Server_bProxyEnableCookies");
+    handleConfigBool(tmpl,"Server_bProxyBlockURLs");
+    handleConfigBool(tmpl,"Server_bProxyFilterHTTP");
+    handleConfigStr(tmpl, "Server_sProxyUserAgent");
+    handleConfigBool(tmpl,"Server_bUseDownstreamProxy");
+    handleConfigStr(tmpl, "Server_sDownstreamProxyHost");
+    handleConfigInt(tmpl, "Server_iDownstreamProxyPort");
+
+    handleConfigInt(tmpl, "Server_iLogCount");
+    //    if (config.getIntParameter("Server_iVerbosity") != this.server.verbosity())
+    //      tmpl.setParam("Override_Verbosity", "Verbosity overridden via command line to "+this.server.verbosity());
+    handleConfigInt(tmpl, "Server_iLogLevelWebinterface");
+    handleConfigInt(tmpl, "Server_iLogLevelCore");
+    handleConfigBool(tmpl,"Server_bLogFile");
+    handleConfigStr(tmpl, "Server_sLogFile");
   }
   
   private void handleTorrents(Template tmpl) {
@@ -373,6 +428,7 @@ public class Jhttpp2HTTPSession extends Thread {
       Iterator torrent = torrents.iterator();
       while (torrent.hasNext()) {
         dm = (DownloadManager) torrent.next();
+        HashData hd = dm.getHashData();
         dmstate = dm.getState();
         h = new Hashtable();
         if (dmstate == DownloadManager.STATE_STOPPED) {
@@ -380,7 +436,7 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_Stopped", Boolean.TRUE);
         } else
           h.put("Torrents_Torrent_Command", "Stop");
-        if (dm.getNbSeeds() == 0)
+        if ((hd == null) || (hd.seeds == 0))
           h.put("Torrents_Torrent_Seedless", Boolean.TRUE);
         if (dmstate == DownloadManager.STATE_INITIALIZING)
           h.put("Torrents_Torrent_Initializing", Boolean.TRUE);
@@ -400,11 +456,13 @@ public class Jhttpp2HTTPSession extends Thread {
         try {
           h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
         } catch (ArithmeticException e) {}
-        h.put("Torrents_Torrent_FileName", dm.getName());
+        if (dm.getName()==null)
+          h.put("Torrents_Torrent_FileName", "?");
+        else
+          h.put("Torrents_Torrent_FileName", dm.getName());
         if (dmstate == DownloadManager.STATE_ERROR)
           h.put("Torrents_Torrent_Error", dm.getErrorDetails());
         h.put("Torrents_Torrent_Status", this.status.get(new Integer(dmstate)));
-        HashData hd = dm.getHashData();
         if (hd == null) {
           h.put("Torrents_Torrent_Seeds", "?");
           h.put("Torrents_Torrent_Peers", "?");
@@ -461,17 +519,18 @@ public class Jhttpp2HTTPSession extends Thread {
           if (!temp.exists())
             temp.mkdirs();
           else if (!temp.isDirectory()) {
-            //server.putSysMessage(SLevel.SEVERE, "Configuration error. This is not a directory: "+value);
+            server.loggerWeb.fatal("Configuration error. This is not a directory: "+value);
             continue;
           }
         }
         if (option.substring(option.indexOf('_')+1).startsWith("s"))
-          cm.setParameter(option, value);
+          cm.setParameter(parameterlegacy.get(option).toString(), value);
         else
-          cm.setParameter(option, Integer.parseInt(value));
+          cm.setParameter(parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }
     }
     cm.save();
+    server.initLoggers();
   }
   
   private void ProcessAdd(HashMap URIvars) {
@@ -542,7 +601,7 @@ public class Jhttpp2HTTPSession extends Thread {
       else if (command.equals("Add"))
         this.ProcessAdd(URIvars);
       else if (command.equals("Exit"))
-        server.shutdownServer();
+        turnserveroff = true;
       else if (command.equals("Torrent"))
         this.ProcessTorrent(URIvars);
     }
@@ -670,7 +729,8 @@ public class Jhttpp2HTTPSession extends Thread {
       file_in.close(); // finished!
     } else {
       tmpl.setParam("Global_ServerName", ConfigurationManager.getInstance().getStringParameter("Server_sName"));
-      tmpl.setParam("Global_Refresh", ConfigurationManager.getInstance().getIntParameter("Server_iRefresh"));
+      if (ConfigurationManager.getInstance().getIntParameter("Server_iRefresh")!=0)
+        tmpl.setParam("Global_Refresh", ConfigurationManager.getInstance().getIntParameter("Server_iRefresh"));
       TemplateCache tc = TemplateCache.getInstance();
       if (tc.needs(filename, "Options"))
         this.handleConfig(tmpl);
@@ -683,6 +743,8 @@ public class Jhttpp2HTTPSession extends Thread {
       endHeader();
       out.write(output.getBytes(), 0, output.length());
       out.flush();
+      if (turnserveroff)
+        server.shutdownServer();
     }
   }
   /**

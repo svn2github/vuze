@@ -57,11 +57,39 @@ public class ConfigurationDefaults {
     // Default torrent directory
     def.put("General_sDefaultTorrent_Directory", ConfigurationManager.getApplicationPath()+"torrents");
     
+    /** Core settings **/
+    // (currently only a reference list for me)
+    // Override Ip ("Override Ip")
+    //def.put("Core_sOverrideIP", "");
+    def.put("Override Ip", "");
+    // Allocate new files ("Allocate New")
+    //def.put("Core_bAllocateNew", new Long(1));
+    def.put("Allocate New", new Long(1));
+    // Lower port to use for BT ("Low Port")
+    //def.put("Core_iLowPort", new Long(6881));
+    def.put("Low Port", new Long(6881));
+    // Upper port to use for BT ("High Port")
+    //def.put("Core_iHighPort", new Long(6889));
+    def.put("High Port", new Long(6889));
+    // Maximal active torrents ("max active torrents")
+    //def.put("Core_iMaxActiveTorrents", new Long(4));
+    def.put("max active torrents", new Long(4));
+    // Maximal active downloads (torrents!=seed) ("max downloads")
+    //def.put("Core_iMaxDownloads", new Long(4));
+    def.put("max downloads", new Long(4));
+    // Maxmail number of connections (0=unlimited) ("Max Clients")
+    //def.put("Core_iMaxClients", new Long(0));
+    def.put("Max Clients", new Long(0));
+    // Default max uploads per torrent ("Max Uploads")
+    //def.put("Core_iMaxUploads", new Long(4));
+    def.put("Max Uploads", new Long(4));
+    // Maximal upload speed (globally, 0=unlimited) ("Max Upload Speed")
+    //def.put("Core_iMaxUploadSpeed", new Long(0));
+    def.put("Max Upload Speed", new Long(0));
+    
     /** Headless Server settings **/
     // Server Name
     def.put("Server_sName", "Azureus2 WebInterface");
-    // Server Admin email address (Currently only used in signature, does therefore nothing)
-    def.put("Server_sAdmin", "postmaster@localhost");
     // IP to bind to
     def.put("Server_sBindIP", "");
     // Port the server runs on
@@ -70,16 +98,14 @@ public class ConfigurationDefaults {
     def.put("Server_iTimeout", new Long(10));
     // Path to the html templates.
     def.put("Server_sTemplate_Directory", getApplicationPath()+"org/gudy/azureus2/server/template");
-    // Signature on end of page. Currently a 'left over' from pws, does nothing here.
-    def.put("Server_sSignature", "on");
     // Maximal simultaneous connections
     def.put("Server_iMaxHTTPConnections", new Long(5));
-    // Auto-refresh torrents every (seconds)
+    // Auto-refresh torrents every (seconds, 0 = off);
     def.put("Server_iRefresh", new Long(20));
-    // Fake hostname to access the webinterface when used in proxy mode
-    def.put("Server_sAccessHost", "torrent");
     
     // Relevant for the proxy part
+    // Fake hostname to access the webinterface when used in proxy mode
+    def.put("Server_sAccessHost", "torrent");
     // Enable Cookies
     def.put("Server_bProxyEnableCookies", new Long(1));
     // Block certain URLs
@@ -96,18 +122,25 @@ public class ConfigurationDefaults {
     def.put("Server_iDownstreamProxyPort", new Long(0));
     
     // Logging relevant Stuff
+    //  Log levels:
+    //   50000 Fatal
+    //   40000 Error
+    //   30000 Warn
+    //   20000 Info
+    //   12000 HTTP (SLevel)
+    //   11101 Torrent Received (SLevel)
+    //   11100 Torrent Sent (SLevel)
+    //   11000 Core info (SLevel)
+    //   10001 Thread (SLevel)
+    //   10000 Debug
     // Log to file
     def.put("Server_bLogFile", new Long(0));
     // Logfile
     def.put("Server_sLogFile", ConfigurationManager.getApplicationPath()+"webinterface.log");
-    // Log HTTP Access
-    def.put("Server_bLogAccess", new Long(0));
-    // Verbosity
-    //  0 Error only
-    //  1 Torrent Infos
-    //  2 Warnings
-    //  3 Info
-    def.put("Server_iVerbosity", new Long(1));
+    // Log Level for web interface
+    def.put("Server_iLogLevelWebinterface", new Long(20000));
+    // Log Level for core
+    def.put("Server_iLogLevelCore", new Long(20000));
     // Number of remembered log entries
     def.put("Server_iLogCount", new Long(200));
   }

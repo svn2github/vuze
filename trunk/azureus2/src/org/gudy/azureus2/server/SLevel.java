@@ -13,10 +13,32 @@ import org.apache.log4j.Level;
  */
 public class SLevel extends Level {
   
-  public static final Level TORRENT_RECIEVED = new SLevel(15001, "TORRENT RECEIVED", 6);
-  public static final Level TORRENT_SENT = new SLevel(15000, "TORRENT SENT", 6);
-  public static final Level THREAD = new SLevel(10001, "THREAD", 6);
-  public static final Level HTTP = new SLevel(12000, "HTTP", 6);
+  public final static int INT_TORRENT_RECEIVED = 11101;
+  public final static int INT_TORRENT_SENT = 11100;
+  public final static int INT_CORE_INFO = 11000;
+  public final static int INT_THREAD = 10001;
+  public final static int INT_HTTP = 12000;
+  
+  public static final Level TORRENT_RECEIVED = new SLevel(INT_TORRENT_RECEIVED, "TORRENT RECEIVED", 6);
+  public static final Level TORRENT_SENT = new SLevel(INT_TORRENT_SENT, "TORRENT SENT", 6);
+  public static final Level CORE_INFO = new SLevel(INT_CORE_INFO, "CORE INFO", 6);
+  public static final Level THREAD = new SLevel(INT_THREAD, "THREAD", 6);
+  public static final Level HTTP = new SLevel(INT_HTTP, "HTTP", 6);
   
   SLevel(int c, String a, int b) {super(c,a,b);}
+  
+  public static Level toLevel(int val) {
+    return toLevel(val, Level.DEBUG);
+  }
+  
+  public static Level toLevel(int val, Level defaultLevel) {
+    switch (val) {
+      case INT_TORRENT_RECEIVED: return SLevel.TORRENT_RECEIVED;
+      case INT_TORRENT_SENT: return SLevel.TORRENT_SENT;
+      case INT_CORE_INFO: return SLevel.CORE_INFO;
+      case INT_THREAD: return SLevel.THREAD;
+      case INT_HTTP: return SLevel.HTTP;
+      default: return Level.toLevel(val, defaultLevel);
+    }
+  }
 }

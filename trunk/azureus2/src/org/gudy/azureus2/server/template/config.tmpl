@@ -1,6 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
     <head>
         <title><TMPL_VAR Global_ServerName> Configuration</title>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
     </head>
     <body bgcolor="#6666AA">
         <form method=post action="torrents">
@@ -9,52 +11,64 @@
                     <th colspan=2 align=left>Default Directories</th>
                 </tr>
                 <tr>
-                    <td>Torrents</td>
-                    <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultTorrent_Directory value="<TMPL_VAR Options_General_sDefaultTorrent_Directory>"></td>
+                    <td></td>
                 </tr>
                 <tr>
-                    <td>Downloads</td>
-                    <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultSave_Directory value="<TMPL_VAR Options_General_sDefaultSave_Directory>"></td>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Torrents</td>
+                            <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultTorrent_Directory value="<TMPL_VAR Options_General_sDefaultTorrent_Directory>"></td>
+                        </tr>
+                        <tr>
+                            <td>Downloads</td>
+                            <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultSave_Directory value="<TMPL_VAR Options_General_sDefaultSave_Directory>"></td>
+                        </tr>
+                    </table></td>
                 </tr>
             </table>
             <p>
             <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
                 <tr>
-                    <th align=left>Basic</th>
+                    <th align=left>Logging</th>
+                </tr>
+                <tr>
+                    <td></td>
                 </tr>
                 <tr>
                     <td><table border=1 width="100%">
                         <tr>
-                            <td>Automatically start new downloads</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Download_AutoStart  value="0">
-                                <input type=checkbox name=Download_AutoStart <TMPL_IF download_autostart>CHECKED</TMPL_IF> value="1">
-                            </td>
+                            <td nowrap>Log Levels<br>
+                                <table style="font-size:x-small">
+                                    <tr><td width="1%"></td><td align=right>50000</td><td width="100%">Only Severe Errors</td></tr>
+                                    <tr><td width="1%"></td><td align=right>40000</td><td width="100%">Errors</td></tr>
+                                    <tr><td width="1%"></td><td align=right>30000</td><td width="100%">Warnings</td></tr>
+                                    <tr><td width="1%"></td><td align=right>20000</td><td width="100%">Informational</td></tr>
+                                    <tr><td width="1%"></td><td align=right>12000</td><td width="100%">HTTP Access (Webinterface Logger only)</td></tr>
+                                    <tr><td width="1%"></td><td align=right>11000</td><td width="100%">Core Readout (Core Logger only)</td></tr>
+                                    <tr><td width="1%"></td><td align=right>10000</td><td width="100%">Debug</td></tr>
+                                </table>
+                             </td>
+                             <td width="50%">
+                                <table border=1 width="100%">
+                                    <tr>
+                                        <td>Core</td>
+                                        <td width="80%"><input type=text style="width:100%" name=Options_Server_iLogLevelCore value="<TMPL_VAR Options_Server_iLogLevelCore>"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Webinterface</td>
+                                        <td width="80%"><input type=text style="width:100%" name=Options_Server_iLogLevelWebinterface value="<TMPL_VAR Options_Server_iLogLevelWebinterface>"></td>
+                                    </tr>
+                                </table>
+                             </td>
                         </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
                         <tr>
-                            <td>Automatically pause downloads (if current>max)</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Download_AutoPause value="0">
-                                <input type=checkbox name=Download_AutoPause <TMPL_IF download_autopause>CHECKED</TMPL_IF> value="1">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Automatically seed completed downloads</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Download_KeepUpload value="0">
-                                <input type=checkbox name=Download_KeepUpload <TMPL_IF download_keepupload>CHECKED</TMPL_IF> value="1">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Maximal simultanous downloads</td>
+                            <td>Number of kept Log entries.</td>
                             <td width="5%">
-                                <input type=text style="width:100%" name=Download_MaxSimDown value="<TMPL_VAR download_maxsimdown>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Keep uploading the last x finished files (0 for unlimited)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Seed_MaxSimSeed value="<TMPL_VAR seed_maxsimseed>">
+                                <input type=text style="width:100%" name=Options_Server_iLogCount value="<TMPL_VAR Options_Server_iLogCount>">
                             </td>
                         </tr>
                     </table></td>
@@ -62,39 +76,12 @@
                 <tr>
                     <td><table border=1 width="100%">
                         <tr>
-                            <td>Maximal download speed (0=unlimited)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Download_MaxSpeedDown value="<TMPL_VAR download_maxspeeddown>">
+                            <td nowrap>
+                                <input type=hidden name=Options_Server_bLogFile  value="0">
+                                Log file. (Enabled: <input type=checkbox name=Options_Server_bLogFile <TMPL_IF Options_Server_bLogFile>CHECKED</TMPL_IF> value="1">)
                             </td>
-                        </tr>
-                        <tr>
-                            <td>Maximal upload speed (0=unlimited)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Download_MaxSpeedUp value="<TMPL_VAR download_maxspeedup>">
-                            </td>
-                        </tr>
-                    </table></td>
-                </tr>
-                <tr>
-                    <td><table border=1 width="100%">
-                        <tr>
-                            <td>Use background hashing</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Hash_Background  value="0">
-                                <input type=checkbox name=Hash_Background <TMPL_IF hash_background>CHECKED</TMPL_IF> value="1">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Use strict hashing<br>(If checked only the set number of files will be hashed, never more)</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Hash_Strict  value="0">
-                                <input type=checkbox name=Hash_Strict <TMPL_IF hash_strict>CHECKED</TMPL_IF> value="1">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Maximal simultanous files hashed (1-5)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Hash_NumSimHash value="<TMPL_VAR hash_numsimhash>">
+                            <td width='100%'>
+                                <input type=text style="width:100%" name=Options_Server_sLogFile value="<TMPL_VAR Options_Server_sLogFile>">
                             </td>
                         </tr>
                     </table></td>
@@ -103,29 +90,82 @@
             <p>
             <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
                 <tr>
-                    <th align=left>Net Config</th>
+                    <th align=left>Core</th>
+                </tr>
+                <tr>
+                    <td></td>
                 </tr>
                 <tr>
                     <td><table border=1 width="100%">
                         <tr>
-                            <td>Bind to IP for BitTorrent (*)</td>
+                            <td><TMPL_VAR Options_Core_sOverrideIP_D></td>
                             <td width="10%">
-                                <input type=text style="width:100%" name=Bind_Ip value="<TMPL_VAR bind_ip>">
+                                <input type=text style="width:100%" name=Options_Core_sOverrideIP value="<TMPL_VAR Options_Core_sOverrideIP>">
                             </td>
                         </tr>
                         <tr>
-                            <td>First Port for BitTorrent (*)</td>
+                            <td><TMPL_VAR Options_Core_iLowPort_D></td>
                             <td width="5%">
-                                <input type=text style="width:100%" name=Bind_PortMin value="<TMPL_VAR bind_portmin>">
+                                <input type=text style="width:100%" name=Options_Core_iLowPort value="<TMPL_VAR Options_Core_iLowPort>">
                             </td>
                         </tr>
                         <tr>
-                            <td>Last Port for BitTorrent (*)</td>
+                            <td><TMPL_VAR Options_Core_iHighPort_D></td>
                             <td width="5%">
-                                <input type=text style="width:100%" name=Bind_PortMax value="<TMPL_VAR bind_portmax>">
+                                <input type=text style="width:100%" name=Options_Core_iHighPort value="<TMPL_VAR Options_Core_iHighPort>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iMaxUploadSpeed_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iMaxUploadSpeed value="<TMPL_VAR Options_Core_iMaxUploadSpeed>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iMaxClients_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iMaxClients value="<TMPL_VAR Options_Core_iMaxClients>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iMaxActiveTorrents_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iMaxActiveTorrents value="<TMPL_VAR Options_Core_iMaxActiveTorrents>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iMaxDownloads_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iMaxDownloads value="<TMPL_VAR Options_Core_iMaxDownloads>">
                             </td>
                         </tr>
                     </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td><TMPL_VAR Options_Core_bAllocateNew_D></td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Core_bAllocateNew  value="0">
+                                <input type=checkbox name=Options_Core_bAllocateNew <TMPL_IF Options_Core_bAllocateNew>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iMaxUploads_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iMaxUploads value="<TMPL_VAR Options_Core_iMaxUploads>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+            </table>
+            <p>
+            <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
+                <tr>
+                    <th align=left>Basic Webinterface Config</th>
+                </tr>
+                <tr>
+                    <td></td>
                 </tr>
                 <tr>
                     <td><table border=1 width="100%">
@@ -138,7 +178,7 @@
                         <tr>
                             <td>Bind to IP for webserver (*)</td>
                             <td width="10%">
-                                <input type=text style="width:100%" name=Options_Server_sBindIP value="<TMPL_VAR Server_sBindIP>">
+                                <input type=text style="width:100%" name=Options_Server_sBindIP value="<TMPL_VAR Options_Server_sBindIP>">
                             </td>
                         </tr>
                         <tr>
@@ -160,13 +200,6 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Allow access from localhost</td>
-                            <td width="5%" align=center>
-                                <input type=hidden name=Access_AllowLocal value="0">
-                                <input type=checkbox name=Access_AllowLocal <TMPL_IF access_allowlocal>CHECKED</TMPL_IF> value="1">
-                            </td>
-                        </tr>
-                        <tr>
                             <td>Allow access from external IPs (separated by space)</td>
                             <td width="30%">
                                 <input type=text style="width:100%" name=Access_ValidIPs value="<TMPL_VAR access_validips>">
@@ -177,36 +210,9 @@
                 <tr>
                     <td><table border=1 width="100%">
                         <tr>
-                            <td>Refresh torrents every (seconds)<br>
-                                (Applies to the http auto-refresh of the page as well as adding new torrents in the respective dir)</td>
+                            <td>Refresh torrents every (seconds, 0 = off)</td>
                             <td width="5%">
                                 <input type=text style="width:100%" name=Options_Server_iRefresh value="<TMPL_VAR Options_Server_iRefresh>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Refresh info from tracker (UL/DL) every (minutes)<br>
-                                (Please don't make this too low. Each Refresh takes an http request to the tracker)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Display_RefreshInfo value="<TMPL_VAR display_refreshinfo>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Log Level (default = 1) <TMPL_IF Override_Verbosity><div style="color:red"><TMPL_VAR Options_Override_Verbosity></div></TMPL_IF><br>
-                                <table style="font-size:x-small">
-                                    <tr><td width="1%"></td><td align=right>0</td><td width="100%">Only Errors</td></tr>
-                                    <tr><td width="1%"></td><td align=right>1</td><td width="100%">Torrent Info</td></tr>
-                                    <tr><td width="1%"></td><td align=right>2</td><td width="100%">Warnings</td></tr>
-                                    <tr><td width="1%"></td><td align=right>3</td><td width="100%">Trivial Information</td></tr>
-                                </table>
-                            </td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Options_Server_iVerbosity value="<TMPL_VAR Options_Server_iVerbosity>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Number of kept Log entries (default = 200)</td>
-                            <td width="5%">
-                                <input type=text style="width:100%" name=Options_Server_iLogCount value="<TMPL_VAR Options_Server_iLogCount>">
                             </td>
                         </tr>
                     </table></td>
@@ -217,6 +223,75 @@
                             <td>Tempate directory</td>
                             <td width="80%">
                                 <input type=text style="width:100%" name=Options_Server_sTemplate_Directory value="<TMPL_VAR Options_Server_sTemplate_Directory>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+             </table>
+            <p>
+            <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
+                <tr>
+                    <th align=left>Proxy Part Config</th>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Fake Hostname to access the webinterface in proxy mode.</td>
+                            <td width="10%">
+                                <input type=text style="width:100%" name=Options_Server_sAccessHost value="<TMPL_VAR Options_Server_sAccessHost>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Enable Cookies.</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bProxyEnableCookies value="0">
+                                <input type=checkbox name=Options_Server_bProxyEnableCookies <TMPL_IF Options_Server_bProxyEnableCookies>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Block certain URLs.</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bProxyBlockURLs value="0">
+                                <input type=checkbox name=Options_Server_bProxyBlockURLs <TMPL_IF Options_Server_bProxyBlockURLs>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Filter HTTP headers (Referrer and User Agent).</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bProxyFilterHTTP value="0">
+                                <input type=checkbox name=Options_Server_bProxyFilterHTTP <TMPL_IF Options_Server_bProxyFilterHTTP>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>User Agent to use if the previous option is selected.</td>
+                            <td width="10%">
+                                <input type=text style="width:100%" name=Options_Server_sProxyUserAgent value="<TMPL_VAR Options_Server_sProxyUserAgent>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Use downstream proxy.</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bUseDownstreamProxy value="0">
+                                <input type=checkbox name=Options_Server_bUseDownstreamProxy <TMPL_IF Options_Server_bUseDownstreamProxy>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Downstream proxy host.</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_sDownstreamProxyHost value="<TMPL_VAR Options_Server_sDownstreamProxyHost>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Downstream proxy port.</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iDownstreamProxyPort value="<TMPL_VAR Options_Server_iDownstreamProxyPort>">
                             </td>
                         </tr>
                     </table></td>

@@ -2,7 +2,9 @@
 <html>
     <head>
         <title><TMPL_VAR Global_ServerName> Download Status</title>
-        <META HTTP-EQUIV="Refresh" CONTENT="<TMPL_VAR Global_Refresh>">
+        <TMPL_IF Global_Refresh>
+            <META HTTP-EQUIV="Refresh" CONTENT="<TMPL_VAR Global_Refresh>">
+        </TMPL_IF>
 	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
     </head>
     <body bgcolor="#CCCC00">
@@ -59,8 +61,8 @@
                                       <TMPL_IF Torrents_Torrent_Error>
                                         <TMPL_VAR Torrents_Torrent_Status>: <TMPL_VAR Torrents_Torrent_Error>
                                       <TMPL_ELSE>
-                                        <table width="100%" bordercolor="#0000BB" border=1 cellspacing=0 cellpadding=0><tr><td>
-                                            <table width="100%" height="100%">
+                                        <table width="100%" border=1 cellspacing=0 cellpadding=0><tr><td>
+                                            <table width="100%">
                                                 <tr>
                                                     <TMPL_IF Torrents_Torrent_Initializing>
                                                         <td bgcolor="#6666CC" width="100%" style="font-size:2px">&nbsp;</td>
