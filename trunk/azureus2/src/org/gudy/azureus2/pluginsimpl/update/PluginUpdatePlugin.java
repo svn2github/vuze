@@ -743,9 +743,25 @@ PluginUpdatePlugin
 								Map		props_to_insert		= new HashMap();
 								
 								try{
-									old_props.load( new FileInputStream( initial_target ));
+									FileInputStream fis = new FileInputStream( initial_target );
 									
-									new_props.load( new FileInputStream( final_target ));
+									old_props.load( fis );
+									
+									try{
+										fis.close();
+										
+									}catch( Throwable e ){
+									}
+									
+									fis = new FileInputStream( final_target );
+									
+									new_props.load( fis );
+							
+									try{
+										fis.close();
+										
+									}catch( Throwable e ){
+									}
 									
 								}catch( Throwable e ){
 									
