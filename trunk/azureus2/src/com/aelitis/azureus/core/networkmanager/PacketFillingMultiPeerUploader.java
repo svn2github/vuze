@@ -300,7 +300,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
           int written = 0;
           try {
-            written = conn.getOutgoingMessageQueue().deliverToTransport( conn.getTCPTransport(), num_bytes_available, true );
+            written = conn.getOutgoingMessageQueue().deliverToTransport( num_bytes_available, true );
                    
             if( written > 0 ) {  
               manual_notifications.add( conn );  //register it for manual listener notification

@@ -27,17 +27,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTCancel;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTChoke;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTKeepAlive;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUnchoke;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUninterested;
+
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactory;
 
 
 
@@ -48,37 +39,97 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUninterested;
 public class MessageManager {
   private static final MessageManager instance = new MessageManager();
   
+  private final HashMap message_registrations = new HashMap();
+  
+  
+  
   private final Map message_map = new HashMap();
   private final AEMonitor message_map_mon = new AEMonitor( "message_map" );
-  
   private DirectByteBuffer message_list_payload;
   private boolean message_list_payload_dirty = true;
   
   
   
+  
   private MessageManager() {
-    registerLegacyMessages();
+    /*nothing*/
   }
   
   
   public static MessageManager getSingleton() {  return instance;  }
+
+  
+  /**
+   * Perform manager initialization.
+   */
+  public void initialize() {
+    BTMessageFactory.init();  //register bt message types
+  }
+  
+
+  
+  
+  /**
+   * Register the given message with the manager for processing.
+   * @param message instance to use for decoding
+   */  
+  public void registerMessage( Message message ) {
+    Object key = new String( message.getID() + message.getVersion() );
+    message_registrations.put( key, message );
+  }
+  
+  
+  /**
+   * Remove registration of given message from manager.
+   * @param message type to remove
+   */
+  public void deregisterMessage( Message message ) {
+    Object key = new String( message.getID() + message.getVersion() );
+    message_registrations.remove( key );
+  }
+  
+  
+  /**
+   * Construct a new message instance from the given message information.
+   * @param id of message
+   * @param version of message
+   * @param message_data payload
+   * @return decoded/deserialized message
+   * @throws MessageException if message creation failed
+   */
+  public Message createMessage( String id, byte version, DirectByteBuffer message_data ) throws MessageException {
+    Object key = new String( id + version );
+    
+    Message message = (Message)message_registrations.get( key );
+    
+    if( message == null ) {
+      throw new MessageException( "message id[" +id+ "] / version[" +version+ "] not registered" );
+    }
+    
+    return message.deserialize( id, version, message_data );    
+  }
+  
+
   
   
   
-  
-  
-  private void registerLegacyMessages() {
-    MessageFactory.registerMessage( new BTBitfield( null ) );
-    MessageFactory.registerMessage( new BTCancel( -1, -1, -1 ) );
-    MessageFactory.registerMessage( new BTChoke() );
-    MessageFactory.registerMessage( new BTHandshake( new byte[0], new byte[0] ) );
-    MessageFactory.registerMessage( new BTHave( -1 ) );
-    MessageFactory.registerMessage( new BTInterested() );
-    MessageFactory.registerMessage( new BTKeepAlive() );
-    MessageFactory.registerMessage( new BTPiece() );
-    MessageFactory.registerMessage( new BTRequest( -1, -1 , -1 ) );
-    MessageFactory.registerMessage( new BTUnchoke() );
-    MessageFactory.registerMessage( new BTUninterested() );
+  /**
+   * Determine a message's type via id+version lookup.
+   * @param id of message
+   * @param version of message
+   * @return message type
+   * @throws MessageException if type lookup fails
+   */
+  public int determineMessageType( String id, byte version ) throws MessageException {
+    Object key = new String( id + version );
+    
+    Message message = (Message)message_registrations.get( key );
+    
+    if( message == null ) {
+      throw new MessageException( "message id[" +id+ "] / version[" +version+ "] not registered" );
+    }
+    
+    return message.getType();
   }
   
   
@@ -86,7 +137,14 @@ public class MessageManager {
   
   
   
-
+  
+  
+  
+  
+  
+  
+  
+/*
   public void registerMessage( Message message ) throws MessageException {
     MessageData md = new MessageData( message );
     
@@ -118,7 +176,7 @@ public class MessageManager {
     
     } finally {  message_map_mon.exit();  }
   }
-  
+  */
 
   
 

@@ -29,7 +29,6 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 
 
@@ -55,6 +54,9 @@ public class TCPTransport {
   private TransportDebugger		transport_debugger;
   private ByteBuffer data_already_read = null;
   private final boolean is_inbound_connection;
+  
+  private int zero_read_count = 0;
+  
   
   
   
@@ -381,7 +383,10 @@ public class TCPTransport {
     }
     
     if( bytes_read == 0 ) {
-      //System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read" );
+      zero_read_count++;
+      if( zero_read_count % 100 == 0 && zero_read_count > 0 ) {
+        System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-reads=" +zero_read_count );
+      }
     }
     
     return bytes_read;

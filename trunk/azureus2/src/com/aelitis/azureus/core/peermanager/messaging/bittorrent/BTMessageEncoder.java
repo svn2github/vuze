@@ -1,5 +1,5 @@
 /*
- * Created on Jan 12, 2005
+ * Created on Feb 8, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,22 +20,24 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 /**
- * Provides factory methods for creating different types of raw,
- * wire-format messages from an original basic message.
+ * Creates legacy (i.e. traditional BitTorrent wire protocol) raw messages.
+ * NOTE: wire format: [total message length] + [message id byte] + [payload bytes]
  */
-public class RawMessageFactory {
-  
+public class BTMessageEncoder implements MessageStreamEncoder {
+
   private static final Map legacy_data = new HashMap();
   static {
     legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece()}, (byte)0 ) );
@@ -50,54 +52,14 @@ public class RawMessageFactory {
   }
   
   
-  /**
-   * Creates a standard raw message from the given source message
-   * using default return values for the advanced queue functionality.
-   * NOTE: wire format: [id length] + [id bytes] + [version byte] + [payload length] + [payload bytes]
-   * @param message original
-   * @return new raw message
-   */
-  protected static RawMessage createRawMessage( Message message ) {
-    byte[] id_bytes = message.getID().getBytes();
-    DirectByteBuffer[] payload = message.getData();
-    
-    int payload_size = 0;
-    for( int i=0; i < payload.length; i++ ) {
-      payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
-    }
-    
-    //create and fill header buffer
-    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 9 + id_bytes.length ) );
-    header.putInt( DirectByteBuffer.SS_MSG, id_bytes.length );
-    header.put( DirectByteBuffer.SS_MSG, id_bytes );
-    header.put( DirectByteBuffer.SS_MSG, message.getVersion() );
-    header.putInt( DirectByteBuffer.SS_MSG, payload_size );
-    header.flip( DirectByteBuffer.SS_MSG );
-    
-    DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];
-    raw_buffs[0] = header;
-    for( int i=0; i < payload.length; i++ ) {
-      raw_buffs[i+1] = payload[i];
-    }
-    
-    //TODO bt protocol message special queue values
-    
-    return new RawMessageImpl( message, raw_buffs, RawMessage.PRIORITY_NORMAL, true, null );
+  
+  public BTMessageEncoder() {
+    /*nothing*/
   }
   
-   
   
-  /**
-   * Creates a legacy (i.e. traditional BitTorrent wire protocol) raw message
-   * from the given source message using return values for the advanced
-   * queue functionality based on the type of legacy message it is.
-   * If the given message id type isn't one of the known pre-configured
-   * types, null is returned.
-   * NOTE: wire format: [total message length] + [message id byte] + [payload bytes]
-   * @param message original
-   * @return new legacy message, or null if error
-   */
-  protected static RawMessage createLegacyRawMessage( Message message ) {
+  
+  public RawMessage encodeMessage( Message message ) {
     if( message instanceof RawMessage ) {  //used for handshake and keep-alive messages
       return (RawMessage)message;
     }
@@ -129,9 +91,10 @@ public class RawMessageFactory {
     
     return new RawMessageImpl( message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
   }
-  
+ 
   
 
+  
   
   private static class LegacyData {
     private final int priority;
@@ -146,5 +109,5 @@ public class RawMessageFactory {
       this.bt_id = btid;
     }
   }
-
+  
 }

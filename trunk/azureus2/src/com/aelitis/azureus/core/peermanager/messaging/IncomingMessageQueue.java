@@ -27,7 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.*;
 
 
 
@@ -38,70 +38,42 @@ public class IncomingMessageQueue {
   
   private volatile ArrayList listeners = new ArrayList();  //copy-on-write
   private final AEMonitor listeners_mon = new AEMonitor( "IncomingMessageQueue" );
-  
-  private final ProcessingHandler processing_handler;
+
   private boolean is_processing_enabled = false;
-  
   private MessageStreamDecoder stream_decoder;
+  private final Connection connection;
   
-  private final MessageStreamDecoder.DecodeListener decode_listener = new MessageStreamDecoder.DecodeListener() {
-    public void messageDecoded( Message message ) {
-      ArrayList listeners_ref = listeners;  //copy-on-write
-      boolean handled = false;
-      
-      for( int i=0; i < listeners_ref.size(); i++ ) {
-        MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
-        handled = handled || mql.messageReceived( message );
-      }
-      
-      if( !handled ) {  //this should never happen
-        Debug.out( "no registered listeners handled decoded message!" );
-        DirectByteBuffer[] buffs = message.getData();
-        for( int i=0; i < buffs.length; i++ ) {
-          buffs[ i ].returnToPool();
-        }
-      }
-    }
-    
-    public void protocolBytesDecoded( int byte_count ) {
-      ArrayList listeners_ref = listeners;  //copy-on-write
-      for( int i=0; i < listeners_ref.size(); i++ ) {
-        MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
-        mql.protocolBytesReceived( byte_count );
-      }
-    }
-    
-    public void dataBytesDecoded( int byte_count ) {
-      ArrayList listeners_ref = listeners;  //copy-on-write
-      for( int i=0; i < listeners_ref.size(); i++ ) {
-        MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
-        mql.dataBytesReceived( byte_count );
-      }
-    }
-  };
   
   
   
   /**
-   * Create a new message queue.
+   * Create a new incoming message queue.
+   * @param connection owner to read from
+   * @param stream_decoder default message stream decoder
    */
-  public IncomingMessageQueue( ProcessingHandler handler ) {
-    this.processing_handler = handler;
-    
-    //TODO check for decoder type
-    stream_decoder = new LegacyMessageDecoder( decode_listener );
+  public IncomingMessageQueue( Connection connection, MessageStreamDecoder stream_decoder ) {
+    this.connection = connection;
+    this.stream_decoder = stream_decoder;
+  }
+  
+  
+  /**
+   * Set the message stream decoder that will be used to decode incoming messages.
+   * @param stream_decoder to use
+   */
+  public void setDecoder( MessageStreamDecoder stream_decoder ) {
+    this.stream_decoder = stream_decoder;
   }
   
   
   
   /**
-   * Receive (read) message(s) data from the given transport.
-   * @param transport to receive from
+   * Receive (read) message(s) data from the underlying transport.
    * @param max_bytes to read
    * @return number of bytes received
    * @throws IOException on receive error
    */
-  public int receiveFromTransport( TCPTransport transport, int max_bytes ) throws IOException {
+  private int receiveFromTransport( int max_bytes ) throws IOException {
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
@@ -112,7 +84,52 @@ public class IncomingMessageQueue {
       return 0;
     }
     
-    return stream_decoder.decodeStream( transport, max_bytes );    
+    //perform decode op
+    int bytes_read = stream_decoder.performStreamDecode( connection.getTCPTransport(), max_bytes );
+    
+    //check if anything was decoded and notify listeners if so
+    Message[] messages = stream_decoder.getDecodedMessages();
+    if( messages != null ) {
+      for( int i=0; i < messages.length; i++ ) {
+        Message msg = messages[ i ];
+        
+        ArrayList listeners_ref = listeners;  //copy-on-write
+        boolean handled = false;
+        
+        for( int x=0; x < listeners_ref.size(); x++ ) {
+          MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( x );
+          handled = handled || mql.messageReceived( msg );
+        }
+        
+        if( !handled ) {  //this should never happen
+          Debug.out( "no registered listeners handled decoded message!" );
+          DirectByteBuffer[] buffs = msg.getData();
+          for( int x=0; x < buffs.length; x++ ) {
+            buffs[ x ].returnToPool();
+          }
+        }
+      }
+    }
+    
+    int protocol_read = stream_decoder.getProtocolBytesDecoded();
+    if( protocol_read > 0 ) {
+      ArrayList listeners_ref = listeners;  //copy-on-write
+      for( int i=0; i < listeners_ref.size(); i++ ) {
+        MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
+        mql.protocolBytesReceived( protocol_read );
+      }
+    }
+    
+    int data_read = stream_decoder.getDataBytesDecoded();
+    if( data_read > 0 ) {
+      ArrayList listeners_ref = listeners;  //copy-on-write
+      for( int i=0; i < listeners_ref.size(); i++ ) {
+        MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
+        mql.dataBytesReceived( data_read );
+      }
+    }
+    
+    return bytes_read;   
   }
   
   
@@ -122,7 +139,31 @@ public class IncomingMessageQueue {
    */
   public void startQueueProcessing() {
     if( !is_processing_enabled ) {
-      processing_handler.enableProcessing();
+      connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
+        public void readyToRead() {
+          if( !is_processing_enabled )  return;
+          
+          try {
+            receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
+          }
+          catch( Throwable e ) {
+            if( e.getMessage() == null ) {
+              Debug.out( "null read exception message: ", e );
+            }
+            else {
+              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                  e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+                
+                System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+              }
+            }
+              
+            connection.notifyOfException( e );
+          }
+        }
+      });
+      
       is_processing_enabled = true;
     }
   }
@@ -133,8 +174,8 @@ public class IncomingMessageQueue {
    */
   public void stopQueueProcessing() {
     if( is_processing_enabled ) {
-      processing_handler.disableProcessing();
       is_processing_enabled = false;
+      connection.getTCPTransport().cancelReadSelects();
     }
   }
   
@@ -178,20 +219,12 @@ public class IncomingMessageQueue {
    * Destroy this queue.
    */
   public void destroy() {
+    is_processing_enabled = false;
     stream_decoder.destroy();
+    listeners.clear();
   }
   
   
-  
-  
-  public interface ProcessingHandler {
-    public void enableProcessing();
-    
-    public void disableProcessing();
-    
-    
-    
-  }
   
 
   

@@ -50,13 +50,28 @@ public class OutgoingMessageQueue {
   private RawMessage urgent_message = null;
   private boolean destroyed = false;
   
+  private MessageStreamEncoder stream_encoder;
+  private TCPTransport tcp_transport;
+  
   
   /**
-   * Create a new message queue.
+   * Create a new outgoing message queue.
+   * @param stream_encoder default message encoder
    */
-  public OutgoingMessageQueue() {
-    //nothing
+  public OutgoingMessageQueue( MessageStreamEncoder stream_encoder, TCPTransport transport ) {
+    this.stream_encoder = stream_encoder;
+    this.tcp_transport = transport;
   }
+  
+  
+  /**
+   * Set the message stream encoder that will be used to encode outgoing messages.
+   * @param stream_encoder to use
+   */
+  public void setEncoder( MessageStreamEncoder stream_encoder ) {
+    this.stream_encoder = stream_encoder;
+  }
+  
   
 
   /**
@@ -103,9 +118,7 @@ public class OutgoingMessageQueue {
    */
   public void addMessage( Message message, boolean manual_listener_notify ) {
     
-    //TODO check for type
-    RawMessage rmesg = RawMessageFactory.createLegacyRawMessage( message );
-    
+    RawMessage rmesg = stream_encoder.encodeMessage( message );
     
     if( destroyed ) {  //queue is shutdown, drop any added messages
       rmesg.destroy();
@@ -309,20 +322,19 @@ public class OutgoingMessageQueue {
   
   
   /**
-   * Deliver (write) message(s) data to the given transport.
+   * Deliver (write) message(s) data to the underlying transport.
    * 
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
    * listeners outside of some greater synchronized block to avoid
    * deadlock.
-   * @param transport to transmit over 
    * @param max_bytes maximum number of bytes to deliver
    * @param manual_listener_notify true for manual notification, false for automatic
    * @return number of bytes delivered
    * @throws IOException on delivery error
    */
-  public int deliverToTransport( TCPTransport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
+  public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
@@ -371,7 +383,7 @@ public class OutgoingMessageQueue {
         ByteBuffer[] buffs = new ByteBuffer[ num_raw ];
         raw_buffers.toArray( buffs );
         
-        transport.write( buffs, 0, num_raw );
+        tcp_transport.write( buffs, 0, num_raw );
         
         last_buff.limit( orig_last_limit );
         
@@ -407,7 +419,7 @@ public class OutgoingMessageQueue {
               if( manual_listener_notify ) {
                 NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
                 item.message = msg;
-                item.transport = transport;
+                item.transport = tcp_transport;
                 try {  delayed_notifications_mon.enter();
                   delayed_notifications.add( item );
                 } finally {  delayed_notifications_mon.exit();  }
@@ -479,7 +491,7 @@ public class OutgoingMessageQueue {
 	            listener.messageSent( msg );
 	            
 	            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
-	              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
+	              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + tcp_transport.getDescription() );
 	              msg.destroy();
 	            }
 	          }

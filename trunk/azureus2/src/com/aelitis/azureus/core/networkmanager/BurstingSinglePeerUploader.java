@@ -80,7 +80,7 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
     
     int written = 0;
     try {
-      written = connection.getOutgoingMessageQueue().deliverToTransport( connection.getTCPTransport(), num_bytes_to_write, false );
+      written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, false );
     }
     catch( IOException e ) {
       connection.notifyOfException( e );

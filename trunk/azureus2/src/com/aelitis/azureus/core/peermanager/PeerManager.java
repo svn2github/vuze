@@ -23,22 +23,13 @@
 package com.aelitis.azureus.core.peermanager;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportDebugger;
-import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.networkmanager.Connection;
-import com.aelitis.azureus.core.networkmanager.ConnectionOwner;
-import com.aelitis.azureus.core.networkmanager.IncomingSocketChannelManager;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.TransportDebugger;
-import com.aelitis.azureus.core.networkmanager.TransportOwner;
+import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 
@@ -64,7 +55,7 @@ public class PeerManager {
     legacy_handshake_header.put( BTHandshake.PROTOCOL.getBytes() );
     legacy_handshake_header.flip();
     
-    MessageManager.getSingleton();  //ensure it gets initialized
+    MessageManager.getSingleton().initialize();  //ensure it gets initialized
   }
   
   

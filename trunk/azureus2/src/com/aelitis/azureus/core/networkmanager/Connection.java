@@ -27,11 +27,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
 /**
@@ -43,43 +41,10 @@ public class Connection {
   private final InetSocketAddress remote_address;
   private final TCPTransport tcp_transport;
   private ConnectionListener connection_listener;
-  private final OutgoingMessageQueue outgoing_message_queue = new OutgoingMessageQueue();
   private boolean is_connected;
 
-  
-  private final IncomingMessageQueue incoming_message_queue = new IncomingMessageQueue( new IncomingMessageQueue.ProcessingHandler() {
-    public void enableProcessing() {     
-      tcp_transport.requestReadSelects( new TCPTransport.ReadListener() {
-        public void readyToRead() {
-          
-          //TODO do limited rate read op
-          try {
-            incoming_message_queue.receiveFromTransport( tcp_transport, 1024*1024 );
-          }
-          catch( Throwable e ) {
-            if( e.getMessage() == null ) {
-              Debug.out( "null read exception message: ", e );
-            }
-            else {
-              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                  e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-                
-                System.out.println( "read exception [" +tcp_transport.getDescription()+ "]: " +e.getMessage() );
-              }
-            }
-              
-            notifyOfException( e );
-          }
-          
-        }
-      });
-    }
-    
-    public void disableProcessing() {
-      tcp_transport.cancelReadSelects();
-    }
-  });
+  private final OutgoingMessageQueue outgoing_message_queue;
+  private final IncomingMessageQueue incoming_message_queue;
   
   
   
@@ -95,6 +60,8 @@ public class Connection {
     remote_address = _remote_address;
     tcp_transport = new TCPTransport( owner.getTransportOwner() );
     is_connected = false;
+    outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
+    incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
   }
   
   
@@ -110,6 +77,8 @@ public class Connection {
     remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
     tcp_transport = new TCPTransport( owner.getTransportOwner(), _remote_channel, data_already_read );
     is_connected = true;
+    outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
+    incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
   }
   
   
@@ -169,7 +138,7 @@ public class Connection {
    * Inform connection of a thrown exception.
    * @param error exception
    */
-  protected void notifyOfException( Throwable error ) {
+  public void notifyOfException( Throwable error ) {
     if( connection_listener != null ) {
       connection_listener.exceptionThrown( error );
     }
@@ -200,7 +169,8 @@ public class Connection {
    * Get the connection's data tcp transport interface.
    * @return the transport
    */
-  protected TCPTransport getTCPTransport() {  return tcp_transport;  }
+  public TCPTransport getTCPTransport() {  return tcp_transport;  }
+  
   
   
   /**

@@ -27,7 +27,7 @@ import java.io.IOException;
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 /**
- * Decodes a message stream.
+ * Decodes a message stream into separate messages.
  */
 public interface MessageStreamDecoder {
   /**
@@ -37,39 +37,30 @@ public interface MessageStreamDecoder {
    * @return number of bytes decoded
    * @throws IOException on decoding error
    */
-  public int decodeStream( TCPTransport transport, int max_bytes ) throws IOException;
+  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException;
+  
+  /**
+   * Get the messages decoded from the transport, if any, from the last decode op.
+   * @return decoded messages, or null if no new complete messages were decoded
+   */
+  public Message[] getDecodedMessages();
+  
+  /**
+   * Get the number of protocol (overhead) bytes decoded from the transport, from the last decode op.
+   * @return number of protocol bytes recevied
+   */
+  public int getProtocolBytesDecoded();
+  
+  /**
+   * Get the number of (piece) data bytes decoded from the transport, from the last decode op.
+   * @return number of data bytes received
+   */
+  public int getDataBytesDecoded();
   
   
   /**
    * Destroy this decoder, i.e. perform cleanup.
    */
   public void destroy();
-  
-  
-  
-  
-  
-  /**
-   * For receiving notification of decode events.
-   */
-  public interface DecodeListener {
-    /**
-     * The given message has been read from the transport.
-     * @param message received
-     */
-    public void messageDecoded( Message message );
     
-    /**
-     * The given number of protocol (overhead) bytes has been read from the transport.
-     * @param byte_count number of protocol bytes received
-     */
-    public void protocolBytesDecoded( int byte_count );
-    
-    /**
-     * The given number of (piece) data bytes has been read from the transport.
-     * @param byte_count number of data bytes received
-     */
-    public void dataBytesDecoded( int byte_count );
-  }
-  
 }

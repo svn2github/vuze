@@ -1,5 +1,5 @@
 /*
- * Created on Jan 8, 2005
+ * Created on Feb 8, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,11 +20,40 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging;
+package com.aelitis.azureus.core.peermanager.messaging.core;
+
+import java.io.IOException;
+
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 
 /**
  *
  */
-public interface MessageListener {
+public class CoreMessageDecoder implements MessageStreamDecoder {
+  
+  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
+    return -1;
+  }
 
+  public Message[] getDecodedMessages() {
+    return null;
+  }
+  
+
+  public int getProtocolBytesDecoded() {
+    return -1;
+  }
+  
+  public int getDataBytesDecoded() {
+    return -1;
+  }
+  
+  
+  public void destroy() {
+    
+  }
+  
+  
 }

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -29,12 +29,13 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.messaging.*;
+
 
 /**
  *
  */
-public class LegacyMessageDecoder implements MessageStreamDecoder {
+public class BTMessageDecoder implements MessageStreamDecoder {
   
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
       
@@ -45,8 +46,6 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   
   private final ByteBuffer[] decode_array = new ByteBuffer[] { type_buffer, payload_buffer, length_buffer };
   
-  private final ArrayList messages = new ArrayList();
-  
   private boolean reading_length_mode = true;
   private boolean reading_handshake_message = false;
   private boolean reading_data_message = false;
@@ -55,22 +54,27 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   private int pre_read_start_buffer;
   private int pre_read_start_position;
   
-  private final MessageStreamDecoder.DecodeListener decode_listener;
-  
   private boolean last_received_was_keepalive = false;
   private boolean destroyed = false;
   
+  private ArrayList messages_last_read = new ArrayList();
+  private int protocol_bytes_last_read = 0;
+  private int data_bytes_last_read = 0;
   
   
   
   
-  protected LegacyMessageDecoder( MessageStreamDecoder.DecodeListener listener ) {
-    this.decode_listener = listener;
+  public BTMessageDecoder() {
+    /* nothing */
   }
-                                    
-
   
-  public int decodeStream( TCPTransport transport, int max_bytes ) throws IOException {
+  
+  
+  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
+    messages_last_read.clear();  //reset report values
+    protocol_bytes_last_read = 0;
+    data_bytes_last_read = 0;
+    
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
@@ -103,21 +107,31 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
         break;
       }
     }
-        
-    if( !messages.isEmpty() ) {
-      for( int i=0; i < messages.size(); i++ ) {
-        Message msg = (Message)messages.get( i );
-        
-        decode_listener.messageDecoded( msg );
-      }
-      messages.clear();
-    }
-    
+            
     return max_bytes - bytes_remaining;
   }
   
+
+  
+  public Message[] getDecodedMessages() {
+    if( messages_last_read.isEmpty() )  return null;
+    
+    Message[] msgs = new Message[ messages_last_read.size() ];
+    messages_last_read.toArray( msgs );
+    
+    return msgs;
+  }
+    
+  
+
+  public int getProtocolBytesDecoded() {  return protocol_bytes_last_read;  }
+    
   
   
+  public int getDataBytesDecoded() {  return data_bytes_last_read;  }
+    
+  
+
   public void destroy() {
     destroyed = true;
     payload_buffer = null;
@@ -127,7 +141,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       direct_payload_buffer = null;
     }
  
-    messages.clear();
+    messages_last_read.clear();
   }
   
   
@@ -204,7 +218,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           byte id = type_buffer.get();
           
           try {
-            reading_data_message = reading_handshake_message ? false : MessageFactory.determineLegacyMessageType( id ) == Message.TYPE_DATA_PAYLOAD;
+            reading_data_message = reading_handshake_message ? false : BTMessageFactory.determineBTMessageType( id ) == Message.TYPE_DATA_PAYLOAD;
           }
           catch( MessageException me ) {
             Debug.out( me );
@@ -241,8 +255,8 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           handshake_data.flip();
           
           try {
-            Message handshake = MessageFactory.createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, new DirectByteBuffer( handshake_data ) );
-            messages.add( handshake );
+            Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, new DirectByteBuffer( handshake_data ) );
+            messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
             Debug.out( me );
@@ -254,11 +268,11 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
           
           try {
-            Message msg = MessageFactory.createLegacyMessage( legacy_id, payload );
-            messages.add( msg );
+            Message msg = BTMessageFactory.createBTMessage( legacy_id, payload );
+            messages_last_read.add( msg );
           }
           catch( MessageException me ) {
-            Debug.out( me );
+            //Debug.out( me );
             throw new IOException( "message decode failed: " + me.getMessage() );
           }
         }
@@ -308,8 +322,8 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           reading_length_mode = true;
           last_received_was_keepalive = true;
           try{
-            Message keep_alive = MessageFactory.createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
-            messages.add( keep_alive );
+            Message keep_alive = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
+            messages_last_read.add( keep_alive );
           }
           catch( MessageException me ) {
             Debug.out( me );
@@ -328,8 +342,8 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       }
     }
     
-    if( data_bytes_read > 0 )  decode_listener.dataBytesDecoded( data_bytes_read );
-    if( protocol_bytes_read > 0 )  decode_listener.protocolBytesDecoded( protocol_bytes_read );
+    protocol_bytes_last_read += protocol_bytes_read;
+    data_bytes_last_read += data_bytes_read;
     
     return bytes_read;
   }

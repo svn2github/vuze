@@ -45,7 +45,7 @@ public class RawMessageImpl implements RawMessage {
    * @param is_no_delay is an urgent message
    * @param to_remove message types to auto-remove upon queue
    */  
-  protected RawMessageImpl( Message source,
+  public RawMessageImpl( Message source,
                             DirectByteBuffer[] raw_payload,
                             int priority,
                             boolean is_no_delay,
