@@ -1028,6 +1028,14 @@ DiskManagerImpl
 			
       //do file allocation
 			if( f.exists() ) {  //file already exists
+
+        //make sure the existing file length isn't too large
+        if( f.length() > length ) {
+          this.errorMessage = "Existing data file length too large [" +f.length()+ ">" +length+ "]: " + f.getAbsolutePath();
+          setState( FAULTY );
+          return -1;
+        }
+        
 			  try {
           fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 			  }
