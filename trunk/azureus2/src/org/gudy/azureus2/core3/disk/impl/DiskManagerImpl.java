@@ -228,29 +228,13 @@ DiskManagerImpl
 		ArrayList btFileList = new ArrayList();
 
 		//Create the ByteBuffer for checking (size : pieceLength)
-    try {
-        allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
-    }
-    catch (OutOfMemoryError e) {
-        System.out.println("Running garbage collector...");
-        System.runFinalization();
-        System.gc();
-        
-        try {
-            allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
-        } catch (OutOfMemoryError ex) {
-            System.out.println("Memory allocation failed: Out of direct memory space");
-            this.errorMessage = "Memory allocation failed: Out of direct memory space";
-            setState( FAULTY );
-            return;
-        }
-    }
+    allocateAndTestBuffer = ByteBufferPool.getFreeBuffer(pieceLength);
     
-		allocateAndTestBuffer.mark();
+		allocateAndTestBuffer.limit(pieceLength);
 		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
 			allocateAndTestBuffer.put((byte)0);
 		}
-		allocateAndTestBuffer.reset();
+		allocateAndTestBuffer.position(0);
 
 		//Create the new Queue
 		writeQueue = new Vector();
@@ -1605,8 +1589,9 @@ DiskManagerImpl
 				}
 			}
 		}
-        
-      allocateAndTestBuffer = null;
+    
+    ByteBufferPool.freeBuffer(allocateAndTestBuffer);
+    allocateAndTestBuffer = null;
 
 	}
 
