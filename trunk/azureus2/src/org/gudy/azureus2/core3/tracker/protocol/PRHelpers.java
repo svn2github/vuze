@@ -48,6 +48,17 @@ PRHelpers
 		return( resp );
 	}
 	
+	public static String
+	intToAddress(
+		int		value )
+	
+		throws UnknownHostException
+	{
+		byte[]	bytes = { (byte)(value>>24), (byte)(value>>16),(byte)(value>>8),(byte)value };
+		
+		return( InetAddress.getByAddress(bytes).getHostAddress());
+	}
+	
 	public static void
 	addressTo4ByteArray(
 		String		address,
@@ -64,13 +75,11 @@ PRHelpers
 	}
 	
 	public static String
-	intToAddress(
-		int		value )
+	DNSToIPAddress(
+		String		dns_name )
 	
 		throws UnknownHostException
 	{
-		byte[]	bytes = { (byte)(value>>24), (byte)(value>>16),(byte)(value>>8),(byte)value };
-		
-		return( InetAddress.getByAddress(bytes).getHostAddress());
+		return( InetAddress.getByName(dns_name).getHostAddress());
 	}
 }

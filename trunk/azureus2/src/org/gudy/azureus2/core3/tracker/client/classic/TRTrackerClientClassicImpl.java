@@ -1127,7 +1127,22 @@ TRTrackerClientClassicImpl
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
     
     if (ip.length() != 0) {
-    	request.append("&ip=").append(ip);
+    	
+    		// gotta try and use the non-dns version 
+    	
+    	String	ip2;
+    	
+    	try{
+    		ip2 = PRHelpers.DNSToIPAddress( ip );
+    		
+    	}catch( UnknownHostException e){
+    		
+    		LGLogger.logAlert( "IP Override host resolution fails", e );
+   		
+    		ip2	= ip;
+    	}
+    	
+    	request.append("&ip=").append(ip2);
     }
 	
     return request.toString();
