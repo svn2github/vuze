@@ -8,8 +8,12 @@ FEATURE: Full scrape of tracker now supported as SN requires this for hosting [P
 CHANGE: Client identification now includes Experimental, BitComet, and better Shadow [Nolar]
 CHANGE: Added AZ version + torrent size to stats [Parg]
 CHANGE: Added 'comment' field to torrent create
+
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
+BUGFIX: Renamed file not reused after torrent Stop-Start: Bug #842750 [Nolar]
+BUGFIX: No longer deletes files if the 'completed' dir points to the download dir: Bug #842896 [Nolar]
+
 
 
 13.11.03 | Azureus 2.0.4.0
