@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.core3.tracker.client.classic;
 
-import java.math.*;
 import java.io.*;
 import java.net.*;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Random;
 
 import javax.net.ssl.*;
 
