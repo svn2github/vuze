@@ -59,7 +59,10 @@ DiskManagerFileInfoImpl
       path	= file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
       name	= file.getName();
     }
-    catch (Exception e) { Debug.out("Unable to resolve canonical path for " + file.getName()); }
+    catch (Exception e) {
+      Debug.out("Unable to resolve canonical path for " + file.getName());
+      e.printStackTrace();
+    }
   	
   	fm_file = FMFileManagerFactory.getSingleton().createFile( file );
   }
