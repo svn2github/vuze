@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  *  
  */
 public class Colors implements ParameterListener {
+  private static Colors instance = null;
   public static final int BLUES_LIGHTEST = 0;
   public static final int BLUES_DARKEST = 9;
   public static final int BLUES_MIDLIGHT = (BLUES_DARKEST + 1) / 4;
@@ -290,19 +291,43 @@ public class Colors implements ParameterListener {
   private Display display;
   
   public Colors() {
+    instance = this;
     display = SWTThread.getInstance().getDisplay();
     allocateDynamicColors();
     allocateNonDynamicColors();
-    
-    COConfigurationManager.addParameterListener("Color Scheme", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar.override", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar", this);
-    COConfigurationManager.addParameterListener("Colors.error.override", this);
-    COConfigurationManager.addParameterListener("Colors.error", this);
-    COConfigurationManager.addParameterListener("Colors.warning.override", this);
-    COConfigurationManager.addParameterListener("Colors.warning", this);
-    COConfigurationManager.addParameterListener("Colors.altRow.override", this);
-    COConfigurationManager.addParameterListener("Colors.altRow", this);
+
+    addColorsChangedListener(this);
+  }
+  
+  public static synchronized Colors getInstance() {
+    if (instance == null)
+      instance = new Colors();
+
+    return instance;
+  }
+  
+  public void addColorsChangedListener(ParameterListener l) {
+    COConfigurationManager.addParameterListener("Color Scheme", l);
+    COConfigurationManager.addParameterListener("Colors.progressBar.override", l);
+    COConfigurationManager.addParameterListener("Colors.progressBar", l);
+    COConfigurationManager.addParameterListener("Colors.error.override", l);
+    COConfigurationManager.addParameterListener("Colors.error", l);
+    COConfigurationManager.addParameterListener("Colors.warning.override", l);
+    COConfigurationManager.addParameterListener("Colors.warning", l);
+    COConfigurationManager.addParameterListener("Colors.altRow.override", l);
+    COConfigurationManager.addParameterListener("Colors.altRow", l);
+  }
+
+  public void removeColorsChangedListener(ParameterListener l) {
+    COConfigurationManager.removeParameterListener("Color Scheme", l);
+    COConfigurationManager.removeParameterListener("Colors.progressBar.override", l);
+    COConfigurationManager.removeParameterListener("Colors.progressBar", l);
+    COConfigurationManager.removeParameterListener("Colors.error.override", l);
+    COConfigurationManager.removeParameterListener("Colors.error", l);
+    COConfigurationManager.removeParameterListener("Colors.warning.override", l);
+    COConfigurationManager.removeParameterListener("Colors.warning", l);
+    COConfigurationManager.removeParameterListener("Colors.altRow.override", l);
+    COConfigurationManager.removeParameterListener("Colors.altRow", l);
   }
   
   public void parameterChanged(String parameterName) {
