@@ -44,10 +44,10 @@ CacheFileManagerImpl
 {
 	public static final boolean	DEBUG	= false;
 	
-	public static final int	CACHE_CLEANER_TICKS		= 15;	// every 15 seconds
+	public static final int	CACHE_CLEANER_TICKS		= 60;	// every 60 seconds
 	
-	public static final int		STATS_UPDATE_FREQUENCY		= 1*1000;
-	public static final long	DIRTY_CACHE_WRITE_MAX_AGE	= 30*1000;
+	public static final int		STATS_UPDATE_FREQUENCY		= 1*1000;	// 1 sec
+	public static final long	DIRTY_CACHE_WRITE_MAX_AGE	= 120*1000;	// 2 mins
 		
 	static{
 		if ( DEBUG ){
@@ -377,7 +377,19 @@ CacheFileManagerImpl
 				while( it.hasNext()){
 					
 					try{
-						((CacheFileImpl)it.next()).flushOldDirtyData( oldest );
+						CacheFileImpl	file = (CacheFileImpl)it.next();
+						
+						TOTorrentFile	tf = file.getTorrentFile();
+						
+						long	min_flush_size	= -1;
+						
+						if ( tf != null ){
+							
+							min_flush_size	= tf.getTorrent().getPieceLength();
+							
+						}
+						
+						file.flushOldDirtyData( oldest, min_flush_size );
 						
 					}catch( Throwable e ){
 						

@@ -400,7 +400,7 @@ CacheFileImpl
 
 									// flush before read so that any bits in cache get re-read correctly on read
 						
-								flushCache( file_position, actual_read_ahead, true, -1, 0 );
+								flushCache( file_position, actual_read_ahead, true, -1, 0, -1 );
 								
 								getFMFile().read( cache_buffer, file_position );
 			
@@ -447,7 +447,7 @@ CacheFileImpl
 							
 							this_mon.enter();
 							
-							flushCache( file_position, read_length, true, -1, 0 );
+							flushCache( file_position, read_length, true, -1, 0, -1 );
 						
 							getFMFile().read( file_buffer, file_position );
 							
@@ -532,7 +532,7 @@ CacheFileImpl
 							// thread getting in-between and adding same block thus causing mutiple entries
 							// for same space
 						
-						flushCache( file_position, write_length, true, -1, 0 );
+						flushCache( file_position, write_length, true, -1, 0, -1 );
 						
 						cache.add( entry );
 					
@@ -556,7 +556,7 @@ CacheFileImpl
 						
 						this_mon.enter();
 						
-						flushCache( file_position, write_length, true, -1, 0 );
+						flushCache( file_position, write_length, true, -1, 0, -1 );
 
 						getFMFile().write( file_buffer, file_position );
 						
@@ -604,8 +604,9 @@ CacheFileImpl
 		long				length,					// -1 -> do all from position onwards
 		boolean				release_entries,
 		long				minimum_to_release,		// -1 -> all
-		long				oldest_dirty_time	)	// dirty entries newer than this won't be flushed
+		long				oldest_dirty_time, 		// dirty entries newer than this won't be flushed
 													// 0 -> now
+		long				min_chunk_size )		// minimum contiguous size for flushing, -1 -> no limit
 	
 		throws CacheFileManagerException
 	{
@@ -680,6 +681,19 @@ CacheFileImpl
 								// set up ready for next block in case the flush fails - we try
 								// and flush as much as possible in the face of failure
 							
+							boolean	skip_chunk	= false;
+							
+							if ( min_chunk_size != -1 ){
+								
+								if ( release_entries ){
+								
+									Debug.out( "CacheFile: can't use min chunk with release option" );
+								}else{
+									
+									skip_chunk	= multi_block_next - multi_block_start < min_chunk_size;
+								}
+							}
+							
 							List	f_multi_block_entries	= multi_block_entries;
 							long	f_multi_block_start		= multi_block_start;
 							long	f_multi_block_next		= multi_block_next;
@@ -692,11 +706,18 @@ CacheFileImpl
 							
 							multi_block_entries.add( entry );
 							
-							multiBlockFlush(
-									f_multi_block_entries,
-									f_multi_block_start,
-									f_multi_block_next,
-									release_entries );
+							if ( skip_chunk ){
+							
+								multiBlockFlush(
+										f_multi_block_entries,
+										f_multi_block_start,
+										f_multi_block_next,
+										release_entries );
+							}else{
+								
+								LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
+
+							}
 						}
 					}
 				}catch( Throwable e ){
@@ -732,11 +753,34 @@ CacheFileImpl
 			
 			if ( multi_block_start != -1 ){
 				
-				multiBlockFlush(
-						multi_block_entries,
-						multi_block_start,
-						multi_block_next,
-						release_entries );
+				boolean	skip_chunk	= false;
+				
+				if ( min_chunk_size != -1 ){
+					
+					if ( release_entries ){
+					
+						Debug.out( "CacheFile: can't use min chunk with release option" );
+					}else{
+						
+						skip_chunk	= multi_block_next - multi_block_start < min_chunk_size;
+					}
+				}
+
+				if ( skip_chunk ){
+					
+					if ( TRACE ){
+						
+						LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
+					}
+					
+				}else{
+					
+					multiBlockFlush(
+							multi_block_entries,
+							multi_block_start,
+							multi_block_next,
+							release_entries );
+				}
 			}
 			
 			if ( last_failure != null ){
@@ -849,7 +893,7 @@ CacheFileImpl
 				LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
 			}
 			
-			flushCache( file_start_position, -1, release_entries, minumum_to_release, 0);
+			flushCache( file_start_position, -1, release_entries, minumum_to_release, 0, -1 );
 		}
 	}
 	
@@ -865,7 +909,8 @@ CacheFileImpl
 	
 	protected void
 	flushOldDirtyData(
-		long	oldest_dirty_time )
+		long	oldest_dirty_time,
+		long	min_chunk_size )
 	
 		throws CacheFileManagerException
 	{
@@ -876,8 +921,17 @@ CacheFileImpl
 				LGLogger.log( "flushOldDirtyData: " + getName());
 			}
 
-			flushCache( 0, -1, false, -1, oldest_dirty_time);
+			flushCache( 0, -1, false, -1, oldest_dirty_time, min_chunk_size );
 		}
+	}
+	
+	protected void
+	flushOldDirtyData(
+		long	oldest_dirty_time )
+	
+		throws CacheFileManagerException
+	{
+		flushOldDirtyData( oldest_dirty_time, -1 );
 	}
 	
 	protected long
