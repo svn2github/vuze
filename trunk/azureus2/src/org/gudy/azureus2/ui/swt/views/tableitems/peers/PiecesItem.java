@@ -53,6 +53,7 @@ public class PiecesItem extends PeerItem  {
   Image image;
   //And its size
   Point imageSize;
+  //Painting on a canvas is smoother
   Canvas cBlockView;
   int[] imageBuffer = {};
 
@@ -80,7 +81,6 @@ public class PiecesItem extends PeerItem  {
         drawOnCanvas(event.gc, new Rectangle(event.x,event.y,event.width,event.height), true);
     	}
     });
-    cBlockView.moveAbove(null);
   }
   
   public void refresh() {
@@ -88,15 +88,19 @@ public class PiecesItem extends PeerItem  {
       return;
     boolean valid = peerRow.isValid() && image != null;
     
-    //Compute bounds ...
+    //Bounds of canvas without padding
     Rectangle bounds = getBoundsForCanvas();
     
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
 
-    if (!cBlockView.equals(bounds)) {
+    Rectangle cBounds = cBlockView.getBounds();
+    if (!cBounds.equals(bounds)) {
       cBlockView.setBounds(bounds);
+      if (!recalcCanvasVisibility()) {
+        return;
+      }
       valid = false;
     }
 
@@ -121,6 +125,7 @@ public class PiecesItem extends PeerItem  {
       oldImage = image;
       image = new Image(cBlockView.getDisplay(), bounds.width, bounds.height);
       imageSize = new Point(bounds.width, bounds.height);
+      bImageBufferValid = false;
 
       gcImage = new GC(image);
       gcImage.setForeground(MainWindow.grey);
@@ -183,6 +188,7 @@ public class PiecesItem extends PeerItem  {
       }
       if (bounds.x != cBounds.x || bounds.y != cBounds.y) {
         cBlockView.setLocation(bounds.x, bounds.y);
+        recalcCanvasVisibility();
       }
     }
 /*  // disabled.  Every draw case taken care of.  (I think!)
@@ -217,14 +223,19 @@ public class PiecesItem extends PeerItem  {
     }
     if (bounds.x != cBounds.x || bounds.y != cBounds.y) {
       cBlockView.setLocation(bounds.x, bounds.y);
+      if (!recalcCanvasVisibility()) {
+        return;
+      }
     }
 
-    if (bForce || !peerRow.isValid() || image != null) {
+    if (bForce || !peerRow.isValid()) {
       // no need to setClipping()
       // "the graphics context to use when painting that is configured to use the colors, font and damaged
       // region of the control."
-      gc.drawImage(image, 0, 0);
-  	  //debugOut("drawOnCanvas() Painted?" + (bForce || !peerRow.isValid() || image != null), true);
+      if (recalcCanvasVisibility() && image != null && gc != null) {
+        gc.drawImage(image, 0, 0);
+      }
+  	  //debugOut("drawOnCanvas() Painted?" + (bForce || !peerRow.isValid()), true);
     }    
   }
   
@@ -246,6 +257,23 @@ public class PiecesItem extends PeerItem  {
       return null;
     bounds.y += verticalPadding;
     bounds.height -= (verticalPadding * 2);
+
+    Rectangle tableBounds = getTable().getClientArea();
+    if (bounds.y + bounds.height > tableBounds.height) {
+      bounds.height = tableBounds.height - bounds.y;
+    }
+    if (bounds.x + bounds.width > tableBounds.width) {
+      bounds.width= tableBounds.width - bounds.x;
+    }
+
     return bounds;
+  }
+  
+  private boolean recalcCanvasVisibility() {
+    boolean bVisible = cBlockView.getLocation().y >= getTable().getHeaderHeight();
+    if (cBlockView.getVisible() != bVisible) {
+      cBlockView.setVisible(bVisible);
+    }
+    return bVisible;
   }
 }

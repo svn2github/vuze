@@ -98,8 +98,12 @@ public class PiecesItem extends TorrentItem  {
     if(bounds == null)
       return;
       
-    if (!cBlockView.equals(bounds)) {
+    Rectangle cBounds = cBlockView.getBounds();
+    if (!cBounds.equals(bounds)) {
       cBlockView.setBounds(bounds);
+      if (!recalcCanvasVisibility()) {
+        return;
+      }
       valid = false;
     }
 
@@ -124,6 +128,7 @@ public class PiecesItem extends TorrentItem  {
       oldImage = image;
       image = new Image(cBlockView.getDisplay(), bounds.width, bounds.height);
       imageSize = new Point(bounds.width, bounds.height);
+      bImageBufferValid = false;
 
       gcImage = new GC(image);
       gcImage.setForeground(MainWindow.grey);
@@ -186,6 +191,7 @@ public class PiecesItem extends TorrentItem  {
       }
       if (bounds.x != cBounds.x || bounds.y != cBounds.y) {
         cBlockView.setLocation(bounds.x, bounds.y);
+        recalcCanvasVisibility();
       }
     }
 /*  // disabled.  Every draw case taken care of.  (I think!)
@@ -220,13 +226,18 @@ public class PiecesItem extends TorrentItem  {
     }
     if (bounds.x != cBounds.x || bounds.y != cBounds.y) {
       cBlockView.setLocation(bounds.x, bounds.y);
+      if (!recalcCanvasVisibility()) {
+        return;
+      }
     }
 
-    if (bForce || !torrentRow.isValid() || image != null) {
+    if (bForce || !torrentRow.isValid()) {
       // no need to setClipping()
       // "the graphics context to use when painting that is configured to use the colors, font and damaged
       // region of the control."
-      gc.drawImage(image, 0, 0);
+      if (recalcCanvasVisibility() && image != null && gc != null) {
+        gc.drawImage(image, 0, 0);
+      }
   	  //debugOut("drawOnCanvas() Painted?" + (bForce || !torrentRow.isValid() || image != null), true);
     }    
   }
@@ -242,7 +253,6 @@ public class PiecesItem extends TorrentItem  {
     }
   }
   
-
   // returns what size/position the canvas should be
   private Rectangle getBoundsForCanvas() {
     Rectangle bounds = getBounds();
@@ -250,6 +260,23 @@ public class PiecesItem extends TorrentItem  {
       return null;
     bounds.y += verticalPadding;
     bounds.height -= (verticalPadding * 2);
+
+    Rectangle tableBounds = getTable().getClientArea();
+    if (bounds.y + bounds.height > tableBounds.height) {
+      bounds.height = tableBounds.height - bounds.y;
+    }
+    if (bounds.x + bounds.width > tableBounds.width) {
+      bounds.width= tableBounds.width - bounds.x;
+    }
+
     return bounds;
+  }
+  
+  private boolean recalcCanvasVisibility() {
+    boolean bVisible = cBlockView.getLocation().y >= getTable().getHeaderHeight();
+    if (cBlockView.getVisible() != bVisible) {
+      cBlockView.setVisible(bVisible);
+    }
+    return bVisible;
   }
 }
