@@ -21,6 +21,9 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import java.io.IOException;
+import java.util.Map;
+
 /**
  * @author parg
  *
@@ -60,4 +63,16 @@ Formatters
 	public String
 	formatTimeFromSeconds(
 		long		seconds );
+	
+	public byte[]
+	bEncode(
+		Map	map )
+	
+		throws IOException;
+	
+	public Map
+	bDecode(
+		byte[]	data )
+	
+		throws IOException;
 }

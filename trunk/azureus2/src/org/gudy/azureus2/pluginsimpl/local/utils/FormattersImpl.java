@@ -26,6 +26,9 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  *
  */
 
+import java.io.IOException;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.utils.*;
@@ -90,4 +93,22 @@ FormattersImpl
 	{
 		return( DisplayFormatters.formatTime( seconds ));
 	}
+	
+	public byte[]
+	bEncode(
+		Map	map )
+	
+		throws IOException
+	{
+		return( BEncoder.encode( map ));
+	}
+	
+	public Map
+	bDecode(
+		byte[]	data )
+	
+		throws IOException
+	{
+		return( BDecoder.decode( data ));
+	}	
 }
