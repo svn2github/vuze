@@ -105,4 +105,17 @@ Torrent
 	save()
 	
 		throws TorrentException;  
+	
+		/**
+		 * sets the torrent complete - i.e. ready for seeding. Doing this avoids
+		 * a recheck on torrent addition
+		 * @param data_dir
+		 * @throws TorrentException
+		 */
+	
+	public void
+	setComplete(
+		File		data_dir )
+	
+		throws TorrentException;
 }

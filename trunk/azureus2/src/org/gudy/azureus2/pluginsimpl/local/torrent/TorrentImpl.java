@@ -267,4 +267,16 @@ TorrentImpl
 			throw( new TorrentException( "Torrent::save Fails", e ));
 		}	
 	}
+	
+	public void
+	setComplete(
+		File		data_dir )
+	
+		throws TorrentException
+	{		
+		TorrentUtils.setDefaultTorrentEncoding( torrent );
+		
+		TorrentUtils.setResumeDataCompletelyValid( torrent, data_dir.toString());
+	}
+	
 }

@@ -228,4 +228,13 @@ RPTorrent
 	{
 		notSupported();
 	}
+	
+	public void
+	setComplete(
+		File		data_dir )
+	
+		throws TorrentException
+	{
+		notSupported();
+	}
 }

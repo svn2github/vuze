@@ -331,7 +331,7 @@ DownloadManagerImpl
 			
 			Download	dl = (Download)downloads.get(i);
 			
-			if ( ((TorrentImpl)dl.getTorrent()).getTorrent() == torrent ){
+			if ( ((TorrentImpl)dl.getTorrent()).getTorrent().hasSameHashAs( torrent )){
 				
 				return( dl );
 			}
@@ -360,21 +360,10 @@ DownloadManagerImpl
 	{
 		TorrentImpl	torrent = (TorrentImpl)_torrent;
 		
-		List	dls = global_manager.getDownloadManagers();
-
-		for (int i=0;i<dls.size();i++){
+		try{
+			return( getDownload( torrent.getTorrent()));
 			
-			DownloadManager	man = (DownloadManager)dls.get(i);
-			
-				// torrent can be null if download manager torrent file read fails
-			
-			if ( man.getTorrent() != null ){
-				
-				if ( man.getTorrent().hasSameHashAs( torrent.getTorrent())){
-				
-					return( new DownloadImpl( man ));
-				}
-			}
+		}catch( DownloadException e ){
 		}
 		
 		return( null );
@@ -399,8 +388,12 @@ DownloadManagerImpl
 				try{
 					if ( Arrays.equals( torrent.getHash(), hash )){
 				
-						return( new DownloadImpl( man ));
+						return( getDownload( torrent ));
 					}
+				}catch( DownloadException e ){
+					
+						// not found
+					
 				}catch( TOTorrentException e ){
 					
 					e.printStackTrace();
