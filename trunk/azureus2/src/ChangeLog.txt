@@ -6,6 +6,7 @@ xx.xx.04 | Azureus 2.0.8.5
 FEATURE: Added Remaining column to My Torrents [TuxPaper]
 FEATURE: Caching of peer info to disk for quick restarts if tracker is unavailable [Parg]
 FEATURE: Tracker comm proxy support [Nolar]
+FEATURE: Added option to auto-update language file from web (Config -> Interface -> Language) [TuxPaper]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]

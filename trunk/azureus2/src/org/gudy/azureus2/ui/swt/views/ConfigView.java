@@ -299,16 +299,24 @@ public class ConfigView extends AbstractIView {
       
       sc.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
       cConfigSection.layout();
-
-      String sHeader = section.getText();
-      section = section.getParentItem();
-      while (section != null) {
-        sHeader = section.getText() + " : " + sHeader;
-        section = section.getParentItem();
-      }
-      lHeader.setText(" " + sHeader);
+      
+      updateHeader(section);
     }
   }
+
+  private void updateHeader(TreeItem section) {
+    if (section == null)
+      return;
+
+    String sHeader = section.getText();
+    section = section.getParentItem();
+    while (section != null) {
+      sHeader = section.getText() + " : " + sHeader;
+      section = section.getParentItem();
+    }
+    lHeader.setText(" " + sHeader);
+  }
+
 
   private Composite createConfigSection(String sNameID) {
     return createConfigSection(null, sNameID, -1, true);
@@ -537,7 +545,8 @@ public class ConfigView extends AbstractIView {
 
   public void updateLanguage() {
     super.updateLanguage();
-    cConfig.setSize(cConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    updateHeader(tree.getSelection()[0]);
+//    cConfig.setSize(cConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   public void delete() {

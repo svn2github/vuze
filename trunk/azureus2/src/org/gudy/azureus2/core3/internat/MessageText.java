@@ -232,12 +232,27 @@ public class MessageText {
       String sBundle = (String)val.next();
       
       //      System.out.println("ResourceBundle: " + bundles[i]);
-      String locale = sBundle.substring(prefix.length(), sBundle.length() - extension.length());
-      //      System.out.println("Locale: " + locale);
-      if (locale.length() >= 6) {
-        foundLocales[i++] = new Locale(locale.substring(1, 3), locale.substring(4, 6));
-      } else if (locale.length() >= 3) {
-        foundLocales[i++] = new Locale(locale.substring(1, 3));
+      if (prefix.length() + 1 < sBundle.length() - extension.length()) {
+        String locale = sBundle.substring(prefix.length() + 1, sBundle.length() - extension.length());
+        //      System.out.println("Locale: " + locale);
+        String[] sLocalesSplit = locale.split("_", 3);
+        if (sLocalesSplit.length > 0 && sLocalesSplit[0].length() == 2) {
+          if (sLocalesSplit.length == 3) {
+            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]);
+          } else if (sLocalesSplit.length == 2 && sLocalesSplit[1].length() == 2) {
+            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1]);
+          } else {
+            foundLocales[i++] = new Locale(sLocalesSplit[0]);
+          }
+        } else {
+          if (sLocalesSplit.length == 3 && 
+              sLocalesSplit[0].length() == 0 && 
+              sLocalesSplit[2].length() > 0) {
+            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]);
+          } else {
+            foundLocales[i++] = LOCALE_ENGLISH;
+          }
+        }
       } else {
         foundLocales[i++] = LOCALE_ENGLISH;
       }
@@ -256,9 +271,8 @@ public class MessageText {
   }
 
   public static boolean changeLocale(Locale newLocale, boolean force) {
-    if (LOCALE_ENGLISH.equals(newLocale))
-      newLocale = LOCALE_DEFAULT;
     if (!LOCALE_CURRENT.equals(newLocale) || force) {
+      Locale.setDefault(LOCALE_DEFAULT);
       ResourceBundle newResourceBundle = null;
       String bundleFolder = BUNDLE_NAME.replace('.', '/');
       final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
@@ -279,11 +293,15 @@ public class MessageText {
         URL[] urls = {userBundleFile.toURL(), appBundleFile.toURL(), jarURL};
         newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
                                                       new URLClassLoader(urls));
+        // do more searches if getBundle failed, or if the language is not the 
+        // same and the user wanted a specific country
         if (newResourceBundle == null || 
-            !newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage())) {
-          System.out.println("changeLocale: "+ newResourceBundle.getLocale() +
-                             "."  +newResourceBundle.getLocale().getLanguage()+
-                             " != "+newLocale.getLanguage()+". Searching w/o country..");
+            (!newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage()) &&
+             !newResourceBundle.getLocale().getCountry().equals(""))) {
+          Locale foundLocale = newResourceBundle.getLocale();
+          System.out.println("changeLocale: "+ 
+                             (foundLocale.toString().equals("") ? "*Default Language*" : foundLocale.getDisplayLanguage()) +
+                             " != "+newLocale.getDisplayName()+". Searching without country..");
           // try it without the country
           Locale localeJustLang = new Locale(newLocale.getLanguage());
           newResourceBundle = ResourceBundle.getBundle("MessagesBundle", localeJustLang, 
@@ -292,7 +310,7 @@ public class MessageText {
           if (newResourceBundle == null ||
               !newResourceBundle.getLocale().getLanguage().equals(localeJustLang.getLanguage())) {
             // find first language we have in our list
-            System.out.println("changeLocale: Searching for language in any country..");
+            System.out.println("changeLocale: Searching for language " + newLocale.getDisplayLanguage() + " in *any* country..");
             Locale[] locales = getLocales();
             for (int i = 0; i < locales.length; i++) {
               if (locales[i].getLanguage() == newLocale.getLanguage()) {
@@ -312,12 +330,13 @@ public class MessageText {
       }
 
       if (newResourceBundle != null) {
-        if (!newLocale.getLanguage().equals("en") && 
+        //
+        if (!newLocale.toString().equals("en") && 
             !newResourceBundle.getLocale().equals(newLocale))
         {
           String sNewLanguage = newResourceBundle.getLocale().getDisplayName();
           if (sNewLanguage == null || sNewLanguage.trim().equals(""))
-            sNewLanguage = "default (English)";
+            sNewLanguage = "English (default)";
           System.out.println("changeLocale: no message properties for Locale '"+ 
                              newLocale.getDisplayName() +
                              "' (" + newLocale + "), using '" + sNewLanguage + "'");

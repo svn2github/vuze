@@ -104,6 +104,8 @@ public class ConfigurationDefaults {
     def.put("Show Download Basket",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
     def.put("Open Details", new Long(0));
+    def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
+    def.put("General_bEnableLanguageUpdate", new Long(0));
     
     boolean bGTKTableBug = false;
     try {

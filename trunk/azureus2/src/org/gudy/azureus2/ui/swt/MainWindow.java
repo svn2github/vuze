@@ -102,6 +102,7 @@ import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.swt.auth.*;
@@ -418,12 +419,25 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Locale[] locales = MessageText.getLocales();
     String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
     Locale savedLocale;
-    if (savedLocaleString.length() == 5) {
-      savedLocale = new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5));
-    } else if (savedLocaleString.length() == 2) {
-      savedLocale = new Locale(savedLocaleString);
+    String[] savedLocaleStrings = savedLocaleString.split("_", 3);
+    if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {
+      if (savedLocaleStrings.length == 3) {
+        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1], savedLocaleStrings[2]);
+      } else if (savedLocaleStrings.length == 2 && savedLocaleStrings[1].length() == 2) {
+        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1]);
+      } else {
+        savedLocale = new Locale(savedLocaleStrings[0]);
+      }
     } else {
-      savedLocale = Locale.getDefault();
+      if (savedLocaleStrings.length == 3 && 
+          savedLocaleStrings[0].length() == 0 && 
+          savedLocaleStrings[2].length() > 0) {
+        savedLocale = new Locale(savedLocaleStrings[0], 
+                                 savedLocaleStrings[1], 
+                                 savedLocaleStrings[2]);
+      } else {
+        savedLocale = Locale.getDefault();
+      }
     }
     MessageText.changeLocale(savedLocale);
 
@@ -519,6 +533,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
     
+    MenuItem file_new_torrentwindow = new MenuItem(newMenu, SWT.NULL);
+    file_new_torrentwindow.setText(MessageText.getString("MainWindow.menu.file.open.torrent") + " (Experimental)");
+    file_new_torrentwindow.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        openTorrentWindow();
+      }
+    });
+
     MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
     Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
     file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
@@ -1356,6 +1378,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     itemRefresh.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         MenuItem item = (MenuItem)event.widget;
+        refreshLanguage();
+      }
+    });
+  }
+  
+  public void refreshLanguage() {
+    if (display == null || display.isDisposed())
+      return;
+
+    display.asyncExec(new Runnable() {
+      public void run() {
         createLanguageMenu(menuBar, mainWindow, MessageText.getLocales());
         if (MessageText.changeLocale(MessageText.getCurrentLocale(), true)) {
           setSelectedLanguageItem(selectedLanguageItem);
@@ -2335,6 +2368,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	 */
   public static MainWindow getWindow() {
     return window;
+  }
+
+  public void openTorrentWindow() {
+    OpenTorrentWindow openWindow = new OpenTorrentWindow(display, globalManager);
   }
 
   public void openTorrent(final String fileName) {

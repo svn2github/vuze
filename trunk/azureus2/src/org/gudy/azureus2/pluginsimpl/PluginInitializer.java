@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
+import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
 /**
  * @author Olivier
@@ -57,6 +58,7 @@ PluginInitializer
                  ShareHosterPlugin.class,
                  TrackerWebDefaultStaticPlugin.class,
                  TrackerWebDefaultTrackerPlugin.class,
+                 UpdateLanguagePlugin.class,
                 };
   
   private static PluginInitializer	singleton;
