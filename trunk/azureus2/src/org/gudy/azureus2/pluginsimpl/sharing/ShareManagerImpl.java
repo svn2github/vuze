@@ -312,12 +312,21 @@ ShareManagerImpl
 				throw( new ShareException( "ShareManager: tracker must be configured"));
 			}
 			
-			// port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+			boolean	use_ssl = COConfigurationManager.getBooleanParameter( "Sharing Use SSL", false );
 			
-			int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+			int	port;
+			
+			if ( use_ssl ){
+				
+				port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+				
+			}else{
+				
+				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+			}
 			
 			try{
-				announce_url = new URL( "http://" + tracker_ip + ":" + port + "/announce" );
+				announce_url = new URL( (use_ssl?"https":"http") + "://" + tracker_ip + ":" + port + "/announce" );
 				
 			}catch( MalformedURLException e ){
 				
