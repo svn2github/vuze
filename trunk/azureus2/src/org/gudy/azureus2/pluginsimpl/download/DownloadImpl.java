@@ -334,8 +334,11 @@ DownloadImpl
 	
 		throws DownloadException, DownloadRemovalVetoException
 	{
-		if ( 	download_manager.getState() == DownloadManager.STATE_STOPPED || 
-				download_manager.getState() == DownloadManager.STATE_ERROR ){
+		int	dl_state = download_manager.getState();
+		
+		if ( 	dl_state == DownloadManager.STATE_STOPPED 	|| 
+				dl_state == DownloadManager.STATE_ERROR 	||
+				dl_state == DownloadManager.STATE_QUEUED ){
 			
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
@@ -358,9 +361,12 @@ DownloadImpl
 	
 		throws DownloadRemovalVetoException
 	{
-		if ( 	download_manager.getState() == DownloadManager.STATE_STOPPED || 
-				download_manager.getState() == DownloadManager.STATE_ERROR ){
-			
+		int	dl_state = download_manager.getState();
+		
+		if ( 	dl_state == DownloadManager.STATE_STOPPED 	|| 
+				dl_state == DownloadManager.STATE_ERROR 	||
+				dl_state == DownloadManager.STATE_QUEUED ){
+						
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
 			try{
