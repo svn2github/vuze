@@ -194,6 +194,9 @@ PEPeerManager
 		DirectByteBuffer 	data,
 		PEPeer 		sender);		
   
+  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender);
+  
+  public boolean isBlockAlreadyWritten( int piece_number, int offset );
   
   public ConnectionPool getConnectionPool();
 }

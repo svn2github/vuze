@@ -1522,17 +1522,54 @@ PEPeerControlImpl
           Iterator iter = _peer_transports.iterator();
           while(iter.hasNext()) {
             PEPeerTransport connection = (PEPeerTransport) iter.next();
-            connection.sendCancel(
-                _diskManager.createRequest(
-                    pieceNumber,
-                    offset,
-										_pieces[pieceNumber].getBlockSize(offset / BLOCK_SIZE)));
-            
+            DiskManagerRequest dmr = _diskManager.createRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+            connection.sendCancel( dmr );
           }
         }
       }
-    }    
+    }
+    else data.returnToPool();
   }
+  
+  
+  /**
+   * This method is only called when a block is received after the initial request expired,
+   * but the data has not yet been fulfilled by any other peer, so we use the block data anyway
+   * instead of throwing it away, and cancel any outstanding requests for that block that might have
+   * been sent after initial expiry.
+   */
+  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender) {
+    PEPiece piece = _pieces[pieceNumber];
+    int blockNumber = offset / BLOCK_SIZE;
+    if (piece != null && !piece.isWritten(blockNumber)) {
+      piece.setBlockWritten(blockNumber);
+      _diskManager.writeBlock(pieceNumber, offset, data,sender);
+
+      //cancel any matching outstanding requests
+      synchronized(_peer_transports) {
+        Iterator iter = _peer_transports.iterator();
+        while(iter.hasNext()) {
+          PEPeerTransport connection = (PEPeerTransport) iter.next();
+          DiskManagerRequest dmr = _diskManager.createRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+          connection.sendCancel( dmr );   
+        }
+      }     
+    }
+    else data.returnToPool();
+  }
+  
+  
+  public boolean isBlockAlreadyWritten( int piece_number, int offset ) {
+    PEPiece piece = _pieces[ piece_number ];
+    int block_number = offset / BLOCK_SIZE;
+    if( piece != null && piece.isWritten( block_number ) ) {
+      return true;
+    }
+    return false;
+  }
+  
+  
+  
 
   public boolean checkBlock(int pieceNumber, int offset, int length) {
     return _diskManager.checkBlock(pieceNumber, offset, length);
