@@ -20,6 +20,7 @@ FEATURE: Tracker/client support for "no_peer_id" spec for bandwidth savings [Par
 FEATURE: More plugin stuff - alert raising, ipfilter reloading, various other stuff [Parg]
 FEATURE: Applet UI enhanced into usable state (start/stop/add/remove downloads) + auto refresh [Parg]
 FEATURE: Added torrent hashes for G2 + ED2K (ala http://www.torrentaid.com/) [ Parg]
+FEATURE: Added colours to file view to show: grey -> requested; red -> data recently written [Parg]
 
 CHANGE: Split torrents in My Torrents view into 2 lists: Downloading and Seeding (Completed) [TuxPaper]
 CHANGE: STOPPED status now means the torrent never auto-starts [TuxPaper]
@@ -32,6 +33,7 @@ CHANGE: Remember sorted column and order for all views [TuxPaper]
 CHANGE: Core performance optimizations and major cpu usage reductions [Nolar]
 CHANGE: User prompt when (1) tracker listens fails (2) incoming server port bind fails [Parg]
 CHANGE: Config files/dirs and plugins now stored in OS user dir (Win: C:\Documents and Settings\username\Application Data\Azureus\, OSX: /Users/username/Library/Azureus/, Linux: /home/username/Azureus/) [Nolar]
+CHANGE: Tracker log now includes date as well as time
 
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
@@ -40,7 +42,7 @@ BUGFIX: Fix for minimize/close causing the program to disappear from view under 
 BUGFIX: Fix for icon bar buttons not being flat (Bug #890166) [Gudy]
 BUGFIX: More reliable .config and .torrent file save/load management [Nolar]
 BUGFIX: Better handling of failures when performing "move on complete" [Parg]
-
+BUGFIX: Handle torrent file names with trailing spaces (from Mac) [Parg]
 
 
 02.02.04 | Azureus 2.0.7.0

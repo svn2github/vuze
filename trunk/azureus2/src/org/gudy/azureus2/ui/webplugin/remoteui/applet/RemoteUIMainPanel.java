@@ -71,10 +71,7 @@ RemoteUIMainPanel
 			download_manager		= _dm;
 		
 			String	mode_str = (String)properties.get("mode");
-			
-			System.out.println( "mode_str -> " + mode_str );
-			System.out.println( "port -> " + properties.get("port"));
-			
+						
 			boolean view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
 			
 			setLayout( new BorderLayout());
@@ -345,7 +342,22 @@ RemoteUIMainPanel
 				run()
 				{
 					String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date());
-					log_area.setText(log_area.getText()+ "\r\n" + ts + str );
+					
+					String	text = log_area.getText()+ "\r\n" + ts + str;
+					
+					while( text.length() > 65536 ){
+						
+						int	p = text.indexOf( "\r\n" );
+						
+						if ( p == -1 ){
+							
+							break;
+						}
+						
+						text = text.substring( p+2 );
+					}
+					
+					log_area.setText( text );
 				}
 			});
 	}
