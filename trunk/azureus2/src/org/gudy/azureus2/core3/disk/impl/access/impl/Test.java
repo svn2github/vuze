@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
@@ -850,6 +851,10 @@ Test
 		{
 			
 		}
+    
+    public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
+      
+    }
 			
 		public byte[]
 		getHash()
