@@ -225,7 +225,7 @@ public class GlobalManagerImpl
 
             if ((manager.getState() == DownloadManager.STATE_SEEDING)
               && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
-              && COConfigurationManager.getBooleanParameter("Switch Priority", true)) {
+              && COConfigurationManager.getBooleanParameter("Switch Priority", false)) {
               manager.setPriority(DownloadManager.LOW_PRIORITY);
             }
 

@@ -452,7 +452,7 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Switch Priority", true); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Switch Priority", false); //$NON-NLS-1$
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$

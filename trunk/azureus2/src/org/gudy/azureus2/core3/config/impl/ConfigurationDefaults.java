@@ -118,7 +118,7 @@ public class ConfigurationDefaults {
     def.put("Disconnect Seed", new Long(0));
     // Set to low priority on completion
     //def.put("Core_bSwitchPriority", new Long(1)); *
-    def.put("Switch Priority", new Long(1));
+    def.put("Switch Priority", new Long(0));
     // Automatically switch these extensions to high priority (eg ".exe;.txt")
     //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
