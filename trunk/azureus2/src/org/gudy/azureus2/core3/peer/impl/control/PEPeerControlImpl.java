@@ -286,8 +286,8 @@ PEPeerControlImpl
         
         //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
         
-        if( loop_time < 50 ) {
-          try {  Thread.sleep( 50 - loop_time );  } catch(Exception e) {}
+        if( loop_time < 40 ) {
+          try {  Thread.sleep( 40 - loop_time );  } catch(Exception e) {}
         }
 
       }
