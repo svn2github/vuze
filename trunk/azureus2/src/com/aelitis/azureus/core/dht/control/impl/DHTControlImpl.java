@@ -120,6 +120,8 @@ DHTControlImpl
 		createRouter( transport.getLocalContact());
 
 		node_id_byte_count	= router.getID().length;
+
+		stats = new DHTControlStats( this );
 		
 		transport.setRequestHandler( this );
 	
@@ -159,6 +161,8 @@ DHTControlImpl
 					seed();
 				}
 			});
+		
+
 	}
 	
 	protected void
@@ -245,6 +249,12 @@ DHTControlImpl
 	getRouter()
 	{
 		return( router );
+	}
+	
+	public DHTDB
+	getDataBase()
+	{
+		return( database );
 	}
 	
 	public void

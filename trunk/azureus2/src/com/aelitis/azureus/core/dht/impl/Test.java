@@ -412,7 +412,7 @@ Test
 										{
 											DHTTransportFullStats stats = contact.getStats();
 									
-											System.out.println( "    stats = " + stats );
+											System.out.println( "    stats = " + stats.getString() );
 										}
 									}.start();
 								}

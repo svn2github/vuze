@@ -109,14 +109,14 @@ DHTTransportLoopbackImpl
 	
 	private DHTTransportRequestHandler		request_handler;
 	
-	private DHTTransportStatsImpl	stats = new DHTTransportStatsImpl();
+	private DHTTransportStatsImpl	stats = new DHTTransportLoopbackStatsImpl();
 
 	private List	listeners = new ArrayList();
 	
 	public static synchronized DHTTransportStats
 	getOverallStats()
 	{
-		DHTTransportStatsImpl	overall_stats = new DHTTransportStatsImpl();
+		DHTTransportStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
 		
 		Iterator	it = node_map.values().iterator();
 		

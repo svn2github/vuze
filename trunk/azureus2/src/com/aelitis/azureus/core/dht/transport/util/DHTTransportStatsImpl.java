@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
  *
  */
 
-public class 
+public abstract class 
 DHTTransportStatsImpl
 	implements DHTTransportStats
 {
@@ -60,39 +60,36 @@ DHTTransportStatsImpl
 		}
 	}
 	
-	public DHTTransportStats
-	snapshot()
+	protected void
+	snapshotSupport(
+		DHTTransportStatsImpl	clone )
 	{
-		DHTTransportStatsImpl	res = new DHTTransportStatsImpl();
-		
-		res.pings		= (long[])pings.clone();
-		res.find_nodes	= (long[])find_nodes.clone();
-		res.find_values	= (long[])find_values.clone();
-		res.stores		= (long[])stores.clone();
-		
-		return( res );
+		clone.pings		= (long[])pings.clone();
+		clone.find_nodes	= (long[])find_nodes.clone();
+		clone.find_values	= (long[])find_values.clone();
+		clone.stores		= (long[])stores.clone();
 	}
 		// ping
 	
 	public void
 	pingSent()
 	{
-		pings[0]++;
+		pings[STAT_SENT]++;
 	}
 	public void
 	pingOK()
 	{
-		pings[1]++;
+		pings[STAT_OK]++;
 	}
 	public void
 	pingFailed()
 	{
-		pings[2]++;
+		pings[STAT_FAILED]++;
 	}
 	public void
 	pingReceived()
 	{
-		pings[3]++;
+		pings[STAT_RECEIVED]++;
 	}
 	
 	public long[]
@@ -106,22 +103,22 @@ DHTTransportStatsImpl
 	public void
 	findNodeSent()
 	{
-		find_nodes[0]++;
+		find_nodes[STAT_SENT]++;
 	}
 	public void
 	findNodeOK()
 	{
-		find_nodes[1]++;
+		find_nodes[STAT_OK]++;
 	}
 	public void
 	findNodeFailed()
 	{
-		find_nodes[2]++;
+		find_nodes[STAT_FAILED]++;
 	}
 	public void
 	findNodeReceived()
 	{
-		find_nodes[3]++;
+		find_nodes[STAT_RECEIVED]++;
 	}
 	public long[]
 	getFindNodes()
@@ -134,22 +131,22 @@ DHTTransportStatsImpl
 	public void
 	findValueSent()
 	{
-		find_values[0]++;
+		find_values[STAT_SENT]++;
 	}
 	public void
 	findValueOK()
 	{
-		find_values[1]++;
+		find_values[STAT_OK]++;
 	}
 	public void
 	findValueFailed()
 	{
-		find_values[2]++;
+		find_values[STAT_FAILED]++;
 	}
 	public void
 	findValueReceived()
 	{
-		find_values[3]++;
+		find_values[STAT_RECEIVED]++;
 	}
 	public long[]
 	getFindValues()
@@ -162,22 +159,22 @@ DHTTransportStatsImpl
 	public void
 	storeSent()
 	{
-		stores[0]++;
+		stores[STAT_SENT]++;
 	}
 	public void
 	storeOK()
 	{
-		stores[1]++;
+		stores[STAT_OK]++;
 	}
 	public void
 	storeFailed()
 	{
-		stores[2]++;
+		stores[STAT_FAILED]++;
 	}
 	public void
 	storeReceived()
 	{
-		stores[3]++;
+		stores[STAT_RECEIVED]++;
 	}
 	public long[]
 	getStores()
@@ -189,22 +186,22 @@ DHTTransportStatsImpl
 	public void
 	statsSent()
 	{
-		stats[0]++;
+		stats[STAT_SENT]++;
 	}
 	public void
 	statsOK()
 	{
-		stats[1]++;
+		stats[STAT_OK]++;
 	}
 	public void
 	statsFailed()
 	{
-		stats[2]++;
+		stats[STAT_FAILED]++;
 	}
 	public void
 	statsReceived()
 	{
-		stats[3]++;
+		stats[STAT_RECEIVED]++;
 	}
 	
 	public String

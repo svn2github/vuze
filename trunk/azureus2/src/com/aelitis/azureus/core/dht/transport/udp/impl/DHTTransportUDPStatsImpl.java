@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
 import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 
@@ -34,7 +34,6 @@ import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 public class 
 DHTTransportUDPStatsImpl
 	extends 	DHTTransportStatsImpl
-	implements 	DHTTransportUDPStats
 {
 	private PRUDPPacketHandlerStats		stats;
 	
@@ -73,5 +72,15 @@ DHTTransportUDPStatsImpl
 	getBytesReceived()
 	{
 		return( stats.getBytesReceived());
+	}
+	
+	public DHTTransportStats
+	snapshot()
+	{
+		DHTTransportStatsImpl	res = new DHTTransportUDPStatsImpl( stats.snapshot());
+		
+		snapshotSupport( res );
+		
+		return( res );
 	}
 }

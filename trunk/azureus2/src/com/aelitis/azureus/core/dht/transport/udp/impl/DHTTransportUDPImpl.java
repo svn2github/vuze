@@ -1267,6 +1267,11 @@ DHTTransportUDPImpl
 	getFullStats(
 		DHTTransportUDPContactImpl	contact )
 	{
+		if ( contact == local_contact ){
+			
+			return( request_handler.statsRequest( contact ));
+		}
+		
 		final DHTTransportFullStats[] res = { null };
 		
 		final AESemaphore	sem = new AESemaphore( "DHTTransportUDP:getFullStats");

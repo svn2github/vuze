@@ -276,6 +276,12 @@ DHTDBImpl
 		return( stored_values.size() == 0 );
 	}
 	
+	public long
+	getSize()
+	{
+		return( stored_values.size());
+	}
+	
 	public Iterator
 	getKeys()
 	{

@@ -22,6 +22,8 @@
 
 package com.aelitis.net.udp.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 
 /**
@@ -31,7 +33,7 @@ import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 
 public class 
 PRUDPPacketHandlerStatsImpl
-	implements PRUDPPacketHandlerStats
+	implements PRUDPPacketHandlerStats, Cloneable
 {
 	private long packets_sent;
 	private long packets_received;
@@ -89,5 +91,19 @@ PRUDPPacketHandlerStatsImpl
 	getBytesReceived()
 	{
 		return( bytes_received );
+	}
+	
+	public PRUDPPacketHandlerStats
+	snapshot()
+	{
+		try{
+			return((PRUDPPacketHandlerStats)clone());
+			
+		}catch( CloneNotSupportedException e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
 	}
 }

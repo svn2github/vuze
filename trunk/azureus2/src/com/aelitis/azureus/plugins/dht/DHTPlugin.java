@@ -50,9 +50,9 @@ import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
+import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
@@ -252,7 +252,7 @@ DHTPlugin
 															",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
 															",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
 																
-												DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
+												DHTTransportStats t_stats = transport.getStats();
 												
 												log.log( "Transport Stats" + 
 															":ps=" + t_stats.getPacketsSent() +

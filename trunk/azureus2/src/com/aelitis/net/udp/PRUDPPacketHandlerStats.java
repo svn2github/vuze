@@ -43,4 +43,7 @@ PRUDPPacketHandlerStats
 	
 	public long
 	getBytesReceived();
+	
+	public PRUDPPacketHandlerStats
+	snapshot();
 }

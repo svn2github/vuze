@@ -418,15 +418,182 @@ DHTUDPUtils
 	serialiseStats(
 		DataOutputStream		os,
 		DHTTransportFullStats	stats )
+	
+		throws IOException
 	{
+		os.writeLong( stats.getDBValuesStored());
 		
+		os.writeLong( stats.getRouterNodes());
+		os.writeLong( stats.getRouterLeaves());
+		os.writeLong( stats.getRouterContacts());
+		
+		os.writeLong( stats.getTotalBytesReceived());
+		os.writeLong( stats.getTotalBytesSent());
+		os.writeLong( stats.getTotalPacketsReceived());
+		os.writeLong( stats.getTotalPacketsSent());
+		os.writeLong( stats.getTotalPingsReceived());
+		os.writeLong( stats.getTotalFindNodesReceived());
+		os.writeLong( stats.getTotalFindValuesReceived());
+		os.writeLong( stats.getTotalStoresReceived());
+		os.writeLong( stats.getAverageBytesReceived());
+		os.writeLong( stats.getAverageBytesSent());
+		os.writeLong( stats.getAveragePacketsReceived());
+		os.writeLong( stats.getAveragePacketsSent());
 	}
 	
 	protected static DHTTransportFullStats
 	deserialiseStats(
 		DataInputStream		is )
+	
+		throws IOException
 	{
-		DHTTransportFullStats	res = new DHTTransportFullStats(){};
+		final long db_values_stored				= is.readLong();
+		
+		final long router_nodes					= is.readLong();
+		final long router_leaves				= is.readLong();
+		final long router_contacts 				= is.readLong();
+		
+		final long total_bytes_received			= is.readLong();
+		final long total_bytes_sent				= is.readLong();
+		final long total_packets_received		= is.readLong();
+		final long total_packets_sent			= is.readLong();
+		final long total_pings_received			= is.readLong();
+		final long total_find_nodes_received	= is.readLong();
+		final long total_find_values_received	= is.readLong();
+		final long total_stores_received		= is.readLong();
+		final long average_bytes_received		= is.readLong();
+		final long average_bytes_sent			= is.readLong();
+		final long average_packets_received		= is.readLong();
+		final long average_packets_sent			= is.readLong();
+		
+		DHTTransportFullStats	res = 
+			new DHTTransportFullStats()
+			{
+				public long
+				getDBValuesStored()
+				{
+					return( db_values_stored );
+				}
+				
+					// Router
+				
+				public long
+				getRouterNodes()
+				{
+					return( router_nodes );
+				}
+				
+				public long
+				getRouterLeaves()
+				{
+					return( router_leaves );
+				}
+				
+				public long
+				getRouterContacts()
+				{
+					return( router_contacts );
+				}
+			
+				public long
+				getTotalBytesReceived()
+				{
+					return( total_bytes_received );
+				}
+				
+				public long
+				getTotalBytesSent()
+				{
+					return( total_bytes_sent );
+				}
+				
+				public long
+				getTotalPacketsReceived()
+				{
+					return( total_packets_received );
+				}
+				
+				public long
+				getTotalPacketsSent()
+				{
+					return( total_packets_sent );
+				}
+				
+				public long
+				getTotalPingsReceived()
+				{
+					return( total_pings_received );
+				}
+				
+				public long
+				getTotalFindNodesReceived()
+				{
+					return( total_find_nodes_received );
+				}
+				
+				public long
+				getTotalFindValuesReceived()
+				{
+					return( total_find_values_received );
+				}
+				
+				public long
+				getTotalStoresReceived()
+				{
+					return( total_stores_received );
+				}
+				
+					// averages
+				
+				public long
+				getAverageBytesReceived()
+				{
+					return( average_bytes_received );
+				}
+				
+				public long
+				getAverageBytesSent()
+				{
+					return( average_bytes_sent );
+				}
+				
+				public long
+				getAveragePacketsReceived()
+				{
+					return( average_packets_received );
+				}
+				
+				public long
+				getAveragePacketsSent()
+				{
+					return( average_packets_sent );
+				}
+				
+				public String
+				getString()
+				{
+					return(	"transport:" + 
+							getTotalBytesReceived() + "," +
+							getTotalBytesSent() + "," +
+							getTotalPacketsReceived() + "," +
+							getTotalPacketsSent() + "," +
+							getTotalPingsReceived() + "," +
+							getTotalFindNodesReceived() + "," +
+							getTotalFindValuesReceived() + "," +
+							getTotalStoresReceived() + "," +
+							getAverageBytesReceived() + "," +
+							getAverageBytesSent() + "," +
+							getAveragePacketsReceived() + "," +
+							getAveragePacketsSent() + 
+							", router:" +
+							getRouterNodes() + "," +
+							getRouterLeaves() + "," +
+							getRouterContacts() + 
+							",database:" +
+							getDBValuesStored());
+				}
+			};
+	
 		
 		return( res );
 	}

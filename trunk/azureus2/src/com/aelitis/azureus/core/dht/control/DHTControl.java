@@ -28,6 +28,7 @@ import java.io.DataOutputStream;
 import java.util.List;
 
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -89,6 +90,9 @@ DHTControl
 	
 	public DHTRouter
 	getRouter();
+	
+	public DHTDB
+	getDataBase();
 	
 	public void
 	exportState(

@@ -26,6 +26,68 @@ package com.aelitis.azureus.core.dht.transport;
  * @author parg
  *
  */
-public interface DHTTransportFullStats {
 
+public interface 
+DHTTransportFullStats 
+{
+		// DB
+	
+	public long
+	getDBValuesStored();
+	
+		// Router
+	
+	public long
+	getRouterNodes();
+	
+	public long
+	getRouterLeaves();
+	
+	public long
+	getRouterContacts();
+	
+		// Transport
+	
+		// totals
+	
+	public long
+	getTotalBytesReceived();
+	
+	public long
+	getTotalBytesSent();
+	
+	public long
+	getTotalPacketsReceived();
+	
+	public long
+	getTotalPacketsSent();
+	
+	public long
+	getTotalPingsReceived();
+	
+	public long
+	getTotalFindNodesReceived();
+	
+	public long
+	getTotalFindValuesReceived();
+	
+	public long
+	getTotalStoresReceived();
+	
+		// averages
+	
+	public long
+	getAverageBytesReceived();
+	
+	public long
+	getAverageBytesSent();
+	
+	public long
+	getAveragePacketsReceived();
+	
+	public long
+	getAveragePacketsSent();
+	
+	public String
+	getString();
 }

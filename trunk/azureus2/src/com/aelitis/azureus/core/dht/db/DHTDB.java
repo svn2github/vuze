@@ -64,6 +64,9 @@ DHTDB
 	public boolean
 	isEmpty();
 	
+	public long
+	getSize();
+	
 		/**
 		 * Returns an iterator over HashWrapper values denoting the snapshot of keys
 		 * Thus by the time a key is used the entry may no longer exist

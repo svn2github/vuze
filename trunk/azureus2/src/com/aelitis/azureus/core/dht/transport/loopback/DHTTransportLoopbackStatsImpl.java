@@ -1,5 +1,5 @@
 /*
- * Created on 25-Jan-2005
+ * Created on 01-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,31 +20,57 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp;
+package com.aelitis.azureus.core.dht.transport.loopback;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
+import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHTTransportUDPStats
-	extends DHTTransportStats
+public class 
+DHTTransportLoopbackStatsImpl
+	extends DHTTransportStatsImpl
 {
 	public long
-	getPacketsSent();
+	getPacketsSent()
+	{
+		return( 0 );
+	}
 	
 	public long
-	getPacketsReceived();
+	getPacketsReceived()
+	{
+		return( 0 );
+	}
 	
 	public long
-	getRequestsTimedOut();
+	getRequestsTimedOut()
+	{
+		return( 0 );
+	}
 	
 	public long
-	getBytesSent();
+	getBytesSent()
+	{
+		return( 0 );
+	}
 	
 	public long
-	getBytesReceived();
+	getBytesReceived()
+	{
+		return( 0 );
+	}
+	
+	public DHTTransportStats
+	snapshot()
+	{
+		DHTTransportStatsImpl	res = new DHTTransportLoopbackStatsImpl();
+		
+		snapshotSupport( res );
+		
+		return( res );
+	}
 }

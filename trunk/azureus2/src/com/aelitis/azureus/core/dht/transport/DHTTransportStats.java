@@ -30,6 +30,11 @@ package com.aelitis.azureus.core.dht.transport;
 public interface 
 DHTTransportStats 
 {
+	public static final int	STAT_SENT		= 0;
+	public static final int	STAT_OK			= 1;
+	public static final int	STAT_FAILED		= 2;
+	public static final int	STAT_RECEIVED	= 3;
+	
 		/**
 		 * returns pings sent, pings succeeded, pings failed, pings received
 		 * @return
@@ -46,6 +51,21 @@ DHTTransportStats
 	
 	public long[]
 	getStores();
+	
+	public long
+	getPacketsSent();
+	
+	public long
+	getPacketsReceived();
+	
+	public long
+	getRequestsTimedOut();
+	
+	public long
+	getBytesSent();
+	
+	public long
+	getBytesReceived();
 	
 	public DHTTransportStats
 	snapshot();
