@@ -235,14 +235,13 @@ PEPeerControlImpl
     }
 
     public void run() {
-      long now = 0;
         
       while (bContinue) {
         
       	for (int i = 9; i > 0; i--) {
           started[i] = started[i - 1];
         }
-        started[0] = System.currentTimeMillis();
+        started[0] = SystemTime.getCurrentTime();
         
         synchronized (_peer_transports) {
           for (int i=0; i < _peer_transports.size(); i++) {
@@ -252,9 +251,9 @@ PEPeerControlImpl
               removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
             }
             else {
-              if (oldPolling || ( (now = System.currentTimeMillis()) > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
+              if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
                 ps.setReadSleepTime( ps.processRead() );
-                if ( !oldPolling ) ps.setLastReadTime( now );
+                if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
               }
               
               ps.processWrite();
@@ -264,7 +263,7 @@ PEPeerControlImpl
                 
         try {
         	long wait = 20;
-          wait -= (System.currentTimeMillis() - started[0]);
+          wait -= (SystemTime.getCurrentTime() - started[0]);
           if (started[4] != 0) {
             for (int i = 0; i < 9; i++) {
               wait += 20 + (started[i + 1] - started[i]);
@@ -314,7 +313,7 @@ PEPeerControlImpl
                   /* add the connection */
                   if (testPS != null) {
                      synchronized (_peer_transports) {
-                        //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
+                        //System.out.println("new slow connect: " + (SystemTime.getCurrentTime() /1000));
                         /* add connection */
                        if ( !_peer_transports.contains( testPS )) {
                          addToPeerTransports(PEPeerTransportFactory.createTransport(testPS.getControl(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));   
@@ -341,11 +340,11 @@ PEPeerControlImpl
   public void mainLoop() {
     _bContinue = true;
     _manager.setState(DownloadManager.STATE_DOWNLOADING);
-    _timeStarted = System.currentTimeMillis();
+    _timeStarted = SystemTime.getCurrentTime();
     while (_bContinue) //loop until stopAll() kills us
       {
       try {
-        long timeStart = System.currentTimeMillis();
+        long timeStart = SystemTime.getCurrentTime();
         
         checkTracker(); //check the tracker status, update peers
         processPieceChecks();
@@ -369,8 +368,8 @@ PEPeerControlImpl
 
         _loopFactor++; //increment the loopFactor
         
-        long timeWait = MAINLOOP_WAIT_TIME - (System.currentTimeMillis() - timeStart);
-        if (timeWait > 10) {
+        long timeWait = MAINLOOP_WAIT_TIME - (SystemTime.getCurrentTime() - timeStart);
+        if (!SystemTime.isErrorLast5sec() && timeWait > 10) {
         	Thread.sleep(timeWait); //sleep
         }
 
@@ -706,7 +705,7 @@ PEPeerControlImpl
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
       
       _manager.setState(DownloadManager.STATE_FINISHING);
-      _timeFinished = System.currentTimeMillis();
+      _timeFinished = SystemTime.getCurrentTime();
             
       //remove previous snubbing
       synchronized (_peer_transports) {
@@ -745,7 +744,7 @@ PEPeerControlImpl
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
-      _timeStartedSeeding = System.currentTimeMillis();
+      _timeStartedSeeding = SystemTime.getCurrentTime();
       
       if ( !looks_like_restart ){
       
@@ -774,7 +773,7 @@ PEPeerControlImpl
             //Only cancel first request if more than 2 mins have passed
             DiskManagerRequest request = (DiskManagerRequest) expired.get(0);
             long timeCreated = request.getTimeCreated();
-            if (System.currentTimeMillis() - timeCreated > 1000 * 120) {
+            if (SystemTime.getCurrentTime() - timeCreated > 1000 * 120) {
               int pieceNumber = request.getPieceNumber();
               //get the piece number
               int pieceOffset = request.getOffset();
@@ -1770,7 +1769,7 @@ PEPeerControlImpl
   }
 
   public String getElapsedTime() {
-    return TimeFormater.format((System.currentTimeMillis() - _timeStarted) / 1000);
+    return TimeFormater.format((SystemTime.getCurrentTime() - _timeStarted) / 1000);
   }
   
   // Returns time started in ms

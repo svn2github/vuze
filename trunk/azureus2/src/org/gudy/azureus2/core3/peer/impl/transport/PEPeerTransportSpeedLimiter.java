@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * 
@@ -131,8 +132,8 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
    */
   public synchronized int getLimitPer100ms(PEPeer peer) {
     
-    long currentTime = System.currentTimeMillis();
-    if(currentTime - lastComputationTime > CACHE_EXPIRES) {
+    long currentTime = SystemTime.getCurrentTime();
+    if (SystemTime.isErrorLast1sec() || currentTime - lastComputationTime > CACHE_EXPIRES) {
       computeAllocation();
       lastComputationTime = currentTime;
     }
