@@ -49,6 +49,12 @@ DHTControlContactImpl
 		return( contact.getMaxFailCount());
 	}
 	
+	public int
+	getInstanceID()
+	{
+		return( contact.getInstanceID());
+	}
+	
 	public DHTTransportContact
 	getContact()
 	{

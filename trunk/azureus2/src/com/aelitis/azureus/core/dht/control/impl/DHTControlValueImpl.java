@@ -52,6 +52,12 @@ DHTControlValueImpl
 		value			= _value;
 		distance		= _distance;
 		
+		reset();
+	}
+	
+	protected void
+	reset()
+	{
 		store_time	= SystemTime.getCurrentTime();
 		
 			// make sure someone hasn't sent us a stupid creation time
@@ -59,7 +65,7 @@ DHTControlValueImpl
 		if ( creation_time > store_time ){
 			
 			creation_time	= store_time;
-		}
+		}	
 	}
 	
 	protected 

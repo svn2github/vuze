@@ -26,16 +26,19 @@ import java.net.InetSocketAddress;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.HostNameToIPResolver;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.*;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
@@ -50,6 +53,8 @@ DHTPlugin
 {
 	private PluginInterface		plugin_interface;
 	
+	private DHT					dht;
+	
 	private LoggerChannel		log;
 	
 	public void
@@ -60,7 +65,7 @@ DHTPlugin
 				
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "DHT" );
 
-		log = plugin_interface.getLogger().getChannel("DHT");
+		log = plugin_interface.getLogger().getTimeStampedChannel("DHT");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
@@ -69,7 +74,66 @@ DHTPlugin
 		
 		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "DHT" );
 			
-		//config.addLabelParameter2( "download.removerules.unauthorised.info" );
+		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
+		
+		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
+		
+		execute.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					Thread t = 
+						new AEThread( "DHT:commandrunner" )
+						{
+							public void
+							runSupport()
+							{
+								String	c = command.getValue().trim();
+								
+								String	lc = c.toLowerCase();
+								
+								if ( lc.equals("print")){
+									
+									dht.print();
+									
+								}else{
+									
+									int pos = c.indexOf( ' ' );
+									
+									if ( pos != -1 ){
+										
+										String	lhs = lc.substring(0,pos);
+										String	rhs = c.substring(pos+1);
+										
+										if ( lhs.equals( "set" )){
+											
+											pos	= rhs.indexOf( '=' );
+											
+											if ( pos != -1 ){
+												
+												dht.put( 	rhs.substring(0,pos).getBytes(),
+															rhs.substring(pos+1).getBytes());
+											}
+										}else{
+											
+											dht.get( rhs.getBytes(), 10000);
+										}
+									}
+								}
+							}
+						};
+						
+					t.setDaemon(true);
+					
+					t.start();
+				}
+			});
+		
+		model.getActivity().setVisible( false );
+		model.getProgress().setVisible( false );
 		
 		log.addListener(
 				new LoggerChannelListener()
@@ -91,6 +155,7 @@ DHTPlugin
 					}
 				});
 		
+		model.getStatus().setText( "Initialising" );
 		
 		Thread t = 
 			new AEThread( "DTDPlugin.init" )
@@ -103,7 +168,7 @@ DHTPlugin
 						
 						DHTTransportUDP transport = DHTTransportFactory.createUDP( port, 5, 30000,log );
 						
-						DHT	dht = DHTFactory.create( transport, new Properties(), log );
+						dht = DHTFactory.create( transport, new Properties(), log );
 						
 						transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
 						
@@ -113,9 +178,13 @@ DHTPlugin
 						
 						dht.print();
 						
+						model.getStatus().setText( "Running" );
+						
 					}catch( Throwable e ){
 						
 						log.log( "DHT integrtion fails", e );
+						
+						model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
 					}
 				}
 			};

@@ -37,13 +37,16 @@ LoggerChannelImpl
 	implements LoggerChannel
 {
 	protected String	name;
+	private boolean		timestamp;
 	protected List		listeners = new ArrayList();
 	
 	protected
 	LoggerChannelImpl(
-		String		_name )
+		String		_name,
+		boolean		_timestamp )
 	{
-		name	= _name;
+		name		= _name;
+		timestamp	= _timestamp;
 	}
 		
 	public String
@@ -60,7 +63,7 @@ LoggerChannelImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( log_type, data );
+				((LoggerChannelListener)listeners.get(i)).messageLogged( log_type, addTimeStamp( data ));
 	
 			}catch( Throwable e ){
 				
@@ -117,7 +120,7 @@ LoggerChannelImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( str, error );
+				((LoggerChannelListener)listeners.get(i)).messageLogged( addTimeStamp( str ), error );
 				
 			}catch( Throwable e ){
 				
@@ -139,7 +142,7 @@ LoggerChannelImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( alert_type, message );
+				((LoggerChannelListener)listeners.get(i)).messageLogged( alert_type, addTimeStamp( message ) );
 	
 			}catch( Throwable e ){
 				
@@ -222,5 +225,42 @@ LoggerChannelImpl
 		LoggerChannelListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	protected String
+	addTimeStamp(
+		String	data )
+	{
+		if ( timestamp  ){
+			
+			return( getTimeStamp() + data );
+			
+		}else{
+			
+			return( data );
+		}
+	}
+	
+	protected String
+	getTimeStamp()
+	{
+		Calendar now = GregorianCalendar.getInstance();
+    
+		String timeStamp =
+			"[" + now.get(Calendar.HOUR_OF_DAY)+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
+
+		return( timeStamp );
+	}
+	
+	private static String 
+	format(
+		int 	n ) 
+	{
+		if (n < 10){
+	   	
+			return( "0" + n );
+	   }
+		
+	   return( String.valueOf(n));
 	}
 }

@@ -33,6 +33,10 @@ Logger
 	getChannel(
 		String		name );
 	
+	public LoggerChannel
+	getTimeStampedChannel(
+		String		name );
+	
 	public LoggerChannel[]
 	getChannels();
 }

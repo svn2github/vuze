@@ -35,6 +35,9 @@ DHTTransportContact
 	public int
 	getMaxFailCount();
 	
+	public int
+	getInstanceID();
+	
 	public byte[]
 	getID();
 	

@@ -198,6 +198,8 @@ DHTUDPUtils
 			
 			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
 						
+			os.writeInt( c.getInstanceID());
+			
 			serialiseAddress( os, c.getAddress() );
 			
 		}else{
@@ -220,7 +222,9 @@ DHTUDPUtils
 			throw( new IOException( "Unsupported contact type:" + ct ));
 		}
 	
-		return( new DHTTransportUDPContactImpl( transport, deserialiseAddress( is )));
+		int	instance_id	= is.readInt();
+		
+		return( new DHTTransportUDPContactImpl( transport, deserialiseAddress( is ), instance_id));
 	}
 	
 	

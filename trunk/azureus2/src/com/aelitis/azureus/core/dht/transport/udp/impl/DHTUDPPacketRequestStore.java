@@ -26,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 
@@ -43,10 +44,10 @@ DHTUDPPacketRequestStore
 	
 	public
 	DHTUDPPacketRequestStore(
-		long	_connection_id,
-		byte[]	_originator_id )
+		long				_connection_id,
+		DHTTransportContact	_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_STORE, _connection_id, _originator_id );
+		super( DHTUDPPacket.ACT_REQUEST_STORE, _connection_id, _contact );
 	}
 
 	protected

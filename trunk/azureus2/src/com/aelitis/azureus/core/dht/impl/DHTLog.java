@@ -166,7 +166,14 @@ DHTLog
 	{
 		if ( ADD_TRACE ){
 			
-			return( ByteFormatter.nicePrint(b));
+			String res = ByteFormatter.nicePrint(b);
+			
+			if ( res.length() > 8 ){
+				
+				res = res.substring(0,8)+"...";
+			}
+			
+			return( res );
 			
 		}else{
 			

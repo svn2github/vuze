@@ -57,4 +57,12 @@ DHTTransport
 	
 	public DHTTransportStats
 	getStats();
+	
+	public void
+	addListener(
+		DHTTransportListener	l );
+	
+	public void
+	removeListener(
+		DHTTransportListener	l );
 }

@@ -25,8 +25,11 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -44,8 +47,11 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 public class 
 Test 
 {
-	static int	num_dhts	= 10;
-	static int	num_stores	= 20;
+	static boolean	AELITIS_TEST	= true;
+	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
+	
+	static int	num_dhts	= 1;
+	static int	num_stores	= 10;
 	static boolean	udp_protocol	= true;
 	static int		udp_timeout		= 1000;
 	
@@ -172,27 +178,37 @@ Test
 			}
 
 			for (int i=0;i<num_dhts-1;i++){
-							
-				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-				
-				DataOutputStream	daos = new DataOutputStream( baos );
-				
-				transports[i].getLocalContact().exportContact( daos );
-				
-				daos.close();
-				
-				transports[i+1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
-
-				
-				dhts[i].integrate();
-				
-				if ( i > 0 && i%10 == 0 ){
+			
+				if ( AELITIS_TEST ){
 					
+					((DHTTransportUDP)transports[i]).importContact( AELITIS_ADDRESS );
+					
+				}else{
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+					
+					DataOutputStream	daos = new DataOutputStream( baos );
+					
+					transports[i].getLocalContact().exportContact( daos );
+					
+					daos.close();
+					
+					transports[i+1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+				}
+					
+				dhts[i].integrate();
+					
+				if ( i > 0 && i%10 == 0 ){
+						
 					System.out.println( "Integrated " + i + " DHTs" );
 				}
 			}
 			
-			{
+			if ( AELITIS_TEST ){
+				
+				((DHTTransportUDP)transports[num_dhts-1]).importContact( AELITIS_ADDRESS );
+
+			}else{
+				
 				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 				
 				DataOutputStream	daos = new DataOutputStream( baos );
@@ -372,6 +388,38 @@ Test
 						
 						e.printStackTrace();
 					}
+				}else if ( command == 't' ){
+					
+					try{
+						int	index = Integer.parseInt( rhs );
+				
+						dht = dhts[index];
+
+						stats_before = dht.getTransport().getStats().snapshot();
+						
+						((DHTTransportUDPImpl)transports[index]).testInstanceIDChange();
+						
+						dht.integrate();
+
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}else if ( command == 's' ){
+					
+					try{
+						int	index = Integer.parseInt( rhs );
+				
+						dht = dhts[index];
+
+						stats_before = dht.getTransport().getStats().snapshot();
+						
+						((DHTTransportUDPImpl)transports[index]).testTransportIDChange();
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}else if ( command == 'a' ){
 					
 					createDHT( dhts, transports, num_dhts++ );
@@ -423,7 +471,7 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportFactory.createUDP( 40000 + i, 5, udp_timeout, logger );
+			transport = DHTTransportFactory.createUDP( 6890 + i, 5, udp_timeout, logger );
 			
 		}else{
 			

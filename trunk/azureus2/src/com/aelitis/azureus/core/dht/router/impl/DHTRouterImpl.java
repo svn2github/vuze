@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.*;
@@ -44,6 +45,8 @@ DHTRouterImpl
 	private int		K;
 	private int		B;
 	private int		max_rep_per_node;
+	
+	private LoggerChannel	logger;
 	
 	private int		smallest_subtree_max;
 	
@@ -69,7 +72,8 @@ DHTRouterImpl
 		int										_B,
 		int										_max_rep_per_node,
 		byte[]									_router_node_id,
-		DHTRouterContactAttachment				_attachment )
+		DHTRouterContactAttachment				_attachment,
+		LoggerChannel							_logger )
 	{
 		synchronized( DHTRouterImpl.class ){
 			
@@ -79,6 +83,7 @@ DHTRouterImpl
 		K					= _K;
 		B					= _B;
 		max_rep_per_node	= _max_rep_per_node;
+		logger				= _logger;
 		
 		
 		smallest_subtree_max	= 1;
@@ -245,7 +250,7 @@ DHTRouterImpl
 				
 				if ( next_node == null ){
 		
-					DHTRouterContact	existing_contact = current_node.findNode( node_id, known_to_be_alive );
+					DHTRouterContact	existing_contact = current_node.updateExistingNode( node_id, attachment, known_to_be_alive );
 					
 					if ( existing_contact != null ){
 						
@@ -843,11 +848,18 @@ DHTRouterImpl
 		
 		adapter.requestLookup( id );
 	}
-		
+	
+	protected void
+	log(
+		String	str )
+	{
+		logger.log( str );
+	}
+	
 	public synchronized void
 	print()
 	{
-		DHTLog.log( "DHT: node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+		DHTLog.log( "DHT: " + DHTLog.getString(router_node_id) + ", node count = " + getNodeCount()+ ", contacts =" + getContactCount());
 		
 		root.print( "", "" );
 	}

@@ -45,6 +45,9 @@ DHTRouterContact
 	public boolean
 	hasBeenAlive();
 	
+	public boolean
+	isAlive();
+	
 	public String
 	getString();
 }

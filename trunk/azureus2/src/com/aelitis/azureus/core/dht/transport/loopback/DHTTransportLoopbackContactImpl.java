@@ -50,6 +50,12 @@ DHTTransportLoopbackContactImpl
 	}
 	
 	public int
+	getInstanceID()
+	{
+		return( 0 );
+	}
+	
+	public int
 	getMaxFailCount()
 	{
 		return( 5 );

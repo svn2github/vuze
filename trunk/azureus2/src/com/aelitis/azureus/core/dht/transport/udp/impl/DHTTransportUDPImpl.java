@@ -107,7 +107,38 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address );
+		local_contact = new DHTTransportUDPContactImpl( this, address, random.nextInt());
+	}
+	
+	public void
+	testInstanceIDChange()
+	{
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getAddress(), random.nextInt());		
+	}
+	
+	public void
+	testTransportIDChange()
+	{
+		if ( external_address.equals("127.0.0.1")){
+			
+			external_address = "192.168.0.2";
+		}else{
+			
+			external_address = "127.0.0.1";
+		}
+		
+		local_contact = new DHTTransportUDPContactImpl( this, new InetSocketAddress( external_address, port ), local_contact.getInstanceID());		
+
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	protected static synchronized String
@@ -122,7 +153,9 @@ DHTTransportUDPImpl
 			
 			if ( TEST_EXTERNAL_IP ){
 				
-				return( "192.168.0.2" );
+				external_address	= "192.168.0.2";
+				
+				return( external_address );
 			}
 			
 			try{
@@ -274,7 +307,7 @@ DHTTransportUDPImpl
 		
 		logger.log( "External address changed: " + s_address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, s_address );
+		local_contact = new DHTTransportUDPContactImpl( this, s_address, random.nextInt());
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -317,7 +350,7 @@ DHTTransportUDPImpl
 		InetSocketAddress	address )
 	{
 		request_handler.contactImported( 
-			new DHTTransportUDPContactImpl( this, address ));
+			new DHTTransportUDPContactImpl( this, address, 0 ));
 	}
 	
 	public void
@@ -380,7 +413,7 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		final DHTUDPPacketRequestPing	request = 
-			new DHTUDPPacketRequestPing( connection_id, local_contact.getID());
+			new DHTUDPPacketRequestPing( connection_id, local_contact );
 			
 		try{
 			packet_handler.sendAndReceive(
@@ -491,7 +524,7 @@ DHTTransportUDPImpl
 		
 		try{
 			final DHTUDPPacketRequestStore	request = 
-				new DHTUDPPacketRequestStore( connection_id, local_contact.getID());
+				new DHTUDPPacketRequestStore( connection_id, local_contact );
 			
 			request.setKey( key );
 			
@@ -604,7 +637,7 @@ DHTTransportUDPImpl
 		
 		try{
 			final DHTUDPPacketRequestFindNode	request = 
-				new DHTUDPPacketRequestFindNode( connection_id, local_contact.getID());
+				new DHTUDPPacketRequestFindNode( connection_id, local_contact );
 			
 			request.setID( nid );
 			
@@ -717,7 +750,7 @@ DHTTransportUDPImpl
 		
 		try{
 			final DHTUDPPacketRequestFindValue	request = 
-				new DHTUDPPacketRequestFindValue( connection_id, local_contact.getID());
+				new DHTUDPPacketRequestFindValue( connection_id, local_contact );
 			
 			request.setID( key );
 			
@@ -812,7 +845,7 @@ DHTTransportUDPImpl
 		try{
 			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
 			
-			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress());
+			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress(), request.getOriginatorInstanceID());
 			
 			if ( !Arrays.equals( request.getOriginatorID(), originating_contact.getID())){
 				
@@ -953,5 +986,19 @@ DHTTransportUDPImpl
 			// handler
 		
 		return( 0x8000000000000000L | random.nextLong());
+	}
+	
+	public void
+	addListener(
+		DHTTransportListener	l )
+	{
+		listeners.add(l);
+	}
+	
+	public void
+	removeListener(
+		DHTTransportListener	l )
+	{
+		listeners.remove(l);
 	}
 }

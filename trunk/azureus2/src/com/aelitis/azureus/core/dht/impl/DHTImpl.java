@@ -67,7 +67,8 @@ DHTImpl
 		control = DHTControlFactory.create( 
 				_transport, 
 				K, B, max_r,
-				conc, o_rep, c_rep, c_n, max_v );
+				conc, o_rep, c_rep, c_n, max_v,
+				logger );
 	}
 	
 	protected int

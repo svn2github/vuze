@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
+import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 
 /**
  * @author parg
@@ -199,9 +200,10 @@ DHTRouterNodeImpl
 	}
 	
 	protected DHTRouterContactImpl
-	findNode(
-		byte[]		node_id,
-		boolean		known_to_be_alive )
+	updateExistingNode(
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment,
+		boolean						known_to_be_alive )
 	{
 		for (int k=0;k<buckets.size();k++){
 			
@@ -212,6 +214,19 @@ DHTRouterNodeImpl
 				if ( known_to_be_alive ){
 					
 					alive( contact );
+			
+						// might be the same node but back after a restart. we need to
+						// treat this differently as we need to kick off the "store"
+						// events as required. 
+			
+					if ( contact.getAttachment().getInstanceID() != attachment.getInstanceID()){
+						
+						router.log( "Instance ID changed for " + DHTLog.getString( contact.getID()));
+						
+						contact.setAttachment( attachment );
+						
+						router.requestNodeAdd( contact );
+					}
 				}
 
 				return( contact );

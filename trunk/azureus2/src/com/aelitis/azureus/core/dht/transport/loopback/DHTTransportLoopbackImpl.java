@@ -65,6 +65,7 @@ DHTTransportLoopbackImpl
 	private static List	dispatch_queue = new ArrayList();
 	private static AESemaphore	dispatch_queue_sem	= new AESemaphore("DHTTransportLoopback" );
 	
+
 	static{
 		AEThread	dispatcher = 
 			new AEThread("DHTTransportLoopback")
@@ -109,6 +110,8 @@ DHTTransportLoopbackImpl
 	private DHTTransportRequestHandler		request_handler;
 	
 	private DHTTransportStatsImpl	stats = new DHTTransportStatsImpl();
+
+	private List	listeners = new ArrayList();
 	
 	public static synchronized DHTTransportStats
 	getOverallStats()
@@ -461,5 +464,19 @@ DHTTransportLoopbackImpl
 	triggerFailure()
 	{
 		return( Math.random()*100 < FAIL_PERCENTAGE );
+	}
+	
+	public void
+	addListener(
+		DHTTransportListener	l )
+	{
+		listeners.add(l);
+	}
+	
+	public void
+	removeListener(
+		DHTTransportListener	l )
+	{
+		listeners.remove(l);
 	}
 }

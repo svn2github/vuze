@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
@@ -51,9 +52,14 @@ DHTControlImpl
 	private DHTTransport	transport;
 	private DHTRouter		router;
 	
+	private LoggerChannel	logger;
+	
 	private	int			node_id_byte_count;
 	private int			search_concurrency;
 	private int			cache_at_closest_n;
+	private int			K;
+	private int			B;
+	private int			max_rep_per_node;
 	
 	private int			original_republish_interval;
 	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 120000;
@@ -77,24 +83,124 @@ DHTControlImpl
 		int				_original_republish_interval,
 		int				_cache_republish_interval,
 		int				_cache_at_closest_n,
-		int				_max_values_stored )
+		int				_max_values_stored,
+		LoggerChannel	_logger )
 	{
 		transport	= _transport;
+		logger		= _logger;
 		
+		K								= _K;
+		B								= _B;
+		max_rep_per_node				= _max_rep_per_node;
 		search_concurrency				= _search_concurrency;
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		cache_at_closest_n				= _cache_at_closest_n;
 		max_values_stored				= _max_values_stored;
 		
-		DHTTransportContact	local_contact = transport.getLocalContact();
-		
-		router	= DHTRouterFactory.create( 
-					_K, _B, _max_rep_per_node,
-					local_contact.getID(), 
-					new DHTControlContactImpl( local_contact ));
-		
+		createRouter( transport.getLocalContact());
+
 		node_id_byte_count	= router.getID().length;
+		
+		transport.setRequestHandler( this );
+	
+		transport.addListener(
+			new DHTTransportListener()
+			{
+				public void
+				localContactChanged(
+					DHTTransportContact	local_contact )
+				{
+					logger.log( "Transport ID changed, recreating router" );
+					
+					List	contacts = router.findBestContacts( 0 );
+					
+					DHTRouter	old_router = router;
+					
+					createRouter( local_contact );
+				
+					for (int i=0;i<contacts.size();i++){
+						
+						DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+					
+						if ( !old_router.isID( contact.getID())){
+							
+							if ( contact.isAlive()){
+								
+								router.contactAlive( contact.getID(), contact.getAttachment());
+								
+							}else{
+								
+								router.contactKnown( contact.getID(), contact.getAttachment());
+							}
+						}
+						
+					}
+					
+					seed();
+				}
+			});
+		
+		Timer	timer = new Timer("DHT refresher");
+	
+				
+		timer.addPeriodicEvent(
+			original_republish_interval,
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	event )
+				{
+					logger.log( "Republishing original mappings" );
+					
+					try{		
+						DHTLog.indent( router );
+
+						republishOriginalMappings();
+						
+					}finally{
+						
+						DHTLog.exdent();
+					}
+				}
+			});
+				
+			// random skew here so that cache refresh isn't very synchronized, as the optimisations
+			// regarding non-republising benefit from this 
+		
+		timer.addPeriodicEvent(
+				cache_republish_interval + 10000 - (int)(Math.random()*20000),
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						logger.log( "Republishing cached mappings" );
+						
+						try{		
+							DHTLog.indent( router );
+
+							republishCachedMappings();
+							
+						}finally{
+							
+							DHTLog.exdent();
+						}						
+					}
+				});
+	}
+	
+	protected void
+	createRouter(
+		DHTTransportContact		local_contact)
+	{		
+		router	= DHTRouterFactory.create( 
+					K, B, max_rep_per_node,
+					local_contact.getID(), 
+					new DHTControlContactImpl( local_contact ),
+					logger);
 		
 		router.setAdapter( 
 			new DHTRouterAdapter()
@@ -119,58 +225,7 @@ DHTControlImpl
 				{
 					nodeAddedToRouter( contact );
 				}
-			});
-		
-
-		transport.setRequestHandler( this );
-			
-		
-		Timer	timer = new Timer("DHT refresher");
-		
-		// TODO: add listener, pick up node ID changes + reseed if changed
-				
-		timer.addPeriodicEvent(
-			original_republish_interval,
-			new TimerEventPerformer()
-			{
-				public void
-				perform(
-					TimerEvent	event )
-				{
-					try{		
-						DHTLog.indent( router );
-
-						republishOriginalMappings();
-						
-					}finally{
-						
-						DHTLog.exdent();
-					}
-				}
-			});
-				
-			// random skew here so that cache refresh isn't very synchronized, as the optimisations
-			// regarding non-republising benefit from this 
-		
-		timer.addPeriodicEvent(
-				cache_republish_interval + 10000 - (int)(Math.random()*20000),
-				new TimerEventPerformer()
-				{
-					public void
-					perform(
-						TimerEvent	event )
-					{
-						try{		
-							DHTLog.indent( router );
-
-							republishCachedMappings();
-							
-						}finally{
-							
-							DHTLog.exdent();
-						}						
-					}
-				});
+			});	
 	}
 	
 	public DHTTransport
@@ -518,9 +573,9 @@ DHTControlImpl
 					
 					long	now = SystemTime.getCurrentTime();
 					
-					long remaining = now - ( start + timeout );
+					long remaining = timeout - ( now - start );
 						
-					if ( now <= 0 ){
+					if ( remaining <= 0 ){
 						
 						break;
 						
@@ -818,10 +873,26 @@ DHTControlImpl
 				}else{
 					
 					checkCacheExpiration( false );
-									
-					stored_values.put(
-						new HashWrapper( key ), 
-						new DHTControlValueImpl( value, 1 ));
+					
+						// don't replace a closer cache value with a further away one. in particular
+						// we have to avoid the case where the original publisher of a key happens to
+						// be close to it and be asked by another node to cache it!
+					
+					HashWrapper	wrapper = new HashWrapper( key );
+					
+					DHTControlValueImpl	existing = (DHTControlValueImpl)stored_values.get( wrapper );
+					
+					if ( existing == null || existing.getCacheDistance() > value.getCacheDistance() + 1 ){
+						
+						stored_values.put(
+								wrapper, 
+								new DHTControlValueImpl( value, 1 ));
+					}else{
+						
+							// mark it as current 
+						
+						existing.reset();
+					}
 				}
 			}
 			

@@ -49,7 +49,7 @@ Test
 	protected static void
 	simpleTest()
 	{
-		DHTRouter	router = DHTRouterFactory.create( 1, 1,1,  new byte[]{ 0 }, null);
+		DHTRouter	router = DHTRouterFactory.create( 1, 1,1,  new byte[]{ 0 }, null, com.aelitis.azureus.core.dht.impl.Test.logger);
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		
@@ -72,7 +72,7 @@ Test
 	protected static void
 	randomTest()
 	{
-		DHTRouter	router = DHTRouterFactory.create( 20, 5, 5, getSHA1(), null);
+		DHTRouter	router = DHTRouterFactory.create( 20, 5, 5, getSHA1(), null, com.aelitis.azureus.core.dht.impl.Test.logger);
 		
 		for (int i=0;i<100000;i++){
 			

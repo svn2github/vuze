@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.control;
 
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
 import com.aelitis.azureus.core.dht.control.impl.DHTControlImpl;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
@@ -43,7 +45,8 @@ DHTControlFactory
 		int				original_republish_interval,
 		int				cache_republish_interval,
 		int				cache_at_closest_n,
-		int				max_values_stored )
+		int				max_values_stored,
+		LoggerChannel	logger )
 	{
 		return( new DHTControlImpl( 
 						transport, 
@@ -52,6 +55,7 @@ DHTControlFactory
 						original_republish_interval,
 						cache_republish_interval,
 						cache_at_closest_n,
-						max_values_stored ));
+						max_values_stored,
+						logger));
 	}
 }

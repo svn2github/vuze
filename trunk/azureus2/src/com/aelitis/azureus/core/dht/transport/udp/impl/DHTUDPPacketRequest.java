@@ -26,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 
 /**
@@ -39,18 +40,20 @@ DHTUDPPacketRequest
 {
 	private short	version;
 	private byte[]	originator_id;
+	private int		originator_instance_id;
 	
 	public
 	DHTUDPPacketRequest(
-		int		_type,
-		long	_connection_id,
-		byte[]	_originator_id )
+		int					_type,
+		long				_connection_id,
+		DHTTransportContact	_contact )
 	{
 		super( _type, _connection_id );
 		
 		version	= DHTUDPPacket.VERSION;
 		
-		originator_id	= _originator_id;
+		originator_id			= _contact.getID();
+		originator_instance_id	= _contact.getInstanceID();
 	}
 	
 	protected
@@ -67,6 +70,8 @@ DHTUDPPacketRequest
 		version	= is.readShort();
 		
 		originator_id = DHTUDPUtils.deserialiseID( is );
+		
+		originator_instance_id	= is.readInt();
 	}
 	
 	public int
@@ -88,6 +93,12 @@ DHTUDPPacketRequest
 		return( originator_id );
 	}
 	
+	public int
+	getOriginatorInstanceID()
+	{
+		return( originator_instance_id );
+	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )
@@ -99,5 +110,7 @@ DHTUDPPacketRequest
 		os.writeShort( version );
 		
 		DHTUDPUtils.serialiseID( os, originator_id );
+		
+		os.writeInt( originator_instance_id );
 	}
 }

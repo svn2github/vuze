@@ -68,6 +68,13 @@ DHTRouterContactImpl
 		return( attachment );
 	}
 	
+	protected void
+	setAttachment(
+		DHTRouterContactAttachment	_attachment )
+	{
+		attachment	= _attachment;
+	}
+	
 	public void
 	setAlive()
 	{
@@ -85,6 +92,12 @@ DHTRouterContactImpl
 	hasBeenAlive()
 	{
 		return( has_been_alive );
+	}
+	
+	public boolean
+	isAlive()
+	{
+		return( has_been_alive && fail_count == 0 );
 	}
 	
 	protected long

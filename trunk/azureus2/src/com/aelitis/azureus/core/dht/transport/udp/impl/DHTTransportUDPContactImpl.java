@@ -43,14 +43,17 @@ DHTTransportUDPContactImpl
 	private InetSocketAddress		address;
 	
 	private byte[]				id;
+	private int					instance_id;
 	
 	protected
 	DHTTransportUDPContactImpl(
 		DHTTransportUDPImpl		_transport,
-		InetSocketAddress		_address )
+		InetSocketAddress		_address,
+		int						_instance_id )
 	{
 		transport		= _transport;
 		address			= _address;
+		instance_id		= _instance_id;
 		
 		id = DHTUDPUtils.getNodeID( address );
 	}
@@ -65,6 +68,12 @@ DHTTransportUDPContactImpl
 	getMaxFailCount()
 	{
 		return( transport.getMaxFailCount());
+	}
+	
+	public int
+	getInstanceID()
+	{
+		return( instance_id );
 	}
 	
 	public void

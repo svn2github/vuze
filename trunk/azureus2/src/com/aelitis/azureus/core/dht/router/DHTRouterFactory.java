@@ -27,6 +27,8 @@ package com.aelitis.azureus.core.dht.router;
  *
  */
 
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
 import com.aelitis.azureus.core.dht.router.impl.*;
 
 public class 
@@ -38,8 +40,9 @@ DHTRouterFactory
 		int							B,
 		int							max_rep_per_node,
 		byte[]						id,
-		DHTRouterContactAttachment	attachment )
+		DHTRouterContactAttachment	attachment,
+		LoggerChannel				logger )
 	{
-		return( new DHTRouterImpl( K, B, max_rep_per_node, id, attachment ));
+		return( new DHTRouterImpl( K, B, max_rep_per_node, id, attachment, logger ));
 	}
 }

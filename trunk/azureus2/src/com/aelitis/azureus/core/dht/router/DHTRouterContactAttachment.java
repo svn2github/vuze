@@ -32,4 +32,7 @@ DHTRouterContactAttachment
 {
 	public int
 	getMaxFailCount();
+	
+	public int
+	getInstanceID();
 }
