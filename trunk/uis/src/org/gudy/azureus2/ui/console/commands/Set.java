@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -94,6 +95,26 @@ public class Set implements IConsoleCommand {
         			COConfigurationManager.setParameter( parameter, setto );
         			success = true;
         		}
+           		else if( type.equalsIgnoreCase("password") ) {
+                    SHA1Hasher hasher = new SHA1Hasher();
+                    
+                    byte[] password = setto.getBytes();
+                    
+                    byte[] encoded;
+                    
+                    if(password.length > 0){
+                    	
+                      encoded = hasher.calculateHash(password);
+                      
+                    }else{
+                    	
+                      encoded = password;
+                    }
+                    
+        			COConfigurationManager.setParameter( parameter, encoded );
+        			
+        			success = true;
+        		}
 
         		if( success ) {
         			COConfigurationManager.save();
@@ -102,7 +123,7 @@ public class Set implements IConsoleCommand {
         		else ci.out.println("ERROR: invalid type given");
         	}
         	else {
-        		ci.out.println("Usage: 'set \"parameter\" value type', where type = int, bool, float, string");
+        		ci.out.println("Usage: 'set \"parameter\" value type', where type = int, bool, float, string, password");
         	}
         }
         catch( Throwable t ) {
