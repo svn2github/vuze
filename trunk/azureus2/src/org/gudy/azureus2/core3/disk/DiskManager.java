@@ -25,6 +25,7 @@
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
  
  public interface
  DiskManager
@@ -166,4 +167,5 @@ import org.gudy.azureus2.core3.download.DownloadManager;
   
   public DownloadManager getDownloadManager();
   public PEPeerManager getPeerManager();
+  public TOTorrent getTOTorrent();
  }
