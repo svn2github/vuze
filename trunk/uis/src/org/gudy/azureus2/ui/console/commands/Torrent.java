@@ -232,6 +232,10 @@ public class Torrent implements IConsoleCommand {
 	public static void commandQueue(ConsoleInput ci, List args) {
 		commandTorrentCommand(ci, TORRENTCOMMAND_QUEUE, args);
 	}
+  
+  public static void commandHost(ConsoleInput ci, List args) {
+    commandTorrentCommand(ci, TORRENTCOMMAND_HOST, args);
+  }
 	
 	public static void RegisterCommands() {
 		try {
@@ -245,11 +249,13 @@ public class Torrent implements IConsoleCommand {
 			ConsoleInput.RegisterCommand("s", Torrent.class.getMethod("commandStart", ConsoleCommandParameters));
 			ConsoleInput.RegisterCommand("stop", Torrent.class.getMethod("commandStop", ConsoleCommandParameters));
 			ConsoleInput.RegisterCommand("h", Torrent.class.getMethod("commandStop", ConsoleCommandParameters));
+      ConsoleInput.RegisterCommand("host", Torrent.class.getMethod("commandHost", ConsoleCommandParameters));      
 			ConsoleInput.RegisterHelp("check (<torrentoptions>)\tc\tForce recheck on torrent(s).");
 			ConsoleInput.RegisterHelp("queue (<torrentoptions>)\tq\tQueue torrent(s).");
 			ConsoleInput.RegisterHelp("remove (<torrentoptions>)\tr\tRemove torrent(s).");
 			ConsoleInput.RegisterHelp("start (<torrentoptions>) [now]\ts\tStart torrent(s).");
 			ConsoleInput.RegisterHelp("stop (<torrentoptions>)\t\th\tStop torrent(s).");
+      ConsoleInput.RegisterHelp("host (<torrentoptions>)\t\th\tHost torrent(s).");
 			ConsoleInput.RegisterHelpExtra("<torrentoptions> can be one of:\n"+
 				"<#>\t\tNumber of a torrent. You have to use 'show torrents' first. as the number is taken from there.\n"+
 				"all\t\tCommand is applied to all torrents\n"+
