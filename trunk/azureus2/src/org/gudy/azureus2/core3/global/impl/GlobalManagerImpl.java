@@ -353,7 +353,11 @@ public class GlobalManagerImpl
       }
       
       fDest.createNewFile();
-      FileUtil.copyFile(f, fDest);
+      
+      if ( ! FileUtil.copyFile(f, fDest)) {
+        throw new IOException("File copy failed");
+      }
+      
       String fName = fDest.getCanonicalPath();
       DownloadManager manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent );
       manager = addDownloadManager(manager, true);

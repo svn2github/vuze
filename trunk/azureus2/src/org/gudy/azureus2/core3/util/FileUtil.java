@@ -8,8 +8,8 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.*;
 import java.util.*;
+import java.nio.channels.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.config.*;
@@ -56,7 +56,7 @@ public class FileUtil {
     if (check.isDirectory())
       throw new FileIsADirectoryException("File "+filename+" is a directory.");
     try {
-      TOTorrent test = TOTorrentFactory.deserialiseFromBEncodedFile(check);
+      TOTorrentFactory.deserialiseFromBEncodedFile(check);
       return true;
     } catch (TOTorrentException e) {
       return false;
@@ -130,7 +130,7 @@ public class FileUtil {
     } catch (Exception e) { Debug.out(e.toString()); }
   }
   
-  
+  /*
   public static void copyFile(File origin, File destination) throws IOException {
     OutputStream os = new FileOutputStream(destination);
     InputStream is = new FileInputStream(origin);
@@ -142,7 +142,7 @@ public class FileUtil {
     is.close();
     os.close();
   }
-  
+  /*
   
   /**
    * Takes a path and a file/dir name and returns the full path,
@@ -324,7 +324,7 @@ public class FileUtil {
   		try{
   			bin = new BufferedInputStream( new FileInputStream(file), 8192 );
 	      
-	    	Map	res = (Map)BDecoder.decode(bin);
+	    	Map	res = BDecoder.decode(bin);
 	    	
 	    	if ( using_backup ){
   		
@@ -363,4 +363,110 @@ public class FileUtil {
 	    	}
 	    }
   }
+  
+  
+  
+    /**
+     * Backup the given file to filename.bak, removing the old .bak file if necessary.
+     * If _make_copy is true, the original file will copied to backup, rather than moved.
+     * @param _filename name of file to backup
+     * @param _make_copy copy instead of move
+     */
+    public static void backupFile( final String _filename, final boolean _make_copy ) {
+      backupFile( new File( _filename ), _make_copy );
+    }
+      
+    /**
+     * Backup the given file to filename.bak, removing the old .bak file if necessary.
+     * If _make_copy is true, the original file will copied to backup, rather than moved.
+     * @param _file file to backup
+     * @param _make_copy copy instead of move
+     */
+    public static void backupFile( final File _file, final boolean _make_copy ) {
+      if ( _file.length() > 0L ) {
+        File bakfile = new File( _file.getAbsolutePath() + ".bak" );
+        if ( bakfile.exists() ) bakfile.delete();
+        if ( _make_copy ) {
+          copyFile( _file, bakfile );
+        }
+        else {
+          _file.renameTo( bakfile );
+        }
+      }
+    }
+    
+    
+    /**
+     * Copy the given source file to the given destination file.
+     * Returns file copy success or not.
+     * @param _source_name source file name
+     * @param _dest_name destination file name
+     * @return true if file copy successful, false if copy failed
+     */
+    public static boolean copyFile( final String _source_name, final String _dest_name ) {
+      return copyFile( new File(_source_name), new File(_dest_name));
+    }
+    
+    /**
+     * Copy the given source file to the given destination file.
+     * Returns file copy success or not.
+     * @param _source source file
+     * @param _dest destination file
+     * @return true if file copy successful, false if copy failed
+     */
+    public static boolean copyFile( final File _source, final File _dest ) {
+      FileChannel source = null;
+      FileChannel dest = null;
+      try {
+        source = new FileInputStream( _source ).getChannel();
+        dest = new FileInputStream( _dest ).getChannel();
+      
+        source.transferTo(0, source.size(), dest);
+        return true;
+      }
+      catch (Exception e) {
+        Debug.out( e );
+        return false;
+      }
+      finally {
+        try {
+          if (source != null) source.close();
+          if (dest != null) dest.close();
+        }
+        catch (Exception ignore) {}
+      }
+    }
+    
+    
+    /**
+     * Returns the file handle for the given filename or it's
+     * equivalent .bak backup file if the original doesn't exist
+     * or is 0-sized.  If neither the original nor the backup are
+     * available, a null handle is returned.
+     * @param _filename root name of file
+     * @return file if successful, null if failed
+     */
+    public static File getFileOrBackup( final String _filename ) {
+      try {
+        File file = new File( _filename );
+        //make sure the file exists and isn't zero-length
+        if ( file.length() <= 1L ) {
+          //if so, try using the backup file
+          File bakfile = new File( _filename + ".bak" );
+          if ( bakfile.length() <= 1L ) {
+            return null;
+          }
+          else return bakfile;
+        }
+        else return file;
+      }
+      catch (Exception e) {
+        Debug.out( e );
+        return null;
+      }
+    }
+
+    
+  
+
 }
