@@ -566,6 +566,11 @@ DiskManagerImpl
 				
 				setState( FAULTY );
 				
+        try{
+          tempFile.getFileInfo().getCacheFile().close();
+        }
+        catch( Throwable t ) {  /*ignore*/ }
+        
 				return -1;
 			}
 						
@@ -624,6 +629,12 @@ DiskManagerImpl
 		          
 						setState( FAULTY );
 		          
+            try {
+              fileInfo.getCacheFile().close();
+            }
+            catch( Throwable t ) {  /*ignore*/ }
+            
+            
 						return -1;
 					}
 				}
@@ -637,6 +648,11 @@ DiskManagerImpl
 											+ " (allocateFiles existing:" + f.toString() + ")";
 			  	setState( FAULTY );
 			  	
+          try {
+            fileInfo.getCacheFile().close();
+          }
+          catch( Throwable t ) {  /*ignore*/ }
+          
 			  	return -1;
         }
 			  
@@ -650,6 +666,11 @@ DiskManagerImpl
           this.errorMessage = "Data file missing: " + f.getAbsolutePath();
           
           setState( FAULTY );
+          
+          try {
+            fileInfo.getCacheFile().close();
+          }
+          catch( Throwable t ) {  /*ignore*/ }
           
           return -1;
         }
@@ -676,6 +697,12 @@ DiskManagerImpl
             if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
               if( !writer_and_checker.zeroFile( fileInfo, length ) ) {
                 setState( FAULTY );
+                
+                try {
+                  fileInfo.getCacheFile().close();
+                }
+                catch( Throwable t ) {  /*ignore*/ }
+                
                 return -1;
               }
             }else {  //reserve the full file size with the OS file system
@@ -685,18 +712,19 @@ DiskManagerImpl
               allocated += length;
             }
           }
-        }catch ( Exception e ) {
-          try {  
-          	fileInfo.getCacheFile().close();  
-          }catch ( CacheFileManagerException ex) {  
-          	Debug.printStackTrace( ex );
-          }
-          
+        }catch ( Exception e ) {          
           this.errorMessage = (e.getCause() != null
               ? e.getCause().getMessage()
               : e.getMessage())
               + " (allocateFiles new:" + f.toString() + ")";
+          
           setState( FAULTY );
+          
+          try {
+            fileInfo.getCacheFile().close();
+          }
+          catch( Throwable t ) {  /*ignore*/ }
+          
           return -1;
         }
         

@@ -286,6 +286,11 @@ DMWriterAndCheckerImpl
 		}catch (Exception e){ 
 			
 			Debug.printStackTrace( e );
+      
+      try{
+        cache_file.close();
+      }
+      catch( Throwable t ) { /*ignore*/ }
 			
 			return( false );
 		}
