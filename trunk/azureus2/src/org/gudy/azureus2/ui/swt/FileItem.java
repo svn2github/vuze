@@ -115,6 +115,14 @@ public class FileItem {
         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
       }
     }
+    
+    tmp = "normal";
+    if (fileInfo.isPriority())
+      tmp = "high";
+    if (!oldTexts[8].equals(tmp)) {
+          oldTexts[8] = tmp;
+          item.setText(8, tmp);
+    }
 
     Rectangle bounds = item.getBounds(6);
     int width = bounds.width - 1;
