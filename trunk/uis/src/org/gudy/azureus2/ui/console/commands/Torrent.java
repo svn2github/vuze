@@ -120,7 +120,7 @@ public class Torrent implements IConsoleCommand {
         TOTorrent torrent = dm.getTorrent();
         if (torrent != null) {
           try {
-            TRHostFactory.create().hostTorrent(torrent);
+            TRHostFactory.getSingleton().hostTorrent(torrent);
           } catch (TRHostException e) {
             e.printStackTrace(ci.out);
             return false;
