@@ -1375,6 +1375,7 @@ PEPeerControlImpl
       if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
       
       boolean interesting = seeding_mode ? true : pc.isInterestingToMe();
+      
       if( interesting && pc.isInterestedInMe() && !pc.isSnubbed() ) {
         long upRate = seeding_mode ? pc.getStats().getUploadAverage() : pc.getStats().getReception();
         if( upRate > 256 ) {  //need to be uploading at least 256kbs to qualify
@@ -1410,7 +1411,9 @@ PEPeerControlImpl
         
         if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
         
-        if( pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) {
+        boolean allowed = seeding_mode ? !pc.isSnubbed() : true;  //when downloading, allow upload to snubbed peer as last resort
+        
+        if( pc.isInterestedInMe() && allowed && !best_peers.contains( pc ) ) {
           long total = pc.getStats().getTotalReceived();  //either 0 or >=16384
             
           if( total == 0 ) {  //has never sent us any data
