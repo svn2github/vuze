@@ -163,40 +163,72 @@ WebPlugin
 		if ( !plugin_config.getPluginBooleanParameter( PROPERTIES_MIGRATED, false )){
 			
 			plugin_config.setPluginParameter( PROPERTIES_MIGRATED, true );
-			
-			System.out.println( "migrating properties" );
-			
+						
 			Properties	props = plugin_interface.getPluginProperties();
 			
-			String	prop_port		= props.getProperty( "port",			""+CONFIG_PORT_DEFAULT );
-			String	prop_protocol	= props.getProperty( "protocol", 		CONFIG_PROTOCOL_DEFAULT );
-			String	prop_home		= props.getProperty( "homepage", 		CONFIG_HOME_PAGE_DEFAULT );
-			String	prop_rootdir	= props.getProperty( "rootdir", 		CONFIG_ROOT_DIR_DEFAULT );
-			String	prop_rootres	= props.getProperty( "rootresource", 	CONFIG_ROOT_RESOURCE_DEFAULT );
-			String	prop_mode		= props.getProperty( "mode", 			CONFIG_MODE_DEFAULT );
-			String	prop_access		= props.getProperty( "access", 			CONFIG_ACCESS_DEFAULT );
-
-			int	prop_port_int = CONFIG_PORT_DEFAULT;
+				// make sure we've got an old properties file too
 			
-			try{
-				prop_port_int	= Integer.parseInt( prop_port );
+			if ( props.getProperty( "port", "" ).length() > 0 ){
 				
-			}catch( Throwable e ){
-			}
+				String	prop_port		= props.getProperty( "port",			""+CONFIG_PORT_DEFAULT );
+				String	prop_protocol	= props.getProperty( "protocol", 		CONFIG_PROTOCOL_DEFAULT );
+				String	prop_home		= props.getProperty( "homepage", 		CONFIG_HOME_PAGE_DEFAULT );
+				String	prop_rootdir	= props.getProperty( "rootdir", 		CONFIG_ROOT_DIR_DEFAULT );
+				String	prop_rootres	= props.getProperty( "rootresource", 	CONFIG_ROOT_RESOURCE_DEFAULT );
+				String	prop_mode		= props.getProperty( "mode", 			CONFIG_MODE_DEFAULT );
+				String	prop_access		= props.getProperty( "access", 			CONFIG_ACCESS_DEFAULT );
 	
-			plugin_config.setPluginParameter(CONFIG_PORT, prop_port_int );
-			plugin_config.setPluginParameter(CONFIG_PROTOCOL, prop_protocol );
-			plugin_config.setPluginParameter(CONFIG_HOME_PAGE, prop_home );
-			plugin_config.setPluginParameter(CONFIG_ROOT_DIR, prop_rootdir );
-			plugin_config.setPluginParameter(CONFIG_ROOT_RESOURCE, prop_rootres );
-			plugin_config.setPluginParameter(CONFIG_MODE, prop_mode );
-			plugin_config.setPluginParameter(CONFIG_ACCESS, prop_access );
+				int	prop_port_int = CONFIG_PORT_DEFAULT;
+				
+				try{
+					prop_port_int	= Integer.parseInt( prop_port );
+					
+				}catch( Throwable e ){
+				}
+		
+				plugin_config.setPluginParameter(CONFIG_PORT, prop_port_int );
+				plugin_config.setPluginParameter(CONFIG_PROTOCOL, prop_protocol );
+				plugin_config.setPluginParameter(CONFIG_HOME_PAGE, prop_home );
+				plugin_config.setPluginParameter(CONFIG_ROOT_DIR, prop_rootdir );
+				plugin_config.setPluginParameter(CONFIG_ROOT_RESOURCE, prop_rootres );
+				plugin_config.setPluginParameter(CONFIG_MODE, prop_mode );
+				plugin_config.setPluginParameter(CONFIG_ACCESS, prop_access );
+								
+				File	props_file = new File( plugin_interface.getPluginDirectoryName(), "plugin.properties" );
+				
+				PrintWriter pw = null;
+				
+				try{
+					File	backup = new File( plugin_interface.getPluginDirectoryName(), "plugin.properties.bak" );
+					
+					props_file.renameTo( backup );
+					
+					pw = new PrintWriter( new FileWriter( props_file ));
+	
+					pw.println( "plugin.class=" + props.getProperty( "plugin.class" ));
+					pw.println( "plugin.name=" + props.getProperty( "plugin.name" ));
+					pw.println( "plugin.version=" + props.getProperty( "plugin.version" ));
+					pw.println( "plugin.id=" + props.getProperty( "plugin.id" ));
+	
+					log.logAlert( 	LoggerChannel.LT_INFORMATION, 
+							plugin_interface.getPluginName() + " - plugin.properties settings migrated to plugin configuration." );
 			
-			// TODO: Fix up properties file
-			
+				}catch( Throwable  e ){
+					
+					e.printStackTrace();
+					
+					log.logAlert( 	LoggerChannel.LT_ERROR, 
+									plugin_interface.getPluginName() + " - plugin.properties settings migration failed." );
+					
+				}finally{
+					
+					if ( pw != null ){
+						
+						pw.close();
+					}
+				}	
+			}
 		}
-		
-		
 		
 		IntParameter	param_port = config_model.addIntParameter2(	CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
 		
