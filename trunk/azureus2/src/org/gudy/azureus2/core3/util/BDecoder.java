@@ -195,6 +195,11 @@ public class BDecoder {
       return null;
     }
     
+    if ( length > 128*1024 ){
+    	
+    	throw( new IOException( "Byte array length too large (" + length + ")"));
+    }
+    
     byte[] tempArray = new byte[length];
     int count = 0;
     int len = 0;
