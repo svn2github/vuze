@@ -45,7 +45,7 @@ LoggerImpl
 	getChannel(
 		String		name )
 	{
-		LoggerChannel	channel = new LoggerChannelImpl( name, false );
+		LoggerChannel	channel = new LoggerChannelImpl( name, false, false );
 		
 		channels.add( channel );
 		
@@ -56,7 +56,18 @@ LoggerImpl
 	getTimeStampedChannel(
 		String		name )
 	{
-		LoggerChannel	channel = new LoggerChannelImpl( name, true );
+		LoggerChannel	channel = new LoggerChannelImpl( name, true, false );
+		
+		channels.add( channel );
+		
+		return( channel );
+	}
+	
+	public LoggerChannel
+	getNullChannel(
+		String		name )
+	{
+		LoggerChannel	channel = new LoggerChannelImpl( name, true, true );
 		
 		channels.add( channel );
 		

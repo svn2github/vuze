@@ -36,17 +36,20 @@ public class
 LoggerChannelImpl 
 	implements LoggerChannel
 {
-	protected String	name;
+	private String		name;
 	private boolean		timestamp;
-	protected List		listeners = new ArrayList();
+	private boolean		no_output;
+	private List		listeners = new ArrayList();
 	
 	protected
 	LoggerChannelImpl(
 		String		_name,
-		boolean		_timestamp )
+		boolean		_timestamp,
+		boolean		_no_output )
 	{
 		name		= _name;
 		timestamp	= _timestamp;
+		no_output	= _no_output;
 	}
 		
 	public String
@@ -71,19 +74,22 @@ LoggerChannelImpl
 			}
 		}
 		
-		data = "[".concat(name).concat("] ").concat(data);
-		
-		if ( log_type == LT_INFORMATION ){
+		if ( !no_output ){
 			
-			LGLogger.log( LGLogger.INFORMATION, data );
+			data = "[".concat(name).concat("] ").concat(data);
 			
-		}else if ( log_type == LT_WARNING ){
+			if ( log_type == LT_INFORMATION ){
 				
-			LGLogger.log( LGLogger.RECEIVED, data );	// !!!!
-
-		}else if ( log_type == LT_ERROR ){
+				LGLogger.log( LGLogger.INFORMATION, data );
 				
-			LGLogger.log( LGLogger.ERROR, data );
+			}else if ( log_type == LT_WARNING ){
+					
+				LGLogger.log( LGLogger.RECEIVED, data );	// !!!!
+	
+			}else if ( log_type == LT_ERROR ){
+					
+				LGLogger.log( LGLogger.ERROR, data );
+			}
 		}
 	}
 	
@@ -109,7 +115,10 @@ LoggerChannelImpl
 			}
 		}
 		
-		LGLogger.log("[".concat(name).concat("]"), error);
+		if ( !no_output ){
+			
+			LGLogger.log("[".concat(name).concat("]"), error);
+		}
 	}
 	
 	public void
@@ -128,7 +137,10 @@ LoggerChannelImpl
 			}
 		}
 		
-		LGLogger.log("[".concat(name).concat("] ").concat(str), error);
+		if ( !no_output ){
+			
+			LGLogger.log("[".concat(name).concat("] ").concat(str), error);
+		}
 	}
 	
 	protected void
@@ -150,34 +162,39 @@ LoggerChannelImpl
 			}
 		}	
 		
-		int	at;
-		
-		switch( alert_type ){
+		if ( !no_output ){
 			
-			case LoggerChannel.LT_INFORMATION:
-			{
-				at	= LGLogger.AT_COMMENT;
+			int	at;
+			
+			switch( alert_type ){
 				
-				break;
-			}	
-			case LoggerChannel.LT_WARNING:
-			{
-				at	= LGLogger.AT_WARNING;
+				case LoggerChannel.LT_INFORMATION:
+				{
+					at	= LGLogger.AT_COMMENT;
+					
+					break;
+				}	
+				case LoggerChannel.LT_WARNING:
+				{
+					at	= LGLogger.AT_WARNING;
+					
+					break;
+				}	
+				default:
+				{
+					at	= LGLogger.AT_ERROR;
+					
+					break;
+				}	
+			}
+			
+			if ( repeatable ){
 				
-				break;
-			}	
-			default:
-			{
-				at	= LGLogger.AT_ERROR;
+				LGLogger.logRepeatableAlert( at, message );
+			}else{
 				
-				break;
-			}	
-		}
-		
-		if ( repeatable ){
-			LGLogger.logRepeatableAlert( at, message );
-		}else{
-			LGLogger.logUnrepeatableAlert( at, message );
+				LGLogger.logUnrepeatableAlert( at, message );
+			}
 		}
 	}
 	
@@ -202,7 +219,21 @@ LoggerChannelImpl
 		String		message,
 		Throwable 	e )
 	{
-		LGLogger.logUnrepeatableAlert( message, e  );
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( addTimeStamp( message ), e );
+	
+			}catch( Throwable f ){
+				
+				Debug.printStackTrace( f );
+			}
+		}	
+
+		if ( !no_output ){
+			
+			LGLogger.logUnrepeatableAlert( message, e  );
+		}
 	}	
 	
 	public void
@@ -210,7 +241,21 @@ LoggerChannelImpl
 		String		message,
 		Throwable 	e )
 	{
-		LGLogger.logRepeatableAlert( message, e );
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( addTimeStamp( message ), e );
+	
+			}catch( Throwable f ){
+				
+				Debug.printStackTrace( f );
+			}
+		}	
+		
+		if ( !no_output ){
+			
+			LGLogger.logRepeatableAlert( message, e );
+		}
 	}
 	
 	public void

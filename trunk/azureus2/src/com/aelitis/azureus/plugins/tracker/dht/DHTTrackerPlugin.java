@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
@@ -473,46 +474,125 @@ DHTTrackerPlugin
 									
 								}
 								
-								dl.setAnnounceResult(
-										new DownloadAnnounceResult()
+									// TODO: do this properly
+								
+								if ( 	dl.getState() == Download.ST_DOWNLOADING ||
+										dl.getState() == Download.ST_SEEDING ){
+								
+									dl.setAnnounceResult(
+											new DownloadAnnounceResult()
+											{
+												public Download
+												getDownload()
+												{
+													return( dl );
+												}
+																							
+												public int
+												getResponseType()
+												{
+													return( DownloadAnnounceResult.RT_SUCCESS );
+												}
+																						
+												public int
+												getReportedPeerCount()
+												{
+													return( peers.length);
+												}
+												
+											
+												public int
+												getSeedCount()
+												{
+													return( 0 );	// TODO:
+												}
+												
+												public int
+												getNonSeedCount()
+												{
+													return( 0 );	// TODO:
+												}
+												
+												public String
+												getError()
+												{
+													return( null );
+												}
+																							
+												public URL
+												getURL()
+												{
+													try{
+														return( new URL( "dht://" + ByteFormatter.encodeString( dl.getTorrent().getHash()) + "/" ));
+														
+													}catch( Throwable e ){
+														
+														Debug.printStackTrace(e);
+														
+														return( null );
+													}
+												}
+												
+												public DownloadAnnounceResultPeer[]
+												getPeers()
+												{
+													return( peers );
+												}
+												
+												public long
+												getTimeToWait()
+												{
+													return( retry );
+												}
+											});
+								}else{
+									
+									dl.setScrapeResult(
+										new DownloadScrapeResult()
 										{
 											public Download
 											getDownload()
 											{
 												return( dl );
 											}
-																						
+											
 											public int
 											getResponseType()
 											{
-												return( DownloadAnnounceResult.RT_SUCCESS );
-											}
-																					
-											public int
-											getReportedPeerCount()
-											{
-												return( peers.length);
+												return( RT_SUCCESS );
 											}
 											
-										
 											public int
 											getSeedCount()
 											{
-												return( 0 );	// TODO:
+												return( peers.length/2 );	// !!!! TODO:
 											}
 											
 											public int
 											getNonSeedCount()
 											{
-												return( 0 );	// TODO:
+												return( peers.length/2 );	// TODO:
 											}
-											
-											public String
-											getError()
+
+											public long
+											getScrapeStartTime()
 											{
-												return( null );
+												return( start );
 											}
-																						
+												
+											public void 
+											setNextScrapeStartTime(
+												long nextScrapeStartTime)
+											{
+												
+											}
+												  
+											public String
+											getStatus()
+											{
+												return( "OK" );
+											}
+	
 											public URL
 											getURL()
 											{
@@ -526,20 +606,8 @@ DHTTrackerPlugin
 													return( null );
 												}
 											}
-											
-											public DownloadAnnounceResultPeer[]
-											getPeers()
-											{
-												return( peers );
-											}
-											
-											public long
-											getTimeToWait()
-											{
-												return( retry );
-											}
 										});
-								
+								}
 							}
 						});
 			}

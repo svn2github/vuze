@@ -31,6 +31,7 @@ import java.net.URL;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 public class 
 TRTrackerScraperImpl
@@ -109,6 +110,27 @@ TRTrackerScraperImpl
 		return( scrape( torrent, null, force ));
 	}
 	
+	public void
+	setScrape(
+		TOTorrent				torrent,
+		DownloadScrapeResult	result )
+	{
+		if ( torrent != null ){
+		
+			TRTrackerScraperResponseImpl resp =
+				tracker_checker.getHashData( torrent, torrent.getAnnounceURL());
+			
+			resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
+			
+			resp.setStatus( 
+					result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
+							TRTrackerScraperResponse.ST_ONLINE:
+							TRTrackerScraperResponse.ST_ERROR,
+					result.getStatus()); 
+		
+			scrapeReceived( resp );
+		}
+	}
 	
 	public TRTrackerScraperResponse
 	scrape(

@@ -1038,7 +1038,12 @@ DownloadManagerImpl
 	setScrapeResult(
 		DownloadScrapeResult	result )
 	{
-		Debug.out( "setScrapeResult not implemented!!!!" );
+		if ( torrent != null ){
+			
+			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+		
+			scraper.setScrape( torrent, result );
+		}
 	}
 	
   /**

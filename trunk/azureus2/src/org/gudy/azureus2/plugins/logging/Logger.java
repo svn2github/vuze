@@ -37,6 +37,17 @@ Logger
 	getTimeStampedChannel(
 		String		name );
 	
+		/**
+		 * Returns a logger channel that doesn't output to the standard AZ log. Add listeners
+		 * to it if output needs to be routed somewhere
+		 * @param name
+		 * @return
+		 */
+	
+	public LoggerChannel
+	getNullChannel(
+		String		name );
+	
 	public LoggerChannel[]
 	getChannels();
 }
