@@ -1706,7 +1706,7 @@ TRTrackerClientClassicImpl
 
 				Map	entry = new HashMap();
 				
-				entry.put( "ip", peer.getIPAddress());
+				entry.put( "ip", peer.getIPAddress().getBytes());
 				entry.put( "port", new Long(peer.getPort()));
 				
 				peers.add( entry );
@@ -1804,7 +1804,9 @@ TRTrackerClientClassicImpl
 			
 			for (int i=0;i<num_want;i++){
 				
-				res[i] = (TRTrackerResponsePeer)it.next();
+				String	key = (String)it.next();
+				
+				res[i] = (TRTrackerResponsePeer)tracker_peer_cache.get(key);
 				
 				it.remove();
 			}
