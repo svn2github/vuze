@@ -194,6 +194,11 @@ IpFilterImpl
 	  if(isBanned(ipAddress))
 	    return true;
 	  
+	  	// never bounce the local machine (peer guardian has a range that includes it!)
+	  
+	  if ( ipAddress.equals("127.0.0.1")){
+	  	return( false );
+	  }
 	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true))
 	    return false;
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
