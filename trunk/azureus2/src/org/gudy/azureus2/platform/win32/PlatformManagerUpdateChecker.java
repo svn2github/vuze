@@ -46,9 +46,6 @@ PlatformManagerUpdateChecker
 {
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
-
-	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update/";
-	
 	
 	protected PlatformManagerImpl		platform;
 	protected PluginInterface			plugin_interface;
@@ -95,6 +92,8 @@ PlatformManagerUpdateChecker
 			String sf_plugin_version	= sf_details.getVersion();
 			
 			String sf_comp_version	 	= sf_plugin_version;
+	
+			String target_download		= sf_details.getDownloadURL();
 			
 			if ( current_az_is_cvs ){
 				
@@ -107,11 +106,11 @@ PlatformManagerUpdateChecker
 					sf_plugin_version	= sf_cvs_version;
 					
 					sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
+					
+					target_download	= sf_details.getCVSDownloadURL();
 				}
 			}
-			
-			// 	System.out.println("comp version = " + sf_comp_version );
-			
+						
 			if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
 				
 				target_dll_version	= sf_comp_version;
@@ -120,12 +119,10 @@ PlatformManagerUpdateChecker
 			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
 			
 			if ( target_dll_version != null ){
-				
-				String	target = UPDATE_DIR + PlatformManagerImpl.DLL_NAME + "_" + target_dll_version + ".dll";
-			
+							
 				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				
-				ResourceDownloader dll_rd = rdf.create( new URL( target ));
+				ResourceDownloader dll_rd = rdf.create( new URL( target_download ));
 			
 					// get size here so it is cached
 				
