@@ -9,6 +9,7 @@ package org.gudy.azureus2.core3.disk;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -38,7 +39,8 @@ public class TorrentFolderWatcher {
     private File watchFolder = null;
     private String watchFolderString = null;
     private FilenameFilter filterTorrents;
-
+    private final ArrayList delList = new ArrayList();
+    
     public FolderWatcher() {
       super("FolderWatcher"); //$NON-NLS-1$
       setPriority(Thread.MIN_PRIORITY);
@@ -84,14 +86,30 @@ public class TorrentFolderWatcher {
     private synchronized void importAddedFiles() {
       if (watchFolder == null)
         return;
+      
+      //delete torrents from the previous import run
+      for (int i=0; i < delList.size(); i++) {
+        ((File)delList.get( i )).delete();
+      }
+      delList.clear();
+      
       String[] currentFileList = watchFolder.list(filterTorrents);
 
       for (int i = 0; i < currentFileList.length; i++) {
         File file = new File( watchFolderString, currentFileList[i] );
-        File imported = new File( watchFolderString, file.getName() + ".imported" );
-      	file.renameTo( imported );
         
-        mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
+        boolean saved = COConfigurationManager.getBooleanParameter("Save Torrent Files");
+        String path = COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory");
+        
+        if ( !saved || path.length() < 1) {
+        	File imported = new File( watchFolderString, file.getName() + ".imported" );
+        	file.renameTo( imported );
+        	mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
+        }
+        else {
+          mainWindow.openTorrent(watchFolderString + file.getName(), startWatchedTorrentsStopped, false);
+          delList.add( file );  //add file for deletion
+        }
         LGLogger.log(LGLogger.INFORMATION, "Imported " + watchFolderString + "/" + currentFileList[i]);
       }
     }
