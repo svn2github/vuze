@@ -26,7 +26,6 @@ package org.gudy.azureus2.pluginsimpl.ipfilter;
  *
  */
 
-import java.util.*;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.ipfilter.*;
@@ -58,6 +57,20 @@ IPFilterImpl
 	{
 		try{
 			filter.reload();
+			
+		}catch( Throwable e ){
+			
+			throw( new IPFilterException( "IPFilter::reload fails", e ));
+		}
+	}
+	
+	public void
+	save()
+	
+		throws IPFilterException
+	{
+		try{
+			filter.save();
 			
 		}catch( Throwable e ){
 			
@@ -106,6 +119,18 @@ IPFilterImpl
 		filter.addRange(((IPRangeImpl)range).getRange());
 	}
 	
+	public void
+	removeRange(
+		IPRange	range )
+	{
+		if ( !(range instanceof IPRangeImpl )){
+			
+			throw( new RuntimeException( "range must be created by createRange"));
+		}
+		
+		filter.removeRange(((IPRangeImpl)range).getRange());
+	}
+
 	public IPBlocked[]
 	getBlockedIPs()
 	{

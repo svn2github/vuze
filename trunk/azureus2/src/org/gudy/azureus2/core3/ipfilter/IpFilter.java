@@ -44,7 +44,7 @@ IpFilter
 	
 	public abstract File getFile();
 	
-	public abstract void save();
+	public abstract void save() throws Exception;
 	
 	public abstract void 
 	reload()

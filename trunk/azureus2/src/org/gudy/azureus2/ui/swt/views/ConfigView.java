@@ -375,7 +375,11 @@ public class ConfigView extends AbstractIView {
       public void widgetSelected(SelectionEvent event) {
         COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
         COConfigurationManager.save();
-        filter.save();
+        try{
+        	filter.save();
+        }catch( Exception e ){
+        	LGLogger.logAlert("Save of filter file fails", e);
+        }
         for (int i = 0; i < pluginSections.size(); i++)
           ((ConfigSection)pluginSections.get(i)).configSectionSave();
       }

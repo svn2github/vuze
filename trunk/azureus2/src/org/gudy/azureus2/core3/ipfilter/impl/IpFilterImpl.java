@@ -97,9 +97,14 @@ IpFilterImpl
 		loadFilters();
 	}
 	
-	public void save() 
+	public synchronized void 
+	save() 
+	
+		throws Exception
 	{
-		Map map = new HashMap();
+      Map map = new HashMap();
+	  synchronized(ipRanges) { 
+
 		List filters = new ArrayList();
 		map.put("ranges",filters);
 		Iterator iter = this.ipRanges.iterator();
@@ -116,19 +121,29 @@ IpFilterImpl
 			filters.add(mapRange);
 		  }
 		}
-    try {
-		//  Open the file
-    File filtersFile = FileUtil.getUserFile("filters.config");
-    FileOutputStream fos = new FileOutputStream(filtersFile);
-		fos.write(BEncoder.encode(map));
-		fos.close();     
-	  } catch (Exception e) {
-		e.printStackTrace();
-		// TODO: handle exception
 	  }
+	  	FileOutputStream fos  = null;
+    
+    	try {
+      	
+    		//  Open the file
+    		
+    		File filtersFile = FileUtil.getUserFile("filters.config");
+        
+    		fos = new FileOutputStream(filtersFile);
+    		
+    		fos.write(BEncoder.encode(map));
+    		
+    	}finally{
+	  	
+	  		if ( fos != null ){
+	  			
+	  			fos.close();
+	  		}
+    	}
 	}
   
-	private void loadFilters() 
+	private synchronized void loadFilters() 
 		throws Exception
 	{
 		

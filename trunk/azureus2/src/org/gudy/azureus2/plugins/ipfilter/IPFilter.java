@@ -31,6 +31,11 @@ import java.io.File;
 public interface 
 IPFilter
 {
+		/**
+		 * Gets the file name used for persistent ranges
+		 * @return
+		 */
+	
 	public File
 	getFile();
 
@@ -54,22 +59,67 @@ IPFilter
 	addRange(
 		IPRange		range );
 	
+		/**
+		 * Remove a range
+		 * @param range
+		 */
+	
+	public void
+	removeRange(
+		IPRange		range );
+	
+		/**
+		 * Reloads the ip filter from the config file (obtainable using "getFile")
+		 * @throws IPFilterException
+		 */
+	
 	public void
 	reload()
 	
 		throws IPFilterException;
 	
+		/**
+		 * Gets the current set of defined IP ranges
+		 * @return
+		 */
+	
 	public IPRange[]
 	getRanges();
 
+		/**
+		 * Checks an address to see if its in an allowed range
+		 * @param IPAddress
+		 * @return
+		 */
+	
 	public boolean 
 	isInRange(
 		String IPAddress );
 	
+		/**
+		 * Gets the current list of blocked addresses
+		 * @return
+		 */
+	
 	public IPBlocked[]
 	getBlockedIPs();
+	
+		/**
+		 * Explicitly blocks an address
+		 * @param IPAddress
+		 */
 	
 	public void 
 	block(
 		String IPAddress);
+	
+		/**
+		 * saves current setting to file given by getFile
+		 * @throws IPFilterException
+		 */
+	
+	public void
+	save()
+	
+		throws IPFilterException;
 }
