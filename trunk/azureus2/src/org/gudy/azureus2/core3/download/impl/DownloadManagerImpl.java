@@ -392,6 +392,11 @@ DownloadManagerImpl
 			 if ( new_torrent ){
 			 	
 			 	torrent.setAdditionalMapProperty( TRACKER_CACHE_KEY, new HashMap());
+			 	
+			 		// also remove resume data incase someone's published a torrent with resume
+			 		// data in it
+			 	
+			  	torrent.removeAdditionalProperty("resume");
 			 }
 			 
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
