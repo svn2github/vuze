@@ -39,10 +39,10 @@ public interface PluginConfig {
   public int getPluginIntParameter(String key,int defaultValue);
   
   public String getPluginStringParameter(String key);
-  public String getPluginStringParameter(String key,int defaultValue);
+  public String getPluginStringParameter(String key,String defaultValue);
     
   public boolean getPluginBooleanParameter(String key);
-  public boolean getPluginBooleanParameter(String key,int defaultValue);
+  public boolean getPluginBooleanParameter(String key,boolean defaultValue);
     
   public void setPluginParameter(String key,int value);
   public void setPluginParameter(String key,String value);
