@@ -324,7 +324,7 @@ public class MinimizedWindow {
         }
        }); 
       }
-    }    
+    }
     downloadBars.remove(this);
   }
 
