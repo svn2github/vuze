@@ -35,6 +35,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new NameItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new DownItem(),
+    new DownSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new DoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new StatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SeedsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
