@@ -142,6 +142,19 @@ Restarter
 	        return( false );
 	    }
 	}
+	
+	private boolean
+	isOSX()
+	{
+		return( Constants.isOSX );
+	}
+	
+	private boolean
+	isLinux()
+	{
+		return( Constants.isLinux );
+	}
+	
   
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
@@ -157,11 +170,11 @@ Restarter
     String[]  properties,
     String[]  parameters ) 
   {
-    if(Constants.isOSX){
+    if(isOSX()){
     	
     	restartAzureus_OSX(log,mainClass,properties,parameters);
     	
-    }else if( Constants.isLinux ){
+    }else if( isLinux() ){
     	
     	restartAzureus_Linux(log,mainClass,properties,parameters);
       
@@ -318,6 +331,23 @@ Restarter
       libraryPath = "";
       
     }else{
+    	
+    		// remove any quotes from the damn thing
+    	
+    	String	temp = "";
+    	
+    	for (int i=0;i<libraryPath.length();i++){
+    		
+    		char	c = libraryPath.charAt(i);
+    		
+    		if ( c != '"' ){
+    			
+    			temp += c;
+    		}
+    	}
+    	
+    	libraryPath	= temp;
+    	
     		// remove trailing separator chars if they exist as they stuff up
     		// the following "
     	
