@@ -28,6 +28,9 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
+import com.aelitis.net.udp.PRUDPPacket;
+import com.aelitis.net.udp.PRUDPPacketRequest;
+
 public class 
 PRUDPPacketRequestConnect
 	extends PRUDPPacketRequest
@@ -35,7 +38,7 @@ PRUDPPacketRequestConnect
 	public
 	PRUDPPacketRequestConnect()
 	{
-		super( ACT_REQUEST_CONNECT, PRUDPPacket.INITIAL_CONNECTION_ID );
+		super( PRUDPPacketTracker.ACT_REQUEST_CONNECT,PRUDPPacketTracker.INITIAL_CONNECTION_ID );
 	}
 	
 	protected
@@ -44,7 +47,7 @@ PRUDPPacketRequestConnect
 		long				con_id,
 		int					trans_id )
 	{
-		super( ACT_REQUEST_CONNECT, con_id, trans_id );
+		super( PRUDPPacketTracker.ACT_REQUEST_CONNECT, con_id, trans_id );
 	}
 	
 	public void

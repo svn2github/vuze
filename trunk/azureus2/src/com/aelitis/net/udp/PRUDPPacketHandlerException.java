@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReceiver.java
+ * File    : PRUDPPacketHandlerException.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,23 +19,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.net.udp;
 
 /**
  * @author parg
  *
  */
-
-import java.net.*;
-
-public interface 
-PRUDPPacketHandler 
+public class 
+PRUDPPacketHandlerException
+	extends Exception
 {
-	public PRUDPPacket
-	sendAndReceive(
-		PasswordAuthentication		auth,
-		PRUDPPacket					request_packet,
-		InetSocketAddress			destination_address )
+	public
+	PRUDPPacketHandlerException(
+		String		str )
+	{
+		super( str );
+	}
 	
-		throws PRUDPPacketHandlerException;
+	public PRUDPPacketHandlerException(
+		String		str,
+		Throwable 	cause )
+	{
+		super( str, cause );
+	}
 }

@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
+import com.aelitis.net.udp.PRUDPPacketReply;
+
 public class 
 PRUDPPacketReplyAnnounce2
 	extends PRUDPPacketReply
@@ -44,7 +46,7 @@ PRUDPPacketReplyAnnounce2
 	PRUDPPacketReplyAnnounce2(
 		int			trans_id )
 	{
-		super( ACT_REPLY_ANNOUNCE, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_ANNOUNCE, trans_id );
 	}
 	
 	protected
@@ -54,7 +56,7 @@ PRUDPPacketReplyAnnounce2
 	
 		throws IOException
 	{
-		super( ACT_REPLY_ANNOUNCE, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_ANNOUNCE, trans_id );
 		
 		interval = is.readInt();
 		leechers = is.readInt();

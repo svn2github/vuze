@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp.impl;
+package com.aelitis.net.udp.impl;
 
 /**
  * @author parg
@@ -27,7 +27,9 @@ package org.gudy.azureus2.core3.tracker.protocol.udp.impl;
  */
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+
+import com.aelitis.net.udp.PRUDPPacket;
+import com.aelitis.net.udp.PRUDPPacketHandlerException;
 
 public class 
 PRUDPPacketHandlerRequest 

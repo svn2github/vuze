@@ -55,6 +55,11 @@ import org.gudy.azureus2.core3.tracker.util.impl.*;
 import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.net.udp.PRUDPPacket;
+import com.aelitis.net.udp.PRUDPPacketHandler;
+import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.PRUDPPacketRequest;
 
 
 /**
@@ -76,6 +81,10 @@ TRTrackerClientClassicImpl
 	
 	public static String 	UDP_REALM = "UDP Tracker";
 	
+    static{
+	  	PRUDPTrackerCodecs.registerCodecs();
+	}
+    
 	private TOTorrent				torrent;
 	private PEPeerServer			peer_server;
 	
@@ -1215,7 +1224,7 @@ TRTrackerClientClassicImpl
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			
- 			for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
+ 			for (int retry_loop=0;retry_loop<PRUDPPacketTracker.DEFAULT_RETRY_COUNT;retry_loop++){
  				
  				try{
  			
@@ -1223,7 +1232,7 @@ TRTrackerClientClassicImpl
 		 			
 		 			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
 		 			
-		 			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
+		 			if ( reply.getAction() == PRUDPPacketTracker.ACT_REPLY_CONNECT ){
 		 			
 		 				PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
 		 				
@@ -1231,7 +1240,7 @@ TRTrackerClientClassicImpl
 		 			
 		 				PRUDPPacketRequest request;
 		 				
-		 				if ( PRUDPPacket.VERSION == 1 ){
+		 				if ( PRUDPPacketTracker.VERSION == 1 ){
 		 					
 		 					PRUDPPacketRequestAnnounce announce_request = new PRUDPPacketRequestAnnounce( my_connection );
 		 		
@@ -1342,14 +1351,14 @@ TRTrackerClientClassicImpl
 		 				
 		 				reply = handler.sendAndReceive( auth, request, destination );
 		 			
-		 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
+		 				if ( reply.getAction() == PRUDPPacketTracker.ACT_REPLY_ANNOUNCE ){
 		 					
 		 					if ( auth != null ){
 		 						
 		 						SESecurityManager.setPasswordAuthenticationOutcome( UDP_REALM, reqUrl, true );
 		 					}
 		 					
-		 					if ( PRUDPPacket.VERSION == 1 ){
+		 					if ( PRUDPPacketTracker.VERSION == 1 ){
 			 					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
 			 					
 			 					Map	map = new HashMap();

@@ -31,6 +31,10 @@ import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.net.udp.PRUDPPacket;
+import com.aelitis.net.udp.PRUDPPacketHandler;
+import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketHandlerFactory;
 
 /**
  * @author Olivier
@@ -48,6 +52,9 @@ public class TrackerStatus {
 
   private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
   
+  static{
+  	PRUDPTrackerCodecs.registerCodecs();
+  }
   private URL		tracker_url;
   
   private String 	scrapeURL = null;
@@ -733,7 +740,7 @@ public class TrackerStatus {
   		 * UDP version 2 contains scrape data in the announce response
   		 */
   	
-  	if ( 	PRUDPPacket.VERSION == 2 &&
+  	if ( 	PRUDPPacketTracker.VERSION == 2 &&
   			scraper.isTorrentDownloading( hash )){
   	
         LGLogger.log(	componentID, evtLifeCycle, LGLogger.SENT,
@@ -761,14 +768,14 @@ public class TrackerStatus {
 		
 		String	failure_reason = null;
 		
-		for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
+		for (int retry_loop=0;retry_loop<PRUDPPacketTracker.DEFAULT_RETRY_COUNT;retry_loop++){
 		
 			try{
 				PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
 				
 				PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
 				
-				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
+				if ( reply.getAction() == PRUDPPacketTracker.ACT_REPLY_CONNECT ){
 					
 					PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
 					
@@ -778,11 +785,11 @@ public class TrackerStatus {
 									
 					reply = handler.sendAndReceive( auth, scrape_request, destination );
 					
-					if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
+					if ( reply.getAction() == PRUDPPacketTracker.ACT_REPLY_SCRAPE ){
 	
 						auth_ok	= true;
 	
-						if ( PRUDPPacket.VERSION == 1 ){
+						if ( PRUDPPacketTracker.VERSION == 1 ){
 							PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
 							
 							Map	map = new HashMap();

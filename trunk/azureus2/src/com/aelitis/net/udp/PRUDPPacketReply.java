@@ -19,18 +19,36 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.net.udp;
 
 /**
  * @author parg
  *
  */
+
 import java.io.*;
+import java.util.*;
 
 public abstract class 
 PRUDPPacketReply
 	extends PRUDPPacket
 {		
+	private static Map	packet_decoders	= new HashMap();
+	
+	public static void
+	registerDecoders(
+		Map		_decoders )
+	{
+		synchronized( PRUDPPacketReply.class ){
+		
+			Map	new_decoders = new HashMap( packet_decoders );
+			
+			new_decoders.putAll( _decoders );
+			
+			packet_decoders	= new_decoders;
+		}
+	}
+	
 	public
 	PRUDPPacketReply(
 		int		_action,
@@ -38,7 +56,8 @@ PRUDPPacketReply
 	{
 		super( _action, _tran_id );
 	}
-		
+	
+
 	public void
 	serialise(
 		DataOutputStream	os )
@@ -56,38 +75,17 @@ PRUDPPacketReply
 		throws IOException
 	{
 		int		action			= is.readInt();
-		int		transaction_id	= is.readInt();
 		
-		switch( action ){
+		PRUDPPacketReplyDecoder	decoder = (PRUDPPacketReplyDecoder)packet_decoders.get( new Integer( action ));
+		
+		if ( decoder == null ){
 			
-			case ACT_REPLY_CONNECT:
-			{
-				return( new PRUDPPacketReplyConnect(is, transaction_id));
-			}
-			case ACT_REPLY_ANNOUNCE:
-			{
-				if ( PRUDPPacket.VERSION == 1 ){
-					return( new PRUDPPacketReplyAnnounce(is, transaction_id));
-				}else{
-					return( new PRUDPPacketReplyAnnounce2(is, transaction_id));			
-				}
-			}
-			case ACT_REPLY_SCRAPE:
-			{
-				if ( PRUDPPacket.VERSION == 1 ){
-					return( new PRUDPPacketReplyScrape(is, transaction_id));
-				}else{
-					return( new PRUDPPacketReplyScrape2(is, transaction_id));				
-				}
-			}
-			case ACT_REPLY_ERROR:
-			{
-				return( new PRUDPPacketReplyError(is, transaction_id));
-			}
+			throw( new IOException( "No decoder registered for action '" + action + "'" ));
 		}
 		
-		
-		throw( new IOException( "unsupported reply type"));
+		int		transaction_id	= is.readInt();
+
+		return( decoder.decode( is, action,transaction_id ));
 	}
 	
 	public String

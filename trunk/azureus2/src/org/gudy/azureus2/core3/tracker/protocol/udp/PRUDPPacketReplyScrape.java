@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
+import com.aelitis.net.udp.PRUDPPacketReply;
+
 public class 
 PRUDPPacketReplyScrape
 	extends PRUDPPacketReply
@@ -44,7 +46,7 @@ PRUDPPacketReplyScrape
 	PRUDPPacketReplyScrape(
 		int			trans_id )
 	{
-		super( ACT_REPLY_SCRAPE, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_SCRAPE, trans_id );
 	}
 	
 	protected
@@ -54,7 +56,7 @@ PRUDPPacketReplyScrape
 	
 		throws IOException
 	{
-		super( ACT_REPLY_SCRAPE, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_SCRAPE, trans_id );
 		
 		// interval = is.readInt();
 		

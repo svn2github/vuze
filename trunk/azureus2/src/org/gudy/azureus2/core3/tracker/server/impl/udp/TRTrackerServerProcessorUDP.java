@@ -39,6 +39,9 @@ import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
+import com.aelitis.net.udp.PRUDPPacket;
+import com.aelitis.net.udp.PRUDPPacketRequest;
+
 public class 
 TRTrackerServerProcessorUDP
 	extends		TRTrackerServerProcessor
@@ -55,6 +58,10 @@ TRTrackerServerProcessorUDP
 	protected static SecureRandom		random				= new SecureRandom();
 	protected static AEMonitor			random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
 
+	static{
+	  	PRUDPTrackerCodecs.registerCodecs();
+	}
+	
 	protected
 	TRTrackerServerProcessorUDP(
 		TRTrackerServerUDP		_server,
@@ -191,15 +198,15 @@ TRTrackerServerProcessorUDP
 				try{
 					int	type = request.getAction();
 					
-					if ( type == PRUDPPacket.ACT_REQUEST_CONNECT ){
+					if ( type == PRUDPPacketTracker.ACT_REQUEST_CONNECT ){
 						
 						reply = handleConnect( client_ip_address, request );
 						
-					}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
+					}else if (type == PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE ){
 						
 						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
 						
-					}else if ( type == PRUDPPacket.ACT_REQUEST_SCRAPE ){
+					}else if ( type == PRUDPPacketTracker.ACT_REQUEST_SCRAPE ){
 						
 						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
 						
@@ -372,7 +379,7 @@ TRTrackerServerProcessorUDP
 		
 		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 			
-			if ( PRUDPPacket.VERSION == 1 ){
+			if ( PRUDPPacketTracker.VERSION == 1 ){
 				PRUDPPacketRequestAnnounce	announce = (PRUDPPacketRequestAnnounce)request;
 				
 				hash_bytes	= announce.getHash();
@@ -488,7 +495,7 @@ TRTrackerServerProcessorUDP
 		
 		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 
-			if ( PRUDPPacket.VERSION == 1 ){
+			if ( PRUDPPacketTracker.VERSION == 1 ){
 				PRUDPPacketReplyAnnounce reply = new PRUDPPacketReplyAnnounce(request.getTransactionId());
 				
 				reply.setInterval(((Long)root.get("interval")).intValue());
@@ -546,7 +553,7 @@ TRTrackerServerProcessorUDP
 			
 		}else{
 			
-			if ( PRUDPPacket.VERSION == 1 ){
+			if ( PRUDPPacketTracker.VERSION == 1 ){
 				
 				PRUDPPacketReplyScrape reply = new PRUDPPacketReplyScrape(request.getTransactionId());
 				

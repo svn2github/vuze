@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
+import com.aelitis.net.udp.PRUDPPacketReply;
+
 public class 
 PRUDPPacketReplyConnect
 	extends PRUDPPacketReply
@@ -39,7 +41,7 @@ PRUDPPacketReplyConnect
 		int			trans_id,
 		long		conn_id )
 	{
-		super( ACT_REPLY_CONNECT, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_CONNECT, trans_id );
 		
 		connection_id	= conn_id;
 	}
@@ -51,7 +53,7 @@ PRUDPPacketReplyConnect
 	
 		throws IOException
 	{
-		super( ACT_REPLY_CONNECT, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_CONNECT, trans_id );
 		
 		connection_id = is.readLong();
 	}

@@ -33,7 +33,8 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
-import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+
+import com.aelitis.net.udp.PRUDPPacket;
 
 public class 
 TRTrackerServerUDP

@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReceiverFactoryImpl.java
+ * File    : PRUDPPacketReceiver.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,46 +19,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp.impl;
+package com.aelitis.net.udp;
 
 /**
  * @author parg
  *
  */
 
-import java.util.*;
+import java.net.*;
 
-import org.gudy.azureus2.core3.tracker.protocol.udp.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-
-public class 
-PRUDPPacketHandlerFactoryImpl 
+public interface 
+PRUDPPacketHandler 
 {
-	protected static 			Map	receiver_map = new HashMap();
-	protected static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
-
-
-	public static PRUDPPacketHandler
-	getHandler(
-		int		port )
-	{
-		try{
-			class_mon.enter();
-		
-			PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
-			
-			if ( receiver == null ){
-				
-				receiver = new PRUDPPacketHandlerImpl( port );
-				
-				receiver_map.put( new Integer(port), receiver );
-			}
-			
-			return( receiver );
-			
-		}finally{
-			
-			class_mon.exit();
-		}
-	}		
+	public PRUDPPacket
+	sendAndReceive(
+		PasswordAuthentication		auth,
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address )
+	
+		throws PRUDPPacketHandlerException;
 }

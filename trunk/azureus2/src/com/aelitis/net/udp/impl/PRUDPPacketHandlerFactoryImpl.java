@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketHandlerException.java
+ * File    : PRUDPPacketReceiverFactoryImpl.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,27 +19,47 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.net.udp.impl;
 
 /**
  * @author parg
  *
  */
+
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
+
+import com.aelitis.net.udp.PRUDPPacketHandler;
+
 public class 
-PRUDPPacketHandlerException
-	extends Exception
+PRUDPPacketHandlerFactoryImpl 
 {
-	public
-	PRUDPPacketHandlerException(
-		String		str )
+	protected static 			Map	receiver_map = new HashMap();
+	protected static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
+
+
+	public static PRUDPPacketHandler
+	getHandler(
+		int		port )
 	{
-		super( str );
-	}
-	
-	public PRUDPPacketHandlerException(
-		String		str,
-		Throwable 	cause )
-	{
-		super( str, cause );
-	}
+		try{
+			class_mon.enter();
+		
+			PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
+			
+			if ( receiver == null ){
+				
+				receiver = new PRUDPPacketHandlerImpl( port );
+				
+				receiver_map.put( new Integer(port), receiver );
+			}
+			
+			return( receiver );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}		
 }

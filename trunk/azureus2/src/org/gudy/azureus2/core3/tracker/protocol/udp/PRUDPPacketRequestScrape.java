@@ -30,6 +30,8 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.net.udp.PRUDPPacketRequest;
+
 public class 
 PRUDPPacketRequestScrape 
 	extends PRUDPPacketRequest
@@ -41,7 +43,7 @@ PRUDPPacketRequestScrape
 		long			con_id,
 		byte[]			_hash)
 	{
-		super( ACT_REQUEST_SCRAPE, con_id );
+		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id );
 		
 		hash	= _hash;
 	}
@@ -54,7 +56,7 @@ PRUDPPacketRequestScrape
 	
 		throws IOException
 	{
-		super( ACT_REQUEST_SCRAPE, con_id, trans_id );
+		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id, trans_id );
 		
 		hash 	= new byte[20];
 

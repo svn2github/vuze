@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.net.udp;
 
 /**
  * @author parg
@@ -27,12 +27,35 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  */
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestAnnounce;
+import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestAnnounce2;
+import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestConnect;
+import org.gudy.azureus2.core3.tracker.protocol.udp.PRUDPPacketRequestScrape;
 
 public abstract class 
 PRUDPPacketRequest
 	extends PRUDPPacket
 {	
+	private static Map	packet_decoders	= new HashMap();
+
 	protected long		connection_id;
+	
+	public static void
+	registerDecoders(
+		Map		_decoders )
+	{
+		synchronized( PRUDPPacketReply.class ){
+		
+			Map	new_decoders = new HashMap( packet_decoders );
+			
+			new_decoders.putAll( _decoders );
+			
+			packet_decoders	= new_decoders;
+		}
+	}
 	
 	public 
 	PRUDPPacketRequest(
@@ -82,27 +105,14 @@ PRUDPPacketRequest
 		int			action			= is.readInt();
 		int			transaction_id	= is.readInt();
 		
-		switch( action ){
-			case ACT_REQUEST_CONNECT:
-			{
-				return( new PRUDPPacketRequestConnect(is, connection_id,transaction_id));
-			}
-			case ACT_REQUEST_ANNOUNCE:
-			{
-				if ( PRUDPPacket.VERSION == 1 ){
-					return( new PRUDPPacketRequestAnnounce(is, connection_id,transaction_id));
-				}else{
-					return( new PRUDPPacketRequestAnnounce2(is, connection_id,transaction_id));				
-				}
-			}
-			case ACT_REQUEST_SCRAPE:
-			{
-				return( new PRUDPPacketRequestScrape(is, connection_id,transaction_id));
-			}
+		PRUDPPacketRequestDecoder	decoder = (PRUDPPacketRequestDecoder)packet_decoders.get( new Integer( action ));
+		
+		if ( decoder == null ){
+			
+			throw( new IOException( "No decoder registered for action '" + action + "'" ));
 		}
-		
-		
-		throw( new IOException( "unsupported request type"));
+
+		return( decoder.decode( is, connection_id, action, transaction_id ));
 	}
 	
 	public String

@@ -30,6 +30,8 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.net.udp.PRUDPPacketRequest;
+
 public class 
 PRUDPPacketRequestAnnounce2
 	extends PRUDPPacketRequest
@@ -79,7 +81,7 @@ PRUDPPacketRequestAnnounce2
 	PRUDPPacketRequestAnnounce2(
 		long				con_id )
 	{
-		super( ACT_REQUEST_ANNOUNCE, con_id );
+		super( PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE, con_id );
 	}
 	
 	protected
@@ -90,7 +92,7 @@ PRUDPPacketRequestAnnounce2
 	
 		throws IOException
 	{
-		super( ACT_REQUEST_ANNOUNCE, con_id, trans_id );
+		super( PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE, con_id, trans_id );
 		
 		hash 	= new byte[20];
 		peer_id	= new byte[20];

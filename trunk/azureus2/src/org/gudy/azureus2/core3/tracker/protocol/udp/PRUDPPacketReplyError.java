@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
+import com.aelitis.net.udp.PRUDPPacketReply;
+
 public class 
 PRUDPPacketReplyError
 extends PRUDPPacketReply
@@ -39,7 +41,7 @@ extends PRUDPPacketReply
 		int			trans_id,
 		String		_message )
 	{
-		super( ACT_REPLY_ERROR, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_ERROR, trans_id );
 		
 		message	= _message;
 	}
@@ -51,7 +53,7 @@ extends PRUDPPacketReply
 	
 		throws IOException
 	{
-		super( ACT_REPLY_ERROR, trans_id );
+		super( PRUDPPacketTracker.ACT_REPLY_ERROR, trans_id );
 		
 		int	avail = is.available();
 		

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.net.udp;
 
 /**
  * @author parg
@@ -29,36 +29,15 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public abstract class 
 PRUDPPacket 
 {
-	public static int VERSION = 2;
-	
-	static{
-		VERSION = COConfigurationManager.getIntParameter( "Tracker Port UDP Version", 2 );
-		
-		// System.out.println( "UDP Version = " + VERSION );
-	}
-	
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 30000;
-	public static final int DEFAULT_RETRY_COUNT		= 1;		// changed from 4 after advice from XTF
-	
-	public static final int	ACT_REQUEST_CONNECT		= 0;
-	public static final int	ACT_REQUEST_ANNOUNCE	= 1;
-	public static final int	ACT_REQUEST_SCRAPE		= 2;
-	
-	public static final int	ACT_REPLY_CONNECT		= 0;
-	public static final int	ACT_REPLY_ANNOUNCE		= 1;
-	public static final int	ACT_REPLY_SCRAPE		= 2;
-	public static final int	ACT_REPLY_ERROR			= 3;
 
-	public static final long	INITIAL_CONNECTION_ID	= 0x41727101980L;
-	
 	protected static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
 	protected static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
 
