@@ -846,7 +846,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		checkForNewVersion();
 
 		gridData = new GridData();
-		gridData.widthHint = 180;
+		gridData.widthHint = 220;
 		ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
 		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
 		ipBlocked.setLayoutData(gridData);
