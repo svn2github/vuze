@@ -213,7 +213,7 @@ PeerManagerImpl
 				peerRemoved(
 					PEPeer	peer )
 				{	
-					PeerImpl	pi = (PeerImpl)peer_map.get( peer );
+					PeerImpl	pi = (PeerImpl)peer_map.remove( peer );
 					
 					if ( pi == null ){
 						
@@ -222,7 +222,7 @@ PeerManagerImpl
 						// Debug.out( "PeerManager: peer not found");
 						
 					}else{
-						
+												
 						l.peerRemoved( PeerManagerImpl.this, pi );
 					}
 				}
