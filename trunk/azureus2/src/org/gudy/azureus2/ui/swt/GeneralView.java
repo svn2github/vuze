@@ -366,6 +366,7 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
+    
   }
 
   public String getData() {

@@ -81,7 +81,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.2.4"; //$NON-NLS-1$
+  public static final String VERSION = "2.0.2.4"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -467,7 +467,11 @@ public class MainWindow implements IComponentListener {
     });
 
     mytorrents = new Tab(new MyTorrentsView(globalManager));
-
+    if(ConfigurationManager.getInstance().getBooleanParameter("Open Console",false))
+       console = new Tab(new ConsoleView());
+    if(ConfigurationManager.getInstance().getBooleanParameter("Open Config",false))
+        config = new Tab(new ConfigView());    
+       
     gridData = new GridData(GridData.FILL_HORIZONTAL);
 
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
@@ -554,10 +558,15 @@ public class MainWindow implements IComponentListener {
         }
       }
     });
+    
+    if(ConfigurationManager.getInstance().getBooleanParameter("Start Minimized",false))
+           minimizeToTray(null);
   }
 
   private void minimizeToTray(ShellEvent event) {
-    event.doit = false;
+    //Added this test so that we can call this method will null parameter.
+    if(event != null)
+      event.doit = false;
     mainWindow.setVisible(false);
     if (tray != null)
       tray.setVisible(true);

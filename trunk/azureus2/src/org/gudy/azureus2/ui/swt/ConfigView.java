@@ -252,6 +252,19 @@ public class ConfigView extends AbstractIView {
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.autoupdate"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Auto Update", true); //$NON-NLS-1$
+    
+    label = new Label(gStart, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.openconsole"); //$NON-NLS-1$
+    new BooleanParameter(gStart, "Open Console", false); //$NON-NLS-1$
+        
+    label = new Label(gStart, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.openconfig"); //$NON-NLS-1$
+    new BooleanParameter(gStart, "Open Config", false); //$NON-NLS-1$
+    
+    label = new Label(gStart, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
+    new BooleanParameter(gStart, "Start Minimized", false); //$NON-NLS-1$
+
 
     Group gIrc = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gIrc, "ConfigView.section.irc"); //$NON-NLS-1$

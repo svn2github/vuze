@@ -4,8 +4,10 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.text.Collator;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -16,20 +18,24 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.irc.IrcClient;
-import org.gudy.azureus2.irc.MessageListener;
+import org.gudy.azureus2.irc.IrcListener;
 
 /**
  * @author Olivier
  * 
  */
-public class IrcView extends AbstractIView implements MessageListener {
+public class IrcView extends AbstractIView implements IrcListener {
 
   Display display;
   StyledText consoleText;
+  List users;
+  Label userSumUp;
   Text inputField;
   Color[] colors;
 
@@ -41,13 +47,20 @@ public class IrcView extends AbstractIView implements MessageListener {
   public void initialize(Composite composite) {
     display = composite.getDisplay();
     GridLayout layout = new GridLayout();
+    layout.numColumns = 2;
+    layout.makeColumnsEqualWidth = false;
     composite.setLayout(layout);
-    layout.numColumns = 1;
-    GridData gridData = new GridData(GridData.FILL_BOTH);
-    consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
+    consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+    GridData gridData = new GridData(GridData.FILL_BOTH | GridData.CENTER);
+    gridData.grabExcessHorizontalSpace = true;
     consoleText.setLayoutData(gridData);
+    users = new List(composite, SWT.MULTI | SWT.BORDER);
+    gridData = new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END | GridData.END);
+    gridData.widthHint = 150;
+    users.setLayoutData(gridData);
     inputField = new Text(composite, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    //gridData.horizontalSpan = 2;
     inputField.setLayoutData(gridData);
     inputField.addKeyListener(new KeyAdapter() {
       /* (non-Javadoc)
@@ -57,10 +70,14 @@ public class IrcView extends AbstractIView implements MessageListener {
         if (event.keyCode == 13) {
           String text = inputField.getText();
           inputField.setText("");
-          client.sendMessage(text);
+          sendMessage(text);
         }
       }
     });
+    userSumUp = new Label(composite, SWT.NONE);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    gridData.widthHint = 150;
+    userSumUp.setLayoutData(gridData);
     colors = new Color[4];
     colors[0] = MainWindow.blues[3];
     colors[1] = MainWindow.blues[2];
@@ -86,8 +103,13 @@ public class IrcView extends AbstractIView implements MessageListener {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    MainWindow.getWindow().setIrc(null);
-    client.close();
+    Thread t = new Thread() {
+      public void run() {
+        MainWindow.getWindow().setIrc(null);
+        client.close();
+      }
+    };
+    t.start();
   }
 
   /* (non-Javadoc)
@@ -105,7 +127,7 @@ public class IrcView extends AbstractIView implements MessageListener {
   }
 
   public void messageReceived(String sender, String message) {
-    doLog(2, sender + " > " + message);
+    doLog(2, "<" + sender + "> " + message);
   }
 
   public void systemMessage(String message) {
@@ -113,6 +135,8 @@ public class IrcView extends AbstractIView implements MessageListener {
   }
 
   private void doLog(final int _color, final String _text) {
+    if (display == null || display.isDisposed())
+      return;
     display.asyncExec(new Runnable() {
       public void run() {
         if (consoleText == null || consoleText.isDisposed())
@@ -128,7 +152,7 @@ public class IrcView extends AbstractIView implements MessageListener {
         String timeStamp = "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         nbLines = consoleText.getLineCount();
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
-        consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);
+        consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);        
         if (autoScroll)
           consoleText.setTopIndex(nbLines);
       }
@@ -139,6 +163,97 @@ public class IrcView extends AbstractIView implements MessageListener {
     if (n < 10)
       return "0" + n; //$NON-NLS-1$
     return "" + n; //$NON-NLS-1$
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.irc.IrcListener#action(java.lang.String, java.lang.String)
+   */
+  public void action(String sender, String action) {
+    doLog(1, sender + " " + action);
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.irc.IrcListener#clientEntered(java.lang.String)
+   */
+  public void clientEntered(final String client) {
+    if (display == null || display.isDisposed())
+      return;
+    display.asyncExec(new Runnable() {
+      /* (non-Javadoc)
+       * @see java.lang.Runnable#run()
+       */
+      public void run() {
+        if (users != null && !users.isDisposed()) {
+          int index = users.indexOf(client);
+          if (index == -1) {
+            Collator collator = Collator.getInstance(Locale.getDefault());
+            String items[] = users.getItems();
+            int i = 0;
+            for (; i < items.length; i++) {
+              if (collator.compare(client, items[i]) < 0) {
+                users.add(client, i);
+                break;
+              }
+            }
+            if (i == items.length) {
+              users.add(client);
+            }
+            int nbUsers = users.getItemCount();
+            if (userSumUp != null && !userSumUp.isDisposed()) {
+              userSumUp.setText(nbUsers + " " + MessageText.getString("IrcView.clientsconnected"));
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.irc.IrcListener#clientExited(java.lang.String)
+   */
+  public void clientExited(final String client) {
+    if (display == null || display.isDisposed())
+      return;
+    display.asyncExec(new Runnable() {
+      /* (non-Javadoc)
+       * @see java.lang.Runnable#run()
+       */
+      public void run() {
+        if (users != null && !users.isDisposed()) {
+          int index = users.indexOf(client);
+          if (index != -1) {
+            users.remove(index);
+          }
+          int nbUsers = users.getItemCount();
+          if (userSumUp != null && !userSumUp.isDisposed()) {
+            userSumUp.setText(nbUsers + " " + MessageText.getString("IrcView.clientsconnected"));
+          }
+        }
+      }
+    });
+
+  }
+
+  private void sendMessage(String text) {
+    if (text.equals(""))
+      return;
+    if (text.startsWith("/")) {
+      if (text.startsWith("/nick ") || text.startsWith("/name ")) {
+        String newNick = text.substring(6).trim();
+        client.setUserName(newNick);
+      }
+      else if (text.startsWith("/me ")) {
+        String action = text.substring(4).trim();
+        client.sendAction(action);
+        action(client.getUserName(), action);
+      }
+      else {
+        systemMessage(MessageText.getString("IrcView.actionnotsupported"));
+      }
+    }
+    else {
+      client.sendMessage(text);
+    }
   }
 
 }
