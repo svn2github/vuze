@@ -246,7 +246,7 @@ PlatformManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 			
 			try{

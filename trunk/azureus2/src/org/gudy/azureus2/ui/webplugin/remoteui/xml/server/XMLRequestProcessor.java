@@ -378,91 +378,106 @@ XMLRequestProcessor
 			return;
 		}
 		
-		while( cla != null ){
-			try{
-				Field[] fields = cla.getDeclaredFields();
+		if ( cla == String.class ){
+			
+			writeLine( "" + (String)obj);
 				
-				for (int i=0;i<fields.length;i++){
+		}else if ( cla == Integer.class ){
 					
-					Field	field = fields[i];
-					
-					int	modifiers = field.getModifiers();
-					
-					if (( modifiers & ( Modifier.TRANSIENT | Modifier.STATIC )) == 0 ){
+			writeLine( "" + ((Integer)obj).intValue());
 						
-						String	name = field.getName();
+		}else{
+			
+			while( cla != null ){
+				try{
+					Field[] fields = cla.getDeclaredFields();
+					
+					for (int i=0;i<fields.length;i++){
 						
-						Class	type = field.getType();
+						Field	field = fields[i];
+						
+						int	modifiers = field.getModifiers();
+						
+						if (( modifiers & ( Modifier.TRANSIENT | Modifier.STATIC )) == 0 ){
+							
+							String	name = field.getName();
+							
+							Class	type = field.getType();
+											
+							System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
+							
+							try{
+								writeLine( "<" + name + ">" );
+								
+								indent();
+														
+								if ( type == String.class ){
+									
+									writeLine( (String)field.get( obj ));
+									
+								}else if ( type == Integer.class ){
 										
-						// System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
-						
-						try{
-							writeLine( "<" + name + ">" );
-							
-							indent();
-													
-							if ( type == String.class ){
+									writeLine( ""+((Integer)field.get( obj )).intValue());
+									
+								}else if ( type == long.class ){
+									
+									writeLine( ""+field.getLong( obj ));
+									
+								}else if ( type == boolean.class ){
+									
+									writeLine( ""+field.getBoolean( obj ));
+									
+								}else if ( type == byte.class ){
+									
+									writeLine( ""+field.getByte( obj ));
+									
+								}else if ( type == char.class ){
+									
+									writeLine( ""+field.getChar( obj ));
+									
+								}else if ( type == double.class ){
+									
+									writeLine( ""+field.getDouble( obj ));
+									
+								}else if ( type == float.class ){
+									
+									writeLine( ""+field.getFloat( obj ));
+									
+								}else if ( type == int.class ){
+									
+									writeLine( ""+field.getInt( obj ));
+									
+								}else if ( type == short.class ){
+									
+									writeLine( ""+field.getShort( obj ));
+									
+								}else if ( type == Long.class ){
+									
+									writeLine( ""+field.get( obj ));
+									
+								}else{
+									
+									serialiseObject( field.get(obj), indent + "    " );
+								}
 								
-								writeLine( (String)field.get( obj ));
+							}finally{
 								
-							}else if ( type == long.class ){
+								exdent();
 								
-								writeLine( ""+field.getLong( obj ));
-								
-							}else if ( type == boolean.class ){
-								
-								writeLine( ""+field.getBoolean( obj ));
-								
-							}else if ( type == byte.class ){
-								
-								writeLine( ""+field.getByte( obj ));
-								
-							}else if ( type == char.class ){
-								
-								writeLine( ""+field.getChar( obj ));
-								
-							}else if ( type == double.class ){
-								
-								writeLine( ""+field.getDouble( obj ));
-								
-							}else if ( type == float.class ){
-								
-								writeLine( ""+field.getFloat( obj ));
-								
-							}else if ( type == int.class ){
-								
-								writeLine( ""+field.getInt( obj ));
-								
-							}else if ( type == short.class ){
-								
-								writeLine( ""+field.getShort( obj ));
-								
-							}else if ( type == Long.class ){
-								
-								writeLine( ""+field.get( obj ));
-								
-							}else{
-								
-								serialiseObject( field.get(obj), indent + "    " );
+								writeLine( "</" + name + ">" );
 							}
-							
-						}finally{
-							
-							exdent();
-							
-							writeLine( "</" + name + ">" );
 						}
 					}
+									
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					throw( new RuntimeException( e.toString()));
 				}
-								
-			}catch( Throwable e ){
 				
-				e.printStackTrace();
-				
-				throw( new RuntimeException( e.toString()));
+				cla = cla.getSuperclass();
 			}
-			
-			cla = cla.getSuperclass();
 		}
 	}
 }

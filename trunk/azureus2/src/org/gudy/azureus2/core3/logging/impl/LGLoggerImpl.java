@@ -31,6 +31,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 LGLoggerImpl
@@ -79,7 +80,7 @@ LGLoggerImpl
 			
  			doRedirects();
 			
-			LGLogger.log( "**** Logging starts ****" );
+			LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
 			
 			if ( log_to_file ){
 				

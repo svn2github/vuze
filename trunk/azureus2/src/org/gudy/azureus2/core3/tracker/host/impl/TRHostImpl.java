@@ -100,7 +100,7 @@ TRHostImpl
 									
 									try{
 	
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Publish Enable", false )){
 											
 											if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
 										
