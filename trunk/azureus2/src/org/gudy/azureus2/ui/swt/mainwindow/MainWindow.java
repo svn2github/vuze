@@ -326,8 +326,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
     formData = new FormData();
     formData.top = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.left = new FormAttachment(10, 0); // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(90, 0); // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
 
     this.iconBar = new IconBar(mainWindow);
