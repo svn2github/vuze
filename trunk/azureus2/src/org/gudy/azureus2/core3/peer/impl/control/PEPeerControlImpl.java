@@ -257,10 +257,11 @@ PEPeerControlImpl
 
           long wait = 20;
           wait -= (System.currentTimeMillis() - started[0]);
-          if (started[4] != 0)
+          if (started[4] != 0) {
             for (int i = 0; i < 9; i++) {
               wait += 20 + (started[i + 1] - started[i]);
             }
+          }
 
           if (wait > 30)
             wait = 30;
@@ -334,16 +335,15 @@ PEPeerControlImpl
       {
       try {
         long timeStart = System.currentTimeMillis();
-        checkTracker(timeStart / 1000); //check the tracker status, update peers
+        
+        checkTracker(); //check the tracker status, update peers
         processPieceChecks();
-        checkCompletedPieces();
-        //check to see if we've completed anything else
+        checkCompletedPieces();  //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
         updateStats();
         freeRequests();
-        if (!_finished) //if we're not finished
-          {
-          //::moved check finished to the front -Tyler
+        
+        if (!_finished) { //if we're not finished
           checkFinished(); //see if we've finished
           if(!_finished) {
             _diskManager.computePriorityIndicator();
@@ -351,16 +351,17 @@ PEPeerControlImpl
             checkDLPossible(); //look for downloadable pieces
           }
         }
+        
         checkSeeds(false);
         updatePeersInSuperSeedMode();
         unChoke();
-        //prefetchReadOperation();
-        //sendReceive(); //Send - Receive data on sockets
+
         _loopFactor++; //increment the loopFactor
-        long timeWait = 100 - (System.currentTimeMillis() - timeStart);
-        if (timeWait < 10)
-          timeWait = 10;
-        Thread.sleep(timeWait); //sleep
+        
+        long timeWait = 1000 - (System.currentTimeMillis() - timeStart);
+        if (timeWait > 10) {
+        	Thread.sleep(timeWait); //sleep
+        }
 
       }
       catch (Exception e) {
@@ -412,7 +413,7 @@ PEPeerControlImpl
     if (_peer_transports != null) {
       synchronized (_peer_transports) {
         while (_peer_transports.size() != 0) {
-          PEPeerTransport pc = (PEPeerTransport) removeFromPeerTransports(0);
+          PEPeerTransport pc = removeFromPeerTransports(0);
           pc.closeAll("Closing all Connections",false, false);
         }
       }
@@ -573,7 +574,7 @@ PEPeerControlImpl
   private void checkDLPossible() {
     //::updated this method to work with List -Tyler
     //for all peers
-    Vector bestUploaders = new Vector();
+    List bestUploaders = new ArrayList();
     synchronized (_peer_transports) {
       long[] upRates = new long[_peer_transports.size()];
       Arrays.fill(upRates, -1);
@@ -612,7 +613,7 @@ PEPeerControlImpl
           if(endGameMode)
             found = findPieceInEndGameMode(pc);
           else
-            found = findPieceToDownload(pc, pc.isSnubbed());
+            found = findPieceToDownload(pc);
           //is there anything else to download?
         }
       }
@@ -712,8 +713,7 @@ PEPeerControlImpl
         PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc.getState() == PEPeer.TRANSFERING) {
           List expired = pc.getExpiredRequests();
-          //::May want to make this an ArrayList unless you
-          //::need the synchronization a vector offers -Tyler
+
           if (expired != null && expired.size() > 0) {
             pc.setSnubbed(true);
 
@@ -761,8 +761,7 @@ PEPeerControlImpl
    *
    */
   private void 
-  checkTracker(
-  	long time) 
+  checkTracker() 
   {
   	int		percentage 			= 100;
   	boolean	use_minimum_delay	= false;
@@ -853,8 +852,7 @@ PEPeerControlImpl
 
     //copy availability into _availability
     synchronized (_availability) {
-      for (int i = 0; i < availability.length; i++)
-        _availability[i] = availability[i];
+      System.arraycopy(availability, 0, _availability, 0, availability.length);
     }
   }
 
@@ -871,7 +869,7 @@ PEPeerControlImpl
    * @param snubbed if the peer is snubbed, so requested block won't be mark as requested.
    * @return true if a request was assigned, false otherwise
    */
-  private boolean findPieceToDownload(PEPeerTransport pc, boolean snubbed) {
+  private boolean findPieceToDownload(PEPeerTransport pc) {
     //get the rarest pieces list
     getRarestPieces(pc,90);
     if (_piecesRarest == null)
@@ -1094,42 +1092,40 @@ PEPeerControlImpl
 
   
   private void unChoke() {
-    //1. We retreive the current non-choking peers
-    Vector nonChoking = getNonChokingPeers();
+    // Only Choke-Unchoke Every 10 secs
+    if ((_loopFactor % 10) != 0) {
+      return;
+    }
+    
+    // We retreive the current non-choking peers
+    List nonChoking = getNonChokingPeers();
 
-    //2. Determine how many uploads we should consider    
+    // Determine how many uploads we should consider    
     int nbUnchoke = _manager.getStats().getMaxUploads();
 
-    //System.out.println(nbUnchoke);
-
-    //3. Then, in any case if we have too many unchoked pple we need to choke some
+    // Then, in any case if we have too many unchoked pple we need to choke some
     while (nbUnchoke < nonChoking.size()) {
       PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
       pc.sendChoke();
     }
 
-    //4. If we lack unchoke pple, find new ones ;)
+    // If we lack unchoke pple, find new ones ;)
     if (nbUnchoke > nonChoking.size()) {
-      //4.1 Determine the N (nbUnchoke best peers)
+      //Determine the N (nbUnchoke best peers)
       //Maybe we'll need some other test when we are a seed ...
       prepareBestUnChokedPeers(nbUnchoke - nonChoking.size());
       nonChoking = getNonChokingPeers();
     }
 
-    //3. Only Choke-Unchoke Every 10 secs
-    if ((_loopFactor % 100) != 0)
-      return;
+    // Determine the N (nbUnchoke best peers)
+    // Maybe we'll need some other test when we are a seed ...
+    List bestUploaders = getBestUnChokedPeers(nbUnchoke);
 
-    //4. Determine the N (nbUnchoke best peers)
-    //   Maybe we'll need some other test when we are a seed ...
-    Vector bestUploaders = getBestUnChokedPeers(nbUnchoke);
-
-    
-    
-    //  optimistic unchoke
-    if ((_loopFactor % 300) == 0 || (currentOptimisticUnchoke == null)) {
-      performOptimisticUnChoke(bestUploaders);
+    // optimistic unchoke every 30 seconds
+    if ((_loopFactor % 30) == 0 || (currentOptimisticUnchoke == null)) {
+      performOptimisticUnChoke();
     }
+    
     if(currentOptimisticUnchoke != null) {
       if(!bestUploaders.contains(currentOptimisticUnchoke)) {
         if(bestUploaders.size() > 0) {
@@ -1155,14 +1151,6 @@ PEPeerControlImpl
     }
   }
  
-  /*
-  private void uniqueAdd(List list,Object obj) {
-    if(obj == null || list == null)
-      return;
-    if(list.contains(obj))
-      return;
-    list.add(obj);
-  }*/
 
   // refactored out of unChoke() - Moti
   private void prepareBestUnChokedPeers(int numUpRates) {
@@ -1172,7 +1160,7 @@ PEPeerControlImpl
     long[] upRates = new long[numUpRates];
     Arrays.fill(upRates, 0);
 
-    Vector bestUploaders = new Vector();
+    List bestUploaders = new ArrayList();
     for (int i = 0; i < _peer_transports.size(); i++) {
       PEPeerTransport pc = null;
       try {
@@ -1194,11 +1182,11 @@ PEPeerControlImpl
   }
 
   // refactored out of unChoke() - Moti
-  private Vector getBestUnChokedPeers(int nbUnchoke) {
+  private List getBestUnChokedPeers(int nbUnchoke) {
     long[] upRates = new long[nbUnchoke];
     Arrays.fill(upRates, 0);
 
-    Vector bestUploaders = new Vector();
+    List bestUploaders = new ArrayList();
     synchronized (_peer_transports) {
       for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = null;
@@ -1277,7 +1265,7 @@ PEPeerControlImpl
   }
 
   // refactored out of unChoke() - Moti
-  private void performOptimisticUnChoke(Vector bestUploaders) {
+  private void performOptimisticUnChoke() {
     int index = 0;
     synchronized (_peer_transports) {
       for (int i = 0; i < _peer_transports.size(); i++) {
@@ -1301,8 +1289,8 @@ PEPeerControlImpl
   }
 
   // refactored out of unChoke() - Moti
-  private Vector getNonChokingPeers() {
-    Vector nonChoking = new Vector();
+  private List getNonChokingPeers() {
+    List nonChoking = new ArrayList();
     synchronized (_peer_transports) {
       for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = null;
@@ -1320,7 +1308,7 @@ PEPeerControlImpl
     return nonChoking;
   }
 
-  private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, Vector best, int start) {
+  private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, List best, int start) {
     if(best == null || pc == null)
       return;
     if(best.contains(pc))
@@ -1341,24 +1329,6 @@ PEPeerControlImpl
       best.remove(upRates.length);
   }
 
-  /*
-    private static void testAndSortWeakest(int upRate, int[] upRates, PeerSocket pc, Vector worst) {
-      int i;
-      for (i = 0; i < upRates.length; i++) {
-        if (upRate <= upRates[i])
-          break;
-      }
-      if (i < upRates.length) {
-        worst.add(i, pc);
-        for (int j = i; j < upRates.length - 1; j++) {
-          upRates[j + 1] = upRates[j];
-        }
-        upRates[i] = upRate;
-      }
-      if (worst.size() > upRates.length)
-        worst.remove(upRates.length);
-    }
-  */
 
   //send the have requests out
   private void sendHave(int pieceNumber) {
@@ -1801,13 +1771,13 @@ PEPeerControlImpl
             //Find out the correct hash
             List listPerBlock = piece.getPieceWrites(i);
             byte[] correctHash = null;
-            PEPeer correctSender = null;
+            //PEPeer correctSender = null;
             Iterator iterPerBlock = listPerBlock.iterator();
             while(iterPerBlock.hasNext()) {
               PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
               if(write.isCorrect()) {
                 correctHash = write.getHash();
-                correctSender = write.getSender();
+                //correctSender = write.getSender();
               }
             }
             //System.out.println("Correct Hash " + correctHash);
