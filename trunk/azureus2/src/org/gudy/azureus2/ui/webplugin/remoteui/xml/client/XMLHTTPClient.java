@@ -40,42 +40,58 @@ XMLHTTPClient
 	protected
 	XMLHTTPClient()
 	{
+		boolean	quick_test = true;
+		
+		
 		try{
 			long	req_id = 0;
 			
-			SimpleXMLParserDocument	res = 
-				sendRequest( 	"<REQUEST>"+
-									"<METHOD>getSingleton</METHOD>"+
-									"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
-								"</REQUEST>");
+			if ( quick_test ){
+				SimpleXMLParserDocument	res = 
+					sendRequest( 	"<REQUEST>"+
+										"<METHOD>getDownloads</METHOD>"+
+										"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+									"</REQUEST>");
+				
+				res.print();
+				
+			}else{
+				
+				SimpleXMLParserDocument	res = 
+					sendRequest( 	"<REQUEST>"+
+										"<METHOD>getSingleton</METHOD>"+
+										"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+									"</REQUEST>");
+				
+				res.print();
+	
+				String connection_id = res.getChild( "_connection_id" ).getValue().trim();
+				
+				String plugin_if_oid	= res.getChild( "_object_id" ).getValue().trim();
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getDownloadManager</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
+	
+				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
 			
-			res.print();
-
-			String connection_id = res.getChild( "_connection_id" ).getValue().trim();
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getDownloads</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
 			
-			String plugin_if_oid	= res.getChild( "_object_id" ).getValue().trim();
-			
-			res = sendRequest( 
-					"<REQUEST>" +
-						"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
-						"<METHOD>getDownloadManager</METHOD>"+
-						"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
-						"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
-					"</REQUEST>");
-
-			res.print();
-
-			String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
-		
-			res = sendRequest( 
-					"<REQUEST>" +
-						"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
-						"<METHOD>getDownloads</METHOD>"+
-						"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
-						"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
-					"</REQUEST>");
-		
-			res.print();
+				res.print();
+				
+			}
 
 		}catch( Throwable e ){
 			

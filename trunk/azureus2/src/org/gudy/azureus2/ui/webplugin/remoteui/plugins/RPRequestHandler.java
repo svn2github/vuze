@@ -29,7 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
-
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
 
 public class 
 RPRequestHandler 
@@ -91,6 +91,16 @@ RPRequestHandler
 				
 				return( reply );
 				
+			}else if ( method.equals( "getDownloads")){
+					
+					// short cut method for quick access to downloads
+					// used by GTS
+				
+				RPPluginInterface pi = RPPluginInterface.create(plugin_interface);
+					
+				RPDownloadManager dm = (RPDownloadManager)pi._process( new RPRequest(null, "getDownloadManager", null )).getResponse();
+				
+				return( dm._process(new RPRequest( null, "getDownloads", null )));
 			}else{
 					// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
 				
