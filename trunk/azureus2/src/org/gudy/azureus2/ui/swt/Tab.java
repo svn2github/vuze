@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.views.*;
 
 /**
@@ -57,7 +58,7 @@ public class Tab {
     } else {
       tabItem = new TabItem(folder, SWT.NULL);
       //tabItem = new CTabItem(folder, SWT.NULL);
-    }      
+    }
     if(!( _view instanceof MyTorrentsView)) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
@@ -116,7 +117,11 @@ public class Tab {
           if(lastTitle == null || !lastTitle.equals(newTitle)) {
             item.setText(newTitle);            
           }
-          item.setToolTipText(view.getFullTitle());          
+          String lastToolTip = item.getToolTipText();
+          String newToolTip = view.getFullTitle() + " " + MessageText.getString("Tab.closeHint");
+          if(lastToolTip == null || !lastToolTip.equals(newToolTip)) {
+            item.setToolTipText(newToolTip);          
+          }
         } catch (Exception e) {
         }
       }
@@ -158,13 +163,23 @@ public class Tab {
 			}
 		}
 	}
+  
+  public static void closeCurrent() {
+    if(_folder == null || _folder.isDisposed())
+      return;
+    TabItem[] items = _folder.getSelection();
+    if(items.length == 1) {
+      closed(items[0]);
+    }
+  }
 
   public static void setFolder(TabFolder folder) {
   //public static void setFolder(CTabFolder folder) {
     _folder = folder;
   }
 
-  public static synchronized void closed(CTabItem item) {
+  public static synchronized void closed(TabItem item) {
+  //public static synchronized void closed(CTabItem item) {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);

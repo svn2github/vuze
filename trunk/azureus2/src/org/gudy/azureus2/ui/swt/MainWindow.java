@@ -35,6 +35,9 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -55,6 +58,9 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.Decorations;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -378,6 +384,15 @@ public class MainWindow implements GlobalManagerListener {
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    
+    GridData gridData;
+    /*CoolBar coolbar = new CoolBar(mainWindow,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    coolbar.setLayoutData(coolbar);
+    CoolItem item = new CoolItem(coolbar,SWT.NULL);
+    Decorations decoMenu = new Decorations(coolbar,SWT.NULL);
+    */
+    
     //The Main Menu
     menuBar = new Menu(mainWindow, SWT.BAR);
     mainWindow.setMenuBar(menuBar);
@@ -551,7 +566,7 @@ public class MainWindow implements GlobalManagerListener {
 
     addCloseDownloadBarsToMenu(viewMenu);
 
-    createLanguageMenu(menuBar);
+    createLanguageMenu(menuBar,mainWindow);
 
     //The Help Menu
     MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -571,19 +586,22 @@ public class MainWindow implements GlobalManagerListener {
 
     GridLayout mainLayout = new GridLayout();
     mainLayout.numColumns = 1;
-    mainLayout.marginHeight = 0;
+    mainLayout.marginHeight = 1;
     mainLayout.marginWidth = 0;
     mainWindow.setLayout(mainLayout);
     //mainWindow.setBackground(white);
+    
+    //decoMenu.setMenuBar(menuBar);
+    //item.setControl(decoMenu);
 
-    GridData gridData;
+    
 
     gridData = new GridData(GridData.FILL_BOTH);
     folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     //folder = new CTabFolder(mainWindow, SWT.NULL);
     Tab.setFolder(folder);
     
-    Menu menuFolder = new Menu(mainWindow,SWT.NULL);
+    /*Menu menuFolder = new Menu(mainWindow,SWT.NULL);
     MenuItem closeTab = new MenuItem(menuFolder,SWT.NULL);
     Messages.setLanguageText(closeTab,"MainWindow.folder.menu");
     menuFolder.addListener(SWT.Show,new Listener() {     
@@ -592,7 +610,16 @@ public class MainWindow implements GlobalManagerListener {
          event.doit = false;
       }
     });
-    folder.setMenu(menuFolder);
+    folder.setMenu(menuFolder);*/
+    
+    folder.addKeyListener(new KeyAdapter() {
+      public void keyReleased(KeyEvent keyEvent) {
+        //System.out.println(keyEvent.keyCode);
+        if(keyEvent.character == SWT.ESC) {
+          Tab.closeCurrent();
+        }
+      }
+    });
     
     //folder.setSelectionBackground(new Color[] { white }, new int[0]);
     folder.setLayoutData(gridData);
@@ -603,7 +630,7 @@ public class MainWindow implements GlobalManagerListener {
       }
     });*/
 
-	mytorrents = new Tab(new MyTorrentsView(globalManager));
+    mytorrents = new Tab(new MyTorrentsView(globalManager));
 
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());
@@ -728,10 +755,10 @@ public class MainWindow implements GlobalManagerListener {
     }
   }
 
-  private void createLanguageMenu(Menu menu) {
+  private void createLanguageMenu(Menu menu,Decorations decoMenu) {
     MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
-    Menu languageMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    Menu languageMenu = new Menu(decoMenu, SWT.DROP_DOWN);
     languageItem.setMenu(languageMenu);
 
     Locale[] locales = MessageText.getLocales();
@@ -1625,7 +1652,7 @@ public class MainWindow implements GlobalManagerListener {
       }
 
       if (singleFile) {
-        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
+        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | SWT.SAVE);
         fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
         fDialog.setFileName(singleFileName);
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
