@@ -90,7 +90,25 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString());
+		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString(), false, false );
+		
+		if ( dm == null ){
+			
+			throw( new DownloadException( "DownloadManager::addDownload - failed"));
+		}
+		
+		return( new DownloadImpl(dm));
+	}
+
+	public Download
+	addNonPersistentDownload(
+		Torrent		torrent,
+		File		torrent_file,
+		File		data_location )
+	
+		throws DownloadException
+	{
+		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString(), false, false );
 		
 		if ( dm == null ){
 			

@@ -148,14 +148,17 @@ DownloadManager
 	setPriority(
 		int		priority );
   
-  public boolean isPriorityLocked();
-  
-  public void setPriorityLocked(boolean locked);
+	public boolean isPriorityLocked();
+  	
+  	public void setPriorityLocked(boolean locked);
 
-  public boolean isStartStopLocked();
+  	public boolean isStartStopLocked();
   
-  public void setStartStopLocked(boolean locked);
+  	public void setStartStopLocked(boolean locked);
   
+  	public boolean
+  	isPersistent();
+  	
 	public String
 	getTrackerStatus();
 	

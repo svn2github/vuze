@@ -22,7 +22,6 @@
 package org.gudy.azureus2.core3.tracker.client;
 
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.peer.*;
 
 public interface 
 TRTrackerClient 
@@ -36,8 +35,8 @@ TRTrackerClient
 
 	
 	public void
-	setManager(
-		PEPeerManager		manager );
+	setAnnounceDataProvider(
+		TrackerClientAnnounceDataProvider		provider );
 	
 	public TOTorrent
 	getTorrent();

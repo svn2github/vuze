@@ -58,74 +58,84 @@ DownloadManagerImpl
   
 	private DownloadManagerStatsImpl	stats;
 	
-  private boolean startStopLocked;
-  private int state;
-  private boolean download_ended;
+	private boolean		persistent;
+	private boolean 	startStopLocked;
+	private int 		state;
+	private boolean 	download_ended;
   
-  private int prevState = -1;
+	private int prevState = -1;
 
-  private boolean priorityLocked;
-  private int priority;
+	private boolean priorityLocked;
+	private int priority;
 
-  private String errorDetail;
+	private String errorDetail;
 
-  private GlobalManager globalManager;
+	private GlobalManager globalManager;
 
-  private String torrentFileName;
-  private String name;
+	private String torrentFileName;
+	private String name;
 
-  private int nbPieces;
-  private String savePath;
+	private int nbPieces;
+	private String savePath;
   
-  //Used when trackerConnection is not yet created.
- // private String trackerUrl;
+	//Used when trackerConnection is not yet created.
+	// private String trackerUrl;
   
-  private boolean forcedRecheck;
+	private boolean forcedRecheck;
   
-  private PEPeerServer server;
-  private TOTorrent			torrent;
-  private String torrent_comment;
-  private String torrent_created_by;
+	private PEPeerServer server;
+	private TOTorrent			torrent;
+	private String torrent_comment;
+	private String torrent_created_by;
   
-  private TRTrackerClient 			tracker_client;
-  private TRTrackerClientListener	tracker_client_listener;
+	private TRTrackerClient 			tracker_client;
+	private TRTrackerClientListener	tracker_client_listener;
+	
+	private DiskManager diskManager;
   
-  private DiskManager diskManager;
-  
-  private PEPeerManager 		peerManager;
-  private PEPeerManagerListener	peer_manager_listener;
+	private PEPeerManager 		peerManager;
+	private PEPeerManagerListener	peer_manager_listener;
    
-  public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
-	this(gm, torrentFileName, savePath);
-	if (this.state == STATE_ERROR)
-	  return;
-	if (stopped)
-	  setState( STATE_STOPPED );
-  }
-
-  public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath) {
+	public 
+	DownloadManagerImpl(
+		GlobalManager 	_gm, 
+		String 			_torrentFileName, 
+		String 			_savePath,
+		boolean			_start_stopped,
+		boolean			_persistent ) 
+	{
+		persistent	= _persistent;
   	
-  	stats = new DownloadManagerStatsImpl( this );
+		stats = new DownloadManagerStatsImpl( this );
   	
-	this.globalManager = gm;
+		globalManager = _gm;
 	
-	stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
+		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
 	 
-	this.startStopLocked = false;
+		startStopLocked = false;
   
-	this.forcedRecheck = false;
+		forcedRecheck = false;
   
-    setState( STATE_WAITING );
+		setState( STATE_WAITING );
 	
-  this.priorityLocked = false;
-	this.priority = HIGH_PRIORITY;
+		priorityLocked = false;
+    
+		priority = HIGH_PRIORITY;
 	
-	this.torrentFileName = torrentFileName;
+		torrentFileName = _torrentFileName;
 	
-	this.savePath = savePath;
+		savePath = _savePath;
 	
-	readTorrent();
-  }
+		readTorrent();
+	
+		if ( _start_stopped ){
+		
+			if ( state != STATE_ERROR){
+
+				setState( STATE_STOPPED );
+			}
+		}
+	}
 
   public void initialize() {
 	if(torrent == null) {
@@ -322,6 +332,11 @@ DownloadManagerImpl
 	return STATE_ERROR;
   }
   
+  public boolean
+  isPersistent()
+  {
+  	return( persistent );
+  }
   
   /**
    * Returns the 'previous' state.

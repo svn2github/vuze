@@ -175,7 +175,16 @@ ShareResourceDirContentsImpl
 	protected void
 	deleteInternal()
 	{
-		// TODO:
+		for (int i=0;i<children.length;i++){
+			
+			try{
+				children[i].delete();
+				
+			}catch( ShareException e ){
+				
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	protected void

@@ -1,7 +1,7 @@
 /*
- * File    : DownloadManagerFactory.java
- * Created : 19-Oct-2003
- * By      : stuff
+ * File    : TrackerClientAnnounceDataProvider.java
+ * Created : 09-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,27 +19,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.download;
+package org.gudy.azureus2.core3.tracker.client;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.download.impl.*;
-import org.gudy.azureus2.core3.global.*;
-
-public class 
-DownloadManagerFactory 
+public interface 
+TrackerClientAnnounceDataProvider 
 {
-	public static DownloadManager
-	create(
-		GlobalManager 	gm, 
-		String 			torrentFileName, 
-		String 			savePath, 
-		boolean 		stopped,
-		boolean			persistent )
-	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, stopped, persistent ));
-	}	
+	public long
+	getTotalSent();
+	
+	public long
+	getTotalReceived();
+	
+	public long
+	getRemaining();
 }

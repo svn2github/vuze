@@ -136,7 +136,27 @@ PEPeerControlImpl
     this.nbHashFails = 0;
 
     //The connection to the tracker
-    _tracker.setManager(this);
+    _tracker.setAnnounceDataProvider(
+    		new TrackerClientAnnounceDataProvider()
+    		{
+    			public long
+    			getTotalSent()
+    			{
+    				return(getStats().getTotalSent());
+    			}
+    			public long
+    			getTotalReceived()
+    			{
+    				return(getStats().getTotalReceived());
+    			}
+    			
+    			public long
+    			getRemaining()
+    			{
+    				return( PEPeerControlImpl.this.getRemaining());
+    			}
+    		});
+    
     _myPeerId = _tracker.getPeerId();
 
     //The peer connections

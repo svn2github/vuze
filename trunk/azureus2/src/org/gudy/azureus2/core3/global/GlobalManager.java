@@ -33,22 +33,19 @@ GlobalManager
 	addDownloadManager(
 		String			file_name,
 		String			save_path );
-
-  /**
-   * @param fileName
-   * @param savePath
-   * @param startStopped if true, the download will be added in STOPPED state
-   * @return download manager. If the torrent already existed then the existing download manager
-   * will be returned. if an error occurs then 'null' is returned
-   *
-   * @author Rene Leonhardt
-   */
 	
-  public DownloadManager
-  addDownloadManagerStopped(
-    String fileName,
-    String savePath,
-    boolean startStopped);
+	public DownloadManager
+	addDownloadManager(
+		String			file_name,
+		String			save_path,
+		boolean			start_stopped );
+		
+	public DownloadManager
+	addDownloadManager(
+	    String 		fileName,
+	    String 		savePath,
+	    boolean 	startStopped,
+		boolean		persistent );
   
 	public void
 	removeDownloadManager(

@@ -1913,7 +1913,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               String savePath = getSavePath(fileName);
               if (savePath == null)
                 return;
-              globalManager.addDownloadManagerStopped(fileName, savePath, startInStoppedState);
+              globalManager.addDownloadManager(fileName, savePath, startInStoppedState);
             }
           }
           .start();
@@ -2071,7 +2071,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     new Thread() {
       public void run() {
         for (int i = 0; i < files.length; i++)
-          globalManager.addDownloadManagerStopped(files[i].getAbsolutePath(), savePath, startInStoppedState);
+          globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath, startInStoppedState);
       }
     }
     .start();

@@ -140,6 +140,8 @@ ShareManagerImpl
 		try{
 			reportCurrentTask( "Consistency Check Starts");	
 		
+				// copy set for iteration as consistency check can delete resource
+			
 			Iterator	it = new HashSet(shares.values()).iterator();
 			
 			while(it.hasNext()){
@@ -283,7 +285,11 @@ ShareManagerImpl
 	deleteTorrent(
 		ShareItemImpl		item )
 	{
-		getTorrentFile(item).delete();
+		File	torrent_file = getTorrentFile(item);
+		
+		System.out.println( "deleting torrent '" + torrent_file.toString() + "'");
+		
+		torrent_file.delete();
 	}
 	
 	protected boolean

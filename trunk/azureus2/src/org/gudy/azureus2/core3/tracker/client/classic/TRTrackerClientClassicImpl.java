@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 
@@ -89,7 +88,7 @@ TRTrackerClientClassicImpl
 	private String port;
 	private String ip_override;
   
-	private PEPeerManager manager;
+	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 
   
 	public final static int componentID = 2;
@@ -834,9 +833,9 @@ TRTrackerClientClassicImpl
 	request.append(info_hash);
 	request.append(peer_id);
 	request.append(port);
-	request.append("&uploaded=").append(manager.getStats().getTotalSent());
-	request.append("&downloaded=").append(manager.getStats().getTotalReceived());
-	request.append("&left=").append(manager.getRemaining());
+	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
+	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
+	request.append("&left=").append(announce_data_provider.getRemaining());
 	if (evt.length() != 0)
 	  request.append("&event=").append(evt);
 	if (evt.equals("stopped")){
@@ -857,13 +856,18 @@ TRTrackerClientClassicImpl
 	return request.toString();
   }
 
-  public byte[] getPeerId() {
-	return peerId;
-  }
+  	public byte[] 
+  	getPeerId() 
+  	{
+  		return peerId;
+  	}
 
-  public void setManager(PEPeerManager manager) {
-	this.manager = manager;
-  }
+  	public void 
+  	setAnnounceDataProvider(
+  			TrackerClientAnnounceDataProvider _provider) 
+  	{
+  		announce_data_provider = _provider;
+  	}
 	
 	public TOTorrent
 	getTorrent()
@@ -871,61 +875,63 @@ TRTrackerClientClassicImpl
 		return( torrent );
 	}
 	
-  public String getTrackerUrl() {
-	return lastUsedUrl;
-  } 
+	public String 
+	getTrackerUrl() 
+	{
+		return lastUsedUrl;
+	} 
   
-  public void 
-  setTrackerUrl(
-	String trackerUrl ) 
-  {
-	trackerUrl = trackerUrl.replaceAll(" ", "");
-	
-	List list = new ArrayList(1);
-  	
-	list.add( trackerUrl );
-  	
-	trackerUrlLists.clear();
-  	
-	trackerUrlLists.add( list );
-	
-	informURLChange( trackerUrl, true );       	
-  }
-  
-  public void
-  resetTrackerUrl(
-  	boolean		shuffle )
-  {
-	constructTrackerUrlLists(shuffle);
- 	
-	if ( trackerUrlLists.size() == 0 ){
+	public void 
+	setTrackerUrl(
+		String trackerUrl ) 
+	{
+		trackerUrl = trackerUrl.replaceAll(" ", "");
 		
-		return;
+		List list = new ArrayList(1);
+  	
+		list.add( trackerUrl );
+  	
+		trackerUrlLists.clear();
+  	
+		trackerUrlLists.add( list );
+	
+		informURLChange( trackerUrl, true );       	
+	}
+  
+	public void
+	resetTrackerUrl(
+			boolean		shuffle )
+	{
+		constructTrackerUrlLists(shuffle);
+ 	
+		if ( trackerUrlLists.size() == 0 ){
+		
+			return;
+		}
+	
+		String	first_url = (String)((List)trackerUrlLists.get(0)).get(0);
+		
+		informURLChange( first_url, true );       	
 	}
 	
-	String	first_url = (String)((List)trackerUrlLists.get(0)).get(0);
-		
-	informURLChange( first_url, true );       	
- }
-	
-  public void
-  refreshListeners()
-  {
-  	informURLRefresh();
-  }
+	public void
+	refreshListeners()
+	{
+		informURLRefresh();
+	}
 
-  public void
-  setIPOverride(
-	  String		override )
-  {
-  	ip_override = override;
-  }
+	public void
+	setIPOverride(
+		String		override )
+	{
+		ip_override = override;
+	}
 	
-  public void
-  clearIPOverride()
-  {
-  	ip_override = null;
-  }
+	public void
+	clearIPOverride()
+	{
+		ip_override = null;
+	}
 		
   private void 
   constructTrackerUrlLists(

@@ -70,12 +70,20 @@ DownloadManager
 	
 	public Download
 	addDownload(
+			Torrent		torrent,
+			File		torrent_location,
+			File		data_location )
+	
+	throws DownloadException;
+	
+	public Download
+	addNonPersistentDownload(
 		Torrent		torrent,
 		File		torrent_location,
 		File		data_location )
 	
 		throws DownloadException;
-		
+	
 	public Download
 	getDownload(
 		Torrent		torrent );

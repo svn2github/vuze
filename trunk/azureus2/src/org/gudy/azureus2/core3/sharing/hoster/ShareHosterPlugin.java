@@ -117,7 +117,7 @@ ShareHosterPlugin
 					
 					if ( download == null ){
 						
-						download_manager.addDownload( torrent, item.getTorrentFile(), file_resource.getFile());
+						download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
 					}
 				}else if ( type == ShareResource.ST_DIR ){
 				
@@ -133,7 +133,7 @@ ShareHosterPlugin
 					
 					if ( download == null ){
 						
-						download_manager.addDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
+						download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
 					}
 				}
 			}catch( Throwable e ){

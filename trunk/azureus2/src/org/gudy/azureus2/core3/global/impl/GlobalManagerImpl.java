@@ -331,16 +331,22 @@ public class GlobalManagerImpl
   }
 
   public DownloadManager addDownloadManager(String fileName, String savePath) {
-    return addDownloadManagerStopped(fileName, savePath, false);
+  	return addDownloadManager(fileName, savePath, false, true);
   }
-
+   
+  public DownloadManager 
+  addDownloadManager(String fileName, String savePath, boolean startStopped ) {
+  	return( addDownloadManager(fileName, savePath, startStopped, true ));
+  }
+  	
   /**
    * @param startStopped if true, the download will be added in STOPPED state
    * @return true, if the download was added
    *
    * @author Rene Leonhardt
    */
-  public DownloadManager addDownloadManagerStopped(String fileName, String savePath, boolean startStopped) {
+  public DownloadManager 
+  addDownloadManager(String fileName, String savePath, boolean startStopped, boolean persistent ) {
 	File torrentDir	= null;
 	File fDest		= null;
 	
@@ -375,7 +381,7 @@ public class GlobalManagerImpl
       
       fDest.createNewFile();
       FileUtil.copyFile(f, fDest);
-      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath, startStopped, persistent );
       manager = addDownloadManager(manager);
       if ( manager == null ) {
         fDest.delete();
@@ -390,12 +396,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       e.printStackTrace();
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, startStopped, persistent);
       return addDownloadManager(manager);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, startStopped, persistent);
       return addDownloadManager(manager);
     }
   }
@@ -553,7 +559,7 @@ public class GlobalManagerImpl
           Long lHashFails = (Long) mDownload.get("hashfails");
           Long lPriorityLocked = (Long) mDownload.get("priorityLocked");
           Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
-          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1);
+          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1, true );
           dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
@@ -612,50 +618,56 @@ public class GlobalManagerImpl
   private void saveDownloads() {
     //    if(Boolean.getBoolean("debug")) return;
 
-    Map map = new HashMap();
-    List list = new ArrayList(managers.size());
-    for (int i = 0; i < managers.size(); i++) {
-      DownloadManager dm = (DownloadManager) managers.get(i);
-      Map dmMap = new HashMap();
-      dmMap.put("torrent", dm.getTorrentFileName());
-      dmMap.put("path", dm.getFullName());
-      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
-      int stopped = 0;
-      if (dm.getState() == DownloadManager.STATE_STOPPED)
-        stopped = 1;
-      dmMap.put("stopped", new Long(stopped));
-      int priority = dm.getPriority();
-      dmMap.put("priority", new Long(priority));
-      dmMap.put("position", new Long(i));
-      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
-      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
-      dmMap.put("completed", new Long(dm.getStats().getCompleted()));
-      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
-      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
-      dmMap.put("priorityLocked", new Long(dm.isPriorityLocked() ? 1 : 0));
-      dmMap.put("startStopLocked", new Long(dm.isStartStopLocked() ? 1 : 0));
-      list.add(dmMap);
-    }
-    map.put("downloads", list);
-    //encode the data
-    byte[] torrentData = BEncoder.encode(map);
-    //open a file stream
-    FileOutputStream fos = null;
-    try {
-      fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
-      //write the data out
-      fos.write(torrentData);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-    finally {
-      try {
-        if (fos != null)
-          fos.close();
-      }
-      catch (Exception e) {}
-    }
+  	synchronized( managers ){
+	    Map map = new HashMap();
+	    List list = new ArrayList(managers.size());
+	    for (int i = 0; i < managers.size(); i++) {
+	      DownloadManager dm = (DownloadManager) managers.get(i);
+	      
+	      if ( dm.isPersistent()){
+	      	
+		      Map dmMap = new HashMap();
+		      dmMap.put("torrent", dm.getTorrentFileName());
+		      dmMap.put("path", dm.getFullName());
+		      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
+		      int stopped = 0;
+		      if (dm.getState() == DownloadManager.STATE_STOPPED)
+		        stopped = 1;
+		      dmMap.put("stopped", new Long(stopped));
+		      int priority = dm.getPriority();
+		      dmMap.put("priority", new Long(priority));
+		      dmMap.put("position", new Long(i));
+		      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
+		      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
+		      dmMap.put("completed", new Long(dm.getStats().getCompleted()));
+		      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
+		      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
+		      dmMap.put("priorityLocked", new Long(dm.isPriorityLocked() ? 1 : 0));
+		      dmMap.put("startStopLocked", new Long(dm.isStartStopLocked() ? 1 : 0));
+		      list.add(dmMap);
+	      }
+	    }
+	    map.put("downloads", list);
+	    //encode the data
+	    byte[] torrentData = BEncoder.encode(map);
+	    //open a file stream
+	    FileOutputStream fos = null;
+	    try {
+	      fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
+	      //write the data out
+	      fos.write(torrentData);
+	    }
+	    catch (Exception e) {
+	      e.printStackTrace();
+	    }
+	    finally {
+	      try {
+	        if (fos != null)
+	          fos.close();
+	      }
+	      catch (Exception e) {}
+	    }
+  	}
   }
 
   /**
