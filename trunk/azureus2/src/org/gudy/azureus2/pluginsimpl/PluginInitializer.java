@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.ui.swt.SplashWindow;
 
 import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
@@ -50,6 +51,7 @@ public class PluginInitializer {
   													TrackerWebDefaultTrackerPlugin.class,};
   
   private static PluginInitializer	singleton;
+  
   private static List		registration_queue = new ArrayList();
   
   private URLClassLoader classLoader;
@@ -58,6 +60,8 @@ public class PluginInitializer {
   
   private TRHost		tracker_host;
   private GlobalManager	global_manager;
+  
+  private PluginInterface	default_plugin;
   
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
@@ -219,6 +223,24 @@ public class PluginInitializer {
   getGlobalManager()
   {
   	return( global_manager );
+  }
+  
+  public static PluginInterface
+  getDefaultInterface()
+  {
+  	return( singleton.getDefaultInterfaceSupport());
+  }
+  
+  protected PluginInterface
+  getDefaultInterfaceSupport()
+  {
+  
+  	if ( default_plugin == null ){
+  		
+  		default_plugin = new PluginInterfaceImpl(this,"default",new Properties(),null);
+  	}
+  	
+  	return( default_plugin );
   }
   
   protected void

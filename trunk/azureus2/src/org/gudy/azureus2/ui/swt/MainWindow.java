@@ -1847,8 +1847,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   public void openTorrent(final String fileName, final boolean startInStoppedState) {
     try {
-      if (!FileUtil.isTorrentFile(fileName)) //$NON-NLS-1$
+      if (!FileUtil.isTorrentFile(fileName)){
+      	
+        shareFile( fileName );
+        
         return;
+      }
     } catch (Exception e) {
       return;
     }
@@ -1872,6 +1876,19 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       });
   }
 
+  protected void
+  shareFile(
+  	String	file_name )
+  {
+  	try{
+  		PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
+  		
+  	}catch( Throwable e ){
+  		
+  		e.printStackTrace();
+  	}
+  }
+  
   public String getSavePath(String fileName) {
     return getSavePathSupport(fileName,true);
   }
