@@ -589,6 +589,12 @@ TOTorrentImpl
 		return((Map)additional_properties.get( name ));
 	}
 	
+	public void
+	removeAdditionalProperties()
+	{
+		additional_properties.clear();
+	}
+
 	protected void
 	addAdditionalProperty(
 		String			name,
@@ -598,7 +604,7 @@ TOTorrentImpl
 	}
 		
 	protected void
-		addAdditionalInfoProperty(
+	addAdditionalInfoProperty(
 			String			name,
 			Object			value )
 		{

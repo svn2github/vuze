@@ -181,7 +181,14 @@ TOTorrent
 	public Map
 	getAdditionalMapProperty(
 		String		name );
-		
+	
+	/**
+	 * remove all additional properties to clear out the torrent
+	 */	
+	
+	public void
+	removeAdditionalProperties();
+	
 	 /**
 	  * This method will serialise a torrent using the standard "b-encoding" mechanism into a file
 	  * @param file

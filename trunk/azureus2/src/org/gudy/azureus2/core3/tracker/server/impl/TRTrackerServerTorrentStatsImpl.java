@@ -28,11 +28,19 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
-TRTrackerServerStatsImpl
-	implements TRTrackerServerStats 
+TRTrackerServerTorrentStatsImpl
+	implements TRTrackerServerTorrentStats 
 {
-	protected int	announce_count;
+	protected TRTrackerServerTorrent	torrent;
+	protected int						announce_count;
 	
+	protected
+	TRTrackerServerTorrentStatsImpl(
+		TRTrackerServerTorrent 	_torrent )
+	{
+		torrent	= _torrent;
+	}
+		
 	protected void
 	addAnnounce()
 	{
@@ -43,5 +51,65 @@ TRTrackerServerStatsImpl
 	getAnnounceCount()
 	{
 		return( announce_count );
+	}
+	
+	public long
+	getUploaded()
+	{
+		TRTrackerServerPeer[]	peers = torrent.getPeers();
+		
+		long	res = 0;
+		
+		for(int i=0;i<peers.length;i++){
+			
+			res += peers[i].getUploaded();
+		}
+		
+		return( res );
+	}
+	
+	public long
+	getDownloaded()
+	{
+		TRTrackerServerPeer[]	peers = torrent.getPeers();
+		
+		long	res = 0;
+		
+		for(int i=0;i<peers.length;i++){
+			
+			res += peers[i].getDownloaded();
+		}
+		
+		return( res );
+	}
+	
+	public long
+	getAmountLeft()
+	{
+		TRTrackerServerPeer[]	peers = torrent.getPeers();
+		
+		long	res = 0;
+		
+		for(int i=0;i<peers.length;i++){
+			
+			res += peers[i].getAmountLeft();
+		}
+		
+		return( res );
+	}
+	
+	public int
+	getNumberOfPeers()
+	{
+		TRTrackerServerPeer[]	peers = torrent.getPeers();
+		
+		int	res = 0;
+		
+		for(int i=0;i<peers.length;i++){
+			
+			res += peers[i].getNumberOfPeers();
+		}
+		
+		return( res );
 	}
 }

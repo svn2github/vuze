@@ -43,7 +43,7 @@ TRTrackerServer
 	deny(
 		byte[]		hash );
 		
-	public TRTrackerServerStats
+	public TRTrackerServerTorrentStats
 	getStats(
 		byte[]		hash );
 		

@@ -40,7 +40,7 @@ TRTrackerServerTorrent
 
 	protected Map				peer_map = new HashMap();
 	
-	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
+	protected TRTrackerServerTorrentStatsImpl	stats;
 		
 	protected
 	TRTrackerServerTorrent(
@@ -49,6 +49,8 @@ TRTrackerServerTorrent
 	{
 		server		= _server;
 		hash		= _hash;
+		
+		stats		= new TRTrackerServerTorrentStatsImpl( this );
 	}
 	
 	
@@ -161,7 +163,7 @@ TRTrackerServerTorrent
 		}
 	}
 	
-	protected TRTrackerServerStats
+	protected TRTrackerServerTorrentStats
 	getStats()
 	{
 		return( stats );

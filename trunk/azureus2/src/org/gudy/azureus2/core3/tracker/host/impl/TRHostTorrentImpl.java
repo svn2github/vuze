@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.host.impl;
  *
  */
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -40,6 +41,17 @@ TRHostTorrentImpl
 	protected int				port;
 	
 	protected int				status	= TS_STOPPED;
+	
+	protected long				total_uploaded;
+	protected long				total_downloaded;
+	
+	protected long				last_uploaded;
+	protected long				last_downloaded;
+
+		//average over 10 periods, update every period.
+
+	protected Average			average_uploaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	protected Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
 	protected
 	TRHostTorrentImpl(
@@ -145,7 +157,7 @@ TRHostTorrentImpl
 	{
 		try{
 		
-			TRTrackerServerStats	stats = server.getStats( torrent.getHash());
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
 		
 			if ( stats != null ){
 			
@@ -157,5 +169,84 @@ TRHostTorrentImpl
 		}
 		
 		return( 0 );
+	}
+	
+	protected void
+	updateStats()
+	{
+		try{
+		
+			// System.out.println( "stats update ");
+			
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+		
+			if ( stats != null ){
+			
+				long	current_uploaded 	= stats.getUploaded();
+				long	current_downloaded 	= stats.getDownloaded();
+				
+					// bit crap this as the maintained values are only for *active*
+					// peers - stats are lost when they disconnect
+					
+				long ul_diff = current_uploaded - last_uploaded;
+					
+				if ( ul_diff > 0 ){
+			
+					total_uploaded += ul_diff;
+				
+				}else{
+				
+					ul_diff = 0;
+				}
+				
+				average_uploaded.addValue((int)ul_diff);
+				
+				last_uploaded = current_uploaded;
+				
+				long dl_diff = current_downloaded - last_downloaded;
+					
+				if ( dl_diff > 0 ){
+				
+					total_downloaded += dl_diff;
+					
+				}else{
+					
+					dl_diff = 0;
+				}
+				
+				average_downloaded.addValue((int)dl_diff);
+				
+				last_downloaded = current_downloaded;
+				
+				// System.out.println( "tot_up = " + total_uploaded + ", tot_down = " + total_downloaded);
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}	
+	}
+	
+	public long
+	getTotalUploaded()
+	{
+		return( total_uploaded );
+	}
+	
+	public long
+	getTotalDownloaded()
+	{
+		return( total_downloaded );
+	}	
+	
+	public long
+	getAverageUploaded()
+	{
+		return( average_uploaded.getAverage() );
+	}
+	
+	public long
+	getAverageDownloaded()
+	{
+		return( average_downloaded.getAverage() );
 	}
 }

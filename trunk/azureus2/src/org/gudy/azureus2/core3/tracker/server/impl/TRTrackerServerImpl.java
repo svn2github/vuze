@@ -295,7 +295,7 @@ TRTrackerServerImpl
 		return((TRTrackerServerTorrent)torrent_map.get(new HashWrapper(hash)));
 	}
 	
-	public TRTrackerServerStats
+	public TRTrackerServerTorrentStats
 	getStats(
 		byte[]		hash )
 	{

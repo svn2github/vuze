@@ -41,7 +41,9 @@ TRHostImpl
 	implements TRHost, TRTrackerClientFactoryListener, TRTrackerServerListener
 {
 	protected static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
-
+	
+	protected static final int STATS_PERIOD_SECS	= 60;
+	
 	protected static final String	NL			= "\r\n";
 	
 	protected static TRHostImpl		singleton;
@@ -74,6 +76,41 @@ TRHostImpl
 		config = new TRHostConfigImpl(this);	
 		
 		TRTrackerClientFactory.addListener( this );
+		
+		Thread t = new Thread()
+					{
+						public void
+						run()
+						{
+							while(true){
+								
+								try{
+									
+									Thread.sleep( STATS_PERIOD_SECS*1000 );
+									
+									synchronized( TRHostImpl.this ){
+										
+										for (int i=0;i<host_torrents.size();i++){
+			
+											TRHostTorrentImpl	ht = (TRHostTorrentImpl)host_torrents.get(i);
+									
+											ht.updateStats();
+										}
+									}
+									
+								}catch( InterruptedException e ){
+									
+									e.printStackTrace();
+									
+									break;
+								}
+							}
+						}
+					};
+		
+		t.setDaemon(true);
+		
+		t.start();
 	}
 	
 	public void
@@ -342,8 +379,10 @@ TRHostImpl
 		String		reply_status	= "200";
 		
 		try{
-			if ( url.equals( "/" )){	
+			if ( url.equals( "/" )){
 				
+				String[]	widths = { "32%", "10%", "10%", "8%", "8%", "8%", "8%", "8%", "8%" };
+				 
 				String	reply_string = 
 				"<html>" +
 				"<head>" +
@@ -371,11 +410,15 @@ TRHostImpl
 				"   <table align=\"center\" border=\"1\" cellpadding=\"2\" cellspacing=\"1\" bordercolor=\"#111111\" width=\"96%\" bgcolor=\"#D7E0FF\">" +
 				"   <thead>" +
 				"     <tr>" +
-				"	    <td width=\"50%\" bgcolor=\"#FFDEAD\">Torrent</td>" +
-				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Status</td>" +
-				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Size</td>" +
-				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Seeds</td>" +
-				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Peers</td>" +
+				"	    <td width=\""+widths[0]+"\" bgcolor=\"#FFDEAD\">Torrent</td>" +
+				"	    <td width=\""+widths[1]+"\" bgcolor=\"#FFDEAD\">Status</td>" +
+				"	    <td width=\""+widths[2]+"\" bgcolor=\"#FFDEAD\">Size</td>" +
+				"	    <td width=\""+widths[3]+"\" bgcolor=\"#FFDEAD\">Seeds</td>" +
+				"	    <td width=\""+widths[4]+"\" bgcolor=\"#FFDEAD\">Peers</td>" +
+				"	    <td width=\""+widths[5]+"\" bgcolor=\"#FFDEAD\">Tot Up</td>" +
+				"	    <td width=\""+widths[6]+"\" bgcolor=\"#FFDEAD\">Tot Down</td>" +
+				"	    <td width=\""+widths[7]+"\" bgcolor=\"#FFDEAD\">Ave Up</td>" +
+				"	    <td width=\""+widths[8]+"\" bgcolor=\"#FFDEAD\">Ave Down</td>" +
 				"	  </tr>" +
 				"    </thread>";
 				
@@ -429,19 +472,35 @@ TRHostImpl
 							
 							table_bit.append( "<tr>" );
 							
-							table_bit.append( "<td width=\"50%\">"+
+							table_bit.append( "<td>"+
 											  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
 											  
-							table_bit.append( "<td width=\"10%\">" + status_str + "</td>" );
+							table_bit.append( "<td>" + status_str + "</td>" );
 											  
-							table_bit.append( "<td width=\"10%\">" + 
+							table_bit.append( "<td>" + 
 											  DisplayFormatters.formatByteCountToKBEtc( torrent.getSize()) + "</td>" );
 											  
-							table_bit.append( "<td width=\"10%\">" + 
-											  seed_count + "</td>" );
+							table_bit.append( "<td><b><font color=\"" + (seed_count==0?"#FF0000":"#00CC00")+"\">" +
+											  seed_count + "</font></b></td>" );
 											  
-							table_bit.append( "<td width=\"10%\">" + 
+							table_bit.append( "<td>" + 
 											  non_seed_count + "</td>" );
+											  
+							table_bit.append( "<td>" + 
+												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalUploaded()) + 
+												"</td>" );
+											  
+							table_bit.append( "<td>" + 
+												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalDownloaded()) + 
+												"</td>" );
+											  
+							table_bit.append( "<td>" + 
+												DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageUploaded()) + 
+												"</td>" );
+											  
+							table_bit.append( "<td>" + 
+												DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageDownloaded()) + 
+												"</td>" );
 											  
 							table_bit.append( "</tr>" );
 						}	
@@ -483,29 +542,34 @@ TRHostImpl
 						TOTorrent	torrent = host_torrent.getTorrent();
 						
 						if ( Arrays.equals( hash, torrent.getHash())){
-							
+															
 								// make a copy of the torrent
+							
+							TOTorrent	torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+							
+								// remove any non-standard stuff (e.g. resume data)
 								
-							TOTorrent	temp = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
-					
+							torrent_to_send.removeAdditionalProperties();
+							
 								// override the announce url but not port (as this is already fixed)
 								
 							String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-							
-							int	 	tracker_port 	= host_torrent.getPort();
 							
 								// if tracker ip not set then assume they know what they're doing
 								
 							if ( tracker_ip.length() > 0 ){
 								
+								int	 	tracker_port 	= host_torrent.getPort();
+							
+			
 								URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
 								
-								temp.setAnnounceURL( announce_url );
+								torrent_to_send.setAnnounceURL( announce_url );
 								
-								temp.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+								torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
 							}
 
-							reply_bytes = BEncoder.encode( temp.serialiseToMap());
+							reply_bytes = BEncoder.encode( torrent_to_send.serialiseToMap());
 							
 							break;
 						}

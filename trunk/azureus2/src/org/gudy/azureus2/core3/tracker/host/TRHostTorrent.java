@@ -55,4 +55,16 @@ TRHostTorrent
 	
 	public int
 	getAnnounceCount();
+	
+	public long
+	getTotalUploaded();
+	
+	public long
+	getTotalDownloaded();
+		
+	public long
+	getAverageUploaded();
+	
+	public long
+	getAverageDownloaded();
 }

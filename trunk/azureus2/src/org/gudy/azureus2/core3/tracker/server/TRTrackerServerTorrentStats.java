@@ -25,8 +25,20 @@ package org.gudy.azureus2.core3.tracker.server;
  * @author parg
  */
 public interface 
-TRTrackerServerStats 
+TRTrackerServerTorrentStats 
 {
 	public int
 	getAnnounceCount();
+	
+	public long
+	getUploaded();
+	
+	public long
+	getDownloaded();
+	
+	public long
+	getAmountLeft();
+	
+	public int
+	getNumberOfPeers();
 }
