@@ -31,8 +31,6 @@ package org.gudy.azureus2.core3.peer;
  *
  */
 
-import java.util.*;
-
 public interface 
 PEPeer 
 {
@@ -60,10 +58,6 @@ PEPeer
 	public boolean isInterested();
 
 	public boolean isInteresting();
-
-	public Vector getRequested();
-	
-	public Vector getRequesting();
 
 	public boolean isSeed();
  

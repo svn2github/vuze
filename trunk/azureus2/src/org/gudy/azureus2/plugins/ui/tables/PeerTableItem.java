@@ -24,10 +24,28 @@ package org.gudy.azureus2.plugins.ui.tables;
 import org.gudy.azureus2.core3.peer.PEPeer;
 
 /**
+ * This interface provides access to a Table Item in the Peers View.<br>
+ * 
  * @author Olivier
  *
  */
 public interface PeerTableItem {
+  
+  /**
+   * This method MUST be used on each refresh, and NO CACHING of the PEPeer
+   * should be made by the Plugin. There is no link between a Table Item and
+   * a PEPeer as the peer may change, for example when the table is re-ordered.
+   * @return the current PEPeer associated with this Item (row)
+   */
   public PEPeer getPeer();
+  
+  /**
+   * This method can be called to set the Text in the Table Item.
+   * Caching is done, so that if same text is used several times,
+   * there won't be any 'flickering' effect. Ie the text is only updated if
+   * it's different from current value.
+   * @param text the text to be set
+   * @return true if the text was updated, false if not.
+   */
   public boolean setText(String text);
 }

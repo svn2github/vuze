@@ -22,9 +22,18 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 /**
+ * This interface represents a table item in the Peers view.<br>
  * @author Olivier
  *
  */
-public interface PluginPeerItem {   
+public interface PluginPeerItem {
+  
+  /**
+   * Called by the GUI whenever a refresh is needed.<br>
+   * The Item should have been created by its associated factory,
+   * and been initialiazed with references to a PeerTableItem.
+   * This class only needs to implement the refresh method using methods
+   * from PeerTableItem.
+   */
   public void refresh();
 }

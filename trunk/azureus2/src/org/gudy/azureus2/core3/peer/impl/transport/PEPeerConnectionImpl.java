@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  */
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.peer.*;
@@ -118,14 +119,14 @@ PEPeerConnectionImpl
 	/**
 	 * @return
 	 */
-	public Vector getRequested() {
+	public List getRequested() {
 	  return requested;
 	}
 
 	/**
 	 * @return
 	 */
-	public Vector getRequesting() {
+	public List getRequesting() {
 	  return requesting;
 	}
 

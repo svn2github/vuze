@@ -22,16 +22,51 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 /**
+ * 
+ * This interface represents the factory responsible of creating PluginPeerItem.<br>
+ * It must also define some methods giving general information about the item. 
+ * 
  * @author Olivier
  *
  */
 public interface PluginPeerItemFactory {
+  /**
+   * The String type, used for ordering.
+   */
   public static final String TYPE_STRING = "S";
+  
+  /**
+   * The int type, used for ordering.
+   */
   public static final String TYPE_INT = "I";
   
+  /**
+   * The logical name of the column.<br>
+   * Note that spaces in the name should be avoid.<br>
+   * In order to the plugin to display correctly the column name, a key in the
+   * Plugin language file will need to contain PeersView.<getName() result>=The column name.<br>
+   * @return the column name (identification)
+   */
   public String getName();
+  
+  /**
+   * The type of the contained data.<br>
+   * Current supported types are int / long (TYPE_INTEGER) and
+   * String TYPE_STRING.
+   * @return TYPE_STRING or TYPE_INT
+   */
   public String getType();
+  
+  /**
+   * The 'column' default size 
+   * @return the size in pixels
+   */
   public int getDefaultSize();
 
+  /**
+   * This method is called whenever a new line is created.
+   * @param item the PeerTableItem that is being created
+   * @return the PluginPeerItem that will have to deal with it
+   */
   public PluginPeerItem getInstance(PeerTableItem item);
 }
