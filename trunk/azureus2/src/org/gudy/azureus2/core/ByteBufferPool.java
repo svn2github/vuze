@@ -23,7 +23,6 @@ public class ByteBufferPool {
   public final static int evtAllocation = 0; // Allocation Info    
 
   private static ByteBufferPool pool;
-  private ArrayList usedBuffers;
   private ArrayList freeBuffers;
 
   // Here's the logic of SIZE, piece packet are assumed to be
@@ -36,25 +35,18 @@ public class ByteBufferPool {
   // 4 : offset in BT protocol (int)    
   private static final int SIZE = (1 + 4 + 1 + 4 + 4 + 65536);
 
-  // The pool initial capacity
-  // as allocating a direct Bytebuffer may requires some time, this is important
-  // that pool isn't too small
-  // Let's assume 1Mb initial mem use is not a problem
-  // 32k a buffer, that's 40 buffers
   private static final int INITIAL_CAPACITY = 1009;
 
   private ByteBufferPool() {
-    usedBuffers = new ArrayList(INITIAL_CAPACITY);
     freeBuffers = new ArrayList(INITIAL_CAPACITY);
   }
 
   private ByteBuffer allocateNewBuffer() {
     try {
       ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
-      usedBuffers.add(buffer);
       //System.out.println("Pool Size :" + buffers.size());
       return buffer;
-    } catch (Exception e) {
+    } catch (OutOfMemoryError e) {
       System.out.println("Memory allocation failed:");
       e.printStackTrace();
       System.out.println("freeMemory=" + Runtime.getRuntime().freeMemory() + ", totalMemory=" + Runtime.getRuntime().totalMemory() + ", maxMemory=" + Runtime.getRuntime().maxMemory());
@@ -78,10 +70,8 @@ public class ByteBufferPool {
   }
 
   public synchronized void freeBuffer(ByteBuffer buffer) {
-    if(usedBuffers.remove(buffer)) {
       buffer.clear();
       freeBuffers.add(buffer);
-    }
   }
 
   public synchronized void clearFreeBuffers() {
