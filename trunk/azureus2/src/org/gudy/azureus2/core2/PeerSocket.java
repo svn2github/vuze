@@ -880,14 +880,14 @@ public class PeerSocket extends PeerConnection {
 				int limit = realLimit;
 				int uploadAllowed = 0;
 				if (writeData && SpeedLimiter.getLimiter().isLimited(this)) {
-					if ((loopFactor % 10) == 0) {
+					if ((loopFactor % 5) == 0) {
 						allowed =
 							SpeedLimiter.getLimiter().getLimitPer100ms(this);
-						used = 0;
-					}
-					uploadAllowed = 1 + allowed - used;
+						used = 0;            
+            				}          
+					uploadAllowed = allowed - used;
 					limit = writeBuffer.position() + uploadAllowed;
-					if (limit > realLimit || limit == 0)
+					if (limit > realLimit)
 						limit = realLimit;
 				}
 				writeBuffer.limit(limit);
@@ -901,11 +901,11 @@ public class PeerSocket extends PeerConnection {
 					manager.sent(written);
 					if (SpeedLimiter.getLimiter().isLimited(this)) {
 						used += written;
-						if ((loopFactor % 10) == 9) {
-							if (used >= (90 * allowed) / 100)
-								maxUpload = 1024 * 1024;
-							if (used < (90 * allowed) / 100)
-								maxUpload = max((110 * written) / 100, 50);
+						if ((loopFactor % 5) == 4) {
+							if (used >= (100 * allowed) / 100)
+								maxUpload = max(110 * allowed,20);
+							if (used < (95 * allowed) / 100)
+								maxUpload = max((100 * written) / 100, 20);
 						}
 					}
 				}

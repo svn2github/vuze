@@ -94,36 +94,46 @@ public class MainWindow implements IComponentListener {
 
     public void run() {
       while (!finished) {
-        final IView view = Tab.getView(folder.getSelection());
-
-        if (view != null) {
-          display.asyncExec(new Runnable() {
-            public void run() {
-              if (!mainWindow.isDisposed() && mainWindow.isVisible()) {
-                view.refresh();
-                Tab.refresh();
-                statusDown.setText("D: " + globalManager.getDownloadSpeed());
-                statusUp.setText("U: " + globalManager.getUploadSpeed());
-              }
-              if (trayIcon != null)
-                trayIcon.refresh();
-              synchronized (downloadBars) {
-                Iterator iter = downloadBars.values().iterator();
-                while (iter.hasNext()) {
-                  MinimizedWindow mw = (MinimizedWindow) iter.next();
-                  mw.refresh();
-                }
-              }
-            }
-          });
-        }
-
+        final IView view;
+        update();
         try {
           Thread.sleep(waitTime);
         }
         catch (Exception e) {
           e.printStackTrace();
         }
+      }
+    }
+
+    private void update() {
+      final IView view;
+      
+      try {      
+        view = Tab.getView(folder.getSelection());
+      } catch(Exception e) {
+        return;
+      }
+      
+      if (view != null) {
+        display.asyncExec(new Runnable() {
+          public void run() {
+            if (!mainWindow.isDisposed() && mainWindow.isVisible()) {
+              view.refresh();
+              Tab.refresh();
+              statusDown.setText("D: " + globalManager.getDownloadSpeed());
+              statusUp.setText("U: " + globalManager.getUploadSpeed());
+            }
+            if (trayIcon != null)
+              trayIcon.refresh();
+            synchronized (downloadBars) {
+              Iterator iter = downloadBars.values().iterator();
+              while (iter.hasNext()) {
+                MinimizedWindow mw = (MinimizedWindow) iter.next();
+                mw.refresh();
+              }
+            }
+          }
+        });
       }
     }
 

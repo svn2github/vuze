@@ -100,13 +100,20 @@ public class PeerManager extends Thread {
 
   private class PeerUpdater extends Thread {
     private boolean bContinue = true;
+    
+    private long started[];
+    private long iter = 0;
+    
     public PeerUpdater() {
       super("Peer Updater");
+      started = new long[10];
     }
 
     public void run() {
-      while (bContinue) {
-        long started = System.currentTimeMillis();
+      while (bContinue) {        
+        for(int i = 9 ; i > 0 ; i--)
+          started[i] = started[i-1];        
+        started[0] = System.currentTimeMillis();        
         synchronized (_connections) {
           for (int i = 0; i < _connections.size(); i++) {
             PeerSocket ps = (PeerSocket) _connections.get(i);
@@ -125,10 +132,22 @@ public class PeerManager extends Thread {
           }
         }
         try {
-          long wait = 10 - (System.currentTimeMillis() - started);
-          if (wait < 5)
-            wait = 5;
-          Thread.sleep(wait);
+          
+          long wait = 20;          
+          wait -= (System.currentTimeMillis() - started[0]);
+          if(started[4] != 0)
+            for(int i = 0 ; i < 9 ; i++) {
+              wait += 20 + (started[i+1] - started[i]);
+            }
+          
+          if(wait > 30) wait = 30;
+                    
+          //System.out.println(wait + "::" + started[0] + "-" + System.currentTimeMillis() + " : " + started[4]);
+          //if(iter++ % 50 == 0)
+          //  System.out.println(System.currentTimeMillis() % 10000);
+                              
+          if (wait > 10)
+            Thread.sleep(wait);
         }
         catch (Exception e) {
           e.printStackTrace();
