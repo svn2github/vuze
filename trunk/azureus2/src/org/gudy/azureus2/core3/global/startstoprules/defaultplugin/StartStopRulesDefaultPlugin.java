@@ -884,9 +884,16 @@ StartStopRulesDefaultPlugin
     private boolean bActivelyDownloading;
     private boolean bWasComplete;
     
+    /** Sort first by QR Descending, then by Position Ascending.
+      */
     public int compareTo(Object obj)
     {
-      return ((downloadData)obj).getQR() - qr;
+      int value = ((downloadData)obj).getQR() - qr;
+      if (value == 0) {
+        return dl.getPosition() -
+               ((downloadData)obj).getDownloadObject().getPosition();
+      }
+      return value;
     }
 
     public downloadData(Download _dl)
@@ -905,8 +912,7 @@ StartStopRulesDefaultPlugin
       bWasComplete = b;
     }
 
-    Download getDownloadObject()
-    {
+    Download getDownloadObject() {
       return dl;
     }
     
@@ -918,13 +924,11 @@ StartStopRulesDefaultPlugin
       bActivelyDownloading = bActive;
     }
 
-    public int getQR()
-    {
+    public int getQR() {
       return qr;
     }
 
-    public void setQR(int newQR)
-    {
+    public void setQR(int newQR) {
       qr = newQR;
     }
 
@@ -957,8 +961,6 @@ StartStopRulesDefaultPlugin
           numSeeds += numPeers / numPeersAsFullCopy;
 
       boolean bScrapeResultsOk = (numPeers > 0) || (numSeeds > 0) || scrapeResultOk(dl);
-
-      //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
 
       int newQR = 0;
 
