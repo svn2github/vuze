@@ -633,6 +633,7 @@ public class MainWindow implements IComponentListener {
     if (savePath.length() == 0) {
       mainWindow.setActive();
       boolean singleFile = false;
+      String singleFileName = "";
       try {
         byte[] buf = new byte[1024];
         int nbRead;
@@ -644,8 +645,10 @@ public class MainWindow implements IComponentListener {
         Map map = (Map) BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
         Map info = (Map) map.get("info");
         Object test = info.get("length");
-        if (test != null)
+        if (test != null) {        
           singleFile = true;
+          singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+        }
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -653,6 +656,7 @@ public class MainWindow implements IComponentListener {
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
         fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
+        fDialog.setFileName(singleFileName);
         fDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath"));
         savePath = fDialog.open();
 
