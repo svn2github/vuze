@@ -592,6 +592,21 @@ RPDownload
 		return ("");
  }
   
+  public String
+  getAttribute(
+  	TorrentAttribute		attribute )
+  {
+	notSupported();
+	return ("");  
+  }
+  
+  public void
+  setAttribute(
+  	TorrentAttribute		attribute,
+	String					value )
+  {
+  	notSupported();
+  }
   public String getCategoryName() {
  		notSupported();
 		return ("");

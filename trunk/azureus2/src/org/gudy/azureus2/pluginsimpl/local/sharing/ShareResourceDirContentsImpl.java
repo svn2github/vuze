@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 
@@ -80,7 +81,7 @@ ShareResourceDirContentsImpl
 
 		throws ShareException
 	{
-		super( _manager, ST_DIR_CONTENTS );
+		super( _manager, ST_DIR_CONTENTS, _map );
 		
 		root 		= _dir;
 		recursive	= _recursive;
@@ -239,6 +240,8 @@ ShareResourceDirContentsImpl
 	serialiseResource(
 		Map		map )
 	{
+		super.serialiseResource( map );
+		
 		map.put( "type", new Long(getType()));
 		
 		map.put( "recursive", new Long(recursive?1:0));
@@ -264,7 +267,9 @@ ShareResourceDirContentsImpl
 		
 			boolean	recursive = ((Long)map.get("recursive")).longValue() == 1;
 		
-			return( new ShareResourceDirContentsImpl( manager, root, recursive, map ));
+			ShareResourceImpl res  = new ShareResourceDirContentsImpl( manager, root, recursive, map );
+						
+			return( res );
 			
 		}catch( UnsupportedEncodingException e ){
 			
@@ -300,9 +305,9 @@ ShareResourceDirContentsImpl
 	shareNode
 		implements ShareResourceDirContents
 	{
-		protected ShareResourceDirContents	parent;
+		protected ShareResourceDirContents	node_parent;
 		protected File						node;
-		protected ShareResource[]			children;
+		protected ShareResource[]			node_children;
 		
 		protected
 		shareNode(
@@ -311,13 +316,13 @@ ShareResourceDirContentsImpl
 		{
 			node	=_node;
 			
-			children = new ShareResource[kids.size()];
+			node_children = new ShareResource[kids.size()];
 			
-			kids.toArray( children );
+			kids.toArray( node_children );
 			
-			for (int i=0;i<children.length;i++){
+			for (int i=0;i<node_children.length;i++){
 				
-				Object	o = children[i];
+				Object	o = node_children[i];
 				
 				if ( o instanceof ShareResourceImpl ){
 					
@@ -333,14 +338,14 @@ ShareResourceDirContentsImpl
 		public ShareResourceDirContents
 		getParent()
 		{
-			return( parent );
+			return( node_parent );
 		}
 		
 		protected void
 		setParent(
 			ShareResourceDirContents	_parent )
 		{
-			parent	= _parent;
+			node_parent	= _parent;
 		}
 		
 		public int
@@ -353,6 +358,26 @@ ShareResourceDirContentsImpl
 		getName()
 		{
 			return( node.toString());
+		}
+		
+		public void
+		setAttribute(
+			TorrentAttribute		attribute,
+			String					value )
+		{
+		}
+		
+		public String
+		getAttribute(
+			TorrentAttribute		attribute )
+		{
+			return( null );
+		}
+		
+		public TorrentAttribute[]
+		getAttributes()
+		{
+			return( new TorrentAttribute[0]);
 		}
 		
 		public void
@@ -369,9 +394,9 @@ ShareResourceDirContentsImpl
 		
 			throws ShareException, ShareResourceDeletionVetoException
 		{
-			for (int i=0;i<children.length;i++){
+			for (int i=0;i<node_children.length;i++){
 				
-				Object	o = children[i];
+				Object	o = node_children[i];
 				
 				if ( o instanceof ShareResourceImpl ){
 					
@@ -390,9 +415,9 @@ ShareResourceDirContentsImpl
 		
 			throws ShareResourceDeletionVetoException
 		{
-			for (int i=0;i<children.length;i++){
+			for (int i=0;i<node_children.length;i++){
 				
-				children[i].canBeDeleted();
+				node_children[i].canBeDeleted();
 			}
 			
 			return( true );
@@ -413,7 +438,19 @@ ShareResourceDirContentsImpl
 		public ShareResource[]
 		getChildren()
 		{
-			return( children );
+			return( node_children );
+		}
+		
+		public void
+		addChangeListener(
+			ShareResourceListener	l )
+		{
+		}
+		
+		public void
+		removeChangeListener(
+			ShareResourceListener	l )
+		{
 		}
 		
 		public void

@@ -104,6 +104,10 @@ TorrentManager
 	public TorrentAttribute[]
 	getDefinedAttributes();
 	
+	public TorrentAttribute
+	getAttribute(
+		String		name );
+	
 	public void
 	addListener(
 		TorrentManagerListener	l );

@@ -68,7 +68,7 @@ PluginInitializer
    			{	 PluginManagerDefaults.PID_REMOVE_RULES, 
    					"com.aelitis.azureus.plugins.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
     		{	 PluginManagerDefaults.PID_SHARE_HOSTER, 
-   					"org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
+   					"com.aelitis.azureus.plugins.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
     		{    PluginManagerDefaults.PID_DEFAULT_TRACKER_WEB, 
    					"org.gudy.azureus2.ui.tracker.TrackerDefaultWeb", "<internal>", "TrackerDefault", },
     		//{    PluginManagerDefaults.PID_UPDATE_LANGUAGE, 

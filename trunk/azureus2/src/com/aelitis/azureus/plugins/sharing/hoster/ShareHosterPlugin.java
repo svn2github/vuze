@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.sharing.hoster;
+package com.aelitis.azureus.plugins.sharing.hoster;
 
 /**
  * @author parg
@@ -53,7 +53,7 @@ ShareHosterPlugin
 	
 	protected Download			download_being_removed;
 	protected TrackerTorrent	torrent_being_removed;
-	
+		
 	protected boolean			initialised	= false;
 	
 	public void 
@@ -173,7 +173,40 @@ ShareHosterPlugin
 				
 				if ( new_download != null ){
 
+					final Download	f_new_download = new_download;
+					
 					resource_dl_map.put( resource, new_download );
+					
+					resource.addChangeListener(
+						new ShareResourceListener()
+						{
+							public void
+							shareResourceChanged(
+								ShareResource			resource,
+								ShareResourceEvent		event )
+							{
+								if ( event.getType() == ShareResourceEvent.ET_ATTRIBUTE_CHANGED ){
+									
+									TorrentAttribute	attribute = (TorrentAttribute)event.getData();
+									
+									f_new_download.setAttribute(
+											attribute,
+											resource.getAttribute( attribute ));
+								}
+							}
+						});
+						
+					TorrentAttribute[]	attributes = resource.getAttributes();
+					
+					for (int i=0;i<attributes.length;i++){
+						
+						TorrentAttribute	ta = attributes[i];
+						
+						String	value = resource.getAttribute( ta );
+						
+						new_download.setAttribute(
+								ta,	resource.getAttribute( ta ));
+					}
 					
 					Torrent	dl_torrent = new_download.getTorrent();
 					

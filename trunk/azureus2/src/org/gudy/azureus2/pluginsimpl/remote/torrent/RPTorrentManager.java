@@ -244,6 +244,15 @@ RPTorrentManager
 		return( null );
 	}
 	
+	public TorrentAttribute
+	getAttribute(
+		String		name )					
+	{
+		notSupported();
+		
+		return( null );
+	}
+							
 	public void
 	addListener(
 		TorrentManagerListener	l )

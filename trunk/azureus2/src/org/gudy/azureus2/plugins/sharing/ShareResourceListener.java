@@ -1,5 +1,5 @@
 /*
- * Created on 15-Nov-2004
+ * Created on 10-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,71 +20,19 @@
  *
  */
 
-package org.gudy.azureus2.core3.download;
-
-import java.util.Map;
-
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+package org.gudy.azureus2.plugins.sharing;
 
 /**
  * @author parg
+ *
  */
 
 public interface 
-DownloadManagerState 
+ShareResourceListener 
 {
-	public static final String AT_CATEGORY		= "category";
-	
-	public TOTorrent
-	getTorrent();
-	
-	public DownloadManager
-	getDownloadManager();
-	
 	public void
-	clearResumeData();
-	
-	public Map
-	getResumeData();
-	
-	public void
-	setResumeData(
-		Map	data );
-	
-	public void
-	clearTrackerResponseCache();
-	
-	public Map
-	getTrackerResponseCache();
-	
-	public void
-	setTrackerResponseCache(
-		Map		value );
-	
-	public Category 
-	getCategory();
-	
-	public void 
-	setCategory(
-		Category cat );
-	
-	public void
-	setAttribute(
-		String		name,
-		String		value );
-	
-	public String
-	getAttribute(
-		String		name );
+	shareResourceChanged(
+		ShareResource			resource,
+		ShareResourceEvent		event );
 
-	public void
-	save();
-	
-		/**
-		 * deletes the saved state
-		 */
-	
-	public void
-	delete();
 }

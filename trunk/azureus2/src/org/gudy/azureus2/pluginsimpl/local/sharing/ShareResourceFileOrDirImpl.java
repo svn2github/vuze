@@ -115,11 +115,11 @@ ShareResourceFileOrDirImpl
 		ShareManagerImpl	_manager,
 		int					_type,
 		File				_file,
-		Map					_map)
+		Map					_map )
 	
 		throws ShareException
 	{
-		super( _manager, _type );
+		super( _manager, _type, _map );
 		
 		file		= _file;
 		
@@ -279,6 +279,8 @@ ShareResourceFileOrDirImpl
 	serialiseResource(
 		Map		map )
 	{
+		super.serialiseResource( map );
+		
 		map.put( "type", new Long(getType()));
 		
 		try{

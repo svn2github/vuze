@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
@@ -359,6 +360,49 @@ DownloadImpl
     return category.getName();
   }
     
+  
+  public String
+  getAttribute(
+  	TorrentAttribute		attribute )
+  {
+  	String	name = convertAttribute( attribute );
+  	
+  	if ( name != null ){
+  		
+  		return( download_manager.getDownloadState().getAttribute( name ));
+  	}
+  	
+  	return( null );
+  }
+  
+  public void
+  setAttribute(
+  	TorrentAttribute		attribute,
+	String					value )
+  {
+ 	String	name = convertAttribute( attribute );
+  	
+  	if ( name != null ){
+
+  		download_manager.getDownloadState().setAttribute( name, value );
+  	}
+  }
+  
+  protected String
+  convertAttribute(
+  	TorrentAttribute		attribute )
+  {
+  	if ( attribute.getName() == TorrentAttribute.TA_CATEGORY ){
+  		
+  		return( DownloadManagerState.AT_CATEGORY );
+  		
+  	}else{
+  		
+  		Debug.out( "Can't convert attribute '" + attribute.getName() + "'" );
+  		
+  		return( null );
+  	}
+  }
   
   public void setCategory(String sName) {
     Category category = CategoryManager.getCategory(sName);

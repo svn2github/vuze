@@ -22,6 +22,7 @@
 package org.gudy.azureus2.plugins.download;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /** Management of a Torrent's activity.
@@ -260,6 +261,22 @@ Download
    * @since 2.1.0.0
 	 */
   public String getTorrentFileName();
+  
+  
+  	/**
+  	 * Sets an attribute of this download. For category use the Category torrent attribute
+  	 * @param attribute
+  	 * @return
+  	 */
+  
+  public String
+  getAttribute(
+  	TorrentAttribute		attribute );
+  
+  public void
+  setAttribute(
+  	TorrentAttribute		attribute,
+	String					value );
   
   /** Returns the name of the Category
    *

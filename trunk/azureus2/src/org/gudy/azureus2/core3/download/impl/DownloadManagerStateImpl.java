@@ -54,9 +54,7 @@ DownloadManagerStateImpl
 	private static final String			RESUME_KEY			= "resume";
 	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
 	private static final String			ATTRIBUTE_KEY		= "attributes";
-	
-	private static final String			AT_CATEGORY			= "category";
-	
+		
 	private static final File			ACTIVE_DIR;
 	
 	static{
@@ -501,9 +499,66 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	public Category getCategory() {
-		  return category;
+	
+	public void
+	setAttribute(
+		String		name,
+		String		value )
+	{
+		if ( name.equals( AT_CATEGORY )){
+			
+			if ( value == null ){
+				
+				setCategory( null );
+				
+			}else{
+				Category	cat = CategoryManager.getCategory( value );
+			
+				if ( cat == null ){
+				
+					cat = CategoryManager.createCategory( value );
+					
+				}
+								
+				setCategory( cat );
+			}
+		}else{
+			
+			setStringAttribute( name, value );
 		}
+	}
+	
+	public String
+	getAttribute(
+		String		name )
+	{
+		if ( name.equals( AT_CATEGORY )){
+			
+			Category	cat = getCategory();
+			
+			if ( cat == null ){
+				
+				return( null );
+			}
+			
+			if ( cat == CategoryManager.getCategory( Category.TYPE_UNCATEGORIZED )){
+				
+				return( null );
+			}
+			
+			return( cat.getName());
+		}else{
+			
+			return( getStringAttribute( name ));
+		}
+	}
+	
+	public 
+	Category 
+	getCategory() 
+	{
+	    return category;
+	}
 		
 	public void 
 	setCategory(
@@ -544,7 +599,7 @@ DownloadManagerStateImpl
 	}
 		
 	
-	public String
+	protected String
 	getStringAttribute(
 		String	attribute_name )
 	{
@@ -573,7 +628,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	public void
+	protected void
 	setStringAttribute(
 		String	attribute_name,
 		String	attribute_value )
@@ -688,6 +743,20 @@ DownloadManagerStateImpl
 		setTrackerResponseCache(
 			Map		value )
 		{
+		}
+		
+		public void
+		setAttribute(
+			String		name,
+			String		value )
+		{
+		}			
+		
+		public String
+		getAttribute(
+			String		name )
+		{
+			return( null );
 		}
 		
 		public Category 

@@ -30,6 +30,8 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 
@@ -43,7 +45,12 @@ ShareResourceImpl
 	protected int							type;
 	protected ShareResourceDirContents		parent;
 	
-	protected List	deletion_listeners = new ArrayList();
+	protected Map	attributes			= new HashMap();
+	
+	protected List	change_listeners 	= new ArrayList();
+	protected List	deletion_listeners 	= new ArrayList();
+	
+		// new constructor
 	
 	protected
 	ShareResourceImpl(
@@ -53,11 +60,73 @@ ShareResourceImpl
 		manager	= _manager;
 		type 	= _type;
 	}
+
+		// deserialised constructor
 	
-	protected abstract void
+	protected
+	ShareResourceImpl(
+		ShareManagerImpl	_manager,
+		int					_type,
+		Map					_map )
+	{
+		manager	= _manager;
+		type 	= _type;
+		
+		Map	attrs = (Map)_map.get( "attributes" );
+		
+		if ( attrs != null ){
+			
+			Iterator	keys = attrs.keySet().iterator();
+			
+			while( keys.hasNext()){
+				
+				String	key = (String)keys.next();
+				
+				try{
+					String	value = new String((byte[])attrs.get(key), Constants.DEFAULT_ENCODING );
+				
+					TorrentAttribute ta = TorrentManagerImpl.getSingleton().getAttribute( key );
+					
+					if ( ta == null ){
+						
+						Debug.out( "Invalid attribute '" + key );
+					}else{
+						
+						attributes.put( ta, value );
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
+	protected void
 	serialiseResource(
-		Map		map );
-	
+		Map		map )
+	{
+		Iterator	it = attributes.keySet().iterator();
+		
+		Map	attrs = new HashMap();
+		
+		map.put( "attributes", attrs );
+		
+		while( it.hasNext()){
+			
+			TorrentAttribute	ta = (TorrentAttribute)it.next();
+			
+			String	value = (String)attributes.get(ta);
+			
+			try{
+				attrs.put( ta.getName(), value.getBytes( Constants.DEFAULT_ENCODING ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
 	
 	public ShareResourceDirContents
 	getParent()
@@ -78,6 +147,56 @@ ShareResourceImpl
 		return( type );
 	}
 	
+	public void
+	setAttribute(
+		final TorrentAttribute		attribute,
+		String						value )
+	{
+		attributes.put( attribute, value );
+		
+		for (int i=0;i<change_listeners.size();i++){
+			
+			try{
+				((ShareResourceListener)change_listeners.get(i)).shareResourceChanged(
+						this,
+						new ShareResourceEvent()
+						{
+							public int
+							getType()
+							{
+								return( ShareResourceEvent.ET_ATTRIBUTE_CHANGED);
+							}
+							
+							public Object
+							getData()
+							{
+								return( attribute );
+							}
+						});
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public String
+	getAttribute(
+		TorrentAttribute		attribute )
+	{
+		return((String)attributes.get( attribute ));
+	}
+	
+	public TorrentAttribute[]
+	getAttributes()
+	{
+		TorrentAttribute[]	res = new TorrentAttribute[attributes.size()];
+		
+		attributes.keySet().toArray( res );
+		
+		return( res );
+	}
 	
 	public void
 	delete()
@@ -237,6 +356,20 @@ ShareResourceImpl
 	checkConsistency()
 	
 		throws ShareException;
+	
+	public void
+	addChangeListener(
+		ShareResourceListener	l )
+	{
+		change_listeners.add( l );
+	}
+	
+	public void
+	removeChangeListener(
+		ShareResourceListener	l )
+	{
+		change_listeners.remove( l );
+	}
 	
 	public void
 	addDeletionListener(

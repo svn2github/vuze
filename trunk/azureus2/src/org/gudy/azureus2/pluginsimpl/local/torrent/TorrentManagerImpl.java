@@ -43,6 +43,8 @@ TorrentManagerImpl
 	protected static TorrentManagerImpl	singleton;
 	protected static AEMonitor 			class_mon 	= new AEMonitor( "TorrentManager" );
 
+	protected static TorrentAttribute	category_attribute = new TorrentAttributeImpl();
+	
 	public static TorrentManagerImpl
 	getSingleton()
 	{
@@ -166,7 +168,19 @@ TorrentManagerImpl
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{
-		return( new TorrentAttribute[]{ new TorrentAttributeImpl()});
+		return( new TorrentAttribute[]{ category_attribute });
+	}
+	
+	public TorrentAttribute
+	getAttribute(
+		String		name )
+	{
+		if ( name.equals( category_attribute.getName())){
+			
+			return( category_attribute );
+		}
+		
+		return( null );
 	}
 	
 	public void

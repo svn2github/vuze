@@ -38,18 +38,27 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.aelitis.azureus.core.*;
+
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 
 /**
  * @author parg
@@ -57,17 +66,25 @@ import org.gudy.azureus2.plugins.sharing.*;
  *         2004/Apr/20: Remove need for tableItemToObject
  *         2004/Apr/21: extends TableView instead of IAbstractView
  */
-public class MySharesView 
-       extends TableView
-       implements ShareManagerListener
+public class 
+MySharesView 
+	extends TableView
+	implements ShareManagerListener, CategoryManagerListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
-    new TypeItem()
+    new TypeItem(),
+	new CategoryItem(),
   };
+  
+	protected static final TorrentAttribute	category_attribute = 
+		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
+
   	private AzureusCore		azureus_core;
   	
 	private GlobalManager	global_manager;
+	
+	private Menu			menuCategory;
 	
 	public 
 	MySharesView(
@@ -80,8 +97,11 @@ public class MySharesView
 		global_manager = azureus_core.getGlobalManager();
 	}
 	 
-  public void initialize(Composite composite) {
-    super.initialize(composite);
+	public void 
+	initialize(
+			Composite composite) 
+	{
+		super.initialize(composite);
 
 		getTable().addMouseListener(new MouseAdapter() {
 		   public void mouseDoubleClick(MouseEvent mEvent) {
@@ -125,7 +145,10 @@ public class MySharesView
 			 }
 		   }
 		 });	
-		 createRows();
+		 
+		createRows();
+		 
+	    CategoryManager.addCategoryManagerListener(this);
 	}
 
   private void createRows() {
@@ -153,7 +176,10 @@ public class MySharesView
     createRows();
   }
 
-  public void fillMenu(final Menu menu) {
+  public void 
+  fillMenu(
+  	final Menu menu) 
+  {
 		/*
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MySharesView.menu.start"); //$NON-NLS-1$
@@ -164,6 +190,14 @@ public class MySharesView
 	   itemStop.setImage(ImageRepository.getImage("stop"));
 	   */
 		
+	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
+	    Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
+	    //itemCategory.setImage(ImageRepository.getImage("speed"));
+	    itemCategory.setMenu(menuCategory);
+
+	    addCategorySubMenu();
+	    
 	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemRemove, "MySharesView.menu.remove"); //$NON-NLS-1$
 	   itemRemove.setImage(ImageRepository.getImage("delete"));
@@ -213,6 +247,101 @@ public class MySharesView
     super.refresh();
 	}	 
 
+	 private void addCategorySubMenu() {
+	    MenuItem[] items = menuCategory.getItems();
+	    int i;
+	    for (i = 0; i < items.length; i++) {
+	      items[i].dispose();
+	    }
+
+	    Category[] categories = CategoryManager.getCategories();
+	    Arrays.sort(categories);
+
+	    if (categories.length > 0) {
+	      Category catUncat = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
+	      if (catUncat != null) {
+	        final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
+	        Messages.setLanguageText(itemCategory, catUncat.getName());
+	        itemCategory.setData("Category", catUncat);
+	        itemCategory.addListener(SWT.Selection, new Listener() {
+	          public void handleEvent(Event event) {
+	            MenuItem item = (MenuItem)event.widget;
+	            assignSelectedToCategory((Category)item.getData("Category"));
+	          }
+	        });
+
+	        new MenuItem(menuCategory, SWT.SEPARATOR);
+	      }
+
+	      for (i = 0; i < categories.length; i++) {
+	        if (categories[i].getType() == Category.TYPE_USER) {
+	          final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
+	          itemCategory.setText(categories[i].getName());
+	          itemCategory.setData("Category", categories[i]);
+
+	          itemCategory.addListener(SWT.Selection, new Listener() {
+	            public void handleEvent(Event event) {
+	              MenuItem item = (MenuItem)event.widget;
+	              assignSelectedToCategory((Category)item.getData("Category"));
+	            }
+	          });
+	        }
+	      }
+
+	      new MenuItem(menuCategory, SWT.SEPARATOR);
+	    }
+
+	    final MenuItem itemAddCategory = new MenuItem(menuCategory, SWT.PUSH);
+	    Messages.setLanguageText(itemAddCategory,
+	                             "MyTorrentsView.menu.setCategory.add");
+
+	    itemAddCategory.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        addCategory();
+	      }
+	    });
+
+	  }
+	
+	  public void categoryAdded(Category category) {
+	    addCategorySubMenu();
+	  }
+
+	  public void categoryRemoved(Category category) {
+	    addCategorySubMenu();
+	  }
+	
+	  
+	  private void addCategory() {
+	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+	    Category newCategory = adderWindow.getNewCategory();
+	    if (newCategory != null)
+	      assignSelectedToCategory(newCategory);
+	  }
+	  
+	  private void assignSelectedToCategory(final Category category) {
+	    runForSelectedRows(new GroupTableRowRunner() {
+	      public void run(TableRowCore row) {
+	      	String value;
+	      	
+	      	if ( category == null ){
+	      		
+	      		value = null;
+	      		
+	      	}else if ( category == CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED)){
+	      		
+	      		value = null;
+	      		
+	      	}else{
+	      		
+	      		value = category.getName();
+	      	}
+	      	
+	        ((ShareResource)row.getDataSource(true)).setAttribute( category_attribute, value );
+	      }
+	    });
+	  }
+	  
   public void delete() {
     super.delete();
 

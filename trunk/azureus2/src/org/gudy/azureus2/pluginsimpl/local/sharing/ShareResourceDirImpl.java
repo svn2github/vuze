@@ -67,7 +67,7 @@ ShareResourceDirImpl
 	ShareResourceDirImpl(
 		ShareManagerImpl	_manager,
 		File				_file,
-		Map					_map)
+		Map					_map )
 	
 		throws ShareException
 	{

@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.sharing;
 
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+
 /**
  * @author parg
  *
@@ -43,6 +45,28 @@ ShareResource
 	
 		throws ShareException, ShareResourceDeletionVetoException;
 	
+	public void
+	setAttribute(
+		TorrentAttribute		attribute,
+		String					value );
+	
+		/**
+		 * @param attribute
+		 * @return	null if no value defined
+		 */
+	
+	public String
+	getAttribute(
+		TorrentAttribute		attribute );
+	
+		/**
+		 * get the defined attributes for this resource
+		 * @return
+		 */
+	
+	public TorrentAttribute[]
+	getAttributes();
+	
 	public boolean
 	canBeDeleted()
 	
@@ -51,6 +75,14 @@ ShareResource
 	public ShareResourceDirContents
 	getParent();
 	
+	public void
+	addChangeListener(
+		ShareResourceListener	l );
+	
+	public void
+	removeChangeListener(
+		ShareResourceListener	l );
+
 	public void
 	addDeletionListener(
 		ShareResourceWillBeDeletedListener	l );
