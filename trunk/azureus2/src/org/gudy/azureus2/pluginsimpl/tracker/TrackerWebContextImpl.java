@@ -37,7 +37,8 @@ public class
 TrackerWebContextImpl 
 	implements TrackerWebContext, TRTrackerServerListener
 {
-	protected TrackerImpl	tracker;
+	protected TRTrackerServer		server;
+	protected TrackerImpl			tracker;
 	
 	protected List			generators 	= new ArrayList();
 	
@@ -52,7 +53,6 @@ TrackerWebContextImpl
 		tracker	= _tracker;
 		
 		try{
-			TRTrackerServer	server;
 			
 			if ( protocol == Tracker.PR_HTTP ){
 				
@@ -86,6 +86,24 @@ TrackerWebContextImpl
 		generators.toArray( res );
 		
 		return( res );
+	}
+	
+	public int
+	getProtocol()
+	{
+		return( server.isSSL()?Tracker.PR_HTTPS:Tracker.PR_HTTP );
+	}
+	
+	public String
+	getHostName()
+	{
+		return( server.getHost());
+	}
+	
+	public int
+	getPort()
+	{
+		return( server.getPort());
 	}
 	
 	public boolean

@@ -27,17 +27,15 @@ package org.gudy.azureus2.plugins.ui;
  *
  */
 
-import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
-
-public interface 
-UIManager 
+public class 
+UIException
+	extends Exception
 {
-	public MyTracker
-	getMyTracker();
-	
-	public void
-	copyToClipBoard(
-		String		data )
-	
-		throws UIException;
+	public
+	UIException(
+		String		str,
+		Throwable	cause )
+	{
+		super(str,cause);
+	}
 }

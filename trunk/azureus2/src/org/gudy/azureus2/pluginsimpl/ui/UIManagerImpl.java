@@ -31,6 +31,8 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.ui.tables.mytracker.*;
 
+import org.gudy.azureus2.ui.swt.MainWindow;
+
 public class 
 UIManagerImpl 
 	implements UIManager
@@ -60,5 +62,21 @@ UIManagerImpl
 	getMyTracker()
 	{
 		return( my_tracker );
+	}
+	
+	public void
+	copyToClipBoard(
+		String		data )
+	
+		throws UIException
+	{
+		try{
+			MainWindow.copyToClipBoard( data );
+			
+		}catch( Throwable e ){
+			
+			throw( new UIException( "Failed to copy to clipboard", e ));
+		}
+
 	}
 }

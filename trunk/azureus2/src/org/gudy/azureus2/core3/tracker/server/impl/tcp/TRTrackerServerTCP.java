@@ -41,7 +41,8 @@ TRTrackerServerTCP
 {
 	protected static final int THREAD_POOL_SIZE				= 32;
 	
-	protected int	port;
+	protected boolean	ssl;
+	protected int		port;
 	
 	protected Vector	request_listeners 	= new Vector();
 	
@@ -62,6 +63,7 @@ TRTrackerServerTCP
 		throws TRTrackerServerException
 	{
 		port					= _port;
+		ssl						= _ssl;
 
 		COConfigurationManager.addListener(
 			new COConfigurationListener()
@@ -235,6 +237,24 @@ TRTrackerServerTCP
 		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
 		
 		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
+	}
+	
+	public int
+	getPort()
+	{
+		return( port );
+	}
+	
+	public String
+	getHost()
+	{
+		return( COConfigurationManager.getStringParameter( "Tracker IP", "" ));
+	}
+	
+	public boolean
+	isSSL()
+	{
+		return( ssl );
 	}
 	
 	public boolean

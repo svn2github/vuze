@@ -39,6 +39,15 @@ TRTrackerServer
 	public static final int DEFAULT_TRACKER_PORT_SSL	= 7000;
 		
 	public int
+	getPort();
+	
+	public String
+	getHost();
+	
+	public boolean
+	isSSL();
+	
+	public int
 	getAnnounceRetryInterval();
 	
 	public void

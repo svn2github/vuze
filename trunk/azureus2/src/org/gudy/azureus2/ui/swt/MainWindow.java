@@ -39,6 +39,9 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Clipboard;
+
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -3491,4 +3494,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       config.setFocus();
   }
   
+  public static void
+  copyToClipBoard(
+  	String		data )
+  {
+	new Clipboard(window.getDisplay()).setContents(
+			new Object[] {data }, 
+			new Transfer[] {TextTransfer.getInstance()});
+  }
 }

@@ -128,6 +128,24 @@ TRTrackerServerUDP
 		}
 	}
 	
+	public int
+	getPort()
+	{
+		return( port );
+	}
+	
+	public String
+	getHost()
+	{
+		return( COConfigurationManager.getStringParameter( "Tracker IP", "" ));
+	}
+	
+	public boolean
+	isSSL()
+	{
+		return( false );
+	}
+	
 	public void
 	addRequestListener(
 		TRTrackerServerRequestListener	l )
