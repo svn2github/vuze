@@ -184,6 +184,7 @@ public class ConsoleInput extends Thread {
 							} else {
 								COConfigurationManager.setParameter(UIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
 							}
+							COConfigurationManager.save();
 							out.println("> Parameter '" + parameter + "' set to '"+setto+"'.");
 						}
 					} catch (Exception e) {
