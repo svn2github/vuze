@@ -29,9 +29,12 @@ package org.gudy.azureus2.pluginsimpl.remote.torrent;
 import java.net.URL;
 import java.io.File;
 
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
+import org.gudy.azureus2.pluginsimpl.remote.download.RPDownload;
+import org.gudy.azureus2.pluginsimpl.remote.download.RPDownloadStats;
 
 public class 
 RPTorrentManager
@@ -110,7 +113,16 @@ RPTorrentManager
 				
 				return( new RPReply( e ));
 			}
-		}					
+		}else if ( method.equals( "createFromBEncodedData[byte[]]")){
+		
+			try{
+				return( new RPReply( RPTorrent.create( delegate.createFromBEncodedData((byte[])params[0]))));
+				
+			}catch( TorrentException e ){
+				
+				return( new RPReply(e));
+			}
+		}
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
@@ -184,9 +196,22 @@ RPTorrentManager
 	
 		throws TorrentException
 	{
-		notSupported();
-		
-		return( null );
+		try{
+			RPTorrent	res = (RPTorrent)_dispatcher.dispatch( new RPRequest( this, "createFromBEncodedData[byte[]]", new Object[]{data})).getResponse();
+			
+			res._setRemote( _dispatcher );
+			
+			return( res );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof TorrentException ){
+				
+				throw((TorrentException)e.getCause());
+			}
+			
+			throw( e );
+		}	
 	}
 	
 	public Torrent
