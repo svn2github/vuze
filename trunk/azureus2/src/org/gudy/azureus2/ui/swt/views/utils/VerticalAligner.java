@@ -21,18 +21,17 @@
 package org.gudy.azureus2.ui.swt.views.utils;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 
-/**
- * @author Olivier
+/** Workaround Eclipse Bug Bug 42416
+ *   "[Platform Inconsistency] GC(Table) has wrong origin"
  *
  */
 public class VerticalAligner implements ParameterListener {
-  public static final String parameterName = "Vertical Alignement";
-  
-  private int verticalAlignement;
   private static VerticalAligner instance;
+  private boolean bFixGTKBug;
   
   public synchronized static VerticalAligner getInstance() {
     if(instance == null) instance = new VerticalAligner();
@@ -40,30 +39,22 @@ public class VerticalAligner implements ParameterListener {
   }
   
   private VerticalAligner() {
-    if(System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk")) {
-    	verticalAlignement = COConfigurationManager.getIntParameter(parameterName,28);
-    	COConfigurationManager.addParameterListener(parameterName,this);
-    } else {
-    	verticalAlignement = 0;
-    }
+  	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug");
+  	COConfigurationManager.addParameterListener("SWT_bGTKTableBug",this);
   }
   
 	public void parameterChanged(String parameterName) {
-    if(parameterName != null && parameterName.equals(VerticalAligner.parameterName)) {
-    	verticalAlignement = COConfigurationManager.getIntParameter(parameterName,0);
-    }
+  	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug");
 	}
   
-  public int getVerticalAlignement() {
-   return  verticalAlignement; 
-  }
-  
-  public void setVerticalAlignement(int alignement) {
-    this.verticalAlignement = alignement;
-  }
-  
-  public static int getAlignement() {
-   return - getInstance().getVerticalAlignement();
+  public static int getTableAdjustVerticalBy(Table t) {
+   return getInstance().COgetTableAdjustVerticalBy(t);
+  }      
+
+  public int COgetTableAdjustVerticalBy(Table t) {
+    if (!bFixGTKBug || t == null || t.isDisposed())
+      return 0;
+   return -t.getHeaderHeight(); 
   }      
    
 }

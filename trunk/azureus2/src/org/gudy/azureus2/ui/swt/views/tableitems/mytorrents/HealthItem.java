@@ -92,7 +92,7 @@ public class HealthItem extends TorrentItem  {
       return;
 
     int x0 = bounds.x + 1;
-    int y0 = bounds.y + VerticalAligner.getAlignement();
+    int y0 = bounds.y + VerticalAligner.getTableAdjustVerticalBy(row.getTable());
     
     if(image != null) {
       GC gc = new GC(row.getTable());

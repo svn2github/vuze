@@ -135,7 +135,7 @@ public class FileItem implements SortableItem{
     Rectangle bounds = item.getBounds(6);
     int width = bounds.width - 1;
     int x0 = bounds.x;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    int y0 = bounds.y + 1 + VerticalAligner.getTableAdjustVerticalBy(table);
     int height = bounds.height - 3;
     if (width < 10 || height < 3)
       return;

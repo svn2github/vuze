@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier
@@ -26,19 +27,33 @@ public class BooleanParameter implements IParameter{
   List	performers	= new ArrayList();
   
   public BooleanParameter(Composite composite, final String name) {
-    this(composite,name,COConfigurationManager.getBooleanParameter(name),null);
+    this(composite,name,COConfigurationManager.getBooleanParameter(name),null,null);
+  }
+
+  public BooleanParameter(Composite composite, final String name, String textKey) {
+    this(composite, name, COConfigurationManager.getBooleanParameter(name),
+         textKey, null);
+  }
+
+  public BooleanParameter(Composite composite, final String name, boolean defaultValue, String textKey) {
+    this(composite,name,defaultValue,textKey,null);
   }
 
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
-    this(composite,name,defaultValue,null);
+    this(composite,name,defaultValue,null,null);
   }
   
-  public BooleanParameter(Composite composite, final String name, boolean defaultValue,IAdditionalActionPerformer actionPerformer) {
+  public BooleanParameter(Composite composite, final String name, 
+                          boolean defaultValue,
+                          String textKey,
+                          IAdditionalActionPerformer actionPerformer) {
     if ( actionPerformer != null ){
     	performers.add( actionPerformer );
     }
     boolean value = COConfigurationManager.getBooleanParameter(name,defaultValue);
     checkBox = new Button(composite,SWT.CHECK);
+    if (textKey != null)
+      Messages.setLanguageText(checkBox, textKey);
     checkBox.setSelection(value);
     checkBox.addListener(SWT.Selection,new Listener() {
     /* (non-Javadoc)

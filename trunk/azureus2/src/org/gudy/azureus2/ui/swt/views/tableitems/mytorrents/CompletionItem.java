@@ -62,8 +62,6 @@ public class CompletionItem extends TorrentItem  {
       return;
     
     int width = bounds.width - 2;
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
     int height = bounds.height - 2;
     if (width < 10 || height < 2)
       return;
@@ -115,7 +113,7 @@ public class CompletionItem extends TorrentItem  {
     
     int width = bounds.width - 2;
     int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    int y0 = bounds.y + 1 + VerticalAligner.getTableAdjustVerticalBy(getTable());
     int height = bounds.height - 2;
     if (width < 10 || height < 2)
       return;

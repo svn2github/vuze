@@ -65,49 +65,49 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cDisplay.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 1;
     cDisplay.setLayout(layout);
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "Open Details"); //$NON-NLS-1$
-
-    
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "Open Bar", false); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Open Details", "ConfigView.label.opendetails");
+    new BooleanParameter(cDisplay, "Open Bar", false, "ConfigView.label.openbar");
 
     if(!System.getProperty("os.name").equals("Mac OS X")) {
-      label = new Label(cDisplay, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
-      new BooleanParameter(cDisplay, "Close To Tray", true); //$NON-NLS-1$
-
-      label = new Label(cDisplay, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
-      new BooleanParameter(cDisplay, "Minimize To Tray", false); //$NON-NLS-1$
+      new BooleanParameter(cDisplay, "Close To Tray", true, "ConfigView.label.closetotray");
+      new BooleanParameter(cDisplay, "Minimize To Tray", false, "ConfigView.label.minimizetotray");
     }
     
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Send Version Info",true, "ConfigView.label.allowSendVersion");
+    new BooleanParameter(cDisplay, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
+    
+    Composite cArea = new Composite(cDisplay, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 2;
+    cArea.setLayout(layout);
+    cArea.setLayoutData(new GridData());
+    
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.password");
 
     gridData = new GridData();
     gridData.widthHint = 150;
-    PasswordParameter pw1 = new PasswordParameter(cDisplay, "Password"); //$NON-NLS-1$
+    PasswordParameter pw1 = new PasswordParameter(cArea, "Password");
     pw1.setLayoutData(gridData);
     Text t1 = (Text)pw1.getControl();
     
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordconfirm");
     gridData = new GridData();
     gridData.widthHint = 150;
-    PasswordParameter pw2 = new PasswordParameter(cDisplay, "Password Confirm");
-    pw2.setLayoutData(gridData); //$NON-NLS-1$
+    PasswordParameter pw2 = new PasswordParameter(cArea, "Password Confirm");
+    pw2.setLayoutData(gridData);
     Text t2 = (Text)pw2.getControl();
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
-    passwordMatch = new Label(cDisplay, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordmatch");
+    passwordMatch = new Label(cArea, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 150;
     passwordMatch.setLayoutData(gridData);
@@ -125,15 +125,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
       }
     });
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.allowSendVersion");
-    new BooleanParameter(cDisplay, "Send Version Info",true);
-
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.confirmationOnExit"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "confirmationOnExit",false); //$NON-NLS-1$
-    
-    label = new Label(cDisplay, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
 
     String[] drop_options = {
@@ -150,7 +142,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
        dropLabels[i] = MessageText.getString( drop_options[i]);
        dropValues[i] = "" + i;
     }
-    new StringListParameter(cDisplay, "config.style.dropdiraction", "", dropLabels, dropValues);
+    new StringListParameter(cArea, "config.style.dropdiraction", "", dropLabels, dropValues);
     
     return cDisplay;
   }

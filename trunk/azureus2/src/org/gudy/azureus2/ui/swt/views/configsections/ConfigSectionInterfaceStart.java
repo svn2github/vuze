@@ -57,28 +57,14 @@ public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
 
     cStart.setLayoutData(new GridData(GridData.FILL_BOTH));
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 1;
     cStart.setLayout(layout);
 
-    label = new Label(cStart, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.showsplash"); //$NON-NLS-1$
-    new BooleanParameter(cStart, "Show Splash", true); //$NON-NLS-1$
-
-    label = new Label(cStart, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.autoupdate"); //$NON-NLS-1$
-    new BooleanParameter(cStart, "Auto Update", true); //$NON-NLS-1$
-
-    label = new Label(cStart, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.openconsole"); //$NON-NLS-1$
-    new BooleanParameter(cStart, "Open Console", false); //$NON-NLS-1$
-
-    label = new Label(cStart, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.openconfig"); //$NON-NLS-1$
-    new BooleanParameter(cStart, "Open Config", false); //$NON-NLS-1$
-
-    label = new Label(cStart, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
-    new BooleanParameter(cStart, "Start Minimized", false); //$NON-NLS-1$
+    new BooleanParameter(cStart, "Show Splash", true, "ConfigView.label.showsplash");
+    new BooleanParameter(cStart, "Auto Update", true, "ConfigView.label.autoupdate");
+    new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");
+    new BooleanParameter(cStart, "Open Config", false, "ConfigView.label.openconfig");
+    new BooleanParameter(cStart, "Start Minimized", false, "ConfigView.label.startminimized");
     
     return cStart;
   }

@@ -146,10 +146,17 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
         Utils.saveTableColumn(column);
         synchronized(objectToSortableItem) {
           Iterator iter = objectToSortableItem.values().iterator();
+          // area that has changed is everything including and after column
+          Rectangle bounds = column.getParent().getBounds();
+          TableColumn[] columns = column.getParent().getColumns();
+          for (int i = 0; i < columns.length; i++) {
+            bounds.x += columns[i].getWidth();
+            if (columns[i] == column)
+              break;
+          }
           while(iter.hasNext()) {
             PeerRow row = (PeerRow) iter.next();
-            row.invalidate();
-            row.refresh();
+            row.doPaint(bounds);
           }
         }        
         int columnNumber = table.indexOf(column);

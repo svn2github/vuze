@@ -35,7 +35,7 @@ public class PieceTableItem implements SortableItem{
   Table table;
   PEPiece piece;
   TableItem item;
-  Canvas cBlockView;
+  Canvas cBlockView = null;
 
   private String[] oldTexts;
 
@@ -119,11 +119,13 @@ public class PieceTableItem implements SortableItem{
   }
   
   void updateBlockView() {
+    if (cBlockView == null)
+      return;
     Rectangle bounds = item.getBounds(3);
+    bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
     cBlockView.setBounds(bounds);
 
     int x1 = bounds.width - 2;
-    // + VerticalAligner.getAlignement();
     int y1 = bounds.height - 3;
     if (x1 < 10 || y1 < 3)
       return;
@@ -141,8 +143,6 @@ public class PieceTableItem implements SortableItem{
       if (i == piece.getNbBlocs() - 1) {
         nextWidth = x1 - (iPixelsPerBlock * (piece.getNbBlocs() - 1));
       }
-      int a0 = (i * x1) / piece.getNbBlocs() + 1;
-      int a1 = ((i + 1) * x1) / piece.getNbBlocs() - 1;
       color = MainWindow.white;
 
       if (piece.getWritten()[i]) {

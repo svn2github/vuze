@@ -38,7 +38,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -67,26 +66,18 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     Composite cLook = new Composite(parent,  SWT.NULL);
     cLook.setLayoutData(new GridData(GridData.FILL_BOTH));
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 1;
     cLook.setLayout(layout);
     
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "useCustomTab",true); //$NON-NLS-1$
-    
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.showdownloadbasket"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "Show Download Basket",false); //$NON-NLS-1$
-    
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.addurlsilently"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "Add URL Silently",false); //$NON-NLS-1$
+    new BooleanParameter(cLook, "useCustomTab",true, "ConfigView.section.style.useCustomTabs");
+    new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
+    new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
     
     String osName = System.getProperty("os.name");
     if (osName.equals("Windows XP")) {
-      label = new Label(cLook, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
       final Button enableXPStyle = new Button(cLook, SWT.CHECK);
+      Messages.setLanguageText(enableXPStyle, "ConfigView.section.style.enableXPStyle");
+      
       boolean enabled = false;
       boolean valid = false;
       try {
@@ -138,39 +129,9 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
       });
     }
 
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
-    ColorParameter colorScheme = new ColorParameter(cLook, "Color Scheme",0,128,255,true); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    colorScheme.setLayoutData(gridData);
-
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate"); //$NON-NLS-1$
-    int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
-    String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
-    new IntListParameter(cLook, "GUI Refresh", 250, labels, values);
-
-    
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 15;
-    IntParameter graphicUpdate = new IntParameter(cLook, "Graphics Update", 1, -1, false);
-    graphicUpdate.setLayoutData(gridData);
-    
-    
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 15;
-    IntParameter reorderDelay = new IntParameter(cLook, "ReOrder Delay");
-    reorderDelay.setLayoutData(gridData);
-    
     if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
-     label = new Label(cLook, SWT.NULL);
-     Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
-     new IntParameter(cLook, VerticalAligner.parameterName,28); //$NON-NLS-1$
+      // See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
+      new BooleanParameter(cLook, "SWT_bGTKTableBug", "ConfigView.section.style.verticaloffset");
     }
 
     
@@ -179,17 +140,49 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
      */
     /*
     label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "Always Show Torrent Files", true); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles");
+    new BooleanParameter(cLook, "Always Show Torrent Files", true);
     */
 
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "config.style.useSIUnits",false); //$NON-NLS-1$
+    new BooleanParameter(cLook, "config.style.useSIUnits",false, "ConfigView.section.style.useSIUnits");
+    new BooleanParameter(cLook, "config.style.refreshMT",false, "ConfigView.section.style.alwaysRefreshMyTorrents");
+    
+    Composite cArea = new Composite(cLook, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 2;
+    cArea.setLayout(layout);
+    cArea.setLayoutData(new GridData());
+    
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme");
+    ColorParameter colorScheme = new ColorParameter(cArea, "Color Scheme",0,128,255,true);
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    colorScheme.setLayoutData(gridData);
 
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.alwaysRefreshMyTorrents"); //$NON-NLS-1$
-    new BooleanParameter(cLook, "config.style.refreshMT",false); //$NON-NLS-1$
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");
+    int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
+    String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
+    new IntListParameter(cArea, "GUI Refresh", 250, labels, values);
+
+    
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate");
+    gridData = new GridData();
+    gridData.widthHint = 15;
+    IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1, -1, false);
+    graphicUpdate.setLayoutData(gridData);
+    
+    
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay");
+    gridData = new GridData();
+    gridData.widthHint = 15;
+    IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
+    reorderDelay.setLayoutData(gridData);
     
     return cLook;
   }

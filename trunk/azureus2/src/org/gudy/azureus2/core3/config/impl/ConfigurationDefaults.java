@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.SystemProperties;
 ;
 
@@ -113,9 +114,6 @@ public class ConfigurationDefaults {
     // Stop seeding when there is at least 1 seed for X peers
     //def.put("Core_iSeedingRatioStop", new Long(0)); *
     def.put("Stop Peers Ratio", new Long(0));
-    // Start seeding when there is less than 1 seed for X peers
-    //def.put("Core_iSeedingRatioStart", new Long(0)); *
-    def.put("Start Peers Ratio", new Long(0));
     // Disconnect Seeds on completion
     //def.put("Core_bDisconnectSeed", new Long(0)); *
     def.put("Disconnect Seed", new Long(1));
@@ -158,6 +156,13 @@ public class ConfigurationDefaults {
     def.put("config.style.refreshMT",new Long(0));
     //def.put("SWT_bOpenDetails", new Long(0));
     def.put("Open Details", new Long(0));
+    boolean bGTKTableBug = false;
+    try {
+      bGTKTableBug = System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk");
+    } catch (NoClassDefFoundError e) {
+      /* Ignore, SWT not installed */
+    }
+    def.put("SWT_bGTKTableBug", new Long(bGTKTableBug ? 1: 0));
     
     def.put("Logging Enable", new Long(0));
     def.put("Logging Dir", "");
