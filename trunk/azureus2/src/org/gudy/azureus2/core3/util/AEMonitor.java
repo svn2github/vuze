@@ -67,8 +67,8 @@ AEMonitor
 
 	private static long		last_total_entry;
 	
-	protected long			monitor_id;
 	protected long			entry_count;
+	protected long			last_entry_count;
 	
 	static{
 		new Timer("AEMonitor").addPeriodicEvent(
@@ -87,6 +87,8 @@ AEMonitor
 	protected static void
 	checkMonitors()
 	{
+		List	active_monitors	= new ArrayList();
+		
 		synchronized( AEMonitor.class ){
 
 			System.out.println( "AEMonitor: id = " + monitor_id_next + ", monitors = " + debug_monitors.size() + ", names = " + debug_name_mapping.size() + ", traces = " + debug_traces.size());
@@ -102,6 +104,11 @@ AEMonitor
 				
 				AEMonitor	monitor = data.monitor;
 				
+				if ( monitor.entry_count != monitor.last_entry_count ){
+					
+					active_monitors.add( monitor );
+				}
+				
 				total_entry += monitor.entry_count;
 			}
 			
@@ -109,6 +116,40 @@ AEMonitor
 			System.out.println( "    total in = " + total_entry + " - " + ((total_entry - last_total_entry ) / (DEBUG_TIMER/1000)) + "/sec" );
 			
 			last_total_entry	= total_entry;
+		}
+		
+		AEMonitor[]	x = new AEMonitor[active_monitors.size()];
+		
+		active_monitors.toArray(x);
+		
+		Arrays.sort(
+			x,
+			new Comparator()
+			{
+				public int
+				compare(
+					Object	o1,
+					Object	o2 )
+				{
+					AEMonitor	a1 = (AEMonitor)o1;
+					AEMonitor	a2 = (AEMonitor)o2;
+					
+					return((int)((a2.entry_count - a2.last_entry_count ) - (a1.entry_count - a1.last_entry_count )));
+				}
+				
+			});
+		
+		System.out.print("    top activity:" );
+		
+		for (int i=0;i<10;i++){
+			
+			System.out.print( (i==0?"":", ") + x[i].name + " = " + (x[i].entry_count - x[i].last_entry_count ));
+		}
+		
+		System.out.println();
+		
+		for (int i=0;i<x.length;i++){
+			x[i].last_entry_count = x[i].entry_count;
 		}
 	}
 		// non-debug stuff
@@ -132,7 +173,7 @@ AEMonitor
 			
 			synchronized( AEMonitor.class ){
 				
-				monitor_id	= monitor_id_next++;
+				monitor_id_next++;
 								
 				StackTraceElement	elt = new Exception().getStackTrace()[1];
 				
