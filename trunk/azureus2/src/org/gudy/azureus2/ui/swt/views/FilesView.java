@@ -117,7 +117,7 @@ public class FilesView extends AbstractIView implements SortableTable {
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[0];
           DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-          if (fileInfo.getAccessmode() != DiskManagerFileInfo.READ)
+          if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ)
             open = false;
         }
         itemOpen.setEnabled(open);
@@ -133,7 +133,7 @@ public class FilesView extends AbstractIView implements SortableTable {
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[i];
           DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-          if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
+          if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
             Program.launch(fileInfo.getPath() + fileInfo.getName());
         }
       }
@@ -202,7 +202,7 @@ public class FilesView extends AbstractIView implements SortableTable {
         }
         TableItem ti = tis[0];
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
-        if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
+        if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
           Program.launch(fileInfo.getPath() + fileInfo.getName());
       }
     });

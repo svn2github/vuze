@@ -22,7 +22,7 @@ DiskManagerFileInfo
 	 
 	 	// get methods
 	 	
-	public int getAccessmode();
+	public int getAccessMode();
 	
 	public long getDownloaded();
 	

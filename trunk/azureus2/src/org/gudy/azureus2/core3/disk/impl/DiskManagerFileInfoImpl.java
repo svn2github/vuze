@@ -25,9 +25,9 @@ package org.gudy.azureus2.core3.disk.impl;
  *
  */
 import java.io.File;
-import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.file.*;
 
 /**
  * @author Olivier
@@ -37,27 +37,37 @@ public class
 DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo
 {
+  private FMFile		fm_file = FMFileManagerFactory.getSingleton().createFile();
   
-  
-  private File file;  
-  private RandomAccessFile raf;
-  private int accessmode;
-  private String path;
-  private String name;
-  private String extension;
-  private long length;
-  private long downloaded;
-  private int firstPieceNumber = -1;
-  private int nbPieces = 0;
+  private String 		path;
+  private String 		name;
+  private String 		extension;
+  private long 			length;
+  private long 			downloaded;
+  private int 			firstPieceNumber = -1;
+  private int 			nbPieces = 0;
   
   private boolean priority = false;  
   private boolean skipped = false;
-
-  /**
-   * @return
-   */
-  public int getAccessmode() {
-	return accessmode;
+  
+  public FMFile
+  getFMFile()
+  {
+  	return( fm_file );
+  }
+  
+  public void
+  setAccessMode(
+  	int		mode )
+  
+  	throws FMFileManagerException
+  {
+  	fm_file.setAccessMode( mode );
+  }
+  
+  public int 
+  getAccessMode(){
+	return( fm_file.getAccessMode());
   }
 
   /**
@@ -78,7 +88,7 @@ DiskManagerFileInfoImpl
    * @return
    */
   public File getFile() {
-	return file;
+	return( fm_file.getFile());
   }
 
   /**
@@ -111,20 +121,6 @@ DiskManagerFileInfoImpl
 
 
   /**
-   * @return
-   */
-  public RandomAccessFile getRaf() {
-	return raf;
-  }
-
-  /**
-   * @param i
-   */
-  public void setAccessmode(int i) {
-	accessmode = i;
-  }
-
-  /**
    * @param l
    */
   public void setDownloaded(long l) {
@@ -142,7 +138,7 @@ DiskManagerFileInfoImpl
    * @param file
    */
   public void setFile(File file) {
-	this.file = file;
+	fm_file.setFile( file );
   }
 
   /**
@@ -171,13 +167,6 @@ DiskManagerFileInfoImpl
    */
   public void setNbPieces(int i) {
 	nbPieces = i;
-  }
-
-  /**
-   * @param file
-   */
-  public void setRaf(RandomAccessFile file) {
-	raf = file;
   }
 
   /**

@@ -107,7 +107,7 @@ public class FileItem implements SortableItem{
     }
 
     tmp = MessageText.getString("FileItem.read"); //$NON-NLS-1$
-    if (fileInfo.getAccessmode() == DiskManagerFileInfo.WRITE)
+    if (fileInfo.getAccessMode() == DiskManagerFileInfo.WRITE)
       tmp = MessageText.getString("FileItem.write"); //$NON-NLS-1$
     if (!oldTexts[7].equals(tmp)) {
       oldTexts[7] = tmp;
@@ -257,7 +257,7 @@ public class FileItem implements SortableItem{
       return fileInfo.getNbPieces();
   
     if (field.equals("mode")) //$NON-NLS-1$
-      return fileInfo.getAccessmode();
+      return fileInfo.getAccessMode();
   
     if(field.equals("priority")) {
       int prio = fileInfo.isPriority()?1:0 + 2 * (fileInfo.isSkipped()?1:0);

@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
@@ -40,6 +39,7 @@ import java.util.Vector;
 
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -765,29 +765,70 @@ DiskManagerImpl
 		
 		for (int i = 0; i < fileList.size(); i++) {
 			//get the BtFile
-			BtFile tempFile = (BtFile)fileList.get(i);
+			final BtFile tempFile = (BtFile)fileList.get(i);
 			//get the path
-			String tempPath = basePath + tempFile.getPath();
+			final String tempPath = basePath + tempFile.getPath();
 			//get file name
-			String tempName = tempFile.getName();
+			final String tempName = tempFile.getName();
 			//get file length
-			long length = tempFile.getLength();
+			final long length = tempFile.getLength();
 
-			File f = new File(tempPath, tempName);
+			final File f = new File(tempPath, tempName);
 
-			RandomAccessFile raf = null;
+			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl();
+			
+			fileInfo.setPath(tempPath);
+			
+			fileInfo.setName(tempName);
+			
+			int separator = tempName.lastIndexOf(".");
+			
+			if (separator == -1){
+				separator = 0;
+			}
+			
+			fileInfo.setExtension(tempName.substring(separator));
+			
+			//Added for Feature Request
+			//[ 807483 ] Prioritize .nfo files in new torrents
+			//Implemented a more general way of dealing with it.
+			String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
+			if(!extensions.equals("")) {
+				boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
+				StringTokenizer st = new StringTokenizer(extensions,";");
+				while(st.hasMoreTokens()) {
+					String extension = st.nextToken();
+					extension = extension.trim();
+					if(!extension.startsWith("."))
+						extension = "." + extension;
+					boolean bHighPriority = (bIgnoreCase) ? 
+														  fileInfo.getExtension().equalsIgnoreCase(extension) : 
+														  fileInfo.getExtension().equals(extension);
+					if (bHighPriority)
+						fileInfo.setPriority(true);
+				}
+			}
+			
+			fileInfo.setLength(length);
+			fileInfo.setDownloaded(0);
+			fileInfo.setFile( f );
 			
 			int accessMode;
 
 			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
-			boolean preZero = COConfigurationManager.getBooleanParameter("Zero New", false);
-         boolean bCreateFile = false;
+			boolean preZero 	= COConfigurationManager.getBooleanParameter("Zero New", false);
+			boolean bCreateFile = false;
 			
 			if (!f.exists()) {
+				
 			  bCreateFile = true;
-			}
-			else if (f.length() != length) {
-				if (!incremental || f.length() > length ) bCreateFile = true;
+			  
+			}else if (f.length() != length) {
+				
+				if (!incremental || f.length() > length ){
+					
+					bCreateFile = true;
+				}
 			}
 			
 			if (bCreateFile) {
@@ -799,18 +840,22 @@ DiskManagerImpl
 					//test: throws Exception if filename is not supported by os
 					f.getCanonicalPath();
 					//create the new file
-					raf = new RandomAccessFile(f, "rwd");
-					accessMode = DiskManagerFileInfo.WRITE;
+					
+					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+					
 					//if we don't want incremental file creation, pre-allocate file
-					if (!incremental) raf.setLength(length);
+					
+					if (!incremental){
+						fileInfo.getFMFile().setLength(length);
+					}
 					
 					
 					//if we want to pre-fill file with zeros
 					if (preZero) {
 					  //pre-allocate
-					  raf.setLength(length);
+						fileInfo.getFMFile().setLength(length);
 					  //and zero
-					  boolean ok = zeroFile(raf);
+					  boolean ok = zeroFile(fileInfo);
 					  if (!ok) {
 					    setState( FAULTY );
 					    return -1;
@@ -820,12 +865,10 @@ DiskManagerImpl
 
 				} catch (Exception e) {
 					try {
-							
-						if ( raf != null ){
-						
-							raf.close();
-						}
-					} catch (IOException ex) { ex.printStackTrace(); }
+								
+						fileInfo.getFMFile().close();
+	
+					} catch (FMFileManagerException ex) { ex.printStackTrace(); }
 					this.errorMessage = e.getMessage() + " (allocateFiles)";
 					setState( FAULTY );
 					return -1;
@@ -834,9 +877,8 @@ DiskManagerImpl
 			//the file already exists
 			} else {               
 				try {
-					raf = new RandomAccessFile(f, "r");
-					accessMode = DiskManagerFileInfo.READ;
-				} catch (FileNotFoundException e) {
+					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+				} catch (FMFileManagerException e) {
 					this.errorMessage = e.getMessage() + " (allocateFiles:2)";
 					setState( FAULTY );
 					return -1;
@@ -846,40 +888,7 @@ DiskManagerImpl
 
 			//add the file to the array
 
-			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl();
-			fileInfo.setPath(tempPath);
-			fileInfo.setName(tempName);
-			int separator = tempName.lastIndexOf(".");
-			if (separator == -1)
-				separator = 0;
-			fileInfo.setExtension(tempName.substring(separator));
-            
-			//Added for Feature Request
-			//[ 807483 ] Prioritize .nfo files in new torrents
-			//Implemented a more general way of dealing with it.
-			String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
-			if(!extensions.equals("")) {
-			  boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
-				StringTokenizer st = new StringTokenizer(extensions,";");
-				while(st.hasMoreTokens()) {
-				  String extension = st.nextToken();
-				  extension = extension.trim();
-				  if(!extension.startsWith("."))
-					extension = "." + extension;
-					boolean bHighPriority = (bIgnoreCase) ? 
-					                   fileInfo.getExtension().equalsIgnoreCase(extension) : 
-					                   fileInfo.getExtension().equals(extension);
-				  if (bHighPriority)
-            fileInfo.setPriority(true);
-				}
-			}
-            
-            
-			fileInfo.setLength(length);
-			fileInfo.setDownloaded(0);
-			fileInfo.setFile(f);
-			fileInfo.setRaf(raf);
-			fileInfo.setAccessmode(accessMode);
+
 			files[i] = fileInfo;
 
 			//setup this files RAF reference
@@ -889,32 +898,38 @@ DiskManagerImpl
 	}
 
 
-  private boolean zeroFile(RandomAccessFile file) {
-		FileChannel fc = file.getChannel();
+  private boolean 
+  zeroFile(
+  	DiskManagerFileInfoImpl file) 
+  {
+  		FMFile	fm_file = file.getFMFile();
+  	
 		long length;
 		try {
-			length = file.length();
-		} catch (IOException e) {
+			length = fm_file.getLength();
+			
+		} catch (FMFileManagerException e) {
 			this.errorMessage = e.getMessage() + " (zeroFile)";
 			setState( FAULTY );
 			return false;
 		}
+		
 		long written = 0;
-		synchronized (file) {
-			try {
-				fc.position(0);
+		
+		synchronized (file){
+			try{
 				while (written < length && bContinue) {
 					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
 					if ((length - written) < allocateAndTestBuffer.remaining())
 						allocateAndTestBuffer.limit((int) (length - written));
-					int deltaWriten = fc.write(allocateAndTestBuffer);
+					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
 					allocateAndTestBuffer.position(0);
 					written += deltaWriten;
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
 				}
 				if (!bContinue) {
-				   fc.close();
+				   fm_file.close();
 				   return false;
 				}
 			} catch (Exception e) {
@@ -954,30 +969,26 @@ DiskManagerImpl
 			//get the piece and the file 
 			PieceMapEntry tempPiece = pieceList.get(i);
             
-         FileChannel fc = tempPiece.getFile().getRaf().getChannel();
-            
-			synchronized (fc) {
-				//grab it's data and return it
-				try {
+
+			try {
                     
-					if (fc.isOpen()) {
 					   //if the file is large enough
-            if (fc.size() >= tempPiece.getOffset()) {
-							fc.position(tempPiece.getOffset());
-							fc.read(allocateAndTestBuffer);
-						} else {
+				if ( tempPiece.getFile().getFMFile().getSize() >= tempPiece.getOffset()){
+					
+					tempPiece.getFile().getFMFile().read(allocateAndTestBuffer, tempPiece.getOffset());
+					
+				}else{
 						   //too small, can't be a complete piece
-							allocateAndTestBuffer.clear();
-							pieceDone[pieceNumber] = false;
-							return false;
-						}
-					}
-               else {
-               	Debug.out("file channel is not open");
-               }
-				} catch (Exception e) {
-					e.printStackTrace();
+					
+					allocateAndTestBuffer.clear();
+					
+					pieceDone[pieceNumber] = false;
+					
+					return false;
 				}
+			}catch (Exception e){
+				
+				e.printStackTrace();
 			}
 		}
 
@@ -1419,28 +1430,22 @@ DiskManagerImpl
 
 	// refactored out of readBlock() - Moti
 	// reads a file into a buffer, returns true when no error, otherwise false.
-	private boolean readFileInfoIntoBuffer(DiskManagerFileInfoImpl file, ByteBuffer buffer, long offset) {
-		  FileChannel fc = file.getRaf().getChannel();
-        
-        synchronized (fc) {
-      
-			if (!fc.isOpen()) {
-			  Debug.out("FileChannel is closed: " + file.getFile().getAbsolutePath());
-			  return false;
-			}
-
-			try {
-				fc.position(offset);
-				while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()) {
-					fc.read(buffer);
-				}
-				return true;
-			} catch (Exception e) {	
-				e.printStackTrace();
-				this.errorMessage = e.getMessage() + " (readFileInfoIntoBuffer)";
-
-				return false;
-			}
+	private boolean 
+	readFileInfoIntoBuffer(
+		DiskManagerFileInfoImpl file, 
+		ByteBuffer buffer, 
+		long offset) 
+	{
+		try{
+			file.getFMFile().read( buffer, offset );
+			
+			return( true );
+			
+		}catch( FMFileManagerException e ){
+			
+			this.errorMessage	= e.getMessage();
+			
+			return( false );
 		}
 	}
 
@@ -1526,14 +1531,12 @@ DiskManagerImpl
 		while (buffer.hasRemaining()) {
 			tempPiece = pieceList.get(currentFile);
 
-			if (tempPiece.getFile().getAccessmode() == DiskManagerFileInfo.READ)
+			if (tempPiece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
 				try {
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write");
-					RandomAccessFile raf = tempPiece.getFile().getRaf();
-					raf.close();
-				  raf = new RandomAccessFile(tempPiece.getFile().getFile(), "rwd");
-					tempPiece.getFile().setRaf(raf);
-					tempPiece.getFile().setAccessmode(DiskManagerFileInfo.WRITE);
+					
+					tempPiece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
+					
 				} catch (Exception ex) {
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write. ERR: "+ex.getMessage());
 					this.errorMessage = ex.getMessage() + " (dumpBlockToDisk)";
@@ -1541,39 +1544,34 @@ DiskManagerImpl
 					setState( FAULTY );
 					return;
 				}
-            
-         FileChannel fc = tempPiece.getFile().getRaf().getChannel();
-            
-			synchronized (fc) {
-				try {
-					if (fc.isOpen()) {
-						fc.position(fileOffset + (offset - previousFilesLength));
-					   int realLimit = buffer.limit();
-					   
-					   long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
-          
-					   if (limit < realLimit) {
-					    	buffer.limit((int)limit);
-					   }
-
-					   if (buffer.position() < buffer.limit()) {
-					   	fc.write(buffer);
-					   }
-					   else { 
-					   	Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
-					   }
-                    
-					   buffer.limit(realLimit);
-					}
-               else {
-               	Debug.out("file channel is not open !");
-               }
-                    
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
 			}
-            
+			
+			int realLimit = buffer.limit();
+				
+			long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
+				
+			if (limit < realLimit) {
+			
+				buffer.limit((int)limit);
+			}
+
+			if (buffer.position() < buffer.limit()){
+					
+				try{
+					tempPiece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
+					
+				}catch( FMFileManagerException f ){
+				
+						// TODO: handle this properly
+				}
+					
+			}else{
+				
+				Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
+			}
+				
+			buffer.limit(realLimit);
+			
 			currentFile++;
 			fileOffset = 0;
 			previousFilesLength = offset;
@@ -1654,10 +1652,8 @@ DiskManagerImpl
 			for (int i = 0; i < files.length; i++) {
 				try {
 					if (files[i] != null) {
-						RandomAccessFile raf = files[i].getRaf();
-                  synchronized( raf.getChannel() ) {
-                    raf.close();
-                  }
+						
+						files[i].getFMFile().close();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1673,30 +1669,37 @@ DiskManagerImpl
 
 
 	public void computeFilesDone(int pieceNumber) {
-		for (int i = 0; i < files.length; i++) {
-			RandomAccessFile raf = files[i].getRaf();
+		for (int i = 0; i < files.length; i++){
+			
+			DiskManagerFileInfoImpl	this_file = files[i];
+			
 			PieceList pieceList = pieceMap[pieceNumber];
 			//for each piece
 
 			for (int k = 0; k < pieceList.size(); k++) {
 				//get the piece and the file 
 				PieceMapEntry tempPiece = pieceList.get(k);
-				if (raf == tempPiece.getFile().getRaf()) {
-					long done = files[i].getDownloaded();
+				
+				if ( this_file == tempPiece.getFile()){
+					
+					long done = this_file.getDownloaded();
+					
 					done += tempPiece.getLength();
-					files[i].setDownloaded(done);
-					if (done == files[i].getLength() &&
-					   files[i].getAccessmode() == DiskManagerFileInfo.WRITE)
-						try {
-							synchronized (files[i]) {
-							  RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
-								files[i].setRaf(newRaf);
-								raf.close();
-								files[i].setAccessmode(DiskManagerFileInfo.READ);
-							}
-						} catch (Exception e) {
+					
+					this_file.setDownloaded(done);
+					
+					if (	done == this_file.getLength() &&
+							this_file.getAccessMode() == DiskManagerFileInfo.WRITE){
+						
+					
+						try{
+							this_file.setAccessMode( DiskManagerFileInfo.READ );
+							
+						}catch (Exception e) {
+							
 							e.printStackTrace();
 						}
+					}
 				}
 			}
 		}
@@ -1705,11 +1708,17 @@ DiskManagerImpl
 	public String[][] getFilesStatus() {
 		String[][] result = new String[files.length][2];
 		for (int i = 0; i < result.length; i++) {
-			result[i][0] = files[i].getFile().getAbsolutePath();
-			RandomAccessFile raf = files[i].getRaf();
+			
+			DiskManagerFileInfoImpl	this_file = files[i];
+			
+			result[i][0] = this_file.getFile().getAbsolutePath();
+
 			result[i][1] = "";
-			long length = files[i].getLength();
+			
+			long length = this_file.getLength();
+			
 			long done = 0;
+			
 			for (int j = 0; j < nbPieces; j++) {
 				if (!pieceDone[j])
 					continue;
@@ -1718,9 +1727,13 @@ DiskManagerImpl
 				//for each piece
 
 				for (int k = 0; k < pieceList.size(); k++) {
-					//get the piece and the file 
+					
+					//get the piece and the file
+					
 					PieceMapEntry tempPiece = pieceList.get(k);
-					if (raf == tempPiece.getFile().getRaf()) {
+					
+					if (this_file == tempPiece.getFile()) {
+						
 						done += tempPiece.getLength();
 					}
 				}
@@ -2004,17 +2017,15 @@ DiskManagerImpl
           }
           
           //close the currently open stream so we can move the file
-          files[i].getRaf().close();
+          files[i].getFMFile().close();
           
           //move the file ~ rename old file pointer to new file pointer
           if (oldFile.renameTo(newFile)) {
             //open the stream from the new file
-            RandomAccessFile newRaf = new RandomAccessFile(newFile, "r");
-            //set new pointers
-            files[i].setRaf(newRaf);
-            files[i].setAccessmode(DiskManagerFileInfo.READ);
-            files[i].setFile(newFile);
-            files[i].setPath(newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator"));
+          	files[i].setFile(newFile);
+          	files[i].setPath(newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator"));
+          	
+            files[i].setAccessMode(DiskManagerFileInfo.READ);
           }
           else {
             String msg = "Failed to move " + oldFile.getName() + " to destination dir";
