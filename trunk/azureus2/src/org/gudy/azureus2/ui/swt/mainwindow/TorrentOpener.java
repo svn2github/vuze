@@ -437,7 +437,13 @@ public class TorrentOpener {
         event.detail = DND.DROP_NONE;
       if (event.detail == DND.DROP_NONE)
         return;
-      boolean startInStoppedState = event.detail == DND.DROP_COPY;
+      
+      	// override non-DND.DROP_COPY if the default has been set to "start stopped"
+      
+      boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+      
+      boolean startInStoppedState = default_start_stopped || event.detail == DND.DROP_COPY;
+      
       for (int i = 0;(i < sourceNames.length); i++) {
         final File source = new File(sourceNames[i]);
         if (source.isFile())
