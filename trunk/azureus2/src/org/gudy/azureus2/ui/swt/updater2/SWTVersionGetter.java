@@ -43,9 +43,8 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class SWTVersionGetter {
   
 	 public static String[] swtURLProviders = {
-	 	      "http://azureus.sourceforge.net/swt_version.php",
-	 	      "http://azureus.aelitis.com/swt_version.php"
-	 	  };
+     Constants.AELITIS_WEB_SITE + "swt_version.php"
+	 };
 	 	  
 	 public static final int	VERSION_TIMEOUT_MILLIS	= 30000;
 	 
