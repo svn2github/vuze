@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  *
@@ -70,17 +71,32 @@ public class FileUtil {
    * Deletes the given dir and all files/dirs underneath
    */
   public static void recursiveDelete(File f) {
-    if (f.isDirectory()) {
-      File[] files = f.listFiles();
-      for (int i = 0; i < files.length; i++) {
-        recursiveDelete(files[i]);
+    String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+    String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+    
+    try {
+      if (f.getCanonicalPath().equals(moveToDir)) {
+        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
+        return;
       }
-      f.delete();
-    }
-    else {
-      f.delete();
-    }
+      if (f.getCanonicalPath().equals(defSaveDir)) {
+        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the default data dir !");
+        return;
+      }
+      
+      if (f.isDirectory()) {
+        File[] files = f.listFiles();
+        for (int i = 0; i < files.length; i++) {
+          recursiveDelete(files[i]);
+        }
+        f.delete();
+      }
+      else {
+        f.delete();
+      }
+    } catch (Exception ignore) {/*ignore*/}
   }
+  
   
   public static void copyFile(File origin, File destination) throws IOException {
     OutputStream os = new FileOutputStream(destination);
