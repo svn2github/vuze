@@ -77,7 +77,8 @@ SSDPImpl
 			while (network_interfaces.hasMoreElements()){
 				
 				final NetworkInterface network_interface = (NetworkInterface)network_interfaces.nextElement();
-				
+
+
 				Enumeration ni_addresses = network_interface.getInetAddresses();
 				
 				while (ni_addresses.hasMoreElements()){
@@ -85,6 +86,15 @@ SSDPImpl
 					final InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
 					
 					if ( ni_address.isLoopbackAddress()){
+						
+						upnp.log( "UPnP::SSDP: ignoring loopback address " + ni_address );
+						
+						continue;
+					}
+					
+					if ( ni_address instanceof Inet6Address ){
+
+						upnp.log( "UPnP::SSDP: ignoring IPv6 address " + ni_address );
 						
 						continue;
 					}
