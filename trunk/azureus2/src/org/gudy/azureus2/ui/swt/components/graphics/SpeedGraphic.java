@@ -120,7 +120,13 @@ public class SpeedGraphic extends ScaledGraphic {
           gcImage.drawLine(xDraw,h1,xDraw+1, h2);
         }
         oldAverage = average;
-      }      
+      }  
+      
+      if(nbValues > 0) {
+        int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
+        gcImage.setForeground(MainWindow.red);
+        gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12);
+      }
       
       
       gcImage.dispose();
