@@ -1,6 +1,12 @@
 AZUREUS CHANGELOG
 ---------
 
+xx.06.04 | Azureus 2.1.0.1
+
+
+
+
+
 30.05.04 | Azureus 2.1.0.0
 
 FEATURE: Core | Ability to limit global download speed [Parg]
