@@ -156,6 +156,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 	  
       torrent.setComment(_wizard.getComment());
  
+      TorrentUtils.setDHTBackupEnabled( torrent, _wizard.permitDHT );
+      
 	  LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
       
       	// mark this newly created torrent as complete to avoid rechecking on open

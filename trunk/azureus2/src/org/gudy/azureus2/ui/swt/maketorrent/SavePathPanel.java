@@ -269,7 +269,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     Messages.setLanguageText(bAutoHost,"wizard.maketorrents.autohost");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    bAutoOpen.setLayoutData(gridData);
+    bAutoHost.setLayoutData(gridData);
     bAutoHost.setEnabled( false );
     
     bAutoOpen.addListener(SWT.Selection,new Listener() {
@@ -285,6 +285,20 @@ public class SavePathPanel extends AbstractWizardPanel {
         _wizard.autoHost = bAutoHost.getSelection();
       }
     });
+    
+    final Button bAllowDHT = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(bAllowDHT,"ConfigView.section.sharing.permitdht");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    bAllowDHT.setLayoutData(gridData);
+    bAllowDHT.setSelection( true );
+    
+    bAllowDHT.addListener(SWT.Selection,new Listener() {
+        public void handleEvent(Event event) {
+          _wizard.permitDHT = bAllowDHT.getSelection();
+        }
+      });
+      
   }
   
   public IWizardPanel getFinishPanel() {

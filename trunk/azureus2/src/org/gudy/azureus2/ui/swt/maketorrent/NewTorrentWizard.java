@@ -87,9 +87,9 @@ NewTorrentWizard
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
   
-  boolean autoOpen = false;
-  boolean autoHost = false;
-  
+  boolean autoOpen 	= false;
+  boolean autoHost 	= false;
+  boolean permitDHT	= true;
   
   TOTorrentCreator creator = null;
 
