@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -56,25 +57,29 @@ public class InstallPluginWizard extends Wizard {
 		super.onClose();	
 	}
   	
-  	public void setPluginList(List plugins) {
-  	  this.plugins = plugins;
+  	public void setPluginList(List _plugins) {
+  	  plugins = _plugins;
   	}
   	
-  	public void performInstall() {
+  	public void performInstall() 
+  	{
   	  if(plugins == null) return;
-  	  
-  	  Iterator iter = plugins.iterator();
-  	  
+  	   	  
   	  StandardPlugin[]	ps = new StandardPlugin[ plugins.size()];
   	  
   	  plugins.toArray( ps );
   	  
   	  if ( ps.length > 0 ){
-  	    try {
+  	  	
+  	    try{
+  	    	
   	      ps[0].getInstaller().install(ps,false);
   	      
-  	    } catch(Exception e) {
+  	    }catch(Exception e){
+  	    	
   	      Debug.printStackTrace(e);
+  	      
+  	      LGLogger.logAlert( "Failed to initialse installer", e );
   	    }
   	  }
   	}

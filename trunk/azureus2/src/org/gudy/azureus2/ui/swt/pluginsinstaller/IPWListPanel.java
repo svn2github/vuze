@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -96,14 +97,35 @@ public class IPWListPanel extends AbstractWizardPanel {
 	Messages.setLanguageText(tcVersion,"installPluginsWizard.list.version");
 	tcVersion.setWidth(150);
 		
+	
+	Label lblDescription = new Label(panel,SWT.NULL);
+	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
+	
+	final StyledText txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
+	txtDescription.setEditable(false);
+	
+	data = new GridData(GridData.FILL_HORIZONTAL);
+	data.heightHint = 150;
+	txtDescription.setLayoutData(data);
+
 	AEThread listLoader = new AEThread("Plugin List Loader") {
 	  public void runSupport() {
 	    final StandardPlugin plugins[];
 	    try {
 	      plugins = wizard.getAzureusCore().getPluginManager().getPluginInstaller().getStandardPlugins();
-	    } catch(Exception e) {
-	      return;
+	      
+	    } catch(final Exception e) {
+	    	
+	    	Debug.printStackTrace(e);
+		    wizard.getDisplay().asyncExec(new AERunnable() {
+			      public void runSupport() {
+			      	txtDescription.setText( Debug.getNestedExceptionMessage(e));
+			      }
+		    });
+		    
+	    	return;
 	    }
+	    
 	    wizard.getDisplay().asyncExec(new AERunnable() {
 	      public void runSupport() {
 	        Messages.setLanguageText(lblStatus,"installPluginsWizard.list.loaded");
@@ -120,17 +142,11 @@ public class IPWListPanel extends AbstractWizardPanel {
 	    });
 	  }
 	};
+	
+	listLoader.setDaemon(true);
+	
 	listLoader.start();
 	
-	Label lblDescription = new Label(panel,SWT.NULL);
-	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
-	
-	final StyledText txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
-	txtDescription.setEditable(false);
-	
-	data = new GridData(GridData.FILL_HORIZONTAL);
-	data.heightHint = 150;
-	txtDescription.setLayoutData(data);
 	
 	pluginList.addListener(SWT.Selection,new Listener() {
 	  public void handleEvent(Event e) {
