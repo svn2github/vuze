@@ -1008,82 +1008,57 @@ DiskManagerImpl
 			fileInfo.setLength(length);
 			fileInfo.setDownloaded(0);
 			
-			int accessMode;
-
-			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
-			boolean preZero 	= COConfigurationManager.getBooleanParameter("Zero New", false);
-			boolean bCreateFile = false;
-			
-			if (!f.exists()) {
-				
-			  bCreateFile = true;
-			  
-			}else if (f.length() != length) {
-				
-				if (!incremental || f.length() > length ){
-					
-					bCreateFile = true;
-				}
-			}
-			
-			if (bCreateFile) {
-				//File doesn't exist
-			   numNewFiles++;
-				
-				try {
-					buildDirectoryStructure(tempPath);
-					//test: throws Exception if filename is not supported by os
-							
-					f.getCanonicalPath();
-						
-					//create the new file
-					
-					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
-					
-					//if we don't want incremental file creation, pre-allocate file
-					
-					if (!incremental){
-						fileInfo.getFMFile().setLength(length);
-					}
-					
-					
-					//if we want to pre-fill file with zeros
-					if ( preZero && !f.exists() ) {  //don't overwrite with zeros if file already exists
-					  //pre-allocate
-						fileInfo.getFMFile().setLength(length);
-					  //and zero
-					  boolean ok = zeroFile(fileInfo);
-					  if (!ok) {
-					    setState( FAULTY );
-					    return -1;
-					  }
-					}
-					
-
-				} catch (Exception e) {
-					try {
-								
-						fileInfo.getFMFile().close();
-	
-					} catch (FMFileManagerException ex) { ex.printStackTrace(); }
-					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles new:" + f.toString() + ")";
-					//e.printStackTrace();
-					setState( FAULTY );
-					return -1;
-				}
-        
-			//the file already exists
-			} else {               
-				try {
-					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
-				} catch (FMFileManagerException e) {
-					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles existing:" + f.toString() + ")";
-					//e.printStackTrace();
-					setState( FAULTY );
-					return -1;
-				}
-				allocated += length;
-			}
+      //do file allocation
+			if( f.exists() ) {  //file already exists
+			  try {
+          fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+			  }
+        catch (FMFileManagerException e) {
+          this.errorMessage = (e.getCause() != null
+              ? e.getCause().getMessage()
+              : e.getMessage())
+              + " (allocateFiles existing:" + f.toString() + ")";
+          setState( FAULTY );
+          return -1;
+        }
+        allocated += length;
+      }
+      else {  //we need to allocate it
+        try {
+          File directory = new File( tempPath );
+          if( !directory.exists() ) {
+            if( !directory.mkdirs() ) throw new Exception( "directory creation failed" );
+          }
+          f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
+          fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+          if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
+            //do incremental stuff
+          }
+          else {  //fully allocate
+            if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+              if( !zeroFile( fileInfo, length ) ) {
+                setState( FAULTY );
+                return -1;
+              }
+            }
+            else {  //reserve the full file size with the OS file system
+              fileInfo.getFMFile().setLength( length );
+              allocated += length;
+            }
+          }
+        }
+        catch ( Exception e ) {
+          try {  fileInfo.getFMFile().close();  }
+          catch (FMFileManagerException ex) {  ex.printStackTrace();  }
+          this.errorMessage = (e.getCause() != null
+              ? e.getCause().getMessage()
+              : e.getMessage())
+              + " (allocateFiles new:" + f.toString() + ")";
+          setState( FAULTY );
+          return -1;
+        }
+        numNewFiles++;
+      }
 
 			//add the file to the array
 			files[i] = fileInfo;
@@ -1098,71 +1073,31 @@ DiskManagerImpl
 	}
 
 
-  private boolean 
-  zeroFile(
-  	DiskManagerFileInfoImpl file) 
-  {
-  		FMFile	fm_file = file.getFMFile();
-  	
-		long length;
-		try {
-			length = fm_file.getLength();
-			
-		} catch (FMFileManagerException e) {
-			this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (zeroFile)";
-			setState( FAULTY );
-			return false;
-		}
-		
+  private boolean zeroFile( DiskManagerFileInfoImpl file, long length ) {
+    FMFile	fm_file = file.getFMFile();
 		long written = 0;
-		
 		synchronized (file){
-			try{
-				while (written < length && bOverallContinue) {
+		  try{
+		    while (written < length && bOverallContinue) {
 					allocateAndTestBuffer.buff.limit(allocateAndTestBuffer.buff.capacity());
 					if ((length - written) < allocateAndTestBuffer.buff.remaining())
-						allocateAndTestBuffer.buff.limit((int) (length - written));
+					  allocateAndTestBuffer.buff.limit((int) (length - written));
 					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
 					allocateAndTestBuffer.buff.position(0);
 					written += deltaWriten;
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
-				}
+		    }
 				if (!bOverallContinue) {
 				   fm_file.close();
 				   return false;
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		  } catch (Exception e) {  e.printStackTrace();  }
 		}
-        return true;
+		return true;
 	}
   
 
-	private void 
-	buildDirectoryStructure(
-		String 	file )
-	
-		throws IOException
-	{
-		if ( file.endsWith(File.separator)){
-			
-			file = file.substring(0,file.length()-1);
-		}
-		
-		File tempFile = new File(file);
-		
-		if ( !tempFile.exists()){
-			
-			if ( !tempFile.mkdirs()){
-			
-				throw( new IOException( "Directory creation fails for '" + file + "'"));
-			}
-		}
-	}
-
-  
    public void 
    aSyncCheckPiece(
    		int pieceNumber) 
