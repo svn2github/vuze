@@ -352,6 +352,8 @@ ResourceDownloaderTorrentImpl
 			
 		}catch( Throwable e ){
 			
+			e.printStackTrace();
+			
 			failed( this, new ResourceDownloaderException( "Failed to read torrent data", e ));
 		}
 	}
