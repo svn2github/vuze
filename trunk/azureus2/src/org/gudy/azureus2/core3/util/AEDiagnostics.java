@@ -36,6 +36,18 @@ import java.util.*;
 public class 
 AEDiagnostics 
 {
+	public static final boolean	ALWAYS_PASS_HASH_CHECKS			= false;
+	public static final boolean	USE_DUMMY_FILE_DATA				= false;
+	
+	static{
+		if ( ALWAYS_PASS_HASH_CHECKS ){
+			System.out.println( "**** Always passing hash checks ****" );
+		}
+		if ( USE_DUMMY_FILE_DATA ){
+			System.out.println( "**** Using dummy file data ****" );
+		}
+	}
+	
 	private static final int	MAX_FILE_SIZE	= 128*1024;	// get two of these per logger type
 	
 	private static final String	CONFIG_KEY	= "diagnostics.tidy_close";

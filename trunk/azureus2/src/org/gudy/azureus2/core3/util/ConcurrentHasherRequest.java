@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 
 public class 
 ConcurrentHasherRequest 
-{
+{	
 	protected static AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
 	
 	protected ConcurrentHasher						concurrent_hasher;
@@ -114,8 +114,15 @@ ConcurrentHasherRequest
 	{
 		if ( !cancelled ){
 			
-			result = hasher.calculateHash( buffer );
-		
+			if ( AEDiagnostics.ALWAYS_PASS_HASH_CHECKS ){
+			
+				result = new byte[0];
+				
+			}else{
+				
+				result = hasher.calculateHash( buffer );
+			}
+			
 			sem.releaseForever();
 
 			if ( !cancelled ){

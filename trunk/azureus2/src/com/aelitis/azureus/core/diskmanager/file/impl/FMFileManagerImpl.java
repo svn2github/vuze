@@ -122,15 +122,22 @@ FMFileManagerImpl
 	{
 		FMFile	res;
 		
-		if ( limited ){
-
-			res = new FMFileLimited(owner,this, file);
+		if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
+			
+			res = new FMFileTestImpl( owner, file );
 			
 		}else{
-			
-			res = new FMFileUnlimited( owner, file);
-		}
 		
+			if ( limited ){
+	
+				res = new FMFileLimited(owner,this, file);
+				
+			}else{
+				
+				res = new FMFileUnlimited( owner, file);
+			}
+		}
+			
 		if (DEBUG){
 			
 			try{

@@ -224,6 +224,8 @@ DirectByteBuffer
 	{
 		if ( TRACE ){
 			
+			System.out.println( getTraceString());
+			
 			Ignore.ignore(e);
 		}
 	}

@@ -1343,6 +1343,30 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength - 1);
         }
         
+        if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
+        	
+        	int	pos = message_buff.position( DirectByteBuffer.SS_PEER );
+        	
+        	long	offset = ((long)pieceNumber)*getControl().getPieceLength(0) + pieceOffset;
+        	
+        	for (int i=0;i<pieceLength;i++){
+        		
+				byte	v = message_buff.get( DirectByteBuffer.SS_PEER );
+				
+				if ((byte)offset != v ){
+					
+					System.out.println( "piece: read is bad at " + offset +
+										": expected = " + (byte)offset + ", actual = " + v );
+					
+					break;
+				}
+				
+				offset++;       		
+        	}
+        	
+        	message_buff.position( DirectByteBuffer.SS_PEER, pos );
+        }
+        
         DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
 
         if( manager.checkBlock( pieceNumber, pieceOffset, message_buff ) ) {

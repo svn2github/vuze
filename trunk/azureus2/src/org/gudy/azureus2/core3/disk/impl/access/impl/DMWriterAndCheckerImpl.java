@@ -406,7 +406,7 @@ DMWriterAndCheckerImpl
 			    								
 			    								async_result = CheckPieceResultHandler.OP_SUCCESS;
 			    								
-			    								for (int i = 0; i < 20; i++){
+			    								for (int i = 0; i < testHash.length; i++){
 			    									
 			    									if ( testHash[i] != required_hash[i]){
 			    										
@@ -712,9 +712,7 @@ DMWriterAndCheckerImpl
 				
 				try{
 					int	entry_count = writeCheckQueueSem.reserveSet( 64 );
-					
-					System.out.println( "wq = " + writeQueue.size() + ", cq = " + checkQueue.size());
-					
+										
 					for (int i=0;i<entry_count;i++){
 						
 						final QueueElement	elt;
