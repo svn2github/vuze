@@ -8,7 +8,7 @@ package org.gudy.azureus2.core;
  *
  */
 public class Piece {
-  private static final int blocSize = 32768;
+  private static final int blocSize = 16384;
 
   public int length;
   public int nbBlocs;
