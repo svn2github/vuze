@@ -195,6 +195,8 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     // Parse GET variables
     if (url.indexOf('?') != -1) {
       String httpURIVarsTemp = url.substring(url.indexOf('?') + 1);
+      if (server.loggerWeb.isDebugEnabled())
+        server.loggerWeb.debug("Parsing GET Variables: "+httpURIVarsTemp);
       StringTokenizer URIVars = new StringTokenizer(httpURIVarsTemp, "&");
       while (URIVars.hasMoreTokens()) {
         String URIVar = URIVars.nextToken();
@@ -215,6 +217,8 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
       header_length += content_len; // add the body-length to the header-length
       if (post_data_len > 0) {
         StringTokenizer URIVars = new StringTokenizer(POSTdata, "&");
+        if (server.loggerWeb.isDebugEnabled())
+          server.loggerWeb.debug("Parsing POST Variables ("+Integer.toString(POSTdata.length())+"): "+POSTdata);
         while (URIVars.hasMoreTokens()) {
           String URIVar = URIVars.nextToken();
           try {

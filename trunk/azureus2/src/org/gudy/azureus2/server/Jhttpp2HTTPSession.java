@@ -480,9 +480,9 @@ public class Jhttpp2HTTPSession extends Thread {
         HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultTorrent_Directory"));
         String file = dl.download();
         server.gm.addDownloadManager(file, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultSave_Directory"));
-        //this.server.putSysMessage(SLevel.INFO, "Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
+        server.loggerWeb.info("Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
       } catch (Exception e) {
-        //this.server.putSysMessage(SLevel.SEVERE, "Download of "+(String)URIvars.get("Add_torrent")+" failed: "+e.getMessage());
+        server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
       }
     }
   }
@@ -493,6 +493,8 @@ public class Jhttpp2HTTPSession extends Thread {
       String pausecommand = (URIvars.containsKey("pausecommand"))?((String)URIvars.get("pausecommand")):"Pause";
       String unpausecommand = (URIvars.containsKey("unpausecommand"))?((String)URIvars.get("unpausecommand")):"Download";
       String cancelcommand = (URIvars.containsKey("cancelcommand"))?((String)URIvars.get("cancelcommand")):"Cancel";
+      if (server.loggerWeb.isDebugEnabled())
+        server.loggerWeb.debug("ProcessTorrent: "+subcommand+"/"+pausecommand+"/"+unpausecommand+"/"+cancelcommand);
       HashMap dls = new HashMap();
       List torrents = server.gm.getDownloadManagers();
       if (!torrents.isEmpty()) {
@@ -507,9 +509,15 @@ public class Jhttpp2HTTPSession extends Thread {
         while (ikeys.hasNext()) {
           String key = (String) ikeys.next();
           String value = (String) URIvars.get(key);
+          if (server.loggerWeb.isDebugEnabled())
+            server.loggerWeb.debug("ProcessTorrent: ("+key+"/"+value+")");
           if (value.equals("1") && key.startsWith("Torrent_Hash_")) {
             String hash = key.substring(key.lastIndexOf('_')+1);
+            if (server.loggerWeb.isDebugEnabled())
+              server.loggerWeb.debug("ProcessTorrent: \""+hash+"\"");
             if (dls.containsKey(hash)) {
+              if (server.loggerWeb.isDebugEnabled())
+                server.loggerWeb.debug("ProcessTorrent: \""+hash+"\" processed");
               DownloadManager dm = (DownloadManager) dls.get(hash);
               if (subcommand.equals(pausecommand) && ((dm.getState()!=DownloadManager.STATE_STOPPED) || (dm.getState()!=DownloadManager.STATE_STOPPING)))
                 dm.stopIt();

@@ -91,6 +91,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     BasicConfigurator.configure();
     Logger.getRootLogger().addAppender(new WebLogAppender(logList));
     org.gudy.azureus2.core.Logger.getLogger().setListener(this);
+    //loggerCore.setLevel(Level.OFF);
     
     try {
       logfile=new BufferedWriter(new FileWriter(MAIN_LOGFILE,true));

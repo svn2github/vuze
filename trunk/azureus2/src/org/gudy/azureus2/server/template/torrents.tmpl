@@ -1,7 +1,9 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
     <head>
         <title><TMPL_VAR Global_ServerName> Download Status</title>
         <META HTTP-EQUIV="Refresh" CONTENT="<TMPL_VAR Global_Refresh>">
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
     </head>
     <body bgcolor="#CCCC00">
         <TMPL_UNLESS Torrents_Torrents>
@@ -30,7 +32,7 @@
                             <tr bgcolor="#BFD8BC">
                         </TMPL_IF>
                         <td>
-                            <INPUT type=checkbox name='Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>' value=1>
+                            <INPUT type=checkbox name="Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>" value="1">
                         </td>
                         <td>
                             <table>
@@ -78,7 +80,7 @@
                                                     </TMPL_IF>
                                                 </tr>
                                             </table>
-                                        </tr></td></table>
+                                        </td></tr></table>
                                       </TMPL_IF>
                                     </td>
                                 </tr>
@@ -94,7 +96,6 @@
                         </td>
                         <td align=center nowrap><TMPL_VAR Torrents_Torrent_ETA></td>
                     </tr>
-                    </form>
                 </TMPL_LOOP>
             </table>
           </form>
