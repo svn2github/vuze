@@ -29,12 +29,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.net.*;
 
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
-import org.gudy.azureus2.core3.config.*;
+
 
 
 /**
@@ -45,12 +44,11 @@ public class
 PEPeerTransportImpl 
 	extends PEPeerTransportProtocol
 {
-		//The SocketChannel associated with this peer
-		
-	private SocketChannel 	socket;
+
+	private SocketChannel 	socket = null;
   private volatile boolean connected = false;
   private volatile boolean connect_error = false;
-  private volatile String error_msg = "";
+  private volatile String msg = "";
   
 	
 	  /**
@@ -108,63 +106,38 @@ PEPeerTransportImpl
 	protected void startConnection() {
     connected = false;
     connect_error = false;
-    
-    try {
-      socket = SocketChannel.open();
-      socket.configureBlocking(false);
-			socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
-			
-			String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-			if (bindIP.length() > 6) {
-				socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
-			}
-			
-			InetSocketAddress peerAddress = new InetSocketAddress( getIp(), getPort() );
-			socket.connect( peerAddress );
-			
-			OutgoingConnector.addConnection( socket,
-			    new OutgoingConnector.OutgoingConnectorListener() {
-			  			public void done() {
-			  			  try {
-			  			    if ( socket.finishConnect() ) {
-			  			      connected = true;
-			  			    }
-			  			    else {
-			  			      error_msg = "failed to connect within " +OutgoingConnector.TIMEOUT/1000+ " sec";
-			  			      connect_error = true;
-			  			    }
-			  			  }
-			  			  catch (Throwable e) {
-			  			    error_msg = e.getMessage();
-			  			    connect_error = true;
-			  			  }
-			  			}
-					}
-			);
 
-    }
-    catch (Throwable t) {
-			error_msg = t.getMessage();
-			connect_error = true;
-    }
+    InetSocketAddress address = new InetSocketAddress( getIp(), getPort() );
+		
+    SocketManager.requestOutboundConnection( address,
+      new SocketManager.OutboundConnectionListener() {
+      		public void connectionDone( SocketChannel channel, String error_msg ) {
+      		  if ( channel != null ) {
+      		    socket = channel;
+      		    connected = true;
+      		  }
+      		  else {
+      		    msg = error_msg;
+      		    connect_error = true;
+      		  }
+      		}
+    		}
+    );
 	}
 
 
   
 	protected void closeConnection() {
-		try {  
-      if (socket != null) {
-        socket.close();
-        socket = null;
-      }
-    }
-    catch (Throwable e) { e.printStackTrace(); }
+	  if ( socket != null ) {
+	    SocketManager.closeConnection( socket );
+	    socket = null;
+	  }
 	}
 
   
 	protected boolean completeConnection() throws IOException {
     if ( connect_error ) {
-      throw new IOException(error_msg);
+      throw new IOException(msg);
     }
     return connected;
 	}

@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class PeerIdentityManager {
 
-  private static PeerIdentityManager peerIDManager;
+  private static PeerIdentityManager peerIDManager = new PeerIdentityManager();
   private final Map dataIdMap;
   private static int totalIDs = 0;
   
@@ -25,8 +25,7 @@ public class PeerIdentityManager {
   }
   
   
-  private static synchronized PeerIdentityManager getInstance() {
-    if (peerIDManager == null) peerIDManager = new PeerIdentityManager();
+  private static PeerIdentityManager getInstance() {
     return peerIDManager;
   }
   

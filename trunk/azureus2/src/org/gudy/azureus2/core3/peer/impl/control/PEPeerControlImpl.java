@@ -259,7 +259,7 @@ PEPeerControlImpl
             PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
             
             if (ps.getState() == PEPeer.DISCONNECTED) {
-              removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ "Disconnected" );
+              removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
             }
             else {
               if (oldPolling || ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
