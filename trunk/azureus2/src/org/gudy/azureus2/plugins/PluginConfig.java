@@ -49,6 +49,14 @@ public interface PluginConfig {
   public boolean getBooleanParameter(String key);
   
   /**
+   * returns the value of a core boolean parameter
+   * @param key the parameter name
+   * @param _default default value if non defined
+   * @return the value of the parameter
+   */
+  public boolean getBooleanParameter(String key, boolean _default );
+  
+  /**
    * returns the value of a plugin int parameter
    * @param key the parameter name
    * @return the value or 0 if the parameter doesn't exist

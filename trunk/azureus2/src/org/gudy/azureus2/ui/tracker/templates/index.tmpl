@@ -40,7 +40,9 @@
               <td width="6%" bgcolor="#FFDEAD">Ave Down</td>
               <td width="6%" bgcolor="#FFDEAD">Left</td>
               <td width="6%" bgcolor="#FFDEAD">Comp</td>
-              <td width="6%" bgcolor="#FFDEAD">More</td>
+              <tmpl_if torrent_details_allowed>
+                <td width="6%" bgcolor="#FFDEAD">More</td>
+              </tmpl_if>
             </tr>
             </thead>
 
@@ -65,7 +67,9 @@
               <td><tmpl_var torrent_download_speed></td>
               <td><tmpl_var torrent_total_left></td>
               <td><tmpl_var torrent_completed></td>
-              <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
+              <tmpl_if torrent_details_allowed>
+                <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
+              </tmpl_if>
             </tr>
 
 		</tmpl_loop>

@@ -1279,12 +1279,13 @@ public class ConfigView extends AbstractIView {
 	   non_ssl_controls[0] = tracker_port.getControl();
 	  					
 	   nonsslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_ssl_controls ));
+	  
+	   label = new Label(gTracker, SWT.NULL);
+	   Messages.setLanguageText(label, "ConfigView.section.tracker.forceport"); 
+	   
+	   BooleanParameter forcePortDetails = new BooleanParameter(gTracker,  "Tracker Port Force External", false);
+	   label = new Label(gTracker, SWT.NULL);
 
-	   label = new Label(gTracker, SWT.NULL);
-	   label = new Label(gTracker, SWT.NULL);
-	   gridData = new GridData();
-	   gridData.horizontalSpan = 2;
-	   label.setLayoutData( gridData );
 		
 	   // row
 		
@@ -1322,6 +1323,25 @@ public class ConfigView extends AbstractIView {
 	 gridData.horizontalSpan = 2;
 	 label.setLayoutData( gridData );
 
+	 Control[] f_controls = new Control[1];
+	 f_controls[0] = forcePortDetails.getControl();
+	 
+	 IAdditionalActionPerformer f_enabler = 
+	 new GenericActionPerformer(f_controls)
+	 {
+	 	public void performAction() 
+	 	{
+	 		boolean selected =  nonsslEnable.isSelected() ||
+	 		sslEnable.isSelected();
+	 		
+	 		controls[0].setEnabled( selected );
+	 	}
+	 };
+	 
+	 nonsslEnable.setAdditionalActionPerformer(f_enabler); 
+	 sslEnable.setAdditionalActionPerformer(f_enabler); 	   	 
+	 
+	 
     // row
 			
 	  label = new Label(gTracker, SWT.NULL);
@@ -1332,12 +1352,17 @@ public class ConfigView extends AbstractIView {
 	  gridData.horizontalSpan = 2;
 	  enablePublish.setLayoutData( gridData );
 
-      label = new Label(gTracker, SWT.NULL);
 	  label = new Label(gTracker, SWT.NULL);
-	  gridData = new GridData();
-	  gridData.horizontalSpan = 2;
-	  label.setLayoutData( gridData );
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.publishenabledetails"); 
+	  
+	  BooleanParameter enablePublishDetails = new BooleanParameter(gTracker, "Tracker Publish Enable Details", true);
+	  label = new Label(gTracker, SWT.NULL);
 
+	  Control[] publish_controls = new Control[1];
+	  publish_controls[0] = enablePublishDetails.getControl();
+	  
+	  enablePublish.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( publish_controls ));
+	  
       // row
 			
       label = new Label(gTracker, SWT.NULL);

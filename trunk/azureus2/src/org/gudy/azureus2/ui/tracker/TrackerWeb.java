@@ -180,6 +180,10 @@ TrackerWeb
 			end		= tracker_torrents.length;
 		}
 		
+		boolean	allow_details = plugin_interface.getPluginconfig().getBooleanParameter("Tracker Publish Enable Details", true );
+		
+		t.setParam( "torrent_details_allowed", allow_details?"1":"0");
+		
 		for (int i=start;i<end;i++){
 			
 			Hashtable t_row = new Hashtable();
@@ -263,61 +267,64 @@ TrackerWeb
 			
 			t_row.put( "torrent_completed",  "" + tracker_torrent.getCompletedCount());
 		
-			
-			if ( specific_torrent != -1 ){
-			
-				t_row.put( "torrent_hash", ByteFormatter.nicePrint(torrent.getHash(),true));
-							
-					// size is 0 for external torrents about which we know no more
+			if ( allow_details ){
 				
-				if ( torrent.getSize() > 0 ){
-			
-					t_row.put( "torrent_comment", torrent.getComment());
+				if ( specific_torrent != -1 ){
+				
+					t_row.put( "torrent_hash", ByteFormatter.nicePrint(torrent.getHash(),true));
+								
+						// size is 0 for external torrents about which we know no more
 					
-					t_row.put( "torrent_created_by", torrent.getCreatedBy());
-					
-					t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKBEtc(torrent.getPieceSize()));
-					
-					t_row.put( "torrent_piece_count", ""+torrent.getPieceCount());
-					
-					Vector	file_info = new Vector();
-					
-					TorrentFile[]	files = torrent.getFiles();
-					
-					for (int j=0;j<files.length;j++){
+					if ( torrent.getSize() > 0 ){
+				
+						t_row.put( "torrent_comment", torrent.getComment());
 						
-						Hashtable	f_row = new Hashtable();
+						t_row.put( "torrent_created_by", torrent.getCreatedBy());
 						
-						file_info.add( f_row );
+						t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKBEtc(torrent.getPieceSize()));
 						
-						f_row.put( "file_name", files[j].getName());
+						t_row.put( "torrent_piece_count", ""+torrent.getPieceCount());
 						
-						f_row.put( "file_size", DisplayFormatters.formatByteCountToKBEtc(files[j].getSize()));
+						Vector	file_info = new Vector();
+						
+						TorrentFile[]	files = torrent.getFiles();
+						
+						for (int j=0;j<files.length;j++){
+							
+							Hashtable	f_row = new Hashtable();
+							
+							file_info.add( f_row );
+							
+							f_row.put( "file_name", files[j].getName());
+							
+							f_row.put( "file_size", DisplayFormatters.formatByteCountToKBEtc(files[j].getSize()));
+						}
+						
+						t_row.put( "file_info", file_info );
+						t_row.put( "file_info_count", ""+files.length );
 					}
 					
-					t_row.put( "file_info", file_info );
-					t_row.put( "file_info_count", ""+files.length );
+					Vector	peer_info = new Vector();
+					
+					for (int j=0;j<peers.length;j++){
+						
+						Hashtable p_row = new Hashtable();
+						
+						peer_info.add( p_row );
+						
+						TrackerPeer	peer = peers[j];
+						
+						p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
+						p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
+						p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
+						p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
+						p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
+						p_row.put( "peer_ip_full", peer.getIP());
+					}
+					
+					t_row.put( "peer_info", peer_info );
+					t_row.put( "peer_info_count", ""+peers.length );
 				}
-				
-				Vector	peer_info = new Vector();
-				
-				for (int j=0;j<peers.length;j++){
-					
-					Hashtable p_row = new Hashtable();
-					
-					peer_info.add( p_row );
-					
-					TrackerPeer	peer = peers[j];
-					
-					p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
-					p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
-					p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
-					p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
-					p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
-				}
-				
-				t_row.put( "peer_info", peer_info );
-				t_row.put( "peer_info_count", ""+peers.length );
 			}
 		}
 		

@@ -60,7 +60,11 @@ public class PluginConfigImpl
 	public boolean getBooleanParameter(String name) {
 		return config.getBooleanParameter(name);
 	}
-
+	
+	public boolean getBooleanParameter(String name, boolean _default) {
+		return config.getBooleanParameter(name, _default);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String)
 	 */

@@ -239,9 +239,32 @@ TRHostImpl
 			ssl	= false;		
 		}else{
 		
-			ssl = torrent.getAnnounceURL().getProtocol().equalsIgnoreCase("https");
+			URL	announce_url = torrent.getAnnounceURL();
 			
-			port = torrent.getAnnounceURL().getPort();
+			ssl = announce_url.getProtocol().equalsIgnoreCase("https");
+			
+			boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
+			
+			port = announce_url.getPort();
+			
+			if ( force_external ){
+				
+				String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+	
+				if ( 	tracker_ip.length() > 0 &&
+						!announce_url.getHost().equalsIgnoreCase( tracker_ip )){
+						
+					if ( ssl ){
+		
+						port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+						
+					}else{
+						
+						port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+						
+					}
+				}
+			}
 			
 			if ( port == -1 ){
 				
