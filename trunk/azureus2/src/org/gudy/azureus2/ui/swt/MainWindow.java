@@ -336,7 +336,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       showSplashWindow();
     }
     
-    setSplashPercentage( 0 );
+  	if ( splash_maybe_null != null ){
+  		splash_maybe_null.setNumTasks(4);
+  	}
+    splashNextTask();
 
     Locale[] locales = MessageText.getLocales();
     String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
@@ -350,7 +353,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         
     ImageRepository.loadImages(display);
     
-    setSplashPercentage(10);
+    splashNextTask();
     setSplashTask("splash.initializeGui");
     
     
@@ -731,7 +734,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
     }
 
-    setSplashPercentage(40);
+    splashNextTask();
+    setSplashTask( "splash.initializePlugins");
+
+    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
+
+    splashNextTask();
     setSplashTask( "splash.openViews");
     
     showMyTorrents();
@@ -855,9 +863,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       catch (Exception e) {}
     }
     
-    setSplashPercentage(50);        
-    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
-
     closeSplashWindow();
     
     // share progress window
@@ -1164,6 +1169,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private void setSplashPercentage( int p ){
   	if ( splash_maybe_null != null ){
 		splash_maybe_null.setPercentDone(p);
+  	}
+  }
+
+  private void splashNextTask(){
+  	if ( splash_maybe_null != null ){
+		splash_maybe_null.nextTask();
   	}
   }
   

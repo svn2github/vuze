@@ -42,7 +42,25 @@ public class SplashWindow {
   Label currentTask;
   ProgressBar percentDone;
   Color white;
+  int iNumTasks;
+  int iCurTask;
+  float fPercentagePerTask = 1;
   
+  public void setNumTasks(int numTasks) {
+    iNumTasks = numTasks;
+    iCurTask = 0;
+    fPercentagePerTask = (float)(100.0 / (float)iNumTasks);
+  }
+  
+  public float getPercentagePerTask() {
+    return fPercentagePerTask;
+  }
+  
+  public void nextTask() {
+    if (iCurTask < iNumTasks)
+      iCurTask++;
+    percentDone.setSelection((int)(iCurTask * fPercentagePerTask));
+  }
   
   public void show(Display display) {
     this.display = display;
@@ -89,6 +107,10 @@ public class SplashWindow {
   
   public void setPercentDone(int percentDone) {
     this.percentDone.setSelection(percentDone);
+  }
+
+  public int getPercentDone() {
+    return this.percentDone.getSelection();
   }
   
   public void setCurrentTask(String task) {

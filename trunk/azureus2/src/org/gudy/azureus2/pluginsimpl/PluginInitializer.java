@@ -140,8 +140,11 @@ PluginInitializer
 	      initializePluginFromDir(pluginsDirectory[i]);
 	      
 	      if(splash != null) {
-	      	
-	        splash.setPercentDone(50 + (50*(i +1)) / pluginsDirectory.length);        
+	      	float fPercentagePerTask = splash.getPercentagePerTask();
+	      	if (fPercentagePerTask != 0) {
+  	      	int newPercentage = splash.getPercentDone() + (int)(fPercentagePerTask / (float)pluginsDirectory.length);
+	          splash.setPercentDone(newPercentage);
+	        }
 	      }
 	    }
     }

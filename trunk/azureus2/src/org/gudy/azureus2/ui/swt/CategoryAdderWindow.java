@@ -16,15 +16,19 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.*;
 
 /**
  * @author Olivier
  * 
  */
 public class CategoryAdderWindow {
+  private Category newCategory = null;
   public CategoryAdderWindow(final Display display) {
-    final Shell shell = new Shell(display);
+    final Shell shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+
     shell.setText(MessageText.getString("CategoryAddWindow.title"));
     shell.setImage(ImageRepository.getImage("azureus"));
     GridLayout layout = new GridLayout();
@@ -61,7 +65,7 @@ public class CategoryAdderWindow {
       public void handleEvent(Event event) {
         try {
           if (category.getText() != "") {
-            CategoryManager.createCategory(category.getText());
+           newCategory = CategoryManager.createCategory(category.getText());
           }
         	
         	shell.dispose();
@@ -89,5 +93,11 @@ public class CategoryAdderWindow {
     shell.pack();
     Utils.createURLDropTarget(shell, category);
     shell.open();
+    while (!shell.isDisposed())
+      if (!display.readAndDispatch()) display.sleep();
+  }
+  
+  public Category getNewCategory() {
+    return newCategory;
   }
 }

@@ -212,12 +212,16 @@ public class CategoryManagerImpl  {
 
   public Category createCategory(String name) {
     makeSpecialCategories();
-    Category newCategory = new CategoryImpl(name);
-    categories.put(name, newCategory);
-    saveCategories();
+    Category newCategory = getCategory(name);
+    if (newCategory == null) {
+      newCategory = new CategoryImpl(name);
+      categories.put(name, newCategory);
+      saveCategories();
 
-    category_listeners.dispatch( LDT_CATEGORY_ADDED, newCategory );
-    return (Category)categories.get(name);
+      category_listeners.dispatch( LDT_CATEGORY_ADDED, newCategory );
+      return (Category)categories.get(name);
+    }
+    return newCategory;
   }
 
   public void removeCategory(Category category) {

@@ -30,10 +30,12 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.pluginsimpl.tracker.*;
 import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
 import org.gudy.azureus2.pluginsimpl.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
+import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.peers.protocol.*;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -127,6 +129,10 @@ public class PluginInterfaceImpl implements PluginInterface {
   
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
     PeersTableExtensions.getInstance().addExtension(columnName,item);
+  }
+  
+  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory item) {
+    MyTorrentsTableExtensions.getInstance().addExtension(columnName,item);
   }
   
   public Tracker getTracker() {

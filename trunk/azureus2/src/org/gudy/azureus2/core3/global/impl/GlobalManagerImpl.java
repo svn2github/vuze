@@ -911,7 +911,6 @@ public class GlobalManagerImpl
     if (managers != null)
       synchronized (managers) {
         int curPosition = manager.getPosition();
-        int endPosition = 0;
         if (newPosition > curPosition) {
           // move [manager] down
           // move everything between [curPosition+1] and [newPosition] up(-) 1
@@ -921,7 +920,6 @@ public class GlobalManagerImpl
             DownloadManager dm = (DownloadManager) managers.get(i);
             boolean dmCompleted = (dm.getStats().getDownloadCompleted(false) == 1000);
             if (dmCompleted == curCompleted) {
-              endPosition++;
               int dmPosition = dm.getPosition();
               if ((dmPosition > curPosition) && (dmPosition <= newPosition)) {
                 dm.setPosition(dmPosition - 1);
@@ -932,8 +930,6 @@ public class GlobalManagerImpl
             }
           }
           
-          if (newPosition > endPosition + 1)
-            newPosition = endPosition;
           manager.setPosition(newPosition);
         }
         else if (newPosition < curPosition && curPosition > 1) {

@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -123,6 +124,7 @@ StartStopRulesDefaultPlugin
     reloadConfigParams();
 
     try {
+      plugin_interface.addColumnToMyTorrentsTable("SeedingRank", new SeedingRankColumn());
       plugin_interface.addConfigSection(new ConfigSectionQueue());
       plugin_interface.addConfigSection(new ConfigSectionStarting());
       plugin_interface.addConfigSection(new ConfigSectionStopping());
@@ -727,7 +729,7 @@ StartStopRulesDefaultPlugin
         //0 means never stop
         if (minPeersPerSeed != 0 && numSeeds != 0) {
           float ratio = (float) numPeers / numSeeds;
-          if (ratio < minPeersPerSeed) {
+          if (ratio <= minPeersPerSeed) {
             setQR(-2);
             return -2;
           }
@@ -1197,5 +1199,78 @@ StartStopRulesDefaultPlugin
     public void configSectionDelete() {
     }
   }
+
+  public class SeedingRankColumn implements PluginMyTorrentsItemFactory {
+    public String getName() {
+      return "SeedingRank";
+    }
+
+    public String getType() {
+      return PluginMyTorrentsItemFactory.TYPE_INT;
+    }
+
+    public int getDefaultSize() {
+      return 40;
+    }
+
+    public int getDefaultPosition() {
+      return PluginMyTorrentsItemFactory.POSITION_LAST;
+    }
+
+    public String getOrientation() {
+      return PluginMyTorrentsItemFactory.ORIENT_RIGHT;
+    }
+
+    public PluginMyTorrentsItem getInstance(MyTorrentsTableItem item) {
+      return new SeedRankingColumnItem(item);
+    }
+    
+    public int getTablesVisibleIn() {
+      return PluginMyTorrentsItemFactory.TABLE_COMPLETE;
+    }
+  }
+  
+  public class SeedRankingColumnItem implements PluginMyTorrentsItem {
+    MyTorrentsTableItem tableItem;
+    
+    SeedRankingColumnItem(MyTorrentsTableItem item) {
+      tableItem = item;
+    }
+
+    public void refresh() {
+      Download dl = tableItem.getDownload();
+      if (dl == null)
+        return;
+      
+      downloadData dlData = (downloadData)downloadDataMap.get(dl);
+      if (dlData == null)
+        return;
+
+      int qr = dlData.getQR();
+      if (qr >= 0)
+        tableItem.setText(String.valueOf(qr));
+      else if (qr == -2)
+        tableItem.setText(MessageText.getString("StartStopRules.ratioMet"));
+      else if (qr == -3)
+        tableItem.setText(MessageText.getString("StartStopRules.numSeedsMet"));
+    }
+
+    public String getStringValue() {
+      return null;
+    }
+    
+    public int getIntValue() {
+      Download dl = tableItem.getDownload();
+      if (dl == null)
+        return 0;
+      
+      downloadData dlData = (downloadData)downloadDataMap.get(dl);
+      if (dlData == null)
+        return 0;
+
+      return dlData.getQR();
+    }
+  }
+
 } // class
 

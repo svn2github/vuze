@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
 
 /**
@@ -66,6 +67,14 @@ public interface PluginInterface {
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
   
+  /**
+   * adds a column to the My Torrents table.<br>
+   * @param columnName the key name of the column
+   * @param factory the factory responsible of creating items.
+   * Azureus will look-up for PeersView.columnName into the lang files
+   * in order to find the localized displayName. (see i18n)
+   */
+  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
   
   /**
    * adds a ConfigSection to the config view<p>

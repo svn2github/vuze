@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -64,6 +65,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
+import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -203,12 +206,34 @@ public class MyTorrentsView extends AbstractIView
       tableItems = tableItemsDL;
       configTableName = "MyTorrents";
     }
+    List itemsList = new ArrayList(tableItems.length);
+    for(int i=0 ; i < tableItems.length ; i++) {
+      itemsList.add(tableItems[i]);
+    }
+    Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
+    Iterator iter = extensions.keySet().iterator();
+    while(iter.hasNext()) {
+      String name = (String) iter.next();
+      PluginMyTorrentsItemFactory ppif = (PluginMyTorrentsItemFactory) extensions.get(name);
+      if ((isSeedingView && ((ppif.getTablesVisibleIn() & PluginMyTorrentsItemFactory.TABLE_COMPLETE) != 0)) ||
+          (!isSeedingView && ((ppif.getTablesVisibleIn() & PluginMyTorrentsItemFactory.TABLE_INCOMPLETE) != 0)))
+      {
+        String sItem = ppif.getName() + ";" + ppif.getOrientation()  + ";" + 
+                       ppif.getType() + ";" + ppif.getDefaultSize() + ";";
+        int iPosition = ppif.getDefaultPosition();
+        if (iPosition > itemsList.size() || iPosition < -1)
+          iPosition = itemsList.size();
+        itemsList.add(sItem + iPosition);
+      }
+    }
+    tableItems = (String[])itemsList.toArray(new String[itemsList.size()]);
+
     objectToSortableItem = new HashMap();
     tableItemToObject = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
     currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
   }
-
+   
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
@@ -363,14 +388,19 @@ public class MyTorrentsView extends AbstractIView
         tabDropTarget.setTransfer(types);
         tabDropTarget.addDropListener(new DropTargetAdapter() {
           public void dragOver(DropTargetEvent e) {
-            e.detail = DND.DROP_MOVE;
+            if(drag_drop_line_start >= 0)
+              e.detail = DND.DROP_MOVE;
+            else
+              e.detail = DND.DROP_NONE;
           }
 
           public void drop(DropTargetEvent e) {
             e.detail = DND.DROP_NONE;
-            drag_drop_line_start = -1;
-            
-            assignSelectedToCategory((Category)catButton.getData("Category"));
+            if(drag_drop_line_start >= 0) { 
+              drag_drop_line_start = -1;
+              
+              assignSelectedToCategory((Category)catButton.getData("Category"));
+            }
           }
         });
 
@@ -383,7 +413,15 @@ public class MyTorrentsView extends AbstractIView
           
           itemDelete.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
-              CategoryManager.removeCategory((Category)catButton.getData("Category"));
+              Category catToDelete = (Category)catButton.getData("Category");
+              if (catToDelete != null) {
+                List managers = catToDelete.getDownloadManagers();
+                for (int i = 0; i < managers.size(); i++)
+                  ((DownloadManager)managers.get(i)).setCategory(null);
+                if (currentCategory == catToDelete)
+                   activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+                CategoryManager.removeCategory(catToDelete);
+              }
             }
           });
           catButton.setMenu(menu);
@@ -1052,7 +1090,10 @@ public class MyTorrentsView extends AbstractIView
     if (categories.length > 0) {
       for (i = 0; i < categories.length; i++) {
         final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
-        itemCategory.setText(categories[i].getName());
+        if (categories[i].getType() == Category.TYPE_USER)
+          itemCategory.setText(categories[i].getName());
+        else
+          Messages.setLanguageText(itemCategory, categories[i].getName());
         itemCategory.setData("Category", categories[i]);
   
         itemCategory.addListener(SWT.Selection, new Listener() {
@@ -1335,16 +1376,16 @@ public class MyTorrentsView extends AbstractIView
         } else if (e.stateMask == SWT.CTRL) {
           // CTRL+CURSOR DOWN move selected Torrents one down
           if(e.keyCode == 0x1000001)
-            moveSelectedTorrents(1, 0);
+            moveSelectedTorrentsUp();
           // CTRL+CURSOR UP move selected Torrents one up
           else if(e.keyCode == 0x1000002)
-            moveSelectedTorrents(0, 1);
+            moveSelectedTorrentsDown();
           // CTRL+HOME move selected Torrents to top
           else if(e.keyCode == 0x1000007)
-            moveSelectedTorrents(table.getItemCount()-1, 0);
+            moveSelectedTorrentsTop();
           // CTRL+END move selected Torrents to end
           else if(e.keyCode == 0x1000008)
-            moveSelectedTorrents(0, table.getItemCount()-1);
+            moveSelectedTorrentsEnd();
           // CTRL+A select all Torrents
           else if(e.character == 0x1)
             table.selectAll();
@@ -1468,9 +1509,9 @@ public class MyTorrentsView extends AbstractIView
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
       if (dm != null && dm.isMoveableDown()) {
         dm.moveDown();
-
       }
     }
+    
     if (sorter.getLastField().equals("#"))
       sorter.reOrder(true);
   }
@@ -1631,7 +1672,10 @@ public class MyTorrentsView extends AbstractIView
   }
 
   private void addCategory() {
-		new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+		CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+		Category newCategory = adderWindow.getNewCategory();
+		if (newCategory != null)
+		  assignSelectedToCategory(newCategory);
   }
 
 	// categorymanagerlistener Functions
