@@ -518,7 +518,11 @@ public class MyTorrentsView
           for (int i = 0; i < dms.length; i++) {
             DownloadManager dm = (DownloadManager)dms[i];
             
-            //totalSpeed = (totalSpeed * i) + dm.
+            try {
+              totalSpeed = (totalSpeed * i) + dm.getPeerManager().getConnectionPool().getWritePercentOfMax();
+            } catch(Exception ex) {
+              ex.printStackTrace();
+            }
             
             if (dm.getTrackerClient() == null)
               changeUrl = false;
@@ -1530,7 +1534,12 @@ public class MyTorrentsView
       float realSpeedPerTorrent  = (float) speed / dms.length;
       
       for (int i = 0; i < dms.length; i++) {
-        DownloadManager dm = (DownloadManager)dms[i];
+        try {
+          DownloadManager dm = (DownloadManager)dms[i];        
+          dm.getPeerManager().getConnectionPool().setWritePercentOfMax(realSpeedPerTorrent);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
   }
