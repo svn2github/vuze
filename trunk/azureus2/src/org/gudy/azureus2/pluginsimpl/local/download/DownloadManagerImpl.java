@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
@@ -234,8 +235,12 @@ DownloadManagerImpl
 	    String data_dir = null;
 	    
 	    if (useDefDataDir){
-	    	
-	    	data_dir = COConfigurationManager.getStringParameter("Default save path", null);
+	    	data_dir = COConfigurationManager.getStringParameter("Default save path");
+        //remove a trailing slash, due to user manually entering the path in config
+        if( data_dir.endsWith( SystemProperties.SEP ) ) {
+          data_dir = data_dir.substring( 0, data_dir.length() -1 );
+          COConfigurationManager.setParameter( "Default save path", data_dir );
+        }
 	    }
 	    
 	    if ( data_dir == null ){
