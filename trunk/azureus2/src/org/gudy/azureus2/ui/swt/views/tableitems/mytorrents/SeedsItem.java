@@ -38,7 +38,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class SeedsItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, TableCellToolTipListener
 {
   /** Default Constructor */
   public SeedsItem(String sTableID) {
@@ -61,13 +61,39 @@ public class SeedsItem
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 
-    String tmp = String.valueOf(lConnectedSeeds); //$NON-NLS-1$
-    if (lTotalSeeds != -1)
+    String tmp = String.valueOf(lConnectedSeeds);
+    if (lTotalSeeds != -1) {
       tmp += " (" + lTotalSeeds + ")";
-    else
-      lTotalSeeds = 0;
+    }
     cell.setText(tmp);
-    cell.setToolTip(lConnectedSeeds + " " + MessageText.getString("GeneralView.label.connected") + "\n" + 
-                    lTotalSeeds + " " + MessageText.getString("GeneralView.label.in_swarm"));
+  }
+
+  public void cellHover(TableCell cell) {
+    long lConnectedSeeds = 0;
+    long lTotalSeeds = -1;
+    DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (dm != null) {
+      lConnectedSeeds = dm.getNbSeeds();
+      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+      if (hd != null && hd.isValid())
+        lTotalSeeds = hd.getSeeds();
+    }
+    
+    String sToolTip = lConnectedSeeds + " " + 
+                      MessageText.getString("GeneralView.label.connected") + 
+                      "\n";
+    if (lTotalSeeds != -1) {
+      sToolTip += lTotalSeeds + " " + MessageText.getString("GeneralView.label.in_swarm");
+    } else {
+      TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+      sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
+      if (response != null)
+        sToolTip += "(" + response.getStatusString() + ")";
+    }
+    cell.setToolTip(sToolTip);
+  }
+
+  public void cellHoverComplete(TableCell cell) {
+    cell.setToolTip(null);
   }
 }
