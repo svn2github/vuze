@@ -178,7 +178,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite().isDisposed())
+    if(getComposite() == null || getComposite().isDisposed())
       return;
 
     loopFactor++;

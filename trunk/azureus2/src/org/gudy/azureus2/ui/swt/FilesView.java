@@ -190,7 +190,7 @@ public class FilesView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite().isDisposed())
+    if(getComposite() == null || getComposite().isDisposed())
       return;
 
     DiskManager diskManager = manager.diskManager;
