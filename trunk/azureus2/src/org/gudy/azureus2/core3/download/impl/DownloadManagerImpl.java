@@ -302,18 +302,30 @@ DownloadManagerImpl
   public void stopIt() {
 	Thread stopThread = new Thread() {
 	  public void run() {
+	  	
 		state = DownloadManager.STATE_STOPPING;
-		if (peerManager != null) {
+		
+		if (peerManager != null){
+			
 		  stats.setSavedDownloadedUploaded( 
 				  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
 			 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
 			 	  
-		  peerManager.stopAll();  
+		  peerManager.stopAll(); 
+		  
+		  peerManager = null; 
 		}      
-		if (diskManager != null) {
-		  if (diskManager.getState() == DiskManager.READY)
-			 diskManager.dumpResumeDataToDisk(true);
+		
+		if (diskManager != null){
+			
+		  if (diskManager.getState() == DiskManager.READY){
+		  
+			diskManager.dumpResumeDataToDisk(true);
+		  }
+		  
 		  diskManager.stopIt();
+		  	
+		  diskManager = null;
 		}
 		
 		if ( tracker_client != null ){
@@ -325,7 +337,6 @@ DownloadManagerImpl
 			tracker_client = null;
 		}
 		
-		peerManager = null;
 		state = DownloadManager.STATE_STOPPED;                
 	  }
 	};
