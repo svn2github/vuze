@@ -313,6 +313,8 @@ public class FileUtil {
 	       
   				return( new HashMap());
   			}
+        
+        LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
   			
   			return( readResilientConfigFile( file_name + ".saving", 0 ));
   		}
