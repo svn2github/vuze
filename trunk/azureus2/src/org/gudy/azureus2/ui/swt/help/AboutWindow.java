@@ -43,7 +43,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 public class AboutWindow {
 
   static Image image;
+  static AEMonitor	class_mon	= new AEMonitor( "AboutWindow" );
   
   public static void show(final Display display) {
     
@@ -192,10 +193,19 @@ public class AboutWindow {
     updater.start();
   }
   
-  public static synchronized void disposeImage() {
-    if(image != null && ! image.isDisposed())
-      image.dispose();
-    image = null;
+  public static void 
+  disposeImage() 
+  {
+  	try{
+  		class_mon.enter();
+  	
+	    if(image != null && ! image.isDisposed())
+	      image.dispose();
+	    image = null;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
 }

@@ -41,26 +41,40 @@ FMFileManagerImpl
 	public static final boolean DEBUG	= false;
 	
 	protected static FMFileManagerImpl	singleton;
+	protected static AEMonitor			class_mon	= new AEMonitor( "FMFileManager:class" );
 	
-	public static synchronized FMFileManager
+	
+	public static FMFileManager
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton = new FMFileManagerImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new FMFileManagerImpl();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected LinkedHashMap		map;
+	protected AEMonitor			map_mon	= new AEMonitor( "FMFileManager:Map");
+
 	protected boolean			limited;
 	protected int				limit_size;
 	
 	protected AESemaphore		close_queue_sem;
 	protected List				close_queue;
+	protected AEMonitor			close_queue_mon	= new AEMonitor( "FMFileManager:CQ");
 	
 	protected List				files;
+	protected AEMonitor			files_mon		= new AEMonitor( "FMFileManager:File");
 	
 	protected 
 	FMFileManagerImpl()
@@ -119,9 +133,14 @@ FMFileManagerImpl
 		
 		if (DEBUG){
 			
-			synchronized( files ){
-				
+			try{
+				files_mon.enter();
+			
 				files.add( res );
+				
+			}finally{
+				
+				files_mon.exit();
 			}
 		}
 		
@@ -137,7 +156,8 @@ FMFileManagerImpl
 		
 		FMFileLimited	oldest_file = null;
 		
-		synchronized( map ){
+		try{
+			map_mon.enter();
 		
 			if (DEBUG ){
 				System.out.println( "FMFileManager::getSlot: " + file.getFile().toString() +", map_size = " + map.size());
@@ -153,6 +173,10 @@ FMFileManagerImpl
 			}
 			
 			map.put( file, file );
+			
+		}finally{
+			
+			map_mon.exit();
 		}
 		
 		if ( oldest_file != null ){
@@ -170,9 +194,14 @@ FMFileManagerImpl
 			System.out.println( "FMFileManager::releaseSlot: " + file.getFile().toString());
 		}
 		
-		synchronized( map ){
+		try{
+			map_mon.enter();
 			
-			map.remove( file );	
+			map.remove( file );
+			
+		}finally{
+			
+			map_mon.exit();
 		}
 	}
 	
@@ -184,7 +213,8 @@ FMFileManagerImpl
 			System.out.println( "FMFileManager::usedSlot: " + file.getFile().toString());
 		}
 		
-		synchronized( map ){
+		try{
+			map_mon.enter();
 		
 				// only update if already present - might not be due to delay in
 				// closing files
@@ -193,6 +223,9 @@ FMFileManagerImpl
 				
 				map.put( file, file );		// update MRU
 			}
+		}finally{
+			
+			map_mon.exit();
 		}
 	}
 	
@@ -203,9 +236,15 @@ FMFileManagerImpl
 		if ( DEBUG ){
 			System.out.println( "FMFileManager::closeFile: " + file.getFile().toString());
 		}
-		synchronized( close_queue ){
+
+		try{
+			close_queue_mon.enter();
 			
 			close_queue.add( file );
+			
+		}finally{
+			
+			close_queue_mon.exit();
 		}
 		
 		close_queue_sem.release();
@@ -227,7 +266,8 @@ FMFileManagerImpl
 			
 			FMFileLimited	file = null;
 			
-			synchronized( close_queue ){
+			try{
+				close_queue_mon.enter();
 			
 				if ( close_queue.size() > 0 ){
 					
@@ -238,6 +278,9 @@ FMFileManagerImpl
 						System.out.println( "FMFileManager::closeQ: " + file.getFile().toString() + ", rem = " + close_queue.size());
 					}
 				}
+			}finally{
+				
+				close_queue_mon.exit();
 			}
 			
 			if ( file != null ){
@@ -253,7 +296,8 @@ FMFileManagerImpl
 			
 			if ( DEBUG ){
 				
-				synchronized( files ){
+				try{
+					files_mon.enter();
 					
 					int	open = 0;
 					
@@ -268,6 +312,10 @@ FMFileManagerImpl
 					}
 					
 					System.out.println( "INFO: files = " + files.size() + ", open = " + open );
+					
+				}finally{
+					
+					files_mon.exit();
 				}
 			}
 		}

@@ -73,6 +73,8 @@ CacheFileManagerImpl
 	protected long				file_bytes_written;
 	protected long				file_bytes_read;
 	
+	protected AEMonitor			this_mon	= new AEMonitor( "CacheFileManager" );
+	
 	public
 	CacheFileManagerImpl()
 	{
@@ -209,12 +211,13 @@ CacheFileManagerImpl
 		
 		while( !ok ){
 			
-				// musn't invoke synchronized CacheFile methods while holding manager lock as this
+				// musn't invoke synchronised CacheFile methods while holding manager lock as this
 				// can cause deadlocks (as CacheFile calls manager methods with locks)
 			
 			CacheEntry	oldest_entry	= null;
 			
-			synchronized( this ){
+			try{
+				this_mon.enter();
 			
 				if ( length < cache_space_free || cache_space_free == cache_size ){
 				
@@ -224,6 +227,9 @@ CacheFileManagerImpl
 					
 					oldest_entry = (CacheEntry)cache_entries.keySet().iterator().next();
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			if ( !ok ){
@@ -242,8 +248,9 @@ CacheFileManagerImpl
 				
 				if ( flushed == 0 ){
 				
-					synchronized( this ){
-									
+					try{
+						this_mon.enter();
+						
 						if (	cache_entries.size() > 0 &&
 								(CacheEntry)cache_entries.keySet().iterator().next() == oldest_entry ){
 							
@@ -252,6 +259,9 @@ CacheFileManagerImpl
 							
 							throw( new CacheFileManagerException( "Cache inconsistent: 0 flushed"));
 						}
+					}finally{
+						
+						this_mon.exit();
 					}
 				}
 			}
@@ -299,7 +309,8 @@ CacheFileManagerImpl
 							
 				long	oldest	= now - DIRTY_CACHE_WRITE_MAX_AGE;
 				
-				synchronized( this ){
+				try{
+					this_mon.enter();
 					
 					if ( cache_entries.size() > 0 ){
 						
@@ -317,6 +328,9 @@ CacheFileManagerImpl
 							}
 						}
 					}
+				}finally{
+					
+					this_mon.exit();
 				}
 				
 				Iterator	it = dirty_files.iterator();
@@ -338,7 +352,7 @@ CacheFileManagerImpl
 		}
 	}
 	
-		// must be called when the cachefileimpl is synchronized to ensure that the file's
+		// must be called when the cachefileimpl is synchronised to ensure that the file's
 		// cache view and our cache view are consistent
 	
 	protected void
@@ -347,8 +361,9 @@ CacheFileManagerImpl
 	
 		throws CacheFileManagerException
 	{
-		synchronized( this ){
-	
+		try{
+			this_mon.enter();
+			
 			cache_space_free	-= new_entry.getLength();
 			
 				// 	System.out.println( "Total cache space = " + cache_space_free );
@@ -399,6 +414,9 @@ CacheFileManagerImpl
 					//System.out.println( "Cache: usage = " + total_cache_size );
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -408,7 +426,8 @@ CacheFileManagerImpl
 	
 		throws CacheFileManagerException
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 		
 				// note that the "get" operation update the MRU in cache_entries
 			
@@ -422,6 +441,9 @@ CacheFileManagerImpl
 				
 				entry.used();
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -433,8 +455,9 @@ CacheFileManagerImpl
 	{
 		entry.getBuffer().returnToPool();
 		
-		synchronized( this ){
-
+		try{
+			this_mon.enter();
+			
 			cache_space_free	+= entry.getLength();
 			
 			if ( cache_entries.remove( entry ) == null ){
@@ -459,6 +482,9 @@ CacheFileManagerImpl
 			*/
 			
 			// System.out.println( "Total cache space = " + cache_space_free );
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -481,32 +507,64 @@ CacheFileManagerImpl
 		return( cache_size - free );
 	}
 	
-	protected synchronized void
+	protected void
 	cacheBytesWritten(
 		long		num )
 	{
-		cache_bytes_written	+= num;
+		try{
+			this_mon.enter();
+			
+			cache_bytes_written	+= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	cacheBytesRead(
 		int		num )
 	{
-		cache_bytes_read	+= num;
+		try{
+			this_mon.enter();
+			
+			cache_bytes_read	+= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	fileBytesWritten(
 		long	num )
 	{
-		file_bytes_written	+= num;
+		try{
+			this_mon.enter();
+			
+			file_bytes_written	+= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	fileBytesRead(
 		int		num )
 	{
-		file_bytes_read	+= num;
+		try{
+			this_mon.enter();
+			
+			file_bytes_read	+= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected long

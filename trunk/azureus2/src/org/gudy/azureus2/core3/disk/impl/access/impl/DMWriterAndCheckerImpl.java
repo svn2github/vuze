@@ -102,8 +102,8 @@ DMWriterAndCheckerImpl
 	private List 			writeQueue;
 	private List 			checkQueue;
 	private AESemaphore		writeCheckQueueSem;
-	private Object			writeCheckQueueLock;
-	
+	private	AEMonitor		writeCheckQueueLock_mon	= new AEMonitor( "DMW&C:WCQ");
+		
 	protected ConcurrentHasherRequest	current_hash_request;
 	
 	protected Md5Hasher md5;			
@@ -115,6 +115,8 @@ DMWriterAndCheckerImpl
 	protected long		totalLength;
 	
 	protected int		nbPieces;
+	
+	protected AEMonitor	this_mon	= new AEMonitor( "DMW&C" );
 	
 	public
 	DMWriterAndCheckerImpl(
@@ -141,8 +143,7 @@ DMWriterAndCheckerImpl
 		writeQueue			= new LinkedList();
 		checkQueue			= new LinkedList();
 		writeCheckQueueSem	= new AESemaphore("writeCheckQ");
-		writeCheckQueueLock	= new Object();
-    				
+   				
 		writeThread = new DiskWriteThread();
 		writeThread.start();
 	}
@@ -150,7 +151,8 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			bOverallContinue	= false;
 			
@@ -158,6 +160,9 @@ DMWriterAndCheckerImpl
 				
 				current_hash_request.cancel();
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		if (writeThread != null){
@@ -181,63 +186,60 @@ DMWriterAndCheckerImpl
 		
 		long written = 0;
 		
-		synchronized (file){
-			
-			try{
-				if( length == 0 ){ //create a zero-length file if it is listed in the torrent
-					
-					cache_file.setLength( 0 );
-					
-				}else{
-						
-			        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_ZERO,pieceLength);
-			    
-			        try{
-				        buffer.limit(DirectByteBuffer.SS_DW, pieceLength);
-				        
-						for (int i = 0; i < buffer.limit(DirectByteBuffer.SS_DW); i++){
-							
-							buffer.put(DirectByteBuffer.SS_DW, (byte)0);
-						}
-						
-						buffer.position(DirectByteBuffer.SS_DW, 0);
-
-						while (written < length && bOverallContinue){
-							
-							int	write_size = buffer.capacity(DirectByteBuffer.SS_DW);
-							
-							if ((length - written) < write_size ){
-	            	
-								write_size = (int)(length - written);
-							}
-	            
-							buffer.limit(DirectByteBuffer.SS_DW, write_size);
-	             
-							cache_file.write( buffer, written );
-	            
-							buffer.position(DirectByteBuffer.SS_DW, 0);
-	            
-							written += write_size;
-	            
-							disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
-	            
-							disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
-						}
-			        }finally{
-			        	
-			        	buffer.returnToPool();
-			        }
-					
-				}
+		try{
+			if( length == 0 ){ //create a zero-length file if it is listed in the torrent
 				
-				if (!bOverallContinue){
-							
-					cache_file.close();
-					   
-					return false;
-				}
-			} catch (Exception e) {  e.printStackTrace();  }
-		}
+				cache_file.setLength( 0 );
+				
+			}else{
+					
+		        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_ZERO,pieceLength);
+		    
+		        try{
+			        buffer.limit(DirectByteBuffer.SS_DW, pieceLength);
+			        
+					for (int i = 0; i < buffer.limit(DirectByteBuffer.SS_DW); i++){
+						
+						buffer.put(DirectByteBuffer.SS_DW, (byte)0);
+					}
+					
+					buffer.position(DirectByteBuffer.SS_DW, 0);
+
+					while (written < length && bOverallContinue){
+						
+						int	write_size = buffer.capacity(DirectByteBuffer.SS_DW);
+						
+						if ((length - written) < write_size ){
+            	
+							write_size = (int)(length - written);
+						}
+            
+						buffer.limit(DirectByteBuffer.SS_DW, write_size);
+             
+						cache_file.write( buffer, written );
+            
+						buffer.position(DirectByteBuffer.SS_DW, 0);
+            
+						written += write_size;
+            
+						disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
+            
+						disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
+					}
+		        }finally{
+		        	
+		        	buffer.returnToPool();
+		        }
+				
+			}
+			
+			if (!bOverallContinue){
+						
+				cache_file.close();
+				   
+				return false;
+			}
+		} catch (Exception e) {  e.printStackTrace();  }
 			
 		return true;
 	}
@@ -263,155 +265,171 @@ DMWriterAndCheckerImpl
 		
 		// System.out.println( "check queue size = " + ( global_check_queue_block_sem_size - global_check_queue_block_sem.getValue()));
 		
-	  	synchronized( writeCheckQueueLock ){
+	  	try{
+	  		writeCheckQueueLock_mon.enter();
 	 		
 	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
+	   		
+	    }finally{
+	    	
+	    	writeCheckQueueLock_mon.exit();
 	    }
 	   		
 	   	writeCheckQueueSem.release();
 	}  
 	  
-	public synchronized boolean 
+	public boolean 
 	checkPiece(
 		int 				pieceNumber )
 	{
-        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,pieceLength);
-                
 		try{
-		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
-		    	
-		    	try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
-		    }
-		       
-		    boolean[]	pieceDone	= disk_manager.getPiecesDone();
-		    
-		    if ( bOverallContinue == false ){
-		    	
-		    	return false;
-		    }
-
-		    buffer.position(DirectByteBuffer.SS_DW, 0);
-
-			int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
-
-			buffer.limit(DirectByteBuffer.SS_DW, length);
-
-				//get the piece list
-			
-			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
-
-				//for each piece
-			
-			for (int i = 0; i < pieceList.size(); i++) {
+			this_mon.enter();
+		
+	        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,pieceLength);
+	                
+			try{
+			    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
+			    	
+			    	try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
+			    }
+			       
+			    boolean[]	pieceDone	= disk_manager.getPiecesDone();
+			    
+			    if ( bOverallContinue == false ){
+			    	
+			    	return false;
+			    }
+	
+			    buffer.position(DirectByteBuffer.SS_DW, 0);
+	
+				int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
+	
+				buffer.limit(DirectByteBuffer.SS_DW, length);
+	
+					//get the piece list
 				
-					//get the piece and the file
+				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+	
+					//for each piece
 				
-				PieceMapEntry tempPiece = pieceList.get(i);
-	            
-
-				try {
-	                    
-						   //if the file is large enough
+				for (int i = 0; i < pieceList.size(); i++) {
 					
-					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+						//get the piece and the file
+					
+					PieceMapEntry tempPiece = pieceList.get(i);
+		            
+	
+					try {
+		                    
+							   //if the file is large enough
 						
-						tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+						if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+							
+							tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+							
+						}else{
+								   //too small, can't be a complete piece
+							
+							buffer.clear(DirectByteBuffer.SS_DW);
+							
+							pieceDone[pieceNumber] = false;
+							
+							return false;
+						}
+					}catch (Exception e){
 						
-					}else{
-							   //too small, can't be a complete piece
+						e.printStackTrace();
+					}
+				}
+	
+				try {
+		      
+					if (bOverallContinue == false) return false;
+		      
+		      		buffer.position(DirectByteBuffer.SS_DW, 0);
+	
+					// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
+		      		
+		      			// running torrents have highest priority. 
+		      			// for checking torrents, smaller torrents have higher priority to get them
+		      			// checked and running ASAP
+		      		
+		      		long	hash_priority	= disk_manager.getState() == DiskManager.CHECKING?disk_manager.getTotalLength():0;
+		      		
+		      		try{
+		      			this_mon.enter();
+		      			
+		    		    if ( !bOverallContinue ){
+		    		    	
+		    		    	return false;
+		    		    }
+	
+		    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW),hash_priority);
+		      		}finally{
+		      			
+		      			this_mon.exit();
+		      		}
+					
+					byte[] testHash = current_hash_request.getResult();
+					
+					current_hash_request	= null;
+					
+					if ( testHash == null ){
+					
+							// cancelled
 						
-						buffer.clear(DirectByteBuffer.SS_DW);
+						return( false );
+					}
+					
+					byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
+					
+					int i = 0;
+					
+					for (i = 0; i < 20; i++){
+						
+						if (testHash[i] != required_hash[i]){
+							
+							break;
+						}
+					}
+					
+					if (i >= 20){
+						
+							//mark the piece as done..
+						
+						if (!pieceDone[pieceNumber]) {
+							
+							pieceDone[pieceNumber] = true;
+							
+							disk_manager.setRemaining( disk_manager.getRemaining() - length );
+							
+							disk_manager.computeFilesDone(pieceNumber);
+						}
+						
+						return true;
+					}
+					
+					if( pieceDone[pieceNumber]){
 						
 						pieceDone[pieceNumber] = false;
 						
-						return false;
+						disk_manager.setRemaining( disk_manager.getRemaining() + length );
 					}
-				}catch (Exception e){
+					
+				} catch (Exception e) {
 					
 					e.printStackTrace();
 				}
+				
+				return false;
+					
+			}finally{
+				
+				buffer.returnToPool();
 			}
-
-			try {
-	      
-				if (bOverallContinue == false) return false;
-	      
-	      		buffer.position(DirectByteBuffer.SS_DW, 0);
-
-				// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
-	      		
-	      			// running torrents have highest priority. 
-	      			// for checking torrents, smaller torrents have higher priority to get them
-	      			// checked and running ASAP
-	      		
-	      		long	hash_priority	= disk_manager.getState() == DiskManager.CHECKING?disk_manager.getTotalLength():0;
-	      		
-	      		synchronized( this ){
-	      			
-	    		    if ( !bOverallContinue ){
-	    		    	
-	    		    	return false;
-	    		    }
-
-	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW),hash_priority);
-	      		}
-				
-				byte[] testHash = current_hash_request.getResult();
-				
-				current_hash_request	= null;
-				
-				if ( testHash == null ){
-				
-						// cancelled
-					
-					return( false );
-				}
-				
-				byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-				
-				int i = 0;
-				
-				for (i = 0; i < 20; i++){
-					
-					if (testHash[i] != required_hash[i]){
-						
-						break;
-					}
-				}
-				
-				if (i >= 20){
-					
-						//mark the piece as done..
-					
-					if (!pieceDone[pieceNumber]) {
-						
-						pieceDone[pieceNumber] = true;
-						
-						disk_manager.setRemaining( disk_manager.getRemaining() - length );
-						
-						disk_manager.computeFilesDone(pieceNumber);
-					}
-					
-					return true;
-				}
-				
-				if( pieceDone[pieceNumber]){
-					
-					pieceDone[pieceNumber] = false;
-					
-					disk_manager.setRemaining( disk_manager.getRemaining() + length );
-				}
-				
-			} catch (Exception e) {
-				
-				e.printStackTrace();
-			}
-			
-			return false;
-				
 		}finally{
 			
-			buffer.returnToPool();
+			this_mon.exit();
 		}
 	}
 		
@@ -601,9 +619,13 @@ DMWriterAndCheckerImpl
 
 		// System.out.println( "reserved global write slot (buffer = " + data.limit() + ")" );
 		
-		synchronized( writeCheckQueueLock ){
+		try{
+			writeCheckQueueLock_mon.enter();
 			
 			writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
+		}finally{
+			
+			writeCheckQueueLock_mon.exit();
 		}
 		
 		writeCheckQueueSem.release();
@@ -702,7 +724,8 @@ DMWriterAndCheckerImpl
 						QueueElement	elt;
 						boolean			elt_is_write;
 						
-						synchronized( writeCheckQueueLock ){
+						try{
+							writeCheckQueueLock_mon.enter();
 							
 							if ( !bWriteContinue){
 															
@@ -727,6 +750,9 @@ DMWriterAndCheckerImpl
 														
 								elt_is_write	= false;
 							}
+						}finally{
+							
+							writeCheckQueueLock_mon.exit();
 						}
 		
 						if ( elt_is_write ){
@@ -799,9 +825,13 @@ DMWriterAndCheckerImpl
 
 		public void stopIt(){
 			
-			synchronized( writeCheckQueueLock ){
+			try{
+				writeCheckQueueLock_mon.enter();
 				
 				bWriteContinue = false;
+			}finally{
+				
+				writeCheckQueueLock_mon.exit();
 			}
 			
 			writeCheckQueueSem.releaseForever();

@@ -30,6 +30,7 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
 import org.gudy.azureus2.core3.util.Average;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 CacheFileManagerStatsImpl
@@ -52,6 +53,8 @@ CacheFileManagerStatsImpl
 	protected long		last_file_read;
 	protected long		last_file_write;
 	
+	protected AEMonitor	this_mon	= new AEMonitor( "CacheFileManagerStats" );
+	
 	protected
 	CacheFileManagerStatsImpl(
 		CacheFileManagerImpl	_manager )
@@ -59,44 +62,52 @@ CacheFileManagerStatsImpl
 		manager	= _manager;
 	}
 	
-	protected synchronized void
+	protected void
 	update()
 	{
-			// cache read
+		try{
+			this_mon.enter();
 		
-		long	cache_read		= manager.getBytesReadFromCache();
-		long	cache_read_diff	= cache_read - last_cache_read;
-		
-		last_cache_read	= cache_read;
-		
-		cache_read_average.addValue( cache_read_diff );
-		
-			// cache write
-		
-		long	cache_write		= manager.getBytesWrittenToCache();
-		long	cache_write_diff	= cache_write - last_cache_write;
-		
-		last_cache_write	= cache_write;
-		
-		cache_write_average.addValue( cache_write_diff );
-
-			// file read
-		
-		long	file_read		= manager.getBytesReadFromFile();
-		long	file_read_diff	= file_read - last_file_read;
-		
-		last_file_read	= file_read;
-		
-		file_read_average.addValue( file_read_diff );
-		
-			// file write
-		
-		long	file_write		= manager.getBytesWrittenToFile();
-		long	file_write_diff	= file_write - last_file_write;
-		
-		last_file_write	= file_write;
-		
-		file_write_average.addValue( file_write_diff );
+				// cache read
+			
+			long	cache_read		= manager.getBytesReadFromCache();
+			long	cache_read_diff	= cache_read - last_cache_read;
+			
+			last_cache_read	= cache_read;
+			
+			cache_read_average.addValue( cache_read_diff );
+			
+				// cache write
+			
+			long	cache_write		= manager.getBytesWrittenToCache();
+			long	cache_write_diff	= cache_write - last_cache_write;
+			
+			last_cache_write	= cache_write;
+			
+			cache_write_average.addValue( cache_write_diff );
+	
+				// file read
+			
+			long	file_read		= manager.getBytesReadFromFile();
+			long	file_read_diff	= file_read - last_file_read;
+			
+			last_file_read	= file_read;
+			
+			file_read_average.addValue( file_read_diff );
+			
+				// file write
+			
+			long	file_write		= manager.getBytesWrittenToFile();
+			long	file_write_diff	= file_write - last_file_write;
+			
+			last_file_write	= file_write;
+			
+			file_write_average.addValue( file_write_diff );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public long

@@ -105,6 +105,7 @@ CacheFileImpl
 	
 	protected int file_offset						= 0;
 	
+	protected AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
 	
 	protected
 	CacheFileImpl(
@@ -194,7 +195,9 @@ CacheFileImpl
 					// if we can totally satisfy the read from the cache, then use it
 					// otherwise flush the cache (not so smart here to only read missing)
 			
-			synchronized( this ){
+			try{
+					
+				this_mon.enter();
 
 					// record the position of the byte *following* the end of this read
 				
@@ -273,6 +276,9 @@ CacheFileImpl
 						writing_left			-= available;
 					}
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			if ( ok && writing_left == 0 ){
@@ -385,7 +391,9 @@ CacheFileImpl
 														
 							entry.setClean();
 			
-							synchronized( this ){
+							try{
+								
+								this_mon.enter();
 
 									// flush before read so that any bits in cache get re-read correctly on read
 						
@@ -400,6 +408,10 @@ CacheFileImpl
 								cache.add( entry );
 								
 								manager.addCacheSpace( entry );
+								
+							}finally{
+								
+								this_mon.exit();
 							}
 								
 							buffer_cached	= true;
@@ -428,11 +440,17 @@ CacheFileImpl
 							LGLogger.log( "\tnot performing read-ahead" );
 						}
 							
-						synchronized( this ){
+						try{
+							
+							this_mon.enter();
 							
 							flushCache( file_position, read_length, true, -1, 0 );
 						
 							getFMFile().read( file_buffer, file_position );
+							
+						}finally{
+							
+							this_mon.exit();
 						}
 						
 						manager.fileBytesRead( read_length );
@@ -503,8 +521,10 @@ CacheFileImpl
 								file_position, 
 								write_length );
 					
-					synchronized( this ){
+					try{
 
+						this_mon.enter();
+						
 							// do the flush and add sychronized to avoid possibility of another
 							// thread getting in-between and adding same block thus causing mutiple entries
 							// for same space
@@ -514,6 +534,10 @@ CacheFileImpl
 						cache.add( entry );
 					
 						manager.addCacheSpace( entry );
+						
+					}finally{
+						
+						this_mon.exit();
 					}
 																
 					manager.cacheBytesWritten( write_length );
@@ -525,11 +549,17 @@ CacheFileImpl
 						// not handed over, invalidate any cache that exists for the area
 						// as it is now out of date
 					
-					synchronized( this ){
+					try{
+						
+						this_mon.enter();
 						
 						flushCache( file_position, write_length, true, -1, 0 );
 
 						getFMFile().write( file_buffer, file_position );
+						
+					}finally{
+						
+						this_mon.exit();
 					}
 					
 					manager.fileBytesWritten( write_length );
@@ -576,8 +606,9 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		synchronized( this ){
-							
+		try{
+			this_mon.enter();
+			
 			Iterator	it = cache.iterator();
 			
 			Throwable	last_failure = null;
@@ -714,6 +745,9 @@ CacheFileImpl
 				
 				throw( new CacheFileManagerException( "cache flush failed", last_failure ));
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -840,29 +874,6 @@ CacheFileImpl
 			}
 
 			flushCache( 0, -1, false, -1, oldest_dirty_time);
-		}
-	}
-	
-	protected void
-	printCache()
-	{
-			// sync on class so traces for different files don't get inter-leaved!
-		
-		synchronized( CacheFileImpl.class ){
-			
-			LGLogger.log( "cache for " + getName());
-		
-			synchronized( this ){
-				
-				Iterator	it = cache.iterator();
-				
-				while(it.hasNext()){
-					
-					CacheEntry entry = (CacheEntry)it.next();
-					
-					LGLogger.log( "  " + entry.getString());
-				}
-			}
 		}
 	}
 	

@@ -27,14 +27,18 @@ package com.aelitis.azureus.core.diskmanager.cache;
  *
  */
 
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 CacheFileManagerFactory 
 {
 	public static final String	DEFAULT_MANAGER = "com.aelitis.azureus.core.diskmanager.cache.impl.CacheFileManagerImpl";
 	
 	private static CacheFileManager	manager;
+	private static AEMonitor		class_mon	= new AEMonitor("CacheFileManagerFactory");
 	
-	public static synchronized CacheFileManager
+	
+	public static CacheFileManager
 	getSingleton()
 	
 		throws CacheFileManagerException
@@ -42,37 +46,45 @@ CacheFileManagerFactory
 		return( getSingleton( null ));
 	}
 	
-	public static synchronized CacheFileManager
+	public static CacheFileManager
 	getSingleton(
 		String	explicit_implementation )
 	
 		throws CacheFileManagerException
 	{
-		if ( manager == null ){
-			
-			String	impl = explicit_implementation;
-			
-			if ( impl == null ){
-				
-				impl = System.getProperty( "com.aelitis.azureus.core.diskmanager.cache.manager");
-			}
-			
-			if ( impl == null ){
-				
-				impl	= DEFAULT_MANAGER;
-			}
-			
-			try{
-				Class impl_class = CacheFileManagerFactory.class.getClassLoader().loadClass( impl );
-				
-				manager = (CacheFileManager)impl_class.newInstance();
-								
-			}catch( Throwable e ){
-				
-				throw( new CacheFileManagerException( "Failed to instantiate manager '" + impl + "'", e ));
-			}
-		}
+		try{
+			class_mon.enter();
 		
-		return( manager );
+			if ( manager == null ){
+				
+				String	impl = explicit_implementation;
+				
+				if ( impl == null ){
+					
+					impl = System.getProperty( "com.aelitis.azureus.core.diskmanager.cache.manager");
+				}
+				
+				if ( impl == null ){
+					
+					impl	= DEFAULT_MANAGER;
+				}
+				
+				try{
+					Class impl_class = CacheFileManagerFactory.class.getClassLoader().loadClass( impl );
+					
+					manager = (CacheFileManager)impl_class.newInstance();
+									
+				}catch( Throwable e ){
+					
+					throw( new CacheFileManagerException( "Failed to instantiate manager '" + impl + "'", e ));
+				}
+			}
+			
+			return( manager );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 }

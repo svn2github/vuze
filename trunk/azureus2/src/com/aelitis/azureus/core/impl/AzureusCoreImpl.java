@@ -32,8 +32,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.host.*;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.NonDaemonTaskRunner;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -49,20 +48,29 @@ AzureusCoreImpl
 	implements 	AzureusCore, AzureusCoreListener
 {
 	protected static AzureusCore		singleton;
+	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
-	public static synchronized AzureusCore
+	public static AzureusCore
 	create()
 	
 		throws AzureusCoreException
 	{
-		if ( singleton != null ){
-	
-			throw( new AzureusCoreException( "Azureus core already instantiated" ));
+		try{
+			class_mon.enter();
+			
+			if ( singleton != null ){
+		
+				throw( new AzureusCoreException( "Azureus core already instantiated" ));
+			}
+			
+			singleton	= new AzureusCoreImpl();
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		singleton	= new AzureusCoreImpl();
-		
-		return( singleton );
 	}
 	
 	protected GlobalManager		global_manager;
@@ -72,6 +80,8 @@ AzureusCoreImpl
 	protected List				listeners				= new ArrayList();
 	protected List				lifecycle_listeners		= new ArrayList();
 	
+	protected AEMonitor			this_mon	= new AEMonitor( "AzureusCore" );
+
 	protected
 	AzureusCoreImpl()
 	{
@@ -88,85 +98,101 @@ AzureusCoreImpl
 		return( LocaleUtil.getSingleton());
 	}
 	
-	public synchronized void
+	public void
 	start()
 	
 		throws AzureusCoreException
 	{
-		if ( running ){
+		try{
+			this_mon.enter();
+		
+			if ( running ){
+				
+				throw( new AzureusCoreException( "core already running" ));
+			}
 			
-			throw( new AzureusCoreException( "core already running" ));
-		}
-		
-		running	= true;
-		
-		global_manager = GlobalManagerFactory.create( this );
-		
-		for (int i=0;i<lifecycle_listeners.size();i++){
+			running	= true;
 			
-			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
+			global_manager = GlobalManagerFactory.create( this );
+			
+			for (int i=0;i<lifecycle_listeners.size();i++){
+				
+				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
+			}
+	
+		    PluginInitializer.getSingleton(this,this).initializePlugins( this );
+		        
+		    LGLogger.log("Initializing Plugins complete");
+	
+		    new AEThread("Plugin Init Complete")
+		       {
+		        	public void
+		        	run()
+		        	{
+		        		PluginInitializer.initialisationComplete();
+		        		
+		        		for (int i=0;i<lifecycle_listeners.size();i++){
+		        			
+		        			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
+		        		}
+		        	}
+		       }.start();
+	         
+	            
+		    //Catch non-user-initiated VM shutdown
+	      //TODO: This does not seem to catch Windows' shutdown events, despite what Sun's
+	      //documentation says. See for possible fix:
+	      //http://www-106.ibm.com/developerworks/ibm/library/i-signalhandling
+	      //http://www.smotricz.com/kabutz/Issue043.html 
+	      //http://www.geeksville.com/~kevinh/projects/javasignals/
+	      
+		    Runtime.getRuntime().addShutdownHook( new Thread("Shutdown Hook") {
+		      public void run() {
+		        if( running ) {
+		          try{
+	              System.out.println( "Forced VM shutdown...auto-stopping..." );
+	              stop();
+	            }
+	            catch( Throwable e ){  e.printStackTrace();  }
+		        }
+		      }
+		    });
+		    
+		}finally{
+			
+			this_mon.exit();
 		}
-
-	    PluginInitializer.getSingleton(this,this).initializePlugins( this );
-	        
-	    LGLogger.log("Initializing Plugins complete");
-
-	    new AEThread("Plugin Init Complete")
-	       {
-	        	public void
-	        	run()
-	        	{
-	        		PluginInitializer.initialisationComplete();
-	        		
-	        		for (int i=0;i<lifecycle_listeners.size();i++){
-	        			
-	        			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
-	        		}
-	        	}
-	       }.start();
-         
-            
-	    //Catch non-user-initiated VM shutdown
-      //TODO: This does not seem to catch Windows' shutdown events, despite what Sun's
-      //documentation says. See for possible fix:
-      //http://www-106.ibm.com/developerworks/ibm/library/i-signalhandling
-      //http://www.smotricz.com/kabutz/Issue043.html 
-      //http://www.geeksville.com/~kevinh/projects/javasignals/
-      
-	    Runtime.getRuntime().addShutdownHook( new Thread("Shutdown Hook") {
-	      public void run() {
-	        if( running ) {
-	          try{
-              System.out.println( "Forced VM shutdown...auto-stopping..." );
-              stop();
-            }
-            catch( Throwable e ){  e.printStackTrace();  }
-	        }
-	      }
-	    });
          
 	}
 	
-	public synchronized void
+	public void
 	stop()
 	
 		throws AzureusCoreException
 	{
-		if ( !running ){
+		try{
+			this_mon.enter();
+		
+			if ( !running ){
+				
+				throw( new AzureusCoreException( "core not running" ));
+			}		
 			
-			throw( new AzureusCoreException( "core not running" ));
-		}		
-		
-		running	= false;
-		
-		global_manager.stopAll();
-		
-		for (int i=0;i<lifecycle_listeners.size();i++){
+			running	= false;
 			
-			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+			global_manager.stopAll();
+			
+			for (int i=0;i<lifecycle_listeners.size();i++){
+				
+				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+			}
+			
+			NonDaemonTaskRunner.waitUntilIdle();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		NonDaemonTaskRunner.waitUntilIdle();
 	}
 	
 	

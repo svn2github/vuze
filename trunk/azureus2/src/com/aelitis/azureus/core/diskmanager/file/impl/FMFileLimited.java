@@ -52,30 +52,37 @@ FMFileLimited
 		manager = _manager;
 	}
 	
-	public synchronized void
+	public void
 	ensureOpen()
 	
 		throws FMFileManagerException
 	{
-		if ( raf != null ){
-			
-			usedSlot();
-			
-		}else{
+		try{
+			this_mon.enter();
 		
-			getSlot();
-		
-			try{
-
-			  super.ensureOpen();
-				
-			}finally{
-				
-				if ( raf == null ){
+			if ( raf != null ){
+			
+				usedSlot();
+			
+			}else{
+			
+				getSlot();
+			
+				try{
+	
+				  super.ensureOpen();
 					
-					releaseSlot();
+				}finally{
+					
+					if ( raf == null ){
+						
+						releaseSlot();
+					}
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -97,118 +104,198 @@ FMFileLimited
 		manager.usedSlot(this);
 	}
 		
-	public synchronized void
+	public void
 	setAccessMode(
 		int		mode )
 	
 		throws FMFileManagerException
 	{
-		if ( mode != access_mode ){
+		try{
+			this_mon.enter();
 		
-			close(false);
+			if ( mode != access_mode ){
+		
+				close(false);
+			}
+		
+			access_mode		= mode;
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		access_mode		= mode;
 	}
 	
-	public synchronized long
+	public long
 	getSize()
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+	
+			ensureOpen();
 		
-		return( getSizeSupport());
+			return( getSizeSupport());
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized long
+	public long
 	getLength()
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
 		
-		return( getLengthSupport());
+			ensureOpen();
+		
+			return( getLengthSupport());
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 
-	public synchronized void
+	public void
 	setLength(
 		long		length )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+		
+			ensureOpen();
 			
-		setLengthSupport( length );
+			setLengthSupport( length );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	read(
 		DirectByteBuffer	buffer,
 		long		offset )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+		
+			ensureOpen();
 			
-		readSupport( buffer, offset );
+			readSupport( buffer, offset );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	
-	public synchronized void
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long		position )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+		
+			ensureOpen();
 			
-		writeSupport( buffer, position );
+			writeSupport( buffer, position );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	write(
 		DirectByteBuffer[]	buffers,
 		long				position )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+		
+			ensureOpen();
 			
-		writeSupport( buffers, position );
+			writeSupport( buffers, position );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	close()
 	
 		throws FMFileManagerException
 	{
-		close(true);
+		try{
+			this_mon.enter();		
+
+			close(true);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	close(
 		boolean	explicit )
 	
 		throws FMFileManagerException
 	{	
-		boolean	was_open = raf != null;
-		
 		try{
-			closeSupport( explicit );
-			
-		}finally{
-
-			if ( was_open ){
+			this_mon.enter();
+		
+			boolean	was_open = raf != null;
+		
+			try{
+				closeSupport( explicit );
 				
-				releaseSlot();
+			}finally{
+	
+				if ( was_open ){
+					
+					releaseSlot();
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
-	protected synchronized boolean
+	
+	protected boolean
 	isOpen()
 	{
-		return( raf != null );
+		try{
+			this_mon.enter();
+		
+			return( raf != null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

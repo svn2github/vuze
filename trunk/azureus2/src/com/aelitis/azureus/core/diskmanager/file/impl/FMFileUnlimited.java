@@ -47,100 +47,164 @@ FMFileUnlimited
 	}
 	
 	
-	public synchronized void
+	public void
 	setAccessMode(
 		int		mode )
 	
 		throws FMFileManagerException
 	{
-		if ( mode == access_mode && raf != null ){
+		try{
+			this_mon.enter();
+		
+			if ( mode == access_mode && raf != null ){
+				
+				return;
+			}
 			
-			return;
-		}
-		
-		access_mode		= mode;
-		
-		if ( raf != null ){
+			access_mode		= mode;
 			
-			closeSupport( false );
+			if ( raf != null ){
+				
+				closeSupport( false );
+			}
+			
+			openSupport();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		openSupport();
 	}
 	
-	public synchronized long
+	public long
 	getSize()
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
 		
-		return( getSizeSupport());
+			ensureOpen();
+		
+			return( getSizeSupport());
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized long
+	public long
 	getLength()
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
 		
-		return( getLengthSupport());
+			ensureOpen();
+		
+			return( getLengthSupport());
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 
-	public synchronized void
+	public void
 	setLength(
 		long		length )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+
+			ensureOpen();
 		
-		setLengthSupport( length );
+			setLengthSupport( length );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	read(
 		DirectByteBuffer	buffer,
 		long		offset )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+
+			ensureOpen();
 		
-		readSupport( buffer, offset );
+			readSupport( buffer, offset );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	
-	public synchronized void
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long		position )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+
+			ensureOpen();
 		
-		writeSupport( buffer, position );
+			writeSupport( buffer, position );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	write(
 		DirectByteBuffer[]	buffers,
 		long				position )
 	
 		throws FMFileManagerException
 	{
-		ensureOpen();
+		try{
+			this_mon.enter();
+
+			ensureOpen();
 		
-		writeSupport( buffers, position );
+			writeSupport( buffers, position );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	close()
 	
 		throws FMFileManagerException
 	{
-		closeSupport( true );
+		try{
+			this_mon.enter();
+
+			closeSupport( true );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

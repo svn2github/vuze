@@ -28,24 +28,33 @@ package org.gudy.azureus2.platform.win32.access.impl;
  */
 
 import org.gudy.azureus2.platform.win32.access.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 AEWin32AccessImpl
 	implements AEWin32Access
 {
 	protected static AEWin32AccessImpl	singleton;
+	protected static AEMonitor			class_mon	= new AEMonitor( "AEWin32Access" );
 	
-	public static synchronized AEWin32Access
+	public static AEWin32Access
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			AEWin32AccessInterface.load();
-			
-			singleton = new AEWin32AccessImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				AEWin32AccessInterface.load();
+				
+				singleton = new AEWin32AccessImpl();
+			}
+			
+			return( singleton );
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public String

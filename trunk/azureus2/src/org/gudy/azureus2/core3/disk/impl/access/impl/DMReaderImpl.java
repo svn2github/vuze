@@ -48,6 +48,8 @@ DMReaderImpl
 
 	private List		readQueue;
 	private AESemaphore	readQueueSem;
+	private AEMonitor	readQueue_mon		= new AEMonitor( "DMReader:RQ");
+	
 	private int			next_report_size	= 0;
 	
 	private DiskReadThread readThread;
@@ -95,9 +97,14 @@ DMReaderImpl
 	{
 		DiskReadRequest drr = new DiskReadRequest( request, listener );
 	    
-	    synchronized( readQueue ){
+	   try{
+	   		readQueue_mon.enter();
+	   
+	   		readQueue.add( drr );
+	   		
+	    }finally{
 	    	
-	      readQueue.add( drr );
+	    	readQueue_mon.exit();
 	    }
 	    
 	    readQueueSem.release();
@@ -222,7 +229,8 @@ DMReaderImpl
 						
 						DiskReadRequest drr;
 						
-						synchronized( readQueue ){
+						try{
+							readQueue_mon.enter();
 							
 							if ( !bReadContinue){
 														
@@ -230,6 +238,9 @@ DMReaderImpl
 							}
 						
 							drr = (DiskReadRequest)readQueue.remove(0);
+						}finally{
+							
+							readQueue_mon.exit();
 						}
 		
 						DiskManagerRequest request = drr.getRequest();
@@ -257,9 +268,14 @@ DMReaderImpl
 		}
 
 		public void stopIt() {
-			synchronized( readQueue ){
+
+			try{
+				readQueue_mon.enter();
 				
 				bReadContinue = false;
+			}finally{
+				
+				readQueue_mon.exit();
 			}
 			
 			readQueueSem.releaseForever();

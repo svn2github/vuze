@@ -51,12 +51,16 @@ FMFileImpl
 	protected long lClosedAt = 0;
 
 	protected static Map			file_map = new HashMap();
+	protected static AEMonitor		file_map_mon	= new AEMonitor( "FMFile:map");
 	
 	protected FMFileOwner			owner;
 	protected int					access_mode			= FM_READ;
 	protected File					file;
 	protected String				canonical_path;
 	protected RandomAccessFile		raf;
+	
+	protected AEMonitor				this_mon	= new AEMonitor( "FMFile" );
+	
 	
 	protected
 	FMFileImpl(
@@ -91,81 +95,96 @@ FMFileImpl
 		return( access_mode );
 	}
 	
-	public synchronized void
+	public void
 	moveFile(
 		File		new_file )
 	
 		throws FMFileManagerException
 	{
-		String	new_canonical_path;
-
 		try{
-			new_canonical_path = new_file.getCanonicalPath();
-			
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
-		}	
+			this_mon.enter();
 		
-		if ( new_file.exists()){
-			
-			throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
-		}
-		
-		boolean	was_open	= raf != null;
-		
-		close();
-		
-		if ( FileUtil.renameFile( file, new_file)) {
-			
-			file			= new_file;
-			canonical_path	= new_canonical_path;
-			
-			reserveFile();
-			
-			openSupport();
-			
-		}else{
-		
+			String	new_canonical_path;
+	
 			try{
-				reserveFile();
+				new_canonical_path = new_file.getCanonicalPath();
 				
-			}catch( FMFileManagerException e ){
+			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				throw( new FMFileManagerException( "getCanonicalPath fails", e ));
+			}	
+			
+			if ( new_file.exists()){
+				
+				throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 			}
 			
-			if ( was_open ){
+			boolean	was_open	= raf != null;
+			
+			close();
+			
+			if ( FileUtil.renameFile( file, new_file)) {
 				
+				file			= new_file;
+				canonical_path	= new_canonical_path;
+				
+				reserveFile();
+				
+				openSupport();
+				
+			}else{
+			
 				try{
-					openSupport();
+					reserveFile();
 					
-				}catch( FMFileManagerException e){
+				}catch( FMFileManagerException e ){
 					
 					e.printStackTrace();
 				}
-			}
+				
+				if ( was_open ){
+					
+					try{
+						openSupport();
+						
+					}catch( FMFileManagerException e){
+						
+						e.printStackTrace();
+					}
+				}
+				
+				throw( new FMFileManagerException( "moveFile fails"));
+			}	
+		}finally{
 			
-			throw( new FMFileManagerException( "moveFile fails"));
-		}	
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	ensureOpen()
 	
 		throws FMFileManagerException
 	{
-		if ( raf != null )
-		  return;
-		long lTimeToWait = lClosedAt + 1000 - System.currentTimeMillis();
-		if (lTimeToWait > 0) {
-      try {
-        Thread.sleep(lTimeToWait);
-      } catch (Exception ignore) { ignore.printStackTrace(); }
-    }
-
-		if (raf == null)
-  		openSupport();
+		try{
+			this_mon.enter();
+	
+			if ( raf != null )
+			  return;
+			long lTimeToWait = lClosedAt + 1000 - System.currentTimeMillis();
+			if (lTimeToWait > 0) {
+	      try {
+	        Thread.sleep(lTimeToWait);
+	      } catch (Exception ignore) { ignore.printStackTrace(); }
+	    }
+	
+			if (raf == null)
+	  		openSupport();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 
 	protected long
@@ -478,7 +497,8 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		synchronized( file_map ){
+		try{
+			file_map_mon.enter();
 			
 			// System.out.println( "FMFile::reserveFile:" + canonical_path + "("+ owner.getName() + ")" );
 			
@@ -492,17 +512,25 @@ FMFileImpl
 				
 				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + existing_owner.getName()+"'"));
 			}
+		}finally{
+			
+			file_map_mon.exit();
 		}
 	}
 	
 	protected void
 	releaseFile()
 	{
-		synchronized( file_map ){
-			
-			// System.out.println( "FMFile::releaseFile:" + canonical_path );
+		try{
+			file_map_mon.enter();
+		
+				// System.out.println( "FMFile::releaseFile:" + canonical_path );
 					
 			file_map.remove( canonical_path );
+			
+		}finally{
+			
+			file_map_mon.exit();
 		}
 	}
 }

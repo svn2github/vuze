@@ -26,9 +26,31 @@ package org.gudy.azureus2.core3.util;
  * @author parg
  *
  */
+
+import java.util.*;
+
 public class 
 AEMonitor 
 {
+	private static boolean	DEBUG		= false;
+	
+	static{
+		if ( DEBUG ){
+			
+			System.out.println( "**** AEMonitor debug on ****" );
+		}
+	}
+	
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( new Stack());
+			}
+		};
+	
 	protected String		name;
 	
 	protected int			waiting		= 0;
@@ -46,54 +68,76 @@ AEMonitor
 	public void
 	enter()
 	{
-		reserve();
+		if ( DEBUG ){
+			
+			Stack	stack = (Stack)tls.get();
+			
+			String	str = name;
+
+			for (int i=stack.size()-1;i>=0;i-- ){
+			
+				str += "," + stack.get(i);
+			}
+			
+			stack.push( name );
 				
+			System.out.println( "reserve: " + str );
+		}
+		
+		reserve();
 	}
 	
 	public void
 	exit()
 	{
+		try{
+			release();
+			
+		}finally{
 		
-		release();
+			if ( DEBUG ){
+				
+				System.out.println( "release: " + name );
+
+				((Stack)tls.get()).pop();
+			}
+		}
 	}
 	
 	protected synchronized void
 	reserve()
 	{
-		synchronized(this){
-
-			if ( owner == Thread.currentThread()){
-				
-				nests++;
-				
-			}else{
-				
-				if ( dont_wait == 0 ){
-
-					try{
-						waiting++;
-
-						wait();
-
-					}catch( Throwable e ){
-
-							// we know here that someone's got a finally clause to do the
-							// balanced 'exit'. hence we should make it look as if we own it...
-						
-						waiting--;
-
-						owner	= Thread.currentThread();
-						
-						System.out.println( "**** monitor interrupted ****" );
-						
-						throw( new RuntimeException("AEMonitor:interrupted" ));
-					}
-				}else{
-					dont_wait--;
-				}
+		if ( owner == Thread.currentThread()){
 			
-				owner	= Thread.currentThread();
+			nests++;
+			
+		}else{
+			
+			if ( dont_wait == 0 ){
+
+				try{
+					waiting++;
+
+					wait();
+
+				}catch( Throwable e ){
+
+						// we know here that someone's got a finally clause to do the
+						// balanced 'exit'. hence we should make it look as if we own it...
+					
+					waiting--;
+
+					owner	= Thread.currentThread();
+					
+					System.out.println( "**** monitor interrupted ****" );
+					
+					throw( new RuntimeException("AEMonitor:interrupted" ));
+				}
+			}else{
+				dont_wait--;
 			}
+		
+			owner	= Thread.currentThread();
 		}
 	}
 
