@@ -50,6 +50,8 @@ public class SelectorGuard {
   private long beforeSelectTime;
   private long afterSelectTime;
   
+  private static final boolean DISABLED = System.getProperty("java.version").startsWith("1.5") ? true : false;
+  
   
   /**
    * Create a new SelectorGuard with the given failed count threshold.
@@ -64,6 +66,7 @@ public class SelectorGuard {
    * mark the start time.
    */
   public void markPreSelectTime() {//TODO make protected again
+    if( DISABLED ) return;
     beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
@@ -73,6 +76,8 @@ public class SelectorGuard {
    * Checks whether selector is still OK, and not spinning.
    */
   public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {//TODO make protected again
+    if( DISABLED ) return true;
+    
     if (_num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
@@ -113,7 +118,7 @@ public class SelectorGuard {
   public Selector repairSelector( final Selector _bad_selector ) {//TODO make protected again
     String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys";
     Debug.out( msg );
-    LGLogger.logAlert( LGLogger.AT_WARNING, msg, true );
+    LGLogger.logAlert( LGLogger.AT_WARNING, msg, false );
     
     try {
       //sleep a bit to allow underlying network recovery
