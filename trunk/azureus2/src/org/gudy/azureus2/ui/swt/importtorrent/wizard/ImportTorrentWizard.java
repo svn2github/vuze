@@ -37,6 +37,9 @@ import org.gudy.azureus2.core.MessageText;
 
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 ImportTorrentWizard 
 	extends Wizard 
@@ -50,7 +53,7 @@ ImportTorrentWizard
 	{
 		super(display,"importTorrentWizard.title");
 	
-		ImportTorrentWizardFinishPanel input_panel = new ImportTorrentWizardFinishPanel(this,null);
+		ImportTorrentWizardInputPanel input_panel = new ImportTorrentWizardInputPanel(this,null);
 	
 		this.setFirstPanel(input_panel);
 	}
@@ -78,6 +81,8 @@ ImportTorrentWizard
 		String		str )
 	{
 		import_file = str;
+		
+		torrent_file = str + ".torrent";
 	}
   	
 	protected String
@@ -98,9 +103,9 @@ ImportTorrentWizard
 			
 			MessageBox mb = new MessageBox(getWizardWindow(),SWT.ICON_ERROR | SWT.OK );
 		
-			mb.setText(MessageText.getString("exportTorrentWizard.process.inputfilebad.title"));
+			mb.setText(MessageText.getString("importTorrentWizard.process.inputfilebad.title"));
 		
-			mb.setMessage(	MessageText.getString("exportTorrentWizard.process.inputfilebad.message")+"\n" +
+			mb.setMessage(	MessageText.getString("importTorrentWizard.process.inputfilebad.message")+"\n" +
 							e.toString());
 			
 			mb.open();
@@ -114,9 +119,9 @@ ImportTorrentWizard
 			
 			MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			
-			mb.setText(MessageText.getString("exportTorrentWizard.process.outputfileexists.title"));
+			mb.setText(MessageText.getString("importTorrentWizard.process.outputfileexists.title"));
 			
-			mb.setMessage(MessageText.getString("exportTorrentWizard.process.outputfileexists.message"));
+			mb.setMessage(MessageText.getString("importTorrentWizard.process.outputfileexists.message"));
 			
 			int result = mb.open();
 		
@@ -126,6 +131,53 @@ ImportTorrentWizard
 			}
 		}
 	
-		return( true );
+		String	error_title;
+		String	error_detail;
+		
+		try{
+		
+			TOTorrent	torrent;
+			
+			try{
+				
+				torrent = TOTorrentFactory.deserialiseFromXMLFile( input_file );
+	
+				try{
+					
+					torrent.serialiseToBEncodedFile( output_file );
+					
+					return( true );
+								
+				}catch( TOTorrentException e ){
+				
+					error_title 	= MessageText.getString("importTorrentWizard.process.importfail.title");
+				
+					error_detail	= TorrentUtils.exceptionToText( e ); 
+				}
+			}catch( TOTorrentException e ){
+				
+				error_title 	= MessageText.getString("importTorrentWizard.process.torrentfail.title");
+				
+				error_detail	= TorrentUtils.exceptionToText( e ); 
+			}
+			
+		}catch( Throwable e ){
+
+			error_title 	= MessageText.getString("importTorrentWizard.process.unknownfail.title");
+		
+			e.printStackTrace();
+			
+			error_detail 	= e.toString();
+		}
+
+		MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_ERROR | SWT.OK );
+			
+		mb.setText(error_title);
+			
+		mb.setMessage(error_detail);
+			
+		mb.open();
+		
+		return( false );
 	}
 }

@@ -59,6 +59,15 @@ TOTorrentFactory
 		return( new TOTorrentDeserialiseImpl( data ));
 	}
 	
+	public static TOTorrent
+	deserialiseFromXMLFile(
+		File		file )
+		
+		throws TOTorrentException
+	{
+		return( new TOTorrentXMLDeserialiser().deserialise( file ));
+	}
+
 		// construction methods: fixed piece size
 		
 	public static TOTorrent

@@ -165,7 +165,7 @@ TOTorrentXMLSerialiser
 		
 				String	key = (String)it.next();
 			
-				writeGeneric( key, additional_properties.get( key ));	
+				writeGenericMapEntry( key, additional_properties.get( key ));	
 			}
 			
 		}finally{
@@ -231,7 +231,7 @@ TOTorrentXMLSerialiser
 							
 								String	key = (String)prop_it.next();
 							
-								writeGeneric( key, additional_properties.get( key ));
+								writeGenericMapEntry( key, additional_properties.get( key ));
 							}
 						}finally{
 							
@@ -256,7 +256,7 @@ TOTorrentXMLSerialiser
 		
 				String	key = (String)it.next();
 			
-				writeGeneric( key, additional_properties.get( key ));	
+				writeGenericMapEntry( key, additional_properties.get( key ));	
 			}
 			
 			writeLine( "<PIECES>");
@@ -284,13 +284,13 @@ TOTorrentXMLSerialiser
 	}
 	
 	protected void
-	writeGeneric(
+	writeGenericMapEntry(
 		String	name,
 		Object	value )
 		
 		throws TOTorrentException
 	{
-		writeLine( "<" +  name + ">");
+		writeLine( "<KEY name=\"" + escapeXML( name ) + "\">");
 		
 		try{
 			indent();
@@ -301,7 +301,7 @@ TOTorrentXMLSerialiser
 			exdent();
 		}
 		
-		writeLine( "</" + name + ">");
+		writeLine( "</KEY>");
 	}
 	
 	protected void
@@ -345,7 +345,7 @@ TOTorrentXMLSerialiser
 				
 				String	key = (String)it.next();
 				
-				writeGeneric( key, map.get( key ));
+				writeGenericMapEntry( key, map.get( key ));
 			}
 		}finally{
 			
@@ -471,6 +471,8 @@ TOTorrentXMLSerialiser
 		str = str.replaceAll( "&", "&amp;" );
 		str = str.replaceAll( ">", "&gt;" );
 		str = str.replaceAll( "<", "&lt;" );
+		str = str.replaceAll( "\"", "&quot;" );
+		str = str.replaceAll( "--", "&#45;&#45;" );
 		
 		return( str );
 	}
