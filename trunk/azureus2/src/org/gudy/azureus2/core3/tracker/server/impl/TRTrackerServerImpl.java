@@ -45,92 +45,42 @@ TRTrackerServerImpl
 	
 	public static int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
 	
-	protected static int		max_peers_to_send			= 0;
-	protected static boolean	send_peer_ids				= true;
-	protected static int		announce_cache_period		= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD;
-	protected static int		scrape_cache_period			= TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD;
-	protected static int		announce_cache_threshold	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
+	public static int		max_peers_to_send			= 0;
+	public static boolean	send_peer_ids				= true;
+	public static int		announce_cache_period		= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD;
+	public static int		scrape_cache_period			= TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD;
+	public static int		announce_cache_threshold	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
+	public static int		max_seed_retention			= 0;
 	
 	static{
-		final String	send_ids_param = "Tracker Send Peer IDs";
-		
-		send_peer_ids = COConfigurationManager.getBooleanParameter( send_ids_param, true );
-		
-		COConfigurationManager.addParameterListener(
-				send_ids_param,
-				new ParameterListener()
+
+		COConfigurationManager.addListener(
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
 				{
-					public void
-					parameterChanged(
-							String	value )
-					{
-						send_peer_ids = COConfigurationManager.getBooleanParameter( send_ids_param, true );
-					}
-				});
+					readConfig();
+				}
+			});
 		
-		final String	max_peers_param = "Tracker Max Peers Returned";
-		
-		max_peers_to_send = COConfigurationManager.getIntParameter( max_peers_param, 0 );
-		
-		COConfigurationManager.addParameterListener(
-				max_peers_param,
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	value )
-					{
-						max_peers_to_send = COConfigurationManager.getIntParameter( max_peers_param, 0 );
-					}
-				});
-		
-		final String	scrape_cache_param = "Tracker Scrape Cache";
-		
-		scrape_cache_period = COConfigurationManager.getIntParameter( scrape_cache_param, TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
-		
-		COConfigurationManager.addParameterListener(
-				scrape_cache_param,
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	value )
-					{
-						scrape_cache_period = COConfigurationManager.getIntParameter( scrape_cache_param, TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
-					}
-				});
-		
-		final String	announce_cache_param = "Tracker Announce Cache";
-		
-		announce_cache_period = COConfigurationManager.getIntParameter( announce_cache_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD );
-		
-		COConfigurationManager.addParameterListener(
-				announce_cache_param,
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	value )
-					{
-						announce_cache_period = COConfigurationManager.getIntParameter( announce_cache_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD );
-					}
-				});
-		
-		final String	announce_threshold_param = "Tracker Announce Cache Min Peers";
-		
-		announce_cache_threshold = COConfigurationManager.getIntParameter( announce_threshold_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
-		
-		COConfigurationManager.addParameterListener(
-				announce_threshold_param,
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	value )
-					{
-						announce_cache_threshold = COConfigurationManager.getIntParameter( announce_threshold_param, TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
-					}
-				});
+		readConfig();
+	}
+
+	protected static void
+	readConfig()
+	{
+		send_peer_ids = COConfigurationManager.getBooleanParameter( "Tracker Send Peer IDs", true );
+				
+		max_peers_to_send = COConfigurationManager.getIntParameter( "Tracker Max Peers Returned", 0 );
+				
+		scrape_cache_period = COConfigurationManager.getIntParameter( "Tracker Scrape Cache", TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
+				
+		announce_cache_period = COConfigurationManager.getIntParameter( "Tracker Announce Cache", TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+						
+		announce_cache_threshold = COConfigurationManager.getIntParameter( "Tracker Announce Cache Min Peers", TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
+
+		max_seed_retention = COConfigurationManager.getIntParameter( "Tracker Max Seeds Retained", 0 );
 	}
 	
 	protected static boolean
@@ -161,6 +111,12 @@ TRTrackerServerImpl
 	getAnnounceCachePeerThreshold()
 	{
 		return( announce_cache_threshold );
+	}
+	
+	protected static int
+	getMaxSeedRetention()
+	{
+		return( max_seed_retention );
 	}
 	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();

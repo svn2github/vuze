@@ -62,6 +62,8 @@ LoadTest
 		
 		TRTrackerServerImpl.TIMEOUT_CHECK 		    = timeout*1000;
 		
+		TRTrackerServerImpl.max_seed_retention		= 0;
+		
 		TRTrackerServerImpl	server = 
 			new TRTrackerServerImpl( "test" )
 			{
@@ -296,7 +298,7 @@ LoadTest
 			try{
 				left	= 0;
 				
-				uploaded += 100000;
+				uploaded += 10000;
 				
 				torrent.peerContact(null, peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 	

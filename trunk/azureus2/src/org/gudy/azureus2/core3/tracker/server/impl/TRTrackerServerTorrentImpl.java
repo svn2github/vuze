@@ -266,6 +266,42 @@ TRTrackerServerTorrentImpl
 			stats.addCompleted();
 		}
 		
+		if ( peer != null && peer.isSeed()){
+			
+			int	seed_retention = TRTrackerServerImpl.getMaxSeedRetention();
+		
+			if ( seed_retention != 0 && seed_count > seed_retention ){
+				
+					// remove 5% of the seeds
+				
+				int	to_remove = (seed_retention/20)+1;
+				
+				try{
+					peer_list_compaction_suspended	= true;
+				
+					for (int i=0;i<peer_list.size();i++){
+						
+						TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)peer_list.get(i);
+						
+						if ( this_peer != null && this_peer.isSeed()){
+							
+							removePeer( this_peer, i );
+							
+							if ( --to_remove == 0 ){
+								
+								break;
+							}
+						}
+					}
+				}finally{
+					
+					peer_list_compaction_suspended	= false;
+				}
+				
+				checkForPeerListCompaction( false );
+			}
+		}
+		
 		return( peer );
 	}
 	
@@ -722,7 +758,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( force || peer_list_hole_count > peer_map.size()/10 ){
 								
-				ArrayList	new_peer_list = new ArrayList( peer_list.size() - peer_list_hole_count );
+				ArrayList	new_peer_list = new ArrayList( peer_list.size() - (peer_list_hole_count/2));
 				
 				int	holes_found = 0;
 				
