@@ -807,4 +807,10 @@ DownloadImpl
  	{
 		return( download_manager.getSavePath());
  	}
+	
+ 	public void
+	requestTrackerAnnounce()
+ 	{
+ 		download_manager.checkTracker();
+ 	}
 }

@@ -253,6 +253,12 @@ RPDownload
 			delegate.setPriority(((Integer)request.getParams()[0]).intValue());
 			
 			return( null );
+			
+		}else if ( method.equals( "requestTrackerAnnounce")){
+			
+			delegate.requestTrackerAnnounce();
+			
+			return( null );
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -641,4 +647,10 @@ RPDownload
 		
 		return( null );
 	}
+ 	
+ 	public void
+	requestTrackerAnnounce()
+ 	{
+		_dispatcher.dispatch( new RPRequest( this, "requestTrackerAnnounce", null)).getResponse();	
+ 	}
 }

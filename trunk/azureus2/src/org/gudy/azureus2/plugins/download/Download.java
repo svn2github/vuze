@@ -403,6 +403,14 @@ Download
   	public PeerManager
 	getPeerManager();
   	
+  		/**
+  		 * request a tracker announce 
+  		 * @since 2.1.0.5
+  		 */
+  	
+  	public void
+	requestTrackerAnnounce();
+  	
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state
 	 * @param l
