@@ -19,6 +19,10 @@ public class ManagerView extends AbstractIView {
 
   DownloadManager manager;
   CTabFolder folder;
+  CTabItem itemGeneral;
+  CTabItem itemDetails;
+  CTabItem itemPieces;
+  CTabItem itemFiles;
   IView viewGeneral;
   IView viewDetails;
   IView viewPieces;
@@ -32,7 +36,7 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    MainWindow.getWindow().removeManagerView(manager);    
+    MainWindow.getWindow().removeManagerView(manager);
     if (viewGeneral != null)
       viewGeneral.delete();
     if (viewDetails != null)
@@ -40,7 +44,7 @@ public class ManagerView extends AbstractIView {
     if (viewPieces != null)
       viewPieces.delete();
     if (viewFiles != null)
-    viewFiles.delete();
+      viewFiles.delete();
   }
 
   /* (non-Javadoc)
@@ -71,10 +75,10 @@ public class ManagerView extends AbstractIView {
   public void initialize(Composite composite) {
     folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
     folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
-    CTabItem itemGeneral = new CTabItem(folder, SWT.NULL);
-    CTabItem itemDetails = new CTabItem(folder, SWT.NULL);
-    CTabItem itemPieces = new CTabItem(folder, SWT.NULL);
-    CTabItem itemFiles = new CTabItem(folder, SWT.NULL);
+    itemGeneral = new CTabItem(folder, SWT.NULL);
+    itemDetails = new CTabItem(folder, SWT.NULL);
+    itemPieces = new CTabItem(folder, SWT.NULL);
+    itemFiles = new CTabItem(folder, SWT.NULL);
     viewGeneral = new GeneralView(manager);
     viewGeneral.initialize(folder);
     viewDetails = new PeersView(manager);
@@ -98,6 +102,10 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    itemGeneral.setText(viewGeneral.getShortTitle());
+    itemDetails.setText(viewDetails.getShortTitle());
+    itemPieces.setText(viewPieces.getShortTitle());
+    itemFiles.setText(viewFiles.getShortTitle());
     int selected = folder.getSelectionIndex();
     switch (selected) {
       case 0 :
