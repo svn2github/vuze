@@ -67,14 +67,14 @@ public class IpFilterEditor {
     }
 
     final Shell shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-    Messages.setLanguageText(shell,"ipFilter.editFilter");
+    Messages.setLanguageText(shell,"ConfigView.section.ipfilter.editFilter");
     shell.setImage(ImageRepository.getImage("ipfilter"));
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NULL);
-    Messages.setLanguageText(label, "ipFilter.description");
+    Messages.setLanguageText(label, "ConfigView.section.ipfilter.description");
 
     final Text textDescription = new Text(shell, SWT.BORDER);
     GridData gridData = new GridData();
@@ -82,7 +82,7 @@ public class IpFilterEditor {
     textDescription.setLayoutData(gridData);
 
     label = new Label(shell, SWT.NULL);
-    Messages.setLanguageText(label, "ipFilter.start");
+    Messages.setLanguageText(label, "ConfigView.section.ipfilter.start");
 
     final Text textStartIp = new Text(shell, SWT.BORDER);
     gridData = new GridData();
@@ -90,7 +90,7 @@ public class IpFilterEditor {
     textStartIp.setLayoutData(gridData);
 
     label = new Label(shell, SWT.NULL);
-    Messages.setLanguageText(label, "ipFilter.end");
+    Messages.setLanguageText(label, "ConfigView.section.ipfilter.end");
 
     final Text textEndIp = new Text(shell, SWT.BORDER);
     gridData = new GridData();

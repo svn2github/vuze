@@ -2616,8 +2616,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     StringBuffer sb = new StringBuffer();
     List blocked = IpFilter.getInstance().getBlockedIps();
     Iterator iter = blocked.iterator();
-    String inRange = MessageText.getString("ipFilter.list.inrange");
-    String notInRange = MessageText.getString("ipFilter.list.notinrange");    
+    String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
+    String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");    
     while(iter.hasNext()) {
       BlockedIp bIp = (BlockedIp) iter.next();
       sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));

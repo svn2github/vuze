@@ -39,7 +39,7 @@ public class BlockedIpsWindow {
   
   public static void show(Display display,String ips) {
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
-    Messages.setLanguageText(window,"ipFilter.list.title");
+    Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
     window.setImage(ImageRepository.getImage("azureus"));
     
     FormLayout layout = new FormLayout();
