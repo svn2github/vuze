@@ -129,6 +129,7 @@ public class ConfigView extends AbstractIView {
     initStats();
     initStyle();
     initTracker();
+    initSharing();
     initLogging();
     
     initSaveButton(); 
@@ -1742,7 +1743,31 @@ public class ConfigView extends AbstractIView {
 	  
 	}
 	
-	
+ 	private void initSharing() 
+ 	{
+ 		GridData gridData;
+ 		GridLayout layout;
+ 		Label label;
+ 		TabItem itemSharing = new TabItem(tfConfig, SWT.NULL);
+ 		Messages.setLanguageText(itemSharing, "ConfigView.section.sharing"); 
+
+ 		Group gSharing = new Group(tfConfig, SWT.NULL);
+ 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+ 		gSharing.setLayoutData(gridData);
+ 		layout = new GridLayout();
+ 		layout.numColumns = 3;
+ 		gSharing.setLayout(layout);
+
+ 		itemSharing.setControl(gSharing);
+ 		
+ 		// row
+ 		
+ 		label = new Label(gSharing, SWT.NULL);
+ 		Messages.setLanguageText(label, "ConfigView.section.sharing.usessl"); 
+ 		BooleanParameter sharingSSL = new BooleanParameter(gSharing, "Sharing Use SSL", false);
+
+ 		label = new Label(gSharing, SWT.NULL);
+ 	}
 	
 	
 	private void initLogging() {
