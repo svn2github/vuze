@@ -464,6 +464,9 @@ public class FileUtil {
       FileChannel source = null;
       FileChannel dest = null;
       try {
+        if( _source.length() < 1L ) {
+          throw new IOException( _source.getAbsolutePath() + " does not exist or is 0-sized" );
+        }
         source = new FileInputStream( _source ).getChannel();
         dest = new FileOutputStream( _dest ).getChannel();
       
