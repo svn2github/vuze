@@ -83,7 +83,6 @@ TrackerWeb
 		while(true){
 		
 			int	p1 = str.indexOf( '&', pos );
-			
 			String	bit;
 			
 			if ( p1 == -1 ){
@@ -93,7 +92,6 @@ TrackerWeb
 			}else{
 				
 				bit = str.substring(pos,p1);
-				
 				pos = p1+1;
 			}
 			
@@ -104,7 +102,6 @@ TrackerWeb
 				params.put(bit,"true");
 				
 			}else{
-				
 				params.put(bit.substring(0,p2), bit.substring(p2+1));
 			}
 			
@@ -144,11 +141,17 @@ TrackerWeb
 		Template t = new Template( args );
 
 		int	specific_torrent	= -1;
+		int tracker_page = -1;
+		int tracker_last_page = 1;
+		//Todo: get tracker config tab options to set//enable this.
+		int tracker_skip = 0; // 0 = disabled, range: >0
 		
+		// parse get parms.
 		if ( params != null ){
 			
 			String	specific_torrents = (String)params.get( "torrent_info" );
-			
+			String	page = (String)params.get( "page" );
+			String	skip = (String)params.get( "skip" );
 			
 			if ( specific_torrents != null ){
 				
@@ -158,6 +161,25 @@ TrackerWeb
 				
 				specific_torrent--;
 			}
+			if ( page != null ){
+				
+				//make sure our values are in range
+				if (Integer.parseInt( page ) > -1 )
+				{
+					tracker_page = Integer.parseInt( page );
+						// 1 based -> 0 based
+					tracker_page--;
+				}
+
+			}
+			if ( skip != null ){
+				
+				if (Integer.parseInt( skip ) > 0)
+				{
+					tracker_skip = Integer.parseInt( skip );
+				}
+			}
+			
 		}
 		
 			// set up the parameters
@@ -168,22 +190,79 @@ TrackerWeb
 		
 		int	start;
 		int	end;
+		//use "pagenation" page links ?
+		boolean pagenation = (tracker_skip > 0);
+		
+		// if we're using pagenation we need a last page, and NOW!!
+		if(pagenation)
+		{
+			int remainder = tracker_skip % tracker_torrents.length;
+			tracker_last_page = (tracker_torrents.length-remainder)/tracker_skip;
+			if(remainder >0 )
+			{
+				tracker_last_page++;
+			}
+		}
 		
 		if ( specific_torrent != -1 ){
 			
 			start 	= specific_torrent;
 			
 			end		= specific_torrent+1;
-		}else{
-			
-			start 	= 0;
-			end		= tracker_torrents.length;
 		}
-		
+		else{
+			int tracker_start = 0;
+			int tracker_end = tracker_torrents.length;
+			//are we using pages ?
+			if (pagenation)
+			{
+				//make sure we start on the first page.
+				if(tracker_page == -1)
+				{
+					tracker_page = 0;
+				}
+				
+				if (tracker_page < tracker_last_page)
+				{
+					//where to start..
+					tracker_start = (tracker_page * tracker_skip);
+				}
+				else
+				{
+					//default to page 0
+					tracker_page = 0;
+					tracker_start = (tracker_page * tracker_skip);
+				}
+				if ((tracker_page+1) <= tracker_last_page)
+				{
+					//where to end..
+					tracker_end = ((tracker_page+1) * tracker_skip);
+				}
+
+			}
+			start 	= tracker_start;
+			end		= tracker_end;
+			//debug
+			System.out.println("start: "+start+"\n");
+			System.out.println("end: "+end+"\n");
+
+		}
+		System.out.println("debug blah 1");
+		String page_url = (String)args.get( "page_url" );
+		System.out.println(page_url);
+		t.setParam( "page_url", page_url );
+		//Pagenation
+		if (pagenation)
+		{
+			if ( specific_torrent == -1 )
+			{
+				System.out.println("debug blah 2");
+			}
+		}
 		boolean	allow_details = plugin_interface.getPluginconfig().getBooleanParameter("Tracker Publish Enable Details", true );
 		
 		t.setParam( "torrent_details_allowed", allow_details?"1":"0");
-		
+	
 		for (int i=start;i<end;i++){
 			
 			Hashtable t_row = new Hashtable();
@@ -266,7 +345,8 @@ TrackerWeb
 			t_row.put( "torrent_total_left", DisplayFormatters.formatByteCountToKiBEtc( tracker_torrent.getTotalLeft())); 
 			
 			t_row.put( "torrent_completed",  "" + tracker_torrent.getCompletedCount());
-		
+			
+
 			if ( allow_details ){
 				
 				if ( specific_torrent != -1 ){

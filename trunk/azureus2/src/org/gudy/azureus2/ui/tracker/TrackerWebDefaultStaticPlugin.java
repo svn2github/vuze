@@ -65,9 +65,7 @@ TrackerWebDefaultStaticPlugin
 		OutputStream	os = response.getOutputStream();
 		
 		String	target = file_root + url.replace('/',File.separatorChar);
-		
 		File canonical_file = new File(target).getCanonicalFile();
-				
 		//System.out.println( "static request: " + canonical_file.toString());
 		
 			// make sure some fool isn't trying to use ../../ to escape from web dir
@@ -100,7 +98,10 @@ TrackerWebDefaultStaticPlugin
 				Hashtable	args = new Hashtable();
 			
 				args.put( "filename", canonical_file.toString());
-			
+				System.out.println("filename set");
+				args.put( "page_url", (String)url);
+				System.out.println("page_url set");
+				
 				handleTemplate( params, args, os );
 
 				return( true );

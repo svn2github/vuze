@@ -156,7 +156,6 @@ TrackerWebDefaultTrackerPlugin
 						
 						return( false );
 					}
-					
 					String	file_type = url.substring(pos+1);
 					
 					if ( file_type.equals("php") || file_type.equals("tmpl")){
@@ -164,7 +163,10 @@ TrackerWebDefaultTrackerPlugin
 						Hashtable	args = new Hashtable();
 						
 						args.put( "filehandle", new InputStreamReader( is ));
-						
+						System.out.println("filename set");
+						args.put( "page_url", (String)url);
+						System.out.println("page_url set");
+
 						handleTemplate( params, args, os );
 	
 						return( true );
