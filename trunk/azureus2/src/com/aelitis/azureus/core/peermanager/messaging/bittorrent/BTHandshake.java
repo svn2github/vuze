@@ -150,7 +150,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   
   // raw message
-  public DirectByteBuffer[] getRawPayload() {  return buffer;  }
+  public DirectByteBuffer[] getRawData() {  return buffer;  }
   
   public int getPriority() {  return RawMessage.PRIORITY_HIGH;  }
 

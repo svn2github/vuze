@@ -133,7 +133,7 @@ public class OutgoingMessageQueue {
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         RawMessage msg = (RawMessage)i.next();
         if( rmesg.getPriority() > msg.getPriority() 
-          && msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
+          && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
           break;
         }
         pos++;
@@ -143,7 +143,7 @@ public class OutgoingMessageQueue {
       }
       queue.add( pos, rmesg );
       
-      DirectByteBuffer[] payload = rmesg.getRawPayload();
+      DirectByteBuffer[] payload = rmesg.getRawData();
       for( int i=0; i < payload.length; i++ ) {
         total_size += payload[i].remaining(DirectByteBuffer.SS_NET);
       }
@@ -197,10 +197,10 @@ public class OutgoingMessageQueue {
         RawMessage msg = (RawMessage)i.next();
         for( int t=0; t < message_types.length; t++ ) {
           boolean same_type = message_types[t].getID().equals( msg.getID() ) && message_types[t].getVersion() == msg.getVersion();
-        	if( same_type && msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
+        	if( same_type && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;
             
-            DirectByteBuffer[] payload = msg.getRawPayload();
+            DirectByteBuffer[] payload = msg.getRawData();
             for( int x=0; x < payload.length; x++ ) {
               total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
             }
@@ -275,10 +275,10 @@ public class OutgoingMessageQueue {
       int index = queue.indexOf( message );
       if( index != -1 ) {
         RawMessage msg = (RawMessage)queue.get( index );
-        if( msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
+        if( msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
           if( msg == urgent_message ) urgent_message = null;  
           
-          DirectByteBuffer[] payload = msg.getRawPayload();
+          DirectByteBuffer[] payload = msg.getRawData();
           for( int x=0; x < payload.length; x++ ) {
             total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
           }
@@ -354,7 +354,7 @@ public class OutgoingMessageQueue {
         int total_sofar = 0;
         
         for( Iterator i = queue.iterator(); i.hasNext(); ) {
-          DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawPayload();
+          DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawData();
           boolean stop = false;
           
           for( int x=0; x < payloads.length; x++ ) {
@@ -392,7 +392,7 @@ public class OutgoingMessageQueue {
         
         while( !queue.isEmpty() && !stop ) {
           RawMessage msg = (RawMessage)queue.get( 0 );
-          DirectByteBuffer[] payloads = msg.getRawPayload();
+          DirectByteBuffer[] payloads = msg.getRawData();
                     
           for( int x=0; x < payloads.length; x++ ) {
             ByteBuffer bb = payloads[x].getBuffer( DirectByteBuffer.SS_NET );

@@ -42,7 +42,7 @@ public interface RawMessage extends Message {
    * Get the message's raw data payload.
    * @return data payload buffers
    */
-  public DirectByteBuffer[] getRawPayload();
+  public DirectByteBuffer[] getRawData();
      
   /**
    * Get the message's queue priority.

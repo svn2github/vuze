@@ -77,7 +77,7 @@ public class RawMessageImpl implements RawMessage {
   
   
   //rawmessage impl
-  public DirectByteBuffer[] getRawPayload() {  return payload;  }
+  public DirectByteBuffer[] getRawData() {  return payload;  }
   
   public int getPriority() {  return priority;  }
   
