@@ -344,7 +344,7 @@ public class IncomingConnectionManager {
             ic.initial_connect_time = now;
           }
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
-            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
+            LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
