@@ -43,7 +43,7 @@ TrackerWebDefaultTrackerPlugin
 {
 	public void 
 	initialize(
-			PluginInterface _plugin_interface )
+		PluginInterface _plugin_interface )
 	{	
 		super.initialize( _plugin_interface );
 	}
@@ -72,23 +72,19 @@ TrackerWebDefaultTrackerPlugin
 				
 				String	hash_str = str.substring(pos+1);
 				
-				//byte[]	hash = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING );
 				byte[]	hash = ByteFormatter.decodeString( hash_str );
-				
-				synchronized( this ){
-					
-					for (int i=0;i<torrents.length;i++){
+									
+				for (int i=0;i<torrents.length;i++){
 						
-						TrackerTorrent	tracker_torrent = torrents[i];
+					TrackerTorrent	tracker_torrent = torrents[i];
 						
-						Torrent	torrent = tracker_torrent.getTorrent();
+					Torrent	torrent = tracker_torrent.getTorrent();
 						
-						if ( Arrays.equals( hash, torrent.getHash())){
+					if ( Arrays.equals( hash, torrent.getHash())){
 							
-							response.writeTorrent( tracker_torrent );
+						response.writeTorrent( tracker_torrent );
 							
-							return( true );
-						}
+						return( true );
 					}
 				}
 				

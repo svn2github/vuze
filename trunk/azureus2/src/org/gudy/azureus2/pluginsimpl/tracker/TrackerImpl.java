@@ -152,16 +152,25 @@ TrackerImpl
 		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
-		synchronized( this ){
+		for (int i=0;i<generators.size();i++){
+
+			TrackerWebPageGenerator	generator;
 			
-			for (int i=0;i<generators.size();i++){
+			synchronized( this ){
 				
-				if (((TrackerWebPageGenerator)generators.get(i)).generate( request, reply )){
+				if ( i >= generators.size()){
 					
-					reply.complete();
-					
-					return( true );
+					break;
 				}
+				
+				generator = (TrackerWebPageGenerator)generators.get(i);
+			}
+			
+			if ( generator.generate( request, reply )){
+					
+				reply.complete();
+					
+				return( true );
 			}
 		}
 		

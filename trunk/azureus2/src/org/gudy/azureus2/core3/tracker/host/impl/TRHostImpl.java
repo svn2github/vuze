@@ -712,14 +712,23 @@ TRHostImpl
 			return( false );
 		}
 		
-		synchronized( listeners ){
+		for (int i=0;i<listeners.size();i++){
+
+			TRHostListener	listener;
 			
-			for (int i=0;i<listeners.size();i++){
-			
-				if (((TRHostListener)listeners.get(i)).handleExternalRequest( url, header, is, os )){
+			synchronized( listeners ){
+				
+				if ( i >= listeners.size()){
 					
-					return( true );
+					break;
 				}
+				
+				listener	= (TRHostListener)listeners.get(i);
+			}
+			
+			if ( listener.handleExternalRequest( url, header, is, os )){
+				
+				return( true );
 			}
 		}
 		
