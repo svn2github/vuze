@@ -319,7 +319,9 @@ PEPeerTransportProtocol
   			if (closing){
           
           if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+              reason.indexOf( "An established connection was aborted by the software in your host machine" ) == -1 &&
               reason.indexOf( "Closing all Connections" ) == -1 &&
+              reason.indexOf( "Quiting SuperSeed Mode" ) == -1 &&
               reason.indexOf( "end of stream on socket read" ) == -1 ) {
             Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
           }
@@ -336,13 +338,6 @@ PEPeerTransportProtocol
   		
       
       changePeerState( PEPeer.CLOSING );
-      
-      if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
-        connection.getIncomingMessageQueue().stopQueueProcessing();
-      }
-      else {
-        Debug.out( "closeAll() called for [" +reason+ "] but connection == null" );
-      }
 
       LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
       
@@ -365,13 +360,9 @@ PEPeerTransportProtocol
 	      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
 	    }
       
-	    if( connection != null ) {
+	    if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
         connection.close();
       }
-      else {
-        Debug.out( "closeAll() called for [" +reason+ "] but connection == null" );
-      }
-
 
 	    recent_outgoing_requests.clear();
    
@@ -1093,10 +1084,6 @@ PEPeerTransportProtocol
   
   private void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
-    
-    if( handshake.getTCPListenPort() > 0 ) {
-      System.out.println( handshake.getDescription() );
-    }
     
     //find mutually available message types
     ArrayList messages = new ArrayList();
