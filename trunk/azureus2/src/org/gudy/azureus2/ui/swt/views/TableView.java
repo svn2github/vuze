@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
@@ -192,6 +194,7 @@ public class TableView
     initializeTable(table);
 
     COConfigurationManager.addParameterListener("Graphics Update", this);
+    Colors.getInstance().addColorsChangedListener(this);
 
     // So all TableView objects of the same TableID have the same columns, and column widths, etc
     TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
@@ -531,33 +534,37 @@ public class TableView
     sorter.reOrder(false);
 
     //Refresh all items in table...
-    synchronized(objectToSortableItem) {
-      // Every N GUI updates we refresh graphics
-      TableRowCoreUtils.refresh(objectToSortableItem.values(), 
-                               (loopFactor % graphicsUpdate) == 0);
-    }
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        // Every N GUI updates we refresh graphics
+        row.refresh((loopFactor % graphicsUpdate) == 0);
+      }
+    });
 
     Utils.alternateTableBackground(table);
     loopFactor++;
   }
 
-  private void locationChanged(int iStartColumn) {
+  private void locationChanged(final int iStartColumn) {
   	if (getComposite() == null || getComposite().isDisposed())
   		return;    
     
-  	synchronized(objectToSortableItem) {
-      TableRowCoreUtils.locationChanged(objectToSortableItem.values(), 
-                                       iStartColumn);
-  	}
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        row.locationChanged(iStartColumn);
+      }
+    });
   }
 
-  private void doPaint(GC gc) {
+  private void doPaint(final GC gc) {
   	if (getComposite() == null || getComposite().isDisposed())
   		return;    
     
-  	synchronized(objectToSortableItem) {
-  	  TableRowCoreUtils.doPaint(objectToSortableItem.values(), gc);
-  	}
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+    	  row.doPaint(gc);
+      }
+    });
   }
 
   /** IView.delete: This method is caled when the view is destroyed.
@@ -569,11 +576,12 @@ public class TableView
     for (int i = 0; i < tableColumns.length; i++)
       tableColumns[i].saveSettings();
 
- 	  TableRowCoreUtils.delete(objectToSortableItem.values());
+    removeAllTableRows();
     if (table != null && !table.isDisposed())
       table.dispose();
     COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
     COConfigurationManager.removeParameterListener("Graphics Update", this);
+    Colors.getInstance().removeColorsChangedListener(this);
   }
 
   /** IView.getData: Data 'could' store a key to a language file, in order to 
@@ -649,12 +657,15 @@ public class TableView
 	public void removeAllTableRows() {
 	  // clear all table items first, so that TableRowCore.delete() doesn't remove
 	  // them one by one (slow)
-	  table.removeAll();
+    if (table != null && !table.isDisposed())
+  	  table.removeAll();
 
-    synchronized (objectToSortableItem) {
-   	  TableRowCoreUtils.delete(objectToSortableItem.values());
-   	  objectToSortableItem.clear();
-   	}
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+    	  row.delete();
+      }
+    });
+ 	  objectToSortableItem.clear();
 /* Old Way.  DELME after new way is verified working :)
     Iterator iter = objectToSortableItem.values().iterator();
     while(iter.hasNext()) {
@@ -676,7 +687,17 @@ public class TableView
   /* ParameterListener Implementation */
 
   public void parameterChanged(String parameterName) {
-    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+    if (parameterName.equals("Graphics Update")) {
+      graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+      return;
+    }
+    if (parameterName.startsWith("Color")) {
+      runForAllRows(new GroupTableRowRunner() {
+        public void run(TableRowCore row) {
+          row.setValid(false);
+        }
+      });
+    }
   }
   
   /* ITableStructureModificationListener implementation */
@@ -887,6 +908,18 @@ public class TableView
       TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
       if (row != null)
         runner.run(row);
+    }
+  }
+
+  public void runForAllRows(GroupTableRowRunner runner) {
+    synchronized (objectToSortableItem) {
+      Iterator iter = objectToSortableItem.values().iterator();
+      int y = 0;
+      while (iter.hasNext()) {
+        TableRowCore row = (TableRowCore)iter.next();
+        if (row != null)
+          runner.run(row);
+      }
     }
   }
   
