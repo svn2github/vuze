@@ -89,12 +89,29 @@ public class TorrentOpener {
 	  boolean     from_drag_and_drop ) 
   {
     //catch a http url
-    int index = fileName.toUpperCase().indexOf( "HTTP:/" );
+    int http_index = fileName.toUpperCase().lastIndexOf( "HTTP:" );
+    int https_index = fileName.toUpperCase().lastIndexOf( "HTTPS:" );
+    int index = Math.max( http_index, https_index );
     if( index > -1 ) {
-      final String url = fileName.substring( index );
+      String url = fileName.substring( index );
+      
+      //clean up accidental left-facing slashes
+      url = url.replace( (char)92, (char)47 );
+      
+      //find the root
+      int root_index = url.indexOf( 58 ) + 1;  //start searching after the colon, ":"
+      while( url.charAt( root_index) == (char)47 )  root_index++;  //pass over all "/"s
+      url = url.substring( root_index );
+      
+      String protocol;
+      if( http_index > -1 )  protocol = "http://";
+      else  protocol = "https://";
+      
+      final String full_url = protocol + url;
+      
       AERunnable r = new AERunnable() {
         public void runSupport() {
-          openUrl( azureus_core, url );
+          openUrl( azureus_core, full_url );
         }
       };
       display.asyncExec( r );
