@@ -408,7 +408,8 @@ PEPeerTransportProtocol
         if ( message.getType() == BTMessage.BT_CHOKE || message.getType() == BTMessage.BT_UNCHOKE ) {
           if ( msg.getType() == BTMessage.BT_CHOKE || msg.getType() == BTMessage.BT_UNCHOKE ) {
             i.remove();
-            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
+            LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION,
+                         "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
           }
         }
       }
@@ -1715,7 +1716,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           BTMessage msg = (BTMessage)i.next();
           if ( msg.getType() == BTMessage.BT_REQUEST ) {
             i.remove();
-            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
+            LGLogger.log(componentID, evtLifeCycle,
+                         LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
           }
         }
       }
