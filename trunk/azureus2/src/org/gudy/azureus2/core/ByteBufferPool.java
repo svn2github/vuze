@@ -67,6 +67,8 @@ public class ByteBufferPool {
   }
 
   public ByteBuffer getFreeBuffer() {
+    return ByteBuffer.allocate(SIZE);
+    /*
     synchronized (this) {
       if (freeBuffers.size() == 0) {
         return allocateNewBuffer();
@@ -74,10 +76,12 @@ public class ByteBufferPool {
       else {
         return (ByteBuffer) freeBuffers.remove(freeBuffers.size() - 1);
       }
-    }
+    }*/
+    
   }
 
   public void freeBuffer(ByteBuffer buffer) {
+    /*
     synchronized (this) {
       if (buffer.capacity() != SIZE) {
         System.out.println("Wrong buffer passed back to ByteBufferPool::freeBuffer");
@@ -85,7 +89,7 @@ public class ByteBufferPool {
       }       
       buffer.clear();
       freeBuffers.add(buffer);
-    }
+    }*/
   }
 
   public synchronized void clearFreeBuffers() {

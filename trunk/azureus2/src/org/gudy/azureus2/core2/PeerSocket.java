@@ -46,12 +46,16 @@ public class PeerSocket extends PeerConnection {
       return;
 
     this.incoming = false;
+    createConnection();
+  }
+
+  private void createConnection() {
     allocateAll();
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
       //Construct the peer's address with ip and port     
-      InetSocketAddress peerAddress = new InetSocketAddress(ip, port);
+      InetSocketAddress peerAddress = new InetSocketAddress(this.ip, this.port);
       //Create a new SocketChannel, left non-connected
       socket = SocketChannel.open();
       //Configure it so it's non blocking
@@ -220,9 +224,8 @@ public class PeerSocket extends PeerConnection {
   public synchronized void closeAll() {
     if (closing)
       return;
-    closing = true;
-    this.currentState = new StateClosed();
-
+    closing = true;              
+    
     //1. Cancel any pending requests (on the manager side)
     cancelRequests();
 
@@ -265,7 +268,22 @@ public class PeerSocket extends PeerConnection {
     manager.peerRemoved(this);
 
     //7. Send a logger event
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
+    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
+    try{
+      throw new Exception("Peer Closed");
+    } catch(Exception e) {
+      StackTraceElement elts[] = e.getStackTrace();
+      for(int i = 0 ; i < elts.length ; i++)
+        logger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
+    }
+    
+    //In case it was an outgoing connection, established, we can try to reconnect.
+    if(this.currentState.getState() == TRANSFERING && incoming == false) {
+      logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
+      createConnection();
+    } else {
+      this.currentState = new StateClosed();
+    }
   }
 
   private class StateConnecting implements State {
@@ -317,9 +335,12 @@ public class PeerSocket extends PeerConnection {
   }
 
   private class StateTransfering implements State {
-    public void process() {
+    public void process() {      
+      if(++processLoop > 10)
+          return;
+          
       if (readingLength) {
-        if (lengthBuffer.hasRemaining()) {
+        if (lengthBuffer.hasRemaining() ) {
           try {
             int read = socket.read(lengthBuffer);
             if (read < 0)
@@ -363,7 +384,7 @@ public class PeerSocket extends PeerConnection {
         }
         if (!readBuffer.hasRemaining()) {
           analyseBuffer(readBuffer);
-          //process();
+          process();
         }
       }
     }
@@ -384,8 +405,10 @@ public class PeerSocket extends PeerConnection {
   public void process() {
     try {
       loopFactor++;
+      processLoop = 0;
       if (currentState != null)
         currentState.process();
+      processLoop = 0;
       if (getState() != DISCONNECTED)
         write();
     }
@@ -867,7 +890,12 @@ public class PeerSocket extends PeerConnection {
     return result;
   }
 
-  protected void write() { //If we are already sending something, we simply continue
+  protected void write() {
+    if(currentState.getState() != TRANSFERING)
+      return;       
+    if(++processLoop > 10)
+        return;    
+    //If we are already sending something, we simply continue
     if (writeBuffer != null) {
       try {
         int realLimit = writeBuffer.limit();
@@ -927,7 +955,7 @@ public class PeerSocket extends PeerConnection {
         writeBuffer.position(0);
         writeData = false;
         //and loop
-        //write();
+        write();
       }
       if (dataQueue.size() != 0) {
         DataQueueItem item = (DataQueueItem) dataQueue.get(0);
@@ -964,7 +992,7 @@ public class PeerSocket extends PeerConnection {
             writeData = true;
             SpeedLimiter.getLimiter().addUploader(this);
             // and loop
-            //write();
+            write();
           }
         }
         else {
@@ -1044,6 +1072,9 @@ public class PeerSocket extends PeerConnection {
 
   //The client
   String client = "";
+
+  //Reader / Writer Loop
+  private int processLoop;
 
   //The Logger
   private Logger logger;

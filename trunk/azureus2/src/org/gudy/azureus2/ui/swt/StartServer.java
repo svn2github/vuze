@@ -27,6 +27,7 @@ public class StartServer extends Thread {
   public static final int STATE_LISTENING = 1;
 
   public StartServer(Main main) {
+    super("Start Server");
     try {
       this.main = main;
       //socket = new ServerSocket(6880);
