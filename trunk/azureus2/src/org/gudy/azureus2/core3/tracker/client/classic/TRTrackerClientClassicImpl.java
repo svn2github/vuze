@@ -1979,9 +1979,21 @@ TRTrackerClientClassicImpl
 	{       
 		peer_server.removeListener( this );
     
-    COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
+		COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
 		
 		TRTrackerClientFactoryImpl.destroy( this );
+		
+		try{
+			this_mon.enter();
+			
+			if ( current_timer_event != null ){
+				
+				current_timer_event.cancel();
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
   
   
