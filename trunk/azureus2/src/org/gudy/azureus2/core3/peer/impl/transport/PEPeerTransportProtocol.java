@@ -123,6 +123,10 @@ PEPeerTransportProtocol
 		//The maxUpload ...
 		
 	int maxUpload = 1024 * 1024;
+  
+  private static final int CACHE_SIZE = 1460;
+  private DirectByteBuffer cache_buffer;
+  private boolean force_flush = true;
 
 		//The client
 		
@@ -242,8 +246,9 @@ PEPeerTransportProtocol
    * Hopefully, that will save some RAM.
    */
   protected void allocateAll() {
-
   	allocateAllSupport();
+    
+    cache_buffer = DirectByteBufferPool.getBuffer( CACHE_SIZE );
 
   	this.closing = false;
   	//TODO
@@ -438,6 +443,11 @@ PEPeerTransportProtocol
   		readBuffer.returnToPool();
   		readBuffer = null;
   	}
+    
+    if ( cache_buffer != null ) {
+      cache_buffer.returnToPool();
+      cache_buffer = null;
+    }
     
     if ( lengthBuffer != null ) {
       lengthBuffer.returnToPool();
@@ -1173,7 +1183,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		return PEPeerControl.NO_SLEEP;
       
   	//If we are already sending something, we simply continue
-  	if (writeBuffer != null) {
+  	if (writeBuffer != null && cache_buffer != null ) {
   		try {
   			int realLimit = writeBuffer.buff.limit();
   			int limit = realLimit;
@@ -1189,13 +1199,34 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   					limit = realLimit;
   			}
   			
-  			writeBuffer.buff.limit(limit);
-  			int written = writeData(writeBuffer);
+        int written = 0;
+        writeBuffer.buff.limit( limit );
+          
+        int to_write = writeBuffer.buff.remaining();
+        if ( to_write > cache_buffer.buff.remaining() ) {
+          to_write = cache_buffer.buff.remaining();
+          writeBuffer.buff.limit( writeBuffer.buff.position() + to_write );
+        }
+        cache_buffer.buff.put( writeBuffer.buff );
+        written = to_write;
+          
+        if ( cache_buffer.buff.position() == CACHE_SIZE || force_flush ) {
+          cache_buffer.buff.flip();
+          int wrote = writeData( cache_buffer );
+          //System.out.println(wrote+ " " +force_flush);
+          cache_buffer.buff.clear();
+          cache_buffer.buff.limit( CACHE_SIZE );
+          force_flush = false;
+        }
+        
+        //written = writeData( writeBuffer );
+        
+  			
   			if (written < 0)
   				throw new IOException("End of Stream Reached");
   			writeBuffer.buff.limit(realLimit);
   			
-  			if (writeData) {
+  			if (writeData && written > 0 ) {
   				stats.sent(written);
   				manager.sent(written);
   				if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
@@ -1315,11 +1346,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       			return PEPeerControl.NO_SLEEP;
       		}
       	}
-    }
+      }
       
       synchronized( protocolQueue ) {
         synchronized( dataQueue ) {
         	if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
+            force_flush = true;
         		keepAlive++;
         		if (keepAlive == 50 * 60 * 3) {
         			keepAlive = 0;
