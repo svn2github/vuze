@@ -15,14 +15,14 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
-import java.util.*;
-import java.text.SimpleDateFormat;
 import java.text.FieldPosition;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author Olivier
@@ -43,8 +43,10 @@ public class ConsoleView extends AbstractIView {
   private static final SimpleDateFormat dateFormatter;
   private static final FieldPosition formatPos;
 
+  private static final AEMonitor classMon = new AEMonitor("ConsoleView:S");
+
   static {
-      logHistory = Collections.synchronizedList(new LinkedList());
+      logHistory = new LinkedList();
       dateFormatter = new SimpleDateFormat("[h:mm:ss]  ");
       formatPos = new FieldPosition(0);
   }
@@ -62,57 +64,56 @@ public class ConsoleView extends AbstractIView {
    * @param view ConsoleView instance
    * @throws IllegalStateException If this method is called when the singleton instance has already been set
    */
-  private static synchronized void setInstance(ConsoleView view) throws IllegalStateException {
-      if(ConsoleView.instance != null)
-          throw new IllegalStateException("Only one ConsoleView is allowed");
-      ConsoleView.instance = view;
-
-      // latent initialization
-      if(colors == null)
-      {
-          colors = new Color[COLORS_NUM];
-          colors[0] = Colors.blues[3];
-          colors[1] = Colors.blues[2];
-          colors[2] = Colors.blues[1];
-          colors[3] = Colors.red_ConsoleView;
-      }
-
-      // prefill history text
+  private static void setInstance(ConsoleView view) throws IllegalStateException {
       try
       {
-          synchronized(logHistory)
-          {
-              Iterator iter = logHistory.iterator();
-              for(int i = 0; i < logHistory.size(); i++)
-              {
-                  ConsoleView.instance.doLog((LogInfo)iter.next(), true);
-              }
-          }
-      }
-      catch(Throwable e)
-      {
-          Debug.out(e);
-      }
+          classMon.enter();
 
-      if(logHistory.size() > 0)
-      {
-          ConsoleView.instance.display.asyncExec(new AERunnable()
+          if(ConsoleView.instance != null)
+              throw new IllegalStateException("Only one ConsoleView is allowed");
+          ConsoleView.instance = view;
+
+          // latent initialization
+          if(colors == null)
           {
-              public void runSupport()
+              colors = new Color[COLORS_NUM];
+              colors[0] = Colors.blues[3];
+              colors[1] = Colors.blues[2];
+              colors[2] = Colors.blues[1];
+              colors[3] = Colors.red_ConsoleView;
+          }
+
+          // prefill history text
+          Iterator iter = logHistory.iterator();
+          for(int i = 0; i < logHistory.size(); i++)
+          {
+              ConsoleView.instance.doLog((LogInfo)iter.next(), true);
+          }
+
+          if(logHistory.size() > 0)
+          {
+              ConsoleView.instance.display.asyncExec(new AERunnable()
               {
-                  if(ConsoleView.instance != null && ConsoleView.instance.consoleText != null && !ConsoleView.instance.consoleText.isDisposed())
-                    ConsoleView.instance.consoleText.setTopIndex(ConsoleView.instance.consoleText.getLineCount() - 1);
+                  public void runSupport()
+                  {
+                      if(ConsoleView.instance != null && ConsoleView.instance.consoleText != null && !ConsoleView.instance.consoleText.isDisposed())
+                        ConsoleView.instance.consoleText.setTopIndex(ConsoleView.instance.consoleText.getLineCount() - 1);
+                  }
+              });
+          }
+
+          // reset state
+          ConsoleView.instance.consoleText.addDisposeListener(new DisposeListener() {
+              public void widgetDisposed(DisposeEvent event)
+              {
+                  ConsoleView.instance = null;
               }
           });
       }
-
-      // reset state
-      ConsoleView.instance.consoleText.addDisposeListener(new DisposeListener() {
-          public void widgetDisposed(DisposeEvent event)
-          {
-              ConsoleView.instance = null;
-          }
-      });
+      finally
+      {
+          classMon.exit();
+      }
   }
 
   /* (non-Javadoc)
@@ -188,12 +189,18 @@ public class ConsoleView extends AbstractIView {
    */
   private static void appendLogHistory(LogInfo info)
   {
-      synchronized(logHistory)
+      try
       {
+          classMon.enter();
+
           if(logHistory.size() > MAX_LINES - 1)
               logHistory.remove(0);
 
           logHistory.add(info);
+      }
+      finally
+      {
+          classMon.exit();
       }
   }
 
