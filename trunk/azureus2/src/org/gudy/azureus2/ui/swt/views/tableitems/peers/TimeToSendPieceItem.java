@@ -41,7 +41,8 @@ public class TimeToSendPieceItem
 {
   /** Default Constructor */
   public TimeToSendPieceItem() {
-    super("timetosend", ALIGN_TRAIL, 70, TableManager.TABLE_TORRENT_PEERS);
+    super("timetosend", ALIGN_TRAIL, POSITION_INVISIBLE,
+          70, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
