@@ -261,26 +261,7 @@ ResourceDownloaderTorrentImpl
 						}
 					}
 				});
-			
-			/*
-			download.addDownloadWillBeRemovedListener(
-					new DownloadWillBeRemovedListener()
-					{
-						public void
-						downloadWillBeRemoved(
-							Download	dl )
 						
-							throws DownloadRemovalVetoException
-						{
-							if ( dl != download_being_removed ){
-								
-								throw( new DownloadRemovalVetoException(
-											MessageText.getString("plugin.sharing.download.remove.veto")));
-							}
-						}
-					});
-			*/
-			
 			download.addListener(
 				new DownloadListener()
 				{
@@ -293,6 +274,8 @@ ResourceDownloaderTorrentImpl
 						// System.out.println( "state change:" + old_state + "->" + new_state );
 						
 						if ( new_state == Download.ST_SEEDING ){
+							
+							download.removeListener( this );
 							
 							downloadSucceeded( torrent_file, data_dir );
 						}
