@@ -1098,6 +1098,10 @@ DownloadManagerImpl
         COConfigurationManager.getBooleanParameter("Switch Priority", false))
       setPriority(LOW_PRIORITY);
 
+    if (isForceStart()) {
+      setForceStart(false);
+    }
+
     setOnlySeeding(true);
 	
     informDownloadEnded();
