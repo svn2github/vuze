@@ -114,7 +114,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	    }
   	}catch( Throwable e ){
   		
-  		LGLogger.log( "SWT Version check failed", e );
+  		LGLogger.logUnrepeatableAlert( "SWT Version check failed", e );
   		
   		checker.failed();
   		
