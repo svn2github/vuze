@@ -74,6 +74,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -889,7 +890,7 @@ public class MyTorrentsView extends AbstractIView
           		}
             }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-            	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
+            	Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
             }
           }
         }
@@ -927,7 +928,7 @@ public class MyTorrentsView extends AbstractIView
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-              	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
+                Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
 
               }catch (Exception ex) {
 
@@ -972,7 +973,7 @@ public class MyTorrentsView extends AbstractIView
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){
 
-              	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
+              	Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
 
               }catch (Exception ex) {
 
@@ -1720,7 +1721,7 @@ public class MyTorrentsView extends AbstractIView
       try{
       	ManagerUtils.remove(dm);
       }catch(GlobalManagerDownloadRemovalVetoException e){
-      	MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+        Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
       }
     }
   }

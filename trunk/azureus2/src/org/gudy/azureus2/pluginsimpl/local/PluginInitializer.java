@@ -35,12 +35,12 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-import org.gudy.azureus2.ui.swt.SplashWindow;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
@@ -86,7 +86,7 @@ PluginInitializer
   
   private static List		registration_queue = new ArrayList();
    
-  private SplashWindow splash;
+  private STProgressListener listener;
   
   private TRHost		tracker_host;
   private GlobalManager	global_manager;
@@ -100,11 +100,11 @@ PluginInitializer
   public static synchronized PluginInitializer
   getSingleton(
   	GlobalManager 	gm,
-	SplashWindow 	splash )
+	STProgressListener 	listener )
   {
   	if ( singleton == null ){
   		
-  		singleton = new PluginInitializer( gm, splash );
+  		singleton = new PluginInitializer( gm, listener );
   		
   		for (int i=0;i<registration_queue.size();i++){
   			
@@ -146,13 +146,13 @@ PluginInitializer
   protected 
   PluginInitializer(
   	GlobalManager gm,
-	SplashWindow splash) 
+	STProgressListener listener) 
   {
   	global_manager	= gm;
   	
   	global_manager.addListener( this );
   	
-    this.splash 	= splash;
+    this.listener 	= listener;
     
     tracker_host	= TRHostFactory.create();
     
@@ -181,11 +181,11 @@ PluginInitializer
 	    
 	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
 	    	
-	      if(splash != null) {
+	      if(listener != null) {
           LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
 
 	      	
-	        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
+	        listener.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
 	      }
 	      
 	      try{
@@ -195,12 +195,8 @@ PluginInitializer
 	      	
 	      }
 	      
-	      if(splash != null) {
-	      	float fPercentagePerTask = splash.getPercentagePerTask();
-	      	if (fPercentagePerTask != 0) {
-  	      	int newPercentage = splash.getPercentDone() + (int)(fPercentagePerTask / (float)pluginsDirectory.length);
-	          splash.setPercentDone(newPercentage);
-	        }
+	      if(listener != null) {
+	        listener.reportPercent( 100 * i / pluginsDirectory.length);
 	      }
 	    }
     }

@@ -45,12 +45,12 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.ui.swt.SplashWindow;
 
 /**
  * @author Olivier
@@ -219,7 +219,7 @@ public class GlobalManagerImpl
     this(initialiseStarted, null);
   }
 
-  public GlobalManagerImpl(boolean initialiseStarted, SplashWindow splash)
+  public GlobalManagerImpl(boolean initialiseStarted, STProgressListener listener)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -229,12 +229,12 @@ public class GlobalManagerImpl
     
     StatsFactory.initialize(this);
         
-    if (splash != null)
-      splash.setCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
+    if (listener != null)
+      listener.reportCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
                             MessageText.getString("splash.loadingTorrents"));
-    loadDownloads();
-    if (splash != null)
-      splash.setCurrentTask(MessageText.getString("splash.initializeGM"));
+    loadDownloads(listener);
+    if (listener != null)
+      listener.reportCurrentTask(MessageText.getString("splash.initializeGM"));
 
     // Initialize scraper after loadDownloads so that we can merge scrapes
     // into one request per tracker
@@ -583,7 +583,7 @@ public class GlobalManagerImpl
   }
   
 
-  private void loadDownloads() 
+  private void loadDownloads(STProgressListener listener) 
   {
       Map map = FileUtil.readResilientConfigFile("downloads.config");
       
@@ -594,18 +594,33 @@ public class GlobalManagerImpl
       Iterator iter = null;
       //v2.0.3.0+ vs older mode
       List downloads = (List) map.get("downloads");
+      int nbDownloads;
       if (downloads == null) {
         //No downloads entry, then use the old way
         iter = map.values().iterator();
+        nbDownloads = map.size();
       }
       else {
         //New way, downloads stored in a list
         iter = downloads.iterator();
+        nbDownloads = downloads.size();
       }
+      int currentDownload = 0;
       while (iter.hasNext()) {
+        currentDownload++;        
         Map mDownload = (Map) iter.next();
         try {
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
+          if(listener != null && nbDownloads > 0) {
+            listener.reportPercent(100 * nbDownloads / currentDownload);
+          }
+          if(listener != null) {
+            listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
+                + " " + currentDownload + " "
+                + MessageText.getString("splash.of") + " " + nbDownloads
+                + " : " + fileName
+                );
+          }
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int state = DownloadManager.STATE_WAITING;

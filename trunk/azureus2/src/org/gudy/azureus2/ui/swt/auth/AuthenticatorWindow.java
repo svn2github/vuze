@@ -36,6 +36,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -188,7 +189,7 @@ AuthenticatorWindow
 		final String		realm,
 		final String		tracker )
 	{
-		final Display	display = MainWindow.getWindow().getDisplay();
+		final Display	display = SWTThread.getInstance().getDisplay();
 		
 		if ( display.isDisposed()){
 			

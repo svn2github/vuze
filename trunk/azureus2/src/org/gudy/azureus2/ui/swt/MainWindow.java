@@ -95,7 +95,7 @@ import org.gudy.azureus2.core3.ipfilter.BlockedIp;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.logging.LGAlertListener;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
@@ -110,26 +110,25 @@ import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
+import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
-import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
-//import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.auth.*;
-import org.gudy.azureus2.ui.swt.associations.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
-import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 
 //import snoozesoft.systray4j.SysTrayMenu;
 
 /**
  * @author Olivier
- *  
+ * Runnable : so that GUI initialization is done via asyncExec(this)
+ * STProgressListener : To make it visible once initialization is done
  */
-public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler {
+public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private static final int DONATIONS_ASK_AFTER = 168;
@@ -146,13 +145,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private GUIUpdater updater;
 
-  private static int instanceCount = 0;
-
   private Display display;
   private Shell mainWindow;
   private Menu menuBar;
   private Menu languageMenu = null;
   private IconBar iconBar;
+  
+  private boolean created = false;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
@@ -221,7 +220,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private HashMap downloadViews;
   private HashMap downloadBars;
 
-  private StartServer startServer;
+  private Initializer initializer;
 
   public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;	// 23 hours
 
@@ -229,10 +228,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Timer			version_check_timer;
   
   private FolderWatcher folderWatcher = null;
-
-  private boolean		initialisation_complete;
-  private List			alert_queue = new ArrayList();
-  private List			alert_history	= new ArrayList();
+  
   
 
   private class GUIUpdater extends Thread implements ParameterListener {
@@ -336,134 +332,18 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
 
-  public MainWindow(GlobalManager gm, StartServer server) {
-    if (window != null) {
-      if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
-        setVisible(true);
-      return;
-    }
-    
+  public MainWindow(GlobalManager gm, Initializer initializer) {    
     LGLogger.log("MainWindow start");
-    
-    // Get the display initialized ASAP so we can show the splash
-
-    // set to true to enable SWT leak checking
-    if (false) {
-      DeviceData data = new DeviceData();
-      data.tracking = true;
-      display = new Display(data);
-      Sleak sleak = new Sleak();
-      sleak.open();
-    }
-    else {
-      display = new Display();
-      if(Constants.isOSX) {
-        new CarbonUIEnhancer();
-      }
-    }
-
-    ImageRepository.loadImagesForSplashWindow(display);
-    
-    Display.setAppName("Azureus");
-    
-    // show the splash right away!
-
-    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
-      showSplashWindow();
-    }
-    
-  	if ( splash_maybe_null != null ){
-  		splash_maybe_null.setNumTasks(6);
-  	}
-
-    setSplashTask("splash.firstMessageNoI18N");
-    splashNextTask();
-
-    // Setup Locales
-    Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale;
-    String[] savedLocaleStrings = savedLocaleString.split("_", 3);
-    if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {
-      if (savedLocaleStrings.length == 3) {
-        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1], savedLocaleStrings[2]);
-      } else if (savedLocaleStrings.length == 2 && savedLocaleStrings[1].length() == 2) {
-        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1]);
-      } else {
-        savedLocale = new Locale(savedLocaleStrings[0]);
-      }
-    } else {
-      if (savedLocaleStrings.length == 3 && 
-          savedLocaleStrings[0].length() == 0 && 
-          savedLocaleStrings[2].length() > 0) {
-        savedLocale = new Locale(savedLocaleStrings[0], 
-                                 savedLocaleStrings[1], 
-                                 savedLocaleStrings[2]);
-      } else {
-        savedLocale = Locale.getDefault();
-      }
-    }
-    MessageText.changeLocale(savedLocale);
-
-    ////////////////////////////////////////////////////
-    
-    splashNextTask();
-    if (gm == null) {
-      setSplashTask( "splash.initializeGM");
-      gm = GlobalManagerFactory.create(false, splash_maybe_null);
-    }
-
-
+    this.globalManager = gm;
+    this.initializer = initializer;
+    this.display = SWTThread.getInstance().getDisplay();
     window = this;
-
+    initializer.addListener(this);
+    display.syncExec(this);
+  }
+  
+  public void run() {
     try{
-    	LGLogger.addAlertListener(
-    			new LGAlertListener()
-				{
-    				public void
-					alertRaised(
-						int		type,
-						String	message )
-					{
-    					synchronized( alert_queue ){
-    						
-    						if ( !initialisation_complete ){
-    							
-    							alert_queue.add( new Object[]{ new Integer(type), message });
-    							
-    							return;
-    						}
-    					}
-    					
-    					showAlert( type, message );
-    				}
-					
-					public void
-					alertRaised(
-						String		message,
-						Throwable	exception )
-					{
-	  					synchronized( alert_queue ){
-    						
-    						if ( !initialisation_complete ){
-    							
-    							alert_queue.add( new Object[]{ message, exception });
-    							
-    							return;
-    						}
-    					}
-	  					
- 						showErrorMessageBox( message, exception );
-					}
-    			});
-    	
-	  COConfigurationManager.checkConfiguration();
-
-    auth_window = new AuthenticatorWindow();
-    
-    new CertificateTrustWindow();
-    
-    user_alerts = new UserAlerts(gm);
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     
@@ -478,19 +358,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     				updateComponents();
     			}
     	});
-    
-
-    splashNextTask();
-    setSplashTask("splash.loadingImages");
-        
-    ImageRepository.loadImages(display);
-    
-    splashNextTask();
-    setSplashTask("splash.initializeGui");
-    
-    
-    this.startServer = server;
-    this.globalManager = gm;
+  
     mytorrents = null;
     my_tracker_tab	= null;
     console = null;
@@ -498,26 +366,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     downloadViews = new HashMap();
     downloadBars = new HashMap();
     
-
-    if (instanceCount == 0) {      
-      try {
-        allocateDynamicColors();
-        allocateNonDynamicColors();
-        
-        handCursor = new Cursor(display, SWT.CURSOR_HAND);
-      } catch (Exception e) {
-        LGLogger.log(LGLogger.ERROR, "Error allocating colors");
-        e.printStackTrace();
-      }
+     
+    try {
+      allocateDynamicColors();
+      allocateNonDynamicColors();     
+      handCursor = new Cursor(display, SWT.CURSOR_HAND);
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR, "Error allocating colors");
+      e.printStackTrace();
     }
-    instanceCount++;
 
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
             
-    buildMenu(locales);
+    buildMenu(MessageText.getLocales());
 
     createDropTarget(mainWindow);
 
@@ -744,27 +608,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusUp.setMenu(menuUpSpeed);
     
     LGLogger.log("Initializing GUI complete");
-    splashNextTask();
-    setSplashTask( "splash.initializePlugins");
-
-    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins( PluginManager.UI_SWT );        
-
-    LGLogger.log("Initializing Plugins complete");
-    splashNextTask();
-    setSplashTask( "splash.openViews");
     
-    showMyTorrents();
+    
+    
+    
 
-  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
-  		showMyTracker();
-  	}
+	  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
+	  		showMyTracker();
+	  	}
+	  	
+	  	showMyTorrents();
 	
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());    
     
     checkForNewVersion();
-
-    
     
     globalManager.addListener(this);
 
@@ -789,12 +647,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       catch (Exception e) {}
     }
     
-    closeSplashWindow();
-    
-    // share progress window
-    
-    new ProgressWindow();
-    
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());
     
@@ -811,50 +663,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     		}
     	}      
     });
-    
-    
+        
     mainWindow.layout();
-    mainWindow.open();
-    mainWindow.forceActive();
-    updater = new GUIUpdater();
-    updater.start();
-
-    try {
-      /*
-      //Systray doesn't seem to be doing anything under OSX ...
-      //So, we should by-pass SWT use of systray.
-      if(Constants.isOSX) {
-        throw new Exception("OSX doesn't support systray");
-      }
-      */
-      systemTraySWT = new SystemTraySWT(this);
-    } catch (Throwable e) {
-      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
-      /*
-      LGLogger.log(LGLogger.ERROR, 
-                   "Warning: Using non-native SysTray object.  " +
-                   "Upgrade to SWT3.0M8 or greater for more reliable SysTray");
-      boolean available = false;
-      try {
-        available = SysTrayMenu.isAvailable();
-
-      } catch (NoClassDefFoundError e2) {}
-
-      if (available) {
-        try {
-          trayIcon = new SystemTray(this);
-
-        } catch( Throwable e3 ) {
-          LGLogger.logAlert( "System tray initialisation fails", e );
-          tray = new TrayWindow(this);
-        }
-
-      } else {
-        tray = new TrayWindow(this);
-      }
-      */
-    }
-    
     
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
@@ -883,6 +693,33 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
       }
     });
+        
+    created = true;
+    
+  }catch( Throwable e ){
+    System.out.println("Initialize Error");
+		e.printStackTrace();
+	}
+}
+
+  private void openMainWindow() {
+//  share progress window
+    
+    new ProgressWindow();
+    
+    mainWindow.open();
+    mainWindow.forceActive();
+    updater = new GUIUpdater();
+    updater.start();
+
+    try {
+      systemTraySWT = new SystemTraySWT(this);
+    } catch (Throwable e) {
+      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
+    }
+    
+    
+
 
     if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
       minimizeToTray(null);
@@ -935,55 +772,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
     Tab.addTabKeyListenerToComposite(folder);
     
-    gm.startChecker();
+    globalManager.startChecker();
     
-    	// check file associations
-    
-    AssociationChecker.checkAssociations();
-    
-    new Thread("Init Complete")
-    {
-    	public void
-    	run()
-    	{
-    		PluginInitializer.initialisationComplete();
-    		
-    		synchronized( alert_queue ){
-    			
-    			initialisation_complete	= true;
-    			
-    			for (int i=0;i<alert_queue.size();i++){
-    				
-    				Object[]	x = (Object[])alert_queue.get(i);
-    				
-    				if ( x[0] instanceof String ){
-    					
-    					String		message 	= (String)x[0];
-    					Throwable	exception 	= (Throwable)x[1];
-    					
-    					showAlert( message, exception );
-    					
-    				}else{
-    					
-    					int		type 	= ((Integer)x[0]).intValue();
-    					String	message = (String)x[1];
-    				
-    					showAlert( type, message );
-    				}
-    			}
-    			
-    			alert_queue.clear();
-    		}
-    	}
-    }.start();
-    
-    checkForDonationPopup();      
-    
-  }catch( Throwable e ){
-    System.out.println("Initialize Error");
-		e.printStackTrace();
-	}
-}
+    	// check file associations   
+    checkForDonationPopup();
+  }
 
   /**
    * @param locales
@@ -1197,7 +990,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       view_irc.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
         	String msg = MessageText.getString( "MainWindow.menu.view.irc.moved");
-        	showAlert( LGLogger.AT_COMMENT, msg );
+        	Alerts.showAlert( LGLogger.AT_COMMENT, msg );
         	/*
           if (irc == null)
           	try{
@@ -1309,66 +1102,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
   }
 
-  private void
-  showAlert(
-  	int		type,
-	String	message )
-  {
-  	synchronized( alert_history ){
-  		
-  		if ( alert_history.contains( message )){
-  			
-  			return;
-  		}
-  	
-  		alert_history.add( message );
-  		
-  		if ( alert_history.size() > 512 ){
-  			
-  			alert_history.remove(0);
-  		}
-  	}
-  	
-	if ( type == LGLogger.AT_COMMENT ){
-			
-		showCommentMessageBox( message );
-		
-	}else if ( type == LGLogger.AT_WARNING ){
-		
-		showWarningMessageBox( message );
-			       						
-	}else{
-				
-	    showErrorMessageBox( message );
-	}
-  }
-  
-  private void
-  showAlert(
-  	String		message,
-	Throwable	exception )
-  {
-  	synchronized( alert_history ){
-  		
-  		String	key = message + ":" + exception.toString();
-  		
-  		if ( alert_history.contains( key )){
-  			
-  			return;
-  		}
-  	
-  		alert_history.add( key );
-  		
-  		if ( alert_history.size() > 512 ){
-  			
-  			alert_history.remove(0);
-  		}
-  	}
-  	
-	showErrorMessageBox( message, exception );
-  }
-  
-	private void startFolderWatcher() {
+  private void startFolderWatcher() {
     if(folderWatcher == null)
       folderWatcher = TorrentFolderWatcher.getFolderWatcher();
 	  folderWatcher.startIt();
@@ -1650,39 +1384,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   	} 
     */
   }
- 
-  private void showSplashWindow() {
-    if (splash_maybe_null == null && display != null) {
-      splash_maybe_null = new SplashWindow();
-      splash_maybe_null.show(display);
-    }
-  }
-
-  private void setSplashPercentage( int p ){
-  	if ( splash_maybe_null != null ){
-		splash_maybe_null.setPercentDone(p);
-  	}
-  }
-
-  private void splashNextTask(){
-  	if ( splash_maybe_null != null ){
-		splash_maybe_null.nextTask();
-  	}
-  }
-  
-  private void setSplashTask( String s ){
-	if ( splash_maybe_null != null ){
-		splash_maybe_null.setCurrentTask(MessageText.getString(s));
-	}
-  }
-
-
-  private void closeSplashWindow() {
-    if (splash_maybe_null != null) {
-      splash_maybe_null.close();
-      splash_maybe_null = null;
-    }
-  }
 
   private void showUpgradeWindow() {
     final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
@@ -1872,7 +1573,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     child.y = parent.y + (parent.height - child.height) / 2;
     s.setBounds(child);
 
-    closeSplashWindow();
     s.open();
     s.setFocus();
 
@@ -2404,10 +2104,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       SysTrayMenu.dispose();
     */
     stopFolderWatcher();
-    if (startServer != null)
-      startServer.stopIt();
-    updater.stopIt();
-    globalManager.stopAll();
+    initializer.stopIt();
+    if(updater != null)
+      updater.stopIt();
     
     COConfigurationManager.setParameter("window.maximized", mainWindow.getMaximized());
     // unmaximize to get correct window rect
@@ -2425,20 +2124,19 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     	mainWindow.dispose();
     }
 
-    if (instanceCount-- == 0) {
-      for (int i = 0; i < blues.length; i++) {
-        if (blues[i] != null && !blues[i].isDisposed())
-          blues[i].dispose();
-      }
+    for (int i = 0; i < blues.length; i++) {
+      if (blues[i] != null && !blues[i].isDisposed())
+        blues[i].dispose();
+    }
 
-      Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
-                                  colorError, grey, black, blue, red, white,
-                                  red_ConsoleView, colorAltRow, colorWarning };
-      for (int i = 0; i < colorsToDispose.length; i++) {
-        if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
-          colorsToDispose[i].dispose();
-        }
+    Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
+                                colorError, grey, black, blue, red, white,
+                                red_ConsoleView, colorAltRow, colorWarning };
+    for (int i = 0; i < colorsToDispose.length; i++) {
+      if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
+        colorsToDispose[i].dispose();
       }
+     
 
       if (handCursor != null && !handCursor.isDisposed())
         handCursor.dispose();
@@ -2864,20 +2562,24 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   Map pluginTabs = new HashMap();
   
   public void addPluginView(final PluginView view) {
-    MenuItem item = new MenuItem(pluginMenu,SWT.NULL);
-    item.setText(view.getPluginViewName());
-    item.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        Tab tab = (Tab) pluginTabs.get(view.getPluginViewName());
-        if(tab != null) {
-          tab.setFocus();
-        } else {
-          tab = new Tab(view);
-          pluginTabs.put(view.getPluginViewName(),tab);         
-        }
+    display.asyncExec(new Runnable() {
+      public void run() {
+        MenuItem item = new MenuItem(pluginMenu,SWT.NULL);
+        item.setText(view.getPluginViewName());
+        item.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            Tab tab = (Tab) pluginTabs.get(view.getPluginViewName());
+            if(tab != null) {
+              tab.setFocus();
+            } else {
+              tab = new Tab(view);
+              pluginTabs.put(view.getPluginViewName(),tab);         
+            }
+          }
+        });
+        view_plugin.setEnabled(true);
       }
-    });
-    view_plugin.setEnabled(true);
+    }); 
   }
   
   public void removeActivePluginView(final PluginView view) {
@@ -3320,99 +3022,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   
-  public static void
-  showErrorMessageBoxUsingResourceString(
-  	String		title_key,
-	Throwable	error )
-  {
-  	showErrorMessageBox(MessageText.getString(title_key), error);
-  }
-  
-  public static void
-  showErrorMessageBox(
-  	String		message )
-  {
-  	showMessageBoxUsingResourceString( SWT.ICON_ERROR, "AlertMessageBox.error", message );
-  }
-  
-  public static void
-  showWarningMessageBox(
-  	String		message )
-  {
-  	showMessageBoxUsingResourceString( SWT.ICON_WARNING, "AlertMessageBox.warning", message );
-  }
-  
-  public static void
-  showCommentMessageBox(
-  	String		message )
-  {
-  	showMessageBoxUsingResourceString( SWT.ICON_INFORMATION, "AlertMessageBox.information", message );
-  }
-  
-  public static void
-  showErrorMessageBox(
-  	String		title,
-	Throwable	error )
-  {
-  	String error_message = LGLogger.exceptionToString( error );
-    String msg = error.getMessage();
-  	showMessageBox( SWT.ICON_ERROR, title, error.getMessage(),error_message );
-  } 
-  
-  public static void
-  showMessageBoxUsingResourceString(
-  	int			type,
-    String		key,
-	String		message )
-  {
-  	showMessageBox( type,MessageText.getString(key), message,null);
-  }
-  
-  public static void
-  showMessageBox(
-  	final int			type,
-    final String		title,
-    final String		message,
-    final String 		details )
-  {
-  	final Display display = getWindow().getDisplay();
-  
- 	display.asyncExec(new Runnable() {
-		public void 
-		run()
-		{
-      
-      //Uncomment following to restore old popup system.
-      /*
-			MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(), type | SWT.OK );
-    	
-			mb.setText(title);
-  	  	  	
-			mb.setMessage(	message );
-  	  	
-			mb.open();
-      */
-      
-			String icon_str;
-			
-			if ( type == SWT.ICON_INFORMATION ){
-				
-				icon_str = MessagePopupShell.ICON_INFO;
-				
-			}else if ( type == SWT.ICON_WARNING ){
-				
-				icon_str = MessagePopupShell.ICON_WARNING;
-				
-			}else{
-				
-				icon_str = MessagePopupShell.ICON_ERROR;
-			}
-	 
-			MessagePopupShell eps = new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
-		}
- 	});
-   }
-  
   private synchronized void checkForDonationPopup() {
    //Check if user has already donated first
    boolean alreadyDonated = COConfigurationManager.getBooleanParameter("donations.donated",false);
@@ -3505,5 +3114,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	new Clipboard(window.getDisplay()).setContents(
 			new Object[] {data }, 
 			new Transfer[] {TextTransfer.getInstance()});
+  }
+  
+  public void reportCurrentTask(String task) {}
+  
+  public void reportPercent(int percent) {
+    if(percent > 100) {
+      if(display == null || display.isDisposed())
+        return;
+      display.asyncExec(new Runnable() {
+        public void run() {
+          openMainWindow();
+        }
+      });
+    }
+  }
+  
+  public boolean isCreated() {
+    return created;
   }
 }

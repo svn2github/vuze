@@ -29,12 +29,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 
 /**
  * @author Olivier
  *
  */
-public class SplashWindow {
+public class SplashWindow implements STProgressListener {
   
   Display display;
   Shell splash;
@@ -106,11 +107,21 @@ public class SplashWindow {
     this.percentDone.setSelection(percentDone);
   }
 
+  public void reportPercent(int percentDone) {
+    this.percentDone.setSelection(percentDone);
+  }
+  
   public int getPercentDone() {
     return this.percentDone.getSelection();
   }
   
   public void setCurrentTask(String task) {
+    currentTask.setText(" " + task);
+    currentTask.update();
+    display.readAndDispatch();
+  }
+  
+  public void reportCurrentTask(String task) {
     currentTask.setText(" " + task);
     currentTask.update();
     display.readAndDispatch();

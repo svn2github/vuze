@@ -27,8 +27,7 @@ package org.gudy.azureus2.core3.global;
  */
 
 import org.gudy.azureus2.core3.global.impl.*;
-
-import org.gudy.azureus2.ui.swt.SplashWindow;
+import org.gudy.azureus2.core3.startup.STProgressListener;
 
 public class 
 GlobalManagerFactory 
@@ -41,9 +40,9 @@ GlobalManagerFactory
 
 	public static GlobalManager
 	create(boolean initializeStarted,
-	       SplashWindow 	splash)
+	       STProgressListener 	listener)
 	{
-		return( new GlobalManagerImpl(initializeStarted, splash));
+		return( new GlobalManagerImpl(initializeStarted, listener));
 	}
   
   public static GlobalManager

@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 import org.gudy.azureus2.ui.swt.updater.UpdateSWTWindow;
 
 /**
@@ -87,8 +88,7 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
-      mainWindow = new MainWindow(null, startServer);
-      mainWindow.waitForClose();
+      new Initializer(startServer);
       return;
       
     }
@@ -122,13 +122,13 @@ public class Main implements ILocaleUtilChooser {
 
       startServer.start();
 
-      mainWindow = new MainWindow(null, startServer);
+      new Initializer(startServer);
       
       if (args.length != 0) {
 
-        mainWindow.openTorrent( args[0]);
+        MainWindow.getWindow().openTorrent( args[0]);
       }
-      mainWindow.waitForClose();
+      
 
     }else{
     	
