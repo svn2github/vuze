@@ -40,10 +40,9 @@ AEDiagnostics
 	
 	private static final String	CONFIG_KEY	= "diagnostics.tidy_close";
 	
-	private static final File	debug_dir		= FileUtil.getUserFile( "logs" );
+	private static File	debug_dir;
 
-	private static final File	debug_save_dir	= new File( debug_dir, "save" );
-
+	private static File	debug_save_dir;
 	
 	private static boolean	started_up;
 	private static Map		loggers	= new HashMap();
@@ -59,6 +58,10 @@ AEDiagnostics
 		started_up	= true;
 		
 		try{
+			debug_dir		= FileUtil.getUserFile( "logs" );
+			
+			debug_save_dir	= new File( debug_dir, "save" );
+			
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
 			COConfigurationManager.setParameter( CONFIG_KEY, false );
