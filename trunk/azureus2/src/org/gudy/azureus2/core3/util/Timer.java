@@ -138,6 +138,16 @@ public class Timer
 		return( event );
 	}
 	
+	public synchronized TimerEventPeriodic
+	addPeriodicEvent(
+		long				frequency,
+		TimerEventPerformer	performer )
+	{
+		TimerEventPeriodic periodic_performer = new TimerEventPeriodic( this, frequency, performer );
+				
+		return( periodic_performer );
+	}
+	
 	protected synchronized void
 	cancelEvent(
 		TimerEvent	event )
