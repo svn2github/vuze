@@ -63,7 +63,7 @@ public class BTPiece implements BTProtocolMessage {
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Piece data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);
+    return "Piece data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
   }
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }

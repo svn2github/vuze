@@ -65,7 +65,7 @@ public class BTRequest implements BTProtocolMessage {
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Request piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);
+    return "Request piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
   }
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_NORMAL;  }
