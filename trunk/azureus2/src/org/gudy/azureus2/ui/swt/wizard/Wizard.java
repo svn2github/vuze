@@ -226,7 +226,8 @@ public class Wizard {
 		}
 	});
 
-		//Larger for macOSX needs.
+		
+ 	//Higher, for macOSX needs.
     wizardWindow.setSize(400, 500);
     
 	Utils.centreWindow( wizardWindow );
