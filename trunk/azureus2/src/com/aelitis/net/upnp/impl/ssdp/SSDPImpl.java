@@ -55,6 +55,8 @@ SSDPImpl
 	
 	protected List			mc_bind_addresses		= new ArrayList();
 		
+	protected boolean		first_response			= true;
+	
 	protected List			listeners	= new ArrayList();
 	
 	public
@@ -306,6 +308,13 @@ SSDPImpl
 	    DatagramPacket		packet )
 	{
 		String	str = new String( packet.getData(), 0, packet.getLength());
+		
+		if ( first_response ){
+			
+			first_response	= false;
+			
+			upnp.log( "UPnP:SSDP: first response: " + str );
+		}
 		
 		if ( str.startsWith("M-SEARCH")){
 			
