@@ -572,8 +572,13 @@ PEPeerControlImpl
       for( int x=0; x < peer_transports.size(); x++ ) {
         PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
         
-        if( peer.getIPAddress().equals( transport.getIp() ) ) {
-          boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" );
+        	// allow loopback connects for co-located proxy-based connections and testing
+        
+        if( peer.getIPAddress().equals( transport.getIp() )){
+        	
+          boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
+          							transport.getIp().equals( "127.0.0.1" );
+          
           if( !same_allowed || peer.getPort() == transport.getPort() ) {
             already_connected = true;
             break;

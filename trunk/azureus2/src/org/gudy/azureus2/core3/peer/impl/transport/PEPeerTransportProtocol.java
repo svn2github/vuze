@@ -1019,11 +1019,19 @@ PEPeerTransportProtocol
     boolean sameIP = false;
     
     
-    if( !COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ) {
-      if( PeerIdentityManager.containsIPAddress( my_peer_data_id, ip ) ) {
+    	//  allow loopback connects for co-located proxy-based connections and testing
+    
+    boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
+								ip.equals( "127.0.0.1" );
+
+    if( !same_allowed ){
+    	
+      if( PeerIdentityManager.containsIPAddress( my_peer_data_id, ip )) {
+      	
         sameIP = true;
       }
     }
+    
     if( sameIdentity ) {
       closeAll( toString() + " exchanged handshake, but peer matches pre-existing identity", false, false );
       handshake_data.returnToPool();
