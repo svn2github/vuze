@@ -70,7 +70,7 @@ public class PeerManager extends Thread {
     _myPeerId = _tracker.getPeerId();
 
     //The peer connections
-    _connections = new Vector();
+    _connections = new ArrayList();
 
     //The Server that handle incoming connections
     _server = server;
