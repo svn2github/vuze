@@ -81,12 +81,13 @@ RPTorrentManager
 	_process(
 		RPRequest	request	)
 	{
-		String	method = request.getMethod();
+		String		method 	= request.getMethod();
+		Object[]	params	= request.getParams();
 		
 		if ( method.equals( "getURLDownloader[URL]")){
 			
 			try{
-				TorrentDownloader dl = delegate.getURLDownloader((URL)request.getParams()[0]);
+				TorrentDownloader dl = delegate.getURLDownloader((URL)params[0]);
 			
 				RPTorrentDownloader res = RPTorrentDownloader.create( dl );
 		
@@ -96,7 +97,20 @@ RPTorrentManager
 				
 				return( new RPReply( e ));
 			}
-		}			
+		}else if ( method.equals( "getURLDownloader[URL,String,String]")){
+			
+			try{
+				TorrentDownloader dl = delegate.getURLDownloader((URL)params[0],(String)params[1],(String)params[2]);
+			
+				RPTorrentDownloader res = RPTorrentDownloader.create( dl );
+		
+				return( new RPReply( res ));
+				
+			}catch( TorrentException e ){
+				
+				return( new RPReply( e ));
+			}
+		}					
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
@@ -111,6 +125,32 @@ RPTorrentManager
 	{
 		try{
 			RPTorrentDownloader resp = (RPTorrentDownloader)_dispatcher.dispatch( new RPRequest( this, "getURLDownloader[URL]", new Object[]{url})).getResponse();
+			
+			resp._setRemote( _dispatcher );
+			
+			return( resp );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof TorrentException ){
+				
+				throw((TorrentException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+	
+	public TorrentDownloader
+	getURLDownloader(
+		URL		url,
+		String	user_name,
+		String	password )
+	
+		throws TorrentException
+	{
+		try{
+			RPTorrentDownloader resp = (RPTorrentDownloader)_dispatcher.dispatch( new RPRequest( this, "getURLDownloader[URL,String,String]", new Object[]{url, user_name, password})).getResponse();
 			
 			resp._setRemote( _dispatcher );
 			

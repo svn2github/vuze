@@ -65,6 +65,17 @@ TorrentManagerImpl
 		return( new TorrentDownloaderImpl( url ));
 	}
 	
+	public TorrentDownloader
+	getURLDownloader(
+		URL		url,
+		String	user_name,
+		String	password )
+	
+		throws TorrentException
+	{
+		return( new TorrentDownloaderImpl( url, user_name, password ));
+	}
+	
 	public Torrent
 	createFromBEncodedFile(
 		File		file )

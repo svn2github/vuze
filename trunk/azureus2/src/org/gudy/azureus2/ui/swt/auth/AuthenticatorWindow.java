@@ -55,20 +55,6 @@ AuthenticatorWindow
 		SESecurityManager.addPasswordListener( this );
 		
 		// System.out.println( "AuthenticatorWindow");
-		
-		Authenticator.setDefault(
-				new Authenticator()
-				{
-					protected synchronized PasswordAuthentication
-					getPasswordAuthentication()
-					{					
-						return( getAuthentication( 
-									getRequestingPrompt(),
-									getRequestingProtocol(),
-									getRequestingHost(),
-									getRequestingPort()));
-					}
-				});
 	}
 	
 	public synchronized PasswordAuthentication
@@ -121,6 +107,8 @@ AuthenticatorWindow
 		
 		String	self_addr;
 
+		// System.out.println( "auth req for " + realm + " - " + tracker );
+		
 		if ( bind_ip.length() < 7 ){
 	
 			self_addr = "127.0.0.1";

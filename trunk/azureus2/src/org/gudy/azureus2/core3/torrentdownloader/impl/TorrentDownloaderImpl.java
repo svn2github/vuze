@@ -189,7 +189,9 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       this.error("Exception while initializing download of '" + url + "': Unknown Host '" + e.getMessage() + "'");
     } catch (java.io.IOException ioe) {
       this.error("I/O Exception while initializing download of '" + url + "':" + ioe.toString());
-    }    
+    } catch( Throwable e ){
+        this.error("Exception while initializing download of '" + url + "':" + e.toString());   	
+    }
     if (this.state != STATE_ERROR) {
       this.state = STATE_START;
       notifyListener();

@@ -31,17 +31,23 @@ import java.net.*;
 
 
 import javax.net.ssl.*;
+import java.net.PasswordAuthentication;
 
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
 ResourceDownloaderURLImpl
-	extends ResourceDownloaderBaseImpl
+	extends 	ResourceDownloaderBaseImpl
+	implements 	SEPasswordListener
 {
 	private static final int BUFFER_SIZE = 32768;
   
-	protected URL		original_url;
+	protected URL			original_url;
+	protected boolean		auth_supplied;
+	protected String		user_name;
+	protected String		password;
 	
 	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
@@ -54,11 +60,35 @@ ResourceDownloaderURLImpl
 		ResourceDownloaderBaseImpl	_parent,
 		URL							_url )
 	{
+		this( _parent, _url, false, null, null );
+	}
+	
+	public 
+	ResourceDownloaderURLImpl(
+		ResourceDownloaderBaseImpl	_parent,
+		URL							_url,
+		String						_user_name,
+		String						_password )
+	{
+		this( _parent, _url, true, _user_name, _password );
+	}
+	
+	public 
+	ResourceDownloaderURLImpl(
+		ResourceDownloaderBaseImpl	_parent,
+		URL							_url,
+		boolean						_auth_supplied,
+		String						_user_name,
+		String						_password )
+	{
 		super( _parent );
 		
 		original_url	= _url;
+		auth_supplied	= _auth_supplied;
+		user_name		= _user_name;
+		password		= _password;
 	}
-
+	
 	protected URL
 	getURL()
 	{
@@ -115,55 +145,68 @@ ResourceDownloaderURLImpl
 		
 		try{
 			reportActivity(this, "getting size of " + original_url );
-			
+
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
-				HttpURLConnection	con;
-				
-				if ( url.getProtocol().equalsIgnoreCase("https")){
-			      	
-						// see ConfigurationChecker for SSL client defaults
+				try{
+					if ( auth_supplied ){
 	
-					HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+						SESecurityManager.addPasswordHandler( url, this );
+					}
 	
-						// allow for certs that contain IP addresses rather than dns names
-	  	
-					ssl_con.setHostnameVerifier(
-							new HostnameVerifier()
-							{
-								public boolean
-								verify(
-										String		host,
-										SSLSession	session )
+					HttpURLConnection	con;
+					
+					if ( url.getProtocol().equalsIgnoreCase("https")){
+				      	
+							// see ConfigurationChecker for SSL client defaults
+		
+						HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+		
+							// allow for certs that contain IP addresses rather than dns names
+		  	
+						ssl_con.setHostnameVerifier(
+								new HostnameVerifier()
 								{
-									return( true );
-								}
-							});
-	  	
-					con = ssl_con;
-	  	
-				}else{
-	  	
-					con = (HttpURLConnection) url.openConnection();
-	  	
-				}
-	  
-				con.setRequestMethod( "HEAD" );
-				
-				con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-	  
-				con.connect();
-	
-				int response = con.getResponseCode();
-				
-				if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+									public boolean
+									verify(
+											String		host,
+											SSLSession	session )
+									{
+										return( true );
+									}
+								});
+		  	
+						con = ssl_con;
+		  	
+					}else{
+		  	
+						con = (HttpURLConnection) url.openConnection();
+		  	
+					}
+		  
+					con.setRequestMethod( "HEAD" );
 					
-					throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-				}
+					con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+		  
+					con.connect();
+		
+					int response = con.getResponseCode();
 					
-				return( con.getContentLength());					
+					if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+						
+						throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+					}
+						
+					return( con.getContentLength());					
 									
+				}finally{
+					
+					if ( auth_supplied ){
+					
+						SESecurityManager.removePasswordHandler( url, this );
+					}
+				}
 			}catch (java.net.MalformedURLException e){
 				
 				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
@@ -197,7 +240,7 @@ ResourceDownloaderURLImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url );
+		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, auth_supplied, user_name, password );
 		
 		c.setSize( size );
 		
@@ -249,105 +292,118 @@ ResourceDownloaderURLImpl
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
-				HttpURLConnection	con;
-				
-				if ( url.getProtocol().equalsIgnoreCase("https")){
-			      	
-						// see ConfigurationChecker for SSL client defaults
-	
-					HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-	
-						// allow for certs that contain IP addresses rather than dns names
-	  	
-					ssl_con.setHostnameVerifier(
-							new HostnameVerifier()
-							{
-								public boolean
-								verify(
-										String		host,
-										SSLSession	session )
-								{
-									return( true );
-								}
-							});
-	  	
-					con = ssl_con;
-	  	
-				}else{
-	  	
-					con = (HttpURLConnection) url.openConnection();
-	  	
-				}
-	  
-				con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-	  
-				con.connect();
-	
-				int response = con.getResponseCode();
-				
-				if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-					
-					throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-				}
-					
-				synchronized( this ){
-					
-					input_stream = con.getInputStream();
-				}
-				
-				ByteArrayOutputStream	baos;
-
 				try{
-					byte[] buf = new byte[BUFFER_SIZE];
-					
-					int	total_read	= 0;
-					
-						// unfortunately not all servers set content length
-					
-					int size = con.getContentLength();					
-					
-					baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
-					
-					while( !cancel_download ){
+					if ( auth_supplied ){
 						
-						int read = input_stream.read(buf);
+						SESecurityManager.addPasswordHandler( url, this );
+					}
+
+					HttpURLConnection	con;
+					
+					if ( url.getProtocol().equalsIgnoreCase("https")){
+				      	
+							// see ConfigurationChecker for SSL client defaults
+		
+						HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+		
+							// allow for certs that contain IP addresses rather than dns names
+		  	
+						ssl_con.setHostnameVerifier(
+								new HostnameVerifier()
+								{
+									public boolean
+									verify(
+											String		host,
+											SSLSession	session )
+									{
+										return( true );
+									}
+								});
+		  	
+						con = ssl_con;
+		  	
+					}else{
+		  	
+						con = (HttpURLConnection) url.openConnection();
+		  	
+					}
+		  
+					con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+		  
+					con.connect();
+		
+					int response = con.getResponseCode();
+										
+					if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+						
+						throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+					}
+						
+					synchronized( this ){
+						
+						input_stream = con.getInputStream();
+					}
+					
+					ByteArrayOutputStream	baos;
+	
+					try{
+						byte[] buf = new byte[BUFFER_SIZE];
+						
+						int	total_read	= 0;
+						
+							// unfortunately not all servers set content length
+						
+						int size = con.getContentLength();					
+						
+						baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
+						
+						while( !cancel_download ){
 							
-						if ( read > 0 ){
-							
-							baos.write(buf, 0, read);
-							
-							total_read += read;
-					        
-							if ( size > 0){
+							int read = input_stream.read(buf);
 								
-								informPercentDone(( 100 * total_read ) / size );
+							if ( read > 0 ){
+								
+								baos.write(buf, 0, read);
+								
+								total_read += read;
+						        
+								if ( size > 0){
+									
+									informPercentDone(( 100 * total_read ) / size );
+								}
+							}else{
+								
+								break;
 							}
-						}else{
-							
-							break;
 						}
-					}
-					
-						// if we've got a size, make sure we've read all of it
-					
-					if ( size > 0 && total_read != size ){
 						
-						throw( new IOException( "Premature end of stream" ));
+							// if we've got a size, make sure we've read all of it
+						
+						if ( size > 0 && total_read != size ){
+							
+							throw( new IOException( "Premature end of stream" ));
+						}
+					}finally{
+						
+						input_stream.close();
 					}
+		
+					InputStream	res = new ByteArrayInputStream( baos.toByteArray());
+					
+					if ( informComplete( res )){
+					
+						return( res );
+					}
+					
+					throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
+					
 				}finally{
 					
-					input_stream.close();
+					if ( auth_supplied ){
+						
+						SESecurityManager.removePasswordHandler( url, this );
+					}
 				}
-	
-				InputStream	res = new ByteArrayInputStream( baos.toByteArray());
-				
-				if ( informComplete( res )){
-				
-					return( res );
-				}
-				
-				throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
-				
 			}catch (java.net.MalformedURLException e){
 				
 				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
@@ -398,5 +454,45 @@ ResourceDownloaderURLImpl
 		}
 		
 		informFailed( new ResourceDownloaderException( "Download cancelled" ));
+	}
+	
+	public PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		URL			tracker )
+	{
+		if ( user_name == null || password == null ){
+			
+			String user_info = tracker.getUserInfo();
+			
+			if ( user_info == null ){
+				
+				return( null );
+			}
+			
+			String	user_bit	= user_info;
+			String	pw_bit		= "";
+			
+			int	pos = user_info.indexOf(':');
+			
+			if ( pos != -1 ){
+				
+				user_bit	= user_info.substring(0,pos);
+				pw_bit		= user_info.substring(pos+1);
+			}
+			
+			return( new PasswordAuthentication( user_bit, pw_bit.toCharArray()));
+		}
+		
+		return( new PasswordAuthentication( user_name, password.toCharArray()));
+	}
+	
+	public void
+	setAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success )
+	{
+		
 	}
 }

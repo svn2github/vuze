@@ -55,6 +55,15 @@ ResourceDownloaderFactoryImpl
 	
 	public ResourceDownloader
 	create(
+		URL		url,
+		String	user_name,
+		String	password )
+	{
+		return( new ResourceDownloaderURLImpl( null, url, user_name, password ));
+	}
+	
+	public ResourceDownloader
+	create(
 		ResourceDownloaderDelayedFactory		factory )
 	{
 		return( new ResourceDownloaderDelayedImpl( null, factory ));

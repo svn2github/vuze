@@ -39,13 +39,23 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 SESecurityManagerImpl 
 {
-	protected static String	keystore;
-	protected static String	truststore;
+	protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
 	
-	protected static List	certificate_listeners 	= new ArrayList();
-	protected static List	password_listeners 		= new ArrayList();
+	protected String	keystore;
+	protected String	truststore;
 	
-	public static void
+	protected List	certificate_listeners 	= new ArrayList();
+	protected List	password_listeners 		= new ArrayList();
+	
+	protected Map	password_handlers		= new HashMap();
+	
+	public static SESecurityManagerImpl
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
+	public void
 	initialise()
 	{
 		// 	keytool -genkey -keystore %home%\.keystore -keypass changeit -storepass changeit -keyalg rsa -alias azureus
@@ -62,9 +72,44 @@ SESecurityManagerImpl
 		System.setProperty( "javax.net.ssl.trustStore", truststore );
 	
 		System.setProperty( "javax.net.ssl.trustStorePassword", SESecurityManager.SSL_PASSWORD );
+		
+		
+		Authenticator.setDefault(
+				new Authenticator()
+				{
+					protected synchronized PasswordAuthentication
+					getPasswordAuthentication()
+					{					
+						return( getAuthentication( 
+									getRequestingPrompt(),
+									getRequestingProtocol(),
+									getRequestingHost(),
+									getRequestingPort()));
+					}
+				});
 	}
 	
-	public static SSLServerSocketFactory
+	public synchronized PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		String		protocol,
+		String		host,
+		int			port )
+	{
+		try{
+			URL	tracker_url = new URL( protocol + "://" + host + ":" + port + "/" );
+		
+			return( getPasswordAuthentication( realm, tracker_url ));
+			
+		}catch( MalformedURLException e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
+	}
+	
+	public SSLServerSocketFactory
 	getSSLServerSocketFactory()
 	
 		throws Exception
@@ -101,7 +146,7 @@ SESecurityManagerImpl
 		return( factory );
 	}
 	
-	public static synchronized boolean
+	public synchronized boolean
 	installServerCertificates(
 		URL		https_url )
 	{
@@ -208,7 +253,7 @@ SESecurityManagerImpl
 		}
 	}
 	
-	protected static synchronized void
+	protected synchronized void
 	addCertToTrustStore(
 		String							alias,
 		java.security.cert.Certificate	cert )
@@ -275,11 +320,18 @@ SESecurityManagerImpl
 		}
 	}
 	
-	public static PasswordAuthentication
+	public PasswordAuthentication
 	getPasswordAuthentication(
 		String		realm,
 		URL			tracker )
 	{
+		Object[]	handler = (Object[])password_handlers.get(tracker.toString());
+		
+		if ( handler != null ){
+			
+			return(((SEPasswordListener)handler[0]).getAuthentication( realm, (URL)handler[1] ));
+		}
+		
 		for (int i=0;i<password_listeners.size();i++){
 			
 			PasswordAuthentication res = ((SEPasswordListener)password_listeners.get(i)).getAuthentication( realm, tracker );
@@ -293,7 +345,7 @@ SESecurityManagerImpl
 		return( null );
 	}
 	
-	public static void
+	public void
 	setPasswordAuthenticationOutcome(
 		String		realm,
 		URL			tracker,
@@ -305,28 +357,48 @@ SESecurityManagerImpl
 		}
 	}
 		
-	public static synchronized void
+	public synchronized void
 	addPasswordListener(
 		SEPasswordListener	l )
 	{
 		password_listeners.add(l);
 	}	
 	
-	public static synchronized void
+	public synchronized void
 	removePasswordListener(
 		SEPasswordListener	l )
 	{
 		password_listeners.remove(l);
 	}
 	
-	public static synchronized void
+	public void
+	addPasswordHandler(
+		URL						url,
+		SEPasswordListener		l )
+	{
+		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
+		
+		password_handlers.put( url_s, new Object[]{ l, url });
+	}
+	
+	public void
+	removePasswordHandler(
+		URL						url,
+		SEPasswordListener		l )
+	{
+		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
+		
+		password_handlers.remove( url_s );
+	}
+	
+	public synchronized void
 	addCertificateListener(
 		SECertificateListener	l )
 	{
 		certificate_listeners.add(l);
 	}	
 	
-	public static synchronized void
+	public synchronized void
 	removeCertificateListener(
 		SECertificateListener	l )
 	{

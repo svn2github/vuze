@@ -41,6 +41,12 @@ ResourceDownloaderFactory
 	create(
 		URL		url );
 		
+	public ResourceDownloader
+	create(
+		URL		url,
+		String	user_name,
+		String	password );
+		
 		/**
 		 * creates a downloader that will be asked to create a ResourceDownloader
 		 * when required. Useful when used in combination with an alternate downloader

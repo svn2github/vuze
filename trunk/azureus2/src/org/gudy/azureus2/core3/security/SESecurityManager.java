@@ -46,7 +46,7 @@ SESecurityManager
 	public static void
 	initialise()
 	{
-		SESecurityManagerImpl.initialise();
+		SESecurityManagerImpl.getSingleton().initialise();
 	}
 	
 	public static SSLServerSocketFactory
@@ -54,14 +54,14 @@ SESecurityManager
 	
 		throws Exception
 	{
-		return( SESecurityManagerImpl.getSSLServerSocketFactory());
+		return( SESecurityManagerImpl.getSingleton().getSSLServerSocketFactory());
 	}
 	
 	public static boolean
 	installServerCertificates(
 		URL		https_url )
 	{
-		return( SESecurityManagerImpl.installServerCertificates(https_url));
+		return( SESecurityManagerImpl.getSingleton().installServerCertificates(https_url));
 	}
 	
 	public static PasswordAuthentication
@@ -69,7 +69,7 @@ SESecurityManager
 		String		realm,
 		URL			tracker )
 	{
-		return( SESecurityManagerImpl.getPasswordAuthentication(realm, tracker));	
+		return( SESecurityManagerImpl.getSingleton().getPasswordAuthentication(realm, tracker));	
 	}
 	
 	public static void
@@ -78,35 +78,51 @@ SESecurityManager
 		URL			tracker,
 		boolean		success )
 	{
-		SESecurityManagerImpl.setPasswordAuthenticationOutcome(realm, tracker, success);	
+		SESecurityManagerImpl.getSingleton().setPasswordAuthenticationOutcome(realm, tracker, success);	
 	}
 		
 	
-	public static synchronized void
+	public static void
 	addPasswordListener(
 		SEPasswordListener	l )
 	{
-		SESecurityManagerImpl.addPasswordListener(l);	
+		SESecurityManagerImpl.getSingleton().addPasswordListener(l);	
 	}	
 	
-	public static synchronized void
+	public static void
 	removePasswordListener(
 		SEPasswordListener	l )
 	{
-		SESecurityManagerImpl.removePasswordListener(l);	
+		SESecurityManagerImpl.getSingleton().removePasswordListener(l);	
+	}
+	
+	public static void
+	addPasswordHandler(
+		URL						url,
+		SEPasswordListener		l )
+	{
+		SESecurityManagerImpl.getSingleton().addPasswordHandler( url, l );
+	}
+	
+	public static void
+	removePasswordHandler(
+		URL						url,
+		SEPasswordListener		l )
+	{
+		SESecurityManagerImpl.getSingleton().removePasswordHandler( url, l );
 	}
 	
 	public static void
 	addCertificateListener(
 			SECertificateListener	l )
 	{
-		SESecurityManagerImpl.addCertificateListener(l);
+		SESecurityManagerImpl.getSingleton().addCertificateListener(l);
 	}	
 	
 	public static void
 	removeCertificateListener(
 		SECertificateListener	l )
 	{
-		SESecurityManagerImpl.removeCertificateListener(l);
+		SESecurityManagerImpl.getSingleton().removeCertificateListener(l);
 	}
 }

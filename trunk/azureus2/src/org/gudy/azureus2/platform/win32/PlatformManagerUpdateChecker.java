@@ -75,6 +75,11 @@ PlatformManagerUpdateChecker
 			}
 
 			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
+			
+		//}else{
+			
+			plugin_interface.getPluginProperties().setProperty( "plugin.version.info", "Not required for this platform" );
+			
 		}
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", version );

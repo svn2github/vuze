@@ -323,6 +323,8 @@ PluginUpdatePlugin
 	
 					boolean az_cvs = plugin_interface.getUtilities().isCVSVersion();
 					
+					String pi_version_info = pi_being_checked.getPluginProperties().getProperty( "plugin.version.info" );
+					
 					String az_plugin_version	= pi_being_checked.getPluginVersion();
 					
 					String sf_plugin_version	= details.getVersion();
@@ -361,7 +363,7 @@ PluginUpdatePlugin
 					log.log( LoggerChannel.LT_INFORMATION, 
 								"    Current: " + az_plugin_version + 
 								(comp==0&&sf_plugin_version.endsWith( "_CVS")?"_CVS":"")+
-								", Latest: " + sf_plugin_version );
+								", Latest: " + sf_plugin_version + (pi_version_info==null?"":" [" + pi_version_info + "]"));
 					
 					if ( comp < 0 && ! ( pi_being_checked.getPlugin() instanceof UpdatableComponent)){
 													

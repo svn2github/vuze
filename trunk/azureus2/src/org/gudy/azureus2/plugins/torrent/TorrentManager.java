@@ -38,6 +38,14 @@ TorrentManager
 	
 		throws TorrentException;
 	
+	public TorrentDownloader
+	getURLDownloader(
+		URL		url,
+		String	user_name,
+		String	password )
+	
+		throws TorrentException;
+	
 	public Torrent
 	createFromBEncodedFile(
 		File		file )

@@ -30,10 +30,12 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 TorrentDownloaderImpl 
@@ -42,6 +44,8 @@ TorrentDownloaderImpl
 	protected URL						url;
 	protected ResourceDownloader		downloader;
 	
+	protected boolean					set_encoding;
+	
 	protected
 	TorrentDownloaderImpl(
 		URL		_url )
@@ -49,6 +53,38 @@ TorrentDownloaderImpl
 		url		= _url;
 		
 		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url );
+	}
+	
+	protected
+	TorrentDownloaderImpl(
+		URL		_url,
+		String	_user_name,
+		String	_password )
+	{
+		url		= _url;
+		
+			// assumption here is that if we have a user name and password supplied
+			// then user-interaction is NOT required. Thus we set the default encoding
+			// to ensure that in the unlikely event of the torrent having multiple 
+			// encodings the SWT UI isn't kicked off to get an encoding when the user
+			// is absent.
+		
+		set_encoding	= true;
+		
+		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url, _user_name, _password );
+		
+		downloader.addListener(
+				new ResourceDownloaderAdapter()
+				{
+					public void
+					reportActivity(
+						ResourceDownloader	downloader,
+						String				activity )
+					{
+						LGLogger.log( "TorrentDownloader:" + activity );
+					}			
+				});
+		
 	}
 	
 	public Torrent
@@ -62,6 +98,11 @@ TorrentDownloaderImpl
 			is = downloader.download();
 			
 			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream(is);
+			
+			if ( set_encoding ){
+				
+				TorrentUtils.setDefaultTorrentEncoding( torrent );
+			}
 			
 			return( new TorrentImpl(torrent ));
 			
