@@ -44,6 +44,10 @@ DiskManagerPieceImpl
 		// download or that it is complete.
 		// access to "written" is single-threaded (by the peer manager) apart from when
 		// the disk manager is saving resume data.
+		// actually this is not longer strictly true, as setDone is called asynchronously
+		// however, this issue can be worked around by working on a reference to the written data
+		// as problems only occur when switching from all-written to done=true, both of which signify
+		// the same state of affairs.
 	
 	protected boolean[] written;
 
@@ -110,12 +114,14 @@ DiskManagerPieceImpl
 	setWritten(
 		int blocNumber) 
 	{
-		if ( written == null ){
+		boolean[]	written_ref = written;
+		
+		if ( written_ref == null ){
 			
-			written = new boolean[getBlockCount()];
+			written_ref = written = new boolean[getBlockCount()];
 		}
 		
-	    written[blocNumber] = true;
+	    written_ref[blocNumber] = true;
 	    	    
 	    last_write_time	= SystemTime.getCurrentTime();
 	}
@@ -129,12 +135,14 @@ DiskManagerPieceImpl
 			return( true );
 		}
 				
-		if ( written == null ){
+		boolean[]	written_ref = written;
+		
+		if ( written_ref == null ){
 			
 			return( false );		
 		}
 		
-	  	return( written[bn]);
+	  	return( written_ref[bn]);
 	}
 	  
 	public long
@@ -151,16 +159,18 @@ DiskManagerPieceImpl
 			return( getBlockCount());
 		}
 		
-		if ( written == null ){
+		boolean[]	written_ref	= written;
+		
+		if ( written_ref == null ){
 			
 			return( 0 );
 		}
 		
 		int	res = 0;
 		
-	  	for (int i = 0; i < written.length; i++) {
+	  	for (int i = 0; i < written_ref.length; i++) {
 	  		
-	  		if ( written[i] ){
+	  		if ( written_ref[i] ){
 	  			
 	  			res++;
 	  		}
@@ -172,14 +182,16 @@ DiskManagerPieceImpl
 	public boolean 
 	getCompleted() 
 	{
-		if ( written == null ){
+		boolean[]	written_ref	= written;
+		
+		if ( written_ref == null ){
 			
 			return( done );
 		}
 			  	
-	  	for (int i = 0; i < written.length; i++) {
+	  	for (int i = 0; i < written_ref.length; i++) {
 	  		
-	  		if ( !written[i] ){
+	  		if ( !written_ref[i] ){
 	  			
 	  			return( false );
 	  		}	  		
