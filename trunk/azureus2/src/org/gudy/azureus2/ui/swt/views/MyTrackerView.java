@@ -394,6 +394,9 @@ MyTrackerView
       for (int i=0;i<tis.length;i++){        
         TableItem	ti = tis[i];        
         TRHostTorrent	host_torrent = (TRHostTorrent)tableItemToObject.get( ti );
+        if(host_torrent == null)
+          return;
+        
         int	status = host_torrent.getStatus();
         
         if ( status == TRHostTorrent.TS_STOPPED ){          
