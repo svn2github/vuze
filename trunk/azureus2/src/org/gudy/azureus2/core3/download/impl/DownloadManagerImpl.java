@@ -388,7 +388,13 @@ DownloadManagerImpl
 			 
 			 nbPieces = torrent.getPieces().length;
 			 
-      if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, FileUtil.smartFullName(savePath, name))) {
+			// Fixup the SavePath (again!)
+			String path = FileUtil.smartFullName(savePath, name);
+      File f = new File(path);
+			if (!f.isDirectory())
+			  path = f.getParent();
+
+      if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, path)) {
 			  stats.setCompleted(1000);
 			  setOnlySeeding(true);
 			} else {
