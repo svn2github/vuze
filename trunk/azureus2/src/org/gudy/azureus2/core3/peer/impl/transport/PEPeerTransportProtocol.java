@@ -378,7 +378,6 @@ PEPeerTransportProtocol
 	cancelRequests();
 
 	//2. Close the socket
-
 	closeConnection();
 
 	//3. release the read Buffer

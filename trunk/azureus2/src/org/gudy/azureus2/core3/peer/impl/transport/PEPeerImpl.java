@@ -33,10 +33,10 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 public class 
 PEPeerImpl
 {
-	PEPeerControl manager;
-	byte[] id;
-	String ip;
-	int port;
+	protected PEPeerControl manager;
+	protected byte[] id;
+	protected String ip;
+	protected int port;
 
 	public PEPeerImpl(PEPeerControl manager, byte[] id, String ip, int port) {
 		this.manager = manager;
