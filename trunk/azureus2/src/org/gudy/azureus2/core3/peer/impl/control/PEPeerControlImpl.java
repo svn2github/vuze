@@ -1569,6 +1569,28 @@ PEPeerControlImpl
     }
   }
 
+  public float getMinAvailability() {
+    int total = 0;
+    int nbPieces;
+    int allMin;
+    synchronized (_availability) {
+      nbPieces = _availability.length;
+      if (nbPieces == 0)
+        return 0;
+
+      allMin = _availability[0];
+      for (int i = 0; i < nbPieces; i++) {
+        if (_availability[i] < allMin)
+          allMin = _availability[i];
+      }
+      for (int i = 0; i < nbPieces; i++) {
+        if (_availability[i] > allMin)
+          total++;
+      }
+    }
+    return allMin + (total / (float)nbPieces);
+  }
+
   public int[] getAvailability() {
     synchronized (_availability) {
       return _availability;

@@ -112,6 +112,7 @@ public class TorrentRow implements SortableItem {
         items.add(new TotalSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("totalspeed")));
         items.add(new SavePathItem(TorrentRow.this,itemEnumerator.getPositionByName("savepath")));
         items.add(new CategoryItem(TorrentRow.this,itemEnumerator.getPositionByName("category")));
+        items.add(new AvailabilityItem(TorrentRow.this,itemEnumerator.getPositionByName("availability")));
 
         Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();

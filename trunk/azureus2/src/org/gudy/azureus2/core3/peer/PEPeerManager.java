@@ -65,6 +65,8 @@ PEPeerManager
 
 	public int getAvailability(int pieceNumber);
 	
+  public float getMinAvailability();
+
 	public boolean[] getPiecesStatus();
 
 	public PEPiece[] getPieces();

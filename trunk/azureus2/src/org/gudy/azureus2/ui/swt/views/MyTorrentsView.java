@@ -170,6 +170,7 @@ public class MyTorrentsView extends AbstractIView
         ,"totalspeed;R;I;70;-1"
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
+        ,"availability;R;S;50;-1"
 
     };
 
@@ -192,6 +193,7 @@ public class MyTorrentsView extends AbstractIView
         ,"totalspeed;R;I;70;-1"
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
+        ,"availability;R;S;50;-1"
     };
 
     this.globalManager = globalManager;
@@ -1095,11 +1097,11 @@ public class MyTorrentsView extends AbstractIView
     Arrays.sort(categories);
 
     if (categories.length > 0) {
-      Category catAll = CategoryManager.getCategory(Category.TYPE_ALL);
-      if (catAll != null) {
+      Category catUncat = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
+      if (catUncat != null) {
         final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
-        Messages.setLanguageText(itemCategory, catAll.getName());
-        itemCategory.setData("Category", catAll);
+        Messages.setLanguageText(itemCategory, catUncat.getName());
+        itemCategory.setData("Category", catUncat);
         itemCategory.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event event) {
             MenuItem item = (MenuItem)event.widget;

@@ -7,7 +7,7 @@ FEATURE: QUEUED status. Torrents that are queued are stopped, but available for 
 FEATURE: Partial support for Read-Only data (for seeding) [TuxPaper]
 FEATURE: Added "Forced-Start" to force a torrent to start, ignoring download limits or seeding rules [TuxPaper]
 FEATURE: Auto-positioning of finished torrent based on how badly the torrent needs seeding [TuxPaper]
-FEATURE: Added SavePath, Max # Uploads, and Total Speed columns to My Torrents view [TuxPaper]
+FEATURE: Added Availability, Seeding Rank, SavePath, Max # Uploads, and Total Speed columns to My Torrents view [TuxPaper]
 FEATURE: Categories to group your torrents in (right click on My Torrents and select Set Category to get started) [TuxPaper]
 FEATURE: More auto-seeding options [TuxPaper]
 FEATURE: Ability to limit maximum number of file handles open/in-use at any given time [Parg]
