@@ -37,7 +37,7 @@ public class VirtualChannelSelector {
     public static final int OP_WRITE = SelectionKey.OP_WRITE;
   
   
-    private static final int SELECTOR_FAIL_COUNT_MAX = 50000;  // a real selector spin will easily reach this
+    private static final int SELECTOR_FAIL_COUNT_MAX = 10000;  // a real selector spin will easily reach this
     
     private Selector selector;
     private final SelectorGuard selector_guard;
@@ -193,7 +193,7 @@ public class VirtualChannelSelector {
       	for( int i=0; i < register_list.size(); i++ ) {
       	  RegistrationData data = (RegistrationData)register_list.get( i );
       	  try {
-      	    if( data.channel.isOpen() ) {
+      	    if( data.channel.isOpen() && data.channel.keyFor( selector ) == null ) {
       	      data.channel.register( selector, INTEREST_OP, data );
       	    }
       	    else {
@@ -203,7 +203,7 @@ public class VirtualChannelSelector {
       	  }
       	  catch (Throwable t) {
       	    data.listener.selectFailure( t );
-      	  Debug.printStackTrace(t);
+      	    Debug.printStackTrace(t);
       	  }
       	}
       	register_list.clear();
