@@ -82,12 +82,9 @@ PEPeerTransportProtocol
   private boolean[] other_peer_has_pieces;
   private boolean seed;
 
-	//The reference to the current ByteBuffer used for reading on the socket.
-	private DirectByteBuffer readBuffer;
 	//The Buffer for reading the length of the messages
 	private DirectByteBuffer lengthBuffer;
-  //A flag to indicate if we're reading the length or the message
-	private boolean readingLength;
+
 
   private boolean incoming;
   private volatile boolean closing;
@@ -248,155 +245,7 @@ PEPeerTransportProtocol
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_LENGTH,4 );
   }
 
-  
-  protected void handShake( byte[] data_already_read ) {
-  	try {
-  		byte[] hash = manager.getHash();
-  		byte[] myPeerId = manager.getPeerId();
-
-      outgoing_message_queue.addMessage( new BTHandshake( hash, myPeerId ) );
-    
-  		readBuffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ,68 );
-  		if ( readBuffer == null ) {
-  			closeAll(toString() + " : PeerSocket::handShake:: readBuffer null", true, false);
-  			return;
-  		}
-
-  		if ( data_already_read != null ) {
-  			readBuffer.put( DirectByteBuffer.SS_PEER, data_already_read );
-  		}
-  	}
-  	catch (Exception e) {
-  		closeAll(toString() + " : Exception in handshake : " + e, true, false);
-  	}
-  }
-  
-
-  protected void handleHandShakeResponse() {
-	readBuffer.position(DirectByteBuffer.SS_PEER, 0);
-	//Now test for data...
-
-   byte b;
-	if ((b = readBuffer.get(DirectByteBuffer.SS_PEER)) != (byte) BTHandshake.PROTOCOL.length()) {
-	   closeAll(toString() + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
-	   return;
-	}
-
-	byte[] protocol = BTHandshake.PROTOCOL.getBytes();
-	if (readBuffer.remaining(DirectByteBuffer.SS_PEER) < protocol.length) {
-	   closeAll(toString() + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining(DirectByteBuffer.SS_PEER),true, true);
-	   return;
-	}
-	else {
-	   readBuffer.get(DirectByteBuffer.SS_PEER,protocol);
-	   if (!(new String(protocol)).equals(BTHandshake.PROTOCOL)) {
-		  closeAll(toString() + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
-		  return;
-	   }
-	}
-
-	byte[] reserved = new byte[8];
-	if (readBuffer.remaining(DirectByteBuffer.SS_PEER) < reserved.length) {
-	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.remaining(DirectByteBuffer.SS_PEER),true, true);
-	   return;
-	}
-	else readBuffer.get(DirectByteBuffer.SS_PEER,reserved);
-	//Ignores reserved bytes
-
-
-	byte[] hash = manager.getHash();
-	byte[] otherHash = new byte[20];
-	if (readBuffer.remaining(DirectByteBuffer.SS_PEER) < otherHash.length) {
-	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.remaining(DirectByteBuffer.SS_PEER),true, true);
-	   return;
-	}
-	else {
-	   readBuffer.get(DirectByteBuffer.SS_PEER,otherHash);
-	   for (int i = 0; i < 20; i++) {
-		  if (otherHash[i] != hash[i]) {
-			 closeAll(toString() + " has sent handshake, but infohash is wrong",true, false);
-			 return;
-		  }
-	   }
-	}
-
-    
-	byte[] otherPeerId = new byte[20];
-	if (readBuffer.remaining(DirectByteBuffer.SS_PEER) < otherPeerId.length) {
-	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(DirectByteBuffer.SS_PEER),true, true);
-	   return;
-	}
-	readBuffer.get(DirectByteBuffer.SS_PEER,otherPeerId);
-
-  this.id = otherPeerId;
-  
-  //decode a client identification string from the given peerID
-  client = PeerClassifier.getClientDescription( otherPeerId );
-  
-  //make sure the client type is not banned
-  if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-    closeAll( client+ " client type not allowed to connect, banned", false, false );
-    return;
-  }
-
-  //make sure we are not connected to ourselves
-  if ( Arrays.equals( manager.getPeerId(), otherPeerId )) {
-    closeAll("OOPS, peerID matches myself", false, false);
-    return;
-  }
-  
-  //make sure we are not already connected to this peer
-  boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
-  boolean sameIP = false;
-  if (! COConfigurationManager.getBooleanParameter("Allow Same IP Peers")) {
-    if ( PeerIdentityManager.containsIPAddress( otherHash, ip )) {
-      sameIP = true;
-    }
-  }
-  if ( sameIdentity ) {
-    closeAll(toString() + " exchanged handshake, but peer matches pre-existing identity", false, false);
-    return;
-  }
-  if ( sameIP ) {
-    closeAll(toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false);
-    return;
-  }
-  
-  
-  //make sure we haven't reached our connection limit
-  int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
-  if ( maxAllowed == 0 ) {
-    closeAll("Too many existing peer connections", false, false);
-    return;
-  }
-  
-  
-  PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
-  identityAdded = true;
- 
-
-  LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
-               toString() + " has sent a handshake");
-
-
-	sendBitField();
-	readMessage(readBuffer);
-	manager.peerAdded(this);
-	currentState = new StateTransfering();
-  }
-
-  
-  protected void readMessage(DirectByteBuffer buffer) {
-  	lengthBuffer.position(DirectByteBuffer.SS_PEER,0);
-    if ( buffer != null ) {
-    	buffer.position(DirectByteBuffer.SS_PEER,0);
-    }
-  	readingLength = true;
-    readBuffer = buffer;
-  }
-
-
-  
+   
   
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
     //System.out.println(reason + ", " + closedOnError+ ", " + attemptReconnect);
@@ -453,13 +302,7 @@ PEPeerTransportProtocol
   	if ( this.id != null && identityAdded ) {
   		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
   	}
-  	
-    
-    if (readBuffer != null) {
-      readBuffer.returnToPool();
-      readBuffer = null;
-    }
-    
+
     if ( lengthBuffer != null ) {
       lengthBuffer.returnToPool();
       lengthBuffer = null;
@@ -508,38 +351,48 @@ PEPeerTransportProtocol
   }
 		
   private class StateHandshaking implements PEPeerTransportProtocolState {
-    private final byte[] pre_read;
-    private boolean handshake_sent = false;
+    DirectByteBuffer handshake_read_buff;
+    boolean sent_our_handshake = false;
     
     private StateHandshaking( byte[] data_already_read ) {
-      this.pre_read = data_already_read;
+      handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 68 );
+      if( handshake_read_buff == null ) {
+        closeAll( toString() + ": handshake_read_buff is null", true, false );
+        return;
+      }
+
+      if( data_already_read != null ) {
+        handshake_read_buff.put( DirectByteBuffer.SS_PEER, data_already_read );
+      }
     }
     
-		public synchronized int process() {
-      if( !handshake_sent ) {
+    public synchronized int process() {
+      if( !sent_our_handshake ) {
         doConnectionLinking();
-        handShake( pre_read );
-        handshake_sent = true;
+        outgoing_message_queue.addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ) );
+        sent_our_handshake = true;
       }
       
-			if (readBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
-				try {
-					int read = readData(readBuffer);
-          if (read == 0) {
+      if( handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
+        try {
+          int read = readData( handshake_read_buff );
+          if( read == 0 ) {
             return PEPeerControl.DATA_EXPECTED_SLEEP;
           }
-          else if (read < 0) {
-						throw new IOException("End of Stream Reached");
+          else if( read < 0 ) {
+						throw new IOException( "End of Stream reached" );
           }
-				} catch (IOException e) {
-					closeAll(PEPeerTransportProtocol.this + " : StateHandshaking:: " + e, true, false);
-					return 0;
+        }
+        catch (IOException e) {
+					closeAll( PEPeerTransportProtocol.this + ": StateHandshaking:: " + e, true, false );
+					handshake_read_buff.returnToPool();
+          return 0;
 				}
 			}
       
-			if (readBuffer.remaining(DirectByteBuffer.SS_PEER) == 0) {
-				handleHandShakeResponse();
-			}
+      if( !handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) { //we've read all their handshake in
+        handleHandShakeResponse( handshake_read_buff );
+      }
       
       return PEPeerControl.NO_SLEEP;
 		}
@@ -550,11 +403,134 @@ PEPeerTransportProtocol
 	}
 
   
+  protected void handleHandShakeResponse( DirectByteBuffer handshake_data ) {
+    handshake_data.position(DirectByteBuffer.SS_PEER, 0);
+
+    byte b;
+    if ((b = handshake_data.get(DirectByteBuffer.SS_PEER)) != (byte) BTHandshake.PROTOCOL.length()) {
+      closeAll(toString() + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
+      handshake_data.returnToPool();
+      return;
+    }
+
+    byte[] protocol = BTHandshake.PROTOCOL.getBytes();
+    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < protocol.length) {
+      closeAll(toString() + " has sent handshake, but handshake is of wrong size : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
+      handshake_data.returnToPool();
+      return;
+    }
+    else {
+      handshake_data.get(DirectByteBuffer.SS_PEER,protocol);
+      if (!(new String(protocol)).equals(BTHandshake.PROTOCOL)) {
+        closeAll(toString() + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
+        handshake_data.returnToPool();
+        return;
+      }
+    }
+
+    byte[] reserved = new byte[8];
+    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < reserved.length) {
+      closeAll(toString() + " has sent handshake, but handshake is of wrong size(2) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
+      handshake_data.returnToPool();
+      return;
+    }
+    else handshake_data.get(DirectByteBuffer.SS_PEER,reserved);
+    //Ignores reserved bytes
+
+    byte[] hash = manager.getHash();
+    byte[] otherHash = new byte[20];
+    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < otherHash.length) {
+      closeAll(toString() + " has sent handshake, but handshake is of wrong size(3) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
+      handshake_data.returnToPool();
+      return;
+    }
+    else {
+      handshake_data.get(DirectByteBuffer.SS_PEER,otherHash);
+      for (int i = 0; i < 20; i++) {
+        if (otherHash[i] != hash[i]) {
+          closeAll(toString() + " has sent handshake, but infohash is wrong",true, false);
+          handshake_data.returnToPool();
+          return;
+        }
+      }
+    }
+
+    byte[] otherPeerId = new byte[20];
+    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < otherPeerId.length) {
+      closeAll(toString() + " has sent handshake, but handshake is of wrong size(4) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
+      handshake_data.returnToPool();
+      return;
+    }
+    handshake_data.get( DirectByteBuffer.SS_PEER, otherPeerId );
+
+    this.id = otherPeerId;
+
+    //decode a client identification string from the given peerID
+    client = PeerClassifier.getClientDescription( otherPeerId );
+
+    //make sure the client type is not banned
+    if( !PeerClassifier.isClientTypeAllowed( client ) ) {
+      closeAll( client + " client type not allowed to connect, banned", false, false );
+      handshake_data.returnToPool();
+      return;
+    }
+
+    //make sure we are not connected to ourselves
+    if( Arrays.equals( manager.getPeerId(), otherPeerId ) ) {
+      closeAll( "OOPS, peerID matches myself", false, false );
+      handshake_data.returnToPool();
+      return;
+    }
+
+    //make sure we are not already connected to this peer
+    boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
+    boolean sameIP = false;
+    if( !COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ) {
+      if( PeerIdentityManager.containsIPAddress( otherHash, ip ) ) {
+        sameIP = true;
+      }
+    }
+    if( sameIdentity ) {
+      closeAll( toString() + " exchanged handshake, but peer matches pre-existing identity", false, false );
+      handshake_data.returnToPool();
+      return;
+    }
+    if( sameIP ) {
+      closeAll( toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false );
+      handshake_data.returnToPool();
+      return;
+    }
+
+    //make sure we haven't reached our connection limit
+    int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
+    if( maxAllowed == 0 ) {
+      closeAll( "Too many existing peer connections", false, false );
+      handshake_data.returnToPool();
+      return;
+    }
+
+    PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
+    identityAdded = true;
+
+    LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
+
+    sendBitField();
+    manager.peerAdded( this );
+    handshake_data.returnToPool();
+    currentState = new StateTransfering();
+  }
+  
+  
+  
   
 private class StateTransfering implements PEPeerTransportProtocolState {
+  boolean readingLength = true;
+  DirectByteBuffer message_read_buff;
+  
   public synchronized int process() {      
-    if(++processLoop > 10)
+    if( ++processLoop > 10 ) {
       return PEPeerControl.NO_SLEEP;
+    }
           
     if (readingLength) {
       if (lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER) ) {          
@@ -586,6 +562,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			if (!lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
 				int length = lengthBuffer.getInt(DirectByteBuffer.SS_PEER,0);
 
+        //this message-length-read round is done, time to read the payload
+        readingLength = false;
+        //reset the position for next round
+        lengthBuffer.position( DirectByteBuffer.SS_PEER, 0 );
+        
 				if(length < 0) {
 					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
@@ -598,15 +579,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 				}
         
 				if (length > 0) {
-					//return old readBuffer to pool if it's too small
-					if(readBuffer.capacity(DirectByteBuffer.SS_PEER) < length) {
-						readBuffer.returnToPool();
-						readBuffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_PT_READ,length);
-            if (readBuffer == null) { closeAll(PEPeerTransportProtocol.this + " readBuffer null",true, false); }
-					}
-      			
-					readBuffer.position(DirectByteBuffer.SS_PEER,0);
-					readBuffer.limit(DirectByteBuffer.SS_PEER,length);
+          message_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, length );
+          if( message_read_buff == null) {
+            closeAll( PEPeerTransportProtocol.this + ": message_read_buff is null", true, false );
+            return PEPeerControl.NO_SLEEP;
+          }
           
 					//'piece' data messages are greater than length 13
           if ( length > 13 ) {
@@ -616,19 +593,17 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           else {
             readyToRequest = false;
           }
-          
-					readingLength = false;
 				}
 				else {
-					//readingLength = 0 : Keep alive message, process next.
-					readMessage(readBuffer);
+					//length == 0 : Keep alive message, process next.
+					readingLength = true;
 				}
 			}
 		}
     
 	  if (!readingLength) {
 	  	try {
-	  		int read = readData(readBuffer);
+	  		int read = readData( message_read_buff );
         
         if (read == 0) {
           //nothing on the socket, wait a bit before trying again
@@ -637,23 +612,26 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	  		else if (read < 0) {
 	  			throw new IOException("End of Stream Reached");
 	  		}
-	  		else  {
-        if (readBuffer.limit(DirectByteBuffer.SS_PEER) > 13) {
-	  				stats.received(read);
-        }
+	  		else {
+	  		  if (message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13) {
+	  		    stats.received(read);
+	  		  }
 	  		}
 	  	}
 	  	catch (IOException e) {
 	  		closeAll(PEPeerTransportProtocol.this + " : StateTransfering::End of Stream Reached (reading data)",true, true);
-	  		return PEPeerControl.NO_SLEEP;
+	  		message_read_buff.returnToPool();
+        return PEPeerControl.NO_SLEEP;
 	  	}
     
-	  	if (!readBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
+	  	if( !message_read_buff.hasRemaining(DirectByteBuffer.SS_PEER) ) {
 	  		//After each message has been received, we're not ready to request anymore,
 	  		//Unless we finish the socket's queue, or we start receiving a piece.
 	  		readyToRequest = false;
-	  		analyseBuffer(readBuffer);         
-	  		if(getState() == TRANSFERING && readingLength) {
+        
+        readingLength = analyzeIncomingMessage( message_read_buff );
+        
+	  		if( getState() == TRANSFERING && readingLength ) {
 	  			process();
 	  			return PEPeerControl.NO_SLEEP;
 	  		}
@@ -723,214 +701,215 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	return (!choked && interested_in_other_peer);
   }
 
-  private void analyseBuffer(DirectByteBuffer buffer) {
-  	boolean	logging_is_on = LGLogger.isLoggingOn();
-	buffer.position(DirectByteBuffer.SS_PEER,0);
-	int pieceNumber, pieceOffset, pieceLength;
-	byte cmd = buffer.get(DirectByteBuffer.SS_PEER);
-	switch (cmd) {
-	  case BT_CHOKED :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 1) {
-			  closeAll(toString() + " choking received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " is choking you");
-			choked = true;
-			cancelRequests();
-			readMessage(buffer);
-			break;
-	  case BT_UNCHOKED :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 1) {
-			  closeAll(toString() + " unchoking received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " is unchoking you");
-			choked = false;
-			readMessage(buffer);
-			break;
-	  case BT_INTERESTED :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 1) {
-			  closeAll(toString() + " interested received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " is interested");
-			other_peer_interested_in_me = true;
-			readMessage(buffer);
-			break;
-	  case BT_UNINTERESTED :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 1) {
-			  closeAll(toString() + " uninterested received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " is not interested");
-			other_peer_interested_in_me = false;
-      
-      //force send any pending haves in case one of them would make the other peer interested again
-      if( outgoing_have_message_aggregator != null )  outgoing_have_message_aggregator.forceSendOfPending();
-      
-			readMessage(buffer);
-			break;
-	  case BT_HAVE :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 5) {
-			  closeAll(toString() + " have received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			pieceNumber = buffer.getInt(DirectByteBuffer.SS_PEER);
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " has " + pieceNumber);
-			have(pieceNumber);
-			readMessage(buffer);
-			break;
-	  case BT_BITFIELD :
-	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " has sent BitField");
-			setBitField(buffer);
-			checkInterested();
-			checkSeed();
-			readMessage(buffer);
-			break;
-	  case BT_REQUEST :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 13) {
-			  closeAll(toString() + " request received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			pieceNumber = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceOffset = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceLength = buffer.getInt(DirectByteBuffer.SS_PEER);
-			
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
-			                                  toString() + " has requested #" + 
-			                                  pieceNumber + ":" + pieceOffset + "->" + 
-			                                  (pieceOffset + pieceLength -1));
-			
-			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-			  if( !choking ) {
-          outgoing_piece_message_handler.addPieceRequest( pieceNumber, pieceOffset, pieceLength );
-			  }
-        else {
-			    LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, toString()
-	        + " has requested #"
-	        + pieceNumber
-	        + ":"
-	        + pieceOffset
-	        + "->"
-	        + (pieceOffset + pieceLength)        
-	        + " but peer is currently choked. Request dropped");
-			  }
-			}
-			else {
-			  closeAll(toString()
-	        + " has requested #"
-	        + pieceNumber
-	        + ":"
-	        + pieceOffset
-	        + "->"
-	        + (pieceOffset + pieceLength)        
-	        + " which is an invalid request.",
-	        true, true);
-			  return;
-			}
-			readMessage(buffer);
-			break;
-	  case BT_PIECE :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) < 9) {
-			   closeAll(toString() + " piece block received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			   break;
-			}
-			pieceNumber = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceOffset = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceLength = buffer.limit(DirectByteBuffer.SS_PEER) - buffer.position(DirectByteBuffer.SS_PEER);
-      String msg = "";
-			if ( logging_is_on ){
-        msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength -1);
-			}
-			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-      
-      if( manager.checkBlock( pieceNumber, pieceOffset, buffer ) ) {
-        if( alreadyRequested( request ) ) {
-          removeRequest( request );
-          manager.received( pieceLength );
-          setSnubbed( false );
-          reSetRequestsTime();
-          int	buffer_limit	= buffer.limit(DirectByteBuffer.SS_PEER);	// get this before we hand the buffer over
-          manager.writeBlock( pieceNumber, pieceOffset, buffer, this );
-          buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ,buffer_limit );
-          requests_completed++;
+  
+  private boolean analyzeIncomingMessage( DirectByteBuffer message_buff ) {
+    boolean logging_is_on = LGLogger.isLoggingOn();
+    
+    message_buff.position( DirectByteBuffer.SS_PEER, 0 );
+    
+    int pieceNumber, pieceOffset, pieceLength;
+    byte cmd = message_buff.get( DirectByteBuffer.SS_PEER );
+    switch( cmd ) {
+      case BT_CHOKED :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
+          closeAll( toString() + " choking received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
         }
-        else {  //initial request may have already expired, but check if we can use the data anyway
-          if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
-            boolean ever_requested;
-            synchronized( recent_outgoing_requests ) {
-              ever_requested = recent_outgoing_requests.containsKey( request );
-            }
-            if( ever_requested ) {  //security-measure: we dont want to be accepting any ol' random block
-              manager.received( pieceLength );
-              setSnubbed( false );
-              reSetRequestsTime();
-              
-              int	buffer_limit	= buffer.limit(DirectByteBuffer.SS_PEER);	// get this before we hand the buffer over
-              
-              manager.writeBlockAndCancelOutstanding( pieceNumber, pieceOffset, buffer, this );
-              buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ,buffer_limit );
-              msg += ", piece block data recovered as useful";
-              requests_recovered++;
-              printRequestStats();
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is choking you" );
+        }
+        choked = true;
+        cancelRequests();
+        message_buff.returnToPool();
+        return true;
+      case BT_UNCHOKED :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
+          closeAll( toString() + " unchoking received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is unchoking you" );
+        }
+        choked = false;
+        message_buff.returnToPool();
+        return true;
+      case BT_INTERESTED :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
+          closeAll( toString() + " interested received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is interested" );
+        }
+        other_peer_interested_in_me = true;
+        message_buff.returnToPool();
+        return true;
+      case BT_UNINTERESTED :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
+          closeAll( toString() + " uninterested received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is not interested" );
+        }
+        other_peer_interested_in_me = false;
+
+        //force send any pending haves in case one of them would make the other peer interested again
+        if( outgoing_have_message_aggregator != null ) {
+          outgoing_have_message_aggregator.forceSendOfPending();
+        }
+
+        message_buff.returnToPool();
+        return true;
+      case BT_HAVE :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 5 ) {
+          closeAll( toString() + " have received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has " + pieceNumber );
+        }
+        have( pieceNumber );
+        message_buff.returnToPool();
+        return true;
+      case BT_BITFIELD :
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has sent BitField" );
+        }
+        setBitField( message_buff );
+        checkInterested();
+        checkSeed();
+        message_buff.returnToPool();
+        return true;
+      case BT_REQUEST :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 13 ) {
+          closeAll( toString() + " request received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceLength = message_buff.getInt( DirectByteBuffer.SS_PEER );
+
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength - 1) );
+        }
+
+        if( manager.checkBlock( pieceNumber, pieceOffset, pieceLength ) ) {
+          if( !choking ) {
+            outgoing_piece_message_handler.addPieceRequest( pieceNumber, pieceOffset, pieceLength );
+          }
+          else {
+            LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength) + " but peer is currently choked. Request dropped" );
+          }
+        }
+        else {
+          closeAll( toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength) + " which is an invalid request.", true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        message_buff.returnToPool();
+        return true;
+      case BT_PIECE :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) < 9 ) {
+          closeAll( toString() + " piece block received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceLength = message_buff.limit( DirectByteBuffer.SS_PEER ) - message_buff.position( DirectByteBuffer.SS_PEER );
+        
+        String msg = "";
+        if( logging_is_on ) {
+          msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength - 1);
+        }
+        
+        DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
+
+        if( manager.checkBlock( pieceNumber, pieceOffset, message_buff ) ) {
+          if( alreadyRequested( request ) ) {
+            removeRequest( request );
+            manager.received( pieceLength );
+            setSnubbed( false );
+            reSetRequestsTime();
+            manager.writeBlock( pieceNumber, pieceOffset, message_buff, this );
+            requests_completed++;
+          }
+          else { //initial request may have already expired, but check if we can use the data anyway
+            if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
+              boolean ever_requested;
+              synchronized( recent_outgoing_requests ) {
+                ever_requested = recent_outgoing_requests.containsKey( request );
+              }
+              if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
+                msg += ", piece block data recovered as useful";
+                manager.received( pieceLength );
+                setSnubbed( false );
+                reSetRequestsTime();
+                manager.writeBlockAndCancelOutstanding( pieceNumber, pieceOffset, message_buff, this );
+                requests_recovered++;
+                printRequestStats();
+              }
+              else {
+                msg += ", but piece block discarded as never requested";
+                stats.discarded( pieceLength );
+                manager.discarded( pieceLength );
+                message_buff.returnToPool();
+                requests_discarded++;
+                printRequestStats();
+              }
             }
             else {
-              msg += ", but piece block discarded as never requested";
+              msg += ", but piece block discarded as already written";
               stats.discarded( pieceLength );
               manager.discarded( pieceLength );
+              message_buff.returnToPool();
               requests_discarded++;
               printRequestStats();
             }
           }
-          else {
-            msg += ", but piece block discarded as already written";
-            stats.discarded( pieceLength );
-            manager.discarded( pieceLength );
-            requests_discarded++;
-            printRequestStats();
-          }
         }
-      }
-      else {
-        msg += ", but piece block discarded as invalid";
-        stats.discarded( pieceLength );
-        manager.discarded( pieceLength );
-        requests_discarded++;
-        printRequestStats();
-      }
+        else {
+          msg += ", but piece block discarded as invalid";
+          stats.discarded( pieceLength );
+          manager.discarded( pieceLength );
+          message_buff.returnToPool();
+          requests_discarded++;
+          printRequestStats();
+        }
 
-      if( logging_is_on )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
-      
-      readMessage(buffer);
-			break;
-	  case BT_CANCEL :
-			if (buffer.limit(DirectByteBuffer.SS_PEER) != 13) {
-			  closeAll(toString() + " cancel received, but message of wrong size : " + buffer.limit(DirectByteBuffer.SS_PEER),true, true);
-			  break;
-			}
-			pieceNumber = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceOffset = buffer.getInt(DirectByteBuffer.SS_PEER);
-			pieceLength = buffer.getInt(DirectByteBuffer.SS_PEER);
-			if ( logging_is_on ){
-				LGLogger.log(
-					componentID,
-					evtProtocol,
-					LGLogger.RECEIVED,
-					toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength -1));
-			}
-      outgoing_piece_message_handler.removePieceRequest( pieceNumber, pieceOffset, pieceLength );
-			readMessage(buffer);
-			break;
-	  default:
-       Debug.out(toString() + " has sent an unknown protocol message id: " + cmd);
-	    closeAll(toString() + " has sent a wrong message " + cmd,true, true);
-	}
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
+        }
+        return true;
+      case BT_CANCEL :
+        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 13 ) {
+          closeAll( toString() + " cancel received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
+          message_buff.returnToPool();
+          return false;
+        }
+        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        pieceLength = message_buff.getInt( DirectByteBuffer.SS_PEER );
+        if( logging_is_on ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength - 1) );
+        }
+        outgoing_piece_message_handler.removePieceRequest( pieceNumber, pieceOffset, pieceLength );
+        message_buff.returnToPool();
+        return true;
+      default :
+        Debug.out( toString() + " has sent an unknown protocol message id: " + cmd );
+        closeAll( toString() + " has sent a wrong message " + cmd, true, true );
+        message_buff.returnToPool();
+        return false;
+    }
   }
   
   
