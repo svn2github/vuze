@@ -37,6 +37,8 @@ AESemaphore
 
 	protected boolean	released_forever	= false;
 
+	protected Thread	latest_waiter;
+	
 	public
 	AESemaphore(
 		String		_name )
@@ -101,6 +103,8 @@ AESemaphore
 				try{
 					waiting++;
 
+					latest_waiter	= Thread.currentThread();
+					
 					if ( waiting > 1 ){
 						
 						// System.out.println( "AESemaphore: " + name + " contended" );
@@ -133,6 +137,10 @@ AESemaphore
 					Debug.out( "**** semaphore operation interrupted ****" );
 
 					throw( new RuntimeException("Semaphore: operation interrupted" ));
+					
+				}finally{
+					
+					latest_waiter = null;
 				}
 			}else{
 				int	num_to_get = max_to_reserve>dont_wait?dont_wait:max_to_reserve;

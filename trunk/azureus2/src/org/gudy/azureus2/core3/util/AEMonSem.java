@@ -201,7 +201,9 @@ AEMonSem
 				
 				AEMonSem	ms = (AEMonSem)waiting_monitors.get(i);
 				
-				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
+				Thread last_waiter = ((AEMonitor)ms).last_waiter;
+
+				diag_logger.log( "        [" + (last_waiter==null?"<waiter lost>":last_waiter.getName()) + "] " +  ms.name + " - " + ms.last_trace_key );
 			}
 		}
 		
@@ -213,7 +215,9 @@ AEMonSem
 				
 				AEMonSem	ms = (AEMonSem)busy_monitors.get(i);
 				
-				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
+				Thread owner = ((AEMonitor)ms).owner;
+				
+				diag_logger.log( "        [" + (owner==null?"<owner lost>":owner.getName()) + "] " + ms.name + " - " + ms.last_trace_key );
 			}
 		}
 		
@@ -225,9 +229,12 @@ AEMonSem
 				
 				AEMonSem	ms = (AEMonSem)waiting_semaphores.get(i);
 				
-				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
+				Thread last_waiter = ((AESemaphore)ms).latest_waiter;
+
+				diag_logger.log( "        [" + (last_waiter==null?"<waiter lost>":last_waiter.getName()) + "] " +  ms.name + " - " + ms.last_trace_key );
 			}
 		}
+		
 		for (int i=0;i<x.length;i++){
 			
 			AEMonSem	ms = x[i];

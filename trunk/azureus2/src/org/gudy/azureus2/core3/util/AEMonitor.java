@@ -35,7 +35,8 @@ AEMonitor
 {
 	protected int			dont_wait	= 1;
 	protected int			nests		= 0;
-	protected Thread		owner		= null;
+	protected Thread		owner;
+	protected Thread		last_waiter;
 	
 	public
 	AEMonitor(
@@ -69,6 +70,8 @@ AEMonitor
 					try{
 						waiting++;
 
+						last_waiter	= current_thread;
+						
 						if ( waiting > 1 ){
 							
 							// System.out.println( "AEMonitor: " + name + " contended" );
@@ -88,6 +91,10 @@ AEMonitor
 						Debug.out( "**** monitor interrupted ****" );
 						
 						throw( new RuntimeException("AEMonitor:interrupted" ));
+						
+					}finally{
+						
+						last_waiter = null;
 					}
 				}else{
 					
