@@ -108,7 +108,6 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
         parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
         parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
-        parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
         //parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
         parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
         parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
@@ -422,7 +421,6 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigBool(tmpl,"Core_bCheckPiecesOnCompletion");
     handleConfigInt(tmpl, "Core_iSeedingShareStop");
     handleConfigInt(tmpl, "Core_iSeedingRatioStop");
-    handleConfigInt(tmpl, "Core_iSeedingRatioStart");
     handleConfigBool(tmpl,"Core_bDisconnectSeed");
     handleConfigBool(tmpl,"Core_bSwitchPriority");
     handleConfigStr(tmpl, "Core_sPriorityExtensions");

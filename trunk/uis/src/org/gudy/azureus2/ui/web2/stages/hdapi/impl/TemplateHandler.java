@@ -117,7 +117,6 @@ public class TemplateHandler implements httpRequestHandlerIF {
     handleConfigBool(tmpl, "Core_bCheckPiecesOnCompletion");
     handleConfigInt(tmpl, "Core_iSeedingShareStop");
     handleConfigInt(tmpl, "Core_iSeedingRatioStop");
-    handleConfigInt(tmpl, "Core_iSeedingRatioStart");
     handleConfigBool(tmpl, "Core_bDisconnectSeed");
     handleConfigBool(tmpl, "Core_bSwitchPriority");
     handleConfigStr(tmpl, "Core_sPriorityExtensions");
