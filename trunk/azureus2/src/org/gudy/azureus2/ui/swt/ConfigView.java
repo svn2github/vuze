@@ -300,7 +300,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.irclogin"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
-    new StringParameter(gIrc, "Irc Login", "user" + (int) (Math.random() * 100000)).setLayoutData(gridData); //$NON-NLS-1$
+    new StringParameter(gIrc, "Irc Login", "").setLayoutData(gridData); //$NON-NLS-1$
 
     Group gSecurity = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gSecurity, "ConfigView.section.security"); //$NON-NLS-1$

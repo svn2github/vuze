@@ -41,6 +41,7 @@ public class IrcView extends AbstractIView implements IrcListener {
   Color[] colors;
 
   IrcClient client;
+  boolean newMessage;
   
   private String lastPrivate;
 
@@ -54,6 +55,7 @@ public class IrcView extends AbstractIView implements IrcListener {
     layout.makeColumnsEqualWidth = false;
     composite.setLayout(layout);
     consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+    consoleText.setWordWrap(true);
     GridData gridData = new GridData(GridData.FILL_BOTH | GridData.CENTER);
     gridData.grabExcessHorizontalSpace = true;
     consoleText.setLayoutData(gridData);
@@ -88,7 +90,6 @@ public class IrcView extends AbstractIView implements IrcListener {
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
     client = new IrcClient(this);
-
   }
 
   /* (non-Javadoc)
@@ -101,7 +102,9 @@ public class IrcView extends AbstractIView implements IrcListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
-  public void refresh() {}
+  public void refresh() {
+    newMessage = false;
+  }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#delete()
@@ -123,7 +126,11 @@ public class IrcView extends AbstractIView implements IrcListener {
     String result = MessageText.getString("IrcView.title.short");
     if(client != null) {
       result += " " + client.getChannel() + " on " + client.getSrvName();
-    }        
+    }     
+    if(newMessage && (System.currentTimeMillis() / 1000)%2 == 0)
+      result += " !";   
+    else
+      result += "  ";
     return result; //$NON-NLS-1$
   }
 
@@ -131,11 +138,13 @@ public class IrcView extends AbstractIView implements IrcListener {
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return MessageText.getString("IrcView.title.full"); //$NON-NLS-1$
+    String result = MessageText.getString("IrcView.title.full") + " ";
+    return  result ; //$NON-NLS-1$
   }
 
   public void messageReceived(String sender, String message) {
     doLog(2, "<" + sender + "> " + message);
+    newMessage = true;
   }
 
   public void systemMessage(String message) {
@@ -296,6 +305,7 @@ public class IrcView extends AbstractIView implements IrcListener {
    */
   public void notice(String sender, String message) {
     doLog(3,MessageText.getString("IrcView.noticefrom") + " -" + sender + "- " + message);
+    newMessage = true;
   }
 
   /* (non-Javadoc)
@@ -304,6 +314,7 @@ public class IrcView extends AbstractIView implements IrcListener {
   public void privateMessage(String sender, String message) {
     doLog(3,MessageText.getString("IrcView.privatefrom") + " *" + sender + "* " + message);
     lastPrivate = sender;
+    newMessage = true;
   }
 
 }
