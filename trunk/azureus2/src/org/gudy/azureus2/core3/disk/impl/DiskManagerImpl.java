@@ -59,7 +59,7 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  */
 public class 
 DiskManagerImpl
-	implements DiskManager 
+	implements DiskManager, ParameterListener 
 {  
   
 	private int state;
@@ -114,6 +114,7 @@ DiskManagerImpl
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
+  private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", false);
   
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
 		this.state = INITIALIZING;
@@ -128,7 +129,8 @@ DiskManagerImpl
 			hasher = new SHA1Hasher();
 		} catch (NoSuchAlgorithmException ignore) {/*ignore*/}
     
-		Thread init = new Thread() {
+    COConfigurationManager.addParameterListener("Use Resume", this);
+    Thread init = new Thread() {
 			public void run() {
 				initialize();
 				if (state == DiskManager.FAULTY) {
@@ -425,7 +427,7 @@ DiskManagerImpl
 		state = CHECKING;
       int startPos = 0;
 		
-      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
+      boolean resumeEnabled = useFastResume;
       //disable fast resume if a new file was created
       if (newfiles) resumeEnabled = false;
 		
@@ -975,7 +977,6 @@ DiskManagerImpl
 	}
 
 	public void dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate) {
-		boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume",false);
 		if(!useFastResume)
 		  return;
         
@@ -1656,6 +1657,14 @@ DiskManagerImpl
   
   public boolean isWriteThreadRunning() {
     return writeThread.isStillRunning();
+  }
+
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", false);
   }
 
 }
