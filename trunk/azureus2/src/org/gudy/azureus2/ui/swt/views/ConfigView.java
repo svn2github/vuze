@@ -972,11 +972,16 @@ public class ConfigView extends AbstractIView {
 		
 	  final StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
 	  
+	  gridData = new GridData();
+	  gridData.widthHint = 100;
+
+	  tracker_ip.setLayoutData( gridData );
+	  
 	  Button check_button = new Button(gTracker, SWT.PUSH);
 	  
 	  Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
 
-    final Display display = gTracker.getDisplay();
+      final Display display = gTracker.getDisplay();
     
 	  check_button.addListener(SWT.Selection, new Listener() {
 
@@ -1055,6 +1060,11 @@ public class ConfigView extends AbstractIView {
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
 		
 	  IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
+
+	  gridData = new GridData();
+	  gridData.widthHint = 50;
+
+	  tracker_port.setLayoutData( gridData );
 
 	  label = new Label(gTracker, SWT.NULL);
 		
