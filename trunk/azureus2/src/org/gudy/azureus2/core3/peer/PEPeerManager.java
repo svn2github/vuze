@@ -27,7 +27,6 @@ package org.gudy.azureus2.core3.peer;
  */
 
 import java.util.List;
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.tracker.client.*;

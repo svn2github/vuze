@@ -10,7 +10,6 @@ package org.gudy.azureus2.core3.peer.impl.control;
 
 
 import java.util.*;
-import java.net.URL;
 
 
 import org.gudy.azureus2.core3.torrent.*;

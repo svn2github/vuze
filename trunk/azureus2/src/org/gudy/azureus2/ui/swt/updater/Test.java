@@ -20,11 +20,8 @@
  */
 package org.gudy.azureus2.ui.swt.updater;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 
 
 /**

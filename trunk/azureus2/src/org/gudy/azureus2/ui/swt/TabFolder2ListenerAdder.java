@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabFolder;

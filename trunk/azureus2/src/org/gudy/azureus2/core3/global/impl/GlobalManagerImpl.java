@@ -39,7 +39,6 @@ import java.util.Collections;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;

@@ -96,8 +96,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
-import com.sun.corba.se.internal.core.Constant;
-
 /** Displays a list of torrents in a table view.
  *
  * @author Olivier

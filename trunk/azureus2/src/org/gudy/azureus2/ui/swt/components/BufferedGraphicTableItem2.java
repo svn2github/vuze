@@ -21,11 +21,8 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.graphics.GC;
@@ -36,10 +33,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /** Draws an image at a column in a row of a table using a Canvas.
  * In comparison to BufferedGraphicTable, which uses direct paints to table,
