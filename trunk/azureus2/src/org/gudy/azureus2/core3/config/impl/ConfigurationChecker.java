@@ -86,23 +86,26 @@ public class ConfigurationChecker {
       String port = COConfigurationManager.getStringParameter("Proxy.Port");
       String user = COConfigurationManager.getStringParameter("Proxy.Username");
       String pass = COConfigurationManager.getStringParameter("Proxy.Password");
-      
-      System.setProperty("proxySet", "true");
-      System.setProperty("http.proxyHost", host);
-      System.setProperty("http.proxyPort", port);
-      System.setProperty("https.proxyHost", host);
-      System.setProperty("https.proxyPort", port);
-      
+
       if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", true) ) {
         System.setProperty("socksProxyHost", host);
         System.setProperty("socksProxyPort", port);
+        
+        if (user.length() > 0) {
+          System.setProperty("java.net.socks.username", user);
+          System.setProperty("java.net.socks.password", pass);
+        }
       }
-      
-      if (user.length() > 0) {
-        System.setProperty("http.proxyUser", user);
-        System.setProperty("http.proxyPassword", pass);
-        System.setProperty("java.net.socks.username", user);
-        System.setProperty("java.net.socks.password", pass);
+      else {
+        System.setProperty("http.proxyHost", host);
+        System.setProperty("http.proxyPort", port);
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", port);
+        
+        if (user.length() > 0) {
+          System.setProperty("http.proxyUser", user);
+          System.setProperty("http.proxyPassword", pass);
+        }
       }
     }
   
@@ -133,6 +136,16 @@ public class ConfigurationChecker {
       COConfigurationManager.setParameter("Max Upload Speed", -1);
       changed = true;
     }
+    
+    /*
+    //migrate to new dual connection limit option
+    int maxclients = COConfigurationManager.getIntParameter("Max Clients", -1);
+    if ( maxclients > -1 ) {      
+      COConfigurationManager.setParameter("Max.Peer.Connections.Per.Torrent", maxclients);
+      COConfigurationManager.setParameter("Max Clients", -1);
+      changed = true;
+    }
+    */
     
     int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
     if(maxUpSpeed > 0 && maxUpSpeed < 5) {
