@@ -16,7 +16,9 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
+import com.apple.eawt.*; //Application and ApplicationAdapter
 
 public class CarbonUIEnhancer {
          private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
@@ -31,6 +33,19 @@ public class CarbonUIEnhancer {
          fgAboutActionName = MessageText.getString("MainWindow.menu.help.about");
       }
       earlyStartup();
+      registerTorrentFile();
+   }
+   
+   private void registerTorrentFile() {
+     
+     Application app = new Application();
+     app.addApplicationListener(new ApplicationAdapter() {
+         public void handleOpenFile(ApplicationEvent evt) {
+           String filename = evt.getFilename();
+           TorrentOpener.openTorrent( filename );
+           evt.setHandled( true );
+         }
+     });
    }
 
    /* (non-Javadoc)
