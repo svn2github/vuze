@@ -51,11 +51,13 @@ public class PeerTableItem {
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";
 
-    display.syncExec(new Runnable() {
+	item = new TableItem(table, SWT.NULL);
+
+    display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;
-        item = new TableItem(table, SWT.NULL);
+                
         table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
           public void handleEvent(Event e) {
             valid = false;
