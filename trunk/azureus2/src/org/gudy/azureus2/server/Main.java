@@ -8,17 +8,21 @@ package org.gudy.azureus2.server;
 
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core.ILocaleUtilChooser;
+import org.gudy.azureus2.core.LocaleUtil;
+
 /**
  *
  * @author  Tobias Minich
  */
-public class Main {
+public class Main implements ILocaleUtilChooser {
   
   Jhttpp2Server server;
   GlobalManager gm;
   
   /** Creates a new instance of Main */
   public Main(String args[]) {
+    LocaleUtil.setLocaleUtilChooser(this);
     gm = new GlobalManager();
     server = new Jhttpp2Server(gm, true);
     new Thread(server).start();
@@ -27,6 +31,10 @@ public class Main {
   
   public static void main(String args[]) {
     new Main(args);
+  }
+  
+  public org.gudy.azureus2.core.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
+    return new LocaleUtilServer(lastEncoding);
   }
   
 }

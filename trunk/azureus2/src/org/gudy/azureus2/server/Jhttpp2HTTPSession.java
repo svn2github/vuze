@@ -388,15 +388,21 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_Allocating", Boolean.TRUE);
         else if (dmstate == DownloadManager.STATE_CHECKING)
           h.put("Torrents_Torrent_Checking", Boolean.TRUE);
-        h.put("Torrents_Torrent_PercentDone", Integer.toString(dm.getCompleted()/10));
-        h.put("Torrents_Torrent_PercentLeft", Integer.toString((1000-dm.getCompleted())/10));
-        h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) dm.getCompleted())/10));
-        h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) dm.getCompleted())/10));
+        try {
+          h.put("Torrents_Torrent_PercentDone", Integer.toString(dm.getCompleted()/10));
+          h.put("Torrents_Torrent_PercentLeft", Integer.toString((1000-dm.getCompleted())/10));
+          h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) dm.getCompleted())/10));
+          h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) dm.getCompleted())/10));
+        } catch (ArithmeticException e) {}
         h.put("Torrents_Torrent_SpeedDown", dm.getDownloadSpeed());
         h.put("Torrents_Torrent_SpeedUp", dm.getUploadSpeed());
         h.put("Torrents_Torrent_FileSize", PeerStats.format(dm.getSize()));
-        h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
+        try {
+          h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
+        } catch (ArithmeticException e) {}
         h.put("Torrents_Torrent_FileName", dm.getName());
+        if (dmstate == DownloadManager.STATE_ERROR)
+          h.put("Torrents_Torrent_Error", dm.getErrorDetails());
         h.put("Torrents_Torrent_Status", this.status.get(new Integer(dmstate)));
         HashData hd = dm.getHashData();
         if (hd == null) {
@@ -495,7 +501,7 @@ public class Jhttpp2HTTPSession extends Thread {
           DownloadManager dm = (DownloadManager) torrent.next();
           dls.put(ByteFormater.nicePrint(dm.getHash(), true), dm);
         }
-      
+        
         Set keys = URIvars.keySet();
         Iterator ikeys = keys.iterator();
         while (ikeys.hasNext()) {

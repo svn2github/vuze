@@ -54,6 +54,9 @@
                                 </tr>
                                 <tr>
                                     <td>
+                                      <TMPL_IF Torrents_Torrent_Error>
+                                        <TMPL_VAR Torrents_Torrent_Status>: <TMPL_VAR Torrents_Torrent_Error>
+                                      <TMPL_ELSE>
                                         <table width="100%" bordercolor="#0000BB" border=1 cellspacing=0 cellpadding=0><tr><td>
                                             <table width="100%" height="100%">
                                                 <tr>
@@ -76,6 +79,7 @@
                                                 </tr>
                                             </table>
                                         </tr></td></table>
+                                      </TMPL_IF>
                                     </td>
                                 </tr>
                             </table>
