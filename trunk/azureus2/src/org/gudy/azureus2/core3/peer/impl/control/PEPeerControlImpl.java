@@ -281,9 +281,11 @@ PEPeerControlImpl
           {
           //::moved check finished to the front -Tyler
           checkFinished(); //see if we've finished
-          _diskManager.computePriorityIndicator();
-          checkRequests(); //check the requests               
-          checkDLPossible(); //look for downloadable pieces          
+          if(!_finished) {
+            _diskManager.computePriorityIndicator();
+            checkRequests(); //check the requests               
+            checkDLPossible(); //look for downloadable pieces
+          }
         }
         checkSeeds(false);
         unChoke();
