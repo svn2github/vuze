@@ -63,7 +63,7 @@ Main
 				
 				Thread.sleep(1000);
 								
-				PRUDPPacket request_packet = new PRUDPPacketRequestConnect(999);
+				PRUDPPacket request_packet = new PRUDPPacketRequestConnect();
 				 
 				PRUDPPacket reply_packet = handler.sendAndReceive( request_packet, address );
 				

@@ -177,6 +177,17 @@ TorrentImpl
 		return( res );
 	}
 	
+	public String
+	getEncoding()
+	{
+		if ( decoder != null ){
+			
+			return( decoder.getName());
+		}
+		
+		return( Constants.DEFAULT_ENCODING );
+	}
+	
 	protected String
 	decode(
 		byte[]		data )

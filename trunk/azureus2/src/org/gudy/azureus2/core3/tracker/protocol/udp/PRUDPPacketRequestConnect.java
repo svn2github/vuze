@@ -33,10 +33,9 @@ PRUDPPacketRequestConnect
 	extends PRUDPPacketRequest
 {
 	public
-	PRUDPPacketRequestConnect(
-		long				con_id )
+	PRUDPPacketRequestConnect()
 	{
-		super( ACT_REQUEST_CONNECT, con_id );
+		super( ACT_REQUEST_CONNECT, PRUDPPacket.INITIAL_CONNECTION_ID );
 	}
 	
 	protected

@@ -44,7 +44,7 @@ PRUDPPacket
 	}
 	
 	public static final int	MAX_PACKET_SIZE			= 8192;
-	public static final int DEFAULT_UDP_TIMEOUT		= 15000;
+	public static final int DEFAULT_UDP_TIMEOUT		= 30000;
 	public static final int DEFAULT_RETRY_COUNT		= 1;		// changed from 4 after advice from XTF
 	
 	public static final int	ACT_REQUEST_CONNECT		= 0;

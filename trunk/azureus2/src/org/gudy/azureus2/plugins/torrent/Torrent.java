@@ -82,6 +82,9 @@ Torrent
 	public TorrentFile[]
 	getFiles();
 	
+	public String
+	getEncoding();
+	
 	public Map
 	writeToMap()
 	

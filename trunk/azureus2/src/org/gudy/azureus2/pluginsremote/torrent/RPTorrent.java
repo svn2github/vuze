@@ -186,6 +186,15 @@ RPTorrent
 		
 		return(0);
 	}	
+	
+	public String
+	getEncoding()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public TorrentFile[]
 	getFiles()
 	{
