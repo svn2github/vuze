@@ -597,20 +597,10 @@ public class GlobalManagerImpl
   }
   
 
-  private void loadDownloads() {
-    FileInputStream fin = null;
-    BufferedInputStream bin = null;
-    try {
-      //open the file
-      File configFile = FileUtil.getUserFile("downloads.config");
+  private void loadDownloads() 
+  {
+      Map map = FileUtil.readResilientConfigFile("downloads.config");
       
-      if ( configFile.length() <= 1L ) {
-        throw new FileNotFoundException();
-      }
-      
-      fin = new FileInputStream(configFile);
-      bin = new BufferedInputStream(fin, 8192);
-      Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
       int numDownloading = 0;
       int numCompleted = 0;
@@ -721,28 +711,10 @@ public class GlobalManagerImpl
       // Someone could have mucked with the config file and set weird positions,
       // so fix them up.
       fixUpDownloadManagerPositions();
-    }
-    catch (FileNotFoundException e) {
-      LGLogger.log("Unable to load downloads.config: file not found or file is zero-sized");
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-    finally {
-      try {
-        if (bin != null)
-          bin.close();
-      }
-      catch (Exception e) {}
-      try {
-        if (fin != null)
-          fin.close();
-      }
-      catch (Exception e) {}
-    }
   }
 
-  private void saveDownloads() {
+  private void saveDownloads() 
+  {
     //    if(Boolean.getBoolean("debug")) return;
 
   	synchronized( managers ){
@@ -789,28 +761,7 @@ public class GlobalManagerImpl
 	    }
 	    map.put("downloads", list);
         
-      BufferedOutputStream bos = null;
-       
-	    try {
-	    	//encode the data
-	    	byte[] torrentData = BEncoder.encode(map);
-            
-	    	File file = FileUtil.getUserFile("downloads.config");
-         
-	    	bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
-	    	bos.write( torrentData );
-	    	bos.flush();           
-	    }
-	    catch (Exception e) {
-	      e.printStackTrace();
-	    }
-	    finally {
-	      try {
-	        if (bos != null)
-	          bos.close();
-	      }
-	      catch (Exception e) {}
-	    }
+	    FileUtil.writeResilientConfigFile("downloads.config", map );
   	}
   }
 

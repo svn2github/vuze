@@ -53,81 +53,19 @@ public class ConfigurationManager {
   	return config;
   }
   
-  public void load(String filename) {
-    BufferedInputStream bin = null;
-    
-    try {
-      //open the file
-      File file = new File( SystemProperties.getUserPath() + filename );
-      
-      //make sure the file exists and isn't zero-length
-      if ( file.length() <= 1L ) {
-        //if so, try using the backup file
-        file = new File( SystemProperties.getUserPath() + filename + ".bak" );
-        if ( file.length() <= 1L ) {
-          throw new FileNotFoundException();
-        }
-      }
-      
-      bin = new BufferedInputStream( new FileInputStream(file), 8192 );
-        
-      try{
-      	propertiesMap = BDecoder.decode(bin);
-      }
-      catch( IOException e ){
-      	// Occurs when file is there but b0rked
-      	propertiesMap = new HashMap();
-      }
+  public void load(String filename) 
+  {
+  	propertiesMap = FileUtil.readResilientConfigFile( filename );
 
-    }
-    catch (FileNotFoundException e) {
-    	propertiesMap = new HashMap();
-    }
-    finally {
-    	try {
-    		if (bin != null)
-    			bin.close();
-    	} catch (Exception e) {
-    	}
-    }
   }
   
   public void load() {
     load("azureus.config");
   }
   
-  public void save(String filename) {
-    //open a file stream
-    BufferedOutputStream bos = null;
-    try {
-    	//re-encode the data
-    	
-    	byte[] torrentData = BEncoder.encode(propertiesMap);
-      
-      File file = new File( SystemProperties.getUserPath() + filename );
-      
-    	//backup
-      if ( file.length() > 1L ) {
-        File bakfile = new File( file + ".bak" );
-        if ( bakfile.exists() ) bakfile.delete();
-        file.renameTo( bakfile );
-      }
-    	
-      bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
-    	
-    	//write the data out
-    	bos.write(torrentData);
-      bos.flush();
-      
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        if (bos != null)
-          bos.close();
-      } catch (Exception e) {
-      }
-    }
+  public void save(String filename) 
+  {
+  	FileUtil.writeResilientConfigFile( filename, propertiesMap );
     
     synchronized( this  ){
     	
