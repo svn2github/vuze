@@ -1691,6 +1691,8 @@ public class MyTorrentsView extends AbstractIView
           // Add to view
           item = new TorrentRow(this,table, manager);
           objectToSortableItem.put(manager, item);
+          // XXX Blah.. temporary
+          globalManager.fixUpDownloadManagerPositions();
         }
       } else { // item exists in view
         // does it belong?
@@ -1701,6 +1703,8 @@ public class MyTorrentsView extends AbstractIView
             TableItem tableItem = managerItem.getTableItem();
             tableItemToObject.remove(tableItem);
             managerItem.delete();
+            // XXX Blah.. temporary
+            globalManager.fixUpDownloadManagerPositions();
           }
         }
       }

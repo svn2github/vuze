@@ -417,17 +417,19 @@ public class GlobalManagerImpl
         	return( existing );
         }
         
+        boolean isCompleted = manager.getStats().getCompleted() == 1000;
 	      if (manager.getPosition() == -1) {
 	        int endPosition = 0;
 	        for (int i = 0; i < managers.size(); i++) {
 	          DownloadManager dm = (DownloadManager) managers.get(i);
-	          if (dm.getStats().getCompleted() < 1000)
+	          boolean dmIsCompleted = dm.getStats().getCompleted() == 1000;
+	          if (dmIsCompleted == isCompleted)
 	            endPosition++;
 	        }
 	        manager.setPosition(endPosition + 1);
 	      }
 	      
-	      manager.setOnlySeeding(manager.getStats().getCompleted() == 1000);
+	      manager.setOnlySeeding(isCompleted);
 
         managers.add(manager);
         
