@@ -42,7 +42,7 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 public class NewTorrentWizard extends Wizard {
 
   //false : singleMode, true: directory
-  boolean mode;
+  boolean create_from_dir;
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";

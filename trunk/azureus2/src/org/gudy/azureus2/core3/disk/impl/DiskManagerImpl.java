@@ -423,100 +423,6 @@ DiskManagerImpl
 		return fileLength;
 	}
 
-	private void checkAllPieces(boolean newfiles) {
-		state = CHECKING;
-      int startPos = 0;
-		
-      boolean resumeEnabled = useFastResume;
-      //disable fast resume if a new file was created
-      if (newfiles) resumeEnabled = false;
-		
-		if (resumeEnabled) {
-		  boolean resumeValid = false;
-		  byte[] resumeArray = null;
-		  Map partialPieces = null;
-		  Map resumeMap = torrent.getAdditionalMapProperty("resume");
-		  
-		  if (resumeMap != null) {
-		  	
-		  		// see bug 869749 for explanation of this mangling
-		  	
-		  	String mangled_path;
-		  	
-		  	try{
-		  		mangled_path = new String(this.path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-		  		
-		  		// System.out.println( "resume: path = " + path + ", mangled_path = " + mangled_path );
-		  		
-		  	}catch( Throwable e ){
-		  		
-		  		e.printStackTrace();
-		  		
-		  		mangled_path = this.path;
-		  	}
-		  	
-		    Map resumeDirectory = (Map)resumeMap.get(mangled_path);
-		    if (resumeDirectory != null) {
-		      try {
-		        resumeArray = (byte[])resumeDirectory.get("resume data");
-		        partialPieces = (Map)resumeDirectory.get("blocks");
-		        resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-		        resumeDirectory.put("valid", new Long(0));
-		        saveTorrent();
-		      } catch (Exception ignore) { /* ignore */ }
-		    }
-		  }
- 
-		  if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
-		    startPos = resumeArray.length;
-		    for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
-		      percentDone = ((i + 1) * 1000) / nbPieces;
-		      //mark the pieces
-		      if (resumeArray[i] == 0) {
-		        if (!resumeValid) pieceDone[i] = checkPiece(i);
-		      }
-		      else {
-		        computeFilesDone(i);
-		        pieceDone[i] = true;
-		        if (i < nbPieces - 1) {
-		          remaining -= pieceLength;
-		        }
-		        if (i == nbPieces - 1) {
-		          remaining -= lastPieceLength;
-		        }
-		      }
-		    }
-      
-		    if (partialPieces != null && resumeValid) {
-		      pieces = new PEPiece[nbPieces];
-		      Iterator iter = partialPieces.entrySet().iterator();
-		      while (iter.hasNext()) {
-		        Map.Entry key = (Map.Entry)iter.next();
-		        int pieceNumber = Integer.parseInt((String)key.getKey());
-		        PEPiece piece;
-		        if (pieceNumber < nbPieces - 1)
-		          piece = PEPieceFactory.create(manager, getPieceLength(), pieceNumber);
-		        else
-		          piece = PEPieceFactory.create(manager, getLastPieceLength(), pieceNumber);
-		        List blocks = (List)partialPieces.get(key.getKey());
-		        Iterator iterBlock = blocks.iterator();
-		        while (iterBlock.hasNext()) {
-		          piece.setWritten(null,((Long)iterBlock.next()).intValue());
-		        }
-		        pieces[pieceNumber] = piece;
-		      }
-		    }
-		  }
-		}
-    
-      for (int i = startPos; i < nbPieces && bContinue; i++) {
-        percentDone = ((i + 1) * 1000) / nbPieces;
-        checkPiece(i);
-		}
-		//dump the newly built resume data to the disk/torrent
-		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false, false);
-
-	}
   
 	private List buildPieceToFileList(List btFileList, int currentFile, long fileOffset, int pieceSize) {
 		ArrayList pieceToFileList = new ArrayList();
@@ -1001,6 +907,103 @@ DiskManagerImpl
 		return false;
 	}
 
+		// RESUME DATA STUFF STARTS.....
+	
+	private void checkAllPieces(boolean newfiles) {
+		state = CHECKING;
+		int startPos = 0;
+		
+		boolean resumeEnabled = useFastResume;
+		//disable fast resume if a new file was created
+		if (newfiles) resumeEnabled = false;
+		
+		if (resumeEnabled) {
+			boolean resumeValid = false;
+			byte[] resumeArray = null;
+			Map partialPieces = null;
+			Map resumeMap = torrent.getAdditionalMapProperty("resume");
+			
+			if (resumeMap != null) {
+				
+				// see bug 869749 for explanation of this mangling
+				
+				String mangled_path;
+				
+				try{
+					mangled_path = new String(this.path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+					
+					// System.out.println( "resume: path = " + path + ", mangled_path = " + mangled_path );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					mangled_path = this.path;
+				}
+				
+				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
+				if (resumeDirectory != null) {
+					try {
+						resumeArray = (byte[])resumeDirectory.get("resume data");
+						partialPieces = (Map)resumeDirectory.get("blocks");
+						resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
+						resumeDirectory.put("valid", new Long(0));
+						saveTorrent();
+					} catch (Exception ignore) { /* ignore */ }
+				}
+			}
+			
+			if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
+				startPos = resumeArray.length;
+				for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
+					percentDone = ((i + 1) * 1000) / nbPieces;
+					//mark the pieces
+					if (resumeArray[i] == 0) {
+						if (!resumeValid) pieceDone[i] = checkPiece(i);
+					}
+					else {
+						computeFilesDone(i);
+						pieceDone[i] = true;
+						if (i < nbPieces - 1) {
+							remaining -= pieceLength;
+						}
+						if (i == nbPieces - 1) {
+							remaining -= lastPieceLength;
+						}
+					}
+				}
+				
+				if (partialPieces != null && resumeValid) {
+					pieces = new PEPiece[nbPieces];
+					Iterator iter = partialPieces.entrySet().iterator();
+					while (iter.hasNext()) {
+						Map.Entry key = (Map.Entry)iter.next();
+						int pieceNumber = Integer.parseInt((String)key.getKey());
+						PEPiece piece;
+						if (pieceNumber < nbPieces - 1)
+							piece = PEPieceFactory.create(manager, getPieceLength(), pieceNumber);
+						else
+							piece = PEPieceFactory.create(manager, getLastPieceLength(), pieceNumber);
+						List blocks = (List)partialPieces.get(key.getKey());
+						Iterator iterBlock = blocks.iterator();
+						while (iterBlock.hasNext()) {
+							piece.setWritten(null,((Long)iterBlock.next()).intValue());
+						}
+						pieces[pieceNumber] = piece;
+					}
+				}
+			}
+		}
+		
+		for (int i = startPos; i < nbPieces && bContinue; i++) {
+			percentDone = ((i + 1) * 1000) / nbPieces;
+			checkPiece(i);
+		}
+		//dump the newly built resume data to the disk/torrent
+		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false, false);
+
+	}
+	
 	public void dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate) {
 		if(!useFastResume)
 		  return;
@@ -1052,6 +1055,42 @@ DiskManagerImpl
 	  saveTorrent();    
 	}
 
+	public static void
+	setTorrentResumeDataComplete(
+		TOTorrent	torrent,
+		String		data_dir )
+	{
+		int	piece_count = torrent.getPieces().length;
+		
+		byte[] resumeData = new byte[piece_count];
+		
+		for (int i = 0; i < resumeData.length; i++) {
+			
+			resumeData[i] = (byte)1;
+		}
+
+		Map resumeMap = new HashMap();
+		
+		torrent.setAdditionalMapProperty("resume", resumeMap);
+
+		Map resumeDirectory = new HashMap();
+		
+		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
+		// currently fixed by mangling such that decode works
+		
+		resumeMap.put(data_dir, resumeDirectory);
+		
+		resumeDirectory.put("resume data", resumeData);
+		
+		Map partialPieces = new HashMap();
+		
+		resumeDirectory.put("blocks", partialPieces);
+		
+		resumeDirectory.put("valid", new Long(1));	
+	}
+	
+		// RESUME DATA STUFF ENDS
+	
 	private void 
 	saveTorrent() 
 	{

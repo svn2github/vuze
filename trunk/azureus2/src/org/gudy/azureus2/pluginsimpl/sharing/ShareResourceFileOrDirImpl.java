@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 public abstract class 
 ShareResourceFileOrDirImpl
@@ -138,6 +139,19 @@ ShareResourceFileOrDirImpl
 										file,
 										manager.getAnnounceURL(),
 										manager );
+			
+			File	save_dir;
+			
+			if ( type == ST_FILE ){
+				
+				save_dir = file.getParentFile();
+				
+			}else{
+				
+				save_dir = file;
+			}
+			
+			TorrentUtils.setResumeDataCompletelyValid( to_torrent, save_dir.toString());
 			
 			if ( item == null ){
 				

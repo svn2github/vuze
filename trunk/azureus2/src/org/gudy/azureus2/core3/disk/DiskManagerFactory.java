@@ -39,4 +39,19 @@ DiskManagerFactory
 	{
 		return( new DiskManagerImpl( torrent, path ));
 	}
+	
+		/**
+		 * Method to preset resume data to indicate completely valid file. 
+		 * Doesn't save the torrent
+		 * @param torrent
+		 * @param path
+		 */
+	
+	public static void
+	setResumeDataCompletelyValid(
+		TOTorrent	torrent,
+		String		data_location )
+	{
+		DiskManagerImpl.setTorrentResumeDataComplete( torrent, data_location );
+	}
 }

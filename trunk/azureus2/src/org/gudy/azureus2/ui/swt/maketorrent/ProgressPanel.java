@@ -108,7 +108,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     
     File f;
     
-    if (_wizard.mode) {
+    if (_wizard.create_from_dir) {
       f = new File(_wizard.directoryPath);
     }
     else {
@@ -128,6 +128,21 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(f,url,_wizard.getPieceSizeManual(),this);
       }
       torrent.setComment(_wizard.getComment());
+ 
+      	// mark this newly created torrent as complete to avoid rechecking on open
+      
+      File save_dir;
+      
+      if (_wizard.create_from_dir){
+      	
+      	save_dir = f;
+      	
+      }else{
+      	
+      	save_dir = f.getParentFile();
+      }
+      
+      TorrentUtils.setResumeDataCompletelyValid( torrent, save_dir.toString());
       
       if(_wizard.useMultiTracker) {
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));

@@ -165,7 +165,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
   public IWizardPanel getNextPanel() {
-    if (((NewTorrentWizard) wizard).mode) {
+    if (((NewTorrentWizard) wizard).create_from_dir) {
       return new DirectoryPanel(((NewTorrentWizard) wizard), this);
     } else {
       return new SingleFilePanel(((NewTorrentWizard) wizard), this);

@@ -224,7 +224,7 @@ public class ModePanel extends AbstractWizardPanel {
     //Line:
     // O single file
     bSingle = new Button(panel, SWT.RADIO);
-    bSingle.setSelection(!((NewTorrentWizard) wizard).mode);
+    bSingle.setSelection(!((NewTorrentWizard) wizard).create_from_dir);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
     bSingle.setLayoutData(gridData);
@@ -240,7 +240,7 @@ public class ModePanel extends AbstractWizardPanel {
     // O Directory mode
     
     bDirectory = new Button(panel, SWT.RADIO);
-    bDirectory.setSelection(((NewTorrentWizard) wizard).mode);
+    bDirectory.setSelection(((NewTorrentWizard) wizard).create_from_dir);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
     bDirectory.setLayoutData(gridData);
@@ -347,7 +347,7 @@ public class ModePanel extends AbstractWizardPanel {
     if(((NewTorrentWizard) wizard).useMultiTracker)
       return new MultiTrackerPanel((NewTorrentWizard) wizard, this);
 
-    if (((NewTorrentWizard) wizard).mode) {
+    if (((NewTorrentWizard) wizard).create_from_dir) {
       return new DirectoryPanel(((NewTorrentWizard) wizard), this);
     } else {
       return new SingleFilePanel(((NewTorrentWizard) wizard), this);
@@ -366,7 +366,7 @@ public class ModePanel extends AbstractWizardPanel {
 
   void activateMode(boolean singleFile) {
     wizard.setCurrentInfo(MessageText.getString(singleFile ? "wizard.singlefile.help" : "wizard.directory.help"));
-    ((NewTorrentWizard) wizard).mode = !singleFile;
+    ((NewTorrentWizard) wizard).create_from_dir = !singleFile;
     bDirectory.setSelection(!singleFile);
     bSingle.setSelection(singleFile);
   }

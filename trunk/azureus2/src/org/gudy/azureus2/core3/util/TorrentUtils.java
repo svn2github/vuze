@@ -33,6 +33,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.disk.*;
 
 public class 
 TorrentUtils 
@@ -391,5 +392,13 @@ TorrentUtils
 		listToAnnounceGroups( dest_groups, dest_torrent );
 		
 		return( true );
+	}
+	
+	public static void
+	setResumeDataCompletelyValid(
+		TOTorrent		torrent,
+		String			data_location )
+	{
+		DiskManagerFactory.setResumeDataCompletelyValid( torrent, data_location );
 	}
 }

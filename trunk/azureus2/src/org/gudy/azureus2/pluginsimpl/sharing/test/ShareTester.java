@@ -99,7 +99,7 @@ ShareTester
 			
 			sm.initialise();
 			
-			ShareResourceFile res = sm.addFile( new File("c:\\temp\\shares\\test.wmf"));
+			// ShareResourceFile res = sm.addFile( new File("c:\\temp\\shares\\test.wmf"));
 			// ShareResourceDirContents res = sm.addDirContents( new File("D:\\music\\cd1"), false);
 			
 			//Torrent t = res.getItem().getTorrent();
