@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.io.File;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
@@ -122,7 +123,12 @@ public class ConfigurationDefaults {
     def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
     def.put("General_bEnableLanguageUpdate", new Long(0));
     def.put("Use default data dir", new Long(1));
-    def.put("Default save path", SystemProperties.getUserPath()+"downloads");
+    String	default_save_path = SystemProperties.getUserPath()+"downloads";
+    File	default_save_path_file = new File( default_save_path );
+    if ( !default_save_path_file.exists()){
+    	default_save_path_file.mkdir();
+    }
+    def.put("Default save path", default_save_path );
     def.put("GUI_SWT_bFancyTab", new Long(1));
     def.put("GUI_SWT_bAlternateTablePainting", new Long(0));
     def.put("update.start",new Long(1));

@@ -59,6 +59,8 @@ TRTrackerServerProcessorTCP
 	protected Socket				socket;
 	
 
+	protected boolean				disable_timeouts = false;
+	
 	protected
 	TRTrackerServerProcessorTCP(
 		TRTrackerServerTCP		_server,
@@ -346,9 +348,15 @@ TRTrackerServerProcessorTCP
 	interruptTask()
 	{
 		try{
-			Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
-			
-			socket.close();
+			if ( disable_timeouts ){
+				
+				Debug.out( "External tracker request timeout ignored" );
+				
+			}else{
+				Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
+				
+				socket.close();
+			}
 																						
 		}catch( Throwable e ){
 												
@@ -401,6 +409,8 @@ TRTrackerServerProcessorTCP
 					
 					setTaskState( "external request" );
 
+					disable_timeouts	= true;
+					
 						// check non-tracker authentication
 						
 					if ( !doAuthentication( url_path, input_header, os, false )){

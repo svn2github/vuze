@@ -185,7 +185,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
       cSave.setLayout(layout);
 
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      final StringParameter pathParameter = new StringParameter(cSave, "Default save path", "");
+      final StringParameter pathParameter = new StringParameter(cSave, "Default save path" );
       pathParameter.setLayoutData(gridData);
 
       Button browse = new Button(cSave, SWT.PUSH);
