@@ -89,7 +89,7 @@ public class ConsoleView extends AbstractIView {
               }
           }
       }
-      catch(ConcurrentModificationException e)
+      catch(Throwable e)
       {
           Debug.out(e);
       }
