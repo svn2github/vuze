@@ -37,24 +37,8 @@ import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -260,7 +244,7 @@ MainWindow
       mainLayout.spacing = 0;
     } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
     mainWindow.setLayout(mainLayout);
-    
+
     Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
     formData = new FormData();
     formData.top = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
@@ -359,8 +343,8 @@ MainWindow
                              display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
                              display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND) },
                 new int[] {10, 90}, true);
-      } catch (NoSuchMethodError e) { 
-        /** < SWT 3.0M8 **/ 
+      } catch (NoSuchMethodError e) {
+        /** < SWT 3.0M8 **/
         ((CTabFolder)folder).setSelectionBackground(new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND) },
                                                     new int[0]);
       }
@@ -377,9 +361,10 @@ MainWindow
         /** < SWT 3.0RC1 **/ 
       }
     }
-    
 
-    Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
+    final int borderFlag = (Constants.isOSX)? SWT.NONE : SWT.SHADOW_IN;
+
+    Composite statusBar = new Composite(mainWindow, borderFlag);
     formData = new FormData();
     formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
@@ -399,7 +384,7 @@ MainWindow
     layout_status.horizontalSpacing = 1;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
-    layout_status.marginWidth = 0;
+    layout_status.marginWidth = (Constants.isOSX) ? 3 : 0;
     statusBar.setLayout(layout_status);
 
     GridData gridData;
@@ -414,7 +399,7 @@ MainWindow
     statusArea.setLayout(layoutStatusAera);
     
     //Either the Status Text
-    statusText = new CLabel(statusArea, SWT.SHADOW_IN);
+    statusText = new CLabel(statusArea, borderFlag);
     int height = statusText.computeSize(150,SWT.DEFAULT).y;
     
     Listener listener = new Listener() {
@@ -447,8 +432,9 @@ MainWindow
          showUpdateProgressWindow();
         }
       });
-    
-    statusUpdateProgressBar = new ProgressBar(statusUpdate,SWT.HORIZONTAL);
+
+    final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE : SWT.HORIZONTAL;
+    statusUpdateProgressBar = new ProgressBar(statusUpdate ,progressFlag);
     Messages.setLanguageText(statusUpdateProgressBar,"MainWindow.status.update.tooltip");
     statusUpdateProgressBar.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
@@ -496,7 +482,7 @@ MainWindow
     if( Constants.isLinux ) gridData.widthHint = 255;
     else gridData.widthHint = 225;
     
-    ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
+    ipBlocked = new CLabel(statusBar, borderFlag);
     ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
     ipBlocked.setLayoutData(gridData);
     Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
@@ -508,7 +494,7 @@ MainWindow
     
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
-    statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
+    statusDown = new CLabel(statusBar, borderFlag);
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     statusDown.setLayoutData(gridData);
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
@@ -521,7 +507,7 @@ MainWindow
     
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
-    statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
+    statusUp = new CLabel(statusBar, borderFlag);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
     Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
@@ -685,7 +671,7 @@ MainWindow
     });
         
     mainWindow.layout();
-    
+
     mainWindow.addShellListener(new ShellAdapter() {
       public void 
 	  shellClosed(ShellEvent event) 
@@ -757,7 +743,7 @@ MainWindow
     }
   
     mainWindow.open();
-    mainWindow.forceActive();
+    if(!Constants.isOSX) {mainWindow.forceActive();}
     updater = new GUIUpdater(azureus_core,this);
     updater.start();
 
