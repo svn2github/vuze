@@ -183,7 +183,7 @@ AEMonSem
 		
 		System.out.print("    top activity:" );
 		
-		for (int i=0;i<10;i++){
+		for (int i=0;i<Math.min(10,x.length);i++){
 			
 			System.out.print( (i==0?"":", ") + x[i].name + " = " + (x[i].entry_count - x[i].last_entry_count ));
 		}

@@ -27,63 +27,14 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.gudy.azureus2.core3.logging.*;
-
 public class 
 AEThread 
 	extends Thread
 {
-	protected static boolean	LOG_TO_FILE;
-	
-	static{
-		
-		LOG_TO_FILE = System.getProperty("azureus.log.threads") != null;
-	}
-
-	protected static File		log_file;
-	
 	public
 	AEThread(
 		String	name )
 	{
 		super(name);
-		
-		LGLogger.log( "Thread:created '" + name + "'" );
-		
-		if ( LOG_TO_FILE ){
-			
-			synchronized( AEThread.class ){
-				
-				if ( log_file == null ){
-										
-					log_file = new File( System.getProperty("user.dir" ) + File.separator + "thread.log" );
-				}
-				
-				PrintWriter pw = null;
-				
-				try{
-					
-					pw = new PrintWriter( new FileWriter( log_file, true ));
-					
-					String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date());
-
-					pw.println( ts + ": created '" + name + "'" );
-					
-				}catch( Throwable e ){
-					
-				}finally{
-					if ( pw != null ){
-						try{
-							pw.close();
-						}catch( Throwable e ){
-						}
-					}
-				}
-			}
-		}
 	}
 }

@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.logging.*;
  */
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class 
 AEDiagnostics 
@@ -106,7 +108,8 @@ AEDiagnostics
 			debug_dir.mkdir();
 		}
 	}
-	
+	//					String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date());
+
 	public static void
 	shutdown()
 	{
