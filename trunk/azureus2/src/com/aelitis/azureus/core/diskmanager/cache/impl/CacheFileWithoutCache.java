@@ -205,18 +205,25 @@ CacheFileWithoutCache
 		
 		int	write_length = file_buffer_limit - file_buffer_position;
 		
+		boolean	write_ok	= false;
+		
 		try{			
 			file.write( buffer, position );
 			
 			manager.fileBytesWritten( write_length );
 
+			write_ok	= true;
+			
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(e);
 			
 		}finally{
 			
-			buffer.returnToPool();
+			if ( write_ok ){
+				
+				buffer.returnToPool();
+			}
 		}
 	}
 	

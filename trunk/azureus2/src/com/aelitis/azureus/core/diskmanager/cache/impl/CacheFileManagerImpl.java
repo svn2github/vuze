@@ -49,7 +49,6 @@ CacheFileManagerImpl
 	public static final int		STATS_UPDATE_FREQUENCY		= 1*1000;	// 1 sec
 	public static final long	DIRTY_CACHE_WRITE_MAX_AGE	= 120*1000;	// 2 mins
 		
-	public static final long	MIN_CACHE_FILE_SIZE			= 1024*1024;
 	static{
 		if ( DEBUG ){
 			
@@ -62,6 +61,8 @@ CacheFileManagerImpl
 	protected boolean	cache_write_enabled;
 	
 	protected long		cache_size;
+	protected long		cache_files_not_smaller_than;
+	
 	protected long		cache_minimum_free_size;
 	protected long		cache_space_free;
 		
@@ -105,7 +106,13 @@ CacheFileManagerImpl
 		
 		boolean	enable_write	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable.write" );
 		
-		int		size	= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+			// units are MB
+		
+		int		size			= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		
+			// units are KB
+		
+		int		not_smaller_than	= 1024*COConfigurationManager.getIntParameter( "notsmallerthan" );
 		
 		if ( size <= 0 ){
 		
@@ -114,7 +121,7 @@ CacheFileManagerImpl
 			enabled	= false;
 		}
 		
-		initialise( enabled, enable_read, enable_write, size );
+		initialise( enabled, enable_read, enable_write, size, not_smaller_than );
 	}
 
 	protected void
@@ -122,7 +129,8 @@ CacheFileManagerImpl
 		boolean	enabled,
 		boolean	enable_read,
 		boolean	enable_write,
-		long	size )
+		long	size,
+		long	not_smaller_than )
 	{
 		cache_enabled			= enabled && ( enable_read || enable_write );
 		
@@ -131,6 +139,8 @@ CacheFileManagerImpl
 		cache_write_enabled		= enabled && enable_write;
 		
 		cache_size				= size;
+		
+		cache_files_not_smaller_than	= not_smaller_than;
 		
 		cache_minimum_free_size	= cache_size/4;
 		
@@ -195,9 +205,10 @@ CacheFileManagerImpl
 			
 			CacheFile	cf;
 			
-			if ( tf != null && tf.getLength() < MIN_CACHE_FILE_SIZE  ){
+			if ( tf != null && tf.getLength() < cache_files_not_smaller_than  ){
 				
 				cf = new CacheFileWithoutCache( this, fm_file, tf );
+				
 			}else{
 				
 				cf = new CacheFileWithCache( this, fm_file, tf );
@@ -270,7 +281,7 @@ CacheFileManagerImpl
 	protected CacheEntry
 	allocateCacheSpace(
 		int					entry_type,
-		CacheFileWithCache		file,
+		CacheFileWithCache	file,
 		DirectByteBuffer	buffer,
 		long				file_position,
 		int					length )

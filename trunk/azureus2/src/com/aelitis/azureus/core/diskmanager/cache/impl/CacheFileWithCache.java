@@ -760,13 +760,13 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
-		if ( cache.size() == 0 ){
-			
-			return;
-		}
-		
 		try{
 			this_mon.enter();
+			
+			if ( cache.size() == 0 ){
+				
+				return;
+			}
 			
 			Iterator	it = cache.iterator();
 			

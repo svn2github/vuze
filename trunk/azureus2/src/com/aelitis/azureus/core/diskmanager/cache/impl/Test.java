@@ -64,7 +64,7 @@ Test
 	
 			//new Test().writeTest(manager);
 			
-			manager.initialise( true, true, true, 10*1024*1024 );
+			manager.initialise( true, true, true, 10*1024*1024, 1024 );
 
 			new Test().writeTest(manager);
 			

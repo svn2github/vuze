@@ -27,8 +27,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -145,10 +144,10 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     
    	// diskmanager.perf.cache.size
     
-    label = new Label(cSection, SWT.NULL);
+    Label cache_size_label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.perf.cache.size", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)});
+    cache_size_label.setLayoutData(gridData);
+    Messages.setLanguageText(cache_size_label, "ConfigView.section.file.perf.cache.size", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)});
     IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
     cache_size.setAllowZero(false);
     cache_size.setMinimumValue(1);
@@ -156,12 +155,12 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData.widthHint = 30;
     cache_size.setLayoutData( gridData );
     
-    
-    label = new Label(cSection, SWT.WRAP);
+     
+    Label cache_explain_label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
-    label.setLayoutData(gridData);
+    cache_explain_label.setLayoutData(gridData);
     Messages.setLanguageText(
-    		label, 
+    		cache_explain_label, 
 			"ConfigView.section.file.perf.cache.size.explain",
 			new String[]{ 
     			DisplayFormatters.formatByteCountToKiBEtc(32*1024*1024),
@@ -169,6 +168,20 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
 				Constants.SF_WEB_SITE
 			});
     
+    // don't cache smaller than
+    
+    Label cnst_label = new Label(cSection, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    cnst_label.setLayoutData(gridData);
+    Messages.setLanguageText(cnst_label, "ConfigView.section.file.perf.cache.notsmallerthan", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_KB)});
+    IntParameter cache_not_smaller_than= new IntParameter(cSection, "diskmanager.perf.cache.notsmallerthan" );
+    cache_not_smaller_than.setAllowZero(false);
+    cache_not_smaller_than.setMinimumValue(0);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    gridData.widthHint = 30;
+    cache_not_smaller_than.setLayoutData( gridData );
+    
+ 
     // diskmanager.perf.cache.enable.read
     
     final BooleanParameter disk_cache_read = new BooleanParameter(cSection, "diskmanager.perf.cache.enable.read", "ConfigView.section.file.perf.cache.enable.read");
@@ -198,8 +211,12 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     		new ChangeSelectionActionPerformer( disk_cache_read.getControls() ));
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_write.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( new Control[]{ cache_size_label, cache_explain_label, cnst_label }));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( cache_not_smaller_than.getControls() ));
     
-
+    
     return cSection;
   }
 }
