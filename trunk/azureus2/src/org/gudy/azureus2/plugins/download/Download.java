@@ -40,6 +40,9 @@ Download
 	public static final int ST_STOPPED			= 7;	// stopped
 	public static final int ST_ERROR			= 8;	// failed
 	
+	public static final int	PR_HIGH_PRIORITY	= 1;
+	public static final int	PR_LOW_PRIORITY		= 2;
+	
 	
 	/**
 	 * get state from above ST_ set
@@ -49,13 +52,21 @@ Download
 	public int
 	getState();
 
+	public String
+	getErrorStateDetails();
+	
 	public Torrent
 	getTorrent();
 	
 	public void
-	start()
+	initialize()
 	
 		throws DownloadException;
+	
+	public void
+	start()
+	
+	throws DownloadException;
 	
 	public void
 	stop()
@@ -64,6 +75,16 @@ Download
 	
 	public boolean
 	isStartStopLocked();
+	
+	public int
+	getPriority();
+	
+	public void
+	setPriority(
+		int		priority );
+	
+	public boolean
+	isPriorityLocked();
 	
 	public void
 	remove()

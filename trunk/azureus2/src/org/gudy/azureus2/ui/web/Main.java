@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.common.util.LocaleUtilHeadless;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+import org.gudy.azureus2.pluginsimpl.PluginInitializer;
 
 /**
  *
@@ -36,11 +37,23 @@ public class Main implements ILocaleUtilChooser {
     p.put("java.awt.headless", "true");
     System.setProperties(p);
     gm = GlobalManagerFactory.create();
+    PluginInitializer.getSingleton(gm,null).initializePlugins();
+    
+  
     server = new Jhttpp2Server(gm, true);
     ci = new ConsoleInput("Main", gm, System.in, System.out, true);
     org.gudy.azureus2.ui.common.Main.initRootLogger();
     new Thread(server, "Webinterface Server").start();
     System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
+    
+    new Thread("Plugin Init Complete")
+    {
+    	public void
+    	run()
+    	{
+    		PluginInitializer.initialisationComplete();
+    	}
+    }.start();  
   }
   
   public static void main(String args[]) {

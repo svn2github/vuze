@@ -152,6 +152,12 @@ DownloadImpl
 		return( latest_state );
 	}
 	
+	public String
+	getErrorStateDetails()
+	{
+		return( download_manager.getErrorDetails());
+	}
+	
 	public Torrent
 	getTorrent()
 	{
@@ -168,17 +174,44 @@ DownloadImpl
 	}
 
 	public void
+	initialize()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() == DownloadManager.STATE_WAITING ){
+			
+			download_manager.initialize();
+			
+		}else{
+			
+			throw( new DownloadException( "Download::initialize: download not waiting" ));
+		}
+	}
+	
+	public void
 	start()
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_STOPPED){
+		boolean	ready = download_manager.getState() == DownloadManager.STATE_READY;
+		
+		if ( 	ready ||
+				download_manager.getState() == DownloadManager.STATE_STOPPED ){
 			
-			download_manager.setState(DownloadManager.STATE_WAITING);
+			
+			download_manager.startDownload();
+			
+			if ( ready ){
+				
+				//set previous hash fails and discarded values
+			
+				download_manager.getStats().setSavedDiscarded();
+				download_manager.getStats().setSavedHashFails();
+			}
 			
 		}else{
 			
-			throw( new DownloadException( "Download::start: download not stopped" ));
+			throw( new DownloadException( "Download::start: download not ready or stopped" ));
 		}
 	}
 	
@@ -203,12 +236,40 @@ DownloadImpl
 		return( download_manager.isStartStopLocked());
 	}
 	
+	public int
+	getPriority()
+	{
+		if ( download_manager.getPriority() == DownloadManager.HIGH_PRIORITY ){
+			
+			return( PR_HIGH_PRIORITY );
+			
+		}else{
+			
+			return( PR_LOW_PRIORITY );
+		}
+	}
+	
+	public void
+	setPriority(
+		int		priority )
+	{
+		download_manager.setPriority(
+			priority==PR_HIGH_PRIORITY?DownloadManager.HIGH_PRIORITY:DownloadManager.LOW_PRIORITY );
+	}
+	
+	public boolean
+	isPriorityLocked()
+	{
+		return( download_manager.isPriorityLocked());
+	}
+	
 	public void
 	remove()
 	
 		throws DownloadException, DownloadRemovalVetoException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_STOPPED){
+		if ( 	download_manager.getState() == DownloadManager.STATE_STOPPED || 
+				download_manager.getState() == DownloadManager.STATE_ERROR ){
 			
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
@@ -222,7 +283,7 @@ DownloadImpl
 			
 		}else{
 			
-			throw( new DownloadException( "Download::remove: download not stopped" ));
+			throw( new DownloadException( "Download::remove: download not stopped or in error" ));
 		}
 	}
 	

@@ -46,7 +46,8 @@ import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
  */
 public class PluginInitializer {
 
-  private Class[]	builtin_plugins = new Class[]{ 	ShareHosterPlugin.class,
+  private Class[]	builtin_plugins = new Class[]{ 	org.gudy.azureus2.core3.global.seedingrules.defaultplugin.GMSRDefaultPlugin.class,
+													ShareHosterPlugin.class,
 													TrackerWebDefaultStaticPlugin.class,
   													TrackerWebDefaultTrackerPlugin.class,};
   

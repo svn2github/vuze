@@ -941,6 +941,11 @@ DownloadManagerImpl
   				stateChanged(
   					int		disk_manager_state )
   				{
+  					if ( disk_manager_state == DiskManager.FAULTY ){
+  						
+  						setErrorDetail( diskManager.getErrorMessage());
+  					}
+  					
   					int	dl_state = getState();
   					
   					if ( dl_state != state ){

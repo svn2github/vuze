@@ -35,6 +35,7 @@ import org.apache.log4j.PatternLayout;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.pluginsimpl.PluginInitializer;
 
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -165,6 +166,17 @@ public class Main {
         UIConst.startTime = new Date();
         Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(UIConst.startTime));
         UIConst.GM = GlobalManagerFactory.create();
+        
+        PluginInitializer.getSingleton(UIConst.GM,null).initializePlugins();
+        
+        new Thread("Plugin Init Complete")
+        {
+        	public void
+        	run()
+        	{
+        		PluginInitializer.initialisationComplete();
+        	}
+        }.start();      
       }
 
       uis = UIConst.UIS.values().iterator();

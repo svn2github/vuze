@@ -1880,6 +1880,8 @@ DiskManagerImpl
   {
   	synchronized( listeners ){
   		listeners.add( l );
+  		
+  		l.stateChanged( getState());
   	}
   }
   

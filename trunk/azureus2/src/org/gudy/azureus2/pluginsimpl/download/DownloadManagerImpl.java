@@ -81,9 +81,9 @@ DownloadManagerImpl
 				{
 					synchronized( listeners ){
 						
-						downloads.add( dm );
-						
 						DownloadImpl	dl = new DownloadImpl(dm);
+						
+						downloads.add( dl );
 						
 						download_map.put( dm, dl );
 						
@@ -99,8 +99,6 @@ DownloadManagerImpl
 				{
 					synchronized( listeners ){
 						
-						downloads.remove( dm );
-						
 						DownloadImpl	dl = (DownloadImpl)download_map.get( dm );
 						
 						if ( dl == null ){
@@ -109,6 +107,8 @@ DownloadManagerImpl
 							
 						}else{
 						
+							downloads.remove( dl );
+							
 							download_map.remove( dm );
 							
 							dl.destroy();
@@ -268,12 +268,8 @@ DownloadManagerImpl
 			for (int i=0;i<downloads.size();i++){
 				
 				try{
-					Download dl = (Download)download_map.get(downloads.get(i));
-					
-					if ( dl != null ){
 						
-						l.downloadAdded(dl);
-					}
+					l.downloadAdded((Download)downloads.get(i));
 					
 				}catch( Throwable e ){
 					

@@ -104,8 +104,8 @@ public class GlobalManagerImpl
         
 
         synchronized (managers) {
-          int nbStarted = 0;
-          int nbDownloading = 0;
+        //  int nbStarted = 0;
+        //  int nbDownloading = 0;
           if (loopFactor % saveResumeLoopCount == 0) {
             saveDownloads();
           }
@@ -130,6 +130,16 @@ public class GlobalManagerImpl
               manager.setPrevState(manager.getState());
             }
             
+            if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
+             	if (loopFactor % saveResumeLoopCount == 0) {
+            		manager.getDiskManager().dumpResumeDataToDisk(false, false);
+            	}
+            }
+            /*
+             * seeding rules have been moved to seedingrules.GMSRDefaultPlugin
+             */
+            
+            /*
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
               nbDownloading++;
@@ -269,6 +279,7 @@ public class GlobalManagerImpl
             		e.printStackTrace();
             	}
             }
+            */
           }
         }
         try {

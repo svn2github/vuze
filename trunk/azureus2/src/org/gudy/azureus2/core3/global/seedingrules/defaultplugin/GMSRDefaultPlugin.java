@@ -26,25 +26,30 @@ package org.gudy.azureus2.core3.global.seedingrules.defaultplugin;
  *
  */
 
-import java.io.*;
-import java.util.*;
-
-import org.gudy.azureus2.core3.config.*;
-
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.logging.*;
 
 public class 
 GMSRDefaultPlugin 
 	implements Plugin
 {	
 	protected PluginInterface		plugin_interface;
+	protected PluginConfig			plugin_config;
 	protected DownloadManager		download_manager;
+	protected LoggerChannel			log;
 	
 	public void 
 	initialize(
 		PluginInterface _plugin_interface )
 	{
+		plugin_interface	= _plugin_interface;
+		
+		log = plugin_interface.getLogger().getChannel("SeedingRules");
+		
+		log.log( LoggerChannel.LT_INFORMATION, "Default Seeding Rules Plugin Initialisation" );
+		
+		plugin_config	= plugin_interface.getPluginconfig();
 		
 		download_manager = plugin_interface.getDownloadManager();
 		
@@ -66,7 +71,7 @@ GMSRDefaultPlugin
 						}
 					
 						try{
-							Thread.sleep(5000);
+							Thread.sleep(1000);
 							
 						}catch( InterruptedException e ){
 							
@@ -109,7 +114,7 @@ GMSRDefaultPlugin
 				//Is greater than the minimal set, if any.
 				
 			
-				int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
+				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
 				
 				
 				DownloadScrapeResult sr = download.getLastScrapeResult();
@@ -129,7 +134,7 @@ GMSRDefaultPlugin
 	
 					//Checks if any condition to stop seeding is met
 				
-				int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
+				int minShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
 				
 				int shareRatio = download.getStats().getShareRatio();
 				
@@ -138,6 +143,8 @@ GMSRDefaultPlugin
 				if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! download.isStartStopLocked()){
 					
 					try{
+						log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: stop ratio" );
+						
 						download.stop();
 						
 					}catch( DownloadException e ){
@@ -146,7 +153,7 @@ GMSRDefaultPlugin
 					}
 				}
 
-				int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio", 0);
+				int minSeedsPerPeersRatio = plugin_config.getIntParameter("Stop Peers Ratio", 0);
 				
 					//0 means never stop
 				
@@ -170,6 +177,8 @@ GMSRDefaultPlugin
 							if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! download.isStartStopLocked()){
 								
 								try{
+									log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: min seeds per peer" );
+									
 									download.stop();
 									
 								}catch( DownloadException e ){
@@ -185,9 +194,9 @@ GMSRDefaultPlugin
 								
 				//Checks if any condition to start seeding is met
 				
-				int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
+				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
 				
-				int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio", 0);
+				int minSeedsPerPeersRatio = plugin_config.getIntParameter("Start Peers Ratio", 0);
 				
 				//0 means never start
 				
@@ -212,11 +221,15 @@ GMSRDefaultPlugin
 									int ratio = nbPeers / nbSeeds;
 									
 									if (ratio >= minSeedsPerPeersRatio){
-									
+										
+										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (ratio)" );
+										
 										download.start();
 									}
 								}else{
 										//No seeds, at least 1 peer, let's start download.
+									
+									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (no seeds, >=1 peer)" );
 									
 									download.start();
 								}
@@ -239,6 +252,7 @@ GMSRDefaultPlugin
 						if (nbSeeds < nbMinSeeds){
 							
 							try{
+								log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
 								
 								download.start();
 								
@@ -251,61 +265,97 @@ GMSRDefaultPlugin
 				}
 			}
 		}
-	/*
-	boolean alreadyOneAllocatingOrChecking = false;
-	for (int i = 0; i < managers.size(); i++) {
-		DownloadManager manager = (DownloadManager) managers.get(i);
-		if (((manager.getState() == DownloadManager.STATE_ALLOCATING)
-				|| (manager.getState() == DownloadManager.STATE_CHECKING)
-				|| (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
-			alreadyOneAllocatingOrChecking = true;
-		}
-	}
 
-	for (int i = 0; i < managers.size(); i++) {
-		DownloadManager manager = (DownloadManager) managers.get(i);
-		if ((manager.getState() == DownloadManager.STATE_WAITING) && !alreadyOneAllocatingOrChecking) {
-			manager.initialize();
-			alreadyOneAllocatingOrChecking = true;
-		}
-		int nbMax = COConfigurationManager.getIntParameter("max active torrents", 4);
-		int nbMaxDownloads = COConfigurationManager.getIntParameter("max downloads", 4);
-		if (manager.getState() == DownloadManager.STATE_READY
-				&& ((nbMax == 0) || (nbStarted < nbMax))
-				&& (manager.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
-			manager.startDownload();
+			// regrab the state here as it might/will have changed
+		
+		boolean alreadyOneAllocatingOrChecking = false;
+		
+		for (int i=0;i<downloads.length;i++){
 			
-			//set previous hash fails and discarded values
-			manager.getStats().setSavedDiscarded();
-			manager.getStats().setSavedHashFails();
+			Download	download = downloads[i];
 			
-			nbStarted++;
-			if (manager.getStats().getCompleted() != 1000)
-				nbDownloading++;
-		}
-
-		if (manager.getState() == DownloadManager.STATE_ERROR) {
-			DiskManager dm = manager.getDiskManager();
-			if (dm != null && dm.getState() == DiskManager.FAULTY)
-				manager.setErrorDetail(dm.getErrorMessage());
-		}
-
-		if ((manager.getState() == DownloadManager.STATE_SEEDING)
-				&& (! manager.isPriorityLocked())
-				&& (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
-				&& COConfigurationManager.getBooleanParameter("Switch Priority", false)) {
-			manager.setPriority(DownloadManager.LOW_PRIORITY);
-		}
-
-		if ((manager.getState() == DownloadManager.STATE_ERROR)
-				&& (manager.getErrorDetails() != null && manager.getErrorDetails().equals("File Not Found"))) {
+			int	state = download.getState();
 			
-			try{
-				removeDownloadManager(manager);
-			}catch( GlobalManagerDownloadRemovalVetoException e ){
-				e.printStackTrace();
+			if ( state == Download.ST_PREPARING ){
+				
+				alreadyOneAllocatingOrChecking = true;
 			}
 		}
-		*/
+			
+		for (int i=0;i<downloads.length;i++){
+			
+			Download	download = downloads[i];
+			
+			int	state = download.getState();
+			
+			if ( state == Download.ST_WAITING && !alreadyOneAllocatingOrChecking ){
+					
+				try{
+					log.log( LoggerChannel.LT_INFORMATION, "Initialize ["+i+"]: state waiting" );
+					
+					download.initialize();
+					
+					alreadyOneAllocatingOrChecking	= true;
+					
+				}catch( DownloadException e ){
+					
+					e.printStackTrace();
+				}
+			}
+				
+			int nbMax = plugin_config.getIntParameter("max active torrents", 4);
+			
+			int nbMaxDownloads = plugin_config.getIntParameter("max downloads", 4);
+			
+			if ( 	download.getState() == Download.ST_READY &&
+					((nbMax == 0) || (started < nbMax)) &&
+					(download.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (downloading < nbMaxDownloads)))){
+				
+				try{
+					log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: < max downloads running" );
+					
+					download.start();
+							
+					started++;
+					
+					if (download.getStats().getCompleted() != 1000){
+						
+						downloading++;
+					}
+				}catch( DownloadException e ){
+					
+					e.printStackTrace();
+				}
+			}
+
+			if (	download.getState() == Download.ST_SEEDING &&
+					(! download.isPriorityLocked()) &&
+					download.getPriority() == Download.PR_HIGH_PRIORITY &&
+					plugin_config.getBooleanParameter("Switch Priority", false)){
+	
+				log.log( LoggerChannel.LT_INFORMATION, "Priorty ["+i+"]: switch to low priority" );
+				
+				download.setPriority(Download.PR_LOW_PRIORITY);
+			}
+
+			if (	download.getState() == Download.ST_ERROR &&
+					download.getErrorStateDetails() != null && 
+					download.getErrorStateDetails().equals("File Not Found")){
+			
+				try{
+					log.log( LoggerChannel.LT_INFORMATION, "Remove ["+i+"]: file not found" );
+					
+					download.remove();
+					
+				}catch( DownloadRemovalVetoException e ){
+					
+					e.printStackTrace();
+					
+				}catch( DownloadException e ){
+					
+					e.printStackTrace();
+				}
+			}		
+		}
 	}
 }
