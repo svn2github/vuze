@@ -60,7 +60,11 @@ public class testOSX extends  Object{
 
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
-          dispose();        
+        if(getExitConfirmation()) {
+          dispose();
+        } else {
+          event.doit = false;
+        }
       }
     });
   }
