@@ -9,7 +9,7 @@ FEATURE: Caching of peer info to disk for quick restarts if tracker is unavailab
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
 
-BUGFIX: 
+BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 
 
 
