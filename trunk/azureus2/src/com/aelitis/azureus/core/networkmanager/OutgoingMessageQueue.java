@@ -345,7 +345,7 @@ public class OutgoingMessageQueue {
     		if( total_sofar > max_bytes ) {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
-        written = new Long( transport.write( buffers, 0, pos + 1 ) ).intValue();
+        written = (int)transport.write( buffers, 0, pos + 1 );  //NOTE: explicit conversion to int here...maybe someday sockets will be able to write >2GB/s
         buffers[ pos ].limit( orig_limit );
         pos = 0;
         while( !queue.isEmpty() ) {

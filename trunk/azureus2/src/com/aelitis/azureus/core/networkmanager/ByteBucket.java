@@ -119,7 +119,7 @@ public class ByteBucket {
     long current_time = SystemTime.getCurrentTime();
     long time_diff = current_time - prev_update_time;
     if( time_diff > 0 ) {
-      int num_new_bytes = new Float((time_diff * rate) / 1000).intValue();
+      int num_new_bytes = (int)((time_diff * rate) / 1000);
       prev_update_time = current_time;
       avail_bytes += num_new_bytes;
       if( avail_bytes < 0 )  System.out.println("ERROR: avail_bytes < 0: " + avail_bytes);//TODO
