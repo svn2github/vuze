@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.ipchecker.natchecker;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
@@ -41,16 +42,27 @@ public class NatCheckerServer extends AEThread{
     
     private boolean bContinue = true;
     
-    public NatCheckerServer(int port, String check) {     
+    public NatCheckerServer(int _port, String _check) {     
       super("Nat Checker Server");
       try {
-        this.check = check;
-        server = new ServerSocket(port);
+        check = _check;
+        
+        String bind_ip 	= COConfigurationManager.getStringParameter("Bind IP", "");
+
+        if ( bind_ip.length() < 7 ){
+        	
+        	server = new ServerSocket(_port);
+        	
+        }else{
+        	
+        	server = new ServerSocket( _port, 8, InetAddress.getByName(bind_ip));
+        }
+        
         valid = true;
       
       } catch (IOException ioe) {
       	int confPort = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
-      	if (port == confPort) {
+      	if (_port == confPort) {
             //test port and currently-configured listening port
             //are the same, so testing not possible
             valid = false;
