@@ -133,9 +133,11 @@ public class Identification {
       }
       
       
+      String btuga = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
+      if (btuga.equals("btuga")) return "BTugaXP";
+      
       String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
       if (btfans.equals("btfans")) return "SimpleBT";
-      
       
       String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
       if (xantorrent.equals("DansClient")) return "XanTorrent";
