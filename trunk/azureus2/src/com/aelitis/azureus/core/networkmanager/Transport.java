@@ -103,15 +103,10 @@ public class Transport {
     try { 
       if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-      if( enable_efficient_write ) {
-        long num_bytes_requested = 0;
-        for( int i=array_offset; i < array_length; i++ ) {
-          num_bytes_requested += buffers[ i ].remaining();
-        }
-      
+      if( enable_efficient_write ) {     
         try {
           long written = socket_channel.write( buffers, array_offset, array_length );
-          if( written < num_bytes_requested )  requestWriteSelect();
+          if( written < 1 )  requestWriteSelect();
           return written;
         }
         catch( IOException e ) {
@@ -132,10 +127,11 @@ public class Transport {
         int written = socket_channel.write( buffers[ i ] );
         written_sofar += written;
         if( written < data_length ) {
-          requestWriteSelect();
           break;
         }
       }
+      
+      if( written_sofar < 1 )  requestWriteSelect();
       
       return written_sofar;
     }
