@@ -745,6 +745,17 @@ public class TableView
     column.setWidth(newWidth);
   }
   
+  public void columnInvalidate(TableColumnCore tableColumn) {
+    final String sColumnName = tableColumn.getName();
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        TableCellCore cell = row.getTableCellCore(sColumnName);
+        if (cell != null)
+          cell.setValid(false);
+      }
+    });
+  }
+
   /* End ITableStructureModificationListener implementation */
 
   /** Get all the cells for one Column, in the order they are displayed */
@@ -914,7 +925,6 @@ public class TableView
   public void runForAllRows(GroupTableRowRunner runner) {
     synchronized (objectToSortableItem) {
       Iterator iter = objectToSortableItem.values().iterator();
-      int y = 0;
       while (iter.hasNext()) {
         TableRowCore row = (TableRowCore)iter.next();
         if (row != null)

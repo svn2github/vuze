@@ -183,6 +183,11 @@ public class TableColumnImpl
 
 		cellAddedListeners.remove(listener);
   }
+
+  public void invalidateCells() {
+    TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
+    tsed.columnInvalidate(this);
+  }
   
   /* Start of not plugin public API functions */
   //////////////////////////////////////////////

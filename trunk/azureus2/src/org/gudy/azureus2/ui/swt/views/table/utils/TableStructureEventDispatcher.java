@@ -86,4 +86,15 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
      }
    }
   }
+
+  public void columnInvalidate(TableColumnCore tableColumn) {
+    synchronized (listeners) {
+      Iterator iter = listeners.iterator();
+      while (iter.hasNext()) {
+        ITableStructureModificationListener listener = 
+                              (ITableStructureModificationListener)iter.next();
+        listener.columnInvalidate(tableColumn);
+      }
+    }
+  }
 }
