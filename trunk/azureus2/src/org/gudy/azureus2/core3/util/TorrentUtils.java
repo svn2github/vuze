@@ -44,16 +44,25 @@ TorrentUtils
 		
 		throws TOTorrentException
 	{
+		return( readFromFile( new File( file_name )));
+	}
+	
+	public static TOTorrent
+	readFromFile(
+		File		file )
+		
+		throws TOTorrentException
+	{
 		TOTorrent torrent;
    
 		try{
-			torrent = TOTorrentFactory.deserialiseFromBEncodedFile(new File(file_name));
+			torrent = TOTorrentFactory.deserialiseFromBEncodedFile(file);
 			
 		}catch (TOTorrentException e){
       
 			e.printStackTrace();
 			
-			File torrentBackup = new File(file_name + ".bak");
+			File torrentBackup = new File(file.getParent(), file.getName() + ".bak");
 			
 			if( torrentBackup.exists()){
 				
@@ -68,7 +77,7 @@ TorrentUtils
 			}
 		}
 		
-		torrent.setAdditionalStringProperty("torrent filename", file_name );
+		torrent.setAdditionalStringProperty("torrent filename", file.toString());
 		
 		return( torrent );
 	}

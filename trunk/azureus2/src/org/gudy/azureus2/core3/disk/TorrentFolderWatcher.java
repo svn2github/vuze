@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
@@ -23,17 +25,22 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  * @author Rene Leonhardt
  */
 public class TorrentFolderWatcher {
-  private static TorrentFolderWatcher instance = new TorrentFolderWatcher();
-  private static FolderWatcher folderWatcher = instance.new FolderWatcher();
+  private static FolderWatcher folderWatcher;
   private static MainWindow mainWindow = MainWindow.getWindow();
 
-  public static FolderWatcher getFolderWatcher() {
+  public static FolderWatcher getFolderWatcher(
+  		GlobalManager	_global_manager ) {
     if(null == folderWatcher)
-      folderWatcher = instance.new FolderWatcher();
+      folderWatcher = new FolderWatcher(_global_manager);
     return folderWatcher;
   }
   
-  public class FolderWatcher extends Thread implements ParameterListener {
+  public static class 
+  FolderWatcher 
+  	extends Thread 
+	implements ParameterListener 
+  {
+  	private GlobalManager	global_manager;
     private boolean finished = true;
     private int waitTime = 60000;
     private boolean startWatchedTorrentsStopped = true;
@@ -42,8 +49,14 @@ public class TorrentFolderWatcher {
     private FilenameFilter filterTorrents;
     private final ArrayList delList = new ArrayList();
     
-    public FolderWatcher() {
+    public 
+	FolderWatcher(
+    	GlobalManager	_global_manager ) 
+    {
       super("FolderWatcher"); //$NON-NLS-1$
+      
+      global_manager = _global_manager;
+      
       setPriority(Thread.MIN_PRIORITY);
       parameterChanged("");
       filterTorrents = new FilenameFilter() {
@@ -98,6 +111,17 @@ public class TorrentFolderWatcher {
 
       for (int i = 0; i < currentFileList.length; i++) {
         File file = new File( watchFolderString, currentFileList[i] );
+        
+        	// if the torrent is already open in Azureus then do nothing. This can happen if we have
+        	// the default torrent save dir the same as the import dir
+        
+        try{      	
+        	if ( global_manager.getDownloadManager(TorrentUtils.readFromFile( file )) != null ){
+        		
+        		continue;
+        	}
+        }catch( Throwable e ){
+        }
         
         boolean saved = COConfigurationManager.getBooleanParameter("Save Torrent Files");
         String path = COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory");

@@ -715,7 +715,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private void startFolderWatcher() {
     if(folderWatcher == null)
-      folderWatcher = TorrentFolderWatcher.getFolderWatcher();
+      folderWatcher = TorrentFolderWatcher.getFolderWatcher(globalManager);
 	  folderWatcher.startIt();
   }
 
