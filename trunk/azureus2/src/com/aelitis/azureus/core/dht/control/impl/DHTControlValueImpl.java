@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.control.impl;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -36,24 +37,46 @@ public class
 DHTControlValueImpl
 	implements DHTTransportValue
 {
-	private long	creation_time;
-	private byte[]	value;
+	private long				creation_time;
+	private byte[]				value;
+	private DHTTransportContact	originator;
+	private DHTTransportContact	sender;
+	private int					distance;
+	private int					flags;
 	
-	private int		distance;
-	
-	private long	store_time;
+	private long				store_time;
 	
 	protected
 	DHTControlValueImpl(
-		long		_creation_time,
-		byte[]		_value,
-		int			_distance )
+		long				_creation_time,
+		byte[]				_value,
+		DHTTransportContact	_originator,
+		DHTTransportContact	_sender,
+		int					_distance,
+		int					_flags )
 	{
 		creation_time	= _creation_time;
 		value			= _value;
+		originator		= _originator;
+		sender			= _sender;
 		distance		= _distance;
+		flags			= _flags;
 		
 		reset();
+	}
+
+	protected 
+	DHTControlValueImpl(
+		DHTTransportContact	_sender,
+		DHTTransportValue	_other,
+		int					_cache_offset )
+	{
+		this( 	_other.getCreationTime(), 
+				_other.getValue(),
+				_other.getOriginator(),
+				_sender,
+				_other.getCacheDistance()+_cache_offset,
+				_other.getFlags());
 	}
 	
 	protected void
@@ -67,14 +90,6 @@ DHTControlValueImpl
 			
 			creation_time	= store_time;
 		}	
-	}
-	
-	protected 
-	DHTControlValueImpl(
-		DHTTransportValue	other,
-		int					cache_offset )
-	{
-		this( other.getCreationTime(), other.getValue(), other.getCacheDistance()+cache_offset );
 	}
 	
 	public long
@@ -112,6 +127,25 @@ DHTControlValueImpl
 	getValue()
 	{
 		return( value );
+	}
+	
+	public DHTTransportContact
+	getOriginator()
+	{
+		return( originator);
+	}
+	
+	public int
+	getFlags()
+	{
+		return( flags );
+	}
+	
+	public void
+	setOriginator(
+		DHTTransportContact	_originator )
+	{
+		originator	= _originator;
 	}
 	
 	public String

@@ -53,7 +53,7 @@ Test
 		
 			udp2.setRequestHandler( this );
 
-			DHTTransportUDPContact	c1 = (DHTTransportUDPContact)udp1.getLocalContact();
+			final DHTTransportUDPContact	c1 = (DHTTransportUDPContact)udp1.getLocalContact();
 			
 			for (int i=0;i<10;i++){
 				
@@ -114,6 +114,18 @@ Test
 						getValue()
 						{
 							return( "sdsd".getBytes());
+						}
+						
+						public DHTTransportContact
+						getOriginator()
+						{
+							return( c1 );
+						}
+						
+						public int
+						getFlags()
+						{
+							return(0);
 						}
 						
 						public String

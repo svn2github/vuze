@@ -54,7 +54,7 @@ public class
 DHTTransportUDPImpl 
 	implements DHTTransportUDP, PRUDPRequestHandler
 {
-	private static boolean TEST_EXTERNAL_IP	= false;
+	public static boolean TEST_EXTERNAL_IP	= false;
 	
 	static{
 		
@@ -125,7 +125,7 @@ DHTTransportUDPImpl
 
 			// limit send and receive rates 
 		
-		packet_handler.setDelays( 50, 50 );
+		packet_handler.setDelays( 125, 125 );
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
@@ -134,7 +134,7 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, random.nextInt());
 	}
 	
 	public void
@@ -142,7 +142,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getAddress(), random.nextInt());		
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), random.nextInt());		
 	}
 	
 	public void
@@ -158,7 +158,9 @@ DHTTransportUDPImpl
 			external_address = "127.0.0.1";
 		}
 		
-		local_contact = new DHTTransportUDPContactImpl( this, new InetSocketAddress( external_address, port ), local_contact.getInstanceID());		
+		InetSocketAddress	address = new InetSocketAddress( external_address, port );
+		
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, local_contact.getInstanceID());		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -448,7 +450,7 @@ DHTTransportUDPImpl
 		
 		logger.log( "External address changed: " + s_address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, s_address, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, random.nextInt());
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -470,7 +472,7 @@ DHTTransportUDPImpl
 	{
 		synchronized( contact_history ){
 			
-			contact_history.put( contact.getAddress(), contact );
+			contact_history.put( contact.getTransportAddress(), contact );
 		}
 	}
 	
@@ -511,7 +513,7 @@ DHTTransportUDPImpl
 			// instance id of 0 means "unknown"
 		
 		request_handler.contactImported( 
-			new DHTTransportUDPContactImpl( this, address, 0 ));
+			new DHTTransportUDPContactImpl( this, address, address, 0 ));
 	}
 	
 	public void
@@ -552,7 +554,7 @@ DHTTransportUDPImpl
 	
 		throws PRUDPPacketHandlerException
 	{
-		if ( ip_filter.isInRange( contact.getAddress().getAddress().getHostAddress(), "DHT" )){
+		if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
 			
 			throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
 		}
@@ -593,7 +595,7 @@ DHTTransportUDPImpl
 			
 			packet_handler.sendAndReceive(
 				request,
-				contact.getAddress(),
+				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
 					private int	retry_count	= 0;
@@ -623,11 +625,11 @@ DHTTransportUDPImpl
 									
 								}else{
 									
-									request.setOriginatorID(local_contact.getID());
+									request.setOriginatorAddress(local_contact.getExternalAddress());
 									
 									packet_handler.sendAndReceive(
 											request,
-											contact.getAddress(),
+											contact.getTransportAddress(),
 											this,
 											request_timeout );
 								}
@@ -690,7 +692,7 @@ DHTTransportUDPImpl
 			
 			packet_handler.sendAndReceive(
 				request,
-				contact.getAddress(),
+				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
 					public void
@@ -704,7 +706,7 @@ DHTTransportUDPImpl
 								
 								// ping was OK so current address is OK
 								
-								result[0] = local_contact.getAddress();
+								result[0] = local_contact.getExternalAddress();
 								
 							}else if ( _packet instanceof DHTUDPPacketReplyError ){
 								
@@ -793,7 +795,7 @@ DHTTransportUDPImpl
 			
 			packet_handler.sendAndReceive(
 				request,
-				contact.getAddress(),
+				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
 					private int	retry_count	= 0;
@@ -823,11 +825,11 @@ DHTTransportUDPImpl
 									
 								}else{
 									
-									request.setOriginatorID(local_contact.getID());
+									request.setOriginatorAddress(local_contact.getExternalAddress());
 									
 									packet_handler.sendAndReceive(
 											request,
-											contact.getAddress(),
+											contact.getTransportAddress(),
 											this,
 											request_timeout );
 								}
@@ -910,7 +912,7 @@ DHTTransportUDPImpl
 			
 			packet_handler.sendAndReceive(
 				request,
-				contact.getAddress(),
+				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
 					private int	retry_count	= 0;
@@ -940,11 +942,11 @@ DHTTransportUDPImpl
 									
 								}else{
 									
-									request.setOriginatorID(local_contact.getID());
+									request.setOriginatorAddress(local_contact.getExternalAddress());
 									
 									packet_handler.sendAndReceive(
 											request,
-											contact.getAddress(),
+											contact.getTransportAddress(),
 											this,
 											request_timeout );
 								}
@@ -1028,7 +1030,7 @@ DHTTransportUDPImpl
 			
 			packet_handler.sendAndReceive(
 				request,
-				contact.getAddress(),
+				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
 					private int	retry_count	= 0;
@@ -1058,11 +1060,11 @@ DHTTransportUDPImpl
 									
 								}else{
 									
-									request.setOriginatorID(local_contact.getID());
+									request.setOriginatorAddress(local_contact.getExternalAddress());
 									
 									packet_handler.sendAndReceive(
 											request,
-											contact.getAddress(),
+											contact.getTransportAddress(),
 											this,
 											request_timeout );
 								}
@@ -1131,17 +1133,19 @@ DHTTransportUDPImpl
 		try{
 			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
 			
-			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress(), request.getOriginatorInstanceID());
+			InetSocketAddress	transport_address = request.getAddress();
+			
+			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, transport_address, request.getOriginatorAddress(), request.getOriginatorInstanceID());
 			
 			try{
-				checkAddress( originating_contact);
+				checkAddress( originating_contact );
 					
 			}catch( PRUDPPacketHandlerException e ){
 				
 				return;
 			}
 
-			if ( !Arrays.equals( request.getOriginatorID(), originating_contact.getID())){
+			if ( !originating_contact.isValid()){
 				
 				logger.log( "Node " + originating_contact.getString() + " has incorrect ID, reporting it to them" );
 				
@@ -1153,7 +1157,7 @@ DHTTransportUDPImpl
 				
 				reply.setErrorType( DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG );
 				
-				reply.setOriginatingAddress( originating_contact.getAddress());
+				reply.setOriginatingAddress( originating_contact.getTransportAddress());
 				
 				packet_handler.send( reply, request.getAddress());
 

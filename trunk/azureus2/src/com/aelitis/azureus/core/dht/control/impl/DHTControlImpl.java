@@ -27,7 +27,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
@@ -52,7 +51,9 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
-	private DHTTransport	transport;
+	private DHTTransport			transport;
+	private DHTTransportContact		local_contact;
+	
 	private DHTRouter		router;
 	
 	private LoggerChannel	logger;
@@ -126,7 +127,7 @@ DHTControlImpl
 			{
 				public void
 				localContactChanged(
-					DHTTransportContact	local_contact )
+					DHTTransportContact	new_local_contact )
 				{
 					logger.log( "Transport ID changed, recreating router" );
 					
@@ -134,7 +135,7 @@ DHTControlImpl
 					
 					DHTRouter	old_router = router;
 					
-					createRouter( local_contact );
+					createRouter( new_local_contact );
 				
 					for (int i=0;i<contacts.size();i++){
 						
@@ -211,8 +212,10 @@ DHTControlImpl
 	
 	protected void
 	createRouter(
-		DHTTransportContact		local_contact)
+		DHTTransportContact		_local_contact)
 	{		
+		local_contact	= _local_contact;
+		
 		router	= DHTRouterFactory.create( 
 					K, B, max_rep_per_node,
 					local_contact.getID(), 
@@ -243,6 +246,23 @@ DHTControlImpl
 					nodeAddedToRouter( contact );
 				}
 			});	
+		
+			// our ID has changed - amend the originator of all our values
+		
+		synchronized( stored_values ){
+			
+			Iterator	it = stored_values.values().iterator();
+			
+			while( it.hasNext()){
+				
+				DHTControlValueImpl	value = (DHTControlValueImpl)it.next();
+				
+				if ( value.getCacheDistance() == 0 ){
+					
+					value.setOriginator( local_contact );
+				}
+			}
+		}
 	}
 	
 	public DHTTransport
@@ -322,6 +342,7 @@ DHTControlImpl
 		for (int i=0;i<num;i++){
 			
 			try{
+				
 				transport.importContact( dais );
 				
 			}catch( DHTTransportException e ){
@@ -371,11 +392,19 @@ DHTControlImpl
 			
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 			
-			DHTTransportValue	value = 
-				new DHTControlValueImpl( SystemTime.getCurrentTime(), _value, 0 );
-
+			DHTControlValueImpl	value;
+			
 			synchronized( stored_values ){
-					
+				
+				value =	new DHTControlValueImpl( 
+							SystemTime.getCurrentTime(), 
+							_value, 
+							local_contact, 
+							local_contact,
+							0,
+							0 );
+
+
 					// don't police max check for locally stored data
 					// only that received
 				
@@ -466,20 +495,6 @@ DHTControlImpl
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
 		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
-
-			// maybe we've got the value already
-		
-		synchronized( stored_values ){
-			
-			DHTTransportValue	local_result = (DHTTransportValue)stored_values.get( new HashWrapper( encoded_key ));
-		
-			if ( local_result != null ){
-				
-				DHTLog.log( "    surprisingly we've got it locally!" );
-
-				return( local_result.getValue());
-			}
-		}
 		
 		final DHTTransportValue[]	value 	= new DHTTransportValue[1];
 		
@@ -1000,6 +1015,28 @@ DHTControlImpl
 
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
+				// All values have
+				//	1) a key
+				//	2) a value
+				//	3) an originator (the contact who originally published it)
+				//	4) an originating contact (the contact who sent it, could be diff for caches)
+			
+				// for a given key
+				//		a) we only hold one entry per originating contact (IP+port) (latest)
+				//		b) we only allow up to 8 entries per originating IP address (excluding port)
+				// 		c) only the originator can delete an entry
+				//		d) if multiple keys have the same value the value is only returned once
+			
+				// a value can be "volatile" - this means that the cacher can ping the originator
+				// periodically and delete the value if it is dead
+			
+			
+				// the aim here is to
+				//	1) 	reduce ability for single contacts to spam the key while supporting up to 8 
+				//		contacts on a given IP (assuming NAT is being used)
+				//	2)	stop one contact deleting or overwriting another contact's entry
+				//	3)	support garbage collection for contacts that don't delete entries on exit
+			
 			synchronized( stored_values ){
 				
 				if ( stored_values.size() >= max_values_stored ){
@@ -1024,7 +1061,7 @@ DHTControlImpl
 						
 						stored_values.put(
 								wrapper, 
-								new DHTControlValueImpl( value, 1 ));
+								new DHTControlValueImpl( originating_contact, value, 1 ));
 					}else{
 						
 							// mark it as current 
@@ -1082,7 +1119,19 @@ DHTControlImpl
 				
 				checkCacheExpiration( false );
 				
-				value = (DHTTransportValue)stored_values.get( new HashWrapper( key ));
+				HashWrapper wrapper =  new HashWrapper( key );
+				
+				value = (DHTTransportValue)stored_values.get(wrapper);
+				
+					// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
+					// contact could spam all contacts surrounding the target with bogus information 
+					// current approach is to only allow usage of a secondary cache entry ONCE before
+					// we delete it :P
+				
+				if ( value != null && value.getCacheDistance() > 1 ){
+					
+					stored_values.remove( wrapper );
+				}
 			}
 			
 			if ( value != null ){
@@ -1249,7 +1298,7 @@ DHTControlImpl
 				
 				putSupport( 
 						lookup_id, 
-						new DHTControlValueImpl(value,-1), 
+						new DHTControlValueImpl(local_contact,value,-1), 
 						contacts );
 			}
 			
@@ -1463,7 +1512,7 @@ DHTControlImpl
 							}
 						},
 						key.getHash(), 
-						new DHTControlValueImpl( value, -1 ));
+						new DHTControlValueImpl( local_contact, value, -1 ));
 						
 			}
 		}else{

@@ -52,6 +52,7 @@ DHTRouterImpl
 	
 	private DHTRouterAdapter		adapter;
 	
+	private DHTRouterContactImpl	local_contact;
 	private byte[]					router_node_id;
 	
 	private DHTRouterNodeImpl		root;
@@ -99,7 +100,7 @@ DHTRouterImpl
 		
 		List	buckets = new ArrayList();
 		
-		DHTRouterContactImpl local_contact = new DHTRouterContactImpl( router_node_id, _attachment, true );
+		local_contact = new DHTRouterContactImpl( router_node_id, _attachment, true );
 		
 		buckets.add( local_contact );
 		
@@ -130,6 +131,12 @@ DHTRouterImpl
 		byte[]	id )
 	{
 		return( Arrays.equals( id, router_node_id ));
+	}
+	
+	public DHTRouterContact
+	getLocalContact()
+	{
+		return( local_contact );
 	}
 	
 	public void

@@ -39,6 +39,12 @@ DHTTransportValue
 	public byte[]
 	getValue();
 	
+	public DHTTransportContact
+	getOriginator();
+	
+	public int
+	getFlags();
+	
 	public String
 	getString();
 }

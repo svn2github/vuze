@@ -56,7 +56,7 @@ DHTUDPUtils
 		
 		if ( ia == null ){
 			
-			Debug.out( "Address '" + address + "' is unresolved" );
+			// Debug.out( "Address '" + address + "' is unresolved" );
 			
 			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
 			
@@ -103,17 +103,57 @@ DHTUDPUtils
 		os.write( data );
 	}
 	
-	protected static DHTTransportValue
-	deserialiseTransportValue(
-		DataInputStream	is )
+	protected static DHTTransportValue[]
+	deserialiseTransportValues(
+		DHTTransportUDPImpl		transport,
+		DataInputStream			is )
 	
 		throws IOException
+	{
+		int	len = is.readInt();
+		
+		if ( len > 1024 ){
+			
+			throw( new IOException( "too many values" ));
+		}
+		
+		List	l = new ArrayList( len );
+		
+		for (int i=0;i<len;i++){
+			
+			try{
+				
+				l.add( deserialiseTransportValue( transport, is ));
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+				
+		DHTTransportValue[]	res = new DHTTransportValue[l.size()];
+		
+		l.toArray( res );
+		
+		return( res );
+	}
+	
+	protected static DHTTransportValue
+	deserialiseTransportValue(
+		DHTTransportUDPImpl	transport,
+		DataInputStream		is )
+	
+		throws IOException, DHTTransportException
 	{
 		final int	distance	= is.readInt();
 		
 		final long 	created		= is.readLong();
 		
 		final byte[]	value_bytes = deserialiseByteArray( is );
+		
+		final DHTTransportContact	originator		= deserialiseContact( transport, is );
+		
+		final int flags	= is.readByte()&0xff;
 		
 		DHTTransportValue value = 
 			new DHTTransportValue()
@@ -136,6 +176,18 @@ DHTUDPUtils
 					return( value_bytes );
 				}
 				
+				public DHTTransportContact
+				getOriginator()
+				{
+					return( originator );
+				}
+				
+				public int
+				getFlags()
+				{
+					return( flags );
+				}
+				
 				public String
 				getString()
 				{
@@ -147,17 +199,37 @@ DHTUDPUtils
 	}
 	
 	protected static void
+	serialiseTransportValues(
+		DataOutputStream		os,
+		DHTTransportValue[]		values )
+	
+		throws IOException, DHTTransportException
+	{
+		os.writeInt( values.length );
+	
+		for (int i=0;i<values.length;i++){
+			
+			
+			serialiseTransportValue( os, values[i] );
+		}
+	}
+	
+	protected static void
 	serialiseTransportValue(
 		DataOutputStream	os,
 		DHTTransportValue	value )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		os.writeInt( value.getCacheDistance());
 		
 		os.writeLong( value.getCreationTime());
 		
 		serialiseByteArray( os, value.getValue());
+		
+		serialiseContact( os, value.getOriginator());
+		
+		os.writeByte( value.getFlags());
 	}
 	
 	protected static void
@@ -187,7 +259,7 @@ DHTUDPUtils
 
 	protected static DHTTransportContact[]
 	deserialiseContacts(
-		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
+		DHTTransportUDPImpl		transport,
 		DataInputStream			is )
 	
 		throws IOException
@@ -232,12 +304,8 @@ DHTUDPUtils
 			os.writeByte( CT_UDP );
 			
 			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
-					
-				// TODO: remove instance id
-			
-			os.writeInt( 0 ); // );
-			
-			serialiseAddress( os, c.getAddress() );
+								
+			serialiseAddress( os, c.getExternalAddress() );
 			
 		}else{
 			
@@ -258,17 +326,13 @@ DHTUDPUtils
 			
 			throw( new IOException( "Unsupported contact type:" + ct ));
 		}
-	
-			// TODO: remove instance id
-		
-		int	instance_id	= is.readInt();
-		
-			// we don't transport instance ids around via this router as they are just
+			
+			// we don't transport instance ids around via this route as they are just
 			// cached versions and not useful
+				
+		InetSocketAddress	external_address = deserialiseAddress( is );
 		
-		instance_id	= 0;
-		
-		return( new DHTTransportUDPContactImpl( transport, deserialiseAddress( is ), instance_id));
+		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, 0 ));
 	}
 	
 	
@@ -288,7 +352,7 @@ DHTUDPUtils
 			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
 		}
 		
-		serialiseByteArray( os, ia.getHostAddress().getBytes());
+		serialiseByteArray( os, ia.getAddress());
 		
 		os.writeShort( address.getPort());
 	}
@@ -303,6 +367,6 @@ DHTUDPUtils
 				
 		int	port = is.readShort()&0xffff;
 		
-		return( new InetSocketAddress(new String(bytes), port ));
+		return( new InetSocketAddress( InetAddress.getByAddress( bytes ), port ));
 	}
 }

@@ -343,7 +343,7 @@ PRUDPPacketHandlerImpl
 			
 				// if someone's sending us junk we just log and continue
 			
-			LGLogger.log( e );
+			// LGLogger.log( e );
 		}
 	}
 	
@@ -472,14 +472,21 @@ PRUDPPacketHandlerImpl
 				
 				if ( send_delay > 0 ){
 					
-					try{
+						// do this under the request monitor to ensure that the 
+						// send limits are applied across threads
 					
+					try{
+						requests_mon.enter();
+
 						Thread.sleep( send_delay );
 					
 					}catch( InterruptedException e ){
 					
 						Debug.printStackTrace(e);
 					
+					}finally{
+						
+						requests_mon.exit();
 					}
 				}
 					// if the send is ok then the request will be removed from the queue
@@ -540,13 +547,17 @@ PRUDPPacketHandlerImpl
 			if ( send_delay > 0 ){
 				
 				try{
-				
+					requests_mon.enter();
+					
 					Thread.sleep(send_delay);
 				
 				}catch( InterruptedException e ){
 				
 					Debug.printStackTrace(e);
 				
+				}finally{
+					
+					requests_mon.exit();
 				}
 			}
 		}catch( Throwable e ){

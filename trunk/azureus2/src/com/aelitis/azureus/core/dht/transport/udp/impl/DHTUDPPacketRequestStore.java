@@ -26,7 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 
@@ -44,17 +44,18 @@ DHTUDPPacketRequestStore
 	
 	public
 	DHTUDPPacketRequestStore(
-		long				_connection_id,
-		DHTTransportContact	_contact )
+		long						_connection_id,
+		DHTTransportUDPContactImpl	_contact )
 	{
 		super( DHTUDPPacket.ACT_REQUEST_STORE, _connection_id, _contact );
 	}
 
 	protected
 	DHTUDPPacketRequestStore(
-		DataInputStream		is,
-		long				con_id,
-		int					trans_id )
+		DHTTransportUDPImpl		transport,
+		DataInputStream			is,
+		long					con_id,
+		int						trans_id )
 	
 		throws IOException
 	{
@@ -62,7 +63,13 @@ DHTUDPPacketRequestStore
 		
 		key		= DHTUDPUtils.deserialiseByteArray( is );
 		
-		value 	= DHTUDPUtils.deserialiseTransportValue( is );
+		try{
+			value 	= DHTUDPUtils.deserialiseTransportValue( transport, is );
+			
+		}catch( DHTTransportException e ){
+			
+			throw( new IOException( e.getMessage()));
+		}
 	}
 	
 	public void
@@ -75,7 +82,13 @@ DHTUDPPacketRequestStore
 		
 		DHTUDPUtils.serialiseByteArray( os, key );
 		
-		DHTUDPUtils.serialiseTransportValue( os, value );
+		try{
+			DHTUDPUtils.serialiseTransportValue( os, value );
+			
+		}catch( DHTTransportException e ){
+			
+			throw( new IOException( e.getMessage()));
+		}
 	}
 
 	protected void

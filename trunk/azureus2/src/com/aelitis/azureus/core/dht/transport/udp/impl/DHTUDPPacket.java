@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
+
 
 import com.aelitis.net.udp.*;
 
@@ -37,7 +39,7 @@ import com.aelitis.net.udp.*;
 public class 
 DHTUDPPacket 
 {
-	public static final int		VERSION					= 1;
+	public static final int		VERSION					= 2;
 	
 		// these actions have to co-exist with the tracker ones when the connection
 		// is shared, hence 1024
@@ -53,7 +55,8 @@ DHTUDPPacket
 	public static final int		ACT_REPLY_ERROR			= 1032;
 	
 	
-	private static boolean	registered	= false;
+	private static boolean	registered				= false;
+	private static boolean	version_fail_reported	= false;
 	
 	protected static void
 	registerCodecs()
@@ -78,6 +81,8 @@ DHTUDPPacket
 				
 					throws IOException
 				{
+					DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)handler.getRequestHandler();
+
 					switch( action ){
 						case ACT_REQUEST_PING:
 						{
@@ -85,7 +90,7 @@ DHTUDPPacket
 						}
 						case ACT_REQUEST_STORE:
 						{
-							return( new DHTUDPPacketRequestStore(is, connection_id,transaction_id));
+							return( new DHTUDPPacketRequestStore(transport,is, connection_id,transaction_id));
 						}
 						case ACT_REQUEST_FIND_NODE:
 						{
@@ -167,5 +172,35 @@ DHTUDPPacket
 		reply_decoders.put( new Integer( ACT_REPLY_ERROR ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
+	}
+	
+	protected static void
+	checkVersion(
+		int		version )
+	
+		throws IOException
+	{
+		if ( version != DHTUDPPacket.VERSION ){
+		
+			if ( version > DHTUDPPacket.VERSION ){
+				
+				synchronized( DHTUDPPacket.class ){
+			
+					if ( !version_fail_reported ){
+						
+						version_fail_reported	= true;
+						
+							// TODO: some idiot could annoy users by sending high version
+							// packets - consider removing 
+						
+						LGLogger.logUnrepeatableAlert(
+							LGLogger.AT_ERROR,
+							"DHT protocol version is too old, please update Azureus" );
+					}
+				}
+			}
+			
+			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
 	}
 }

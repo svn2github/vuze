@@ -42,6 +42,9 @@ DHTRouter
 	isID(
 		byte[]	node_id );
 	
+	public DHTRouterContact
+	getLocalContact();
+	
 	public void
 	setAdapter(
 		DHTRouterAdapter	_adapter );

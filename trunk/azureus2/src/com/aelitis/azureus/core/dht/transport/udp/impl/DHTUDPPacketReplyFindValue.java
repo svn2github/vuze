@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
@@ -36,7 +37,7 @@ DHTUDPPacketReplyFindValue
 	extends DHTUDPPacketReply
 {
 	private DHTTransportContact[]		contacts;
-	private DHTTransportValue			value;
+	private DHTTransportValue[]			values;
 	
 	public
 	DHTUDPPacketReplyFindValue(
@@ -49,7 +50,7 @@ DHTUDPPacketReplyFindValue
 	
 	protected
 	DHTUDPPacketReplyFindValue(
-		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
+		DHTTransportUDPImpl		transport,
 		DataInputStream			is,
 		int						trans_id )
 	
@@ -61,7 +62,7 @@ DHTUDPPacketReplyFindValue
 		
 		if ( is_value ){
 			
-			value = DHTUDPUtils.deserialiseTransportValue( is );
+			values = DHTUDPUtils.deserialiseTransportValues( transport, is );
 			
 		}else{
 			
@@ -77,15 +78,21 @@ DHTUDPPacketReplyFindValue
 	{
 		super.serialise(os);
 		
-		os.writeBoolean( value != null );
+		os.writeBoolean( values != null );
 		
-		if ( value == null ){
+		if ( values == null ){
 			
 			DHTUDPUtils.serialiseContacts( os, contacts );
 			
 		}else{
 			
-			DHTUDPUtils.serialiseTransportValue( os, value );
+			try{
+				DHTUDPUtils.serialiseTransportValues( os, values );
+				
+			}catch( DHTTransportException e ){
+				
+				throw( new IOException( e.getMessage()));
+			}
 		}
 	}
 	
@@ -93,13 +100,17 @@ DHTUDPPacketReplyFindValue
 	setValue(
 		DHTTransportValue	_value )
 	{
-		value	= _value;
+		values	= new DHTTransportValue[]{ _value };
 	}
 	
 	protected DHTTransportValue
 	getValue()
 	{
-		return( value );
+		if ( values == null || values.length == 0 ){
+			
+			return( null );
+		}
+		return( values[0] );
 	}
 	
 	protected void

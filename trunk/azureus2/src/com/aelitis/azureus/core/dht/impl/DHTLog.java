@@ -41,9 +41,9 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public class 
 DHTLog 
 {
-	public static final boolean	ADD_TRACE	= true;
+	public static final boolean	ADD_TRACE	= false;
 	
-	private static boolean	LOGGING_DEFAULT	= true;
+	private static boolean	LOGGING_DEFAULT	= false;
 	
 	private static ThreadLocal		tls;
 	

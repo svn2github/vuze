@@ -26,8 +26,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-
 
 /**
  * @author parg
@@ -39,11 +37,12 @@ DHTUDPPacketRequestFindValue
 	extends DHTUDPPacketRequest
 {
 	private byte[]		id;
+	private byte		flags;
 	
 	public
 	DHTUDPPacketRequestFindValue(
-		long				_connection_id,
-		DHTTransportContact	_contact )
+		long						_connection_id,
+		DHTTransportUDPContactImpl	_contact )
 	{
 		super( DHTUDPPacket.ACT_REQUEST_FIND_VALUE, _connection_id, _contact );
 	}
@@ -59,6 +58,8 @@ DHTUDPPacketRequestFindValue
 		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_VALUE, con_id, trans_id );
 		
 		id = DHTUDPUtils.deserialiseByteArray( is );
+		
+		flags = is.readByte();
 	}
 	
 	public void
@@ -70,6 +71,8 @@ DHTUDPPacketRequestFindValue
 		super.serialise(os);
 		
 		DHTUDPUtils.serialiseByteArray( os, id );
+		
+		os.writeByte( flags );
 	}
 	
 	protected void

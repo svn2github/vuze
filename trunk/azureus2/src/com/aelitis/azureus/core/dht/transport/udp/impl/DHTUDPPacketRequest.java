@@ -25,8 +25,9 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 
 /**
@@ -38,21 +39,21 @@ public class
 DHTUDPPacketRequest 
 	extends PRUDPPacketRequest
 {
-	private short	version;
-	private byte[]	originator_id;
-	private int		originator_instance_id;
+	private short				version;
+	private InetSocketAddress	originator_address;
+	private int					originator_instance_id;
 	
 	public
 	DHTUDPPacketRequest(
-		int					_type,
-		long				_connection_id,
-		DHTTransportContact	_contact )
+		int								_type,
+		long							_connection_id,
+		DHTTransportUDPContactImpl		_contact )
 	{
 		super( _type, _connection_id );
 		
 		version	= DHTUDPPacket.VERSION;
 		
-		originator_id			= _contact.getID();
+		originator_address		= _contact.getExternalAddress();
 		originator_instance_id	= _contact.getInstanceID();
 	}
 	
@@ -69,31 +70,33 @@ DHTUDPPacketRequest
 		
 		version	= is.readShort();
 		
-		originator_id = DHTUDPUtils.deserialiseByteArray( is );
+		DHTUDPPacket.checkVersion( version );
+		
+		originator_address		= DHTUDPUtils.deserialiseAddress( is );
 		
 		originator_instance_id	= is.readInt();
 	}
 	
-	public int
+	protected int
 	getVersion()
 	{
 		return( version );
 	}
 	
-	public void
-	setOriginatorID(
-		byte[]		id )
+	protected InetSocketAddress
+	getOriginatorAddress()
 	{
-		originator_id	= id;
+		return( originator_address );
 	}
 	
-	public byte[]
-	getOriginatorID()
+	protected void
+	setOriginatorAddress(
+		InetSocketAddress	address )
 	{
-		return( originator_id );
+		originator_address	= address;
 	}
 	
-	public int
+	protected int
 	getOriginatorInstanceID()
 	{
 		return( originator_instance_id );
@@ -109,7 +112,13 @@ DHTUDPPacketRequest
 		
 		os.writeShort( version );
 		
-		DHTUDPUtils.serialiseByteArray( os, originator_id );
+		try{
+			DHTUDPUtils.serialiseAddress( os, originator_address );
+			
+		}catch( DHTTransportException	e ){
+			
+			throw( new IOException( e.getMessage()));
+		}
 		
 		os.writeInt( originator_instance_id );
 	}

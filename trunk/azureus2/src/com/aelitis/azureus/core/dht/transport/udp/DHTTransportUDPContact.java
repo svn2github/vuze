@@ -36,5 +36,5 @@ DHTTransportUDPContact
 	extends DHTTransportContact
 {
 	public InetSocketAddress
-	getAddress();
+	getExternalAddress();
 }

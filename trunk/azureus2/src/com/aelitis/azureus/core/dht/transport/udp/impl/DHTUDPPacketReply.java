@@ -72,6 +72,8 @@ DHTUDPPacketReply
 		
 		version			= _is.readShort();
 			
+		DHTUDPPacket.checkVersion( version );
+	
 		target_instance_id	= _is.readInt();
 	}
 	

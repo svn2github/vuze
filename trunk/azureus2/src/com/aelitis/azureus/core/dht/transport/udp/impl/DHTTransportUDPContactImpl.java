@@ -40,7 +40,8 @@ DHTTransportUDPContactImpl
 	implements DHTTransportUDPContact
 {
 	private	DHTTransportUDPImpl		transport;
-	private InetSocketAddress		address;
+	private InetSocketAddress		external_address;
+	private InetSocketAddress		transport_address;
 	
 	private byte[]				id;
 	private int					instance_id;
@@ -48,22 +49,46 @@ DHTTransportUDPContactImpl
 	protected
 	DHTTransportUDPContactImpl(
 		DHTTransportUDPImpl		_transport,
-		InetSocketAddress		_address,
+		InetSocketAddress		_transport_address,
+		InetSocketAddress		_external_address,
 		int						_instance_id )
 	
 		throws DHTTransportException
 	{
-		transport		= _transport;
-		address			= _address;
-		instance_id		= _instance_id;
+		transport				= _transport;
+		transport_address		= _transport_address;
+		external_address		= _external_address;
 		
-		id = DHTUDPUtils.getNodeID( address );
+		if ( transport_address.equals( external_address )){
+			
+			external_address	= transport_address;
+		}
+		
+		instance_id		=		 _instance_id;
+		
+		if ( 	transport_address == external_address ||
+				transport_address.getAddress().equals( external_address.getAddress())){
+			
+			id = DHTUDPUtils.getNodeID( external_address );
+		}
+	}
+	
+	protected boolean
+	isValid()
+	{
+		return( id != null );
 	}
 	
 	public InetSocketAddress
-	getAddress()
+	getTransportAddress()
 	{
-		return( address );
+		return( transport_address );
+	}
+	
+	public InetSocketAddress
+	getExternalAddress()
+	{
+		return( external_address );
 	}
 	
 	public int
@@ -126,6 +151,11 @@ DHTTransportUDPContactImpl
 	public byte[]
 	getID()
 	{
+		if ( id == null ){
+			
+			throw( new RuntimeException( "Invalid contact" ));
+		}
+		
 		return( id );
 	}
 	
@@ -141,6 +171,6 @@ DHTTransportUDPContactImpl
 	public String
 	getString()
 	{
-		return( address.toString());
+		return( "tran="+transport_address.toString()+",ext="+external_address);
 	}
 }

@@ -26,8 +26,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-
 
 /**
  * @author parg
@@ -40,8 +38,8 @@ DHTUDPPacketRequestPing
 {
 	public
 	DHTUDPPacketRequestPing(
-		long				_connection_id,
-		DHTTransportContact	_contact )
+		long						_connection_id,
+		DHTTransportUDPContactImpl	_contact )
 	{
 		super( DHTUDPPacket.ACT_REQUEST_PING, _connection_id, _contact );
 	}
