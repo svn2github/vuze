@@ -20,6 +20,7 @@ public class Constants {
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
   
   public static final String INFINITY_STRING	= "\u221E"; // "oo";
+  public static final int    INFINITY_AS_INT = 31536000; // seconds (365days)
   
   public static final String AZUREUS_NAME	    = "Azureus";
   public static final String AZUREUS_VERSION  = "2.0.8.5_CVS";

@@ -12,7 +12,7 @@ public class TimeFormater {
 
     public static String format(long time)
     {
-      if (time > 864000) return Constants.INFINITY_STRING;
+      if (time >= Constants.INFINITY_AS_INT) return Constants.INFINITY_STRING;
       
       int secs = (int) time % 60;
       int mins = (int) (time / 60) % 60;
