@@ -113,8 +113,8 @@ public class URLTransfer extends ByteArrayTransfer {
   }
 
   public class URLType {
-    String linkURL;
-    String linkText;
+    public String linkURL;
+    public String linkText;
     public String toString() {
       return linkURL + "\n" + linkText;
     }

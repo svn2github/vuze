@@ -53,6 +53,7 @@ public class ModePanel extends AbstractWizardPanel {
 
   private Button bSingle;
   private Button bDirectory;
+  private Combo tracker;
 
   public ModePanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
     super(wizard, previous);
@@ -160,7 +161,7 @@ public class ModePanel extends AbstractWizardPanel {
     btnExternalTracker.setSelection(!((NewTorrentWizard) wizard).localTracker);
     labelExternalAnnounce.setEnabled(!((NewTorrentWizard) wizard).localTracker);
 
-    final Combo tracker = new Combo(panel, SWT.NULL);
+    tracker = new Combo(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     tracker.setLayoutData(gridData);
@@ -193,7 +194,7 @@ public class ModePanel extends AbstractWizardPanel {
 
       }
     });
-    tracker.setText(((NewTorrentWizard) wizard).trackerURL);
+    updateTrackerURL();
     tracker.setEnabled(!((NewTorrentWizard) wizard).localTracker);
     
     //Line:
@@ -344,4 +345,7 @@ public class ModePanel extends AbstractWizardPanel {
     bSingle.setSelection(singleFile);
   }
 
+  void updateTrackerURL() {
+    tracker.setText(((NewTorrentWizard) wizard).trackerURL);
+  }
 }
