@@ -34,6 +34,12 @@ UITextFieldImpl
 	extends		UIComponentImpl
 	implements 	UITextField
 {
+	public
+	UITextFieldImpl()
+	{
+		setText("");
+	}
+	
 	public void
 	setText(
 		String		text )

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.model;
 
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.components.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.components.*;
 
 public class 
 BasicPluginViewModelImpl 
@@ -46,6 +47,11 @@ BasicPluginViewModelImpl
 		String		_name )
 	{
 		name		= _name;
+		
+		status 		= new UITextFieldImpl();
+		activity	= new UITextFieldImpl();
+		log			= new UITextAreaImpl();
+		progress	= new UIProgressBarImpl();
 	}
 	
 	public String

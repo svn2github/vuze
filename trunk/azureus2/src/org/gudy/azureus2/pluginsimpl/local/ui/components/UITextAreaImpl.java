@@ -35,6 +35,12 @@ UITextAreaImpl
 	extends		UIComponentImpl
 	implements 	UITextArea
 {
+	public
+	UITextAreaImpl()
+	{
+		setText("");
+	}
+	
 	public void
 	setText(
 		String		text )
