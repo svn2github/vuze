@@ -78,7 +78,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.1.1"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.2.0"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -603,7 +603,8 @@ public class MainWindow implements IComponentListener {
 
     Label label = new Label(s, SWT.NONE);
     label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
-    label.setLayoutData(gridData = new GridData());
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    label.setLayoutData(gridData);
 
     Properties properties = new Properties();
     try {

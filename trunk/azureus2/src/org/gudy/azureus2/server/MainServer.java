@@ -22,7 +22,6 @@ package org.gudy.azureus2.server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.lang.*;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;

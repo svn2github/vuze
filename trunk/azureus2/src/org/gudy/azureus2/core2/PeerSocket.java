@@ -42,16 +42,16 @@ public class PeerSocket extends PeerConnection {
    */
   public PeerSocket(PeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
-    if (fake) {
+    if (fake)
       return;
-    }
+      
     initialize();
   }
 
   public void initialize() {
     this.incoming = false;
     allocateAll();
-//    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
+    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
       socket = SocketChannel.open();
@@ -215,7 +215,7 @@ public class PeerSocket extends PeerConnection {
     this.currentState = new StateClosed();
 
     //1. Remove us from the manager, so it will stop asking us for things :p
-    manager.removePeer(this);
+    //manager.removePeer(this);
 
     //2. Cancel any pending requests (on the manager side)
     cancelRequests();
@@ -224,8 +224,10 @@ public class PeerSocket extends PeerConnection {
     if (socket != null) {
       try {
         socket.close();
-      } catch (Exception e) {
-        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
       }
       socket = null;
     }
@@ -257,15 +259,15 @@ public class PeerSocket extends PeerConnection {
     manager.peerRemoved(this);
 
     //8. Send a logger event
-//    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
+    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
   }
 
   private class StateConnecting implements State {
     public void process() {
       try {
-        if(socket.finishConnect()) {
-        handShake();
-        currentState = new StateHandshaking();
+        if (socket.finishConnect()) {
+          handShake();
+          currentState = new StateHandshaking();
         }
       }
       catch (IOException e) {
@@ -289,14 +291,11 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readBuffer.hasRemaining()) {
         try {
-          int read = -1;
-          socket.finishConnect();
-          read = socket.read(readBuffer);
-          if (read < 0) {
-            closeAll();
-            return;
-          }
-        } catch (Exception e) {
+          int read = socket.read(readBuffer);
+          if (read < 0)
+            throw new IOException("End of Stream Reached");
+        }
+        catch (IOException e) {
           closeAll();
           return;
         }
@@ -315,8 +314,12 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readingLength) {
         if (lengthBuffer.hasRemaining()) {
-          int read = processSocket(lengthBuffer, true);
-          if (read < 0) {
+          try {
+            int read = socket.read(lengthBuffer);
+            if (read < 0)
+              throw new IOException("End of Stream Reached");
+          }
+          catch (IOException e) {
             closeAll();
             return;
           }
@@ -333,15 +336,20 @@ public class PeerSocket extends PeerConnection {
         }
       }
       if (!readingLength) {
-        int read = processSocket(readBuffer, true);
-        if (read < 0) {
+        try {
+          int read = socket.read(readBuffer);
+          if (read < 0)
+            throw new IOException("End of Stream Reached");
+          //hack to statistically determine when we're receving data...
+          if (readBuffer.limit() > 8192) {
+            stats.received(read);
+            manager.received(read);
+          }
+        }
+        catch (IOException e) {
+          //e.printStackTrace();
           closeAll();
           return;
-        }
-        //hack to statistically determine when we're receving data...
-        if (readBuffer.limit() > 8192) {
-          stats.received(read);
-          manager.received(read);
         }
         if (!readBuffer.hasRemaining()) {
           analyseBuffer(readBuffer);
@@ -363,21 +371,28 @@ public class PeerSocket extends PeerConnection {
     }
   }
 
-  private int processSocket(ByteBuffer buffer, boolean doRead) {
-    int processedBytes = 0;
+ /* private int processSocket(ByteBuffer buffer, boolean doRead) {
+    int processedBytes;
     try {
       processedBytes = doRead ? socket.read(buffer) : socket.write(buffer);
-    } catch (Exception e) {
+      return processedBytes;
+    }
+    catch (Exception e) {
+      logger.log(
+        componentID,
+        evtErrors,
+        Logger.ERROR,
+        "Error in PeerConnection::processSocket (" + ip + " : " + port + " ) : " + e);
       return -1;
     }
-    return processedBytes;
-  }
+  }*/
 
   public void process() {
     loopFactor++;
     if (currentState != null)
       currentState.process();
-    write();
+    if (getState() != DISCONNECTED)
+      write();
   }
 
   public int getState() {
@@ -799,7 +814,9 @@ public class PeerSocket extends PeerConnection {
             limit = realLimit;
         }
         writeBuffer.limit(limit);
-        int written = processSocket(writeBuffer, false);
+        int written = socket.write(writeBuffer);
+        if (written < 0)
+          throw new IOException("End of Stream Reached");
         // End of Stream Reached
         if (written >= 0) {
           writeBuffer.limit(realLimit);
@@ -817,11 +834,9 @@ public class PeerSocket extends PeerConnection {
               }
             }
           }
-        } else {
-          closeAll();
         }
       }
-      catch (Exception e) {
+      catch (IOException e) {
         //e.printStackTrace();
         closeAll();
       }
@@ -946,8 +961,6 @@ public class PeerSocket extends PeerConnection {
   private int allowed;
   private int used;
   private int loopFactor;
-
-  //private boolean fake = false;
 
   //The keepAlive counter
   private int keepAlive;

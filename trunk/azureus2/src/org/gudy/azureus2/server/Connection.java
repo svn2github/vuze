@@ -24,7 +24,6 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.ConfigurationManager;
 
 public class Connection {
   private InputHandler input;
