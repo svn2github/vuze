@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 
 import org.gudy.azureus2.core3.disk.*;
@@ -503,24 +502,30 @@ DiskManagerImpl
 	}
 
 	private static class FlyWeightInteger {
-		private static Vector array = new Vector(1024);
+    private static Integer[] array = new Integer[1024];
 
-		public static synchronized Integer getInteger(int value) {
-			Integer tmp = null;
-			if (value >= array.size()) {
-				array.setSize(value + 256);
-			} else {
-				tmp = (Integer)array.get(value);
-			}
-			if (tmp == null) {
-				tmp = new Integer(value);
-				array.set(value, tmp);
-			}
-			return tmp;
-
-		}
+    final static Integer getInteger(final int value) {
+      Integer tmp = null;
+      
+      if (value >= array.length) {
+        Integer[] arrayNew = new Integer[value + 256];
+        System.arraycopy(array, 0, arrayNew, 0, array.length);
+        array = arrayNew;
+      }
+      else {
+        tmp = array[value];
+      }
+      
+      if (tmp == null) {
+        tmp = new Integer(value);
+        array[value] = tmp;
+      }
+      
+      return tmp;
+    }
 	}
 
+  
 	private static class BtFile {
 		private DiskManagerFileInfoImpl _file;
 		private String _path;
