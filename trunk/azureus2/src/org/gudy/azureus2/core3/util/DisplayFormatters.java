@@ -109,7 +109,7 @@ DisplayFormatters
 				
 			}else{
 				
-				rate_B_unit 	= " B";
+				rate_B_unit  = " B";
 				rate_KB_unit = " KiB";
 				rate_MB_unit = " MiB";
 				rate_GB_unit = " GiB";
