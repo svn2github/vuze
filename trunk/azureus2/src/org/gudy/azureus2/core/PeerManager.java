@@ -50,7 +50,7 @@ public class PeerManager extends Thread {
   private DownloadManager _manager;
   private List requestsToFree;
 
-  private PeerUpdater peerUpdater;
+  private int uploadCount = 0;
 
   public PeerManager(DownloadManager manager, byte[] hash, Server server, TrackerConnection tracker, DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
@@ -89,70 +89,6 @@ public class PeerManager extends Thread {
     setDiskManager(diskManager);
 
     requestsToFree = new ArrayList();
-
-    peerUpdater = new PeerUpdater();
-    peerUpdater.start();
-
-  }
-
-  private class PeerUpdater extends Thread {
-    private boolean bContinue = true;
-
-    private long started[];
-    //    private long iter = 0;
-
-    public PeerUpdater() {
-      super("Peer Updater"); //$NON-NLS-1$
-      started = new long[10];
-    }
-
-    public void run() {
-      while (bContinue) {
-        for (int i = 9; i > 0; i--)
-          started[i] = started[i - 1];
-        started[0] = System.currentTimeMillis();
-        synchronized (_connections) {
-          for (int i = 0; i < _connections.size(); i++) {
-            PeerSocket ps = (PeerSocket) _connections.get(i);
-            if (ps.getState() == PeerSocket.DISCONNECTED) {
-              _connections.remove(ps);
-              i--;
-            } else {
-              try {
-                ps.process();
-              } catch (Exception e) {
-                ps.closeAll();
-              }
-            }
-          }
-        }
-        try {
-
-          long wait = 20;
-          wait -= (System.currentTimeMillis() - started[0]);
-          if (started[4] != 0)
-            for (int i = 0; i < 9; i++) {
-              wait += 20 + (started[i + 1] - started[i]);
-            }
-
-          if (wait > 30)
-            wait = 30;
-
-          //System.out.println(wait + "::" + started[0] + "-" + System.currentTimeMillis() + " : " + started[4]);
-          //if(iter++ % 50 == 0)
-          //  System.out.println(System.currentTimeMillis() % 10000);
-
-          if (wait > 10)
-            Thread.sleep(wait);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    public void stopIt() {
-      bContinue = false;
-    }
   }
 
   //main method
@@ -196,9 +132,6 @@ public class PeerManager extends Thread {
 
   public void stopAll() {
 
-    //1. Stop the peer updater
-    peerUpdater.stopIt();
-
     //2. Stop itself
     _bContinue = false;
 
@@ -209,21 +142,12 @@ public class PeerManager extends Thread {
     if (_diskManager.getState() == DiskManager.READY)
       _diskManager.dumpResumeDataToDisk();
 
-    //  4. Close all clients
-    if (_connections != null)
-      synchronized (_connections) {
-        while (_connections.size() != 0) {
-          PeerSocket pc = (PeerSocket) _connections.remove(0);
-          pc.closeAll();
-        }
-      }
-
-    //Assynchronous cleaner
+    //Asynchronous cleaner
 
     Thread t = new Thread("Cleaner - Tracker Ender") {
       public void run() {
-          //1. Send disconnect to Tracker
-  _tracker.stop();
+        //1. Send disconnect to Tracker
+			  _tracker.stop();
         try {
           while (requestsToFree.size() != 0) {
             freeRequests();
@@ -235,6 +159,15 @@ public class PeerManager extends Thread {
       }
     };
     t.start();
+
+    //  4. Close all clients
+    if (_connections != null)
+      synchronized (_connections) {
+        while (_connections.size() != 0) {
+          PeerSocket pc = (PeerSocket) _connections.remove(0);
+          pc.closeAll();
+        }
+      }
   }
 
   /**
@@ -701,6 +634,9 @@ public class PeerManager extends Thread {
         {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
           _connections.add(pc); //add the connection
+          pc.process();
+        } else {
+          pc.closeAll(); // added closing
         }
       } else //our list already contains this connection
         {
@@ -995,7 +931,19 @@ public class PeerManager extends Thread {
    */
   public void addPeer(SocketChannel sckClient) {
     //create a peer connection and insert it to the list    
-    this.insertPeerSocket(new PeerSocket(this, sckClient));
+    if(uploadsFree()) {
+      uploadCount++; 
+      insertPeerSocket(new PeerSocket(this, sckClient));
+    } else {
+      try {
+        sckClient.close();
+      } catch (Exception ignore) {
+      }
+    }
+  }
+
+  public boolean uploadsFree() {
+    return uploadCount < getMaxUploads();
   }
 
   /**
@@ -1015,7 +963,9 @@ public class PeerManager extends Thread {
    */
   public void removePeer(PeerSocket pc) {
     synchronized (_connections) {
-      _connections.remove(pc);
+      if(_connections.remove(pc) && pc.isIncoming()) {
+        uploadCount--;
+      }
     }
   }
 
@@ -1171,6 +1121,10 @@ public class PeerManager extends Thread {
     synchronized (_connections) {
       return !_connections.contains(pcTest);
     }
+  }
+
+  public int getMaxUploads() {
+    return _manager.getMaxUploads();
   }
 
   public int getNbPeers() {
