@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.impl;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
@@ -80,108 +81,54 @@ Test
 		dht_props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer(30000));
 		dht_props.put( DHT.PR_ORIGINAL_REPUBLISH_INTERVAL, new Integer(60000));
 	}
+
+	static byte[]	th_key	= new byte[]{ 1,1,1,1 };
 	
 	static Map	check = new HashMap();
 
-	public static LoggerChannel	logger = 
-		new LoggerChannel()
-		{
-			public Logger
-			getLogger()
-			{
-				return( null );
-			}
-			
-			public String
-			getName()
-			{
-				return( "" );
-			}
-			
-			public void
-			log(
-				int		log_type,
-				String	data )
-			{
-				log( data );
-			}
-			
-			public void
-			log(
-				String	data )
-			{
-				System.out.println( data );
-			}
-			
-			public void
-			log(
-				Throwable 	error )
-			{
-				error.printStackTrace();
-			}
-			
-			public void
-			log(
-				String		data,
-				Throwable 	error )
-			{
-				log( data );
-				log( error );
-			}
-			
-			public void
-			logAlert(
-				int			alert_type,
-				String		message )
-			{
-				log( message );
-			}
-			
-			public void
-			logAlert(
-				String		message,
-				Throwable 	e )
-			{
-				log( message );
-				log( e );
-			}
+
+	static LoggerChannel	logger;
+	
+	static{
 		
-			public void
-			logAlertRepeatable(
-				int			alert_type,
-				String		message )
-			{
-				log( message );
-			}
-			
-			public void
-			logAlertRepeatable(
-				String		message,
-				Throwable 	e )
-			{
-				log( message );
-				log( e );
-			}
-			
-			public void
-			addListener(
-				LoggerChannelListener	l )
-			{
-			}
-			
-			public void
-			removeListener(
-				LoggerChannelListener	l )
-			{
-			}
-		};
+		logger = AzureusCoreFactory.create().getPluginManager().getDefaultPluginInterface().getLogger().getNullChannel("test");
 		
+		logger.addListener(
+			new LoggerChannelListener()
+			{
+				public void
+				messageLogged(
+					int		type,
+					String	content )
+				{
+					System.out.println( content );
+				}
+				
+				public void
+				messageLogged(
+					String		str,
+					Throwable	error )
+				{
+					System.out.println( str );
+					
+					error.printStackTrace();
+				}
+			});
+	}
+
+	public static LoggerChannel
+	getLogger()
+	{
+		return( logger );
+	}
+	
 	public static void
 	main(
 		String[]		args )
 	{
 		
 		try{
+	
 			
 			DHT[]			dhts 		= new DHT[num_dhts*2+30];
 			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2+30];
@@ -527,6 +474,26 @@ Test
 
 					dht.print();
 					
+				}else if ( command == 'r' ){
+					
+					System.out.println( "read - dht0 -> dht1" );
+										
+					byte[]	res = 
+						dhts[0].getTransport().readTransfer(
+								dhts[1].getTransport().getLocalContact().getAddress(),
+								th_key,
+								new byte[]{1,2,3,4});
+	
+				}else if ( command == 'w' ){
+					
+					System.out.println( "write - dht0 -> dht1" );
+										
+					dhts[0].getTransport().writeTransfer(
+								dhts[1].getTransport().getLocalContact().getAddress(),
+								th_key,
+								new byte[]{1,2,3,4},
+								new byte[]{4,3,2,1});
+	
 				}else{
 					
 					usage();
@@ -564,6 +531,31 @@ Test
 			
 			transport = DHTTransportFactory.createLoopback(ID_BYTES);
 		}
+		
+		transport.registerTransferHandler(
+			th_key,
+			new DHTTransportTransferHandler()
+			{
+				public byte[]
+				handleRead(
+					InetSocketAddress	originator,
+					byte[]				key )
+				{
+					System.out.println("handle read");
+					
+					return( new byte[]{ 5,6,7,8 });
+				}
+				
+				public void
+				handleWrite(
+					InetSocketAddress	originator,
+					byte[]				key,
+					byte[]				value )
+				{
+					System.out.println("handle write");
+					
+				}
+			});
 		
 		HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
 		

@@ -45,11 +45,11 @@ Test
 	Test()
 	{
 		try{
-			DHTTransport	udp1 = DHTTransportFactory.createUDP(6881, 5, 3, 5000, com.aelitis.azureus.core.dht.impl.Test.logger);
+			DHTTransport	udp1 = DHTTransportFactory.createUDP(6881, 5, 3, 5000, com.aelitis.azureus.core.dht.impl.Test.getLogger());
 		
 			udp1.setRequestHandler( this );
 			
-			DHTTransport	udp2 = DHTTransportFactory.createUDP(6882, 5, 3, 5000, com.aelitis.azureus.core.dht.impl.Test.logger);
+			DHTTransport	udp2 = DHTTransportFactory.createUDP(6882, 5, 3, 5000, com.aelitis.azureus.core.dht.impl.Test.getLogger());
 		
 			udp2.setRequestHandler( this );
 

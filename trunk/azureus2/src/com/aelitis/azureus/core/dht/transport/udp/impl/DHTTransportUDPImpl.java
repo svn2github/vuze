@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
@@ -66,6 +67,8 @@ DHTTransportUDPImpl
 	private DHTTransportRequestHandler	request_handler;
 	
 	private DHTTransportUDPContactImpl		local_contact;
+	
+	private Map transfer_handlers = new HashMap();
 	
 	private long last_address_change;
 	
@@ -1322,7 +1325,7 @@ DHTTransportUDPImpl
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )
 	{
-		
+		transfer_handlers.put( new HashWrapper( handler_key ), handler );
 	}
 	
 	public byte[]
@@ -1345,7 +1348,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		
+		throw( new DHTTransportException( "not imp" ));
 	}
 	
 	
