@@ -471,9 +471,9 @@ public class ConfigView extends AbstractIView {
 
       Properties p = pluginIF.getPluginProperties();
       
-      String plugin_name = pluginIF.getPluginName(); // p.getProperty("plugin.name", "");
+      String plugin_name = pluginIF.getPluginName();
       
-      String plugin_version = (String)p.getProperty("plugin.version" );
+      String plugin_version = pluginIF.getPluginVersion();
       
       String sDirName = pluginIF.getPluginDirectoryName();
       

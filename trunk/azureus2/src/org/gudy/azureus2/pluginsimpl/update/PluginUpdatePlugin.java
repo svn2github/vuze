@@ -117,9 +117,10 @@ PluginUpdatePlugin
 			
 			log.log( LoggerChannel.LT_INFORMATION, "Currently loaded plugins:");
 	
-			List	plugins_to_check 		= new ArrayList();
-			List	plugins_to_check_ids	= new ArrayList();
-			Map		plugins_to_check_names	= new HashMap();
+			List	plugins_to_check 			= new ArrayList();
+			List	plugins_to_check_ids		= new ArrayList();
+			Map		plugins_to_check_unloadable = new HashMap();
+			Map		plugins_to_check_names		= new HashMap();
 			
 			for (int i=0;i<plugins.length;i++){
 				
@@ -140,12 +141,18 @@ PluginUpdatePlugin
 							plugins_to_check_names.put( id, s+","+name);
 						}
 						
+						Boolean	old_unloadable = (Boolean)plugins_to_check_unloadable.get(id);
+						
+						plugins_to_check_unloadable.put(id,new Boolean(pi.isUnloadable() && old_unloadable.booleanValue()));
+						
 					}else{
 						plugins_to_check_ids.add( id );
 						
 						plugins_to_check.add( pi );
 						
 						plugins_to_check_names.put( id, name.equals(id)?"":name);
+						
+						plugins_to_check_unloadable.put( id, new Boolean( pi.isUnloadable()));
 					}
 				}
 				
@@ -179,9 +186,8 @@ PluginUpdatePlugin
 			
 			for ( int i=0;i<plugins_to_check.size();i++){
 				
-				final PluginInterface	pi = (PluginInterface)plugins_to_check.get(i);
-				
-				final String	plugin_id = pi.getPluginID();
+				final PluginInterface	pi 			= (PluginInterface)plugins_to_check.get(i);
+				final String			plugin_id 	= pi.getPluginID();
 								
 				boolean	found	= false;
 				
@@ -202,7 +208,8 @@ PluginUpdatePlugin
 					continue;
 				}
 				
-				String	plugin_names	= (String)plugins_to_check_names.get( plugin_id );
+				String			plugin_names		= (String)plugins_to_check_names.get( plugin_id );
+				final boolean	plugin_unloadable 	= ((Boolean)plugins_to_check_unloadable.get( plugin_id )).booleanValue();
 				
 				log.log( LoggerChannel.LT_INFORMATION, "Checking " + plugin_id);
 				
@@ -304,7 +311,8 @@ PluginUpdatePlugin
 									InputStream			data )
 								{	
 									installUpdate( 
-											pi, 
+											pi,
+											plugin_unloadable,
 											f_sf_plugin_download, 
 											f_sf_plugin_version, 
 											data );
@@ -330,7 +338,7 @@ PluginUpdatePlugin
 								update_d,
 								sf_plugin_version,
 								rdl,
-								pi.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );			
+								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );			
 					}
 				}catch( Throwable e ){
 					
@@ -354,7 +362,8 @@ PluginUpdatePlugin
 	
 	protected void
 	installUpdate(
-		PluginInterface		plugin,
+		PluginInterface		plugin,	// note this will be first one if > 1 defined
+		boolean				unloadable,
 		String				download,
 		String				version,
 		InputStream			data )
@@ -374,15 +383,13 @@ PluginUpdatePlugin
 			String	target = plugin.getPluginDirectoryName() + File.separator + 
 								plugin.getPluginID() + "_" + version + ".jar";
 			
-			System.out.println( "target = " + target );
-			
 			try{				
 				FileUtil.copyFile( data, new FileOutputStream(target));
 			
-				if ( plugin.isUnloadable()){
+				if ( unloadable ){
 					
-					plugin.reload();
-				}
+					plugin.reload();	// this will reload all if > 1 defined
+				}	
 				
 				String msg =   "Version " + version + " of plugin '" + 
 								plugin.getPluginID() + "' " +

@@ -117,6 +117,13 @@ TrackerImpl
 		generators.add( generator );
 	}
 	
+	public void
+	removePageGenerator(
+		TrackerWebPageGenerator	generator )
+	{
+		generators.remove( generator );
+	}
+	
 	public TrackerWebPageGenerator[]
 	getPageGenerators()
 	{

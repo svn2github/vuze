@@ -32,6 +32,10 @@ TrackerWebContext
 	addPageGenerator(
 		TrackerWebPageGenerator	generator );
 	
+	public void
+	removePageGenerator(
+		TrackerWebPageGenerator	generator );
+			
 	public TrackerWebPageGenerator[]
 	getPageGenerators();
 }
