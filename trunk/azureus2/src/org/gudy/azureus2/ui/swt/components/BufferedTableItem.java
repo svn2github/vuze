@@ -72,7 +72,6 @@ public abstract class BufferedTableItem {
 
     boolean ok;
     if (ourFGColor != null) {
-      Color oldColor = row.getForeground(position);
       ok = row.setForeground(position, color);
       if (ok) {
         if (!color.isDisposed())
@@ -90,10 +89,12 @@ public abstract class BufferedTableItem {
       return false;
 
     Color oldColor = row.getForeground(position);
+    
     RGB newRGB = new RGB(red, green, blue);
-		if (oldColor.getRGB().equals(newRGB))
+	
+    if (oldColor != null && oldColor.getRGB().equals(newRGB)){
 		  return false;
-
+    }
     
     Color newColor = new Color(row.getItem().getDisplay(), newRGB);
     boolean ok = row.setForeground(position, newColor);
