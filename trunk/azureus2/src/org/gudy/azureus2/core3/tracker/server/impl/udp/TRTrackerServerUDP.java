@@ -54,18 +54,21 @@ TRTrackerServerUDP
 		
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 			
+			InetSocketAddress	address;
+			
 			if ( bind_ip.length() == 0 ){
 				
-				socket.bind(new InetSocketAddress(port));
+				address = new InetSocketAddress(port);
 				
 			}else{
 				
-				socket.bind(new InetSocketAddress(InetAddress.getByName(bind_ip), port));
+				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
 			}
 			
 			socket.setReuseAddress(true);
 			
-			final DatagramSocket	f_socket = socket;
+			final DatagramSocket	f_socket 	= socket;
+			final InetSocketAddress	f_address	= address;
 			
 			Thread recv_thread = 
 				new Thread("TRTrackerServerUDP:recv.loop")
@@ -73,7 +76,7 @@ TRTrackerServerUDP
 					public void
 					run()
 					{
-						recvLoop( f_socket );
+						recvLoop( f_socket, f_address );
 					}
 				};
 			
@@ -81,7 +84,7 @@ TRTrackerServerUDP
 			
 			recv_thread.start();									
 			
-			LGLogger.log( "TRTrackerServerUDP: listener established on port " + port ); 
+			LGLogger.log( "TRTrackerServerUDP: recv established on port " + port ); 
 			
 		}catch( Throwable e ){
 			
@@ -91,14 +94,15 @@ TRTrackerServerUDP
 	
 	protected void
 	recvLoop(
-		DatagramSocket	socket )
+		DatagramSocket		socket,
+		InetSocketAddress	address )
 	{		
 		while(true){
 			
 			try{				
 				byte[] buf = new byte[PACKET_SIZE];
 				
-				DatagramPacket packet = new DatagramPacket( buf, buf.length );
+				DatagramPacket packet = new DatagramPacket( buf, buf.length, address );
 				
 				socket.receive( packet );
 				
