@@ -35,6 +35,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -47,8 +48,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -137,11 +140,27 @@ public class MultiTrackerEditor {
     gridData.horizontalSpan = 3;
     labelSeparator.setLayoutData(gridData);
     
-    new Label(shell,SWT.NULL);
+    	// button row 
     
-    btnSave = new Button(shell,SWT.PUSH);
-    gridData = new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END);
+    Label label = new Label(shell,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL );
+    label.setLayoutData(gridData);
+    
+    Composite cButtons = new Composite(shell, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    cButtons.setLayoutData(gridData);
+    GridLayout layoutButtons = new GridLayout();
+    layoutButtons.numColumns = 3;
+    cButtons.setLayout(layoutButtons);
+    label = new Label(cButtons,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL );
+    label.setLayoutData(gridData);
+    
+    btnSave = new Button(cButtons,SWT.PUSH);
+    gridData = new GridData();
     gridData.widthHint = 70;
+    gridData.horizontalAlignment = GridData.END;
     btnSave.setLayoutData(gridData);
     Messages.setLanguageText(btnSave,"wizard.multitracker.edit.save");
     btnSave.addListener(SWT.Selection, new Listener() {
@@ -151,8 +170,9 @@ public class MultiTrackerEditor {
       }
     });
     
-    btnCancel = new Button(shell,SWT.PUSH);
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    btnCancel = new Button(cButtons,SWT.PUSH);
+    gridData = new GridData();
+    gridData.horizontalAlignment = GridData.END;
     gridData.widthHint = 70;
     btnCancel.setLayoutData(gridData);
     Messages.setLanguageText(btnCancel,"wizard.multitracker.edit.cancel");
@@ -161,6 +181,17 @@ public class MultiTrackerEditor {
         shell.dispose();
       }
     });
+    
+    shell.setDefaultButton( btnSave );
+    
+    shell.addListener(SWT.Traverse, new Listener() {	
+    	public void handleEvent(Event e) {
+    		if ( e.character == SWT.ESC){
+    			shell.dispose();
+    		}
+    	}
+    });
+
     
     computeSaveEnable();
     refresh();
@@ -177,6 +208,9 @@ public class MultiTrackerEditor {
     
     Point size = shell.computeSize(400,SWT.DEFAULT);
     shell.setSize(size);
+    
+    Utils.centreWindow( shell );
+    
     shell.open();
   }  
   
