@@ -28,17 +28,14 @@ package org.gudy.azureus2.core3.download.impl;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Vector;
 
 
-import org.gudy.azureus2.core.Component;
-import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Server;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -53,7 +50,6 @@ import org.gudy.azureus2.core3.download.*;
 
 public class 
 DownloadManagerImpl 
-	extends Component 
 	implements DownloadManager
 {
 	private Vector	listeners 		= new Vector();
@@ -442,30 +438,6 @@ DownloadManagerImpl
 	if (diskManager != null)
 	  return DisplayFormatters.formatByteCountToKBEtc(diskManager.getPieceLength());
 	return ""; //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponent#addListener(org.gudy.azureus2.ui.swt.IComponentListener)
-   */
-  public void addListener(IComponentListener listener) {
-	// TODO Auto-generated method stub
-	super.addListener(listener);
-	if (peerManager != null) {
-	  List connections = peerManager.get_connections();
-	  synchronized (connections) {
-		for (int i = 0; i < connections.size(); i++) {
-		  PEPeerSocket ps = (PEPeerSocket) connections.get(i);
-		  if (ps.getState() == PEPeerSocket.TRANSFERING)
-			objectAdded(ps);
-		}
-	  }
-	  PEPiece[] pieces = peerManager.getPieces();
-	  for (int i = 0; i < pieces.length; i++) {
-		if (pieces[i] != null) {
-		  objectAdded(pieces[i]);
-		}
-	  }
-	}
   }
 
   public String getFileName() {

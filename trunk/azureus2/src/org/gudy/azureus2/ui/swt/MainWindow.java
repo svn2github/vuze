@@ -67,8 +67,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
-import org.gudy.azureus2.core.*;
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
@@ -79,6 +77,7 @@ import org.gudy.azureus2.ui.systray.SystemTray;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -91,7 +90,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  * @author Olivier
  *  
  */
-public class MainWindow implements IComponentListener {
+public class MainWindow implements GlobalManagerListener {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private String latestVersion = ""; //$NON-NLS-1$
@@ -1378,26 +1377,23 @@ public class MainWindow implements IComponentListener {
   public static void main(String args[]) {
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
-    GlobalManager gm = new GlobalManager();
+    GlobalManager gm = GlobalManagerFactory.create();
     MainWindow mw = new MainWindow(gm, null);
     mw.waitForClose();
   }
 
-  /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
-	 */
-  public void objectAdded(Object created) {
-    if (!(created instanceof DownloadManager))
-      return;
-    if (((DownloadManager) created).getState() == DownloadManager.STATE_STOPPED)
+
+  public void 
+  downloadManagerAdded(
+  	DownloadManager created) 
+  {
+    if ( created.getState() == DownloadManager.STATE_STOPPED)
       return;
     if (COConfigurationManager.getBooleanParameter("Open Details", true)) //$NON-NLS-1$
-      openManagerView((DownloadManager) created);
+      openManagerView(created);
     if (COConfigurationManager.getBooleanParameter("Open Bar", false)) { //$NON-NLS-1$
       synchronized (downloadBars) {
-        MinimizedWindow mw = new MinimizedWindow((DownloadManager) created, mainWindow);
+        MinimizedWindow mw = new MinimizedWindow(created, mainWindow);
         downloadBars.put(created, mw);
       }
     }
@@ -1422,14 +1418,7 @@ public class MainWindow implements IComponentListener {
     }
   }
 
-  /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
-	 */
-  public void objectRemoved(Object removed) {
-    if (!(removed instanceof DownloadManager))
-      return;
+   public void downloadManagerRemoved(DownloadManager removed) {
     synchronized (downloadViews) {
       if (downloadViews.containsKey(removed)) {
         final Tab tab = (Tab) downloadViews.get(removed);

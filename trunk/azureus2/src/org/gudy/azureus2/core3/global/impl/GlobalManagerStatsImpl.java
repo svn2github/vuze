@@ -1,6 +1,6 @@
 /*
- * File    : GlobalManagerStats.java
- * Created : 15-Oct-2003
+ * File    : GlobalManagerStatsImpl.java
+ * Created : 21-Oct-2003
  * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
@@ -19,55 +19,53 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.global.impl;
 
 /**
  * @author parg
  *
  */
-
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
-// temporary until refactory sorted
+// temporary until refactoring sorted
 
-public class GlobalManagerStats {
-//		private final int avgTime = 12;
+public class 
+GlobalManagerStatsImpl
+{
+	  private int pieceLength;
 
-//			private long timeCreated;
+	  private long totalReceived;
+	  private long totalDiscarded;
+	  private long totalSent;
+	  private long totalHave;
 
-		  private int pieceLength;
-
-		  private long totalReceived;
-		  private long totalDiscarded;
-		  private long totalSent;
-		  private long totalHave;
-
-		  private Average receptionSpeed;
-		  private Average chokingReceptionSpeed;
-		  private Average sendingSpeed;
-		  private Average overallSpeed;
-		  private Average statisticSentSpeed;
+	  private Average receptionSpeed;
+	  private Average chokingReceptionSpeed;
+	  private Average sendingSpeed;
+	  private Average overallSpeed;
+	  private Average statisticSentSpeed;
 
 
 
-		  protected GlobalManagerStats(int pieceLength) {
+	  protected GlobalManagerStatsImpl(int pieceLength) {
 //			  timeCreated = System.currentTimeMillis() / 100;
 
-			this.pieceLength = pieceLength;
+		this.pieceLength = pieceLength;
 
-			//average over 10s, update every 2000ms.
-			receptionSpeed = Average.getInstance(2000, 10);
+		//average over 10s, update every 2000ms.
+		receptionSpeed = Average.getInstance(2000, 10);
 
-			//average over 5s, update every 100ms.
-			sendingSpeed = Average.getInstance(1000, 5);
+		//average over 5s, update every 100ms.
+		sendingSpeed = Average.getInstance(1000, 5);
 
-			//average over 20s, update every 1s.
-			chokingReceptionSpeed = Average.getInstance(1000, 20);
+		//average over 20s, update every 1s.
+		chokingReceptionSpeed = Average.getInstance(1000, 20);
 
-			//average over 100s, update every 5s
-			overallSpeed = Average.getInstance(5000, 100);
+		//average over 100s, update every 5s
+		overallSpeed = Average.getInstance(5000, 100);
 
-			//average over 60s, update every 3s
+		//average over 60s, update every 3s
 			statisticSentSpeed = Average.getInstance(3000, 60);
 
 		  }
@@ -98,14 +96,14 @@ public class GlobalManagerStats {
 
 		  public String getReceptionSpeed() { 
 			return DisplayFormatters.formatByteCountToKBEtc(receptionSpeed.getAverage()) + "/s";
-		  }
+	  }
 
-		  public int getReception() {
-			return chokingReceptionSpeed.getAverage();
-		  }
+	  public int getReception() {
+		return chokingReceptionSpeed.getAverage();
+	  }
 
-		  public String getSendingSpeed() {
-			return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
+	  public String getSendingSpeed() {
+		return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
 		  }
   
 		  public int getDownloadSpeedRaw() {

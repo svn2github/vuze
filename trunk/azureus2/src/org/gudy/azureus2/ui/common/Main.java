@@ -23,8 +23,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.global.*;
 
 /**
  *
@@ -101,7 +101,7 @@ public class Main {
         isFirst = false;
       }
 
-      GM = new GlobalManager();
+      GM = GlobalManagerFactory.create();
 
       uis = UIS.iterator();
       while (uis.hasNext())

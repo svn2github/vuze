@@ -1,8 +1,30 @@
 /*
+ * File    : GlobalManagerImpl.java
+ * Created : 21-Oct-2003
+ * By      : stuff
+ * 
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package org.gudy.azureus2.core3.global.impl;
+
+/*
  * Created on 30 juin 2003
  *
  */
-package org.gudy.azureus2.core;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -18,7 +40,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
@@ -30,13 +54,15 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class GlobalManager extends Component {
-
+public class GlobalManagerImpl 
+	implements 	GlobalManager
+{
+  private Vector	listeners = new Vector();
   private List managers;
   private Checker checker;
-  private GlobalManagerStats stats;
-  private TRTrackerScraper trackerScraper;
-  private boolean isStopped = false;
+  private GlobalManagerStatsImpl	stats;
+  private TRTrackerScraper 			trackerScraper;
+  private boolean 					isStopped = false;
 
   public class Checker extends Thread {
     boolean finished = false;
@@ -223,8 +249,8 @@ public class GlobalManager extends Component {
     }
   }
 
-  public GlobalManager() {
-    stats = new GlobalManagerStats(0);
+  public GlobalManagerImpl() {
+    stats = new GlobalManagerStatsImpl(0);
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
@@ -287,7 +313,14 @@ public class GlobalManager extends Component {
         managers.add(manager);
       }
 
-      objectAdded(manager);
+	  synchronized( listeners ){
+	  	
+	  	for (int i=0;i<listeners.size();i++){
+	  		
+	  		((GlobalManagerListener)listeners.elementAt(i)).downloadManagerAdded( manager );
+	  	}
+	  }
+ 
       saveDownloads();
       return true;
     }
@@ -309,7 +342,13 @@ public class GlobalManager extends Component {
     synchronized (managers) {
       managers.remove(manager);
     }
-    this.objectRemoved(manager);
+	synchronized( listeners ){
+	  	
+	  for (int i=0;i<listeners.size();i++){
+	  		
+		  ((GlobalManagerListener)listeners.elementAt(i)).downloadManagerRemoved( manager );
+	  }
+	}
     saveDownloads();
 
     if (manager.getTrackerClient() != null) {
@@ -332,19 +371,6 @@ public class GlobalManager extends Component {
         manager.stopIt();
       }
       isStopped = true;
-    }
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponent#addListener(org.gudy.azureus2.ui.swt.IComponentListener)
-   */
-  public void addListener(IComponentListener listener) {
-    // TODO Auto-generated method stub
-    super.addListener(listener);
-    synchronized (managers) {
-      for (int i = 0; i < managers.size(); i++) {
-        listener.objectAdded(managers.get(i));
-      }
     }
   }
 
@@ -530,5 +556,30 @@ public class GlobalManager extends Component {
       }
     }
   }
+  
+ 	public void
+	addListener(
+		GlobalManagerListener	listener )
+	{
+		synchronized( listeners ){
+			
+			listeners.addElement(listener);
+			
+			for (int i=0;i<managers.size();i++){
+				
+				listener.downloadManagerAdded((DownloadManager)managers.get(i));
+			}
+		}
+	}
+		
+	public void
+ 	removeListener(
+		GlobalManagerListener	listener )
+	{
+		synchronized( listeners ){
+			
+			listeners.removeElement(listener);
+		}
+	}
 
 }

@@ -26,8 +26,8 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.util.Constants;
 

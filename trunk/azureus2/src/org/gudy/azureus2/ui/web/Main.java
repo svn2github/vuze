@@ -12,8 +12,8 @@ package org.gudy.azureus2.ui.web;
 
 import java.util.Properties;
 
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.common.LocaleUtilHeadless;
@@ -35,7 +35,7 @@ public class Main implements ILocaleUtilChooser {
     Properties p = new Properties(System.getProperties());
     p.put("java.awt.headless", "true");
     System.setProperties(p);
-    gm = new GlobalManager();
+    gm = GlobalManagerFactory.create();
     server = new Jhttpp2Server(gm, true);
     ci = new ConsoleInput(gm, System.in, System.out);
     new Thread(server, "Webinterface Server").start();

@@ -21,16 +21,15 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core.*;
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.global.*;
 
 /**
  * @author Olivier
  * 
  */
-public class TrayWindow implements IComponentListener {
+public class TrayWindow implements GlobalManagerListener {
 
   GlobalManager globalManager;
   List managers;
@@ -182,21 +181,14 @@ public class TrayWindow implements IComponentListener {
     //label.setToolTipText(toolTip.toString());
     //minimized.moveAbove(null);
   }
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
-   */
-  public void objectAdded(Object created) {
-    if (!(created instanceof DownloadManager))
-      return;
-    synchronized (managers) {
+ 
+   public void downloadManagerAdded(DownloadManager created) {
+     synchronized (managers) {
       managers.add(created);
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
-   */
-  public void objectRemoved(Object removed) {
+   public void downloadManagerRemoved(DownloadManager removed) {
     synchronized (managers) {
       managers.remove(removed);
     }

@@ -6,8 +6,6 @@
 
 package org.gudy.azureus2.ui.common;
 
-import org.gudy.azureus2.core.GlobalManager;
-
 /**
  *
  * @author  Tobias Minich

@@ -33,11 +33,10 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -49,7 +48,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.ManagerItem;
  * @author Olivier
  * 
  */
-public class MyTorrentsView extends AbstractIView implements IComponentListener {
+public class MyTorrentsView extends AbstractIView implements GlobalManagerListener {
 
   /* see Download Manager ... too lazy to put all state names ;)
     private static final int tabStates[][] = { { 0, 5, 10, 20, 30, 40, 50, 60, 70, 100 }, {
@@ -657,14 +656,8 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     return MessageText.getString("MyTorrentsView.mytorrents");
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
-   */
-  public void objectAdded(Object created) {
-    if (!(created instanceof DownloadManager))
-      return;
-    DownloadManager manager = (DownloadManager) created;
-    synchronized (managerItems) {
+   public void downloadManagerAdded(DownloadManager manager) {
+     synchronized (managerItems) {
       ManagerItem item = (ManagerItem) managerItems.get(manager);
       if (item == null)
         item = new ManagerItem(table, manager);
@@ -673,10 +666,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
-   */
-  public void objectRemoved(Object removed) {
+  public void downloadManagerRemoved(DownloadManager removed) {
     MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(removed);
     if (mw != null) {
       mw.close();

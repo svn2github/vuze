@@ -1,6 +1,6 @@
 /*
- * File    : DownloadManagerFactory.java
- * Created : 19-Oct-2003
+ * File    : GlobalManagerFactory.java
+ * Created : 21-Oct-2003
  * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
@@ -19,35 +19,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.download;
+package org.gudy.azureus2.core3.global;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.download.impl.*;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.global.impl.*;
 
 public class 
-DownloadManagerFactory 
+GlobalManagerFactory 
 {
-	public static DownloadManager
-	create(
-		GlobalManager 	gm, 
-		String 			torrentFileName, 
-		String 			savePath, 
-		boolean 		stopped )
+	public static GlobalManager
+	create()
 	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, stopped ));
-	}	
-	
-	public static DownloadManager
-	create(
-		GlobalManager 	gm, 
-		String 			torrentFileName, 
-		String 			savePath ) 
-	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath ));
+		return( new GlobalManagerImpl());
 	}
 }

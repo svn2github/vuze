@@ -8,8 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
@@ -68,7 +68,7 @@ public class Main implements ILocaleUtilChooser {
 	
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
-      gm = new GlobalManager();
+      gm = GlobalManagerFactory.create();
       mainWindow = new MainWindow(gm, startServer);
       COConfigurationManager.checkConfiguration();
       if (args.length != 0) {
