@@ -193,28 +193,8 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			if ( rebuild_required ){
-				
-					// with substantial numbers of filters (e.g. 80,000) rebuilding
-					// is a slow process. Therefore prevent frequent rebuilds at the 
-					// cost of delaying the effect of the change 
-				
-				long	now = SystemTime.getCurrentTime();
-				
-				long	secs_since_last_build = (now - last_rebuild_time)/1000;
-				
-					// allow one second per 2000 entries
-				
-				if ( secs_since_last_build > entries.size()/2000 ){
-					
-					last_rebuild_time	= now;
-					
-					rebuild_required	= false;
-				
-					rebuild();
-				}
-			}	
-					
+			checkRebuild();
+			
 			if ( merged_entries.length == 0 ){
 				
 				return( null );
@@ -316,6 +296,39 @@ IPAddressRangeManager
 		}catch( UnknownHostException e ){
 			
 			return( UnresolvableHostManager.getPseudoAddress( address ));
+		}
+	}
+	
+	protected void
+	checkRebuild()
+	{
+		try{
+			this_mon.enter();
+		
+			if ( rebuild_required ){
+				
+					// with substantial numbers of filters (e.g. 80,000) rebuilding
+					// is a slow process. Therefore prevent frequent rebuilds at the 
+					// cost of delaying the effect of the change 
+				
+				long	now = SystemTime.getCurrentTime();
+				
+				long	secs_since_last_build = (now - last_rebuild_time)/1000;
+				
+					// allow one second per 2000 entries
+				
+				if ( secs_since_last_build > entries.size()/2000 ){
+					
+					last_rebuild_time	= now;
+					
+					rebuild_required	= false;
+				
+					rebuild();
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -452,6 +465,8 @@ IPAddressRangeManager
 	protected long
 	getTotalSpan()
 	{
+		checkRebuild();
+		
 		return( total_span );
 	}
 	
