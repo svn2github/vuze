@@ -23,37 +23,22 @@ package org.gudy.azureus2.core3.global.startstoprules.defaultplugin;
 
 import java.util.*;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.graphics.Image;
-
-
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.ui.swt.views.configsections.*;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /** Handles Starting and Stopping of torrents */
 public class
 StartStopRulesDefaultPlugin
-  implements Plugin
+  implements Plugin, COConfigurationListener
 {
   // for debugging
   private static final String sStates = " WPRDS.XEQ";
@@ -72,7 +57,9 @@ StartStopRulesDefaultPlugin
   /** Rank completed torrents using a timed rotation of minTimeAlive */
   public static final int RANK_TIMED = 3;
   
+  /** All of the First Priority rules must match */
   public static final int FIRSTPRIORITY_ALL = 0;
+  /** Any of the First Priority rules must match */
   public static final int FIRSTPRIORITY_ANY = 1;
   
   private static final int QR_INCOMPLETE_ENDS_AT      = 1000000000; // billion
@@ -84,17 +71,17 @@ StartStopRulesDefaultPlugin
   private static final int QR_0PEERS          = -5;
   private static final int QR_SHARERATIOMET   = -6;
 
-  protected PluginInterface     plugin_interface;
-  protected PluginConfig        plugin_config;
-  protected DownloadManager     download_manager;
+  private PluginInterface     plugin_interface;
+  private PluginConfig        plugin_config;
+  private DownloadManager     download_manager;
 
   /** Map to relate downloadData to a Download */  
-  protected Map downloadDataMap = Collections.synchronizedMap(new HashMap());
+  private Map downloadDataMap = Collections.synchronizedMap(new HashMap());
 
-  protected volatile boolean         closingDown;
-  protected volatile boolean         somethingChanged;
+  private volatile boolean         closingDown;
+  private volatile boolean         somethingChanged;
 
-  protected LoggerChannel   log;
+  private LoggerChannel   log;
   private long lastQRcalcTime = 0;
   private long RECALC_QR_EVERY = 15 * 1000;
   private long startedOn;
@@ -149,6 +136,8 @@ StartStopRulesDefaultPlugin
 
     log = plugin_interface.getLogger().getChannel("StartStopRules");
     log.log( LoggerChannel.LT_INFORMATION, "Default StartStopRules Plugin Initialisation" );
+
+    COConfigurationManager.addListener(this);
 
     plugin_config = plugin_interface.getPluginconfig();
     reloadConfigParams();
@@ -219,13 +208,6 @@ StartStopRulesDefaultPlugin
       downloadData dlData = (downloadData)downloadDataMap.get(download);
 
       if (dlData != null) {
-        if (new_state == Download.ST_SEEDING) {
-          dlData.setStartedSeedingOn(System.currentTimeMillis());
-        }
-        if (old_state == Download.ST_PREPARING) {
-          // preparing can change the completion level.
-          dlData.setWasComplete(download.getStats().getDownloadCompleted(false) == 1000);
-        }
         // force a QR recalc, so that it gets positiong properly next process()
         dlData.recalcQR();
         somethingChanged = true;
@@ -328,6 +310,11 @@ StartStopRulesDefaultPlugin
     return bPositionsChanged;
   }
 
+  // ConfigurationListener
+  public void configurationSaved() {
+    reloadConfigParams();
+  }
+
   private synchronized void reloadConfigParams() {
     int iOldIgnoreShareRatio = iIgnoreShareRatio;
     int iNewRankType = plugin_config.getIntParameter("StartStopManager_iRankType");
@@ -346,7 +333,7 @@ StartStopRulesDefaultPlugin
     // Ignore torrent if seed count is at least..
     iIgnoreSeedCount = plugin_config.getIntParameter("StartStopManager_iIgnoreSeedCount");
     bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
-    iIgnoreShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
+    iIgnoreShareRatio = (int)(1000 * plugin_config.getFloatParameter("Stop Ratio"));
     iIgnoreRatioPeers = plugin_config.getIntParameter("Stop Peers Ratio", 0);
     iIgnoreRatioPeers_SeedStart = plugin_config.getIntParameter("StartStopManager_iIgnoreRatioPeersSeedStart", 0);
 
@@ -471,6 +458,7 @@ StartStopRulesDefaultPlugin
 
         if (dl_data.isFirstPriority()) {
           totalFirstPriority++;
+          bSeedHasRanking = true;
         }
       } else {
         if (state == Download.ST_READY ||
@@ -780,7 +768,7 @@ StartStopRulesDefaultPlugin
         }
 
         if (okToQueue && (iIgnoreRatioPeers != 0) && dl_data.getQR() != QR_RATIOMET) {
-          int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
+          int numSeeds = calcSeedsNoUs(download);
           int numPeers = calcPeersNoUs(download);
           if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
               numSeeds += numPeers / numPeersAsFullCopy;
@@ -998,10 +986,11 @@ StartStopRulesDefaultPlugin
     return (sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS);
   }
 
-  public int calcSeedsNoUs(Download download, long seedingStartedOn) {
+  public int calcSeedsNoUs(Download download) {
     int numSeeds = 0;
     DownloadScrapeResult sr = download.getLastScrapeResult();
     if (sr.getScrapeStartTime() > 0) {
+      long seedingStartedOn = download.getStats().getTimeStartedSeeding();
       numSeeds = sr.getSeedCount();
       // If we've scraped after we started seeding
       // Remove ourselves from count
@@ -1025,9 +1014,7 @@ StartStopRulesDefaultPlugin
     protected int qr;
     protected int iSeedingPos;
     protected Download dl;
-    protected long startedSeedingOn;
     private boolean bActivelyDownloading;
-    private boolean bWasComplete;
     private int iDLPos;
     
     /** Sort first by QR Descending, then by Position Ascending.
@@ -1044,9 +1031,7 @@ StartStopRulesDefaultPlugin
 
     public downloadData(Download _dl)
     {
-      startedSeedingOn = -1;
       dl = _dl;
-      setWasComplete(dl.getStats().getDownloadCompleted(false) == 1000);
       iDLPos = dl.getPosition();
       iSeedingPos = 100000 - iDLPos;
       //recalcQR();
@@ -1068,14 +1053,6 @@ StartStopRulesDefaultPlugin
       iSeedingPos = iPos;
     }
     
-    public boolean getWasComplete() {
-      return bWasComplete;
-    }
-
-    public void setWasComplete(boolean b) {
-      bWasComplete = b;
-    }
-
     Download getDownloadObject() {
       return dl;
     }
@@ -1096,14 +1073,6 @@ StartStopRulesDefaultPlugin
       qr = newQR;
     }
 
-    public long getStartedSeedingOn() {
-      return startedSeedingOn;
-    }
-
-    public void setStartedSeedingOn(long time) {
-      startedSeedingOn = time;
-    }
-
     /** Assign Seeding Rank based on RankType
      * @return New Seeding Rank Value
      */
@@ -1120,7 +1089,7 @@ StartStopRulesDefaultPlugin
       int shareRatio = stats.getShareRatio();
 
       int numPeers = calcPeersNoUs(dl);
-      int numSeeds = calcSeedsNoUs(dl, startedSeedingOn);
+      int numSeeds = calcSeedsNoUs(dl);
       if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
           numSeeds += numPeers / numPeersAsFullCopy;
 
@@ -1129,7 +1098,7 @@ StartStopRulesDefaultPlugin
       int newQR = 0;
 
       // First Priority Calculations
-      if (isFirstPriority()) {
+      if (isFirstPriority(false)) {
         newQR += QR_FIRST_PRIORITY_STARTS_AT;
       }
       
@@ -1197,7 +1166,7 @@ StartStopRulesDefaultPlugin
           }
 
           // force sort to top
-          int iMsElapsed = (int)(System.currentTimeMillis() - startedSeedingOn);
+          int iMsElapsed = (int)(System.currentTimeMillis() - stats.getTimeStartedSeeding());
           if (iMsElapsed >= minTimeAlive)
             setQR(1);
           else
@@ -1265,6 +1234,10 @@ StartStopRulesDefaultPlugin
 
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
+      return isFirstPriority(true);
+    }
+
+    public boolean isFirstPriority(boolean bSkip0Peers) {
       // FP only applies to completed
       if (dl.getStats().getDownloadCompleted(false) < 1000)
         return false;
@@ -1274,31 +1247,32 @@ StartStopRulesDefaultPlugin
         return false;
 
       // A torrent with 0 seeds really shouldn't be the first priority
-      if (calcPeersNoUs(dl) == 0)
+      if (bSkip0Peers && calcPeersNoUs(dl) == 0)
         return false;
 
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
       boolean bAnyMatched = bLastMatched;
       
-      // don't do these rules if we were already complete (at startup)
-      if (!bWasComplete) {
-        if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
-            (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
-          bLastMatched = (iFirstPrioritySeedingMinutes == 0);
-          if (!bLastMatched) {
-            long timeSeeding = (System.currentTimeMillis() - getStartedSeedingOn()) / 1000 / 60;
-            bLastMatched = (timeSeeding < iFirstPrioritySeedingMinutes);
+      if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
+          (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
+        bLastMatched = (iFirstPrioritySeedingMinutes == 0);
+        if (!bLastMatched) {
+          long timeSeeding = dl.getStats().getSecondsOnlySeeding();
+          if (timeSeeding > 0) {
+            bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
             bAnyMatched |= bLastMatched;
           }
         }
-  
-        if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
-            (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
-          bLastMatched = (iFirstPriorityDLMinutes == 0);
-          if (!bLastMatched) {
-            long timeDLing = (System.currentTimeMillis() - dl.getStats().getTimeStarted())  / 1000 / 60;
-            bLastMatched = (timeDLing < iFirstPriorityDLMinutes);
+      }
+
+      if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
+          (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
+        bLastMatched = (iFirstPriorityDLMinutes == 0);
+        if (!bLastMatched) {
+          long timeDLing = dl.getStats().getSecondsDownloading();
+          if (timeDLing > 0) {
+            bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
             bAnyMatched |= bLastMatched;
           }
         }
@@ -1308,626 +1282,6 @@ StartStopRulesDefaultPlugin
               (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched));
     }
   }
-
-  // ConfigSections
-
-  /** General Queueing options
-   */
-  class ConfigSectionQueue implements ConfigSectionSWT {
-    public String configSectionGetParentSection() {
-      return ConfigSection.SECTION_ROOT;
-    }
-
-    /**
-     * Create the "Queue" Tab in the Configuration view
-     */
-    public Composite configSectionCreate(Composite parent) {
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-
-      // main tab set up
-
-      Composite gMainTab = new Composite(parent, SWT.NULL);
-
-      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-      gMainTab.setLayoutData(gridData);
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      layout.marginHeight = 0;
-      gMainTab.setLayout(layout);
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(gMainTab, "max downloads").setLayoutData(gridData); //$NON-NLS-1$
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(gMainTab, "max active torrents").setLayoutData(gridData); //$NON-NLS-1$
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL"); //$NON-NLS-1$
-      final String activeDLLabels[] = new String[54];
-      final int activeDLValues[] = new int[54];
-      int pos = 0;
-      for (int i = 0; i < 1024; i += 256) {
-        activeDLLabels[pos] = "" + i + " B/s";
-        activeDLValues[pos] = i;
-        pos++;
-      }
-      for (int i = 1; pos < activeDLLabels.length; i++) {
-        activeDLLabels[pos] = "" + i + " KB/s";
-        activeDLValues[pos] = i * 1024;
-        pos++;
-      }
-      new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(gMainTab, "Alert on close", true, 
-                           "ConfigView.label.showpopuponclose").setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(gMainTab, "StartStopManager_bDebugLog", 
-                           "ConfigView.label.queue.debuglog").setLayoutData(gridData);
-
-      return gMainTab;
-    }
-
-  	public String configSectionGetName() {
-  		return "queue";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-  }
-
-
-  /** Seeding Automation Specific options
-   */
-  class ConfigSectionSeeding implements ConfigSectionSWT {
-    public String configSectionGetParentSection() {
-      return "queue";
-    }
-
-  	public String configSectionGetName() {
-  		return "queue.seeding";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-
-    public Composite configSectionCreate(Composite parent) {
-      // Seeding Automation Setup
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-
-      Composite cSeeding = new Composite(parent, SWT.NULL);
-
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      layout.marginHeight = 0;
-      cSeeding.setLayout(layout);
-      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-      cSeeding.setLayoutData(gridData);
-
-      // General Seeding Options
-      label = new Label(cSeeding, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minSeedingTime");
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(cSeeding, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(cSeeding, "Disconnect Seed", true,
-                           "ConfigView.label.disconnetseed").setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(cSeeding, "Switch Priority", false,
-                           "ConfigView.label.switchpriority").setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(cSeeding, "Use Super Seeding", false,
-                           "ConfigView.label.userSuperSeeding").setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(cSeeding, "StartStopManager_bAutoReposition",
-                           "ConfigView.label.seeding.autoReposition").setLayoutData(gridData);
-
-      return cSeeding;
-    }
-  }
-
-  
-  /** First Priority Specific options.
-   */
-  class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
-    public String configSectionGetParentSection() {
-      return "queue.seeding";
-    }
-
-  	public String configSectionGetName() {
-  		return "queue.seeding.firstPriority";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-
-    public Composite configSectionCreate(Composite parent) {
-      // Seeding Automation Setup
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-      Composite cArea;
-
-      Composite cFirstPriorityArea = new Composite(parent, SWT.NULL);
-      cFirstPriorityArea.addControlListener(new Utils.LabelWrapControlListener());
-
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      layout.marginHeight = 0;
-      cFirstPriorityArea.setLayout(layout);
-      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-      cFirstPriorityArea.setLayoutData(gridData);
-
-
-      label = new Label(cFirstPriorityArea, SWT.WRAP);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.info");
-
-      // ** Begin No Touch area
-      
-      cArea = new Composite(cFirstPriorityArea, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 3;
-      cArea.setLayout(layout);
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      cArea.setLayoutData(gridData);
-      
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority");
-
-      String fpLabels[] = { MessageText.getString("ConfigView.text.all"), 
-                                 MessageText.getString("ConfigView.text.any") };
-      int fpValues[] = { FIRSTPRIORITY_ALL, FIRSTPRIORITY_ANY };
-      new IntListParameter(cArea, "StartStopManager_iFirstPriority_Type",
-                           fpLabels, fpValues);
-      
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.following");
-
-      // row
-      label = new Label(cFirstPriorityArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.shareRatio");
-      String minQueueLabels[] = new String[51];
-      int minQueueValues[] = new int[51];
-      minQueueLabels[0] = "1:2 (" + 0.5 + ")";
-      minQueueValues[0] = 500;
-      for (int i = 1; i < minQueueLabels.length; i++) {
-        minQueueLabels[i] = i + ":1";
-        minQueueValues[i] = i * 1000;
-      }
-      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_ShareRatio",
-                           minQueueLabels, minQueueValues);
-
-      // row
-      label = new Label(cFirstPriorityArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.seedingMinutes");
-
-      String seedTimeLabels[] = new String[15];
-      int seedTimeValues[] = new int[15];
-      String sMinutes = MessageText.getString("ConfigView.text.minutes");
-      String sHours = MessageText.getString("ConfigView.text.hours");
-      seedTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
-      seedTimeValues[0] = 0;
-      seedTimeLabels[1] = "<= 90 " + sMinutes;
-      seedTimeValues[1] = 90;
-      for (int i = 2; i < seedTimeValues.length; i++) {
-        seedTimeLabels[i] = "<= " + i + " " + sHours ;
-        seedTimeValues[i] = i * 60;
-      }
-      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_SeedingMinutes", 
-                           seedTimeLabels, seedTimeValues);
-
-      // row
-      label = new Label(cFirstPriorityArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.DLMinutes");
-
-      String dlTimeLabels[] = new String[15];
-      int dlTimeValues[] = new int[15];
-      dlTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
-      dlTimeValues[0] = 0;
-      for (int i = 1; i < dlTimeValues.length; i++) {
-        dlTimeLabels[i] = "<= " + (i + 2) + " " + sHours ;
-        dlTimeValues[i] = (i + 2) * 60;
-      }
-      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_DLMinutes", 
-                           dlTimeLabels, dlTimeValues);
-
-
-
-      return cFirstPriorityArea;
-    }
-  }
-
-  
-  /** Auto Starting specific options
-   */
-  class ConfigSectionSeedingAutoStarting implements ConfigSectionSWT {
-    public String configSectionGetParentSection() {
-  		return "queue.seeding";
-    }
-
-  	public String configSectionGetName() {
-  		return "queue.seeding.autoStarting";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-
-    public Composite configSectionCreate(Composite parent) {
-      // Seeding Automation Setup
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-      Composite cArea;
-
-      Composite gQR = new Composite(parent, SWT.NULL);
-      gQR.addControlListener(new Utils.LabelWrapControlListener());
-
-      layout = new GridLayout();
-      layout.numColumns = 1;
-      layout.marginHeight = 0;
-      gQR.setLayout(layout);
-      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-      gQR.setLayoutData(gridData);
-
-
-      // ** Begin Rank Type area
-      // Rank Type area.  Encompases the 4 (or more) options groups
-
-      Composite cRankType = new Group(gQR, SWT.NULL);
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      layout.verticalSpacing = 2;
-      cRankType.setLayout(layout);
-      gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-      cRankType.setLayoutData(gridData);
-      Messages.setLanguageText(cRankType, "ConfigView.label.seeding.rankType");
-
-      // Seeds:Peer options
-      RadioParameter rparamPeerSeed =
-          new RadioParameter(cRankType, "StartStopManager_iRankType", RANK_SPRATIO);
-      Messages.setLanguageText(rparamPeerSeed, "ConfigView.label.seeding.rankType.peerSeed");
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      rparamPeerSeed.setLayoutData(gridData);
-
-      new Label(cRankType, SWT.NULL);
-
-
-      // Seed Count options
-      RadioParameter rparamSeedCount =
-          new RadioParameter(cRankType, "StartStopManager_iRankType", RANK_SEEDCOUNT);
-      Messages.setLanguageText(rparamSeedCount, "ConfigView.label.seeding.rankType.seed");
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      rparamSeedCount.setLayoutData(gridData);
-
-      Group gSeedCount = new Group(cRankType, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 2;
-      layout.marginWidth = 2;
-      layout.numColumns = 3;
-      gSeedCount.setLayout(layout);
-      gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-      gridData.verticalSpan = 1;
-      gSeedCount.setLayoutData(gridData);
-      Messages.setLanguageText(gSeedCount, "ConfigView.label.seeding.rankType.seed.options");
-
-      label = new Label(gSeedCount, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.rankType.seed.fallback");
-
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      gridData.widthHint = 20;
-      IntParameter intParamFallBack = new IntParameter(gSeedCount, "StartStopManager_iRankTypeSeedFallback");
-      intParamFallBack.setLayoutData(gridData);
-
-      Label labelFallBackSeeds = new Label(gSeedCount, SWT.NULL);
-      label.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
-      Messages.setLanguageText(labelFallBackSeeds, "ConfigView.label.seeds");
-
-      Control[] controlsSeedCount = { gSeedCount };
-      rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsSeedCount));
-
-
-      // timed rotation ranking type
-      RadioParameter rparamTimed =
-          new RadioParameter(cRankType, "StartStopManager_iRankType", RANK_TIMED);
-      Messages.setLanguageText(rparamTimed, "ConfigView.label.seeding.rankType.timedRotation");
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      rparamTimed.setLayoutData(gridData);
-
-      new Label(cRankType, SWT.NULL);
-
-
-      // No Ranking
-      RadioParameter rparamNone =
-          new RadioParameter(cRankType, "StartStopManager_iRankType", RANK_NONE);
-      Messages.setLanguageText(rparamNone, "ConfigView.label.seeding.rankType.none");
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      rparamNone.setLayoutData(gridData);
-      
-      new Label(cRankType, SWT.NULL);
-      
-      // ** End Rank Type area
-
-
-      Composite cNoTimeNone = new Composite(gQR, SWT.NULL);
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      cNoTimeNone.setLayout(layout);
-      gridData = new GridData();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      cNoTimeNone.setLayoutData(gridData);
-      
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(cNoTimeNone, 
-                           "StartStopManager_bPreferLargerSwarms", 
-                           "ConfigView.label.seeding.preferLargerSwarms").setLayoutData(gridData);
-
-
-
-      label = new Label(cNoTimeNone, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minPeersToBoostNoSeeds"); //$NON-NLS-1$
-      final String boostQRPeersLabels[] = new String[9];
-      final int boostQRPeersValues[] = new int[9];
-      String peers = MessageText.getString("ConfigView.text.peers");
-      for (int i = 0; i < boostQRPeersValues.length; i++) {
-        boostQRPeersLabels[i] = (i+1) + " " + peers; //$NON-NLS-1$
-        boostQRPeersValues[i] = (i+1);
-      }
-      gridData = new GridData();
-      new IntListParameter(cNoTimeNone, "StartStopManager_iMinPeersToBoostNoSeeds", boostQRPeersLabels, boostQRPeersValues);
-
-
-      label = new Label(cNoTimeNone, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.numPeersAsFullCopy");
-
-      cArea = new Composite(cNoTimeNone, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 2;
-      cArea.setLayout(layout);
-      gridData = new GridData();
-      cArea.setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
-      paramFakeFullCopy.setLayoutData(gridData);
-      final Text txtFakeFullCopy = (Text)paramFakeFullCopy.getControl();
-
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.peers");
-
-
-      final Composite cFullCopyOptionsArea = new Composite(cNoTimeNone, SWT.NULL);
-      layout = new GridLayout();
-      layout.numColumns = 4;
-      layout.marginWidth = 0;
-      layout.marginHeight = 0;
-      cFullCopyOptionsArea.setLayout(layout);
-      gridData = new GridData();
-      gridData.horizontalIndent = 15;
-      gridData.horizontalSpan = 2;
-      cFullCopyOptionsArea.setLayoutData(gridData);
-      
-      label = new Label(cFullCopyOptionsArea, SWT.NULL);
-      Image img = ImageRepository.getImage("subitem");
-      img.setBackground(label.getBackground());
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      label.setLayoutData(gridData);
-      label.setImage(img);
-      
-      label = new Label(cFullCopyOptionsArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
-
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cFullCopyOptionsArea, "StartStopManager_iFakeFullCopySeedStart").setLayoutData(gridData);
-      label = new Label(cFullCopyOptionsArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeds");
-      
-
-      final int iNumPeersAsFullCopy = StartStopRulesDefaultPlugin.this.plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
-      controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
-
-      paramFakeFullCopy.getControl().addListener(SWT.Modify, new Listener() {
-          public void handleEvent(Event event) {
-            try {
-              Text control = (Text)event.widget;
-              if (control.getEnabled()) {
-                int value = Integer.parseInt(control.getText());
-                boolean enabled = (value != 0);
-                if (cFullCopyOptionsArea.getEnabled() != enabled) {
-                  cFullCopyOptionsArea.setEnabled(enabled);
-                  controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
-                }
-              }
-            }
-            catch (Exception e) {}
-          }
-      });
-
-      Control[] controlsNoTimeNone = { cNoTimeNone };
-      rparamPeerSeed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
-        public void performAction() {
-          super.performAction();
-          Event e = new Event();
-          e.widget = txtFakeFullCopy;
-          txtFakeFullCopy.notifyListeners(SWT.Modify, e);
-        }
-      });
-      rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
-        public void performAction() {
-          super.performAction();
-          Event e = new Event();
-          e.widget = txtFakeFullCopy;
-          txtFakeFullCopy.notifyListeners(SWT.Modify, e);
-        }
-      });
-      
-      
-      boolean enable = (StartStopRulesDefaultPlugin.this.iRankType == RANK_SPRATIO || 
-                        StartStopRulesDefaultPlugin.this.iRankType == RANK_SEEDCOUNT);
-      controlsSetEnabled(controlsNoTimeNone, enable);
-        
-
-
-      return gQR;
-    }
-    private void controlsSetEnabled(Control[] controls, boolean bEnabled) {
-      for(int i = 0 ; i < controls.length ; i++) {
-        if (controls[i] instanceof Composite)
-          controlsSetEnabled(((Composite)controls[i]).getChildren(), bEnabled);
-        controls[i].setEnabled(bEnabled);
-      }
-    }
-  }
-
-
-  /** Config Section for items that make us ignore torrents when seeding 
-   */
-  class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
-    public String configSectionGetParentSection() {
-      return "queue.seeding";
-    }
-
-  	public String configSectionGetName() {
-  		return "queue.seeding.ignore";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-
-    public Composite configSectionCreate(Composite parent) {
-      // Seeding Automation Setup
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-
-      Composite cIgnore = new Composite(parent, SWT.NULL);
-      cIgnore.addControlListener(new Utils.LabelWrapControlListener());
-
-      layout = new GridLayout();
-      layout.numColumns = 3;
-      layout.marginHeight = 0;
-      cIgnore.setLayout(layout);
-
-      label = new Label(cIgnore, SWT.WRAP);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 3;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
-
-      label = new Label(cIgnore, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cIgnore, "StartStopManager_iIgnoreSeedCount").setLayoutData(gridData);
-      label = new Label(cIgnore, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeds");
-
-      label = new Label(cIgnore, SWT.WRAP);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreRatioPeers"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cIgnore, "Stop Peers Ratio").setLayoutData(gridData);
-      label = new Label(cIgnore, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.peers");
-
-      Composite cArea = new Composite(cIgnore, SWT.NULL);
-      layout = new GridLayout();
-      layout.numColumns = 4;
-      layout.marginWidth = 0;
-      layout.marginHeight = 0;
-      cArea.setLayout(layout);
-      gridData = new GridData();
-      gridData.horizontalIndent = 15;
-      gridData.horizontalSpan = 3;
-      cArea.setLayoutData(gridData);
-      
-      label = new Label(cArea, SWT.NULL);
-      Image img = ImageRepository.getImage("subitem");
-      img.setBackground(label.getBackground());
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-      label.setLayoutData(gridData);
-      label.setImage(img);
-      
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
-
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cArea, "StartStopManager_iIgnoreRatioPeersSeedStart").setLayoutData(gridData);
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeds");
-
-      label = new Label(cIgnore, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cIgnore, "Stop Ratio").setLayoutData(gridData);
-      label = new Label(cIgnore, SWT.NULL);
-      label.setText(":1");
-
-      gridData = new GridData();
-      gridData.horizontalSpan = 3;
-      new BooleanParameter(cIgnore, 
-                           "StartStopManager_bIgnore0Peers", 
-                           "ConfigView.label.seeding.ignore0Peers").setLayoutData(gridData);
-
-      return cIgnore;
-    }
-  }
-
 
   /** A "My Torrents" column for displaying Seeding Rank.
    */
@@ -1961,6 +1315,9 @@ StartStopRulesDefaultPlugin
     }
   }
   
+  /**
+   * Column in MyTorrents to display the Seeding Rank
+   */  
   public class SeedRankingColumnItem implements PluginMyTorrentsItem {
     MyTorrentsTableItem tableItem;
     
@@ -1990,7 +1347,7 @@ StartStopRulesDefaultPlugin
           if (qr > QR_TIMED_QUEUED_ENDS_AT) {
             int timeLeft = (int)(minTimeAlive - 
                                  (long)(System.currentTimeMillis() - 
-                                        dlData.getStartedSeedingOn())) / 1000;
+                                        dl.getStats().getTimeStartedSeeding())) / 1000;
             sText += TimeFormater.format(timeLeft);
           } else if (qr > 0) {
             sText += MessageText.getString("StartStopRules.waiting");
