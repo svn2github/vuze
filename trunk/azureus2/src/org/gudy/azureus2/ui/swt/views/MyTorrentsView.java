@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -73,7 +74,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
  * @author Olivier
  * 
  */
-public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable, ITableStructureModificationListener {
+public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable, ITableStructureModificationListener, ParameterListener {
 
   private GlobalManager globalManager;
 
@@ -112,6 +113,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 	// table item index, where the drag has started
   private int drag_drop_line_start;
   
+  
+  private int loopFactor;
+  private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+
+    
   /**
    * @return Returns the itemEnumerator.
    */
@@ -137,6 +143,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     createMenu();    
     createTable();    
     createDragDrop();
+    COConfigurationManager.addParameterListener("Graphics Update", this);
     globalManager.addListener(this);
   }
   
@@ -866,6 +873,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       DownloadManager manager = (DownloadManager) iter.next();
       TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
       if (item != null) {
+        //Every N GUI updates we unvalidate the images
+        if (loopFactor % graphicsUpdate == 0)
+          item.invalidate();
+        
         item.refresh();
       }
     }
@@ -1071,7 +1082,15 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       if (dm != null) {
         dm.setState(DownloadManager.STATE_WAITING);
       }
-    }
+    }    
+  }
+    
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
   
 }

@@ -48,8 +48,7 @@ public class PiecesItem extends PeerItem  {
   }
   
   public void refresh() {
-    boolean valid = peerRow.isValid();
-    peerRow.setValid(true);
+    boolean valid = peerRow.isValid();    
     BufferedTableRow row = peerRow.getRow();
     
     if (row == null || row.isDisposed())

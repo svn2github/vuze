@@ -42,13 +42,6 @@ public class PeerRow implements SortableItem {
   }
 
   /**
-   * @param valid The valid to set.
-   */
-  public void setValid(boolean valid) {
-    this.valid = valid;
-  }
-
-  /**
    * @return Returns the row.
    */
   public BufferedTableRow getRow() {
@@ -117,6 +110,7 @@ public class PeerRow implements SortableItem {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
     }
+    valid = true;
   }
 
   public void delete() {
