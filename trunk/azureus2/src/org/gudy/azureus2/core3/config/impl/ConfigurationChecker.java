@@ -45,6 +45,20 @@ public class ConfigurationChecker {
   public static void
   setSystemProperties()
   {
+  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
+  	
+  	if ( handlers == null ){
+  		
+  		handlers = "org.gudy.azureus2.core3.util.protocol";
+  	}else{
+  		
+  		handlers += "|org.gudy.azureus2.core3.util.protocol";
+  	}
+  	
+  	System.setProperty( "java.protocol.handler.pkgs", handlers );
+  	
+  	System.out.println( "protocol handlers = " + handlers );
+  	
   		// DNS cache timeouts
   	
   	System.setProperty("sun.net.inetaddr.ttl", "60");

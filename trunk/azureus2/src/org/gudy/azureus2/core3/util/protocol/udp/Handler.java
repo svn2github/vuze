@@ -1,7 +1,7 @@
 /*
- * File    : Main.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : Handler.java
+ * Created : 19-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,43 +19,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.test;
+package org.gudy.azureus2.core3.util.protocol.udp;
 
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
+/**
+ * @author parg
+ *
+ */
+
+import java.net.*;
 
 public class 
-Main 
+Handler 
+	extends URLStreamHandler 
 {
-	static void
-	usage()
-	{
-		System.err.println( "Usage:" );
-		
-		System.exit(1);
+	public synchronized URLConnection 
+	openConnection(URL u)
+	{	
+		return new UDPURLConnection(u);
 	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		int	test_type= 0;
-		
-		if ( args.length != 0 ){
-			
-			usage();
-		}
-		
-		
-		try{
 
-			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, 6969 );
-					
-			Thread.sleep(100000);
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-		}
-	}
 }

@@ -466,7 +466,7 @@ public class MultiTrackerEditor {
   		
   		String prot = url.getProtocol().toLowerCase();
   		
-  		if ( prot.equals( "http") || prot.equals( "https" )){
+  		if ( prot.equals( "http") || prot.equals( "https" ) || prot.equals( "udp")){
   			
   			return( true );
   		}

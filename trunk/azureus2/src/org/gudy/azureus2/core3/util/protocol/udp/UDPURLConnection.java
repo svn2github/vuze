@@ -1,7 +1,7 @@
 /*
- * File    : Main.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : UDPURLConnection.java
+ * Created : 19-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,43 +19,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.test;
+package org.gudy.azureus2.core3.util.protocol.udp;
 
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
+/**
+ * @author parg
+ *
+ */
 
-public class 
-Main 
+import java.net.URL;
+import java.net.URLConnection;
+import java.io.*;
+
+
+class 
+UDPURLConnection 
+	extends URLConnection 
 {
-	static void
-	usage()
+	UDPURLConnection(
+		URL 	u )
 	{
-		System.err.println( "Usage:" );
-		
-		System.exit(1);
+		super(u);
 	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		int	test_type= 0;
-		
-		if ( args.length != 0 ){
-			
-			usage();
-		}
-		
-		
-		try{
 
-			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, 6969 );
-					
-			Thread.sleep(100000);
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-		}
+	public void 
+	connect() 
+		throws IOException 
+	{
+		throw( new IOException( "Not Implemented"));
 	}
 }

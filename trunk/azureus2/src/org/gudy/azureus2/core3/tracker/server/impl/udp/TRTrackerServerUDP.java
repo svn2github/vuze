@@ -39,11 +39,85 @@ public class
 TRTrackerServerUDP
 	extends 	TRTrackerServerImpl
 {
+	public static final int	PACKET_SIZE	= 8192;
+	
+	protected int		port;
+	
 	public
 	TRTrackerServerUDP(
 		int		_port )
 	{
+		port		= _port;
+		
+		try{
+			DatagramSocket	socket = new DatagramSocket();
+		
+			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			
+			if ( bind_ip.length() == 0 ){
+				
+				socket.bind(new InetSocketAddress(port));
+				
+			}else{
+				
+				socket.bind(new InetSocketAddress(InetAddress.getByName(bind_ip), port));
+			}
+			
+			socket.setReuseAddress(true);
+			
+			final DatagramSocket	f_socket = socket;
+			
+			Thread recv_thread = 
+				new Thread("TRTrackerServerUDP:recv.loop")
+				{
+					public void
+					run()
+					{
+						recvLoop( f_socket );
+					}
+				};
+			
+			recv_thread.setDaemon( true );
+			
+			recv_thread.start();									
+			
+			LGLogger.log( "TRTrackerServerUDP: listener established on port " + port ); 
+			
+		}catch( Throwable e ){
+			
+			LGLogger.log( "TRTrackerServerUDP: DatagramSocket bind failed on port " + port, e ); 
+		}
+	}
 	
+	protected void
+	recvLoop(
+		DatagramSocket	socket )
+	{		
+		while(true){
+			
+			try{				
+				byte[] buf = new byte[PACKET_SIZE];
+				
+				DatagramPacket packet = new DatagramPacket( buf, buf.length );
+				
+				socket.receive( packet );
+				
+				String	ip = packet.getAddress().getHostAddress();
+				
+				System.out.println( "got a UDP packet: ip = " + ip);
+				
+				if ( !ip_filter.isInRange( ip )){
+					
+					System.out.println( "got a UDP packet");
+					
+					// thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
+				}					
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();		
+			}
+		}
 	}
 	
 	public void

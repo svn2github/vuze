@@ -1726,6 +1726,21 @@ public class ConfigView extends AbstractIView {
 	  label = new Label(gExtTab, SWT.NULL);
 	  label = new Label(gExtTab, SWT.NULL);
 	  
+	  // row
+	  
+	  label = new Label(gExtTab, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.enableudp"); 
+	  
+	  BooleanParameter enableUDP = new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  enableUDP.setLayoutData( gridData );
+
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  
 	  
 	}
 	

@@ -252,6 +252,7 @@ TRHostImpl
 		
 		int		port;
 		boolean	ssl;
+		int		protocol	= TRTrackerServerFactory.PR_TCP;
 		
 		if ( state == TRHostTorrent.TS_PUBLISHED ){
 		
@@ -262,7 +263,14 @@ TRHostImpl
 		
 			URL	announce_url = torrent.getAnnounceURL();
 			
-			ssl = announce_url.getProtocol().equalsIgnoreCase("https");
+			String	protocol_str = announce_url.getProtocol();
+			
+			ssl = protocol_str.equalsIgnoreCase("https");
+			
+			if ( protocol_str.equalsIgnoreCase("udp")){
+				
+				protocol = TRTrackerServerFactory.PR_UDP;
+			}
 			
 			boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
 			
@@ -293,7 +301,7 @@ TRHostImpl
 			}
 		}
 		
-		TRTrackerServer server = startServer( TRTrackerServerFactory.PR_TCP, port, ssl );
+		TRTrackerServer server = startServer( protocol, port, ssl );
 		
 		TRHostTorrent host_torrent;
 	
@@ -337,8 +345,9 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-	
-		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
+		String	key = ""+protocol+ ":" + port;
+		
+		TRTrackerServer	server = (TRTrackerServer)server_map.get( key );
 			
 		if ( server == null ){
 				
@@ -353,7 +362,7 @@ TRHostImpl
 					server = TRTrackerServerFactory.create( protocol, port );
 				}
 					
-				server_map.put( new Integer( port ), server );
+				server_map.put( key, server );
 					
 				server.addListener( this );
 						
