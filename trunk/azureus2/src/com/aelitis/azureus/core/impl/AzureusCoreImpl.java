@@ -95,14 +95,15 @@ AzureusCoreImpl
 		return( singleton );
 	}	
 
-	protected GlobalManager		global_manager;
+	private PluginInitializer 	pi;
+	private GlobalManager		global_manager;
 	
 	
-	protected boolean			running;
-	protected List				listeners				= new ArrayList();
-	protected List				lifecycle_listeners		= new ArrayList();
+	private boolean				running;
+	private List				listeners				= new ArrayList();
+	private List				lifecycle_listeners		= new ArrayList();
 	
-	protected AEMonitor			this_mon	= new AEMonitor( "AzureusCore" );
+	private AEMonitor			this_mon	= new AEMonitor( "AzureusCore" );
 
 	protected
 	AzureusCoreImpl()
@@ -115,9 +116,13 @@ AzureusCoreImpl
 		
 		AETemporaryFileHandler.startup();
     
-    //ensure early initialization
-    NetworkManager.getSingleton();
-    PeerManager.getSingleton();
+			//ensure early initialization
+		
+		NetworkManager.getSingleton();
+		
+		PeerManager.getSingleton();
+    
+		pi = PluginInitializer.getSingleton(this,this);
 	}
 	
 	public LocaleUtil
@@ -146,8 +151,6 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
          
-		final PluginInitializer pi = PluginInitializer.getSingleton(this,this);
-		
 	    LGLogger.log("Core: Loading of Plugins starts");
 
 		pi.loadPlugins(this);
