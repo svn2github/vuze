@@ -74,10 +74,11 @@ public class SWTThread {
       catch (Exception e) {
         e.printStackTrace();
       }
-    }
-    display.dispose();
+    }    
     
     app.stopIt();
+    
+    display.dispose();
   }
   
   

@@ -35,7 +35,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.mytracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
 
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 
 public class 
 UIManagerImpl 
@@ -110,7 +110,7 @@ UIManagerImpl
 		throws UIException
 	{
 		try{
-			MainWindow.copyToClipBoard( data );
+			ClipboardCopy.copyToClipBoard( data );
 			
 		}catch( Throwable e ){
 			

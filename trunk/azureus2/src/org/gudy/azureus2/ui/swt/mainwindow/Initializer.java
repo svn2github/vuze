@@ -107,6 +107,7 @@ public class Initializer implements STProgressListener, Application {
     nextTask();
     reportCurrentTaskByKey("splash.initializeGui");
     new Colors();
+    Cursors.init();
     new MainWindow(gm,this);
     
     nextTask();  
@@ -185,6 +186,7 @@ public class Initializer implements STProgressListener, Application {
       gm.stopAll();
     if (startServer != null)
       startServer.stopIt();
+    Cursors.dispose();
     SWTThread.getInstance().terminate();  
   }
   
