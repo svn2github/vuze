@@ -20,13 +20,7 @@
  */
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,12 +29,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.YearStatsList;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
+
 
 /**
  * @author Olivier
@@ -62,82 +52,23 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   long lastUploaded;
   long lastUptime; 
   
-	private void load(String filename) {
-	  BufferedInputStream bin = null;
-	  
-	  try {
-	    //open the file
-	    File file = new File( SystemProperties.getUserPath() + filename );
-	    
-	    //make sure the file exists and isn't zero-length
-	    if ( file.length() <= 1L ) {
-	      //if so, try using the backup file
-	      file = new File( SystemProperties.getUserPath() + filename + ".bak" );
-	      if ( file.length() <= 1L ) {
-	        throw new FileNotFoundException();
-	      }
-	    }
-	    
-	    bin = new BufferedInputStream( new FileInputStream(file), 8192 );
-	      
-	    try{
-        statisticsMap = BDecoder.decode(bin);
-	    }
-	    catch( IOException e ){
-	    	// Occurs when file is there but b0rked
-        statisticsMap = new HashMap();
-	    }
-	
-	  }
-	  catch (FileNotFoundException e) {
-      statisticsMap = new HashMap();
-	  }
-	  finally {
-	  	try {
-	  		if (bin != null)
-	  			bin.close();
-	  	} catch (Exception e) {
-	  	}
-	  }
-	}
+  private void 
+  load(String filename) 
+  {
+    statisticsMap = FileUtil.readResilientConfigFile( filename );
+  }
   
   private void load() {
 	  load("azureus.statistics");
 	}
   
-  private synchronized void save(String filename) {  
-	  //open a file stream
-	  BufferedOutputStream bos = null;
-	  try {
-	  	//re-encode the data
-	  	
-	  	byte[] torrentData = BEncoder.encode(statisticsMap);
+  private synchronized void 
+  save(String filename) 
+  {  	  	
+	 File file = new File( SystemProperties.getUserPath() + filename );
 	    
-	    File file = new File( SystemProperties.getUserPath() + filename );
-	    
-	  	//backup
-	    if ( file.length() > 1L ) {
-	      File bakfile = new File( file + ".bak" );
-	      if ( bakfile.exists() ) bakfile.delete();
-	      file.renameTo( bakfile );
-	    }
-	  	
-	    bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
-	  	
-	  	//write the data out
-	  	bos.write(torrentData);
-	    bos.flush();
-	    
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	  } finally {
-	    try {
-	      if (bos != null)
-	        bos.close();
-	    } catch (Exception e) {
-	    }
-	  }
-	}
+	 FileUtil.writeResilientConfigFile( filename, statisticsMap );
+  }
   
   private void save() {
 	  save("azureus.statistics");

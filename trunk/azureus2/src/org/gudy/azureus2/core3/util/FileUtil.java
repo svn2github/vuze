@@ -6,18 +6,14 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.*;
 
 /**
  *
@@ -226,5 +222,126 @@ public class FileUtil {
 	//System.out.println( "convertOSSpecificChars: " + file_name_in + " ->" + file_name_out );
 	
 	return( file_name_out );
+  }
+  
+  public static void
+  writeResilientConfigFile(
+  	String		file_name,
+	Map			data )
+  {
+    File file = new File( SystemProperties.getUserPath() + file_name );
+    
+  	//backup
+    if ( file.exists() && file.length() > 1L ){
+    	
+      File bakfile = new File( file + ".bak" );
+      
+      if ( bakfile.exists()){
+      	bakfile.delete();
+      }
+      
+      file.renameTo( bakfile );
+    }
+  	
+    BufferedOutputStream	baos = null;
+    
+    try{
+    	byte[] encoded_data = BEncoder.encode(data);
+	    
+
+    	baos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
+  	
+    		//write the data out
+    	
+    	baos.write(encoded_data);
+    	
+    	baos.flush();
+    
+    }catch (Exception e) {
+    
+    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
+    	
+    }finally{
+    	
+    	try {
+    		if (baos != null){
+    			
+    			baos.close();
+    		}
+    	}catch( Exception e){
+    		
+        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
+    	}
+    }
+  }
+  
+  	public static Map
+	readResilientConfigFile(
+		String		file_name )
+	{	  
+  			// open the file
+  	
+  		boolean	using_backup	= file_name.endsWith(".bak");
+  		
+  		File file = new File( SystemProperties.getUserPath() + file_name );
+	    
+	   		//make sure the file exists and isn't zero-length
+	    
+  		if ( (!file.exists()) || file.length() <= 1L ){
+
+  			if ( using_backup ){
+	     
+   				LGLogger.logAlert( LGLogger.AT_ERROR,
+  									"Load of '" + file_name + "' fails, no usable file or backup" ); 
+	       
+  				return( new HashMap());
+  			}
+  			
+  			return( readResilientConfigFile( file_name + ".bak" ));
+  		}
+
+  		BufferedInputStream bin = null;
+   
+  		try{
+  			bin = new BufferedInputStream( new FileInputStream(file), 8192 );
+	      
+	    	Map	res = (Map)BDecoder.decode(bin);
+	    	
+	    	if ( using_backup ){
+  		
+	    		LGLogger.logAlert( 
+	    					LGLogger.AT_WARNING,
+							"Load of '" + file_name.substring(0,file_name.length()-4) + "' had to revert to backup file" ); 
+	    	}
+	    	
+	    	return( res );
+	    	
+	    }catch( Throwable e ){
+	    	
+	    		// Occurs when file is there but b0rked
+	    	
+	    	if ( using_backup ){
+		
+	    		LGLogger.logAlert( LGLogger.AT_ERROR,
+							"Load of '" + file_name + "' fails, no usable file or backup" ); 
+	    		
+	    		return( new HashMap());
+	    	}
+	    	
+ 			return( readResilientConfigFile( file_name + ".bak" ));
+ 			 
+	    }finally{
+	    	
+	    	try {
+	    		
+	    		if (bin != null){
+	    			
+	    			bin.close();
+	    		}
+	    	}catch (Exception e) {
+	    		
+	    		e.printStackTrace();
+	    	}
+	    }
   }
 }
