@@ -114,7 +114,7 @@ public class MainWindow implements GlobalManagerListener {
   private Shell mainWindow;
   private Menu menuBar;
 
-  public static final Color[] blues = new Color[5];
+  public static Color[] blues = new Color[5];
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -381,12 +381,9 @@ public class MainWindow implements GlobalManagerListener {
     downloadBars = new HashMap();
     
 
-    if (instanceCount == 0) {
-      blues[4] = new Color(display, new RGB(0, 128, 255));
-      blues[3] = new Color(display, new RGB(64, 160, 255));
-      blues[2] = new Color(display, new RGB(128, 192, 255));
-      blues[1] = new Color(display, new RGB(192, 224, 255));
-      blues[0] = new Color(display, new RGB(255, 255, 255));
+    if (instanceCount == 0) {      
+      allocateBlues();
+      
       black = new Color(display, new RGB(0, 0, 0));
       blue = new Color(display, new RGB(128, 128, 255));
       grey = new Color(display, new RGB(170, 170, 170));
@@ -778,7 +775,20 @@ public class MainWindow implements GlobalManagerListener {
     }       
   }
 
-	public void
+	public void allocateBlues() {
+    int r = COConfigurationManager.getIntParameter("Color Scheme.red",0);
+    int g = COConfigurationManager.getIntParameter("Color Scheme.green",128);
+    int b = COConfigurationManager.getIntParameter("Color Scheme.blue",255);
+    for(int i = 0 ; i < 5 ; i++) {
+      Color toBeDisposed = blues[i];
+      blues[i] = new Color(display,r+((255-r)*(4-i))/4,g+((255-g)*(4-i))/4,b+((255-b)*(4-i))/4);
+      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
+        toBeDisposed.dispose();
+      }
+    }
+  }
+
+  public void
 	showMyTracker()
 	{
 		if (my_tracker_tab == null){

@@ -928,6 +928,13 @@ public class ConfigView extends AbstractIView {
      });
    }
    
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
+   ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255); //$NON-NLS-1$
+   gridData = new GridData();
+   gridData.widthHint = 50;
+   colorScheme.setLayoutData(gridData);
+   
    itemStyle.setControl(gStyle);
   }
   
