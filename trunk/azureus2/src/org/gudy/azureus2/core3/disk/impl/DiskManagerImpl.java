@@ -47,6 +47,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
+import sun.awt.windows.WWindowPeer;
+
 /**
  * 
  * The disk Wrapper.
@@ -85,8 +87,10 @@ DiskManagerImpl
 
 	private ByteBuffer allocateAndTestBuffer;
 
-	private Vector 	writeQueue;
-	private Vector 	checkQueue;
+	private List 		writeQueue;
+	private List 		checkQueue;
+	private Semaphore	writeCheckQueueSem;
+	private Object		writeCheckQueueLock	= new Object(){};
 	
 	private List		readQueue;
 	private Semaphore	readQueueSem;
@@ -274,8 +278,10 @@ DiskManagerImpl
 		allocateAndTestBuffer.position(0);
 
 		//Create the new Queue
-		writeQueue 	= new Vector();
-		checkQueue 	= new Vector();
+		
+		writeQueue 			= new LinkedList();
+		checkQueue 			= new LinkedList();
+		writeCheckQueueSem	= new Semaphore();
 		
 		readQueue 		= new LinkedList();
 		readQueueSem	= new Semaphore();
@@ -654,72 +660,97 @@ DiskManagerImpl
 			setDaemon(true);
 		}
 
-		public void run() {
-         int count;
-         long sleepTime;
+		public void run() 
+		{
+			while (true){
+				
+				writeCheckQueueSem.reserve();
+				
+				QueueElement	elt;
+				boolean			elt_is_write;
+				
+				synchronized( writeCheckQueueLock ){
+					
+					if ( !bWriteContinue){
+													
+						break;
+					}
+					
+					if ( writeQueue.size() > checkQueue.size()){
+						
+						elt	= (QueueElement)writeQueue.remove(0);
+						
+						elt_is_write	= true;
+					}else{
+						
+						elt	= (QueueElement)checkQueue.remove(0);
+						
+						elt_is_write	= false;
+					}
+				}
 
-			while (bWriteContinue) {
-            
-			  count = 0;
-			  sleepTime = 1000;
-            
-			  if (writeQueue.size() > 64) sleepTime = 20;
-
-			  //allow up to 64 blocks to be written at once
-			  while (writeQueue.size() != 0 && count < 64 && bWriteContinue) {
-			    QueueElement elt = (QueueElement)writeQueue.remove(0);
-			    //Do not allow to write in a piece marked as done.
-			    int pieceNumber = elt.getPieceNumber();					
-					if(!pieceDone[pieceNumber]) {
+				if ( elt_is_write ){
+					
+						//Do not allow to write in a piece marked as done.
+					
+					int pieceNumber = elt.getPieceNumber();
+					
+					if(!pieceDone[pieceNumber]){
+						
 					  dumpBlockToDisk(elt);
+					  
 					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
-					} else {
+					  
+					}else{
+						
 					  DirectByteBufferPool.freeBuffer(elt.getData());
+					  
 					  elt.data = null;
 					}
-
-					count++;
-			  }
-            
-			  count = 0;
-
-			  if (checkQueue.size() > 10) sleepTime = 20;
-
-			  //allow up to 10 piece checks at once
-			  while (checkQueue.size() != 0 && count < 10 && bWriteContinue) {
-				  QueueElement elt = (QueueElement)checkQueue.remove(0);
+					
+				}else{
+					
 				  boolean correct = checkPiece(elt.getPieceNumber());
 					
-				  if(!correct) {
+				  if(!correct){
+				  	
 				    MD5CheckPiece(elt.getPieceNumber(),false);
+				    
 				    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-				  }
-				  else {
+				    
+				  }else{
+				  	
 				    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-				    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())) {
+				    
+				    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())){
+				    	
 				      MD5CheckPiece(elt.getPieceNumber(),true);
 				    }
 				  }
 
 				  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
-				  count++;
 			  }
-            				
-				try {
-				  Thread.sleep(sleepTime);
-				} catch (Exception e) { e.printStackTrace(); }
 			}
 		}
 
-		public void stopIt() {
-			this.bWriteContinue = false;
-			while (writeQueue.size() != 0) {
+		public void stopIt(){
+			
+			synchronized( writeCheckQueueLock ){
+				
+				bWriteContinue = false;
+			}
+			
+			writeCheckQueueSem.releaseForever();
+			
+			while (writeQueue.size() != 0){
+				
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
+				
 				DirectByteBufferPool.freeBuffer(elt.data);
+				
 				elt.data = null;
 			}
 		}
-       
 	}
 
 	public boolean filesExist() {
@@ -956,9 +987,17 @@ DiskManagerImpl
 	}
 
   
-   public void aSyncCheckPiece(int pieceNumber) {
-		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
-	}
+   public void 
+   aSyncCheckPiece(
+   		int pieceNumber) 
+   {
+   		synchronized( writeCheckQueueLock ){
+		
+   			checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
+   		}
+   		
+   		writeCheckQueueSem.release();
+   }
   
 
 	private synchronized boolean checkPiece(int pieceNumber) {
@@ -1468,8 +1507,19 @@ DiskManagerImpl
 		}
 	}
 
-	public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
-		writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
+	public void 
+	writeBlock(
+		int pieceNumber, 
+		int offset, 
+		ByteBuffer data,
+		PEPeer sender) 
+	{
+		synchronized( writeCheckQueueLock ){
+			
+			writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
+		}
+		
+		writeCheckQueueSem.release();
 	}
 
 	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
