@@ -71,10 +71,13 @@ public class PiecesItem extends PeerItem  {
       gc.dispose();
     }
     else {
-      //Image is not valid anymore ... so 1st free it :)
-      Image oldImage = image;      
-      image = new Image(peerRow.getTableItem().getDisplay(), width, height);
-  
+ // no need to reallocate the image each time.
+ //     Image is not valid anymore ... so 1st free it :)
+ //     Image oldImage = null;//image;      
+ //     image = new Image(peerRow.getTableItem().getDisplay(), width, height);
+    	if (image == null) {
+    		image = new Image(peerRow.getTableItem().getDisplay(), width, height);
+     	}
       GC gcImage = new GC(image);
       boolean available[] = peerRow.getPeerSocket().getAvailable();
       if (available != null) {
@@ -92,8 +95,11 @@ public class PiecesItem extends PeerItem  {
               nbAvailable++;
           int index = (nbAvailable * 4) / (a1 - a0);
           //System.out.print(index);
-          gcImage.setBackground(MainWindow.blues[index]);
-          gcImage.fillRectangle(i,1,1,height);
+//          gcImage.setBackground(MainWindow.blues[index]);
+          gcImage.setForeground(MainWindow.blues[index]);
+          gcImage.drawLine(i,1,i,1+height);
+          // no need to draw a one pixel wide rect
+         // gcImage.fillRectangle(i,1,1,height);
         }
       }
       gcImage.dispose();
@@ -101,8 +107,8 @@ public class PiecesItem extends PeerItem  {
       gc.drawImage(image, x0, y0);
       gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
-      if (oldImage != null && !oldImage.isDisposed())
-        oldImage.dispose();
+ //     if (oldImage != null && !oldImage.isDisposed())
+ //       oldImage.dispose();
     }
   }
   
