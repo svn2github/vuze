@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.*;
@@ -490,6 +491,12 @@ RPPluginInterface
      return null; 
    }
    
+   public DistributedDatabase
+   getDistributedDatabase()
+   {
+    notSupported();
+    return null; 
+   }
 	 
 	public void
 	addListener(
