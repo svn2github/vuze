@@ -7,7 +7,16 @@ FEATURE: Under Linux + GTK, added an option to setup a vertical offset to re-ali
 FEATURE: SSL tracker client now gives option to import certificate rather than manually doing so via "keytool" [Parg]
 FEATURE: Start All Downloads option on tray icon [Nolar]
 FEATURE: Support for trackers that do not return peerIDs on announce [Parg]
-FEATURE: 'SHARE' SUPPORT ???  [Parg]
+FEATURE: Sharing - allows files/dirs/dir contents (recursive) to automatically have torrents created for them and torrents hosted
+		 The shared resources will automatically have their torrents recalculated if they change (over Azureus restart) [Parg]
+FEATURE: Tracker allows number of peers returned to be limited [Parg]
+FEATURE: Experimental UDP tracker protocol (see Config->Tracker->Extensions). Azureus client/tracker supports this, as does the XBT tracker (http://sourceforge.net/projects/xbtt/) [Parg]
+FEATURE: Tracker support for GZIP encoding [Parg]
+FEATURE: Tracker support for multiple pages [IAmChrist]
+FEATURE: Tracker pages skinable by placing pages in %azhome%/web [Parg]
+FEATURE: Major extensions to plugin interfaces [Parg]
+FEATURE: Simple Swing based remote admin interface (over SSL+password auth) - email parg@users.sourceforge.net for details [Parg]
+FEATURE: click on hash in general view to copy hash to clipboard
 
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
 CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK) [Gudy]
@@ -20,6 +29,7 @@ CHANGE: On tracker announce errors, retry interval now uses exponential backoff 
 CHANGE: Removed multi-port listening, as shared single port is far superior [Nolar]
 CHANGE: More reliable .config and .torrent file writing [Nolar]
 CHANGE: Tracker scraper now honors a 'flags: min_request_interval' response [TuxPaper]
+CHANGE: Plugins can be initialised from plugin.properties freestanding (not just in .jar file)
 
 BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
 BUGFIX: Fast resuming with Chinese directories: Bug #869749 [Parg]
@@ -35,7 +45,7 @@ BUGFIX: Fix for hash checking 0-byte files: Bug #853126 [Nolar]
 BUGFIX: Fix for opening files via Files tab when using MoveOnComplete: Bugs #860822, #878795 [Nolar] 
 BUGFIX: Fix for 100% cpu usage after network disconnect/reconnect: Bugs #873957, #879498 [Nolar]
 BUGFIX: Fix for downloaded blocks not being written to disk, due to write-thread stall under high load [Nolar]
-
+BUGFIX: Fix for various non-unicode torrent encoding issues regarding resume data [Parg]
 
 
 
