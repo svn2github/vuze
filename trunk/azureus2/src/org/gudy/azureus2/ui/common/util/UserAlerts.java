@@ -72,7 +72,7 @@ UserAlerts
   	{
   		try{
   		
-	    	if( COConfigurationManager.getBooleanParameter("Play Download Finished", true)){
+	    	if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
 	    
 	    		if ( audio_clip == null ){
 	    		
