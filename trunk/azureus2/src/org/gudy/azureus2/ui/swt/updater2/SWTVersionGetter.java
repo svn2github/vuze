@@ -69,6 +69,9 @@ public class SWTVersionGetter {
   public boolean needsUpdate() {
     try {
       downloadLatestVersion();
+
+      LGLogger.log("SWT: current version =  " + currentVersion + ", latest version = " + latestVersion );
+
       return latestVersion > currentVersion;
     } catch(Exception e) {
       return false;
