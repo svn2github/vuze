@@ -117,7 +117,12 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				root_out[0] = torrent.exportAnnounceToList( left > 0, num_want, interval, no_peer_id, compact );
+					// set num_want to 0 for stopped events as no point in returning peers
+				
+				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
+
+				root_out[0] = torrent.exportAnnounceToList( left > 0, stopped?0:num_want, interval, no_peer_id, compact );
+				
 				peer_out[0]	= peer;				
 			}else{
 				
