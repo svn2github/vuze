@@ -117,7 +117,7 @@ TrackerImpl
 			
 			if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable" )){
 				
-				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 				
 				boolean	auth = COConfigurationManager.getBooleanParameter( "Tracker Password Enable Torrent" );
 					
