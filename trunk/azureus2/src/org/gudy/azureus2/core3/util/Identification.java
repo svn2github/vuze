@@ -27,7 +27,7 @@ public class Identification {
 
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
-        if ((peerID[1] == (byte)0) && (peerID[8] == (byte)0)) return "Shadow";
+        if ((peerID[8] == (byte)0) && (peerID[11] == (byte)0)) return "Shadow";
         if (peerID[8] == (byte)45) {
           String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
           String name = "Shadow ";
@@ -68,6 +68,14 @@ public class Identification {
           return name;
         }  
       }
+      
+      
+      String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
+      if (xantorrent.equals("DansClient")) return "Xantorrent";
+      
+      
+      String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
+      if (btfans.equals("btfans")) return "btFans";
       
       
       //check for generic client
