@@ -223,6 +223,7 @@ public class CategoryManagerImpl  {
   public void removeCategory(Category category) {
     if (categories.containsKey(category.getName())) {
       categories.remove(category.getName());
+      saveCategories();
       category_listeners.dispatch( LDT_CATEGORY_REMOVED, category );
     }
   }
