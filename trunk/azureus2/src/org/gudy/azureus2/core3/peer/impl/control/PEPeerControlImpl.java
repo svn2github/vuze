@@ -56,7 +56,7 @@ PEPeerControlImpl
   
   private int[] 	availability_cow;
   
-  private boolean _bContinue;    
+  private volatile boolean is_running = false;  
   
   private volatile ArrayList peer_transports_cow = new ArrayList();	// Copy on write!
   private AEMonitor	peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
@@ -275,7 +275,7 @@ PEPeerControlImpl
   
   
   private void mainLoop() {
-    _bContinue = true;
+    is_running = true;
 
     _downloadManager.setState( DownloadManager.STATE_DOWNLOADING );
 
@@ -285,7 +285,7 @@ PEPeerControlImpl
 
     checkFinished( true );
 
-    while( _bContinue ) { //loop until stopAll() kills us
+    while( is_running ) { //loop until stopAll() kills us
 
       try {
         long timeStart = SystemTime.getCurrentTime();
@@ -351,37 +351,16 @@ PEPeerControlImpl
   public void 
   stopAll() 
   {
+
+    is_running = false;
+    
     // send stopped event
     _tracker.stop();
     
     //remove legacy controller registration
     PeerManager.getSingleton().deregisterLegacyManager( this );
     
-    // Close all clients
-    
-    ArrayList peer_transports;
-    
-    try{
-    	peer_transports_mon.enter();
-      
-        	//  Stop itself
-        _bContinue = false;
-        
-        peer_transports = peer_transports_cow;
-        
-        peer_transports_cow = new ArrayList( 0 );  
-    }
-    finally{
-      	peer_transports_mon.exit();
-    }
-  
-    for( int i=0; i < peer_transports.size(); i++ ) {
-      PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
-      
-      peerRemoved( peer );
-      
-      peer.closeAll( peer.getIp() + ": " + "Closing all Connections" ,false, false);
-    }
+    closeAndRemoveAllPeers( "Stopping", false );
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
@@ -431,7 +410,7 @@ PEPeerControlImpl
 	{
 			// only process new peers if we're still running
 		
-		if ( _bContinue ){
+		if ( is_running ){
 			
 			analyseTrackerResponse( response );
 		}
@@ -487,7 +466,7 @@ PEPeerControlImpl
       addToPeerTransports( transport );
 								
     }else{
-			  
+			Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
       transport.closeAll(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected",false,false);
     }
 	}
@@ -504,17 +483,23 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
     
+    closeAndRemovePeer( transport, "Remove peer", false );
+	}
+	
+  
+  
+  private void closeAndRemovePeer( PEPeerTransport peer, String reason, boolean reconnect ) {
     boolean removed = false;
     
     // copy-on-write semantics
     try{
       peer_transports_mon.enter();
           
-        if ( peer_transports_cow.contains( transport )){
+        if ( peer_transports_cow.contains( peer )){
 
           ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
           
-          new_peer_transports.remove(transport);
+          new_peer_transports.remove( peer );
            
           peer_transports_cow = new_peer_transports;
           
@@ -526,11 +511,36 @@ PEPeerControlImpl
     }
     
     if( removed ) {
-      peerRemoved( transport );
-      transport.closeAll( transport.getIp() + ": " + "Peer Removed" ,false, false);
+      peerRemoved( peer );  //notify listeners
+      peer.closeAll( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason ,false, reconnect );
     }
-	}
-	
+  }
+  
+  
+  
+  private void closeAndRemoveAllPeers( String reason, boolean reconnect ) {
+    ArrayList peer_transports;
+    
+    try{
+      peer_transports_mon.enter();
+  
+      peer_transports = peer_transports_cow;
+        
+      peer_transports_cow = new ArrayList( 0 );  
+    }
+    finally{
+        peer_transports_mon.exit();
+    }
+  
+    for( int i=0; i < peer_transports.size(); i++ ) {
+      PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+      
+      peerRemoved( peer );  //notify listeners
+      peer.closeAll( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason ,false, reconnect );      
+    }
+  }
+  
+  
   
   
   public void addPeer( final String ip_address, final int port ) {
@@ -1236,7 +1246,9 @@ PEPeerControlImpl
         addToPeerTransports(transport);
                 
       }else{
-                
+        
+        Debug.out( "addPeerTransport():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
+        
         addFailed = true;
                 
         reason=transport.getIp() + " : Already Connected";
@@ -1489,14 +1501,13 @@ PEPeerControlImpl
     
     List	peer_transports = peer_transports_cow;
           
-      for (int i = 0; i < peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-        if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
-          pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
-        }
+    for (int i = 0; i < peer_transports.size(); i++) {
+      PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+      if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
+        closeAndRemovePeer( pc, "Disconnecting other seeds when seeding", false );
       }
- 
-  }  
+    }
+  }
 
   private void updateStats() {   
     //calculate seeds vs peers
@@ -1877,28 +1888,22 @@ PEPeerControlImpl
     
     try{
       peer_transports_mon.enter();
-    
-      if ( !_bContinue ){
-      	
-        peer.closeAll( "PeerTransport added when manager not running", false, false );
-        
-      	return;
+      
+      if( peer_transports_cow.contains( peer ) ){
+      	Debug.out( "Transport added twice" );
+      	return;  //we do not want to closeAll() it
       }
       
-      if ( peer_transports_cow.contains( peer )){
-      	
-      	Debug.out( "Transport added twice" );
-      	
-      }
-      else{    	// copy-on-write semantics
-	      ArrayList	new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
-	      
-	      new_peer_transports.addAll( peer_transports_cow );
-	      
-	      new_peer_transports.add( peer );
-	      
-	      peer_transports_cow	= new_peer_transports;
-	      
+      if( is_running ) {
+        //copy-on-write semantics
+        ArrayList new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
+        
+        new_peer_transports.addAll( peer_transports_cow );
+        
+        new_peer_transports.add( peer );
+        
+        peer_transports_cow = new_peer_transports;
+        
         added = true;
       }
     }
@@ -1908,6 +1913,9 @@ PEPeerControlImpl
     
     if( added ) {
       peerAdded( peer ); 
+    }
+    else {
+      peer.closeAll( "PeerTransport added when manager not running", false, false );
     }
   }
   
@@ -1923,7 +1931,7 @@ PEPeerControlImpl
     try{
     	peer_transports_mon.enter();
   	
-     	if ( peer_transports_cow.contains( peer )){  // may have already been removed
+     	if( peer_transports_cow.contains( peer )) {
 
 	     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 	      	
@@ -1939,43 +1947,47 @@ PEPeerControlImpl
     }
 
     if ( connection_found ){
-    	
-      peerRemoved( peer );
+      peerRemoved( peer );  //notify listeners
+    }
+    
 	    
-	    String key = peer.getIp() + ":" + peer.getPort();
-	    if( reconnect ) {
-	      boolean reconnect_allowed = false;
-	      try{
-	      	reconnect_counts_mon.enter();  //only allow 3 reconnect attempts
-	      
-	        Integer reconnect_count = (Integer)reconnect_counts.get( key );
-	        int count = 0;
-	        if( reconnect_count != null )  count = reconnect_count.intValue();
-	        if( count < 3 ) {
-	          reconnect_counts.put( key, new Integer( count + 1 ) );
-	          reconnect_allowed = true;
-	        }
-	        else { //don't reconnect this time, but allow at some later time if needed
-	          LGLogger.log(LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
-	          reconnect_counts.remove( key );
-	        }
-	      }finally{
-	      	
-	      	reconnect_counts_mon.exit();
-	      }
-	      
-	      if( reconnect_allowed )  makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getPort() );
-	    }
-	    else { //cleanup any reconnect count
-	      try{
-	      	reconnect_counts_mon.enter();
-	      
-	        reconnect_counts.remove( key );
-	      }finally{
-	      	
-	      	reconnect_counts_mon.exit();
-	      }
-	    }
+    String key = peer.getIp() + ":" + peer.getPort();
+    
+    if( reconnect ) {
+      boolean reconnect_allowed = false;
+      
+      try {
+        reconnect_counts_mon.enter(); // only allow 3 reconnect attempts
+
+        Integer reconnect_count = (Integer)reconnect_counts.get( key );
+        int count = 0;
+        if( reconnect_count != null ) count = reconnect_count.intValue();
+        if( count < 3 ) {
+          reconnect_counts.put( key, new Integer( count + 1 ) );
+          reconnect_allowed = true;
+        }
+        else { // don't reconnect this time, but allow at some later time if needed
+          LGLogger.log( LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
+          reconnect_counts.remove( key );
+        }
+      }
+      finally {
+        reconnect_counts_mon.exit();
+      }
+
+      if( reconnect_allowed ) {
+        makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getPort() );
+      }
+    }
+    else { // cleanup any reconnect count
+      try {
+        reconnect_counts_mon.enter();
+
+        reconnect_counts.remove( key );
+      }
+      finally {
+        reconnect_counts_mon.exit();
+      }
     }
   }
   
@@ -2206,7 +2218,7 @@ PEPeerControlImpl
 	                
 	              Iterator iterPeers = peersToDisconnect.iterator();
 	              while(iterPeers.hasNext()) {
-	                PEPeer peer = (PEPeer) iterPeers.next();
+	                PEPeerTransport peer = (PEPeerTransport) iterPeers.next();
 	                badPeerDetected(peer);
 	               }
 	              }              
@@ -2231,7 +2243,7 @@ PEPeerControlImpl
 
 	        PEPeer[] writers = piece.getWriters();
 	        if((writers.length > 0) && writers[0] != null) {
-	          PEPeer writer = writers[0];
+	          PEPeerTransport writer = (PEPeerTransport)writers[0];
 	          boolean uniqueWriter = true;
 	          for(int i = 1 ; i < writers.length ; i++) {
 	            uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
@@ -2290,7 +2302,7 @@ PEPeerControlImpl
   
   private void 
   badPeerDetected(
-  		PEPeer peer) 
+      PEPeerTransport peer) 
   {
     String ip = peer.getIp();
     
@@ -2317,7 +2329,7 @@ PEPeerControlImpl
 	      
 	      		//	Close connection in 2nd
 	      	
-	      	((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
+          closeAndRemovePeer( peer, "Has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)", false );
 	      	
 	      		//Trace the ban in third
 	      		      		
@@ -2448,7 +2460,7 @@ PEPeerControlImpl
         for (int i=0; i < peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
           if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
-            conn.closeAll( "IPFilter banned IP address: " + conn.getIp(), false, false );
+            closeAndRemovePeer( conn, "IPFilter banned IP address", false );
           }
         }
     }
@@ -2695,7 +2707,11 @@ PEPeerControlImpl
 			  superSeedModeCurrentPiece++;
 			  if(superSeedModeCurrentPiece >= _nbPieces) {
 			    superSeedModeCurrentPiece = 0;
-			    quitSuperSeedMode();
+			    
+          //quit superseed mode
+          superSeedMode = false;
+          closeAndRemoveAllPeers( "Quiting SuperSeed mode", true );
+          
 			    return;
 			  }
 			} else {
@@ -2727,62 +2743,8 @@ PEPeerControlImpl
       }
     }
   }
-  
-  private void 
-  quitSuperSeedMode() 
-  {
-    superSeedMode = false;
-     
-    		// closing a transport can result in it being removed from teh list. Therefore
-    		// copy the list first else we get a "concurrent modification exception"	
-    	
-    ArrayList	peer_transports = peer_transports_cow;
-    	
-    Iterator iter = peer_transports.iterator();
-     
-    while(iter.hasNext()) {
-      	
-        PEPeerTransport peer = (PEPeerTransport) iter.next();
-        
-        peer.closeAll(peer.getIp() + " : Quiting SuperSeed Mode",false,true);
-    }
-  }
-  
-  /*
-  public void
-  addListener(
-  	PEPeerControlListener	l )
-  {
-  	try{
-  		peer_transports_mon.enter();
-  	
-  		if ( !peer_transport_listeners.contains( l )){
-  			
-  			peer_transport_listeners.add(l);
-  		
-  			for (int i=0;i<peer_transports_cow.size();i++){
-  			
-  				l.peerAdded( (PEPeerTransport)peer_transports_cow.get(i));
-  			}
-  		}
-  	}finally{
-  		peer_transports_mon.exit();
-  	}
-  }
-  
-  public void
-  removeListener(
-  	PEPeerControlListener	l )
-  {
-  	try{
-  		peer_transports_mon.enter();
-  		
-  		peer_transport_listeners.remove(l);
-  	}finally{
-  		peer_transports_mon.exit();
-  	}
-  }
-  */
+   
+
   
   public DiskManager getDiskManager() {  return _diskManager;   }
   
@@ -2880,7 +2842,7 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
           if( peer_info == null )  break;
-          if( !_bContinue )  break;
+          if( !is_running )  break;
           if( makeNewOutgoingConnection( peer_info.getPeerSource(), peer_info.getAddress(), peer_info.getPort() ) ) {
             num_waiting_establishments++;
           }
@@ -2929,7 +2891,7 @@ PEPeerControlImpl
         }
         
         if( max_transport != null && max_time > 60*1000 ) {  //ensure a 1min minimum
-          max_transport.closeAll( max_transport.getIp()+ ": Timed out by optimistic-connect for lack of activity", false, false );
+          closeAndRemovePeer( max_transport, "Timed out by optimistic-connect for lack of activity", false );
         }
       }
     }

@@ -91,7 +91,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       if( destroyed ) {
         destroyed_loop_count++;
         
-        if( destroyed_loop_count % 50 == 0 ) {
+        if( destroyed_loop_count % 100 == 0 ) {
           boolean closed = transport.getSocketChannel() == null ? true : false;
           
           Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] is closed=" +closed+ ", original destroy() trace:", destroyed_trace );

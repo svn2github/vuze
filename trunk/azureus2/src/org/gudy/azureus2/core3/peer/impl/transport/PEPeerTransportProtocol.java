@@ -79,6 +79,8 @@ PEPeerTransportProtocol
 
   private boolean incoming;
   private volatile boolean closing = false;
+  private volatile int closed = 0;
+  
   private int current_peer_state;
   
   private NetworkConnection connection;
@@ -119,7 +121,9 @@ PEPeerTransportProtocol
   private Message[] supported_messages = null;
   
   
-  protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
+  protected AEMonitor	closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
+  protected AEMonitor data_mon  = new AEMonitor( "PEPeerTransportProtocol:data" );
+  
 
   private final Map recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
     public boolean removeEldestEntry(Map.Entry eldest) {
@@ -253,56 +257,55 @@ PEPeerTransportProtocol
    */
   private void allocateAll() {
   	try{
-  		this_mon.enter();
+  	  closing_mon.enter();
   	
-  		if ( closing ){
-  			
+  	  if ( closing ){
+  			Debug.out( "allocateAll() called when 'closing'" );
   			return;
-  		}
-  		
-	    other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
-	  	Arrays.fill( other_peer_has_pieces, false );
-	
-	    //link in outgoing piece handler
-	    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
-	    
-	    //link in outgoing have message aggregator
-	    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue() );
-	    
-	    //register bytes sent listener
-	    connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
-	      public boolean messageAdded( Message message ) {  return true;  }
-        public void messageQueued( Message message ) { /*ignore*/ }
-	      public void messageRemoved( Message message ) { /*ignore*/ }
-	      
-	      public void messageSent( Message message ) {
-	        //update keep-alive info
-	        last_message_sent_time = SystemTime.getCurrentTime();
-          LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " + connection );
-	      }
-	
-	      public void protocolBytesSent( int byte_count ) {
-	        //update stats
-	        peer_stats.protocolBytesSent( byte_count );
-	        manager.protocolBytesSent( byte_count );
-	      }
-	      
-	      public void dataBytesSent( int byte_count ) {
-	        //update stats
-	        peer_stats.dataBytesSent( byte_count );
-	        manager.dataBytesSent( byte_count );
-	      }
-	    });
-	    
-	    //register the new connection with the upload manager so that peer messages get processed
-	    PeerManager.getSingleton().getUploadManager().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
-	    
-	    connection_registered = true;
-	    
-  	}finally{
-	
-  		this_mon.exit();
+  	  }
   	}
+    finally{
+      closing_mon.exit();
+    }
+    
+    other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
+    Arrays.fill( other_peer_has_pieces, false );
+	
+    //link in outgoing piece handler
+    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
+	    
+    //link in outgoing have message aggregator
+    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue() );
+	    
+    //register bytes sent listener
+    connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
+      public boolean messageAdded( Message message ) {  return true;  }
+      public void messageQueued( Message message ) { /*ignore*/ }
+      public void messageRemoved( Message message ) { /*ignore*/ }
+	      
+      public void messageSent( Message message ) {
+        //update keep-alive info
+        last_message_sent_time = SystemTime.getCurrentTime();
+        LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " + connection );
+      }
+	
+      public void protocolBytesSent( int byte_count ) {
+        //update stats
+        peer_stats.protocolBytesSent( byte_count );
+        manager.protocolBytesSent( byte_count );
+      }
+	      
+      public void dataBytesSent( int byte_count ) {
+        //update stats
+        peer_stats.dataBytesSent( byte_count );
+        manager.dataBytesSent( byte_count );
+      }
+    });
+	    
+    //register the new connection with the upload manager so that peer messages get processed
+    PeerManager.getSingleton().getUploadManager().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
+	    
+    connection_registered = true;
   }
 
    
@@ -314,7 +317,7 @@ PEPeerTransportProtocol
 		boolean 	attemptReconnect ) 
   {
   		try{
-  			this_mon.enter();
+        closing_mon.enter();
   		
   			if (closing){
           
@@ -323,7 +326,7 @@ PEPeerTransportProtocol
               reason.indexOf( "Closing all Connections" ) == -1 &&
               reason.indexOf( "Quiting SuperSeed Mode" ) == -1 &&
               reason.indexOf( "end of stream on socket read" ) == -1 ) {
-            Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
+            Debug.out( "closeAll() called for [" +reason+ "] but already 'closing', closed=" +closed );
           }
           
   				return;
@@ -333,36 +336,49 @@ PEPeerTransportProtocol
   			
   		}finally{
   			
-  			this_mon.exit();
+        closing_mon.exit();
   		}
   		
+      closed = 1;
       
       changePeerState( PEPeer.CLOSING );
+      
+      closed = 2;
 
       LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
       
-	  	//Cancel any pending requests (on the manager side)
-	  	cancelRequests();
-	  	  		    
+ 
 	    if( outgoing_piece_message_handler != null ) {
 	      outgoing_piece_message_handler.removeAllPieceRequests();
 	      outgoing_piece_message_handler.destroy();
 	      //outgoing_piece_message_handler = null;
 	    }
 	    
+      closed = 3;
+      
 	    if( outgoing_have_message_aggregator != null ) {
 	      outgoing_have_message_aggregator.destroy();
 	      //outgoing_have_message_aggregator = null;
 	    }
 	    	    
-	    
+	    closed = 4;
+      
 	    if( connection_registered ) {
 	      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
 	    }
       
+      closed = 5;
+      
 	    if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
         connection.close();
       }
+      
+      closed = 6;
+      
+	    //Cancel any pending requests (on the manager side)
+      cancelRequests();
+      
+      closed = 7;
 
 	    recent_outgoing_requests.clear();
    
@@ -380,6 +396,8 @@ PEPeerTransportProtocol
 	  	
 	  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
 	  	
+      closed = 8;
+      
 	  	if( attemptReconnect && !incoming ) {      
 	  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
 	  		manager.peerConnectionClosed( this, true );
@@ -694,7 +712,7 @@ PEPeerTransportProtocol
   /** To store arbitrary objects against a peer. */
   public void setData (String key, Object value) {
   	try{
-  		this_mon.enter();
+      data_mon.enter();
   	
 	  	if (data == null) {
 	  	  data = new HashMap();
@@ -706,7 +724,7 @@ PEPeerTransportProtocol
 	      data.put(key, value);
 	    }
   	}finally{
-  		this_mon.exit();
+      data_mon.exit();
   	}
   }
 
