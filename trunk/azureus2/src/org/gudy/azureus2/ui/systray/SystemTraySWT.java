@@ -329,9 +329,9 @@ public class SystemTraySWT {
     toolTip.append(MessageText.getString("SystemTray.tooltip.seeding"));
     toolTip.append(downloading);
     toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + MessageText.getString("ConfigView.download.abbreviated") + " "); 
-    toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDownloadAverage()));
+    toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataReceiveRate() + mainWindow.getGlobalManager().getStats().getProtocolReceiveRate() ));
     toolTip.append(", " + MessageText.getString("ConfigView.upload.abbreviated") + " ");
-    toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getUploadAverage()));
+    toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataSendRate() + mainWindow.getGlobalManager().getStats().getProtocolSendRate()));
     
     
     trayItem.setToolTipText(toolTip.toString());      

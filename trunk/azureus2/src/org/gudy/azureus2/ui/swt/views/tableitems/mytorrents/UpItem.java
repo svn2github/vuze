@@ -52,7 +52,7 @@ public class UpItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getUploaded();
+    long value = (dm == null) ? 0 : dm.getStats().getTotalDataBytesSent();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

@@ -275,7 +275,7 @@ DisplayFormatters
 		DownloadManagerStats	stats )
 	{
 		long	total_discarded = stats.getDiscarded();
-		long	total_received 	= stats.getDownloaded();
+		long	total_received 	= stats.getTotalDataBytesReceived();
 
 		if(total_discarded == 0){
 

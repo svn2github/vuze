@@ -35,71 +35,97 @@ GlobalManagerStatsImpl
 	implements GlobalManagerStats
 {
 
-	  private long totalReceived;
+	  private long total_data_bytes_received;
+    private long total_protocol_bytes_received;
+    
 	  private long totalDiscarded;
-	  private long totalSent;
+    
+    private long total_data_bytes_sent;
+    private long total_protocol_bytes_sent;
 
-	  private Average receptionSpeed;
-	  private Average sendingSpeed;
+	  private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
+	  private Average data_send_speed = Average.getInstance(1000, 5);  //average over 5s, update every 1000ms
+    private Average protocol_send_speed = Average.getInstance(1000, 5);  //average over 5s, update every 1000ms
 
 
 	  protected 
 	  GlobalManagerStatsImpl()
 	  {
-
-		//average over 10s, update every 1000ms.
-		receptionSpeed = Average.getInstance(1000, 10);
-
-		//average over 5s, update every 1000ms.
-		sendingSpeed = Average.getInstance(1000, 5);
+	    /* nothing */
 	  }
   
+    
   			// update methods
   			
 	  public void discarded(int length) {
-		this.totalDiscarded += length;
+	    this.totalDiscarded += length;
 	  }
 
-	  public void received(int length) {
-		totalReceived += length;
-		receptionSpeed.addValue(length);
-	  }
-
-	  public void sent(int length) {
-		totalSent += length;
-		sendingSpeed.addValue(length);
-	  }
-
- 
-	  public int getDownloadAverage() {
-		return (int)receptionSpeed.getAverage();
-	  }
-  
-	  public int getUploadAverage() {
-		  return (int)sendingSpeed.getAverage();
-	  }
-
-
-	  public String getTotalSent() {
-		return DisplayFormatters.formatByteCountToKiBEtc(totalSent);
-	  }
-
-	  public String getTotalReceived() {
-		return DisplayFormatters.formatByteCountToKiBEtc(totalReceived);
+	  public void dataBytesReceived(int length) {
+	    total_data_bytes_received += length;
+	    data_receive_speed.addValue(length);
 	  }
     
-	  public String getTotalDiscarded() {
-		return DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded);
-	  }  
+    
+    public void protocolBytesReceived(int length) {
+      total_protocol_bytes_received += length;
+      protocol_receive_speed.addValue(length);
+    }
+    
+    
 
-	  public long getTotalSentRaw() {
-		return totalSent;
+	  public void dataBytesSent(int length) {
+	    total_data_bytes_sent += length;
+	    data_send_speed.addValue(length);
 	  }
+    
+    
+    public void protocolBytesSent(int length) {
+      total_protocol_bytes_sent += length;
+      protocol_send_speed.addValue(length);
+    }
+    
+
+ 
+	  public int getDataReceiveRate() {
+	    return (int)data_receive_speed.getAverage();
+	  }
+    
+    public int getProtocolReceiveRate() {
+      return (int)protocol_receive_speed.getAverage();
+    }
+    
+    
   
-	  public long getTotalReceivedRaw() {
-		return totalReceived;
+	  public int getDataSendRate() {
+		  return (int)data_send_speed.getAverage();
 	  }
+    
+    public int getProtocolSendRate() {
+      return (int)protocol_send_speed.getAverage();
+    }
+    
+
+    
+	  public long getTotalDataBytesSent() {
+	    return total_data_bytes_sent;
+	  }
+    
+    public long getTotalProtocolBytesSent() {
+      return total_protocol_bytes_sent;
+    }
+    
+  
+	  public long getTotalDataBytesReceived() {
+	    return total_data_bytes_received;
+	  }
+    
+    public long getTotalProtocolBytesReceived() {
+      return total_protocol_bytes_received;
+    }
+    
     
 	  public long getTotalDiscardedRaw() {
 		  return totalDiscarded;

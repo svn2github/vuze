@@ -78,14 +78,18 @@ DownloadManagerStats
    * Get the total number of bytes ever downloaded.
    * @return total bytes downloaded
    */
-	public long	getDownloaded();
+	public long	getTotalDataBytesReceived();
+  
+  public long getTotalProtocolBytesReceived();
 	
   
   /**
    * Get the total number of bytes ever uploaded.
    * @return total bytes uploaded
    */
-	public long	getUploaded();
+	public long	getTotalDataBytesSent();
+  
+  public long getTotalProtocolBytesSent();
 	
   
 	public long
@@ -105,12 +109,18 @@ DownloadManagerStats
 	public int
 	getShareRatio();
 	
-	public long
-	getDownloadAverage();
-		
-	public long
-	getUploadAverage();
+  
 
+	public long getDataReceiveRate();
+  
+  public long getProtocolReceiveRate();
+  
+		
+	public long getDataSendRate();
+
+  public long getProtocolSendRate();
+  
+  
 	public long
 	getTotalAverage();
 			
@@ -158,17 +168,17 @@ DownloadManagerStats
 		int		c );
 		
 		
-	public void
-	received(
-		int		l );
+	public void dataBytesReceived( int l );
+  public void protocolBytesReceived(int l );
 			
+  public void dataBytesSent( int l );
+  public void protocolBytesSent( int l );
+  
+  
 	public void
 	discarded(
 		int		l );
 			
-	public void
-	sent(
-		int		l );
 
 	public void 
 	setSecondsOnlySeeding(long seconds);

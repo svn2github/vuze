@@ -1576,38 +1576,53 @@ PEPeerControlImpl
     return _diskManager.getRemaining();
   }
 
-
-  //set recieved bytes
-  public void dataBytesReceived(int length) {
-    if (length > 0) {
-      _stats.dataBytesReceived(length);
-      _averageReceptionSpeed.addValue(length);
-    }
-    _downloadManager.getStats().received(length);
-  }
-
+  
   public void discarded(int length) {
     if (length > 0) {
       _stats.discarded(length);
     }
     _downloadManager.getStats().discarded(length);
   }
+  
 
-  //set the send value
-  public void dataBytesSent(int length) {
-    if (length > 0)
-      _stats.dataBytesSent(length);
-    _downloadManager.getStats().sent(length);
+
+  public void dataBytesReceived(int length) {
+    if (length > 0) {
+      _stats.dataBytesReceived(length);
+      _downloadManager.getStats().dataBytesReceived(length);
+      _averageReceptionSpeed.addValue(length);
+    }
   }
 
   
-  public void protocolBytesSent( int length ) {  //TODO
-    
+  public void protocolBytesReceived( int length ) {
+    if (length > 0) {
+      _stats.protocolBytesReceived(length);
+      _downloadManager.getStats().protocolBytesReceived(length);
+    }
+  }
+  
+  
+  
+
+  public void dataBytesSent(int length) {
+    if (length > 0) {
+      _stats.dataBytesSent(length);
+      _downloadManager.getStats().dataBytesSent(length);
+    }
   }
 
-  public void protocolBytesReceived( int length ) {  //TODO
-    
+  
+  public void protocolBytesSent( int length ) {
+    if (length > 0) {
+      _stats.protocolBytesSent(length);
+      _downloadManager.getStats().protocolBytesSent(length);
+    }
   }
+
+  
+  
+  
   
   
   //setup the diskManager

@@ -70,11 +70,11 @@ public class Main {
       buf.append(" D:");
       buf.append(DisplayFormatters.formatDownloaded(stats));
       buf.append(" U:");
-      buf.append(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()));
+      buf.append(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()));
       buf.append(" DS:");
-      buf.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()));
+      buf.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
       buf.append(" US:");
-      buf.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()));
+      buf.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
       buf.append(" T:");
       buf.append(manager.getTrackerStatus());
       while(buf.length() < 80) {

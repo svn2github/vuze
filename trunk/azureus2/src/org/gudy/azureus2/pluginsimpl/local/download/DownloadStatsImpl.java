@@ -85,13 +85,13 @@ DownloadStatsImpl
 	public long
 	getDownloaded()
 	{
-		return( dm_stats.getDownloaded());
+		return( dm_stats.getTotalDataBytesReceived());
 	}
 	
 	public long
 	getUploaded()
 	{
-		return( dm_stats.getUploaded());
+		return( dm_stats.getTotalDataBytesSent());
 	}
 	public long
 	getDiscarded()
@@ -102,13 +102,13 @@ DownloadStatsImpl
 	public long
 	getDownloadAverage()
 	{
-		return( dm_stats.getDownloadAverage());
+		return( dm_stats.getDataReceiveRate());
 	}
 	
 	public long
 	getUploadAverage()
 	{
-		return( dm_stats.getUploadAverage());
+		return( dm_stats.getDataSendRate());
 	}
 	
 	public long

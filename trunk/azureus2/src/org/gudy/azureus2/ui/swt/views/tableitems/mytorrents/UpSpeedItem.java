@@ -79,7 +79,7 @@ public class UpSpeedItem
         value = 0;
       } else {
         iState = dm.getState();
-        value = dm.getStats().getUploadAverage();
+        value = dm.getStats().getDataSendRate();
       }
       if (!cell.setSortValue(value) && cell.isValid() && (iState == iLastState))
         return;
@@ -96,7 +96,7 @@ public class UpSpeedItem
         if (dm == null) {
           return;
         }
-        changeColor(cell, dm.getStats().getDownloadAverage(), dm.getState());
+        changeColor(cell, dm.getStats().getDataReceiveRate(), dm.getState());
       } catch (Exception e) {
       	Debug.printStackTrace( e );
       }

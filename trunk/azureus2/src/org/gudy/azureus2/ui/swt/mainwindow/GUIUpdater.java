@@ -125,12 +125,12 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 		    mainWindow.statusDown.setText(
 		    		MessageText.getString("ConfigView.download.abbreviated") + " " + 
 					(dl_limit==0?"":"[" + dl_limit + "K] " ) +
-					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDownloadAverage()));
+					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataReceiveRate() + mainWindow.globalManager.getStats().getProtocolReceiveRate() ));
 		    
             mainWindow.statusUp.setText(
             		MessageText.getString("ConfigView.upload.abbreviated") + " " + 
 					(ul_limit==0?"":"[" + ul_limit + "K] " ) +
-					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getUploadAverage()));
+					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataSendRate() + mainWindow.globalManager.getStats().getProtocolSendRate() ));
           }
           
           if(mainWindow.systemTraySWT != null)

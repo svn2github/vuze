@@ -180,8 +180,8 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	    
 	    GlobalManagerStats stats = manager.getStats();
 	    
-	    long	current_total_received 	= stats.getTotalReceivedRaw();
-	    long	current_total_sent		= stats.getTotalSentRaw();
+	    long	current_total_received 	= stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
+	    long	current_total_sent		= stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
 	    
 	    totalDownloaded +=  current_total_received - lastDownloaded;
 	    lastDownloaded = current_total_received;

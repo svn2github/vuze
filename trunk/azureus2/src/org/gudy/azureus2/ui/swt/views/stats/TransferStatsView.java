@@ -123,8 +123,8 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void refresh() {
-    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalReceivedRaw()));
-    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalSentRaw()));
+    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived() ));
+    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent() ));
     
     totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getDownloadedBytes()));
     totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getUploadedBytes()));

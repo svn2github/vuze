@@ -113,8 +113,8 @@ StatsWriterImpl
 				
 				GlobalManagerStats	gm_stats = global.getStats();
 									
-				writeRawCookedAverageTag( "DOWNLOAD_SPEED", gm_stats.getDownloadAverage() );
-				writeRawCookedAverageTag( "UPLOAD_SPEED", 	gm_stats.getUploadAverage() );
+				writeRawCookedAverageTag( "DOWNLOAD_SPEED", gm_stats.getDataReceiveRate() + gm_stats.getProtocolReceiveRate() );
+				writeRawCookedAverageTag( "UPLOAD_SPEED", 	gm_stats.getDataSendRate() + gm_stats.getProtocolSendRate() );
 				
 			}finally{
 				
@@ -236,12 +236,12 @@ StatsWriterImpl
 					
 						writeTag( "COMPLETED", 		dm_stats.getCompleted());
 						
-						writeRawCookedTag( "DOWNLOADED", 		dm_stats.getDownloaded());
-						writeRawCookedTag( "UPLOADED", 			dm_stats.getUploaded());
+						writeRawCookedTag( "DOWNLOADED", 		dm_stats.getTotalDataBytesReceived());
+						writeRawCookedTag( "UPLOADED", 			dm_stats.getTotalDataBytesSent());
 						writeRawCookedTag( "DISCARDED", 		dm_stats.getDiscarded());
 						
-						writeRawCookedAverageTag( "DOWNLOAD_SPEED", 	dm_stats.getDownloadAverage());
-						writeRawCookedAverageTag( "UPLOAD_SPEED", 		dm_stats.getUploadAverage());
+						writeRawCookedAverageTag( "DOWNLOAD_SPEED", 	dm_stats.getDataReceiveRate());
+						writeRawCookedAverageTag( "UPLOAD_SPEED", 		dm_stats.getDataSendRate());
 						writeRawCookedAverageTag( "TOTAL_SPEED", 		dm_stats.getTotalAverage());
 																				
 						writeTag( "ELAPSED", 		dm_stats.getElapsedTime());

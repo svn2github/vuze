@@ -1245,8 +1245,8 @@ public class GlobalManagerImpl
             state = DownloadManager.STATE_WAITING;
           dmMap.put("state", new Long(state));		      
 		      dmMap.put("position", new Long(dm.getPosition()));
-		      dmMap.put("downloaded", new Long(dm_stats.getDownloaded()));
-		      dmMap.put("uploaded", new Long(dm_stats.getUploaded()));
+		      dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
+		      dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
 		      dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
 		      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
 		      dmMap.put("hashfails", new Long(dm_stats.getHashFails()));

@@ -46,9 +46,11 @@ DownloadManagerStatsImpl
 	protected int downloadCompleted;
 	
 		// saved downloaded and uploaded
-		
-	protected long saved_downloaded;
-	protected long saved_uploaded;
+  protected long saved_data_bytes_downloaded;
+  protected long saved_protocol_bytes_downloaded;
+  
+	protected long saved_data_bytes_uploaded;
+  protected long saved_protocol_bytes_uploaded;
   
 	protected long saved_discarded = 0;
 	protected long saved_hashfails = 0;
@@ -67,16 +69,32 @@ DownloadManagerStatsImpl
 	}
 	
 	public void 
-	received(
+	dataBytesReceived(
 		int length )
 	{
 		GlobalManager	gm = download_manager.getGlobalManager();
 		
 	   	if (length > 0 && gm != null){
 	   		
-			gm.getStats().received(length);
+	   	  gm.getStats().dataBytesReceived(length);
 	   	}
 	}
+  
+  
+  public void 
+  protocolBytesReceived(
+    int length )
+  {
+    GlobalManager gm = download_manager.getGlobalManager();
+    
+      if (length > 0 && gm != null){
+        
+        gm.getStats().dataBytesReceived(length);  //TODO
+      }
+  }
+  
+  
+  
   
 	public void 
 	discarded(int length) 
@@ -85,23 +103,36 @@ DownloadManagerStatsImpl
 		
 	   	if (length > 0 && gm != null){
 	   		
-			gm.getStats().discarded(length);
+	   	  gm.getStats().discarded(length);
 	   	}
 	}
 
 	 public void 
-	 sent(int length) 
+	 dataBytesSent(int length) 
 	 {
 		GlobalManager	gm = download_manager.getGlobalManager();
 		
 	   	if (length > 0 && gm != null){
 	   	
-			gm.getStats().sent(length);
+	   	  gm.getStats().dataBytesSent(length);
 	   	}
 	 }
+   
+   
+   public void 
+   protocolBytesSent(int length) 
+   {
+    GlobalManager gm = download_manager.getGlobalManager();
+    
+      if (length > 0 && gm != null){
+      
+        gm.getStats().dataBytesSent(length);  //TODO
+      }
+   }
+   
 
 	public long 
-	getDownloadAverage() 
+	getDataReceiveRate() 
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
@@ -113,8 +144,24 @@ DownloadManagerStatsImpl
 	  	return 0;
 	}
   
+  
+  public long 
+  getProtocolReceiveRate() 
+  {
+    PEPeerManager pm = download_manager.getPeerManager();
+    
+      if (pm != null){
+      
+        return pm.getStats().getProtocolReceiveRate();
+      }
+      
+      return 0;
+  }
+  
+  
+  
 	public long 
-	getUploadAverage() 
+	getDataSendRate() 
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
@@ -125,6 +172,21 @@ DownloadManagerStatsImpl
 	  	
 	  	return 0;
 	}
+  
+  public long 
+  getProtocolSendRate() 
+  {
+    PEPeerManager pm = download_manager.getPeerManager();
+    
+      if (pm != null){
+      
+        return pm.getStats().getProtocolSendRate();
+      }
+      
+      return 0;
+  }
+  
+  
 	
 	public long 
 	getETA()
@@ -227,22 +289,45 @@ DownloadManagerStatsImpl
 		return -1;
 	}
 
-	public long getDownloaded() {
+	public long getTotalDataBytesReceived() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null) {
-	    return saved_downloaded + pm.getStats().getTotalDataBytesReceived();
+	    return saved_data_bytes_downloaded + pm.getStats().getTotalDataBytesReceived();
 	  }
-	  return(saved_downloaded);
+	  return(saved_data_bytes_downloaded);
 	}	
   
-	public long getUploaded() {
+  
+  public long getTotalProtocolBytesReceived() {
+    PEPeerManager pm = download_manager.getPeerManager();
+    
+    if (pm != null) {
+      return saved_protocol_bytes_downloaded + pm.getStats().getTotalProtocolBytesReceived();
+    }
+    return(saved_protocol_bytes_downloaded);
+  } 
+  
+  
+  
+	public long getTotalDataBytesSent() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null) {
-	    return saved_uploaded + pm.getStats().getTotalDataBytesSent();
+	    return saved_data_bytes_uploaded + pm.getStats().getTotalDataBytesSent();
     }
-	  return( saved_uploaded );
+	  return( saved_data_bytes_uploaded );
 	}
+  
+  
+  public long getTotalProtocolBytesSent() {
+    PEPeerManager pm = download_manager.getPeerManager();
+    if (pm != null) {
+      return saved_protocol_bytes_uploaded + pm.getStats().getTotalProtocolBytesSent();
+    }
+    return( saved_protocol_bytes_uploaded );
+  }
+  
+  
 	
 	public long getDiscarded(){
 		PEPeerManager	pm = download_manager.getPeerManager();
@@ -290,45 +375,47 @@ DownloadManagerStatsImpl
 	public int getShareRatio() {
 	  long downloaded,uploaded;
 	  PEPeerManager	pm = download_manager.getPeerManager();
+    
 	  if(pm != null) {
-		downloaded = saved_downloaded + pm.getStats().getTotalDataBytesReceived();
-		uploaded = saved_uploaded + pm.getStats().getTotalDataBytesSent();
-	  } else {
-		downloaded = this.saved_downloaded;
-		uploaded = this.saved_uploaded;
+	    downloaded = saved_data_bytes_downloaded + pm.getStats().getTotalDataBytesReceived();
+	    uploaded = saved_data_bytes_uploaded + pm.getStats().getTotalDataBytesSent();
+	  }
+    else {
+      downloaded = saved_data_bytes_downloaded;
+      uploaded = saved_data_bytes_uploaded;
 	  }
         
 	  if(downloaded == 0) {
-		return -1;
+	    return -1;
 	  }
-	  else {
-		return (int) ((1000 * uploaded) / downloaded);
-	  }
+
+	  return (int) ((1000 * uploaded) / downloaded);
 	}
 	
 	
 	public void 
-	setSavedDownloadedUploaded(
+	setSavedDownloadedUploaded( //TODO separate into data+protocol ?
 		long 	downloaded,
 		long 	uploaded ) 
 	{
-	  saved_downloaded = downloaded;
-	  saved_uploaded = uploaded;
+	  saved_data_bytes_downloaded = downloaded;
+	  saved_data_bytes_uploaded = uploaded;
 	}
   
 
 	protected long
-	getSavedDownloaded()
+	getSavedDownloaded() //TODO separate into data+protocol ?
 	{
-		return( saved_downloaded );
+		return( saved_data_bytes_downloaded );
 	}
 		
 	protected long
-	getSavedUploaded()
+	getSavedUploaded()  //TODO separate into data+protocol ?
 	{
-		return( saved_uploaded );
+		return( saved_data_bytes_uploaded );
 	}
 	
+  
 	public long getSecondsDownloading() {
 	  long lTimeStartedDL = getTimeStarted();
 	  if (lTimeStartedDL >= 0) {

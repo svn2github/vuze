@@ -336,8 +336,8 @@ public class MinimizedWindow {
     splashFile.setText(manager.getDisplayName());
     int percent = manager.getStats().getCompleted();
     splashPercent.setText((percent / 10) + "." + (percent % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
-    splashDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDownloadAverage()));
-    splashUp.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getUploadAverage()));
+    splashDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDataReceiveRate()));
+    splashUp.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDataSendRate()));
   }
 
   public void setVisible(boolean visible) {

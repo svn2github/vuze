@@ -28,27 +28,33 @@ package org.gudy.azureus2.core3.global;
 public interface 
 GlobalManagerStats 
 {
-	public int 
-	getDownloadAverage();
-	
-	public int 
-	getUploadAverage();
+	public int getDataReceiveRate();
   
-  public long
-  getTotalReceivedRaw();
+  public int getProtocolReceiveRate();
 	
-  public long
-  getTotalSentRaw();
+	public int getDataSendRate();
+  
+  public int getProtocolSendRate();
+  
+  
+  public long getTotalDataBytesReceived();
+  
+  public long getTotalProtocolBytesReceived();
+  
+	
+  public long getTotalDataBytesSent();
+  
+  public long getTotalProtocolBytesSent();
+  
+  
   
 		// set methods
 		
-	public void
-	sent(
-		int		bytes );
+	public void	dataBytesSent( int bytes );
+  public void protocolBytesSent( int bytes );
 		
-	public void
-	received(
-		int		bytes );
+	public void dataBytesReceived( int bytes );
+  public void protocolBytesReceived( int bytes );
 		
 	public void
 	discarded(

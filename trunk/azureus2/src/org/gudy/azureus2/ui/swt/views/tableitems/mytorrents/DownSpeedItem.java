@@ -79,7 +79,7 @@ public class DownSpeedItem
         value = 0;
       } else {
         iState = dm.getState();
-        value = dm.getStats().getDownloadAverage();
+        value = dm.getStats().getDataReceiveRate();
       }
       
       if (!cell.setSortValue(value) && cell.isValid() && (iState == iLastState))
@@ -97,7 +97,7 @@ public class DownSpeedItem
         if (dm == null) {
           return;
         }
-        changeColor(cell, dm.getStats().getDownloadAverage(), dm.getState());
+        changeColor(cell, dm.getStats().getDataReceiveRate(), dm.getState());
       } catch (Exception e) {
       	Debug.printStackTrace( e );
       }

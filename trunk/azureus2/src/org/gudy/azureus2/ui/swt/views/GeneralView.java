@@ -742,9 +742,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     setStats(
 		DisplayFormatters.formatDownloaded(stats),
-		DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()),
-		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()),
-		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()),
+		DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()),
+		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
+		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getTotalAverage()),
 		""+manager.getStats().getMaxDownloadKBSpeed(),
 		""+(manager.getStats().getUploadRateLimitBytesPerSecond()/1024),

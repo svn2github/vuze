@@ -1645,8 +1645,8 @@ DownloadManagerImpl
   							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
   							// and resumed 
   					
-  						if ( 	stats.getDownloaded() == 0 &&
-  								stats.getUploaded() == 0 &&
+  						if ( 	stats.getTotalDataBytesReceived() == 0 &&
+  								stats.getTotalDataBytesSent() == 0 &&
   								stats.getSecondsDownloading() == 0 ){
   						
   							int	completed = stats.getDownloadCompleted(false);

@@ -21,6 +21,7 @@ FEATURE: UI   | System tray menus for setting global upload and download bandwid
 FEATURE: UI   | Synthesized speech alerts for Mac OS X; Go to Azureus / Preferences to enable it [CrazyAlchemist]
 FEATURE: UI   | New file icon for Mac OS X [CrazyAlchemist]
 FEATURE: Plug | Generic Messaging API: inter-client message passing [Nolar]
+FEATURE: Core | Separate protocol payload and overhead stats [Nolar]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar, Gouss]
@@ -29,7 +30,7 @@ CHANGE: Core | NAT check functions even when downloads have already been started
 CHANGE: UI   | Reintroduced download completion alerts in Mac OS X (use System Preferences / Sound to set the alert sound of choice) [CrazyAlchemist]
 CHANGE: UI   | For Mac OS X, contextual menu items no longer carry images for better compliance with Apple Human Interface Guidelines [CrazyAlchemist]
 CHANGE: Core | Update check can now check via configured proxy [Nolar]
-CHANGE: Core | Decreased cpu usage when downloading and faster speeds in LAN network environment [Nolar]
+CHANGE: Core | Rewritten download code: decreased cpu usage and faster speeds in LAN network environments [Nolar]
 CHANGE: UI   | RFE #1092614: Informational popup messages now auto-close after 5 seconds - unless the message window is closed manually, or if the mouse is over it / details view is open (the timing will be 'reset' then) [CrazyAlchemist]
 CHANGE: UI   | Miscellaneous cosmetics updates for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [CrazyAlchemist]
