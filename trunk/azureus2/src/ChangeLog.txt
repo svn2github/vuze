@@ -46,6 +46,7 @@ BUGFIX: UI   | Resolved fuzzy dock icon display under Mac OS X if Column Setup i
 BUGFIX: UI   | Upload caps for individual transfers now display more sensible values if global upload cap is set to unlimited [CrazyAlchemist]
 BUGFIX: UI   | In My Torrents, a category view will no longer prevent its corresponding table view's horizontal scrolling [CrazyAlchemist]
 BUGFIX: UI   | Download bars should no longer disappear when the main window is minimized (Mac OS X) [CrazyAlchemist]
+BUGFIX: UI   | Certain table column contents no longer 'disappear' when a row is selected (Mac OS X) [CrazyAlchemist]
 
 
 
