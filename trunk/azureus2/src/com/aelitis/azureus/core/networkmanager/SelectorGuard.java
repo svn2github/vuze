@@ -54,7 +54,7 @@ public class SelectorGuard {
   private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
   
   private HashMap conseq_keys = new HashMap();
-  private static final int CONSEQ_SELECT_THRESHOLD = 25;
+  private static final int CONSEQ_SELECT_THRESHOLD = 50;
   
   
   
@@ -123,7 +123,7 @@ public class SelectorGuard {
    * Cleanup bad selector and return a fresh new one.
    */
   public Selector repairSelector( Selector _bad_selector ) {
-    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys. [" +System.getProperty("java.version")+"]\n";
+    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys. [JRE " +System.getProperty("java.version")+"]\n";
     msg += MessageText.getString( "SelectorGuard.repairmessage" );
     Debug.out( msg );
     LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
@@ -151,7 +151,10 @@ public class SelectorGuard {
     	//return new
     	return newSelector;
         
-    } catch (Exception e) { Debug.out(e.getMessage()); }
+    }
+    catch( Exception e ) {
+      Debug.out( "repairSelector() exception caught:", e );
+    }
       
     Debug.out("Unable to repair bad selector; returning original as still-bad");
     return _bad_selector;
@@ -185,7 +188,7 @@ public class SelectorGuard {
           
           new_keys.put( key, new Integer( conseq_selects ) );
           
-          if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % 25 == 0 ) {
+          if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % CONSEQ_SELECT_THRESHOLD == 0 ) {
             spin_detected = true;
           }
         }
