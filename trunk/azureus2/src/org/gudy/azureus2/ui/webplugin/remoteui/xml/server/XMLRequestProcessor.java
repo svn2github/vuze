@@ -52,6 +52,8 @@ XMLRequestProcessor
 			
 		request_handler		= _request_handler;
 		
+		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		
 		try{
 			writeLine( "<RESPONSE>" );
 			
