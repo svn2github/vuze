@@ -105,10 +105,13 @@ DisplayFormatters
 	protected static void
 	setUnits()
 	{
+			// (1) http://physics.nist.gov/cuu/Units/binary.html
+			// (2) http://www.isi.edu/isd/LOOM/documentation/unit-definitions.text
+		
 		if ( use_si_units ){
 			
 			B_unit	= " B";
-			KB_unit = " KiB";
+			KB_unit = " KiB";	// can be upper or lower case k
 			MB_unit = " MiB";
 			GB_unit = " GiB";
 			TB_unit = " TiB";	
@@ -116,7 +119,7 @@ DisplayFormatters
 			if ( use_units_rate_bits ){
 				
 				rate_B_unit	 = " bit";
-				rate_KB_unit = " Kibit";
+				rate_KB_unit = " Kibit";	// can be upper or lower case k, however (2) uses upper
 				rate_MB_unit = " Mibit";
 				rate_GB_unit = " Gibit";
 				rate_TB_unit = " Tibit";
@@ -124,7 +127,7 @@ DisplayFormatters
 			}else{
 				
 				rate_B_unit  = " B";
-				rate_KB_unit = " KiB";
+				rate_KB_unit = " KiB";		// can be upper or lower case k, upper more consistent
 				rate_MB_unit = " MiB";
 				rate_GB_unit = " GiB";
 				rate_TB_unit = " TiB";			
@@ -132,7 +135,7 @@ DisplayFormatters
 		}else{
 			
 			B_unit	= " B";
-			KB_unit = " KB";
+			KB_unit = " kB";	// yes, the k should be lower case
 			MB_unit = " MB";
 			GB_unit = " GB";
 			TB_unit = " TB";
@@ -140,7 +143,7 @@ DisplayFormatters
 			if ( use_units_rate_bits ){
 				
 				rate_B_unit	 = " bit";
-				rate_KB_unit = " Kbit";
+				rate_KB_unit = " kbit";	// yes, the k should be lower case
 				rate_MB_unit = " Mbit";
 				rate_GB_unit = " Gbit";
 				rate_TB_unit = " Tbit";
@@ -148,7 +151,7 @@ DisplayFormatters
 			}else{
 			
 				rate_B_unit	 = " B";
-				rate_KB_unit = " KB";
+				rate_KB_unit = " kB";
 				rate_MB_unit = " MB";
 				rate_GB_unit = " GB";
 				rate_TB_unit = " TB";
