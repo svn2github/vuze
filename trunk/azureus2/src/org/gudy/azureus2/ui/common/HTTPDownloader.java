@@ -8,7 +8,7 @@
  * Created on 17. August 2003, 22:22
  */
 
-package org.gudy.azureus2.ui.web;
+package org.gudy.azureus2.ui.common;
 
 import java.io.InputStream;
 import java.io.File;

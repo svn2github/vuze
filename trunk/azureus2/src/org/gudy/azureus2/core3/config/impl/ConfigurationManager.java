@@ -189,7 +189,6 @@ public class ConfigurationManager {
   }
   
   public String getDirectoryParameter(String parameter) throws IOException {
-    //ConfigurationDefaults def = ConfigurationDefaults.getInstance();
     String dir = getStringParameter(parameter);
     File temp = new File(dir);
     if (!temp.exists())

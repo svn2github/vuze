@@ -27,8 +27,10 @@ import org.apache.log4j.varia.DenyAllFilter;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.common.HTTPDownloader;
 
 /**
  *
@@ -52,18 +54,20 @@ public class ConsoleInput extends Thread {
   
   public static void printconsolehelp(PrintStream os) {
     os.println("Available console commands:");
-    os.println(".\t\tRepeats last command.");
-    os.println("help [torrents]\tShow this help. 'torrents' shows info about the show torrents display.");
-    os.println("log (on|off)\tTurn on/off console logging");
-    os.println("show torrents\tShow running torrents.");
-    os.println("start (#|all)\tStart torrent(s).");
-    os.println("stop (#|all)\tStop torrent(s).");
-    os.println("quit\t\tShutdown Azureus");
+    os.println("Coomand\t\tShort\tDescription");
+    os.println(".\t\t\tRepeats last command (Initially 'show torrents').");
+    os.println("help [torrents]\th [t]\tShow this help. 'torrents' shows info about the show torrents display.");
+    os.println("log (on|off)\tl\tTurn on/off console logging");
+    os.println("remove (#|all)\tr\tRemove torrent(s).");
+    os.println("show torrents\tsh t\tShow running torrents.");
+    os.println("start (#|all)\ts\tStart torrent(s).");
+    os.println("stop (#|all)\th\tStop torrent(s).");
+    os.println("quit\t\tq\tShutdown Azureus");
   }
   
   public void run() {
     String s = null;
-    String oldcommand = null;
+    String oldcommand = "sh t";
     String command;
     String subcommand = "";
     while (true) {
@@ -74,6 +78,9 @@ public class ConsoleInput extends Thread {
         if (oldcommand != null) {
           if (s.equals("."))
             s = oldcommand;
+        } else {
+          if (s.equals("."))
+            out.println("No old command. Remove commands are not repeated to prevent errors");
         }
         oldcommand = s;
         if (s.indexOf(" ")==-1) {
@@ -83,12 +90,12 @@ public class ConsoleInput extends Thread {
           command = s.substring(0, s.indexOf(" "));
           subcommand = s.substring(s.indexOf(" ")+1);
         }
-        if (command.equalsIgnoreCase("help")) {
+        if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("h")) {
           out.println("> -----");
           if (subcommand==null) {
             printconsolehelp(out);
           } else {
-            if (subcommand.equalsIgnoreCase("torrents")) {
+            if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
               out.println("# [state] PercentDone Name (Filesize) ETA\r\n\tDownSpeed / UpSpeed\tDownloaded/Uploaded\tConnectedSeeds(total) / ConnectedPeers(total)");
               out.println();
               out.println("States:");
@@ -104,11 +111,11 @@ public class ConsoleInput extends Thread {
               printconsolehelp(out);
           }
           out.println("> -----");
-        } else if (command.equalsIgnoreCase("quit"))  {
+        } else if (command.equalsIgnoreCase("quit") || command.equalsIgnoreCase("q"))  {
           org.gudy.azureus2.ui.common.Main.shutdown();
-        } else if (command.equalsIgnoreCase("show")) {
+        } else if (command.equalsIgnoreCase("show") || command.equalsIgnoreCase("sh")) {
           if (subcommand != null) {
-            if (subcommand.equalsIgnoreCase("torrents")) {
+            if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
               out.println("> -----");
               torrents = (ArrayList) ((ArrayList)gm.getDownloadManagers()).clone();
               DownloadManager dm;
@@ -159,7 +166,7 @@ public class ConsoleInput extends Thread {
                   tstate+="] ";
                   DecimalFormat df = new DecimalFormat("000.0%");
                   tstate+=df.format(dm.getCompleted()/1000.0);
-                  tstate+=" ";
+                  tstate+="\t";
                   if (dmstate == DownloadManager.STATE_ERROR)
                     tstate+=dm.getErrorDetails();
                   else {
@@ -168,11 +175,11 @@ public class ConsoleInput extends Thread {
                     else
                       tstate+=dm.getName();
                   }
-                  tstate+=" ("+DisplayFormatters.formatByteCountToKBEtc(dm.getSize())+") "+dm.getETA()+"\r\n\t";
+                  tstate+=" ("+DisplayFormatters.formatByteCountToKBEtc(dm.getSize())+") ETA:"+dm.getETA()+"\r\n\t\tSpeed: ";
                   tstate+=dm.getDownloadSpeed()+" / ";
-                  tstate+=dm.getUploadSpeed()+"\t";
+                  tstate+=dm.getUploadSpeed()+"\tAmount: ";
                   tstate+=dm.getDownloaded()+" / ";
-                  tstate+=dm.getUploaded()+"\t";
+                  tstate+=dm.getUploaded()+"\tConnections: ";
                   if (hd == null || ! hd.isValid()) {
                     tstate+=Integer.toString(dm.getNbSeeds())+"(?) / ";
                     tstate+=Integer.toString(dm.getNbPeers())+"(?)";
@@ -195,7 +202,25 @@ public class ConsoleInput extends Thread {
           } else {
             out.println("> Missing subcommand for 'show'\r\n> show syntax: show torrents");
           }
-        } else if (command.equalsIgnoreCase("start")) {
+        } else if (command.equalsIgnoreCase("add") || command.equalsIgnoreCase("a")) {
+          if (subcommand != null) {
+            if (subcommand.toUpperCase().startsWith("HTTP://")){
+              try {
+                out.println("Strating Download of "+subcommand+" ...");
+                HTTPDownloader dl = new HTTPDownloader(subcommand, COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
+                String file = dl.download();
+                gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+                out.println("Download of "+subcommand+" succeeded");
+              } catch (Exception e) {
+                out.println("Download of "+subcommand+" failed");
+              }
+            } else {
+              
+            }
+          } else {
+            out.println("> Missing subcommand for 'add'\r\n> add syntax: see 'help add'");
+          }
+        } else if (command.equalsIgnoreCase("start") || command.equalsIgnoreCase("s")) {
           if (subcommand != null) {
             if (torrents.isEmpty()) {
               out.println("> Command 'start': No torrents in list.");
@@ -235,7 +260,7 @@ public class ConsoleInput extends Thread {
           } else {
             out.println("> Missing subcommand for 'start'\r\n> start syntax: start (#|all)");
           }
-        } else if (command.equalsIgnoreCase("stop")) {
+        } else if (command.equalsIgnoreCase("stop") || command.equalsIgnoreCase("h")) {
           if (subcommand != null) {
             if (torrents.isEmpty()) {
               out.println("> Command 'stop': No torrents in list.");
@@ -275,7 +300,50 @@ public class ConsoleInput extends Thread {
           } else {
             out.println("> Missing subcommand for 'stop'\r\n> stop syntax: stop (#|all)");
           }
-        } else if (command.equalsIgnoreCase("log")) {
+        } else if (command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("r")) {
+          if (subcommand != null) {
+            if (torrents.isEmpty()) {
+              out.println("> Command 'remove': No torrents in list.");
+            } else {
+              String name;
+              DownloadManager dm;
+              try {
+                int number = Integer.parseInt(subcommand);
+                if ((number>0) && (number<=torrents.size())) {
+                  dm = (DownloadManager) this.torrents.get(number-1);
+                  if (dm.getName()==null)
+                    name="?";
+                  else
+                    name=dm.getName();
+                  dm.stopIt();
+                  gm.removeDownloadManager(dm);
+                  out.println("> Torrent #"+subcommand+" ("+name+") removed.");
+                  oldcommand = null;
+                } else
+                  out.println("> Command 'remove': Torrent #"+subcommand+" unknown.");
+              } catch (NumberFormatException e) {
+                if (subcommand.equalsIgnoreCase("all")) {
+                  Iterator torrent = torrents.iterator();
+                  int nr = 0;
+                  while (torrent.hasNext()) {
+                    dm = (DownloadManager) torrent.next();
+                    if (dm.getName()==null)
+                      name="?";
+                    else
+                      name=dm.getName();
+                    dm.stopIt();
+                    gm.removeDownloadManager(dm);
+                    out.println("> Torrent #"+Integer.toString(++nr)+" ("+name+") removed.");
+                  }
+                } else {
+                  out.println("> Command 'remove': Subcommand '"+subcommand+"' unknown.");
+                }
+              }
+            }
+          } else {
+            out.println("> Missing subcommand for 'stop'\r\n> stop syntax: stop (#|all)");
+          }
+        } else if (command.equalsIgnoreCase("log") || command.equalsIgnoreCase("l")) {
           Appender con = Logger.getRootLogger().getAppender("ConsoleAppender");
           if ((con != null) && (subcommand!=null)) {
             if (subcommand.equalsIgnoreCase("off")) {

@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
+import org.gudy.azureus2.ui.common.LocaleUtilHeadless;
 
 /**
  *
@@ -31,7 +32,7 @@ public class UI implements ILocaleUtilChooser,IUserInterface {
   }
   
   public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilServer(lastEncoding);
+    return new LocaleUtilHeadless(lastEncoding);
   }
   
   public void init(boolean first, boolean others) {
