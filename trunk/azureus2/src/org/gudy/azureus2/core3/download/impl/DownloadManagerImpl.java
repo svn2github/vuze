@@ -50,7 +50,34 @@ DownloadManagerImpl
 	implements DownloadManager
 {
 	private Vector	listeners			= new Vector();
-	private List	tracker_listeners	= new ArrayList();
+	
+		// TrackerListeners
+	
+	private static final int LDT_TL_ANNOUNCERESULT		= 1;
+	private static final int LDT_TL_SCRAPERESULT		= 2;
+	
+	private ListenerManager	tracker_listeners 	= ListenerManager.createManager(
+			"DMM:TrackerListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DownloadManagerTrackerListener	listener = (DownloadManagerTrackerListener)_listener;
+					
+					if ( type == LDT_TL_ANNOUNCERESULT ){
+						
+						listener.announceResult((TRTrackerResponse)value);
+						
+					}else if ( type == LDT_TL_SCRAPERESULT ){
+						
+						listener.scrapeResult((TRTrackerScraperResponse)value);
+					}
+				}
+			});	
 	
 	private Vector	peer_listeners 	= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -174,13 +201,7 @@ DownloadManagerImpl
 						pm.processTrackerResponse( response );
 					}
 					
-					synchronized( tracker_listeners ){
-						
-						for (int i=0;i<tracker_listeners.size();i++){
-							
-							((DownloadManagerTrackerListener)tracker_listeners.get(i)).announceResult( response );
-						}
-					}
+					tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
 				}
 			
 				 public void
@@ -493,13 +514,7 @@ DownloadManagerImpl
   setTrackerScrapeResponse(
   	TRTrackerScraperResponse	response )
   {
-  	synchronized( tracker_listeners ){
-  		
-  		for (int i=0;i<tracker_listeners.size();i++){
-  			
-  			((DownloadManagerTrackerListener)tracker_listeners.get(i)).scrapeResult( response );
-  		}
-  	} 	
+  	tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
   }
   
   public TRTrackerClient 
@@ -1021,21 +1036,15 @@ DownloadManagerImpl
   public void
   addTrackerListener(
   	DownloadManagerTrackerListener	listener )
-  {
-  	synchronized( tracker_listeners ){
-  		
-  		tracker_listeners.add( listener );
-  	}
+  {  		
+  	tracker_listeners.addListener( listener );
   }
   
   public void
   removeTrackerListener(
   	DownloadManagerTrackerListener	listener )
   {
-  	synchronized( tracker_listeners ){
-  		
-  		tracker_listeners.remove( listener );
-  	}
+  		tracker_listeners.removeListener( listener );
   }
   
 }

@@ -61,12 +61,11 @@ ListenerManager
 	protected ListenerManagerDispatcherWithException	target_with_exception;
 	
 	protected boolean	async;
-	protected boolean	with_exception;
 	
 	protected List		listeners		= new ArrayList();
-	protected List		dispatch_queue	= new LinkedList();
 	
-	protected Semaphore	dispatch_sem = new Semaphore();
+	protected List		dispatch_queue;
+	protected Semaphore	dispatch_sem;
 	
 	protected
 	ListenerManager(
@@ -84,6 +83,9 @@ ListenerManager
 		}
 		
 		if ( async ){
+			
+			dispatch_sem	= new Semaphore();
+			dispatch_queue 	= new LinkedList();
 			
 			if ( target_with_exception != null ){
 				
