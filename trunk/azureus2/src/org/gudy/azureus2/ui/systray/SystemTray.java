@@ -66,7 +66,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		if((refreshFactor%20) != 0)
 			return;
 		List managers = main.getGlobalManager().getDownloadManagers();
-		StringBuffer toolTip = new StringBuffer();
+		StringBuffer toolTip = new StringBuffer("Azureus - ");//$NON-NLS-1$
 		int seeding = 0;
 		int downloading = 0;
 		synchronized (managers) {
