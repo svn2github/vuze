@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-2004.10.2x | Azureus 2.2.0.0
+2004.10.31 | Azureus 2.2.0.0
 
 FEATURE: Core | Disk cache [Parg]
 FEATURE: Core | Ability to set IP type-of-service (TOS) field for outbound data [Nolar]
@@ -29,7 +29,7 @@ FEATURE: UI   | New Statistic page about the disk cache (yeah more CPU consuming
 FEATURE: UI   | Down/Up speed indicators in main view are now double-clickable to open the Stats View [Gudy]
 FEATURE: UI   | Added Path and # Remaining Pieces to Files view, Tracker Name to MyTorrents view [Nolar]
 FEATURE: Plug | webui support for torrent encoding choice [Parg]
-FEATURE: Plug | tracker torrent stats available via xml/http interface [Parg]
+FEATURE: Plug | Tracker torrent stats available via xml/http interface [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
@@ -77,7 +77,7 @@ BUGFIX: Plug | Netgear WGT624 was crashing when processing UPnP requests [Parg]
 BUGFIX: Plug | Webui 'view' mode wasn't working [Parg]
 BUGFIX: Plug | Webui - excessively long status text messing up table [Parg]
 BUGFIX: Plug | azplugins - web tracker pages wasn't picking up "show details" option [Parg]
-BUGFIX: Plug | Webui - fixed bug with re-ordering of columns [Parg]
+BUGFIX: Plug | webui - fixed bug with re-ordering of columns [Parg]
 
 
 
