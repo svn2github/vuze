@@ -29,6 +29,9 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
  */
 public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
 
+  private String _url;
+  private String _file;
+  
   private URL url;
   private HttpURLConnection con;
   private String error = "Ok";
@@ -48,11 +51,34 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
   public void init(TorrentDownloaderCallBackInterface _iface, String _url) {
     this.setName("TorrentDownloader: " + _url);
     this.iface = _iface;
+    this._url = _url;
   }
 
   public void init(TorrentDownloaderCallBackInterface _iface, String _url, String _file) {
     init(_iface, _url);
+    this._file = _file;
+  }
 
+  public void notifyListener() {
+    if (this.iface != null)
+      this.iface.TorrentDownloaderEvent(this.state, this);
+    else if (this.state == STATE_ERROR)
+      System.err.println(this.error);
+  }
+
+  private void cleanUpFile() {
+    if ((this.file != null) && this.file.exists())
+      this.file.delete();
+  }
+
+  private synchronized void error(String err) {
+    this.state = STATE_ERROR;
+    this.setError(err);
+    this.cleanUpFile();
+    this.notifyListener();
+  }
+
+  public void run() {
     try {
       this.url = new URL(_url);
       this.con = (HttpURLConnection) this.url.openConnection();
@@ -73,12 +99,12 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
         if (tmp.lastIndexOf('/') != -1)
           tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
         
-        	// remove any params in the url
-        	
+        // remove any params in the url
+        
         int	param_pos = tmp.indexOf('?');
         
         if ( param_pos != -1 ){
-        	tmp = tmp.substring(0,param_pos);
+          tmp = tmp.substring(0,param_pos);
         }
         this.filename = URLDecoder.decode(tmp, "UTF-8");
       } else {
@@ -119,34 +145,12 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       this.state = STATE_INIT;
       this.notifyListener();
     } catch (java.net.MalformedURLException e) {
-      this.error("Exception while parsing URL '" + _url + "':" + e.getMessage());
+      this.error("Exception while parsing URL '" + url + "':" + e.getMessage());
     } catch (java.net.UnknownHostException e) {
-      this.error("Exception while initializing download of '" + _url + "': Unknown Host '" + e.getMessage() + "'");
+      this.error("Exception while initializing download of '" + url + "': Unknown Host '" + e.getMessage() + "'");
     } catch (java.io.IOException ioe) {
-      this.error("I/O Exception while initializing download of '" + _url + "':" + ioe.toString());
-    }
-  }
-
-  public void notifyListener() {
-    if (this.iface != null)
-      this.iface.TorrentDownloaderEvent(this.state, this);
-    else if (this.state == STATE_ERROR)
-      System.err.println(this.error);
-  }
-
-  private void cleanUpFile() {
-    if ((this.file != null) && this.file.exists())
-      this.file.delete();
-  }
-
-  private synchronized void error(String err) {
-    this.state = STATE_ERROR;
-    this.setError(err);
-    this.cleanUpFile();
-    this.notifyListener();
-  }
-
-  public void run() {
+      this.error("I/O Exception while initializing download of '" + url + "':" + ioe.toString());
+    }    
     if (this.state != STATE_ERROR) {
       this.state = STATE_START;
       notifyListener();

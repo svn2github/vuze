@@ -111,6 +111,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     cancel.setText(MessageText.getString("fileDownloadWindow.cancel"));
     cancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
+        downloader.cancel();
         shell.dispose();
       }
     });
