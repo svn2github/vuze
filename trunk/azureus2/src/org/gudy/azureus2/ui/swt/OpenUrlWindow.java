@@ -67,33 +67,10 @@ public class OpenUrlWindow {
     
     final Text url = new Text(shell,SWT.BORDER);
 
-    final Clipboard cb = new Clipboard(display);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint=300;
     url.setText("http://");
-    TextTransfer transfer = TextTransfer.getInstance(); 
-    String data = (String)cb.getContents(transfer);
-    if(data != null) {
-      int begin = data.indexOf("http://");
-      if(begin >= 0) {
-        int end = data.indexOf("\n", begin+7);
-        String stringURL = end >= 0 ? data.substring(begin, end-1) : data.substring(begin);
-        try {
-          URL parsedURL = new URL(stringURL);
-          url.setText(parsedURL.toExternalForm());
-          GC gc = new GC (url);
-          FontMetrics fm = gc.getFontMetrics ();
-          int width = (url.getText().length()+10) * fm.getAverageCharWidth ();
-          shell.setLocation(0, 0);
-          if(width > display.getBounds().width) {
-            gridData.widthHint = display.getBounds().width-20;
-          }
-          else
-            gridData.widthHint = width;
-         } catch (MalformedURLException e1) {
-        }
-      }
-    }
+    Utils.setTextLinkFromClipboard(shell, gridData, url);
     url.setSelection(url.getText().length());
     gridData.horizontalSpan = 2;
     url.setLayoutData(gridData);
