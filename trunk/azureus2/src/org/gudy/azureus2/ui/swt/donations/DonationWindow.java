@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -51,11 +52,12 @@ public class DonationWindow {
   private Button ok;
   private int timeToWait;
   private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
-  
+  private String fullText;
   
   public DonationWindow(Display display) {
-   this.display = display;
-   timeToWait = 10;
+   this.display = display;   
+   fullText = MessageText.getString("DonationWindow.text");
+   timeToWait = fullText.length() / 25 ;
   }
   
   public void show() {
@@ -63,8 +65,6 @@ public class DonationWindow {
     
     shell.setImage(ImageRepository.getImage("azureus"));
     shell.setText(MessageText.getString("DonationWindow.title"));
-    
-    
     
     
     FormLayout layout = new FormLayout();
@@ -75,8 +75,8 @@ public class DonationWindow {
     shell.setLayout(layout);
     
     
-    Label text = new Label(shell,SWT.NULL);
-    Messages.setLanguageText(text,"DonationWindow.text");
+    final Label text = new Label(shell,SWT.NULL);    
+    text.setText(fullText);
     Font font = text.getFont();
     FontData fontData[] = font.getFontData();
     for(int i=0 ; i < fontData.length ; i++) {
@@ -124,40 +124,7 @@ public class DonationWindow {
     formData.width = 70;
     ok.setLayoutData(formData);
     
-    new Thread() {
-      public void run() {
-        long initialTime = System.currentTimeMillis() / 1000;
-        int lastTime = timeToWait;
-        while(timeToWait>0) {
-         try {
-          timeToWait = lastTime - (int)(System.currentTimeMillis() / 1000 - initialTime);
-          if(shell.isDisposed()) {
-           timeToWait = 0;           
-          } else {
-           if(display != null && ! display.isDisposed()) {
-            display.asyncExec(new Runnable() {
-							public void run() {
-                ok.setText(MessageText.getString("DonationWindow.ok.waiting") +  " " + timeToWait);
-							}
-            });
-           }
-          }
-          Thread.sleep(100);          
-         } catch(Exception e) {
-          //End the loop
-          timeToWait = 0;
-         }
-        }
-        if(display != null && ! display.isDisposed()) {
-          display.asyncExec(new Runnable() {
-            public void run() {
-              Messages.setLanguageText(ok,"DonationWindow.ok");
-              ok.setEnabled(true);
-            }
-          });
-        }
-      }
-    }.start();
+    
     
     
     ok.addListener(SWT.Selection, new Listener() {
@@ -175,8 +142,53 @@ public class DonationWindow {
         shell.dispose();
 			}
     });
-    shell.pack();
+    shell.pack();    
     shell.open();
+    text.setText("");
+    Utils.centreWindow(shell);
+    
+    new Thread() {
+      public void run() {
+        long initialTime = System.currentTimeMillis() / 1000;
+        int lastTime = timeToWait;
+        int nbChars = 0;
+        while(timeToWait>0) {
+          try {
+            nbChars++;
+            final int cutAt = nbChars;          
+            timeToWait = lastTime - (int)(System.currentTimeMillis() / 1000 - initialTime);
+            if(shell.isDisposed()) {
+              timeToWait = 0;           
+            } else {
+              if(display != null && ! display.isDisposed()) {
+                display.asyncExec(new Runnable() {
+                  public void run() {
+                    if(cutAt <= fullText.length()) {
+                    	text.setText(fullText.substring(0,cutAt));
+                    }
+                    ok.setText(MessageText.getString("DonationWindow.ok.waiting") +  " " + timeToWait);
+                  }
+                });
+              }
+            }
+            Thread.sleep(30);          
+          } catch(Exception e) {
+            //End the loop
+            timeToWait = 0;
+            e.printStackTrace();
+          }
+        }
+        if(display != null && ! display.isDisposed()) {
+          display.asyncExec(new Runnable() {
+            public void run() {
+              text.setText(fullText);
+              Messages.setLanguageText(ok,"DonationWindow.ok");
+              ok.setEnabled(true);
+            }
+          });
+        }
+      }
+    }.start();
   }
 
   private void thanks() {
