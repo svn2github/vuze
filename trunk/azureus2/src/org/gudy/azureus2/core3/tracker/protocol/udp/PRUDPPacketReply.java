@@ -68,6 +68,10 @@ PRUDPPacketReply
 			{
 				return( new PRUDPPacketReplyAnnounce(is, transaction_id));
 			}
+			case ACT_REPLY_SCRAPE:
+			{
+				return( new PRUDPPacketReplyScrape(is, transaction_id));
+			}
 			case ACT_REPLY_ERROR:
 			{
 				return( new PRUDPPacketReplyError(is, transaction_id));

@@ -92,6 +92,8 @@ TRTrackerServerProcessorUDP
 				}
 			}catch( Throwable e ){
 				
+				e.printStackTrace();
+				
 				String	error = e.getMessage();
 				
 				if ( error == null ){
@@ -197,7 +199,9 @@ TRTrackerServerProcessorUDP
 			}
 		}else{
 			
-			// TODO:
+			PRUDPPacketRequestScrape	scrape = (PRUDPPacketRequestScrape)request;
+			
+			hash_bytes	= scrape.getHash();
 		}
 		
 		processTrackerRequest( 
@@ -211,26 +215,78 @@ TRTrackerServerProcessorUDP
 				downloaded, uploaded, left,
 				num_peers );
 		
-		PRUDPPacketReplyAnnounce reply = new PRUDPPacketReplyAnnounce(request.getTransactionId());
-		
-		reply.setInterval(((Long)root.get("interval")).intValue());
-		
-		List	peers = (List)root.get("peers");
-		
-		int[]	addresses 	= new int[peers.size()];
-		short[]	ports		= new short[addresses.length];
-		
-		for (int i=0;i<addresses.length;i++){
+		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
+
+			PRUDPPacketReplyAnnounce reply = new PRUDPPacketReplyAnnounce(request.getTransactionId());
 			
-			Map	peer = (Map)peers.get(i);
+			reply.setInterval(((Long)root.get("interval")).intValue());
 			
-			addresses[i] 	= PRUDPPacket.addressToInt(new String((byte[])peer.get("ip")));
+			List	peers = (List)root.get("peers");
 			
-			ports[i]		= (short)((Long)peer.get("port")).shortValue();
+			int[]	addresses 	= new int[peers.size()];
+			short[]	ports		= new short[addresses.length];
+			
+			for (int i=0;i<addresses.length;i++){
+				
+				Map	peer = (Map)peers.get(i);
+				
+				addresses[i] 	= PRUDPPacket.addressToInt(new String((byte[])peer.get("ip")));
+				
+				ports[i]		= (short)((Long)peer.get("port")).shortValue();
+			}
+			
+			reply.setPeers( addresses, ports );
+			
+			return( reply );
+			
+		}else{
+			
+			PRUDPPacketReplyScrape reply = new PRUDPPacketReplyScrape(request.getTransactionId());
+			
+			/*
+			Long	interval = (Long)root.get("interval");
+			
+			if ( interval != null ){
+				
+				reply.setInterval(interval.intValue());
+			}
+			*/
+			
+			Map	files = (Map)root.get( "files" );
+			
+			byte[][]	hashes 			= new byte[files.size()][];
+			int[]		s_complete		= new int[hashes.length];
+			int[]		s_downloaded	= new int[hashes.length];
+			int[]		s_incomplete	= new int[hashes.length];
+			
+			Iterator it = files.keySet().iterator();
+			
+			int	pos = 0;
+			
+			while(it.hasNext()){
+				
+				String	hash_str = (String)it.next();
+				
+				hashes[pos] = hash_str.getBytes( Constants.BYTE_ENCODING );
+								
+				Map	details = (Map)files.get( hash_str );
+				
+				s_complete[pos] 	= ((Long)details.get("complete")).intValue();
+				s_incomplete[pos] 	= ((Long)details.get("incomplete")).intValue();
+				
+				Long	dl = (Long)details.get("downloaded");
+				
+				if (dl != null ){
+					
+					s_downloaded[pos] = dl.intValue();
+				}
+				
+				pos++;
+			}
+			
+			reply.setDetails( hashes, s_complete, s_downloaded, s_incomplete );
+			
+			return( reply );
 		}
-		
-		reply.setPeers( addresses, ports );
-		
-		return( reply );
 	}
 }

@@ -194,8 +194,8 @@ PRUDPPacketRequestAnnounce
 		os.write( hash );
 		os.write( peer_id );
 		os.writeLong( downloaded );
-		os.writeLong( uploaded );
 		os.writeLong( left );
+		os.writeLong( uploaded );
 		os.writeInt( event );
 		os.writeInt( ip_address );
 		os.writeInt( num_want );

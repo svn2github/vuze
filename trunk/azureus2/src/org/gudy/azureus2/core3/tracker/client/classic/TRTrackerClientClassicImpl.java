@@ -675,11 +675,11 @@ TRTrackerClientClassicImpl
 		  				
 		  		if ( protocol.equalsIgnoreCase("udp")){
 		  			
-		  			failure_reason = UDPRequest( reqUrl, message );
+		  			failure_reason = announceUDP( reqUrl, message );
 		  			
 		  		}else{
 		  			
-		  			failure_reason = HTTPRequest( reqUrl, message );
+		  			failure_reason = announceHTTP( reqUrl, message );
 		  			
 		  		}
 					// if we've got some kind of response then return it
@@ -737,7 +737,7 @@ TRTrackerClientClassicImpl
   
  	
  	protected String
- 	HTTPRequest(
+ 	announceHTTP(
  		URL						reqUrl,
  		ByteArrayOutputStream	message )
  	
@@ -875,7 +875,7 @@ TRTrackerClientClassicImpl
  	}
  	
  	protected String
- 	UDPRequest(
+ 	announceUDP(
  		URL						reqUrl,
 		ByteArrayOutputStream	message )
  	

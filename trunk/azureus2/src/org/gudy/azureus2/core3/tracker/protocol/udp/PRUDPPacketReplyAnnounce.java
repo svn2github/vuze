@@ -30,9 +30,11 @@ import java.io.*;
 
 public class 
 PRUDPPacketReplyAnnounce
-extends PRUDPPacketReply
+	extends PRUDPPacketReply
 {
 	protected int		interval;
+	
+	protected static final int BYTES_PER_ENTRY = 6;
 	protected int[]		addresses;
 	protected short[]	ports;
 	
@@ -54,7 +56,7 @@ extends PRUDPPacketReply
 		
 		interval = is.readInt();
 		
-		addresses 	= new int[is.available()/6];
+		addresses 	= new int[is.available()/BYTES_PER_ENTRY];
 		ports		= new short[addresses.length];
 		
 		for (int i=0;i<addresses.length;i++){
