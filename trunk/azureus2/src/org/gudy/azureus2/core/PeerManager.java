@@ -20,7 +20,7 @@ public class PeerManager extends Thread {
   private int[] _availability;
   private boolean _bContinue;
   //  private List _clients; //:: Try to define by the interface, 
-  //makes the code more portable by forcing you to interfaces -Tyler  							
+  //makes the code more portable by forcing you to interfaces -Tyler                
   private List _connections;
   private DiskManager _diskManager;
   private boolean[] _downloaded;
@@ -182,7 +182,7 @@ public class PeerManager extends Thread {
           //::moved check finished to the front -Tyler
           checkFinished(); //see if we've finished
           _diskManager.computePriorityIndicator();
-          checkRequests(); //check the requests           		
+          checkRequests(); //check the requests               
           checkDLPossible(); //look for downloadable pieces          
         }
         checkSeeds();
@@ -271,7 +271,7 @@ public class PeerManager extends Thread {
         //BtDictionary metaData = new BtDecode(data).getDictionary();
 
         try {
-          //set the timeout			
+          //set the timeout     
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         }
         catch (Exception e) {
@@ -289,12 +289,12 @@ public class PeerManager extends Thread {
         }
         addPeersFromTracker(metaData);
         _trackerState = TRACKER_UPDATE;
-        _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
-        return; //break						
+        _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+        return; //break           
       }
       catch (Exception e) {
         //TODO:: WE SHOULD CLEAN THIS UP
-        //tracker not working		
+        //tracker not working   
         System.out.println("Problems with Tracker, will retry in 1 minute");
         _trackerStatus = MessageText.getString("PeerManager.status.offline"); //$NON-NLS-1$
         _timeToWait = 60;
@@ -318,7 +318,7 @@ public class PeerManager extends Thread {
       //for every peer
       for (int i = 0; i < nbPeers; i++) {
         Map peer = (Map) peers.get(i);
-        //build a dictionary object				
+        //build a dictionary object       
         byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
         //get the peer id
         String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
@@ -332,10 +332,10 @@ public class PeerManager extends Thread {
           addPeer(peerId, ip, port);
         }
         //for(int j = 0 ; j < piBytes.length ; j++)
-        //{				
+        //{       
         //same = same && (piBytes[j] == _myPeerId[j]);
         //System.out.print(same + " ");
-        //}		                   
+        //}                      
       }
     }
     catch (Exception e) {
@@ -540,7 +540,7 @@ public class PeerManager extends Thread {
         //get the peer connection
         PeerSocket pc = (PeerSocket) _connections.get(i);
 
-        //get an array of available pieces		
+        //get an array of available pieces    
         boolean[] piecesAvailable = pc.getAvailable();
         if (piecesAvailable != null) //if the list is not null
           {
@@ -659,7 +659,7 @@ public class PeerManager extends Thread {
       return false;
 
     //If we get to this point we haven't found a block from a piece being downloaded
-    //So we'll find a new one		       
+    //So we'll find a new one          
 
     //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.
 
@@ -721,11 +721,11 @@ public class PeerManager extends Thread {
   }
 
   /**
-  	* private method to add a peerConnection
-  	* created by Tyler
-  	* @param pc
-  	*/
-  /*private synchronized void insertPeerSocket(PeerSocket pc) {
+    * private method to add a peerConnection
+    * created by Tyler
+    * @param pc
+    */
+  private synchronized void insertPeerSocket(PeerSocket pc) {
     //Get the max number of connections allowed
     int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
   
@@ -741,7 +741,7 @@ public class PeerManager extends Thread {
         pc = null; //do nothing ...
       }
     }
-  }*/
+  }
 
   private void unChoke() {
     //1. We retreive the current non-choking peers
@@ -1035,20 +1035,8 @@ public class PeerManager extends Thread {
    * @param sckClient the incoming connection socket
    */
   public void addPeer(SocketChannel sckClient) {
-    //create a peer connection and insert it to the list
-    //Get the max number of connections allowed
-    int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$    
-    synchronized (_connections) {
-      if (maxConnections == 0 || maxConnections < _connections.size()) {
-        _connections.add(new PeerSocket(this, sckClient));
-      }
-      else {
-        try {
-          sckClient.close();
-        }
-        catch (Exception ignore) {}
-      }
-    }
+    //create a peer connection and insert it to the list    
+    this.insertPeerSocket(new PeerSocket(this, sckClient));
   }
 
     /**
@@ -1059,19 +1047,7 @@ public class PeerManager extends Thread {
      */
     public void addPeer(byte[] peerId, String ip, int port) {
       //create a peer connection and insert it to the list    
-      PeerSocket psTest = new PeerSocket(this, peerId, ip, port, true);
-      //Get the max number of connections allowed
-      int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
-
-      synchronized (_connections) {
-        //does our list already contain this PeerConnection?  
-        if (!_connections.contains(psTest)) //if not
-          {
-          if (maxConnections == 0 || _connections.size() < maxConnections) {
-            _connections.add(new PeerSocket(this, peerId, ip, port, false)); //add the connection
-          }
-        }
-      }
+      this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, false));
     }
 
     /**
