@@ -2092,14 +2092,14 @@ PEPeerControlImpl
 		    if(peer.getAvailable()[pieceNumber]) {		      
 		      PEPiece piece = _pieces[pieceNumber];
 		      if(piece != null) {
-		       peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
+           boolean result = peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
 		       piece.markBlock(chunk.getBlockNumber());
+           return result;
 		      } else {
 		        endGameModeChunks.remove(chunk);
 		        //System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
 		        return false;
 		      }
-		      return true;
 		    }
 	    }
     }

@@ -56,7 +56,14 @@ PEPeerTransport
 	sendCancel(
 		DiskManagerRequest	request );
 	
-	public void 
+  /**
+   * 
+   * @param pieceNumber
+   * @param pieceOffset
+   * @param pieceLength
+   * @return true is the piece is really requested
+   */
+	public boolean 
 	request(
 		int pieceNumber, 
 		int pieceOffset, 

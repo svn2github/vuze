@@ -831,10 +831,14 @@ PEPeerTransportProtocol
 	seed = true;
   }
 
-  public void request(int pieceNumber, int pieceOffset, int pieceLength) {
+  /*
+   *  (non-Javadoc)
+   * @see org.gudy.azureus2.core3.peer.impl.PEPeerTransport#request(int, int, int)
+   */
+  public boolean request(int pieceNumber, int pieceOffset, int pieceLength) {
 	if (getState() != TRANSFERING) {
     manager.requestCanceled(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-	  return;
+	  return false;
   }	
 	DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
 	if (!alreadyRequested(request)) {
@@ -853,7 +857,9 @@ PEPeerTransportProtocol
 		buffer.position(0);
 		buffer.limit(17);
 		sendProtocol(buffer);
+    return true;
 	}
+  return false;
   }
 
   public void sendCancel(DiskManagerRequest request) {
