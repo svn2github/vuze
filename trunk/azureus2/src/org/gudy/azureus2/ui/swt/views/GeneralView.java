@@ -240,7 +240,7 @@ public class GeneralView extends AbstractIView {
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); //$NON-NLS-1$
     maxUploads = new Combo(gTransfer, SWT.SINGLE | SWT.READ_ONLY);
-    for (int i = 2; i < 101; i++)
+    for (int i = 2; i < 301; i++)
       maxUploads.add(" " + i); //$NON-NLS-1$
     maxUploads.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
