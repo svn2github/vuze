@@ -34,6 +34,7 @@ CHANGE: Auto-update: now writes a log to an 'update.log' file [Nolar]
 CHANGE: Option to disconnect seeds when seeding is now checked by default [Gudy]
 CHANGE: FilesView now shows files even in other states than Downloading (configurable) [Rele]
 CHANGE: Updated/additional menu buttons [Gudy]
+CHANGE: Some speed optimizations with piece-picking [Nolar]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
