@@ -263,7 +263,7 @@ public class PeerManager extends Thread {
 
         try {
           //set the timeout			
-          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
+          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$		  
         } catch (Exception e) {
           _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
