@@ -47,7 +47,7 @@ TRTrackerServerProcessorTCP
 
 
 	protected static final byte[]	HTTP_RESPONSE_START = (
-		"HTTP/1.1 200 OK" + NL + 
+		"HTTP/1.1 500 GRR" + NL + 
 		"Content-Type: text/html" + NL +
 		"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
 		"Connection: close" + NL +

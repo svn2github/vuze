@@ -39,7 +39,10 @@ TRTrackerServerTorrentImpl
 {
 		// no point in caching replies smaller than that below
 	
-	public static final int	MIN_CACHE_ENTRY_SIZE	= 10;
+	public static final int	MIN_CACHE_ENTRY_SIZE		= 10;
+	
+	public static final int MAX_UPLOAD_BYTES_PER_SEC	= 1024*1024;
+	public static final int MAX_DOWNLOAD_BYTES_PER_SEC	= MAX_UPLOAD_BYTES_PER_SEC;
 	
 	protected HashWrapper			hash;
 
@@ -95,11 +98,16 @@ TRTrackerServerTorrentImpl
 		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
 		
+		long	now = SystemTime.getCurrentTime();
+		
 		TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
 
 		String	reuse_key = ip_address + ":" +port;
 		
-		boolean		new_peer = false;
+		boolean		new_peer 			= false;
+		
+		boolean		already_completed	= false;
+		long		last_contact_time	= 0;
 		
 		if ( peer == null ){
 			
@@ -113,10 +121,18 @@ TRTrackerServerTorrentImpl
 			
 			
 			TRTrackerServerPeerImpl old_peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
-			
+						
 			if ( old_peer != null ){
 				
+				last_contact_time	= old_peer.getLastContactTime();
+				
+				already_completed	= old_peer.getDownloadCompleted();
+				
 				removePeer( old_peer );
+				
+			}else{
+				
+				last_contact_time	= now;
 			}
 			
 			if ( !stopped ){			
@@ -125,7 +141,13 @@ TRTrackerServerTorrentImpl
 					
 					byte[]	peer_bytes = peer_id.getBytes( Constants.BYTE_ENCODING );
 					
-					peer = new TRTrackerServerPeerImpl( peer_bytes, tracker_key, ip_address.getBytes(), port );
+					peer = new TRTrackerServerPeerImpl( 
+									peer_bytes, 
+									tracker_key, 
+									ip_address.getBytes(), 
+									port,
+									last_contact_time,
+									already_completed );
 					
 					peer_map.put( peer_id, peer );
 					
@@ -156,6 +178,10 @@ TRTrackerServerTorrentImpl
 				
 			}
 			
+			already_completed	= peer.getDownloadCompleted();
+			
+			last_contact_time	= peer.getLastContactTime();
+			
 			if ( stopped ){
 				
 				removePeer( peer );
@@ -176,8 +202,8 @@ TRTrackerServerTorrentImpl
 		
 		if ( peer != null ){
 			
-			peer.setTimeout( SystemTime.getCurrentTime() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
-			
+			peer.setTimeout( now, now + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
+						
 				// if this is the first time we've heard from this peer then we don't want to
 				// use existing ul/dl value diffs as they will have been reported previously
 				// (either the client's changed peer id by stop/start (in which case the values 
@@ -190,6 +216,31 @@ TRTrackerServerTorrentImpl
 				dl_diff = downloaded 	- peer.getDownloaded();
 			}
 			
+				// simple rate control
+			
+			long	elapsed_time	= now - last_contact_time;
+			
+			if ( elapsed_time == 0 ){
+				
+				elapsed_time = SystemTime.TIME_GRANULARITY_MILLIS;
+			}
+			
+			long	ul_rate = (ul_diff*1000)/elapsed_time;	// bytes per second
+			long	dl_rate	= (dl_diff*1000)/elapsed_time;
+				
+			if ( ul_rate > MAX_UPLOAD_BYTES_PER_SEC ){
+				
+				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + " reported an upload rate of " + ul_rate + " bytes per second" );
+				
+				ul_diff	= 0;
+			}
+			
+			if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
+				
+				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + " reported a download rate of " + dl_rate + " bytes per second" );
+				
+				dl_diff	= 0;
+			}
 					// when the peer is removed its "left" amount will dealt with
 				
 			le_diff = stopped?0:(left - peer.getAmountLeft());
@@ -208,7 +259,9 @@ TRTrackerServerTorrentImpl
 		
 		stats.addAnnounce( ul_diff, dl_diff, le_diff );
 		
-		if ( completed ){
+		if ( completed && !already_completed ){
+			
+			peer.setDownloadCompleted();
 			
 			stats.addCompleted();
 		}

@@ -32,7 +32,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.tracker.client.classic.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerRequestListener;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
-import org.gudy.azureus2.core3.util.HashWrapper;
 
 public class 
 LoadTest 
@@ -296,6 +295,8 @@ LoadTest
 		{
 			try{
 				left	= 0;
+				
+				uploaded += 100000;
 				
 				torrent.peerContact(null, peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 	

@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.tracker.server.*;
 public class 
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, HostNameToIPResolverListener
-{
+{	
 	protected byte[]		peer_id;
 	protected String		key;
 	
@@ -46,18 +46,25 @@ TRTrackerServerPeerImpl
 	protected long			downloaded;
 	protected long			amount_left;
 	
+	protected long			last_contact_time;
+	protected boolean		download_completed;
+	
 	protected
 	TRTrackerServerPeerImpl(
 		byte[]		_peer_id,
 		String		_key,
 		byte[]		_ip,
-		int			_port )
+		int			_port,
+		long		_last_contact_time,
+		boolean		_download_completed )
 	{
-		peer_id			= _peer_id;
-		key				= _key;
-		ip_when_created	= _ip;
-		ip				= _ip;
-		port			= _port;
+		peer_id				= _peer_id;
+		key					= _key;
+		ip_when_created		= _ip;
+		ip					= _ip;
+		port				= _port;
+		last_contact_time	= _last_contact_time;
+		download_completed	= _download_completed;
 		
 		resolve();
 	}
@@ -95,6 +102,24 @@ TRTrackerServerPeerImpl
 			
 			ip_bytes	= address.getAddress();
 		}
+	}
+	
+	protected long
+	getLastContactTime()
+	{
+		return( last_contact_time );
+	}
+	
+	protected boolean
+	getDownloadCompleted()
+	{
+		return( download_completed );
+	}
+	
+	protected void
+	setDownloadCompleted()
+	{
+		download_completed	= true;
 	}
 	
 	protected byte[]
@@ -159,9 +184,12 @@ TRTrackerServerPeerImpl
 	
 	protected void
 	setTimeout(
-		long		_t )
+		long		_now,
+		long		_timeout )
 	{
-		timeout	= _t;
+		last_contact_time	= _now;
+		
+		timeout				= _timeout;
 	}
 	
 	protected long
