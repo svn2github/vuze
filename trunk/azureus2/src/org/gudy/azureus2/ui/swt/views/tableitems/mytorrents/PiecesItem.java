@@ -211,12 +211,17 @@ public class PiecesItem
           }
         }
   
-        int limit = (drawWidth * nbComplete) / nbPieces;
+        	// pieces can sometimes be 0 due to timing or bad torrent (well, there's a bug with a /0 error
+        	// so it can happen somehow :)
+        
+        int limit = nbPieces==0?0:((drawWidth * nbComplete) / nbPieces);
+        
         if (limit < drawWidth) {
           gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
           gcImage.fillRectangle(limit+x0, borderHorizontalSize,
                                 x1-limit, completionHeight);
-        }
+	    }
+        
         gcImage.setBackground(Colors.colorProgressBar);
         gcImage.fillRectangle(x0, borderHorizontalSize,
                               limit, completionHeight);
