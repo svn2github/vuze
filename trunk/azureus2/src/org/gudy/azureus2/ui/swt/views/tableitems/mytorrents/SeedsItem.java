@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -66,5 +67,7 @@ public class SeedsItem
     else
       lTotalSeeds = 0;
     cell.setText(tmp);
+    cell.setToolTip(lConnectedSeeds + " " + MessageText.getString("GeneralView.label.connected") + "\n" + 
+                    lTotalSeeds + " " + MessageText.getString("GeneralView.label.in_swarm"));
   }
 }
