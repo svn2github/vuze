@@ -262,7 +262,7 @@ public class ConfigView extends AbstractIView {
     gIrc.setLayout(layout);
 
     label = new Label(gIrc, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.ircsever"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.ircserver"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
     new StringParameter(gIrc, "Irc Server", "irc.freenode.net").setLayoutData(gridData); //$NON-NLS-1$
