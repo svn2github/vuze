@@ -37,6 +37,10 @@ import org.gudy.azureus2.core3.config.*;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 
@@ -111,6 +115,9 @@ PEPeerTransportProtocol
   private long last_data_message_received_time = 0;
   
   private long connection_established_time = 0;
+
+  private boolean az_messaging_mode = false;
+  private Message[] supported_messages;
   
   
   protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
@@ -162,7 +169,7 @@ PEPeerTransportProtocol
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
         registerForMessageHandling();
         current_peer_state = PEPeer.HANDSHAKING;
-        sendHandshake();
+        sendBTHandshake();
       }
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -206,7 +213,7 @@ PEPeerTransportProtocol
         LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
         registerForMessageHandling();
         current_peer_state = PEPeer.HANDSHAKING;
-        sendHandshake();
+        sendBTHandshake();
       }
         
       public void connectFailure( Throwable failure_msg ) {
@@ -379,7 +386,7 @@ PEPeerTransportProtocol
   
   
   
-  private void sendHandshake() {
+  private void sendBTHandshake() {
     connection_established_time = SystemTime.getCurrentTime();
     connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
     allocateAll();
@@ -388,6 +395,27 @@ PEPeerTransportProtocol
   
   
   
+  private void sendAZHandshake() {
+    Message[] avail_msgs = MessageManager.getSingleton().getRegisteredMessages();
+    String[] avail_ids = new String[ avail_msgs.length ];
+    byte[] avail_vers = new byte[ avail_msgs.length ];
+    
+    for( int i=0; i < avail_msgs.length; i++ ) {
+      avail_ids[i] = avail_msgs[i].getID();
+      avail_vers[i] = avail_msgs[i].getVersion();
+    }
+    
+    AZHandshake az_handshake = new AZHandshake(
+        AZPeerIdentityManager.getAZPeerIdentity(),
+        Constants.AZUREUS_NAME,
+        Constants.AZUREUS_VERSION,
+        avail_ids,
+        avail_vers );        
+
+    System.out.println( "Sending AZ handshake of " +az_handshake.getDescription() );
+    
+    connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
+  }
   
 
   
@@ -909,24 +937,7 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeHandshake( BTHandshake handshake ) {
-    //extended protocol processing
-    if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
-      //System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
-      
-      //TODO sendExtendedProtocolSupportList();
-    }
-
-    /*
-    for( int i=0; i < reserved.length; i++ ) {
-      int val = reserved[i] & 0xFF;
-      if( val != 0 ) {
-        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
-      }
-    }
-    */
-    
-    
+  private void decodeBTHandshake( BTHandshake handshake ) {
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
       
     if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
@@ -993,14 +1004,79 @@ PEPeerTransportProtocol
     LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
 
     handshake.destroy();
-
-    sendBitField();
-     
-    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+    
+    
+    //extended protocol processing
+    if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
+      System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates extended AZ messaging support." );
       
+      if( client.indexOf( "Azureus" ) != -1 ) {  //for now, filter out non-az clients, as ABC seems to set our reserved flag
+        System.out.println( "Switching to extended AZ messaging support." );
+        
+        az_messaging_mode = true;
+        connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
+        connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder() );
+        
+        sendAZHandshake();
+      }
+    }
+
+    /*
+    for( int i=0; i < reserved.length; i++ ) {
+      int val = reserved[i] & 0xFF;
+      if( val != 0 ) {
+        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
+      }
+    }
+    */
+
+    if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
+      sendBitField();
+      
+      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+       
+      //fudge to ensure optimistic-connect code processes connections that have never sent a data message
+      last_data_message_received_time = SystemTime.getCurrentTime();
+       
+      current_peer_state = PEPeer.TRANSFERING;
+    }
+    
+  }
+  
+  
+  
+  private void decodeAZHandshake( AZHandshake handshake ) {
+    
+    client = handshake.getClient()+ " " +handshake.getClientVersion();
+    
+    
+    //find mutually available message types
+    ArrayList messages = new ArrayList();
+    
+    String mutual = "";
+    
+    for( int i=0; i < handshake.getMessageIDs().length; i++ ) {
+      Message msg = MessageManager.getSingleton().lookupMessage( handshake.getMessageIDs()[i], handshake.getMessageVersions()[i] );
+      
+      if( msg != null ) {  //mutual support!
+        messages.add( msg );
+        mutual += msg.getID() + " ";
+      }
+    }
+    
+    supported_messages = (Message[])messages.toArray( new Message[0] );
+
+    System.out.println( "Mutually supported messages: [" +mutual+ "]" );
+    
+    
+    
+    sendBitField();
+    
+    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+     
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
     last_data_message_received_time = SystemTime.getCurrentTime();
-      
+     
     current_peer_state = PEPeer.TRANSFERING;
   }
   
@@ -1248,7 +1324,12 @@ PEPeerTransportProtocol
         last_message_received_time = SystemTime.getCurrentTime();
         
         if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
-          decodeHandshake( (BTHandshake)message );
+          decodeBTHandshake( (BTHandshake)message );
+          return true;
+        }
+        
+        if( message.getID().equals( AZMessage.ID_AZ_HANDSHAKE ) && message.getVersion() == AZMessage.AZ_DEFAULT_VERSION ) {
+          decodeAZHandshake( (AZHandshake)message );
           return true;
         }
         
@@ -1307,7 +1388,6 @@ PEPeerTransportProtocol
         
         String reason = "Received unknown message: " +message.getID()+ ":" +message.getVersion();
         Debug.out( reason );
-        //closeAll( reason, true, true );  //TODO
         
         return false;
       }
@@ -1334,5 +1414,9 @@ PEPeerTransportProtocol
     return connection;
   }
   
+  
+  public Message[] getSupportedMessages() {
+    return supported_messages;
+  }
   
 }

@@ -44,12 +44,12 @@ public class AZHandshake implements AZMessage {
   private final String description;
   private final byte[] identity;
   private final String client;
-  private final int client_version;
+  private final String client_version;
   private final String[] avail_ids;
   private final byte[] avail_versions;
   
   
-  public AZHandshake( byte[] peer_identity, String client, int version, String[] avail_msg_ids, byte[] avail_msg_versions ) {
+  public AZHandshake( byte[] peer_identity, String client, String version, String[] avail_msg_ids, byte[] avail_msg_versions ) {
     this.identity = peer_identity;
     this.client = client;
     this.client_version = version;
@@ -61,7 +61,7 @@ public class AZHandshake implements AZMessage {
     //client info
     payload_map.put( "identity", peer_identity );
     payload_map.put( "client", client );
-    payload_map.put( "version", new Long( version ) );
+    payload_map.put( "version", version );
         
     //available message list
     List message_list = new ArrayList();
@@ -100,7 +100,7 @@ public class AZHandshake implements AZMessage {
     
     System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
 
-    this.description = getID()+ "from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ "] supports " +msgs_desc;
+    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ "] supports " +msgs_desc;
   }
 
   
@@ -109,7 +109,7 @@ public class AZHandshake implements AZMessage {
   
   public String getClient() {  return client;  }
   
-  public int getClientVersion() {  return client_version;  }
+  public String getClientVersion() {  return client_version;  }
   
   public String[] getMessageIDs() {  return avail_ids;  }
   
@@ -156,11 +156,11 @@ public class AZHandshake implements AZMessage {
       }
       String name = new String( raw_name );
       //////////////////////////////////////////////
-      Long raw_ver = (Long)root.get( "version" );
+      byte[] raw_ver = (byte[])root.get( "version" );
       if( raw_ver == null ) {
         throw new Exception( "raw_ver == null" );
       }
-      int version = raw_ver.intValue();
+      String version = new String( raw_ver );
       //////////////////////////////////////////////
       List raw_msgs = (List)root.get( "messages" );
       if( raw_msgs == null ) {

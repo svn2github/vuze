@@ -102,6 +102,21 @@ public class MessageManager {
     return message.deserialize( message_data );    
   }
   
+  
+  
+  /**
+   * Lookup a registered message type via id and version.
+   * @param id to look for
+   * @param version to look for
+   * @return the default registered message instance if found, otherwise returns null if this message type is not registered
+   */
+  public Message lookupMessage( String id, byte version ) {
+    Object key = new String( id + version );
+    
+    return (Message)message_registrations.get( key );
+  }
+  
+  
 
 
   /**

@@ -62,7 +62,10 @@ public class IncomingMessageQueue {
    * @param stream_decoder to use
    */
   public void setDecoder( MessageStreamDecoder stream_decoder ) {
+    stopQueueProcessing();
+    this.stream_decoder.destroy();
     this.stream_decoder = stream_decoder;
+    startQueueProcessing();
   }
   
   

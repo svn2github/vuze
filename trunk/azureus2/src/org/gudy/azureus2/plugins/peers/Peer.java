@@ -29,6 +29,7 @@ package org.gudy.azureus2.plugins.peers;
 import java.util.List;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 
 public interface 
@@ -131,4 +132,11 @@ Peer
    * @return connection
    */
   public Connection getConnection();
+  
+  
+  /**
+   * Get the list of messages that this peer and us mutually understand.
+   * @return messages available for use, or null of supported is yet unknown
+   */
+  public Message[] getSupportedMessages();
 }

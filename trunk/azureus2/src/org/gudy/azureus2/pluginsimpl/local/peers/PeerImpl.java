@@ -31,9 +31,11 @@ import java.util.List;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
+import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.disk.*;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 public class 
@@ -69,6 +71,20 @@ PeerImpl
   public Connection getConnection() {
     return connection;
   }
+  
+  
+  public Message[] getSupportedMessages() {
+    com.aelitis.azureus.core.peermanager.messaging.Message[] core_msgs = delegate.getSupportedMessages();
+    
+    Message[] plug_msgs = new Message[ core_msgs.length ];
+    
+    for( int i=0; i < core_msgs.length; i++ ) {
+      plug_msgs[i] = new MessageAdapter( core_msgs[i] );
+    }
+    
+    return plug_msgs;
+  }
+  
   
   
 	public int 

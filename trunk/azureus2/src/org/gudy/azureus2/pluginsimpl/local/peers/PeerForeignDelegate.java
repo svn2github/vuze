@@ -38,9 +38,11 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.peers.*;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.*;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class 
 PeerForeignDelegate
@@ -370,7 +372,22 @@ PeerForeignDelegate
   }
   
   
+  
+  public Message[] getSupportedMessages() {
+    org.gudy.azureus2.plugins.messaging.Message[] plug_msgs = foreign.getSupportedMessages();
     
+    Message[] core_msgs = new Message[ plug_msgs.length ];
+    
+    for( int i=0; i < plug_msgs.length; i++ ) {
+      core_msgs[i] = new MessageAdapter( plug_msgs[i] );
+    }
+    
+    return core_msgs;
+  }
+    
+  
+  
+  
 	 /** To retreive arbitrary objects against a peer. */
 	  public Object getData (String key) {
 	  	if (data == null) return null;

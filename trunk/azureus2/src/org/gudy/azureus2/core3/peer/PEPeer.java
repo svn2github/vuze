@@ -26,6 +26,7 @@
 package org.gudy.azureus2.core3.peer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 
 /**
@@ -141,4 +142,11 @@ PEPeer
    */
   public NetworkConnection getConnection();
   
+  
+  /**
+   * Get the list of messages that this peer and us both understand.
+   * @return messages available for use, or null of supported is yet unknown
+   */
+  public Message[] getSupportedMessages();
+
 }
