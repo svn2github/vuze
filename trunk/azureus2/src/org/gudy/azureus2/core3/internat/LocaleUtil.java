@@ -59,17 +59,24 @@ LocaleUtil
 		 
 		 CharsetDecoder decoder = Charset.forName(name).newDecoder();
 		 
-		 LocaleUtilDecoder	lu_decoder =  new LocaleUtilDecoderReal(decoders.size(),decoder);
-		 
-		 decoder_names.add( lu_decoder.getName());
-		
-		 if ( i == 0 ){
+		 if ( decoder != null ){
 		 	
-		 	system_decoder = lu_decoder;
+			 LocaleUtilDecoder	lu_decoder =  new LocaleUtilDecoderReal(decoders.size(),decoder);
+			 
+			 decoder_names.add( lu_decoder.getName());
+			
+			 if ( i == 0 ){
+			 	
+			 	system_decoder = lu_decoder;
+			 }
+			 
+			 decoders.add( lu_decoder );
+			 
+		 }else if ( i == 0 ){
+		 	
+		 	Debug.out( "System decoder failed to be found!!!!" );
 		 }
 		 
-		 decoders.add( lu_decoder );
-		 		 
 	   }catch (Exception ignore) {
 	   }
 	 }
@@ -103,11 +110,14 @@ LocaleUtil
 				try {
 				  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
 				 
-				  LocaleUtilDecoder	lu_decoder = new LocaleUtilDecoderReal(decoders.size(),decoder);
+				  if ( decoder != null ){
+				  	
+				  	LocaleUtilDecoder	lu_decoder = new LocaleUtilDecoderReal(decoders.size(),decoder);
 				  
-				  decoders.add( lu_decoder);
+				  	decoders.add( lu_decoder);
 				  
-				  decoder_names.add( lu_decoder.getName());
+				  	decoder_names.add( lu_decoder.getName());
+				  }
 				 
 				} catch (Exception ignore) {
 				}

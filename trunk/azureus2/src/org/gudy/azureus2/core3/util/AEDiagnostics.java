@@ -36,15 +36,19 @@ import java.util.*;
 public class 
 AEDiagnostics 
 {
+		// these can not be set true and have a usable AZ!
+	
 	public static final boolean	ALWAYS_PASS_HASH_CHECKS			= false;
 	public static final boolean	USE_DUMMY_FILE_DATA				= false;
 	public static final boolean	CHECK_DUMMY_FILE_DATA			= false;
 
-	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= true;
+		// these can safely be set true, things will work just slower
 	
-	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= true;
-	public static final boolean	TRACE_DBB_POOL_USAGE			= true;
-	public static final boolean	PRINT_DBB_POOL_USAGE			= true;
+	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
+	
+	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
+	public static final boolean	TRACE_DBB_POOL_USAGE			= false;
+	public static final boolean	PRINT_DBB_POOL_USAGE			= false;
 	
 	static{
 		if ( ALWAYS_PASS_HASH_CHECKS ){

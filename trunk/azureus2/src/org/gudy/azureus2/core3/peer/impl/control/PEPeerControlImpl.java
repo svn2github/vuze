@@ -649,33 +649,36 @@ PEPeerControlImpl
   	private void 
 	processPieceChecks() 
   	{
-  		List	pieces;
-  		
-  			// process complete piece results
-  		
-  		try{
-  			piece_check_result_list_mon.enter();
-    
-  			pieces = new ArrayList( piece_check_result_list );
+  		if ( piece_check_result_list.size() > 0 ){
   			
-  			piece_check_result_list.clear();
-  			
-  		}finally{
-  			
-  			piece_check_result_list_mon.exit();
+	  		List	pieces;
+	  		
+	  			// process complete piece results
+	  		
+	  		try{
+	  			piece_check_result_list_mon.enter();
+	    
+	  			pieces = new ArrayList( piece_check_result_list );
+	  			
+	  			piece_check_result_list.clear();
+	  			
+	  		}finally{
+	  			
+	  			piece_check_result_list_mon.exit();
+	  		}
+	  		
+	    	Iterator it = pieces.iterator();
+	    	
+	    	while (it.hasNext()) {
+	    		
+	    		Object[]	data = (Object[])it.next();
+	    		   		
+	    		processPieceCheckResult(
+	    			((Integer)data[0]).intValue(), 
+	    			((Boolean)data[1]).booleanValue(), 
+					data[2]);
+	    	}
   		}
-  		
-    	Iterator it = pieces.iterator();
-    	
-    	while (it.hasNext()) {
-    		
-    		Object[]	data = (Object[])it.next();
-    		   		
-    		processPieceCheckResult(
-    			((Integer)data[0]).intValue(), 
-    			((Boolean)data[1]).booleanValue(), 
-				data[2]);
-    	}
   	}
   
   
@@ -1263,39 +1266,106 @@ PEPeerControlImpl
  }
 
   
-  private void unChoke() {
-    
+  private void 
+  unChoke() 
+  {  
+  		// Determine how many uploads we should consider    
 
-    // We retreive the current non-choking peers
-    List nonChoking = getNonChokingPeers();
-
-    // Determine how many uploads we should consider    
     int nbUnchoke = _downloadManager.getStats().getMaxUploads();
 
-    // Then, in any case if we have too many unchoked pple we need to choke some
-    while( nonChoking.size() > nbUnchoke ) {
-      PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
-      pc.sendChoke();
+    int	choking_count					= 0;
+    int	non_choking_count				= 0;
+    int	interesting_and_choking_count	= 0;
+    
+    	// for efficiency count the choking peers first
+    
+    try{
+    	_peer_transports_mon.enter();
+      
+        for (int i = 0; i < _peer_transports.size(); i++){
+        
+	        try {
+	        	PEPeerTransport	pc = (PEPeerTransport)_peer_transports.get(i);
+	        	
+	            if ( pc.isChoking()){
+	            	
+	            	choking_count++;
+	            	
+	            	if ( pc.isInteresting()){
+	            		
+	            		interesting_and_choking_count++;
+	            	}
+	            }else{
+	            	non_choking_count++;
+	            }
+	        }catch (Exception e) {
+	          	
+	            continue;
+	        }
+        }
+    }finally{
+        _peer_transports_mon.exit();
     }
 
-    // If we lack unchoke pple, find new ones ;)
-    if( nonChoking.size() < nbUnchoke ) {
-      //Determine the N (nbUnchoke best peers)
-      //Maybe we'll need some other test when we are a seed ...
-      prepareBestUnChokedPeers(nbUnchoke - nonChoking.size());
-      return;
+    	// lazily initialise this list
+    
+    List	nonChoking	= null;
+    
+    	// if we have a mismatch between the required unchoking count and actual
+    
+    if ( nbUnchoke != non_choking_count ){
+    
+    	if ( non_choking_count > nbUnchoke ){
+	    	
+    			// Then, in any case if we have too many unchoked pple we need to choke some
+
+	    	nonChoking = getNonChokingPeers(); 
+		    
+		    while( nonChoking.size() > nbUnchoke ){
+		    	
+		    	PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
+		      
+		    	pc.sendChoke();
+		    }
+    	}else if ( non_choking_count < nbUnchoke ){
+		    	
+    			//   If we lack unchoke pple, find new ones
+    		
+		    	//Determine the N (nbUnchoke best peers)
+		    	//Maybe we'll need some other test when we are a seed ...
+		    	
+		   		// only interesting, choked peers are considered 
+		    	
+		   	if ( interesting_and_choking_count > 0 ){
+		    	
+		   		prepareBestUnChokedPeers( nbUnchoke - non_choking_count );
+		   	}
+		    
+		   		// return here as we've found peers to unchoke or all are unchoked
+		   	
+		   	return;
+		}
     }
     
-    //  Only Choke-Unchoke Every 10 secs
-    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0) {
+    	//  Only Choke-Unchoke Every 10 secs
+    
+    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0){
+    	
       return;
     }
 
-    // Determine the N (nbUnchoke best peers)
-    // Maybe we'll need some other test when we are a seed ...
+    if ( nonChoking == null ){
+    	
+    	nonChoking = getNonChokingPeers();
+    }
+    
+    	// Determine the N (nbUnchoke best peers)
+    	// Maybe we'll need some other test when we are a seed ...
+    
     List bestUploaders = getBestUnChokedPeers(nbUnchoke);
 
-    // optimistic unchoke every 30 seconds
+    	// optimistic unchoke every 30 seconds
+    
     if ((_loopFactor % OPT_UNCHOKE_FACTOR) == 0 || (currentOptimisticUnchoke == null)) {
       performOptimisticUnChoke();
     }
@@ -1325,6 +1395,37 @@ PEPeerControlImpl
     }
   }
  
+  private List
+  getNonChokingPeers()
+  {
+    List nonChoking = new ArrayList();
+    
+    try{
+      _peer_transports_mon.enter();
+    
+      for (int i = 0; i < _peer_transports.size(); i++) {
+      	
+        PEPeerTransport pc = null;
+        
+        try {
+          pc = (PEPeerTransport) _peer_transports.get(i);
+          
+        }catch (Exception e){
+        	
+          continue;
+        }
+        
+        if (!pc.isChoking()){
+        	
+          nonChoking.add(pc);
+        }
+      }
+    }finally{
+      _peer_transports_mon.exit();
+    }
+    
+    return( nonChoking );
+  }
 
   // refactored out of unChoke() - Moti
   private void prepareBestUnChokedPeers(int numUpRates) {
@@ -1478,30 +1579,6 @@ PEPeerControlImpl
     }finally{
     	_peer_transports_mon.exit();
     }
-  }
-
-  // refactored out of unChoke() - Moti
-  private List getNonChokingPeers() {
-    List nonChoking = new ArrayList();
-    try{
-      _peer_transports_mon.enter();
-    
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = null;
-        try {
-          pc = (PEPeerTransport) _peer_transports.get(i);
-        }
-        catch (Exception e) {
-          continue;
-        }
-        if (!pc.isChoking()) {
-          nonChoking.add(pc);
-        }
-      }
-    }finally{
-      _peer_transports_mon.exit();
-    }
-    return nonChoking;
   }
 
   private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, List best, int start) {

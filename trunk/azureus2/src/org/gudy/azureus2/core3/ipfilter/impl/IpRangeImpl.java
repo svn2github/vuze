@@ -40,7 +40,7 @@ IpRangeImpl
    private byte[] description;
     
    private Object startIp;		// Integer if value, String/null otherwise
-   private Object endIp;			// Integer if value, String/null otherwise
+   private Object endIp;		// Integer if value, String/null otherwise
           
    private boolean sessionOnly;
     
@@ -109,11 +109,25 @@ IpRangeImpl
    public boolean 
    isValid() 
    {
-   	boolean	res = 	startIp instanceof Integer && 
-   					endIp instanceof Integer &&
-					((Integer)startIp).compareTo( endIp ) <= 0;
-   	
-   	return( res );
+   		if (startIp instanceof Integer && 
+   			endIp instanceof Integer ){
+   			
+   		   	long start_address 	= ((Integer)startIp).intValue(); 
+   	     	long end_address 	= ((Integer)endIp).intValue();
+   	     	
+   	    	if ( start_address < 0 ){
+   	     		
+   	    		start_address += 0x100000000L;
+   	     	}
+   	       	if ( end_address < 0 ){
+   	     		
+   	       		end_address += 0x100000000L;
+   	     	}
+   	       	
+   	       	return( end_address >= start_address);
+   		}
+
+   		return( false );
    }
     
    public boolean 
@@ -125,7 +139,32 @@ IpRangeImpl
        return false;
      }
      
-     return(((IpFilterImpl)IpFilterImpl.getInstance()).isInRange( this, ipAddress));
+     try{
+     	long	int_address = PRHelpers.addressToInt( ipAddress );
+     	
+     	if ( int_address < 0 ){
+     		
+     		int_address += 0x100000000L;
+     	}
+     	
+     	long start_address 	= ((Integer)startIp).intValue(); 
+     	long end_address 	= ((Integer)endIp).intValue();
+     	
+    	if ( start_address < 0 ){
+     		
+    		start_address += 0x100000000L;
+     	}
+       	if ( end_address < 0 ){
+     		
+       		end_address += 0x100000000L;
+     	}
+     	
+       	return( int_address >= start_address && int_address <= end_address );
+       	
+     }catch( UnknownHostException e ){
+     	
+     	return( false );
+     }
    }
     
    public String

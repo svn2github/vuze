@@ -89,10 +89,18 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
       overallMap.put("uptime",new Long(0));
       statisticsMap.put("all",overallMap);
     }
-    totalDownloaded = ((Long)overallMap.get("downloaded")).longValue();
-    totalUploaded = ((Long)overallMap.get("uploaded")).longValue();
-    totalUptime = ((Long)overallMap.get("uptime")).longValue();
-    lastUptime = SystemTime.getCurrentTime() / 1000;
+    try{
+	    totalDownloaded = ((Long)overallMap.get("downloaded")).longValue();
+	    totalUploaded = ((Long)overallMap.get("uploaded")).longValue();
+	    totalUptime = ((Long)overallMap.get("uptime")).longValue();
+	    lastUptime = SystemTime.getCurrentTime() / 1000;
+	    
+    }catch( Throwable e ){
+    	
+    	Debug.out( "Stats invalid, resetting to 0" );
+    	
+    	save();
+    }
   }
   
   public OverallStatsImpl(GlobalManager manager) {

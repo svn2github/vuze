@@ -7,6 +7,8 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -15,21 +17,37 @@ import java.util.*;
  *
  * @author  TdC_VgA
  */
-public class BEncoder {          
-    /** Creates a new instance of BEncoder */
-    public BEncoder() {
+public class 
+BEncoder 
+{          	
+	 Charset	default_charset;
+	 Charset	byte_charset;
+
+	 /** Creates a new instance of BEncoder */
+	 
+    public 
+	BEncoder() 
+    {
+     	try{
+     		default_charset = Charset.forName( Constants.DEFAULT_ENCODING );
+     		byte_charset 	= Charset.forName( Constants.BYTE_ENCODING );
+      		
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace( e );
+    	}
     }
     
     public static byte[] encode(Map object) throws IOException{
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BEncoder.encode(baos, object);
+        new BEncoder().encode(baos, object);
         return baos.toByteArray();
     }    
     
-    private static void 
+    private void 
 	encode(
-		ByteArrayOutputStream baos, 
-		Object object) 
+		ByteArrayOutputStream 	baos, 
+		Object 					object) 
     
     	throws IOException
 	{
@@ -38,12 +56,13 @@ public class BEncoder {
         	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
 
+            ByteBuffer	bb 	= default_charset.encode( tempString );           
             
-            baos.write((String.valueOf(tempString.getBytes(Constants.DEFAULT_ENCODING).length)).getBytes());
+            write(baos,default_charset.encode(String.valueOf(bb.limit())));
             
             baos.write(':');
             
-            baos.write(tempString.getBytes(Constants.DEFAULT_ENCODING));
+            write(baos,bb );
             
         }else if(object instanceof Map){
         	
@@ -91,9 +110,9 @@ public class BEncoder {
 	                		   		
 	   					try{
 	  					
-	   				 		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
+	   				 		encode( baos, byte_charset.encode(key));
 	      				
-	      					BEncoder.encode(baos, tempMap.get(key));
+	      					encode( baos, tempMap.get(key));
 	      		
 	    				}catch( UnsupportedEncodingException e ){
 	                		
@@ -102,68 +121,12 @@ public class BEncoder {
 	
 	                }else{                 
 
-	                	BEncoder.encode(baos, key );	// Key goes in as UTF-8
+	                	encode(baos, key );	// Key goes in as UTF-8
 	      				
-	      				BEncoder.encode(baos, value);
+	      				encode(baos, value);
     				}      
                 }     
             }
-            
-            /*
-            //create a list to hold the alpha ordered keys
-            ArrayList keyList = new ArrayList();            
-            
-            //BUILD THE KEY LIST
-            //I KNOW THIS IS NASTY, BUT SUN DIDN'T SEE FIT TO RETURN A NULL
-            do{
-                try{
-                    //get the key
-                    String tempKey = (String)tempTree.firstKey();          
-                    //stuff it into the list
-                    keyList.add(tempKey);                    
-                    //get the rest of the tree
-                    tempTree = tempTree.tailMap(tempKey+"\0");                    
-                }catch(NoSuchElementException e){
-                    break;
-                }
-            }while(true);
-            
-            	//encode all of the keys
-            
-            if ( byte_keys ){
-            	
-            	try{
-            	
-					for(int i = 0; i<keyList.size(); i++){
-						
-				   		String key = (String)keyList.get(i);
-				   		Object value = tempMap.get(key);
-				   		if (value != null) {
-  				   			//encode the key
-  				   		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
-  				   			//encode the value
-  				   		BEncoder.encode(baos, tempMap.get(key));
-  				   	}
-			   		}
-            	}catch( UnsupportedEncodingException e ){
-            		
-            		throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
-            	}
-            }else{                 
-           
-				for(int i = 0; i<keyList.size(); i++){
-					Object key = keyList.get(i);
-					Object value = tempMap.get(key);
-					if (value != null) {
-  					//encode the key
-  					BEncoder.encode(baos, key );	// Key goes in as UTF-8
-  					//encode the value
-  					BEncoder.encode(baos, value);
-  				}
-				}      
-            }          
-            */
-            
             
             baos.write('e');
             
@@ -178,7 +141,7 @@ public class BEncoder {
             
             for(int i = 0; i<tempList.size(); i++){
                 
-                BEncoder.encode(baos, tempList.get(i));                            
+                encode(baos, tempList.get(i));                            
             }   
             
             baos.write('e');                          
@@ -188,23 +151,40 @@ public class BEncoder {
             Long tempLong = (Long)object;         
             //write out the l       
                baos.write('i');
-               baos.write(tempLong.toString().getBytes());
+               write(baos,default_charset.encode(tempLong.toString()));
                baos.write('e');
          }else if(object instanceof Integer){
          	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
 			baos.write('i');
-			baos.write(tempInteger.toString().getBytes());
+			write(baos,default_charset.encode(tempInteger.toString()));
 			baos.write('e');
 			
        }else if(object instanceof byte[]){
        	
             byte[] tempByteArray = (byte[])object;
-            baos.write((String.valueOf(tempByteArray.length)).getBytes());
+            write(baos,default_charset.encode(String.valueOf(tempByteArray.length)));
             baos.write(':');
             baos.write(tempByteArray);
-        }      
+            
+       }else if(object instanceof ByteBuffer ){
+       	
+       		ByteBuffer  bb = (ByteBuffer)object;
+       		write(baos,default_charset.encode(String.valueOf(bb.limit())));
+            baos.write(':');
+            write(baos,bb);
+        }   
+    }
+    
+    protected void
+	write(
+		OutputStream	os,
+		ByteBuffer		bb )
+    
+    	throws IOException
+    {
+    	os.write( bb.array(), 0, bb.limit());
     }
     
     public static boolean

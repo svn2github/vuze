@@ -167,8 +167,13 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			int	address_int	= PRHelpers.addressToInt( address );
+			long	address_int	= PRHelpers.addressToInt( address );
 				
+	    	if ( address_int < 0 ){
+	     		
+	    		address_int += 0x100000000L;
+	     	}
+	
 			entry	e = (entry)entries.get( user_data );
 			
 			if ( e == null ){

@@ -105,7 +105,7 @@ public class NatChecker {
             message.write(data, 0, nbRead);
           Thread.sleep(20);
         }
-        Map map = BDecoder.decode(message.toByteArray());
+        Map map = BDecoder.decode(message.toByteArray()); 
         int result = ((Long)map.get("result")).intValue();
         switch(result) {
           case 0 :

@@ -8,6 +8,8 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.*;
 import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
 
 /**
  * A set of utility methods to decode a bencoded array of byte into a Map.
@@ -18,26 +20,38 @@ import java.io.*;
  */
 public class BDecoder {
   /** Creates a new instance of BeDecoder */
-  private BDecoder() {
+	
+  Charset	byte_charset;
+
+  private 
+  BDecoder() 
+  {	
+  	try{
+  		byte_charset = Charset.forName( Constants.BYTE_ENCODING );
+  		
+	}catch( Throwable e ){
+		
+		Debug.printStackTrace( e );
+	}
   }
 
-  public static Map decode(byte[] data) throws IOException {
-    return BDecoder.decode(new ByteArrayInputStream(data));
-  }
-
-  private static Map 
-  decode(ByteArrayInputStream data) throws IOException 
-  {
-      return (Map) BDecoder.decodeInputStream(data, 0);
-  
+  public static Map decode(byte[] data) throws IOException { 
+    return new BDecoder().decode(new ByteArrayInputStream(data));
   }
 
   public static Map decode(BufferedInputStream data) throws IOException 
   {
-      return (Map) BDecoder.decodeInputStream(data, 0);
+      return (Map) new BDecoder().decodeInputStream(data, 0);
   }
 
-  private static Object 
+  
+  private Map 
+  decode(ByteArrayInputStream data) throws IOException 
+  {
+      return (Map) decodeInputStream(data, 0);
+  }
+
+  private Object 
   decodeInputStream(
   	InputStream bais,
 	int			nesting ) 
@@ -62,11 +76,19 @@ public class BDecoder {
 
         //get the key   
         byte[] tempByteArray = null;
-        while ((tempByteArray = (byte[]) BDecoder.decodeInputStream(bais, nesting+1)) != null) {
-          //decode some more
-          Object value = BDecoder.decodeInputStream(bais,nesting+1);
-          //add the value to the map
-          tempMap.put(new String(tempByteArray,Constants.BYTE_ENCODING), value);
+        while ((tempByteArray = (byte[]) decodeInputStream(bais, nesting+1)) != null) {
+        	
+        	//decode some more
+        	
+          Object value = decodeInputStream(bais,nesting+1);
+          
+          	//add the value to the map
+          
+          CharBuffer	cb = byte_charset.decode(ByteBuffer.wrap(tempByteArray));
+          
+          String	key = new String(cb.array(),0,cb.limit());
+                    
+          tempMap.put( key, value);
         }
 
         if ( bais.available() < nesting ){
@@ -83,7 +105,7 @@ public class BDecoder {
 
         //create the key
         Object tempElement = null;
-        while ((tempElement = BDecoder.decodeInputStream(bais, nesting+1)) != null) {
+        while ((tempElement = decodeInputStream(bais, nesting+1)) != null) {
           //add the element
           tempList.add(tempElement);
         }
@@ -100,7 +122,7 @@ public class BDecoder {
         return null;
 
       case 'i' :
-        return new Long(BDecoder.getNumberFromStream(bais, 'e'));
+        return new Long(getNumberFromStream(bais, 'e'));
 
       case '0' :
       case '1' :
@@ -115,14 +137,14 @@ public class BDecoder {
         //move back one
         bais.reset();
         //get the string
-        return BDecoder.getByteArrayFromStream(bais);
+        return getByteArrayFromStream(bais);
 
       default :
         throw new IOException("UNKNOWN COMMAND");
     }
   }
 
-  private static long getNumberFromStream(InputStream bais, char parseChar) throws IOException {
+  private long getNumberFromStream(InputStream bais, char parseChar) throws IOException {
     int length = 0;
 
     //place a mark
@@ -159,8 +181,8 @@ public class BDecoder {
     return Long.parseLong(new String(tempArray));
   }
 
-  private static byte[] getByteArrayFromStream(InputStream bais) throws IOException {
-    int length = (int) BDecoder.getNumberFromStream(bais, ':');
+  private byte[] getByteArrayFromStream(InputStream bais) throws IOException {
+    int length = (int) getNumberFromStream(bais, ':');
 
     if (length < 0) {
       return null;
