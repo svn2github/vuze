@@ -67,6 +67,24 @@ public class ManagerUtils {
     return true;
   }
   
+  public static boolean
+  isForceStartable(
+  	DownloadManager	dm )
+  {
+    if(dm == null){
+        return false;
+  	}
+    
+    int state = dm.getState();
+    
+    if (	state != DownloadManager.STATE_STOPPED && state != DownloadManager.STATE_QUEUED &&
+            state != DownloadManager.STATE_SEEDING && state != DownloadManager.STATE_DOWNLOADING){
+
+    	return( false );
+    }
+    
+    return( true );
+  }
   
   public static void 
   host(

@@ -527,13 +527,18 @@ public class MyTorrentsView
         boolean bChangeDir = false;
         if (hasSelection) {
           bChangeDir = true;
+          
           boolean moveUp, moveDown, start, stop, changeUrl, barsOpened,
                   forceStart, forceStartEnabled, recheck, manualUpdate, changeSpeed;
-          moveUp = moveDown = start = stop = changeUrl = barsOpened =
-                   forceStart = forceStartEnabled = recheck = manualUpdate = changeSpeed = true;
           
+          moveUp = moveDown = changeUrl = barsOpened = manualUpdate = changeSpeed = true;
+          
+          forceStart = forceStartEnabled = recheck =  start = stop = false;
+         
           long totalSpeed = 0;
+          
           boolean speedUnlimited = false;
+          
           boolean speedDisabled = false;
           for (int i = 0; i < dms.length; i++) {
             DownloadManager dm = (DownloadManager)dms[i];
@@ -549,40 +554,40 @@ public class MyTorrentsView
             	Debug.printStackTrace( ex );
             }
             
-            if (dm.getTrackerClient() == null)
+            if (dm.getTrackerClient() == null){
               changeUrl = false;
-            if (!downloadBars.containsKey(dm))
+            }
+            
+            if (!downloadBars.containsKey(dm)){
               barsOpened = false;
+            }
 
-            int state = dm.getState();
-            stop = stop && ManagerUtils.isStopable(dm);
-            start = start && ManagerUtils.isStartable(dm);
-
-            if (state != DownloadManager.STATE_STOPPED)
-              start = false;
-
-            if (!dm.canForceRecheck())
-              recheck = false;
-
-            if (!dm.isMoveableDown())
+            stop 	= stop || ManagerUtils.isStopable(dm);
+            
+            start 	= start || ManagerUtils.isStartable(dm);
+           
+            recheck = recheck || dm.canForceRecheck();
+   
+            forceStartEnabled = forceStartEnabled || ManagerUtils.isForceStartable(dm);
+            	         
+            forceStart = forceStart || dm.isForceStart();
+  
+            if (!dm.isMoveableDown()){
               moveDown = false;
-            if (!dm.isMoveableUp())
+            }
+            
+            if (!dm.isMoveableUp()){
               moveUp = false;
-
-            if (state != DownloadManager.STATE_STOPPED && state != DownloadManager.STATE_QUEUED &&
-                state != DownloadManager.STATE_SEEDING && state != DownloadManager.STATE_DOWNLOADING)
-              forceStartEnabled = false;
-
-            if (!dm.isForceStart())
-              forceStart = false;
-
+            }
+            
             TRTrackerClient trackerClient = dm.getTrackerClient();
+            
             if(trackerClient != null) {
               boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
               manualUpdate = manualUpdate & update_state;
             }
-
-            bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
+           
+            bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm.filesExist());
           }
           
           //itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %");  //TODO
@@ -848,14 +853,23 @@ public class MyTorrentsView
     itemForceStart.addListener(SWT.Selection,
                          new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
-        ((DownloadManager)row.getDataSource(true)).setForceStart(itemForceStart.getSelection());
+      	DownloadManager dm = (DownloadManager)row.getDataSource(true);
+      	
+      	if ( ManagerUtils.isForceStartable( dm )){
+      		dm.setForceStart(itemForceStart.getSelection());
+      	}
       }
     });
 
     itemRecheck.addListener(SWT.Selection,
                          new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
-        ((DownloadManager)row.getDataSource(true)).forceRecheck();
+     	DownloadManager dm = (DownloadManager)row.getDataSource(true);
+     	 
+     	if ( dm.canForceRecheck()){
+     		
+     		dm.forceRecheck();
+     	}
       }
     });
 
