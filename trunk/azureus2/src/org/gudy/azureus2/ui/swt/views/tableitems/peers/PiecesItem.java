@@ -80,6 +80,7 @@ public class PiecesItem extends PeerItem  {
         drawOnCanvas(event.gc, new Rectangle(event.x,event.y,event.width,event.height), true);
     	}
     });
+    cBlockView.moveAbove(null);
   }
   
   public void refresh() {
