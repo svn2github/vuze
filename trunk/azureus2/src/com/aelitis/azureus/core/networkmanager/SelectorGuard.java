@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.networkmanager;
 import java.util.*;
 import java.nio.channels.*;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
@@ -127,7 +126,7 @@ public class SelectorGuard {
    */
   public Selector repairSelector( Selector _bad_selector ) {
     String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys. [JRE " +System.getProperty("java.version")+"]\n";
-    msg += "Please see http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect for help.";
+    msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyNetworkDisconnectReconnect for help.";
     Debug.out( msg );
     LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
     
