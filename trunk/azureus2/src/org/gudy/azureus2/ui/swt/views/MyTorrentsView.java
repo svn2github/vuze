@@ -30,6 +30,7 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+//import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -222,7 +223,9 @@ public class MyTorrentsView
         catButton.pack(true);
         if (catButton.getSize().y > 0) {
           RowData rd = new RowData();
-          rd.height = catButton.getSize().y - 5 + catButton.getBorderWidth() * 2;
+          rd.height = catButton.getSize().y - 3 + catButton.getBorderWidth() * 2;
+//          Point pt = catButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+//          rd.height = pt.y;
           catButton.setLayoutData(rd);
         }
 
@@ -953,30 +956,27 @@ public class MyTorrentsView
     java.util.List list = getSelectedRowsList();
     if (list.size() == 0)
       return;
-    final boolean moveDown = drag_drop_line_end > drag_drop_line_start;
-    int lastIndex = ((DownloadManager)list.get(moveDown ? list.size() - 1 : 0)).getIndex();
-    if (moveDown) {
-      Collections.reverse(list);
-      lastIndex += drag_drop_line_end - drag_drop_line_start + 1;
-    } else {
-      lastIndex -= drag_drop_line_start - drag_drop_line_end + 1;
-    }
+
+    TableItem ti = getTable().getItem(drag_drop_line_end);
+    TableRowCore row = (TableRowCore)ti.getData("TableRow");
+    DownloadManager dm = (DownloadManager)row.getDataSource(true);
+    
+    int iNewPos = dm.getPosition();
     for (Iterator iter = list.iterator(); iter.hasNext();) {
-      TableRowCore row = (TableRowCore)iter.next();
-      DownloadManager dm = (DownloadManager)row.getDataSource(true);
-      if (!moveDown) {
-        for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
-          if (dm.isMoveableUp() && dm.getIndex() > lastIndex + 1)
-            dm.moveUp();
-        }
+      row = (TableRowCore)iter.next();
+      dm = (DownloadManager)row.getDataSource(true);
+      int iOldPos = dm.getPosition();
+      
+      globalManager.moveTo(dm, iNewPos);
+      if (sorter.isAscending()) {
+        if (iOldPos > iNewPos)
+          iNewPos++;
       } else {
-        for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
-          if (dm.isMoveableDown() && dm.getIndex() < lastIndex - 1)
-            dm.moveDown();
-        }
+        if (iOldPos < iNewPos)
+          iNewPos--;
       }
-      lastIndex = dm.getIndex();
     }
+
     if (sorter.getLastField().equals("#"))
       sorter.sortColumn(true);
   }
