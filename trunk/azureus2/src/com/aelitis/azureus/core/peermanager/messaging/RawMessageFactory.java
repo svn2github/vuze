@@ -62,7 +62,7 @@ public class RawMessageFactory {
     
     int payload_size = 0;
     for( int i=0; i < payload.length; i++ ) {
-      payload_size = payload[i].remaining( DirectByteBuffer.SS_MSG );
+      payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
     }
     
     //create and fill header buffer
@@ -110,7 +110,7 @@ public class RawMessageFactory {
     
     int payload_size = 0;
     for( int i=0; i < payload.length; i++ ) {
-      payload_size = payload[i].remaining( DirectByteBuffer.SS_MSG );
+      payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
     }  
         
     DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 5 + payload_size );
