@@ -39,6 +39,8 @@ ResourceDownloaderDelayedImpl
 	
 	protected ResourceDownloaderBaseImpl		delegate;
 		
+	protected long		size = -2;
+	
 	protected
 	ResourceDownloaderDelayedImpl(
 		ResourceDownloaderBaseImpl				_parent,
@@ -61,6 +63,11 @@ ResourceDownloaderDelayedImpl
 					delegate	= (ResourceDownloaderBaseImpl)factory.create();
 					
 					delegate.setParent( this );
+	
+					if ( size >= 0 ){
+						
+						delegate.setSize( size );
+					}
 					
 				}catch(  ResourceDownloaderException e ){
 					
@@ -88,7 +95,11 @@ ResourceDownloaderDelayedImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{		
-		return( new ResourceDownloaderDelayedImpl( parent, factory ));
+		ResourceDownloaderDelayedImpl	c = new ResourceDownloaderDelayedImpl( parent, factory );
+		
+		c.setSize( size );
+		
+		return( c );
 	}
 	
 	public InputStream
@@ -112,11 +123,14 @@ ResourceDownloaderDelayedImpl
 	
 	protected void
 	setSize(
-		long	size )
+		long	_size )
 	{
-		getDelegate();
+		size	= _size;
 		
-		delegate.setSize( size );
+		if ( delegate != null && size >= 0){
+					
+			delegate.setSize( size );
+		}
 	}
 	
 	public long
