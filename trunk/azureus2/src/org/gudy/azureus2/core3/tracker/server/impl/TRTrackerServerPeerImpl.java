@@ -130,11 +130,21 @@ TRTrackerServerPeerImpl
 		return( new String(ip));
 	}
 	
+		/**
+		 * If asynchronous resolution of the address is required, this will return
+		 * the non-resolved address until the async process completes 
+		 */
+	
 	public String
 	getIP()
 	{		
 		return( ip_str );
 	}
+	
+		/**
+		 * This will return in resolution of the address is not complete or fails
+		 * @return
+		 */
 	
 	public byte[]
 	getIPBytes()

@@ -26,16 +26,29 @@ public class BEncoder {
         return baos.toByteArray();
     }    
     
-    private static void encode(ByteArrayOutputStream baos, Object object) throws IOException{
-        if(object instanceof String || object instanceof Float){
+    private static void 
+	encode(
+		ByteArrayOutputStream baos, 
+		Object object) 
+    
+    	throws IOException
+	{
+    	
+        if ( object instanceof String || object instanceof Float){
+        	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
+
             
             baos.write((String.valueOf(tempString.getBytes(Constants.DEFAULT_ENCODING).length)).getBytes());
+            
             baos.write(':');
+            
             baos.write(tempString.getBytes(Constants.DEFAULT_ENCODING));
             
         }else if(object instanceof Map){
+        	
             Map tempMap = (Map)object;
+            
             SortedMap tempTree = null;
             
             	// unfortunately there are some occasions where we want to ensure that
@@ -51,13 +64,52 @@ public class BEncoder {
             baos.write('d');
             
             //are we sorted?
-            if(tempMap instanceof TreeMap){
+            if ( tempMap instanceof TreeMap ){
+            	
                 tempTree = (TreeMap)tempMap;
+                
             }else{
-                //do map sorting here
+            	
+                	//do map sorting here
+            	
                 tempTree = new TreeMap(tempMap);                
             }            
-                        
+                   
+            Iterator	it = tempTree.entrySet().iterator();
+            
+            while( it.hasNext()){
+            	
+            	Map.Entry	entry = (Map.Entry)it.next();
+			
+            	String key = (String)entry.getKey();
+   			   		           	
+   			   	Object value = entry.getValue();
+
+   			   	if ( value != null ){
+   			   		
+	                if ( byte_keys ){
+	                		   		
+	   					try{
+	  					
+	   				 		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
+	      				
+	      					BEncoder.encode(baos, tempMap.get(key));
+	      		
+	    				}catch( UnsupportedEncodingException e ){
+	                		
+	    					throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
+	    				}
+	
+	                }else{                 
+
+	                	BEncoder.encode(baos, key );	// Key goes in as UTF-8
+	      				
+	      				BEncoder.encode(baos, value);
+    				}      
+                }     
+            }
+            
+            /*
             //create a list to hold the alpha ordered keys
             ArrayList keyList = new ArrayList();            
             
@@ -110,35 +162,44 @@ public class BEncoder {
   				}
 				}      
             }          
-     
+            */
+            
             
             baos.write('e');
             
             
         }else if(object instanceof List){
-            List tempList = (List)object;         
-            //write out the l                   
+        	
+            List tempList = (List)object;
+            
+            	//write out the l
+            
             baos.write('l');                                   
             
             for(int i = 0; i<tempList.size(); i++){
-                //encode the first element
+                
                 BEncoder.encode(baos, tempList.get(i));                            
-            }                        
+            }   
+            
             baos.write('e');                          
             
         }else if(object instanceof Long){
+        	
             Long tempLong = (Long)object;         
             //write out the l       
                baos.write('i');
                baos.write(tempLong.toString().getBytes());
                baos.write('e');
          }else if(object instanceof Integer){
+         	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
 			baos.write('i');
 			baos.write(tempInteger.toString().getBytes());
 			baos.write('e');
+			
        }else if(object instanceof byte[]){
+       	
             byte[] tempByteArray = (byte[])object;
             baos.write((String.valueOf(tempByteArray.length)).getBytes());
             baos.write(':');

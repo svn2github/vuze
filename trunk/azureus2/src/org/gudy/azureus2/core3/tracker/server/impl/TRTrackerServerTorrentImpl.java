@@ -381,7 +381,7 @@ TRTrackerServerTorrentImpl
 						
 					}else if ( include_seeds || !peer.isSeed()){
 										
-						Map rep_peer = new HashMap();
+						Map rep_peer = new HashMap(3);
 			
 						if ( send_peer_ids ){
 							
@@ -430,7 +430,7 @@ TRTrackerServerTorrentImpl
 					
 							added++;
 							
-							Map rep_peer = new HashMap();
+							Map rep_peer = new HashMap(3);
 							
 							if ( send_peer_ids ){
 								
@@ -479,7 +479,8 @@ TRTrackerServerTorrentImpl
 							
 							added++;
 							
-							Map rep_peer = new HashMap();
+							Map rep_peer = new HashMap(3);	// don't use TreeMap as default is "compact"
+															// so we never actually encode anyway
 							
 							if ( send_peer_ids ){
 								
@@ -510,7 +511,7 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
-		Map	root = new HashMap();
+		Map	root = new TreeMap();	// user TreeMap to pre-sort so encoding quicker
 		
 		if ( compact ){
 			
@@ -605,7 +606,7 @@ TRTrackerServerTorrentImpl
 			return( last_scrape );
 		}
 		
-		last_scrape 			= new HashMap();
+		last_scrape 			= new TreeMap();
 		last_scrape_calc_time	= now;
 		
 		long	seeds 		= 0;

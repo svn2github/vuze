@@ -91,7 +91,22 @@ Main
 		}
 		*/
 		
-		getSingleton();
+		
+		// getSingleton();
+		
+		try{
+			URL	tracker = new URL("http://192.168.0.2:6969/announce" );
+			
+		    String	info = "%9C%8B%B5%29%3B%26D8h%B1%BF%7C%E0%E9I%D9X%27%12c";
+		    		
+		    String  scrape = "http://127.0.0.1:6969/scrape?info_hash=%9C%8B%B5%29%3B%26D8h%B1%BF%7C%E0%E9I%D9X%27%12c";
+		    
+		    new Main().loadTest( tracker, info, scrape );
+		    
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 
 	protected static Semaphore			init_sem = new Semaphore();
@@ -186,18 +201,20 @@ Main
 	
 	long	now 	= System.currentTimeMillis();
 	
+	
+	final int		num_want_base = 50;
+	
+	final String	event="started";
+			
+	final boolean	random_want	= true;
+	
+	final boolean	do_scrape	= false;
+	final boolean	mix			= false;	
+
 	protected void
 	processTorrent(
 		TrackerTorrent	torrent )
 	{
-		final int		num_want_base = 50;
-		
-		final String	event="started";
-				
-		final boolean	random_want	= true;
-		
-		final boolean	do_scrape	= true;
-		final boolean	mix			= true;	
 		
 		Tracker tracker = plugin_interface.getTracker();
 		
@@ -216,15 +233,30 @@ Main
 		final String	info_hash	= t_info_hash;
 		
 		final String url_scrape 	= "http://127.0.0.1:" + tracker_url.getPort() + "/scrape?info_hash=" + info_hash;
+	
+		loadTest( tracker_url, info_hash, url_scrape );
+	}
+	
+	protected void
+	loadTest(
+		final URL			tracker_url,
+		final String		info_hash,
+		final String		url_scrape )
+	{
+		System.out.println( "starting load test" );
 		
-		for (int i=0;i<10;i++){
+		System.out.println( "    tracker = " + tracker_url.toString());
+		System.out.println( "    info = " + info_hash );
+		System.out.println( "    scrape = " + url_scrape );
+		
+		for (int i=0;i<6;i++){
 			
 			new Thread()
 			{
 				public void
 				run()
 				{
-					for (int i=0;i<100;i++){
+					for (int i=0;i<10000;i++){
 						
 						long	peer_id;
 						long	address;
@@ -235,6 +267,7 @@ Main
 						String url_end		= "&port=6881&uploaded=0&downloaded=0&left=10&event="+event+"&numwant=" +num_want + "&ip=IP";
 												
 						synchronized( Main.this ){
+	
 							
 							count++;
 							
@@ -252,6 +285,8 @@ Main
 						boolean	did_scrape;
 						
 						try{
+							Thread.sleep(50);
+							
 							String	url_str;
 							
 							if (mix ){
