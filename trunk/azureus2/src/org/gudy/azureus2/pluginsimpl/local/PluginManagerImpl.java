@@ -27,12 +27,13 @@ package org.gudy.azureus2.pluginsimpl.local;
  */
 
 import java.util.*;
-import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.update.Restarter;
+
+import com.aelitis.azureus.core.*;
 
 public class 
 PluginManagerImpl 
@@ -42,6 +43,8 @@ PluginManagerImpl
 	protected static int		ui_type		= PluginManager.UI_NONE;
 	
 	protected static PluginManagerImpl	singleton;
+	
+	protected static AzureusCore		azureus_core;
 	
 	protected static synchronized PluginManagerImpl
 	getSingleton(
@@ -82,11 +85,10 @@ PluginManagerImpl
 				// org.gudy.azureus2.ui.common.Main.main( new String[]{"--ui=console"});
 			
 			try{
-				Class	main = Class.forName("org.gudy.azureus2.ui.common.Main");
 				
-				Method method = main.getMethod( "main", new Class[]{ String[].class });
+				azureus_core = AzureusCoreFactory.create();
 				
-				method.invoke( null, new Object[]{new String[]{"--ui=console"}});
+				azureus_core.start();
 				
 			}catch( Throwable e ){
 				
@@ -129,11 +131,7 @@ PluginManagerImpl
 				// org.gudy.azureus2.ui.common.Main.shutdown();
 			
 			try{
-				Class	main = Class.forName("org.gudy.azureus2.ui.common.Main");
-				
-				Method method = main.getMethod( "shutdown", new Class[]{});
-				
-				method.invoke( null, null );
+				azureus_core.stop();
 				
 			}catch( Throwable e ){
 							
@@ -303,6 +301,12 @@ PluginManagerImpl
 		l.toArray(res);
 		
 		return( res );
+	}
+	
+	public static PluginInterface
+	getDefaultPluginInterface()
+	{
+		return( PluginInitializer.getDefaultInterface());
 	}
 	
 	protected PluginInitializer		pi;

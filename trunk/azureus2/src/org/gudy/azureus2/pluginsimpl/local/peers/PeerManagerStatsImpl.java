@@ -20,48 +20,41 @@
  *
  */
 
-package com.aelitis.azureus.core;
+package org.gudy.azureus2.pluginsimpl.local.peers;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.tracker.host.TRHost;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.peers.*;
 
-public interface 
-AzureusCore 
+import org.gudy.azureus2.core3.peer.*;
+
+public class 
+PeerManagerStatsImpl
+	implements PeerManagerStats
 {
-	public void
-	start()
+	protected PEPeerManager			manager;
+	protected PEPeerManagerStats	stats;
 	
-		throws AzureusCoreException;
+	protected
+	PeerManagerStatsImpl(
+		PEPeerManager		_manager )
+	{
+		manager	= _manager;
+		stats	= manager.getStats();
+	}
 	
-	public void
-	stop()
+	public int
+	getConnectedSeeds()
+	{
+		return( manager.getNbSeeds());
+	}
 	
-		throws AzureusCoreException;
-	
-	
-	public GlobalManager
-	getGlobalManager()
-	
-		throws AzureusCoreException;
-	
-	public PluginManagerDefaults
-	getPluginManagerDefaults()
-	
-		throws AzureusCoreException;
-	
-	public PluginManager
-	getPluginManager()
-	
-		throws AzureusCoreException;
-	
-	public TRHost
-	getTrackerHost()
-	
-		throws AzureusCoreException;
+	public int
+	getConnectedLeechers()
+	{
+		return( manager.getNbRemoteConnections());
+	}
 }

@@ -22,6 +22,7 @@
 package org.gudy.azureus2.plugins.download;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /** Management of a Torrent's activity.
  * <PRE>
@@ -390,6 +391,17 @@ Download
   	
   	public boolean
 	isComplete();
+  	
+  	public String
+	getSavePath();
+  	
+  		/**
+  		 * return the current peer manager for the download. 
+  		 * @return	null returned if torrent currently doesn't have one (e.g. it is stopped)
+  		 */
+  	
+  	public PeerManager
+	getPeerManager();
   	
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -131,6 +132,20 @@ AzureusCoreImpl
 		}
 		
 		return( global_manager );
+	}
+	
+	public TRHost
+	getTrackerHost()
+	
+		throws AzureusCoreException
+	{	
+		if ( !running ){
+	
+			throw( new AzureusCoreException( "core not running" ));
+
+		}
+		
+		return( TRHostFactory.getSingleton());
 	}
 	
 	public PluginManagerDefaults

@@ -748,6 +748,19 @@ DownloadImpl
 		}	
 	}
 	
+ 	public PeerManager
+	getPeerManager()
+ 	{
+ 		PEPeerManager	pm = download_manager.getPeerManager();
+ 		
+ 		if ( pm == null ){
+ 			
+ 			return( null );
+ 		}
+ 		
+ 		return( PeerManagerImpl.getPeerManager( pm));
+ 	}
+ 	
 	public void
 	peerAdded(
 		PEPeer 	peer )
@@ -788,4 +801,10 @@ DownloadImpl
   	{
   		return( download_manager.getStats().getMaxDownloadKBSpeed());
   	}
+  	
+	public String
+	getSavePath()
+ 	{
+		return( download_manager.getSavePath());
+ 	}
 }

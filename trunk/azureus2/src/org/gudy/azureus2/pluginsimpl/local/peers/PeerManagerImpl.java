@@ -90,6 +90,12 @@ PeerManagerImpl
 		return( new DiskManagerImpl( this ));
 	}
 	
+	public PeerManagerStats
+	getStats()
+	{
+		return(new PeerManagerStatsImpl( manager));
+	}
+	
 	public boolean
 	isSeeding()
 	{

@@ -20,48 +20,19 @@
  *
  */
 
-package com.aelitis.azureus.core;
+package org.gudy.azureus2.plugins.peers;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.tracker.host.TRHost;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.plugins.*;
-
 public interface 
-AzureusCore 
+PeerManagerStats 
 {
-	public void
-	start()
+	public int
+	getConnectedSeeds();
 	
-		throws AzureusCoreException;
-	
-	public void
-	stop()
-	
-		throws AzureusCoreException;
-	
-	
-	public GlobalManager
-	getGlobalManager()
-	
-		throws AzureusCoreException;
-	
-	public PluginManagerDefaults
-	getPluginManagerDefaults()
-	
-		throws AzureusCoreException;
-	
-	public PluginManager
-	getPluginManager()
-	
-		throws AzureusCoreException;
-	
-	public TRHost
-	getTrackerHost()
-	
-		throws AzureusCoreException;
+	public int
+	getConnectedLeechers();
 }

@@ -47,6 +47,9 @@ PeerManager
 	public DiskManager
 	getDiskManager();
 	
+	public PeerManagerStats
+	getStats();
+	
 	public boolean
 	isSeeding();
 	

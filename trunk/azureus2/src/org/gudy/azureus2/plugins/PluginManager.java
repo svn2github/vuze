@@ -164,6 +164,18 @@ PluginManager
 	}
 	
 	/**
+	 * returns the default plugin interface that can be used to access plugin functionality without an
+	 * explicit plugin
+	 * @return	null if unavailable 
+	 */
+	
+	public static PluginInterface
+	getDefaultPluginInterface()
+	{
+		return( PluginManagerImpl.getDefaultPluginInterface());	
+	}
+	
+	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
 	 * results as plugin initialisation is non-deterministic.
 	 * @return

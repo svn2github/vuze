@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
  */
 
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
@@ -617,11 +618,27 @@ RPDownload
  		return( false );
  	}
  	
+	public PeerManager
+	getPeerManager()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public long
 	getCreationTime()
 	{
 		notSupported();
 		
 		return( 0 );
+	}
+	
+ 	public String
+	getSavePath()
+ 	{
+		notSupported();
+		
+		return( null );
 	}
 }

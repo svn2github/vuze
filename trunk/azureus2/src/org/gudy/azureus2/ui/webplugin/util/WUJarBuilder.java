@@ -57,9 +57,16 @@ WUJarBuilder
 			
 			List	entries = (List)package_map.get(package_names[i]);
 			
-			for (int j=0;j<entries.size();j++){
+			if ( entries == null ){
 				
-				resource_names.add( package_names[i] + "/" + entries.get(j));
+				Debug.out( "package '" + package_names[i] + "' missing" );
+				
+			}else{
+			
+				for (int j=0;j<entries.size();j++){
+				
+					resource_names.add( package_names[i] + "/" + entries.get(j));
+				}
 			}
 		}
 		
