@@ -1,7 +1,8 @@
 /*
  * Created on Nov 12, 2003
  * Created by Alon Rohter
- *
+ * Copyright (C) 2003-2004 Alon Rohter, All Rights Reserved.
+ * 
  */
 package org.gudy.azureus2.core3.util;
 
@@ -67,6 +68,13 @@ public class Identification {
       String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
       if (old_azureus.equals("Azureus")) return "Azureus 2.0.3.2";
       
+      
+      String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
+      if (bitspirit.equals("BS")) {
+        if (peerID[1] == (byte)0)  return "BitSpirit v1";
+        if (peerID[1] == (byte)2)  return "BitSpirit v2";
+      }
+            
       
       String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (upnp.equals("U")) {
@@ -208,9 +216,9 @@ public class Identification {
   }
     sPeerID += ": ";
     for (int i = 0; i < peerID.length; i++) {
-      if ((int)(0xFF & peerID[i]) < 32)
+      if ((0xFF & peerID[i]) < 32)
         peerID[i] = 32;
-      if ((int)(0xFF & peerID[i]) > 127)
+      if ((0xFF & peerID[i]) > 127)
         peerID[i] = 32;
     }
     sPeerID += new String(peerID).replaceAll(" ", "");
