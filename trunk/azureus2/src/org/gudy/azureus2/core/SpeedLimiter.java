@@ -155,7 +155,7 @@ public class SpeedLimiter {
     int allowed = toBeAllocated / peersToBeAllocated;
     int maxUpload = wt.getMaxUpload();
     int result = allowed > maxUpload ? maxUpload : allowed;
-    //Logger.getLogger().log(0,0,Logger.ERROR,"Allocated for 100ms :" + result);
+    Logger.getLogger().log(0,0,Logger.ERROR,"Allocated for 100ms :" + result);
     return result;
   }
 

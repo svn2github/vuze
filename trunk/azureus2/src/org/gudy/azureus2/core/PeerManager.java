@@ -767,7 +767,7 @@ public class PeerManager extends Thread {
     }
 
     //3. Only Choke-Unchoke Every 10 secs
-    if ((_loopFactor % 500) != 0)
+    if ((_loopFactor % 100) != 0)
       return;
 
     //3. if non unchoke possibilities we should cancel all chokes
@@ -855,7 +855,7 @@ public class PeerManager extends Thread {
     }
 
     //  optimistic unchoke
-    if ((_loopFactor % 1500) == 0 || (currentOptimisticUnchoke == null)) {
+    if ((_loopFactor % 300) == 0 || (currentOptimisticUnchoke == null)) {
 
       int index = 0;
       synchronized (_connections) {
