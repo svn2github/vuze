@@ -149,6 +149,8 @@ public class IPWListPanel extends AbstractWizardPanel {
 	        for(int i = 0 ; i < plugins.length ; i++) {
 	          StandardPlugin plugin = plugins[i];
 	          if(plugin.getAlreadyInstalledPlugin() == null) {
+	            if(pluginList == null || pluginList.isDisposed())
+	              return;
 	            TableItem item = new TableItem(pluginList,SWT.NULL);
 	            item.setData(plugin);
 	            item.setText(0,plugin.getName());
@@ -169,14 +171,29 @@ public class IPWListPanel extends AbstractWizardPanel {
 	  public void handleEvent(Event e) {
 	    if(pluginList.getSelectionCount() > 0) {
 	      txtDescription.setText( MessageText.getString( "installPluginsWizard.details.loading"));
-
-	      wizard.getDisplay().asyncExec(new AERunnable() {
-		      public void runSupport() {
-
-		      	TableItem itemSelected = pluginList.getSelection()[0];
-		      	txtDescription.setText( ((StandardPlugin)itemSelected.getData()).getDescription());
-		      }
-	      	});
+	      final TableItem itemSelected = pluginList.getSelection()[0];
+	      final StandardPlugin plugin = (StandardPlugin) itemSelected.getData();
+	      
+	      
+	      AEThread detailsLoader = new AEThread("Detail Loader") {
+	        public void runSupport() {
+	         final String description = plugin.getDescription();
+	         wizard.getDisplay().asyncExec(new AERunnable() {
+			      public void runSupport() {
+			        if(pluginList == null || pluginList.isDisposed() || pluginList.getSelectionCount() ==0)
+			          return;
+			        if(pluginList.getSelection()[0] != itemSelected)
+			          return;
+			      	if(txtDescription == null || txtDescription.isDisposed())
+			      	  return;			      	
+			        txtDescription.setText(description);
+			      }
+		      	});
+	        }
+	      };
+	      
+	      detailsLoader.setDaemon(true);
+	      detailsLoader.start();
 	    }
 	    updateList();
 	  }

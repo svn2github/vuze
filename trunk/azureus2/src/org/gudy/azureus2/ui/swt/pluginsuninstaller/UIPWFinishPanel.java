@@ -20,7 +20,7 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package org.gudy.azureus2.ui.swt.pluginsinstaller;
+package org.gudy.azureus2.ui.swt.pluginsuninstaller;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -37,9 +37,9 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  * @author Olivier Chalouhi
  *
  */
-public class FinishPanel extends AbstractWizardPanel {
+public class UIPWFinishPanel extends AbstractWizardPanel {
 
-  public FinishPanel(
+  public UIPWFinishPanel(
       Wizard wizard,
       IWizardPanel 			previous) 
   {
@@ -49,7 +49,7 @@ public class FinishPanel extends AbstractWizardPanel {
   
   
   public void show() {
-    wizard.setTitle(MessageText.getString("installPluginsWizard.finish.title"));
+    wizard.setTitle(MessageText.getString("uninstallPluginsWizard.finish.title"));
     wizard.setErrorMessage("");
     
 	Composite rootPanel = wizard.getPanel();
@@ -67,11 +67,11 @@ public class FinishPanel extends AbstractWizardPanel {
 	Label lblExplanation = new Label(panel,SWT.WRAP);
 	GridData data = new GridData(GridData.FILL_BOTH);
 	lblExplanation.setLayoutData(data);
-	Messages.setLanguageText(lblExplanation,"installPluginsWizard.finish.explanation");
+	Messages.setLanguageText(lblExplanation,"uninstallPluginsWizard.finish.explanation");
   }
   
   public void finish() {
-    ((InstallPluginWizard)wizard).performInstall();
+    ((UnInstallPluginWizard)wizard).performUnInstall();
     wizard.switchToClose();
   }
   

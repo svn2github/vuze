@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
+import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
@@ -415,6 +416,15 @@ public class MainMenu {
           new InstallPluginWizard(mainWindow.getAzureusCore(), display);
         }
       });
+      
+      MenuItem plugins_uninstall_wizard = new MenuItem(pluginMenu, SWT.NULL);
+      Messages.setLanguageText(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins"); //$NON-NLS-1$
+      plugins_uninstall_wizard.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new UnInstallPluginWizard(mainWindow.getAzureusCore(), display);
+        }
+      });
+      
       
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
