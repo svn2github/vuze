@@ -73,6 +73,8 @@ FMFileImpl
 		if ( file.renameTo(new_file)) {
 			
 			file	= new_file;
+      
+      openSupport();
 			
 		}else{
 			
