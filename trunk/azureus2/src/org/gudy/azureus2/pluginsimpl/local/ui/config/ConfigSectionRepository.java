@@ -24,30 +24,54 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.core3.util.*;
 
 public class ConfigSectionRepository {
 
-  private static ConfigSectionRepository instance;
+  private static ConfigSectionRepository 	instance;
+  private static AEMonitor					class_mon	= new AEMonitor( "ConfigSectionRepository:class");
+  
   private ArrayList items;
 
   private ConfigSectionRepository() {
    items = new ArrayList();
   }
 
-  public static synchronized ConfigSectionRepository getInstance() {
-    if(instance == null)
-      instance = new ConfigSectionRepository();
-    return instance;
+  public static ConfigSectionRepository getInstance() {
+  	try{
+  		class_mon.enter();
+  		
+	    if(instance == null)
+	      instance = new ConfigSectionRepository();
+	    return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
   public void addConfigSection(ConfigSection item) {
-    synchronized(items) {
-      items.add(item);
+  	try{
+  		class_mon.enter();
+  		
+  		items.add(item);
+  		
+    }finally{
+    	
+    	class_mon.exit();
     }
   }
 
   public ArrayList getList() {
-    return (ArrayList)items.clone();
+ 	try{
+  		class_mon.enter();
+   
+  		return (ArrayList)items.clone();
+  		
+ 	  }finally{
+    	
+    	class_mon.exit();
+    } 		
   }
 
 }

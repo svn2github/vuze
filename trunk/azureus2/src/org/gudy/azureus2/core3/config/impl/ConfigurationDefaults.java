@@ -25,7 +25,7 @@ import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 
 
 /**
@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.util.Constants;
 public class ConfigurationDefaults {
   
   private static ConfigurationDefaults configdefaults;
+  private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
   
   private HashMap def = null;
   
@@ -63,10 +64,18 @@ public class ConfigurationDefaults {
   public String def_String = "";
   public byte[] def_bytes = null;
   
-  public synchronized static ConfigurationDefaults getInstance() {
-    if(configdefaults == null)
-      configdefaults = new ConfigurationDefaults();
-    return configdefaults;
+  public static ConfigurationDefaults getInstance() 
+  {
+  	try{
+  		class_mon.enter();
+  	
+	    if(configdefaults == null)
+	      configdefaults = new ConfigurationDefaults();
+	    return configdefaults;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   /** Creates a new instance of Defaults */
   public ConfigurationDefaults() {

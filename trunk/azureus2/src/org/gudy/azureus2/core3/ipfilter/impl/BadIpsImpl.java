@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.ipfilter.BadIp;
 import org.gudy.azureus2.core3.ipfilter.BadIps;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -32,19 +33,29 @@ import org.gudy.azureus2.core3.ipfilter.BadIps;
  */
 public class BadIpsImpl implements BadIps {
   
-  private static BadIps instance; 
+  private static BadIps 	instance; 
+  private static AEMonitor	class_mon	= new AEMonitor( "BadIps:class" );
   
-  private Map bad_ip_map;
+  private Map 		bad_ip_map;
+  private AEMonitor	bad_ip_map_mon		= new AEMonitor( "BadIps:Map");
   
-  public static synchronized BadIps 
+  public static BadIps 
   getInstance() 
   {
-    if( instance == null ){
+  	try{
+  		class_mon.enter();
+  	
+  		if( instance == null ){
     
-    	instance = new BadIpsImpl();
-    }
+  			instance = new BadIpsImpl();
+  		}
     
-    return( instance );
+  		return( instance );
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public BadIpsImpl() 
@@ -56,8 +67,9 @@ public class BadIpsImpl implements BadIps {
   addWarningForIp(
   	String ip ) 
   {
-    synchronized(bad_ip_map) 
-	{ 
+    try{
+    	bad_ip_map_mon.enter(); 
+    
     	BadIpImpl	bad_ip = (BadIpImpl)bad_ip_map.get( ip );
     	
     	if ( bad_ip == null ){
@@ -68,6 +80,10 @@ public class BadIpsImpl implements BadIps {
     	}
     	
     	return( bad_ip.incrementWarnings());
+    	
+    }finally{
+    	
+    	bad_ip_map_mon.exit();
     }
   }
 
@@ -76,9 +92,10 @@ public class BadIpsImpl implements BadIps {
   getNbWarningForIp(
   	String ip) 
   {
-    synchronized(bad_ip_map) 
-	{
-      BadIpImpl bad_ip = (BadIpImpl) bad_ip_map.get(ip);
+    try{
+    	bad_ip_map_mon.enter();
+    	
+        BadIpImpl bad_ip = (BadIpImpl) bad_ip_map.get(ip);
       
       if(bad_ip == null) {
       	
@@ -88,26 +105,41 @@ public class BadIpsImpl implements BadIps {
       	
         return bad_ip.getNumberOfWarnings();
       }
+    }finally{
+    
+    	bad_ip_map_mon.exit();
     }
   }
   
   public BadIp[]
   getBadIps()
   {
-  	synchronized(bad_ip_map){
-  		
+    try{
+    	bad_ip_map_mon.enter();
+    	
   		BadIp[]	res = new BadIp[bad_ip_map.size()];
   		
   		bad_ip_map.values().toArray( res );
   		
   		return( res );
-  	}
+    }finally{
+        
+       	bad_ip_map_mon.exit();
+    }
   }
   
-  public synchronized void
+  public void
   clearBadIps()
   {
-  	bad_ip_map.clear();
+    try{
+    	bad_ip_map_mon.enter();
+  
+    	bad_ip_map.clear();
+    	
+    }finally{
+        
+        bad_ip_map_mon.exit();
+    }
   }
   
   public int

@@ -49,6 +49,8 @@ AuthenticatorWindow
 {
 	protected Map	auth_cache = new HashMap();
 	
+	protected AEMonitor	this_mon	= new AEMonitor( "AuthWind" );
+	
 	public
 	AuthenticatorWindow()
 	{
@@ -57,24 +59,40 @@ AuthenticatorWindow
 		// System.out.println( "AuthenticatorWindow");
 	}
 	
-	public synchronized PasswordAuthentication
+	public PasswordAuthentication
 	getAuthentication(
 		String		realm,
 		URL			tracker )
 	{
-		return( getAuthentication( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort()));
+		try{
+			this_mon.enter();
+	
+			return( getAuthentication( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort()));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	setAuthenticationOutcome(
 		String		realm,
 		URL			tracker,
 		boolean		success )
 	{
-		setAuthenticationOutcome( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort(), success );	
+		try{
+			this_mon.enter();
+		
+			setAuthenticationOutcome( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort(), success );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	setAuthenticationOutcome(
 		String		realm,
 		String		protocol,
@@ -82,93 +100,107 @@ AuthenticatorWindow
 		int			port,
 		boolean		success )
 	{
-		String	tracker = protocol + "://" + host + ":" + port + "/";
+		try{
+			this_mon.enter();
 		
-		String auth_key = realm+":"+tracker;
-		
-		authCache	cache = (authCache)auth_cache.get( auth_key );
-
-		if ( cache != null ){
-
-			cache.setOutcome( success );
+			String	tracker = protocol + "://" + host + ":" + port + "/";
+			
+			String auth_key = realm+":"+tracker;
+			
+			authCache	cache = (authCache)auth_cache.get( auth_key );
+	
+			if ( cache != null ){
+	
+				cache.setOutcome( success );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized PasswordAuthentication
+	public PasswordAuthentication
 	getAuthentication(
 		String		realm,
 		String		protocol,
 		String		host,
 		int			port )
 	{
-		String	tracker = protocol + "://" + host + ":" + port + "/";
-
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-		
-		String	self_addr;
-
-		// System.out.println( "auth req for " + realm + " - " + tracker );
-		
-		if ( bind_ip.length() < 7 ){
+		try{
+			this_mon.enter();
 	
-			self_addr = "127.0.0.1";
+			String	tracker = protocol + "://" + host + ":" + port + "/";
 	
-		}else{
-	
-			self_addr = bind_ip;
-		}
-
-			// when the tracker is connected to internally we don't want to prompt
-			// for the password. Here we return a special user and the password hash
-			// which is picked up in the tracker auth code - search for "<internal>"!
+			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 			
-			// also include the tracker IP as well as for scrapes these can occur on
-			// a raw torrent which hasn't been modified to point to localhost
-		
-		if ( 	host.equals(self_addr) ||
-				host.equals(COConfigurationManager.getStringParameter("Tracker IP", ""))){
-		
-			try{
-				byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
+			String	self_addr;
+	
+			// System.out.println( "auth req for " + realm + " - " + tracker );
 			
-				String str_pw = new BASE64Encoder().encode(pw);
+			if ( bind_ip.length() < 7 ){
+		
+				self_addr = "127.0.0.1";
+		
+			}else{
+		
+				self_addr = bind_ip;
+			}
+	
+				// when the tracker is connected to internally we don't want to prompt
+				// for the password. Here we return a special user and the password hash
+				// which is picked up in the tracker auth code - search for "<internal>"!
 				
-				return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
-					
-			}catch( Throwable e ){
+				// also include the tracker IP as well as for scrapes these can occur on
+				// a raw torrent which hasn't been modified to point to localhost
+			
+			if ( 	host.equals(self_addr) ||
+					host.equals(COConfigurationManager.getStringParameter("Tracker IP", ""))){
+			
+				try{
+					byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
 				
-				e.printStackTrace();
-			}	
-		}
-		
-		String auth_key = realm+":"+tracker;
-							
-		authCache	cache = (authCache)auth_cache.get( auth_key );
+					String str_pw = new BASE64Encoder().encode(pw);
 					
-		if ( cache != null ){
+					return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
+						
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}	
+			}
 			
-			PasswordAuthentication	auth = cache.getAuth();
-			
-			if ( auth != null ){
+			String auth_key = realm+":"+tracker;
+								
+			authCache	cache = (authCache)auth_cache.get( auth_key );
+						
+			if ( cache != null ){
+				
+				PasswordAuthentication	auth = cache.getAuth();
+				
+				if ( auth != null ){
+					
+					return( auth );
+				}
+			}
+				
+			String[]	res = getAuthenticationDialog( realm, tracker );
+				
+			if ( res == null ){
+				
+				return( null );
+				
+			}else{
+								
+				PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
+				
+				auth_cache.put( auth_key, new authCache( auth ));
 				
 				return( auth );
-			}
+			}	
+		}finally{
+			
+			this_mon.exit();
 		}
-			
-		String[]	res = getAuthenticationDialog( realm, tracker );
-			
-		if ( res == null ){
-			
-			return( null );
-			
-		}else{
-							
-			PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
-			
-			auth_cache.put( auth_key, new authCache( auth ));
-			
-			return( auth );
-		}	
 	}
 	
 	

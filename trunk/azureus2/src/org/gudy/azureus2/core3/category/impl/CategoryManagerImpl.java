@@ -41,9 +41,11 @@ public class CategoryManagerImpl  {
   private static Category catAll = null;
   private static Category catUncategorized = null;
   private static boolean doneLoading = false;
-
-  private Map categories = new HashMap();
-
+  private static AEMonitor	class_mon	= new AEMonitor( "CategoryManager:class" );
+  
+  private Map categories 			= new HashMap();
+  private AEMonitor	categories_mon	= new AEMonitor( "Categories" );
+  
   private static final int LDT_CATEGORY_ADDED     = 1;
   private static final int LDT_CATEGORY_REMOVED   = 2;
   private ListenerManager category_listeners = ListenerManager.createManager(
@@ -79,10 +81,16 @@ public class CategoryManagerImpl  {
     category_listeners.removeListener( l );
   }
 
-  public synchronized static CategoryManagerImpl getInstance() {
-    if (catMan == null)
-      catMan = new CategoryManagerImpl();
-    return catMan;
+  public static CategoryManagerImpl getInstance() {
+  	try{
+  		class_mon.enter();
+	    if (catMan == null)
+	      catMan = new CategoryManagerImpl();
+	    return catMan;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
   protected void loadCategories() {
@@ -133,7 +141,9 @@ public class CategoryManagerImpl  {
     }
 
     if (map != null && catNames.size() > 0) {
-      synchronized (categories) {
+      try{
+      	categories_mon.enter();
+     
         makeSpecialCategories();
 
         for (int i = 0; i < catNames.size(); i++) {
@@ -141,12 +151,17 @@ public class CategoryManagerImpl  {
           Category cat = new CategoryImpl(name);
           categories.put(name, cat);
         } // for catNames
+      }finally{
+      	
+      	categories_mon.exit();
       }
     }
   }
 
   public void saveCategories() {
-    synchronized (categories) {
+    try{
+    	categories_mon.enter();
+    
       Map map = new HashMap();
       List list = new ArrayList(categories.size());
 
@@ -200,6 +215,8 @@ public class CategoryManagerImpl  {
         }
         catch (Exception e) {}
       }
+    }finally{
+    	categories_mon.exit();
     }
   }
 

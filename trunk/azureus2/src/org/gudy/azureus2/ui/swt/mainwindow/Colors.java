@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 /**
  * @author Olivier Chalouhi
  *  
@@ -57,6 +58,8 @@ public class Colors implements ParameterListener {
   public static Color white;
   public static Color background;
   public static Color red_ConsoleView;
+  
+  private static AEMonitor	class_mon	= new AEMonitor( "Colors" );
   
   private void allocateBlues() {    
     int r = 0;
@@ -299,11 +302,17 @@ public class Colors implements ParameterListener {
     addColorsChangedListener(this);
   }
   
-  public static synchronized Colors getInstance() {
-    if (instance == null)
-      instance = new Colors();
-
-    return instance;
+  public static Colors getInstance() {
+  	try{
+  		class_mon.enter();
+	    if (instance == null)
+	      instance = new Colors();
+	
+	    return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public void addColorsChangedListener(ParameterListener l) {

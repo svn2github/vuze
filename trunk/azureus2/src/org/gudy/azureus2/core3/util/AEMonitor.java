@@ -32,7 +32,7 @@ import java.util.*;
 public class 
 AEMonitor 
 {
-	private static boolean	DEBUG		= false;
+	private static boolean	DEBUG		= true;
 	
 	static{
 		if ( DEBUG ){
@@ -51,6 +51,9 @@ AEMonitor
 			}
 		};
 	
+	private static	Map debug_traces	= new HashMap();
+	
+		
 	protected String		name;
 	
 	protected int			waiting		= 0;
@@ -70,18 +73,31 @@ AEMonitor
 	{
 		if ( DEBUG ){
 			
+				// bad things are:
+				// A->B and somewhere else B->A
+				// or
+				// A(inst1) -> A(inst2)
+			
 			Stack	stack = (Stack)tls.get();
 			
-			String	str = name;
-
-			for (int i=stack.size()-1;i>=0;i-- ){
+			stack.push( name );
 			
-				str += "," + stack.get(i);
+			String	str = "";
+
+			for (int i=0;i<stack.size();i++){
+			
+				str += (i==0?"":",") + stack.get(i);
 			}
 			
-			stack.push( name );
+			synchronized( debug_traces ){
 				
-			System.out.println( "reserve: " + str );
+				if ( debug_traces.get(str) == null ){
+			
+					System.out.println( "AEMonitor: " + str );
+					
+					debug_traces.put( str, str );
+				}
+			}
 		}
 		
 		reserve();
@@ -97,7 +113,7 @@ AEMonitor
 		
 			if ( DEBUG ){
 				
-				System.out.println( "release: " + name );
+				// System.out.println( "release: " + name );
 
 				((Stack)tls.get()).pop();
 			}

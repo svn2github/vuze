@@ -31,27 +31,41 @@ import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.*;
 /**
  * Utility methods to display popup window
  */
 public class Alerts {
 
   private static Alerts instance;
+  private static AEMonitor	class_mon	= new AEMonitor( "Alerts:class" );
   
-  private List			alert_queue = new ArrayList();
-  private List			alert_history	= new ArrayList();
-  private boolean initialisation_complete = false;
+  
+  private List			alert_queue 	= new ArrayList();
+  private AEMonitor		alert_queue_mon	= new AEMonitor("Alerts:Q");
+  
+  private List			alert_history		= new ArrayList();
+  private AEMonitor		alert_history_mon	= new AEMonitor("Alerts:H");
+  private boolean 		initialisation_complete = false;
   
   private Alerts() {
   }
   
-  public static synchronized Alerts getInstance() {
-    if(instance == null) {
-      instance = new Alerts();
-    }
+  public static Alerts getInstance() 
+  {
+  	try{
+  		class_mon.enter();
     
-    return instance;
+  		if(instance == null) {
+  			instance = new Alerts();
+  		}
+    
+  		return instance;
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public static void
@@ -159,7 +173,8 @@ public class Alerts {
 	Throwable	exception,
 	boolean		repeatable )
   {
-  	synchronized( alert_history ){
+  	try{
+  		alert_history_mon.enter();
   		 		
   		if ( !repeatable ){
   			
@@ -177,6 +192,9 @@ public class Alerts {
 	  			alert_history.remove(0);
 	  		}
   		}
+  	}finally{
+  		
+  		alert_history_mon.exit();
   	}
   	
   	showErrorMessageBox( message, exception );
@@ -190,7 +208,8 @@ public class Alerts {
 	String	message,
 	boolean	repeatable )
   {
-  	synchronized( alert_history ){
+  	try{
+  		alert_history_mon.enter();
   		
 		if ( !repeatable ){
 			  
@@ -206,6 +225,9 @@ public class Alerts {
 	  			alert_history.remove(0);
 	  		}
 	  	}
+  	}finally{
+  		
+  		alert_history_mon.exit();
   	}
   	
   if ( type == LGLogger.AT_COMMENT ){
@@ -232,7 +254,8 @@ public class Alerts {
     	public void
     	run()
     	{   		
-    		synchronized( alert_queue ){
+    		try{
+    			alert_queue_mon.enter();
     			
     			initialisation_complete	= true;
     			
@@ -259,6 +282,9 @@ public class Alerts {
     			}
     			
     			alert_queue.clear();
+    		}finally{
+    			
+    			alert_queue_mon.exit();
     		}
     	}
     }.start();
@@ -278,7 +304,8 @@ public class Alerts {
 					String		message,
 					boolean		repeatable )
 				{
-  					synchronized( alert_queue ){
+  					try{
+  						alert_queue_mon.enter();
   						
   						if ( !initialisation_complete ){
   							
@@ -286,6 +313,9 @@ public class Alerts {
   							
   							return;
   						}
+  					}finally{
+  						
+  						alert_queue_mon.exit();
   					}
   					
   					showAlert( type, message, repeatable );
@@ -297,7 +327,8 @@ public class Alerts {
 					Throwable	exception,
 					boolean		repeatable )
 				{
-  					synchronized( alert_queue ){
+  					try{
+  						alert_queue_mon.enter();
   						
   						if ( !initialisation_complete ){
   							
@@ -305,6 +336,9 @@ public class Alerts {
   							
   							return;
   						}
+  					}finally{
+  						
+  						alert_queue_mon.exit();
   					}
   					
   					showAlert( message, exception, repeatable );

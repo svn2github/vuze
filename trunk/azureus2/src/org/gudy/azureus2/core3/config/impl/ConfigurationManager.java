@@ -26,11 +26,14 @@ import org.gudy.azureus2.core3.config.*;
 public class ConfigurationManager {
   
   private static ConfigurationManager config;
+  private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
   
   private Map propertiesMap;
   
   private Vector	listeners = new Vector();
   private Hashtable parameterListeners = new Hashtable();
+  
+  private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
   private ConfigurationManager() {
   	load();
@@ -40,16 +43,29 @@ public class ConfigurationManager {
   	propertiesMap	= data;
   }
   
-  public synchronized static ConfigurationManager getInstance() {
-  	if (config == null)
-  		config = new ConfigurationManager();
-  	return config;
+  public static ConfigurationManager getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+	  	if (config == null)
+	  		config = new ConfigurationManager();
+	  	return config;
+  	}finally{
+  		class_mon.exit();
+  	}
   }
   
-  public synchronized static ConfigurationManager getInstance(Map data) {
-  	if (config == null)
-  		config = new ConfigurationManager(data);
-  	return config;
+  public static ConfigurationManager getInstance(Map data) {
+  	try{
+  		class_mon.enter();
+
+	  	if (config == null)
+	  		config = new ConfigurationManager(data);
+	  	return config;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public void load(String filename) 
@@ -66,7 +82,8 @@ public class ConfigurationManager {
   {
   	FileUtil.writeResilientConfigFile( filename, propertiesMap );
     
-    synchronized( this  ){
+    try{
+    	this_mon.enter();
     	
     	for (int i=0;i<listeners.size();i++){
     		
@@ -86,6 +103,9 @@ public class ConfigurationManager {
     			Debug.out("COConfigurationListener is null");
     		}
     	}
+    }finally{
+    	
+    	this_mon.exit();
     }
   }
   
@@ -282,31 +302,58 @@ public class ConfigurationManager {
     //else Debug.out("parameterListener Vector is null for: " + parameter);
   }
 
-  public synchronized void addParameterListener(String parameter, ParameterListener listener){
-    if(parameter == null || listener == null)
-      return;
-    Vector parameterListener = (Vector) parameterListeners.get(parameter);
-    if(parameterListener == null) {
-      parameterListeners.put(parameter, parameterListener = new Vector());
-    }
-    if(!parameterListener.contains(listener))
-      parameterListener.add(listener); 
+  public void addParameterListener(String parameter, ParameterListener listener){
+  	try{
+  		this_mon.enter();
+  	
+	    if(parameter == null || listener == null)
+	      return;
+	    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+	    if(parameterListener == null) {
+	      parameterListeners.put(parameter, parameterListener = new Vector());
+	    }
+	    if(!parameterListener.contains(listener))
+	      parameterListener.add(listener); 
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeParameterListener(String parameter, ParameterListener listener){
-    if(parameter == null || listener == null)
-      return;
-    Vector parameterListener = (Vector) parameterListeners.get(parameter);
-    if(parameterListener != null) {
-    	parameterListener.remove(listener);
-    }
+  public void removeParameterListener(String parameter, ParameterListener listener){
+  	try{
+  		this_mon.enter();
+ 
+	    if(parameter == null || listener == null)
+	      return;
+	    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+	    if(parameterListener != null) {
+	    	parameterListener.remove(listener);
+	    }
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void addListener(COConfigurationListener listener) {
-    listeners.addElement(listener);
+  public void addListener(COConfigurationListener listener) {
+  	try{
+  		this_mon.enter();
+
+  		listeners.addElement(listener);
+  		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeListener(COConfigurationListener listener) {
-    listeners.removeElement(listener);
+  public void removeListener(COConfigurationListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		listeners.removeElement(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 }
