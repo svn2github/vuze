@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -84,9 +85,11 @@ DiskManagerImpl
 
 	private ByteBuffer allocateAndTestBuffer;
 
-	private Vector writeQueue;
-	private Vector checkQueue;
-	private Vector readQueue;
+	private Vector 	writeQueue;
+	private Vector 	checkQueue;
+	
+	private List		readQueue;
+	private Semaphore	readQueueSem;
 
 	private DiskWriteThread writeThread;
 	private DiskReadThread readThread;
@@ -105,7 +108,7 @@ DiskManagerImpl
 	private SHA1Hasher hasher;
   private Md5Hasher md5;
   private ByteBuffer md5Result;
-	private boolean bContinue = true;
+	private boolean bOverallContinue = true;
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
@@ -271,9 +274,12 @@ DiskManagerImpl
 		allocateAndTestBuffer.position(0);
 
 		//Create the new Queue
-		writeQueue = new Vector();
-		checkQueue = new Vector();
-		readQueue = new Vector();
+		writeQueue 	= new Vector();
+		checkQueue 	= new Vector();
+		
+		readQueue 		= new LinkedList();
+		readQueueSem	= new Semaphore();
+		
 		writeThread = new DiskWriteThread();
 		writeThread.start();
 		readThread = new DiskReadThread();
@@ -585,7 +591,7 @@ DiskManagerImpl
 	}
 
 	public class DiskReadThread extends Thread {
-		private boolean bContinue = true;
+		private boolean bReadContinue = true;
 
 		public DiskReadThread() {
 			super("Disk Reader");
@@ -593,34 +599,46 @@ DiskManagerImpl
 		}
 
 		public void run() {
-			while (bContinue) {
-				while (readQueue.size() != 0) {
-					DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
-					DiskManagerRequest request = item.getRequest();
+			while (true){
+				readQueueSem.reserve();
+				
+				DiskManagerDataQueueItemImpl	item;
+				
+				synchronized( readQueue ){
+					
+					if ( !bReadContinue){
+												
+						break;
+					}
+				
+					item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
+				}
+
+				DiskManagerRequest request = item.getRequest();
 
 					// temporary fix for bug 784306
-					ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-					if (buffer != null) {
-						item.setBuffer(buffer);
-					} else {
-					  item.setLoading(false);
-					  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
-					      item.getRequest().getPieceNumber() + ":" +
-					  		item.getRequest().getOffset() + "->" +
-					  		(item.getRequest().getOffset() + item.getRequest().getLength()));
-					  System.out.println("Read Error");
-					}
-				}
-				try {
-					Thread.sleep(15);
-				} catch (Exception e) {
-					e.printStackTrace();
+				ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+				if (buffer != null) {
+					item.setBuffer(buffer);
+				} else {
+				  item.setLoading(false);
+				  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
+				      item.getRequest().getPieceNumber() + ":" +
+				  		item.getRequest().getOffset() + "->" +
+				  		(item.getRequest().getOffset() + item.getRequest().getLength()));
+				  System.out.println("Read Error");
 				}
 			}
 		}
 
 		public void stopIt() {
-			this.bContinue = false;
+			synchronized( readQueue ){
+				
+				bReadContinue = false;
+			}
+			
+			readQueueSem.releaseForever();
+			
 			while (readQueue.size() != 0) {
 				DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 				item.setLoading(false);
@@ -629,7 +647,7 @@ DiskManagerImpl
 	}
 
 	public class DiskWriteThread extends Thread {
-		private boolean bContinue = true;
+		private boolean bWriteContinue = true;
 
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
@@ -640,7 +658,7 @@ DiskManagerImpl
          int count;
          long sleepTime;
 
-			while (bContinue) {
+			while (bWriteContinue) {
             
 			  count = 0;
 			  sleepTime = 1000;
@@ -648,7 +666,7 @@ DiskManagerImpl
 			  if (writeQueue.size() > 64) sleepTime = 20;
 
 			  //allow up to 64 blocks to be written at once
-			  while (writeQueue.size() != 0 && count < 64 && bContinue) {
+			  while (writeQueue.size() != 0 && count < 64 && bWriteContinue) {
 			    QueueElement elt = (QueueElement)writeQueue.remove(0);
 			    //Do not allow to write in a piece marked as done.
 			    int pieceNumber = elt.getPieceNumber();					
@@ -668,7 +686,7 @@ DiskManagerImpl
 			  if (checkQueue.size() > 10) sleepTime = 20;
 
 			  //allow up to 10 piece checks at once
-			  while (checkQueue.size() != 0 && count < 10 && bContinue) {
+			  while (checkQueue.size() != 0 && count < 10 && bWriteContinue) {
 				  QueueElement elt = (QueueElement)checkQueue.remove(0);
 				  boolean correct = checkPiece(elt.getPieceNumber());
 					
@@ -694,7 +712,7 @@ DiskManagerImpl
 		}
 
 		public void stopIt() {
-			this.bContinue = false;
+			this.bWriteContinue = false;
 			while (writeQueue.size() != 0) {
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
 				DirectByteBufferPool.freeBuffer(elt.data);
@@ -910,7 +928,7 @@ DiskManagerImpl
 		
 		synchronized (file){
 			try{
-				while (written < length && bContinue) {
+				while (written < length && bOverallContinue) {
 					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
 					if ((length - written) < allocateAndTestBuffer.remaining())
 						allocateAndTestBuffer.limit((int) (length - written));
@@ -920,7 +938,7 @@ DiskManagerImpl
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
 				}
-				if (!bContinue) {
+				if (!bOverallContinue) {
 				   fm_file.close();
 				   return false;
 				}
@@ -945,7 +963,7 @@ DiskManagerImpl
 
 	private synchronized boolean checkPiece(int pieceNumber) {
         
-      if (this.bContinue == false) return false;
+      if (bOverallContinue == false) return false;
 
 		allocateAndTestBuffer.position(0);
 
@@ -1104,7 +1122,7 @@ DiskManagerImpl
 			
 			if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
 				startPos = resumeArray.length;
-				for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
+				for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
 					percentDone = ((i + 1) * 1000) / nbPieces;
 					//mark the pieces
 					if (resumeArray[i] == 0) {
@@ -1144,14 +1162,14 @@ DiskManagerImpl
 			}
 		}
 		
-		for (int i = startPos; i < nbPieces && bContinue; i++) {
+		for (int i = startPos; i < nbPieces && bOverallContinue; i++) {
 			percentDone = ((i + 1) * 1000) / nbPieces;
 			checkPiece(i);
 		}
 		
 			//dump the newly built resume data to the disk/torrent
 		
-		if (bContinue && resumeEnabled && !resume_data_complete){
+		if (bOverallContinue && resumeEnabled && !resume_data_complete){
 			
 			dumpResumeDataToDisk(false, false);
 		}
@@ -1346,9 +1364,18 @@ DiskManagerImpl
 		}
 	}
 
-	public void enqueueReadRequest(DiskManagerDataQueueItem item) {
-		readQueue.add(item);
-		((DiskManagerDataQueueItemImpl)item).setLoading( true );
+	public void 
+	enqueueReadRequest(
+		DiskManagerDataQueueItem item) 
+	{
+		synchronized( readQueue ){
+			
+			readQueue.add(item);
+			
+			((DiskManagerDataQueueItemImpl)item).setLoading( true );
+		}
+		
+		readQueueSem.release();
 	}
 
 	public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
@@ -1629,7 +1656,7 @@ DiskManagerImpl
 
 	public void stopIt() {
         
-    this.bContinue = false; 
+		bOverallContinue = false; 
 
 		// remove configuration parameter listeners
 	 COConfigurationManager.removeParameterListener("Use Resume", this);
