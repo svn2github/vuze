@@ -112,7 +112,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
  //////////////////////
     
     Label proxytext = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(proxytext, "ConfigView.section.proxy.description");
+    Messages.setLanguageText(proxytext, "ConfigView.section.proxy.description2");
     formData = new FormData();
     formData.top = new FormAttachment( bindip.getControl(), 10 );
     proxytext.setLayoutData(formData);
