@@ -67,6 +67,9 @@ public class PiecesView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(getComposite().isDisposed())
+      return;
+
     synchronized (items) {
       Iterator iter = items.values().iterator();
       while (iter.hasNext()) {

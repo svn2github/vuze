@@ -102,6 +102,9 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(getComposite().isDisposed())
+      return;
+
     switch (folder.getSelectionIndex()) {
       case 0 :
         if (viewGeneral != null && !itemGeneral.isDisposed())

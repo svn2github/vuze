@@ -37,7 +37,7 @@ public class Messages {
     // TODO Auto-generated constructor stub
   }
   public static void updateLanguageForControl(Widget composite) {
-    if (composite == null)
+    if (composite == null || composite.isDisposed())
       return;
 
     updateLanguageFromData(composite);

@@ -357,6 +357,9 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(getComposite().isDisposed())
+      return;
+
     Iterator iter = managerItems.keySet().iterator();
     while (iter.hasNext()) {
       if (this.panel.isDisposed())

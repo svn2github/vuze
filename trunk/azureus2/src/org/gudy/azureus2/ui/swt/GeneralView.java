@@ -325,6 +325,9 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(getComposite().isDisposed())
+      return;
+
     loopFactor++;
     updateAvailability();
     updatePiecesInfo();

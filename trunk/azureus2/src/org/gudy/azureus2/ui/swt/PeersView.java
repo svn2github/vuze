@@ -178,6 +178,9 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
+    if(getComposite().isDisposed())
+      return;
+
     loopFactor++;
     //Refresh all items in table...
     synchronized (items) {
