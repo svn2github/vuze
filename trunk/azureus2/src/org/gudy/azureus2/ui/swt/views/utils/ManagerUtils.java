@@ -69,8 +69,8 @@ public class ManagerUtils {
       return false;
     int state = dm.getState();
     if (state != DownloadManager.STATE_STOPPED
-        && state != DownloadManager.STATE_ERROR
-        && state != DownloadManager.STATE_DUPLICATE) {
+        && state != DownloadManager.STATE_ERROR ){
+       
       return false;
     }
     return true;

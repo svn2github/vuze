@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.download;
  */
 
 import java.util.*;
+import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
@@ -67,11 +68,18 @@ DownloadManagerImpl
 	
 	public org.gudy.azureus2.plugins.download.Download
 	addDownload(
-		Torrent		torrent )
+		Torrent		torrent,
+		File		torrent_file,
+		File		data_location )
 	{
-		System.out.println( "addDownload!!!!");
+		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString());
 		
-		return( null );
+		if ( dm == null ){
+			
+			// TODO: throw
+		}
+		
+		return( new DownloadImpl(dm));
 	}
 	
 	public org.gudy.azureus2.plugins.download.Download

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.util.Map;
+import java.io.File;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -106,7 +107,13 @@ ShareItemImpl
 		torrent	= _torrent;
 	}
 	
-	public String
+	public File
+	getTorrentFile()
+	{
+		return( resource.getTorrentFile(this));
+	}
+	
+	protected String
 	getTorrentLocation()
 	{
 		return( torrent_save_location );

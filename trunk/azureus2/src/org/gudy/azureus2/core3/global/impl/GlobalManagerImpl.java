@@ -330,7 +330,7 @@ public class GlobalManagerImpl
     stats_writer.start();
   }
 
-  public boolean addDownloadManager(String fileName, String savePath) {
+  public DownloadManager addDownloadManager(String fileName, String savePath) {
     return addDownloadManagerStopped(fileName, savePath, false);
   }
 
@@ -340,7 +340,7 @@ public class GlobalManagerImpl
    *
    * @author Rene Leonhardt
    */
-  public boolean addDownloadManagerStopped(String fileName, String savePath, boolean startStopped) {
+  public DownloadManager addDownloadManagerStopped(String fileName, String savePath, boolean startStopped) {
 	File torrentDir	= null;
 	File fDest		= null;
 	
@@ -376,8 +376,8 @@ public class GlobalManagerImpl
       fDest.createNewFile();
       FileUtil.copyFile(f, fDest);
       DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath);
-      boolean correct = addDownloadManager(manager);
-      if (!correct) {
+      manager = addDownloadManager(manager);
+      if ( manager == null ) {
         fDest.delete();
         File backupFile = new File(fDest.getAbsolutePath() + ".bak");
         if(backupFile.exists())
@@ -385,7 +385,7 @@ public class GlobalManagerImpl
       } else if(startStopped) {
         manager.setState(DownloadManager.STATE_STOPPED);
       }
-      return correct;
+      return( manager );
     }
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
@@ -402,8 +402,7 @@ public class GlobalManagerImpl
 
 
 
-  //Public method !!! and don't touch it !
-  public boolean addDownloadManager(DownloadManager manager) {
+   protected DownloadManager addDownloadManager(DownloadManager manager) {
     if (!isStopped) {
       synchronized (managers) {
       	
@@ -429,13 +428,12 @@ public class GlobalManagerImpl
         				client.resetTrackerUrl( false );
         			}
         		}catch( Throwable e ){
+        			
         			e.printStackTrace();
         		}
         	}
         	
-        	manager.setState(DownloadManager.STATE_DUPLICATE);
-        	
-            return false;
+        	return( existing );
         }
         
         managers.add(manager);
@@ -450,7 +448,8 @@ public class GlobalManagerImpl
 	  }
  
       saveDownloads();
-      return true;
+      
+      return( manager );
     }
     else {
       LGLogger.log(
@@ -458,7 +457,7 @@ public class GlobalManagerImpl
         LGLogger.ERROR,
         LGLogger.ERROR,
         "Tried to add a DownloadManager after shutdown of GlobalManager.");
-      return false;
+      return( null );
     }
   }
 

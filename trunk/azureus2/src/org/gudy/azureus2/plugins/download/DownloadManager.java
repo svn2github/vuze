@@ -26,6 +26,8 @@ package org.gudy.azureus2.plugins.download;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
@@ -33,7 +35,9 @@ DownloadManager
 {
 	public Download
 	addDownload(
-		Torrent		torrent );
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location );
 	
 	public Download
 	getDownload(

@@ -105,7 +105,11 @@ ShareHosterPlugin
 				
 				if ( type == ShareResource.ST_FILE ){
 					
-					Torrent torrent = ((ShareResourceFile)resource).getItem().getTorrent();
+					ShareResourceFile	file_resource = (ShareResourceFile)resource;
+					
+					ShareItem	item = file_resource.getItem();
+					
+					Torrent torrent = item.getTorrent();
 					
 					tracker.host(torrent, false );
 					
@@ -113,7 +117,7 @@ ShareHosterPlugin
 					
 					if ( download == null ){
 						
-						download_manager.addDownload( torrent );
+						download_manager.addDownload( torrent, item.getTorrentFile(), file_resource.getFile());
 					}
 				}
 			}catch( Throwable e ){

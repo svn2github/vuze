@@ -42,8 +42,6 @@ DownloadManager
 	public static final int STATE_STOPPING = 65;
 	public static final int STATE_STOPPED = 70;
 	public static final int STATE_ERROR = 100;
-	// indicates, that there is already a DownloadManager with the same size and hash in the list
-	public static final int STATE_DUPLICATE = 200;
 
 	public static final int LOW_PRIORITY = 1;
 	public static final int HIGH_PRIORITY = 2;

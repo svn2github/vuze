@@ -141,8 +141,7 @@ public class Jhttpp2HTTPSession extends Thread {
         status.put(new Integer(DownloadManager.STATE_STOPPING), MessageText.getString("Main.download.state.stopped"));
         status.put(new Integer(DownloadManager.STATE_STOPPED), MessageText.getString("Main.download.state.stopped"));
         status.put(new Integer(DownloadManager.STATE_ERROR), MessageText.getString("Main.download.state.error"));
-        status.put(new Integer(DownloadManager.STATE_DUPLICATE), "Duplicate");
-        
+         
       }
     }
     catch (IOException e_io) {

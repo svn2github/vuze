@@ -172,6 +172,13 @@ ShareResourceImpl
 		manager.deleteTorrent( item );
 	}
 	
+	public File
+	getTorrentFile(
+		ShareItemImpl		item )
+	{
+		return( manager.getTorrentFile(item));
+	}
+	
 	protected abstract void
 	checkConsistency()
 	

@@ -117,7 +117,6 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     status.put(new Integer(DownloadManager.STATE_STOPPING), MessageText.getString("Main.download.state.stopped"));
     status.put(new Integer(DownloadManager.STATE_STOPPED), MessageText.getString("Main.download.state.stopped"));
     status.put(new Integer(DownloadManager.STATE_ERROR), MessageText.getString("Main.download.state.error"));
-    status.put(new Integer(DownloadManager.STATE_DUPLICATE), "Duplicate");
   }
 
   /** Creates a new instance of Main */

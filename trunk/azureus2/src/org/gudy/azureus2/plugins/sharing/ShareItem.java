@@ -26,11 +26,16 @@ package org.gudy.azureus2.plugins.sharing;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 ShareItem 
 {
+	public File
+	getTorrentFile();
+	
 	public Torrent
 	getTorrent()
 	

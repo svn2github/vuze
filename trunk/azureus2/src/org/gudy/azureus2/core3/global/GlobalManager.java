@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.download.*;
 public interface
 GlobalManager
 {
-	public boolean
+	public DownloadManager
 	addDownloadManager(
 		String			file_name,
 		String			save_path );
@@ -38,11 +38,13 @@ GlobalManager
    * @param fileName
    * @param savePath
    * @param startStopped if true, the download will be added in STOPPED state
-   * @return true, if the download was added
+   * @return download manager. If the torrent already existed then the existing download manager
+   * will be returned. if an error occurs then 'null' is returned
    *
    * @author Rene Leonhardt
    */
-  public boolean
+	
+  public DownloadManager
   addDownloadManagerStopped(
     String fileName,
     String savePath,

@@ -273,7 +273,7 @@ ShareManagerImpl
 		throws ShareException
 	{
 		try{
-			item.getTorrent().writeToFile( new File(share_dir+File.separator+item.getTorrentLocation()));
+			item.getTorrent().writeToFile( getTorrentFile(item ));
 			
 		}catch( TorrentException e ){
 			
@@ -288,7 +288,7 @@ ShareManagerImpl
 		throws ShareException
 	{
 		try{
-			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( new File(share_dir+File.separator+item.getTorrentLocation()));
+			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( getTorrentFile(item ));
 			
 			item.setTorrent(new TorrentImpl(torrent));
 			
@@ -300,20 +300,23 @@ ShareManagerImpl
 	
 	protected void
 	deleteTorrent(
-			ShareItemImpl		item )
+		ShareItemImpl		item )
 	{
-		File file = new File(share_dir+File.separator+item.getTorrentLocation());
-				
-		file.delete();
+		getTorrentFile(item).delete();
 	}
 	
 	protected boolean
 	torrentExists(
 		ShareItemImpl		item )
+	{		
+		return( getTorrentFile(item).exists());
+	}
+	
+	protected File
+	getTorrentFile(
+		ShareItemImpl		item )
 	{
-		File file = new File(share_dir+File.separator+item.getTorrentLocation());
-		
-		return( file.exists());
+		return( new File(share_dir+File.separator+item.getTorrentLocation()));
 	}
 	
 	protected URL
