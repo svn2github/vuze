@@ -1,6 +1,8 @@
-/*
- * Created on 25 juin 2003
- *  
+ /*
+ * Created on Jun 25, 2003
+ * Modified Apr 13, 2004 by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * 
  */
 package org.gudy.azureus2.ui.swt;
 
@@ -78,8 +80,8 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.disk.FileImporter;
-import org.gudy.azureus2.core3.disk.FileImporter.FolderWatcher;
+import org.gudy.azureus2.core3.disk.TorrentFolderWatcher;
+import org.gudy.azureus2.core3.disk.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -1345,7 +1347,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
 	private void startFolderWatcher() {
     if(folderWatcher == null)
-      folderWatcher = FileImporter.getFolderWatcher();
+      folderWatcher = TorrentFolderWatcher.getFolderWatcher();
 	  folderWatcher.startIt();
   }
 
