@@ -119,7 +119,7 @@ public class VersionCheckClient {
     
     byte[] value = (byte[])reply.get( "enable_dht" );
     if( value != null ) {
-      return Boolean.parseBoolean( new String( value ) );
+      return( new String( value ).equalsIgnoreCase( "true" ));
     }
     
     return false;
