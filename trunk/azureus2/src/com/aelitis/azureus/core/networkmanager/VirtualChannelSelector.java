@@ -41,11 +41,9 @@ public class VirtualChannelSelector {
     
     private Selector selector;
     private final SelectorGuard selector_guard;
-    private final ArrayList register_list 		= new ArrayList();
-    private final AEMonitor register_list_mon	= new AEMonitor( "VirtualChannelSelector:RL");
+    private final ArrayList register_cancel_list 		= new ArrayList();
+    private final AEMonitor register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
-    private final ArrayList cancel_list = new ArrayList();
-    private final AEMonitor cancel_list_mon = new AEMonitor( "VirtualChannelSelector:CL" );
     
     private final int INTEREST_OP;
 
@@ -77,32 +75,89 @@ public class VirtualChannelSelector {
      * @param listener op-complete listener
      * @param attachment object to be passed back with listener notification
      */
-    public void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
-      try{
-      	register_list_mon.enter();
-      
-        register_list.add( new RegistrationData( channel, listener, attachment ) );
-      }finally{
-      	
-      	register_list_mon.exit();
-      }
-      selector.wakeup();
+    public void 
+	register( 
+		SocketChannel 			channel, 
+		VirtualSelectorListener listener, 
+		Object attachment ) 
+    {
+    	addRegOrCancel( new RegistrationData( channel, listener, attachment ));
+ 
+		selector.wakeup();
     }
     
+	    /**
+	     * Cancel the select request.
+	     * Once canceled, the channel is unregistered and the listener will never be invoked.
+	     * @param channel channel originally registered
+	     */
     
-    /**
-     * Cancel the select request.
-     * Once canceled, the channel is unregistered and the listener will never be invoked.
-     * @param channel channel originally registered
-     */
-    public void cancel( SocketChannel channel ) {
-      try {
-        cancel_list_mon.enter();
-        cancel_list.add( channel );
-      }
-      finally { 
-        cancel_list_mon.exit();
-      }
+    public void 
+	cancel( 
+		SocketChannel channel ) 
+    {
+    	addRegOrCancel( channel ); 
+    }
+   
+    protected void 
+    addRegOrCancel( 
+    	Object	obj_to_add ) 
+    {
+    	try{
+    		register_cancel_list_mon.enter();
+      	
+    		for (int i=0;i<register_cancel_list.size();i++){
+    			
+    			Object	obj = register_cancel_list.get(i);
+    			
+    			boolean	remove_it	= false;
+    			
+    			if ( obj_to_add instanceof SocketChannel ){
+    				
+    				if ( obj_to_add == obj ||
+    						(	obj instanceof RegistrationData &&
+    								((RegistrationData)obj).channel == obj_to_add )){
+    					
+    					// remove existing cancel or register
+    				
+    					remove_it = true;
+   				
+     				}
+    				
+    			}else{
+    				
+    				RegistrationData	rd = (RegistrationData)obj_to_add;
+    				
+    				if ( rd.channel == obj ||
+       						(	obj instanceof RegistrationData &&
+    								((RegistrationData)obj).channel == rd.channel )){
+ 						
+    					remove_it = true;
+    					
+    				}
+    			}
+    			
+    			if ( remove_it ){
+    				
+    				register_cancel_list.remove(i);
+    				
+    				if (obj instanceof RegistrationData ){
+    					
+    					RegistrationData	data = (RegistrationData)obj;
+    					
+    	               	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "registration superceded" ));           
+    				}
+    				
+    				break;
+    			}
+    		}
+    		
+    		register_cancel_list.add( obj_to_add );
+    		
+    	}finally{
+    		
+    		register_cancel_list_mon.exit();
+    	}
     }
     
     
@@ -119,38 +174,50 @@ public class VirtualChannelSelector {
     public int select( long timeout ) {
       //process cancellations
       try {
-        cancel_list_mon.enter();
+      	register_cancel_list_mon.enter();
         
-        for( Iterator can_it = cancel_list.iterator(); can_it.hasNext(); ) {
-          SocketChannel canceled_channel = (SocketChannel)can_it.next();
-          boolean found_in_registration_list = false;
-          
-          try{
-            register_list_mon.enter();
+        for( Iterator reg_can_it = register_cancel_list.iterator(); reg_can_it.hasNext(); ){
+        	
+         Object	obj = reg_can_it.next();
+         
+         if ( obj instanceof SocketChannel ){
+         	
+         	SocketChannel	canceled_channel = (SocketChannel)obj;
+  
+         	SelectionKey key = canceled_channel.keyFor( selector );
             
-            //check if not yet registered, and cancel immediately
-            for( Iterator reg_it = register_list.iterator(); reg_it.hasNext(); ) {
-              RegistrationData data = (RegistrationData)reg_it.next();
-              if( data.channel == canceled_channel ) {  //canceled before registration with selector
-                reg_it.remove();
-                found_in_registration_list = true;
-                break;
-              }
+            if( key != null ){
+            	
+            	key.cancel();  //cancel the key, since already registered
             }
-          }
-          finally{
-            register_list_mon.exit();
-          }
-          
-          if( !found_in_registration_list ) {
-            SelectionKey key = canceled_channel.keyFor( selector );
-            if( key != null )  key.cancel();  //cancel the key, since already registered
-          }
+         }else{
+            //process new registrations  
+ 
+         	RegistrationData data = (RegistrationData)obj;
+            	
+            try {
+                if( data.channel.isOpen() ){
+                	
+                  data.channel.register( selector, INTEREST_OP, data );
+                  
+                }else{
+            	
+                	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "channel is closed" ) );
+            	    //Debug.out( "channel is closed" );
+            	}
+           	}catch (Throwable t){
+            		
+           	    data.listener.selectFailure( this, data.channel, data.attachment, t );
+            	    
+           	    Debug.printStackTrace(t);
+            } 	
+         }
         }
-        cancel_list.clear();        
-      }
-      finally { 
-        cancel_list_mon.exit();
+        
+        register_cancel_list.clear();
+        
+      }finally { 
+      	register_cancel_list_mon.exit();
       }
       
       
@@ -184,32 +251,6 @@ public class VirtualChannelSelector {
             Debug.out( "key is invalid" );
           }
         }
-      }
-      
-      //process new registrations  
-      try{
-      	register_list_mon.enter();
-      
-      	for( int i=0; i < register_list.size(); i++ ) {
-      	  RegistrationData data = (RegistrationData)register_list.get( i );
-      	  try {
-      	    if( data.channel.isOpen() ) {
-      	      data.channel.register( selector, INTEREST_OP, data );
-      	    }
-      	    else {
-      	      data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "channel is closed" ) );
-      	      //Debug.out( "channel is closed" );
-      	    }
-      	  }
-      	  catch (Throwable t) {
-      	    data.listener.selectFailure( this, data.channel, data.attachment, t );
-      	    Debug.printStackTrace(t);
-      	  }
-      	}
-      	register_list.clear();
-        
-      }finally{
-      	register_list_mon.exit();
       }
       
       return count;

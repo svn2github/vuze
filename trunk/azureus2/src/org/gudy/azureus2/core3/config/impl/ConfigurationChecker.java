@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.proxy.AEProxy;
+import org.gudy.azureus2.core3.proxy.AEProxyFactory;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -154,6 +156,22 @@ ConfigurationChecker
 	          System.setProperty("http.proxyPassword", pass);
 	        }
 	      }
+	    }else{
+	    		// no explicit proxy, install our own baby
+	    	
+	    	/*
+	    	try{
+	    		AEProxy	proxy = AEProxyFactory.create( (read_timeout + connect_timeout )*1000);
+	    		
+		        System.setProperty("socksProxyHost", "127.0.0.1");
+		        System.setProperty("socksProxyPort", "" + proxy.getPort());
+
+	    		
+	    	}catch( Throwable e ){
+	    		
+	    		Debug.printStackTrace(e);
+	    	}
+	    	*/
 	    }
 	  
 	  	SESecurityManager.initialise();
