@@ -1040,12 +1040,11 @@ public class GlobalManagerImpl
 		}else{			
 							
 			listeners.addListener(listener);
-			
+
+			// Don't use Dispatch.. async is bad (esp for plugin initialization)
 			synchronized( managers ){
-					
 				for (int i=0;i<managers.size();i++){
-				
-					listeners.dispatch( listener, LDT_MANAGER_ADDED, managers.get(i) );
+				  listener.downloadManagerAdded((DownloadManager)managers.get(i));
 				}	
 			}
 		}
