@@ -469,73 +469,21 @@ PluginUpdatePlugin
 								// get size so it is cached
 							
 							rdf.getTimeoutDownloader(rdf.getRetryDownloader(rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
-													
-							final String	f_sf_plugin_download 	= sf_plugin_download;
-							final String	f_sf_plugin_version		= sf_plugin_version;
-							
+																				
 							String[]	update_d = new String[update_desc.size()];
 							
 							update_desc.toArray( update_d );
-							
-							final Update update = checker.addUpdate(
+														
+							addUpdate( 
+									pi_being_checked,
+									checker,
 									plugin_id + "/" + plugin_names,
 									update_d,
 									sf_plugin_version,
 									rdl,
+									sf_plugin_download.toLowerCase().endsWith(".jar"),
 									plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
-							
-							update.setUserObject( pi_being_checked );
-	
-							rdl.addListener( 
-								new ResourceDownloaderAdapter()
-								{
-									public boolean
-									completed(
-										final ResourceDownloader	downloader,
-										InputStream					data )
-									{	
-											// during the update phase report any messages
-											// to the downloader
-										
-										LoggerChannelListener	list = 
-											new LoggerChannelListener()
-											{
-											public void
-												messageLogged(
-													int		type,
-													String	content )
-												{
-													downloader.reportActivity( content );
-												}
-												
-												public void
-												messageLogged(
-													String		str,
-													Throwable	error )
-												{
-													downloader.reportActivity( str );
-												}
-											};
-								
-										try{
-											
-											log.addListener(list);
-												
-											installUpdate( 
-													update,
-													pi_being_checked,
-													plugin_unloadable,
-													f_sf_plugin_download, 
-													f_sf_plugin_version, 
-													data );
-											
-											return( true );
-										}finally{
-											
-											log.removeListener( list );
-										}
-									}
-								});					
+				
 							}
 					}catch( Throwable e ){
 						
@@ -561,12 +509,85 @@ PluginUpdatePlugin
 		}
 	}
 	
+	public void
+	addUpdate(
+		final PluginInterface			pi_for_update,
+		final UpdateChecker				checker,
+		final String					update_name,
+		final String[]					update_details,
+		final String					version,
+		final ResourceDownloader		resource_downloader,
+		final boolean					is_jar,
+		final int						restart_type )
+	{
+		final Update update = checker.addUpdate(
+				update_name,
+				update_details,
+				version,
+				resource_downloader,
+				restart_type );
+
+		update.setUserObject( pi_for_update );
+		
+		resource_downloader.addListener( 
+			new ResourceDownloaderAdapter()
+			{
+				public boolean
+				completed(
+					final ResourceDownloader	downloader,
+					InputStream					data )
+				{	
+						// during the update phase report any messages
+						// to the downloader
+					
+					LoggerChannelListener	list = 
+						new LoggerChannelListener()
+						{
+						public void
+							messageLogged(
+								int		type,
+								String	content )
+							{
+								downloader.reportActivity( content );
+							}
+							
+							public void
+							messageLogged(
+								String		str,
+								Throwable	error )
+							{
+								downloader.reportActivity( str );
+							}
+						};
+			
+					try{
+						
+						log.addListener(list);
+							
+						installUpdate( 
+								update,
+								pi_for_update,
+								restart_type == Update.RESTART_REQUIRED_NO,
+								is_jar,
+								version, 
+								data );
+						
+						return( true );
+					}finally{
+						
+						log.removeListener( list );
+					}
+				}
+			});	
+	}
+	
+	
 	protected void
 	installUpdate(
 		Update				update,
-		PluginInterface		plugin,	// note this will be first one if > 1 defined
+		PluginInterface		plugin,		// note this will be first one if > 1 defined
 		boolean				unloadable,
-		String				download,
+		boolean				is_jar,		// false -> zip 
 		String				version,
 		InputStream			data )
 	{
@@ -584,15 +605,13 @@ PluginUpdatePlugin
 				// need to remove any zip paths to ensure it ends up in the right place
 				// There's also the issue of overwriting stuff like "plugin.properties"
 				// and any other config files....
-			
-			boolean jar = download.toLowerCase().endsWith(".jar");
-				
+							
 			String	target = plugin.getPluginDirectoryName() + File.separator + 
-								plugin.getPluginID() + "_" + target_version + (jar?".jar":".zip");
+								plugin.getPluginID() + "_" + target_version + (is_jar?".jar":".zip");
 			
 			FileUtil.copyFile( data, new FileOutputStream(target));
 		
-			if ( !jar ){
+			if ( !is_jar ){
 				
 				ZipInputStream	zis = 
 					new ZipInputStream( 

@@ -27,9 +27,11 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  *
  */
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsException;
 
 public class 
 StandardPluginImpl 
@@ -50,7 +52,7 @@ StandardPluginImpl
 	public String
 	getId()
 	{
-		return( details.getName());
+		return( details.getId());
 	}
 	
 	public String
@@ -70,7 +72,13 @@ StandardPluginImpl
 	public String
 	getDescription()
 	{
-		return( "Coming Soon");
+		try{
+			return( details.getDescription());
+			
+		}catch( SFPluginDetailsException e ){
+			
+			return( Debug.getNestedExceptionMessage( e ));
+		}
 	}
 	
 		/**
@@ -109,5 +117,11 @@ StandardPluginImpl
 		throws PluginException
 	{
 		return( installer.uninstall( this ));
+	}
+	
+	public PluginInstaller
+	getInstaller()
+	{
+		return( installer );
 	}
 }

@@ -30,7 +30,12 @@ public interface
 SFPluginDetails 
 {
 	public String
-	getName();
+	getId();
+	
+	public String
+	getName()
+	
+		throws SFPluginDetailsException;
 	
 		/**
 		 * 

@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -41,6 +43,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -143,6 +146,33 @@ UtilitiesImpl
 		t.setDaemon(true);
 		
 		t.start();
+	}
+	
+	public void
+	createProcess(
+		String		command_line )
+	
+		throws PluginException
+	{
+	    try{
+	    		// we need to spawn without inheriting handles
+	    	
+	    	PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+	    	
+	    	pm.createProcess( command_line, false );
+	    	    	
+	    }catch(Throwable e) {
+	    	
+	        Debug.printStackTrace(e);
+	        
+	        try{
+	        	Runtime.getRuntime().exec( command_line );
+	        	
+	        }catch( Throwable f ){
+	        	
+	        	throw( new PluginException("Failed to create process", f ));
+	        }
+	    }
 	}
 	
 	public ResourceDownloaderFactory

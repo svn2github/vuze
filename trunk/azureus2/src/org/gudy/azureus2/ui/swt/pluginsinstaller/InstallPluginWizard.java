@@ -64,10 +64,15 @@ public class InstallPluginWizard extends Wizard {
   	  if(plugins == null) return;
   	  
   	  Iterator iter = plugins.iterator();
-  	  while(iter.hasNext()) {
-  	    StandardPlugin plugin = (StandardPlugin)iter.next();
+  	  
+  	  StandardPlugin[]	ps = new StandardPlugin[ plugins.size()];
+  	  
+  	  plugins.toArray( ps );
+  	  
+  	  if ( ps.length > 0 ){
   	    try {
-  	      plugin.install(false);
+  	      ps[0].getInstaller().install(ps,false);
+  	      
   	    } catch(Exception e) {
   	      Debug.printStackTrace(e);
   	    }

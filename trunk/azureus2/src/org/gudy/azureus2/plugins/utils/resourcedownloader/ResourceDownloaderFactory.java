@@ -26,11 +26,23 @@ package org.gudy.azureus2.plugins.utils.resourcedownloader;
  *
  */
 
+import java.io.File;
 import java.net.URL;
 
 public interface 
 ResourceDownloaderFactory 
 {
+		/**
+		 * Creates a downloader for a local file - in particular this is useful for installing a plugin
+		 * from a local file as the installer required ResourceDownloader instances to operate
+		 * @param file
+		 * @return
+		 */ 
+	
+	public ResourceDownloader
+	create(
+		File		file );
+	
 		/**
 		 * creates a basic downloader. current url must be http or https
 		 * @param url

@@ -38,6 +38,8 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 SFPluginDetailsLoaderImpl 
@@ -50,6 +52,7 @@ SFPluginDetailsLoaderImpl
 	protected static SFPluginDetailsLoaderImpl		singleton;
   	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
 
+  	public static final int		RELOAD_MIN_TIME	= 60*60*1000;
 	
 	public static SFPluginDetailsLoader
 	getSingleton()
@@ -70,6 +73,7 @@ SFPluginDetailsLoaderImpl
 	}
 	
 	protected boolean	plugin_names_loaded;
+	protected long		plugin_names_loaded_at;
 	
 	protected List		plugin_names;
 	protected Map		plugin_map;
@@ -117,6 +121,8 @@ SFPluginDetailsLoaderImpl
 			
 			plugin_names_loaded	= true;
 			
+			plugin_names_loaded_at	= SystemTime.getCurrentTime();
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
@@ -132,7 +138,7 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{
-			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getName() ));
+			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() ));
 		
 			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		
@@ -142,7 +148,7 @@ SFPluginDetailsLoaderImpl
 			
 			if ( !processPluginPage( details, plugin_page )){
 							
-				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getName() + "': data not found" ));
+				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getId() + "': data not found" ));
 			}
 					
 		}catch( Throwable e ){
@@ -404,10 +410,28 @@ SFPluginDetailsLoaderImpl
 		try{
 			this_mon.enter();
 		
-			plugin_names_loaded	= false;
+			long	now = SystemTime.getCurrentTime();
 			
-			plugin_names		= new ArrayList();
-			plugin_map			= new HashMap();
+				// handle backward time changes
+			
+			if ( now < plugin_names_loaded_at ){
+				
+				plugin_names_loaded_at	= 0;
+			}
+			
+			if ( now - plugin_names_loaded_at > RELOAD_MIN_TIME ){
+				
+				LGLogger.log( "SFPluginDetailsLoader: resetting values");
+				
+				plugin_names_loaded	= false;
+			
+				plugin_names		= new ArrayList();
+				plugin_map			= new HashMap();
+				
+			}else{
+				
+				LGLogger.log( "SFPluginDetailsLoader: not resetting, cache still valid");
+			}
 			
 		}finally{
 			

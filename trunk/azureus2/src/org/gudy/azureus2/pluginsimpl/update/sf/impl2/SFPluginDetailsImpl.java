@@ -36,6 +36,7 @@ SFPluginDetailsImpl
 	protected SFPluginDetailsLoaderImpl		loader;
 	protected boolean						fully_loaded;
 	
+	protected String		id;
 	protected String		name;
 	protected String		version;
 	protected String		download_url;
@@ -49,11 +50,11 @@ SFPluginDetailsImpl
 	protected
 	SFPluginDetailsImpl(
 		SFPluginDetailsLoaderImpl	_loader,
-		String						_name,
+		String						_id,
 		String						_version )
 	{
 		loader				= _loader;
-		name				= _name;
+		id					= _id;
 		version				= _version;
 	}
 	
@@ -98,8 +99,18 @@ SFPluginDetailsImpl
 	}
 	
 	public String
-	getName()
+	getId()
 	{
+		return( id );
+	}
+	
+	public String
+	getName()
+	
+		throws SFPluginDetailsException
+	{
+		checkLoaded();
+		
 		return( name );
 	}
 	

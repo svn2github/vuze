@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  *
  */
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 
@@ -45,6 +46,14 @@ ResourceDownloaderFactoryImpl
 	{
 		return( singleton );
 	}
+	
+	public ResourceDownloader
+	create(
+		File		file )
+	{
+		return( new ResourceDownloaderFileImpl( null, file ));
+	}
+
 	
 	public ResourceDownloader
 	create(

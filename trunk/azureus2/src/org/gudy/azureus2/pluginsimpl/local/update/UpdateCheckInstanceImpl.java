@@ -108,7 +108,7 @@ UpdateCheckInstanceImpl
 		
 		UpdateCheckerImpl[]	new_checkers = new UpdateCheckerImpl[checkers.length+1];
 		
-		System.arraycopy( checkers, 0, new_comps, 0, checkers.length );
+		System.arraycopy( checkers, 0, new_checkers, 0, checkers.length );
 		
 		new_checkers[checkers.length]	= checker;
 		

@@ -51,7 +51,6 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import sun.management.StringFlag;
 
 public class ConfigSectionIPFilter implements ConfigSectionSWT {
   AzureusCore	azureus_core;

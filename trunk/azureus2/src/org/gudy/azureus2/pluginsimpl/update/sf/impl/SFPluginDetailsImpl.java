@@ -65,6 +65,12 @@ SFPluginDetailsImpl
 	}
 	
 	public String
+	getId()
+	{
+		return( name );
+	}
+	
+	public String
 	getName()
 	{
 		return( name );

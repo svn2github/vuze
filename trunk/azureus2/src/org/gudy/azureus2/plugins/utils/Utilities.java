@@ -29,6 +29,7 @@ package org.gudy.azureus2.plugins.utils;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.security.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
@@ -78,6 +79,20 @@ Utilities
 	createThread(
 		String		name,
 		Runnable	target );
+	
+		/**
+		 * create a child process and executes the supplied command line. The child process
+		 * will not inherit any open handles on Windows, which does happen if Runtime is
+		 * used directly. This relies on the Platform plugin, if this is not installed then
+		 * this will fall back to using Runtime.exec 
+		 * @param command_line
+		 */
+	
+	public void
+	createProcess(
+		String		command_line )
+	
+		throws PluginException;
 	
 	public ResourceDownloaderFactory
 	getResourceDownloaderFactory();

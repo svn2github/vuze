@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.installer;
 
+import java.io.File;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEThread;
@@ -82,6 +83,7 @@ Test
 					
 					PluginInstaller	installer = manager.getPluginInstaller();					
 
+					/*
 					StandardPlugin[]	sps = installer.getStandardPlugins();
 					
 					String	install_name = "azshareexporter";
@@ -101,6 +103,9 @@ Test
 					}
 					
 					install_act.install( true );
+					*/
+					
+					installer.installFromFile(new File("C:\\temp\\azshareexporter_0.1.jar"), false );
 					
 				}catch( Throwable e ){
 					

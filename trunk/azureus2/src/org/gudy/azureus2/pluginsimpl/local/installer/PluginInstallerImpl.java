@@ -28,12 +28,14 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  */
 
 import java.io.File;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
@@ -82,17 +84,84 @@ PluginInstallerImpl
 		
 			SFPluginDetails[]	details = loader.getPluginDetails();
 
-			StandardPlugin[]	res = new StandardPlugin[details.length];
-			
-			for (int i=0;i<res.length;i++){
+			List	res = new ArrayList();
 				
-				res[i] = new StandardPluginImpl( this, details[i] );
+			for (int i=0;i<details.length;i++){
+				
+				SFPluginDetails	detail = details[i];
+				
+				String	name 	= detail.getId();
+				String	version	= detail.getVersion();
+				
+				if ( name.startsWith( "azplatform" ) || name.equals( "azupdater" )){
+					
+						// skip built in ones we don't want to let user install directly
+						// not the cleanest of fixes, but it'll do for the moment
+					
+				}else if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
+					
+						// dodgy version
+				}else{
+					
+					res.add( new StandardPluginImpl( this, details[i] ));
+				}
 			}
 			
-			return( res );
+			StandardPlugin[]	res_a = new StandardPlugin[res.size()];
+
+			res.toArray( res_a );
+			
+			return( res_a );
+			
 		}catch( SFPluginDetailsException e ){
 			
 			throw( new PluginException("Failed to load standard plugin details", e ));
+		}
+	}
+	
+	public void
+	installFromFile(
+		File				file,
+		boolean				shared )
+	
+		throws PluginException
+	{
+		String	name = file.getName();
+		
+		boolean	bad_name	= true;
+		
+		int	pos = name.lastIndexOf( "." );
+		
+		if ( pos != -1 ){
+			
+			String	prefix = name.substring(0,pos);
+			String	suffix = name.substring(pos+1);
+			
+			if ( 	suffix.toLowerCase().equals( "jar") ||
+					suffix.toLowerCase().equals( "zip" )){
+	
+				pos = prefix.lastIndexOf("_");
+		
+				if ( pos != -1 ){
+		
+					String	plugin_id 	= prefix.substring(0,pos);
+					String	version		= prefix.substring(pos+1);
+					
+					if ( manager.getPluginInterfaceByID( plugin_id ) != null ){
+						
+						throw( new PluginException( "Plugin '" + plugin_id + "' is already installed" ));
+					}
+					
+					bad_name	= false;
+					
+					install( new String[]{ plugin_id }, shared, file, version, suffix.toLowerCase().equals( "jar"));
+				}
+			}
+		}
+		
+		if ( bad_name ){
+			
+			throw( new PluginException( "Invalid plugin file name" ));
 		}
 	}
 	
@@ -112,57 +181,157 @@ PluginInstallerImpl
 		
 		String	plugin_id	= standard_plugin.getId();
 		
-		System.out.println( "install '" + plugin_id + "'" );
+		install( new String[]{ plugin_id }, shared, null, null, false );
+	}
+	
+	public void
+	install(
+		StandardPlugin[]	plugins,
+		boolean				shared )
+	
+		throws PluginException
+	{
+		List	ids = new ArrayList();
 		
-		String	target_dir;
-		
-		if ( shared ){
-		    	    
-			target_dir 	= FileUtil.getApplicationFile( "plugins" ).toString();
+		for (int i=0;i<plugins.length;i++){
 			
-		}else{
+			StandardPlugin	standard_plugin = plugins[i];
 			
-			target_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+			PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
+
+			if ( pi != null ){
+				
+				throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is already installed"));
+			}
+			
+			ids.add( standard_plugin.getId());
 		}
 		
-		target_dir += File.separator + plugin_id;
-
-		new File( target_dir ).mkdir();
+		String[]	ids_a = new String[ids.size()];
 		
-			// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
-			// installed version
+		ids.toArray( ids_a );
 		
-		final dummyPlugin	p = new dummyPlugin( plugin_id, target_dir );
-		
-		PluginManager.registerPlugin( p, plugin_id );
-		
-		PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
+		install( ids_a, shared, null, null, false );
+	}
+	
+	protected void
+	install(
+		final String[]				plugin_ids,
+		final boolean				shared,
+		final File					data_source,
+		final String				data_source_version,
+		final boolean				data_source_is_jar )
+	
+		throws PluginException
+	{
+		final PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
 		
 		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	inst = 
 			uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_INSTALL);
 		
-		inst.addUpdatableComponent(
-				pup.getCustomUpdateableComponent( plugin_id, false), false );
-		
-		inst.addListener(
-			new UpdateCheckInstanceListener()
-			{
-				public void
-				cancelled(
-					UpdateCheckInstance		instance )
-				{
-					p.requestUnload();
-				}
+		for (int i=0;i<plugin_ids.length;i++){
+			
+			String	plugin_id = plugin_ids[i];
+			
+			String	target_dir;
+			
+			if ( shared ){
+			    	    
+				target_dir 	= FileUtil.getApplicationFile( "plugins" ).toString();
 				
-				public void
-				complete(
-					UpdateCheckInstance		instance )
+			}else{
+				
+				target_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+			}
+			
+			target_dir += File.separator + plugin_id;
+	
+			new File( target_dir ).mkdir();
+			
+				// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
+				// installed version
+			
+			final dummyPlugin	p = new dummyPlugin( plugin_id, target_dir );
+			
+			PluginManager.registerPlugin( p, plugin_id );
+		
+			final PluginInterface p_pi = manager.getPluginInterfaceByID( plugin_id );
+			
+				// null data source -> standard component from website, download it
+			
+			if ( data_source == null ){
+				
+				inst.addUpdatableComponent(
+					pup.getCustomUpdateableComponent( plugin_id, false), false );
+			
+			}else{
+			
+					// here the data's coming from a local file
+				
+				inst.addUpdatableComponent(
+					new UpdatableComponent()
+					{
+						public String
+						getName()
+						{
+							return( data_source.getName());
+						}
+					
+						public int
+						getMaximumCheckTime()
+						{
+							return( 0 );
+						}
+						
+						public void
+						checkForUpdate(
+							UpdateChecker	checker )
+						{
+							try{
+								ResourceDownloader rd = 
+									manager.getDefaultPluginInterface().getUtilities().getResourceDownloaderFactory().create( data_source );
+								
+	
+								pup.addUpdate(
+									p_pi,
+									checker,
+									getName(),
+									new String[]{"Installation from file"},
+									data_source_version,
+									rd,
+									data_source_is_jar,
+									Update.RESTART_REQUIRED_NO );
+									
+							}finally{
+								
+								checker.completed();
+							}
+								
+						}
+					}, false );
+				
+			}
+		
+			inst.addListener(
+				new UpdateCheckInstanceListener()
 				{
-					p.requestUnload();
-				}
-			});
+					public void
+					cancelled(
+						UpdateCheckInstance		instance )
+					{
+						p.requestUnload();
+					}
+					
+					public void
+					complete(
+						UpdateCheckInstance		instance )
+					{
+						p.requestUnload();
+					}
+				});
+		}
 		
 		inst.start();
 	}

@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.installer;
 
+import java.io.File;
+
 import org.gudy.azureus2.plugins.PluginException;
 
 /**
@@ -41,4 +43,33 @@ PluginInstaller
 	getStandardPlugins()
 	
 		throws PluginException;	
+	
+		/**
+		 * Install one of more standard plugins in a single operation
+		 * @param plugins
+		 */
+	
+	public void
+	install(
+		StandardPlugin[]	plugins,
+		boolean				shared )
+	
+		throws PluginException;
+	
+		/**
+		 * Installs a plugin from a file - must be either a ZIP file or a JAR file as per
+		 * normal plugin update semantics. Name of file must be of the form:
+		 *     <plugin_id> "_" <plugin_version> "." ["jar" | "zip" ].
+		 * For example
+		 *     myplugin_1.0.jar
+		 * @param file
+		 * @throws PluginException
+		 */
+	
+	public void
+	installFromFile(
+		File		file,
+		boolean		shared )
+	
+		throws PluginException;
 }

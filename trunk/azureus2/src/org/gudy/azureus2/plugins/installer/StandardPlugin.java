@@ -68,4 +68,7 @@ StandardPlugin
 	uninstall()
 	
 		throws PluginException;
+	
+	public PluginInstaller
+	getInstaller();
 }

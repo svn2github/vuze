@@ -113,7 +113,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	          if(plugin.getAlreadyInstalledPlugin() == null) {
 	            TableItem item = new TableItem(pluginList,SWT.NULL);
 	            item.setData(plugin);
-	            item.setText(0,plugin.getName());
+	            item.setText(0,plugin.getId() + "/" + plugin.getName());
 	            item.setText(1,plugin.getVersion());
 	          }
 	        }
@@ -136,8 +136,15 @@ public class IPWListPanel extends AbstractWizardPanel {
 	pluginList.addListener(SWT.Selection,new Listener() {
 	  public void handleEvent(Event e) {
 	    if(pluginList.getSelectionCount() > 0) {
-	      TableItem itemSelected = pluginList.getSelection()[0];
-	      txtDescription.setText( ((StandardPlugin)itemSelected.getData()).getDescription());
+	      txtDescription.setText( MessageText.getString( "installPluginsWizard.details.loading"));
+
+	      wizard.getDisplay().asyncExec(new AERunnable() {
+		      public void runSupport() {
+
+		      	TableItem itemSelected = pluginList.getSelection()[0];
+		      	txtDescription.setText( ((StandardPlugin)itemSelected.getData()).getDescription());
+		      }
+	      	});
 	    }
 	    updateList();
 	  }
