@@ -1271,4 +1271,7 @@ DownloadManagerImpl
   		tracker_listeners.removeListener( listener );
   }
   
+  public void deleteDataFiles() {
+    DiskManagerFactory.deleteDataFiles(torrent, FileUtil.smartPath(savePath, name));
+  }
 }

@@ -72,4 +72,8 @@ DiskManagerFactory
 	{
 		return DiskManagerImpl.isTorrentResumeDataComplete( torrent, data_location );
 	}
+
+	public static void deleteDataFiles(TOTorrent torrent, String sPath) {
+	  DiskManagerImpl.deleteDataFiles(torrent, sPath);
+	}
 }

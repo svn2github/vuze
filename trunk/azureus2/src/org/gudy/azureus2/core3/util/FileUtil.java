@@ -114,27 +114,34 @@ public class FileUtil {
   
   /**
    * Deletes the given dir and all dirs underneath if empty.
+   * Don't delete default save path or completed files directory, however,
+   * allow deletion of their empty subdirectories
    */
   public static void recursiveDirDelete(File f) {
     String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
     
     try {
-      if (f.getCanonicalPath().equals(moveToDir)) {
-        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
-        return;
-      }
-      if (f.getCanonicalPath().equals(defSaveDir)) {
-        System.out.println("FileUtil::recursiveDelete:: not allowed to delete the default data dir !");
-        return;
-      }
-      
       if (f.isDirectory()) {
         File[] files = f.listFiles();
         for (int i = 0; i < files.length; i++) {
           recursiveDirDelete(files[i]);
         }
-        f.delete();
+
+        if (f.getCanonicalPath().equals(moveToDir)) {
+          System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
+          return;
+        }
+        if (f.getCanonicalPath().equals(defSaveDir)) {
+          System.out.println("FileUtil::recursiveDelete:: not allowed to delete the default data dir !");
+          return;
+        }
+
+        if (f.listFiles().length == 0) {
+          f.delete();
+        } else {
+          System.out.println("recursiveDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        }
       }
 
     } catch (Exception e) { Debug.out(e.toString()); }

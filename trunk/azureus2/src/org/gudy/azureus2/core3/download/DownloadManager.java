@@ -278,4 +278,6 @@ DownloadManager
 	public Category getCategory();
 	
 	public void setCategory(Category cat);
+	
+	public void deleteDataFiles();
 }

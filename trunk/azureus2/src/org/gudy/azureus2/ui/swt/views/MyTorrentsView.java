@@ -821,8 +821,7 @@ public class MyTorrentsView extends AbstractIView
             if (choice == SWT.YES) {
               try {
                 globalManager.removeDownloadManager(dm);
-                File f = new File(path);
-                FileUtil.recursiveDelete(f);
+                dm.deleteDataFiles();
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){
 
@@ -865,9 +864,8 @@ public class MyTorrentsView extends AbstractIView
             if (choice == SWT.YES) {
               try {
                 globalManager.removeDownloadManager(dm);
-                File f = new File(path);
-                FileUtil.recursiveDelete(f);
-                f = new File(dm.getTorrentFileName());
+                dm.deleteDataFiles();
+                File f = new File(dm.getTorrentFileName());
                 f.delete();
 
               }catch( GlobalManagerDownloadRemovalVetoException f ){

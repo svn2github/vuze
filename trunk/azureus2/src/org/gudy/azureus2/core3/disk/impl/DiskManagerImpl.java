@@ -2367,4 +2367,46 @@ DiskManagerImpl
   {
   	listeners.removeListener(l);
   }
+
+  /** Deletes all data files associated with torrent.
+   * Currently, deletes all files, then tries to delete the path recursively
+   * if the paths are empty.  An unexpected result may be that a empty
+   * directory that the user created will be removed.
+   *
+   * TODO: only remove empty directories that are created for the torrent
+   */
+	public static void deleteDataFiles(TOTorrent torrent, String sPath) {
+	  if (torrent == null)
+	    return;
+	  TOTorrentFile[] files = torrent.getFiles();
+
+		// delete all files, then empty directories
+
+		for (int i=0;i<files.length;i++){
+			byte[][]path_comps = files[i].getPathComponents();
+			
+			String	path_str = sPath + File.separator;
+			for (int j=0;j<path_comps.length;j++){
+				try{
+					path_str += (j==0?"":File.separator) + new String( path_comps[j], Constants.DEFAULT_ENCODING );
+				}catch( UnsupportedEncodingException e ){
+					System.out.println( "file - unsupported encoding!!!!");	
+				}
+			}
+			
+			File file = new File(path_str);
+			if (file.exists() && !file.isDirectory()) {
+			  try {
+  			  file.delete();
+  			} catch (Exception e) {
+  			  Debug.out(e.toString());
+  			}
+      }
+		}
+		
+		if (!torrent.isSimpleTorrent()) {
+  		File fPath = new File(sPath);
+      FileUtil.recursiveDirDelete(fPath);
+    }
+	}
 }
