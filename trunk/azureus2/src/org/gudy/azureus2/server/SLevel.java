@@ -6,19 +6,17 @@
 
 package org.gudy.azureus2.server;
 
-import java.util.logging.Level;
-import java.io.Serializable;
-
+import org.apache.log4j.Level;
 /**
  *
  * @author  Tobias Minich
  */
-public class SLevel extends Level implements Serializable {
+public class SLevel extends Level {
   
-  public static final Level TORRENT_RECIEVED = new SLevel("TORRENT RECEIVED", 801);
-  public static final Level TORRENT_SENT = new SLevel("TORRENT SENT", 802);
-  public static final Level THREAD = new SLevel("THREAD", 803);
-  public static final Level HTTP = new SLevel("HTTP", 804);
+  public static final Level TORRENT_RECIEVED = new SLevel(15001, "TORRENT RECEIVED", 6);
+  public static final Level TORRENT_SENT = new SLevel(15000, "TORRENT SENT", 6);
+  public static final Level THREAD = new SLevel(10001, "THREAD", 6);
+  public static final Level HTTP = new SLevel(12000, "HTTP", 6);
   
-  SLevel(String a, int b) {super(a,b);}
+  SLevel(int c, String a, int b) {super(c,a,b);}
 }

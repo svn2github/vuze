@@ -208,6 +208,16 @@ public class ConfigurationManager {
     setParameter(parameter, defaultValue.getBytes());
   }
   
+  // Sets a parameter back to its default
+  public void setParameter(String parameter) throws ConfigurationParameterNotFoundException {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    try {
+      setParameter(parameter, def.getIntParameter(parameter));
+    } catch (Exception e) {
+      setParameter(parameter, def.getStringParameter(parameter));
+    }
+  }
+  
   //TODO:: Move this to a FileManager class?
   public static String getApplicationPath() {
     if (System.getProperty("os.name").equals("Linux")) {
