@@ -22,9 +22,6 @@
  */
 package org.gudy.azureus2.core3.ipfilter.impl.tests;
 
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-
 /**
  * @author Olivier Chalouhi
  *
