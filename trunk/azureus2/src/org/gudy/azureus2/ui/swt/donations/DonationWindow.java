@@ -58,6 +58,8 @@ public class DonationWindow {
   private Button ok;
   private int timeToWait;
   private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
+  private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR";
+  
   private String fullText;
   
   public DonationWindow(Display display) {
@@ -65,7 +67,7 @@ public class DonationWindow {
    OverallStats stats = StatsFactory.getStats();
    fullText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
               + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-              + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
+              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
               + MessageText.getString("DonationWindow.text");
    timeToWait = fullText.length() / 25 ;
   }
@@ -98,7 +100,7 @@ public class DonationWindow {
     text.setBackground(MainWindow.blues[0]);
     
     final Text textForCopy = new Text(shell,SWT.BORDER);
-    textForCopy.setText(donationUrl);
+    textForCopy.setText(donationUrlShort);
     formData = new FormData();
     formData.top = new FormAttachment(text);
     formData.left = new FormAttachment(0);
