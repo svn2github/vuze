@@ -70,6 +70,7 @@ StartStopRulesDefaultPlugin
   
   private static final int QR_INCOMPLETE_ENDS_AT      = 1000000000; // billion
   private static final int QR_TIMED_QUEUED_ENDS_AT    =   10000000;
+  private static final int QR_FIRST_PRIORITY_STARTS_AT=   50000000;
   private static final int QR_NOTQUEUED       = -2;
   private static final int QR_RATIOMET        = -3;
   private static final int QR_NUMSEEDSMET     = -4;
@@ -421,6 +422,7 @@ StartStopRulesDefaultPlugin
     }
 
     int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
+    int iExtraFPs = (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) : 0;
 
     // We can also quit early if:
     // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
@@ -455,6 +457,7 @@ StartStopRulesDefaultPlugin
               ";recalcQR="+recalcQR+
               ";bCdHasRank="+bSeedHasRanking+
               ";mxCdrs="+maxSeeders+
+              ";t1stPr="+totalFirstPriority+
               "");
 
     // Sort by QR
@@ -537,9 +540,10 @@ StartStopRulesDefaultPlugin
         } else if (state == Download.ST_READY ||
                    state == Download.ST_DOWNLOADING ||
                    state == Download.ST_WAITING) {
+                    
           // Stop torrent if over limit
           if ((maxDownloads != 0) &&
-              (numWaitingOrDLing >= maxDownloads)) {
+              (numWaitingOrDLing >= maxDownloads - iExtraFPs)) {
             try {
               if (bDebugLog)
                 log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
@@ -552,7 +556,7 @@ StartStopRulesDefaultPlugin
               } else {
                 totalWaitingToDL--;
               }
-              bStopAndQueued = true;
+              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
             } catch (Exception ignore) {/*ignore*/}
             
             state = download.getState();
@@ -563,53 +567,31 @@ StartStopRulesDefaultPlugin
           }
         }
 
-        if (state == Download.ST_QUEUED)
+        if (state == Download.ST_QUEUED || state == Download.ST_READY)
         {
-          // use a variable to make logic more readable (than an if statement)
-
-          // super rule: can always start if maxDownloads is unlimited (0)
-          boolean canStart = (maxDownloads == 0);
-          if (!canStart && (numWaitingOrDLing < maxDownloads)) {
-            // Not unlimited, but we don't have all our download slots filled
-            // Check to see if "First Priority" is using the download slot
-            // If it is, we can't stop it
-            maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
-            canStart = (totalFirstPriority <= maxSeeders) || 
-                       ((maxActive - numWaitingOrDLing - totalFirstPriority) > 0);
-          }
-
-          if (canStart) {
+          if ((maxDownloads == 0) || ((numWaitingOrDLing < maxDownloads - iExtraFPs) &&
+                                      (activeDLCount < maxDownloads - iExtraFPs))) {
             try {
-              if (bDebugLog)
-                log.log(LoggerChannel.LT_INFORMATION, "   restart()");
-              download.restart();
-              // increase counts
+              if (state == Download.ST_QUEUED) {
+                if (bDebugLog)
+                  log.log(LoggerChannel.LT_INFORMATION, "   restart()");
+                download.restart();
+
+                // increase counts
+                totalWaitingToDL++;
+              } else {
+                if (bDebugLog)
+                  log.log(LoggerChannel.LT_INFORMATION, "   start() activeDLCount < maxDownloads");
+                download.start();
+
+                // adjust counts
+                totalWaitingToDL--;
+                activeDLCount++;
+              }
               numWaitingOrDLing++;
-              totalWaitingToDL++;
+              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
             } catch (Exception ignore) {/*ignore*/}
             state = download.getState();
-          }
-        }
-
-
-        // Start we haven't reached our limit
-        if (state == Download.ST_READY &&
-            ((maxDownloads == 0) || (activeDLCount < maxDownloads))
-        ) {
-          try {
-            if (bDebugLog)
-              log.log(LoggerChannel.LT_INFORMATION, "   start() activeDLCount < maxDownloads");
-            download.start();
-          } catch (Exception ignore) {/*ignore*/}
-
-          state = download.getState();
-          if (state == Download.ST_DOWNLOADING) {
-            if (bDebugLog)
-              log.log(LoggerChannel.LT_INFORMATION, "   start() ok");
-            // increase counts
-            totalWaitingToDL--;
-            activeDLCount++;
-            numWaitingOrDLing++;
           }
         }
 
@@ -640,9 +622,6 @@ StartStopRulesDefaultPlugin
         //    c) other
         // 7) Seeding Torrent changes to Queued.  Go to step 1.
 
-        // XXX this really only needs to be calculated on first completed item..
-        maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
-
         int shareRatio = download.getStats().getShareRatio();
         int state = download.getState();
         boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
@@ -669,14 +648,17 @@ StartStopRulesDefaultPlugin
                            "okToQ="+okToQueue,
                            "qr="+dl_data.getQR(),
                            "hgherQd="+higherQueued,
-                           "maxCDrs="+maxSeeders
+                           "maxCDrs="+maxSeeders,
+                           "1stPriority="+dl_data.isFirstPriority()
                           };
         }
-
+        
+        // Note: First Priority have the highest QR, so they will always start first
+        
         // Change to waiting if queued and we have an open slot
         if ((state == Download.ST_QUEUED) &&
-            (numWaitingOrSeeding < maxSeeders) &&
-            (dl_data.getQR() > -2) &&
+            (numWaitingOrSeeding < maxSeeders) && 
+            (dl_data.getQR() > -2) && 
             !higherQueued) {
           try {
             if (bDebugLog)
@@ -689,7 +671,7 @@ StartStopRulesDefaultPlugin
           state = download.getState();
         }
 
-        if ((state == Download.ST_READY) && (totalSeeding < maxSeeders)) {
+        if (state == Download.ST_READY && totalSeeding < maxSeeders) {
 
           if (dl_data.getQR() > -2) {
             try {
@@ -802,7 +784,8 @@ StartStopRulesDefaultPlugin
                            "okToQ="+okToQueue,
                            "qr="+dl_data.getQR(),
                            "hgherQd="+higherQueued,
-                           "maxCDrs="+maxSeeders
+                           "maxCDrs="+maxSeeders,
+                           "1stPriority="+dl_data.isFirstPriority()
                           };
 
           boolean bAnyChanged = false;
@@ -1014,7 +997,7 @@ StartStopRulesDefaultPlugin
 
       // First Priority Calculations
       if (isFirstPriority()) {
-        newQR += 10000000;
+        newQR += QR_FIRST_PRIORITY_STARTS_AT;
       }
       
 
@@ -1091,7 +1074,7 @@ StartStopRulesDefaultPlugin
       if (newQR < 0)
         newQR = 1;
 
-      if (bScrapeResultsOk || qr > (QR_INCOMPLETE_ENDS_AT - 10000))
+      if (bScrapeResultsOk || newQR >= QR_FIRST_PRIORITY_STARTS_AT)
         setQR(newQR);
 
       return qr;
@@ -1101,6 +1084,10 @@ StartStopRulesDefaultPlugin
     public boolean isFirstPriority() {
       // FP only applies to completed
       if (dl.getStats().getDownloadCompleted(false) < 1000)
+        return false;
+
+      if (dl.getState() == Download.ST_ERROR ||
+          dl.getState() == Download.ST_STOPPED)
         return false;
 
       int shareRatio = dl.getStats().getShareRatio();
@@ -1768,18 +1755,25 @@ StartStopRulesDefaultPlugin
       int qr = dlData.getQR();
 
       if (qr >= 0) {
+        String sText = "";
+        if (qr >= QR_FIRST_PRIORITY_STARTS_AT) {
+          sText += MessageText.getString("StartStopRules.firstPriority") + " ";
+          qr -= QR_FIRST_PRIORITY_STARTS_AT;
+        }
+
         if (iRankType == RANK_TIMED) {
           if (qr > QR_TIMED_QUEUED_ENDS_AT) {
             int timeLeft = (int)(minTimeAlive - 
                                  (long)(System.currentTimeMillis() - 
                                         dlData.getStartedSeedingOn())) / 1000;
-            tableItem.setText(TimeFormater.format(timeLeft));
+            sText += TimeFormater.format(timeLeft);
           } else {
-            tableItem.setText(MessageText.getString("StartStopRules.waiting"));
+            sText += MessageText.getString("StartStopRules.waiting");
           }
         } else {
-          tableItem.setText(String.valueOf(qr));
+          sText += String.valueOf(qr);
         }
+        tableItem.setText(sText);
       }
       else if (qr == QR_RATIOMET)
         tableItem.setText(MessageText.getString("StartStopRules.ratioMet"));
