@@ -33,7 +33,7 @@ public class BEncoder {
             try{
               baos.write((String.valueOf(tempString.length())).getBytes());
               baos.write(':');
-              baos.write(tempString.getBytes());
+              baos.write(tempString.getBytes("UTF-8"));
             }catch(IOException e){
                 e.printStackTrace();
             }
