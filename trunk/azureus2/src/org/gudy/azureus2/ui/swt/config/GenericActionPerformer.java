@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.config;
  *
  */
 
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 public abstract class 
@@ -47,5 +48,13 @@ implements IAdditionalActionPerformer
   }
 
    public void setStringValue(String value) {    
+  }
+
+  public void controlsSetEnabled(Control[] controls, boolean bEnabled) {
+    for(int i = 0 ; i < controls.length ; i++) {
+      if (controls[i] instanceof Composite)
+        controlsSetEnabled(((Composite)controls[i]).getChildren(), bEnabled);
+      controls[i].setEnabled(bEnabled);
+    }
   }
 }

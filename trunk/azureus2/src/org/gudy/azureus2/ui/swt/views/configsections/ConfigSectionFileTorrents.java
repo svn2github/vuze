@@ -79,25 +79,26 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     cTorrent.setLayout(layout);
     
     // Save .Torrent files to..
-    
-    Label lsave = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(lsave, "ConfigView.label.savetorrents"); //$NON-NLS-1$
-    BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files", true); //$NON-NLS-1$
+    BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files", true,
+                                                         "ConfigView.label.savetorrents");
 
     Composite gSaveTorrents = new Composite(cTorrent, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 10;
+    gridData.horizontalIndent = 25;
     gridData.horizontalSpan = 2;
     gSaveTorrents.setLayoutData(gridData);
     layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 4;
     layout.numColumns = 3;
     gSaveTorrents.setLayout(layout);
 
     Label lSaveDir = new Label(gSaveTorrents, SWT.NULL);
-    Messages.setLanguageText(lSaveDir, "ConfigView.label.savedirectory"); //$NON-NLS-1$
+    Messages.setLanguageText(lSaveDir, "ConfigView.label.savedirectory");
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter torrentPathParameter = new StringParameter(gSaveTorrents, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    final StringParameter torrentPathParameter = new StringParameter(gSaveTorrents,
+                                                                     "General_sDefaultTorrent_Directory", "");
     torrentPathParameter.setLayoutData(gridData);
 
     Button browse2 = new Button(gSaveTorrents, SWT.PUSH);
@@ -112,7 +113,7 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(torrentPathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath"));
         String path = dialog.open();
         if (path != null) {
           torrentPathParameter.setValue(path);
@@ -120,45 +121,37 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
       }
     });
 
-    Label lSaveTorrentBackup = new Label(gSaveTorrents, SWT.NULL);
-    Messages.setLanguageText(lSaveTorrentBackup, "ConfigView.label.savetorrentbackup"); //$NON-NLS-1$
-    BooleanParameter saveTorrentBackup = new BooleanParameter(gSaveTorrents, "Save Torrent Backup", false); //$NON-NLS-1$
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    saveTorrentBackup.setLayoutData(gridData);
+    new BooleanParameter(gSaveTorrents, "Save Torrent Backup", false,
+                        "ConfigView.label.savetorrentbackup").setLayoutData(gridData);
 
-    Control[] controls = new Control[]{
-    		lSaveDir,
-			torrentPathParameter.getControl(),
-			browse2,
-			lSaveTorrentBackup,
-			saveTorrentBackup.getControl() };
-    
+    Control[] controls = new Control[]{ gSaveTorrents };
     IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
     saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
 
 
     // Watch Folder
-    label = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.watchtorrentfolder"); //$NON-NLS-1$
-    BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder", false); //$NON-NLS-1$
+    BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder", false,
+                                                        "ConfigView.label.watchtorrentfolder");
 
     Composite gWatchFolder = new Composite(cTorrent, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 10;
+    gridData.horizontalIndent = 25;
     gridData.horizontalSpan = 2;
     gWatchFolder.setLayoutData(gridData);
     layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 4;
     layout.numColumns = 3;
     gWatchFolder.setLayout(layout);
 
     Label lImportDir = new Label(gWatchFolder, SWT.NULL);
-    Messages.setLanguageText(lImportDir, "ConfigView.label.importdirectory"); //$NON-NLS-1$
+    Messages.setLanguageText(lImportDir, "ConfigView.label.importdirectory");
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-//    gridData = new GridData();
-//    gridData.widthHint = 220;
-    final StringParameter watchFolderPathParameter = new StringParameter(gWatchFolder, "Watch Torrent Folder Path", "");
+    final StringParameter watchFolderPathParameter = new StringParameter(gWatchFolder,
+                                                                         "Watch Torrent Folder Path", "");
     watchFolderPathParameter.setLayoutData(gridData);
 
     Button browse4 = new Button(gWatchFolder, SWT.PUSH);
@@ -170,7 +163,7 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(watchFolderPathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosewatchtorrentfolderpath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosewatchtorrentfolderpath"));
         String path = dialog.open();
         if (path != null) {
           watchFolderPathParameter.setValue(path);
@@ -179,68 +172,59 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     });
 
     Label lWatchTorrentFolderInterval = new Label(gWatchFolder, SWT.NULL);
-    Messages.setLanguageText(lWatchTorrentFolderInterval, "ConfigView.label.watchtorrentfolderinterval"); //$NON-NLS-1$
+    Messages.setLanguageText(lWatchTorrentFolderInterval, "ConfigView.label.watchtorrentfolderinterval");
     final String watchTorrentFolderIntervalLabels[] = new String[5];
     final int watchTorrentFolderIntervalValues[] = new int[5];
     for (int i = 1; i < 6; i++) {
-      watchTorrentFolderIntervalLabels[i - 1] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
+      watchTorrentFolderIntervalLabels[i - 1] = " " + i + " min";
       watchTorrentFolderIntervalValues[i - 1] = i;
     }
-    IntListParameter iWatchTorrentFolderIntervalParameter = new IntListParameter(gWatchFolder, "Watch Torrent Folder Interval", 1, watchTorrentFolderIntervalLabels, watchTorrentFolderIntervalValues);
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    iWatchTorrentFolderIntervalParameter.setLayoutData(gridData);
+    new IntListParameter(gWatchFolder, "Watch Torrent Folder Interval", 1, 
+                         watchTorrentFolderIntervalLabels, 
+                         watchTorrentFolderIntervalValues).setLayoutData(gridData);
 
-    Label lStartWatchedTorrentsStopped = new Label(gWatchFolder, SWT.NULL);
-    Messages.setLanguageText(lStartWatchedTorrentsStopped, "ConfigView.label.startwatchedtorrentsstopped"); //$NON-NLS-1$
-    BooleanParameter startWatchedTorrentsStopped = new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped", true); //$NON-NLS-1$
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    startWatchedTorrentsStopped.setLayoutData(gridData);
-    controls = new Control[]{
-    		lImportDir,
-			watchFolderPathParameter.getControl(),
-    		browse4,
-			lWatchTorrentFolderInterval,
-			iWatchTorrentFolderIntervalParameter.getControl(),
-			lStartWatchedTorrentsStopped,
-			startWatchedTorrentsStopped.getControl() };
-    
-    IAdditionalActionPerformer grayPathAndButton3 = new ChangeSelectionActionPerformer(controls);
-    watchFolder.setAdditionalActionPerformer(grayPathAndButton3);
+    gridData.horizontalSpan = 3;
+    new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped", true,
+                         "ConfigView.label.startwatchedtorrentsstopped").setLayoutData(gridData);
+
+    controls = new Control[]{ gWatchFolder };
+    watchFolder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
     // locale decoder
     label = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.decoder.label"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.section.file.decoder.label");
   
     LocaleUtilDecoder[] decoders = LocaleUtil.getDecoders();
   
     String decoderLabels[] = new String[decoders.length + 1];
     String decoderValues[] = new String[decoders.length + 1];
   
-    decoderLabels[0] = MessageText.getString( "ConfigView.section.file.decoder.nodecoder");
+    decoderLabels[0] = MessageText.getString("ConfigView.section.file.decoder.nodecoder");
     decoderValues[0] = "";
   
     for (int i = 1; i <= decoders.length; i++) {
       decoderLabels[i] = decoderValues[i] = decoders[i-1].getName();
       }
-    Control[] decoder_controls = new Control[2];
-    decoder_controls[0] = label;
-    decoder_controls[1] = new StringListParameter(cTorrent, "File.Decoder.Default", "", decoderLabels, decoderValues).getControl(); //$NON-NLS-1$
+    new StringListParameter(cTorrent, "File.Decoder.Default", "", 
+                            decoderLabels, decoderValues);
   
       // locale always prompt
   
-    label = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt");
-    new BooleanParameter(cTorrent, "File.Decoder.Prompt", false);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(cTorrent, "File.Decoder.Prompt", false,
+                         "ConfigView.section.file.decoder.prompt").setLayoutData(gridData);
           
     
     Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(lIgnoreFiles, "ConfigView.section.file.torrent.ignorefiles"); //$NON-NLS-1$
+    Messages.setLanguageText(lIgnoreFiles, "ConfigView.section.file.torrent.ignorefiles");
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter ignoreFileParameter = new StringParameter(cTorrent, "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES ); 
-    ignoreFileParameter.setLayoutData(gridData);
+    new StringParameter(cTorrent, "File.Torrent.IgnoreFiles",
+                        TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
 
     return cTorrent;
   }
