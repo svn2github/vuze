@@ -258,7 +258,7 @@ RemoteUIMainPanel
 						}
 					});
 			
-			new Thread()
+			new Thread("RemoteUIMainPanel::refresh")
 			{
 				public void
 				run()
