@@ -26,7 +26,7 @@ public class ImageRepository {
   }
 
   public static void loadImagesForSplashWindow(Display display) {
-    loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus");
+    loadImage(display, "org/gudy/azureus2/ui/icons/a16.png", "azureus");
     loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
   }
   
