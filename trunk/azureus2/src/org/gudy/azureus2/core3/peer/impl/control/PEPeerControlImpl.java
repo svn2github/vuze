@@ -11,6 +11,7 @@ package org.gudy.azureus2.core3.peer.impl.control;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.net.URL;
 
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -74,7 +75,7 @@ PEPeerControlImpl
   //The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
   private List endGameModeChunks;
   
-  private DownloadManager _manager;
+  private DownloadManager _downloadManager;
   private List requestsToFree;
   private PeerUpdater peerUpdater;
   
@@ -105,7 +106,7 @@ PEPeerControlImpl
     DiskManager 		diskManager) {
     	
   	  _server = server;
-  	  this._manager = manager;
+  	  this._downloadManager = manager;
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
   	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
@@ -115,7 +116,7 @@ PEPeerControlImpl
 	public DownloadManager
 	getDownloadManager()
 	{
-		return( _manager );
+		return( _downloadManager );
 	}
  
 	public int
@@ -339,7 +340,7 @@ PEPeerControlImpl
   //main method
   public void mainLoop() {
     _bContinue = true;
-    _manager.setState(DownloadManager.STATE_DOWNLOADING);
+    _downloadManager.setState(DownloadManager.STATE_DOWNLOADING);
     _timeStarted = SystemTime.getCurrentTime();
     while (_bContinue) //loop until stopAll() kills us
       {
@@ -704,7 +705,7 @@ PEPeerControlImpl
       
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
       
-      _manager.setState(DownloadManager.STATE_FINISHING);
+      _downloadManager.setState(DownloadManager.STATE_FINISHING);
       _timeFinished = SystemTime.getCurrentTime();
             
       //remove previous snubbing
@@ -736,19 +737,19 @@ PEPeerControlImpl
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
       if (moveWhenDone) {
         String newName = _diskManager.moveCompletedFiles();
-        if (newName.length() > 0) _manager.setTorrentFileName(newName);
+        if (newName.length() > 0) _downloadManager.setTorrentFileName(newName);
       }
       
       //update resume data
       if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true, false);
       
       
-      _manager.setState(DownloadManager.STATE_SEEDING);
+      _downloadManager.setState(DownloadManager.STATE_SEEDING);
       _timeStartedSeeding = SystemTime.getCurrentTime();
       
       if ( !looks_like_restart ){
       
-      	_manager.downloadEnded();
+      	_downloadManager.downloadEnded();
       }
             		
       _tracker.complete( looks_like_restart );
@@ -821,13 +822,13 @@ PEPeerControlImpl
     final int LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
-    if (_manager.getState() == DownloadManager.STATE_DOWNLOADING) {
+    if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING) {
       int maxAllowed = PeerUtils.numNewConnectionsAllowed( _hash );
       if ( maxAllowed < 0 || maxAllowed > LIMIT ) {
       	maxAllowed = LIMIT;
       }
 
-      TRTrackerScraperResponse tsr = _manager.getTrackerScrapeResponse();
+      TRTrackerScraperResponse tsr = _downloadManager.getTrackerScrapeResponse();
 
       //get current scrape values
       int swarmPeers = -1;
@@ -1070,7 +1071,7 @@ PEPeerControlImpl
     * private method to add a new outgoing peerConnection
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    if (!IpFilterImpl.getInstance().isInRange(ip, _manager.getName())) {
+    if (!IpFilterImpl.getInstance().isInRange(ip, _downloadManager.getName())) {
     	synchronized (_peer_transports) {
     		//create a peer socket for testing purposes
     		PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
@@ -1098,7 +1099,7 @@ PEPeerControlImpl
     //Get the max number of connections allowed
     boolean addFailed = false;
     String reason = "";
-    if (!IpFilterImpl.getInstance().isInRange(ps.getIp(), _manager.getName())) {
+    if (!IpFilterImpl.getInstance().isInRange(ps.getIp(), _downloadManager.getName())) {
        synchronized (_peer_transports) {
           if (!_peer_transports.contains(ps)) {
           	/* add connection */
@@ -1131,7 +1132,7 @@ PEPeerControlImpl
     List nonChoking = getNonChokingPeers();
 
     // Determine how many uploads we should consider    
-    int nbUnchoke = _manager.getStats().getMaxUploads();
+    int nbUnchoke = _downloadManager.getStats().getMaxUploads();
 
     // Then, in any case if we have too many unchoked pple we need to choke some
     while (nbUnchoke < nonChoking.size()) {
@@ -1258,7 +1259,7 @@ PEPeerControlImpl
             && pc.isInterested()
             && bestUploaders.size() < upRates.length
             && !pc.isSnubbed()
-            && (_manager.getStats().getUploaded() / (_manager.getStats().getDownloaded() + 16000)) < 10) {
+            && (_downloadManager.getStats().getUploaded() / (_downloadManager.getStats().getDownloaded() + 16000)) < 10) {
             bestUploaders.add(pc);
           }
         }
@@ -1476,21 +1477,21 @@ PEPeerControlImpl
       _stats.received(length);
       _averageReceptionSpeed.addValue(length);
     }
-    _manager.getStats().received(length);
+    _downloadManager.getStats().received(length);
   }
 
   public void discarded(int length) {
     if (length > 0) {
       _stats.discarded(length);
     }
-    _manager.getStats().discarded(length);
+    _downloadManager.getStats().discarded(length);
   }
   //::possibly update to setSent() -Tyler
   //set the send value
   public void sent(int length) {
     if (length > 0)
       _stats.sent(length);
-    _manager.getStats().sent(length);
+    _downloadManager.getStats().sent(length);
   }
 
   //setup the diskManager
@@ -1748,7 +1749,7 @@ PEPeerControlImpl
   	// these should be replaced by above methods + listeners
   
   public void peerAdded(PEPeer pc) {
-    _manager.addPeer(pc);
+    _downloadManager.addPeer(pc);
   }
 
   public void peerRemoved(PEPeer pc) {
@@ -1757,15 +1758,15 @@ PEPeerControlImpl
       superSeedModeNumberOfAnnounces--;
       superSeedPieces[piece].peerLeft();
     }
-    _manager.removePeer(pc);
+    _downloadManager.removePeer(pc);
   }
 
   public void pieceAdded(PEPiece p) {
-    _manager.addPiece(p);
+    _downloadManager.addPiece(p);
   }
 
   public void pieceRemoved(PEPiece p) {
-    _manager.removePiece(p);
+    _downloadManager.removePiece(p);
   }
 
   public String getElapsedTime() {
@@ -1889,7 +1890,7 @@ PEPeerControlImpl
       //if the download has been marked as finish, restart the download
       if (_finished) {
         Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
-        _manager.restartDownload(false);
+        _downloadManager.restartDownload(false);
       }
       
       //if we are in end-game mode, we need to re-add all the piece chunks
@@ -1945,7 +1946,7 @@ PEPeerControlImpl
   }
 
   public int getDownloadPriority() {
-    return _manager.getPriority();
+    return _downloadManager.getPriority();
   }
 
   public void freeRequest(DiskManagerDataQueueItem item) {
@@ -2050,7 +2051,7 @@ PEPeerControlImpl
       synchronized( _peer_transports ) {
         for (int i=0; i < _peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
-          if ( IpFilterImpl.getInstance().isInRange( conn.getIp(), _manager.getName() )) {
+          if ( IpFilterImpl.getInstance().isInRange( conn.getIp(), _downloadManager.getName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
         }
@@ -2075,7 +2076,7 @@ PEPeerControlImpl
     }    
     computeEndGameModeChunks();
     endGameMode = true;
-    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _manager.getName());
+    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getName());
     //System.out.println("End-Game Mode activated");
   }
   
@@ -2161,7 +2162,7 @@ PEPeerControlImpl
     }
     
     //Use the same number of announces than unchoke
-    int nbUnchoke = _manager.getStats().getMaxUploads();
+    int nbUnchoke = _downloadManager.getStats().getMaxUploads();
     if(superSeedModeNumberOfAnnounces >= 2 * nbUnchoke)
       return;
     

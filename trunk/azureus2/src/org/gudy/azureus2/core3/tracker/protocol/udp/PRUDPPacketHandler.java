@@ -33,8 +33,9 @@ PRUDPPacketHandler
 {
 	public PRUDPPacket
 	sendAndReceive(
-		PRUDPPacket			request_packet,
-		InetSocketAddress	destination_address )
+		PasswordAuthentication		auth,
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address )
 	
 		throws PRUDPPacketHandlerException;
 }

@@ -65,7 +65,7 @@ Main
 								
 				PRUDPPacket request_packet = new PRUDPPacketRequestConnect();
 				 
-				PRUDPPacket reply_packet = handler.sendAndReceive( request_packet, address );
+				PRUDPPacket reply_packet = handler.sendAndReceive( null, request_packet, address );
 				
 				System.out.println( reply_packet.getString());
 			}

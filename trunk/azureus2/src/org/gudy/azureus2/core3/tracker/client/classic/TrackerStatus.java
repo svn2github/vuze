@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.security.*;
 
 /**
  * @author Olivier
@@ -393,6 +394,13 @@ public class TrackerStatus {
   {
 	reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
+	PasswordAuthentication	auth = null;
+			
+	if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
+				
+		auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
+	}		
+
 	int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
 	
 	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
@@ -404,7 +412,7 @@ public class TrackerStatus {
 		try{
 			PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
 			
-			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
+			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
 			
 			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
 				
@@ -414,7 +422,7 @@ public class TrackerStatus {
 				
 				PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
 								
-				reply = handler.sendAndReceive( scrape_request, destination );
+				reply = handler.sendAndReceive( auth, scrape_request, destination );
 				
 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
 					

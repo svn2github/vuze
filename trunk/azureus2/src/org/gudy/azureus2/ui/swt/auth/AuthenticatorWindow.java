@@ -40,103 +40,122 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.security.*;
 
 public class 
 AuthenticatorWindow 
+	implements SEPasswordListener
 {
 	protected Map	auth_cache = new HashMap();
 	
 	public
 	AuthenticatorWindow()
 	{
+		SESecurityManager.addPasswordListener( this );
+		
 		// System.out.println( "AuthenticatorWindow");
 		
 		Authenticator.setDefault(
-			new Authenticator()
-			{
-				protected synchronized PasswordAuthentication
-				getPasswordAuthentication()
+				new Authenticator()
 				{
-					// System.out.println( "getPasswordAuthentication");
-										
-					String	realm = getRequestingPrompt();
-					
-					String	requesting_host = getRequestingHost();
-					
-					String	tracker = getRequestingProtocol() + "://" + 
-										requesting_host + ":" + 
-										getRequestingPort() + "/";
-					
-					String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-					String	self_addr;
-		
-					if ( bind_ip.length() < 7 ){
-				
-						self_addr = "127.0.0.1";
-				
-					}else{
-				
-						self_addr = bind_ip;
+					protected synchronized PasswordAuthentication
+					getPasswordAuthentication()
+					{					
+						return( getAuthentication( 
+									getRequestingPrompt(),
+									getRequestingProtocol(),
+									getRequestingHost(),
+									getRequestingPort()));
 					}
-
-						// when the tracker is connected to internally we don't want to prompt
-						// for the password. Here we return a special user and the password hash
-						// which is picked up in the tracker auth code - search for "<internal>"!
-						
-						// also include the tracker IP as well as for scrapes these can occur on
-						// a raw torrent which hasn't been modified to point to localhost
-					
-					if ( 	requesting_host.equals(self_addr) ||
-							requesting_host.equals(COConfigurationManager.getStringParameter("Tracker IP", ""))){
-					
-						try{
-							byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
-						
-							String str_pw = new BASE64Encoder().encode(pw);
-							
-							return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
-								
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}	
-					}
-					
-					String auth_key = realm+":"+tracker;
-										
-					authCache	cache = (authCache)auth_cache.get( auth_key );
-								
-					if ( cache != null ){
-						
-						PasswordAuthentication	auth = cache.getAuth();
-						
-						if ( auth != null ){
-							
-							return( auth );
-						}
-					}
-						
-					String[]	res = getAuth( realm, tracker );
-						
-					if ( res == null ){
-						
-						return( null );
-						
-					}else{
-										
-						PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
-						
-						auth_cache.put( auth_key, new authCache( auth ));
-						
-						return( auth );
-					}
-				}
-			});
+				});
 	}
 	
+	public PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		URL			tracker )
+	{
+		return( getAuthentication( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort()));
+	}
+	
+	public PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		String		protocol,
+		String		host,
+		int			port )
+	{
+		String	tracker = protocol + "://" + host + ":" + port + "/";
+
+		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+		
+		String	self_addr;
+
+		if ( bind_ip.length() < 7 ){
+	
+			self_addr = "127.0.0.1";
+	
+		}else{
+	
+			self_addr = bind_ip;
+		}
+
+			// when the tracker is connected to internally we don't want to prompt
+			// for the password. Here we return a special user and the password hash
+			// which is picked up in the tracker auth code - search for "<internal>"!
+			
+			// also include the tracker IP as well as for scrapes these can occur on
+			// a raw torrent which hasn't been modified to point to localhost
+		
+		if ( 	host.equals(self_addr) ||
+				host.equals(COConfigurationManager.getStringParameter("Tracker IP", ""))){
+		
+			try{
+				byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
+			
+				String str_pw = new BASE64Encoder().encode(pw);
+				
+				return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
+					
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}	
+		}
+		
+		String auth_key = realm+":"+tracker;
+							
+		authCache	cache = (authCache)auth_cache.get( auth_key );
+					
+		if ( cache != null ){
+			
+			PasswordAuthentication	auth = cache.getAuth();
+			
+			if ( auth != null ){
+				
+				return( auth );
+			}
+		}
+			
+		String[]	res = getAuthenticationDialog( realm, tracker );
+			
+		if ( res == null ){
+			
+			return( null );
+			
+		}else{
+							
+			PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
+			
+			auth_cache.put( auth_key, new authCache( auth ));
+			
+			return( auth );
+		}	
+	}
+	
+	
 	protected String[]
-	getAuth(
+	getAuthenticationDialog(
 		final String		realm,
 		final String		tracker )
 	{

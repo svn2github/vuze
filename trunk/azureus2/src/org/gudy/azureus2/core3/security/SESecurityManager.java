@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.security;
  */
 
 import java.net.URL;
+import java.net.PasswordAuthentication;
+
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.security.impl.*;
@@ -57,9 +59,31 @@ SESecurityManager
 	
 	public static boolean
 	installServerCertificates(
-			URL		https_url )
+		URL		https_url )
 	{
 		return( SESecurityManagerImpl.installServerCertificates(https_url));
+	}
+	
+	public static PasswordAuthentication
+	getPasswordAuthentication(
+		String		realm,
+		URL			tracker )
+	{
+		return( SESecurityManagerImpl.getPasswordAuthentication(realm, tracker));	
+	}
+		
+	public static synchronized void
+	addPasswordListener(
+		SEPasswordListener	l )
+	{
+		SESecurityManagerImpl.addPasswordListener(l);	
+	}	
+	
+	public static synchronized void
+	removePasswordListener(
+		SEPasswordListener	l )
+	{
+		SESecurityManagerImpl.removePasswordListener(l);	
 	}
 	
 	public static void

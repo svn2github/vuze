@@ -925,6 +925,13 @@ TRTrackerClientClassicImpl
  		String	failure_reason = null;
  		
  		try{
+ 			PasswordAuthentication	auth = null;
+ 			
+ 			if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
+ 				
+ 				 auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
+ 			}
+ 			
  			int lport = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
  			
  			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( lport );
@@ -937,7 +944,7 @@ TRTrackerClientClassicImpl
  			
 		 			PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
 		 			
-		 			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
+		 			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
 		 			
 		 			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
 		 			
@@ -1056,7 +1063,7 @@ TRTrackerClientClassicImpl
 								getLongURLParam( url_str, "uploaded" ));	
 		 				}
 		 				
-		 				reply = handler.sendAndReceive( request, destination );
+		 				reply = handler.sendAndReceive( auth, request, destination );
 		 			
 		 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
 		 					

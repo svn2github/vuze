@@ -191,8 +191,9 @@ PRUDPPacketHandlerImpl
 	
 	public PRUDPPacket
 	sendAndReceive(
-		PRUDPPacket			request_packet,
-		InetSocketAddress	destination_address )
+		PasswordAuthentication	auth,
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address )
 	
 		throws PRUDPPacketHandlerException
 	{
@@ -204,6 +205,12 @@ PRUDPPacketHandlerImpl
 			request_packet.serialise(os);
 			
 			byte[]	buffer = baos.toByteArray();
+			
+			if ( auth != null ){
+				
+				System.out.println("PRUDPHandler - auth = " + auth.getUserName() + "/" + new String(auth.getPassword()));
+				
+			}
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			

@@ -42,7 +42,8 @@ SESecurityManagerImpl
 	protected static String	keystore;
 	protected static String	truststore;
 	
-	protected static List	certificate_listeners = new ArrayList();
+	protected static List	certificate_listeners 	= new ArrayList();
+	protected static List	password_listeners 		= new ArrayList();
 	
 	public static void
 	initialise()
@@ -272,6 +273,38 @@ SESecurityManagerImpl
 			}
 			
 		}
+	}
+	
+	public static PasswordAuthentication
+	getPasswordAuthentication(
+		String		realm,
+		URL			tracker )
+	{
+		for (int i=0;i<password_listeners.size();i++){
+			
+			PasswordAuthentication res = ((SEPasswordListener)password_listeners.get(i)).getAuthentication( realm, tracker );
+			
+			if ( res != null ){
+				
+				return( res );
+			}
+		}
+		
+		return( null );
+	}
+	
+	public static synchronized void
+	addPasswordListener(
+		SEPasswordListener	l )
+	{
+		password_listeners.add(l);
+	}	
+	
+	public static synchronized void
+	removePasswordListener(
+		SEPasswordListener	l )
+	{
+		password_listeners.remove(l);
 	}
 	
 	public static synchronized void
