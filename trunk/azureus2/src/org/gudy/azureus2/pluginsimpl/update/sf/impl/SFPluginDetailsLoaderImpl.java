@@ -60,10 +60,10 @@ SFPluginDetailsLoaderImpl
 		return( singleton );
 	}
 	
-	protected boolean	plugin_names_loaded	= false;
+	protected boolean	plugin_names_loaded;
 	
-	protected List		plugin_names		= new ArrayList();
-	protected Map		plugin_map			= new HashMap();
+	protected List		plugin_names;
+	protected Map		plugin_map;
 	
 	protected List		listeners			= new ArrayList();
 	
@@ -72,6 +72,7 @@ SFPluginDetailsLoaderImpl
 	protected
 	SFPluginDetailsLoaderImpl()
 	{
+		reset();
 	}
 	
 	protected void
@@ -372,13 +373,13 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	reset()
 	{
-		synchronized( SFPluginDetailsLoaderImpl.class ){
-			
-			singleton	= null;
-		}
+		plugin_names_loaded	= false;
+		
+		plugin_names		= new ArrayList();
+		plugin_map			= new HashMap();
 	}
 	
 	public void
