@@ -31,7 +31,7 @@ public class Identification {
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
         
-        if (peerID[8] == (byte)45) {
+        if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
           String name = "Shad0w ";
           for (int i = 1; i < 3; i++) {
             String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
@@ -42,7 +42,7 @@ public class Identification {
           return name;
         }
         
-        if (peerID[8] == (byte)0) {  // is next Burst version still using this?
+        if (peerID[8] == (byte)0) {
           String name = "Shad0w ";
           for (int i = 1; i < 3; i++) {
             name = name.concat(String.valueOf(peerID[i]) + ".");
@@ -51,6 +51,22 @@ public class Identification {
           return name;
         }
       }
+      
+      
+      String bittornado = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
+      if (bittornado.equals("T")) {
+        if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
+          String name = "BitTornado ";
+          for (int i = 1; i < 3; i++) {
+            String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
+            name = name.concat( Integer.parseInt(v, 16) + "." );
+          }
+          String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+          name = name.concat( "" + Integer.parseInt(v, 16) );
+          return name;
+        }
+      }
+      
       
       
       String azureus = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
