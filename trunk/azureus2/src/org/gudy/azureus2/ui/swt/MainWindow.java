@@ -719,6 +719,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       Tab.addTabKeyListenerToComposite(folder);
       ((TabFolder)folder).addSelectionListener(selectionAdapter);
     } else {    
+      ((CTabFolder)folder).MIN_TAB_WIDTH = 75;
       ((CTabFolder)folder).setSelectionBackground(new Color[] { white }, new int[0]);
       ((CTabFolder)folder).setLayoutData(gridData);
       ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
