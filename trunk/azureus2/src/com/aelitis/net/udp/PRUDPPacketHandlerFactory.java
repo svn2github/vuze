@@ -35,6 +35,14 @@ PRUDPPacketHandlerFactory
 	getHandler(
 		int		port )
 	{
-		return( PRUDPPacketHandlerFactoryImpl.getHandler( port ));
+		return( getHandler( port, null ));
+	}
+	
+	public static PRUDPPacketHandler 
+	getHandler(
+		int						port,
+		PRUDPRequestHandler		handler )
+	{
+		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, handler ));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketConnect.java
+ * File    : PRUDPPacketReplyConnect.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 /**
  * @author parg
@@ -28,25 +28,28 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
-import com.aelitis.net.udp.PRUDPPacketRequest;
-
 public class 
-PRUDPPacketRequestConnect
-	extends PRUDPPacketRequest
+DHTUDPPacketReplyPing
+	extends DHTUDPPacketReply
 {
+	protected long	connection_id;
+	
 	public
-	PRUDPPacketRequestConnect()
+	DHTUDPPacketReplyPing(
+		int			trans_id,
+		long		conn_id )
 	{
-		super( PRUDPPacketTracker.ACT_REQUEST_CONNECT,PRUDPPacketTracker.INITIAL_CONNECTION_ID );
+		super( DHTUDPPacket.ACT_REPLY_PING, trans_id, conn_id );
 	}
 	
 	protected
-	PRUDPPacketRequestConnect(
+	DHTUDPPacketReplyPing(
 		DataInputStream		is,
-		long				con_id,
 		int					trans_id )
+	
+		throws IOException
 	{
-		super( PRUDPPacketTracker.ACT_REQUEST_CONNECT, con_id, trans_id );
+		super( is, DHTUDPPacket.ACT_REPLY_PING, trans_id );
 	}
 	
 	public void
@@ -61,6 +64,6 @@ PRUDPPacketRequestConnect
 	public String
 	getString()
 	{
-		return( super.getString());
+		return( super.getString().concat(",[con=").concat(String.valueOf(connection_id)).concat("]"));
 	}
 }

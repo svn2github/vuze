@@ -31,6 +31,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.net.udp.PRUDPPacketHandler;
+import com.aelitis.net.udp.PRUDPRequestHandler;
 
 public class 
 PRUDPPacketHandlerFactoryImpl 
@@ -41,12 +42,13 @@ PRUDPPacketHandlerFactoryImpl
 
 	public static PRUDPPacketHandler
 	getHandler(
-		int		port )
+		int						port,
+		PRUDPRequestHandler		request_handler)
 	{
 		try{
 			class_mon.enter();
 		
-			PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
+			PRUDPPacketHandlerImpl	receiver = (PRUDPPacketHandlerImpl)receiver_map.get(new Integer(port));
 			
 			if ( receiver == null ){
 				
@@ -54,6 +56,8 @@ PRUDPPacketHandlerFactoryImpl
 				
 				receiver_map.put( new Integer(port), receiver );
 			}
+			
+			receiver.setRequestHandler( request_handler );
 			
 			return( receiver );
 			

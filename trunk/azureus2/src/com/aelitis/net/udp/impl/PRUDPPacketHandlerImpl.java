@@ -39,19 +39,24 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandler;
 import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketReceiver;
 import com.aelitis.net.udp.PRUDPPacketReply;
+import com.aelitis.net.udp.PRUDPPacketRequest;
+import com.aelitis.net.udp.PRUDPRequestHandler;
 
 public class 
 PRUDPPacketHandlerImpl
 	implements PRUDPPacketHandler
 {	
-	protected int				port;
-	protected DatagramSocket	socket;
+	private int				port;
+	private DatagramSocket	socket;
 	
-	protected long		last_timeout_check;
+	private PRUDPRequestHandler	request_handler;
 	
-	protected Map			requests = new HashMap();
-	protected AEMonitor		requests_mon	= new AEMonitor( "PRUDPPH:req" );
+	private long		last_timeout_check;
+	
+	private Map			requests = new HashMap();
+	private AEMonitor	requests_mon	= new AEMonitor( "PRUDPPH:req" );
 
 	protected
 	PRUDPPacketHandlerImpl(
@@ -75,6 +80,22 @@ PRUDPPacketHandlerImpl
 		t.start();
 		
 		init_sem.reserve();
+	}
+	
+	protected void
+	setRequestHandler(
+		PRUDPRequestHandler		_request_handler )
+	{
+		if ( request_handler != null ){
+			
+				// if we need to support this then the handler will have to be associated
+				// with a message type map, or we chain together and give each handler
+				// a bite at processing the message
+			
+			throw( new RuntimeException( "Multiple handlers per endpoing not supported" ));
+		}
+		
+		request_handler	= _request_handler;
 	}
 	
 	protected void
@@ -190,6 +211,8 @@ PRUDPPacketHandlerImpl
 					
 					if ( now - request.getCreateTime() >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
 					
+						it.remove();
+						
 						LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
 						
 							// don't change the text of this message, it's used elsewhere
@@ -202,40 +225,85 @@ PRUDPPacketHandlerImpl
 				requests_mon.exit();
 			}
 		}
-		
 	}
+	
 	protected void
 	process(
-		DatagramPacket	packet )
-	
-		throws IOException
+		DatagramPacket	dg_packet )
 	{
-		byte[]	packet_data = packet.getData();
-	
-		
-		PRUDPPacket reply = 
-			PRUDPPacketReply.deserialiseReply( 
-				new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet.getLength())));
-
-		LGLogger.log( "PRUDPPacketHandler: reply packet received: ".concat(reply.getString())); 
-				
 		try{
-			requests_mon.enter();
+				// HACK alert. Due to the form of the tracker UDP protocol (no common
+				// header for requests and replies) we enforce a rule. All connection ids
+				// must have their MSB set. As requests always start with the action, which
+				// always has the MSB clear, we can use this to differentiate. 
 			
-			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.get(new Integer(reply.getTransactionId()));
-		
-			if ( request == null ){
+			byte[]	packet_data = dg_packet.getData();
 			
-				LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:".concat(reply.getString()));
+			PRUDPPacket packet;
 			
+			boolean	request_packet;
+			
+			if ( ( packet_data[0]&0x80 ) == 0 ){
+				
+				request_packet	= false;
+				
+				packet = PRUDPPacketReply.deserialiseReply( 
+					new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
+				
 			}else{
-			
-				request.setReply( reply );
+				
+				request_packet	= true;
+				
+				packet = PRUDPPacketRequest.deserialiseRequest( 
+						new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
+		
 			}
-		}finally{
 			
-			requests_mon.exit();
+			packet.setAddress( (InetSocketAddress)dg_packet.getSocketAddress());
+			
+			if ( request_packet ){
+								
+				LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
+
+				request_handler.process( (PRUDPPacketRequest)packet );
+			}else{
+				
+				LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
+						
+				try{
+					requests_mon.enter();
+					
+					PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
+				
+					if ( request == null ){
+					
+						LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
+					
+					}else{
+					
+						request.setReply( packet, (InetSocketAddress)dg_packet.getSocketAddress());
+					}
+				}finally{
+					
+					requests_mon.exit();
+				}
+			}
+		}catch( Throwable e ){
+			
+				// if someone's sending us junk we just log and continue
+			
+			LGLogger.log( e );
 		}
+	}
+	
+	public PRUDPPacket
+	sendAndReceive(
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address )
+	
+		throws PRUDPPacketHandlerException
+	{
+		return( sendAndReceive( null,request_packet, destination_address ));
 	}
 	
 	public PRUDPPacket
@@ -243,6 +311,31 @@ PRUDPPacketHandlerImpl
 		PasswordAuthentication	auth,
 		PRUDPPacket				request_packet,
 		InetSocketAddress		destination_address )
+	
+		throws PRUDPPacketHandlerException
+	{
+		PRUDPPacketHandlerRequest	request = sendAndReceive( auth, request_packet,destination_address, null );
+		
+		return( request.getReply());
+	}
+	
+	public void
+	sendAndReceive(
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address,
+		PRUDPPacketReceiver			receiver )
+	
+		throws PRUDPPacketHandlerException
+	{
+		sendAndReceive( null, request_packet, destination_address, receiver );
+	}
+	
+	public PRUDPPacketHandlerRequest
+	sendAndReceive(
+		PasswordAuthentication	auth,
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address,
+		PRUDPPacketReceiver		receiver )
 	
 		throws PRUDPPacketHandlerException
 	{
@@ -304,7 +397,7 @@ PRUDPPacketHandlerImpl
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
-			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest();
+			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest( receiver );
 		
 			try{
 				requests_mon.enter();
@@ -316,14 +409,19 @@ PRUDPPacketHandlerImpl
 				requests_mon.exit();
 			}
 			
-			LGLogger.log( "PRUDPPacketHandler: request packet sent: ".concat(request_packet.getString())); 
+			LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString()); 
 			
 			try{
 				socket.send( packet );
-			
-				return( request.getReply());
+					
+					// if the send is ok then the request will be removed from the queue
+					// either when a reply comes back or when it gets timed-out
 				
-			}finally{
+				return( request );
+				
+			}catch( Throwable e ){
+				
+					// never got sent, remove it immediately
 				
 				try{
 					requests_mon.enter();
@@ -334,6 +432,8 @@ PRUDPPacketHandlerImpl
 					
 					requests_mon.exit();
 				}
+				
+				throw( e );
 			}
 		}catch( PRUDPPacketHandlerException e ){
 			
@@ -344,6 +444,34 @@ PRUDPPacketHandlerImpl
 			LGLogger.log( "PRUDPPacketHandler: sendAndReceive failed", e ); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:sendAndReceive failed", e ));
+		}
+	}
+	
+	public void
+	send(
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address )
+	
+		throws PRUDPPacketHandlerException
+	{
+		try{
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			
+			DataOutputStream os = new DataOutputStream( baos );
+					
+			request_packet.serialise(os);
+			
+			byte[]	buffer = baos.toByteArray();
+			
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			
+			socket.send( packet );
+			
+		}catch( Throwable e ){
+			
+			LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
+			
+			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:send failed", e ));
 		}
 	}
 }

@@ -62,10 +62,10 @@ PRUDPPacketReply
 	serialise(
 		DataOutputStream	os )
 	
-	throws IOException
+		throws IOException
 	{
-		os.writeInt( type );
-		os.writeInt( transaction_id );
+		os.writeInt( getAction());
+		os.writeInt( getTransactionId() );
 	}
 	
 	public static PRUDPPacketReply
@@ -85,12 +85,12 @@ PRUDPPacketReply
 		
 		int		transaction_id	= is.readInt();
 
-		return( decoder.decode( is, action,transaction_id ));
+		return( decoder.decode( is, action, transaction_id ));
 	}
 	
 	public String
 	getString()
 	{
-		return( super.getString().concat(":reply[trans=").concat(String.valueOf(transaction_id)).concat("]") );
+		return( super.getString() + ":reply[trans=" + getTransactionId() + "]" );
 	}
 }

@@ -91,8 +91,8 @@ PRUDPPacketRequest
 		throws IOException
 	{
 		os.writeLong( connection_id );
-		os.writeInt( type );
-		os.writeInt( transaction_id );
+		os.writeInt( getAction() );
+		os.writeInt( getTransactionId() );
 	}
 	
 	public static PRUDPPacketRequest
@@ -118,6 +118,6 @@ PRUDPPacketRequest
 	public String
 	getString()
 	{
-		return( super.getString().concat(":request[con=").concat(String.valueOf(connection_id)).concat(",trans=").concat(String.valueOf(transaction_id)).concat("]") );
+		return( super.getString() + ":request[con=" + connection_id + ",trans=" + getTransactionId() + "]");
 	}
 }

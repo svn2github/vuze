@@ -26,15 +26,20 @@ package com.aelitis.net.udp.impl;
  *
  */
 
+import java.net.InetSocketAddress;
+
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketReceiver;
 
 public class 
 PRUDPPacketHandlerRequest 
 {
 	protected AESemaphore		sem = new AESemaphore("PRUDPPacketHandlerRequest");
+	
+	protected PRUDPPacketReceiver			receiver;
 	
 	protected PRUDPPacketHandlerException	exception;
 	protected PRUDPPacket					reply;
@@ -42,8 +47,11 @@ PRUDPPacketHandlerRequest
 	protected long							create_time;
 	
 	protected
-	PRUDPPacketHandlerRequest()
+	PRUDPPacketHandlerRequest(
+		PRUDPPacketReceiver	_receiver )
 	{
+		receiver	= _receiver;
+		
 		create_time	= SystemTime.getCurrentTime();
 	}
 	
@@ -55,11 +63,17 @@ PRUDPPacketHandlerRequest
 	
 	protected void
 	setReply(
-		PRUDPPacket		packet )
+		PRUDPPacket			packet,
+		InetSocketAddress	originator )
 	{
 		reply	= packet;
 		
 		sem.release();
+		
+		if ( receiver != null ){
+			
+			receiver.packetReceived( packet, originator );
+		}
 	}
 	
 	protected void
@@ -69,6 +83,11 @@ PRUDPPacketHandlerRequest
 		exception	= e;
 		
 		sem.release();
+		
+		if ( receiver != null ){
+			
+			receiver.error( e );
+		}
 	}
 	
 	protected PRUDPPacket

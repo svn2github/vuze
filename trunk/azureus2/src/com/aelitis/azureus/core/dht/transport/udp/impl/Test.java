@@ -1,0 +1,125 @@
+/*
+ * Created on 21-Jan-2005
+ * Created by Paul Gardner
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
+
+package com.aelitis.azureus.core.dht.transport.udp.impl;
+
+import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.dht.transport.udp.*;
+
+/**
+ * @author parg
+ *
+ */
+
+public class 
+Test 
+	implements DHTTransportRequestHandler
+{
+	public static void
+	main(
+		String[]	args )
+	{
+		new Test();
+	}
+	
+	protected
+	Test()
+	{
+		try{
+			DHTTransportUDP	udp1 = DHTTransportUDPFactory.create(6881, 5);
+		
+			udp1.setRequestHandler( this );
+			
+			DHTTransportUDP	udp2 = DHTTransportUDPFactory.create(6882, 5);
+		
+			udp2.setRequestHandler( this );
+
+			DHTTransportUDPContact	c1 = (DHTTransportUDPContact)udp1.getLocalContact();
+			
+			c1.sendPing(
+				new DHTTransportReplyHandlerAdapter()
+				{
+					public void
+					pingReply(
+						DHTTransportContact contact )
+					{
+						System.out.println( "ping reply" );
+					}
+					
+					public void
+					failed(
+						DHTTransportContact 	contact )
+					{
+						System.out.println( "ping failed" );
+					}
+				});
+			
+			Thread.sleep(1000000);
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public void
+	pingRequest(
+		DHTTransportContact contact )
+	{
+		System.out.println( "TransportHandler: ping" );
+	}
+		
+	public void
+	storeRequest(
+		DHTTransportContact contact, 
+		byte[]				key,
+		DHTTransportValue	value )
+	{
+		System.out.println( "TransportHandler: store" );
+	}
+	
+	public DHTTransportContact[]
+	findNodeRequest(
+		DHTTransportContact contact, 
+		byte[]				id )
+	{
+		System.out.println( "TransportHandler: findNode" );
+		
+		return( null );
+	}
+	
+	public Object
+	findValueRequest(
+		DHTTransportContact contact, 
+		byte[]				key )
+	{
+		System.out.println( "TransportHandler: findValue" );
+		
+		return( null );
+	}
+
+	public void
+	contactImported(
+		DHTTransportContact	contact )
+	{
+		
+	}
+}

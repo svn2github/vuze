@@ -27,6 +27,7 @@ package com.aelitis.net.udp;
  */
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -41,8 +42,10 @@ PRUDPPacket
 	protected static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
 	protected static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
 
-	protected int		type;
-	protected int		transaction_id;
+	private	InetSocketAddress	address;
+	
+	private int		type;
+	private int		transaction_id;
 	
 	protected
 	PRUDPPacket(
@@ -68,6 +71,19 @@ PRUDPPacket
 			
 			class_mon.exit();
 		}
+	}
+	
+	public void
+	setAddress(
+		InetSocketAddress	_address )
+	{
+		address	= _address;
+	}
+	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( address );
 	}
 	
 	public int

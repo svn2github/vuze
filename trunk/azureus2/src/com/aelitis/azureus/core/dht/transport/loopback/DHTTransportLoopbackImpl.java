@@ -28,6 +28,8 @@ import java.io.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
+import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
 
 /**
  * @author parg
@@ -104,21 +106,20 @@ DHTTransportLoopbackImpl
 	
 	private int			id_byte_length;
 	
-	private DHTTransportRequestHandler		original_request_handler;
-	private DHTTransportRequestHandler		delegator_request_handler;
+	private DHTTransportRequestHandler		request_handler;
 	
-	private DHTTransportLoopbackStatsImpl	stats = new DHTTransportLoopbackStatsImpl();
+	private DHTTransportStatsImpl	stats = new DHTTransportStatsImpl();
 	
 	public static synchronized DHTTransportStats
 	getOverallStats()
 	{
-		DHTTransportLoopbackStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
+		DHTTransportStatsImpl	overall_stats = new DHTTransportStatsImpl();
 		
 		Iterator	it = node_map.values().iterator();
 		
 		while( it.hasNext()){
 			
-			overall_stats.add((DHTTransportLoopbackStatsImpl)((DHTTransportLoopbackImpl)it.next()).getStats());
+			overall_stats.add((DHTTransportStatsImpl)((DHTTransportLoopbackImpl)it.next()).getStats());
 		}
 		
 		return( overall_stats );
@@ -164,64 +165,14 @@ DHTTransportLoopbackImpl
 	setRequestHandler(
 		DHTTransportRequestHandler	_request_handler )
 	{
-		original_request_handler	= _request_handler;
-		
-		delegator_request_handler = 
-			new DHTTransportRequestHandler()
-			{
-				public void
-				pingRequest(
-					DHTTransportContact contact )
-				{
-					stats.pingReceived();
-					
-					original_request_handler.pingRequest( contact );
-				}
-				
-				public void
-				storeRequest(
-					DHTTransportContact contact, 
-					byte[]				key,
-					DHTTransportValue	value )
-				{
-					stats.storeReceived();
-					
-					original_request_handler.storeRequest( contact, key, value );
-				}
-				
-				public DHTTransportContact[]
-				findNodeRequest(
-					DHTTransportContact contact, 
-					byte[]				id )
-				{
-					stats.findNodeReceived();
-					
-					return( original_request_handler.findNodeRequest( contact, id ));
-				}
-				
-				public Object
-				findValueRequest(
-					DHTTransportContact contact, 
-					byte[]				key )
-				{
-					stats.findValueReceived();
-					
-					return( original_request_handler.findValueRequest( contact, key ));
-				}
-					
-				public void
-				contactImported(
-					DHTTransportContact	contact )
-				{
-					original_request_handler.contactImported( contact );
-				}
-			};
+		request_handler = new DHTTransportRequestCounter( _request_handler, stats );
+
 	}
 	
 	protected DHTTransportRequestHandler
 	getRequestHandler()
 	{
-		return( delegator_request_handler );
+		return( request_handler );
 	}
 	
 	public void
@@ -264,7 +215,7 @@ DHTTransportLoopbackImpl
 		
 		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		
-		delegator_request_handler.contactImported( contact );
+		request_handler.contactImported( contact );
 	}
 	
 	protected void

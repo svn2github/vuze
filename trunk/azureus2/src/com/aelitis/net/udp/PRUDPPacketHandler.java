@@ -31,9 +31,48 @@ import java.net.*;
 public interface 
 PRUDPPacketHandler 
 {
+		/**
+		 * Asynchronous send and receive
+		 * @param request_packet
+		 * @param destination_address
+		 * @param receiver
+		 * @throws PRUDPPacketHandlerException
+		 */
+	
+	public void
+	sendAndReceive(
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address,
+		PRUDPPacketReceiver			receiver )
+	
+		throws PRUDPPacketHandlerException;
+	
+		/**
+		 * Synchronous send and receive
+		 * @param auth
+		 * @param request_packet
+		 * @param destination_address
+		 * @return
+		 * @throws PRUDPPacketHandlerException
+		 */
+	
 	public PRUDPPacket
 	sendAndReceive(
 		PasswordAuthentication		auth,
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address )
+	
+		throws PRUDPPacketHandlerException;
+	
+		/**
+		 * Send only
+		 * @param request_packet
+		 * @param destination_address
+		 * @throws PRUDPPacketHandlerException
+		 */
+	
+	public void
+	send(
 		PRUDPPacket					request_packet,
 		InetSocketAddress			destination_address )
 	
