@@ -466,49 +466,20 @@ public class MyTorrentsView extends AbstractIView
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
+        boolean hasSelection = (tis.length > 0);
 
-        itemDetails.setEnabled(false);
-        itemBar.setEnabled(false);
+        itemDetails.setEnabled(hasSelection);
 
-        itemOpen.setEnabled(false);
-        itemExport.setEnabled(false);
-				itemHost.setEnabled(false);
-				itemPublish.setEnabled(false);
+        itemOpen.setEnabled(hasSelection);
+        itemExport.setEnabled(hasSelection);
+        itemHost.setEnabled(hasSelection);
+        itemPublish.setEnabled(hasSelection);
 
-        itemMove.setEnabled(false);
-        itemPriority.setEnabled(false);
+        itemMove.setEnabled(hasSelection);
+        itemPriority.setEnabled(hasSelection);
 
-        itemForceStart.setEnabled(false);
-        itemQueue.setEnabled(false);
-        itemStop.setEnabled(false);
-        itemRemove.setEnabled(false);
-        itemRemoveAnd.setEnabled(false);
-
-        itemChangeTracker.setEnabled(false);
-        itemEditTracker.setEnabled(false);
-        itemRecheck.setEnabled(false);
-
-        if (tis.length > 0) {
-          itemDetails.setEnabled(true);
-          itemBar.setEnabled(true);
-
-          itemOpen.setEnabled(true);
-          itemExport.setEnabled(true);
-          itemHost.setEnabled(true);
-          itemPublish.setEnabled(true);
-
-          itemMove.setEnabled(true);
-          itemPriority.setEnabled(true);
-
-          itemForceStart.setEnabled(true);
-          itemStop.setEnabled(true);
-
-          itemRemove.setEnabled(false);
-          itemBar.setSelection(false);
-          
-          //itemRecheck.setEnabled(true);
-
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, forceStart, recheck;
+        if (hasSelection) {
+          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, forceStart, recheck, top, bottom;
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = forceStart = recheck = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
@@ -542,6 +513,8 @@ public class MyTorrentsView extends AbstractIView
 
           itemMoveDown.setEnabled(moveDown);
           itemMoveUp.setEnabled(moveUp);
+          itemMoveTop.setEnabled(moveUp);
+          itemMoveEnd.setEnabled(moveDown);
 
           itemForceStart.setSelection(forceStart);
           itemQueue.setEnabled(start);
@@ -552,7 +525,19 @@ public class MyTorrentsView extends AbstractIView
           itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);
+          
+        } else {
+          itemBar.setEnabled(false);
 
+          itemForceStart.setEnabled(false);
+          itemQueue.setEnabled(false);
+          itemStop.setEnabled(false);
+          itemRemove.setEnabled(false);
+          itemRemoveAnd.setEnabled(false);
+
+          itemEditTracker.setEnabled(false);
+          itemChangeTracker.setEnabled(false);
+          itemRecheck.setEnabled(false);
         }
       }
     });
@@ -1422,14 +1407,10 @@ public class MyTorrentsView extends AbstractIView
       return stop;
     if(itemKey.equals("remove"))
       return remove;
-
-    // The rest aren't applicable to seedingView
-    if(isSeedingView)
-      return false;
     if(itemKey.equals("top"))
-      return true;
+      return up;
     if(itemKey.equals("bottom"))
-      return true;
+      return down;
     if(itemKey.equals("up"))
       return up;
     if(itemKey.equals("down"))

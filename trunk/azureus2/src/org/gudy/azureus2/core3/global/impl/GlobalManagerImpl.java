@@ -809,20 +809,33 @@ public class GlobalManagerImpl
   }
 
   public boolean isMoveableUp(DownloadManager manager) {
-    return (manager.getStats().getCompleted() < 1000 && manager.getPosition() > 1);
+    if (managers == null)
+      return false;
+
+    if ((manager.getStats().getCompleted() == 1000) &&
+        (COConfigurationManager.getBooleanParameter("Enable QR", true)))
+      return false;
+
+    return manager.getPosition() > 1;
   }
 
   public boolean isMoveableDown(DownloadManager manager) {
-    if (managers != null) {
-      int numNotCompleted = 0;
-      for (int i = 0; i < managers.size(); i++) {
-        DownloadManager dm = (DownloadManager) managers.get(i);
-        if (dm.getStats().getCompleted() < 1000)
-          numNotCompleted++;
-      }
-      return manager.getPosition() < numNotCompleted;
+    if (managers == null)
+      return false;
+
+    boolean isCompleted = manager.getStats().getCompleted() == 1000;
+
+    if (isCompleted &&
+        (COConfigurationManager.getBooleanParameter("Enable QR", true)))
+      return false;
+
+    int numInGroup = 0;
+    for (int i = 0; i < managers.size(); i++) {
+      DownloadManager dm = (DownloadManager) managers.get(i);
+      if ((dm.getStats().getCompleted() == 1000) == isCompleted)
+        numInGroup++;
     }
-    return false;
+    return manager.getPosition() < numInGroup;
   }
 
   public void moveUp(DownloadManager manager) {
