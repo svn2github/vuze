@@ -25,7 +25,7 @@ CHANGE: Config/pref file saving less likely to fail [Nolar]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 BUGFIX: Fix for discarded data due to occasional duplicate request [Nolar]
 BUGFIX: Fix for underlying socket handles not closing under linux ("Too many open files") [Nolar]
-BUGFIX: First Priority rules based on time now work accross sessions [TuxPaper]
+BUGFIX: First Priority rules based on time now work across sessions [TuxPaper]
 BUGFIX: Freeze on exit under OSX [Gudy]
 
 
