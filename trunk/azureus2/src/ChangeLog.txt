@@ -30,6 +30,7 @@ CHANGE: New SHA-1 hasher: up to 25% faster [Gudy / Nolar]
 CHANGE: Currently-connected peer connections are dropped when IPFilter is enabled [Nolar]
 CHANGE: Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
 CHANGE: IRC and Tracker Web Pages moved to separate plugin [Parg]
+CHANGE: Ignore .DS_Store & Thumbs.db files when creating torrents (configurable) [Parg]
 
 BUGFIX: Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
