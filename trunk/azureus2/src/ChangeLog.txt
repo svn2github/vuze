@@ -29,7 +29,7 @@ CHANGE: Re-design of Configuration view [TuxPaper]
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
 BUGFIX: Fix for download stalls at 99% / 100% cpu usage bug introduced in 2070 [Parg/Gudy] 
-
+BUGFIX: Fix for minimize/close causing the program to disappear from view under OSX [Nolar]
 
 
 
