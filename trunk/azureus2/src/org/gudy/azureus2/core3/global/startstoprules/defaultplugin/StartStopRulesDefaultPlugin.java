@@ -85,8 +85,6 @@ StartStopRulesDefaultPlugin
   protected PluginInterface     plugin_interface;
   protected PluginConfig        plugin_config;
   protected DownloadManager     download_manager;
-  protected DownloadListener      download_listener;
-  protected DownloadTrackerListener download_tracker_listener;
 
   /** Map to relate downloadData to a Download */  
   protected Map downloadDataMap = Collections.synchronizedMap(new HashMap());
@@ -134,28 +132,17 @@ StartStopRulesDefaultPlugin
 
     plugin_interface  = _plugin_interface;
 
-    plugin_interface.addListener(
-      new PluginListener()
-      {
-        public void
-        initializationComplete()
-        {
-        }
+    plugin_interface.addListener(new PluginListener() {
+      public void initializationComplete() { /* not implemented */ }
 
-        public void
-        closedownInitiated()
-        {
-          closingDown  = true;
-        }
+      public void closedownInitiated() {
+        closingDown = true;
+      }
 
-        public void
-        closedownComplete()
-        {
-        }
-      });
+      public void closedownComplete() { /* not implemented */ }
+    });
 
     log = plugin_interface.getLogger().getChannel("StartStopRules");
-
     log.log( LoggerChannel.LT_INFORMATION, "Default StartStopRules Plugin Initialisation" );
 
     plugin_config = plugin_interface.getPluginconfig();
@@ -178,130 +165,134 @@ StartStopRulesDefaultPlugin
     }
 
     download_manager = plugin_interface.getDownloadManager();
+    download_manager.addListener(new StartStopDMListener());
 
-    download_listener =
-      new DownloadListener()
-      {
-        public void
-        stateChanged(
-          Download    download,
-          int       old_state,
-          int       new_state )
-        {
-          downloadData dlData = (downloadData)downloadDataMap.get(download);
-          if (dlData != null) {
-            if (new_state == Download.ST_SEEDING) {
-              dlData.setStartedSeedingOn(System.currentTimeMillis());
+    // initial implementation loops - change to event driven maybe although
+    // the current rules permit loops under certain circumstances.....
+    Thread t = new Thread("StartStopRulesDefaultPlugin") {
+      public void run() {
+        while(true) {
+          try {
+            if ( closingDown ) {
+              log.log( LoggerChannel.LT_INFORMATION, "System Closing - processing stopped" );
+              break;
             }
-            if (old_state == Download.ST_PREPARING) {
-              // preparing can change the completion level.
-              dlData.setWasComplete(download.getStats().getDownloadCompleted(false) == 1000);
-            }
-            // force a QR recalc, so that it gets positiong properly next process()
-            dlData.recalcQR();
-            somethingChanged = true;
-          }
-
-        }
-      };
-    
-    download_tracker_listener = 
-      new DownloadTrackerListener()
-      {
-      	public void scrapeResult( DownloadScrapeResult result ) {
-          downloadData dlData = (downloadData)downloadDataMap.get(result.getDownload());
-          if (dlData != null) {
-            dlData.recalcQR();
-            somethingChanged = true;
-          }
-      	}
-      	
-      	public void announceResult( DownloadAnnounceResult result ) {
-      	}
-      };
-
-    download_manager.addListener(
-        new DownloadManagerListener()
-        {
-          public void downloadAdded( Download  download )
-          {
-            downloadData dlData = null;
-            if (downloadDataMap.containsKey(download)) {
-              dlData = (downloadData)downloadDataMap.get(download);
-            } else {
-              dlData = new downloadData(download);
-              downloadDataMap.put( download, dlData );
-              download.addListener( download_listener );
-              download.addTrackerListener( download_tracker_listener );
-            }
-
-            if (dlData != null) {
-              dlData.recalcQR();
+            
+            if (positionsChanged()) {
               somethingChanged = true;
-            }
+            }              
+
+            process();
+
+          } catch( Exception e ) {
+            e.printStackTrace();
           }
 
-          public void downloadRemoved( Download  download )
-          {
-            download.removeListener( download_listener );
-            download.removeTrackerListener( download_tracker_listener );
-
-            if (downloadDataMap.containsKey(download)) {
-              downloadDataMap.remove(download);
-            }
-
-            somethingChanged = true;
-          }
-        });
-
-      // initial implementation loops - change to event driven maybe although
-      // the current rules permit loops under certain circumstances.....
-
-    Thread  t = new Thread("StartStopRulesDefaultPlugin")
-      {
-        public void
-        run()
-        {
-          while(true){
-            try{
-              if ( closingDown ){
-                log.log( LoggerChannel.LT_INFORMATION, "System Closing - processing stopped" );
+          try{
+            // sleep for 200ms, check if somethingChanged, then sleep
+            // more, until sleep_period
+            for (int i = 0; i < SLEEP_PERIOD / 200; i++) {
+              if (somethingChanged) {
                 break;
               }
-              
-              if (positionsChanged()) {
-                somethingChanged = true;
-              }              
-
-              process();
-            }catch( Exception e ){
-
-              e.printStackTrace();
+              Thread.sleep(200);
             }
 
-            try{
-              // sleep for 200ms, check if somethingChanged, then sleep
-              // more, until sleep_period
-              for (int i = 0; i < SLEEP_PERIOD / 200; i++) {
-                if (somethingChanged) {
-                  break;
-                }
-                Thread.sleep(200);
-              }
-
-            }catch( InterruptedException e ){
-
-              e.printStackTrace();
-            }
+          } catch( InterruptedException e ){
+            e.printStackTrace();
           }
         }
-      };
-
+      }
+    };
     t.setDaemon(true);
-
     t.start();
   }
   
+  private class StartStopDownloadListener implements DownloadListener
+  {
+    public void stateChanged(Download download, int old_state, int new_state) {
+      downloadData dlData = (downloadData)downloadDataMap.get(download);
+
+      if (dlData != null) {
+        if (new_state == Download.ST_SEEDING) {
+          dlData.setStartedSeedingOn(System.currentTimeMillis());
+        }
+        if (old_state == Download.ST_PREPARING) {
+          // preparing can change the completion level.
+          dlData.setWasComplete(download.getStats().getDownloadCompleted(false) == 1000);
+        }
+        // force a QR recalc, so that it gets positiong properly next process()
+        dlData.recalcQR();
+        somethingChanged = true;
+      }
+    }
+  }
+
+  /** Update QR when a new scrape result comes in. 
+   */
+  private class StartStopDMTrackerListener implements DownloadTrackerListener
+  {
+  	public void scrapeResult( DownloadScrapeResult result ) {
+      downloadData dlData = (downloadData)downloadDataMap.get(result.getDownload());
+      if (dlData != null) {
+        dlData.recalcQR();
+        somethingChanged = true;
+      }
+  	}
+  	
+  	public void announceResult( DownloadAnnounceResult result ) {
+  	}
+  }
+
+  /* Create/Remove downloadData object when download gets added/removed.
+   * RecalcQR & process if necessary.
+   */
+  private class StartStopDMListener implements DownloadManagerListener
+  {
+    private DownloadTrackerListener download_tracker_listener;
+    private DownloadListener        download_listener;
+    
+    public StartStopDMListener() {
+      download_tracker_listener = new StartStopDMTrackerListener();
+      download_listener = new StartStopDownloadListener();
+    }
+
+    public void downloadAdded( Download  download )
+    {
+      downloadData dlData = null;
+      if (downloadDataMap.containsKey(download)) {
+        dlData = (downloadData)downloadDataMap.get(download);
+      } else {
+        dlData = new downloadData(download);
+        downloadDataMap.put( download, dlData );
+        download.addListener( download_listener );
+        download.addTrackerListener( download_tracker_listener );
+      }
+
+      if (dlData != null) {
+        dlData.recalcQR();
+        somethingChanged = true;
+      }
+    }
+
+    public void downloadRemoved( Download  download )
+    {
+      download.removeListener( download_listener );
+      download.removeTrackerListener( download_tracker_listener );
+
+      if (downloadDataMap.containsKey(download)) {
+        downloadDataMap.remove(download);
+      }
+
+      somethingChanged = true;
+    }
+  }
+
+  /* Check to see if any of the torrents' positions have changed.  If changed,
+   * recalcQR on torrents.
+   *
+   * @return Whether any positions changed
+   */
   private boolean positionsChanged() {
     boolean bPositionsChanged = false;
     downloadData[] dlDataArray;
@@ -454,7 +445,8 @@ StartStopRulesDefaultPlugin
       if (!bSeedHasRanking && 
           (completionLevel == 1000) && 
           (qr > 0) && 
-          (state == Download.ST_QUEUED)) {
+          (state == Download.ST_QUEUED ||
+           state == Download.ST_READY)) {
         bSeedHasRanking = true;
       }
 
@@ -1210,10 +1202,13 @@ StartStopRulesDefaultPlugin
       if ((iRankType == RANK_SEEDCOUNT) && 
           (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds))
       {
-        newQR += 490000000/(numSeeds + 1) +
-                 ((bPreferLargerSwarms ? 1 : -1) * numPeers * 5);
-        if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
-          newQR += 490000000;
+        if (bScrapeResultsOk) {
+          int limit = QR_FIRST_PRIORITY_STARTS_AT / 2 - 10000;
+          newQR += limit/(numSeeds + 1) +
+                   ((bPreferLargerSwarms ? 1 : -1) * numPeers * 5);
+          if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
+            newQR += limit;
+        }
 
       } else { // iRankType == RANK_SPRATIO or we are falling back
         if (numPeers != 0) {
