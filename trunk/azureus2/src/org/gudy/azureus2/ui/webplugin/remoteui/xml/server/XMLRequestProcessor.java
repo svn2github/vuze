@@ -63,7 +63,15 @@ XMLRequestProcessor
 					
 			e.printStackTrace();
 			
-			writeTag("ERROR", "Invalid XML Plugin request received - " + exceptionToString(e));
+			if ( e instanceof SimpleXMLParserDocumentException ){
+				
+				writeTag("ERROR", "Invalid XML Plugin request received - " + exceptionToString(e));
+				
+			}else{
+				
+				writeTag("ERROR", exceptionToString(e));
+				
+			}
 
 		}finally{
 			
