@@ -49,8 +49,9 @@ public class GCStringPrinter {
     while(st.hasMoreElements()) {      
       String word = st.nextToken();
       length += getAdvanceWith(gc,word + " ");
+      System.out.println(outputLine + " : " + word + " : " + length);
       if(length > width) {
-        length = 0;
+        length = getAdvanceWith(gc,word);
         space = "\n";
       }
       outputLine.append(space + word);            
@@ -64,7 +65,7 @@ public class GCStringPrinter {
   private static int getAdvanceWith(GC gc,String s) {
     int result = 0;
     for(int i = 0 ; i < s.length() ; i++) {
-      result += gc.getAdvanceWidth(s.charAt(i));
+      result += gc.getAdvanceWidth(s.charAt(i)) - 1;
     }
     return result;
   }
