@@ -123,8 +123,8 @@ PEPeerTransportProtocol
 	//When superSeeding, number of unique piece announced
 	private int uniquePiece;
 	
-	//Spread time (10 secs , fake default)
-	private int spreadTimeHint = 10 * 1000;
+	//Spread time (0 secs , fake default)
+	private int spreadTimeHint = 0 * 1000;
 
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;

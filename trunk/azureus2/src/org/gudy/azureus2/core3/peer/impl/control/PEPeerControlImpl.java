@@ -1963,6 +1963,11 @@ PEPeerControlImpl
 			return;
 		}
 
+    if(selectedPeer.getUploadHint() == 0) {
+      //Set to infinite
+      selectedPeer.setUploadHint(864001 * 1000);
+    }
+    
 		//Find a piece
 		boolean found = false;
 		SuperSeedPiece piece = null;
