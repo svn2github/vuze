@@ -91,8 +91,7 @@ public class Initializer implements STProgressListener, Application {
     COConfigurationManager.checkConfiguration();
     new AuthenticatorWindow();
     new CertificateTrustWindow();
-    AssociationChecker.checkAssociations();
-    
+     
     nextTask();
     reportCurrentTaskByKey("splash.loadingImages");
     ImageRepository.loadImages(display);
@@ -111,6 +110,8 @@ public class Initializer implements STProgressListener, Application {
     Cursors.init();
     new MainWindow(gm,this);
     
+    AssociationChecker.checkAssociations();
+
     nextTask();  
     reportCurrentTaskByKey( "splash.initializePlugins");
     PluginInitializer.getSingleton(gm,this).initializePlugins( PluginManager.UI_SWT );        

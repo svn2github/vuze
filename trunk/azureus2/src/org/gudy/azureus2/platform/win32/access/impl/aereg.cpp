@@ -20,6 +20,7 @@
  *
  */
 
+
 #include "stdafx.h"
 #include "aereg.h"
 #include "stdio.h"
@@ -32,7 +33,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.2"
+#define VERSION "1.3"
 
 
 HMODULE	application_module;
@@ -126,7 +127,7 @@ bool
 jstringToChars(
 	JNIEnv		*env,
 	jstring		jstr,
-	char		*chars,
+	WCHAR		*chars,
 	int			chars_len )
 {
 	if ( jstr == NULL ){
@@ -164,7 +165,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getModu
 	JNIEnv		*env,
 	jclass		cla )
 {
-	char	buffer[2048];
+	WCHAR	buffer[2048];
 
 	if ( !GetModuleFileName(application_module, buffer, sizeof( buffer ))){
 
@@ -174,7 +175,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getModu
 		return( NULL );
 	}
 
-	return( env->NewStringUTF((char *)buffer));
+	return( env->NewString(buffer, wcslen(buffer)));
 }
 
 
@@ -229,8 +230,8 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 {
 	HKEY		key;
 	HKEY		subkey;
-	char		subkey_name[1024];
-	char		value_name[1024];
+	WCHAR		subkey_name[1024];
+	WCHAR		value_name[1024];
 
 	jstring		result	= NULL;
 
@@ -263,16 +264,16 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 
 				if ( type == REG_EXPAND_SZ ){
 
-					char	expanded_value[2048];
+					WCHAR	expanded_value[2048];
 
-					ExpandEnvironmentStrings((const char*)value, expanded_value, sizeof( expanded_value ));
+					ExpandEnvironmentStrings((const WCHAR*)value, expanded_value, sizeof( expanded_value ));
 			
-					result = env->NewStringUTF((char *)expanded_value);
+					result = env->NewString(expanded_value,wcslen(expanded_value));
 
 				}else{
 
 
-					result = env->NewStringUTF((char *)value);
+					result = env->NewString((const WCHAR*)value,wcslen((WCHAR *)value));
 				}			
 
 			}else{
@@ -304,8 +305,8 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readWor
 {
 	HKEY		key;
 	HKEY		subkey;
-	char		subkey_name[1024];
-	char		value_name[1024];
+	WCHAR		subkey_name[1024];
+	WCHAR		value_name[1024];
 
 	jint		result	= 0;
 
@@ -369,9 +370,9 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeSt
 {
 	HKEY		key;
 	HKEY		subkey;
-	char		subkey_name[1024];
-	char		value_name[1024];
-	char		value_value[1024];
+	WCHAR		subkey_name[1024];
+	WCHAR		value_name[1024];
+	WCHAR		value_value[1024];
 
 	key	= mapHKEY( env, _type );
 
@@ -400,7 +401,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_writeSt
 	if ( RegCreateKeyEx( key, subkey_name, 0, REG_NONE, 0, KEY_ALL_ACCESS, NULL, &subkey, NULL ) == ERROR_SUCCESS ){
 
 
-		if ( RegSetValueEx( subkey, value_name, 0, REG_SZ, (const BYTE*)value_value, strlen(value_value)+1 ) == ERROR_SUCCESS){
+		if ( RegSetValueEx( subkey, value_name, 0, REG_SZ, (const BYTE*)value_value, (wcslen(value_value)+1)*sizeof(WCHAR)) == ERROR_SUCCESS){
 
 		}else{
 
@@ -427,7 +428,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteK
 {
 	HKEY		key;
 	HKEY		subkey;
-	char		subkey_name[1024];
+	WCHAR		subkey_name[1024];
 
 	jstring		result	= NULL;
 
@@ -474,8 +475,8 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteV
 {
 	HKEY		key;
 	HKEY		subkey;
-	char		subkey_name[1024];
-	char		value_name[1024];
+	WCHAR		subkey_name[1024];
+	WCHAR		value_name[1024];
 
 	jstring		result	= NULL;
 
@@ -515,7 +516,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 	jstring		_command_line, 
 	jboolean	_inherit_handles )
 {
-	char		command_line[16000];
+	WCHAR		command_line[16000];
 
 	STARTUPINFO				start_info;
 	PROCESS_INFORMATION		proc_info;
