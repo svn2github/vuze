@@ -966,12 +966,12 @@ public class PeerSocket extends PeerConnection {
           }
           uploadAllowed = allowed - used;
           limit = writeBuffer.position() + uploadAllowed;
-          if (limit > realLimit)
+          if ((limit > realLimit) || (limit < 0))
             limit = realLimit;
         }
         /* NOLAR: temp debug output - let me know if you see this! */
-        if (limit > writeBuffer.capacity()) System.out.println("limit > capacity: limit="+limit+" capacity="+writeBuffer.capacity());
-        if (limit < 0) System.out.println("limit < 0: limit="+limit);
+        if (limit > writeBuffer.capacity()) System.out.println("limit > capacity: limit="+limit+" capacity="+writeBuffer.capacity()+" realLimit="+realLimit);
+        if (limit < 0) System.out.println("limit < 0: limit="+limit+" realLimit="+realLimit);
         
         writeBuffer.limit(limit);
         int written = socket.write(writeBuffer);
