@@ -127,8 +127,8 @@ public class OutgoingMessageQueue {
     }
     
     if( !allowed ) {  //message addition not allowed
-      LGLogger.log( "Message [" +message.getDescription()+ "] not allowed for queueing, message addition skipped." );
-      message.destroy();
+      //LGLogger.log( "Message [" +message.getDescription()+ "] not allowed for queueing, message addition skipped." );
+      //message.destroy();  //TODO destroy????
       return;
     }
     

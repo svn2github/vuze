@@ -179,7 +179,7 @@ public class IncomingMessageQueue {
       }
     }
     
-    System.out.println( "notifiedOfExternallyReceivedMessage:: [" +message.getID()+ "] size=" +size );
+    //System.out.println( "notifiedOfExternallyReceivedMessage:: [" +message.getID()+ "] size=" +size );
   }
   
   
