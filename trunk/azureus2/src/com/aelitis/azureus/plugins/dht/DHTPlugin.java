@@ -214,6 +214,14 @@ DHTPlugin
 						
 						model.getStatus().setText( "Running" );
 						
+							// test put
+						
+						byte[]	 key = transport.getLocalContact().getString().getBytes();
+						
+						dht.put( key, key );
+						
+						log.log( "Performed test put of '" + new String( key ) + "'" );
+						
 					}catch( Throwable e ){
 						
 						log.log( "DHT integrtion fails", e );
