@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.util.*;
 import java.nio.channels.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -53,7 +54,7 @@ public class SelectorGuard {
   /**
    * Create a new SelectorGuard with the given failed count threshold.
    */
-  protected SelectorGuard( int _count_threshold ) {
+  public SelectorGuard( int _count_threshold ) { //TODO make protected again
     this.countThreshold = _count_threshold;    
   }
   
@@ -62,7 +63,7 @@ public class SelectorGuard {
    * Run this method right before the select() operation to
    * mark the start time.
    */
-  protected void markPreSelectTime() {
+  public void markPreSelectTime() {//TODO make protected again
     beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
@@ -71,7 +72,7 @@ public class SelectorGuard {
   /**
    * Checks whether selector is still OK, and not spinning.
    */
-  protected boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {
+  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {//TODO make protected again
     if (_num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
@@ -93,6 +94,8 @@ public class SelectorGuard {
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
+    if( consecutiveZeroSelects > 100 )  Debug.out("consecutiveZeroSelects > 100");
+    
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error
       consecutiveZeroSelects = 0;
@@ -107,8 +110,10 @@ public class SelectorGuard {
   /**
    * Cleanup bad selector and return a fresh new one.
    */
-  protected Selector repairSelector( final Selector _bad_selector ) {
-    Debug.out("Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys");
+  public Selector repairSelector( final Selector _bad_selector ) {//TODO make protected again
+    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys";
+    Debug.out( msg );
+    LGLogger.logAlert( LGLogger.AT_WARNING, msg, true );
     
     try {
       //sleep a bit to allow underlying network recovery
