@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 public class ConfigSectionFileTorrents implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -230,6 +231,14 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt");
     new BooleanParameter(cTorrent, "File.Decoder.Prompt", false);
           
+    
+    Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
+    Messages.setLanguageText(lIgnoreFiles, "ConfigView.section.file.torrent.ignorefiles"); //$NON-NLS-1$
+
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    final StringParameter ignoreFileParameter = new StringParameter(cTorrent, "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES ); 
+    ignoreFileParameter.setLayoutData(gridData);
+
     return cTorrent;
   }
 }

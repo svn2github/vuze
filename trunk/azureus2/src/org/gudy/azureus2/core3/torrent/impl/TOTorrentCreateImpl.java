@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 
 public class 
 TOTorrentCreateImpl
@@ -46,6 +47,8 @@ TOTorrentCreateImpl
 	
 	protected int	reported_progress;
 		
+	protected Map	ignore_map = new HashMap();
+	
 	public
 	TOTorrentCreateImpl(
 		File						_torrent_base,
@@ -57,6 +60,8 @@ TOTorrentCreateImpl
 		throws TOTorrentException
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
+		
+		setIgnoreList();
 		
 		add_other_hashes	= _add_other_hashes;
 		progress_listener 	= _progress_listener;
@@ -195,29 +200,32 @@ TOTorrentCreateImpl
 					processDir( hasher, file, encoded, file_name );
 					
 				}else{
-										
-					if ( root.length() > 0 ){
-					
-						file_name = root + File.separator + file_name;
+						
+					if ( !ignoreFile( file_name )){
+								
+						if ( root.length() > 0 ){
+						
+							file_name = root + File.separator + file_name;
+						}
+						
+						long length = hasher.add( file );
+							
+						TOTorrentFileImpl	tf = new TOTorrentFileImpl( length, file_name);
+						
+						if ( add_other_hashes ){
+							
+							byte[]	ed2k_digest	= hasher.getPerFileED2KDigest();
+							byte[]	sha1_digest	= hasher.getPerFileSHA1Digest();
+							
+							//System.out.println( "file:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true ));
+							//System.out.println( "file:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true ));		
+						
+							tf.setAdditionalProperty( "sha1", sha1_digest );
+							tf.setAdditionalProperty( "ed2k", ed2k_digest );
+						}
+						
+						encoded.addElement( tf );
 					}
-					
-					long length = hasher.add( file );
-						
-					TOTorrentFileImpl	tf = new TOTorrentFileImpl( length, file_name);
-					
-					if ( add_other_hashes ){
-						
-						byte[]	ed2k_digest	= hasher.getPerFileED2KDigest();
-						byte[]	sha1_digest	= hasher.getPerFileSHA1Digest();
-						
-						//System.out.println( "file:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true ));
-						//System.out.println( "file:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true ));		
-					
-						tf.setAdditionalProperty( "sha1", sha1_digest );
-						tf.setAdditionalProperty( "ed2k", ed2k_digest );
-					}
-					
-					encoded.addElement( tf );
 				}
 			}
 		}
@@ -306,10 +314,16 @@ TOTorrentCreateImpl
 		
 		if ( file.isFile()){
 			
-			total_file_count++;
+			if ( !ignoreFile( name )){
+				
+				total_file_count++;
 			
-			return( file.length());
-			
+				return( file.length());
+				
+			}else{
+				
+				return( 0 );
+			}
 		}else{
 			
 			File[]	dir_files = file.listFiles();
@@ -422,5 +436,52 @@ TOTorrentCreateImpl
 		long		piece_size )
 	{
 		return( (total_size + (piece_size-1))/piece_size );
+	}
+	
+	protected void
+	setIgnoreList()
+	{
+		String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+		
+		int	pos = 0;
+		
+		while(true){
+			
+			int	p1 = ignore_list.indexOf( ";", pos );
+			
+			String	bit;
+			
+			if ( p1 == -1 ){
+				
+				bit = ignore_list.substring(pos);
+				
+			}else{
+				
+				bit	= ignore_list.substring( pos, p1 );
+				
+				p1	= pos+1;
+			}
+			
+			ignore_map.put(bit.toLowerCase(),"");
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
+		}
+	}
+	
+	protected boolean
+	ignoreFile(
+		String		file )
+	{
+		if ( ignore_map.get(file.toLowerCase()) != null ){
+
+			report(MessageText.getString("Torrent.create.progress.ignoringfile" ) + " '" + file + "'" );
+			
+			return( true );
+		}
+		
+		return( false );
 	}
 }
