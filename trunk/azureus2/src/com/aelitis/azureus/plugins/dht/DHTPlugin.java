@@ -671,7 +671,7 @@ DHTPlugin
 							
 							if ( listener != null ){
 								
-								listener.valueWritten( _contact.getAddress(), _value.getValue());
+								listener.valueWritten( new DHTPluginContactImpl(_contact ), _value.getValue());
 							}
 
 						}
@@ -737,7 +737,7 @@ DHTPlugin
 							
 							if ( listener != null ){
 								
-								listener.valueRead( value.getOriginator().getAddress(), value.getValue(), (byte)value.getFlags());
+								listener.valueRead( new DHTPluginContactImpl( value.getOriginator()), value.getValue(), (byte)value.getFlags());
 							}
 						}
 						
@@ -814,7 +814,7 @@ DHTPlugin
 								// log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
 								if ( listener != null ){
 									
-									listener.valueWritten( contact.getAddress(), value.getValue());
+									listener.valueWritten( new DHTPluginContactImpl( contact ), value.getValue());
 								}
 							}
 							
@@ -832,7 +832,7 @@ DHTPlugin
 						});
 	}
 	
-	public InetSocketAddress
+	public DHTPluginContact
 	getLocalAddress()
 	{
 		if ( !isEnabled()){
@@ -840,7 +840,7 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 		
-		return( dht.getTransport().getLocalContact().getAddress());
+		return( new DHTPluginContactImpl( dht.getTransport().getLocalContact()));
 	}
 	
 		// direct read/write support
@@ -861,26 +861,26 @@ DHTPlugin
 				{
 					public byte[]
 					handleRead(
-						InetSocketAddress	originator,
+						DHTTransportContact	originator,
 						byte[]				key )
 					{
-						return( handler.handleRead( originator, key ));
+						return( handler.handleRead( new DHTPluginContactImpl( originator ), key ));
 					}
 					
 					public void
 					handleWrite(
-						InetSocketAddress	originator,
+							DHTTransportContact	originator,
 						byte[]				key,
 						byte[]				value )
 					{
-						handler.handleWrite( originator, key, value );
+						handler.handleWrite( new DHTPluginContactImpl( originator ), key, value );
 					}
 				});
 	}
 	
 	public byte[]
 	read(
-		InetSocketAddress		target,
+		DHTPluginContact		target,
 		byte[]					handler_key,
 		byte[]					key )
 	{
@@ -890,11 +890,37 @@ DHTPlugin
 		}
 		
 		try{
-			return( dht.getTransport().readTransfer( target, handler_key, key ));
+			return( dht.getTransport().readTransfer( ((DHTPluginContactImpl)target).getContact(), handler_key, key ));
 			
 		}catch( DHTTransportException e ){
 			
 			throw( new RuntimeException( e ));
+		}
+	}
+	
+	protected class
+	DHTPluginContactImpl
+		implements DHTPluginContact
+	{
+		protected DHTTransportContact	contact;
+		
+		protected
+		DHTPluginContactImpl(
+			DHTTransportContact	_contact )
+		{
+			contact	= _contact;
+		}
+		
+		protected DHTTransportContact
+		getContact()
+		{
+			return( contact );
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			return( contact.getAddress());
 		}
 	}
 }

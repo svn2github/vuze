@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.ddb.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 
@@ -205,7 +206,7 @@ DDBaseImpl
 			{
 				public byte[]
 				handleRead(
-					InetSocketAddress	originator,
+					DHTPluginContact	originator,
 					byte[]				xfer_key )
 				{
 					try{
@@ -227,7 +228,7 @@ DDBaseImpl
 				
 				public void
 				handleWrite(
-					InetSocketAddress	originator,
+					DHTPluginContact	originator,
 					byte[]				xfer_key,
 					byte[]				value )
 				{
@@ -269,7 +270,7 @@ DDBaseImpl
 		
 		public void
 		valueRead(
-			InetSocketAddress	originator,
+			DHTPluginContact	originator,
 			byte[]				value,
 			byte				flags )
 		{
@@ -278,7 +279,7 @@ DDBaseImpl
 		
 		public void
 		valueWritten(
-			InetSocketAddress	target,
+			DHTPluginContact	target,
 			byte[]				value )
 		{
 			listener.event( new dbEvent( type, key, target, value ));
@@ -317,13 +318,13 @@ DDBaseImpl
 		dbEvent(
 			int						_type,
 			DistributedDatabaseKey	_key,
-			InetSocketAddress		_address,
+			DHTPluginContact		_contact,
 			byte[]					_value )
 		{
 			type		= _type;
 			key			= _key;
 			
-			contact	= new DDBaseContactImpl( DDBaseImpl.this, _address );
+			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
 			
 			value	= new DDBaseValueImpl( contact, _value ); 
 		}

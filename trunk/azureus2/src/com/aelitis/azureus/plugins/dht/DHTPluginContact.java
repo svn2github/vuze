@@ -1,5 +1,5 @@
 /*
- * Created on 22-Feb-2005
+ * Created on 25-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,22 +22,16 @@
 
 package com.aelitis.azureus.plugins.dht;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author parg
  *
  */
 
 public interface 
-DHTPluginTransferHandler 
+DHTPluginContact 
 {
-	public byte[]
-	handleRead(
-		DHTPluginContact	originator,
-		byte[]				key );
-	
-	public void
-	handleWrite(
-		DHTPluginContact	originator,
-		byte[]				key,
-		byte[]				value );
+	public InetSocketAddress
+	getAddress();
 }

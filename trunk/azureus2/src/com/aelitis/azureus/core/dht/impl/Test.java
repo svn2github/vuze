@@ -480,7 +480,7 @@ Test
 										
 					byte[]	res = 
 						dhts[0].getTransport().readTransfer(
-								dhts[1].getTransport().getLocalContact().getAddress(),
+								dhts[1].getTransport().getLocalContact(),
 								th_key,
 								new byte[]{1,2,3,4});
 	
@@ -489,7 +489,7 @@ Test
 					System.out.println( "write - dht0 -> dht1" );
 										
 					dhts[0].getTransport().writeTransfer(
-								dhts[1].getTransport().getLocalContact().getAddress(),
+								dhts[1].getTransport().getLocalContact(),
 								th_key,
 								new byte[]{1,2,3,4},
 								new byte[]{4,3,2,1});
@@ -538,7 +538,7 @@ Test
 			{
 				public byte[]
 				handleRead(
-					InetSocketAddress	originator,
+					DHTTransportContact	originator,
 					byte[]				key )
 				{
 					System.out.println("handle read");
@@ -548,7 +548,7 @@ Test
 				
 				public void
 				handleWrite(
-					InetSocketAddress	originator,
+					DHTTransportContact	originator,
 					byte[]				key,
 					byte[]				value )
 				{

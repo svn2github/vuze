@@ -68,7 +68,7 @@ DHTTransport
 	
 	public byte[]
 	readTransfer(
-		InetSocketAddress		target,
+		DHTTransportContact		target,
 		byte[]					handler_key,
 		byte[]					key )
 	
@@ -76,7 +76,7 @@ DHTTransport
 	
 	public void
 	writeTransfer(
-		InetSocketAddress		target,
+		DHTTransportContact		target,
 		byte[]					handler_key,
 		byte[]					key,
 		byte[]					data )

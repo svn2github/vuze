@@ -60,6 +60,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 
 /**
@@ -588,7 +589,7 @@ DHTTrackerPlugin
 						{
 							public void
 							valueRead(
-								InetSocketAddress	originator,
+								DHTPluginContact	originator,
 								byte[]				value,
 								byte				flags )
 							{
@@ -596,7 +597,7 @@ DHTTrackerPlugin
 							}
 							public void
 							valueWritten(
-								InetSocketAddress	target,
+								DHTPluginContact	target,
 								byte[]				value )
 							{
 								
@@ -654,7 +655,7 @@ DHTTrackerPlugin
 						{
 							public void
 							valueRead(
-								InetSocketAddress	originator,
+								DHTPluginContact	originator,
 								byte[]				value,
 								byte				flags )
 							{
@@ -663,7 +664,7 @@ DHTTrackerPlugin
 							
 							public void
 							valueWritten(
-								InetSocketAddress	target,
+								DHTPluginContact	target,
 								byte[]				value )
 							{
 							}	
@@ -728,7 +729,7 @@ DHTTrackerPlugin
 							
 							public void
 							valueRead(
-								InetSocketAddress	originator,
+								DHTPluginContact	originator,
 								byte[]				value,
 								byte				flags )
 							{
@@ -737,7 +738,7 @@ DHTTrackerPlugin
 								try{
 									int	port = Integer.parseInt( str_val );
 								
-									addresses.add( originator.getAddress().getHostAddress());
+									addresses.add( originator.getAddress().getAddress().getHostAddress());
 									
 									ports.add(new Integer(port));
 									
@@ -757,7 +758,7 @@ DHTTrackerPlugin
 							
 							public void
 							valueWritten(
-								InetSocketAddress	target,
+								DHTPluginContact	target,
 								byte[]				value )
 							{
 							}

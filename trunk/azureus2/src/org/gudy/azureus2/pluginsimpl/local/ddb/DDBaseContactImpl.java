@@ -30,6 +30,8 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+
 /**
  * @author parg
  *
@@ -40,21 +42,21 @@ DDBaseContactImpl
 	implements DistributedDatabaseContact
 {
 	private DDBaseImpl				ddb;
-	private InetSocketAddress		address;
+	private DHTPluginContact		contact;
 	
 	protected
 	DDBaseContactImpl(
 		DDBaseImpl				_ddb,
-		InetSocketAddress		_address )
+		DHTPluginContact		_contact )
 	{
 		ddb			= _ddb;
-		address		= _address;
+		contact		= _contact;
 	}
 	
 	public String
 	getName()
 	{
-		return( address.toString());
+		return( contact.getAddress().toString());
 	}
 	
 	public void
@@ -76,7 +78,7 @@ DDBaseContactImpl
 		throws DistributedDatabaseException
 	{
 		byte[]	data = ddb.getDHT().read( 
-							address,
+							contact,
 							DDBaseHelpers.getKey(type.getClass()).getHash(),
 							((DDBaseKeyImpl)key).getBytes());
 							
@@ -85,6 +87,6 @@ DDBaseContactImpl
 			return( null );
 		}
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, address ),data));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, contact ),data));
 	}
 }

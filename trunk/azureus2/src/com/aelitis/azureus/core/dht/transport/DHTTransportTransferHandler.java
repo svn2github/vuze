@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.dht.transport;
 
-import java.net.InetSocketAddress;
 
 /**
  * @author parg
@@ -34,12 +33,12 @@ DHTTransportTransferHandler
 {
 	public byte[]
 	handleRead(
-		InetSocketAddress	originator,
+		DHTTransportContact	originator,
 		byte[]				key );
 	
 	public void
 	handleWrite(
-		InetSocketAddress	originator,
+		DHTTransportContact	originator,
 		byte[]				key,
 		byte[]				value );
 }
