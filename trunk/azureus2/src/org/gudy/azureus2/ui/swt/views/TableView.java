@@ -21,39 +21,37 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
+
+import java.util.*;
+import java.util.List;
 
 
 /** An IView with a SortableTable in it.  Handles composite/menu/table creation
@@ -137,6 +135,10 @@ public class TableView
                                        10000 / COConfigurationManager.getIntParameter("GUI Refresh") :
                                        0;
 
+  /**
+   * Cache of selected table items to bypass insufficient drawing on Mac OS X
+   */
+  private ArrayList oldSelectedItems;
 
   /**
    * Main Initializer
@@ -418,6 +420,41 @@ public class TableView
         iMouseX = e.x;
       }
     });
+
+    // bypasses disappearing graphic glitch on Mac OS X
+    if(Constants.isOSX) {
+        table.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected( SelectionEvent event) {
+                GroupTableRowRunner refresher = new GroupTableRowRunner() {
+                  public void run(TableRowCore row) {
+                      row.setValid(false);
+                      row.refresh(true);
+                  }
+                };
+
+                TableItem[] sel = table.getSelection();
+
+                ArrayList toRefresh = new ArrayList(sel.length);
+
+                if(oldSelectedItems != null) {
+                    runForTableItems(oldSelectedItems, refresher);
+                    for (int i = 0; i < sel.length; i++) {
+                        if(!oldSelectedItems.contains(sel[i]))
+                            toRefresh.add(sel[i]);
+                    }
+                }
+                else {
+                    for (int i = 0; i < sel.length; i++) {
+                        toRefresh.add(sel[i]);
+                    }
+                }
+
+                runForTableItems(toRefresh, refresher);
+
+                oldSelectedItems = toRefresh;
+            }
+        });
+    }
 
   	// Implement a "fake" tooltip
   	final Listener labelListener = new Listener () {
@@ -825,6 +862,8 @@ public class TableView
     COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
     COConfigurationManager.removeParameterListener("Graphics Update", this);
     Colors.getInstance().removeColorsChangedListener(this);
+
+    oldSelectedItems =  null;
   }
 
   /** IView.getData: Data 'could' store a key to a language file, in order to 
@@ -1230,8 +1269,17 @@ public class TableView
         runner.run(rows[i]);
     }
   }
-  
-  /** Send Selected rows to the clipboard in a SpreadSheet friendly format 
+
+  public static void runForTableItems(List items, GroupTableRowRunner runner) {
+      final Iterator iter = items.iterator();
+      while (iter.hasNext()) {
+          TableRowCore row = (TableRowCore) ((TableItem) iter.next()).getData("TableRow");
+          if (row != null)
+            runner.run(row);
+      }
+  }
+
+  /** Send Selected rows to the clipboard in a SpreadSheet friendly format
    * (tab/cr delimited)
    */
   public void clipboardSelected() {
