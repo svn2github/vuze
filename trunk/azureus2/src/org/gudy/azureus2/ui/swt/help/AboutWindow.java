@@ -25,6 +25,8 @@ import java.util.Properties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -45,7 +47,9 @@ import org.gudy.azureus2.ui.swt.Messages;
  */
 public class AboutWindow {
 
-  public static void show(Display display) {
+  static Image image;
+  
+  public static void show(final Display display) {
     
     Properties properties = new Properties();
     try {
@@ -62,6 +66,9 @@ public class AboutWindow {
     GridData gridData;
     window.setLayout(new GridLayout(3, false));
     
+    disposeImage();
+    
+    image = new Image(display,ImageRepository.getImage("azureus_splash"),SWT.IMAGE_GRAY);
     
     Group gDevelopers = new Group(window, SWT.NULL);
     gDevelopers.setLayout(new GridLayout());
@@ -73,14 +80,10 @@ public class AboutWindow {
     label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     
-    label = new Label(window, SWT.NONE);
-    label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
+    final Label labelImage = new Label(window, SWT.NONE);
+    labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    label.setLayoutData(gridData);
-  
-    
-  
-    
+    labelImage.setLayoutData(gridData);
   
     Group gTranslators = new Group(window, SWT.NULL);
     gTranslators.setLayout(new GridLayout());
@@ -133,15 +136,53 @@ public class AboutWindow {
     int y = (displayRect.height - splashRect.height) / 2;
     window.setLocation(x, y);
     window.open();
-    while (!window.isDisposed()) {
-      try {
-        if (!display.readAndDispatch())
-          display.sleep();
+    
+    Thread updater =  new Thread("Splash Screen Updater") {
+      public void run() {        
+        if(image == null || image.isDisposed())
+          return;
+        
+        final boolean finished[] = new boolean[1];
+        final int[] x = new int[1];
+        final int maxX = image.getBounds().width;
+        final int maxY = image.getBounds().height;
+        final Image imgSrc = ImageRepository.getImage("azureus_splash");
+        while(!finished[0]) {
+          if(image == null || image.isDisposed()) {
+            finished[0] = true;
+            break;
+          }
+          if(display == null || display.isDisposed()) {
+            finished[0] = true;
+            break;
+          }
+          display.asyncExec(new Runnable() {
+            public void run() {
+              GC gcImage = new GC(labelImage);
+              gcImage.setClipping(x[0],0,1,maxY);
+              gcImage.drawImage(imgSrc,0,0);
+              gcImage.dispose();
+              x[0]++;
+              if(x[0] >= maxX) {
+                finished[0] = true;
+                labelImage.setImage(imgSrc);
+              }
+            }
+          });
+          try {
+            Thread.sleep(30);
+          }catch(Exception e) {
+            e.printStackTrace();
+          }
       }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+    }};
+    updater.start();
+  }
+  
+  public static synchronized void disposeImage() {
+    if(image != null && ! image.isDisposed())
+      image.dispose();
+    image = null;
   }
 
 }
