@@ -1114,7 +1114,9 @@ TRTrackerClientClassicImpl
       request.append("&numwant=" + numwant);
       
       //no_peer_id has been made obsolete by 'compact'
-      //request.append("&no_peer_id=1");
+      // TODO: remove this 2.0.9.0 or beyond
+      
+      request.append("&no_peer_id=1");
       
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
