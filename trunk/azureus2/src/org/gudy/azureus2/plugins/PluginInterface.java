@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
+import org.gudy.azureus2.plugins.update.UpdateManager;
 
 
 /**
@@ -167,6 +168,15 @@ public interface PluginInterface {
    */
   public UIManager
   getUIManager();
+  
+  /**
+   * access to the update manager used to update plugins. required for non-Azureus SF hosted
+   * plugins (SF ones are managed automatically)
+   * @return
+   */
+  
+  public UpdateManager
+  getUpdateManager();
   
   /**
    * opens a torrent file given its name

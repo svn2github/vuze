@@ -40,6 +40,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.utils.Utilities;
+import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -287,6 +289,12 @@ PluginInterfaceImpl
   	return( new UIManagerImpl( this ));
   }
   
+  public UpdateManager
+  getUpdateManager()
+  {
+  	return( UpdateManagerImpl.getSingleton());
+  }
+
   public PeerProtocolManager
   getPeerProtocolManager()
   {
