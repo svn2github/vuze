@@ -738,6 +738,7 @@ public class PeerManager extends Thread {
         }
       } else //our list already contains this connection
         {
+        pc.closeAll();		// NOLAR: fixes stalled connections (bug #795751)
         pc = null; //do nothing ...
       }
     }
