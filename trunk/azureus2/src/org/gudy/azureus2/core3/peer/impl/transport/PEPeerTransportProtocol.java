@@ -485,9 +485,7 @@ PEPeerTransportProtocol
                 
                 try{
 	                int	len_written = chan.write( socks_out );
-	          
-	                System.out.println( "written = " + len_written ); 
-	                
+	          	                
 	    	        sent_our_handshake = true;
 	    	        
                 }catch (IOException e) {
@@ -525,10 +523,21 @@ PEPeerTransportProtocol
 		}
 	      
 	      if( !socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-	      	
-	        System.out.println( "Got SOCKS response" );
+	      		        
+	        socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
+	        
+	        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+	        byte	resp 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
 	        
 	        socks_handshake_read_buff.returnToPool();
+	        
+	        if ( ver != 0 || resp != 90 ){
+	        	
+				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: connection declined (" + resp + ")", true, false );
+	        
+				return 0;
+	        	
+	        }
 	        
 	        currentState = new StateHandshaking( true, null );
 	      }
