@@ -67,6 +67,12 @@ Main
 						
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
+				TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://poo/"), new URL("http://pee/")});
+				
+				torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[]{ set });
+				
+				torrent.setAdditionalStringProperty( "Wibble", "wobble" );
+				
 				torrent.print();
 			
 				torrent.serialiseToFile( new File("c:\\temp\\test2.torrent"));
@@ -74,10 +80,11 @@ Main
 			}else if ( test_type == TT_DECODE ){
 				
 					 
-				File f = new File("c:\\temp\\test.torrent" );
+				File f = new File("c:\\temp\\test2.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
+				System.out.println( "\turl group sets = " + torrent.getAnnounceURLGroup().getAnnounceURLSets().length);
 				torrent.print();		
 				
 			}else if ( test_type == TT_CREATE ){

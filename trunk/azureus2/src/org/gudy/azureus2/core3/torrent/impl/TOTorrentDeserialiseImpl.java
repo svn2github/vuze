@@ -65,13 +65,31 @@ TOTorrentDeserialiseImpl
 			
 				// decode the stuff
 			
-			setAnnounceURL( new URL(new String((byte[])meta_data.get( "announce" ))));
+			setAnnounceURL( new URL( readStringFromMetaData( meta_data, TK_ANNOUNCE )));
+
+			List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
 			
-			Map	info = (Map)meta_data.get( "info" );
+			if ( announce_list != null ){
+				
+				for (int i=0;i<announce_list.size();i++){
+					
+					List	set = (List)announce_list.get(i);
+					
+					URL[]	urls = new URL[set.size()];
+					
+					for (int j=0;j<urls.length;j++){
+						
+						urls[j] = new URL( readStringFromMetaData((byte[])set.get(j)));		
+					}
+					
+					addTorrentAnnounceURLSet( urls );
+				}
+			}
+			Map	info = (Map)meta_data.get( TK_INFO );
 			
-			setName( new String((byte[])info.get( "name" )));
+			setName( readStringFromMetaData( info, TK_NAME ));
 			
-			Long simple_file_length = (Long)info.get("length");
+			Long simple_file_length = (Long)info.get( TK_LENGTH );
 			
 			if ( simple_file_length != null ){
 			
@@ -83,7 +101,7 @@ TOTorrentDeserialiseImpl
 				
 				setSimpleTorrent( false );  
 
-				List	meta_files = (List)info.get( "files" );
+				List	meta_files = (List)info.get( TK_FILES );
 			
 				TOTorrentFile[] files = new TOTorrentFile[ meta_files.size()];
 			
@@ -91,15 +109,15 @@ TOTorrentDeserialiseImpl
 					
 					Map	file_map = (Map)meta_files.get(i);
 					
-					long	len = ((Long)file_map.get("length")).longValue();
+					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
 					
-					List	paths = (List)file_map.get( "path" );
+					List	paths = (List)file_map.get( TK_PATH );
 					
 					String	path = "";
 					
 					for (int j=0;j<paths.size();j++){
 					
-						path += (j==0?"":File.separator) + new String((byte[])paths.get(j));
+						path += (j==0?"":File.separator) + new String(readStringFromMetaData((byte[])paths.get(j)));
 					}
 					
 					files[i] = new TOTorrentFileImpl( len, path );
@@ -108,9 +126,9 @@ TOTorrentDeserialiseImpl
 				setFiles( files );
 			}
 											 
-			setPieceLength( ((Long)info.get( "piece length" )).longValue());
+			setPieceLength( ((Long)info.get( TK_PIECE_LENGTH )).longValue());
 						
-			byte[]	flat_pieces = (byte[])info.get( "pieces" );
+			byte[]	flat_pieces = (byte[])info.get( TK_PIECES );
 			
 			byte[][]pieces = new byte[flat_pieces.length/20][20];
 			
@@ -134,7 +152,6 @@ TOTorrentDeserialiseImpl
 	}
 	
 
-	
 	public void
 	printMap()
 	{

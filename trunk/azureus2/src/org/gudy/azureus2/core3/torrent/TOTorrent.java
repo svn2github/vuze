@@ -22,9 +22,20 @@ TOTorrent
 	public String
 	getName();
 
+	public String
+	getComment();
+	
 	public URL
 	getAnnounceURL();
 
+	/**
+	 * When a group of sets of trackers is defined their URLs are accessed via this method
+	 * @return the group, always present, which may have 0 members
+	 */
+	
+	public TOTorrentAnnounceURLGroup
+	getAnnounceURLGroup();
+	 
 	public byte[][]
 	getPieces();
 
@@ -34,6 +45,34 @@ TOTorrent
 	public TOTorrentFile[]
 	getFiles();
 	
+	/**
+	 * The additional properties are used for holding non-core data for Azureus' own user
+	 * @param name		name of the property (e.g. "encoding")
+	 * @param value		value. This will be encoded with default encoding
+	 */
+	
+	public void
+	setAdditionalStringProperty(
+		String		name,
+		String		value )
+		
+		throws TOTorrentException;
+		
+	public String
+	getAdditionalStringProperty(
+		String		name )
+		
+		throws TOTorrentException;
+		
+	public void
+	setAdditionalByteArrayProperty(
+		String		name,
+		byte[]		value );
+		
+	public byte[]
+	getAdditionalByteArrayProperty(
+		String		name );
+		
 	public void
 	serialiseToFile(
 		File		file )
