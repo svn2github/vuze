@@ -479,8 +479,7 @@ StartStopRulesDefaultPlugin
         // Stop torrent if over limit
         if ((download.getState() == Download.ST_READY ||
              download.getState() == Download.ST_DOWNLOADING ||
-             download.getState() == Download.ST_WAITING ||
-             download.getState() == Download.ST_PREPARING) &&
+             download.getState() == Download.ST_WAITING) &&
             (!download.isForceStart())
            ) {
 

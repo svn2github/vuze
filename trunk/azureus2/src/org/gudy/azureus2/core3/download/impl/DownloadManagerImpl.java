@@ -1152,6 +1152,10 @@ DownloadManagerImpl
 				setState(STATE_CHECKING);
       	// remove resume data
 		  	torrent.removeAdditionalProperty("resume");
+		  	// For extra protection from a plugin stopping a checking torrent,
+		  	// fake a forced start
+		  	boolean wasForceStarted = forceStarted;
+		  	forceStarted = true;
 		  	initializeDiskManager();
 				while (diskManager != null &&
 				       diskManager.getState() != DiskManager.FAULTY &&
@@ -1162,6 +1166,7 @@ DownloadManagerImpl
 						e.printStackTrace();
 					}
 				}
+				forceStarted = wasForceStarted;
 				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				if (diskManager == null) {
 				  LGLogger.log(LGLogger.ERROR, "diskManager destroyed while trying to recheck!");
