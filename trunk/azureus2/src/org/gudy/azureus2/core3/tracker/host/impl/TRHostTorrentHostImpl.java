@@ -66,6 +66,8 @@ TRHostTorrentHostImpl
 	protected Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
+  private HashMap data;
+
 	protected
 	TRHostTorrentHostImpl(
 		TRHostImpl		_host,
@@ -543,4 +545,23 @@ TRHostTorrentHostImpl
 	{
 		removal_listeners.remove(l);
 	}
+
+  /** To retreive arbitrary objects against this object. */
+  public Object getData (String key) {
+  	if (data == null) return null;
+    return data.get(key);
+  }
+
+  /** To store arbitrary objects against this object. */
+  public synchronized void setData (String key, Object value) {
+  	if (data == null) {
+  	  data = new HashMap();
+  	}
+    if (value == null) {
+      if (data.containsKey(key))
+        data.remove(key);
+    } else {
+      data.put(key, value);
+    }
+  }
 }

@@ -1434,13 +1434,13 @@ DownloadManagerImpl
 	}
   }
   
-  /** To retreive arbitrary objects against a peer. */
+  /** To retreive arbitrary objects against a download. */
   public Object getData (String key) {
   	if (data == null) return null;
     return data.get(key);
   }
 
-  /** To store arbitrary objects against a peer. */
+  /** To store arbitrary objects against a download. */
   public synchronized void setData (String key, Object value) {
   	if (data == null) {
   	  data = new HashMap();

@@ -47,6 +47,8 @@ TRHostTorrentPublishImpl
 	protected List				listeners 			= new ArrayList();
 	protected List				removal_listeners	= new ArrayList();
 	
+  private HashMap data;
+
 	protected
 	TRHostTorrentPublishImpl(
 		TRHostImpl		_host,
@@ -272,4 +274,23 @@ TRHostTorrentPublishImpl
 	{
 		removal_listeners.remove(l);
 	}
+
+  /** To retreive arbitrary objects against this object. */
+  public Object getData (String key) {
+  	if (data == null) return null;
+    return data.get(key);
+  }
+
+  /** To store arbitrary objects against this object. */
+  public synchronized void setData (String key, Object value) {
+  	if (data == null) {
+  	  data = new HashMap();
+  	}
+    if (value == null) {
+      if (data.containsKey(key))
+        data.remove(key);
+    } else {
+      data.put(key, value);
+    }
+  }
 }

@@ -128,4 +128,9 @@ TRHostTorrent
 	public void
 	removeRemovalListener(
 		TRHostTorrentWillBeRemovedListener	l );
+
+  /** To retreive arbitrary objects against this object. */
+  public Object getData (String key);
+  /** To store arbitrary objects against this object. */
+  public void setData (String key, Object value);
 }
