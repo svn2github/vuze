@@ -30,6 +30,18 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  */
 public class ConfigureWizard extends Wizard {
 
+  //Transfer settings
+  int upSpeed = 0;
+  int maxUpSpeed = 0;
+  int maxActiveTorrents = 0;
+  int maxDownloads = 0;
+  int nbUploadsPerTorrent = 0;
+  
+  //Server / NAT Settings
+  int serverMinPort = 6881;
+  int serverMaxPort = 6889;
+ 
+
   public ConfigureWizard(Display display) {
     super(display,"configureWizard.title");
     WelcomePanel panel = new WelcomePanel(this,null);

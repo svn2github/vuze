@@ -58,9 +58,12 @@ public class WelcomePanel extends AbstractWizardPanel {
     panel.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 1;
-    panel.setLayout(layout);
-    
-    Label label = new Label(panel,SWT.NULL);
+    panel.setLayout(layout);     
+
+    Label label = new Label(panel,SWT.WRAP);
+    gridData = new GridData();
+    gridData.widthHint = 380;    
+    label.setLayoutData(gridData);
     Messages.setLanguageText(label,"configureWizard.welcome.message");
   }
   
@@ -76,7 +79,7 @@ public class WelcomePanel extends AbstractWizardPanel {
    * @see org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel#getNextPanel()
    */
   public IWizardPanel getNextPanel() {
-    return this;
+    return new TransferPanel(((ConfigureWizard)wizard),this);
   }
 
 }

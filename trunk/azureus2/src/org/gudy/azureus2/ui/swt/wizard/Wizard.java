@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.wizard;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -83,6 +85,12 @@ public class Wizard {
     title.setBackground(white);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     title.setLayoutData(gridData);
+    Font font = title.getFont();
+    FontData[] data = font.getFontData();
+    for(int i = 0 ; i < data.length ; i++) {
+      data[i].setStyle(SWT.BOLD);
+    }
+    title.setFont(new Font(display, data));
     currentInfo = new Label(cTitle, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     currentInfo.setLayoutData(gridData);
@@ -199,7 +207,7 @@ public class Wizard {
       }
     });
 
-    wizardWindow.setSize(400, 300);
+    wizardWindow.setSize(400, 400);
     wizardWindow.open();
 
   }
