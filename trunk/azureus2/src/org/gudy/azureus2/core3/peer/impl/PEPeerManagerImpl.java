@@ -61,7 +61,7 @@ PEPeerManagerImpl
   private int _nbPieces;
   private PEPiece[] _pieces;
   private PEServerImpl _server;
-  private PEPeerStats _stats;
+  private PEPeerStatsImpl _stats;
   private long _timeLastUpdate;
   private int _timeToWait;
   private TRTrackerClient _tracker;
@@ -1354,7 +1354,7 @@ PEPeerManagerImpl
     }
   }
 
-  public void havePiece(int pieceNumber, PEPeerSocket pcOrigin) {
+  public void havePiece(int pieceNumber, PEPeer pcOrigin) {
     int length = getPieceLength(pieceNumber);
     int availability = _availability[pieceNumber];
     if (availability < 4) {
@@ -1369,7 +1369,7 @@ PEPeerManagerImpl
           if (pc != null && pc != pcOrigin && pc.getState() == PEPeerSocketImpl.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
-              pc.getStats().staticticSent(length / availability);
+              ((PEPeerStatsImpl)pc.getStats()).staticticSent(length / availability);
           }
         }
       }
@@ -1382,7 +1382,7 @@ PEPeerManagerImpl
     return _diskManager.getPieceLength();
   }
 
-  public boolean validateHandshaking(PEPeerSocket pc, byte[] peerId) {
+  public boolean validateHandshaking(PEPeer pc, byte[] peerId) {
     PEPeerSocketImpl pcTest = new PEPeerSocketImpl(this, peerId, pc.getIp(), pc.getPort(), true);
     synchronized (_connections) {
       return !_connections.contains(pcTest);
@@ -1437,11 +1437,11 @@ PEPeerManagerImpl
     return remaining;
   }
 
-  public void peerAdded(PEPeerSocket pc) {
+  public void peerAdded(PEPeer pc) {
     _manager.addPeer(pc);
   }
 
-  public void peerRemoved(PEPeerSocket pc) {
+  public void peerRemoved(PEPeer pc) {
     _manager.removePeer(pc);
   }
 
@@ -1560,7 +1560,7 @@ PEPeerManagerImpl
     }
   }
 
-  public boolean isOptimisticUnchoke(PEPeerSocket pc) {
+  public boolean isOptimisticUnchoke(PEPeer pc) {
     return pc == currentOptimisticUnchoke;
   }
 

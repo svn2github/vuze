@@ -82,11 +82,11 @@ DownloadManager
 		
 	public void
 	addPeer(
-		PEPeerSocket 		peer );
+		PEPeer 		peer );
 		
 	public void
 	removePeer(
-		PEPeerSocket		peer );
+		PEPeer		peer );
 		
 	public void
 	addPiece(

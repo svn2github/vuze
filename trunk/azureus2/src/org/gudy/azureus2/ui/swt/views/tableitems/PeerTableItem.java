@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
-import org.gudy.azureus2.core3.peer.PEPeerSocket;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -29,7 +29,7 @@ public class PeerTableItem {
 
   private Display display;
   private Table table;
-  private PEPeerSocket peerSocket;
+  private PEPeer peerSocket;
   private TableItem item;
   private Listener listener;
   //This is used for caching purposes of the Image
@@ -37,7 +37,7 @@ public class PeerTableItem {
   private Image image;
   private String[] oldTexts;
 
-  public PeerTableItem(final Table table, PEPeerSocket pc) {
+  public PeerTableItem(final Table table, PEPeer pc) {
     if (table == null || table.isDisposed()) {
       this.display = null;
       this.table = null;
@@ -348,14 +348,14 @@ public class PeerTableItem {
   /**
    * @return
    */
-  public PEPeerSocket getPeerSocket() {
+  public PEPeer getPeerSocket() {
     return peerSocket;
   }
 
   /**
    * @param socket
    */
-  public void setPeerSocket(PEPeerSocket socket) {
+  public void setPeerSocket(PEPeer socket) {
     peerSocket = socket;
   }
 

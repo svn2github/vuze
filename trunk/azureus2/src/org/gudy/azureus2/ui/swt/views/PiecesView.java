@@ -20,7 +20,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.peer.PEPeerSocket;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
 
@@ -151,13 +151,13 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
   
   public void
   peerAdded(
-	  PEPeerSocket 		peer )
+	  PEPeer 		peer )
   {
   }
 		
   public void
   peerRemoved(
-	  PEPeerSocket		peer )
+	  PEPeer		peer )
   {
   }
 

@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPeerSocket;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
@@ -239,12 +239,12 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
-  public void peerAdded(PEPeerSocket created) {
+  public void peerAdded(PEPeer created) {
     synchronized (items) {
       if (items.containsKey(created))
         return;
       try {
-        PeerTableItem item = new PeerTableItem(table, (PEPeerSocket) created);
+        PeerTableItem item = new PeerTableItem(table, (PEPeer) created);
         items.put(created, item);
       }
       catch (Exception e) {
@@ -256,7 +256,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
    */
-  public void peerRemoved(PEPeerSocket removed) {
+  public void peerRemoved(PEPeer removed) {
     //System.out.println("removed : " + removed.getClass() + ":" + removed);
     PeerTableItem item;
     synchronized (items) {
@@ -282,7 +282,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
  }
  
   //Sorting methods
-  private boolean getBooleanFiedl(PEPeerSocket peerSocket, String field) {
+  private boolean getBooleanFiedl(PEPeer peerSocket, String field) {
     if (field.equals("t")) //$NON-NLS-1$
       return peerSocket.isIncoming();
 
@@ -300,7 +300,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     return false;
   }
 
-  private String getStringField(PEPeerSocket peerSocket, String field) {
+  private String getStringField(PEPeer peerSocket, String field) {
     if (field.equals("ip")) //$NON-NLS-1$
       return peerSocket.getIp();
 
@@ -310,7 +310,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     return ""; //$NON-NLS-1$
   }
 
-  private long getIntField(PEPeerSocket peerSocket, String field) {
+  private long getIntField(PEPeer peerSocket, String field) {
 
     if (field.equals("port")) //$NON-NLS-1$
       return peerSocket.getPort();
@@ -351,13 +351,13 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       PeerTableItem psItems[] = new PeerTableItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        PEPeerSocket peerSocket = (PEPeerSocket) iter.next();
+        PEPeer peerSocket = (PEPeer) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
         psItems[item.getIndex()] = item;
         long value = getIntField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          PEPeerSocket peerSocketi = (PEPeerSocket) ordered.get(i);
+          PEPeer peerSocketi = (PEPeer) ordered.get(i);
           long valuei = getIntField(peerSocketi, field);
           if (ascending) {
             if (valuei >= value)
@@ -372,7 +372,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        PEPeerSocket peerSocket = (PEPeerSocket) ordered.get(i);
+        PEPeer peerSocket = (PEPeer) ordered.get(i);
         psItems[i].setPeerSocket(peerSocket);
         psItems[i].invalidate();
         items.put(peerSocket, psItems[i]);
@@ -420,13 +420,13 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       PeerTableItem psItems[] = new PeerTableItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        PEPeerSocket peerSocket = (PEPeerSocket) iter.next();
+        PEPeer peerSocket = (PEPeer) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
         psItems[item.getIndex()] = item;
         String value = getStringField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          PEPeerSocket peerSocketi = (PEPeerSocket) ordered.get(i);
+          PEPeer peerSocketi = (PEPeer) ordered.get(i);
           String valuei = getStringField(peerSocketi, field);
           if (ascending) {
             if (collator.compare(valuei, value) <= 0)
@@ -441,7 +441,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        PEPeerSocket peerSocket = (PEPeerSocket) ordered.get(i);
+        PEPeer peerSocket = (PEPeer) ordered.get(i);
         psItems[i].setPeerSocket(peerSocket);
         psItems[i].invalidate();
         items.put(peerSocket, psItems[i]);

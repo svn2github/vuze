@@ -35,6 +35,20 @@ public class
 PEPeerConnectionImpl
 	extends PEPeerImpl
 {
+	protected PEPeerStatsImpl stats;
+
+	protected boolean choked;
+	protected boolean interested;
+	protected Vector requested;
+
+	protected boolean choking;
+	protected boolean interesting;
+	protected Vector requesting;
+
+	protected boolean snubbed;
+
+	protected boolean[] available;
+	protected boolean seed;
 
 	/**
 	 * @param manager
@@ -69,23 +83,9 @@ PEPeerConnectionImpl
 	  available = new boolean[manager.getPiecesNumber()];
 	  Arrays.fill(available, false);
 
-	  stats = manager.createPeerStats();
+	  stats = (PEPeerStatsImpl)manager.createPeerStats();
 	}
 
-	protected PEPeerStats stats;
-
-	protected boolean choked;
-	protected boolean interested;
-	protected Vector requested;
-
-	protected boolean choking;
-	protected boolean interesting;
-	protected Vector requesting;
-
-	protected boolean snubbed;
-
-	protected boolean[] available;
-	protected boolean seed;
 
 	/**
 	 * @return

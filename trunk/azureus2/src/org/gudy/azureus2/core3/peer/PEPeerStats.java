@@ -30,17 +30,8 @@
  */
 
 public interface 
-PEPeerStats {  
-  public void discarded(int length);
- 
-  public void received(int length);
-
-  public void sent(int length);
- 
-  public void haveNewPiece();
-
-  public void staticticSent(int length);
- 
+PEPeerStats 
+{   
   public String getReceptionSpeed();
 
   public int getReception();

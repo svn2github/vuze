@@ -675,7 +675,7 @@ DownloadManagerImpl
   		
 		for (int i=0;i<current_peers.size();i++){
   			
-			listener.peerAdded((PEPeerSocket)current_peers.elementAt(i));
+			listener.peerAdded((PEPeer)current_peers.elementAt(i));
 		}
 		
 		for (int i=0;i<current_pieces.size();i++){
@@ -698,7 +698,7 @@ DownloadManagerImpl
 
   public void
   addPeer(
-	  PEPeerSocket 		peer )
+	  PEPeer 		peer )
   {
 	synchronized( listeners ){
   		
@@ -713,7 +713,7 @@ DownloadManagerImpl
 		
   public void
   removePeer(
-	  PEPeerSocket		peer )
+	  PEPeer		peer )
   {
 	synchronized( listeners ){
   		

@@ -34,14 +34,15 @@ package org.gudy.azureus2.core3.peer;
 import java.util.*;
 
 public interface 
-PEPeerSocket 
+PEPeer 
 {
 	public final static int CONNECTING 		= 10;
 	public final static int HANDSHAKING 	= 20;
 	public final static int TRANSFERING 	= 30;
 	public final static int DISCONNECTED 	= 40;
 	
-	
+	public int getState();	// from above set
+
 	public byte[] getId();
 
 	public String getIp();
@@ -52,6 +53,7 @@ PEPeerSocket
 	
 	public boolean[] getAvailable();
  
+	public void setSnubbed(boolean b);	// explicit un-snub
   
 	public boolean isChoked();
 
@@ -70,21 +72,7 @@ PEPeerSocket
 	public boolean isSnubbed();
  
 	public PEPeerStats getStats();
- 
-	public void setChoked(boolean b);
-
-	public void setChoking(boolean b);
- 
-	public void setInterested(boolean b);
-  
-	public void setInteresting(boolean b);
-
-	public void setSeed(boolean b);
-
-	public void setSnubbed(boolean b);
-	
-	public int getState();
-
+ 	
 	public int getMaxUpload();
 
 	public boolean isIncoming();

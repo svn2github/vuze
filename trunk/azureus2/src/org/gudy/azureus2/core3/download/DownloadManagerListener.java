@@ -33,11 +33,11 @@ DownloadManagerListener
 {
 	public void
 	peerAdded(
-		PEPeerSocket 	peer );
+		PEPeer 	peer );
 		
 	public void
 	peerRemoved(
-		PEPeerSocket	peer );
+		PEPeer	peer );
 		
 	public void
 	pieceAdded(
