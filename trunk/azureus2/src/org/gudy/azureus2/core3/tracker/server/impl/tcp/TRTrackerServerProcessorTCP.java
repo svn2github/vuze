@@ -89,9 +89,10 @@ TRTrackerServerProcessorTCP
 						break;
 					}
 									
-					header_plus += new String( buffer, 0, len );
+					header_plus += new String( buffer, 0, len, Constants.BYTE_ENCODING );
 									
-					if ( header_plus.endsWith( NL+NL )){
+					if ( 	header_plus.endsWith(NL+NL) ||
+							header_plus.indexOf( NL+NL ) != -1 ){
 						
 						break;
 					}
@@ -111,7 +112,7 @@ TRTrackerServerProcessorTCP
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
 				}				
 					
-				// System.out.println( "got header:" + header );
+				// System.out.println( "got header:" + header_plus );
 				
 				ByteArrayInputStream	data = null;
 				
@@ -132,7 +133,7 @@ TRTrackerServerProcessorTCP
 						throw( new TRTrackerServerException( "header truncated" ));
 					}
 					
-					actual_header 		= header_plus.substring(0,header_end+2);
+					actual_header 		= header_plus.substring(0,header_end+4);
 					lowercase_header	= actual_header.toLowerCase();
 					
 					int	cl_start = lowercase_header.indexOf("content-length:");
@@ -161,7 +162,7 @@ TRTrackerServerProcessorTCP
 						
 						content_length	-= rem;
 						
-						baos.write( header_plus.substring(header_plus.length()-rem).getBytes());
+						baos.write( header_plus.substring(header_plus.length()-rem).getBytes( Constants.BYTE_ENCODING ));
 					}
 					
 					while( content_length > 0 ){
@@ -203,7 +204,7 @@ TRTrackerServerProcessorTCP
 								socket.getInetAddress().getHostAddress(),
 								data,
 								socket.getOutputStream() );
-				
+								
 			}catch( SocketTimeoutException e ){
 				
 				// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
@@ -211,7 +212,7 @@ TRTrackerServerProcessorTCP
 							
 			}catch( Throwable e ){
 				
-				 //e.printStackTrace();
+				 e.printStackTrace();
 			}
 	
 		}finally{
@@ -429,7 +430,7 @@ TRTrackerServerProcessorTCP
 				
 				String	message = e.getMessage();
 				
-				// e.printStackTrace();
+				e.printStackTrace();
 				
 				if ( message == null || message.length() == 0 ){
 

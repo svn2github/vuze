@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.tracker;
  *
  */
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -59,6 +60,12 @@ TrackerWebPageResponseImpl
 		OutputStream		_os )
 	{
 		os	= _os;
+		
+		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+		
+		setHeader( "Last Modified",	format.format(new Date()));
+		
+		setHeader( "Expires", "Sun, 17 Jan 2038 01:01:01 GMT" );
 	}
 	
 	public void
@@ -115,6 +122,8 @@ TrackerWebPageResponseImpl
 			"Content-Type: " + content_type + NL +
 			"Content-Length: " + reply_bytes.length + NL +
 			NL;
+		
+		// System.out.println( "writing reply:" + reply_header );
 		
 		os.write( reply_header.getBytes());
 		
@@ -213,6 +222,8 @@ TrackerWebPageResponseImpl
 			response_type = "application/zip";
 		}else if ( file_type.equals( "txt" )){
 			response_type = "text/plain";
+		}else if ( file_type.equals( "jar" )){
+			response_type = "application/java-archive";
 		}else if ( file_type.equals( "mp3" )){
 			response_type = "audio/x-mpeg";
 		}else{
