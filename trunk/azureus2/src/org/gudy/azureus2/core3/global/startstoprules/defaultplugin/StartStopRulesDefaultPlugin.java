@@ -849,7 +849,7 @@ StartStopRulesDefaultPlugin
       // 0 usually means we have 0 seeds and 0 peers, which usually means
       // we don't have a connection to the tracker.  If that's the case,
       // skip setting QR.
-      if (newQR != 0)
+      if (newQR != 0 || qr > 9000)
         setQR(newQR);
   
       return qr;
