@@ -28,7 +28,20 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
-/**
+/** Draws an image at a column in a row of a table using direct paints to the 
+ *  table.
+ * In comparison to BufferedGraphicTable2,
+ * Pros:
+ *  - Cleaner
+ *  - More proper
+ *
+ * Cons:
+ *  - Bug - overpainting of table causing our cell to redraw everytime any other cell redraws
+ *          (New for Windows since SWT3.0M8, always been there for linux)
+ *  - Bug - incorrect drawing location on linux (new to SWT3.0M8)
+ *  - other bugs
+ *
+ * @see BufferedGraphicTable2
  * @author TuxPaper
  *
  */
