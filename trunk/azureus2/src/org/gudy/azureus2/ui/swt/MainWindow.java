@@ -81,12 +81,12 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.2.2"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.2.3"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
   private static Shell splash;
-  
+
   private static boolean jarDownloaded = false;
   private static boolean updateJar = false;
 
@@ -107,7 +107,7 @@ public class MainWindow implements IComponentListener {
   protected static Color red_ConsoleView;
   protected static Color red_ManagerItem;
   public static Cursor handCursor;
-  
+
   private CTabFolder folder;
   private CLabel statusText;
   private CLabel statusDown;
@@ -118,6 +118,7 @@ public class MainWindow implements IComponentListener {
   private Tab mytorrents;
   private Tab console;
   private Tab config;
+  private Tab irc;
 
   private MenuItem selectedLanguageItem;
 
@@ -145,14 +146,13 @@ public class MainWindow implements IComponentListener {
         try {
           Thread.sleep(waitTime);
         }
-        catch (Exception ignore) {
-        }
+        catch (Exception ignore) {}
       }
     }
 
     private void update() {
-      if(display != null && !display.isDisposed())
-      display.asyncExec(new Runnable() {
+      if (display != null && !display.isDisposed())
+        display.asyncExec(new Runnable() {
         public void run() {
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
             try {
@@ -161,7 +161,7 @@ public class MainWindow implements IComponentListener {
             catch (Exception e) {
               view = null;
             }
-            if(view != null) {
+            if (view != null) {
               view.refresh();
               Tab.refresh();
             }
@@ -194,15 +194,15 @@ public class MainWindow implements IComponentListener {
       ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 
       int nbRead = 0;
-      HttpURLConnection con = null; 
+      HttpURLConnection con = null;
       InputStream is = null;
       try {
         URL reqUrl = new URL("http://azureus.sourceforge.net/version.php"); //$NON-NLS-1$
         con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         is = con.getInputStream();
-//        int length = con.getContentLength();
-//        System.out.println(length);
+        //        int length = con.getContentLength();
+        //        System.out.println(length);
         byte[] data = new byte[1024];
         while (nbRead >= 0) {
           nbRead = is.read(data);
@@ -211,7 +211,7 @@ public class MainWindow implements IComponentListener {
           }
         }
         Map decoded = BDecoder.decode(message.toByteArray());
-        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$
+        latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$
 
         if (display == null || display.isDisposed())
           return;
@@ -219,7 +219,7 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            if(VERSION.compareTo(latestVersion) < 0) {
+            if (VERSION.compareTo(latestVersion) < 0) {
               latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
               setStatusVersion();
               statusText.setForeground(red);
@@ -232,15 +232,17 @@ public class MainWindow implements IComponentListener {
                   showUpgradeWindow();
                 }
               });
-              if(ConfigurationManager.getInstance().getBooleanParameter("Auto Update", true)) {
+              if (ConfigurationManager.getInstance().getBooleanParameter("Auto Update", true)) {
                 showUpgradeWindow();
               }
-            } else {
+            }
+            else {
               setStatusVersion();
             }
           }
         });
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
@@ -251,15 +253,16 @@ public class MainWindow implements IComponentListener {
             setStatusVersion();
           }
         });
-      } finally {
+      }
+      finally {
         if (is != null) {
           try {
             is.close();
-          } catch (IOException e1) {
           }
+          catch (IOException e1) {}
           is = null;
         }
-        if(con != null) {
+        if (con != null) {
           con.disconnect();
           con = null;
         }
@@ -272,10 +275,10 @@ public class MainWindow implements IComponentListener {
       setVisible(true);
       return;
     }
-    
+
     //The display
     display = new Display();
-    if(ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
+    if (ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
       showSplashWindow();
     }
 
@@ -289,7 +292,7 @@ public class MainWindow implements IComponentListener {
     downloadBars = new HashMap();
     ImageRepository.loadImages(display);
 
-    if(instanceCount == 0) {
+    if (instanceCount == 0) {
       blues[4] = new Color(display, new RGB(0, 128, 255));
       blues[3] = new Color(display, new RGB(64, 160, 255));
       blues[2] = new Color(display, new RGB(128, 192, 255));
@@ -400,15 +403,26 @@ public class MainWindow implements IComponentListener {
       }
     });
 
+    MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
+    view_irc.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        if (irc == null)
+          irc = new Tab(new IrcView());
+        else
+          irc.setFocus();
+      }
+    });
+
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
-  	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+    MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
-  	view_closeDetails.addListener(SWT.Selection, new Listener() {
-  		public void handleEvent(Event e) {
+    view_closeDetails.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
         Tab.closeAllDetails();
- 			}
-  	});
+      }
+    });
 
     addCloseDownloadBarsToMenu(viewMenu);
 
@@ -489,10 +503,10 @@ public class MainWindow implements IComponentListener {
 
     globalManager.addListener(this);
 
-    String windowRectangle = ConfigurationManager.getInstance().getStringParameter("window.rectangle", null); 
-    if(null != windowRectangle) {
+    String windowRectangle = ConfigurationManager.getInstance().getStringParameter("window.rectangle", null);
+    if (null != windowRectangle) {
       int i = 0;
-      int[] values = new int[4]; 
+      int[] values = new int[4];
       StringTokenizer st = new StringTokenizer(windowRectangle, ",");
       try {
         while (st.hasMoreTokens() && i < 4) {
@@ -501,8 +515,8 @@ public class MainWindow implements IComponentListener {
         if (i == 4) {
           mainWindow.setBounds(values[0], values[1], values[2], values[3]);
         }
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
     }
 
     closeSplashWindow();
@@ -528,7 +542,8 @@ public class MainWindow implements IComponentListener {
       public void shellClosed(ShellEvent event) {
         if (ConfigurationManager.getInstance().getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
           minimizeToTray(event);
-        } else {
+        }
+        else {
           dispose();
         }
       }
@@ -563,42 +578,45 @@ public class MainWindow implements IComponentListener {
 
     Locale[] locales = MessageText.getLocales();
     String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale = savedLocaleString.length() > 4 ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5)) : Locale.getDefault(); 
+    Locale savedLocale =
+      savedLocaleString.length() > 4
+        ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5))
+        : Locale.getDefault();
 
     MenuItem[] items = new MenuItem[locales.length];
-    
+
     for (int i = 0; i < locales.length; i++) {
-//      System.out.println("found Locale: " + locales[i]);
+      //      System.out.println("found Locale: " + locales[i]);
       items[i] = new MenuItem(languageMenu, SWT.RADIO);
       createLanguageMenuitem(items[i], locales[i]);
     }
 
     Locale currentLocale = MessageText.getCurrentLocale();
-    if(MessageText.changeLocale(savedLocale)) {
+    if (MessageText.changeLocale(savedLocale)) {
       for (int i = 0; i < items.length; i++) {
-        if(currentLocale.equals(items[i].getData())) {
+        if (currentLocale.equals(items[i].getData())) {
           items[i].setSelection(false);
           break;
-        }      
+        }
       }
       for (int i = 0; i < items.length; i++) {
-        if(savedLocale.equals(items[i].getData())) {
+        if (savedLocale.equals(items[i].getData())) {
           items[i].setSelection(true);
           setSelectedLanguageItem(items[i]);
           break;
-        }      
+        }
       }
     }
   }
 
   private void setStatusVersion() {
-    if(statusText != null)
+    if (statusText != null)
       statusText.setText("Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   }
 
   private void createLanguageMenuitem(MenuItem language, final Locale locale) {
     language.setData(locale);
-    language.setText(((Locale)language.getData()).getDisplayLanguage());
+    language.setText(((Locale) language.getData()).getDisplayLanguage());
     language.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (isSelectedLanguageDifferent(e.widget)) {
@@ -606,7 +624,8 @@ public class MainWindow implements IComponentListener {
             ConfigurationManager.getInstance().setParameter("locale", locale.toString()); //$NON-NLS-1$
             ConfigurationManager.getInstance().save();
             setSelectedLanguageItem((MenuItem) e.widget);
-          } else {
+          }
+          else {
             ((MenuItem) e.widget).setSelection(false);
             selectSelectedLanguageItem();
           }
@@ -614,23 +633,23 @@ public class MainWindow implements IComponentListener {
       }
     });
     language.setSelection(MessageText.isCurrentLocale(locale));
-    if(language.getSelection())
+    if (language.getSelection())
       selectedLanguageItem = language;
   }
-  
+
   private synchronized void setSelectedLanguageItem(MenuItem newLanguage) {
     selectedLanguageItem = newLanguage;
     Messages.updateLanguageForControl(mainWindow);
     updateMenuText(menuBar);
-    if(statusText != null)
+    if (statusText != null)
       statusText.update();
-    if(folder != null)
+    if (folder != null)
       folder.update();
-    if(trayIcon != null) {
+    if (trayIcon != null) {
       trayIcon.updateLanguage();
       trayIcon.refresh();
     }
-    if(tray != null)
+    if (tray != null)
       tray.updateLanguage();
 
     Tab.updateLanguage();
@@ -639,7 +658,7 @@ public class MainWindow implements IComponentListener {
   }
 
   private void showSplashWindow() {
-    if(splash == null) {
+    if (splash == null) {
       splash = new Shell(display, SWT.ON_TOP);
       splash.setText("Azureus");
       splash.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus")); //$NON-NLS-1$
@@ -657,7 +676,7 @@ public class MainWindow implements IComponentListener {
   }
 
   private void closeSplashWindow() {
-    if(splash != null) {
+    if (splash != null) {
       splash.close();
       splash = null;
     }
@@ -679,7 +698,8 @@ public class MainWindow implements IComponentListener {
     Properties properties = new Properties();
     try {
       properties.load(ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
-    } catch (Exception e1) {
+    }
+    catch (Exception e1) {
       e1.printStackTrace();
     }
 
@@ -709,26 +729,29 @@ public class MainWindow implements IComponentListener {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gInternet.setLayoutData(gridData);
 
-    final String[][] link = {{"homepage", "sourceforge", "sourceforgedownloads", "bugreports", "featurerequests", "forumdiscussion"},
-    {"http://azureus.sourceforge.net/", "http://sourceforge.net/projects/azureus/",
-      "http://sourceforge.net/project/showfiles.php?group_id=84122",
-      "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
-      "http://sourceforge.net/tracker/?atid=575157&group_id=84122&func=browse",
-      "http://sourceforge.net/forum/forum.php?forum_id=291997"}};
+    final String[][] link =
+      { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "featurerequests", "forumdiscussion" }, {
+        "http://azureus.sourceforge.net/",
+          "http://sourceforge.net/projects/azureus/",
+          "http://sourceforge.net/project/showfiles.php?group_id=84122",
+          "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
+          "http://sourceforge.net/tracker/?atid=575157&group_id=84122&func=browse",
+          "http://sourceforge.net/forum/forum.php?forum_id=291997" }
+    };
 
     for (int i = 0; i < link[0].length; i++) {
       final Label linkLabel = new Label(gInternet, SWT.NULL);
-      linkLabel.setText(MessageText.getString("MainWindow.about.internet."+link[0][i]));
+      linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(handCursor);
       linkLabel.setForeground(blue);
       linkLabel.setLayoutData(gridData = new GridData());
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
-          Program.launch((String)((Label) arg0.widget).getData());
+          Program.launch((String) ((Label) arg0.widget).getData());
         }
         public void mouseDown(MouseEvent arg0) {
-          Program.launch((String)((Label) arg0.widget).getData());
+          Program.launch((String) ((Label) arg0.widget).getData());
         }
       });
     }
@@ -744,7 +767,8 @@ public class MainWindow implements IComponentListener {
       try {
         if (!display.readAndDispatch())
           display.sleep();
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -758,7 +782,7 @@ public class MainWindow implements IComponentListener {
     s.setLayout(new GridLayout(3, true));
     GridData gridData;
     s.setLayoutData(gridData = new GridData());
-//    gridData.horizontalIndent = 10;
+    //    gridData.horizontalIndent = 10;
 
     Group gInfo = new Group(s, SWT.NULL);
     gInfo.setLayout(new GridLayout());
@@ -770,7 +794,7 @@ public class MainWindow implements IComponentListener {
     Label label = new Label(gInfo, SWT.CENTER);
     int posMessage = latestVersion.indexOf(" (");
     String newVersion = posMessage >= 0 ? latestVersion.substring(0, posMessage) : latestVersion;
-    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + newVersion + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    label.setText(MessageText.getString("MainWindow.upgrade.newerversion") + ": " + newVersion + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     FontData[] fontData = label.getFont().getFontData();
     for (int i = 0; i < fontData.length; i++) {
       fontData[i].setStyle(SWT.BOLD);
@@ -780,7 +804,7 @@ public class MainWindow implements IComponentListener {
     gridData.horizontalSpan = 3;
 
     label = new Label(gInfo, SWT.LEFT);
-    label.setText(MessageText.getString("MainWindow.upgrade.explanation")+".\n"); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setText(MessageText.getString("MainWindow.upgrade.explanation") + ".\n"); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
@@ -795,18 +819,18 @@ public class MainWindow implements IComponentListener {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gManual.setLayoutData(gridData);
     gridData.horizontalSpan = 3;
-    
+
     label = new Label(gManual, SWT.NULL);
-    label.setText(MessageText.getString("MainWindow.upgrade.explanation.manual")+":\n"); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setText(MessageText.getString("MainWindow.upgrade.explanation.manual") + ":\n"); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
-    
-    final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
+
+    final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar"; //$NON-NLS-1$
     final Label linklabel = new Label(gManual, SWT.NULL);
     linklabel.setText(downloadLink);
     linklabel.setCursor(handCursor);
     linklabel.setForeground(blue);
     linklabel.setLayoutData(gridData = new GridData());
-            
+
     linklabel.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
         Program.launch(downloadLink);
@@ -829,18 +853,18 @@ public class MainWindow implements IComponentListener {
     gridData.horizontalSpan = 3;
 
     final Label step1 = new Label(gAutomatic, SWT.LEFT);
-    step1.setText("- "+MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
+    step1.setText("- " + MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
     step1.setForeground(blue);
     step1.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
     final Label step2 = new Label(gAutomatic, SWT.LEFT);
-    step2.setText("- "+MessageText.getString("MainWindow.upgrade.step2")+"\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    step2.setText("- " + MessageText.getString("MainWindow.upgrade.step2") + "\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     step2.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
     final Label hint = new Label(gAutomatic, SWT.LEFT);
-    hint.setText(MessageText.getString("MainWindow.upgrade.hint1")+"."); //$NON-NLS-1$ //$NON-NLS-2$
+    hint.setText(MessageText.getString("MainWindow.upgrade.hint1") + "."); //$NON-NLS-1$ //$NON-NLS-2$
     hint.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
@@ -849,7 +873,7 @@ public class MainWindow implements IComponentListener {
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    final ProgressBar progressBar = new ProgressBar (gAutomatic, SWT.SMOOTH);
+    final ProgressBar progressBar = new ProgressBar(gAutomatic, SWT.SMOOTH);
     progressBar.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
     gridData.horizontalSpan = 3;
     progressBar.setToolTipText(MessageText.getString("MainWindow.upgrade.tooltip.progressbar")); //$NON-NLS-1$
@@ -861,41 +885,44 @@ public class MainWindow implements IComponentListener {
 
     final Button next = new Button(s, SWT.PUSH);
     next.setText(" " + MessageText.getString("Button.next") + " > "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
-    
+
     gridData = new GridData();
     next.setLayoutData(gridData);
 
     final Button finish = new Button(s, SWT.PUSH);
-    finish.setText(" "+MessageText.getString("Button.finish")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    finish.setText(" " + MessageText.getString("Button.finish") + " "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
     finish.setLayoutData(new GridData());
 
     final Button cancel = new Button(s, SWT.PUSH);
-    cancel.setText(" "+MessageText.getString("Button.cancel")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    cancel.setText(" " + MessageText.getString("Button.cancel") + " "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
     cancel.setLayoutData(new GridData());
 
     SelectionAdapter update = new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         downloadJar(progressBar);
         if (jarDownloaded) {
-          if(event.widget == finish) {
+          if (event.widget == finish) {
             updateJar = true;
             s.dispose();
             dispose();
-          } else {
+          }
+          else {
             next.setEnabled(false);
             step1.setForeground(black);
             step2.setForeground(blue);
             s.setDefaultButton(finish);
-            hint.setText(MessageText.getString("MainWindow.upgrade.hint2")+"."); //$NON-NLS-1$ //$NON-NLS-2$
+            hint.setText(MessageText.getString("MainWindow.upgrade.hint2") + "."); //$NON-NLS-1$ //$NON-NLS-2$
             hint.setForeground(black);
             hint.pack();
             linklabel.setEnabled(false);
           }
-        } else {
-          if(event.widget == finish) {
+        }
+        else {
+          if (event.widget == finish) {
             s.dispose();
-          } else {
-            hint.setText(MessageText.getString("MainWindow.upgrade.error.downloading.hint")+"!"); //$NON-NLS-1$ //$NON-NLS-2$
+          }
+          else {
+            hint.setText(MessageText.getString("MainWindow.upgrade.error.downloading.hint") + "!"); //$NON-NLS-1$ //$NON-NLS-2$
             hint.setForeground(red);
             hint.pack();
             next.setEnabled(false);
@@ -907,13 +934,13 @@ public class MainWindow implements IComponentListener {
 
     next.addSelectionListener(update);
     finish.addSelectionListener(update);
-    
+
     cancel.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         s.dispose();
       }
     });
-    
+
     s.pack();
 
     Rectangle parent = mainWindow.getBounds();
@@ -956,36 +983,38 @@ public class MainWindow implements IComponentListener {
         }
       }
 
-      String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
-          + classPath + "\" \"" + libraryPath + "\" \"" + userPath + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-//      System.out.println("Azureus exec: " + exec);
+        String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
+  +classPath + "\" \"" + libraryPath + "\" \"" + userPath + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      //      System.out.println("Azureus exec: " + exec);
 
       Runtime.getRuntime().exec(exec);
-/*
-      BufferedReader d = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String text;
-      while((text = d.readLine()) != null && text.length() != 0)
-        System.out.println(text);
-//*/
-    } catch (Exception e1) {
+      /*
+            BufferedReader d = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String text;
+            while((text = d.readLine()) != null && text.length() != 0)
+              System.out.println(text);
+      //*/
+    }
+    catch (Exception e1) {
       e1.printStackTrace();
       updateJar = false;
-    } finally {
+    }
+    finally {
       try {
         if (out != null)
           out.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
       try {
         if (in != null)
           in.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
     }
   }
 
   private void downloadJar(final ProgressBar progressBar) {
-    if(jarDownloaded) {
+    if (jarDownloaded) {
       progressBar.setSelection(progressBar.getMaximum());
       return;
     }
@@ -995,7 +1024,7 @@ public class MainWindow implements IComponentListener {
     try {
       File originFile = GlobalManager.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
       File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
-      
+
       URL reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
@@ -1005,7 +1034,7 @@ public class MainWindow implements IComponentListener {
       progressBar.setMinimum(0);
       progressBar.setMaximum(100);
 
-      final InputStream input = in; 
+      final InputStream input = in;
       final FileOutputStream output = fos;
 
       final long length = con.getContentLength();
@@ -1021,44 +1050,50 @@ public class MainWindow implements IComponentListener {
         display.readAndDispatch();
       }
       jarDownloaded = true;
-    } catch (MalformedURLException e) {
+    }
+    catch (MalformedURLException e) {
       e.printStackTrace();
-    } catch (FileNotFoundException e) {
+    }
+    catch (FileNotFoundException e) {
       e.printStackTrace();
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       e.printStackTrace();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
-    } finally {
+    }
+    finally {
       try {
         if (fos != null)
           fos.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
       try {
         if (in != null)
           in.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
     }
   }
 
   public static void updateMenuText(Object menu) {
-    if(menu == null)
+    if (menu == null)
       return;
     if (menu instanceof Menu) {
       MenuItem[] menus = ((Menu) menu).getItems();
       for (int i = 0; i < menus.length; i++) {
         updateMenuText(menus[i]);
       }
-    } else if (menu instanceof MenuItem) {
+    }
+    else if (menu instanceof MenuItem) {
       MenuItem item = (MenuItem) menu;
       if (item.getData() != null) {
         if (item.getData() instanceof String)
           item.setText(MessageText.getString((String) item.getData()));
         else
           item.setText(((Locale) item.getData()).getDisplayLanguage());
-        updateMenuText(item.getMenu());  
+        updateMenuText(item.getMenu());
       }
     }
   }
@@ -1066,11 +1101,11 @@ public class MainWindow implements IComponentListener {
   private boolean isSelectedLanguageDifferent(Widget newLanguage) {
     return selectedLanguageItem != newLanguage;
   }
-  
+
   private void selectSelectedLanguageItem() {
     selectedLanguageItem.setSelection(true);
   }
-  
+
   protected void addCloseDownloadBarsToMenu(Menu menu) {
     MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(view_closeAll, "MainWindow.menu.closealldownloadbars"); //$NON-NLS-1$
@@ -1127,7 +1162,8 @@ public class MainWindow implements IComponentListener {
       try {
         if (!display.readAndDispatch())
           display.sleep();
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -1214,9 +1250,9 @@ public class MainWindow implements IComponentListener {
 
   public void setVisible(boolean visible) {
     mainWindow.setVisible(visible);
-    if(visible) {
-      if(tray != null) {
-	      tray.setVisible(false);
+    if (visible) {
+      if (tray != null) {
+        tray.setVisible(false);
       }
       mainWindow.forceActive();
       mainWindow.setMinimized(false);
@@ -1233,34 +1269,36 @@ public class MainWindow implements IComponentListener {
     globalManager.stopAll();
 
     Rectangle windowRectangle = mainWindow.getBounds();
-    ConfigurationManager.getInstance().setParameter("window.rectangle", windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
-    ConfigurationManager.getInstance().save(); 
+    ConfigurationManager.getInstance().setParameter(
+      "window.rectangle",
+      windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
+    ConfigurationManager.getInstance().save();
 
     mainWindow.dispose();
 
-    if(instanceCount-- == 0) {
+    if (instanceCount-- == 0) {
       for (int i = 0; i < blues.length; i++) {
         if (blues[i] != null && !blues[i].isDisposed())
           blues[i].dispose();
       }
-      if(grey != null && !grey.isDisposed())
+      if (grey != null && !grey.isDisposed())
         grey.dispose();
-      if(black != null && !black.isDisposed())
+      if (black != null && !black.isDisposed())
         black.dispose();
-      if(blue != null && !blue.isDisposed())
+      if (blue != null && !blue.isDisposed())
         blue.dispose();
-      if(red != null && !red.isDisposed())
+      if (red != null && !red.isDisposed())
         red.dispose();
-      if(white != null && !white.isDisposed())
+      if (white != null && !white.isDisposed())
         white.dispose();
-      if(red_ConsoleView != null && !red_ConsoleView.isDisposed())
+      if (red_ConsoleView != null && !red_ConsoleView.isDisposed())
         red_ConsoleView.dispose();
-      if(red_ManagerItem != null && !red_ManagerItem.isDisposed())
+      if (red_ManagerItem != null && !red_ManagerItem.isDisposed())
         red_ManagerItem.dispose();
-      if(handCursor != null && !handCursor.isDisposed())
+      if (handCursor != null && !handCursor.isDisposed())
         handCursor.dispose();
     }
-    if(updateJar)
+    if (updateJar)
       updateJar();
   }
 
@@ -1302,7 +1340,7 @@ public class MainWindow implements IComponentListener {
   public static MainWindow getWindow() {
     return window;
   }
- 
+
   private String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
     // match .torrent extension. To solve this, canonical path
@@ -1311,8 +1349,8 @@ public class MainWindow implements IComponentListener {
     String canonicalFileName = filename;
     try {
       canonicalFileName = new File(filename).getCanonicalPath();
-    } catch (IOException ignore) {
     }
+    catch (IOException ignore) {}
     return canonicalFileName;
   }
 
@@ -1349,18 +1387,19 @@ public class MainWindow implements IComponentListener {
         singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$
 
         Object test = info.get("length"); //$NON-NLS-1$
-        if (test != null) {        
-          singleFile = true;          
+        if (test != null) {
+          singleFile = true;
         }
       }
       catch (Exception e) {
         e.printStackTrace();
-      } finally {
+      }
+      finally {
         try {
           if (fis != null)
             fis.close();
-        } catch (Exception e) {
         }
+        catch (Exception e) {}
       }
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
@@ -1442,6 +1481,20 @@ public class MainWindow implements IComponentListener {
    */
   public void setConfig(Tab tab) {
     config = tab;
+  }
+
+  /**
+     * @return
+     */
+  public Tab getIrc() {
+    return irc;
+  }
+
+  /**
+   * @param tab
+   */
+  public void setIrc(Tab tab) {
+    irc = tab;
   }
 
 }

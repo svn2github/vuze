@@ -76,7 +76,7 @@ public class ConfigView extends AbstractIView {
   public void initialize(Composite composite) {
     final ConfigurationManager config = ConfigurationManager.getInstance();
     gConfig = new Composite(composite, SWT.NONE);
-    ((ScrolledComposite)composite).setContent(gConfig);
+    ((ScrolledComposite) composite).setContent(gConfig);
     GridLayout configLayout = new GridLayout();
     configLayout.numColumns = 2;
     gConfig.setLayout(configLayout);
@@ -253,6 +253,33 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.autoupdate"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Auto Update", true); //$NON-NLS-1$
 
+    Group gIrc = new Group(gConfig, SWT.NULL);
+    Messages.setLanguageText(gIrc, "ConfigView.section.irc"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gIrc.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gIrc.setLayout(layout);
+
+    label = new Label(gIrc, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.ircsever"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new StringParameter(gIrc, "Irc Server", "irc.freenode.net").setLayoutData(gridData); //$NON-NLS-1$
+
+    label = new Label(gIrc, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.ircchannel"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new StringParameter(gIrc, "Irc Channel", "#azureus").setLayoutData(gridData); //$NON-NLS-1$
+    
+    label = new Label(gIrc, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.irclogin"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new StringParameter(gIrc, "Irc Login", "user" + (int) (Math.random() * 100000)).setLayoutData(gridData); //$NON-NLS-1$
+   
+   
     Button enter = new Button(gConfig, SWT.PUSH);
     Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
@@ -279,8 +306,7 @@ public class ConfigView extends AbstractIView {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
-  public void refresh() {
-  }
+  public void refresh() {}
 
   public void updateLanguage() {
     super.updateLanguage();
