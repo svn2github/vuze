@@ -68,6 +68,7 @@ public class MultiTrackerEditor {
   Text textName;
   Tree treeGroups;
   TreeEditor editor;
+  TreeItem itemEdited;
   Button btnSave;
   Button btnCancel;
   
@@ -153,7 +154,9 @@ public class MultiTrackerEditor {
     
     editor = new TreeEditor (treeGroups);
     treeGroups.addSelectionListener(new SelectionAdapter() {
-	    public void widgetSelected(SelectionEvent arg0) {
+	    public void widgetSelected(SelectionEvent arg0) {	      
+	      if(itemEdited != null && !editor.getEditor().isDisposed())
+	        itemEdited.setText(((Text)editor.getEditor()).getText());
 	      removeEditor();
 	    }
     });
@@ -300,6 +303,7 @@ public class MultiTrackerEditor {
     if (oldEditor != null)
       oldEditor.dispose();	
  
+    itemEdited = item;
     // The control that will be the editor must be a child of the Tree
     final Text text = new Text(treeGroups, SWT.BORDER);
     text.setText(item.getText());
@@ -312,8 +316,9 @@ public class MultiTrackerEditor {
     });
     text.addKeyListener(new KeyAdapter() {
 	    public void keyReleased(KeyEvent keyEvent) {
-	     if(keyEvent.character == SWT.ESC)
+	     if(keyEvent.character == SWT.ESC) {	       
 	       removeEditor();
+	     }
 	    }
     });
     

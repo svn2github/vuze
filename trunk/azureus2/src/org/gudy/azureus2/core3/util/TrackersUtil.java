@@ -78,6 +78,7 @@ public class TrackersUtil {
   
   public void removeMultiTracker(String configName) {
     multiTrackers.remove(configName);
+    saveList();
   }
   
   public Map getMultiTrackers() {
@@ -114,7 +115,7 @@ public class TrackersUtil {
               List resTrackers = new ArrayList(trackers.size());
               Iterator iterTrackers = trackers.iterator();
               while(iterTrackers.hasNext()) {
-                String tracker = (String) iterTrackers.next();
+                String tracker = new String((byte[]) iterTrackers.next());
                 resTrackers.add(tracker);
               }
               resGroups.add(resTrackers);

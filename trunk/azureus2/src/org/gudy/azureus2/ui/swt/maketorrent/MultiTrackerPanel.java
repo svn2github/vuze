@@ -154,7 +154,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     gridData.horizontalSpan = 3;
     configDetails.setLayoutData(gridData);    
     
-    refreshList("");
+    refreshList(((NewTorrentWizard)wizard).multiTrackerConfig);
     refreshDetails(); 
     setEditDeleteEnable();
 }
@@ -206,7 +206,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
   
   public void trackersChanged(String oldName, String newName, List trackers) {
     TrackersUtil util = TrackersUtil.getInstance();
-    if(oldName != null)
+    if(oldName != null && !oldName.equals(newName))
       util.removeMultiTracker(oldName);
     util.addMultiTracker(newName,trackers);
     refreshList(newName);
@@ -223,9 +223,9 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     }
     int selection = configList.indexOf(toBeSelected);
     if(selection != -1) {
-      configList.select(selection);
+      configList.select(selection);      
     } else if(configList.getItemCount() > 0) {
-      configList.select(0);
+      configList.select(0);      
     }
     updateTrackers();
   }
@@ -238,10 +238,36 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
       tracker.add(((NewTorrentWizard)wizard).trackerURL);
       group.add(tracker);
       ((NewTorrentWizard)wizard).trackers = group;
+      ((NewTorrentWizard)wizard).multiTrackerConfig = "";
+      setNext();
       return;
     }
     String selected = configList.getItem(selection);
+    ((NewTorrentWizard)wizard).multiTrackerConfig = selected;
     Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
     ((NewTorrentWizard)wizard).trackers = (List) multiTrackers.get(selected);
+    setNext();
+  }
+  
+  private void setNext() {
+    String trackerUrl = ((NewTorrentWizard)wizard).trackerURL;
+    List groups = ((NewTorrentWizard)wizard).trackers;
+    Iterator iterGroups = groups.iterator();
+    while(iterGroups.hasNext()) {
+      List trackers = (List) iterGroups.next();
+      Iterator iterTrackers = trackers.iterator();      
+      while(iterTrackers.hasNext()) {
+        String tracker = (String) iterTrackers.next();
+        if(trackerUrl.equals(tracker))
+        {
+          wizard.setNextEnabled(true);
+          wizard.setErrorMessage("");
+          return;
+        }
+      }
+    }
+    wizard.setNextEnabled(false);
+    wizard.setErrorMessage(MessageText.getString("wizard.multitracker.noannounce"));
+    
   }
 }

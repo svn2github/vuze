@@ -52,6 +52,7 @@ public class NewTorrentWizard extends Wizard {
   File droppedFile = null;
   
   boolean useMultiTracker = false;
+  String multiTrackerConfig = "";
   List trackers = new ArrayList();
 
   public NewTorrentWizard(Display display) {
