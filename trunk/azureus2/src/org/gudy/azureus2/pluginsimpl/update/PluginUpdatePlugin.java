@@ -28,9 +28,12 @@ package org.gudy.azureus2.pluginsimpl.update;
  */
 
 import java.util.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.*;
@@ -262,13 +265,18 @@ PluginUpdatePlugin
 						
 						log.log( 	LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
 									sf_plugin_download);
+						
+						plugin_interface.getUpdateManager().addUpdate(
+								plugin_id + "/" + plugin_names + ":" + sf_plugin_version,
+								plugin_interface.getUtilities().getResourceDownloaderFactory().create( new URL( sf_plugin_download )),
+								Update.RESTART_REQUIRED_MAYBE );
 					}
-				}catch( SFPluginDetailsException e ){
+				}catch( Throwable e ){
 					
 					log.log("    Plugin check failed", e ); 
 				}
 			}
-		}catch( SFPluginDetailsException e ){
+		}catch( Throwable e ){
 			
 			log.log("Failed to load plugin details", e ); 
 		}
