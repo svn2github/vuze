@@ -93,7 +93,9 @@ RemoteUIMainPanel
 			JToolBar tb = new JToolBar();
 			
 			JButton	refresh =				
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton(	"Refresh",
+							getImageIcon( 
+									UISwingImageRepository.getImage(
 									adapter.getResource("org/gudy/azureus2/ui/icons/recheck.gif"))));
 
 			refresh.setToolTipText("Refresh");
@@ -101,7 +103,8 @@ RemoteUIMainPanel
 			tb.add( refresh );
 			
 			JButton	start = 
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton(	"Start",
+							getImageIcon(UISwingImageRepository.getImage(
 									adapter.getResource("org/gudy/azureus2/ui/icons/start.gif"))));
 			
 			start.setToolTipText("Start");
@@ -110,7 +113,8 @@ RemoteUIMainPanel
 			tb.add( start );
 			
 			JButton	force_start = 
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton(	"FStart",
+							getImageIcon(UISwingImageRepository.getImage(
 									adapter.getResource("org/gudy/azureus2/ui/icons/forcestart.gif"))));
 			
 			force_start.setToolTipText("Toggle Force Start");
@@ -120,7 +124,8 @@ RemoteUIMainPanel
 
 			
 			JButton	stop = 
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton( 	"Stop",
+							getImageIcon(UISwingImageRepository.getImage(
 									adapter.getResource("org/gudy/azureus2/ui/icons/stop.gif"))));
 
 			stop.setToolTipText("Stop");
@@ -129,7 +134,8 @@ RemoteUIMainPanel
 			tb.add( stop );
 			
 			JButton	remove = 
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton( 	"Remove",
+							getImageIcon(UISwingImageRepository.getImage(
 									adapter.getResource("org/gudy/azureus2/ui/icons/delete.gif"))));
 			
 			remove.setToolTipText("Remove");
@@ -142,7 +148,8 @@ RemoteUIMainPanel
 				// move up
 			
 			final JButton	move_up = 
-				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
+				getButton( 	"Up",
+							getImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/up.gif"))));
 
 			move_up.setToolTipText("Move Up");
@@ -153,7 +160,8 @@ RemoteUIMainPanel
 				// move down
 			
 			final JButton	move_down = 
-				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
+				getButton( 	"Down",
+							getImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/down.gif"))));
 
 			move_down.setToolTipText("Move Down");
@@ -170,7 +178,8 @@ RemoteUIMainPanel
 			tb.add( tf );
 			
 			JButton	open = 
-				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+				getButton( 	"Open",
+							getImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/openFolder16x12.gif"))));
 
 			open.setToolTipText("Open Torrent URL");
@@ -543,6 +552,36 @@ RemoteUIMainPanel
 		}
 	}
 	
+		// on Opera 7.5 images don't load properly so lash up 
+	
+	protected JButton
+	getButton(
+		String		text,
+		ImageIcon	icon )
+	{
+		if ( icon == null ){
+			
+			return( new JButton( text ));
+		
+		}else{
+			
+			return( new JButton( icon ));
+		}
+	}
+	protected ImageIcon
+	getImageIcon(
+		Image		image )
+	{
+		if ( image == null ){
+			
+			return( null );
+			
+		}else{
+			
+			return( new ImageIcon( image ));
+		}
+	}
+			
 	protected void
 	periodicRefresh()
 	{
