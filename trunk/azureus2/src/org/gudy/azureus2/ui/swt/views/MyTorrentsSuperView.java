@@ -6,6 +6,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -29,9 +31,6 @@ public class MyTorrentsSuperView extends AbstractIView  {
   }
   
   public void delete() {
-    // this doesn't always get called :(
-    // XXX need a better place
-    COConfigurationManager.setParameter("MyTorrents.SplitAt", form.getWeights()[0]);
     MainWindow.getWindow().setMytorrents(null);
     super.delete();
   }
@@ -45,11 +44,18 @@ public class MyTorrentsSuperView extends AbstractIView  {
     form = new SashForm(composite0,SWT.VERTICAL);
     gridData = new GridData(GridData.FILL_BOTH); 
     form.setLayoutData(gridData);
-
+    
     Composite child1 = new Composite(form,SWT.NULL);
     child1.setLayout(new FillLayout());
     torrentview = new MyTorrentsView(globalManager, false);
     torrentview.initialize(child1);
+    child1.addListener(SWT.Resize, new Listener() {
+      public void handleEvent(Event e) {
+        int[] weights = form.getWeights();
+        int iSashValue = weights[0] * 100 / (weights[0] + weights[1]);
+        COConfigurationManager.setParameter("MyTorrents.SplitAt", iSashValue);
+      }
+    });
 
     Composite child2 = new Composite(form,SWT.NULL);
     child2.setLayout(new FillLayout());

@@ -74,7 +74,7 @@ StartStopRulesDefaultPlugin
   private static final int QR_NOTQUEUED   = -2;
   private static final int QR_RATIOMET    = -3;
   private static final int QR_NUMSEEDSMET = -4;
-  private static final int QR_0SEEDSPEERS = -5;
+  private static final int QR_0PEERS      = -5;
 
   protected PluginInterface     plugin_interface;
   protected PluginConfig        plugin_config;
@@ -803,9 +803,9 @@ StartStopRulesDefaultPlugin
 
   //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
 
-      if (numSeeds == 0 && numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
-        setQR(QR_0SEEDSPEERS);
-        return QR_0SEEDSPEERS;
+      if (numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
+        setQR(QR_0PEERS);
+        return QR_0PEERS;
       }
 
       if ((numCompleted == 1000) &&
@@ -1519,8 +1519,8 @@ StartStopRulesDefaultPlugin
         tableItem.setText(MessageText.getString("StartStopRules.numSeedsMet"));
       else if (qr == QR_NOTQUEUED)
         tableItem.setText("");
-      else if (qr == QR_0SEEDSPEERS)
-        tableItem.setText(MessageText.getString("StartStopRules.0SeedsPeers"));
+      else if (qr == QR_0PEERS)
+        tableItem.setText(MessageText.getString("StartStopRules.0Peers"));
       else {
         tableItem.setText("ERR" + qr);
       }
