@@ -239,19 +239,17 @@ PEPeerTransportProtocol
   protected void 
   createConnection()
   {
-  this.nbConnections++;
-  allocateAll();
-  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
+  	this.nbConnections++;
+  	allocateAll();
+  	LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
 
-  try {
-
-	startConnection();
-	
-	this.currentState = new StateConnecting();
-  }
-  catch (Exception e) {
-	closeAll("Exception while connecting : " + e,false, false);
-  }
+  	try {
+  		startConnection();
+  		this.currentState = new StateConnecting();
+  	}
+  	catch (Exception e) {
+  		closeAll("Error in createConnection() : " + e,false, false);
+  	}
 }
 
 
@@ -486,35 +484,28 @@ PEPeerTransportProtocol
 
 	//Send a logger event
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
-	/*try{
-	  throw new Exception("Peer Closed");
-	} catch(Exception e) {
-	  StackTraceElement elts[] = e.getStackTrace();
-	  for(int i = 0 ; i < elts.length ; i++)
-		LGLogger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
-	}*/        
-    
-	//In case it was an outgoing connection, established, we can try to reconnect.   
-	if((attemptReconnect) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 3)) {
-	  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
-	  createConnection();
-	} else {
-	  this.currentState = new StateClosed();
-	}
+
+  this.currentState = new StateClosed();
+  
+  if((attemptReconnect) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 3)) {
+  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
+	  	
+  	createConnection();
+  }
   }
 
 	
   private class StateConnecting implements PEPeerTransportProtocolState {
   	public int process() {
   		try {
-  			if ( completeConnection()) {
+  			if ( completeConnection() ) {
   				handShake(null);
   				currentState = new StateHandshaking();
   			}
-        return PEPeerControl.NO_SLEEP;
+        return PEPeerControl.WAITING_SLEEP;
   		}
   		catch (IOException e) {
-  			closeAll("Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e, true, true);
+  			closeAll("Error in StateConnecting: (" + ip + " : " + port + " ) : " + e, false, false);
   			return PEPeerControl.NO_SLEEP;
   		}
   	}
@@ -706,10 +697,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     try {
       loopFactor++;
       processLoop = 0;
-      if (getState() != DISCONNECTED) {
-        return write();
-      }
-      else return PEPeerControl.NO_SLEEP;
+      return write();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -1163,8 +1151,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
  
   protected synchronized int write() {
-  	if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
-  		return PEPeerControl.DATA_EXPECTED_SLEEP;       
+  	if ( currentState.getState() != HANDSHAKING && currentState.getState() != TRANSFERING )
+  		return PEPeerControl.WAITING_SLEEP;       
   	if(++processLoop > 10)
   		return PEPeerControl.NO_SLEEP;
       
