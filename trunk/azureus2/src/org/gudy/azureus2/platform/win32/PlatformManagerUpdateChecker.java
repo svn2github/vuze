@@ -29,6 +29,8 @@ package org.gudy.azureus2.platform.win32;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -44,7 +46,7 @@ public class
 PlatformManagerUpdateChecker
 	implements Plugin, UpdatableComponent
 {
-	public static final String UPDATE_NAME	= "Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll";
+	public static final String UPDATE_NAME	= "Platform-specific support";
 	
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
@@ -57,7 +59,7 @@ PlatformManagerUpdateChecker
 	{
 		plugin_interface	= _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Native Support Updater" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Platform-Specific Support" );
 
 		String	version = "1.0";
 		
@@ -103,14 +105,12 @@ PlatformManagerUpdateChecker
 	checkForUpdate(
 		final UpdateChecker	checker )
 	{
-		try{			
-			Properties	props = plugin_interface.getPluginProperties();
-			
+		try{						
 			SFPluginDetails	sf_details = SFPluginDetailsLoaderFactory.getSingleton().getPluginDetails( plugin_interface.getPluginID());
 					
-			String	current_dll_version = plugin_interface.getPluginVersion();
+			String	current_version = plugin_interface.getPluginVersion();
 			
-			LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_dll_version );
+			LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_version );
 						
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
 						
@@ -132,21 +132,21 @@ PlatformManagerUpdateChecker
 				}
 			}
 			
-			String	target_dll_version	= null;			
+			String	target_version	= null;			
 
 			if (	 sf_comp_version.length() == 0 ||
 					!Character.isDigit(sf_comp_version.charAt(0))){
 				
 				LGLogger.log( "PlatformManager:Win32 no valid version to check against (" + sf_comp_version + ")" );
 
-			}else if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
+			}else if ( Constants.compareVersions( current_version, sf_comp_version ) < 0 ){
 				
-				target_dll_version	= sf_comp_version;
+				target_version	= sf_comp_version;
 			}
 	
-			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
+			LGLogger.log( "PlatformManager:Win32 update required = " + (target_version!=null));
 			
-			if ( target_dll_version != null ){
+			if ( target_version != null ){
 					
 				String target_download		= sf_details.getDownloadURL();
 		
@@ -162,15 +162,13 @@ PlatformManagerUpdateChecker
 
 				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				
-				ResourceDownloader dll_rd = rdf.create( new URL( target_download ));
+				ResourceDownloader update_rd = rdf.create( new URL( target_download ));
 			
 					// get size here so it is cached
 				
-				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
-
-				final String f_target_dll_version	= target_dll_version;
+				rdf.getTimeoutDownloader(rdf.getRetryDownloader(update_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 				
-				dll_rd.addListener( 
+				update_rd.addListener( 
 						new ResourceDownloaderAdapter()
 						{
 							public boolean
@@ -178,17 +176,32 @@ PlatformManagerUpdateChecker
 								final ResourceDownloader	downloader,
 								InputStream					data )
 							{	
-								installUpdate( checker, downloader, f_target_dll_version, data );
+								installUpdate( checker, downloader, data );
 									
 								return( true );
 							}							
 						});
 
+				
+				List	update_desc = new ArrayList();
+				
+				List	desc_lines = splitMultiLine( "", sf_details.getDescription());
+								
+				update_desc.addAll( desc_lines );
+								
+				List	comment_lines = splitMultiLine( "    ", sf_details.getComment());
+				
+				update_desc.addAll( comment_lines );
+
+				String[]	update_d = new String[update_desc.size()];
+				
+				update_desc.toArray( update_d );
+
 				checker.addUpdate(
 						UPDATE_NAME,
-						new String[]{"This DLL supports native operations such as file-associations" },
-						target_dll_version,
-						dll_rd,
+						update_d,
+						target_version,
+						update_rd,
 						Update.RESTART_REQUIRED_YES );
 			}
 		}catch( Throwable e ){
@@ -207,25 +220,82 @@ PlatformManagerUpdateChecker
 	installUpdate(
 		UpdateChecker		checker,
 		ResourceDownloader	rd,
-		String				version,
 		InputStream			data )
 	{
 		try{
-			String	temp_dll_name 	= PlatformManagerImpl.DLL_NAME + "_" + version + ".dll";
-			String	target_dll_name	= PlatformManagerImpl.DLL_NAME + ".dll";
+			UpdateInstaller installer = checker.createInstaller();
 			
+		    ZipInputStream zip = new ZipInputStream( data );
+		    
+		    ZipEntry entry = null;
+		    
+		    while((entry = zip.getNextEntry()) != null){
+		    	
+		        String name = entry.getName();
+		        
+		        if ( name.toLowerCase().startsWith( "windows/" )){
+		        	
+		        	// win32 only files
+		        
+		        	name = name.substring( 8 );
+		        
+		        		// skip the director entry
+		        	
+		        	if ( name.length() > 0 ){
+		        		
+		    			LGLogger.log( "PlatformManager:Win32 adding action for '" + name + "'" );
+
+		        		installer.addResource( name, zip, false );
+
+		        		installer.addMoveAction( name, installer.getInstallDir() + File.separator + name );
+		        	}
+		        }
+		    }
 			
-			UpdateInstaller	installer = checker.createInstaller();
-			
-			installer.addResource( temp_dll_name, data );
-			
-			installer.addMoveAction( 
-					temp_dll_name,
-					installer.getInstallDir() + File.separator + target_dll_name );
-			
+		    zip.close();
+		    
 		}catch( Throwable e ){
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
+	}
+	
+	protected List
+	splitMultiLine(
+		String		indent,
+		String		text )
+	{
+		int		pos = 0;
+		
+		String	lc_text = text.toLowerCase();
+		
+		List	lines = new ArrayList();
+		
+		while( true ){
+			
+			String	line;
+			
+			int	p1 = lc_text.indexOf( "<br>", pos );
+			
+			if ( p1 == -1 ){
+				
+				line = text.substring(pos);
+				
+			}else{
+				
+				line = text.substring(pos,p1);
+				
+				pos = p1+4;
+			}
+			
+			lines.add( indent + line );
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
+		}
+		
+		return( lines );
 	}
 }

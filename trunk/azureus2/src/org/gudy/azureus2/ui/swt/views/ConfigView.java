@@ -608,11 +608,13 @@ public class ConfigView extends AbstractIView {
 
         String sDirName = pluginIF.getPluginDirectoryName();
         
+        String	version = pluginIF.getPluginVersion();
+        
         if ( sDirName.equals( "" )){
         	
             label = new Label(infoGroup, SWT.NULL);
 
-            label.setText(" - " + plugin_name );
+            label.setText(" - " + plugin_name + (version==null?"":(" " + version )));
         }
     }
     

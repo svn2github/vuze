@@ -80,7 +80,7 @@ PluginInitializer
 			{	 PluginManagerDefaults.PID_CORE_PATCH_CHECKER, 
    					"org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
-   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform", "azplatform" },
+   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform2", "azplatform2" },
 			{	 PluginManagerDefaults.PID_UPNP, 
    					"com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
         };
