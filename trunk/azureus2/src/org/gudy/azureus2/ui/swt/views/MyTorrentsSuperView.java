@@ -41,6 +41,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new PriorityItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new ShareRatioItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 
     // Initially Invisible
     new RemainingItem(),
@@ -54,7 +55,6 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE)
   };
 
