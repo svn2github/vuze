@@ -22,7 +22,7 @@ FEATURE: UI   | URL Downloader window now support to set-up referrer and saves l
 FEATURE: UI   | New Statistic page about the disk cache (yeah more CPU consuming graphs) [Gudy]
 FEATURE: Core | Concurrent hashing for >1 CPU [Parg]
 FEATURE: Core | Added ability to not outward connect to a defined set of port numbers [Parg]
-FEATURE: Core | SOCKS V4a support for outgoing data connections [Parg]
+FEATURE: Core | SOCKS V4, V4a and V5 (no auth/user+password methods) support for outgoing data connections [Parg]
 FEATURE: Core | Torrents created by Azureus now include .utf-8 fields [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
