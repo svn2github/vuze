@@ -74,7 +74,7 @@ TOTorrentFileImpl
 			
 		}catch( UnsupportedEncodingException e ){
 	
-			throw( new TOTorrentException( 	"TOTorrentFile: unsupported encoding for '" + new String(_path) + "'",
+			throw( new TOTorrentException( 	"TOTorrentFile: unsupported encoding for '" + _path + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
