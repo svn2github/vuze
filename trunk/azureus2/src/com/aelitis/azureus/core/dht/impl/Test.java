@@ -99,6 +99,11 @@ Test
 				DHT	dht = dhts[dht_index];
 
 				dht.put( (""+i).getBytes(), new byte[4] );
+				
+				if ( i != 0 && i %1000 == 0 ){
+					
+					System.out.println( "Stored " + i + " values" );
+				}
 			}
 			
 			Timer	timer = new Timer("");
@@ -113,7 +118,7 @@ Test
 					{
 						DHTTransportStats stats = DHTTransportLoopbackImpl.getOverallStats();
 						
-						// System.out.println( "Overall stats: " + stats.getString());
+						System.out.println( "Overall stats: " + stats.getString());
 					}
 				});
 			

@@ -383,72 +383,56 @@ DHTRouterImpl
 	findClosestContacts(
 		byte[]	node_id )
 	{
-			// find the K closest nodes - consider all buckets, not just the closest
+			// find the K-ish closest nodes - consider all buckets, not just the closest
 
-		DHTRouterContactImpl[]	res = new DHTRouterContactImpl[K];
+		List res = new ArrayList();
 				
-		int res_pos = findClosestContacts( node_id, 0, root, res, 0 );
-			
-		List	res_l = new ArrayList( res_pos );
+		findClosestContacts( node_id, 0, root, res );
 		
-		for (int i=0;i<res_pos;i++){
-			
-			res_l.add( res[i] );
-		}
-		
-		return( res_l );
+		return( res );
 	}
 		
-	protected int
+	protected void
 	findClosestContacts(
 		byte[]					node_id,
 		int						depth,
 		DHTRouterNodeImpl		current_node,
-		DHTRouterContactImpl[]	res,
-		int						res_pos )
+		List					res )
 	{
 		List	buckets = current_node.getBuckets();
 		
 		if ( buckets != null ){
 			
 			for (int i=0;i<buckets.size();i++){
-				
-				if ( res_pos == res.length ){
-					
-					break;
-				}
-				
-				res[res_pos++] = (DHTRouterContactImpl)buckets.get(i);
-			}
-			
-			return( res_pos );
-		}
-		
-		boolean bit = ((node_id[depth/8]>>(7-(depth%8)))&0x01 ) == 1;
-				
-		DHTRouterNodeImpl	best_node;
-		DHTRouterNodeImpl	worse_node;
-				
-		if ( bit ){
-					
-			best_node = current_node.getLeft();
-			
-			worse_node = current_node.getRight();
+								
+				res.add( buckets.get(i));
+			}			
 		}else{
+		
+			boolean bit = ((node_id[depth/8]>>(7-(depth%8)))&0x01 ) == 1;
 					
-			best_node = current_node.getRight();
+			DHTRouterNodeImpl	best_node;
+			DHTRouterNodeImpl	worse_node;
+					
+			if ( bit ){
+						
+				best_node = current_node.getLeft();
+				
+				worse_node = current_node.getRight();
+			}else{
+						
+				best_node = current_node.getRight();
+				
+				worse_node = current_node.getLeft();
+			}
+	
+			findClosestContacts( node_id, depth+1, best_node, res  );
 			
-			worse_node = current_node.getLeft();
+			if ( res.size() < K ){
+				
+				findClosestContacts( node_id, depth+1, worse_node, res );
+			}
 		}
-
-		res_pos = findClosestContacts( node_id, depth+1, best_node, res, res_pos );
-		
-		if ( res_pos < res.length ){
-			
-			res_pos = findClosestContacts( node_id, depth+1, worse_node, res, res_pos );
-		}
-		
-		return( res_pos );
 	}
 	
 	public synchronized DHTRouterContact

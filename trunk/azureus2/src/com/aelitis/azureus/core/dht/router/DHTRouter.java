@@ -96,6 +96,10 @@ DHTRouter
 	findContact(
 		byte[]	node_id );	
 
+		/**
+		 * Returns K or a few more closest contacts, unordered
+		 */
+	
 	public List
 	findClosestContacts(
 		byte[]	node_id );
