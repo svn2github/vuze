@@ -83,7 +83,9 @@ public class Server extends Thread {
             "BT Server has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
-          manager.addPeer(sckClient);
+          String ipAddress = sckClient.socket().getInetAddress().getHostAddress();
+          if(!IpFilter.getInstance().isInRange(ipAddress))
+            manager.addPeer(sckClient);
         }
         else {
           Thread.sleep(50);

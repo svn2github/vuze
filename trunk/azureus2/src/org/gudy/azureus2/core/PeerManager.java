@@ -1091,7 +1091,8 @@ public class PeerManager extends Thread {
    */
   public void addPeer(byte[] peerId, String ip, int port) {
     //create a peer connection and insert it to the list
-    if (!_connections.contains(new PeerSocket(this, peerId, ip, port, true))) {
+    if(!IpFilter.getInstance().isInRange(ip))
+      if (!_connections.contains(new PeerSocket(this, peerId, ip, port, true))) {
       this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, false));
     }
   }
