@@ -57,6 +57,9 @@ CacheFileManagerImpl
 	}
 	
 	protected boolean	cache_enabled;
+	protected boolean	cache_read_enabled;
+	protected boolean	cache_write_enabled;
+	
 	protected long		cache_size;
 	protected long		cache_minimum_free_size;
 	protected long		cache_space_free;
@@ -89,19 +92,10 @@ CacheFileManagerImpl
 		file_manager	= FMFileManagerFactory.getSingleton();
 		
 		boolean	enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
+
+		boolean	enable_read 	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable.read" );
 		
-		/*
-		System.out.println( "**** Disk Cache forced on for testing purposes ****" );
-		
-		if ( !enabled ){
-			
-			COConfigurationManager.setParameter( "diskmanager.perf.cache.enable", true );
-		
-			COConfigurationManager.save();
-			
-			enabled	= true;
-		}
-		*/
+		boolean	enable_write	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable.write" );
 		
 		int		size	= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
 		
@@ -112,15 +106,22 @@ CacheFileManagerImpl
 			enabled	= false;
 		}
 		
-		initialise( enabled, size );
+		initialise( enabled, enable_read, enable_write, size );
 	}
 
 	protected void
 	initialise(
 		boolean	enabled,
+		boolean	enable_read,
+		boolean	enable_write,
 		long	size )
 	{
-		cache_enabled			= enabled;
+		cache_enabled			= enabled && ( enable_read || enable_write );
+		
+		cache_read_enabled		= enabled && enable_read;
+		
+		cache_write_enabled		= enabled && enable_write;
+		
 		cache_size				= size;
 		
 		cache_minimum_free_size	= cache_size/4;
@@ -143,7 +144,19 @@ CacheFileManagerImpl
 			
 		t.start();
 			
-		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", size = " + cache_size + " MB" );
+		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " MB" );
+	}
+	
+	protected boolean
+	isWriteCacheEnabled()
+	{
+		return( cache_write_enabled );
+	}
+	
+	protected boolean
+	isReadCacheEnabled()
+	{
+		return( cache_read_enabled );
 	}
 	
 	public CacheFile

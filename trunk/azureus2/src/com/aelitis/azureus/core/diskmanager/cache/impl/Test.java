@@ -23,7 +23,7 @@
 package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.*;
-import java.util.*;
+
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
@@ -64,7 +64,7 @@ Test
 	
 			//new Test().writeTest(manager);
 			
-			manager.initialise( true, 10*1024*1024 );
+			manager.initialise( true, true, true, 10*1024*1024 );
 
 			new Test().writeTest(manager);
 			

@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -170,6 +169,20 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
 				Constants.SF_WEB_SITE
 			});
     
+    // diskmanager.perf.cache.enable.read
+    
+    final BooleanParameter disk_cache_read = new BooleanParameter(cSection, "diskmanager.perf.cache.enable.read", "ConfigView.section.file.perf.cache.enable.read");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    disk_cache_read.setLayoutData(gridData);
+ 
+    // diskmanager.perf.cache.enable.write
+    
+    final BooleanParameter disk_cache_write = new BooleanParameter(cSection, "diskmanager.perf.cache.enable.write", "ConfigView.section.file.perf.cache.enable.write");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    disk_cache_write.setLayoutData(gridData);
+    
      // diskmanager.perf.cache.trace
     
     final BooleanParameter disk_cache_trace = new BooleanParameter(cSection, "diskmanager.perf.cache.trace", "ConfigView.section.file.perf.cache.trace");
@@ -179,9 +192,12 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
      
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( cache_size.getControls() ));
-    
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_trace.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( disk_cache_read.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( disk_cache_write.getControls() ));
     
 
     return cSection;

@@ -86,7 +86,6 @@ CacheFileImpl
 		}
 	}
 	
-	protected final static boolean	READAHEAD_ENABLE	= true;
 	protected final static int		READAHEAD_MAX		= 65536;
 	protected final static int		READAHEAD_HISTORY	= 32;
 	
@@ -116,7 +115,7 @@ CacheFileImpl
 	{
 		manager		= _manager;
 		file		= _file;
-		
+				
 		Arrays.fill( read_history, -1 );
 		
 		if ( _torrent_file != null ){
@@ -313,7 +312,7 @@ CacheFileImpl
 				try{
 					boolean	do_read_ahead	= 
 								!recursive &&
-								READAHEAD_ENABLE &&
+								manager.isReadCacheEnabled() &&
 								read_length <  max_read_ahead_size &&
 								file_position + max_read_ahead_size <= file.getLength();
 
@@ -496,7 +495,7 @@ CacheFileImpl
 				return;	// nothing to do
 			}
 			
-			if ( manager.isCacheEnabled() ){
+			if ( manager.isWriteCacheEnabled() ){
 				
 				if ( TRACE ){
 					
