@@ -99,7 +99,7 @@ ShareTester
 					{
 						public void
 						downloadAdded(
-							Download	download )
+							final Download	download )
 						{
 							System.out.println("downloadAdded" + download );
 							
@@ -111,7 +111,7 @@ ShareTester
 										int		old,
 										int		cur )
 									{
-										System.out.println( "statechange:" + old + "-> " + cur );
+										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
 									}
 								});
 							
@@ -120,19 +120,23 @@ ShareTester
 								{
 									public void
 									scrapeResult(
-										int		seeds,
-										int		non_seeds )
+										DownloadScrapeResult result )
 									{
-										System.out.println( "scrapeResult:" + seeds + "/" + non_seeds );
+										System.out.println( "scrapeResult:" + result.getSeedCount() + "/" + result.getNonSeedCount());
 									}
 									
 									public void
 									announceResult(
-										int		total_peers,
-										int		current_seeds,
-										int		current_non_seeds )
+										DownloadAnnounceResult	result )
 									{
-										System.out.println( "announceResult:" + total_peers + "/" + current_seeds + "/" + current_non_seeds );
+										if ( result.getResponseType() == DownloadAnnounceResult.RT_SUCCESS ){
+										
+											System.out.println( "announceResult:" + result.getReportedPeerCount() + "/" + result.getSeedCount() + "/" + result.getNonSeedCount());
+											
+										}else{
+											
+											System.out.println( "announceResult:" + result.getError());
+										}
 									}
 									
 									public void

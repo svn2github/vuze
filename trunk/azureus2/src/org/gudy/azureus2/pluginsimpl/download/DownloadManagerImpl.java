@@ -244,6 +244,19 @@ DownloadManagerImpl
 		return( null );
 	}
 	
+	public Download[]
+	getDownloads()
+	{
+		synchronized( listeners ){
+			
+			Download[]	res = new Download[downloads.size()];
+			
+			downloads.toArray( res );
+			
+			return( res );
+		}
+	}
+	
 	public void
 	addListener(
 		DownloadManagerListener	l )

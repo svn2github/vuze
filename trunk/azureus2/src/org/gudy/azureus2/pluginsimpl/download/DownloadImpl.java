@@ -31,7 +31,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -40,6 +39,8 @@ import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
@@ -66,37 +67,82 @@ DownloadImpl
 		download_manager.addListener( this );
 	}
 	
+	protected DownloadManager
+	getDownload()
+	{
+		return( download_manager );
+	}
+	
 	public int
 	getState()
 	{
 		int	state = download_manager.getState();
-				
+			
+		// dm states: waiting -> initialising -> initialized -> 
+		//		disk states: allocating -> checking -> ready ->
+		// dm states: downloading -> finishing -> seeding -> stopping -> stopped
+		
+		// "initialize" call takes from waiting -> initialising -> waiting (no port) or initialized (ok)
+		// if initialized then disk manager runs through to ready
+		// "startdownload" takes ready -> dl etc.
+		// "stopIt" takes to stopped which is equiv to ready
+		
 		switch( state ){
-			case DownloadManager.STATE_DOWNLOADING:
-			case DownloadManager.STATE_FINISHING:
-			case DownloadManager.STATE_SEEDING:
-			case DownloadManager.STATE_STOPPING:
+			case DownloadManager.STATE_WAITING:
 			{
-				latest_state	= ST_STARTED;
+				latest_state	= ST_WAITING;
 				
 				break;
-			}
-			case DownloadManager.STATE_WAITING:
+			}		
 			case DownloadManager.STATE_INITIALIZING:
 			case DownloadManager.STATE_INITIALIZED:
 			case DownloadManager.STATE_ALLOCATING:
 			case DownloadManager.STATE_CHECKING:
+			{
+				latest_state	= ST_PREPARING;
+					
+				break;
+			}
 			case DownloadManager.STATE_READY:
+			{
+				latest_state	= ST_READY;
+					
+				break;
+			}
+			case DownloadManager.STATE_DOWNLOADING:
+			case DownloadManager.STATE_FINISHING:		// finishing download - transit to seeding
+			{
+				latest_state	= ST_DOWNLOADING;
+					
+				break;
+			}
+			case DownloadManager.STATE_SEEDING:
+			{
+				latest_state	= ST_SEEDING;
+				
+				break;
+			}
+			case DownloadManager.STATE_STOPPING:
+			{
+				latest_state	= ST_STOPPING;
+				
+				break;
+			}
 			case DownloadManager.STATE_STOPPED:
-			case DownloadManager.STATE_ERROR:
 			{
 				latest_state	= ST_STOPPED;
+					
+				break;
+			}
+			case DownloadManager.STATE_ERROR:
+			{
+				latest_state	= ST_ERROR;
 				
 				break;
 			}
 			default:
 			{
-				latest_state	= ST_STOPPED;
+				latest_state	= ST_ERROR;
 			}
 		}
 		
@@ -146,6 +192,12 @@ DownloadImpl
 			
 			throw( new DownloadException( "Download::stop: download already stopped" ));
 		}
+	}
+	
+	public boolean
+	isStartStopLocked()
+	{
+		return( download_manager.isStartStopLocked());
 	}
 	
 	public void
@@ -269,46 +321,16 @@ DownloadImpl
 	announceResult(
 		TRTrackerResponse			response )
 	{
-		int status = response.getStatus();
+		DownloadAnnounceResult	res = new DownloadAnnounceResultImpl(this, response);
 		
-		String	fail_reason 	= null;
-		
-		int		total_peers		= 0;
-		int		seeds			= 0;
-		int		non_seeds		= 0;
-		
-		if ( status == TRTrackerResponse.ST_ONLINE ){
-			
-			PEPeerManager	pm = download_manager.getPeerManager();
-				
-				// use latest peer manager stats if available 
-			
-			if ( pm != null ){
-				
-				seeds 		= pm.getNbSeeds();
-				non_seeds 	= pm.getNbPeers();
-			}
-			
-			total_peers = response.getPeers().length;
-			
-		}else{
-			
-			fail_reason = response.getFailureReason();
-		}
-		
+
 		synchronized( tracker_listeners ){
 			
 			for (int i=0;i<tracker_listeners.size();i++){
 				
-				try{
-					if ( status == TRTrackerResponse.ST_ONLINE ){
-						
-						((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( total_peers, seeds, non_seeds );
-						
-					}else{
-						
-						((DownloadTrackerListener)tracker_listeners.get(i)).announceFailed( fail_reason );
-					}
+				try{						
+					((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( res );
+
 				}catch( Throwable e ){
 					
 					e.printStackTrace();

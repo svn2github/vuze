@@ -1,6 +1,6 @@
 /*
- * File    : DownloadTrackerListener.java
- * Created : 11-Jan-2004
+ * File    : DownloadScrapeResult.java
+ * Created : 12-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,14 +25,13 @@ package org.gudy.azureus2.plugins.download;
  * @author parg
  *
  */
+
 public interface 
-DownloadTrackerListener 
+DownloadScrapeResult 
 {
-	public void
-	scrapeResult(
-		DownloadScrapeResult	result );
+	public int
+	getSeedCount();
 	
-	public void
-	announceResult(
-		DownloadAnnounceResult	result ); 
+	public int
+	getNonSeedCount();
 }

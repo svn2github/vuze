@@ -31,8 +31,15 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 public interface 
 Download 
 {
-	public static final int ST_STOPPED		= 1;
-	public static final int ST_STARTED		= 2;
+	public static final int ST_WAITING			= 1;	// waiting to be told to start preparing
+	public static final int ST_PREPARING		= 2;	// getting files ready (allocating/checking)
+	public static final int ST_READY			= 3;	// ready to be started if required
+	public static final int ST_DOWNLOADING		= 4;	// downloading
+	public static final int ST_SEEDING			= 5;	// seeding
+	public static final int ST_STOPPING			= 6;	// stopping
+	public static final int ST_STOPPED			= 7;	// stopped
+	public static final int ST_ERROR			= 8;	// failed
+	
 	
 	/**
 	 * get state from above ST_ set
@@ -54,6 +61,9 @@ Download
 	stop()
 	
 		throws DownloadException;
+	
+	public boolean
+	isStartStopLocked();
 	
 	public void
 	remove()
