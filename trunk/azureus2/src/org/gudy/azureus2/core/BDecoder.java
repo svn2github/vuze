@@ -67,7 +67,7 @@ public class BDecoder {
           //decode some more
           Object value = BDecoder.decodeInputStream(bais);
           //add the value to the map
-          tempMap.put(new String(tempByteArray), value);
+          tempMap.put(new String(tempByteArray,"ISO-8859-1"), value);
         }
 
         //return the map
