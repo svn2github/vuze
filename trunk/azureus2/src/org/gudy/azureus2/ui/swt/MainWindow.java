@@ -444,6 +444,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Decorations decoMenu = new Decorations(coolbar,SWT.NULL);
     */
     
+    LGLogger.log("Creating menus");
+  try {
     //The Main Menu
     menuBar = new Menu(mainWindow, SWT.BAR);
     mainWindow.setMenuBar(menuBar);
@@ -684,6 +686,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     addCloseDownloadBarsToMenu(viewMenu);
 
     createLanguageMenu(menuBar, mainWindow, locales);
+    LGLogger.log("Creating Language Menu");
 
     //The Help Menu
     MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -730,7 +733,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         //Program.launch(donationString);
       }
     });
-    
+  } catch (Exception e) {
+    LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
+    e.printStackTrace();
+  }
 
     LGLogger.log("Initializing GUI tabs");
 
