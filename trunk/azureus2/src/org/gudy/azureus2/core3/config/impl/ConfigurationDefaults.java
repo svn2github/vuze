@@ -100,7 +100,7 @@ public class ConfigurationDefaults {
         
     /** SWT GUI Settings **/
     def.put("useCustomTab",new Long(1));    
-    def.put("GUI Refresh",new Long(250));
+    def.put("GUI Refresh",new Long(1000));
     def.put("Graphics Update",new Long(4));
     def.put("ReOrder Delay",new Long(0));
     def.put("Send Version Info",new Long(1));
