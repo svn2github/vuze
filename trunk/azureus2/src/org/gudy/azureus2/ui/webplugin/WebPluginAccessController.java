@@ -59,61 +59,54 @@ WebPluginAccessController
 		String			name,
 		RPRequest		request )
 	{
+		String	method = request.getMethod();
+		
+		// System.out.println( "request: " + name + "/" + method );
+		
 		if ( view_mode ){
 			
-			String	method = request.getMethod();
+			/*
+			request: PluginInterface/getDownloadManager
+			request: PluginInterface/getPluginconfig
+			request: PluginConfig/getPluginStringParameter[String,String]
+			request: DownloadManager/getDownloads
+			request: PluginConfig/getPluginIntParameter[String,int]
+			request: PluginInterface/getIPFilter
+			request: PluginConfig/setPluginParameter[String,int]
+			request: PluginConfig/save
+			*/
 			
-			// System.out.println( "request: " + name + "/" + method );
+			boolean	ok = false;
 			
-			if ( name.equals( "Download" )){
+			if ( name.equals( "PluginInterface" )){
 				
-				if ( 	method.equals( "start" ) ||
-						method.equals( "stop" ) ||
-						method.equals( "restart" ) ||
-						method.equals( "remove" ) ||
-						method.startsWith( "set" )){
-					
-					throw( new RPException( "Access Denied" ));
-				}
+				ok	= 	method.equals( "getPluginconfig" ) ||
+						method.equals( "getDownloadManager" ) ||
+						method.equals( "getIPFilter" );
+				
 			}else if ( name.equals( "DownloadManager" )){
 				
-				if ( 	method.startsWith( "addDownload")){
-					
-					throw( new RPException( "Access Denied" ));
-				}
-			}else if ( name.equals( "TorrentManager" )){
+				ok	= 	method.equals( "getDownloads" );
 				
-				if ( 	method.startsWith( "getURLDownloader")){
-					
-					throw( new RPException( "Access Denied" ));
-				}	
 			}else if ( name.equals( "PluginConfig" )){
-					
-				if ( 	method.startsWith( "setParameter")){
-						
-					throw( new RPException( "Access Denied" ));
-				}
 				
-			}else if ( name.equals( "IPFilter" )){
-				
-				if ( 	method.startsWith( "set") ||
-						method.startsWith( "create" )||
-						method.startsWith( "save" )){
+				if ( 	method.startsWith( "getPlugin") || 
+						method.equals( "save" )){
 					
-					throw( new RPException( "Access Denied" ));
-				}
-			}else if ( name.equals( "IPRange" )){
-				
-				if ( 	method.startsWith( "delete" )){
+					ok	= true;
 					
-					throw( new RPException( "Access Denied" ));
-				}
-			}else if ( name.equals( "Tracker" )){
-				
-				if ( 	method.startsWith( "host" )){
+				}else if ( method.equals( "setPluginParameter[String,int]" )){
 					
-					throw( new RPException( "Access Denied" ));
-				}
+					String	param = (String)request.getParams()[0];
+					
+					ok = param.equals( "MDConfigModel:refresh_period" );
+				}	
+			}
+			
+			
+			if ( !ok ){
+				
+				throw( new RPException( "Access Denied" ));
 			}
 		}
 	}

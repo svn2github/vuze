@@ -92,7 +92,7 @@ RPTracker
 		if ( method.equals( "host[Torrent,boolean]")){
 			
 			try{
-				Torrent	torrent = (Torrent)((RPTorrent)params[0])._setLocal();
+				Torrent	torrent = params[0]==null?null:(Torrent)((RPTorrent)params[0])._setLocal();
 				
 				if ( torrent == null ){
 					
