@@ -7,6 +7,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Button;
@@ -95,19 +96,15 @@ public class Messages {
   }
 
   public static void setLanguageText(Widget widget, String key) {
-	widget.setData(key);
-	updateLanguageFromData(widget);
-	updateToolTipFromData(widget);
+  	widget.setData(key);
+  	updateLanguageFromData(widget);
+  	updateToolTipFromData(widget);
   }
   
   public static void setLanguageText(BufferedWidget buffered_widget, String key) {
-  	Widget widget = buffered_widget.getWidget();
-	widget.setData(key);
-	updateLanguageFromData(widget);
-	updateToolTipFromData(widget);
+    setLanguageText(buffered_widget.getWidget(), key);
   }
-    
-  
+
   private static void updateToolTipFromData(Widget widget) {
     if(widget instanceof Control) {
       String key = (String) widget.getData();
@@ -149,4 +146,17 @@ public class Messages {
     }
   }
 
+  public static void setLanguageTooltip(Widget widget, String key) {
+    widget.setData(key);
+    updateTooltipLanguageFromData(widget);
+  }
+
+  public static void updateTooltipLanguageFromData(Widget widget) {
+    if (widget.getData() != null) {
+      if (widget instanceof CLabel)
+        ((CLabel) widget).setToolTipText(MessageText.getString((String) widget.getData()));
+      else
+        System.out.println("No cast for " + widget.getClass().getName());
+    }
+  }
 }
