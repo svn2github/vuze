@@ -142,7 +142,7 @@ Restarter
 	    }
 	}
   
-  // ****************** This code is copied into Restarter / Updater so make changes there too !!!
+//****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   //Beware that for OSX no SPECIAL Java will be used with
   //This method.
@@ -151,10 +151,10 @@ Restarter
   
   public void 
   restartAzureus(
-  		PrintWriter log, 
-		String 		mainClass,
-		String[]	properties,
-		String[] 	parameters ) 
+      PrintWriter log, 
+    String    mainClass,
+    String[]  properties,
+    String[]  parameters ) 
   {
     String osName = System.getProperty("os.name");
     if(osName.equalsIgnoreCase("Mac OS X")) {
@@ -168,12 +168,12 @@ Restarter
   
   private void 
   restartAzureus_win32(
-  		PrintWriter log,
-		String 		mainClass,
-		String[]	properties,
-		String[] 	parameters) 
+      PrintWriter log,
+    String    mainClass,
+    String[]  properties,
+    String[]  parameters) 
   {
-  	
+    
     //Classic restart way using Runtime.exec directly on java(w)
      String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
@@ -181,10 +181,10 @@ Restarter
                     + System.getProperty("file.separator");
     
     String exec = "\"" + javaPath + "javaw\" "+ getClassPath() +
-						getLibraryPath();
+            getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
-    	exec += properties[i] + " ";
+      exec += properties[i] + " ";
     }
     
     exec += mainClass;
@@ -194,29 +194,29 @@ Restarter
     }
     
     if ( log != null ){
-    	log.println( "  " + exec );
+      log.println( "  " + exec );
     }
     
     if ( !win32NativeRestart( log, exec )){
-    	
-	   	// hmm, try java method - this WILL inherit handles but might work :)
-	        
+      
+      // hmm, try java method - this WILL inherit handles but might work :)
+          
         try{
-        	Runtime.getRuntime().exec(exec);
-        	
+          Runtime.getRuntime().exec(exec);
+          
         }catch(Throwable f){
-        	
-        	f.printStackTrace( log );
+          
+          f.printStackTrace( log );
         }
     }
   }
   
   private void 
   restartAzureus_OSX(
-  		PrintWriter log,
-		String mainClass,
-		String[]	properties,
-		String[] parameters) 
+      PrintWriter log,
+    String mainClass,
+    String[]  properties,
+    String[] parameters) 
   {
     String userPath = System.getProperty("user.dir");
     String javaPath = System.getProperty("java.home")
@@ -224,12 +224,13 @@ Restarter
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = 	"#!/bin/bash\n\"" + 
-					userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
-					"-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    String exec =   "#!/bin/bash\n\"" + 
+                  "ulimit -H -S -n 8192\n" +
+          userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
+          "-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
-    	exec += properties[i] + " ";
+      exec += properties[i] + " ";
     }
     
     exec += mainClass ;
@@ -239,19 +240,19 @@ Restarter
     }
     
     if ( log != null ){
-    	log.println( "  " + exec );
+      log.println( "  " + exec );
     }
     String fileName = userPath + "/Azureus.app/" + restartScriptName;
     
     File fUpdate = new File(fileName);
     
     try {
-	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-	    fosUpdate.write(exec.getBytes());
-	    fosUpdate.close();
-	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
-	    pChMod.waitFor();
-	    Process p = Runtime.getRuntime().exec("./Azureus.app/" + restartScriptName);
+      FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+      fosUpdate.write(exec.getBytes());
+      fosUpdate.close();
+      Process pChMod = Runtime.getRuntime().exec("chmod 755 \"" + fileName + "\"");
+      pChMod.waitFor();
+      Process p = Runtime.getRuntime().exec("./Azureus.app/" + restartScriptName);
     } catch(Exception e) {
       e.printStackTrace(log);
     }
@@ -259,10 +260,10 @@ Restarter
   
   private void 
   restartAzureus_Linux(
-  	PrintWriter log,
-	String 		mainClass,
-	String[]	properties,
-	String[] 	parameters) 
+    PrintWriter log,
+  String    mainClass,
+  String[]  properties,
+  String[]  parameters) 
   {
     String userPath = System.getProperty("user.dir"); 
     String javaPath = System.getProperty("java.home")
@@ -270,11 +271,11 @@ Restarter
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = 	"#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +
-    				"-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    String exec =   "#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +
+            "-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
-    	exec += properties[i] + " ";
+      exec += properties[i] + " ";
     }
     
     exec += mainClass ;
@@ -284,19 +285,19 @@ Restarter
     }
     
     if ( log != null ){
-    	log.println( "  " + exec );
+      log.println( "  " + exec );
     }
     
     String fileName = userPath + "/" + restartScriptName;
     
     File fUpdate = new File(fileName);
     try {
-	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-	    fosUpdate.write(exec.getBytes());
-	    fosUpdate.close();
-	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
-	    pChMod.waitFor();
-	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+      FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+      fosUpdate.write(exec.getBytes());
+      fosUpdate.close();
+      Process pChMod = Runtime.getRuntime().exec("chmod 755 \"" + fileName + "\"");
+      pChMod.waitFor();
+      Process p = Runtime.getRuntime().exec("./" + restartScriptName);
     } catch(Exception e) {
         e.printStackTrace(log);
     }
@@ -308,12 +309,11 @@ Restarter
     String libraryPath = System.getProperty("java.library.path");
     
     if ( libraryPath == null ){
-    	libraryPath	= "";
+      libraryPath = "";
     }else if ( libraryPath.length() > 0 ){
-    	libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
+      libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
     }
     
     return( libraryPath );
   }
 }
-
