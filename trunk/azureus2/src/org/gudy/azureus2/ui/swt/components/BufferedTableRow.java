@@ -39,7 +39,8 @@ BufferedTableRow
 	
 	protected TableItem	item;
 	
-	protected String[]	values	= new String[VALUE_SIZE_INC];
+	protected String[]	text_values		= new String[0];
+	protected Image[]	image_values	= new Image[0];
 	
 	public
 	BufferedTableRow(
@@ -65,10 +66,34 @@ BufferedTableRow
 	
 	public void
 	setImage(
-    int index,
-		Image	_image )
+   		int 	index,
+		Image	new_image )
 	{
-		item.setImage(index, _image );
+		if ( item.isDisposed()){
+			return;
+		}
+				
+		if ( index >= image_values.length ){
+			
+			int	new_size = Math.max( index+1, image_values.length+VALUE_SIZE_INC );
+			
+			Image[]	new_images = new Image[new_size];
+			
+			System.arraycopy( image_values, 0, new_images, 0, image_values.length );
+			
+			image_values = new_images;
+		}
+		
+		Image	image = image_values[index];
+		
+		if ( new_image == image ){
+			
+			return;
+		}
+		
+		image_values[index] = new_image;
+		
+		item.setImage( index, new_image );	
 	}
 	
 	public boolean
@@ -90,7 +115,7 @@ BufferedTableRow
 		item.setForeground(c);
 	}
 	
-	public synchronized void
+	public void
 	setText(
 		int			index,
 		String		new_value )
@@ -99,18 +124,18 @@ BufferedTableRow
 			return;
 		}
 				
-		if ( index >= values.length ){
+		if ( index >= text_values.length ){
 			
-			int	new_size = Math.max( index+1, values.length+VALUE_SIZE_INC );
+			int	new_size = Math.max( index+1, text_values.length+VALUE_SIZE_INC );
 			
 			String[]	new_values = new String[new_size];
 			
-			System.arraycopy( values, 0, new_values, 0, values.length );
+			System.arraycopy( text_values, 0, new_values, 0, text_values.length );
 			
-			values = new_values;
+			text_values = new_values;
 		}
 		
-		String	value = values[index];
+		String	value = text_values[index];
 		
 		if ( new_value == value ){
 			
@@ -124,7 +149,7 @@ BufferedTableRow
 			return;
 		}
 		
-		values[index] = new_value;
+		text_values[index] = new_value;
 		
 		item.setText( index, new_value==null?"":new_value );
 	}
