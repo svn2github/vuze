@@ -21,15 +21,15 @@
 
 package org.gudy.azureus2.plugins.download;
 
-/**
- * @author parg
- * The DownloadManager gives access to functions used to monitor and manage Azureus's downloads
- */
-
 import java.io.File;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+
+/**
+ * The DownloadManager gives access to functions used to monitor and manage Azureus's downloads
+ * @author parg
+ */
 
 public interface 
 DownloadManager 
