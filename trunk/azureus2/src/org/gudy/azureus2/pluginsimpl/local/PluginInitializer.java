@@ -426,8 +426,6 @@ PluginInitializer
     String plugin_class_string = null;
     
     try {
-      PluginException	last_load_failure	= null;
-    	
       Properties props = new Properties();
       
       File	properties_file = new File(directory.toString() + File.separator + "plugin.properties");
@@ -656,8 +654,6 @@ PluginInitializer
 	      	LGLogger.logUnrepeatableAlert( msg, load_failure );
 
 	      	System.out.println( msg + " : " + load_failure);
-	      	
-	      	last_load_failure = new PluginException( msg, load_failure );
 	      }
   		}
 	      
@@ -666,12 +662,7 @@ PluginInitializer
 	      	
 	    }
       }
-      
-      if ( last_load_failure != null ){
-      	
-      	throw( last_load_failure );
-      }
-      
+            
       return( loaded_pis );
       
     }catch(Throwable e) {
