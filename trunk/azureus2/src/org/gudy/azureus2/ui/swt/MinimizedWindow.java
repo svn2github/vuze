@@ -221,8 +221,20 @@ public class MinimizedWindow {
       currentLoc.x = screen.width - splash.getBounds().width;
     if (currentLoc.y < 10)
       currentLoc.y = 0;
-    if (currentLoc.y > screen.height - splash.getBounds().height - 10)
-      currentLoc.y = screen.height - splash.getBounds().height;
+    MinimizedWindow mw = this;
+    int height = 0;
+    while(mw != null) {
+      Shell s = mw.getShell();
+      if(s.isDisposed())
+        mw = null;
+      else
+      {
+        height += s.getBounds().height - 1;
+        mw = mw.getStucked();
+      }
+    }
+    if (currentLoc.y > screen.height - height - 10)
+      currentLoc.y = screen.height - height;
 
     if (downloadBars.size() > 1) {
       for (int i = 0; i < downloadBars.size(); i++) {
