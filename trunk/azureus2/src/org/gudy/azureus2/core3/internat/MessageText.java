@@ -32,7 +32,7 @@ public class MessageText {
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
   private static Map pluginLocalizationPaths = new HashMap();
-  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT);
+  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader());
 //  private static ResourceBundle RESOURCE_BUNDLE = new IntegratedResourceBundle(ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT), pluginLocalizationPaths);
   private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
 
