@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -28,6 +31,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
@@ -87,9 +91,19 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
       { "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
     int[] columnsSize = { 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
+      columnsSize[i] = ConfigurationManager.getInstance().getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]); 
+    }
+
+    ControlListener resizeListener = new ControlAdapter() { 
+      public void controlResized(ControlEvent e) {
+        saveTableColumns((TableColumn) e.widget);
+      }
+    };
+    for (int i = 0; i < columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NULL);
       Messages.setLanguageText(column, "MyTorrentsView." + columnsHeader[i]);
       column.setWidth(columnsSize[i]);
+      column.addControlListener(resizeListener);
     }
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
     table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
@@ -353,6 +367,11 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
         item.refresh();
       }
     }
+  }
+
+  private void saveTableColumns(TableColumn t) {
+    ConfigurationManager.getInstance().setParameter((String) t.getData(), t.getWidth());
+    ConfigurationManager.getInstance().save(); 
   }
 
   /* (non-Javadoc)
