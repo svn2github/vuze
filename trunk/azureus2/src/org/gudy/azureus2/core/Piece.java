@@ -1,5 +1,6 @@
 package org.gudy.azureus2.core;
 
+
 /**
  * Represents a Piece and the status of its different chunks (un-requested, requested, downloaded, written).
  * 
@@ -21,6 +22,8 @@ public class Piece {
   public int completed;
   public boolean isBeingChecked = false;
 
+  // Note by Moti:
+  // TODO: find some way of removing this! The only place it's actually accessed is in 1 place in the UI (org.gudy.azureus2.ui.swt.PiecesView)  
   public PeerManager manager;
 
   public Piece(PeerManager manager, int length) {
