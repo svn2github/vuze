@@ -259,6 +259,8 @@ PluginInitializer
     String plugin_class_string = null;
     
     try {
+      PluginException	last_load_failure	= null;
+    	
       Properties props = new Properties();
       
       File	properties_file = new File(directory.toString() + File.separator + "plugin.properties");
@@ -412,6 +414,8 @@ PluginInitializer
 								plugin_id[0],
 								plugin_version[0] );
 		      
+		      plugin_interface.setOperational( load_failure == null );
+		      
 		      plugin.initialize(plugin_interface);
 		      
 		      plugins.add( plugin );
@@ -420,7 +424,15 @@ PluginInitializer
 		      
 		      if ( load_failure != null ){
 		      	
-		      	throw( load_failure );
+		      	load_failure.printStackTrace();
+		        
+		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+		   	 
+		      	LGLogger.logAlert( msg, load_failure );
+
+		      	System.out.println( msg + " : " + load_failure);
+		      	
+		      	last_load_failure = new PluginException( msg, load_failure );
 		      }
       		}
 	      
@@ -428,6 +440,11 @@ PluginInitializer
 	      	break;
 	      	
 	      }
+      }
+      
+      if ( last_load_failure != null ){
+      	
+      	throw( last_load_failure );
       }
     } catch(Throwable e) {
     	
@@ -805,15 +822,20 @@ PluginInitializer
   	
   	protected class
 	loadFailedPlugin
-		implements Plugin
+		implements UnloadablePlugin
 	{
   		 public void 
 		  initialize(
-		  		PluginInterface pluginInterface )
+		  	PluginInterface pluginInterface )
 		  
 		  	throws PluginException
 		{
   		 	
+  		}
+  		 
+  		public void
+		unload()
+		{
   		}
   	}
 }

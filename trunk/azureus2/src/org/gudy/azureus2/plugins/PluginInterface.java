@@ -271,6 +271,15 @@ public interface PluginInterface {
   public Plugin
   getPlugin();
   
+  /**
+   * If a plugin fails to load properly (i.e. the construction of the plugin object
+   * fails) it is marked as non-operational (rather than not being present at all) 
+   * @return whether or not the plugin is operational or not
+   */
+  
+  public boolean
+  isOperational();
+  
   public boolean
   isUnloadable();
   

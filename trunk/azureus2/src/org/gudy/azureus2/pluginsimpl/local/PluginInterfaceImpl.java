@@ -82,7 +82,7 @@ PluginInterfaceImpl
   protected PluginConfig 		config;
   protected String				plugin_id;
   protected String				plugin_version;
-
+  protected boolean				operational;
   protected Logger				logger;
   
   public 
@@ -115,6 +115,19 @@ PluginInterfaceImpl
   		return( plugin );
 	}
   
+  	protected void
+	setOperational(
+		boolean	b )
+	{
+  		operational	= b;
+  	}
+  	
+    public boolean
+    isOperational()
+	{
+    	return( operational );
+    }
+
   	public Object
 	getInitializerKey()
 	{

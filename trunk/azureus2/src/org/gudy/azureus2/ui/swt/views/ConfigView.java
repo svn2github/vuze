@@ -486,7 +486,9 @@ public class ConfigView extends AbstractIView {
       // Blank means it's internal
       if (sDirName != ""){
       	
-        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")");
+      	String	broken_str = pluginIF.isOperational()?"":(" - " + MessageText.getString("ConfigView.pluginlist.broken"));
+      	
+        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")" + broken_str);
         numPlugins++;
       }
     }
