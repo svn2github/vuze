@@ -95,7 +95,7 @@ public class TrackerStatus {
       info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
       URL reqUrl = new URL(scrapeURL + info_hash);
       
-      LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + reqUrl);
+      LGLogger.log(0,0,LGLogger.SENT,"Accessing scrape interface using url : " + reqUrl);
  
       ByteArrayOutputStream message = new ByteArrayOutputStream();
       
@@ -111,7 +111,7 @@ public class TrackerStatus {
       }
         
             
-      LGLogger.log(0,0,LGLogger.INFORMATION,"Response from scrape interface : " + message);
+      LGLogger.log(0,0,LGLogger.RECEIVED,"Response from scrape interface : " + message);
       
       Map map = BDecoder.decode(message.toByteArray());
       

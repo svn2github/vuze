@@ -168,7 +168,7 @@ PEPeerServerImpl
           LGLogger.log(
             componentID,
             evtNewConnection,
-            LGLogger.INFORMATION,
+            LGLogger.RECEIVED,
             "PEPeerServer has accepted an incoming connection from : "
             + sckClient.socket().getInetAddress().getHostAddress());
           

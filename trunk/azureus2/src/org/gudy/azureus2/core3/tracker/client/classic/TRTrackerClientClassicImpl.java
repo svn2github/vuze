@@ -548,7 +548,7 @@ TRTrackerClientClassicImpl
 	protected TRTrackerResponse 
   	startSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a start Request");
 	
 		// System.out.println( "started");
 		
@@ -558,7 +558,7 @@ TRTrackerClientClassicImpl
   	protected TRTrackerResponse 
   	completeSupport() 
   	{	
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a completed Request");
 		
 		// System.out.println( "complete");
 		
@@ -568,7 +568,7 @@ TRTrackerClientClassicImpl
   	protected TRTrackerResponse 
   	stopSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a stopped Request");
 
 		// System.out.println( "stop");		
 	
@@ -578,7 +578,7 @@ TRTrackerClientClassicImpl
   	protected TRTrackerResponse 
   	updateSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending an update Request");
 	
 		// System.out.println( "update");
 		
@@ -848,7 +848,7 @@ TRTrackerClientClassicImpl
  					}
  				}
  				
- 				LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+ 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Client has received : " + message);
  				
  				
  			}catch (Exception e){

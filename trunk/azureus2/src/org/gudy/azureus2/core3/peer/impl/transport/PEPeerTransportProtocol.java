@@ -182,7 +182,7 @@ PEPeerTransportProtocol
 			
 			allocateAll();
 			
-			LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Creating incoming connection from " + ip + " : " + port);
+			LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Creating incoming connection from " + ip + " : " + port);
 			
 			handShake( data_already_read );
 			
@@ -202,7 +202,7 @@ PEPeerTransportProtocol
   {
   this.nbConnections++;
   allocateAll();
-  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
+  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
 
   try {
 
@@ -715,7 +715,7 @@ PEPeerTransportProtocol
 			  if(!choking) {
 			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 			  } else {
-			    LGLogger.log(LGLogger.INFORMATION,ip
+			    LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,ip
           + " ("
           + client
           + ")"
@@ -769,7 +769,7 @@ PEPeerTransportProtocol
 				componentID,
 				evtErrors,
 				LGLogger.ERROR,
-				ip
+				ip + " [" + client + "]"
 				  + " has sent #"
 				  + pieceNumber
 				  + ":"
