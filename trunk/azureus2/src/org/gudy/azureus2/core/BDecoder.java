@@ -31,7 +31,7 @@ public class BDecoder {
         try{
             return (Map)BDecoder.decode((InputStream)data);              
         }catch(IOException e){
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }     
