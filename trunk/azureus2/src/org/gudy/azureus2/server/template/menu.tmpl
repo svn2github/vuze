@@ -7,29 +7,30 @@
         <script language="javascript" src="commands.js"></script>
     </head>
     <body class="menubody">
-        <form name="Command" method=POST action='torrentmain' target='main'>
-            <input type=HIDDEN name='command' value=''>
-        </FORM>
+        <p>
         <center><table><tr><td class="icon">
-            <img src='/froggy.png' alt="Azureus">
+            <a href='http://azureus.sourceforge.net' target='main'><img src='/froggy.png' alt="Azureus"></a>
         </TD></TR></TABLE></CENTER>
         <p>
         <table class="menu" cellspacing=0 cellpadding=0>
             <tr>
-                <td class='menuitem mtop' onclick='eCommand("torrentmain")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Torrents</td>
+                <td class='menuitem mtop' onclick='eCommand("torrentmain")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>T</b>orrents</td>
             </tr>
             <tr>
-                <td class='menuitem mmid' onclick='eCommand("log")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>View Log</td>
+                <td class='menuitem mmid' onclick='eCommand("log")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>View&nbsp;<b>L</b>og</td>
             </tr>
             <tr>
-                <td class='menuitem mbot' onclick='eCommand("config")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Config</td>
+                <td class='menuitem mbot' onclick='eCommand("config")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>C<b>o</b>nfig</td>
             </tr>
         </table>
         <p>
         <table class="menu">
             <tr>
-                <td class='menuitem' onclick='eCommand("exit", "Exit")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Kill server</td>
+                <td class='menuitem' onclick='eCommand("exit", "Exit")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>K</b>ill server</td>
             </tr>
         </table>
+        <form name="Command" method=POST action='torrentmain' target='main'>
+            <input type=HIDDEN name='command' value=''>
+        </FORM>
     </body>
 </html>

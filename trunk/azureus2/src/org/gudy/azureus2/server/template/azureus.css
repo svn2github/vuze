@@ -15,6 +15,7 @@
 */
 
 body { 
+    color: #000;
     background: RGB(128,192,255);
     font-family: Verdana, sans-serif;
     font-size: 12px;
@@ -33,7 +34,7 @@ body {
     border-top: #000 solid 1px;
 }    
 .menu {
-    width: 100;
+    width: 100px;
     text-align: center;
     border: 0px;
     border-top: RGB(192,224,255) solid 2px; 
@@ -77,7 +78,7 @@ body {
     border-left: RGB(0,128,255) solid 1px;
 }
 .movr {
-    background: RGB(64, 160, 255);
+    background: RGB(64,160,255);
     cursor: pointer;
 }
 
@@ -95,8 +96,8 @@ table.torrent {
     border: #000 solid 1px;
 }
 .torrentheader {
-    background: RGB(0, 128, 255);
-    color: RGB(192, 224, 255);
+    background: RGB(0,128,255);
+    color: RGB(192,224,255);
     white-space: nowrap;
     padding-left: 6px;
     padding-right: 6px;
@@ -104,7 +105,7 @@ table.torrent {
     padding-bottom: 3px;
 }
 .torrentrow {
-    background: RGB(192, 224, 255); 
+    background: RGB(192,224,255); 
 }
 .seedless {
     font-size: 10px;
@@ -112,18 +113,24 @@ table.torrent {
 }
 .percentage {
     font-size: 1px;
-    border: RGB(192, 224, 255) solid 1px;
+    border: RGB(192,224,255) solid 1px;
+    padding: 0px;
+    margin: 0px;
 }
-.tdpbg {
-    background: RGB(192, 224, 255); 
+.tdp {
+    padding: 0px;
+    margin: 0px;
 }
-.tdpfg {
-    background: RGB(64, 160, 255); 
+.tdp.bg {
+    background: RGB(192,224,255); 
 }
-.tdpwh {
-    background: RGB(255, 255, 255);
+.tdp.fg {
+    background: RGB(64,160,255); 
+}
+.tdp.wh {
+    background: RGB(255,255,255);
 }
 .rovr {
-    background: RGB(64, 160, 255);
+    background: RGB(64,160,255);
 }
 

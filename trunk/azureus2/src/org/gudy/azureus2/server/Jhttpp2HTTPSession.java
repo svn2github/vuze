@@ -562,11 +562,8 @@ public class Jhttpp2HTTPSession extends Thread {
   private void ProcessTorrent(HashMap URIvars) {
     if (URIvars.containsKey("subcommand")) {
       String subcommand = (String) URIvars.get("subcommand");
-      String pausecommand = (URIvars.containsKey("pausecommand"))?((String)URIvars.get("pausecommand")):"Pause";
-      String unpausecommand = (URIvars.containsKey("unpausecommand"))?((String)URIvars.get("unpausecommand")):"Download";
-      String cancelcommand = (URIvars.containsKey("cancelcommand"))?((String)URIvars.get("cancelcommand")):"Cancel";
       if (server.loggerWeb.isDebugEnabled())
-        server.loggerWeb.debug("ProcessTorrent: "+subcommand+"/"+pausecommand+"/"+unpausecommand+"/"+cancelcommand);
+        server.loggerWeb.debug("ProcessTorrent: "+subcommand);
       HashMap dls = new HashMap();
       List torrents = server.gm.getDownloadManagers();
       if (!torrents.isEmpty()) {
@@ -591,11 +588,11 @@ public class Jhttpp2HTTPSession extends Thread {
               if (server.loggerWeb.isDebugEnabled())
                 server.loggerWeb.debug("ProcessTorrent: \""+hash+"\" processed");
               DownloadManager dm = (DownloadManager) dls.get(hash);
-              if (subcommand.equals(pausecommand) && ((dm.getState()!=DownloadManager.STATE_STOPPED) || (dm.getState()!=DownloadManager.STATE_STOPPING)))
+              if (subcommand.equals("Pause") && ((dm.getState()!=DownloadManager.STATE_STOPPED) || (dm.getState()!=DownloadManager.STATE_STOPPING)))
                 dm.stopIt();
-              else if (subcommand.equals(unpausecommand) && ((dm.getState()==DownloadManager.STATE_READY) || (dm.getState()==DownloadManager.STATE_WAITING) || (dm.getState()==DownloadManager.STATE_STOPPED)))
+              else if (subcommand.equals("Start") && ((dm.getState()==DownloadManager.STATE_READY) || (dm.getState()==DownloadManager.STATE_WAITING) || (dm.getState()==DownloadManager.STATE_STOPPED)))
                 dm.startDownloadInitialized(true);
-              else if (subcommand.equals(cancelcommand)) {
+              else if (subcommand.equals("Cancel")) {
                 dm.stopIt();
                 server.gm.removeDownloadManager(dm);
               }
