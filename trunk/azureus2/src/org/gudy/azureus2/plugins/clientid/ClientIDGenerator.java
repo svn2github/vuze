@@ -34,13 +34,43 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 public interface 
 ClientIDGenerator 
 {
+	public static final String PR_URL			= "URL";			// in/out, the target URL
+	public static final String PR_USER_AGENT	= "User-Agent";		// out
+	
+		/**
+		 * generate a peer id - must be exactly 20 bytes
+		 * @param torrent
+		 * @param for_tracker	generator to give to tracker or for peer-peer comms
+		 * @return
+		 */
+	
 	public byte[]
 	generatePeerID(
 		Torrent		torrent,
 		boolean		for_tracker );
 	
+		/**
+		 * generate appropriate properties to be supplied to HTTP(S) URL connection
+		 * If you want to access the torrents then you need to decode the URL to extract the 
+		 * hashes and then look them up (for scrape there could be multiple torrents)
+		 * Enabled when the generator isn't specified as a filter
+		 * @param torrent
+		 * @param properties
+		 */
+	
 	public void
 	generateHTTPProperties(
-		Torrent		torrent,
 		Properties	properties );
+	
+		/**
+		 * For more complex situations a filter approach is used. The lines of the request are
+		 * passed in for modification and return
+		 * Enabled when the generator is specified as a filter
+		 * @param lines_in
+		 * @return
+		 */
+	
+	public String[]
+	filterHTTP(
+		String[]	lines_in );
 }

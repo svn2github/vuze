@@ -55,12 +55,19 @@ ClientIDPlugin
 							
 				public void
 				generateHTTPProperties(
-					Torrent		torrent,
 					Properties	properties )
 				{
-					
-				}				
-			});
+					doHTTPProperties( properties );
+				}
+				
+				public String[]
+				filterHTTP(
+					String[]	lines_in )
+				{
+					return( lines_in );
+				}
+			},
+			false );
 	}
 	
 	public void
@@ -71,6 +78,15 @@ ClientIDPlugin
 	}
 	
 
+	protected static void
+	doHTTPProperties(
+		Properties	properties )
+	{
+		properties.put( 
+			ClientIDGenerator.PR_USER_AGENT,
+			Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION );
+	}
+	
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	public static byte[]

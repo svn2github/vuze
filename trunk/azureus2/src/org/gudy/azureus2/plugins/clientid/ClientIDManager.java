@@ -22,8 +22,6 @@
 
 package org.gudy.azureus2.plugins.clientid;
 
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 /**
  * @author parg
  *
@@ -32,7 +30,15 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 public interface 
 ClientIDManager 
 {
+		/**
+		 * Sets the generator for client id artifacts. Note that the filter approach doesn't
+		 * currently work with HTTPS
+		 * @param generator
+		 * @param use_http_filter
+		 */
+	
 	public void
 	setGenerator(
-		ClientIDGenerator	generator );
+		ClientIDGenerator	generator,
+		boolean				use_http_filter );
 }

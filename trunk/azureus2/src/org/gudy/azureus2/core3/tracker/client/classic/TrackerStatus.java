@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.*;
@@ -25,6 +26,8 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
@@ -575,16 +578,27 @@ public class TrackerStatus {
     
   	// System.out.println( "scraping " + reqUrl.toString());
   	
+	Properties	http_properties = new Properties();
+		
+	http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
+		
+	ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+	
+	reqUrl = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+
   	InputStream is = null;
   	
   	try{
 	  	HttpURLConnection con = null;
 
 	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-	  		// see ConfigurationChecker for SSL client defaults
+	  		
+	  			// see ConfigurationChecker for SSL client defaults
+	  		
 	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
 	  		
-	  		// allow for certs that contain IP addresses rather than dns names
+	  			// allow for certs that contain IP addresses rather than dns names
+	  		
 	  		ssl_con.setHostnameVerifier(
 	  				new HostnameVerifier() {
 	  					public boolean verify(String host, SSLSession session) {
@@ -598,9 +612,19 @@ public class TrackerStatus {
 	  		con = (HttpURLConnection) reqUrl.openConnection();
 	  	}
 
-	  	con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-    	// some trackers support gzip encoding of replies
+		String	user_agent = (String)http_properties.get( ClientIDGenerator.PR_USER_AGENT );
+ 		
+ 		if ( user_agent != null ){
+ 			
+ 			con.setRequestProperty("User-Agent", user_agent );
+ 		}
+ 		
+ 			// some trackers support gzip encoding of replies
+ 		
 	    con.addRequestProperty("Accept-Encoding","gzip");
+	    
+	    con.setRequestProperty("Connection", "close" );
+	    
 	  	con.connect();
 
 	  	is = con.getInputStream();
