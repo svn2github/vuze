@@ -31,21 +31,32 @@ import java.io.InputStreamReader;
 public class TestSnippet {
   
   public static void main(String args[]) throws Exception{
+    try {
     String[] exec =  {"java","-version"};
+    //String exec = "java -version";
     
     System.out.println("About to exec : " + exec );
     
     Process p = Runtime.getRuntime().exec(exec);
+    
     BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    
-    int exitCode = p.waitFor();
-    
     String line = null;
     while((line = br.readLine()) != null ) {
       System.out.println(line);
     }
+    
+    br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+    line = null;
+    while((line = br.readLine()) != null ) {
+      System.out.println(line);
+    }
+    
+    int exitCode = p.waitFor();
 
     System.out.println("Exited with code : " + exitCode);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
   }
   
 }
