@@ -530,7 +530,7 @@ public class GeneralView extends AbstractIView {
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
     comment = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
+    gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
  
     // row
