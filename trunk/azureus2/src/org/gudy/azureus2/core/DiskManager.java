@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +80,7 @@ public class DiskManager {
   //RandomAccessFile[] fileArray;
 
   private PeerManager manager;
+  private SHA1Hasher hasher;
 
   private boolean bContinue = true;
 
@@ -87,6 +89,10 @@ public class DiskManager {
     this.percentDone = 0;
     this.metaData = metaData;
     this.path = path;
+    try {
+      hasher = new SHA1Hasher();
+    } catch (NoSuchAlgorithmException ignore) {
+    }
     Thread init = new Thread() {
       public void run() {
         initialize();
@@ -118,12 +124,13 @@ public class DiskManager {
 //    _priorityPieces = new int[nbPieces + 1];
 
     pieceDone = new boolean[nbPieces];
+    LocaleUtil localeUtil = new LocaleUtil(metaData.get("encoding")); 
 
     fileName = "";
     try {
       File f = new File(path);
       if (f.isDirectory()) {
-        fileName = LocaleUtil.getCharsetString((byte[]) info.get("name"));
+        fileName = localeUtil.getChoosableCharsetString((byte[]) info.get("name"));
       } else {
         fileName = f.getName();
         path = f.getParent();
@@ -196,7 +203,7 @@ public class DiskManager {
             pathBuffer.setLength(0);
 
             try {
-              pathBuffer.append(LocaleUtil.getCharsetString((byte[]) fileList.get(j)));
+              pathBuffer.append(localeUtil.getChoosableCharsetString((byte[]) fileList.get(j)));
             } catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
               this.errorMessage = e.getMessage();
@@ -207,7 +214,7 @@ public class DiskManager {
           } else { //no, then we must be a part of the path
             //add the file entry to the file holder list 
             try {
-              btFileList.add(new BtFile(pathBuffer.toString(), LocaleUtil.getCharsetString((byte[]) fileList.get(j)), fileLength));
+              btFileList.add(new BtFile(pathBuffer.toString(), localeUtil.getChoosableCharsetString((byte[]) fileList.get(j)), fileLength));
             } catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
               this.errorMessage = e.getMessage();
@@ -221,6 +228,11 @@ public class DiskManager {
         //clear the memory
         fileList = null;
       }
+    }
+
+    if(localeUtil.canEncodingBeSaved() && !localeUtil.getLastChoosedEncoding().equals(metaData.get("encoding"))) {
+      metaData.put("encoding", localeUtil.getLastChoosedEncoding());
+      saveTorrent();
     }
 
     remaining = totalLength;
@@ -306,8 +318,7 @@ public class DiskManager {
 
   private void checkAllPieces() {
     state = CHECKING;
-    ConfigurationManager config = ConfigurationManager.getInstance();
-    boolean resumeEnabled = config.getBooleanParameter("Use Resume", false);
+    boolean resumeEnabled = ConfigurationManager.getInstance().getBooleanParameter("Use Resume", false);
     byte[] resumeArray = null;
     Map resumeMap = (Map) metaData.get("resume");
     if (resumeMap != null) {
@@ -340,7 +351,7 @@ public class DiskManager {
         checkPiece(i);
       }
       //Patch:: dump the newly built resume data to the disk / torrent --Tyler
-      if (bContinue && ConfigurationManager.getInstance().getBooleanParameter("Use Resume", false))
+      if (bContinue && resumeEnabled)
         this.dumpResumeDataToDisk();
     }
   }
@@ -389,18 +400,34 @@ public class DiskManager {
     private FileInfo _file;
     private String _path;
     private String _name;
+    private String _originalName = null;
     private long _length;
+    private static final String[] unsupportedChars = {"[\\/:?*\\p{Lo}]"}; // 0 = Windows: \ / : ? * and any other Unicode letters ('?')
 
     public BtFile(String path, String name, long length) {
       _path = path;
       _length = length;
       _name = name;
+      String newName = name.replace('"', '\''); 
+      if(System.getProperty("os.name").startsWith("Windows")) {
+        newName = newName.replaceAll(unsupportedChars[0], "_");
+      }
+      if(!name.equals(newName)) {
+        _name = newName;
+        _originalName = name;
+      }
     }
     public long getLength() {
       return _length;
     }
     public String getPath() {
       return _path;
+    }
+    public boolean isNameOriginal() {
+      return _originalName == null;
+    }
+    public String getOriginalName() {
+      return _originalName == null ? _name : _originalName;
     }
     public String getName() {
       return _name;
@@ -477,7 +504,14 @@ public class DiskManager {
 	        {
 	          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
 	          Request request = item.getRequest();
-	          item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
+
+            // temporary fix for bug 784306
+            ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+            if (buffer != null)
+              item.setBuffer(buffer);
+            else {
+              System.out.println("re-adding piece " + request.getPieceNumber());
+            }
 	        }
 		
 			if (readQueue.size() == 0) 
@@ -557,11 +591,12 @@ public class DiskManager {
     this.state = ALLOCATING;
     allocated = 0;
     boolean newFiles = false;
+    String basePath = path + System.getProperty("file.separator") + rootPath;
     for (int i = 0; i < fileList.size(); i++) {
       //get the BtFile
       BtFile tempFile = (BtFile) fileList.get(i);
       //get the path
-      String tempPath = path + System.getProperty("file.separator") + rootPath + tempFile.getPath();
+      String tempPath = basePath + tempFile.getPath();
       //get file name
       String tempName = tempFile.getName();
       //get file length
@@ -575,6 +610,8 @@ public class DiskManager {
         //File doesn't exist
         buildDirectoryStructure(tempPath);
         try {
+					// throw Exception if filename is not supported by os
+          f.getCanonicalPath();
           raf = new RandomAccessFile(f, "rw");
           raf.setLength(length);
         } catch (Exception e) {
@@ -583,9 +620,7 @@ public class DiskManager {
           return false;
         }
 
-        ConfigurationManager config = ConfigurationManager.getInstance();
-        boolean allocateNew = config.getBooleanParameter("Allocate New", true);
-        if (allocateNew)
+        if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true))
           clearFile(raf);
         newFiles = true;
       } else {
@@ -665,21 +700,11 @@ public class DiskManager {
   }
 
   public synchronized boolean checkPiece(int pieceNumber) {
-
-    int length = 0;
-    if (pieceNumber < nbPieces - 1) {
-      length = pieceLength;
-    } else {
-      length = lastPieceLength;
-    }
-
     allocateAndTestBuffer.position(0);
 
-    if (pieceNumber < nbPieces - 1) {
-      allocateAndTestBuffer.limit(pieceLength);
-    } else {
-      allocateAndTestBuffer.limit(lastPieceLength);
-    }
+    int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
+
+    allocateAndTestBuffer.limit(length);
 
     //get the piece list
     List pieceList = pieceMap[pieceNumber];
@@ -703,7 +728,6 @@ public class DiskManager {
     }
 
     try {
-      SHA1Hasher hasher = new SHA1Hasher();
       allocateAndTestBuffer.position(0);
 
       byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
@@ -733,11 +757,7 @@ public class DiskManager {
     //build the piece byte[] 
     byte[] resumeData = new byte[pieceDone.length];
     for (int i = 0; i < resumeData.length; i++) {
-      if (pieceDone[i] == false) {
-        resumeData[i] = (byte) 0;
-      } else {
-        resumeData[i] = (byte) 1;
-      }
+      resumeData[i] = pieceDone[i] ? (byte) 1 : (byte) 0;
     }
 
     //Attach the resume data
@@ -750,6 +770,10 @@ public class DiskManager {
     resumeMap.put(path, resumeDirectory);
     resumeDirectory.put("resume data", resumeData);
 
+    saveTorrent();
+  }
+
+  private void saveTorrent() {
     //TODO:: CLEAN UP - fix the conversion to a string...
     //open the torrent file    		
     File torrent = null;
@@ -830,6 +854,13 @@ public class DiskManager {
     int previousFilesLength = 0;
     int currentFile = 0;
     List pieceList = pieceMap[pieceNumber];
+
+		// temporary fix for bug 784306
+    if(pieceList.size() == 0) {
+      System.out.println("no pieceList entries for " + pieceNumber);
+      return buffer;
+    }
+
     PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(currentFile);
     long fileOffset = tempPiece.getOffset();
     while ((previousFilesLength + tempPiece.getLength()) < offset) {
