@@ -138,6 +138,12 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     fileImage.setLayoutData(gridData);
 
+    fileImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        updateOverall(true);
+      }
+    });
+
     filePercent = new BufferedLabel(gFile, SWT.RIGHT);
     filePercent.setText("\t"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -153,6 +159,12 @@ public class GeneralView extends AbstractIView {
     gridData.widthHint = 150;
     gridData.heightHint = 30;
     piecesImage.setLayoutData(gridData);
+
+    piecesImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        updatePiecesInfo(true);
+      }
+    });
 
     piecesPercent = new BufferedLabel(gFile, SWT.RIGHT);
     piecesPercent.setText("\t"); //$NON-NLS-1$
@@ -179,6 +191,11 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     availabilityImage.setLayoutData(gridData);
     Messages.setLanguageText(availabilityImage, "GeneralView.label.status.pieces_available.tooltip");
+    availabilityImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        updateAvailability();
+      }
+    });
 
     availabilityPercent = new BufferedLabel(gAvailability, SWT.RIGHT);
     availabilityPercent.setText("\t"); //$NON-NLS-1$
@@ -533,18 +550,6 @@ public class GeneralView extends AbstractIView {
     gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
  
-    // row
-    
-
-    
-    
-    
-    genComposite.addListener(SWT.Resize, new Listener() {
-      public void handleEvent(Event e) {
-        overall = -1;
-        Arrays.fill(pieces, false);
-      }
-    });
     
     if(System.getProperty("os.name").equals("Mac OS X")) {
       Shell shell = MainWindow.getWindow().getShell();
@@ -573,8 +578,8 @@ public class GeneralView extends AbstractIView {
 
     loopFactor++;
     updateAvailability();
-    updatePiecesInfo();
-    updateOverall();
+    updatePiecesInfo(false);
+    updateOverall(false);
     setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
@@ -659,21 +664,22 @@ public class GeneralView extends AbstractIView {
     if (availabilityImage == null || availabilityImage.isDisposed())
       return;
     Rectangle bounds = availabilityImage.getClientArea();
-    int width = bounds.width - 5;
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1;
-    int height = bounds.height - 2;
-    if (width < 10 || height < 5)
-      return;
     GC gc = new GC(availabilityImage);
     if (aImage != null && !aImage.isDisposed())
       aImage.dispose();
-    aImage = new Image(display, width, height);
+    aImage = new Image(display, bounds.width, bounds.height);
     GC gcImage = new GC(aImage);
+    gcImage.setForeground(MainWindow.grey);
+    gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
     int allMin = 0;
     int total = 0;
     String sTotal = "000"; //$NON-NLS-1$
     if (available != null) {
+      int xMax = bounds.width - 2;
+      int yMax = bounds.height - 2;
+      if (xMax < 10 || yMax < 5)
+        return;
+
       allMin = available[0];
       int nbPieces = available.length;
       for (int i = 0; i < nbPieces; i++) {
@@ -691,9 +697,9 @@ public class GeneralView extends AbstractIView {
       if (total < 100)
         sTotal = "0" + sTotal; //$NON-NLS-1$
 
-      for (int i = 0; i < width; i++) {
-        int a0 = (i * nbPieces) / width;
-        int a1 = ((i + 1) * nbPieces) / width;
+      for (int i = 0; i < xMax; i++) {
+        int a0 = (i * nbPieces) / xMax;
+        int a1 = ((i + 1) * nbPieces) / xMax;
         if (a1 == a0)
           a1++;
         if (a1 > nbPieces)
@@ -734,7 +740,7 @@ public class GeneralView extends AbstractIView {
         else if (pond > 0)
           index = 1;
         gcImage.setBackground(MainWindow.blues[index]);
-        gcImage.fillRectangle(i, 1, 1, height);
+        gcImage.fillRectangle(i+1, 1, 1, yMax);
       }
     }
     gcImage.dispose();
@@ -743,126 +749,133 @@ public class GeneralView extends AbstractIView {
       return;
     }
     availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
-    gc.setForeground(MainWindow.grey);
-    gc.drawImage(aImage, x0, y0);
-    gc.drawRectangle(x0, y0, width, height);
+    gc.drawImage(aImage, bounds.x, bounds.y);
     gc.dispose();
   }
 
-  public synchronized void updatePiecesInfo() {
-
-    final boolean[] available = pieces;
+  public synchronized void updatePiecesInfo(boolean bForce) {
     if (display == null || display.isDisposed())
       return;
 
     if (piecesImage == null || piecesImage.isDisposed())
       return;
-    Rectangle bounds = piecesImage.getClientArea();
-    int width = bounds.width - 5;
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1;
-    int height = bounds.height - 2;
-    GC gc = new GC(piecesImage);
-    boolean valid = true;
-    boolean newPieces[] = manager.getPiecesStatus();
-    if (newPieces == null) {
-      gc.dispose();
-      return;
-    }
-    for (int i = 0; i < pieces.length; i++) {
-      if (pieces[i] != newPieces[i]) {
-        valid = false;
-        pieces[i] = newPieces[i];
+    boolean valid = !bForce;
+    if (valid) {
+      boolean newPieces[] = manager.getPiecesStatus();
+      if (newPieces == null) {
+        return;
+      }
+      for (int i = 0; i < pieces.length; i++) {
+        if (pieces[i] != newPieces[i]) {
+          valid = false;
+          pieces[i] = newPieces[i];
+        }
+      }
+    } else {
+      pieces = manager.getPiecesStatus();
+      if (pieces == null) {
+        return;
       }
     }
+
     if (!valid) {
+      Rectangle bounds = piecesImage.getClientArea();
+      GC gc = new GC(piecesImage);
       if (pImage != null && !pImage.isDisposed())
         pImage.dispose();
-      if (width < 10 || height < 5)
+      int xMax = bounds.width - 2;
+      int yMax = bounds.height - 2;
+      if (xMax < 10 || yMax < 5)
         return;
-      pImage = new Image(display, width, height);
+      pImage = new Image(display, bounds.width, bounds.height);
       GC gcImage = new GC(pImage);
-      if (available != null) {
-        int nbPieces = available.length;
-        int total = 0;
-        for (int i = 0; i < nbPieces; i++) {
-          if (available[i])
-            total++;
-        }
-        for (int i = 0; i < width; i++) {
-          int a0 = (i * nbPieces) / width;
-          int a1 = ((i + 1) * nbPieces) / width;
-          if (a1 == a0)
-            a1++;
-          if (a1 > nbPieces)
-            a1 = nbPieces;
-          int nbAvailable = 0;
-          for (int j = a0; j < a1; j++) {
-            if (available[j]) {
-              nbAvailable++;
-            }
-            int index = (nbAvailable * 4) / (a1 - a0);
-            gcImage.setBackground(MainWindow.blues[index]);
-            gcImage.fillRectangle(i,1,1,height);
-          }
-        }
-        gcImage.dispose();
-        total = (total * 1000) / nbPieces;
-        if (piecesPercent != null && !piecesPercent.isDisposed())
-          piecesPercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
+      gcImage.setForeground(MainWindow.grey);
+      gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
+
+      int nbPieces = pieces.length;
+      int total = 0;
+      for (int i = 0; i < nbPieces; i++) {
+        if (pieces[i])
+          total++;
       }
-    }
-    if (pImage == null || pImage.isDisposed()) {
+      for (int i = 0; i < xMax; i++) {
+        int a0 = (i * nbPieces) / xMax;
+        int a1 = ((i + 1) * nbPieces) / xMax;
+        if (a1 == a0)
+          a1++;
+        if (a1 > nbPieces)
+          a1 = nbPieces;
+        int nbAvailable = 0;
+        for (int j = a0; j < a1; j++) {
+          if (pieces[j]) {
+            nbAvailable++;
+          }
+          int index = (nbAvailable * 4) / (a1 - a0);
+          gcImage.setBackground(MainWindow.blues[index]);
+          gcImage.fillRectangle(i+1,1,1,yMax);
+        }
+      }
+      gcImage.dispose();
+      total = (total * 1000) / nbPieces;
+      if (piecesPercent != null && !piecesPercent.isDisposed())
+        piecesPercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
+
+      if (pImage == null || pImage.isDisposed()) {
+        gc.dispose();
+        return;
+      }
+      gc.drawImage(pImage, bounds.x, bounds.y);
       gc.dispose();
-      return;
     }
-    gc.setForeground(MainWindow.grey);
-    gc.drawImage(pImage, x0, y0);
-    gc.drawRectangle(x0, y0, width, height);
-    gc.dispose();
   }
 
   public synchronized void updateOverall() {
+    updateOverall(false);
+  }
+
+  public synchronized void updateOverall(boolean bForce) {
     if (display == null || display.isDisposed())
       return;
-    final int total = manager.getStats().getCompleted();
+    final int total = manager.getStats().getDownloadCompleted(true);
     //    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
 
     if (fileImage == null || fileImage.isDisposed())
       return;
-    GC gc = new GC(fileImage);
-    Rectangle bounds = fileImage.getClientArea();
-    int width = bounds.width - 5;
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1;
-    int height = bounds.height - 2;
-    if (overall != total) {
+    if (overall != total || bForce) {
+      GC gc = new GC(fileImage);
+      Rectangle bounds = fileImage.getClientArea();
+      int xMax = bounds.width - 2;
+      int yMax = bounds.height - 2;
       if (fImage != null && !fImage.isDisposed())
         fImage.dispose();
-      if (width < 10 || height < 5) {
+      if (xMax < 10 || yMax < 5) {
       	gc.dispose();
         return;
       }
-      fImage = new Image(display, width, height);
+      fImage = new Image(display, bounds.width, bounds.height);
       GC gcImage = new GC(fImage);
-      int limit = (width * total) / 1000;
+      gcImage.setForeground(MainWindow.grey);
+      gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
+
+      int limit = (xMax * total) / 1000;
       gcImage.setBackground(MainWindow.blues[4]);
-      gcImage.fillRectangle(1,1,limit,height);
-      gcImage.setBackground(MainWindow.blues[0]);
-      gcImage.fillRectangle(limit,1,width,height);
+      gcImage.fillRectangle(1,1,limit,yMax);
+      if (limit < xMax) {
+        gcImage.setBackground(MainWindow.blues[0]);
+        gcImage.fillRectangle(limit+1,1,xMax-limit-1,yMax);
+      }
       gcImage.dispose();
       if (filePercent != null && !filePercent.isDisposed())
         filePercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
+      overall = total;
+
+      if (fImage == null || fImage.isDisposed()) {
+        gc.dispose();
+        return;
+      }
+      gc.drawImage(fImage, bounds.x, bounds.y);
+      gc.dispose();
     }
-    overall = total;
-    if (fImage == null || fImage.isDisposed()) {
-	  gc.dispose();
-      return;
-    }
-    gc.setForeground(MainWindow.grey);
-    gc.drawImage(fImage, x0, y0);
-    gc.drawRectangle(x0, y0, width, height);
-    gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {
     timeElapsed.setText( elapsed );
