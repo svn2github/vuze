@@ -8,6 +8,7 @@ FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for qui
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
 
+BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 
 20.11.03 | Azureus 2.0.4.2
 
