@@ -135,9 +135,9 @@ public class SWTUpdateChecker implements UpdatableComponent
         if(name.equals("swt.jar")) {
           installer.addResource(name,zip,false);
           if(Constants.isOSX) {
-            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/swt.jar");
+            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + name);
           } else {
-            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt.jar");
+            installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
           }
           continue;
         }
@@ -146,9 +146,9 @@ public class SWTUpdateChecker implements UpdatableComponent
         if(name.equals("swt-pi.jar")) {
           installer.addResource(name,zip,false);
           if(Constants.isOSX) {
-            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/swt-pi.jar");
+            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + name);
           } else {
-            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt-pi.jar");
+            installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
           }
           continue;
         }
