@@ -33,7 +33,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.5"
+#define VERSION "1.6"
 
 
 HMODULE	application_module;
@@ -188,7 +188,7 @@ jstringToCharsW(
 
 		for (int i=0;i<jdata_len;i++){
 
-			chars[i] = (char)jdata[i];
+			chars[i] = (WCHAR)jdata[i];
 		}
 
 		chars[jdata_len]=0;
@@ -542,7 +542,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 
 	start_info.cb = sizeof( STARTUPINFO );
 
-	if ( CreateProcess(
+	if ( CreateProcessW(
 			NULL,				// LPCTSTR lpApplicationName,
 			command_line,		// LPTSTR lpCommandLine,
 			NULL,				// LPSECURITY_ATTRIBUTES lpProcessAttributes,
