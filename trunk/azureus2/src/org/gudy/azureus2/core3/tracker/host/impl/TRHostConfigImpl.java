@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.host.impl;
 
 import java.util.*;
 import java.io.*;
+import java.text.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
@@ -200,51 +201,50 @@ TRHostConfigImpl
 		  
 					TRHostTorrent torrent = (TRHostTorrent)torrents[i];
 					
-					if ( torrent.isPersistent()){
-	
-						StringBuffer	stats_entry = new StringBuffer(2048);
+					StringBuffer	stats_entry = new StringBuffer(2048);
+					
+					byte[]	hash 		= torrent.getTorrent().getHash();
+					byte[]	name		= torrent.getTorrent().getName();
+					int		status 		= torrent.getStatus();
+					long	completed	= torrent.getCompletedCount();
+					long	announces	= torrent.getAnnounceCount();
+					long	scrapes		= torrent.getScrapeCount();
+					long	uploaded	= torrent.getTotalUploaded();
+					long	downloaded	= torrent.getTotalDownloaded();
+					long	bytes_in	= torrent.getTotalBytesIn();
+					long	bytes_out	= torrent.getTotalBytesOut();
+					
+					TRHostPeer[]	peers = torrent.getPeers();
+					
+					int	seed_count 		= 0;
+					int non_seed_count	= 0;
+					
+					for (int j=0;j<peers.length;j++){
 						
-						Map t_map = new HashMap();
-				 	
-						byte[]	hash 		= torrent.getTorrent().getHash();
-						byte[]	name		= torrent.getTorrent().getName();
-						int		status 		= torrent.getStatus();
-						long	completed	= torrent.getCompletedCount();
-						long	announces	= torrent.getAnnounceCount();
-						long	scrapes		= torrent.getScrapeCount();
-						long	uploaded	= torrent.getTotalUploaded();
-						long	downloaded	= torrent.getTotalDownloaded();
-						long	bytes_in	= torrent.getTotalBytesIn();
-						long	bytes_out	= torrent.getTotalBytesOut();
-						
-						TRHostPeer[]	peers = torrent.getPeers();
-						
-						int	seed_count 		= 0;
-						int non_seed_count	= 0;
-						
-						for (int j=0;j<peers.length;j++){
+						if ( peers[j].isSeed()){
 							
-							if ( peers[j].isSeed()){
-								
-								seed_count++;
-								
-							}else{
-								
-								non_seed_count++;
-							}
+							seed_count++;
+							
+						}else{
+							
+							non_seed_count++;
 						}
-						
-						
+					}
+					
+					if ( torrent.isPersistent()){
+				
+						Map t_map = new HashMap();
+					
 						t_map.put("hash", hash );
-						
+					
 						t_map.put("status", new Long(status ));
-			
+		
 						list.add(t_map);
-						
+					
 						Map	s_map = new HashMap();
-						
+					
 						t_map.put( "stats", s_map );
-						
+					
 						s_map.put( "completed", new Long(completed));
 						s_map.put( "announces", new Long(announces));
 						s_map.put( "scrapes", new Long(scrapes));
@@ -252,46 +252,46 @@ TRHostConfigImpl
 						s_map.put( "downloaded", new Long(downloaded));
 						s_map.put( "bytesin", new Long(bytes_in));
 						s_map.put( "bytesout", new Long(bytes_out));
-						
-						
-						stats_entry.append( new String(name, Constants.DEFAULT_ENCODING ));
-						stats_entry.append(",");
-						stats_entry.append( ByteFormatter.nicePrint(hash,true));
-						stats_entry.append(",");
-						stats_entry.append(status);
-						stats_entry.append(",");
-						stats_entry.append(seed_count);
-						stats_entry.append(",");
-						stats_entry.append(non_seed_count);
-						stats_entry.append(",");
-						stats_entry.append(completed);
-						stats_entry.append(",");
-						stats_entry.append(announces);
-						stats_entry.append(",");
-						stats_entry.append(scrapes);
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc(uploaded));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc(downloaded));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageUploaded()));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageDownloaded()));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( torrent.getTotalLeft()));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_out ));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesIn()));
-						stats_entry.append(",");
-						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesOut()));
-						
-						stats_entry.append( "\r\n");
-						
-						stats_entries.add( stats_entry );
 					}
+
+					
+					stats_entry.append( new String(name, Constants.DEFAULT_ENCODING ));
+					stats_entry.append(",");
+					stats_entry.append( ByteFormatter.nicePrint(hash,true));
+					stats_entry.append(",");
+					stats_entry.append(status);
+					stats_entry.append(",");
+					stats_entry.append(seed_count);
+					stats_entry.append(",");
+					stats_entry.append(non_seed_count);
+					stats_entry.append(",");
+					stats_entry.append(completed);
+					stats_entry.append(",");
+					stats_entry.append(announces);
+					stats_entry.append(",");
+					stats_entry.append(scrapes);
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc(uploaded));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc(downloaded));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageUploaded()));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageDownloaded()));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( torrent.getTotalLeft()));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_out ));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesIn()));
+					stats_entry.append(",");
+					stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesOut()));
+					
+					stats_entry.append( "\r\n");
+					
+					stats_entries.add( stats_entry );
 				 	
 		  	 	}catch( TOTorrentException e ){
 		  	 		
@@ -334,10 +334,7 @@ TRHostConfigImpl
 						stats_entries.size() > 0 ){
 			   		
 				   	try{
-				   		Calendar now = GregorianCalendar.getInstance();
-				   		
-				   		String timeStamp =
-				   		"[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("] ");    
+				   		String timeStamp = "["+new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss").format(new Date())+"] ";
 				   		
 				   		PrintWriter	pw = null;
 				   		
