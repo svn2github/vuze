@@ -506,10 +506,20 @@ PlatformManagerImpl
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean
     hasCapability(
             PlatformManagerCapabilities capability)
     {
         return capabilitySet.contains(capability);
+    }
+
+    /**
+     * Does nothing
+     */
+    public void dispose()
+    {
     }
 }

@@ -125,4 +125,11 @@ public class PlatformManagerImpl implements PlatformManager
     {
         return false;
     }
+
+    /**
+     * Does nothing
+     */
+    public void dispose()
+    {
+    }
 }

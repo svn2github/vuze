@@ -105,4 +105,10 @@ PlatformManager
     public boolean
 	hasCapability(
 		PlatformManagerCapabilities	capability );
+
+    /**
+     * Disposes system resources. This method is optional.
+     */
+    public void
+    dispose();
 }

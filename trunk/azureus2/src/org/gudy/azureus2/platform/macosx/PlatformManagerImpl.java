@@ -55,9 +55,6 @@ public class PlatformManagerImpl implements PlatformManager
     //T: PlatformManagerCapabilities
     private final HashSet capabilitySet = new HashSet();
 
-    protected static boolean NATIVE_AVAILABLE;
-    private static NativeInvocationBridge _bridge;
-
     /**
      * Gets the platform manager singleton, which was already initialized
      */
@@ -71,18 +68,6 @@ public class PlatformManagerImpl implements PlatformManager
      */
     static
     {
-        _bridge = NativeInvocationBridge.sharedInstance();
-        NATIVE_AVAILABLE = _bridge.isEnabled();
-
-        if(NATIVE_AVAILABLE)
-        {
-            Debug.outNoStack("[PlatformManager] Using Native bridge for platform invoke");
-        }
-        else
-        {
-            Debug.outNoStack("[PlatformManager] Using OSAScript architecture for platform invoke because Cocoa-Java or equivalent bridge is not available");
-        }
-
         initializeSingleton();
     }
 
@@ -188,7 +173,7 @@ public class PlatformManagerImpl implements PlatformManager
             return;
         }
 
-        boolean useOSA = !NATIVE_AVAILABLE || !_bridge.performRecoverableFileDelete(file);
+        boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().performRecoverableFileDelete(file);
 
         if(useOSA)
         {
@@ -216,6 +201,14 @@ public class PlatformManagerImpl implements PlatformManager
     public boolean hasCapability(PlatformManagerCapabilities capability)
     {
         return capabilitySet.contains(capability);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void dispose()
+    {
+        NativeInvocationBridge.sharedInstance().dispose();
     }
 
     /**
@@ -265,7 +258,7 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public void showInFinder(File path)
     {
-        boolean useOSA = !NATIVE_AVAILABLE || !_bridge.showInFinder(path);
+        boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().showInFinder(path);
 
         if(useOSA)
         {
