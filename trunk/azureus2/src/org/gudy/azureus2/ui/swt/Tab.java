@@ -105,10 +105,13 @@ public class Tab {
         if(view instanceof ManagerView) {
           try {
             view.delete();
-            tab_items[i].dispose();
-            tabs.remove(tab_items[i]);
           } catch (Exception e) {
           }
+          try {
+            tab_items[i].dispose();
+          } catch (Exception e) {
+          }
+          tabs.remove(tab_items[i]);
         }
 			}
 		}
@@ -124,8 +127,12 @@ public class Tab {
       view = (IView) tabs.get(item);
       tabs.remove(item);
     }
-    if (view != null)
-      view.delete();
+    if (view != null) {
+      try {
+        view.delete();
+      } catch (Exception ignore) {
+      }
+    }
   }
 
   public void setFocus() {
