@@ -28,5 +28,7 @@ public interface DayStats extends GeneralStats {
   
   public int getDay();
   
+  public MonthStats getParentMonthStats();
+  
   public HourStatsList getHoursStats();
 }

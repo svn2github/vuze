@@ -50,5 +50,5 @@ public interface GeneralStats {
    * @return the average upload speed in bytes per second
    */
   public int getAverageUploadSpeed();
-    
+  
 }

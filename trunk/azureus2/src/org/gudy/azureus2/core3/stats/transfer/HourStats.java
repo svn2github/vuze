@@ -29,5 +29,7 @@ public interface HourStats extends GeneralStats {
   /**
    * @return the hour number bewtween 0 and 23
    */
-  public int getHour();  
+  public int getHour();
+  
+  public DayStats getParentDayStats();
 }

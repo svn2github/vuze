@@ -31,5 +31,7 @@ public interface YearStats extends GeneralStats {
    */
   public int getYear();
   
+  public OverallStats getParentOverallStats();
+  
   public MonthStatsList getMonthStats();
 }

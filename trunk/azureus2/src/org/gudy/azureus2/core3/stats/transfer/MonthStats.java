@@ -28,6 +28,8 @@ public interface MonthStats extends GeneralStats {
   
   public int getMonth();
   
+  public YearStats getParentYearStats();
+  
   public DayStatsList getDayStats();
 
 }
