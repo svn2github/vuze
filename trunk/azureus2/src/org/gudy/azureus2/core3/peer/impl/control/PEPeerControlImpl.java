@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.PieceList;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -80,9 +81,15 @@ PEPeerControlImpl
   private PEPeerTransport currentOptimisticUnchoke;
   
   
-  //A flag to indicate when we're in endgame mode
+  private static final long	END_GAME_MODE_SIZE_TRIGGER	= 1*1024*1024;
+  private static final long	END_GAME_MODE_TIMEOUT		= 120*1000;
+  
+  	//A flag to indicate when we're in endgame mode
   private boolean endGameMode;
-  //The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
+  private boolean endGameModeAbandoned;
+  private long	  timeEndGameModeEntered;
+  
+    //The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
   private List 		endGameModeChunks;
   private AEMonitor	endGameModeChunks_mon	= new AEMonitor( "PEPeerControl:EG");
 
@@ -1679,7 +1686,7 @@ PEPeerControlImpl
     	DiskManagerPiece	dm_piece = dm_pieces[i];
     	
     	if ( !dm_piece.getDone() && dm_piece.getCompleteCount() > 0 ){
-    		
+    		    		
 	    	_pieces[i] = new PEPieceImpl( this, dm_piece, true, true );
 	        	
 	        pieceAdded(_pieces[i]);
@@ -2457,22 +2464,61 @@ PEPeerControlImpl
   
   private void checkEndGameMode() {
     //We can't come back from end-game mode
-    if(endGameMode)
-      return;
+    if ( endGameMode || endGameModeAbandoned ){
+    	
+    	if ( !endGameModeAbandoned ){
+    		 	
+    		if ( SystemTime.getCurrentTime() - timeEndGameModeEntered > END_GAME_MODE_TIMEOUT ){
+
+    			endGameMode	= false;
+    			
+    			endGameModeAbandoned	= true;
+  
+    		    LGLogger.log(LGLogger.INFORMATION,"Abandoning end-game mode: " + _downloadManager.getDisplayName());
+
+    		    try{
+    		    	endGameModeChunks_mon.enter();
+
+    		    	endGameModeChunks.clear();
+    		    	
+    		    }finally{
+    		    	
+    		    	endGameModeChunks_mon.exit();
+    		    }
+    		}
+    	}
+    	
+    	return;
+    }
+    
+    int	active_pieces = 0;
+    
     for(int i = 0 ; i < _pieces.length ; i++) {
       //If the piece is downloaded, let's simply continue
       if(dm_pieces[i].getDone())
         continue;
       //If the piece is being downloaded (fully requested), let's simply continue
-      if(_downloading[i])
+      if(_downloading[i]){
+      	active_pieces++;
+      
         continue;
+      }
+      
       //Else, the piece is not downloaded / not fully requested, this isn't end game mode
       return;     
     }    
-    computeEndGameModeChunks();
-    endGameMode = true;
-    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
-    //System.out.println("End-Game Mode activated");
+    
+    	// only flick into end-game mode if < trigger size left
+    
+    if ( active_pieces * _diskManager.getPieceLength() <= END_GAME_MODE_SIZE_TRIGGER ){
+    	
+    	timeEndGameModeEntered	= SystemTime.getCurrentTime();
+		
+	    computeEndGameModeChunks();
+	    endGameMode = true;
+	    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
+	    //System.out.println("End-Game Mode activated");
+    }
   }
   
   private void computeEndGameModeChunks() {    

@@ -387,19 +387,19 @@ DiskManagerImpl
 		
 		root_dir	+= File.separator;
 		
-		System.out.println( "root dir = " + root_dir_file );
+		// System.out.println( "root dir = " + root_dir_file );
 		
 		List btFileList	= piece_mapper.getFileList();
 		
 		for (int i = 0; i < btFileList.size(); i++) {
-			//get the BtFile
+				//get the BtFile
 			DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
-			//get the path
+				//get the path
 			String tempPath = root_dir + tempFile.getPath();
-			//get file name
+				//get file name
 			String tempName = tempFile.getName();
-			System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
-			//get file length
+				//System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
+				//get file length
 			long length = tempFile.getLength();
 
 			File f = new File(tempPath, tempName);
