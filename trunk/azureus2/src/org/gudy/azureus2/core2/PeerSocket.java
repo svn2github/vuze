@@ -236,7 +236,7 @@ public class PeerSocket extends PeerConnection {
 
   protected void readMessage(ByteBuffer buffer) {
     lengthBuffer.position(0);
-    buffer.position(0);
+    if (buffer != null) buffer.position(0);
     readBuffer = buffer;
     readingLength = true;
   }
