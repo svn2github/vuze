@@ -48,6 +48,7 @@ RemoteUIMainPanel
 	protected DownloadManager			download_manager;
 	
 	protected MDDownloadModel			download_model;
+	protected VWDownloadView			download_view;
 	
 	protected ArrayList					listeners = new ArrayList();
 	
@@ -100,7 +101,7 @@ RemoteUIMainPanel
 			
 			download_model 	= new MDDownloadModel( download_manager );
 			
-			final VWDownloadView 	download_view 	= new VWDownloadView(download_model);
+			download_view 	= new VWDownloadView(download_model);
 			
 			MDConfigModel			config_model	= new MDConfigModel( _pi );
 			
@@ -166,6 +167,8 @@ RemoteUIMainPanel
 						
 								download_model.start(download_view.getSelectedRows());
 								
+								refresh();
+								
 							}catch( Throwable e ){
 								
 								e.printStackTrace();
@@ -186,6 +189,8 @@ RemoteUIMainPanel
 								
 								download_model.stop(download_view.getSelectedRows());
 								
+								refresh();
+								
 							}catch( Throwable e ){
 								
 								e.printStackTrace();
@@ -205,6 +210,8 @@ RemoteUIMainPanel
 							try{
 								
 								download_model.remove(download_view.getSelectedRows());
+								
+								refresh();
 								
 							}catch( Throwable e ){
 								
@@ -227,7 +234,7 @@ RemoteUIMainPanel
 							
 								download_manager.addDownload( url );
 							
-								download_model.refresh();
+								refresh();
 								
 							}catch( Throwable e ){
 								
@@ -297,7 +304,11 @@ RemoteUIMainPanel
 				((RemoteUIMainPanelListener)listeners.get(i)).refresh();
 			}
 			
+			int[]	old_rows = download_view.getSelectedRows();
+			
 			download_model.refresh();
+			
+			download_view.setSelectedRows( old_rows );
 			
 		}catch( Throwable e ){
 			

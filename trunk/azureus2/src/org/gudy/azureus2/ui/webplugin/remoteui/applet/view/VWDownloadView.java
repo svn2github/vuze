@@ -236,4 +236,19 @@ VWDownloadView
 	{
 		return(sorter.mapRows(table.getSelectedRows()));
 	}
+	
+	public void
+	setSelectedRows(
+		int[]	rows )
+	{
+		rows = sorter.unmapRows( rows );
+		
+		for (int i=0;i<rows.length;i++){
+			
+			if ( rows[i] != -1 ){
+				
+				table.getSelectionModel().addSelectionInterval(rows[i], rows[i]);
+			}
+		}
+	}
 }

@@ -74,41 +74,36 @@ DisplayFormatters
 			g_unit = " GB";
 		}
 	}
-	public static String formatByteCountToKiBEtc(int n) {
-	  if (n < 1024)
-		return String.valueOf(n).concat(" B");
-	  if (n < 1024 * 1024)
-		return String.valueOf((n / 1024)).concat(".").concat(String.valueOf(((n % 1024) / 102))).concat(k_unit);
-	  if (n < 1024 * 1024 * 1024)
-		return String.valueOf((n / (1024 * 1024))).concat(
-      ".").concat(
-      String.valueOf(((n % (1024 * 1024)) / 104857))).concat(
-      m_unit);
-	  if (n < 1024 * 1024 * 1024 * 1024)
-		return String.valueOf((n / (1024 * 1024 * 1024))).concat(
-      ".").concat(
-      String.valueOf(
-      ((n % (1024 * 1024 * 1024)) / 107374182))).concat(
-      g_unit);
-	  return "A lot";
+	public static String 
+	formatByteCountToKiBEtc(int n) 
+	{
+		return( formatByteCountToKiBEtc((long)n));
 	}
 
-	public static String formatByteCountToKiBEtc(long n) {
-	  if (n < 1024)
-		return String.valueOf(n).concat(" B");
-	  if (n < 1024 * 1024)
-		return String.valueOf((n / 1024)).concat(".").concat(String.valueOf(((n % 1024) / 102))).concat(k_unit);
-	  if (n < 1024 * 1024 * 1024)
-		return String.valueOf(n / (1024 * 1024)).concat(
-		  ".").concat(
-		  String.valueOf((n % (1024 * 1024)) / 104857)).concat(
-		  m_unit);
-	  if (n < 1024l * 1024l * 1024l * 1024l)
-		return String.valueOf(n / (1024l * 1024l * 1024l)).concat(
-		  ".").concat(
-		  String.valueOf((n % (1024l * 1024l * 1024l)) / 107374182l)).concat(
-		  g_unit);
-	  return "A lot !!!";
+	public static 
+	String formatByteCountToKiBEtc(
+		long n )
+	{
+		if (n < 1024){  	
+	  
+			return( n + " B" );
+			
+		}else if (n < 1024 * 1024){
+		
+			return( (n / 1024) + "." + (((n % (1024))*10 ) / (1024)) + k_unit );
+			
+		}else if (n < 1024L * 1024L * 1024L){
+		
+			return( (n / (1024L * 1024L)) + "." + (((n % (1024L * 1024L))*10L) / (1024L*1024L)) +  m_unit );
+			
+		}else if (n < 1024L * 1024L * 1024L * 1024L ){
+			
+			return( (n / (1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L)) +  g_unit );
+			
+		}else{
+			
+			return( "A lot !!!" );
+		}
 	}
 	
 	public static String
@@ -126,15 +121,15 @@ DisplayFormatters
 			return String.valueOf(n).concat(" B");
 		if (n < 1000 * 1000)
 			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(" KB");
-		if (n < 1000 * 1000 * 1000)
-			return String.valueOf(n / (1000 * 1000)).concat(
+		if (n < 1000L * 1000L * 1000L)
+			return String.valueOf(n / (1000L * 1000L)).concat(
 			".").concat(
-			String.valueOf((n % (1000 * 1000)) / (100 * 1000))).concat(
+			String.valueOf((n % (1000L * 1000L)) / (1000L * 100L))).concat(
 			" MB");
-		if (n < 1000l * 1000l * 1000l * 1000l)
-			return String.valueOf(n / (1000l * 1000l * 1000l)).concat(
+		if (n < 1000L * 1000L * 1000L * 1000L)
+			return String.valueOf(n / (1000L * 1000L * 1000L)).concat(
 			".").concat(
-			String.valueOf((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))).concat(
+			String.valueOf((n % (1000L * 1000L * 1000L)) / (1000L * 1000L * 100L))).concat(
 			" GB");
 		return "A lot !!!";
 	}

@@ -188,8 +188,6 @@ MDDownloadModel
 					throw( new RPException( "Start fails", e ));
 				}
 			}
-			
-			refresh();
 		}
 	}
 	
@@ -209,8 +207,6 @@ MDDownloadModel
 					throw( new RPException( "Stop fails", e ));
 				}
 			}
-			
-			refresh();
 		}
 	}
 	
@@ -230,8 +226,6 @@ MDDownloadModel
 					throw( new RPException( "Remove fails", e ));
 				}
 			}
-			
-			refresh();
 		}
 	}
 }

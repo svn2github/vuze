@@ -335,6 +335,30 @@ space and avoid unnecessary heap allocation.
     	return( rows_out );
     }
     
+    public int[]
+	unmapRows(
+    	int[]	rows_in )
+    {
+    	int[]	rows_out = new int[rows_in.length];
+    	
+    	for (int i=0;i<rows_out.length;i++){
+    		
+    		rows_out[i] = -1;
+    		
+    		for (int j=0;j<indexes.length;j++){
+    			
+    			if ( indexes[j] == rows_in[i]){
+    				
+    				rows_out[i] = j;
+    				
+    				break;
+    			}
+    		}
+    	}
+    	
+    	return( rows_out );
+    }
+    
     public void setValueAt(Object aValue, int aRow, int aColumn)
     {
         checkModel();

@@ -38,6 +38,7 @@ import javax.swing.*;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 import org.gudy.azureus2.plugins.download.*;
@@ -52,6 +53,9 @@ RemoteUIApplet
 	protected RPPluginInterface		plugin_interface;
 	
 	protected RemoteUIMainPanel		panel;
+	
+	protected Semaphore	dialog_sem			= new Semaphore(1);
+	protected ArrayList	outstanding_dialogs	= new ArrayList();
 	
 	public
 	RemoteUIApplet()
@@ -120,22 +124,69 @@ RemoteUIApplet
 	
 	protected void
 	showError(
+		final Throwable e )
+	{
+		new Thread()
+		{
+			public void
+			run()
+			{
+				showErrorSupport(e);
+			}
+		}.start();
+	}
+	
+	protected void
+	showErrorSupport(
 		Throwable e )
 	{
 		e.printStackTrace();
 		
 		Throwable cause = e.getCause();
-		
-		if ( cause != null ){
 			
+		if ( cause != null ){
+				
 			e	= cause;
 		}
+			
+		final String	message = e.toString();
+			
+		synchronized( outstanding_dialogs ){
+				
+			if ( outstanding_dialogs.contains( message )){
+					
+				return;
+			}
+			
+			outstanding_dialogs.add( message );
+		}
+			
+		dialog_sem.reserve();
 		
-		JOptionPane.showMessageDialog( 
-				RemoteUIApplet.this, 
-				e.toString(),
-				"Error Occurred",  
-				JOptionPane.ERROR_MESSAGE );
+		SwingUtilities.invokeLater(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						try{
+							JOptionPane.showMessageDialog( 
+									RemoteUIApplet.this, 
+									message,
+									"Error Occurred",  
+									JOptionPane.ERROR_MESSAGE );
+							
+							}finally{
+								
+								synchronized( outstanding_dialogs ){
+									
+									outstanding_dialogs.remove( message );
+								}
+								
+								dialog_sem.release();
+							}
+					}
+				});
 	}
 	
 	public RPPluginInterface
@@ -167,6 +218,18 @@ RemoteUIApplet
 			}catch( Throwable e ){
 				
 				last_error	= e;
+				
+				Throwable cause = e.getCause();
+				
+				if ( cause != null ){
+					
+					String m = cause.getMessage();
+					
+					if ( m != null && m.indexOf( "Connection refused" ) != -1 ){
+						
+						break;
+					}
+				}
 			}
 		}
 		

@@ -122,6 +122,12 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$7.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$8.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$9.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView$1.class",
+		"ui/webplugin/remoteui/applet/view/VWGridBagConstraints.class",
+		"plugins/PluginException.class",
+		"core3/util/Semaphore.class",
+		"ui/webplugin/remoteui/applet/RemoteUIApplet$3.class",
+		"ui/webplugin/remoteui/applet/RemoteUIApplet$2.class",
 	};
 	
 	protected Map	reply_cache	= new HashMap();
