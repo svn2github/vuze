@@ -36,6 +36,10 @@ DHTDBValue
 	public byte[]
 	getValue();
 		
+	public void
+	setValue(
+		byte[]	value );
+	
 	public DHTDBValue
 	getValueForRelay(
 		DHTTransportContact	new_originator );

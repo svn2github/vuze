@@ -382,6 +382,16 @@ Test
 					
 					System.out.println( "-> " + (res==null?"null":new String(res)));
 					
+				}else if ( command == 'd' ){
+					
+					System.out.println( "Using dht " + dht_index );
+					
+					stats_before = dht.getTransport().getStats().snapshot();
+					
+					byte[]	res = dht.remove( rhs.getBytes());
+					
+					System.out.println( "-> " + (res==null?"null":new String(res)));
+					
 				}else if ( command == 'z' ){
 					
 					System.out.println( "Using dht " + dht_index );

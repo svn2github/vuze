@@ -147,6 +147,14 @@ DHTDBMapping
 				
 				if ( existing_value.getCacheDistance() <= new_value.getCacheDistance() + 1 ){
 		
+						// update value with latest from this sender (could be 0 length implying
+						// deletion)
+					
+					if ( new_value.getCreationTime() > existing_value.getCreationTime()){
+					
+						existing_value.setValue( new_value.getValue());
+					}
+					
 						// mark it as current 
 				
 					existing_value.reset();
@@ -254,10 +262,15 @@ DHTDBMapping
 				
 				removeValue( it, null, entry_value );
 			}
-						
-			res.add( entry_value );
 			
-			keys_used.add( entry_key );
+				// zero length values imply deleted values so don't return them
+			
+			if ( entry_value.getValue().length > 0 ){
+				
+				res.add( entry_value );
+			
+				keys_used.add( entry_key );
+			}
 		}
 		
 			// now update the access order so values get cycled

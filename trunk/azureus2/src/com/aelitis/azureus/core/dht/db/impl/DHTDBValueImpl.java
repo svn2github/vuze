@@ -150,6 +150,13 @@ DHTDBValueImpl
 		return( value );
 	}
 	
+	public void
+	setValue(
+		byte[]		_value )
+	{
+		value	= _value;
+	}
+	
 	public DHTTransportContact
 	getOriginator()
 	{

@@ -510,6 +510,13 @@ DHTControlImpl
 		byte[]					_value,
 		DHTOperationListener	_listener )
 	{
+		if ( _value.length == 0 ){
+			
+				// zero length denotes value removal
+			
+			throw( new RuntimeException( "zero length values not supported"));
+		}
+		
 		byte[]	encoded_key = encodeKey( _unencoded_key );
 		
 		DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
@@ -849,10 +856,7 @@ DHTControlImpl
 	remove(
 		byte[]					unencoded_key,
 		DHTOperationListener	listener )
-	{
-		
-			// TODO: push the deletion out rather than letting values timeout
-		
+	{		
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
 		DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
@@ -861,9 +865,17 @@ DHTControlImpl
 		
 		if ( res == null ){
 			
+				// not found locally, nothing to do
+			
 			return( null );
 			
 		}else{
+			
+				// we remove a key by pushing it back out again with zero length value 
+			
+			res.setValue( new byte[0] );
+			
+			put( encoded_key, res, 0, listener );
 			
 			return( res.getValue());
 		}
