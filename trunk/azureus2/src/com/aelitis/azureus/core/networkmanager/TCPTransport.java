@@ -256,8 +256,13 @@ public class TCPTransport {
     read_select_listener = null;
     
     if( is_read_select_enabled ) {
-      if( socket_channel == null )  Debug.out( "cancelReadSelects: socket_channel == null" );
       is_read_select_enabled = false;
+      
+      if( socket_channel == null ) {
+        Debug.out( "cancelReadSelects: socket_channel == null, is_connected=" +is_connected );
+        return;
+      }
+      
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
     }
   }
@@ -376,7 +381,7 @@ public class TCPTransport {
     }
     
     if( bytes_read == 0 ) {
-      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read" );
+      //System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read" );
     }
     
     return bytes_read;

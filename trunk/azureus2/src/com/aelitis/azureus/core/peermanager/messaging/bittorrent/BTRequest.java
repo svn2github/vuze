@@ -103,7 +103,7 @@ public class BTRequest implements BTMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 12 ) {
-      throw new MessageException( "decode error: payload.remaining() < 12" );
+      throw new MessageException( "decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 12" );
     }
     
     int num = data.getInt( DirectByteBuffer.SS_MSG );
