@@ -584,7 +584,7 @@ DownloadManagerImpl
 		
 			// single port - this situation isn't going to clear easily
 		
-		errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+		errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver");
 		
 		setState( STATE_ERROR );
 	}
@@ -721,7 +721,7 @@ DownloadManagerImpl
     stopIt(DownloadManager.STATE_STOPPED);
   }
 
-  public void stopIt(final int stateAfterStopping)
+  public void stopIt(final int _stateAfterStopping)
   {
     if (state == DownloadManager.STATE_STOPPING)
       return;
@@ -735,6 +735,8 @@ DownloadManagerImpl
 				public Object 
 				run()
 				{
+					int	stateAfterStopping = _stateAfterStopping;
+					
 					try{
 			  	
 							// kill tracker client first so it doesn't report to peer manager
@@ -778,7 +780,16 @@ DownloadManagerImpl
 							stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				      
 						  if (diskManager.getState() == DiskManager.READY){
-						    diskManager.dumpResumeDataToDisk(true, false);
+						  	
+						  	try{
+						  		diskManager.dumpResumeDataToDisk(true, false);
+						  		
+						  	}catch( Exception e ){
+						  		
+								errorDetail = "Resume data save fails: " + e.getMessage();
+								
+								stateAfterStopping	= STATE_ERROR;
+						  	}
 						  }
 				      
 						  saveTrackerResponseCache();
@@ -812,7 +823,15 @@ DownloadManagerImpl
   {
     if ( getState() == STATE_DOWNLOADING) {
 
-    	getDiskManager().dumpResumeDataToDisk(false, false);
+    	try{
+    		getDiskManager().dumpResumeDataToDisk(false, false);
+    		
+    	}catch( Exception e ){
+    		
+			errorDetail = "Resume data save fails: " + e.getMessage();
+
+			setState( STATE_ERROR );
+    	}
     }
     
     saveTrackerResponseCache();
@@ -1032,20 +1051,34 @@ DownloadManagerImpl
   /**
    * Stops the current download, then restarts it again.
    */
-  public void restartDownload(boolean use_fast_resume) {
-    if (!use_fast_resume) {
-      //invalidate resume info
-      diskManager.dumpResumeDataToDisk(false, true);
-      readTorrent( false );
-    }
-    
-    stopIt();
-    
-    try {
-      while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
-    } catch (Exception ignore) {/*ignore*/}
-    
-    initialize();
+  public void 
+  restartDownload(
+  	boolean use_fast_resume) 
+  {
+  	try{
+	    if (!use_fast_resume) {
+	      
+	    		//invalidate resume info
+	    	
+	      diskManager.dumpResumeDataToDisk(false, true);
+	      
+	      readTorrent( false );
+	    }
+	    
+	    stopIt();
+	    
+	    try {
+	      while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
+	    } catch (Exception ignore) {/*ignore*/}
+	    
+	    initialize();
+	    
+  	}catch( Exception e ){
+  		
+		errorDetail = "Resume data save fails: " + e.getMessage();
+
+		setState( STATE_ERROR );
+  	}
   }
     
   
@@ -1439,14 +1472,26 @@ DownloadManagerImpl
 				  return;
 				}
 			  if (diskManager.getState() == DiskManager.READY) {
-			    diskManager.dumpResumeDataToDisk(true, false);
+			  	try{
+			  		diskManager.dumpResumeDataToDisk(true, false);
+			  		
 					diskManager.stopIt();
-				  setOnlySeeding(diskManager.getRemaining() == 0);
+					
+					setOnlySeeding(diskManager.getRemaining() == 0);
+					
 					diskManager = null;
-					if (prevState == STATE_ERROR)
+					
+					if (prevState == STATE_ERROR){
 						setState(STATE_STOPPED);
-					else
+					}else{
 						setState(prevState);
+					}
+			  	}catch( Exception e ){
+			  		
+					errorDetail = "Resume data save fails: " + e.getMessage();
+
+					setState( STATE_ERROR );
+			  	}
 			  }
 			  else { // Faulty
 			  	setErrorDetail( diskManager.getErrorMessage());

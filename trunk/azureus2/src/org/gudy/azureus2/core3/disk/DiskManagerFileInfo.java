@@ -63,5 +63,10 @@ DiskManagerFileInfo
 	
 	public DiskManager getDiskManager();
 
-  public File getFile();
+	public File getFile();
+	
+	public void
+	flushCache()
+	
+		throws	Exception;
 }

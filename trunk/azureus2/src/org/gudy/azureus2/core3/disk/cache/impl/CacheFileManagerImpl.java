@@ -31,11 +31,14 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 public class 
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
+	protected static boolean	cache_enabled	= false;
+	
 	protected static CacheFileManagerImpl			singleton = new CacheFileManagerImpl();
 	
 	protected FMFileManager		file_manager;
@@ -78,6 +81,128 @@ CacheFileManagerImpl
 			rethrow( e );
 			
 			return( null );
+		}
+	}
+	
+	
+	
+	protected void
+	readCache(
+		CacheFileImpl		file,
+		DirectByteBuffer	buffer,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		if ( cache_enabled ){
+			
+			long	read_length	= buffer.limit() - buffer.position();
+		
+			System.out.println( "readCache: " + file.getName() + ", pos = " + position + ", length = " + read_length);
+			
+			// TODO: read from cache!!!!
+			
+		}else{
+			
+			try{			
+				file.getFMFile().read( buffer, position );
+					
+			}catch( FMFileManagerException e ){
+					
+				rethrow(e);
+			}
+		}
+	}
+	
+	protected void
+	writeCache(
+		CacheFileImpl		file,
+		DirectByteBuffer	buffer,
+		long				position,
+		boolean				buffer_handed_over )
+	
+		throws CacheFileManagerException
+	{
+		boolean	buffer_cached	= false;
+		
+		try{
+			long	write_length = buffer.limit() - buffer.position();
+			
+			if ( cache_enabled ){
+				
+				synchronized( this ){
+					
+					System.out.println( "writeCache: " + file.getName() + ", pos = " + position + ", length = " + write_length + ", bho = " + buffer_handed_over );
+				
+						// if we are overwriting stuff already in the cache then force-write overlapped
+						// data (easiest solution as this should only occur on hash-fails
+					
+					flushCache( file, position, write_length );
+				
+					if ( buffer_handed_over ){
+						
+							// cache this write
+		
+						// TODO: cache the write!!!!
+						
+						buffer_cached	= true;
+						
+					}else{
+						
+						long	actual_size = file.getFMFile().write( buffer, position );
+						
+						if ( actual_size != write_length ){
+							
+							throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
+						}					
+					}
+				}
+			}else{
+				
+				long	actual_size = file.getFMFile().write( buffer, position );
+				
+				if ( actual_size != write_length ){
+					
+					throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
+				}
+			}
+			
+		}catch( FMFileManagerException e ){
+			
+			rethrow(e);
+			
+		}finally{
+			
+			if ( buffer_handed_over && !buffer_cached ){
+				
+				buffer.returnToPool();
+			}
+		}
+	}
+	
+	protected void
+	flushCache(
+		CacheFileImpl		file,
+		long				start,
+		long				length )
+	{
+		// TODO: flush the cache!!!
+	}
+	
+	protected void
+	flushCache(
+		CacheFileImpl		file )
+	
+		throws CacheFileManagerException
+	{
+		if ( cache_enabled ){
+			
+			synchronized( this ){
+				
+				System.out.println( "flushCache: " + file.getName());
+				
+				flushCache( file, 0, file.getLength());
+			}
 		}
 	}
 	

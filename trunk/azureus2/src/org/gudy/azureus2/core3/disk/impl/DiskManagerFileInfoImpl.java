@@ -72,6 +72,14 @@ DiskManagerFileInfoImpl
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( owner, file );
   }
   
+  public void
+  flushCache()
+	
+	throws	Exception
+  {
+  	cache_file.flushCache();
+  }
+  
   protected void
   moveFile(
   	File	newFile )

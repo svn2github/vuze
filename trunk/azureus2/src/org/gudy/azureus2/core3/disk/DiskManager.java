@@ -91,7 +91,9 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	public void
     dumpResumeDataToDisk(
     	boolean savePartialPieces, 
-		boolean invalidate );
+		boolean invalidate )
+		
+		throws Exception;
 
 	public void
 	computePriorityIndicator();

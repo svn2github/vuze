@@ -667,7 +667,21 @@ PEPeerControlImpl
       }
       
       //update resume data
-      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true, false);
+      if (resumeEnabled){
+      	
+      	try{
+      		_diskManager.dumpResumeDataToDisk(true, false);
+      		
+      	}catch( Exception e ){
+      		
+      			// won't go wrong here due to cache write fails as these must have completed
+      			// prior to the files being moved. Possible problems with torrent save but
+      			// if this fails we can live with it (just means that on restart we'll do
+      			// a recheck )
+      		
+      		Debug.out( "dumpResumeDataToDisk fails" );
+      	}
+      }
       
       
       _timeStartedSeeding = SystemTime.getCurrentTime();

@@ -31,8 +31,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
@@ -108,7 +107,7 @@ RDResumeHandler
 	
 	public void 
 	checkAllPieces(
-			boolean newfiles) 
+		boolean newfiles ) 
 	{
 		disk_manager.setState( DiskManager.CHECKING );
 		
@@ -270,7 +269,13 @@ RDResumeHandler
 		
 		if (bOverallContinue && resumeEnabled && !resume_data_complete){
 			
-			dumpResumeDataToDisk(false, false);
+			try{
+				dumpResumeDataToDisk(false, false);
+				
+			}catch( Exception e ){
+				
+				Debug.out( "Failed to dump initial resume data to disk" );
+			}
 		}
 	}
 	
@@ -278,10 +283,22 @@ RDResumeHandler
 	dumpResumeDataToDisk(
 		boolean savePartialPieces, 
 		boolean invalidate )
+	
+		throws Exception
 	{
 		if(!useFastResume)
 		  return;
     
+			// if file caching is enabled then this is an important time to ensure that the cache is
+			// flushed as we are going to record details about the accuracy of written data
+		
+		DiskManagerFileInfo[]	files = disk_manager.getFiles();
+		
+		for (int i=0;i<files.length;i++){
+			
+			files[i].flushCache();
+		}
+		
 		boolean	was_complete = isTorrentResumeDataComplete( 
 									torrent, 
 									disk_manager.getDownloadManager().getTorrentSaveDir(), 

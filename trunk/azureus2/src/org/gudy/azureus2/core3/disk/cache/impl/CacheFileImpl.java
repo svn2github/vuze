@@ -49,6 +49,18 @@ CacheFileImpl
 		file		= _file;
 	}
 	
+	protected String
+	getName()
+	{
+		return( file.getFile().toString());
+	}
+	
+	protected FMFile
+	getFMFile()
+	{
+		return( file );
+	}
+	
 	public File
 	getFile()
 	{
@@ -62,6 +74,8 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		try{
+			manager.flushCache( this );
+			
 			file.moveFile( new_file );
 			
 		}catch( FMFileManagerException e ){
@@ -77,6 +91,11 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		try{
+			if ( getAccessMode() != mode ){
+				
+				manager.flushCache( this );
+			}
+			
 			file.setAccessMode( mode==CF_READ?FMFile.FM_READ:FMFile.FM_WRITE );
 			
 		}catch( FMFileManagerException e ){
@@ -97,6 +116,7 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		try{
+				// no cache flush required here
 			
 			file.ensureOpen();
 			
@@ -135,6 +155,10 @@ CacheFileImpl
 	{
 		try{
 			
+				// flush in case length change will invalidate cache data (unlikely but possible) 
+			
+			manager.flushCache( this );
+			
 			file.setLength( length );
 			
 		}catch( FMFileManagerException e ){
@@ -149,19 +173,18 @@ CacheFileImpl
 		long				position )
 	
 		throws CacheFileManagerException
-		{
-			try{
+	{
+		try{
+			manager.readCache( this, buffer, position );
+			
+			file.read( buffer, position );
 				
-				file.read( buffer, position );
+		}catch( FMFileManagerException e ){
 				
-			}catch( FMFileManagerException e ){
-				
-				manager.rethrow(e);
-			}
+			manager.rethrow(e);
 		}
+	}
 		
-	
-	
 	public void
 	write(
 		DirectByteBuffer	buffer,
@@ -169,20 +192,7 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		try{
-			long	write_size = buffer.limit() - buffer.position();
-			
-			long	actual_size = file.write( buffer, position );
-			
-			if ( actual_size != write_size ){
-				
-				throw( new CacheFileManagerException( "Short write: required = " + write_size + ", actual = " + actual_size ));
-			}
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(e);
-		}
+		manager.writeCache( this, buffer, position, false );
 	}
 	
 	public void
@@ -192,13 +202,15 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		try{
-			write( buffer, position );
-			
-		}finally{
-		
-			buffer.returnToPool();
-		}
+		manager.writeCache( this, buffer, position, true );
+	}
+	
+	public void
+	flushCache()
+	
+		throws CacheFileManagerException
+	{
+		manager.flushCache( this );
 	}
 	
 	public void
@@ -207,6 +219,7 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		try{
+			manager.flushCache( this );
 			
 			file.close();
 			

@@ -93,6 +93,11 @@ CacheFile
 		throws CacheFileManagerException;
 	
 	public void
+	flushCache()
+	
+		throws CacheFileManagerException;
+		
+	public void
 	close()
 	
 		throws CacheFileManagerException;

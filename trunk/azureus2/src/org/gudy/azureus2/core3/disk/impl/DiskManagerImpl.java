@@ -766,11 +766,10 @@ DiskManagerImpl
 	dumpResumeDataToDisk(
 		boolean savePartialPieces, 
 		boolean invalidate )
-	{
-		if ( resume_handler != null ){
-			
-			resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
-		}
+	
+		throws Exception
+	{			
+		resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
 	}
 		
   /**
