@@ -14,13 +14,11 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
-import org.gudy.azureus2.ui.swt.MainWindow;	// TODO: fix this!
-
 public class Constants {
     
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
   
   public static final String AZUREUS_NAME	 = "Azureus";
-  public static final String AZUREUS_VERSION = MainWindow.VERSION;
+  public static final String AZUREUS_VERSION = "2.0.0.9";
 }

@@ -77,6 +77,7 @@ import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Constants;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -86,7 +87,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  public static final String VERSION = "2.0.0.9"; //$NON-NLS-1$
+  public static final String VERSION = Constants.AZUREUS_VERSION;
   private String latestVersion = ""; //$NON-NLS-1$
   private String latestVersionFileName = null;
 
