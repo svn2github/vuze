@@ -32,6 +32,7 @@ import java.io.*;
 import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 UpdateInstallerImpl
@@ -43,6 +44,42 @@ UpdateInstallerImpl
 	protected static final String	ACTIONS		= "install.act";
 	
 	protected File	install_dir;
+	
+	protected static void
+	checkForFailedInstalls()
+	{
+		try{
+			File	update_dir = new File( getUserDirSupport() + File.separator + UPDATE_DIR );
+			
+			File[]	dirs = update_dir.listFiles();
+			
+			boolean	found_failure = false;
+			
+			for (int i=0;i<dirs.length;i++){
+				
+				File	dir = dirs[i];
+				
+				if ( dir.isDirectory()){
+					
+						// if somethings here then the install failed
+					
+					found_failure	= true;
+					
+					FileUtil.recursiveDelete( dir );
+				}
+			}
+			
+			if ( found_failure ){
+				
+				LGLogger.logAlert( 
+						LGLogger.AT_ERROR, 
+						"Installation of at least one component failed - see 'update.log' for details" );
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
 	
 	protected
 	UpdateInstallerImpl()
@@ -80,21 +117,21 @@ UpdateInstallerImpl
 		}
 	}
 	
-  public void
-  addResource(
-    String      resource_name,
-    InputStream   is )
+	public void
+	addResource(
+		String      resource_name,
+		InputStream   is )
   
-    throws UpdateException
-  {
-  addResource(resource_name,is,true);
-  }
+    	throws UpdateException
+	{
+		addResource(resource_name,is,true);
+	}
   
 	public void
 	addResource(
 		String			resource_name,
 		InputStream		is,
-    boolean closeInputStream)
+		boolean 		closeInputStream)
 	
 		throws UpdateException
 	{
@@ -124,6 +161,12 @@ UpdateInstallerImpl
 		
 	public String
 	getUserDir()
+	{
+		return( getUserDirSupport());
+	}
+	
+	protected static String
+	getUserDirSupport()
 	{
 		String	str = SystemProperties.getUserPath();
 	

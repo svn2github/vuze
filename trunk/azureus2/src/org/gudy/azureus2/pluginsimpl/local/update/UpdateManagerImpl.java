@@ -47,9 +47,11 @@ UpdateManagerImpl
 	protected List	components 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
-	protected 
+	protected
 	UpdateManagerImpl()
 	{
+		UpdateInstallerImpl.checkForFailedInstalls();
+		
 			// cause the platform manager to register any updateable components
 		
 		try{
