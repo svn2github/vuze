@@ -144,8 +144,8 @@ PEPeerTransportProtocol
   public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, Connection _connection ) {
     manager = _manager;
     peer_source	= _peer_source;
-    ip    = _connection.getSocketChannel().socket().getInetAddress().getHostAddress();
-    port  = _connection.getSocketChannel().socket().getPort();
+    ip    = _connection.getAddress().getAddress().getHostAddress();
+    port  = _connection.getAddress().getPort();
     incoming = true;
     
     init();

@@ -48,10 +48,10 @@ public class IncomingMessageQueue {
   
   /**
    * Create a new incoming message queue.
-   * @param connection owner to read from
    * @param stream_decoder default message stream decoder
+   * @param connection owner to read from
    */
-  public IncomingMessageQueue( Connection connection, MessageStreamDecoder stream_decoder ) {
+  public IncomingMessageQueue( MessageStreamDecoder stream_decoder, Connection connection ) {
     this.connection = connection;
     this.stream_decoder = stream_decoder;
   }

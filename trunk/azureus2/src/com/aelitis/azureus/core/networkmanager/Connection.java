@@ -57,7 +57,7 @@ public class Connection {
     tcp_transport = new TCPTransport();
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
-    incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
+    incoming_message_queue = new IncomingMessageQueue( new BTMessageDecoder(), this );  //TODO create proper default decoder
   }
   
   
@@ -72,7 +72,7 @@ public class Connection {
     tcp_transport = new TCPTransport( _remote_channel, data_already_read );
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( new BTMessageEncoder(), tcp_transport );  //TODO create proper default encoder
-    incoming_message_queue = new IncomingMessageQueue( this, new BTMessageDecoder() );  //TODO create proper default decoder
+    incoming_message_queue = new IncomingMessageQueue( new BTMessageDecoder(), this );  //TODO create proper default decoder
   }
   
   
@@ -159,15 +159,12 @@ public class Connection {
    */
   public TCPTransport getTCPTransport() {  return tcp_transport;  }
   
-  
-  
+
   /**
-   * TEMP METHOD UNTIL SOCKET READING IS HANDLED INTERNALLY  //TODO
+   * Get the connection's internet address.
+   * @return remote address
    */
-  public SocketChannel getSocketChannel() {
-    return tcp_transport.getSocketChannel();
-  }
-  
+  public InetSocketAddress getAddress() {  return remote_address;  }
 
   
   
