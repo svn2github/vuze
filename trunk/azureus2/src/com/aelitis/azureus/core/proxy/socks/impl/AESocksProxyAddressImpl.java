@@ -23,7 +23,9 @@
 package com.aelitis.azureus.core.proxy.socks.impl;
 
 import java.net.InetAddress;
+import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;
@@ -55,9 +57,45 @@ AESocksProxyAddressImpl
 		if ( address == null ){
 			
 				// see if we've been passed an IP address as unresolved
+				// TODO: IPV6 one day?
 			
-			if ( 	Character.digit(unresolved_address.charAt(0), 16) != -1 || 
-					unresolved_address.charAt(0) == ':') {
+			int			dots 	= 0;
+			boolean		ok		= true;
+			
+			for (int i=0;i<unresolved_address.length();i++){
+				
+				char	c = unresolved_address.charAt(i);
+				
+				if ( c == '.' ){
+					
+					dots++;
+					
+					if ( dots>3 ){
+						
+						ok	= false;
+						
+						break;
+					}
+				}else if ( !Character.isDigit( c )){
+					
+					ok = false;
+					
+					break;
+					
+				}else{
+					
+						// nnn.nnn.nnn.nnn
+					
+					if ( i > 15 ){
+						
+						ok = false;
+						
+						break;
+					}
+				}
+			}
+			
+			if ( ok && dots == 3 ){
 			
 				try{
 					address = InetAddress.getByName( unresolved_address );

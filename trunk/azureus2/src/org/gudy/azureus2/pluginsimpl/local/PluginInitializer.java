@@ -23,6 +23,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -591,6 +592,19 @@ PluginInitializer
 							plugin_version[0] );
 	      
 
+	      try{
+	      
+	      	Method	load_method = plugin.getClass().getMethod( "load", new Class[]{ PluginInterface.class });
+	      	
+	      	load_method.invoke( plugin, new Object[]{ plugin_interface });
+	      	
+	      }catch( NoSuchMethodException e ){
+	      	
+	      }catch( Throwable e ){
+	      	
+	      	load_failure	= e;
+	      }
+	      
 	      loaded_pis.add( plugin_interface );
 	      
 	      if ( load_failure != null ){

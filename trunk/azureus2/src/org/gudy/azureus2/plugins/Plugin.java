@@ -25,7 +25,10 @@ package org.gudy.azureus2.plugins;
  * Defines the plugin interface to implement in order to create a Plugin
  * @author Olivier
  */
-public interface Plugin {  
+
+public interface 
+Plugin 
+{  
 	/**
 	 * This method is called when the Plugin is loaded by Azureus
 	 * @param pluginInterface the interface that the plugin must use to communicate with Azureus
@@ -38,4 +41,21 @@ public interface Plugin {
   		PluginInterface pluginInterface )
   
   	throws PluginException;
+  
+  /**
+   * This method is invoke by reflection, if it exists. It couldn't be added to the interface as
+   * doing so would have broken existing plugins.
+   * It is called at load time, and as such *most* of the plugin framework is unavailable. Therefore
+   * it should only be used for bootstrap situations where the plugin must perform some action before
+   * the rest of Azureus initialises.
+   * The only framework guaranteed to be available is the plugin-configuration.  
+   * 
+   * public void
+   * load(
+   * 	PluginInterface	pluginInterface )
+   * 
+   * 	throws PluginException;
+   * @author parg
+   * @since 2.2.0.3
+   */
 }
