@@ -113,6 +113,34 @@ DisplayFormatters
 		return( formatByteCountToKiBEtc(n) + "/s");
 	}
   
+	
+		// base 10 ones
+	
+	public static String formatByteCountToKBEtc(long n) {
+		if (n < 1000)
+			return n + " B";
+		if (n < 1000 * 1000)
+			return (n / 1000) + "." + ((n % 1000) / 100) + " KB";
+		if (n < 1000 * 1000 * 1000)
+			return (n / (1000 * 1000))
+			+ "."
+			+ ((n % (1000 * 1000)) / (100 * 1000))
+			+ " MB";
+		if (n < 1000l * 1000l * 1000l * 1000l)
+			return (n / (1000l * 1000l * 1000l))
+			+ "."
+			+ ((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))
+			+ " GB";
+		return "A lot !!!";
+	}
+	
+	public static String
+	formatByteCountToKBEtcPerSec(
+			long		n )
+	{
+		return( formatByteCountToKBEtc(n) + "/s");
+	}
+	
    public static String formatETA(long eta) {
      if (eta == 0) return MessageText.getString("PeerManager.status.finished");
      if (eta == -1) return "";
