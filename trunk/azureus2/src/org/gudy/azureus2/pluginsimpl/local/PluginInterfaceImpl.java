@@ -83,6 +83,8 @@ PluginInterfaceImpl
   protected String				plugin_id;
   protected String				plugin_version;
 
+  protected Logger				logger;
+  
   public 
   PluginInterfaceImpl(
   		Plugin				_plugin,
@@ -267,8 +269,14 @@ PluginInterfaceImpl
   	return( TorrentManagerImpl.getSingleton());
   }
   
-  public Logger getLogger() {
-  	return( LoggerImpl.getSingleton());
+  public Logger getLogger() 
+  {
+  	if ( logger == null ){
+  		
+  		logger = new LoggerImpl();
+  	}
+  	
+  	return( logger );
   }
   
   public IPFilter

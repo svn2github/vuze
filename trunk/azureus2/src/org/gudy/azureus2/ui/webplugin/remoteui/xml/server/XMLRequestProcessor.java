@@ -46,6 +46,7 @@ XMLRequestProcessor
 	protected
 	XMLRequestProcessor(
 		RPRequestHandler		_request_handler,
+		String					_client_ip,
 		InputStream				_request,
 		OutputStream			_reply )
 	{
@@ -62,7 +63,7 @@ XMLRequestProcessor
 						
 			request = SimpleXMLParserDocumentFactory.create( _request );
 				
-			process();
+			process( _client_ip );
 			
 		}catch( Throwable e ){
 					
@@ -89,11 +90,14 @@ XMLRequestProcessor
 	}
 	
 	protected void
-	process()
+	process(
+		String		client_ip )
 	{
 		// request.print();
 			
 		RPRequest	req_obj = (RPRequest)deserialiseObject( request, RPRequest.class, "" );
+		
+		req_obj.setClientIP( client_ip );
 		
 		RPReply reply = request_handler.processRequest( req_obj );
 
@@ -429,9 +433,13 @@ XMLRequestProcessor
 			writeLineEscaped( "" + (String)obj);
 				
 		}else if ( cla == Integer.class ){
-					
+			
 			writeLineEscaped( "" + ((Integer)obj).intValue());
-						
+				
+		}else if ( cla == Boolean.class ){
+		
+			writeLineEscaped( "" + ((Boolean)obj).booleanValue());
+				
 		}else{
 			
 			while( cla != null ){
@@ -462,9 +470,13 @@ XMLRequestProcessor
 									writeLineEscaped( (String)field.get( obj ));
 									
 								}else if ( type == Integer.class ){
-										
-									writeLineEscaped( ""+((Integer)field.get( obj )).intValue());
 									
+									writeLineEscaped( ""+((Integer)field.get( obj )).intValue());
+								
+								}else if ( type == Boolean.class ){
+									
+									writeLineEscaped( ""+((Boolean)field.get( obj )).booleanValue());
+								
 								}else if ( type == long.class ){
 									
 									writeLineEscaped( ""+field.getLong( obj ));

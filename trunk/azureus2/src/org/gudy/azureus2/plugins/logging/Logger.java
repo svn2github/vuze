@@ -32,4 +32,7 @@ Logger
 	public LoggerChannel
 	getChannel(
 		String		name );
+	
+	public LoggerChannel[]
+	getChannels();
 }

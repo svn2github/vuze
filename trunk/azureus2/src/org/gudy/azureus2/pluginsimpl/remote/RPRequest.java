@@ -31,12 +31,16 @@ public class
 RPRequest
 	implements Serializable
 {
+		// don't change these names as they end up in XML serialised data
+	
 	public RPObject	object;
 	public String	method;
 	public Object[]	params;
 	
 	public long		connection_id;
 	public long		request_id;
+	
+	protected transient String		client_ip;
 	
 		// public constructor for XML deserialiser
 	
@@ -62,6 +66,19 @@ RPRequest
 			connection_id	= pi._getConectionId();
 			request_id		= pi._getNextRequestId();
 		}
+	}
+
+	public void
+	setClientIP(
+		String		str )
+	{
+		client_ip		= str;
+	}
+	
+	public String
+	getClientIP()
+	{
+		return( client_ip );
 	}
 	
 	public long

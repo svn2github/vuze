@@ -73,7 +73,7 @@ XMLHTTPServerPlugin
 						
 			try{
 				XMLRequestProcessor processor = 
-						new XMLRequestProcessor( request_handler, request.getInputStream(), response.getOutputStream());
+						new XMLRequestProcessor( request_handler, request.getClientAddress(), request.getInputStream(), response.getOutputStream());
 
 				return( true );
 								

@@ -29,6 +29,8 @@ package org.gudy.azureus2.pluginsimpl.remote;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.ipfilter.*;
 import org.gudy.azureus2.pluginsimpl.remote.download.*;
 
 public class 
@@ -109,8 +111,10 @@ RPRequestHandler
 				rep.setProperty( "azureus_version", pi.azureus_version );
 				
 				return( rep );
+				
 			}else{
-					// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
+				
+				// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId() + ", client = " + request.getClientIP());
 				
 				object = RPObject._lookupLocal( object._getOID());
 				
@@ -126,10 +130,12 @@ RPRequestHandler
 					return( reply );
 					
 				}else{
+
+					String	name = object._getName();
 							
 					if ( view_mode ){
 						
-						String	name = object._getName();
+							// this really needs fixing up properly (somehow)
 						
 						System.out.println( "request: " + name + "/" + method );
 						
@@ -160,10 +166,80 @@ RPRequestHandler
 									
 								throw( new RPException( "Access Denied" ));
 							}
+							
+						}else if ( name.equals( "IPFilter" )){
+							
+							if ( 	method.startsWith( "set") ||
+									method.startsWith( "create" )||
+									method.startsWith( "save" )){
+								
+								throw( new RPException( "Access Denied" ));
+							}
+						}else if ( name.equals( "IPRange" )){
+							
+							if ( 	method.startsWith( "delete" )){
+								
+								throw( new RPException( "Access Denied" ));
+							}
 						}					
 					}
+	
+					RPReply	reply = object._process( request );
 					
-					return( object._process( request ));
+					if ( 	name.equals( "IPFilter" ) && 
+							method.equals( "setInRangeAddressesAreAllowed[boolean]" ) &&
+							request.getClientIP() != null ){
+						
+						String	client_ip	= request.getClientIP();
+						
+							// problem here, if someone changes the mode here they'll lose their 
+							// connection coz they'll be denied access :)
+						
+						boolean	b = ((Boolean)request.getParams()[0]).booleanValue();
+						
+						LoggerChannel[] channels = plugin_interface.getLogger().getChannels();
+						
+						IPFilter filter = plugin_interface.getIPFilter();
+						
+						if ( b ){
+							
+								// we gotta add the client's address range
+							
+							for (int i=0;i<channels.length;i++){
+								
+								channels[i].log( 
+										LoggerChannel.LT_INFORMATION,
+									"Adding range for client '" + client_ip + "' as allow/deny flag changed to allow" );
+							}
+							
+							filter.createAndAddRange(
+									"auto-added for remote interface",
+									client_ip,
+									client_ip,
+									false );
+							
+						}else{
+							
+							IPRange[]	ranges = filter.getRanges();
+							
+							for (int i=0;i<ranges.length;i++){
+								
+								if ( ranges[i].isInRange(client_ip)){
+									
+									for (int j=0;j<channels.length;j++){
+										
+										channels[j].log( 
+												LoggerChannel.LT_INFORMATION,
+												"deleting range '" + ranges[i].getStartIP() + "-" + ranges[i].getEndIP() + "' for client '" + client_ip + "' as allow/deny flag changed to deny" );
+									}
+									
+									ranges[i].delete();
+								}
+							}
+						}
+					}
+					
+					return( reply );
 				}
 			}
 		}catch( RPException e ){

@@ -98,13 +98,38 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>setInRangeAddressesAreAllowed[boolean]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>false</ENTRY>"+
+							"</PARAMS>" + 
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+				res.print();
+
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getInRangeAddressesAreAllowed</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+				res.print();
+
+				/*
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getRanges</METHOD>"+
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
 				
 				res.print();
-				
+
+
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
 				
 				for (int i=0;i<kids.length;i++){
@@ -119,6 +144,7 @@ XMLHTTPClient
 								"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 							"</REQUEST>");
 				}
+				*/
 				
 				/*
 				res = sendRequest( 

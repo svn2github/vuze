@@ -26,29 +26,39 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.logging.*;
 
 public class 
 LoggerImpl
 	implements Logger
 {
-	protected static LoggerImpl	singleton;
+	protected List		channels = new ArrayList();
 	
-	public synchronized static Logger
-	getSingleton()
+	public
+	LoggerImpl()
 	{
-		if ( singleton == null ){
-			
-			singleton = new LoggerImpl();
-		}
-		
-		return( singleton );
 	}
 	
 	public LoggerChannel
 	getChannel(
 		String		name )
 	{
-		return( new LoggerChannelImpl( name ));
+		LoggerChannel	channel = new LoggerChannelImpl( name );
+		
+		channels.add( channel );
+		
+		return( channel );
+	}
+	
+	public LoggerChannel[]
+	getChannels()
+	{
+		LoggerChannel[]	res = new LoggerChannel[channels.size()];
+		
+		channels.toArray( res );
+		
+		return( res );
 	}
 }

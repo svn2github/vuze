@@ -266,6 +266,8 @@ RemoteUIServlet
 								
 				RPRequest	rp_request = (RPRequest)dis.readObject();
 				
+				rp_request.setClientIP( request.getClientAddress());
+				
 				// System.out.println( "RemoteUIServlet:got request: " + rp_request.getString());
 				
 				RPReply	reply = request_handler.processRequest( rp_request );
