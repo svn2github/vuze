@@ -271,7 +271,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   public MainWindow(GlobalManager gm, StartServer server) {
     if (window != null) {
-      setVisible(true);
+      if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+        setVisible(true);
       return;
     }
     
@@ -1807,7 +1808,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     display.asyncExec(new Runnable() {
       public void run() {
-        mainWindow.setActive();
+        if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+          mainWindow.setActive();
 
         new Thread() {
           public void run() {
@@ -2078,7 +2080,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void openUrl(String linkURL) {
-    new OpenUrlWindow(display, linkURL);
+    if(linkURL != null && linkURL.length() > 20 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+      new FileDownloadWindow(display, linkURL);
+    else
+      new OpenUrlWindow(display, linkURL);
   }
 
   /**

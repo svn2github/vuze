@@ -1060,6 +1060,10 @@ public class ConfigView extends AbstractIView {
    Messages.setLanguageText(label, "ConfigView.section.style.showdownloadbasket"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "Show Download Basket",false); //$NON-NLS-1$
 
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.addurlsilently"); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "Add URL Silently",false); //$NON-NLS-1$
+
    String osName = System.getProperty("os.name");
    if (osName.equals("Windows XP")) {
      label = new Label(gStyle, SWT.NULL);
