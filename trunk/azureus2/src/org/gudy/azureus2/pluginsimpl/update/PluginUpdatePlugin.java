@@ -177,7 +177,7 @@ PluginUpdatePlugin
 				name_list += (i==0?"":",") + names[i];
 			}
 			
-			log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin names = " + name_list );
+			log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin ids = " + name_list );
 			
 			for ( int i=0;i<plugins_to_check.size();i++){
 				

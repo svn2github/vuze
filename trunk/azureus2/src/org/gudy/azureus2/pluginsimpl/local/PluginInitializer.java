@@ -74,6 +74,12 @@ PluginInitializer
   private static String[][]default_version_details =
   {
   		{ "org.gudy.azureus2.ui.webplugin.remoteui.servlet.RemoteUIServlet", "webui", "1.2.3" },
+  		{ "org.ludo.plugins.azureus.AzureusIpFilterExporter", "safepeer", "1.2.4" },
+  		{ "org.gudy.azureus2.countrylocator.Plugin", "CountryLocator", "1.0" },
+		{ "org.gudy.azureus2.ui.webplugin.remoteui.xml.server.XMLHTTPServerPlugin", "xml_http_if", "1.0" },
+		{ "org.cneclipse.bdcc.BDCCPlugin", "bdcc", "2.1" },
+		{ "org.cneclipse.multiport.MultiPortPlugin", "multi-ports", "1.0" },
+		{ "i18nPlugin.i18nPlugin", "i18nAZ", "1.0" },
   };
   
   private static PluginInitializer	singleton;
@@ -452,7 +458,7 @@ PluginInitializer
 						plugin_config_key,
 						new Properties(),
 						"",
-						"<intenal>",
+						"<internal>",
 						null );
   		
   		plugin.initialize(plugin_interface);
