@@ -154,6 +154,8 @@ Main
 								list);
 								
 						t.setCreationDate( 12345L );
+						
+						t.setComment( "poo pee plop mcjock");
 					}
 				}
 				

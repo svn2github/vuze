@@ -114,6 +114,8 @@ TOTorrentCreateImpl
 	
 		throws TOTorrentException
 	{
+		setCreationDate( System.currentTimeMillis());
+		
 		setPieceLength( _piece_length );
 		
 		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKBEtc(_piece_length ));
