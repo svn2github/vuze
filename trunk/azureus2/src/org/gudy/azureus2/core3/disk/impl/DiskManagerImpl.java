@@ -60,7 +60,7 @@ DiskManagerImpl
 {  
 		// each block is PeerManager.BLOCK_SIZE bytes (current 16k)
 	
-	public 	static final int	GLOBAL_WRITE_QUEUE_BLOCK_LIMIT	= 64;	// 0 -> unlimited;
+	public 	static final int	GLOBAL_WRITE_QUEUE_BLOCK_LIMIT	= 128;	// 0 -> unlimited;
 	
 	private static Semaphore	global_write_queue_block_sem;
 	
