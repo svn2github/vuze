@@ -209,7 +209,7 @@ TRTrackerServerProcessorUDP
 					}
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					// e.printStackTrace();
 					
 					String	error = e.getMessage();
 					
