@@ -1427,6 +1427,11 @@ public class StartStopRulesDefaultPlugin
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
       if (bDebugLog) sExplainFP = "FP Calculations:\n";
+      
+      if (!dl.isPersistent()) {
+        if (bDebugLog) sExplainFP += "Not FP: Download not persistent\n";
+        return false;
+      }
 
       // FP only applies to completed
       if (dl.getStats().getDownloadCompleted(false) < 1000) {
