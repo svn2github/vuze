@@ -153,7 +153,7 @@ DiskManagerImpl
 		//  create the pieces map
 		pieceMap = new PieceList[nbPieces];
 		pieceCompletion = new int[nbPieces];
-		priorityLists = new BitSet[10];
+		priorityLists = new BitSet[100];
 		//    priorityLists = new int[10][nbPieces + 1];
 
 		// the piece numbers for getPiecenumberToDownload
@@ -1407,7 +1407,7 @@ DiskManagerImpl
 		for (int i = 0; i < priorityLists.length; i++) {
 			BitSet list = priorityLists[i];
 			if (list == null) {
-				list = new BitSet(pieceCompletion.length + 1);
+				list = new BitSet(100);
 			} else {
 				list.clear();
 			}
@@ -1478,7 +1478,7 @@ DiskManagerImpl
 		//Added patch so that we try to complete most advanced files first.
 		List _pieces = new ArrayList();
 		Integer pieceInteger;    
-		for (int i = 9; i >= 0; i--) {
+		for (int i = 99; i >= 0; i--) {
 		  int k = 0;
 		  //Switch comments to enable sequential piece picking.
 		  //for (int j = 0; j < nbPieces && k < 50; j++) {
