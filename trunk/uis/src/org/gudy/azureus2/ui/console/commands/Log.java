@@ -19,13 +19,14 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author Tobias Minich
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class Log implements IConsoleCommand {
+public class Log extends IConsoleCommand {
 
-	public static void commandLog(ConsoleInput ci, List args) {
+	public Log()
+	{
+		super( new String[] { "log", "l" });
+	}
+	public void execute(String commandName, ConsoleInput ci, List args) {
 		Appender con = Logger.getRootLogger().getAppender("ConsoleAppender");
 		if ((con != null) && (args != null) && (!args.isEmpty())) {
 			String subcommand = (String) args.get(0);
@@ -47,12 +48,8 @@ public class Log implements IConsoleCommand {
 		Logger.getLogger("azureus2").fatal("Logging test" + (((args == null) || (args.isEmpty())) ? "" : ": " + args.get(0).toString()));
 	}
 
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("log", Log.class.getMethod("commandLog", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("l", Log.class.getMethod("commandLog", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("log (on|off)\t\t\tl\tTurn on/off console logging");
-		} catch (Exception e) {e.printStackTrace();}
+	public String getCommandDescriptions()
+	{
+		return("log (on|off)\t\t\tl\tTurn on/off console logging");
 	}
-	
 }

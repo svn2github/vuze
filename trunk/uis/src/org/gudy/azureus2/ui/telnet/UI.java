@@ -117,9 +117,8 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 	 */
 	public static void createNewConsoleInput(String consoleName, InputStream inputStream, PrintStream outputStream)
 	{
-	     ConsoleInput.printconsolehelp(outputStream);
-	     outputStream.println();
 	     ConsoleInput console = new ConsoleInput(consoleName, UIConst.getAzureusCore(), inputStream, outputStream, Boolean.FALSE);
+	     console.printconsolehelp();
 	}
 	
 	private static final class SocketServer implements Runnable

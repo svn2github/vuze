@@ -18,13 +18,19 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author tobi
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class XML implements IConsoleCommand {
+public class XML extends IConsoleCommand {
 	
-	public static void command(ConsoleInput ci, List args) {
+	public XML()
+	{
+		super( new String[] { "xml"} );
+	}
+	
+	public String getCommandDescriptions() {
+		return("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
+	}
+	
+	public void execute(String commandName, ConsoleInput ci, List args) {
 		StatsWriterStreamer sws = StatsWriterFactory.createStreamer(ci.gm);
 		String file = null;
 		if ((args != null) && (!args.isEmpty()))
@@ -55,12 +61,4 @@ public class XML implements IConsoleCommand {
 			}
 		}
 	}
-
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("xml", XML.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
-		} catch (Exception e) {e.printStackTrace();}
-	}
-
 }

@@ -28,13 +28,20 @@ import org.pf.file.FileFinder;
 
 /**
  * @author tobi
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class AddFind implements IConsoleCommand {
+public class AddFind extends IConsoleCommand {
 	
-	public static void commandAdd(ConsoleInput ci, List args) {
+	public AddFind()
+	{
+		super( new String[] { "add", "a" } );
+	}
+	
+	public String getCommandDescriptions()
+	{
+		return "add [.torrent path|url]\t\t+\tAdd a download from the given .torrent file path or url. Example: 'add /path/to/the.torrent' or 'add http://www.url.com/to/the.torrent'";
+	}
+	
+	public void execute(String commandName, ConsoleInput ci, List args) {
 		if ((args != null) && (!args.isEmpty())) {
 			String subcommand = "";
 			for (int i=0; i<args.size(); i++)
@@ -112,7 +119,7 @@ public class AddFind implements IConsoleCommand {
 									for (int i = 0; i < toadd.length; i++) {
 										ci.gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
 										ci.out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
-										ci.torrents = null;
+										ci.torrents.clear();
 									}
 								} else {
 									ci.out.println("> Directory '" + whatelse[j] + "' seems to contain no torrent files.");
@@ -120,7 +127,7 @@ public class AddFind implements IConsoleCommand {
 							} else {
 								ci.gm.addDownloadManager(whatelse[j], outputDir);
 								ci.out.println("> '" + whatelse[j] + "' added.");
-								ci.torrents = null;
+								ci.torrents.clear();
 							}
 						} else {
 							ci.adds = FileFinder.findFiles(whatelse[j].substring(0, whatelse[j].lastIndexOf(System.getProperty("file.separator"))), whatelse[j].substring(whatelse[j].lastIndexOf(System.getProperty("file.separator")) + 1), false);
@@ -143,13 +150,5 @@ public class AddFind implements IConsoleCommand {
 		} else {
 			ci.out.println("> Missing subcommand for 'add'\r\n> add syntax: see 'help add'");
 		}
-	}
-	
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("add", AddFind.class.getMethod("commandAdd", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("a", AddFind.class.getMethod("commandAdd", ConsoleCommandParameters));
-      ConsoleInput.RegisterHelp("add [.torrent path|url]\t\t+\tAdd a download from the given .torrent file path or url. Example: 'add /path/to/the.torrent' or 'add http://www.url.com/to/the.torrent'");
-		} catch (Exception e) {e.printStackTrace();}
 	}
 }

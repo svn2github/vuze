@@ -27,9 +27,18 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class Set implements IConsoleCommand {
+public class Set extends IConsoleCommand {
 	
-	public static void command(ConsoleInput ci, List args) {
+	public Set()
+	{
+		super(new String[] {"set", "+" });
+	}
+	
+	public String getCommandDescriptions() {
+		return("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
+	}
+	
+	public void execute(String commandName,ConsoleInput ci, List args) {
 		if ((args != null) && (!args.isEmpty())) {
 			String parameter = (String) args.get(0);
 			String setto = (args.size()==1)?null:((String) args.get(1));
@@ -161,13 +170,5 @@ public class Set implements IConsoleCommand {
 				ci.out.println((String) I.next());
 			}
 		}
-	}
-	
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("set", Set.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("+", Set.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
-		} catch (Exception e) {e.printStackTrace();}
 	}
 }

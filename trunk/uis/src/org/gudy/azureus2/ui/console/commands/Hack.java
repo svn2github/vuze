@@ -9,72 +9,79 @@
  *
  */
 package org.gudy.azureus2.ui.console.commands;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+
 /**
  * @author Tobias Minich
- * 
- * To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Generation - Code and Comments
  */
-public class Hack implements IConsoleCommand {
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.gudy.azureus2.ui.console.commands.IConsoleCommand#RegisterCommands(org.gudy.azureus2.ui.console.ConsoleInput)
-	 */
-	private static void commandHelp(ConsoleInput ci, String command) {
-		ci.out.println("> -----");
-		ci.out.println("'hack' syntax:");
-		if (command != null) {
+public class Hack extends IConsoleCommand {
+	
+	public Hack() 
+	{
+		super(new String[] { "hack", "#" });
+	}
+	
+	public String getCommandDescriptions()
+	{
+		return "hack [<various options>]\t#\tModify torrent settings. Use without parameters for further help.";
+	}
+	
+	public void printHelp(PrintStream out, List args) {
+		out.println("> -----");
+		out.println("'hack' syntax:");
+		if( args.size() > 0 ) {
+			String command = (String) args.get(0);
 			if (command.equalsIgnoreCase("file") || command.equalsIgnoreCase("f")) {
-				ci.out.println("hack <torrent id> file <#> <priority>");
-				ci.out.println();
-				ci.out.println("<#> Number of the file.");
-				ci.out.println();
-				ci.out.println("<priority> can be one of the following:");
-				ci.out.println("normal\t\tn\tNormal Priority");
-				ci.out.println("high\t\th|+\tHigh Priority");
-				ci.out.println("nodownload\t!|-\tDon't download this file.");
-				ci.out.println("> -----");
+				out.println("hack <torrent id> file <#> <priority>");
+				out.println();
+				out.println("<#> Number of the file.");
+				out.println();
+				out.println("<priority> can be one of the following:");
+				out.println("normal\t\tn\tNormal Priority");
+				out.println("high\t\th|+\tHigh Priority");
+				out.println("nodownload\t!|-\tDon't download this file.");
+				out.println("> -----");
 				return;
 			}
-			if (command.equalsIgnoreCase("tracker") || command.equalsIgnoreCase("t")) {
-				ci.out.println("hack <torrent id> tracker [command] <new value>");
-				ci.out.println();
-				ci.out.println("[command] can be one of the following:");
-				ci.out.println("url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).");
-				ci.out.println("host\t\th\tChange the host.");
-				ci.out.println("port\t\tp\tChange the port.");
-				ci.out.println();
-				ci.out.println("You can also omit [command] and only give a new full URL (just like the [command] 'url').");
-				ci.out.println("> -----");
+			else if (command.equalsIgnoreCase("tracker") || command.equalsIgnoreCase("t")) {
+				out.println("hack <torrent id> tracker [command] <new value>");
+				out.println();
+				out.println("[command] can be one of the following:");
+				out.println("url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).");
+				out.println("host\t\th\tChange the host.");
+				out.println("port\t\tp\tChange the port.");
+				out.println();
+				out.println("You can also omit [command] and only give a new full URL (just like the [command] 'url').");
+				out.println("> -----");
 				return;
 			}
 		}
-		ci.out.println("hack <torrent id> <command> <command options>");
-		ci.out.println();
-		ci.out.println("<torrent id> can be one of the following:");
-		ci.out.println("<#>\t\tNumber of a torrent. You have to use 'show torrents' first as the number is taken from there.");
-		ci.out.println("hash <hash>\tApplied to torrent with the hash <hash> as given in the xml output or extended torrent info ('show <#>').");
-		ci.out.println("help\t\tDetailed help for <command>");
-		ci.out.println();
-		ci.out.println("Available <command>s:");
-		ci.out.println("file\t\tf\tModify priority of a single file of a batch torrent.");
-		ci.out.println("tracker\t\tt\tModify Tracker URL of a torrent.");
-		ci.out.println("> -----");
+		out.println("hack <torrent id> <command> <command options>");
+		out.println();
+		out.println("<torrent id> can be one of the following:");
+		out.println("<#>\t\tNumber of a torrent. You have to use 'show torrents' first as the number is taken from there.");
+		out.println("hash <hash>\tApplied to torrent with the hash <hash> as given in the xml output or extended torrent info ('show <#>').");
+		out.println("help\t\tDetailed help for <command>");
+		out.println();
+		out.println("Available <command>s:");
+		out.println("file\t\tf\tModify priority of a single file of a batch torrent.");
+		out.println("tracker\t\tt\tModify Tracker URL of a torrent.");
+		out.println("> -----");
 	}
 	
-	public static void command(ConsoleInput ci, List args) {
-		if ((args != null) && (!args.isEmpty())) {
+	public void execute(String commandName, ConsoleInput ci, List args) {
+		if (!args.isEmpty()) {
 			String[] sSubcommands = new String[args.size()];
 			args.toArray(sSubcommands);
 			DownloadManager dm = null;
@@ -100,9 +107,9 @@ public class Hack implements IConsoleCommand {
 				commandoffset = 2;
 			} else if (sSubcommands[0].equalsIgnoreCase("help") || sSubcommands[0].equalsIgnoreCase("?")) {
 				try {
-					commandHelp(ci, sSubcommands[1]);
+					printHelp(ci.out, sSubcommands[1]);
 				} catch (Exception e) {
-					commandHelp(ci, null);
+					printHelp(ci.out, (String)null);
 				}
 				return;
 			} else {
@@ -233,15 +240,6 @@ public class Hack implements IConsoleCommand {
 			} else
 				ci.out.println("> Command 'hack': Command parameter '" + sSubcommands[commandoffset] + "' unknown.");
 		} else
-			commandHelp(ci, null);
-	}
-	public static void RegisterCommands() {
-		try {
-			//System.out.println(">>> Hack init");
-			ConsoleInput.RegisterCommand("hack", Hack.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("#", Hack.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("hack [<various options>]\t#\tModify torrent settings. Use without parameters for further help.");
-		} catch (Exception e) {
-		}
+			printHelp(ci.out, (String)null);
 	}
 }

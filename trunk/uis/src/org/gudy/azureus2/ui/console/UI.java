@@ -43,9 +43,10 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     super.startUI();
     TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true, COConfigurationManager.getStringParameter("Default save path") );
     if ((!isStarted()) || (console == null) || ((console!=null) && (!console.isAlive()))) {
-      ConsoleInput.printconsolehelp(System.out);
+//      ConsoleInput.printconsolehelp(System.out);
       System.out.println();
       console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, System.out, Boolean.TRUE);
+      console.printconsolehelp();
     }
   }
   

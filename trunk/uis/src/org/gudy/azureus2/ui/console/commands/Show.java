@@ -10,8 +10,8 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.io.PrintStream;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -31,14 +31,32 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author Tobias Minich
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class Show implements IConsoleCommand {
+public class Show extends IConsoleCommand {
 	
-	public static void command(ConsoleInput ci, List args) {
-		if ((args != null) && (!args.isEmpty())){
+	public Show()
+	{
+		super( new String[] { "show", "sh" });
+	}
+
+	public String getCommandDescriptions() {
+		return("show [<various options>]\tsh\tShow info. Use without parameter to get a list of available options.");
+	}
+
+	public void printHelp(PrintStream out, List args) {
+		out.println("> -----");
+		out.println("'show' options: ");
+		out.println("<#>\t\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
+		out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
+		out.println("torrents [options]\tt\tShow list of torrents. torrent options mayb be any (or none) of:");
+		out.println("\t\tactive\t\ta\tShow only active torrents.");
+		out.println("\t\tcomplete\tc\tShow only complete torrents.");
+		out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
+		out.println("> -----");
+	}
+
+	public void execute(String commandName, ConsoleInput ci, List args) {
+		if (!args.isEmpty()){
 			String[] sSubcommands = new String[args.size()];
 			args.toArray(sSubcommands);
 			for (int i = 0; i < sSubcommands.length; i++)
@@ -47,7 +65,8 @@ public class Show implements IConsoleCommand {
 				ci.invokeCommand("set", null);
 			} else if (sSubcommands[0].equalsIgnoreCase("torrents") || sSubcommands[0].equalsIgnoreCase("t")) {
 				ci.out.println("> -----");
-				ci.torrents = ci.gm.getDownloadManagers();
+				ci.torrents.clear();
+				ci.torrents.addAll(ci.gm.getDownloadManagers());
 				Collections.sort(ci.torrents, new Comparator() {
 					public final int compare(Object a, Object b) {
 						DownloadManager aDL = (DownloadManager) a;
@@ -296,23 +315,7 @@ public class Show implements IConsoleCommand {
 				}
 			}
 		} else {
-			ci.out.println("> -----");
-			ci.out.println("'show' options: ");
-			ci.out.println("<#>\t\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
-			ci.out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
-			ci.out.println("torrents [options]\tt\tShow list of torrents. torrent options mayb be any (or none) of:");
-			ci.out.println("\t\tactive\t\ta\tShow only active torrents.");
-			ci.out.println("\t\tcomplete\tc\tShow only complete torrents.");
-			ci.out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
-			ci.out.println("> -----");
+			printHelp(ci.out, (String)null);
 		}
-	}
-	
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("show", Show.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("sh", Show.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("show [<various options>]\tsh\tShow info. Use without parameter to get a list of available options.");
-		} catch (Exception e) {e.printStackTrace();}
 	}
 }

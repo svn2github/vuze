@@ -17,13 +17,20 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author Tobias Minich
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class Move implements IConsoleCommand {
+public class Move extends IConsoleCommand {
 
-	public static void command(ConsoleInput ci, List args) {
+	public Move()
+	{
+		super(new String[] { "move", "m" });
+	}
+	
+	public String getCommandDescriptions()
+	{
+		return("move <from #> [<to #>]\t\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
+	}
+	
+	public void execute(String commandName, ConsoleInput ci, List args) {
 		if ((args != null) && (!args.isEmpty())){
 			String[] sSubcommands = new String[args.size()];
 			args.toArray(sSubcommands);
@@ -83,13 +90,4 @@ public class Move implements IConsoleCommand {
 			ci.out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#from> [<#to>]");
 		}
 	}
-
-	public static void RegisterCommands() {
-		try {
-			ConsoleInput.RegisterCommand("move", Move.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterCommand("m", Move.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.RegisterHelp("move <from #> [<to #>]\t\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
-		} catch (Exception e) {e.printStackTrace();}
-	}
-
 }
