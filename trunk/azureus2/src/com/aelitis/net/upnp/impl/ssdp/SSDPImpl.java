@@ -73,6 +73,7 @@ SSDPImpl
 	
 	protected boolean		first_response			= true;
 	protected boolean		ttl_problem_reported	= false;
+	protected boolean		sso_problem_reported	= false;
 	
 	protected List			listeners	= new ArrayList();
 	
@@ -333,11 +334,15 @@ SSDPImpl
 				mc_sock.send(packet);
 				
 				mc_sock.close();
-			
-			
+					
 			}catch( Throwable e ){
 			
-				Debug.printStackTrace( e );
+				if ( !sso_problem_reported ){
+					
+					sso_problem_reported	= true;
+				
+					Debug.printStackTrace( e );
+				}
 			}
 		}
 	}
