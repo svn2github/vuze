@@ -1,7 +1,7 @@
 CHANGELOG
 ---------
 
-xx.xx.03 | Azureus 2.0.6.0
+19.12.03 | Azureus 2.0.6.0
 
 FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for quicker download speed ramp up [Nolar]
 FEATURE: Azureus can now run all downloads off one shared incoming port: only need to open/forward one port in your firewall/NAT [Parg]
@@ -11,7 +11,7 @@ FEATURE: GUI Update interval is configurable [Gudy]
 FEATURE: Images update interval is configurable [Gudy]
 FEATURE: Auto sort on tables possible, interval configurable [Gudy]
 FEATURE: MyTorrents view can now be customized (choice of columns and order) [Gudy]
-FEATURE: Added new columns to MyTorrents : 'Share Ratio', 'Downloaded', 'Uploaded', 'Health Indicator' [Gudy]
+FEATURE: Added new columns to MyTorrents : 'Share Ratio', 'Downloaded', 'Uploaded', 'Health' [Gudy]
 FEATURE: Details view can now be customized (choice of columns and order) [Gudy]
 FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 FEATURE: Added Drag and Drop of URLs [Rele]
@@ -30,14 +30,23 @@ FEATURE: Plugin interface for tracker web serving [Parg]
 FEATURE: HTML template (http://html-tmpl-java.sourceforge.net/) support for tracker web serving from %az_home%/web folder [Parg]
 FEATURE: Opening a second torrent with same hash as existing download causes second torrent's announce urls to be merged into the first [Parg]
 FEATURE: Option to not accept multiple connections from the same IP [Gudy]
-FEATURE: Option to use the Ip Filter list as an 'ALLOW' list [Gudy]
+FEATURE: Option to use the IP Filter list as an 'ALLOW' list [Gudy]
 FEATURE: Super-Seed Mode [Gudy]
 FEATURE: Pressing a character selects the next download with a name beginning with this character in MyTorrents view [Rele]
 FEATURE: Option to move-on-complete only when data is inside the default save dir [Nolar]
 FEATURE: Auto-import new .torrents from a chosen folder regularly [Rele]
 FEATURE: Create torrent allows manual piece size selection [Parg]
 FEATURE: New 'Activity' view (download and upload speed graphics) [Gudy]
-FEATURE: gzip encoding support for tracker announces [Parg]
+FEATURE: Gzip encoding support for tracker announces [Parg]
+FEATURE: Tray icon: added Stop All Torrents [Rele]
+FEATURE: If .torrents are dropped in COPY state (with modifier key Ctrl under Windows), they will begin in STOPPED state [Rele]
+FEATURE: Ctrl + [Home/End/CursorUp/CursorDown] moves selected torrents to top/end/up/down, "Del" removes selected torrents [Rele]
+FEATURE: Ctrl + [S/R] stops/resumes(starts) selected torrents, Ctrl+Shift+S stops all torrents, Ctrl+A selects all torrents [Rele]
+FEATURE: Option to backup .torrent files [Rele]
+FEATURE: Option to play a sound on download finish [Rele]
+FEATURE: Download Basket: TrayWindow always visible for Drag-n-Drop of .torrents [Rele]
+FEATURE: Clickable Tracker URL in Details/General copies the announce URL into clipboard [Rele]
+FEATURE: Tab hot keys: F6 selects next Tab, Shift+F6 selects previous Tab, ESC or CTRL+F4 closes current Tab [Rele]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
