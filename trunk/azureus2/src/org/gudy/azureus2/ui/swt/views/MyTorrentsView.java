@@ -65,6 +65,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TrackerClientAnnounceDataProvider;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
@@ -652,6 +654,10 @@ public class MyTorrentsView extends AbstractIView
     Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
     itemEditTracker.setImage(ImageRepository.getImage("edit_trackers"));
 
+    final MenuItem itemManualUpdate = new MenuItem(menu,SWT.PUSH);
+    Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
+    
     final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
     itemRecheck.setImage(ImageRepository.getImage("recheck"));
@@ -683,12 +689,14 @@ public class MyTorrentsView extends AbstractIView
         itemMove.setEnabled(hasSelection);
         itemPriority.setEnabled(hasSelection);
         itemBar.setEnabled(hasSelection);
+        
+        itemManualUpdate.setEnabled(hasSelection);
 
         if (hasSelection) {
           boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, 
-                  forceStart, forceStartEnabled, recheck, top, bottom;
+                  forceStart, forceStartEnabled, recheck, top, bottom, manualUpdate;
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = 
-                   forceStart = forceStartEnabled = recheck = true;
+                   forceStart = forceStartEnabled = recheck = manualUpdate = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
             DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
@@ -720,6 +728,13 @@ public class MyTorrentsView extends AbstractIView
 
               if (!dm.isForceStart())
                 forceStart = false;
+              
+              TRTrackerClient trackerClient = dm.getTrackerClient();
+              if(trackerClient != null) {
+                boolean update_state = ((System.currentTimeMillis()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+                manualUpdate = manualUpdate & update_state;
+              }
+              
             }
           }
           itemBar.setSelection(barsOpened);
@@ -739,6 +754,8 @@ public class MyTorrentsView extends AbstractIView
           itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);
+          
+          itemManualUpdate.setEnabled(manualUpdate);
 
         } else {
           itemBar.setSelection(false);
@@ -945,6 +962,18 @@ public class MyTorrentsView extends AbstractIView
     			}
     		}
     	}
+    });
+    
+    
+    itemManualUpdate.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          dm.checkTracker();
+        }        
+      }
     });
 
     itemChangeTable.addListener(SWT.Selection, new Listener() {
