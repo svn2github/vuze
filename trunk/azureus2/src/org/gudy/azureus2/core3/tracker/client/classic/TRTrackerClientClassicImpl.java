@@ -562,31 +562,43 @@ TRTrackerClientClassicImpl
 						//build the list of peers
 						
 					List meta_peers = (List) metaData.get("peers"); //$NON-NLS-1$
-					 
-					TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ meta_peers.size()];
-					 
+					 					 
+					List valid_meta_peers = new ArrayList();
+					
 						//for every peer
+					int peers_length = meta_peers.size();
 						
-					for (int i = 0; i < peers.length; i++) {
+					for (int i = 0; i < peers_length; i++) {
 						 	
 						Map peer = (Map) meta_peers.get(i);
 						   
 						  //build a dictionary object
-						 	         
-						byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
-						   
-						 	//get the peer id
-						   	
-						String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-						   
-						  	//get the peer ip address
-						   	
-						int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-						   
-						   	//get the peer port number
+						Object s_peerid=peer.get("peer id"); //$NON-NLS-1$
+						Object s_ip=peer.get("ip"); //$NON-NLS-1$
+						Object s_port=peer.get("port"); //$NON-NLS-1$
 						
-						peers[i] = new TRTrackerResponsePeerImpl( peerId, ip, port );
+						// Assert that all peerId, ip and port are available 
+						if (s_peerid != null && s_ip != null && s_port != null) {
+						 	         
+							byte[] peerId = (byte[]) s_peerid ; 
+							   
+							 	//get the peer id
+							   	
+							String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
+							   
+							  	//get the peer ip address
+							   	
+							int port = ((Long) s_port).intValue(); 
+							   
+							   	//get the peer port number
+							
+							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));
+							
+						} 
 					} 
+					
+					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
+					peers=(TRTrackerResponsePeer[]) valid_meta_peers.toArray(peers);
 					
 					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers ));  
 
