@@ -253,19 +253,35 @@ PEPeerTransportProtocol
 	readBuffer.position(0);
 	//Now test for data...
 
-	if (readBuffer.get() != (byte) PROTOCOL.length()) {
+  byte b;
+	if ((b = readBuffer.get()) != (byte) PROTOCOL.length()) {
+     LGLogger.log(
+        componentID,
+        evtProtocol,
+        LGLogger.ERROR,
+        ip + " has sent handshake, but handshake starts with wrong byte : " + b);
 	   closeAll(true);
 	   return;
 	}
 
 	byte[] protocol = PROTOCOL.getBytes();
 	if (readBuffer.remaining() < protocol.length) {
+     LGLogger.log(
+      componentID,
+      evtProtocol,
+      LGLogger.ERROR,
+      ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining());
 	   closeAll(true);
 	   return;
 	}
 	else {
 	   readBuffer.get(protocol);
 	   if (!(new String(protocol)).equals(PROTOCOL)) {
+       LGLogger.log(
+         componentID,
+         evtProtocol,
+         LGLogger.ERROR,
+         ip + " has sent handshake, but protocol is wrong : " + new String(protocol));
 		  closeAll(true);
 		  return;
 	   }
@@ -783,6 +799,11 @@ PEPeerTransportProtocol
 		readMessage(readBuffer);
 		break;
 	 default:
+   LGLogger.log(
+         componentID,
+         evtProtocol,
+         LGLogger.ERROR,
+         ip + " has sent a wrong message " + cmd);
 	  closeAll(true);
 	}
   }
@@ -1110,7 +1131,11 @@ PEPeerTransportProtocol
 		}
 	  }
 	  catch (IOException e) {
-		e.printStackTrace();
+      LGLogger.log(
+           componentID,
+           evtProtocol,
+           LGLogger.ERROR,
+           "Error while writing to " + ip +" : " + e);
 		closeAll(true);
 	  } //If we have finished sending this buffer
 	  if (!writeBuffer.hasRemaining()) {

@@ -568,6 +568,7 @@ PEPeerControlImpl
               //unmark the block
               _downloading[pieceNumber] = false;
               //set piece to not being downloaded
+              pc.sendCancel(request); //cancel the request object
             }
 
             //for every expired request                              
