@@ -21,13 +21,18 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 
@@ -51,15 +56,28 @@ public class PiecesView
   };
 
   DownloadManager manager;
-
+  
   public PiecesView(DownloadManager manager) {
     super(TableManager.TABLE_TORRENT_PIECES, "PiecesView",
-          basicItems, basicItems[0].getName());
+          basicItems, basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION);
+    
     this.manager = manager;
   }
 
   public void initialize(Composite composite) {
     super.initialize(composite);
+    
+    super.createLegendComposite(
+        	new Color[] {
+        		Colors.blues[Colors.BLUES_DARKEST],    
+    			Colors.blues[Colors.BLUES_MIDLIGHT],
+    			Colors.red },
+    		new String[] {
+        			"pieceView.legend.written",
+    				"pieceView.legend.requested",
+    				"pieceView.legend.downloaded"}
+        	);
+    
     manager.addPeerListener(this);
   }
 

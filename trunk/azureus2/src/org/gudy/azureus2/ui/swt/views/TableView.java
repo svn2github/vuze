@@ -31,11 +31,14 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -219,7 +222,10 @@ public class TableView
    */
   public Composite createMainPanel(Composite composite) {
     panel = new Composite(composite,SWT.NULL);
-    panel.setLayout(new FillLayout());
+    GridLayout layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    panel.setLayout(layout);
 
     return panel;
   }
@@ -230,9 +236,46 @@ public class TableView
    */
   public Table createTable() {
     table = new Table(panel, iTableStyle);
-    table.setLayout(new FillLayout());
+    table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     return table;
+  }
+  
+  /** Creates the legend Composite
+   * 
+   * @return The created Legend Composite
+   */
+  public Composite createLegendComposite(Color[] colors,String[] keys) {
+  	if(colors.length != keys.length) return null;
+  	
+  	Composite legend = new Composite(panel,SWT.NULL);
+  	legend.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+  	
+  	
+    GridLayout layout = new GridLayout();
+    int numColumns = colors.length * 2;
+    if(numColumns > 10) numColumns = 10;
+    layout.numColumns = numColumns;
+    legend.setLayout(layout);
+    GridData data;
+    
+    for(int i = 0 ; i < colors.length ; i++) {
+    	Label lblColor = new Label(legend,SWT.BORDER);
+    	lblColor.setBackground(colors[i]);
+    	data = new GridData();
+    	data.widthHint = 20;
+    	data.heightHint = 10;
+    	lblColor.setLayoutData(data);
+    	
+    	Label lblDesc = new Label(legend,SWT.NULL);
+    	Messages.setLanguageText(lblDesc,keys[i]);
+    	data = new GridData();
+    	data.widthHint = 150;
+    	lblDesc.setLayoutData(data);
+    }
+    
+    return legend;
+  	
   }
 
   /** Sets up the sorter, columns, and context menu.
