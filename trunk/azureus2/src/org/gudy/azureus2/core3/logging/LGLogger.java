@@ -52,15 +52,10 @@ LGLogger {
 		log(0,0,INFORMATION,text );
 	}	
 	
-	public static void 
-	log(
-		int 		componentId, 
-		int 		event, 
-		String		text, 
-		Throwable	e )
+	public static String
+	exceptionToString(
+		Throwable 	e )
 	{
-		String	ex_details = "";
-		
 		try{
 			CharArrayWriter cw = new CharArrayWriter();
 			
@@ -70,12 +65,22 @@ LGLogger {
 			
 			pw.close();
 			
-			ex_details = new String(cw.toCharArray());
+			return( new String(cw.toCharArray()));
 			
 		}catch( Throwable f ){
+			
+			return( e.toString());
 		}
-		
-		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + (ex_details==null?e.toString():ex_details) + "')" );
+	}
+	
+	public static void 
+	log(
+		int 		componentId, 
+		int 		event, 
+		String		text, 
+		Throwable	e )
+	{
+		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + exceptionToString(e) + "')" );
 	}
 	
 	public static void 

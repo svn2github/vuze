@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
@@ -109,17 +110,20 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     }
 
     try {
-      URL url = new URL(((NewTorrentWizard)wizard).trackerURL);
+       URL url = new URL(((NewTorrentWizard)wizard).trackerURL);
       TOTorrent torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       torrent.setComment(((NewTorrentWizard)wizard).getComment());
       torrent.serialiseToBEncodedFile(new File(((NewTorrentWizard)wizard).savePath));
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
-    }
+	  wizard.switchToClose();
+	}
     catch (Exception e) {
       e.printStackTrace();
+      reportCurrentTask(MessageText.getString("wizard.operationfailed"));
+      reportCurrentTask(LGLogger.exceptionToString(e));
+	  wizard.switchToClose();
     }
-    wizard.switchToClose();
   }
 
   /* (non-Javadoc)

@@ -356,6 +356,18 @@ DownloadManagerImpl
 	  public void run() {
 	  	
 		state = DownloadManager.STATE_STOPPING;
+
+			// kill tracker client first so it doesn't report to peer manager
+			// after its been deleted 
+			
+		if ( tracker_client != null ){
+		
+			tracker_client.removeListener( tracker_client_listener );
+	
+			tracker_client.destroy();
+			
+			tracker_client = null;
+		}
 		
 		if (peerManager != null){
 			
@@ -389,16 +401,7 @@ DownloadManagerImpl
 		  	
 		  diskManager = null;
 		}
-		
-		if ( tracker_client != null ){
-		
-			tracker_client.removeListener( tracker_client_listener );
-	
-			tracker_client.destroy();
-			
-			tracker_client = null;
-		}
-		
+				
 		state = DownloadManager.STATE_STOPPED;                
 	  }
 	};
