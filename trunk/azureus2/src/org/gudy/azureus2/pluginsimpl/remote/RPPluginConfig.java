@@ -116,19 +116,19 @@ RPPluginConfig
 		
 		Object[] params = (Object[])request.getParams();
 		
-		if ( method.equals( "getPluginIntParameter")){
+		if ( method.equals( "getPluginIntParameter[String,int]")){
 			
 			return( new RPReply( new Integer( delegate.getPluginIntParameter((String)params[0],((Integer)params[1]).intValue()))));
 			
-		}else if ( method.equals( "setPluginParameter[int]")){
+		}else if ( method.equals( "setPluginParameter[String,int]")){
 				
 			delegate.setPluginParameter((String)params[0],((Integer)params[1]).intValue());
 				
-		}else if ( method.equals( "getIntParameter")){
+		}else if ( method.equals( "getIntParameter[String,int]")){
 				
 				return( new RPReply( new Integer( delegate.getIntParameter((String)params[0],((Integer)params[1]).intValue()))));
 				
-		}else if ( method.equals( "setParameter[int]")){
+		}else if ( method.equals( "setParameter[String,int]")){
 					
 			delegate.setIntParameter((String)params[0],((Integer)params[1]).intValue());
 			
@@ -180,7 +180,7 @@ RPPluginConfig
 		
 		if ( res == null ){
 			
-			res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getIntParameter", new Object[]{key,new Integer(default_value)} )).getResponse();
+			res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getIntParameter[String,int]", new Object[]{key,new Integer(default_value)} )).getResponse();
 		}
 		
 		return( res.intValue());
@@ -193,7 +193,7 @@ RPPluginConfig
 	  {
 	  	property_cache.put( key, new Integer( value ));
 	  	
-		_dispatcher.dispatch( new RPRequest( this, "setParameter[int]", new Object[]{key,new Integer(value)} )).getResponse();
+		_dispatcher.dispatch( new RPRequest( this, "setParameter[String,int]", new Object[]{key,new Integer(value)} )).getResponse();
 	  }
 	  
 	  public String getStringParameter(String key)
@@ -226,7 +226,7 @@ RPPluginConfig
 	  
 	  public int getPluginIntParameter(String key,int defaultValue)
 	  {
-		Integer	res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getPluginIntParameter", new Object[]{key,new Integer(defaultValue)} )).getResponse();
+		Integer	res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getPluginIntParameter[String,int]", new Object[]{key,new Integer(defaultValue)} )).getResponse();
 		
 		return( res.intValue());
 	  }
@@ -261,7 +261,7 @@ RPPluginConfig
 	    
 	  public void setPluginParameter(String key,int value)
 	  {
-		_dispatcher.dispatch( new RPRequest( this, "setPluginParameter[int]", new Object[]{key,new Integer(value)} ));
+		_dispatcher.dispatch( new RPRequest( this, "setPluginParameter[String,int]", new Object[]{key,new Integer(value)} ));
 	  }
 	  
 	  public void setPluginParameter(String key,String value)

@@ -92,7 +92,19 @@ XMLHTTPClient
 				res.print();
 	
 				String config_oid	= res.getChild( "_object_id" ).getValue().trim();
-				
+
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + config_oid + "</_object_id></OBJECT>" +
+							"<METHOD>setParameter[String,int]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>Max Upload Speed KBs</ENTRY>"+
+								"<ENTRY>12</ENTRY>"+
+							"</PARAMS>" +
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+
 
 				/* stuff for adding a torrent
 				 

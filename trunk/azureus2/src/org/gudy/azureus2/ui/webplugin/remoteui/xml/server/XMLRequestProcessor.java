@@ -216,7 +216,7 @@ XMLRequestProcessor
 									
 								}else if ( sub_type == Object.class && request_class ){
 									
-									int	p1 = sig.indexOf(',');
+									int	p1 = sig.indexOf(',',sig_pos);
 									
 									String	bit;
 									
