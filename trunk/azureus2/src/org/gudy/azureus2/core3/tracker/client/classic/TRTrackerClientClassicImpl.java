@@ -266,10 +266,13 @@ TRTrackerClientClassicImpl
 	  	failure_reason = fr_for_thread[0];
 	  }
 	  
-	  if (httpConnecter.isAlive()) {
+	  if ( httpConnecter != null && httpConnecter.isAlive()){
+	  	
 		httpConnecter.interrupt();
 	  }
+	  
 	  httpConnecter = null;
+	  
 	  if(httpConnected) {
 		InputStream is = null;
 		try {

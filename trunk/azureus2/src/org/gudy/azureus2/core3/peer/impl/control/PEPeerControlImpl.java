@@ -1458,7 +1458,7 @@ PEPeerControlImpl
     _manager.removePiece(p);
   }
 
-  public String getElpased() {
+  public String getElapsedTime() {
     return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
   }
 

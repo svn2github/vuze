@@ -356,7 +356,7 @@ public class GeneralView extends AbstractIView {
     updateAvailability();
     updatePiecesInfo();
     updateOverall();
-    setTime(manager.getStats().getElapsed(), manager.getStats().getETA());
+    setTime(manager.getStats().getElapsedTime(), manager.getStats().getETA());
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = "" + manager.getNbSeeds();
     String peers = "" + manager.getNbPeers();
@@ -389,10 +389,12 @@ public class GeneralView extends AbstractIView {
       	peers,
 		DisplayFormatters.formatHashFails(manager),
       _shareRatio);
+      
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerClient());
+    
     setInfos(
       manager.getName(),
-	DisplayFormatters.formatByteCountToKBEtc(manager.getSize()),
+	  DisplayFormatters.formatByteCountToKBEtc(manager.getSize()),
       manager.getSavePath(),
       ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),
@@ -643,12 +645,8 @@ public class GeneralView extends AbstractIView {
     gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {
-    if (timeElapsed == null || timeElapsed.isDisposed())
-      return;
-    timeElapsed.setText(elapsed);
-    if (timeRemaining == null || timeRemaining.isDisposed())
-      return;
-    timeRemaining.setText(remaining);
+    ViewUtils.setText( timeElapsed, elapsed );
+    ViewUtils.setText( timeRemaining, remaining);
   }
 
   public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails,String _shareRatio) {
@@ -662,59 +660,36 @@ public class GeneralView extends AbstractIView {
     final String ts = _ts;
     final String s = _s;
     final String p = _p;
-    if (download == null || download.isDisposed())
-      return;
-    download.setText(dl);
-    if (downloadSpeed == null || downloadSpeed.isDisposed())
-      return;
-    downloadSpeed.setText(dls);
-    if (upload == null || upload.isDisposed())
-      return;
-    upload.setText(ul);
-    if (uploadSpeed == null || uploadSpeed.isDisposed())
-      return;
-    uploadSpeed.setText(uls);
-    if (totalSpeed == null || totalSpeed.isDisposed())
-      return;
-    totalSpeed.setText(ts);
-    if (seeds == null || seeds.isDisposed())
-      return;
-    seeds.setText(s); //$NON-NLS-1$
-    if (peers == null || peers.isDisposed())
-      return;
-    peers.setText(p); //$NON-NLS-1$
-    if(hashFails == null || hashFails.isDisposed())
-      return;
-    hashFails.setText(_hashFails);
-    if(shareRatio == null || shareRatio.isDisposed())
-      return;
-    shareRatio.setText(_shareRatio);     
+    
+    ViewUtils.setText( download, dl );
+    ViewUtils.setText( downloadSpeed, dls );
+    ViewUtils.setText( upload, ul );
+    ViewUtils.setText( uploadSpeed, uls );
+ 	ViewUtils.setText( totalSpeed,ts );
+	ViewUtils.setText( seeds, s); //$NON-NLS-1$
+	ViewUtils.setText( peers, p); //$NON-NLS-1$
+ 	ViewUtils.setText( hashFails,_hashFails);
+	ViewUtils.setText( shareRatio,_shareRatio);     
   }
 
   public void setTracker(final String status, final int time, TRTrackerClient trackerClient ){
     if (display == null || display.isDisposed())
       return;
-    if (tracker == null || tracker.isDisposed())
-      return;
-    tracker.setText(status);
-    if (trackerUpdateIn == null || trackerUpdateIn.isDisposed())
-      return;
+ 	ViewUtils.setText( tracker,status);
     int minutes = time / 60;
     int seconds = time % 60;
     String strSeconds = "" + seconds; //$NON-NLS-1$
     if (seconds < 10)
       strSeconds = "0" + seconds; //$NON-NLS-1$
-    trackerUpdateIn.setText(minutes + ":" + strSeconds); //$NON-NLS-1$
+	ViewUtils.setText( trackerUpdateIn,minutes + ":" + strSeconds); //$NON-NLS-1$
     
-    if(trackerUrlValue == null || trackerUrlValue.isDisposed())
-      return;
     if(trackerClient != null){
     	
     	String trackerURL = trackerClient.getTrackerUrl();
     
     	if ( trackerURL != null ){
     	
-      		trackerUrlValue.setText(trackerURL);
+			ViewUtils.setText( trackerUrlValue, trackerURL);
     	}
     }
   }
@@ -731,27 +706,13 @@ public class GeneralView extends AbstractIView {
       return;
     display.asyncExec(new Runnable() {
       public void run() {
-        if (fileName == null || fileName.isDisposed())
-          return;
-        fileName.setText(_fileName);
-        if (fileSize == null || fileSize.isDisposed())
-          return;
-        fileSize.setText(_fileSize);
-        if (saveIn == null || saveIn.isDisposed())
-          return;
-        saveIn.setText(_path);
-        if (hash == null || hash.isDisposed())
-          return;
-        hash.setText(_hash);
-        if (pieceNumber == null || pieceNumber.isDisposed())
-          return;
-        pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
-        if (pieceSize == null || pieceSize.isDisposed())
-          return;
-        pieceSize.setText(_pieceLength);
-        if(comment == null || comment.isDisposed())
-           return;
-        comment.setText(_comment);
+		ViewUtils.setText( fileName,_fileName);
+		ViewUtils.setText( fileSize, _fileSize);
+		ViewUtils.setText( saveIn,_path);
+		ViewUtils.setText( hash, _hash);
+		ViewUtils.setText( pieceNumber,"" + _pieceNumber); //$NON-NLS-1$
+		ViewUtils.setText( pieceSize, _pieceLength);
+		ViewUtils.setText( comment, _comment);
       }
     });
   }

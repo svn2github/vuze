@@ -156,12 +156,12 @@ DownloadManagerStatsImpl
 	  maxUploads = i;
 	}
 	public String 
-	getElapsed() 
+	getElapsedTime() 
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null)
-		return pm.getElpased();
+		return pm.getElapsedTime();
 	  return ""; //$NON-NLS-1$
 	}
 

@@ -113,5 +113,83 @@ DisplayFormatters
   		}
   		
   		return "";
-	}		
+	}	
+	
+	public static String
+	formatDownloadStatus(
+		DownloadManager		manager )
+	{	
+		int state = manager.getState();
+		
+		String	tmp = "";
+		
+		switch (state) {
+		  case DownloadManager.STATE_WAITING :
+			tmp = MessageText.getString("ManagerItem.waiting"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_ALLOCATING :
+			tmp = MessageText.getString("ManagerItem.allocating"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_CHECKING :
+			tmp = MessageText.getString("ManagerItem.checking"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_READY :
+			tmp = MessageText.getString("ManagerItem.ready"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_DOWNLOADING :
+			tmp = MessageText.getString("ManagerItem.downloading"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_SEEDING :
+			tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
+			break;
+	
+		  case DownloadManager.STATE_STOPPED :
+			tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_ERROR :
+			tmp = MessageText.getString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		}
+	
+		return( tmp );
+	}
+	
+	public static String
+	formatDownloadStatusDefaultLocale(
+		DownloadManager		manager )
+	{	
+		int state = manager.getState();
+		
+		String	tmp = "";
+		
+		switch (state) {
+		  case DownloadManager.STATE_WAITING :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.waiting"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_ALLOCATING :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.allocating"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_CHECKING :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.checking"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_READY :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.ready"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_DOWNLOADING :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_SEEDING :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding"); //$NON-NLS-1$
+			break;
+	
+		  case DownloadManager.STATE_STOPPED :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_ERROR :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		}
+	
+		return( tmp );
+	}
 }

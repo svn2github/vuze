@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -276,7 +277,9 @@ StatsWriterImpl
 								indent();
 								
 								writeLine( "<TORRENT>" );
-								
+
+								TOTorrent torrent = dm.getTorrent();
+																	
 								try{
 									indent();
 							
@@ -284,9 +287,7 @@ StatsWriterImpl
 									
 									writeTag( "TORRENT_FILE", dm.getTorrentFileName());
 									
-									TOTorrent torrent = dm.getTorrent();
-									
-									if ( torrent != null ){
+														if ( torrent != null ){
 										
 										writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 										
@@ -308,7 +309,23 @@ StatsWriterImpl
 								
 								writeLine( "</TORRENT>");
 								
+								writeTag( "DOWNLOAD_STATUS", DisplayFormatters.formatDownloadStatusDefaultLocale( dm));
+								
 								writeTag( "DOWNLOAD_DIR", dm.getSavePath());
+								
+								DiskManager	disk_manager = dm.getDiskManager();
+								
+								if ( disk_manager != null ){
+								
+									if ( torrent.isSimpleTorrent()){
+									
+										writeTag( "TARGET_FILE", disk_manager.getFileName());
+										
+									}else{
+										
+										writeTag( "TARGET_DIR", disk_manager.getFileName());
+									}
+								}
 								
 								writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
 							
@@ -322,7 +339,7 @@ StatsWriterImpl
 								writeRawCookedAverageTag( "UPLOAD_SPEED", 		dm_stats.getUploadAverage());
 								writeRawCookedAverageTag( "TOTAL_SPEED", 		dm_stats.getTotalAverage());
 																						
-								writeTag( "ELAPSED", 		dm_stats.getElapsed());
+								writeTag( "ELAPSED", 		dm_stats.getElapsedTime());
 								writeTag( "ETA", 			dm_stats.getETA());
 								writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
 								writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());

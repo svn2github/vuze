@@ -122,36 +122,12 @@ public class ManagerItem {
       item.setText(3, tmp);
     }
 
-    tmp = ""; //$NON-NLS-1$
-    int state = manager.getState();
-    switch (state) {
-      case DownloadManager.STATE_WAITING :
-        tmp = MessageText.getString("ManagerItem.waiting"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_ALLOCATING :
-        tmp = MessageText.getString("ManagerItem.allocating"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_CHECKING :
-        tmp = MessageText.getString("ManagerItem.checking"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_READY :
-        tmp = MessageText.getString("ManagerItem.ready"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_DOWNLOADING :
-        tmp = MessageText.getString("ManagerItem.downloading"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_SEEDING :
-        tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
-        break;
+    tmp = DisplayFormatters.formatDownloadStatus( manager );
 
-      case DownloadManager.STATE_STOPPED :
-        tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
-        break;
-      case DownloadManager.STATE_ERROR :
-        tmp = MessageText.getString("ManagerItem.error") + " : " + manager.getErrorDetails(); //$NON-NLS-1$ //$NON-NLS-2$
-        break;
-    }
     if (!(tmp.equals(this.status))) {
+    	
+      int state = manager.getState();
+    	
       status = tmp;
       item.setText(4, tmp);
       if (state == DownloadManager.STATE_SEEDING)

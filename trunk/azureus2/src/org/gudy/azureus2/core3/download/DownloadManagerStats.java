@@ -59,8 +59,8 @@ DownloadManagerStats
 	getTotalAverage();
 			
 	public String
-	getElapsed();
-	
+	getElapsedTime();
+		
 	public String
 	getETA();
 		

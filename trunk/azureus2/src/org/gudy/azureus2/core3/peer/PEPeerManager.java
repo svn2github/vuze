@@ -84,5 +84,5 @@ PEPeerManager
 
 	public String getETA();
 
-	public String getElpased();
+	public String getElapsedTime();
 }
