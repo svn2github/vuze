@@ -352,7 +352,7 @@ public class ModePanel extends AbstractWizardPanel {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
-    comment.setText("");
+    comment.setText(((NewTorrentWizard) wizard).getComment());
 
     comment.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
