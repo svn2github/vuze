@@ -36,7 +36,7 @@ public class TrackerConnection
   {
     //Get the Tracker url
     try{            
-	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF-16");      
+	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF8");      
     } catch (Exception e) {
       e.printStackTrace();
     }

@@ -273,7 +273,7 @@ public class PeerManager extends Thread {
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         }
         catch (Exception e) {
-          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
         }
@@ -300,7 +300,7 @@ public class PeerManager extends Thread {
           //build a dictionary object				
           String peerId = new String((byte[]) peer.get("peer id"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer id
-          String ip = new String((byte[]) peer.get("ip"), "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+          String ip = new String((byte[]) peer.get("ip"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer ip address
           int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
           //get the peer port number
