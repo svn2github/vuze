@@ -53,7 +53,7 @@ StartStopRulesDefaultPlugin
   protected DownloadListener      download_listener;
   protected DownloadTrackerListener download_tracker_listener;
   
-  protected ArrayList           download_data = new ArrayList();
+  protected Map downloadDataMap = Collections.synchronizedMap(new HashMap());
   
   protected volatile boolean         closingDown;
   protected volatile boolean         somethingChanged;
@@ -135,17 +135,14 @@ StartStopRulesDefaultPlugin
           int       old_state,
           int       new_state )
         {
-          if (new_state == Download.ST_SEEDING)
-            synchronized (download_data) {
-              Iterator iter = download_data.iterator();
-              while (iter.hasNext()) {
-                downloadData dl_data  = (downloadData) iter.next();
-                if (dl_data.getDownloadObject() == download) {
-                  dl_data.setStartedSeedingOn(System.currentTimeMillis());
-                  break;
-                }
-              }
+          downloadData dlData = (downloadData)downloadDataMap.get(download);
+          if (dlData != null) {
+            if (new_state == Download.ST_SEEDING) {
+              dlData.setStartedSeedingOn(System.currentTimeMillis());
             }
+            // force a QR recalc, so that it gets positiong properly next process()
+            dlData.recalcQR();
+          }
 
         }
       };
@@ -155,8 +152,10 @@ StartStopRulesDefaultPlugin
         {
           public void downloadAdded( Download  download )
           {
-            synchronized (download_data) {
-              download_data.add( new downloadData(download) );
+            if (!downloadDataMap.containsKey(download)) {
+              synchronized (downloadDataMap) {
+                downloadDataMap.put( download, new downloadData(download) );
+              }
             }
 
             download.addListener( download_listener );
@@ -168,14 +167,9 @@ StartStopRulesDefaultPlugin
           {
             download.removeListener( download_listener );
             
-            synchronized (download_data) {
-              Iterator iter = download_data.iterator();
-              while (iter.hasNext()) {
-                downloadData dl_data  = (downloadData) iter.next();
-                if (dl_data.getDownloadObject() == download) {
-                  download_data.remove(dl_data);
-                  break;
-                }
+            if (downloadDataMap.containsKey(download)) {
+              synchronized (downloadDataMap) {
+                downloadDataMap.remove(download);
               }
             }
 
@@ -266,69 +260,307 @@ StartStopRulesDefaultPlugin
     // give Complete a delay so that we have time to scrape and get the downloads going
     boolean okToProcessComplete = (System.currentTimeMillis() - startedOn) > 20000;
 
-    synchronized (download_data) {
-      Iterator iter = download_data.iterator();
-      // Loop 1 of 2: 
-      // - Build a QR list for sorting
-      // - Build Count Totals
-      // - Do anything that doesn't need to be done in Queued order
-      while (iter.hasNext()) {
-        downloadData dl_data  = (downloadData) iter.next();
+    // pull the data into an local array, so we don't have to lock/synchronize
+    downloadData[] dlDataArray;
+    synchronized (downloadDataMap) {
+      dlDataArray = (downloadData[])
+        downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
+    }
+    // Loop 1 of 2: 
+    // - Build a QR list for sorting
+    // - Build Count Totals
+    // - Do anything that doesn't need to be done in Queued order
+    for (int i = 0; i < dlDataArray.length; i++) {
+      downloadData dl_data = dlDataArray[i];
 
-        int qr = (recalcQR) ? dl_data.recalcQR() : dl_data.getQR();
+      int qr = (recalcQR) ? dl_data.recalcQR() : dl_data.getQR();
 
-        // We don't need to do any counting if we are quiting early
-        if (downloadIsPreparing)
-          continue;
-  
-        Download download = dl_data.getDownloadObject();
-        int state = download.getState();
+      // We don't need to do any counting if we are quiting early
+      if (downloadIsPreparing)
+        continue;
 
-        //When PREPARING, getCompleted doesn't refer to "download done %"
-        //it could refer to % of allocating done, or % of checking done.
-        //Until we have a way of finding out if the torrent is done downloading,
-        //break out of processing
-        if (state == Download.ST_PREPARING) {
-          downloadIsPreparing = true;
-          continue;
+      Download download = dl_data.getDownloadObject();
+      int state = download.getState();
+
+      //When PREPARING, getCompleted doesn't refer to "download done %"
+      //it could refer to % of allocating done, or % of checking done.
+      //Until we have a way of finding out if the torrent is done downloading,
+      //break out of processing
+      if (state == Download.ST_PREPARING) {
+        downloadIsPreparing = true;
+        continue;
+      }
+
+      if (state == Download.ST_DOWNLOADING && !download.isForceStart()) {
+        totalDownloading++;
+        // Only increase activeDLCount if there's downloading 
+        // or if the torrent just recently started (ie. give it a chance to get some connections)
+        if ((download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
+            (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
+          activeDLCount++;
+      }
+
+      // All of these are either seeding or about to be seeding
+      if (download.getStats().getCompleted() == 1000) {
+        if (state == Download.ST_READY ||
+            state == Download.ST_WAITING ||
+            state == Download.ST_PREPARING)
+          totalWaitingToSeed++;
+        else if (state == Download.ST_SEEDING) {
+          totalSeeding++;
+          if (download.isForceStart())
+            totalForcedSeeding++;
+        }
+        else if (state == Download.ST_QUEUED)
+          totalCompleteQueued++;
+      } else {
+        if (state == Download.ST_READY ||
+            state == Download.ST_WAITING ||
+            state == Download.ST_PREPARING)
+          totalWaitingToDL++;
+        else if (state == Download.ST_QUEUED)
+          totalIncompleteQueued++;
+      }
+    }
+    
+    int maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
+    // XXX put in subtraction logic here
+
+    // We can also quit early if:
+    // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
+    // - We match the limits for DL & Seeding
+    // - We have less than the limits for DL &/or seeding, but there are no other torrents in the queue
+    boolean quitEarly = ((totalSeeding == maxSeeders) || 
+                         (totalSeeding < maxSeeders && totalCompleteQueued == 0)
+                        ) &&
+                        (totalWaitingToSeed == 0) &&
+                        ((totalDownloading == maxDownloads) || 
+                         (totalDownloading < maxDownloads && totalIncompleteQueued == 0)
+                        ) &&
+                        (totalWaitingToDL == 0) &&
+                        (!recalcQR);
+
+		//log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
+    if (quitEarly || downloadIsPreparing)
+      return;
+    
+    // Sort by QR
+    Arrays.sort(dlDataArray);
+
+    int numWaitingOrSeeding = totalForcedSeeding; // Running Count
+    int numWaitingOrDLing = 0;   // Running Count
+    /**
+     * store whether there's a torrent higher in the list that is queued
+     * We don't want to start a torrent lower in the list if there's a higherQueued
+     */
+    boolean higherQueued = false;
+    /**
+     * Tracks the position we should be at in the Completed torrents list
+     * Updates position.
+     */
+    int posComplete = 0;
+
+    // Loop 2 of 2:
+    // - Start/Stop torrents based on criteria
+    for (int i = 0; i < dlDataArray.length; i++) {
+      downloadData dl_data = dlDataArray[i];
+      Download download = dl_data.getDownloadObject();
+
+      //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getCompleted());
+      // Initialize STATE_WAITING torrents
+      if ((download.getState() == Download.ST_WAITING) && 
+          !getAlreadyAllocatingOrChecking()) {
+        try{
+          download.initialize();
+        }catch (Exception ignore) {/*ignore*/}
+      }
+      
+      //See PREPARING notes in Loop 1 of 2;
+      if (download.getState() == Download.ST_PREPARING) {
+        break;
+      }
+
+      if (enableQR && download.getStats().getCompleted() == 1000 && okToProcessComplete)
+        download.setPosition(++posComplete);
+
+      // Never do anything to stopped entries
+      if (download.getState() == Download.ST_STOPPING ||
+          download.getState() == Download.ST_STOPPED ||
+          download.getState() == Download.ST_ERROR) {
+        continue;
+      }
+            
+      // Handle incomplete DLs
+      if (download.getStats().getCompleted() != 1000) {
+        // Stop torrent if over limit
+        if ((download.getState() == Download.ST_READY || 
+             download.getState() == Download.ST_DOWNLOADING ||
+             download.getState() == Download.ST_WAITING ||
+             download.getState() == Download.ST_PREPARING) &&
+            (!download.isForceStart())
+           ) {
+
+            if ((maxDownloads != 0) && 
+                (numWaitingOrDLing >= maxDownloads)) {
+               try {
+                download.stopAndQueue();
+               } catch (Exception ignore) {/*ignore*/}
+            }
+            else if ((download.getState() == Download.ST_DOWNLOADING) &&
+                     (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
+                     (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
+              numWaitingOrDLing++;
+            else
+              numWaitingOrDLing++;
         }
 
-        if (state == Download.ST_DOWNLOADING && !download.isForceStart()) {
-          totalDownloading++;
-          // Only increase activeDLCount if there's downloading 
-          // or if the torrent just recently started (ie. give it a chance to get some connections)
-          if ((download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-              (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
+        if ((download.getState() == Download.ST_QUEUED) &&
+            ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads))) {
+          try {
+            download.restart();
+          } catch (Exception ignore) {/*ignore*/}
+          numWaitingOrDLing++;
+        }
+              
+              
+        // Start if incomplete and we haven't reached our limit, or
+        // if user forced start.
+        // (completed torrents are started later)
+        if (download.getState() == Download.ST_READY &&
+            ((maxDownloads == 0) || (activeDLCount < maxDownloads))
+        ) {
+          try {
+            download.start();
+          } catch (Exception ignore) {/*ignore*/}
+          
+          if (download.getState() == Download.ST_DOWNLOADING) {
             activeDLCount++;
-        }
-  
-        // All of these are either seeding or about to be seeding
-        if (download.getStats().getCompleted() == 1000) {
-          if (state == Download.ST_READY ||
-              state == Download.ST_WAITING ||
-              state == Download.ST_PREPARING)
-            totalWaitingToSeed++;
-          else if (state == Download.ST_SEEDING) {
-            totalSeeding++;
-            if (download.isForceStart())
-              totalForcedSeeding++;
+            maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
+            // XXX put in subtraction logic here
           }
-          else if (state == Download.ST_QUEUED)
-            totalCompleteQueued++;
-        } else {
-          if (state == Download.ST_READY ||
-              state == Download.ST_WAITING ||
-              state == Download.ST_PREPARING)
-            totalWaitingToDL++;
-          else if (state == Download.ST_QUEUED)
-            totalIncompleteQueued++;
         }
+      }
+      else if (okToProcessComplete) { // completed
+        // Queuing process:
+        // 1) Torrent is Queued (Stopped)
+        // 2) Slot becomes available
+        // 3) Queued Torrent changes to Waiting
+        // 4) Waiting Torrent changes to Ready
+        // 5) Ready torrent changes to Seeding (with startDownload)
+        // 6) Trigger stops Seeding torrent
+        //    a) Queue Ranking drops
+        //    b) User pressed stop
+        //    c) other
+        // 7) Seeding Torrent changes to Queued.  Go to step 1.
+        
+        int shareRatio = download.getStats().getShareRatio();
+        int state = download.getState();
+        boolean okToStop = (state == Download.ST_READY || state == Download.ST_SEEDING || state == Download.ST_QUEUED) &&
+                           (!download.isForceStart()) && 
+                           (shareRatio > 500 || shareRatio == -1);
+        if (okToStop && (state == Download.ST_SEEDING)) {
+          // Min time check
+          long timeAlive = System.currentTimeMillis() - download.getStats().getTimeStarted();
+          long minTimeAlive = plugin_config.getIntParameter("Min Seeding Time", 60*3) * 1000;
+          okToStop = (timeAlive >= minTimeAlive);
+        }
+        // We can stop items queued, but we can't queue items queued ;)
+        boolean okToQueue = okToStop && (state != Download.ST_QUEUED);
+
+        if (download.getState() == Download.ST_READY || 
+            download.getState() == Download.ST_SEEDING ||
+            download.getState() == Download.ST_WAITING ||
+            download.getState() == Download.ST_PREPARING)
+          numWaitingOrSeeding++;
+
+        if (DEBUG)
+          log.log(LoggerChannel.LT_INFORMATION, 
+                  "["+download.getTorrent().getName()+"]: state="+state+
+                  ";numWaitingorSeeding="+numWaitingOrSeeding+
+                  ";okToQueue="+okToQueue+
+                  ";okToStop="+okToStop+
+                  ";qr="+dl_data.getQR());
+
+        // Change to waiting if queued and we have an open slot
+        if ((download.getState() == Download.ST_QUEUED) && 
+            (numWaitingOrSeeding < maxSeeders) &&
+            (dl_data.getQR() > -2) &&
+            !higherQueued) {
+          try {
+            download.restart(); // set to Waiting
+            totalWaitingToSeed++;
+            numWaitingOrSeeding++;
+          } catch (Exception ignore) {/*ignore*/}
+        }
+              
+        if ((download.getState() == Download.ST_READY) &&
+            (totalSeeding < maxSeeders)) {
+          if (dl_data.getQR() > -2) {
+            try {
+              download.start();
+            } catch (Exception ignore) {/*ignore*/}
+            
+            totalSeeding++;
+          }
+          else if (okToQueue) {
+            // In between switching from STATE_WAITING and STATE_READY,
+            // Stop Ratio was met, so move it back to Queued
+            try {
+              download.stopAndQueue();
+              totalWaitingToSeed--;
+              numWaitingOrSeeding--;
+            } catch (Exception ignore) {/*ignore*/}
+          }
+        }
+
+
+        // if there's more torrents waiting/seeding than our max, or if
+        // there's a higher ranked torrent queued, stop this one
+        if (okToQueue &&
+            ((numWaitingOrSeeding > maxSeeders) || higherQueued)) {
+          try {
+            if (download.getState() == Download.ST_READY)
+              totalWaitingToSeed--;
+
+            download.stopAndQueue();
+            // okToQueue only allows READY and SEEDING state.. and in both cases
+            // we have to reduce counts
+            numWaitingOrSeeding--;
+          } catch (Exception ignore) {/*ignore*/}
+        }
+
+        //STOP (no auto-starting again) when Share Ratio reaches # in config
+        //0 means unlimited
+        if (minShareRatio != 0) {
+          if (download.getStats().getShareRatio() > minShareRatio && okToStop)
+            try {
+              download.stop();
+            } catch (Exception ignore) {/*ignore*/}
+        }
+
+        if (okToQueue && (minPeersPerSeed != 0)) {
+          int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
+          //If there are no seeds, avoid / by 0
+          if (numSeeds != 0) {
+            int numPeers = calcPeersNoUs(download);
+            float ratio = (float) numPeers / numSeeds;
+            if (ratio <= minPeersPerSeed) {
+              try {
+                download.stopAndQueue();
+              } catch (Exception ignore) {/*ignore*/}
+              dl_data.setQR(-2);
+            }
+          }
+        }
+
+        if (download.getState() == Download.ST_QUEUED)
+          higherQueued = true;
 
         // XXX: Old code. Do we really want to remove torrents when the error is "File Not Found"?
         if (  download.getState() == Download.ST_ERROR &&
             download.getErrorStateDetails() != null && 
             download.getErrorStateDetails().equals("File Not Found")){
-
+  
           try{
           	Torrent t = download.getTorrent();
           	if (t == null)
@@ -336,8 +568,9 @@ StartStopRulesDefaultPlugin
           	else
             	log.log( LoggerChannel.LT_INFORMATION, "Remove ["+t.getName()+"]: file not found" );
             
-            // must remove from download_data first, otherwise we end up in infinite wait loop
-            download_data.remove(dl_data);
+            synchronized (downloadDataMap) {
+              downloadDataMap.remove(download);
+            }
             download.remove();
             
           }catch( DownloadRemovalVetoException e ){
@@ -349,247 +582,9 @@ StartStopRulesDefaultPlugin
             e.printStackTrace();
           }
         }
-      }
-      
-      int maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
-      // XXX put in subtraction logic here
-  
-      // We can also quit early if:
-      // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
-      // - We match the limits for DL & Seeding
-      // - We have less than the limits for DL &/or seeding, but there are no other torrents in the queue
-      boolean quitEarly = ((totalSeeding == maxSeeders) || 
-                           (totalSeeding < maxSeeders && totalCompleteQueued == 0)
-                          ) &&
-                          (totalWaitingToSeed == 0) &&
-                          ((totalDownloading == maxDownloads) || 
-                           (totalDownloading < maxDownloads && totalIncompleteQueued == 0)
-                          ) &&
-                          (totalWaitingToDL == 0) &&
-                          (!recalcQR);
 
-	  // log.log( LoggerChannel.LT_INFORMATION, "quitEarly="+quitEarly+" DLPrep="+downloadIsPreparing+" totalWaitingToSeed="+totalWaitingToSeed);
-      if (quitEarly || downloadIsPreparing){
-      	
-        return;
-      }
-      
-      // Sort by QR
-      Collections.sort(download_data);
-
-      iter = download_data.iterator();
-  
-      int numWaitingOrSeeding = totalForcedSeeding; // Running Count
-      int numWaitingOrDLing = 0;   // Running Count
-      /**
-       * store whether there's a torrent higher in the list that is queued
-       * We don't want to start a torrent lower in the list if there's a higherQueued
-       */
-      boolean higherQueued = false;
-      /**
-       * Tracks the position we should be at in the Completed torrents list
-       * Updates position.
-       */
-      int posComplete = 0;
-  
-      // Loop 2 of 2:
-      // - Start/Stop torrents based on criteria
-      while (iter.hasNext()) {
-        downloadData dl_data  = (downloadData) iter.next();
-        Download download = dl_data.getDownloadObject();
-  
-        //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getCompleted());
-        // Initialize STATE_WAITING torrents
-        if ((download.getState() == Download.ST_WAITING) && 
-            !getAlreadyAllocatingOrChecking()) {
-          try{
-            download.initialize();
-          }catch (Exception ignore) {/*ignore*/}
-        }
-        
-        //See PREPARING notes in Loop 1 of 2;
-        if (download.getState() == Download.ST_PREPARING) {
-          break;
-        }
-
-        if (enableQR && download.getStats().getCompleted() == 1000 && okToProcessComplete)
-          download.setPosition(++posComplete);
-
-        // Never do anything to stopped entries
-        if (download.getState() == Download.ST_STOPPING ||
-            download.getState() == Download.ST_STOPPED ||
-            download.getState() == Download.ST_ERROR) {
-          continue;
-        }
-              
-        // Handle incomplete DLs
-        if (download.getStats().getCompleted() != 1000) {
-          // Stop torrent if over limit
-          if ((download.getState() == Download.ST_READY || 
-               download.getState() == Download.ST_DOWNLOADING ||
-               download.getState() == Download.ST_WAITING ||
-               download.getState() == Download.ST_PREPARING) &&
-              (!download.isForceStart())
-             ) {
-  
-              if ((maxDownloads != 0) && 
-                  (numWaitingOrDLing >= maxDownloads)) {
-                 try {
-                  download.stopAndQueue();
-                 } catch (Exception ignore) {/*ignore*/}
-              }
-              else if ((download.getState() == Download.ST_DOWNLOADING) &&
-                       (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-                       (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
-                numWaitingOrDLing++;
-              else
-                numWaitingOrDLing++;
-          }
-  
-          if ((download.getState() == Download.ST_QUEUED) &&
-              ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads))) {
-            try {
-              download.restart();
-            } catch (Exception ignore) {/*ignore*/}
-            numWaitingOrDLing++;
-          }
-                
-                
-          // Start if incomplete and we haven't reached our limit, or
-          // if user forced start.
-          // (completed torrents are started later)
-          if (download.getState() == Download.ST_READY &&
-              ((maxDownloads == 0) || (activeDLCount < maxDownloads))
-          ) {
-            try {
-              download.start();
-            } catch (Exception ignore) {/*ignore*/}
-            
-            if (download.getState() == Download.ST_DOWNLOADING) {
-              activeDLCount++;
-              maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
-              // XXX put in subtraction logic here
-            }
-          }
-        }
-        else if (okToProcessComplete) { // completed
-          // Queuing process:
-          // 1) Torrent is Queued (Stopped)
-          // 2) Slot becomes available
-          // 3) Queued Torrent changes to Waiting
-          // 4) Waiting Torrent changes to Ready
-          // 5) Ready torrent changes to Seeding (with startDownload)
-          // 6) Trigger stops Seeding torrent
-          //    a) Queue Ranking drops
-          //    b) User pressed stop
-          //    c) other
-          // 7) Seeding Torrent changes to Queued.  Go to step 1.
-          
-          int shareRatio = download.getStats().getShareRatio();
-          int state = download.getState();
-          boolean okToStop = (state == Download.ST_READY || state == Download.ST_SEEDING || state == Download.ST_QUEUED) &&
-                             (!download.isForceStart()) && 
-                             (shareRatio > 500 || shareRatio == -1);
-          if (okToStop && (state == Download.ST_SEEDING)) {
-            // Min time check
-            long timeAlive = System.currentTimeMillis() - download.getStats().getTimeStarted();
-            long minTimeAlive = plugin_config.getIntParameter("Min Seeding Time", 60*3) * 1000;
-            okToStop = (timeAlive >= minTimeAlive);
-          }
-          // We can stop items queued, but we can't queue items queued ;)
-          boolean okToQueue = okToStop && (state != Download.ST_QUEUED);
-  
-          if (download.getState() == Download.ST_READY || 
-              download.getState() == Download.ST_SEEDING ||
-              download.getState() == Download.ST_WAITING ||
-              download.getState() == Download.ST_PREPARING)
-            numWaitingOrSeeding++;
-
-          if (DEBUG)
-            log.log(LoggerChannel.LT_INFORMATION, 
-                    "["+download.getTorrent().getName()+"]: state="+state+
-                    ";numWaitingorSeeding="+numWaitingOrSeeding+
-                    ";okToQueue="+okToQueue+
-                    ";okToStop="+okToStop+
-                    ";qr="+dl_data.getQR());
-
-          // Change to waiting if queued and we have an open slot
-          if ((download.getState() == Download.ST_QUEUED) && 
-              (numWaitingOrSeeding < maxSeeders) &&
-              (dl_data.getQR() > -2) &&
-              !higherQueued) {
-            try {
-              download.restart(); // set to Waiting
-              totalWaitingToSeed++;
-              numWaitingOrSeeding++;
-            } catch (Exception ignore) {/*ignore*/}
-          }
-                
-          if ((download.getState() == Download.ST_READY) &&
-              (totalSeeding < maxSeeders)) {
-            if (dl_data.getQR() > -2) {
-              try {
-                download.start();
-              } catch (Exception ignore) {/*ignore*/}
-              
-              totalSeeding++;
-            }
-            else if (okToQueue) {
-              // In between switching from STATE_WAITING and STATE_READY,
-              // Stop Ratio was met, so move it back to Queued
-              try {
-                download.stopAndQueue();
-                totalWaitingToSeed--;
-                numWaitingOrSeeding--;
-              } catch (Exception ignore) {/*ignore*/}
-            }
-          }
-  
-  
-          // if there's more torrents waiting/seeding than our max, or if
-          // there's a higher ranked torrent queued, stop this one
-          if (okToQueue &&
-              ((numWaitingOrSeeding > maxSeeders) || higherQueued)) {
-            try {
-              if (download.getState() == Download.ST_READY)
-                totalWaitingToSeed--;
-
-              download.stopAndQueue();
-              // okToQueue only allows READY and SEEDING state.. and in both cases
-              // we have to reduce counts
-              numWaitingOrSeeding--;
-            } catch (Exception ignore) {/*ignore*/}
-          }
-  
-          //STOP (no auto-starting again) when Share Ratio reaches # in config
-          //0 means unlimited
-          if (minShareRatio != 0) {
-            if (download.getStats().getShareRatio() > minShareRatio && okToStop)
-              try {
-                download.stop();
-              } catch (Exception ignore) {/*ignore*/}
-          }
-  
-          if (okToQueue && (minPeersPerSeed != 0)) {
-            int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
-            //If there are no seeds, avoid / by 0
-            if (numSeeds != 0) {
-              int numPeers = calcPeersNoUs(download);
-              float ratio = (float) numPeers / numSeeds;
-              if (ratio <= minPeersPerSeed) {
-                try {
-                  download.stopAndQueue();
-                } catch (Exception ignore) {/*ignore*/}
-                dl_data.setQR(-2);
-              }
-            }
-          }
-  
-          if (download.getState() == Download.ST_QUEUED)
-            higherQueued = true;
-        } // getCompleted == 1000
-      } // Loop 2/2 (Start/Stopping)
-    } // synchronize
+      } // getCompleted == 1000
+    } // Loop 2/2 (Start/Stopping)
   } // process()
   
   public boolean getAlreadyAllocatingOrChecking() {
@@ -615,7 +610,6 @@ StartStopRulesDefaultPlugin
   public int calcPeersNoUs(Download download) {
     int numPeers = 0;
     DownloadScrapeResult sr = download.getLastScrapeResult();
-    //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: sr.getScrapeStartTime()"+sr.getScrapeStartTime());
     if (sr.getScrapeStartTime() > 0) {
       numPeers = sr.getNonSeedCount();
       // If we've scraped after we started downloading
@@ -687,7 +681,6 @@ StartStopRulesDefaultPlugin
     public void setQR(int newQR)
     {
       qr = newQR;
-      //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: qr set to "+qr);
     }
     
     public long getStartedSeedingOn() {
@@ -695,7 +688,6 @@ StartStopRulesDefaultPlugin
     }
 
     public void setStartedSeedingOn(long time) {
-      //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: startedSeedingOn set!");
       startedSeedingOn = time;
     }
     
@@ -828,13 +820,11 @@ StartStopRulesDefaultPlugin
               newQR += 2000;
             else
               newQR += 1500 + (500 / (minCopies + adj + 1));
-             //LGLogger.log(LGLogger.INFORMATION, "** i=" + i + "; minCopies="+minCopies+" adj="+adj+" newQR="+newQR);
           }
           else { // No Availablility Stats && numSeeds == 0 && numPeers != 0
             // Can't get availability, so make this very important
             if (numPeers >= minPeersToBoostNoSeeds)
               newQR += 2000;
-            //LGLogger.log(0, getName() + " noseeds and peers = " + numPeers + " minPeersToBoostNoSeeds = " + minPeersToBoostNoSeeds);
           } // (no) availability
           
           newQR += numPeers * 50;
