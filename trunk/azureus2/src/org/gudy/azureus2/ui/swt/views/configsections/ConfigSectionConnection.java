@@ -30,7 +30,6 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -84,19 +83,12 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.top = new FormAttachment(0,5);
     formData.left = new FormAttachment(tcplisten.getControl());
     label.setLayoutData(formData);
-    
-//////////////////////
-    
-    BooleanParameter enableUDP = new BooleanParameter(cServer, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
-    formData = new FormData();
-    formData.top = new FormAttachment( tcplisten.getControl());
-    enableUDP.setLayoutData(formData);  
-    
+     
  ///////////////////////
     
     StringParameter overrideip = new StringParameter(cServer, "Override Ip", "");
     formData = new FormData();
-    formData.top = new FormAttachment(enableUDP.getControl());
+    formData.top = new FormAttachment(tcplisten.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     overrideip.setLayoutData(formData);
@@ -104,7 +96,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.overrideip");
     formData = new FormData();
-    formData.top = new FormAttachment(enableUDP.getControl(),5);
+    formData.top = new FormAttachment(tcplisten.getControl(),5);
     formData.left = new FormAttachment(overrideip.getControl());
     label.setLayoutData(formData);
     
@@ -126,10 +118,33 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
  //////////////////////
     
+    IntParameter max_connects = new IntParameter(cServer, "network.max.simultaneous.connect.attempts");
+    formData = new FormData();
+    formData.top = new FormAttachment(bindip.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 20;
+    max_connects.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
+    formData = new FormData();
+    formData.top = new FormAttachment(bindip.getControl(),5);
+    formData.left = new FormAttachment(max_connects.getControl());
+    label.setLayoutData(formData);
+    
+//////////////////////
+    
+    BooleanParameter enableUDP = new BooleanParameter(cServer, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
+    formData = new FormData();
+    formData.top = new FormAttachment( max_connects.getControl());
+    enableUDP.setLayoutData(formData); 
+    
+ //////////////////////
+    
     Label proxytext = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(proxytext, "ConfigView.section.proxy.description2");
     formData = new FormData();
-    formData.top = new FormAttachment( bindip.getControl(), 10 );
+    formData.top = new FormAttachment( enableUDP.getControl(), 10 );
     proxytext.setLayoutData(formData);
     
  //////////////////////

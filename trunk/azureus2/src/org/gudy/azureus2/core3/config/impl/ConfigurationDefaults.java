@@ -322,6 +322,8 @@ public class ConfigurationDefaults {
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
+    def.put( "network.max.simultaneous.connect.attempts", new Long( 5 ));
+    
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
