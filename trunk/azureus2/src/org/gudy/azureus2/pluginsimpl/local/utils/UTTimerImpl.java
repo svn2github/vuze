@@ -51,8 +51,8 @@ UTTimerImpl
 		long						periodic_millis,
 		final UTTimerEventPerformer	performer )
 	{
-		final UTTimerEvent	res = new UTTimerEvent(){};
-		
+		final timerEvent	res = new timerEvent();
+			
 		TimerEventPeriodic ev = timer.addPeriodicEvent( 
 			periodic_millis,
 			new TimerEventPerformer()
@@ -61,10 +61,39 @@ UTTimerImpl
 				perform(
 					TimerEvent		ev )
 				{
-					performer.perform( res );
+					res.perform( performer );
 				}
 			});
 		
+		res.setEvent( ev );
+		
 		return( res );
+	}
+	
+	protected class
+	timerEvent
+		implements UTTimerEvent
+	{
+		protected TimerEventPeriodic		ev;
+		
+		protected void
+		setEvent(
+			TimerEventPeriodic	_ev )
+		{
+			ev		= _ev;
+		}
+		
+		protected void
+		perform(
+			UTTimerEventPerformer	p )
+		{
+			p.perform( this );
+		}
+		
+		public void
+		cancel()
+		{
+			ev.cancel();
+		}
 	}
 }
