@@ -385,10 +385,13 @@ TrackerWeb
 				t_row.put( "torrent_download_url", "/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str );
 
 				t_row.put( "torrent_details_url", "details.tmpl?torrent_info_hash=" + hash_str );
+				
+				t_row.put( "torrent_details_params", "torrent_info_hash=" + hash_str );
 			}else{
 				
-				t_row.put( "torrent_download_url", "" );
-				t_row.put( "torrent_details_url", "" );
+				t_row.put( "torrent_download_url", "#" );
+				t_row.put( "torrent_details_url", "#" );
+				t_row.put( "torrent_details_params", "");
 			}
 			
 			t_row.put( "torrent_status", status_str );
