@@ -101,7 +101,7 @@ PEPeerStatsImpl
     public long getDataSendRate() {  return data_send_speed.getAverage();  }
     public long getProtocolSendRate() {  return protocol_send_speed.getAverage();  }
 
-    public long getSmoothReceiveRate() {  return receive_speed_for_choking.getAverage();  }
+    public long getSmoothDataReceiveRate() {  return receive_speed_for_choking.getAverage();  }
 
     public long getTotalBytesDiscarded() {  return total_bytes_discarded;  }
     

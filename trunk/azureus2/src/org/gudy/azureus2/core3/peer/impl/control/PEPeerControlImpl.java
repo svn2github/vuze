@@ -731,7 +731,7 @@ PEPeerControlImpl
 	    PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 
 	    if (pc.transferAvailable()) {
-	    	long upRate = pc.getStats().getSmoothReceiveRate();
+	    	long upRate = pc.getStats().getSmoothDataReceiveRate();
         updateLargestValueFirstSort( upRate, upRates, pc, bestUploaders, 0 );
 	    }
 	  }
@@ -1362,9 +1362,9 @@ PEPeerControlImpl
       boolean interesting = seeding_mode ? true : pc.isInterestingToMe();
       
       if( interesting && pc.isInterestedInMe() && !pc.isSnubbed() ) {
-        long upRate = seeding_mode ? pc.getStats().getDataSendRate() : pc.getStats().getSmoothReceiveRate();
-        if( upRate > 256 ) {  //need to be uploading at least 256kbs to qualify
-          updateLargestValueFirstSort( upRate, best_rates, pc, best_peers, 0 );
+        long rate = seeding_mode ? pc.getStats().getDataSendRate() : pc.getStats().getSmoothDataReceiveRate();
+        if( rate > 0 ) {
+          updateLargestValueFirstSort( rate, best_rates, pc, best_peers, 0 );
         }
       }
     }
@@ -1399,7 +1399,7 @@ PEPeerControlImpl
         boolean allowed = seeding_mode ? !pc.isSnubbed() : true;  //when downloading, allow upload to snubbed peer as last resort
         
         if( pc.isInterestedInMe() && allowed && !best_peers.contains( pc ) ) {
-          long total = pc.getStats().getTotalDataBytesReceived();  //either 0 or >=16384
+          long total = pc.getStats().getTotalDataBytesReceived();  //either 0 or >1000
             
           if( total == 0 ) {  //has never sent us any data
             total = 1000 - pc.getPercentDoneInThousandNotation();  //so prioritize least-completed peers

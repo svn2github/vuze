@@ -59,7 +59,7 @@ PeerStatsImpl
 
 	public int getReception()
 	{
-		return( (int)delegate.getSmoothReceiveRate());
+		return( (int)delegate.getSmoothDataReceiveRate());
 	}
 
 	public int getUploadAverage()

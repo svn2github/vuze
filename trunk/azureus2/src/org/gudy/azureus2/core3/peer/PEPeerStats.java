@@ -135,7 +135,7 @@ PEPeerStats
    * Get the the longer-average bytes-per-second speed at which the peer is uploading data to us.
    * @return average speed
    */
-  public long getSmoothReceiveRate();
+  public long getSmoothDataReceiveRate();
   
   /**
    * Get the total number of discarded bytes received from the peer.
