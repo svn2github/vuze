@@ -44,7 +44,7 @@ public interface PluginInterface {
    * TODO: write this
    * @param fileName
    */
-  public void addConfigUIParameters(Parameter parameters[]);
+  public void addConfigUIParameters(Parameter parameters[], String displayName);
   
   /**
    * A Plugin might ask Azureus to open a Torrent file
