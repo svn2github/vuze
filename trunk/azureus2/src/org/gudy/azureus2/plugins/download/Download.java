@@ -158,7 +158,7 @@ Download
 	public boolean
 	isStartStopLocked();
 	
-  /** Retreives whether the download is force started
+  /** Retrieves whether the download is force started
    * @return True if download is force started.  False if not.
    */  
 	public boolean

@@ -80,7 +80,7 @@ public class CategoryManager {
     return CategoryManagerImpl.getInstance().getCategory(name);
   }
   
-  /** Retreive a non-user Category
+  /** Retrieve a non-user Category
    * @param type any type except TYPE_USER
    * @return The Category, or null if not found.
    * @see Category

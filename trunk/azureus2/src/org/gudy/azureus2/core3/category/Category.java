@@ -49,13 +49,13 @@ public interface Category {
    */  
   public void removeCategoryListener(CategoryListener l);
 
-  /** Retreive the name of the category.  All category names are unique.
+  /** Retrieve the name of the category.  All category names are unique.
    * @return If type is TYPE_USER, returns name of the category
    *         Otherwise, returns ID in MessageBundle.
    */  
   public String getName();
   
-  /** Retreives what type of Category this is
+  /** Retrieves what type of Category this is
    * @return TYPE_* constant
    */  
   public int getType();
