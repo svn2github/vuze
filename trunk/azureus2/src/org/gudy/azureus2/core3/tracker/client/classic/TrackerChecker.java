@@ -4,8 +4,7 @@
  */
 package org.gudy.azureus2.core3.tracker.client.classic;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -21,6 +20,7 @@ public class TrackerChecker {
   private HashMap 					trackers; 
   private TRTrackerScraperImpl		scraper;
   
+  private Map toUpdate;  
   
   protected TrackerChecker(
   		TRTrackerScraperImpl	_scraper ) 
@@ -28,7 +28,21 @@ public class TrackerChecker {
   	scraper		= _scraper;
   	
     trackers 	= new HashMap();
+    
+    toUpdate = new HashMap();
+    
+    Thread t = new Thread("Tracker Scrape") {
+       public void run() 
+       {
+       	runScrapes();
+      }
+    };
+    
+    t.setDaemon(true);
+    t.setPriority(Thread.MIN_PRIORITY);
+    t.start();
   }
+  
 
   protected TRTrackerScraperResponseImpl 
   getHashData(
@@ -121,30 +135,78 @@ public class TrackerChecker {
       if(data != null)
         return data;
       else {
-        ts.asyncUpdate(hash);
+        synchronized( toUpdate ) {
+          toUpdate.put(hash, ts);
+        }
         return null;
       }        
     }
     
-	//System.out.println( "adding hash for " + trackerUrl );
-
+    //System.out.println( "adding hash for " + trackerUrl );
     final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
     synchronized (trackers) {
       trackers.put(trackerUrl, ts);
     }
-    ts.asyncUpdate(hash);
+    synchronized( toUpdate ) {
+      toUpdate.put(hash, ts);
+    }
     return null;
   }
+  
 
-  protected void update() {
+  protected void asyncUpdateAll() {
     synchronized (trackers) {
       Iterator iter = trackers.values().iterator();
       while (iter.hasNext()) {
         TrackerStatus ts = (TrackerStatus) iter.next();
- 
-        ts.asyncUpdate();
+        Map hashmap = ts.getHashes();
+        
+        synchronized( hashmap ){
+          Iterator iterHashes = hashmap.keySet().iterator();
+          while( iterHashes.hasNext() ) {
+            HashWrapper hash = (HashWrapper) iterHashes.next();
+            synchronized( toUpdate ) {
+              toUpdate.put(hash, ts);
+            }
+          }
+        }
       }
     }
   }
+
+  
+  private void runScrapes() {
+    while (true) {
+      Map doUpdate = null;
+      
+      // get the list
+    	synchronized(toUpdate) {
+        if ( !toUpdate.isEmpty() ) {
+          doUpdate = new HashMap(toUpdate);
+          toUpdate.clear();
+        }
+      }
+      
+      // run the updates
+      if (doUpdate != null) {
+        Iterator it = doUpdate.keySet().iterator();
+        while( it.hasNext() ) {
+          HashWrapper hash = (HashWrapper)it.next();
+          TrackerStatus ts = (TrackerStatus)doUpdate.get(hash);
+
+          ts.updateSingleHash(hash);
+
+          try { Thread.sleep(500); } catch (Exception e) {/**/}
+        }
+      }
+      else {
+        try { Thread.sleep(1000); } catch (Exception e) {/**/}
+      }
+    }
+  }
+
+          
+          
+
 
 }

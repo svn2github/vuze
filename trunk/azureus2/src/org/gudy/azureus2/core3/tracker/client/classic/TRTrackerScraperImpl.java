@@ -114,7 +114,7 @@ TRTrackerScraperImpl
 	public void
 	update()
 	{
-		tracker_checker.update();
+		tracker_checker.asyncUpdateAll();
 	}
 	
 	protected void

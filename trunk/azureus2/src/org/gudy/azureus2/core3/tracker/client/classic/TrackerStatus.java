@@ -70,43 +70,25 @@ public class TrackerStatus {
   	}
   }
 
-  protected void 
-  asyncUpdate(
-  	final HashWrapper hash ) 
-  {
-  	synchronized( hashes ){
-       TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
-  		
-	    if(response == null){
-	    	
-	      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
-       }
-       else if (response.getNextScrapeStartTime() <= System.currentTimeMillis()) {
-        	    LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping Scrape for hash "+hash.getHash());
-             return;
-       }
 
-  	}
-    
-    Thread t = new Thread("Tracker Checker - Scrape interface") {
-       public void run() 
-       {
-       	updateSingleHash(hash);
-      }
-    };
-    
-    t.setDaemon(true);
-    t.setPriority(Thread.MIN_PRIORITY);
-    t.start();
-  }
 
-  private synchronized void 
+  protected synchronized void 
   updateSingleHash(
   	HashWrapper hash) 
-  {        
-    if(scrapeURL == null){
-     
-    	return;
+  {      
+    
+    if(scrapeURL == null) return;
+    
+    synchronized( hashes ){
+      TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+      
+      if(response == null){
+        hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
+      }
+      else if (response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
+        LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping Scrape for hash "+hash.getHash());
+        return;
+      }
     }
           
     try {
@@ -133,6 +115,7 @@ public class TrackerStatus {
       LGLogger.log(0,0,LGLogger.INFORMATION,"Response from scrape interface : " + message);
       
       Map map = BDecoder.decode(message.toByteArray());
+      
       Map mapFiles = (Map) map.get("files");
       
       //retrieve the scrape data for the relevent infohash
@@ -147,7 +130,7 @@ public class TrackerStatus {
 	      //retrive values
 	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
 	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
-	
+
 	      //create the response
          TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(hash.getHash(), seeds, peers, scrapeStartTime);
           
@@ -159,7 +142,7 @@ public class TrackerStatus {
            if (scrapeInterval < 10*59) scrapeInterval = 10*59;
            if (scrapeInterval > 60*60) scrapeInterval = 60*60;
 
-	        long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
+           long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
            response.setNextScrapeStartTime(nextScrapeTime);
            
            Debug.out("scrape min_request_interval = " +scrapeInterval);
@@ -387,21 +370,6 @@ public class TrackerStatus {
   	return( url.substring(p1+param.length()+1,p2));
   }
   
-  protected void
-  asyncUpdate()
-  {
-  	synchronized( hashes ){
-  		
-  		Iterator iterHashes = hashes.keySet().iterator();
-  	
-  		while(iterHashes.hasNext()) {
-  		
-  			HashWrapper hash = (HashWrapper) iterHashes.next();
-  		
-  			asyncUpdate(hash);
-  		}
-  	}     
-  }
 
   
   protected void 
@@ -412,5 +380,10 @@ public class TrackerStatus {
   		
   		hashes.remove( hash );
   	}
-  }  
+  }
+  
+  
+  protected Map getHashes() {
+    return hashes;
+  }
 }
