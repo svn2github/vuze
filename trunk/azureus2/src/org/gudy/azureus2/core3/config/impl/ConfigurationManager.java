@@ -304,7 +304,7 @@ public class ConfigurationManager {
   }
 
   private boolean notifyParameterListenersIfChanged(String parameter, byte[] newValue, byte[] oldValue) {
-    if(oldValue == null || Arrays.equals(newValue, oldValue)) {
+    if(oldValue == null || !Arrays.equals(newValue, oldValue)) {
       notifyParameterListeners(parameter);
       return true;
     }

@@ -106,7 +106,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeedseeding");
     formData = new FormData();
-    formData.top = new FormAttachment(0,5);
+    formData.top = new FormAttachment(paramMaxUploadSpeed.getControl(),5);
     formData.left = new FormAttachment(paramMaxUploadSpeedSeeding.getControl());
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
@@ -251,18 +251,39 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.top = new FormAttachment(oldPolling.getControl(), 10);
     allowSameIP.setLayoutData(formData);
     
+    	// prioritise 1st piece
+    
     BooleanParameter firstPiece = new BooleanParameter(cTransfer, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
     formData = new FormData();
     formData.top = new FormAttachment(allowSameIP.getControl());
     firstPiece.setLayoutData(formData);
     
+   		// ignore ports
+    
+    StringParameter ignore_ports = new StringParameter(cTransfer, "Ignore.peer.ports","0"); 
+    formData = new FormData();
+    formData.top = new FormAttachment(firstPiece.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(0,100);
+    ignore_ports.setLayoutData(formData);
+
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.transfer.ignorepeerports");
+    formData = new FormData();
+    formData.top = new FormAttachment(firstPiece.getControl(),5);
+    formData.left = new FormAttachment(ignore_ports.getControl());
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
+    label.setLayoutData(formData);
+    
+   
     if(!Constants.isOSX) {
       BooleanParameter playSound = new BooleanParameter(cTransfer, "Play Download Finished", false, "ConfigView.label.playdownloadfinished");
       formData = new FormData();
-      formData.top = new FormAttachment(firstPiece.getControl());
+      formData.top = new FormAttachment(ignore_ports.getControl());
       playSound.setLayoutData(formData);
     }
     
+ 
     return cTransfer;
   }
 }

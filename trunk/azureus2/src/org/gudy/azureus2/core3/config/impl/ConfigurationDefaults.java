@@ -310,6 +310,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.trace", new Long(0));
     def.put( "Enable System Tray", new Long(1));
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
+    def.put( "Ignore.peer.ports", "0" );
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

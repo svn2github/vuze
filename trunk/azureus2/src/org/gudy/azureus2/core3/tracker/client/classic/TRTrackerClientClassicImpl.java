@@ -30,6 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
+import java.util.HashSet;
 
 import javax.net.ssl.*;
 
@@ -126,6 +128,64 @@ TRTrackerClientClassicImpl
 	static{
 	  	socks_proxy_enable	= 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
 	  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
+	}
+	
+	private static Set	ignore_peer_ports	= new HashSet();
+	
+	static{
+		COConfigurationManager.addParameterListener(
+				"Ignore.peer.ports",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						readIgnorePeerPorts();
+					}
+				});
+		
+		readIgnorePeerPorts();
+	}
+	
+	static void
+	readIgnorePeerPorts()
+	{
+		String	str = COConfigurationManager.getStringParameter( "Ignore.peer.ports" ).trim();
+		
+		ignore_peer_ports.clear();
+		
+		if ( str.length() > 0 ){
+			
+			int	pos = 0;
+			
+			while(true){
+				
+				int	p1 = str.indexOf( ';', pos );
+				
+				String	bit;
+				
+				if ( p1 == -1 ){
+					
+					bit = str.substring(pos);
+					
+				}else{
+					
+					bit = str.substring(pos,p1);
+					
+					pos	= p1+1;
+				}
+				
+				bit	= bit.trim();
+							
+				ignore_peer_ports.add( bit );
+				
+				if ( p1 == -1 ){
+					
+					break;
+				}
+			}
+		}
 	}
 	
 	public final static int componentID = 2;
@@ -1769,8 +1829,16 @@ TRTrackerClientClassicImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
+								if ( ignore_peer_ports.contains( ""+peer_port )){
 								
+			 			    		LGLogger.log(
+						    				componentID, evtFullTrace, LGLogger.INFORMATION, 
+						    				"Ignoring " + ip + ":" + peer_port + " as peer port is in ignore list" );
+
+								}else{
+									
+									valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
+								}
 							} 
 						}
 				    }else{
@@ -1794,10 +1862,18 @@ TRTrackerClientClassicImpl
 				    		
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-                LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                             "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+				    				"COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 							
-							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));							
+                			if ( ignore_peer_ports.contains( ""+peer_port )){
+					
+        			    		LGLogger.log(
+        			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
+    				    				"    Ignoring as peer port is in ignore list" );
+    	
+                			}else{
+                				valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
+                			}
 				    	}
 				    }
 				    
@@ -2113,9 +2189,17 @@ TRTrackerClientClassicImpl
 						
 					//System.out.println( "recovered " + ip_address + ":" + port );
 					
-					tracker_peer_cache.put( 
+					if ( ignore_peer_ports.contains( ""+peer_port )){
+						
+   			    		LGLogger.log(
+			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
+			    				"Ignoring " + peer_ip_address + ":" + peer_port + " as peer port is in ignore list" );
+
+					}else{
+						tracker_peer_cache.put( 
 							peer_ip_address, 
 							new TRTrackerResponsePeerImpl(peer_peer_id, peer_ip_address, peer_port ));
+					}
 				}
 				
 				return( tracker_peer_cache.size());
