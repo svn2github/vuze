@@ -70,7 +70,8 @@ public class SplashWindow implements STProgressListener {
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
     currentTask.setLayoutData(gridData);
     currentTask.setBackground(white);
-
+    currentTask.setText("(: Azureus :)");
+    
     this.percentDone = new ProgressBar(splash,SWT.HORIZONTAL);
     this.percentDone.setMinimum(0);
     this.percentDone.setMaximum(100);

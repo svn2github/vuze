@@ -93,14 +93,16 @@ public class Initializer implements STProgressListener, Application {
     new CertificateTrustWindow();
     AssociationChecker.checkAssociations();
     
+    nextTask();
+    reportCurrentTaskByKey("splash.loadingImages");
+    ImageRepository.loadImages(display);
+    
     reportCurrentTaskByKey("splash.initializeGM");   
     nextTask();
     this.gm = GlobalManagerFactory.create(false, this);
     new UserAlerts(gm);
     
-    nextTask();
-    reportCurrentTaskByKey("splash.loadingImages");
-    ImageRepository.loadImages(display);
+    
     
     
     nextTask();
