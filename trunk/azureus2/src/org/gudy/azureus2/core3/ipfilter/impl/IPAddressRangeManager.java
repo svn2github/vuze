@@ -54,13 +54,13 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			long	s = PRHelpers.addressToInt( start );
+			long	s = addressToInt( start );
 			
 			if ( s < 0 ){
 				
 				s += 0x100000000L;
 			}
-			long	e = PRHelpers.addressToInt( end );
+			long	e = addressToInt( end );
 			
 			if ( e < 0 ){
 				
@@ -68,11 +68,7 @@ IPAddressRangeManager
 			}
 			
 			addRange( s, e,user_data);
-				
-		}catch( UnknownHostException e ){
-			
-			Debug.printStackTrace( e );
-			
+							
 		}finally{
 			
 			this_mon.exit();
@@ -121,7 +117,7 @@ IPAddressRangeManager
 		try{
 			this_mon.enter();
 			
-			long i = PRHelpers.addressToInt( ip );
+			long i = addressToInt( ip );
 			
 			if ( i < 0 ){
 				
@@ -133,13 +129,7 @@ IPAddressRangeManager
 			// LGLogger.log( "IPAddressRangeManager: checking '" + ip + "' against " + entries.size() + "/" + merged_entries.length + " -> " + res );
 			
 			return( res );
-			
-		}catch( UnknownHostException e ){
-			
-			Debug.printStackTrace( e );
-			
-			return( null );
-			
+						
 		}finally{
 			
 			this_mon.exit();
@@ -248,6 +238,19 @@ IPAddressRangeManager
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	protected int
+	addressToInt(
+		String		address )
+	{
+		try{
+			return( PRHelpers.addressToInt( address ));
+			
+		}catch( UnknownHostException e ){
+			
+			return( UnresolvableHostManager.getPseudoAddress( address ));
 		}
 	}
 	
@@ -376,7 +379,7 @@ IPAddressRangeManager
 		protected boolean	merged;
 		protected long		merged_end;
 		
-		protected List		merged_entries;
+		protected List		my_merged_entries;
 		
 		protected
 		entry(
@@ -436,18 +439,18 @@ IPAddressRangeManager
 		addMergedEntry(
 			entry	e2 )
 		{
-			if ( merged_entries == null ){
+			if ( my_merged_entries == null ){
 				
-				merged_entries = new ArrayList(1);
+				my_merged_entries = new ArrayList(1);
 			}
 			
-			merged_entries.add(e2);
+			my_merged_entries.add(e2);
 		}
 		
 		protected List
 		getMergedEntries()
 		{
-			return( merged_entries );
+			return( my_merged_entries );
 		}
 		
 		protected void

@@ -1445,7 +1445,7 @@ TRTrackerClientClassicImpl
     		
     	}catch( UnknownHostException e){
     		
-    		LGLogger.logAlert( "IP Override host resolution fails", e );
+    		LGLogger.log( LGLogger.ERROR, "IP Override host resolution of '" + ip + "' fails, using unresolved address" );
    		
     		ip2	= ip;
     	}
