@@ -9,6 +9,7 @@ package org.gudy.azureus2.core;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.jmule.util.SHA1;
 
@@ -17,13 +18,13 @@ import org.jmule.util.SHA1;
  *
  * @author  TdC_VgA
  */
-public class SHA1Hasher {
+public final class SHA1Hasher {
   private MessageDigest _messageDigest = null;
   private SHA1 sha1;
   private ByteBuffer resultBuffer;
   
   /** Creates a new instance of SHA1Hasher */
-  public SHA1Hasher() throws java.security.NoSuchAlgorithmException {
+  public SHA1Hasher() throws NoSuchAlgorithmException {
     _messageDigest = MessageDigest.getInstance("SHA-1");
     sha1 = new SHA1();
     resultBuffer = ByteBuffer.allocate(20);
@@ -31,8 +32,7 @@ public class SHA1Hasher {
   }
 
   public byte[] calculateHash(byte[] bytes) {
-    _messageDigest.update(bytes);
-    return _messageDigest.digest();
+    return _messageDigest.digest(bytes);
   }
 
   public byte[] calculateHash(ByteBuffer buffer) {
@@ -48,7 +48,7 @@ public class SHA1Hasher {
     byte[] result = new byte[20];
     resultBuffer.position(0);
     resultBuffer.get(result);
-    System.out.println(result);
+//    System.out.println(result);
     
     return result;
   }
