@@ -1,5 +1,5 @@
 /*
- * Created on 14-Jun-2004
+ * Created on 15-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,29 +20,27 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.impl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-UPnP 
+import org.gudy.azureus2.core3.upnp.UPnPException;
+import org.gudy.azureus2.core3.upnp.impl.device.*;
+
+public class 
+UPnPDeviceFactory 
 {
-	public void
-	addRootDeviceListener(
-		UPnPRootDeviceListener	l );
+	public static UPnPRootDevice
+	createRootDevice(
+		UPnPImpl	upnp,
+		String		location,
+		String		usn )
 	
-	public void
-	removeRootDeviceListener(
-		UPnPRootDeviceListener	l );
-	
-	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+		throws UPnPException
+	{
+		return( new UPnPRootDeviceImpl( upnp, location, usn ));
+	}
 }

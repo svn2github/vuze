@@ -1,5 +1,5 @@
 /*
- * Created on 14-Jun-2004
+ * Created on 15-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,21 +28,8 @@ package org.gudy.azureus2.core3.upnp;
  */
 
 public interface 
-UPnP 
+UPnPAction 
 {
-	public void
-	addRootDeviceListener(
-		UPnPRootDeviceListener	l );
-	
-	public void
-	removeRootDeviceListener(
-		UPnPRootDeviceListener	l );
-	
-	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+	public String
+	getName();
 }

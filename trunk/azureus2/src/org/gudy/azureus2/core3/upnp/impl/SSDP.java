@@ -36,4 +36,12 @@ SSDP
 	start()
 	
 		throws UPnPException;
+	
+	public void
+	addListener(
+		SSDPListener	l );
+	
+	public void
+	removeListener(
+		SSDPListener	l );
 }

@@ -39,6 +39,7 @@ UPnPPlugin
 	implements Plugin
 {
 	protected PluginInterface		plugin_interface;
+	protected LoggerChannel 		log;
 	
 	public void
 	initialize(
@@ -46,7 +47,7 @@ UPnPPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
-		final LoggerChannel log = plugin_interface.getLogger().getChannel("UPnP");
+		log = plugin_interface.getLogger().getChannel("UPnP");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
@@ -83,6 +84,23 @@ UPnPPlugin
 		try{
 			UPnP	upnp = UPnPFactory.getSingleton();
 				
+			upnp.addRootDeviceListener(
+				new UPnPRootDeviceListener()
+				{
+					public void
+					rootDeviceFound(
+						UPnPDevice		device )
+					{
+						try{
+							processDevice( device );
+							
+						}catch( Throwable e ){
+							
+							log.log( "Root device processing fails", e );
+						}
+					}
+				});
+			
 			upnp.addLogListener(
 				new UPnPLogListener()
 				{
@@ -99,6 +117,56 @@ UPnPPlugin
 		}catch( Throwable e ){
 			
 			log.log( e );
+		}
+	}
+	
+	protected void
+	processDevice(
+		UPnPDevice	device )
+	
+		throws UPnPException
+	{
+		if ( device.getDeviceType().equalsIgnoreCase("urn:schemas-upnp-org:device:WANConnectionDevice:1")){
+			
+			log.log( "Found WANConnectionDevice" );
+			
+			processServices( device.getServices());
+			
+		}else{
+			
+			UPnPDevice[]	kids = device.getSubDevices();
+			
+			for (int i=0;i<kids.length;i++){
+				
+				processDevice( kids[i] );
+			}
+		}
+	}
+	
+	protected void
+	processServices(
+		UPnPService[] services )
+	
+		throws UPnPException
+	{
+		for (int i=0;i<services.length;i++){
+			
+			UPnPService	s = services[i];
+			
+			String	service_type = s.getServiceType();
+			
+			if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANIPConnection:1") || 
+					service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANPPPConnection:1")){
+				
+				log.log( "    Found " + ( service_type.indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
+	
+				UPnPAction[]	actions = s.getActions();
+			
+				for (int j=0;j<actions.length;j++){
+				
+					log.log( "      " + actions[j].getName());
+				}
+			}
 		}
 	}
 }

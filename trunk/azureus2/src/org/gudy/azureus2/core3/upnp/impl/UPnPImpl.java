@@ -30,7 +30,6 @@ package org.gudy.azureus2.core3.upnp.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
-import org.gudy.azureus2.core3.upnp.impl.ssdp.*;
 
 public class 
 UPnPImpl
@@ -51,19 +50,21 @@ UPnPImpl
 		return( singleton );
 	}
 	
-	protected SSDPImpl	ssdp;
+	protected SSDP		ssdp;
 	
 	protected Map		root_locations	= new HashMap();
 	
 	protected List		log_listeners	= new ArrayList();
 	protected List		log_history		= new ArrayList();
 	
+	protected List		rd_listeners	= new ArrayList();
+	
 	protected
 	UPnPImpl()
 	
 		throws UPnPException
 	{
-		ssdp = new SSDPImpl( this );
+		ssdp = SSDPFactory.create( this );
 		
 		ssdp.addListener(this);
 		
@@ -84,10 +85,23 @@ UPnPImpl
 		log( "UPnP: root = " + location + ", USN = " + usn );
 		
 		try{
-			UPnPRootDevice	device = new UPnPRootDevice( this, location, usn );
+			UPnPRootDevice	root_device = UPnPDeviceFactory.createRootDevice( this, location, usn );
 		
-			root_locations.put( location, device );
+			List	listeners;
 			
+			synchronized( rd_listeners ){
+				
+				root_locations.put( location, root_device );
+
+				listeners = new ArrayList( rd_listeners );
+			}
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				((UPnPRootDeviceListener)listeners.get(i)).rootDeviceFound( root_device.getDevice());
+				
+			}
+		
 		}catch( UPnPException e ){
 			
 			log( e.toString());
@@ -112,6 +126,11 @@ UPnPImpl
 			old_listeners = new ArrayList(log_listeners);
 
 			log_history.add( str );
+			
+			if ( log_history.size() > 32 ){
+				
+				log_history.remove(0);
+			}
 		}
 		
 		for (int i=0;i<old_listeners.size();i++){
@@ -146,6 +165,31 @@ UPnPImpl
 		log_listeners.remove( l );
 	}
 	
+	public void
+	addRootDeviceListener(
+		UPnPRootDeviceListener	l )
+	{
+		List	old_locations;
+		
+		synchronized( this ){
+
+			old_locations = new ArrayList(root_locations.values());
+
+			rd_listeners.add( l );
+		}
+		
+		for (int i=0;i<old_locations.size();i++){
+			
+			l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)).getDevice());
+		}
+	}
+		
+	public void
+	removeRootDeviceListener(
+		UPnPRootDeviceListener	l )
+	{
+		rd_listeners.remove( l );
+	}
 	public static void
 	main(
 		String[]		args )
@@ -153,6 +197,23 @@ UPnPImpl
 		try{
 			UPnP	upnp = UPnPFactory.getSingleton();
 				
+			upnp.addRootDeviceListener(
+					new UPnPRootDeviceListener()
+					{
+						public void
+						rootDeviceFound(
+							UPnPDevice		device )
+						{
+							try{
+								processDevice( device );
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}						
+					});
+			
 			upnp.addLogListener(
 				new UPnPLogListener()
 				{
@@ -169,6 +230,45 @@ UPnPImpl
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+		}
+	}
+	
+	protected static void
+	processDevice(
+		UPnPDevice	device )
+	
+		throws UPnPException
+	{
+		if ( device.getDeviceType().equalsIgnoreCase("urn:schemas-upnp-org:device:WANConnectionDevice:1")){
+			
+			System.out.println( "got device");
+			
+			UPnPService[] services = device.getServices();
+			
+			for (int i=0;i<services.length;i++){
+				
+				UPnPService	s = services[i];
+				
+				if ( s.getServiceType().equalsIgnoreCase( "urn:schemas-upnp-org:service:WANIPConnection:1")){
+					
+					System.out.println( "got service" );
+					
+					UPnPAction[]	actions = s.getActions();
+					
+					for (int j=0;j<actions.length;j++){
+						
+						System.out.println( actions[j].getName());
+					}
+				}
+			}
+		}else{
+			
+			UPnPDevice[]	kids = device.getSubDevices();
+			
+			for (int i=0;i<kids.length;i++){
+				
+				processDevice( kids[i] );
+			}
 		}
 	}
 }
