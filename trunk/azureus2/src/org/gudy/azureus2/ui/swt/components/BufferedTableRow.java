@@ -292,7 +292,20 @@ BufferedTableRow
        index--;
     //System.out.println(this+": oldIndex="+oldIndex+"; index="+ index);
 		TableItem newItem = new TableItem( table, SWT.NULL, index );
-		newItem.setText(text_values);
+		copyToItem(newItem);
+
+		// don't use oldIndex
+		table.remove(table.indexOf(item));
+		item = newItem;
+		return true;
+  }
+  
+  private void copyToItem(TableItem newItem) {
+    Table table = getTable();
+    if (table == null)
+      return;
+
+    newItem.setText(text_values);
 		newItem.setImage(image_values);
 		Color colorFG = item.getForeground();
 		Color colorBG = item.getBackground();
@@ -309,12 +322,9 @@ BufferedTableRow
 		}
     if (getSelected())
       table.select(table.indexOf(newItem));
-		
-		// don't use oldIndex
-		table.remove(table.indexOf(item));
-		item = newItem;
-		return true;
-  }
+    else
+      table.deselect(table.indexOf(newItem));
+	}
   
   public boolean getSelected() {
     Table table = getTable();
@@ -331,5 +341,16 @@ BufferedTableRow
       table.select(getIndex());
     else
       table.deselect(getIndex());
+  }
+  
+  public void setTableItem(TableItem ti, boolean bCopyFromOld) {
+    if (bCopyFromOld)
+      copyToItem(ti);
+	  text_values		= new String[0];
+	  image_values	= new Image[0];
+	  foreground_colors	= new Color[0];
+    foreground = null;
+
+    item = ti;
   }
 }
