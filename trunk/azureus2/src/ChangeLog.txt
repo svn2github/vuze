@@ -17,6 +17,7 @@ FEATURE: UI   | 'Download' menu added with start/stop all + pause/resume options
 FEATURE: Plug | tracker torrent stats available via xml/http interface [Parg]
 FEATURE: Core | Torrent HTTP urls now accepted as program command line parameter [Nolar]
 FEATURE: Core | Option added to disable system tray [Parg]
+FEATURE: UI   | table col sort order default option added, thanks to Charnobo! [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
