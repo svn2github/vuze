@@ -214,6 +214,16 @@ public class ConfigView extends AbstractIView {
     }
     new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
 
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
+    final String saveResumeLabels[] = new String[19];
+    final int saveResumeValues[] = new int[19];
+    for (int i = 2; i < 21; i++) {
+      saveResumeLabels[i-2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
+      saveResumeValues[i-2] = i;
+    }
+    new IntListParameter(gTransfer, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
+
     Group gDisplay = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gDisplay, "ConfigView.section.display"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -239,7 +249,7 @@ public class ConfigView extends AbstractIView {
     new BooleanParameter(gDisplay, "Minimize To Tray", false); //$NON-NLS-1$
 
     Group gStart = new Group(gConfig, SWT.NULL);
-    Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$
+    Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gStart.setLayoutData(gridData);
     layout = new GridLayout();
