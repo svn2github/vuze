@@ -1,7 +1,7 @@
 CHANGELOG
 ---------
 
-xx.11.03 | Azureus 2.0.4.0
+13.11.03 | Azureus 2.0.4.0
 
 FEATURE: Disable (per torrent) the auto priority setting when seeding [Gudy]
 FEATURE: Disable (per torrent) the rules to start / stop a seeding torrent [Gudy]
