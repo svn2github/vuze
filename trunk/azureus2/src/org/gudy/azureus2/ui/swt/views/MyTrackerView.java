@@ -53,21 +53,25 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
+import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
+import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 
 public class 
 MyTrackerView 
 	extends AbstractIView
-	implements TRHostListener
+	implements TRHostListener , SortableTable
 {
 	private GlobalManager	global_manager;
 	private Composite 		composite; 
 	private Composite 		panel;
 	private Table 			table;
 	
-	private Map 	host_torrent_items 	= new HashMap();
-	private Map 	host_torrents		= new HashMap();
+	private Map 	objectToSortableItem 	= new HashMap();
+	private Map 	tableItemToObject		= new HashMap();
 
+  private TableSorter sorter;
+  
 	public 
 	MyTrackerView(
 		GlobalManager globalManager) 
@@ -141,29 +145,24 @@ MyTrackerView
 		
 		column.addControlListener(resizeListener);
 	  }
-	  
-	  /*
-	  table.getColumn(0).addListener(SWT.Selection, new IntColumnListener("#")); //$NON-NLS-1$
-	  table.getColumn(1).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
-	  table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
-	  table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
-	  table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("status")); //$NON-NLS-1$
-	  table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("seeds")); //$NON-NLS-1$
-	  table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("peers")); //$NON-NLS-1$
-	  table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("ds")); //$NON-NLS-1$
-	  table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("us")); //$NON-NLS-1$
-	  table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("eta")); //$NON-NLS-1$
-	  table.getColumn(10).addListener(SWT.Selection, new StringColumnListener("tracker")); //$NON-NLS-1$
-	  table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("priority")); //$NON-NLS-1$
-	*/
 	
-	  table.setHeaderVisible(true);
-	  //table.addKeyListener(createKeyListener());
-
+    sorter = new TableSorter(this,"name",false);
+    sorter.addStringColumnListener(table.getColumn(0),"name");
+    sorter.addStringColumnListener(table.getColumn(1),"tracker");
+    
+    sorter.addIntColumnListener(table.getColumn(2),"status");    
+    sorter.addIntColumnListener(table.getColumn(3),"seeds");
+    sorter.addIntColumnListener(table.getColumn(4),"peers");
+    sorter.addIntColumnListener(table.getColumn(5),"announces");
+    sorter.addIntColumnListener(table.getColumn(6),"completed");
+    sorter.addIntColumnListener(table.getColumn(7),"uploaded");
+    sorter.addIntColumnListener(table.getColumn(8),"downloaded");
+    sorter.addIntColumnListener(table.getColumn(9),"left");        
+	
+	  table.setHeaderVisible(true);	 
 
 		Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
-
-    
+   
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
 	   itemStart.setImage(ImageRepository.getImage("start"));
@@ -194,7 +193,7 @@ MyTrackerView
 					
 					TableItem	ti = tis[i];
 					
-					TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get( ti );
+					TRHostTorrent	host_torrent = (TRHostTorrent)tableItemToObject.get( ti );
 					
 					int	status = host_torrent.getStatus();
 					
@@ -223,7 +222,7 @@ MyTrackerView
 		   for (int i = 0; i < tis.length; i++) {
 			 TableItem ti = tis[i];
 			 
-			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
 			 if (torrent != null){
 			 	
 				torrent.start();
@@ -239,7 +238,7 @@ MyTrackerView
 		   for (int i = 0; i < tis.length; i++) {
 			 TableItem ti = tis[i];
 			 
-			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
 			 if (torrent != null){
 			 	
 				torrent.stop();
@@ -255,7 +254,7 @@ MyTrackerView
 		   for (int i = 0; i < tis.length; i++) {
 			 TableItem ti = tis[i];
 			 
-			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
 			 if (torrent != null){
 			 	
 				torrent.remove();
@@ -274,7 +273,7 @@ MyTrackerView
 			 }
 			 TableItem ti = tis[0];
 			
-			 TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			 TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
 			 
 			 if (torrent != null){
 			 	
@@ -301,15 +300,15 @@ MyTrackerView
 	torrentAdded(
 		TRHostTorrent		host_torrent )
 	{	
-		synchronized ( host_torrents ){
+		synchronized ( tableItemToObject ){
 			
-			TrackerTableItem item = (TrackerTableItem)host_torrents.get(host_torrent);
+			TrackerTableItem item = (TrackerTableItem)tableItemToObject.get(host_torrent);
 		  
 		  	if (item == null){
 		  	
 				item = new TrackerTableItem(this,table, host_torrent);
 				
-		  	host_torrent_items.put(host_torrent, item);		  					
+		  	objectToSortableItem.put(host_torrent, item);		  					
 			}	
 		}
 	}
@@ -318,11 +317,11 @@ MyTrackerView
 	torrentRemoved(
 		TRHostTorrent		host_torrent )
 	{
-		TrackerTableItem item = (TrackerTableItem) host_torrent_items.remove(host_torrent);
+		TrackerTableItem item = (TrackerTableItem) objectToSortableItem.remove(host_torrent);
 		
 		if (item != null) {
 			
-			host_torrents.remove( item.getTableItem());
+			tableItemToObject.remove( item.getTableItem());
 			if(item != null)
 			  item.delete();
 		}		
@@ -349,7 +348,7 @@ MyTrackerView
 			return;
 	   	}
 		
-		Iterator iter = host_torrent_items.values().iterator();
+		Iterator iter = objectToSortableItem.values().iterator();
 		
 		while (iter.hasNext()){
 			
@@ -383,6 +382,23 @@ MyTrackerView
 	 }
    
    public void putHost(TableItem item, TRHostTorrent host_torrent) {
-     host_torrents.put(item, host_torrent);
+     tableItemToObject.put(item, host_torrent);
    }
+   
+   /*
+    * SortableTable implementation
+    *
+    */
+   
+  public Map getObjectToSortableItemMap() {
+    return objectToSortableItem;
+  }
+
+  public Map getTableItemToObjectMap() {
+    return tableItemToObject;
+  }
+
+  public Table getTable() {
+    return table;
+  }
 }

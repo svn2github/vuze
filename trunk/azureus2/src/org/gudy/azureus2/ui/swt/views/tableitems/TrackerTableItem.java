@@ -30,11 +30,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -44,6 +46,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 TrackerTableItem 
+implements SortableItem
 {
 	private Display 			display;
 	private Table 				table;
@@ -64,10 +67,10 @@ TrackerTableItem
 	  	initialize(view);
 	}
 
-	public BufferedTableItem 
+	public TableItem 
 	getTableItem()
 	{
-	  return item;
+	  return item.getItem();
 	}
 
 	private void 
@@ -224,4 +227,37 @@ TrackerTableItem
 	{
 	  return( torrent ); 
 	}
+  
+  /*
+   * SortableItem implementation
+   *
+   */
+  
+  public long getIntField(String field) {
+    if(field == null)
+      return 0;
+    if(field.equals("status"))
+      return torrent.getStatus();
+    return 0;
+  }
+
+  public String getStringField(String field) {
+    if(field == null)
+      return "";
+    if(field.equals("name"))
+      return new String(torrent.getTorrent().getName());
+    if(field.equals("tracker"))
+      return torrent.getTorrent().getAnnounceURL().toString();
+    return "";
+  }
+  
+  
+
+  public void invalidate() {
+  }
+
+  public void setDataSource(Object dataSource) {
+    torrent = (TRHostTorrent) torrent;
+  }
+
 }
