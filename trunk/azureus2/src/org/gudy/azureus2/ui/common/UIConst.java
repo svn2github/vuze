@@ -60,6 +60,18 @@ public class UIConst {
   	parameterlegacy.put("SWT_bShowDownloadBasket", "Show Download Basket");
   	parameterlegacy.put("SWT_bAlwaysRefreshMyTorrents", "config.style.refreshMT");
   	parameterlegacy.put("SWT_bOpenDetails", "Open Details");
+  	parameterlegacy.put("Logger_bEnable","Logging Enable");
+  	parameterlegacy.put("Logger_sDir_Directory", "Logging Dir");
+  	parameterlegacy.put("Logger_iMaxSize", "Logging Max Size");
+  	int[] logComponents = { 0, 1, 2, 4 };
+  	for (int i = 0; i < logComponents.length; i++)
+  		for (int j = 0; j <= 3; j++)
+  			parameterlegacy.put("Logger_bLog" + logComponents[i] + "-" + j,"bLog" + logComponents[i] + "-" + j);
+
+  	parameterlegacy.put("StartStopManager_iPeersAsFullCopy", "numPeersAsFullCopy");
+  	parameterlegacy.put("StartStopManager_iFakeFullCopySeedStart", "iFakeFullCopySeedStart");
+  	parameterlegacy.put("StartStopManager_iMinPeersToBoostNoSeeds", "minPeersToBoostNoSeeds");
+  	parameterlegacy.put("StartStopManager_iMinSpeedForActiveDL", "minSpeedForActiveDL");
   }
   
   public static void shutdown() {

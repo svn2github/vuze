@@ -206,10 +206,14 @@ public class ConsoleInput extends Thread {
 				String parameter = (String) I.next();
 				if (UIConst.parameterlegacy.containsValue(parameter))
 					parameter = (String) backmap.get(parameter);
-				if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-					srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
-				else
-					srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+				try {
+					if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
+						srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
+					else
+						srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+				} catch (Exception e) {
+					srt.add("> "+parameter+": Exception '"+e.getMessage()+"' (Probably the parameter type couldn't be deduced from its name).");
+				}
 			}
 			I = srt.iterator();
 			while (I.hasNext()) {
