@@ -37,7 +37,7 @@ public class VirtualChannelSelector {
     public static final int OP_WRITE = SelectionKey.OP_WRITE;
   
   
-    private static final int SELECTOR_FAIL_COUNT_MAX = 100;
+    private static final int SELECTOR_FAIL_COUNT_MAX = 1000;
     
     private Selector selector;
     private final SelectorGuard selector_guard;
@@ -157,7 +157,7 @@ public class VirtualChannelSelector {
       }
       catch (Throwable t) {  Debug.printStackTrace(t);  }
       
-      if( !selector_guard.isSelectorOK( count, timeout / 2 ) ) {
+      if( !selector_guard.isSelectorOK( count, 10 ) ) {
         selector = selector_guard.repairSelector( selector );
       }
       
