@@ -23,8 +23,9 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * This exception is thrown to prevent the removal of a download
  */
+
 public class 
 DownloadRemovalVetoException
 	extends Exception

@@ -23,7 +23,7 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * The DownloadManager gives access to functions used to monitor and manage Azureus's downloads
  */
 
 import java.io.File;
@@ -74,7 +74,17 @@ DownloadManager
 			File		torrent_location,
 			File		data_location )
 	
-	throws DownloadException;
+		throws DownloadException;
+	
+	/**
+	 * Add a non-persistent download. Such downloads are not persisted by Azureus and as such will
+	 * not be remembered across an Azureus close and restart.
+	 * @param torrent
+	 * @param torrent_location
+	 * @param data_location
+	 * @return
+	 * @throws DownloadException
+	 */
 	
 	public Download
 	addNonPersistentDownload(
@@ -84,16 +94,37 @@ DownloadManager
 	
 		throws DownloadException;
 	
+	/**
+	 * Gets the download for a particular torrent, returns null if not found
+	 * @param torrent
+	 * @return
+	 */
+	
 	public Download
 	getDownload(
 		Torrent		torrent );
 	
+	/**
+	 * Gets all the downloads. Returned in Download "index" order
+	 * @return
+	 */
+	
 	public Download[]
 	getDownloads();
+	
+	/**
+	 * Add a listener that will be informed when a download is added to/removed from Azureus
+	 * @param l
+	 */
 	
 	public void
 	addListener(
 		DownloadManagerListener	l );
+	
+	/**
+	 * Removes listeners added above
+	 * @param l
+	 */
 	
 	public void
 	removeListener(

@@ -23,7 +23,7 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * This class represents the results of scrapes for the download
  */
 
 public interface 
@@ -32,14 +32,34 @@ DownloadScrapeResult
 	public static final int	RT_SUCCESS	= 1;
 	public static final int RT_ERROR	= 2;
 	
+	/**
+	 * Gives access to the associated download
+	 * @return
+	 */
+	
 	public Download
 	getDownload();
+	
+	/**
+	 * A scrape result can denote either a successful or failed scrape.
+	 * @return RT_SUCCESS or RT_ERROR
+	 */
 	
 	public int
 	getResponseType();	// either RT_SUCCESS or RT_ERROR
 	
+	/**
+	 * Gives the number of seeds returned by the scrape
+	 * @return
+	 */
+	
 	public int
 	getSeedCount();
+	
+	/**
+	 * Gives the number of non-seeds returned by the scrape
+	 * @return
+	 */
 	
 	public int
 	getNonSeedCount();

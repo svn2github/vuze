@@ -23,8 +23,9 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * A listener that is informed of the addition and removal of downloads
  */
+
 public interface 
 DownloadManagerListener 
 {

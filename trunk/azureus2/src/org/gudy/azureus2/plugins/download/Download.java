@@ -66,86 +66,205 @@ Download
 	public int
 	getState();
 
+	/**
+	 * When the download state is ERROR this method returns the error details
+	 * @return
+	 */
+	
 	public String
 	getErrorStateDetails();
+	
+	/**
+	 * Downloads are kept in priority order - this method gives teh download's current position 
+	 * @return	index - 0 based
+	 */
 	
 	public int
 	getIndex();
 	
+	/**
+	 * Each download has a corresponding torrent
+	 * @return	the download's torrent
+	 */
+	
 	public Torrent
 	getTorrent();
+	
+	/**
+	 * See lifecylce description above 
+	 * @throws DownloadException
+	 */
 	
 	public void
 	initialize()
 	
 		throws DownloadException;
+
+	/**
+	 * See lifecylce description above 
+	 * @throws DownloadException
+	 */
+	
 	
 	public void
 	start()
 	
-	throws DownloadException;
+		throws DownloadException;
+	
+	/**
+	 * See lifecylce description above 
+	 * @throws DownloadException
+	 */
 	
 	public void
 	stop()
 	
 		throws DownloadException;
 	
+	/**
+	 * See lifecylce description above 
+	 * @throws DownloadException
+	 */
+	
+	
 	public void
 	restart()
 	
 		throws DownloadException;
 	
+	
+	/**
+	 * When a download is "start-stop locked" it means that seeding rules shouldn't start or
+	 * stop the download as it is under manual control
+	 * @return
+	 */
+	
 	public boolean
 	isStartStopLocked();
 	
+	/**
+	 * Downloads can either be low or high priority (see PR_ constants above)
+	 * @return the download's prioriy
+	 */
+	
 	public int
 	getPriority();
+	
+	/**
+	 * This method sets a download's priority
+	 * @param priority the required priority, see PR_ constants above
+	 */
 	
 	public void
 	setPriority(
 		int		priority );
 	
+	/**
+	 * When a download's priority is locked this means that seeding rules should not change
+	 * a downloads priority, it is under manual control
+	 * @return whether it is locked or not
+	 */
+	
 	public boolean
 	isPriorityLocked();
+	
+	/**
+	 * Removes a download. The download must be stopped or in error. Removal may fail if another 
+	 * component does not want the removal to occur - in this case a "veto" exception is thrown
+	 * @throws DownloadException
+	 * @throws DownloadRemovalVetoException
+	 */
 	
 	public void
 	remove()
 	
 		throws DownloadException, DownloadRemovalVetoException;
 	
+	/**
+	 * Tests whether or not a download can be removed. Due to synchronization issues it is possible
+	 * for a download to report OK here but still fail removal.
+	 * @return
+	 * @throws DownloadRemovalVetoException
+	 */
+	
 	public boolean
 	canBeRemoved()
 	
 		throws DownloadRemovalVetoException;
 	
+	/**
+	 * Gives access to the last announce result received from the tracker for the download
+	 * @return
+	 */
+	
 	public DownloadAnnounceResult
 	getLastAnnounceResult();
+	
+	/**
+	 * Gives access to the last scrape result received from the tracker for the download
+	 * @return
+	 */
 	
 	public DownloadScrapeResult
 	getLastScrapeResult();
 	
+	/**
+	 * Gives access to the download's statistics
+	 * @return
+	 */
+	
 	public DownloadStats
 	getStats();
+	
+	/**
+	 * Adds a listener to the download that will be informed of changes in the download's state
+	 * @param l
+	 */
 	
 	public void
 	addListener(
 		DownloadListener	l );
 	
+	/**
+	 * Removes listeners added above
+	 * @param l
+	 */
 	public void
 	removeListener(
 		DownloadListener	l );
 
+	/**
+	 * Adds a listener that will be informed when the latest announce/scrape results change
+	 * @param l
+	 */
+	
 	public void
 	addTrackerListener(
 		DownloadTrackerListener	l );
+	
+	/**
+	 * Removes listeners added above
+	 * @param l
+	 */
 	
 	public void
 	removeTrackerListener(
 		DownloadTrackerListener	l );
 	
+	/**
+	 * Adds a listener that will be informed when a download is about to be removed. This gives
+	 * the implementor the opportunity to veto the removal
+	 * @param l
+	 */
+	
 	public void
 	addDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l );
+	
+	/**
+	 * Removes the listener added above
+	 * @param l
+	 */
 	
 	public void
 	removeDownloadWillBeRemovedListener(

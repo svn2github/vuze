@@ -23,8 +23,9 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * Throws by various Download methods to indicate errors
  */
+
 public class 
 DownloadException 
 	extends Exception

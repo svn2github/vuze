@@ -23,8 +23,9 @@ package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
- *
+ * A listener informed of changes to a Download's state
  */
+
 public interface 
 DownloadListener 
 {
