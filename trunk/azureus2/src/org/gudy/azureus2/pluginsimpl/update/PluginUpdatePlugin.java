@@ -511,7 +511,8 @@ PluginUpdatePlugin
 
 		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
 
-		try{				
+		try{		
+			boolean update_txt_found	= false;
 
 				// .jar files get copied straight in with the right version number
 				// .zip files need to be unzipped. There are various possibilities for
@@ -771,6 +772,39 @@ PluginUpdatePlugin
 								}
 								
 								bak_file.delete();
+								
+							}else if ( final_target.getName().equalsIgnoreCase( "update.txt" )){
+								
+								update_txt_found	= true;
+								
+								LineNumberReader lnr = null;
+
+								try{
+									lnr = new LineNumberReader( new FileReader( final_target ));
+																		
+									while(true){
+										
+										String	line = lnr.readLine();
+										
+										if (line == null ){
+											
+											break;
+										}
+										
+										log.log( LoggerChannel.LT_INFORMATION, line );
+									}
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+									
+								}finally{
+									
+									if ( lnr != null ){
+										
+										lnr.close();
+									}
+								}
 							}
 						}
 					}finally{
@@ -790,7 +824,12 @@ PluginUpdatePlugin
 							plugin.getPluginID() + "' " +
 							"installed successfully";
 
-			log.logAlert( LoggerChannel.LT_INFORMATION, msg );			
+			if ( update_txt_found ){
+				
+				msg += " - See update log for details";
+			}
+			
+			log.logAlert( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
 
 		}catch( Throwable e ){
 					

@@ -74,7 +74,7 @@ UpdateMonitor
 					perform(
 						TimerEvent  ev )
 					{
-	            		performCheck();
+	            		performAutoCheck(false);
 					}
 	            });
 	      
@@ -87,11 +87,51 @@ UpdateMonitor
 					public void
 					run()
 					{
-						performCheck();
+						performAutoCheck(true);
 					}
 				});
 	}
   
+	protected void
+	performAutoCheck(
+		final boolean		start_of_day )
+	{
+		boolean check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true );
+		boolean check_periodic	= COConfigurationManager.getBooleanParameter( "update.periodic", true );
+		
+			// periodic -> check at start as well
+		
+		check_at_start = check_at_start || check_periodic;
+		
+		if (	( check_at_start && start_of_day) ||
+				( check_periodic && !start_of_day )){
+			
+			performCheck();	// this will implicitly do usage stats
+			
+		}else{
+
+			new DelayedEvent(
+					5000,
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							if ( start_of_day ){
+								
+								MainWindow mainWindow = MainWindow.getWindow();
+				
+							    mainWindow.setStatusText( 
+							    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
+										" / MainWindow.status.latestversionunchecked" );
+							}
+							
+							CoreUpdateChecker.doUsageStats();
+						}
+					});
+		}
+	}
+	
 	public void
 	performCheck()
 	{
@@ -106,40 +146,6 @@ UpdateMonitor
 	  	current_instance.addListener( this );
 		  	
 	  	UpdateChecker[]	checkers = current_instance.getCheckers();
-	  	
-	  	/*
-	  	for (int i=0;i<checkers.length;i++){
-	  		
-	  		UpdateChecker	checker = checkers[i];
-	  		
-	  		System.out.println( "Checker:" + checker.getComponent().getName() + "/" + checker.getComponent().getMaximumCheckTime());
-	  		
-	  		checker.addListener(
-	  			new UpdateCheckerListener()
-				{
-	  				public void
-					completed(
-						UpdateChecker	checker )
-					{
-	  					System.out.println( "    " + checker.getComponent().getName() + " completed" );
-	  				}
-										
-					public void
-					failed(
-						UpdateChecker	checker )
-					{
-						System.out.println( "    " + checker.getComponent().getName() + " failed" );
-					}
-					
-					public void
-					cancelled(
-						UpdateChecker	checker )
-					{
-	  					System.out.println( "    " + checker.getComponent().getName() + " cancelled" );
-					}
-	  			});
-	  	}
-	  	*/
 	  	
 	  	current_instance.start();		
 	}
@@ -186,7 +192,7 @@ UpdateMonitor
 	    	// version of the core anyway
 	   
 	    show_window = 	show_window && 
-						COConfigurationManager.getBooleanParameter( "Auto Update", true );
+						COConfigurationManager.getBooleanParameter( "update.opendialog", true );
 	    
 	    
     	if ( show_window ){

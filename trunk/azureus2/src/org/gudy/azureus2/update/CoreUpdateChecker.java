@@ -52,10 +52,64 @@ CoreUpdateChecker
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 
+	protected static CoreUpdateChecker		singleton;
+	
 	protected PluginInterface				plugin_interface;
 	protected ResourceDownloaderFactory 	rdf;
 	protected LoggerChannel					log;
 	protected ResourceDownloaderListener	rd_logger;
+	
+	public static void
+	doUsageStats()
+	{
+		singleton.doUsageStatsSupport();
+	}
+	
+	public
+	CoreUpdateChecker()
+	{
+		singleton	= this;
+	}
+	
+	protected void
+	doUsageStatsSupport()
+	{
+		try{
+				// don't do any kind of reporting if the user doesn't want to
+			
+			if ( COConfigurationManager.getBooleanParameter("Send Version Info")){
+				
+				ResourceDownloader rd = rdf.getRetryDownloader(rdf.create( getVersionURL()), RD_GET_DETAILS_RETRIES );
+				
+				rd.addListener( rd_logger );
+				
+				rd.download();
+				
+				log.log( "Anonymous ID usage report ok" );
+			}
+		}catch( Throwable e ){
+			
+			log.log( "Anonymous ID usage report fails", e );
+		}
+	}
+	
+	protected URL
+	getVersionURL()
+		throws MalformedURLException, UnsupportedEncodingException
+	{
+		String url_str = Constants.SF_WEB_SITE + "version.php";
+		
+		String id = COConfigurationManager.getStringParameter("ID",null);
+		
+		if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
+			
+			url_str += "?id=" + id + 
+							"&version=" + Constants.AZUREUS_VERSION + 
+							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		}
+		
+		return( new URL( url_str ));
+	}
 	
 	public void
 	initialize(
@@ -106,11 +160,7 @@ CoreUpdateChecker
 			String	current_version = plugin_interface.getAzureusVersion();
 			
 			log.log( "Update check starts: current = " + current_version );
-						
-			String id = COConfigurationManager.getStringParameter("ID",null);
-			
-			String url_str = Constants.SF_WEB_SITE + "version.php";
-			
+									
 			boolean	TESTING = false;	// !!!!TODO: REMOVE THIS
 			
 			if ( TESTING ){
@@ -118,15 +168,8 @@ CoreUpdateChecker
 				System.out.println( "CoreUpdater: !!!! Testing mode !!!!" );
 				
 			}
-			
-			if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
-				
-				url_str += "?id=" + id + 
-								"&version=" + Constants.AZUREUS_VERSION + 
-								"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-			}
-			
-			URL url = new URL(url_str); 
+					
+			URL url = getVersionURL();
 			
 			ResourceDownloader	rd = rdf.create( url );
 			
