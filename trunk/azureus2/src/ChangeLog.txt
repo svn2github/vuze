@@ -8,7 +8,7 @@ FEATURE: Support for "compact" tracker announce protocol [Parg]
 FEATURE: Support for "key" tracker announce protocol [Parg]
 FEATURE: Download Speed column in "My Torrents" turns red if below speed set in Queue config. [TuxPaper]
 FEATURE: Webplugin swing ui has status area with total ul/dl [Parg]
-FEATURE: XML over HTTP remote plugin interface (initially to support GTS) - mail parg@users.sourceforge.net for details [Parg]
+FEATURE: XML over HTTP remote plugin interface (initially to support GTS) - mail parg@users.sf.net for details [Parg]
 
 CHANGE: All config/pref files utilize .bak backup files [Parg]
 CHANGE: Option to limit outstanding disk writes and piece hash checks [Parg]
