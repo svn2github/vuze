@@ -1447,7 +1447,7 @@ DiskManagerImpl
 		int priority;
 		for (int j = 0; j < pieceCompletion.length; j++) {
 			priority = pieceCompletion[j];
-			if (priority>0) {
+			if (priority >= 0) {
 				priorityLists[priority].set(j);
 			}
 		}
