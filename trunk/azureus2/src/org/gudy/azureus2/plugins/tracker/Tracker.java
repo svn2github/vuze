@@ -27,10 +27,15 @@ package org.gudy.azureus2.plugins.tracker;
  */
 
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 Tracker 
 {   
+	public void
+	host(
+		Torrent		torrent );
+	
     public TrackerTorrent[]
     getTorrents();
     

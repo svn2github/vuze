@@ -90,7 +90,7 @@ TRHostConfigImpl
 			 	
 			 	if ( torrent != null ){
 			 		
-			 		host.addTorrent( torrent, state );
+			 		host.addTorrent( torrent, state, true );
 			 		
 			 	}else{
 					if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
@@ -135,13 +135,16 @@ TRHostConfigImpl
 	  
 				TRHostTorrent torrent = (TRHostTorrent)torrents[i];
 				
-			 	Map t_map = new HashMap();
+				if ( torrent.isPersistent()){
+					
+					Map t_map = new HashMap();
 			 	
-				t_map.put("hash", torrent.getTorrent().getHash());
-				
-				t_map.put("status", new Long(torrent.getStatus()));
+					t_map.put("hash", torrent.getTorrent().getHash());
+					
+					t_map.put("status", new Long(torrent.getStatus()));
 		
-			 	list.add(t_map);
+					list.add(t_map);
+				}
 			 	
 	  	 	}catch( TOTorrentException e ){
 	  	 		

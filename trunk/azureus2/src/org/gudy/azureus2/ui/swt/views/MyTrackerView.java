@@ -330,18 +330,21 @@ MyTrackerView
 		computePossibleActions();
 		MainWindow.getWindow().refreshIconBar();
 		
-		Iterator iter = objectToSortableItem.values().iterator();
-		
-		while (iter.hasNext()){
+		synchronized(tableItemToObject){
 			
-			if (panel.isDisposed()){
-		  
-				return;
-		  	}
-		  
-		  	TrackerTableItem item = (TrackerTableItem) iter.next();
-		  
-		  	item.refresh();
+			Iterator iter = objectToSortableItem.values().iterator();
+			
+			while (iter.hasNext()){
+				
+				if (panel.isDisposed()){
+			  
+					return;
+			  	}
+			  
+			  	TrackerTableItem item = (TrackerTableItem) iter.next();
+			  
+			  	item.refresh();
+			}
 		}
 	}	 
 

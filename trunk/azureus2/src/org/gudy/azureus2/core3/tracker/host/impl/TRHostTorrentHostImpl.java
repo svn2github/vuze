@@ -45,6 +45,7 @@ TRHostTorrentHostImpl
 	protected List				listeners	= new ArrayList();
 	
 	protected int				status	= TS_STOPPED;
+	protected boolean			persistent;
 	
 	protected long				total_uploaded;
 	protected long				total_downloaded;
@@ -125,6 +126,19 @@ TRHostTorrentHostImpl
 	getStatus()
 	{
 		return( status );
+	}
+	
+	public boolean
+	isPersistent()
+	{
+		return( persistent );
+	}
+	
+	public void
+	setPersistent(
+		boolean		_persistent )
+	{
+		persistent	= _persistent;
 	}
 	
 	public TOTorrent

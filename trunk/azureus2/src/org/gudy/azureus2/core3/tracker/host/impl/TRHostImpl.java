@@ -179,7 +179,17 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		addTorrent( torrent, TRHostTorrent.TS_STARTED );
+		hostTorrent( torrent, true );
+	}
+
+	public synchronized void
+	hostTorrent(
+		TOTorrent		torrent,
+		boolean			persistent )
+	
+		throws TRHostException
+	{
+		addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent );
 	}
 	
 	public synchronized void
@@ -188,13 +198,14 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		addTorrent( torrent, TRHostTorrent.TS_PUBLISHED );
+		addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true );
 	}
 	
 	protected synchronized void
 	addTorrent(
 		TOTorrent		torrent,
-		int				state )
+		int				state,
+		boolean			persistent )
 		
 		throws TRHostException
 	{
@@ -218,6 +229,11 @@ TRHostImpl
 				
 				hti.setTorrent( torrent );	
 			
+				if ( persistent && !hti.isPersistent()){
+					
+					hti.setPersistent( true );
+				}
+				
 				if ( state != TRHostTorrent.TS_PUBLISHED ){
 		
 					startHosting( hti );
@@ -289,6 +305,8 @@ TRHostImpl
 		
 			host_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
 		}
+		
+		host_torrent.setPersistent( persistent );
 		
 		host_torrents.add( host_torrent );
 		host_torrent_map.put( torrent, host_torrent );
@@ -645,7 +663,7 @@ TRHostImpl
 		try{
 			TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
 		
-			addTorrent( external_torrent, state );	
+			addTorrent( external_torrent, state, true );	
 			
 		}catch( Throwable e ){
 			

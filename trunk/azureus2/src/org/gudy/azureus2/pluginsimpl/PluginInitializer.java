@@ -32,9 +32,12 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
 
 import org.gudy.azureus2.ui.swt.SplashWindow;
+
+import org.gudy.azureus2.plugins.Plugin;
+
+import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
-import org.gudy.azureus2.plugins.Plugin;
 
 /**
  * @author Olivier
@@ -42,7 +45,8 @@ import org.gudy.azureus2.plugins.Plugin;
  */
 public class PluginInitializer {
 
-  private Class[]	builtin_plugins = new Class[]{ 	TrackerWebDefaultStaticPlugin.class,
+  private Class[]	builtin_plugins = new Class[]{ 	ShareHosterPlugin.class,
+													TrackerWebDefaultStaticPlugin.class,
   													TrackerWebDefaultTrackerPlugin.class,};
   
   private static PluginInitializer	singleton;

@@ -86,6 +86,8 @@ ShareManagerImpl
 	{
 		if ( !initialised ){
 		
+			initialised	= true;
+			
 			share_dir = FileUtil.getApplicationFile( TORRENT_STORE );
 			
 			share_dir.mkdirs();

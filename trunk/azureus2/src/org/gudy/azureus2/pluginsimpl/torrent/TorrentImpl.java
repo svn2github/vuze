@@ -59,6 +59,12 @@ TorrentImpl
 		return( decode( torrent.getName()));
 	}
 	
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
+	}
+	
 	public byte[]
 	getHash()
 	{

@@ -45,9 +45,16 @@ TRHost
 	public void
 	hostTorrent(
 		TOTorrent		torrent )
-		
+	
 		throws TRHostException;
-		
+	
+	public void
+	hostTorrent(
+		TOTorrent		torrent,
+		boolean			persistent )
+	
+		throws TRHostException;
+	
 	public void
 	publishTorrent(
 		TOTorrent		torrent )

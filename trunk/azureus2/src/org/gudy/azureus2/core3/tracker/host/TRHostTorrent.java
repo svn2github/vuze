@@ -48,6 +48,13 @@ TRHostTorrent
 	public int
 	getStatus();
 	
+	public boolean
+	isPersistent();
+	
+	public void
+	setPersistent(
+		boolean	persistent );
+	
 	public TOTorrent
 	getTorrent();
 	

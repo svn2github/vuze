@@ -31,6 +31,8 @@ import java.io.*;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
@@ -63,6 +65,19 @@ TrackerImpl
 		host		= _host;
 		
 		host.addListener( this );
+	}
+	
+	public void
+	host(
+		Torrent		_torrent )
+	{
+		TorrentImpl	torrent = (TorrentImpl)_torrent;
+		
+		try{
+			host.hostTorrent( torrent.getTorrent(), false );
+		}catch( Throwable e ){
+			e.printStackTrace();
+		}
 	}
 	
 	public TrackerTorrent[]

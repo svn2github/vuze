@@ -40,7 +40,8 @@ TRHostTorrentPublishImpl
 	protected TOTorrent			torrent;
 
 	protected int				status	= TS_PUBLISHED;
-
+	protected boolean			persistent;
+	
 	protected TRHostPeer[]		peers = new TRHostPeer[0];
 	
 	protected List				listeners = new ArrayList();
@@ -76,6 +77,19 @@ TRHostTorrentPublishImpl
 		return( status );
 	}
 
+	public boolean
+	isPersistent()
+	{
+		return( persistent );
+	}
+	
+	public void
+	setPersistent(
+		boolean		_persistent )
+	{
+		persistent	= _persistent;
+	}
+	
 	public TOTorrent
 	getTorrent()
 	{
