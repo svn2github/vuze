@@ -128,6 +128,7 @@ public class ConfigurationDefaults {
     def.put("GUI Refresh",new Long(250));
     def.put("Graphics Update",new Long(4));
     def.put("ReOrder Delay",new Long(0));
+    def.put("Send Version Info",new Long(1));
     
     /** Headless Server settings **/
     // Server Name

@@ -401,6 +401,10 @@ public class ConfigView extends AbstractIView {
 
     itemDisplay.setControl(gDisplay);
 
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.allowSendVersion");
+    new BooleanParameter(gDisplay, "Send Version Info",true);
+    
     //CTabItem itemStart = new CTabItem(ctfConfig, SWT.NULL);
     //Messages.setLanguageText(itemStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
 

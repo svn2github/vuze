@@ -273,7 +273,12 @@ public class MainWindow implements GlobalManagerListener {
       HttpURLConnection con = null;
       InputStream is = null;
       try {
-        URL reqUrl = new URL("http://azureus.sourceforge.net/version.php"); //$NON-NLS-1$
+        String id = COConfigurationManager.getStringParameter("ID",null);        
+        String url = "http://azureus.sourceforge.net/version.php";
+        if(id != null && COConfigurationManager.getBooleanParameter("Send Version Info")) {
+          url += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
+        }
+        URL reqUrl = new URL(url); //$NON-NLS-1$
         con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         is = con.getInputStream();

@@ -71,9 +71,10 @@ public class Main implements ILocaleUtilChooser {
           return (ImageRepository.getImageAsStream(name));
         }
       });
-
-      mainWindow = new MainWindow(gm, startServer);
+      
       COConfigurationManager.checkConfiguration();
+      mainWindow = new MainWindow(gm, startServer);
+      
       mainWindow.waitForClose();
       return;
     }
@@ -86,9 +87,9 @@ public class Main implements ILocaleUtilChooser {
           return (ImageRepository.getImageAsStream(name));
         }
       });
-
-      mainWindow = new MainWindow(gm, startServer);
+      
       COConfigurationManager.checkConfiguration();
+      mainWindow = new MainWindow(gm, startServer);      
       if (args.length != 0) {
         // Sometimes Windows use filename in 8.3 form and cannot
         // match .torrent extension. To solve this, canonical path
