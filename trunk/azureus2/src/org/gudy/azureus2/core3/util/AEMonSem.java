@@ -263,7 +263,10 @@ AEMonSem
 		
 		for (int i=0;i<Math.min(10,total_x.length);i++){
 			
-			top_act_str +=  (i==0?"":", ") + total_x[i][0] + " = " + (total_x[i][1]);
+			if ( total_x[i] != null ){
+			
+				top_act_str +=  (i==0?"":", ") + total_x[i][0] + " = " + (total_x[i][1]);
+			}
 		}
 		
 		diag_logger.log( top_act_str );
