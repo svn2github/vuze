@@ -5,6 +5,7 @@ AZUREUS CHANGELOG
 
 FEATURE: Core | Health items now show if a torrent is being shared/published [Parg]
 FEATURE: Core | Creation of self-signed certificates for SSL (etc) via UI [Parg]
+FEATURE: Core | Set download speed per torrent [Parg]
 FEATURE: Dev  | ToolTip access functions for table cells [TuxPaper]
 FEATURE: Plug | Tracker plugin supports simple category view [Parg]
 FEATURE: Plug | Webui support for password protected trackers [Parg]
