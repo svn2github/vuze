@@ -149,7 +149,7 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.perf.cache.size", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)});
-    IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size", 2);
+    IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
     cache_size.setAllowZero(false);
     cache_size.setMinimumValue(1);
     
