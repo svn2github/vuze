@@ -29,7 +29,10 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 
 public class 
 DHTUDPPacketReplyError
@@ -106,7 +109,15 @@ DHTUDPPacketReplyError
 		
 		if ( error_type == ET_ORIGINATOR_ADDRESS_WRONG ){
 
-			DHTUDPUtils.serialiseAddress( os, originator_address );
+			try{
+				DHTUDPUtils.serialiseAddress( os, originator_address );
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace( e );
+				
+				throw( new IOException( e.getMessage()));
+			}
 		}
 	}
 }

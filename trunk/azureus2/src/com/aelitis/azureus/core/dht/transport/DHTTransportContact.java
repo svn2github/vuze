@@ -65,7 +65,7 @@ DHTTransportContact
 	exportContact(
 		DataOutputStream	os )
 	
-		throws IOException;
+		throws IOException, DHTTransportException;
 	
 	public String
 	getString();

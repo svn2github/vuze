@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
@@ -90,6 +91,8 @@ DHTTransportUDPImpl
 		int				_max_fails,
 		long			_timeout,
 		LoggerChannel	_logger )
+	
+		throws DHTTransportException
 	{
 		port			= _port;
 		max_fails		= _max_fails;
@@ -112,12 +115,16 @@ DHTTransportUDPImpl
 	
 	public void
 	testInstanceIDChange()
+	
+		throws DHTTransportException
 	{
 		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getAddress(), random.nextInt());		
 	}
 	
 	public void
 	testTransportIDChange()
+	
+		throws DHTTransportException
 	{
 		if ( external_address.equals("127.0.0.1")){
 			
@@ -255,6 +262,8 @@ DHTTransportUDPImpl
 	externalAddressChange(
 		DHTTransportUDPContactImpl	reporter,
 		InetSocketAddress			new_address )
+	
+		throws DHTTransportException
 	{
 			/*
 			 * A node has reported that our external address and the one he's seen a 
@@ -282,7 +291,16 @@ DHTTransportUDPImpl
 			return( false );
 		}
 		
-		String	new_ip = new_address.getAddress().getHostAddress();
+		InetAddress	ia = new_address.getAddress();
+		
+		if ( ia == null ){
+			
+			Debug.out( "reported new external address '" + new_address + "' is unresolved" );
+			
+			throw( new DHTTransportException( "Address '" + new_address + "' is unresolved" ));
+		}
+		
+		String	new_ip = ia.getHostAddress();
 		
 		if ( new_ip.equals( external_address )){
 			
@@ -348,7 +366,7 @@ DHTTransportUDPImpl
 	importContact(
 		DataInputStream		is )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		request_handler.contactImported( 
 				DHTUDPUtils.deserialiseContact( this, is ));
@@ -357,6 +375,8 @@ DHTTransportUDPImpl
 	public void
 	importContact(
 		InetSocketAddress	address )
+	
+		throws DHTTransportException
 	{
 			// instance id of 0 means "unknown"
 		
@@ -369,7 +389,7 @@ DHTTransportUDPImpl
 		DHTTransportContact	contact,
 		DataOutputStream	os )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		DHTUDPUtils.serialiseContact( os, contact );
 	}
@@ -781,7 +801,7 @@ DHTTransportUDPImpl
 				contact.getAddress(),
 				new PRUDPPacketReceiver()
 				{
-					private int	retry_count;
+					private int	retry_count	= 0;
 					
 					public void
 					packetReceived(
@@ -1001,7 +1021,13 @@ DHTTransportUDPImpl
 			
 				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
 				{
-					ok_to_retry = externalAddressChange( contact, error.getOriginatingAddress());
+					try{
+						ok_to_retry = externalAddressChange( contact, error.getOriginatingAddress());
+						
+					}catch( DHTTransportException e ){
+						
+						Debug.printStackTrace(e);
+					}
 					
 					break;
 				}

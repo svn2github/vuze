@@ -471,6 +471,8 @@ Test
 		DHT[]			dhts,
 		DHTTransport[]	transports,
 		int				i )
+	
+		throws DHTTransportException
 	{
 		DHTTransport	transport;
 		

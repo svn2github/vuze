@@ -44,7 +44,7 @@ DHTTransport
 	importContact(
 		DataInputStream		is )
 	
-		throws IOException;
+		throws IOException, DHTTransportException;
 	
 		/**
 		 * Set the handler for incoming requests

@@ -50,6 +50,8 @@ DHTTransportUDPContactImpl
 		DHTTransportUDPImpl		_transport,
 		InetSocketAddress		_address,
 		int						_instance_id )
+	
+		throws DHTTransportException
 	{
 		transport		= _transport;
 		address			= _address;
@@ -125,7 +127,7 @@ DHTTransportUDPContactImpl
 	exportContact(
 		DataOutputStream	os )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		transport.exportContact( this, os );
 	}

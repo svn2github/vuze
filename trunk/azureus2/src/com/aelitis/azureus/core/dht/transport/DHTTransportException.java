@@ -1,5 +1,5 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 25-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,25 +20,21 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp;
-
-import java.net.InetSocketAddress;
-
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
-import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHTTransportUDP
-	extends DHTTransport
+public class 
+DHTTransportException
+	extends Exception
 {
-	public void
-	importContact(
-		InetSocketAddress	address )
-	
-		throws DHTTransportException;
+	public 
+	DHTTransportException(
+		String	str )
+	{
+		super( str );
+	}
 }

@@ -23,12 +23,17 @@
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
-import com.aelitis.azureus.core.dht.impl.DHTLog;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -44,13 +49,26 @@ DHTUDPUtils
 	protected static byte[]
 	getNodeID(
 		InetSocketAddress	address )
+	
+		throws DHTTransportException
 	{		
-		byte[]	res = new SHA1Hasher().calculateHash(
-					(	address.getAddress().getHostAddress() + ":" + address.getPort()).getBytes());
+		InetAddress ia = address.getAddress();
 		
-		//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
-		
-		return( res );
+		if ( ia == null ){
+			
+			Debug.out( "Address '" + address + "' is unresolved" );
+			
+			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
+			
+		}else{
+			
+			byte[]	res = new SHA1Hasher().calculateHash(
+						(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
+			
+			//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
+			
+			return( res );
+		}
 	}
 	
 	protected static byte[]
@@ -147,7 +165,17 @@ DHTUDPUtils
 		
 		for (int i=0;i<contacts.length;i++){
 			
-			serialiseContact( os, contacts[i] );
+			try{
+				serialiseContact( os, contacts[i] );
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace(e);
+				
+					// not much we can do here to recover - shouldn't fail anyways
+				
+				throw( new IOException(e.getMessage()));
+			}
 		}
 	}
 
@@ -165,13 +193,24 @@ DHTUDPUtils
 			throw( new IOException( "too many contacts" ));
 		}
 		
-		DHTTransportContact[]	res = new DHTTransportContact[ len ];
+		List	l = new ArrayList( len );
 		
-		for (int i=0;i<res.length;i++){
+		for (int i=0;i<len;i++){
 			
-			res[i] = deserialiseContact( transport, is );
+			try{
+				
+				l.add( deserialiseContact( transport, is ));
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
-									  
+				
+		DHTTransportContact[]	res = new DHTTransportContact[l.size()];
+		
+		l.toArray( res );
+		
 		return( res );
 	}
 											
@@ -180,7 +219,7 @@ DHTUDPUtils
 		DataOutputStream		os,
 		DHTTransportContact		contact )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		if ( contact instanceof DHTTransportUDPContactImpl ){
 			
@@ -205,7 +244,7 @@ DHTUDPUtils
 		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
 		DataInputStream			is )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
 		byte	ct = is.readByte();
 		
@@ -232,9 +271,18 @@ DHTUDPUtils
 		DataOutputStream	os,
 		InetSocketAddress	address )
 	
-		throws IOException
+		throws IOException, DHTTransportException
 	{
-		serialiseByteArray( os, address.getHostName().getBytes());
+		InetAddress	ia = address.getAddress();
+		
+		if ( ia == null ){
+			
+			Debug.out( "Address '" + address + "' is unresolved" );
+			
+			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
+		}
+		
+		serialiseByteArray( os, ia.getHostAddress().getBytes());
 		
 		os.writeShort( address.getPort());
 	}

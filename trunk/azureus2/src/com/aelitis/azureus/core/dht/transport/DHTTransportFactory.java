@@ -49,6 +49,8 @@ DHTTransportFactory
 		int				max_fails,
 		long			timeout,
 		LoggerChannel	logger )
+	
+		throws DHTTransportException
 	{
 		return( new DHTTransportUDPImpl( port, max_fails, timeout, logger ));
 	}

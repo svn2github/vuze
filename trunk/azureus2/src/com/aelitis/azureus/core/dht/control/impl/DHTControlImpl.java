@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -276,7 +277,19 @@ DHTControlImpl
 			
 			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
 			
-			t_contact.exportContact( daos );
+			try{
+				
+				t_contact.exportContact( daos );
+				
+			}catch( DHTTransportException e ){
+				
+					// shouldn't fail as for a contact to make it to the router 
+					// it should be valid...
+				
+				Debug.printStackTrace( e );
+				
+				throw( new IOException( e.getMessage()));
+			}
 		}
 		
 		daos.flush();
@@ -292,7 +305,13 @@ DHTControlImpl
 		
 		for (int i=0;i<num;i++){
 			
-			transport.importContact( dais );
+			try{
+				transport.importContact( dais );
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 	}
 	
@@ -1423,9 +1442,7 @@ DHTControlImpl
 		byte[]	id )
 	{
 		Set	sorted_set	= getClosestContactsSet(id);
-			
-		int	K = router.getK();
-		
+					
 		List	res = new ArrayList(K);
 		
 		Iterator	it = sorted_set.iterator();
