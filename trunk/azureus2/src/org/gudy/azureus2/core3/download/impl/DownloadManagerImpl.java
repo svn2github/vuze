@@ -795,12 +795,17 @@ DownloadManagerImpl
 
 
   public int getTrackerTime() {
-	if (tracker_client != null){
+    if (tracker_client != null)
+      return tracker_client.getTimeUntilNextUpdate();
+
+    // no tracker, return scrape
+    if (torrent != null && globalManager != null) {
+      TRTrackerScraperResponse response = globalManager.getTrackerScraper().scrape(torrent);
+      if (response != null)
+        return (int)((response.getNextScrapeStartTime() - System.currentTimeMillis()) / 1000);
+    }
 	
-	  return tracker_client.getTimeUntilNextUpdate();
-	}
-	
-	return TRTrackerClient.REFRESH_MINIMUM_SECS;
+    return TRTrackerClient.REFRESH_MINIMUM_SECS;
   }
 
   /**
