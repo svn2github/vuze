@@ -46,11 +46,14 @@ public class
 DMReaderImpl
 	implements DMReader
 {
+	protected static final int	QUEUE_REPORT_CHUNK	= 32;
+	
 	protected DiskManagerHelper	disk_manager;
 
 	private List		readQueue;
 	private Semaphore	readQueueSem;
-
+	private int			next_report_size	= 0;
+	
 	private DiskReadThread readThread;
 
 	public
@@ -63,10 +66,12 @@ DMReaderImpl
 	public void
 	start()
 	{
-		readQueue		= new LinkedList();
-		readQueueSem	= new Semaphore();
-
+		readQueue			= new LinkedList();
+		readQueueSem		= new Semaphore();
+		next_report_size	= QUEUE_REPORT_CHUNK;
+		
 		readThread = new DiskReadThread();
+		
 		readThread.start();
 	}
 	
@@ -100,6 +105,17 @@ DMReaderImpl
 	    }
 	    
 	    readQueueSem.release();
+	    
+	    int	queue_size = readQueueSem.getValue();
+	    
+	    if( queue_size > next_report_size ){
+	    	
+	    	Debug.out( "Disk Manager read queue size exceeds " + next_report_size );
+	    	
+	    	next_report_size += QUEUE_REPORT_CHUNK;
+	    }
+	    
+		// System.out.println( "read queue size = " + queue_size );
 	}
 	  
 	public DirectByteBuffer 

@@ -51,27 +51,46 @@ public class
 DMWriterAndCheckerImpl 
 	implements DMWriterAndChecker
 {
+	protected static final int	QUEUE_REPORT_CHUNK	= 32;
+	
+	private static int			global_write_queue_block_sem_size;
 	private static Semaphore	global_write_queue_block_sem;
+	private static int			global_write_queue_block_sem_next_report_size;
+	
+	private static int			global_check_queue_block_sem_size;
 	private static Semaphore	global_check_queue_block_sem;
+	private static int			global_check_queue_block_sem_next_report_size;
 	
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
-		global_write_queue_block_sem = new Semaphore(write_limit_blocks);
+		global_write_queue_block_sem_size	= write_limit_blocks==0?1024:write_limit_blocks;
 		
+		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
+		
+		global_write_queue_block_sem = new Semaphore(global_write_queue_block_sem_size);
+		
+		/*
 		if ( write_limit_blocks == 0 ){
 			
 			global_write_queue_block_sem.releaseForever();
 		}
+		*/
 		
 		int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
 
-		global_check_queue_block_sem = new Semaphore(check_limit_pieces);
+		global_check_queue_block_sem_size	= check_limit_pieces==0?512:check_limit_pieces;
 		
+		global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
+		
+		global_check_queue_block_sem = new Semaphore(global_check_queue_block_sem_size);
+		
+		/*
 		if ( check_limit_pieces == 0 ){
 			
 			global_check_queue_block_sem.releaseForever();
 		}
+		*/
 		
 		// System.out.println( "global writes = " + write_limit_blocks + ", global checks = " + check_limit_pieces );
 	}
@@ -230,6 +249,15 @@ DMWriterAndCheckerImpl
 	{  		
 		global_check_queue_block_sem.reserve();
 	   		
+		if ( global_check_queue_block_sem.getValue() < global_check_queue_block_sem_next_report_size ){
+			
+	    	Debug.out( "Disk Manager check queue size exceeds " + ( global_check_queue_block_sem_size - global_check_queue_block_sem_next_report_size ));
+
+			global_check_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
+		}
+		
+		// System.out.println( "check queue size = " + ( global_check_queue_block_sem_size - global_check_queue_block_sem.getValue()));
+		
 	  	synchronized( writeCheckQueueLock ){
 	 		
 	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
@@ -552,6 +580,15 @@ DMWriterAndCheckerImpl
 	{		
 		global_write_queue_block_sem.reserve();
 		
+		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
+			
+	    	Debug.out( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
+
+			global_write_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
+		}
+		
+		// System.out.println( "write queue size = " + ( global_write_queue_block_sem_size - global_write_queue_block_sem.getValue()));
+
 		// System.out.println( "reserved global write slot (buffer = " + data.limit() + ")" );
 		
 		synchronized( writeCheckQueueLock ){

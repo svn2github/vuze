@@ -291,9 +291,9 @@ CacheFileImpl
 								cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
 								
 								cache.add( entry );
-								
-								manager.addCacheSpace( entry );
 							}
+							
+							manager.addCacheSpace( entry );
 								
 							buffer_cached	= true;
 								
@@ -315,6 +315,10 @@ CacheFileImpl
 							printCache();
 						}
 							
+							// recursively read from the cache, should hit the data we just read although
+							// there is the possibility that it could be flushed before then - hence the
+							// recursion flag that will avoid this happening next time around
+						
 						readCache( file_buffer, file_position, true );
 					
 					}else{
@@ -324,10 +328,13 @@ CacheFileImpl
 							LGLogger.log( "\tnot performing read-ahead" );
 						}
 							
-						flushCache( file_position, read_length, true, -1 );
-						
-						getFMFile().read( file_buffer, file_position );
+						synchronized( this ){
 							
+							flushCache( file_position, read_length, true, -1 );
+						
+							getFMFile().read( file_buffer, file_position );
+						}
+						
 						manager.fileBytesRead( read_length );
 					}
 						
@@ -417,10 +424,13 @@ CacheFileImpl
 						// not handed over, invalidate any cache that exists for the area
 						// as it is now out of date
 					
-					flushCache( file_position, write_length, true, -1 );
+					synchronized( this ){
+						
+						flushCache( file_position, write_length, true, -1 );
 
-					getFMFile().write( file_buffer, file_position );
-											
+						getFMFile().write( file_buffer, file_position );
+					}
+					
 					manager.fileBytesWritten( write_length );
 				}
 			}else{
@@ -690,16 +700,13 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		if ( manager.isCacheEnabled()){
-			
-			synchronized( this ){
-				
-				if ( TRACE ){
+							
+			if ( TRACE ){
 					
-					LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
-				}
-				
-				flushCache( 0, -1, release_entries, minumum_to_release);
+				LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
 			}
+			
+			flushCache( 0, -1, release_entries, minumum_to_release);
 		}
 	}
 	
@@ -707,24 +714,29 @@ CacheFileImpl
 	protected void
 	printCache()
 	{
+			// sync on class so traces for different files don't get inter-leaved!
+		
 		synchronized( CacheFileImpl.class ){
 			
 			LGLogger.log( "cache for " + getName());
-			
-			Iterator	it = cache.iterator();
-			
-			while(it.hasNext()){
+		
+			synchronized( this ){
 				
-				CacheEntry entry = (CacheEntry)it.next();
+				Iterator	it = cache.iterator();
 				
-				LGLogger.log( "  " + entry.getString());
+				while(it.hasNext()){
+					
+					CacheEntry entry = (CacheEntry)it.next();
+					
+					LGLogger.log( "  " + entry.getString());
+				}
 			}
 		}
 	}
 	
 	
 	
-	
+		// support methods
 	
 	
 	protected String
@@ -738,6 +750,9 @@ CacheFileImpl
 	{
 		return( file );
 	}
+	
+	
+		// public methods
 	
 	public File
 	getFile()

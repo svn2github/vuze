@@ -20,11 +20,13 @@ import com.aelitis.azureus.core.diskmanager.cache.*;
  * It always tries to find a free buffer in the buffer pool
  * before creating a new one.
  */
-public class DirectByteBufferPool {
+public class 
+DirectByteBufferPool 
+{
 
 	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= true;
 	protected static final boolean 	DEBUG_PRINT_MEM 		= true;
-	protected static final int		DEBUG_PRINT_TIME		= 30*1000;
+	protected static final int		DEBUG_PRINT_TIME		= 120*1000;
 	static{
 		if ( DEBUG_TRACK_HANDEDOUT || DEBUG_PRINT_MEM ){
 			System.out.println( "**** DirectByteBufferPool debugging on ****" );
@@ -115,7 +117,7 @@ public class DirectByteBufferPool {
             public void perform( TimerEvent ev ) {
               System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
               
-              printInUse();
+              printInUse( false );
               
               long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
               long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
@@ -146,14 +148,20 @@ public class DirectByteBufferPool {
        runGarbageCollection();
 
        try {
-          return ByteBuffer.allocateDirect(_size);
-       } catch (OutOfMemoryError ex) {
+       		return ByteBuffer.allocateDirect(_size);
+       	
+       }catch (OutOfMemoryError ex) {
+       	
          String msg = "Memory allocation failed: Out of direct memory space.\n"
                     + "To fix: Use the -XX:MaxDirectMemorySize=512m command line option,\n"
                     + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
        	 Debug.out( msg );
-         LGLogger.logAlert( LGLogger.AT_ERROR, msg );         
-         return null;
+       	 
+         LGLogger.logAlert( LGLogger.AT_ERROR, msg );
+         
+         printInUse( true );
+         
+         throw( ex );
        }
     }
   }
@@ -493,99 +501,111 @@ public class DirectByteBufferPool {
   */
   
   	private void
-	printInUse()
+	printInUse(
+		boolean		verbose )
   	{
-  		CacheFileManager cm	= null;
-  		
-		try{
- 			cm = CacheFileManagerFactory.getSingleton();
- 			
-		}catch( Throwable e ){
-				
-			e.printStackTrace();
-		}
- 
-  		synchronized( handed_out ){
-    	
-  			Iterator	it = handed_out.values().iterator();
-  			
-  			Map	cap_map		= new TreeMap();
-  			Map	alloc_map	= new TreeMap();
-  			
-  			while( it.hasNext()){
-  				
-  				DirectByteBuffer	db = (DirectByteBuffer)it.next();
-  				
-  				Integer cap 	= new Integer( db.getBufferInternal().capacity());
-  				Byte	alloc 	= new Byte( db.getAllocator());
-  				
-  				myInteger	c = (myInteger)cap_map.get(cap);
-  				
-  				if ( c == null ){
-  					
-  					c	= new myInteger();
-  					
-  					cap_map.put( cap, c );
-  				}
-  				
-  				c.value++;
-  				
-				myInteger	a = (myInteger)alloc_map.get(alloc);
-  				
-  				if ( a == null ){
-  					
-  					a	= new myInteger();
-  					
-  					alloc_map.put( alloc, a );
-  				}
-  				
-  				a.value++;				
-  			}
-  			
-  			it = cap_map.keySet().iterator();
-  			
-  			while( it.hasNext()){
-  				
-  				Integer		key 	= (Integer)it.next();
-  				myInteger	count 	= (myInteger)cap_map.get( key );
-  				
-  		        if( key.intValue() < 1024 ){
-  		        	
-  		        	System.out.print("[" +key.intValue()+ " x " +count.value+ "] ");
-  		        	
-  		        }else{  
-  		        	
-  		        	System.out.print("[" +key.intValue()/1024+ "K x " +count.value+ "] ");
-  		        }
-  			}
-  			
-  			System.out.print( " - " );
-  			
-			it = alloc_map.keySet().iterator();
-  			
-  			while( it.hasNext()){
-  				
-  				Byte		key 	= (Byte)it.next();
-  				myInteger	count 	= (myInteger)alloc_map.get( key );
-  				
-  	        	System.out.print("[" + DirectByteBuffer.AL_DESCS[key.intValue()]+ " x " +count.value+ "] ");
-  			}
-  			
-  			if ( cm != null ){
-  				
-  				CacheFileManagerStats stats = cm.getStats();
-  				
-  				System.out.print( " - Cache: " );
-  	  			
-  				
-				System.out.print( "cw=" + stats.getBytesWrittenToCache());
-				System.out.print( ",cr=" + stats.getBytesReadFromCache());
-				System.out.print( ",fw=" + stats.getBytesWrittenToFile());
-				System.out.print( ",fr=" + stats.getBytesReadFromFile());
-				
-  			}
-  			
-  			System.out.println();
+  		if ( DEBUG_PRINT_MEM ){
+	  		CacheFileManager cm	= null;
+	  		
+			try{
+	 			cm = CacheFileManagerFactory.getSingleton();
+	 			
+			}catch( Throwable e ){
+					
+				e.printStackTrace();
+			}
+	 
+	  		synchronized( handed_out ){
+	    	
+	  			Iterator	it = handed_out.values().iterator();
+	  			
+	  			Map	cap_map		= new TreeMap();
+	  			Map	alloc_map	= new TreeMap();
+	  			
+	  			while( it.hasNext()){
+	  				
+	  				DirectByteBuffer	db = (DirectByteBuffer)it.next();
+	  				
+	  				if ( verbose ){
+		  				String	trace = db.getTraceString();
+		  				
+		  				if ( trace != null ){
+		  					
+		  					System.out.println( trace );
+		  				}
+	  				}
+	  				
+	  				Integer cap 	= new Integer( db.getBufferInternal().capacity());
+	  				Byte	alloc 	= new Byte( db.getAllocator());
+	  				
+	  				myInteger	c = (myInteger)cap_map.get(cap);
+	  				
+	  				if ( c == null ){
+	  					
+	  					c	= new myInteger();
+	  					
+	  					cap_map.put( cap, c );
+	  				}
+	  				
+	  				c.value++;
+	  				
+					myInteger	a = (myInteger)alloc_map.get(alloc);
+	  				
+	  				if ( a == null ){
+	  					
+	  					a	= new myInteger();
+	  					
+	  					alloc_map.put( alloc, a );
+	  				}
+	  				
+	  				a.value++;				
+	  			}
+	  			
+	  			it = cap_map.keySet().iterator();
+	  			
+	  			while( it.hasNext()){
+	  				
+	  				Integer		key 	= (Integer)it.next();
+	  				myInteger	count 	= (myInteger)cap_map.get( key );
+	  				
+	  		        if( key.intValue() < 1024 ){
+	  		        	
+	  		        	System.out.print("[" +key.intValue()+ " x " +count.value+ "] ");
+	  		        	
+	  		        }else{  
+	  		        	
+	  		        	System.out.print("[" +key.intValue()/1024+ "K x " +count.value+ "] ");
+	  		        }
+	  			}
+	  			
+	  			System.out.print( " - " );
+	  			
+				it = alloc_map.keySet().iterator();
+	  			
+	  			while( it.hasNext()){
+	  				
+	  				Byte		key 	= (Byte)it.next();
+	  				myInteger	count 	= (myInteger)alloc_map.get( key );
+	  				
+	  	        	System.out.print("[" + DirectByteBuffer.AL_DESCS[key.intValue()]+ " x " +count.value+ "] ");
+	  			}
+	  			
+	  			if ( cm != null ){
+	  				
+	  				CacheFileManagerStats stats = cm.getStats();
+	  				
+	  				System.out.print( " - Cache: " );
+	  	  			
+	  				
+					System.out.print( "cw=" + stats.getBytesWrittenToCache());
+					System.out.print( ",cr=" + stats.getBytesReadFromCache());
+					System.out.print( ",fw=" + stats.getBytesWrittenToFile());
+					System.out.print( ",fr=" + stats.getBytesReadFromFile());
+					
+	  			}
+	  			
+	  			System.out.println();
+	  		}
   		}
   	}
   	

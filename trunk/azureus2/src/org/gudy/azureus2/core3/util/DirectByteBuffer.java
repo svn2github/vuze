@@ -50,26 +50,72 @@ DirectByteBuffer
 	public static final byte		AL_BT_PIECE		= 9;
 	
 	public static final String[] AL_DESCS =
-	{ "NO", "EX", "OT", "PR", "PL", "CR", "DR", "DZ", "DC", "BP" };
+	{ "None", "Ext", "Other", "PeerRead", "PeerLen", "CacheRead", "DiskRead", "DiskZero", "DiskCheck", "BTPiece" };
 	
-	public static final byte		SS_EXTERNAL		= 0;
-	public static final byte		SS_OTHER		= 1;
-	public static final byte		SS_CACHE		= 2;
-	public static final byte		SS_FILE			= 3;
-	public static final byte		SS_NET			= 4;
-	public static final byte		SS_BT			= 4;
-	public static final byte		SS_DR			= 4;
-	public static final byte		SS_DW			= 4;
-	public static final byte		SS_PEER			= 4;
+	public static final byte		SS_NONE			= 0;	// not used, required to id cycled buffers
+	public static final byte		SS_EXTERNAL		= 1;
+	public static final byte		SS_OTHER		= 2;
+	public static final byte		SS_CACHE		= 3;
+	public static final byte		SS_FILE			= 4;
+	public static final byte		SS_NET			= 5;
+	public static final byte		SS_BT			= 6;
+	public static final byte		SS_DR			= 7;
+	public static final byte		SS_DW			= 8;
+	public static final byte		SS_PEER			= 9;
 
+	public static final String[] SS_DESCS = 
+	{ "None", "Ext", "Other", "Cache", "File", "Net", "BT", "DiskRead", "DiskWrite", "Peer" };
 	
+	public static final byte		OP_LIMIT			= 0;
+	public static final byte		OP_LIMIT_INT		= 1;
+	public static final byte		OP_POSITION			= 2;
+	public static final byte		OP_POSITION_INT		= 3;
+	public static final byte		OP_CLEAR			= 4;
+	public static final byte		OP_FLIP				= 5;
+	public static final byte		OP_REMANING			= 6;
+	public static final byte		OP_CAPACITY			= 7;
+	public static final byte		OP_PUT_BYTEARRAY	= 8;
+	public static final byte		OP_PUT_DBB			= 9;
+	public static final byte		OP_PUT_BB			= 10;
+	public static final byte		OP_PUTINT			= 11;
+	public static final byte		OP_PUT_BYTE			= 12;
+	public static final byte		OP_GET				= 13;
+	public static final byte		OP_GET_INT			= 14;
+	public static final byte		OP_GET_BYTEARRAY	= 15;
+	public static final byte		OP_GETINT			= 16;
+	public static final byte		OP_GETINT_INT		= 17;
+	public static final byte		OP_HASREMAINING		= 18;
+	public static final byte		OP_READ_FC			= 19;
+	public static final byte		OP_WRITE_FC			= 20;
+	public static final byte		OP_READ_SC			= 21;
+	public static final byte		OP_WRITE_SC			= 22;
+	public static final byte		OP_GETBUFFER		= 23;
 	
-	protected static final boolean	TRACE		= false;
+	public static final String[]	OP_DESCS = 
+		{ 	"limit", 		"limit(int)", 	"position", 	"position(int)", 	"clear", 
+			"flip", 		"remaining", 	"capacity", 	"put(byte[])", 		"put(dbb)",
+			"put(bbb)", 	"putInt", 		"put(byte)",	"get",				"get(int)",
+			"get(byte[])",	"getInt",		"getInt(int",	"hasRemaining",		"read(fc)",		
+			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer"	
+		};
+			
+	protected static final boolean	TRACE				= true;
+	protected static final int		TRACE_BUFFER_SIZE	= 64;		// must be even
+	
+	static{
+		if ( TRACE ){
+			System.out.println( "**** DirectByteBuffer tracing on ****" );
+		}
+	}
 	
 	private ByteBuffer 				buffer;
 	private DirectByteBufferPool	pool;
 	private byte					allocator;
   
+	
+	private byte[]					trace_buffer;
+	private int						trace_buffer_pos;
+	
 	public 
 	DirectByteBuffer( 
 		ByteBuffer 	_buffer ) 
@@ -88,20 +134,88 @@ DirectByteBuffer
 		pool		= _pool;
 		
 		if ( TRACE ){
-			/*
-			trace_list		= new LinkedList();
-			global_trace	= new LinkedList();
 			
-			trace_wrapper = new traceWrapper( buffer );
-			*/
+			trace_buffer	= new byte[TRACE_BUFFER_SIZE];
+			
+			Arrays.fill(trace_buffer,(byte)0);
 		}
 	}
   
 	protected void
 	traceUsage(
-		String	function )
+		byte		subsystem,
+		byte		operation )
 	{
+		if ( TRACE ){
+			
+			trace_buffer[trace_buffer_pos++]	= subsystem;
+			trace_buffer[trace_buffer_pos++]	= operation;	
+		
+			if ( trace_buffer_pos == TRACE_BUFFER_SIZE ){
+				
+				trace_buffer_pos	= 0;
+			}
+		}
+	}
 	
+	protected String
+	getTraceString()
+	{
+		if ( TRACE ){
+			
+			StringBuffer	sb = new StringBuffer();
+			
+			sb.append( AL_DESCS[allocator]);
+			sb.append( ":" );
+			
+			boolean	wrapped	= false;
+			
+			int	start	= 0;
+			int	end		= trace_buffer_pos;
+			
+			if ( trace_buffer[trace_buffer_pos] != 0 ){
+				
+				start	= trace_buffer_pos;
+				
+				wrapped	= true;
+			}
+			
+			if ( end == 0 && !wrapped ){
+				
+				sb.append( "not used");
+				
+			}else{
+							
+				if ( wrapped ){
+					
+					sb.append( "*" );
+				}
+				
+				int	num = 0;
+				
+				do{
+					
+					if ( num++ > 0 ){
+						sb.append(",");
+					}
+					
+					sb.append( SS_DESCS[trace_buffer[start++]]);
+					sb.append( "/" );
+					sb.append( OP_DESCS[trace_buffer[start++]]);
+					
+					if ( start == TRACE_BUFFER_SIZE ){
+						
+						start	= 0;
+					}
+				}while( start != end );
+			}
+			
+			return( sb.toString());
+			
+		}else{
+			
+			return( null );
+		}
 	}
 	
 	protected void
@@ -134,7 +248,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("limit");
+			
+			traceUsage( subsystem, OP_LIMIT );
 		}
 		
 		return( buffer.limit());
@@ -147,7 +262,7 @@ DirectByteBuffer
 	{
 		if ( TRACE ){
 			
-			traceUsage("limit(int)");
+			traceUsage( subsystem, OP_LIMIT_INT );
 		}
 		
 		buffer.limit(l);
@@ -158,7 +273,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("position");
+			
+			traceUsage( subsystem, OP_POSITION);
 		}
 		
 	  	return( buffer.position());
@@ -170,7 +286,8 @@ DirectByteBuffer
 		int			l )
 	{
 		if ( TRACE ){
-			traceUsage("position(int)");
+			
+			traceUsage( subsystem, OP_POSITION_INT);
 		}
 		
 		buffer.position(l);
@@ -181,7 +298,8 @@ DirectByteBuffer
 		byte		subsystem) 
 	{
 		if ( TRACE ){
-			traceUsage("clear");
+			
+			traceUsage( subsystem, OP_CLEAR );
 		}
 		
 		buffer.clear();
@@ -192,7 +310,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("flip");
+			
+			traceUsage( subsystem, OP_FLIP );
 		}
 		
 		buffer.flip();
@@ -203,7 +322,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("remaining");
+			
+			traceUsage( subsystem, OP_REMANING );
 		}
 		
 		return( buffer.remaining());
@@ -214,7 +334,8 @@ DirectByteBuffer
 		 byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("capacity");
+			
+			traceUsage( subsystem, OP_CAPACITY );
 		}
 		
 		return( buffer.capacity());
@@ -226,7 +347,8 @@ DirectByteBuffer
 		byte[]		data )
 	{
 		if ( TRACE ){
-			traceUsage("put(byte[])");
+			
+			traceUsage( subsystem, OP_PUT_BYTEARRAY );
 		}
 		
 		buffer.put( data );
@@ -238,7 +360,8 @@ DirectByteBuffer
 		DirectByteBuffer	data )
 	{
 		if ( TRACE ){
-			traceUsage("put(DBB)");
+			
+			traceUsage( subsystem, OP_PUT_DBB);
 		}
 		
 		buffer.put( data.buffer );
@@ -250,7 +373,8 @@ DirectByteBuffer
 		ByteBuffer	data )
 	{
 		if ( TRACE ){
-			traceUsage("put(BB)");
+			
+			traceUsage( subsystem, OP_PUT_BB);
 		}
 		
 		buffer.put( data );
@@ -262,7 +386,8 @@ DirectByteBuffer
 		byte	data )
 	{
 		if ( TRACE ){
-			traceUsage("put(byte)");
+			
+			traceUsage( subsystem, OP_PUT_BYTE );
 		}
 		
 		buffer.put( data );
@@ -274,7 +399,8 @@ DirectByteBuffer
 		int			data )
 	{
 		if ( TRACE ){
-			traceUsage("put(int)");
+			
+			traceUsage( subsystem, OP_PUTINT);
 		}
 		
 		buffer.putInt( data );
@@ -285,7 +411,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("get");
+			
+			traceUsage( subsystem, OP_GET);
 		}
 		
 		return( buffer.get());
@@ -297,7 +424,8 @@ DirectByteBuffer
 		int		x )
 	{
 		if ( TRACE ){
-			traceUsage("get(int)");
+			
+			traceUsage( subsystem, OP_GET_INT);
 		}
 		
 		return( buffer.get(x));
@@ -309,7 +437,8 @@ DirectByteBuffer
 		byte[]		data )
 	{
 		if ( TRACE ){
-			traceUsage("get(byte[])");
+			
+			traceUsage( subsystem, OP_GET_BYTEARRAY);
 		}
 		
 		buffer.get(data);
@@ -320,7 +449,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("getInt");
+			
+			traceUsage( subsystem, OP_GETINT);
 		}
 		
 		return( buffer.getInt());
@@ -332,7 +462,8 @@ DirectByteBuffer
 		int			x )
 	{
 		if ( TRACE ){
-			traceUsage("getInt(int)");
+			
+			traceUsage( subsystem, OP_GETINT_INT );
 		}
 		
 		return( buffer.getInt(x));
@@ -343,7 +474,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("hasRemaining");
+			
+			traceUsage( subsystem, OP_HASREMAINING );
 		}
 		
 		return( buffer.hasRemaining());
@@ -357,7 +489,8 @@ DirectByteBuffer
 		throws IOException
 	{
 		if ( TRACE ){
-			traceUsage("read(FC)");
+			
+			traceUsage( subsystem, OP_READ_FC);
 		}
 		
 		try{
@@ -379,7 +512,8 @@ DirectByteBuffer
 		throws IOException
 	{
 		if ( TRACE ){
-			traceUsage("write(FC)");
+			
+			traceUsage( subsystem, OP_WRITE_FC );
 		}
 		
 		try{
@@ -401,7 +535,8 @@ DirectByteBuffer
 		throws IOException
 	{
 		if ( TRACE ){
-			traceUsage("read(SC)");
+			
+			traceUsage( subsystem, OP_READ_SC );
 		}
 		
 		try{
@@ -423,7 +558,8 @@ DirectByteBuffer
   		throws IOException
 	{
 		if ( TRACE ){
-			traceUsage("write(SC)");
+			
+			traceUsage( subsystem, OP_WRITE_SC );
 		}
 		
 		try{
@@ -442,7 +578,8 @@ DirectByteBuffer
 		byte		subsystem )
 	{
 		if ( TRACE ){
-			traceUsage("getBuffer");
+			
+			traceUsage( subsystem, OP_GETBUFFER );
 		}
 		
 		return( buffer );
@@ -451,16 +588,7 @@ DirectByteBuffer
 
 	public void 
 	returnToPool() 
-	{
-		if ( TRACE ){
-			
-			traceUsage("returnToPool");
-		
-			// System.out.println( "free:" + buffer );
-
-			// trace_buffer_map.remove( buffer );
-		}
-		
+	{				
 		if ( pool != null ){
 			
 			if ( DirectByteBufferPool.DEBUG_TRACK_HANDEDOUT ){
