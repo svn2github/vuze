@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 import org.pf.file.FileFinder;
+import org.pf.text.StringUtil;
 
 /**
  * this class allows the user to add and find torrents.
@@ -175,8 +176,8 @@ public class AddFind extends OptionsConsoleCommand {
 	 */
 	protected String transformLocalArgument(String arg) {
 		if( arg.startsWith("~/") || arg.equals("~") )
-		{				
-			arg = arg.replace("~", System.getProperty("user.home"));
+		{
+			arg = StringUtil.current().replaceAll(arg, "~", System.getProperty("user.home"));
 		}
 		return arg;
 	}

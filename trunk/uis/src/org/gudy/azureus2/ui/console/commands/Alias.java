@@ -119,7 +119,7 @@ public class Alias extends OptionsConsoleCommand {
 		StringBuffer aliasText = new StringBuffer();
 		for (Iterator iter = argList.iterator(); iter.hasNext();) {
 			String arg = (String) iter.next();
-			if( arg.contains(" ") )
+			if( arg.indexOf(" ") != -1 )
 				aliasText.append("\"").append(arg).append("\"");
 			else
 				aliasText.append(arg);

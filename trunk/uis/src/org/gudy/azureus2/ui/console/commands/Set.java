@@ -184,7 +184,7 @@ public class Set extends IConsoleCommand {
 				if( nextchar == 'i' )
 				{
 					int value = COConfigurationManager.getIntParameter(parameter, Integer.MIN_VALUE);
-					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : Integer.valueOf(value) );
+					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
 				}
 				else if( nextchar == 'b' )
 				{
@@ -208,7 +208,7 @@ public class Set extends IConsoleCommand {
 			{
 				try {
 					int value = COConfigurationManager.getIntParameter(parameter, Integer.MIN_VALUE);
-					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : Integer.valueOf(value) );
+					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
 				} catch (Exception e1)
 				{
 					String value = COConfigurationManager.getStringParameter(parameter);
