@@ -266,8 +266,8 @@ public class PeerSocket extends PeerConnection {
 		}
 
 		//6. release all buffers in dataQueue
-		while (dataQueue.size() > 0) {
-			DataQueueItem item = (DataQueueItem) dataQueue.remove(0);
+    for (int i = dataQueue.size()-1; i >= 0; i--) {
+			DataQueueItem item = (DataQueueItem) dataQueue.remove(i);
 			if (item.isLoaded()) {
 				ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
 			} else if (item.isLoading()) {
@@ -847,10 +847,12 @@ public class PeerSocket extends PeerConnection {
 	public void cancelRequests() {
 		if (requested == null)
 			return;
-		while (requested.size() > 0) {
-			Request request = (Request) requested.remove(0);
-			manager.requestCanceled(request);
-		}
+    synchronized (requested) {
+      for (int i = requested.size()-1; i >= 0; i--) {
+        Request request = (Request) requested.remove(i);
+        manager.requestCanceled(request);
+      }
+    }
 	}
 
 	public int getNbRequests() {
@@ -926,7 +928,7 @@ public class PeerSocket extends PeerConnection {
 
 		if (writeBuffer == null) {
 			//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
-			if (protocolQueue.size() > 0) {
+			if (protocolQueue.size() != 0) {
 				//Assign the current buffer ... 
 				keepAlive = 0;
 				writeBuffer = (ByteBuffer) protocolQueue.remove(0);
@@ -935,7 +937,7 @@ public class PeerSocket extends PeerConnection {
 				//and loop
 				write();
 			}
-			if (dataQueue.size() > 0) {
+			if (dataQueue.size() != 0) {
 				DataQueueItem item = (DataQueueItem) dataQueue.get(0);
 				if (!choking) {
 					if (!item.isLoading() && !choking) {
@@ -944,7 +946,7 @@ public class PeerSocket extends PeerConnection {
 					}
 					if (item.isLoaded()) {
 						dataQueue.remove(0);
-						if (dataQueue.size() > 0) {
+						if (dataQueue.size() != 0) {
 							DataQueueItem itemNext =
 								(DataQueueItem) dataQueue.get(0);
 							if (!itemNext.isLoading()) {
@@ -1013,7 +1015,7 @@ public class PeerSocket extends PeerConnection {
 	}
 
 	public DataQueueItem getNextRequest() {
-		if (dataQueue.size() > 0)
+		if (dataQueue.size() != 0)
 			return (DataQueueItem) dataQueue.get(0);
 		return null;
 	}
