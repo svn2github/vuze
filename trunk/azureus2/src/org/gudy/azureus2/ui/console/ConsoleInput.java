@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -98,16 +99,16 @@ public class ConsoleInput extends Thread {
 		os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
 		os.println("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
 		os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
-		os.println("move <from #> [to #]\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
-		os.println("queue (#|all|hash <hash>)\t-\tQueue torrent(s).");
-		os.println("remove (#|all|hash <hash>)\tr\tRemove torrent(s).");
-		os.println("set [parameter] [value]\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
-		os.println("show (#|torrents)\t\tsh t\tShow info (Running torrents or further info on a certain torrent).");
-		os.println("start (#|all|hash <hash>) [now]\ts\tStart torrent(s).");
-		os.println("stop (#|all|hash <hash>)\th\tStop torrent(s).");
-		os.println("ui <interface>\t\tu\tStart additional user interface.");
+		os.println("move <from #> [<to #>]\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
+		os.println("queue (<#>|all|hash <hash>)\tq\tQueue torrent(s).");
+		os.println("remove (<#>|all|hash <hash>)\tr\tRemove torrent(s).");
+		os.println("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
+		os.println("show [<various options>]\t\tsh\tShow info. Use without parameter to get a list of available options.");
+		os.println("start (<#>|all|hash <hash>) [now]\ts\tStart torrent(s).");
+		os.println("stop (<#>|all|hash <hash>)\th\tStop torrent(s).");
+		os.println("ui <interface>\t\t\tu\tStart additional user interface.");
 		os.println("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
-		os.println("quit\t\t\t\tq\tShutdown Azureus");
+		os.println("quit\t\t\t\t\tShutdown Azureus");
 	}
 
 	private void quit(boolean finish) {
@@ -190,14 +191,19 @@ public class ConsoleInput extends Thread {
 				Object o = enum.nextElement();
 				backmap.put(UIConst.parameterlegacy.get(o),o);
 			}
+			TreeSet srt = new TreeSet();
 			while (I.hasNext()) {
 				String parameter = (String) I.next();
 				if (UIConst.parameterlegacy.containsValue(parameter))
 					parameter = (String) backmap.get(parameter);
 				if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-					out.println("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
+					srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(parameter).toString()));
 				else
-					out.println("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+					srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(parameter).toString()));
+			}
+			I = srt.iterator();
+			while (I.hasNext()) {
+				out.println((String) I.next());
 			}
 		}
 	}
@@ -241,7 +247,9 @@ public class ConsoleInput extends Thread {
 
 	private void commandShow(String subcommand) {
 		if (subcommand != null) {
-			if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
+			if (subcommand.equalsIgnoreCase("options") || subcommand.equalsIgnoreCase("o")) {
+				commandSet(null);
+			} else if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
 				out.println("> -----");
 				torrents = (ArrayList) ((ArrayList) gm.getDownloadManagers()).clone();
 				DownloadManager dm;
@@ -395,7 +403,12 @@ public class ConsoleInput extends Thread {
 				}
 			}
 		} else {
-			out.println("> Missing subcommand for 'show'\r\n> show syntax: show torrents");
+			out.println("> -----");
+			out.println("'show' options: ");
+			out.println("<#>\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
+			out.println("options\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
+			out.println("torrents\t\tt\tShow list of torrents.");
+			out.println("> -----");
 		}
 	}
 
@@ -636,7 +649,7 @@ public class ConsoleInput extends Thread {
 				}
 			}
 		} else {
-			out.println("> Missing subcommand for '" + commands[command] + "'\r\n> " + commands[command] + " syntax: " + commands[command] + " (#|all|hash <hash>)");
+			out.println("> Missing subcommand for '" + commands[command] + "'\r\n> " + commands[command] + " syntax: " + commands[command] + " (<#>|all|hash <hash>)");
 		}
 	}
 
@@ -650,73 +663,6 @@ public class ConsoleInput extends Thread {
 		}
 
 		commandTorrentCommand(TORRENTCOMMAND_START, subcommand);
-		/*
-		 * if (subcommand != null) { if ((torrents != null) &&
-		 * torrents.isEmpty()) { out.println("> Command 'start': No torrents in
-		 * list."); } else { String name; DownloadManager dm; try { int number =
-		 * Integer.parseInt(subcommand); if ((number > 0) && (number
-		 * <= torrents.size())) { dm = (DownloadManager)
-		 * this.torrents.get(number - 1); if (dm.getName() == null) name = "?";
-		 * else name = dm.getName(); //dm.startDownloadInitialized(true);
-		 * dm.setState(DownloadManager.STATE_WAITING); out.println("> Torrent #" +
-		 * subcommand + " (" + name + ") started."); } else out.println(">
-		 * Command 'start': Torrent #" + subcommand + " unknown."); } catch
-		 * (NumberFormatException e) { if (subcommand.equalsIgnoreCase("all")) {
-		 * Iterator torrent = torrents.iterator(); int nr = 0; while
-		 * (torrent.hasNext()) { dm = (DownloadManager) torrent.next(); if
-		 * (dm.getName() == null) name = "?"; else name = dm.getName();
-		 * //dm.startDownloadInitialized(true);
-		 * dm.setState(DownloadManager.STATE_WAITING); out.println("> Torrent #" +
-		 * Integer.toString(++nr) + " (" + name + ") started."); } } else if
-		 * (subcommand.toUpperCase().startsWith("HASH")) { String hash =
-		 * subcommand.substring(subcommand.indexOf(" ") + 1); List torrents =
-		 * gm.getDownloadManagers(); boolean foundit = false; if
-		 * (!torrents.isEmpty()) { Iterator torrent = torrents.iterator();
-		 * while (torrent.hasNext()) { dm = (DownloadManager) torrent.next();
-		 * if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
-		 * true))) { if (dm.getName() == null) name = "?"; else name =
-		 * dm.getName(); dm.setState(DownloadManager.STATE_WAITING);
-		 * //dm.startDownloadInitialized(true); out.println("> Torrent " + hash + " (" +
-		 * name + ") started."); foundit = true; break; } } if (!foundit)
-		 * out.println("> Command 'start': Hash '" + hash + "' unknown."); } }
-		 * else { out.println("> Command 'start': Subcommand '" + subcommand + "'
-		 * unknown."); } } } } else { out.println("> Missing subcommand for
-		 * 'start'\r\n> start syntax: start (#|all)");
-		 */
-	}
-
-	private void commandStop(String subcommand) {
-		commandTorrentCommand(TORRENTCOMMAND_STOP, subcommand);
-		/*
-		 * if (subcommand != null) { if ((torrents != null) &&
-		 * torrents.isEmpty()) { out.println("> Command 'stop': No torrents in
-		 * list."); } else { String name; DownloadManager dm; try { int number =
-		 * Integer.parseInt(subcommand); if ((number > 0) && (number
-		 * <= torrents.size())) { dm = (DownloadManager)
-		 * this.torrents.get(number - 1); if (dm.getName() == null) name = "?";
-		 * else name = dm.getName(); dm.stopIt(); out.println("> Torrent #" +
-		 * subcommand + " (" + name + ") stopped."); } else out.println(">
-		 * Command 'stop': Torrent #" + subcommand + " unknown."); } catch
-		 * (NumberFormatException e) { if (subcommand.equalsIgnoreCase("all")) {
-		 * Iterator torrent = torrents.iterator(); int nr = 0; while
-		 * (torrent.hasNext()) { dm = (DownloadManager) torrent.next(); if
-		 * (dm.getName() == null) name = "?"; else name = dm.getName();
-		 * dm.stopIt(); out.println("> Torrent #" + Integer.toString(++nr) + " (" +
-		 * name + ") stopped."); } } else if
-		 * (subcommand.toUpperCase().startsWith("HASH")) { String hash =
-		 * subcommand.substring(subcommand.indexOf(" ") + 1); List torrents =
-		 * gm.getDownloadManagers(); boolean foundit = false; if
-		 * (!torrents.isEmpty()) { Iterator torrent = torrents.iterator();
-		 * while (torrent.hasNext()) { dm = (DownloadManager) torrent.next();
-		 * if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
-		 * true))) { if (dm.getName() == null) name = "?"; else name =
-		 * dm.getName(); dm.stopIt(); out.println("> Torrent " + hash + " (" +
-		 * name + ") stopped."); foundit = true; break; } } if (!foundit)
-		 * out.println("> Command 'stop': Hash '" + hash + "' unknown."); } }
-		 * else { out.println("> Command 'stop': Subcommand '" + subcommand + "'
-		 * unknown."); } } } } else { out.println("> Missing subcommand for
-		 * 'stop'\r\n> stop syntax: stop (#|all)");
-		 */
 	}
 
 	private void commandMove(String subcommand) {
@@ -744,7 +690,7 @@ public class ConsoleInput extends Thread {
 						else
 							name = dm.getName();
 						if (moveto) {
-							gm.moveTo(dm, nmoveto - 1);
+							gm.moveTo(dm, nmoveto);
 							gm.fixUpDownloadManagerPositions();
 							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
 						} else if (ncommand > 0) {
@@ -773,7 +719,7 @@ public class ConsoleInput extends Thread {
 				}
 			}
 		} else {
-			out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#from> [#to]");
+			out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#from> [<#to>]");
 		}
 	}
 
@@ -823,7 +769,7 @@ public class ConsoleInput extends Thread {
 				}
 				if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("?")) {
 					commandHelp(subcommand);
-				} else if (command.equalsIgnoreCase("quit") || command.equalsIgnoreCase("q")) {
+				} else if (command.equalsIgnoreCase("quit")) {
 					commandQuit(subcommand);
 				} else if (command.equalsIgnoreCase("logout")) {
 					running = false;
@@ -840,12 +786,12 @@ public class ConsoleInput extends Thread {
 				} else if (command.equalsIgnoreCase("start") || command.equalsIgnoreCase("s")) {
 					commandStart(subcommand);
 				} else if (command.equalsIgnoreCase("stop") || command.equalsIgnoreCase("h")) {
-					commandStop(subcommand);
+					commandTorrentCommand(TORRENTCOMMAND_STOP, subcommand);
 				} else if (command.equalsIgnoreCase("move") || command.equalsIgnoreCase("m")) {
 					commandMove(subcommand);
 				} else if (command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("r")) {
 					commandTorrentCommand(TORRENTCOMMAND_REMOVE, subcommand);
-				} else if (command.equalsIgnoreCase("queue") || command.equalsIgnoreCase("-")) {
+				} else if (command.equalsIgnoreCase("queue") || command.equalsIgnoreCase("q")) {
 					commandTorrentCommand(TORRENTCOMMAND_QUEUE, subcommand);
 				} else if (command.equalsIgnoreCase("log") || command.equalsIgnoreCase("l")) {
 					commandLog(subcommand);

@@ -28,7 +28,8 @@ public class UIConst {
   static {
   	parameterlegacy = new LegacyHashtable();
   	parameterlegacy.put("Core_sOverrideIP", "Override Ip");
-  	parameterlegacy.put("Core_bAllocateNew", "Zero New");
+  	//parameterlegacy.put("Core_bAllocateNew", "Zero New");
+  	parameterlegacy.put("Core_iTCPListenPort", "TCP.Listen.Port");
   	//parameterlegacy.put("Core_iLowPort", "TCP.Listen.Port");
   	//parameterlegacy.put("Core_iHighPort", "High Port");
   	parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
@@ -43,7 +44,7 @@ public class UIConst {
   	parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
   	parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
   	parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-  	//parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
+  	parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
   	parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
   	parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
   	parameterlegacy.put("Core_bPriorityExtensionsIgnoreCase", "priorityExtensionsIgnoreCase");

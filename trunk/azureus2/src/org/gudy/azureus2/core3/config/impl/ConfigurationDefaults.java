@@ -77,6 +77,7 @@ public class ConfigurationDefaults {
     // Lower port to use for BT ("Low Port")
     //def.put("Core_iLowPort", new Long(6881));
     //def.put("Low Port", new Long(6881));
+    //def.put("Core_iTCPListenPort", new Long(6881));
     def.put("TCP.Listen.Port", new Long(6881));
     // Upper port to use for BT ("High Port")
     //def.put("Core_iHighPort", new Long(6889));
