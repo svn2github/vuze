@@ -265,6 +265,7 @@ PluginInitializer
     if(!directory.isDirectory()) return;
     String pluginName = directory.getName();
     File[] pluginContents = directory.listFiles();
+    if (pluginContents.length <= 0) return;
     
     	// take only the highest version numbers of jars that look versioned
     
