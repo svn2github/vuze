@@ -38,11 +38,7 @@ import org.apache.log4j.PatternLayout;
 
 import com.aelitis.azureus.core.*;
 
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
 /**
