@@ -1113,17 +1113,13 @@ TRTrackerClientClassicImpl
 
       request.append("&numwant=" + numwant);
       
-    	//request the tracker to return a peer list without peerIDs, for bandwidth savings
-    	//will be the default in next python core release
-    	
-      request.append("&no_peer_id=1");
+      //no_peer_id has been made obsolete by 'compact'
+      //request.append("&no_peer_id=1");
       
-      	// latest space saving measure, a compact return type where peers are returned
-      	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
-      
+    	// latest space saving measure, a compact return type where peers are returned
+    	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
       if ( COConfigurationManager.getBooleanParameter("ConfigView.section.tracker.enablecompact", true )){
       	
-     
       	request.append( "&compact=1");
       }
     }
