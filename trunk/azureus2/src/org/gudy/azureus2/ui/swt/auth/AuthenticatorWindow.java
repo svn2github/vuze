@@ -75,6 +75,10 @@ AuthenticatorWindow
 						self_addr = bind_ip;
 					}
 
+						// when the tracker is connected to internally we don't want to prompt
+						// for the password. Here we return a special user and the password hash
+						// which is picked up in the tracker auth code - search for "<internal>"!
+						
 					if ( getRequestingHost().equals(self_addr)){
 					
 						try{

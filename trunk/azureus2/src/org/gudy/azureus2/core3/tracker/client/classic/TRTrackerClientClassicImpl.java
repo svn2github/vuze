@@ -692,6 +692,11 @@ TRTrackerClientClassicImpl
 	  
 	  		failure_reason = exceptionToString( e );
 		}
+			
+		if ( failure_reason.indexOf("401" ) != -1 ){
+				
+			failure_reason = "Tracker authentication failed";
+		}
 	
 		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
 		
