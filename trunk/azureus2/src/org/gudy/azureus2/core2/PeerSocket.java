@@ -236,6 +236,8 @@ public class PeerSocket extends PeerConnection {
       DataQueueItem item = (DataQueueItem) dataQueue.remove(0);
       if (item.isLoaded()) {
         ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+      } else if(item.isLoading()) {
+        manager.freeRequest(item);
       }
     }
 

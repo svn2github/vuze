@@ -120,6 +120,10 @@ public class DownloadManager extends Component {
       this.state = STATE_ERROR;
       errorDetail = "No such Algorithm (SHA1) Error";
     }
+    catch (Exception e) {
+      this.state = STATE_ERROR;
+      errorDetail = e.getMessage();
+    }
   }
 
   private void startServer() {
@@ -369,6 +373,20 @@ public class DownloadManager extends Component {
    */
   public void setPriority(int i) {
     priority = i;
+  }
+
+  /**
+   * @return
+   */
+  public String getTorrentFileName() {
+    return torrentFileName;
+  }
+
+  /**
+   * @param string
+   */
+  public void setTorrentFileName(String string) {
+    torrentFileName = string;
   }
 
 }

@@ -2,6 +2,7 @@ package org.gudy.azureus2.core;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ public class PeerManager extends Thread {
   private PeerSocket currentOptimisticUnchoke;
 
   private DownloadManager _manager;
+  private List requestsToFree;
 
   private PeerUpdater peerUpdater;
 
@@ -88,6 +90,8 @@ public class PeerManager extends Thread {
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
     setDiskManager(diskManager);
+    
+    requestsToFree = new ArrayList();
 
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
@@ -151,6 +155,7 @@ public class PeerManager extends Thread {
         //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
         updateStats();
+        freeRequests();
         if (!_finished) //if we're not finished
           {
           //::moved check finished to the front -Tyler
@@ -945,7 +950,7 @@ public class PeerManager extends Thread {
   //Methods that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds() {
     //If we are not ourself a seed, return
-    if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed",false))
+    if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed", false))
       return;
     for (int i = 0; i < _connections.size(); i++) {
       PeerSocket pc = (PeerSocket) _connections.get(i);
@@ -1056,7 +1061,7 @@ public class PeerManager extends Thread {
   public void sent(int length) {
     if (length > 0)
       _stats.sent(length);
-    _manager.sent(length);   
+    _manager.sent(length);
   }
 
   //setup the diskManager
@@ -1083,10 +1088,6 @@ public class PeerManager extends Thread {
     _server.start();
 
     this.start();
-  }
-
-  public ByteBuffer getBlock(int pieceNumber, int offset, int length) {
-    return _diskManager.readBlock(pieceNumber, offset, length);
   }
 
   public long downloaded() {
@@ -1287,9 +1288,28 @@ public class PeerManager extends Thread {
   public Piece[] getPieces() {
     return _pieces;
   }
-  
+
   public int getDownloadPriority() {
     return _manager.getPriority();
+  }
+
+  public void freeRequest(DataQueueItem item) {
+    synchronized (requestsToFree) {
+      requestsToFree.add(item);
+    }
+  }
+
+  private void freeRequests() {
+    synchronized (requestsToFree) {
+      for (int i = 0; i < requestsToFree.size(); i++) {
+        DataQueueItem item = (DataQueueItem) requestsToFree.get(i);
+        if (item.isLoaded()) {
+          requestsToFree.remove(item);
+          i--;
+          ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+        }
+      }
+    }
   }
 
 }

@@ -20,13 +20,10 @@ public class Logger {
 
   private Logger() {}
 
-  public static final Logger getLogger() {
-    return logger;
-  }
-
-  public synchronized static final void createLogger() {
+  public synchronized static final Logger getLogger() {
     if (logger == null)
       logger = new Logger();
+    return logger;
   }
 
   public void log(int componentId, int event, int color, String text) {
