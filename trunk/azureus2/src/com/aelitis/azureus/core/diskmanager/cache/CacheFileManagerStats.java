@@ -61,6 +61,18 @@ CacheFileManagerStats
 	
 	public long
 	getAverageBytesReadFromFile();
+
+	public long
+	getCacheReadCount();
+	
+	public long
+	getCacheWriteCount();
+	
+	public long
+	getFileReadCount();
+	
+	public long
+	getFileWriteCount();
 	
 		// returns the number of bytes in the requested range that are in cache
 	

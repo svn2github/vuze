@@ -76,6 +76,11 @@ CacheFileManagerImpl
 	protected long				file_bytes_written;
 	protected long				file_bytes_read;
 	
+	protected long				cache_read_count;
+	protected long				cache_write_count;
+	protected long				file_read_count;
+	protected long				file_write_count;
+	
 	protected AEMonitor			this_mon	= new AEMonitor( "CacheFileManager" );
 	
 	public
@@ -550,6 +555,8 @@ CacheFileManagerImpl
 			
 			cache_bytes_written	+= num;
 			
+			cache_write_count++;
+			
 		}finally{
 			
 			this_mon.exit();
@@ -564,6 +571,8 @@ CacheFileManagerImpl
 			this_mon.enter();
 			
 			cache_bytes_read	+= num;
+			
+			cache_read_count++;
 			
 		}finally{
 			
@@ -580,6 +589,8 @@ CacheFileManagerImpl
 			
 			file_bytes_written	+= num;
 			
+			file_write_count++;
+			
 		}finally{
 			
 			this_mon.exit();
@@ -595,6 +606,7 @@ CacheFileManagerImpl
 			
 			file_bytes_read	+= num;
 			
+			file_read_count++;
 		}finally{
 			
 			this_mon.exit();
@@ -623,6 +635,30 @@ CacheFileManagerImpl
 	getBytesReadFromFile()
 	{
 		return( file_bytes_read );
+	}
+	
+	public long
+	getCacheReadCount()
+	{
+		return( cache_read_count );
+	}
+	
+	public long
+	getCacheWriteCount()
+	{
+		return( cache_write_count );
+	}
+	
+	public long
+	getFileReadCount()
+	{
+		return( file_read_count );
+	}
+	
+	public long
+	getFileWriteCount()
+	{
+		return( file_write_count );
 	}
 	
 	protected long

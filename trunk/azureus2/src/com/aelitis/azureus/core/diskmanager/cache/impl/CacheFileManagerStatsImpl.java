@@ -172,6 +172,30 @@ CacheFileManagerStatsImpl
 	}
 	
 	public long
+	getCacheReadCount()
+	{
+		return( manager.getCacheReadCount());
+	}
+	
+	public long
+	getCacheWriteCount()
+	{
+		return( manager.getCacheWriteCount());
+	}
+	
+	public long
+	getFileReadCount()
+	{
+		return( manager.getFileReadCount());
+	}
+	
+	public long
+	getFileWriteCount()
+	{
+		return( manager.getFileWriteCount());
+	}
+	
+	public long
 	getBytesInCache(
 		TOTorrent		torrent,
 		int				piece_number,

@@ -72,6 +72,20 @@ Download
 	public static final int ST_ERROR       = 8;
   /** stopped, but ready for auto-starting */  
 	public static final int ST_QUEUED      = 9;
+
+	public static final String[] ST_NAMES = 
+		{
+			"",
+			"Waiting",
+			"Preparing",
+			"Ready",
+			"Downloading",
+			"Seeding",
+			"Stopping",
+			"Stopped",
+			"Error",
+			"Queued",
+		};
 	
   /** Use more of the upload bandwidth than low priority downloads 
    *  don't change these as they are used by remote clients */
