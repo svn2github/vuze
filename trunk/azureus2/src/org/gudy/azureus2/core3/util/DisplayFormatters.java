@@ -116,7 +116,7 @@ DisplayFormatters
 	
 		// base 10 ones
 	
-	public static String formatByteCountToKBEtc(long n) {
+	public static String formatByteCountToBase10KBEtc(long n) {
 		if (n < 1000)
 			return n + " B";
 		if (n < 1000 * 1000)
@@ -135,10 +135,10 @@ DisplayFormatters
 	}
 	
 	public static String
-	formatByteCountToKBEtcPerSec(
+	formatByteCountToBase10KBEtcPerSec(
 			long		n )
 	{
-		return( formatByteCountToKBEtc(n) + "/s");
+		return( formatByteCountToBase10KBEtc(n) + "/s");
 	}
 	
    public static String formatETA(long eta) {
