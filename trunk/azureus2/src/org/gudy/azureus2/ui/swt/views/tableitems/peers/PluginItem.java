@@ -22,7 +22,8 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.peers.impl.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.PeerTableItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
@@ -40,8 +41,8 @@ public class PluginItem extends PeerItem implements PeerTableItem {
     this.pluginItem = factory.getInstance(this);        
   }
   
-  public PEPeer getPeer() {
-    return peerRow.getPeerSocket();
+  public Peer getPeer() {
+    return new PluginPEPeerWrapper(peerRow.getPeerSocket());
   }
   
   public void refresh() {

@@ -21,7 +21,7 @@
  
 package org.gudy.azureus2.plugins.ui.tables.peers;
 
-import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.peers.*;
 
 /**
  * This interface provides access to a Table Item in the Peers View.<br>
@@ -37,7 +37,7 @@ public interface PeerTableItem {
    * a PEPeer as the peer may change, for example when the table is re-ordered.
    * @return the current PEPeer associated with this Item (row)
    */
-  public PEPeer getPeer();
+  public Peer getPeer();
   
   /**
    * This method can be called to set the Text in the Table Item.
