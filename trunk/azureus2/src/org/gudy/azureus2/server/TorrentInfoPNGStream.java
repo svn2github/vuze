@@ -16,14 +16,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-//import com.keypoint.PngEncoder;
-//import uk.org.skeet.png.PngEncoder;
-
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.dom.GenericDOMImplementation;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMImplementation;
 
 import org.gudy.azureus2.core.DownloadManager;
 
