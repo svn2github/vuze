@@ -1705,7 +1705,7 @@ PEPeerControlImpl
     }
     
     long averageSpeed = _averageReceptionSpeed.getAverage();
-    long lETA = dataRemaining / (averageSpeed + 1);
+    long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
     // stop the flickering of ETA from "Finished" to "x seconds" when we are 
     // just about complete, but the data rate is jumpy.
     if (lETA == 0)
