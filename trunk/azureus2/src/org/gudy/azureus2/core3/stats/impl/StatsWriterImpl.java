@@ -313,6 +313,8 @@ StatsWriterImpl
 									indent();
 							
 									writeTag( "NAME", dm.getName());
+                                                                        
+                                                                        writeTag( "HASH", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
 									
 									writeTag( "TORRENT_FILE", dm.getTorrentFileName());
 									
