@@ -169,7 +169,7 @@ public class MyTorrentsView extends AbstractIView
         ,"totalspeed;R;I;70;-1"
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
-        ,"availability;R;S;50;-1"
+        ,"availability;R;I;50;-1"
 
     };
 
@@ -192,7 +192,7 @@ public class MyTorrentsView extends AbstractIView
         ,"totalspeed;R;I;70;-1"
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
-        ,"availability;R;S;50;-1"
+        ,"availability;R;I;50;-1"
     };
 
     this.globalManager = globalManager;
@@ -672,6 +672,7 @@ public class MyTorrentsView extends AbstractIView
 
         itemMove.setEnabled(hasSelection);
         itemPriority.setEnabled(hasSelection);
+        itemBar.setEnabled(hasSelection);
 
         if (hasSelection) {
           boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, 
@@ -730,7 +731,7 @@ public class MyTorrentsView extends AbstractIView
           itemRecheck.setEnabled(recheck);
 
         } else {
-          itemBar.setEnabled(false);
+          itemBar.setSelection(false);
 
           itemForceStart.setEnabled(false);
           itemForceStart.setSelection(false);

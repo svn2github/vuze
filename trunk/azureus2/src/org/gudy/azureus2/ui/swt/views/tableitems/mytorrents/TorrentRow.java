@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
@@ -278,6 +279,16 @@ public class TorrentRow implements SortableItem {
     
     if (field.equals("totalspeed")) //$NON-NLS-1$
       return manager.getStats().getTotalAverage();
+      
+    if (field.equals("health"))
+      return manager.getHealthStatus();
+
+    if (field.equals("availability")) {
+      PEPeerManager pm = manager.getPeerManager();
+      if (pm == null)
+        return 0;
+      return (int)pm.getMinAvailability() * 1000;
+    }
     
     PluginItem item = (PluginItem)pluginItems.get(field);
     if(item != null)

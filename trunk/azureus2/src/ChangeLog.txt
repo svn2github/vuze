@@ -17,6 +17,7 @@ BUGFIX: Hebrew language works now [TuxPaper]
 BUGFIX: Fixed long load times under Linux of Configuration view and General tab [TuxPaper]
 BUGFIX: Popup windows now center in main monitor on multi-monitor setups [TuxPaper]
 BUGFIX: Fix for Pieces and Files views off-by-one row drawing glitch under linux [TuxPaper]
+BUGFIX: Sort on Health and Availability now enabled [TuxPaper]
 
 
 
