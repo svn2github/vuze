@@ -10,6 +10,7 @@ FEATURE: Plug | Webui support for password protected trackers [Parg]
 FEATURE: Plug | Webui attempts to get access to system clipboard to fix copy/paste issues [Parg]
 FEATURE: UI   | Better scrape result reporting, including new "Next Tracker Access" column [TuxPaper]
 FEATURE: UI   | Tooltip for Health Icon [TuxPaper]
+FEATURE: UI   | New language: Japanese [Gouss]
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
 CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config  [Parg]
