@@ -67,7 +67,7 @@ public class IPWModePanel extends AbstractWizardPanel {
 	rootPanel.setLayout(layout);
 
 	Composite panel = new Composite(rootPanel, SWT.NULL);
-	GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+	GridData gridData = new GridData(GridData.FILL_BOTH | GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
 	panel.setLayoutData(gridData);
 	layout = new GridLayout();
 	layout.numColumns = 1;
@@ -76,18 +76,12 @@ public class IPWModePanel extends AbstractWizardPanel {
 	Button bListMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bListMode,"installPluginsWizard.mode.list");
 	bListMode.setData("mode",new Integer(MODE_FROM_LIST));
-	GridData data = new GridData(GridData.FILL_VERTICAL);
-	data.verticalAlignment = GridData.VERTICAL_ALIGN_END;
-	bListMode.setLayoutData(data);
-	
-	
+	bListMode.setSelection(true);
+		
 	Button bFileMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bFileMode,"installPluginsWizard.mode.file");
 	bFileMode.setData("mode",new Integer(MODE_FROM_FILE));
-	data = new GridData(GridData.FILL_VERTICAL);
-	data.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
-	bFileMode.setLayoutData(data);
-	
+
 	
 	Listener modeListener = new Listener() {
 	  public void handleEvent(Event e) {
@@ -96,6 +90,7 @@ public class IPWModePanel extends AbstractWizardPanel {
 	};
 
 	bListMode.addListener(SWT.Selection,modeListener);
+	bFileMode.addListener(SWT.Selection,modeListener);
 }
 
 	public IWizardPanel 

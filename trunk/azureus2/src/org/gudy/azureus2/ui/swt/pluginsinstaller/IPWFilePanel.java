@@ -91,8 +91,8 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	btnBrowse.addListener(SWT.Selection,new Listener() {
 	  public void handleEvent(Event event) {
 	    FileDialog fd = new FileDialog(wizard.getWizardWindow());
-	    fd.setFilterExtensions(new String[] {".jar",".zip"});
-	    fd.setFilterNames(new String[] {"Plugins as .jar","Packaged plugins in .zip"});
+	    fd.setFilterExtensions(new String[] {"*.zip;*.jar"});
+	    fd.setFilterNames(new String[] {"Azureus Plugins"});
 	    String fileName = fd.open();
 	    if(fileName != null) txtFile.setText(fileName);	    
 	  }
