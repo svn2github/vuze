@@ -151,35 +151,32 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
     new IntListParameter(cLook, "GUI Refresh", 250, labels, values);
 
+    
     label = new Label(cLook, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
-    int[] gValues = new int[50];
-    String[] gLabels = new String[50];
-    for(int i = 1 ; i <= 50 ; i++) {
-      gValues[i-1] = i;
-      gLabels[i-1] = "" + i;
-    }
-    new IntListParameter(cLook, "Graphics Update", 4, gLabels, gValues);
-
+    gridData = new GridData();
+    gridData.widthHint = 15;
+    IntParameter graphicUpdate = new IntParameter(cLook, "Graphics Update");
+    graphicUpdate.setLayoutData(gridData);
+    graphicUpdate.setMinValue(1);
+    
+    
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 15;
+    IntParameter reorderDelay = new IntParameter(cLook, "ReOrder Delay");
+    reorderDelay.setLayoutData(gridData);
+    reorderDelay.setMinValue(0);
+    
+    
     if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
      label = new Label(cLook, SWT.NULL);
      Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
      new IntParameter(cLook, VerticalAligner.parameterName,28); //$NON-NLS-1$
     }
 
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
-    int[] rValues = new int[51];
-    String[] rLabels = new String[51];
-    rValues[0] = 0;
-    rLabels[0] = MessageText.getString("ConfigView.section.style.reOrderDelay.never");
-    for(int i = 1 ; i <= 50 ; i++) {
-      rValues[i] = i;
-      rLabels[i] = "" + i;
-    }
-    new IntListParameter(cLook, "ReOrder Delay", 0, rLabels, rValues);
-
-
+    
     /**
      * Disabled for the moment because of some side effects
      */
