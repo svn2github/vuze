@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.server.impl.udp;
 
 import java.net.*;
 import java.io.*;
+import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -42,9 +43,14 @@ TRTrackerServerProcessorUDP
 	extends		TRTrackerServerProcessor
 	implements 	Runnable
 {
+	public static final long CONNECTION_ID_LIFETIME	= PRUDPPacket.DEFAULT_UDP_TIMEOUT*2;
+	
 	protected TRTrackerServerUDP		server;
 	protected DatagramSocket			socket;
 	protected DatagramPacket			packet;
+	
+	protected static Map				connection_id_map 	= new LinkedHashMap();
+	protected static SecureRandom		random				= new SecureRandom();
 	
 	protected
 	TRTrackerServerProcessorUDP(
@@ -76,7 +82,7 @@ TRTrackerServerProcessorUDP
 				
 				if ( type == PRUDPPacket.ACT_REQUEST_CONNECT ){
 					
-					reply = handleConnect( request );
+					reply = handleConnect( client_ip_address, request );
 					
 				}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
 					
@@ -104,19 +110,22 @@ TRTrackerServerProcessorUDP
 				reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
 			}
 			
-			InetAddress address = packet.getAddress();
-			
-			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			
-			DataOutputStream os = new DataOutputStream( baos );
-									
-			reply.serialise(os);
-			
-			byte[]	buffer = baos.toByteArray();
-			
-			DatagramPacket reply_packet = new DatagramPacket(buffer, buffer.length,address,packet.getPort());
-						
-			socket.send( reply_packet );
+			if ( reply != null ){
+				
+				InetAddress address = packet.getAddress();
+				
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				
+				DataOutputStream os = new DataOutputStream( baos );
+										
+				reply.serialise(os);
+				
+				byte[]	buffer = baos.toByteArray();
+				
+				DatagramPacket reply_packet = new DatagramPacket(buffer, buffer.length,address,packet.getPort());
+							
+				socket.send( reply_packet );
+			}
 			
 		}catch( Throwable e ){
 			
@@ -124,11 +133,87 @@ TRTrackerServerProcessorUDP
 		}
 	}
 	
+	protected long
+	allocateConnectionId(
+		String	client_address )
+	{
+		synchronized( random ){
+	
+			long	id = random.nextLong();
+			
+			Long	new_key = new Long(id);
+			
+			connectionData	new_data = new connectionData( client_address );
+			
+				// check for timeouts
+			
+			Iterator	it = connection_id_map.keySet().iterator();
+			
+			while(it.hasNext()){
+				
+				Long	key = (Long)it.next();
+				
+				connectionData	data = (connectionData)connection_id_map.get(key);
+			
+				if ( new_data.getTime() - data.getTime() > CONNECTION_ID_LIFETIME ){
+					
+					// System.out.println( "TRTrackerServerProcessorUDP: conection id timeout" );
+					
+					it.remove();
+					
+				}else{
+						// insertion order into map is time based - LinkedHashMap returns keys in same order
+					
+					break;
+				}
+			}	
+						
+			connection_id_map.put( new_key, new_data );
+			
+			// System.out.println( "TRTrackerServerProcessorUDP: allocated:" + id + ", conection id map size = " + connection_id_map.size());
+			
+			return( id );
+		}
+	}
+	
+	protected boolean
+	checkConnectionId(
+		String	client_address,
+		long	id )
+	{
+		synchronized( random ){
+			
+			Long	key = new Long(id);
+			
+			connectionData data = (connectionData)connection_id_map.get( key );
+			
+			if ( data == null ){
+				
+				// System.out.println( "TRTrackerServerProcessorUDP: rejected:" + id + ", data not found" );
+				
+				return( false );
+				
+			}else{
+				
+					// single shot id, can't be reused
+				
+				connection_id_map.remove( key );
+			}
+			
+			boolean	ok = data.getAddress().equals( client_address );
+			
+			// System.out.println( "TRTrackerServerProcessorUDP: tested:" + id + "/" + client_address + " -> " + ok );
+			
+			return( ok );
+		}
+	}
+	
 	protected PRUDPPacket
 	handleConnect(
-		PRUDPPacket		request )
+		String					client_ip_address,
+		PRUDPPacketRequest		request )
 	{
-		long	conn_id = 232323; // TODO:
+		long	conn_id = allocateConnectionId( client_ip_address );
 		
 		PRUDPPacket reply = new PRUDPPacketReplyConnect(request.getTransactionId(), conn_id );
 		
@@ -137,12 +222,17 @@ TRTrackerServerProcessorUDP
 	
 	protected PRUDPPacket
 	handleAnnounceAndScrape(
-		String			client_ip_address,
-		PRUDPPacket		request,
-		int				request_type )
+		String				client_ip_address,
+		PRUDPPacketRequest	request,
+		int					request_type )
 	
 		throws Exception
 	{
+		if ( !checkConnectionId( client_ip_address, request.getConnectionId())){
+			
+			return( null );
+		}
+		
 		Map	root = new HashMap();
 		
 		byte[]		hash_bytes	= null;
@@ -290,6 +380,33 @@ TRTrackerServerProcessorUDP
 			reply.setDetails( hashes, s_complete, s_downloaded, s_incomplete );
 			
 			return( reply );
+		}
+	}
+	
+	protected static class
+	connectionData
+	{
+		protected String		address;
+		protected long			time;
+		
+		protected
+		connectionData(
+			String		_address )
+		{
+			address	= _address;
+			time	= System.currentTimeMillis();
+		}
+		
+		protected String
+		getAddress()
+		{
+			return( address );
+		}
+		
+		protected long
+		getTime()
+		{
+			return( time );
 		}
 	}
 }

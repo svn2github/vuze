@@ -55,6 +55,12 @@ PRUDPPacketRequest
 		connection_id	= _con_id;
 	}
 	
+	public long
+	getConnectionId()
+	{
+		return( connection_id );
+	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )
