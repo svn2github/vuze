@@ -50,24 +50,15 @@ TRTrackerClientClassicImpl
   private boolean httpConnected = false;
 
   private List trackerUrlLists;
-    
-  private int listIndex;
-  private int firstIndexUsed;
-  private int inListIndex;
-  
+     
   private String lastUsedUrl;
   
   private String trackerUrlListString;
   
-  //private String trackerUrl;
   private String info_hash = "?info_hash=";
   private byte[] peerId;
   private String peer_id = "&peer_id=";
   private String port;
-
-  //  private long uploaded;
-  //  private long downloaded;
-  //  private long remaining;
 
   private PEPeerManager manager;
 
@@ -91,9 +82,6 @@ TRTrackerClientClassicImpl
 
 	//Get the Tracker url
 	constructTrackerUrlLists();     
-
-	listIndex = 0;
-	inListIndex = 0;
 
 	//Create a peerId
 	peerId = new byte[20];
