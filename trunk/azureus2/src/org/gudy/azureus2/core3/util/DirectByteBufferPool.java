@@ -597,7 +597,9 @@ DirectByteBufferPool
 	  				System.out.print( " - Cache: " );
 	  	  			
 	  				
-					System.out.print( "cw=" + stats.getBytesWrittenToCache());
+					System.out.print( "sz=" + stats.getSize());
+					System.out.print( ",us=" + stats.getUsedSize());
+					System.out.print( ",cw=" + stats.getBytesWrittenToCache());
 					System.out.print( ",cr=" + stats.getBytesReadFromCache());
 					System.out.print( ",fw=" + stats.getBytesWrittenToFile());
 					System.out.print( ",fr=" + stats.getBytesReadFromFile());
