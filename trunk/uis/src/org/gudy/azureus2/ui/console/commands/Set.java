@@ -52,6 +52,7 @@ public class Set implements IConsoleCommand {
 					}
 				} catch (Exception e) {
 					ci.out.println("> Command 'set': Exception '" + e.getMessage() + "' on parameter '" + parameter + "'");
+          e.printStackTrace();
 				}
 			}
       else if( COConfigurationManager.doesParameterExist( parameter ) ) {
