@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+
 public class 
 ResourceDownloaderURLImpl
 	extends 	ResourceDownloaderBaseImpl
@@ -161,57 +163,80 @@ ResourceDownloaderURLImpl
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
+				url = AEProxyFactory.getAddressMapper().internalise( url );
+
 				try{
 					if ( auth_supplied ){
 	
 						SESecurityManager.addPasswordHandler( url, this );
 					}
 	
-					HttpURLConnection	con;
-					
-					if ( url.getProtocol().equalsIgnoreCase("https")){
-				      	
-							// see ConfigurationChecker for SSL client defaults
-		
-						HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-		
-							// allow for certs that contain IP addresses rather than dns names
-		  	
-						ssl_con.setHostnameVerifier(
-								new HostnameVerifier()
-								{
-									public boolean
-									verify(
-											String		host,
-											SSLSession	session )
-									{
-										return( true );
-									}
-								});
-		  	
-						con = ssl_con;
-		  	
-					}else{
-		  	
-						con = (HttpURLConnection) url.openConnection();
-		  	
-					}
-		  
-					con.setRequestMethod( "HEAD" );
-					
-					con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-		  
-					con.connect();
-		
-					int response = con.getResponseCode();
-					
-					if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+					for (int i=0;i<2;i++){
 						
-						throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-					}
-						
-					return( con.getContentLength());					
+						try{
+							HttpURLConnection	con;
+							
+							if ( url.getProtocol().equalsIgnoreCase("https")){
+						      	
+									// see ConfigurationChecker for SSL client defaults
+				
+								HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+				
+									// allow for certs that contain IP addresses rather than dns names
+				  	
+								ssl_con.setHostnameVerifier(
+										new HostnameVerifier()
+										{
+											public boolean
+											verify(
+													String		host,
+													SSLSession	session )
+											{
+												return( true );
+											}
+										});
+				  	
+								con = ssl_con;
+				  	
+							}else{
+				  	
+								con = (HttpURLConnection) url.openConnection();
+				  	
+							}
+				  
+							con.setRequestMethod( "HEAD" );
+							
+							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+				  
+							con.connect();
+				
+							int response = con.getResponseCode();
+							
+							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+								
+								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+							}
+								
+							return( con.getContentLength());
+							
+						}catch( SSLException e ){
+							
+							if ( i == 0 ){
+								
+								if ( SESecurityManager.installServerCertificates( url )){
 									
+										// certificate has been installed
+									
+									continue;	// retry with new certificate
+								}
+							}
+
+							throw( e );							
+						}
+					}
+					
+					throw( new ResourceDownloaderException("Should never get here" ));
+
 				}finally{
 					
 					if ( auth_supplied ){
@@ -311,7 +336,7 @@ ResourceDownloaderURLImpl
 			      
 					// some authentications screw up without an explicit port number here
 				
-				if( url.getPort() == -1 ){
+				if ( url.getPort() == -1 ){
 					
 					int	target_port;
 					
@@ -339,120 +364,143 @@ ResourceDownloaderURLImpl
 					}
 				}
 				
+				url = AEProxyFactory.getAddressMapper().internalise( url );
+				
 				try{
 					if ( auth_supplied ){
 						
 						SESecurityManager.addPasswordHandler( url, this );
 					}
 
-					HttpURLConnection	con;
-					
-					if ( url.getProtocol().equalsIgnoreCase("https")){
-				      	
-							// see ConfigurationChecker for SSL client defaults
-		
-						HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-		
-							// allow for certs that contain IP addresses rather than dns names
-		  	
-						ssl_con.setHostnameVerifier(
-								new HostnameVerifier()
-								{
-									public boolean
-									verify(
-											String		host,
-											SSLSession	session )
-									{
-										return( true );
-									}
-								});
-		  	
-						con = ssl_con;
-		  	
-					}else{
-		  	
-						con = (HttpURLConnection) url.openConnection();
-		  	
-					}
-		  
-					con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-		  
-					con.connect();
-		
-					int response = con.getResponseCode();
-										
-					if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+					for (int i=0;i<2;i++){
 						
-						throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-					}
-						
-					try{
-						this_mon.enter();
-						
-						input_stream = con.getInputStream();
-						
-					}finally{
-						
-						this_mon.exit();
-					}
-					
-					ByteArrayOutputStream	baos;
-	
-					try{
-						byte[] buf = new byte[BUFFER_SIZE];
-						
-						int	total_read	= 0;
-						
-							// unfortunately not all servers set content length
-						
-						int size = con.getContentLength();					
-						
-						baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
-						
-						while( !cancel_download ){
+						try{
+							HttpURLConnection	con;
 							
-							int read = input_stream.read(buf);
-								
-							if ( read > 0 ){
-								
-								baos.write(buf, 0, read);
-								
-								total_read += read;
-						        
-								if ( size > 0){
-									
-									informPercentDone(( 100 * total_read ) / size );
-								}
+							if ( url.getProtocol().equalsIgnoreCase("https")){
+						      	
+									// see ConfigurationChecker for SSL client defaults
+				
+								HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+				
+									// allow for certs that contain IP addresses rather than dns names
+				  	
+								ssl_con.setHostnameVerifier(
+										new HostnameVerifier()
+										{
+											public boolean
+											verify(
+													String		host,
+													SSLSession	session )
+											{
+												return( true );
+											}
+										});
+				  	
+								con = ssl_con;
+				  	
 							}else{
-								
-								break;
+				  	
+								con = (HttpURLConnection) url.openConnection();
+				  	
 							}
-						}
-						
-							// if we've got a size, make sure we've read all of it
-						
-						if ( size > 0 && total_read != size ){
+				  
+							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+				  
+							con.connect();
+				
+							int response = con.getResponseCode();
+												
+							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+								
+								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+							}
+								
+							try{
+								this_mon.enter();
+								
+								input_stream = con.getInputStream();
+								
+							}finally{
+								
+								this_mon.exit();
+							}
 							
-							throw( new IOException( "Premature end of stream" ));
+							ByteArrayOutputStream	baos;
+			
+							try{
+								byte[] buf = new byte[BUFFER_SIZE];
+								
+								int	total_read	= 0;
+								
+									// unfortunately not all servers set content length
+								
+								int size = con.getContentLength();					
+								
+								baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
+								
+								while( !cancel_download ){
+									
+									int read = input_stream.read(buf);
+										
+									if ( read > 0 ){
+										
+										baos.write(buf, 0, read);
+										
+										total_read += read;
+								        
+										if ( size > 0){
+											
+											informPercentDone(( 100 * total_read ) / size );
+										}
+									}else{
+										
+										break;
+									}
+								}
+								
+									// if we've got a size, make sure we've read all of it
+								
+								if ( size > 0 && total_read != size ){
+									
+									throw( new IOException( "Premature end of stream" ));
+								}
+							}finally{
+								
+								input_stream.close();
+							}
+				
+							InputStream	res = new ByteArrayInputStream( baos.toByteArray());
+							
+							if ( informComplete( res )){
+							
+								return( res );
+							}
+							
+							throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
+	
+						}catch( SSLException e ){
+							
+							if ( i == 0 ){
+								
+								if ( SESecurityManager.installServerCertificates( url )){
+									
+										// certificate has been installed
+									
+									continue;	// retry with new certificate
+								}
+							}
+
+							throw( e );							
 						}
-					}finally{
-						
-						input_stream.close();
-					}
-		
-					InputStream	res = new ByteArrayInputStream( baos.toByteArray());
-					
-					if ( informComplete( res )){
-					
-						return( res );
 					}
 					
-					throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
+					throw( new ResourceDownloaderException("Should never get here" ));
 					
 				}finally{
-					
+							
 					if ( auth_supplied ){
-						
+								
 						SESecurityManager.removePasswordHandler( url, this );
 					}
 				}

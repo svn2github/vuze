@@ -948,11 +948,14 @@ TRTrackerBTAnnouncerImpl
 					}
 				}
 	
-			}catch( SSLHandshakeException e ){
+			}catch( SSLException e ){
 				
 				// e.printStackTrace();
 								
-				if ( i == 0 && e.getMessage().indexOf("No trusted certificate found") != -1 ){
+					// try and install certificate regardless of error (as this changed in JDK1.5
+					// and broke this...)
+				
+				if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
 					
 					if ( SESecurityManager.installServerCertificates( reqUrl )){
 						
@@ -964,6 +967,10 @@ TRTrackerBTAnnouncerImpl
 						
 						failure_reason = exceptionToString( e );
 					}
+				}else{
+					
+					failure_reason = exceptionToString( e );
+					
 				}
 			}catch (Exception e){
 		  

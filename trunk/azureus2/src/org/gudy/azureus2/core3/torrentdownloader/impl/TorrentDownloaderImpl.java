@@ -23,6 +23,7 @@ import java.net.URLDecoder;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.util.*;
@@ -110,43 +111,62 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     try {      
       url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
       
-      if ( url.getProtocol().equalsIgnoreCase("https")){
-      	
-      	// see ConfigurationChecker for SSL client defaults
-      	
-      	HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-      	
-      	// allow for certs that contain IP addresses rather than dns names
-      	
-      	ssl_con.setHostnameVerifier(
-      			new HostnameVerifier()
-      			{
-      				public boolean
-      				verify(
-      					String		host,
-						SSLSession	session )
-      				{
-      					return( true );
-      				}
-      			});
-      	
-      	con = ssl_con;
-      	
-      }else{
-      	
-      	con = (HttpURLConnection) url.openConnection();
-      	
-      }
+      for (int i=0;i<2;i++){
+      	try{
       
-      con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-      
-      if ( referrer != null && referrer.length() > 0 ){
-      
-      	con.setRequestProperty( "Referer", referrer );
-      }
-      
-      this.con.connect();
+	      if ( url.getProtocol().equalsIgnoreCase("https")){
+	      	
+	      	// see ConfigurationChecker for SSL client defaults
+	      	
+	      	HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+	      	
+	      	// allow for certs that contain IP addresses rather than dns names
+	      	
+	      	ssl_con.setHostnameVerifier(
+	      			new HostnameVerifier()
+	      			{
+	      				public boolean
+	      				verify(
+	      					String		host,
+							SSLSession	session )
+	      				{
+	      					return( true );
+	      				}
+	      			});
+	      	
+	      	con = ssl_con;
+	      	
+	      }else{
+	      	
+	      	con = (HttpURLConnection) url.openConnection();
+	      	
+	      }
+	      
+	      con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+	      
+	      if ( referrer != null && referrer.length() > 0 ){
+	      
+	      	con.setRequestProperty( "Referer", referrer );
+	      }
+	      
+	      this.con.connect();
+	      
+      	}catch( SSLException e ){
+      		
+			if ( i == 0 ){
+				
+				if ( SESecurityManager.installServerCertificates( url )){
+					
+						// certificate has been installed
+					
+					continue;	// retry with new certificate
+				}
+			}
 
+			throw( e );
+      	}
+      }
+      
       int response = this.con.getResponseCode();
       if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
         this.error("Error on connect for '" + this.url.toString() + "': " + Integer.toString(response) + " " + this.con.getResponseMessage());

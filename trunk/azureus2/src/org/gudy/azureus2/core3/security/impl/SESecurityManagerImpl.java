@@ -33,6 +33,7 @@ import javax.net.ssl.*;
 
 import java.security.*;
 import java.security.cert.*;
+import java.security.cert.Certificate;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.*;
@@ -101,6 +102,36 @@ SESecurityManagerImpl
 		}
 		
 		installSecurityManager();
+		
+		ensureStoreExists( keystore_name );
+		
+		ensureStoreExists( truststore_name );
+		
+		/*
+			try{
+				Certificate c = createSelfSignedCertificate( "Dummy", "CN=fred,OU=wap,O=wip,L=here,ST=there,C=GB", 512 );
+				
+				addCertToTrustStore( "SomeAlias", c);
+	
+				addCertToTrustStore( null, null );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+	
+		/*
+			try{
+				Certificate c = createSelfSignedCertificate( "SomeAlias", "CN=fred,OU=wap,O=wip,L=here,ST=there,C=GB", 1000 );
+			
+				addCertToTrustStore( "SomeAlias", c);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		*/
 	}
 	
 	public String
@@ -300,6 +331,52 @@ SESecurityManagerImpl
 		return( true );
 	}
 	
+	protected boolean
+	ensureStoreExists(
+		String	name )
+	{
+		try{
+			this_mon.enter();
+		
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			
+			if ( !new File(name).exists()){
+		
+				keystore.load(null,null);
+			
+				FileOutputStream	out = null;
+				
+				try{
+					out = new FileOutputStream(name);
+			
+					keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+			
+				}finally{
+					
+					if ( out != null ){
+						
+						out.close();
+					}						
+				}
+				
+				return( true );
+				
+			}else{
+				
+				return( false );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( false );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	protected KeyStore
 	loadKeyStore()
 	
@@ -422,7 +499,7 @@ SESecurityManagerImpl
 				});
 	}
 	
-	public void
+	public Certificate
 	createSelfSignedCertificate(
 		String		alias,
 		String		cert_dn,
@@ -430,7 +507,7 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength );
+		return( SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength ));
 	}
 	
 	public boolean

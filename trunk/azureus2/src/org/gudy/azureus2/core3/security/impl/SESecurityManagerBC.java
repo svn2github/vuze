@@ -32,6 +32,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 
@@ -48,7 +49,7 @@ SESecurityManagerBC
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 	}
 	
-	public static void
+	public static Certificate
 	createSelfSignedCertificate(
 		SESecurityManagerImpl	manager,
 		String					alias,
@@ -93,5 +94,7 @@ SESecurityManagerBC
 		java.security.cert.Certificate[] certChain = {(java.security.cert.Certificate) certificate };
 
 		manager.addCertToKeyStore( alias, pair.getPrivate(), certChain );
+		
+		return( certificate );
 	}
 }
