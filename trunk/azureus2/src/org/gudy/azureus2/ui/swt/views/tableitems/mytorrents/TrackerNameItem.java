@@ -45,7 +45,7 @@ public class TrackerNameItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     String name = "";
     
-    if( dm != null ) {
+    if( dm != null && dm.getTorrent() != null ) {
       String[] parts = dm.getTorrent().getAnnounceURL().getHost().split( "\\." );
         
       int used = 0;
