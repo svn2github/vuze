@@ -58,7 +58,7 @@ public class Server extends Thread
   public void run()
   {    
     try {
-      sck.configureBlocking(false);
+      sck.configureBlocking(true);
       Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is ready to accept incoming connections");
       while (bContinue) {
         SocketChannel sckClient = sck.accept();
@@ -66,11 +66,11 @@ public class Server extends Thread
           Logger.getLogger().log(componentID,evtNewConnection,Logger.INFORMATION,"BT Server has accepted an incoming connection from : " + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
           manager.addPeer(sckClient);
-        } else
-          Thread.sleep(50);
+        }
       }
     } catch (Exception e)  {               
-      Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);            
+      if (bContinue)            
+        Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);            
     }
     
     Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is stopped");
