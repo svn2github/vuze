@@ -114,7 +114,10 @@ PEPeerServerImpl
     //while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
-        
+
+        //set incoming socket's receive buffer size
+        sck.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
+
         //this should only be set when using a single shared port config
         //if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
           // Allow the server socket to be immediately re-used, if not yet released by the OS
@@ -173,7 +176,7 @@ PEPeerServerImpl
             + sckClient.socket().getInetAddress().getHostAddress());
           
           sckClient.configureBlocking(false);
-                    
+          
           adapter.addPeerTransport(sckClient);
         }
         else {

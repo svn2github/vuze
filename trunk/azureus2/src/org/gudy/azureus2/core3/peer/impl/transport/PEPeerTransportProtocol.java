@@ -129,6 +129,11 @@ PEPeerTransportProtocol
 
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
+  
+  private int readSleepTime;
+  private int writeSleepTime;
+  private long lastReadTime;
+  private long lastWriteTime;
 	
 		// Protocol Info
 		
@@ -443,148 +448,172 @@ PEPeerTransportProtocol
 
 	
   private class StateConnecting implements PEPeerTransportProtocolState {
-	public void process() {
-	  try {
-		if ( completeConnection()) {
-		  handShake(null);
-		  currentState = new StateHandshaking();
-		}
-	  }
-	  catch (IOException e) {
-		closeAll("Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e, true, true);
-		return;
-	  }
+  	public int process() {
+  		try {
+  			if ( completeConnection()) {
+  				handShake(null);
+  				currentState = new StateHandshaking();
+  			}
+        return PEPeerControl.NO_SLEEP;
+  		}
+  		catch (IOException e) {
+  			closeAll("Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e, true, true);
+  			return PEPeerControl.NO_SLEEP;
+  		}
+  	}
 
-	}
-
-	public int getState() {
-	  return CONNECTING;
-	}
+  	public int getState() {
+  		return CONNECTING;
+  	}
   }
 		
   private class StateHandshaking implements PEPeerTransportProtocolState {
-	public synchronized void process() {
-	  if (readBuffer.hasRemaining()) {
-		try {
-		  int read = readData(readBuffer);
-		  if (read < 0)
-			throw new IOException("End of Stream Reached");
+		public synchronized int process() {
+			if (readBuffer.hasRemaining()) {
+				try {
+					int read = readData(readBuffer);
+          if (read == 0) {
+            return PEPeerControl.DATA_EXPECTED_SLEEP;
+          }
+          else if (read < 0) {
+						throw new IOException("End of Stream Reached");
+          }
+				} catch (IOException e) {
+					closeAll(ip + " : StateHandshaking::End of Stream Reached", true, true);
+					return 0;
+				}
+			}
+      
+			if (readBuffer.remaining() == 0) {
+				handleHandShakeResponse();
+			}
+      
+      return PEPeerControl.NO_SLEEP;
 		}
-		catch (IOException e) {      
-		  closeAll(ip + " : StateHandshaking::End of Stream Reached",true, true);
-		  return;
+    
+		public int getState() {
+			return HANDSHAKING;
 		}
-	  }
-	  if (readBuffer.remaining() == 0) {
-		handleHandShakeResponse();
-	  }
 	}
 
-	public int getState() {
-	  return HANDSHAKING;
-	}
-  }
-
-  private class StateTransfering implements PEPeerTransportProtocolState {
-	public synchronized void process() {      
-	  if(++processLoop > 10)
-		  return;
+  
+  
+private class StateTransfering implements PEPeerTransportProtocolState {
+  public synchronized int process() {      
+    if(++processLoop > 10)
+      return PEPeerControl.NO_SLEEP;
           
-	  if (readingLength) {
-		if (lengthBuffer.hasRemaining() ) {          
-		  try {
-			int read = readData(lengthBuffer);
-      
-			if (read < 0)
-			  throw new IOException("End of Stream Reached");
-		  }
-		  catch (IOException e) {
-			closeAll(ip + " : StateTransfering::End of Stream Reached (reading length)",true, true);
-			return;
-		  }
-		}
-		//If there's nothing on the socket, then we can quite safely send a request.
-		if(lengthBuffer.remaining() == 4) {
-		  readyToRequest = true;
-		} 
-		if (!lengthBuffer.hasRemaining()) {
-		  int length = lengthBuffer.getInt(0);
+    if (readingLength) {
+      if (lengthBuffer.hasRemaining() ) {          
+        try {
+          int read = readData(lengthBuffer);
+          
+          if (read == 0) {
+            //If there's nothing pending on the socket, then
+            //we can quite safely send a request while we wait
+            if(lengthBuffer.remaining() == 4) {
+              readyToRequest = true;
+              return PEPeerControl.WAITING_SLEEP;
+            }
+            else {
+              //wait a bit before trying again
+              return PEPeerControl.DATA_EXPECTED_SLEEP;
+            }
+          }
+          else if (read < 0) {
+            throw new IOException("End of Stream Reached");
+          }
+        }
+        catch (IOException e) {
+          closeAll(ip + " : StateTransfering::End of Stream Reached (reading length)",true, true);
+          return PEPeerControl.NO_SLEEP;
+        }
+			}
+
+			if (!lengthBuffer.hasRemaining()) {
+				int length = lengthBuffer.getInt(0);
 		  
-		  if(length < 0) {
-		    closeAll(ip + " : length negative : " + length,true, true);
-		    return;
-		  }
+				if(length < 0) {
+					closeAll(ip + " : length negative : " + length,true, true);
+					return PEPeerControl.NO_SLEEP;
+				}
       
-        if(length >= DirectByteBufferPool.MAX_SIZE) {
-          closeAll(ip + " : length greater than max size : " + length,true, true);
-          return;
-		  }
+				if(length >= DirectByteBufferPool.MAX_SIZE) {
+					closeAll(ip + " : length greater than max size : " + length,true, true);
+					return PEPeerControl.NO_SLEEP;
+				}
         
-        if (length > 0) {
-         //return old readBuffer to pool if it's too small
-			if(readBuffer != null && readBuffer.capacity() < length) {
-			  DirectByteBufferPool.freeBuffer(readBuffer);
-			  readBuffer = null;
+				if (length > 0) {
+					//return old readBuffer to pool if it's too small
+					if(readBuffer != null && readBuffer.capacity() < length) {
+						DirectByteBufferPool.freeBuffer(readBuffer);
+						readBuffer = null;
+					}
+      
+					if(readBuffer == null) {
+            readBuffer = DirectByteBufferPool.getFreeBuffer(length);
+            
+						if (readBuffer == null) {				
+							closeAll(ip + " readBuffer null",true, false);
+							return PEPeerControl.NO_SLEEP;
+						}
+					}
+					
+					readBuffer.position(0);
+					readBuffer.limit(length);
+          
+					//'piece' data messages are greater than length 13
+          if ( length > 13 ) {
+            readyToRequest = true;
+          }
+          //protocol message, don't request until we know what the message is
+          else {
+            readyToRequest = false;
+          }
+          
+					readingLength = false;
+				}
+				else {
+					//readingLength = 0 : Keep alive message, process next.
+					readMessage(readBuffer);
+				}
 			}
-      
-			if(readBuffer == null) {
-			  ByteBuffer newbuff = DirectByteBufferPool.getFreeBuffer(length);
-			  if (newbuff == null) {				
-			    closeAll(ip + " newbuff null",true, false);
-			    return;
-			  }
-        
-			  if (newbuff.capacity() < length) {
-			    Debug.out("newbuff.capacity<length: "+newbuff.capacity()+"<"+length);
-			  }
-        
-			  readBuffer = newbuff;
-			  readBuffer.position(0);
-			}
-      
-			int pos = readBuffer.position();
-			if (pos !=0) Debug.out("readBuffer.position!=0:"+ pos);
-      
-			readBuffer.position(0);
-			readBuffer.limit(length);
-			readingLength = false;
-		  }
-		  else {
-			//readingLength = 0 : Keep alive message, process next.
-			readMessage(readBuffer);
-		  }
 		}
-	  }
     
 	  if (!readingLength) {
-		try {
-		  int read = readData(readBuffer);
-		  if (read < 0) {
-		    throw new IOException("End of Stream Reached");
+	  	try {
+	  		int read = readData(readBuffer);
+        
+        if (read == 0) {
+          //nothing on the socket, wait a bit before trying again
+          return PEPeerControl.DATA_EXPECTED_SLEEP;
         }
-		  //hack to statistically determine when we're receving data...
-		  if (readBuffer.limit() > 4069) {
-			stats.received(read);            
-			readyToRequest = true;
-		  }
-		}
-		catch (IOException e) {
-		  //e.printStackTrace();
-		  closeAll(ip + " : StateTransfering::End of Stream Reached (reading data)",true, true);
-		  return;
-		}
+	  		else if (read < 0) {
+	  			throw new IOException("End of Stream Reached");
+	  		}
+	  		else  {
+          //if (readBuffer.limit() > 13) //uncomment to only count stats for piece data messages
+	  			stats.received(read);            
+	  		}
+	  	}
+	  	catch (IOException e) {
+	  		closeAll(ip + " : StateTransfering::End of Stream Reached (reading data)",true, true);
+	  		return PEPeerControl.NO_SLEEP;
+	  	}
     
-		if (!readBuffer.hasRemaining()) {
-		  //After each message has been received, we're not ready to request anymore,
-		  //Unless we finish the socket's queue, or we start receiving a piece.
-		  readyToRequest = false;
-		  analyseBuffer(readBuffer);         
-		  if(getState() == TRANSFERING && readingLength) {
-		    process();
-		    return;
-		  }
-		}
+	  	if (!readBuffer.hasRemaining()) {
+	  		//After each message has been received, we're not ready to request anymore,
+	  		//Unless we finish the socket's queue, or we start receiving a piece.
+	  		readyToRequest = false;
+	  		analyseBuffer(readBuffer);         
+	  		if(getState() == TRANSFERING && readingLength) {
+	  			process();
+	  			return PEPeerControl.NO_SLEEP;
+	  		}
+	  	}
 	  }
+    
+    return PEPeerControl.NO_SLEEP;
 	}
 
 	public int getState() {
@@ -593,27 +622,43 @@ PEPeerTransportProtocol
   }
 
   private static class StateClosed implements PEPeerTransportProtocolState {
-	public void process() {}
+  	public int process() { return PEPeerControl.NO_SLEEP; }
 
-	public int getState() {
-	  return DISCONNECTED;
-	}
+  	public int getState() {
+  		return DISCONNECTED;
+  	}
   }
 
-  public void process() {
-	try {
-	  loopFactor++;
-	  processLoop = 0;
-	  if (currentState != null)
-		currentState.process();
-	  processLoop = 0;
-	  if (getState() != DISCONNECTED)
-		write();
-	}
-	catch (Exception e) {
-	  e.printStackTrace();
-	  closeAll(ip + " : Exception in process : " + e,true, false);
-	}
+  
+  public int processRead() {
+  	try {
+  		processLoop = 0;
+  		if (currentState != null) {
+  			return currentState.process();
+  		}
+      else return PEPeerControl.NO_SLEEP;
+  	}
+  	catch (Exception e) {
+  		e.printStackTrace();
+  		closeAll(ip + " : Exception in process : " + e,true, false);
+      return PEPeerControl.NO_SLEEP;
+  	}
+  }
+  
+  public int processWrite() {
+    try {
+      loopFactor++;
+      processLoop = 0;
+      if (getState() != DISCONNECTED) {
+        return write();
+      }
+      else return PEPeerControl.NO_SLEEP;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      closeAll(ip + " : Exception in process : " + e,true, false);
+      return PEPeerControl.NO_SLEEP;
+    }
   }
 
   public int getState() {
@@ -1062,167 +1107,165 @@ PEPeerTransportProtocol
   }
 
  
-  protected synchronized void write() {
-	if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
-	  return;       
-	if(++processLoop > 10)
-		return;    
-	//If we are already sending something, we simply continue
-	if (writeBuffer != null) {
-	  try {
-		int realLimit = writeBuffer.limit();
-		int limit = realLimit;
-		int uploadAllowed = 0;
-		if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-		  if ((loopFactor % 10) == 0) {
-			allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
-			used = 0;
-		  }
-		  uploadAllowed = allowed - used;
-		  limit = writeBuffer.position() + uploadAllowed;
-		  if ((limit > realLimit) || (limit < 0))
-			limit = realLimit;
-		}
-
-		writeBuffer.limit(limit);
-		int written = writeData(writeBuffer);
-		if (written < 0)
-		  throw new IOException("End of Stream Reached");
-		writeBuffer.limit(realLimit);
-
-		if (writeData) {
-		  stats.sent(written);
-		  manager.sent(written);
-		  if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-			used += written;
-			if ((loopFactor % 10) == 9) {
-			  if (used >= (95 * allowed) / 100)
-				maxUpload = max(110 * allowed / 100, 50);
-			  if (used < (90 * allowed) / 100)
-				maxUpload = max((100 * used) / 100, 10);
-			}
-		  }
-		}
-	  }
-	  catch (IOException e) {
-	    closeAll("Error while writing to " + ip +" : " + e,true, true);
-	    return;
-	  }
-    
-	  //If we have finished sending this buffer
-	  if (!writeBuffer.hasRemaining()) {
-		//If we were sending data, we must free the writeBuffer
-		if (writeData) {
-		  DirectByteBufferPool.freeBuffer(writeBuffer);
-		  writeBuffer = null;
-		  PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-		}
-		//We set it to null
-		writeBuffer = null;
-    //And return in order not to process any other writes this turn
-    //So you may wonder? why no more writes this turn?
-    //I'm asking myself the exact same question, and I've got no answer
-    //But this solves BOTH hash fails and deconnections
-    //Due to invalid packet length sent ....
-    //to do : Understand why this return is needed here
-    //return;
-	  } //So if we haven't written the whole buffer, we simply return...
-	}
-
-	if (writeBuffer == null) {
-	  //So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
-	  if (protocolQueue.size() != 0) {
-		//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
-		waitingChokeToBeSent = false;
-		//Assign the current buffer ...
-		keepAlive = 0;
-		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
-		
-		if (writeBuffer == null){
-		  closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
-		  return;
-		}
-		
-		//check to make sure we're sending a proper message length
-		if (!verifyLength(writeBuffer)) {
-		  closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
-		  return;
-		}
-		
-		writeBuffer.position(0);
-		writeData = false;
-		//and loop
-		write();
-		return;
-	  }
-    
-     //Check if there's any data to send from the dataQueue
-	  if (dataQueue.size() != 0) {
-		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
-		if (!choking) {
-		  if (!item.isLoading() && !choking) {
-			manager.enqueueReadRequest(item);
-		  }
-		  if (item.isLoaded()) {
-			dataQueue.remove(0);
-			if (dataQueue.size() != 0) {
-			  DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
-			  if (!itemNext.isLoading()) {
-				manager.enqueueReadRequest(itemNext);
-			  }
-			}
-			DiskManagerRequest request = item.getRequest();
-			LGLogger.log(
-			  componentID,
-			  evtProtocol,
-			  LGLogger.SENT,
-			  ip
-				+ " is being sent #"
-				+ request.getPieceNumber()
-				+ ":"
-				+ request.getOffset()
-				+ "->"
-				+ (request.getOffset() + request.getLength()));
-			// Assign the current buffer ...
-			keepAlive = 0;
-			writeBuffer = item.getBuffer();
+  protected synchronized int write() {
+  	if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
+  		return PEPeerControl.DATA_EXPECTED_SLEEP;       
+  	if(++processLoop > 10)
+  		return PEPeerControl.NO_SLEEP;
       
-			//check to make sure we're sending a proper message length
-			if (!verifyLength(writeBuffer)) {
-			  closeAll("OOPS, we're sending a bad data message length !!!", true, true);
-			  return;
-			}
+  	//If we are already sending something, we simply continue
+  	if (writeBuffer != null) {
+  		try {
+  			int realLimit = writeBuffer.limit();
+  			int limit = realLimit;
+  			int uploadAllowed = 0;
+  			if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
+  				if ((loopFactor % 10) == 0) {
+  					allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
+  					used = 0;
+  				}
+  				uploadAllowed = allowed - used;
+  				limit = writeBuffer.position() + uploadAllowed;
+  				if ((limit > realLimit) || (limit < 0))
+  					limit = realLimit;
+  			}
+  			
+  			writeBuffer.limit(limit);
+  			int written = writeData(writeBuffer);
+  			if (written < 0)
+  				throw new IOException("End of Stream Reached");
+  			writeBuffer.limit(realLimit);
+  			
+  			if (writeData) {
+  				stats.sent(written);
+  				manager.sent(written);
+  				if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
+  					used += written;
+  					if ((loopFactor % 10) == 9) {
+  						if (used >= (95 * allowed) / 100)
+  							maxUpload = max(110 * allowed / 100, 50);
+  						if (used < (90 * allowed) / 100)
+  							maxUpload = max((100 * used) / 100, 10);
+  					}
+  				}
+  			}
+  		}
+  		catch (IOException e) {
+  			closeAll("Error while writing to " + ip +" : " + e,true, true);
+  			return PEPeerControl.NO_SLEEP;
+  		}
+  		
+  		//If we have finished sending this buffer
+  		if (!writeBuffer.hasRemaining()) {
+  			//If we were sending data, we must free the writeBuffer
+  			if (writeData) {
+  				DirectByteBufferPool.freeBuffer(writeBuffer);
+  				writeBuffer = null;
+  				PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
+  			}
+  			//We set it to null
+  			writeBuffer = null;
+  		}
+  	}
+  	
+  	if (writeBuffer == null) {
+  		//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
+  		if (protocolQueue.size() != 0) {
+  			//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
+  			waitingChokeToBeSent = false;
+  			//Assign the current buffer ...
+  			keepAlive = 0;
+  			writeBuffer = (ByteBuffer) protocolQueue.remove(0);
+  			
+  			if (writeBuffer == null){
+  				closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
+          return PEPeerControl.NO_SLEEP;
+  			}
+  			
+  			//check to make sure we're sending a proper message length
+  			if (!verifyLength(writeBuffer)) {
+  				closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
+          return PEPeerControl.NO_SLEEP;
+  			}
+  			
+  			writeBuffer.position(0);
+  			writeData = false;
+  			//and loop
+  			write();
+  			return PEPeerControl.NO_SLEEP;
+  		}
+  		
+  		//Check if there's any data to send from the dataQueue
+  		if (dataQueue.size() != 0) {
+  			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
+  			if (!choking) {
+  				if (!item.isLoading() && !choking) {
+  					manager.enqueueReadRequest(item);
+  				}
+  				if (item.isLoaded()) {
+  					dataQueue.remove(0);
+  					if (dataQueue.size() != 0) {
+  						DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
+  						if (!itemNext.isLoading()) {
+  							manager.enqueueReadRequest(itemNext);
+  						}
+  					}
+  					DiskManagerRequest request = item.getRequest();
+  					LGLogger.log(
+  							componentID,
+								evtProtocol,
+								LGLogger.SENT,
+								ip
+								+ " is being sent #"
+								+ request.getPieceNumber()
+								+ ":"
+								+ request.getOffset()
+								+ "->"
+								+ (request.getOffset() + request.getLength()));
+  					// Assign the current buffer ...
+  					keepAlive = 0;
+  					writeBuffer = item.getBuffer();
+  					
+  					//check to make sure we're sending a proper message length
+  					if (!verifyLength(writeBuffer)) {
+  						closeAll("OOPS, we're sending a bad data message length !!!", true, true);
+              return PEPeerControl.NO_SLEEP;
+  					}
+  					
+  					writeBuffer.position(0);
+  					writeData = true;
+  					PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
+  					// and loop
+  					write();
+            return PEPeerControl.NO_SLEEP;
+  				}
+  			}
+  			else {
+  				//We are choking the peer so ...
+  				if (!item.isLoading()) {
+  					dataQueue.remove(item);
+  				}
+  				if (item.isLoaded()) {
+  					dataQueue.remove(item);
+  					DirectByteBufferPool.freeBuffer(item.getBuffer());
+  					item.setBuffer(null);
+  				}
+          return PEPeerControl.NO_SLEEP;
+  			}
+  		}
+      
+  		if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
+  			keepAlive++;
+  			if (keepAlive == 50 * 60 * 3) {
+  				keepAlive = 0;
+  				sendKeepAlive();
+  			}
+  		}
+  	}
     
-			writeBuffer.position(0);
-			writeData = true;
-			PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
-			// and loop
-			write();
-			return;
-		  }
-		}
-		else {
-		  //We are choking the peer so ...
-		  if (!item.isLoading()) {
-			dataQueue.remove(item);
-		  }
-		  if (item.isLoaded()) {
-			dataQueue.remove(item);
-			DirectByteBufferPool.freeBuffer(item.getBuffer());
-			item.setBuffer(null);
-		  }
-		  return;
-		}
-	  }
-	  if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
-		keepAlive++;
-		if (keepAlive == 50 * 60 * 3) {
-		  keepAlive = 0;
-		  sendKeepAlive();
-		}
-	  }
-	}
+    return PEPeerControl.NO_SLEEP;
   }
+  
   
   /**
    * Verifies that the buffer length is correct.
@@ -1383,5 +1426,17 @@ PEPeerTransportProtocol
     if(limit != 0)
       limit += addToLimit;
   }
+  
+  public int getReadSleepTime() { return readSleepTime; }
+  public int getWriteSleepTime() { return writeSleepTime; }
+  
+  public void setReadSleepTime(int time) { readSleepTime = time; }
+  public void setWriteSleepTime(int time) { writeSleepTime = time; }
+  
+  public long getLastReadTime() { return lastReadTime; }
+  public long getLastWriteTime() { return lastWriteTime; }
+  
+  public void setLastReadTime(long time) { lastReadTime = time; }
+  public void setLastWriteTime(long time) { lastWriteTime = time; }
 
 }

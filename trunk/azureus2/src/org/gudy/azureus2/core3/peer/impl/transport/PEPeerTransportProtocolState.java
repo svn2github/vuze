@@ -31,7 +31,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  */
 public interface PEPeerTransportProtocolState {
   
-  public void process();
+  public int process();
   
   public int getState();
 

@@ -106,6 +106,9 @@ PEPeerTransportImpl
 	   
 	   socket = SocketChannel.open();
      
+     //set the socket's receive buffer size
+     socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
+      
 	   String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
 	   if (bindIP.length() > 6) {
 	     socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));

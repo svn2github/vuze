@@ -55,7 +55,7 @@ PEPeerControlImpl
   
   private int[] _availability;
   private boolean _bContinue;                
-  private List _peer_transports;
+  private ArrayList _peer_transports;
   private DiskManager _diskManager;
   private boolean[] _downloaded;
   private boolean[] _downloading;
@@ -91,6 +91,9 @@ PEPeerControlImpl
   private List slowQueue;
   
   private int nbHashFails;
+  private static final int MAINLOOP_WAIT_TIME   = 500;
+  private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; //every 10s
+  private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; //every 30s
 
   private List	peer_manager_listeners 		= new ArrayList();
   private List	peer_transport_listeners 	= new ArrayList();
@@ -234,35 +237,43 @@ PEPeerControlImpl
 
     public void run() {
       while (bContinue) {
-        for (int i = 9; i > 0; i--)
+        
+      	for (int i = 9; i > 0; i--) {
           started[i] = started[i - 1];
+        }
         started[0] = System.currentTimeMillis();
+        
         synchronized (_peer_transports) {
-          Iterator iter = _peer_transports.iterator();
-          while (iter.hasNext()) {
-            PEPeerTransport ps = (PEPeerTransport) iter.next();
+          for (int i=0; i < _peer_transports.size(); i++) {
+            PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
+            
             if (ps.getState() == PEPeer.DISCONNECTED) {
-              iter.remove();
+              _peer_transports.remove(i);
               
-              for (int i=0;i<peer_transport_listeners.size();i++){
-                ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( ps );
+              for (int m=0; m < peer_transport_listeners.size(); m++) {
+                ((PEPeerControlListener)peer_transport_listeners.get(m)).peerRemoved( ps );
               }
             }
             else {
-              ps.process();
+              if ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()) ) {
+                ps.setReadSleepTime( ps.processRead() );
+                ps.setLastReadTime( System.currentTimeMillis() );
+              }
+              
+              ps.processWrite();
             }
           }
         }
+                
         try {
-
-          long wait = 20;
+        	long wait = 20;
           wait -= (System.currentTimeMillis() - started[0]);
           if (started[4] != 0) {
             for (int i = 0; i < 9; i++) {
               wait += 20 + (started[i + 1] - started[i]);
             }
           }
-
+   
           if (wait > 30)
             wait = 30;
 
@@ -272,6 +283,7 @@ PEPeerControlImpl
         catch (Exception e) {
           e.printStackTrace();
         }
+        
       }
     }
 
@@ -358,7 +370,7 @@ PEPeerControlImpl
 
         _loopFactor++; //increment the loopFactor
         
-        long timeWait = 1000 - (System.currentTimeMillis() - timeStart);
+        long timeWait = MAINLOOP_WAIT_TIME - (System.currentTimeMillis() - timeStart);
         if (timeWait > 10) {
         	Thread.sleep(timeWait); //sleep
         }
@@ -1093,7 +1105,7 @@ PEPeerControlImpl
   
   private void unChoke() {
     // Only Choke-Unchoke Every 10 secs
-    if ((_loopFactor % 10) != 0) {
+    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0) {
       return;
     }
     
@@ -1122,7 +1134,7 @@ PEPeerControlImpl
     List bestUploaders = getBestUnChokedPeers(nbUnchoke);
 
     // optimistic unchoke every 30 seconds
-    if ((_loopFactor % 30) == 0 || (currentOptimisticUnchoke == null)) {
+    if ((_loopFactor % OPT_UNCHOKE_FACTOR) == 0 || (currentOptimisticUnchoke == null)) {
       performOptimisticUnChoke();
     }
     

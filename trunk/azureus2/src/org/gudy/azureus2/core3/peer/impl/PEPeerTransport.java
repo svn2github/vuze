@@ -35,12 +35,17 @@ public interface
 PEPeerTransport
 {
 	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
+  
+  public static final int RECEIVE_BUFF_SIZE = 32*1024;
 	
 	public int
 	getState();
 	
-	public void
-	process();
+	public int
+	processRead();
+  
+  public int
+  processWrite();
 	
 	public void
 	sendChoke();
@@ -126,4 +131,17 @@ PEPeerTransport
 	
 	public PEPeerStats
 	getStats();
+  
+  
+  public int getReadSleepTime();
+  public int getWriteSleepTime();
+  public long getLastReadTime();
+  public long getLastWriteTime();
+  
+  public void setReadSleepTime(int time);
+  public void setWriteSleepTime(int time);
+  public void setLastReadTime(long time);
+  public void setLastWriteTime(long time);
+  
+  
 }

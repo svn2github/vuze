@@ -36,6 +36,12 @@ public interface
 PEPeerControl
 	extends PEPeerManager, PEPeerServerAdapter
 {
+  
+  public static final int WAITING_SLEEP        = 50;
+  public static final int DATA_EXPECTED_SLEEP  = 25;
+  public static final int NO_SLEEP             = 0;
+  
+  
 	public PEPeerStatsImpl
 	createPeerStats();
 	
