@@ -57,6 +57,40 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   Table table;
   boolean noChange;
   
+  FilterComparator comparator;
+  
+  class FilterComparator implements Comparator {
+    
+    boolean ascending = true;
+    int field = 0;
+    
+    static final int FIELD_NAME = 0;
+    static final int FIELD_START_IP = 1;
+    static final int FIELD_END_IP = 2;
+    
+    
+    public int compare(Object arg0,Object arg1) {
+      IpRange range0 = (IpRange) arg0;
+      IpRange range1 = (IpRange) arg1;
+      if(field == FIELD_NAME) {
+        return (ascending ? 1 : -1) * range0.getDescription().compareTo(range1.getDescription());
+      }
+      if(field == FIELD_START_IP) {
+        return (ascending ? 1 : -1) * ( range0.compareStartIpTo( range1 ));
+      }
+      if(field == FIELD_END_IP) {
+        return (ascending ? 1 : -1) * ( range0.compareEndIpTo( range1 ));
+      }
+      return 0;
+    }
+    
+    public void setField(int newField) {      
+      if(field == newField) ascending = ! ascending;
+      field = newField;
+    }
+    
+    
+  }
   IpRange ipRanges[];
   
   public
@@ -64,7 +98,9 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   	AzureusCore		_azureus_core )
   {
   	azureus_core	= _azureus_core;
+  	comparator = new FilterComparator();
   }
+  
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
@@ -116,6 +152,30 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       tc.setWidth(sizes[i]);
       Messages.setLanguageText(tc, headers[i]); //$NON-NLS-1$
     }
+    
+    
+    
+    TableColumn[] columns = table.getColumns();
+    columns[0].setData(new Integer(FilterComparator.FIELD_NAME));
+    columns[1].setData(new Integer(FilterComparator.FIELD_START_IP));
+    columns[2].setData(new Integer(FilterComparator.FIELD_END_IP));
+    
+    Listener listener = new Listener() {
+      public void handleEvent(Event e) {
+        TableColumn tc = (TableColumn) e.widget;
+        int field = ((Integer) tc.getData()).intValue();
+        comparator.setField(field);
+        ipRanges = getSortedRanges(filter.getRanges());
+        table.setItemCount(ipRanges.length);
+        table.clearAll();
+    	// bug 69398 on Windows
+    	table.redraw();
+      }
+    };
+    
+    columns[0].addListener(SWT.Selection,listener);
+    columns[1].addListener(SWT.Selection,listener);
+    columns[2].addListener(SWT.Selection,listener);
 
     table.setHeaderVisible(true);
 
@@ -232,35 +292,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       table.getColumn(0).setWidth(iNewWidth);          
   }
 
-  /*
-  private void populateTable() {
-    if( table == null || table.isDisposed() ) {
-      return;
-    }
-    
-    Display display = table.getDisplay();
-    
-    if( display == null || display.isDisposed() ) {
-      return;
-    }
-    
-    display.asyncExec( new AERunnable() {
-      public void runSupport() {
-        IpRange[] IpRanges = getSortedRanged(filter.getRanges());
-        
-        for( int i=0; i < IpRanges.length; i++ ) {
-          IpRange range = IpRanges[i];
-          
-          TableItem item = new TableItem(table, SWT.NULL);
-          //item.setImage(0, ImageRepository.getImage("ipfilter"));
-          item.setText(0, range.getDescription());
-          item.setText(1, range.getStartIp());
-          item.setText(2, range.getEndIp());
-          item.setData(range);
-        }
-      }
-    });
-  }*/
+ 
 
   public void removeRange(IpRange range) {
   	filter.removeRange( range );
@@ -310,20 +342,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   {
   	Arrays.sort(
   		ranges,
-		new Comparator()
-		{
-  			public int 
-			compare(
-				Object o1, 
-				Object o2 )
-  			{
-  				IpRange	r1 = (IpRange)o1;
-  				IpRange r2 = (IpRange)o2;
-  				
-  				return( r1.compareStartIpTo( r2 ));
-  			}
-
-		});
+		comparator);
   	
   	return( ranges );
 	

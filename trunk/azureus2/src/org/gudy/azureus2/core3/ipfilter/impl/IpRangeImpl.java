@@ -456,4 +456,19 @@ IpRangeImpl
 			return(0);
 		}
 	}
+	
+	public int
+	compareEndIpTo(
+		IpRange	other )
+	{
+		long l = getEndIpLong() - ((IpRangeImpl)other).getEndIpLong();
+		
+		if ( l < 0 ){
+			return( -1 );
+		}else if ( l > 0 ){
+			return( 1 );
+		}else{
+			return(0);
+		}
+	}
  }
