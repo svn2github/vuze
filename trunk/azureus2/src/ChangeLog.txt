@@ -18,16 +18,18 @@ FEATURE: UI   | Torrent export option added to SWT UI [Parg]
 FEATURE: Core | Client identification plugin interface [Parg]
 FEATURE: UI   | Keyboard shortcut parsing system [CrazyAlchemist]
 FEATURE: UI   | System tray menus for setting global upload and download bandwidth limits [CrazyAlchemist]
+FEATURE: UI   | Synthesized speech alerts for Mac OS X; Go to Azureus / Preferences to enable it [CrazyAlchemist]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar]
 CHANGE: Core | First piece priority option now also prioritizes last piece of file [Nolar]
 CHANGE: Core | NAT check functions even when downloads have already been started [Nolar]
+CHANGE: UI   | Reintroduced download completion alerts in Mac OS X (use System Preferences / Sound to set the alert sound of choice) [CrazyAlchemist]
+CHANGE: UI   | Contextual menu items no longer carry images for better compliance with Aqua Human Interface Guidelines [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
-
-
+BUGFIX: UI   | Corrected save dialog behaviour on Make Torrent Wizard regarding file selection [CrazyAlchemist]
 
 
 
