@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head>
+        <title><TMPL_VAR Global_ServerName> Add Torrent</title>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        <link href="azureus.css" rel="stylesheet" type="text/css">
+        <script language="javascript" src="commands.js"></script>
+    </head>
+    <body>
+        <form name="Add" method=post action="torrentmain" target="main">
+        <input type=hidden  name=command value=Add>
+        <table class="menu add" cellpadding=0 cellspacing=0><tr>
+            <TD class="menuitem mvleft" width="100%">
+                <input class="addinput add" type=text name=Add_torrent title="Paste Torrent URLs here">
+            </td>
+             <td class="menuitem mvmid" onclick='eAdd(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Add</td>
+             <td class="menuitem mvright" onclick='eAdd(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Clear</td>
+        </tr></table>
+        </form>
+    </body>
+</html>

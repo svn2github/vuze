@@ -77,6 +77,7 @@ public class Jhttpp2HTTPSession extends Thread {
   private static Hashtable status = null;
   private static Hashtable parameterlegacy = null;
   private static Hashtable messagetextmap = null;
+  private static Hashtable stuff = null;
   
   public Jhttpp2HTTPSession(Jhttpp2Server server,Socket client) {
     try {
@@ -102,6 +103,9 @@ public class Jhttpp2HTTPSession extends Thread {
         messagetextmap.put("lowport", "serverportlow");
         messagetextmap.put("highport", "serverporthigh");
         messagetextmap.put("useresume", "usefastresume");
+        stuff = new Hashtable();
+        stuff.put("favicon.ico", "org/gudy/azureus2/ui/icons/azureus.ico");
+        stuff.put("froggy.png", "org/gudy/azureus2/ui/icons/tray.png");
       }
       if ((this.status == null) || (locale != this.server.locale)) {
         if (status != null)
@@ -684,9 +688,9 @@ public class Jhttpp2HTTPSession extends Thread {
           filename += ".html";
         }
       }
-    } else if (filename.equals("favicon.ico")) {
+    } else if (stuff.containsKey(filename)) {
       useres = true;
-      fileres = "org/gudy/azureus2/ui/icons/azureus.ico";
+      fileres = (String) stuff.get(filename);
     }
     if ((file == null) && !useres) {
       sendErrorMSG(404,"The requested file /" + filename + " was not found or the path is invalid.");

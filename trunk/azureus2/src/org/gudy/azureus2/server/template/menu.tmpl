@@ -3,39 +3,32 @@
     <head>
         <title><TMPL_VAR Global_ServerName> Menu</title>
 	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        <link href="azureus.css" rel="stylesheet" type="text/css">
+        <script language="javascript" src="commands.js"></script>
     </head>
-    <body bgcolor="#FFFFCC">
-        <table width="100%">
+    <body class="menubody">
+        <form name="Command" method=POST action='torrentmain' target='main'>
+            <input type=HIDDEN name='command' value=''>
+        </FORM>
+        <center><table><tr><td class="icon">
+            <img src='/froggy.png' alt="Azureus">
+        </TD></TR></TABLE></CENTER>
+        <p>
+        <table class="menu" cellspacing=0 cellpadding=0>
             <tr>
-                <td style="padding:0"><form method=get action="torrents" target="body">
-                    <input type=submit value=Torrents>
-                </form></td>
-                <TMPL_IF seeds>
-                    <td nowrap><form method=get action="seeds" target="body">
-                        <input type=submit value=Seeds>
-                    </form></td>
-                </TMPL_IF>
-                <td nowrap><form method=get action="log" target="body">
-                    <input type=submit Value="View Log">
-                </form></td>
-                <td><form method=get action="config" target="body">
-                    <input type=submit Value=Config>
-                </form></td>
-                <td width="80%"><form method=post action="torrents" target="body">
-                    <table width="100%" border=1 bgcolor="#FFCCCC">
-                        <tr>
-                            <td width="100%"><input type=text style="width:100%" name=Add_torrent title="Paste Torrent URLs here"></td>
-                            <td><table cellpadding=0><tr>
-                                <td><input type=hidden  name=command value=Add><input type=submit Value=Add></td>
-                                <td><input type=reset value=Clear></td>
-                            </tr></table></td>
-                        </tr>
-                    </table>
-                </form></td>
-                <td nowrap><form method=post action="exit" target="body">
-                    <input type=submit Value="Kill server">
-                    <input type=HIDDEN name='command' value='Exit'>
-                </form></td>
+                <td class='menuitem mtop' onclick='eCommand("torrentmain")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Torrents</td>
+            </tr>
+            <tr>
+                <td class='menuitem mmid' onclick='eCommand("log")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>View Log</td>
+            </tr>
+            <tr>
+                <td class='menuitem mbot' onclick='eCommand("config")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Config</td>
+            </tr>
+        </table>
+        <p>
+        <table class="menu">
+            <tr>
+                <td class='menuitem' onclick='eCommand("exit", "Exit")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Kill server</td>
             </tr>
         </table>
     </body>

@@ -4,8 +4,11 @@
         <title><TMPL_VAR Global_ServerName></title>
         <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
     </head>
-    <frameset rows="50,*">
-        <frame name="top" scrolling=no noresize src="menu">
-        <frame name="body" src="torrents">
+    <frameset cols="120,*" BORDER=0 FRAMEBORDER=0 FRAMESPACING=0>
+        <frame name="menu" frameborder=0 scrolling=no noresize src="menu">
+        <frameset rows="35,*" BORDER=0 FRAMEBORDER=0 FRAMESPACING=0>
+            <frame name="status" frameborder=0 scrolling=no noresize src="addbar">
+            <frame name="main" frameborder=0 src="torrentmain">
+        </frameset>
     </frameset>
 </html>
