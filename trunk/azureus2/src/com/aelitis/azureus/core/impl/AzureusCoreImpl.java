@@ -37,6 +37,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 
 /**
@@ -106,6 +108,10 @@ AzureusCoreImpl
 		AEDiagnostics.startup();
 		
 		AETemporaryFileHandler.startup();
+    
+    //ensure early initialization
+    NetworkManager.getSingleton();
+    PeerManager.getSingleton();
 	}
 	
 	public LocaleUtil

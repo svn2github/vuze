@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.peer.*;
 
 public interface
 PEPeerControl
-	extends PEPeerManager, PEPeerServerAdapter
+	extends PEPeerManager
 {
   
   public static final int WAITING_SLEEP        = 100;
@@ -77,4 +77,11 @@ PEPeerControl
 	
 	public PEPeerTransportDataReader
 	getDataReader();
+  
+  
+  /**
+   * Insert the given transport.
+   * @param transport to control
+   */
+  public void addPeerTransport( PEPeerTransport transport );
 }

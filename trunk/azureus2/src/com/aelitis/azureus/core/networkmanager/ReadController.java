@@ -39,7 +39,7 @@ public class ReadController {
       }
     };
     read_thread.setDaemon( true );
-    read_thread.setPriority( Thread.MAX_PRIORITY - 2 );
+    read_thread.setPriority( Thread.MAX_PRIORITY - 1 );
     read_thread.start();
   }
   
@@ -53,5 +53,5 @@ public class ReadController {
    * Get the virtual selector for socket channel read readiness.
    * @return selector
    */
-  protected VirtualChannelSelector getReadSelector() {  return read_selector;  }
+  public VirtualChannelSelector getReadSelector() {  return read_selector;  }
 }

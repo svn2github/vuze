@@ -35,11 +35,9 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTProtocolMessa
 /**
  *
  */
-public class UploadManager {
+public class PeerUploadManager {
   private static final int UNLIMITED_WRITE_RATE = 1024 * 1024 * 100; //100 mbyte/s
-  
-  private static final UploadManager instance = new UploadManager();
-  
+    
   private int standard_max_rate_bps;
   private final ByteBucket standard_bucket;
   private final HashMap standard_peer_connections = new HashMap();
@@ -50,7 +48,7 @@ public class UploadManager {
   private final AEMonitor group_buckets_mon = new AEMonitor( "UploadManager:GB" );
   
   
-  private UploadManager() {
+  protected PeerUploadManager() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
     standard_max_rate_bps = max_rateKBs == 0 ? UNLIMITED_WRITE_RATE : max_rateKBs * 1024;
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
@@ -76,15 +74,6 @@ public class UploadManager {
     });
   }
   
-  
-  /**
-   * Get the singleton instance of the upload manager.
-   * @return the upload manager
-   */
-  public static UploadManager getSingleton() {  return instance;  }
-  
-
-
   
   public void registerStandardPeerConnection( final Connection connection, final LimitedRateGroup group ) {
     final ConnectionData conn_data = new ConnectionData();

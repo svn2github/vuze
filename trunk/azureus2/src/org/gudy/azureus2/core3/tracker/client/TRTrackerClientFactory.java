@@ -22,7 +22,6 @@
 package org.gudy.azureus2.core3.tracker.client;
 
 
-import org.gudy.azureus2.core3.peer.PEPeerServer;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.classic.*;
 
@@ -32,12 +31,11 @@ TRTrackerClientFactory
 	public static TRTrackerClient
 	create(
 		TOTorrent		torrent,
-		PEPeerServer	peer_server,
 		String[]		networks )
 		
 		throws TRTrackerClientException
 	{
-		return( TRTrackerClientFactoryImpl.create( torrent, peer_server, networks ));
+		return( TRTrackerClientFactoryImpl.create( torrent, networks ));
 	}
 	
 	public static void

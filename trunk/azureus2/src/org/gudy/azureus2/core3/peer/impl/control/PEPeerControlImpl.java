@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerConnectInfoStorage;
 
 
@@ -76,7 +77,6 @@ PEPeerControlImpl
   private byte[] _myPeerId;
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
-  private PEPeerServerHelper 			_server;
   private PEPeerManagerStatsImpl 		_stats;
   private TRTrackerClient _tracker;
    //  private int _maxUploads;
@@ -153,11 +153,9 @@ PEPeerControlImpl
   PEPeerControlImpl
   (
     DownloadManager 	manager,
-    PEPeerServerHelper 	server,
 	TRTrackerClient 	tracker,
     DiskManager 		diskManager) 
   {
-  	  _server = server;
   	  this._downloadManager = manager;
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
@@ -232,8 +230,6 @@ PEPeerControlImpl
     //The peer connections
     peer_transports_cow = new ArrayList();
 
-    //The Server that handle incoming connections
-     _server.setServerAdapter(this);
 
     //BtManager is threaded, this variable represents the
     // current loop iteration. It's used by some components only called
@@ -277,8 +273,12 @@ PEPeerControlImpl
         mainLoop();
       }
     }.start();
+    
+    //register as legacy controller
+    PeerManager.getSingleton().registerLegacyPeerManager( this );
   }
 
+  
   private class 
   PeerUpdater 
   extends AEThread 
@@ -399,11 +399,9 @@ PEPeerControlImpl
   	
     _tracker.stop();
     
-    	//  Stop the server
     
-    _server.stopServer();
-    
-    _server.clearServerAdapter();
+    //remove legacy controller registration
+    PeerManager.getSingleton().deregisterLegacyPeerManager( this );
     
     	// Close all clients
     
@@ -1238,46 +1236,50 @@ PEPeerControlImpl
 
   
   
+  public void addPeerTransport( PEPeerTransport transport ) {
+    try{
+      this_mon.enter();
+    
+      boolean addFailed = false;
+      String reason = "";
+      if (!ip_filter.isInRange(transport.getIp(), _downloadManager.getDisplayName())) {
+        try{
+          peer_transports_mon.enter();
+           
+          if (!peer_transports_cow.contains( transport )) {
+            
+            addToPeerTransports(transport);
+                
+          }else{
+                
+            addFailed = true;
+                
+            reason=transport.getIp() + " : Already Connected";
+          }
+        }finally{
+            
+          peer_transports_mon.exit();
+        }
+      }
+      else {
+        addFailed = true;
+        reason=transport.getIp() + " : Blocked IP";
+      }
+        
+      if (addFailed) {
+        transport.closeAll(reason,false, false);
+      }
+    }finally{
+      this_mon.exit();
+    }
+  }
+  
+  
  /**
    * private method to add a new incoming peerConnection
    */
  private void insertPeerSocket(PEPeerTransport ps) {
- 	try{
- 		this_mon.enter();
  	
-	    //Get the max number of connections allowed
-	    boolean addFailed = false;
-	    String reason = "";
-	    if (!ip_filter.isInRange(ps.getIp(), _downloadManager.getDisplayName())) {
-	       try{
-	       	peer_transports_mon.enter();
-	       
-	          if (!peer_transports_cow.contains( ps )) {
-	          
-	          	addToPeerTransports(ps);
-	          	
-	          }else{
-	          	
-	            addFailed = true;
-	            
-	            reason=ps.getIp() + " : Already Connected";
-	          }
-	       }finally{
-	       	
-	       	peer_transports_mon.exit();
-	       }
-	    }
-	    else {
-	      addFailed = true;
-	      reason=ps.getIp() + " : Blocked IP";
-	    }
-	    
-	    if (addFailed) {
-	       ps.closeAll(reason,false, false);
-	    }
- 	}finally{
- 		this_mon.exit();
- 	}
  }
 
   
@@ -1559,17 +1561,7 @@ PEPeerControlImpl
     //set as not being retrieved
     _downloading[pieceNumber] = false; //mark as not downloading
   }
-
-  /**
-   * This method is used by BtServer to add an incoming connection
-   * to the list of peer connections.
-   * @param param the incoming connection socket
-   */
   
-  public void addPeerTransport(Object param) {
-    
-    this.insertPeerSocket( _server.createPeerTransport(param));
-  }
 
   public PEPeerControl
   getControl()
@@ -1670,8 +1662,6 @@ PEPeerControlImpl
 
     //the stats
     _stats = new PEPeerManagerStatsImpl();
-
-    _server.startServer();	
   }
 
   public void blockWritten(int pieceNumber, int offset, Object user_data) {

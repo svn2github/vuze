@@ -121,7 +121,7 @@ public class VirtualChannelSelector {
     	addRegOrCancel( channel ); 
     }
    
-    protected void 
+    private void 
     addRegOrCancel( 
     	Object	obj_to_add ) 
     {

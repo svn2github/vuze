@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.UploadManager;
+import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
@@ -314,7 +314,7 @@ PEPeerTransportProtocol
 	    });
 	    
 	    //register the new connection with the upload manager so that peer messages get processed
-	    UploadManager.getSingleton().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
+	    PeerManager.getSingleton().getUploadManager().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
 	    
 	    connection_registered = true;
 	    
@@ -367,7 +367,7 @@ PEPeerTransportProtocol
 	    	    
 	    if( connection != null ) {
 	    	if( connection_registered ) {
-	    		UploadManager.getSingleton().cancelStandardPeerConnection( connection );
+          PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
 	    	}
 	    	connection.close();
 	    	//connection = null;
@@ -1059,7 +1059,7 @@ PEPeerTransportProtocol
     
     //extended protocol processing
     if( (reserved[0] & 128) == 128 ) {  //if first (high) bit is set
-      System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
+      //System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
       
       //TODO sendExtendedProtocolSupportList();
     }

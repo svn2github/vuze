@@ -96,7 +96,7 @@ TRNonBlockingServer
 				address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );			
 			}
 			
-			VirtualServerChannelSelector accept_server = new VirtualServerChannelSelector( address, this );
+			VirtualServerChannelSelector accept_server = new VirtualServerChannelSelector( address, 0, this );
 
 			accept_server.start();
 		      

@@ -220,8 +220,7 @@ DownloadManagerImpl
   
 	//Used when trackerConnection is not yet created.
 	// private String trackerUrl;
-  
-	private PEPeerServer server;
+
 	
 	private	DownloadManagerState		download_manager_state;
 	
@@ -308,8 +307,6 @@ DownloadManagerImpl
     }
 
     errorDetail = "";
-
-    startServer();
     
     if ( state == STATE_WAITING || state == STATE_ERROR ){
     	
@@ -322,7 +319,7 @@ DownloadManagerImpl
         tracker_client.destroy();
       }
 
-      tracker_client = TRTrackerClientFactory.create( torrent, server, download_manager_state.getNetworks());
+      tracker_client = TRTrackerClientFactory.create( torrent, download_manager_state.getNetworks());
     
       tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 
@@ -373,7 +370,7 @@ DownloadManagerImpl
   {
 	setState( STATE_DOWNLOADING );
 	
-	PEPeerManager temp = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
+	PEPeerManager temp = PEPeerManagerFactory.create(this, tracker_client, diskManager);
 
 	peer_manager_listener = 	
 		new PEPeerManagerListener()
@@ -613,17 +610,7 @@ DownloadManagerImpl
 	}
 
 
-  private void startServer() 
-  {
-  	server = PEPeerServerFactory.create();
-  	
-	if ( server == null || server.getPort() == 0 ) {
-		
-			// single port - this situation isn't going to clear easily
-		
-		setFailed( MessageText.getString("DownloadManager.error.unabletostartserver"));
-	}
-  }
+
 
   /**
    * @return
@@ -839,7 +826,6 @@ DownloadManagerImpl
 						  }
 			
 						  peerManager = null; 
-						  server	  = null;	// clear down ref
 						}      
 						
 							// kill the tracker client after the peer manager so that the

@@ -45,8 +45,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.peer.PEPeerServer;
-import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
@@ -54,6 +52,8 @@ import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
+
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandler;
@@ -71,7 +71,7 @@ import com.aelitis.net.udp.PRUDPPacketRequest;
  */
 public class 
 TRTrackerClientClassicImpl
-	implements TRTrackerClient, PEPeerServerListener, ParameterListener
+	implements TRTrackerClient, ParameterListener
 {
 	
 		
@@ -86,7 +86,6 @@ TRTrackerClientClassicImpl
 	}
     
 	private TOTorrent				torrent;
-	private PEPeerServer			peer_server;
 	
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
@@ -220,13 +219,11 @@ TRTrackerClientClassicImpl
   public 
   TRTrackerClientClassicImpl(
    	TOTorrent		_torrent,
-  	PEPeerServer 	_peer_server,
 	String[]		_peer_networks ) 
   	
   	throws TRTrackerClientException
   {
   	torrent			= _torrent;
-  	peer_server		= _peer_server;
   	peer_networks	= _peer_networks;
   	
 		//Get the Tracker url
@@ -277,10 +274,7 @@ TRTrackerClientClassicImpl
 		
 		throw( new TRTrackerClientException( "TRTrackerClient: URL encode fails"));	
 	}
-	
-	peer_server.addListener( this );
-	
-  
+
   
 	COConfigurationManager.addParameterListener("TCP.Announce.Port",this);
 	
@@ -382,7 +376,7 @@ TRTrackerClientClassicImpl
   			
   		}else{
   		
-  			port_num	= peer_server.getPort();
+  			port_num	= NetworkManager.getSingleton().getIncomingConnectionManager().getTCPListeningPortNumber();
   		}
   		
   		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
@@ -431,12 +425,12 @@ TRTrackerClientClassicImpl
       if( min_interval != 0 && secs_to_wait < min_interval ) {
         float percentage = (float)min_interval / current_time_to_wait_secs;  //percentage of original interval
         
-        long orig_override = secs_to_wait;
+        //long orig_override = secs_to_wait;
         
         int added_secs = (int)((min_interval - secs_to_wait) * percentage);  //increase by x percentage of difference
         secs_to_wait += added_secs;
         
-        System.out.println( "MIN INTERVAL CALC: min_interval=" +min_interval+ ", interval=" +current_time_to_wait_secs+ ", orig=" +orig_override+ ", new=" +secs_to_wait+ ", added=" +added_secs+ ", perc=" + percentage);
+        //System.out.println( "MIN INTERVAL CALC: min_interval=" +min_interval+ ", interval=" +current_time_to_wait_secs+ ", orig=" +orig_override+ ", new=" +secs_to_wait+ ", added=" +added_secs+ ", perc=" + percentage);
       }
       
     }
@@ -1220,7 +1214,7 @@ TRTrackerClientClassicImpl
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( peer_server.getPort());
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getIncomingConnectionManager().getTCPListeningPortNumber() );
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			
@@ -2227,9 +2221,7 @@ TRTrackerClientClassicImpl
 	destroy()
 	{       
 		destroyed	= true;
-		
-		peer_server.removeListener( this );
-    
+
 		COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
 		
 		TRTrackerClientFactoryImpl.destroy( this );

@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.PEPeerServer;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -45,12 +44,11 @@ TRTrackerClientFactoryImpl
 	public static TRTrackerClient
 	create(
 		TOTorrent		torrent,
-		PEPeerServer	peer_server,
 		String[]		networks )
 		
 		throws TRTrackerClientException
 	{
-		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, peer_server, networks );
+		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, networks );
 		
 		List	listeners_copy	= new ArrayList();
 		

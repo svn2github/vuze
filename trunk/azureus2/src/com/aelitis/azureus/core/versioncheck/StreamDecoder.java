@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 /**
  * Reads and decodes a socket channel byte stream into a message.
@@ -66,8 +68,15 @@ public class StreamDecoder {
    */
   public ByteBuffer decode( SocketChannel channel ) throws IOException {
     if( handshaking ) {
-      if( channel.read( handshake_buffer ) < 0 ) {
-        throw new IOException( "end of stream" );
+      
+      int bytes_read = channel.read( handshake_buffer );
+      
+      if( bytes_read < 0 ) {
+        throw new IOException( "end of stream on socket read" );
+      }
+      
+      if( bytes_read == 0 ) {
+        Debug.out( "bytes_read == 0" );
       }
       
       if( !handshake_buffer.hasRemaining() ) {  //process handshake

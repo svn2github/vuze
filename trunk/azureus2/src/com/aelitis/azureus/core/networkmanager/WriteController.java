@@ -52,6 +52,7 @@ public class WriteController {
       }
     };
     write_selector_thread.setDaemon( true );
+    write_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
     write_selector_thread.start();
     
     

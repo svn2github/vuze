@@ -37,6 +37,7 @@ public class NetworkManager {
 
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
+  private final IncomingConnectionManager incoming_connection_manager = new IncomingConnectionManager();
   private final WriteController write_controller = new WriteController();
   private final ReadController read_controller = new ReadController();
 
@@ -106,21 +107,29 @@ public class NetworkManager {
    * Get the socket connect and disconnect manager.
    * @return manager
    */
-  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+  public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+  
+  
+  /**
+   * Get the manager for new incoming connections.
+   * @return manager
+   */
+  public IncomingConnectionManager getIncomingConnectionManager() {  return incoming_connection_manager;  }
+  
   
   
   /**
    * Get the socket write controller.
    * @return controller
    */
-  protected WriteController getWriteController() {  return write_controller;  }
+  public WriteController getWriteController() {  return write_controller;  }
   
   
   /**
    * Get the socket read controller.
    * @return controller
    */
-  protected ReadController getReadController() {  return read_controller;  }
+  public ReadController getReadController() {  return read_controller;  }
   
   
   

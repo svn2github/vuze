@@ -76,7 +76,7 @@ public class ConnectDisconnectManager {
   
   
   protected ConnectDisconnectManager() {
-    Thread loop = new AEThread( "ConnectDisconnectManager" ) {
+    AEThread loop = new AEThread( "ConnectDisconnectManager" ) {
       public void runSupport() {
         mainLoop();
       }
@@ -424,7 +424,7 @@ public class ConnectDisconnectManager {
    * Close the given connection.
    * @param channel to close
    */
-  protected void closeConnection( SocketChannel channel ) {
+  public void closeConnection( SocketChannel channel ) {
     try{
     	pending_closes_mon.enter();
     

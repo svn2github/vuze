@@ -26,17 +26,26 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
-import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
+
 
 public class 
 PEPeerTransportFactory 
 {
 	protected static Map	extension_handlers = new HashMap();
 	
+  
+  /**
+   * Create a new default outgoing connection transport.
+   * @param control
+   * @param ip
+   * @param port
+   * @return transport
+   */
 	public static PEPeerTransport
 	createTransport(
 		PEPeerControl	 	control,
@@ -45,6 +54,22 @@ PEPeerTransportFactory
 	{
 		return( new PEPeerTransportImpl( control, ip, port ));
 	}
+  
+  
+  /**
+   * Create a new default incoming connection transport.
+   * @param control
+   * @param channel
+   * @param leading_data
+   * @return transport
+   */
+  public static PEPeerTransport createTransport( PEPeerControl control, SocketChannel channel, ByteBuffer leading_data ) {
+    byte[] data = new byte[ leading_data.remaining() ];
+    leading_data.get( data );
+    return new PEPeerTransportImpl( control, channel, data );
+  }
+  
+  
 
 	public static void
 	registerExtensionHandler(
@@ -74,18 +99,4 @@ PEPeerTransportFactory
 		return( handler.handleExtension( manager, details ));
 	}
 	
-	public static PEPeerServer
-	createServer()
-	{
-		//boolean shared_port 	= COConfigurationManager.getBooleanParameter( "Server.shared.port", true );
-		
-		//if ( shared_port ){
-			
-			return( new PESharedPortServerImpl());
-			
-		//}else{
-		
-		//	return( new PEPeerServerImpl());
-		//}
-	}
 }

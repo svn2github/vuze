@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.*;
 import java.nio.channels.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -36,6 +37,7 @@ import org.gudy.azureus2.core3.util.Debug;
 public class VirtualServerChannelSelector {
   private ServerSocketChannel server_channel = null;
   private final InetSocketAddress bind_address;
+  private final int receive_buffer_size;
   private final SelectListener listener;
   private boolean running = false;
   
@@ -43,10 +45,12 @@ public class VirtualServerChannelSelector {
   /**
    * Create a new server listening on the given address and reporting to the given listener.
    * @param bind_address ip+port to listen on
+   * @param so_rcvbuf_size new socket receive buffer size
    * @param listener to notify of incoming connections
    */
-  public VirtualServerChannelSelector( InetSocketAddress bind_address, SelectListener listener ) {
+  public VirtualServerChannelSelector( InetSocketAddress bind_address, int so_rcvbuf_size, SelectListener listener ) {
     this.bind_address = bind_address;
+    this.receive_buffer_size = so_rcvbuf_size;
     this.listener = listener;
   }
   
@@ -59,8 +63,13 @@ public class VirtualServerChannelSelector {
     if( !running ) {
       try {
         server_channel = ServerSocketChannel.open();
+        
         server_channel.socket().setReuseAddress( true );
+        if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
+        
         server_channel.socket().bind( bind_address, 1024 );
+        
+        LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
         
         AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
           public void runSupport() {
@@ -97,6 +106,9 @@ public class VirtualServerChannelSelector {
         SocketChannel client_channel = server_channel.accept();
         client_channel.configureBlocking( false );
         listener.newConnectionAccepted( client_channel );
+      }
+      catch( AsynchronousCloseException e ) {
+        /* is thrown when stop() is called */
       }
       catch( Throwable t ) {
         Debug.out( t );
