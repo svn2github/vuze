@@ -4,20 +4,32 @@
  
 package org.gudy.azureus2.core3.disk.impl;
 
-// refactored - Moti
-// was a static inner class in DiskManager
-// but doesn't need anything from that class.
-// More readable and simpler as a separate class
-public class PieceMapEntry {
-	private DiskManagerFileInfoImpl _file;
-	private long _offset;
-	private int _length;
 
-	public PieceMapEntry(DiskManagerFileInfoImpl file, long offset, int length) {
+public class 
+PieceMapEntry 
+{
+		/**
+		 * This class denotes the mapping of a piece onto a file. Typically a piece can
+		 * span multiple files. Each overlapping segment has on of these entries created
+		 * for it. 
+		 * It identifies the file, the offset within the file, and the length of the chunk
+		 */
+	
+	private DiskManagerFileInfoImpl _file;
+	private long 					_offset;
+	private int						_length;
+
+	public 
+	PieceMapEntry(
+		DiskManagerFileInfoImpl 	file, 
+		long 						offset, 
+		int 						length )
+	{
 		_file = file;
 		_offset = offset;
 		_length = length;
 	}
+	
 	public DiskManagerFileInfoImpl getFile() {
 		return _file;
 	}

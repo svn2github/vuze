@@ -159,14 +159,16 @@ DMReaderImpl
 		while (buffer.hasRemaining(DirectByteBuffer.SS_DR) && currentFile < pieceList.size() ) {
      
 			PieceMapEntry map_entry = pieceList.get( currentFile );
-      
+      			
+			int	length_available = map_entry.getLength() - (int)( fileOffset - map_entry.getOffset());
+			
 				//explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
 				//see long DMWriterAndCheckerImpl::checkPiece note
 			
-			int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + map_entry.getLength();
+			int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + length_available;
 			
 				// now bring down to the required read length if this is shorter than this
-				// map entry
+				// chunk of data
 			
 			entry_read_limit = Math.min( length, entry_read_limit );
 			

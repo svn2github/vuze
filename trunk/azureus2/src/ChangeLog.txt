@@ -44,6 +44,8 @@ CHANGE: Core | When restarting torrents are checked in smallest->largest size [P
 CHANGE: Core | Reworked the piece picking so that slow peers don't "block" pieces to be completed [Gudy]
 CHANGE: UI   | Added a legend to the Pieces View [Gudy]
 CHANGE: UI   | Pieces View now display if the blocks are in the cache or not [Gudy]
+CHANGE: Core | JAR signing for webui (etc) now based on "tools.jar" from Sun JDK due to changes with their 1.5 JRE [Parg]
+CHANGE: Core | "Pause" command now greyed out if there is nothing to pause [Parg]
 
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
