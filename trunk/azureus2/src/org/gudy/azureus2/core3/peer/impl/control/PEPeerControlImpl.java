@@ -134,6 +134,8 @@ PEPeerControlImpl
 
   private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
   
+  private Map		user_data;
+  
   private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
       return _downloadManager.getStats().getUploadRateLimitBytesPerSecond();
@@ -2843,4 +2845,45 @@ PEPeerControlImpl
   
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   
+  /** To retreive arbitrary objects against this object. */
+  public Object 
+  getData(
+  	String key) 
+  {
+  	try{
+  		this_mon.enter();
+  	
+  		if (user_data == null) return null;
+  		
+  		return user_data.get(key);
+  		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
+  }
+
+  /** To store arbitrary objects against a control. */
+  
+  public void 
+  setData(
+  	String key, 
+	Object value) 
+  {
+  	try{
+  		this_mon.enter();
+  	
+	  	if (user_data == null) {
+	  		user_data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (user_data.containsKey(key))
+	        user_data.remove(key);
+	    } else {
+	      user_data.put(key, value);
+	    }
+  	}finally{
+  		this_mon.exit();
+  	}
+  }
  }

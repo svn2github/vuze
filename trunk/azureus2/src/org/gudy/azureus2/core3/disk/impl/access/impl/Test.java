@@ -1175,7 +1175,11 @@ Test
 	  public boolean isBlockAlreadyWritten( int piece_number, int offset )
 		{
 		return( false );
-	}
+		}
+		 public Object getData (String key){return( null );}
+		  /** To store arbitrary objects against this object. */
+		  public void setData (String key, Object value){}
+	
 
 	  
 	}

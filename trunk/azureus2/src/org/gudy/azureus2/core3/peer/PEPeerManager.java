@@ -210,4 +210,10 @@ PEPeerManager
    * @return upload limit group
    */
   public LimitedRateGroup getUploadLimitedRateGroup();
+  
+  /** To retreive arbitrary objects against this object. */
+  public Object getData (String key);
+  /** To store arbitrary objects against this object. */
+  public void setData (String key, Object value);
+  
 }

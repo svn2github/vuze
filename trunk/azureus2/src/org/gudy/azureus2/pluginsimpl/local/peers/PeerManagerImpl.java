@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.plugins.peers.*;
@@ -46,7 +47,6 @@ PeerManagerImpl
 {
 	protected PEPeerManager	manager;
 	
-	protected static Map		pm_map		= new WeakHashMap();
 	protected static AEMonitor	pm_map_mon	= new AEMonitor( "PeerManager:Map" );
 
 	protected Map		foreign_map	= new WeakHashMap();
@@ -62,13 +62,13 @@ PeerManagerImpl
 		try{
 			pm_map_mon.enter();
 			
-			PeerManagerImpl	res = (PeerManagerImpl)pm_map.get( _manager );
+			PeerManagerImpl	res = (PeerManagerImpl)_manager.getData( "PluginPeerManager" );
 			
 			if ( res == null ){
 				
 				res = new PeerManagerImpl( _manager );
 				
-				pm_map.put( _manager, res );
+				_manager.setData( "PluginPeerManager", res );
 			}
 			
 			return( res );
@@ -156,6 +156,10 @@ PeerManagerImpl
 	mapForeignPeer(
 		Peer	_foreign )
 	{
+			// TODO: foreign map weak hash map won't work because key appears in value
+		
+		Debug.out( "Fix this!!!!" );
+		
 		PEPeer	local = (PEPeer)foreign_map.get( _foreign );
 		
 		if( local == null ){
