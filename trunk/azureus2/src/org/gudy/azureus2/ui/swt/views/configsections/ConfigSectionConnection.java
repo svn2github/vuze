@@ -91,7 +91,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
     StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl());
+    formData.top = new FormAttachment(tcplisten.getControl(), 10);
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     bindip.setLayoutData(formData);
@@ -99,7 +99,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(),5);
+    formData.top = new FormAttachment(tcplisten.getControl(),15);
     formData.left = new FormAttachment(bindip.getControl());
     label.setLayoutData(formData);
     
@@ -126,211 +126,129 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.top = new FormAttachment( max_connects.getControl());
     enableUDP.setLayoutData(formData); 
     
- //////////////////////
-    
-    Label proxytext = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(proxytext, "ConfigView.section.proxy.description2");
-    formData = new FormData();
-    formData.top = new FormAttachment( enableUDP.getControl(), 10 );
-    proxytext.setLayoutData(formData);
-    
- //////////////////////
-    
-    final BooleanParameter enableProxy = new BooleanParameter(cServer, "Enable.Proxy", false, "ConfigView.section.proxy.enable_proxy");
-    formData = new FormData();
-    formData.top = new FormAttachment( proxytext );
-    enableProxy.setLayoutData(formData);  
 
- //////////////////////
     
-    final BooleanParameter enableSocks = new BooleanParameter(cServer, "Enable.SOCKS", false, "ConfigView.section.proxy.enable_socks");
+ //////////////////////  PROXY GROUP /////////////////
+    
+    Group proxy_group = new Group( cServer, SWT.NULL );
+    Messages.setLanguageText( proxy_group, "ConfigView.connection.group.proxy" );
+    GridLayout proxy_layout = new GridLayout();
+    proxy_layout.numColumns = 2;
+    proxy_group.setLayout( proxy_layout );
+    
     formData = new FormData();
-    formData.top = new FormAttachment( enableProxy.getControl() );
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    enableSocks.setLayoutData(formData); 
+    formData.top = new FormAttachment( enableUDP.getControl() );
+    proxy_group.setLayoutData( formData );
+    
+    GridData grid_data;
     
     
-//////////////////////
+    final BooleanParameter enableProxy = new BooleanParameter(proxy_group, "Enable.Proxy", false, "ConfigView.section.proxy.enable_proxy");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    enableProxy.setLayoutData( grid_data );
+    
+    
+    final BooleanParameter enableSocks = new BooleanParameter(proxy_group, "Enable.SOCKS", false, "ConfigView.section.proxy.enable_socks");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    enableSocks.setLayoutData( grid_data );
+    
+    
+    StringParameter pHost = new StringParameter(proxy_group, "Proxy.Host", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pHost.setLayoutData( grid_data );
+    Label lHost = new Label( proxy_group, SWT.NULL );
+    Messages.setLanguageText( lHost, "ConfigView.section.proxy.host" );
 
-    StringParameter pHost = new StringParameter(cServer, "Proxy.Host", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(enableSocks.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pHost.setLayoutData(formData);
     
-    Label lHost = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(lHost, "ConfigView.section.proxy.host");
-    formData = new FormData();
-    formData.top = new FormAttachment(enableSocks.getControl(),5);
-    formData.left = new FormAttachment(pHost.getControl());
-    lHost.setLayoutData(formData);
+    StringParameter pPort = new StringParameter(proxy_group, "Proxy.Port", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 40;
+    pPort.setLayoutData( grid_data );
+    Label lPort = new Label( proxy_group, SWT.NULL );
+    Messages.setLanguageText( lPort, "ConfigView.section.proxy.port" );
+  
 
- //////////////////////
-
-    StringParameter pPort = new StringParameter(cServer, "Proxy.Port", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pHost.getControl());
-    formData.left = new FormAttachment(0,0);
-    formData.width = 40;
-    pPort.setLayoutData(formData);
-    
-    Label lPort = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(lPort, "ConfigView.section.proxy.port");
-    formData = new FormData();
-    formData.top = new FormAttachment(pHost.getControl(),5);
-    formData.left = new FormAttachment(pHost.getControl());
-    lPort.setLayoutData(formData);
-
- //////////////////////
-    
-    StringParameter pUser = new StringParameter(cServer, "Proxy.Username", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pPort.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pUser.setLayoutData(formData);
-    
-    Label lUser = new Label(cServer, SWT.NULL);
+    StringParameter pUser = new StringParameter(proxy_group, "Proxy.Username", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pUser.setLayoutData( grid_data );
+    Label lUser = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lUser, "ConfigView.section.proxy.username");
-    formData = new FormData();
-    formData.top = new FormAttachment(pPort.getControl(),5);
-    formData.left = new FormAttachment(pUser.getControl());
-    lUser.setLayoutData(formData);
-    
- //////////////////////
-    
-    StringParameter pPass = new StringParameter(cServer, "Proxy.Password", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pUser.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pPass.setLayoutData(formData);
-    
-    Label lPass = new Label(cServer, SWT.NULL);
+
+
+    StringParameter pPass = new StringParameter(proxy_group, "Proxy.Password", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pPass.setLayoutData( grid_data );
+    Label lPass = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lPass, "ConfigView.section.proxy.password");
-    formData = new FormData();
-    formData.top = new FormAttachment(pUser.getControl(),5);
-    formData.left = new FormAttachment(pPass.getControl());
-    lPass.setLayoutData(formData);
-    
-//////////////////////
-    
-    final BooleanParameter enableSocksPeer = new BooleanParameter(cServer, "Proxy.Data.Enable", false, "ConfigView.section.proxy.enable_socks.peer");
-    formData = new FormData();
-    formData.top = new FormAttachment( pPass.getControl() );
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    enableSocksPeer.setLayoutData(formData); 
+
+
+    final BooleanParameter enableSocksPeer = new BooleanParameter(proxy_group, "Proxy.Data.Enable", false, "ConfigView.section.proxy.enable_socks.peer");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    enableSocksPeer.setLayoutData( grid_data );
 
     
-    String[] socks_types = {
-            "V4",
-            "V4a",
-            "V5",
-        };
-
-       String dropLabels[] = new String[socks_types.length];
-       String dropValues[] = new String[socks_types.length];
-       for (int i = 0; i < socks_types.length; i++) {
-
-          dropLabels[i] = socks_types[i];
-          dropValues[i] = socks_types[i];
-       }
-       
-       
-       final BooleanParameter socksPeerInform = new BooleanParameter(cServer, "Proxy.Data.SOCKS.inform", true, "ConfigView.section.proxy.peer.informtracker");
-       formData = new FormData();
-       formData.top = new FormAttachment( pPass.getControl() );
-       formData.left = new FormAttachment(enableSocksPeer.getControl());  // 2 params for Pre SWT 3.0
-       socksPeerInform.setLayoutData(formData);
-       
-       StringListParameter	socksType  = new StringListParameter(cServer, "Proxy.Data.SOCKS.version", "V4", dropLabels, dropValues);
-       formData = new FormData();
-       formData.top = new FormAttachment( pPass.getControl(), 0 );
-       formData.left = new FormAttachment(socksPeerInform.getControl());  // 2 params for Pre SWT 3.0
-       socksType.setLayoutData(formData); 
-   
-       Label lSocksVersion = new Label(cServer, SWT.NULL);
-       Messages.setLanguageText(lSocksVersion, "ConfigView.section.proxy.socks.version");
-       formData = new FormData();
-       formData.top = new FormAttachment(pPass.getControl(),0);
-       formData.left = new FormAttachment(socksType.getControl());
-       lSocksVersion.setLayoutData(formData);
- 
-       
-//////////////////////
-       
-       final BooleanParameter sameConfig = new BooleanParameter(cServer, "Proxy.Data.Same", true, "ConfigView.section.proxy.peer.same");
-       formData = new FormData();
-       formData.top = new FormAttachment( enableSocksPeer.getControl() );
-       formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-       sameConfig.setLayoutData(formData); 
-
- //////////////////////
-
-    StringParameter pDataHost = new StringParameter(cServer, "Proxy.Data.Host", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(sameConfig.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pDataHost.setLayoutData(formData);
+    final BooleanParameter socksPeerInform = new BooleanParameter(proxy_group, "Proxy.Data.SOCKS.inform", true, "ConfigView.section.proxy.peer.informtracker");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    socksPeerInform.setLayoutData( grid_data );
     
-    Label lDataHost = new Label(cServer, SWT.NULL);
+
+    String[] socks_types = { "V4", "V4a", "V5" };
+    String dropLabels[] = new String[socks_types.length];
+    String dropValues[] = new String[socks_types.length];
+    for (int i = 0; i < socks_types.length; i++) {
+      dropLabels[i] = socks_types[i];
+      dropValues[i] = socks_types[i];
+    }
+    final StringListParameter	socksType  = new StringListParameter(proxy_group, "Proxy.Data.SOCKS.version", "V4", dropLabels, dropValues);
+    Label lSocksVersion = new Label(proxy_group, SWT.NULL);
+    Messages.setLanguageText(lSocksVersion, "ConfigView.section.proxy.socks.version");
+
+
+    final BooleanParameter sameConfig = new BooleanParameter(proxy_group, "Proxy.Data.Same", true, "ConfigView.section.proxy.peer.same");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    sameConfig.setLayoutData( grid_data );
+    
+
+    StringParameter pDataHost = new StringParameter(proxy_group, "Proxy.Data.Host", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pDataHost.setLayoutData( grid_data );
+    Label lDataHost = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lDataHost, "ConfigView.section.proxy.host");
-    formData = new FormData();
-    formData.top = new FormAttachment(sameConfig.getControl(),5);
-    formData.left = new FormAttachment(pDataHost.getControl());
-    lDataHost.setLayoutData(formData);
 
- //////////////////////
 
-    StringParameter pDataPort = new StringParameter(cServer, "Proxy.Data.Port", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataHost.getControl());
-    formData.left = new FormAttachment(0,0);
-    formData.width = 40;
-    pDataPort.setLayoutData(formData);
-    
-    Label lDataPort = new Label(cServer, SWT.NULL);
+    StringParameter pDataPort = new StringParameter(proxy_group, "Proxy.Data.Port", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 40;
+    pDataPort.setLayoutData( grid_data );
+    Label lDataPort = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lDataPort, "ConfigView.section.proxy.port");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataHost.getControl(),5);
-    formData.left = new FormAttachment(pDataHost.getControl());
-    lDataPort.setLayoutData(formData);
 
- //////////////////////
     
-    StringParameter pDataUser = new StringParameter(cServer, "Proxy.Data.Username", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataPort.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pDataUser.setLayoutData(formData);
-    
-    Label lDataUser = new Label(cServer, SWT.NULL);
+    StringParameter pDataUser = new StringParameter(proxy_group, "Proxy.Data.Username", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pDataUser.setLayoutData( grid_data );
+    Label lDataUser = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lDataUser, "ConfigView.section.proxy.username");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataPort.getControl(),5);
-    formData.left = new FormAttachment(pDataUser.getControl());
-    lDataUser.setLayoutData(formData);
+
     
- //////////////////////
-    
-    StringParameter pDataPass = new StringParameter(cServer, "Proxy.Data.Password", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataUser.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    pDataPass.setLayoutData(formData);
-    
-    Label lDataPass = new Label(cServer, SWT.NULL);
+    StringParameter pDataPass = new StringParameter(proxy_group, "Proxy.Data.Password", "");
+    grid_data = new GridData();
+    grid_data.widthHint = 105;
+    pDataPass.setLayoutData( grid_data );
+    Label lDataPass = new Label(proxy_group, SWT.NULL);
     Messages.setLanguageText(lDataPass, "ConfigView.section.proxy.password");
-    formData = new FormData();
-    formData.top = new FormAttachment(pDataUser.getControl(),5);
-    formData.left = new FormAttachment(pDataPass.getControl());
-    lDataPass.setLayoutData(formData);
+
     
- //////////////////////
     
     final Control[] proxy_controls = new Control[]
     {	enableSocks.getControl(),
@@ -364,29 +282,30 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
 				    lDataUser,
 				    pDataUser.getControl(),
 				    lDataPass,
-				    pDataPass.getControl(),
+				    pDataPass.getControl()
 			    };
         
         final Control[] proxy_peer_details = new Control[]
 				{
         			sameConfig.getControl(),
         			socksPeerInform.getControl(),
-					socksType.getControl(),
-					lSocksVersion,
+        			socksType.getControl(),
+        			lSocksVersion
 				};
         
         IAdditionalActionPerformer proxy_peer_enabler =
             new GenericActionPerformer(new Control[]{}) {
               public void performAction()
               {
-             	for (int i=0;i<proxy_peer_controls.length;i++){
+                for (int i=0;i<proxy_peer_controls.length;i++){
+             	  
+                  proxy_peer_controls[i].setEnabled( enableSocksPeer.isSelected() && !sameConfig.isSelected());
+                }
+                
+                for (int i=0;i<proxy_peer_details.length;i++){
               		
-              		proxy_peer_controls[i].setEnabled( enableSocksPeer.isSelected() && !sameConfig.isSelected());
-              	}
-             	for (int i=0;i<proxy_peer_details.length;i++){
-              		
-             		proxy_peer_details[i].setEnabled( enableSocksPeer.isSelected());
-              	}
+                  proxy_peer_details[i].setEnabled( enableSocksPeer.isSelected());
+                }
               }
             };
     
@@ -395,9 +314,10 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
     sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
     
- //////////////////////
     
-
+    
+ ////////////////////// OVERRIDE GROUP ///////////////////
+    
     Group overrideGroup = new Group(cServer,SWT.NULL);
     Messages.setLanguageText(overrideGroup,"ConfigView.group.override");
     GridLayout gridLayout = new GridLayout();
@@ -405,26 +325,25 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     overrideGroup.setLayout(gridLayout);
     
     formData = new FormData();
-    formData.top = new FormAttachment(pDataPass.getControl(),0);
-    overrideGroup.setLayoutData(formData);
+    formData.top = new FormAttachment( proxy_group );
+    overrideGroup.setLayoutData( formData );
+    
     
     StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
     GridData data = new GridData();
     data.widthHint = 100;
     overrideip.setLayoutData(data);
-    
     label = new Label(overrideGroup, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.overrideip");
     
- //////////////////////
     
     StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
     data = new GridData();
-    data.widthHint = 100;
+    data.widthHint = 40;
     tcpAnnounce.setLayoutData(data);
-    
     label = new Label(overrideGroup, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.announceport");
+    
      
  ///////////////////////
     
