@@ -156,7 +156,6 @@ public class Transport {
     else if( connect_request_key != null ) {
       NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
     }
-    else System.out.println( "transport not connected and not pending" );
   }
   
   

@@ -107,11 +107,9 @@ public class Connection {
    * Close and shutdown this connection.
    */
   public void close() {
-    if( is_connected ) {
-      outgoing_message_queue.destroy();
-      transport.close();
-      is_connected = false;
-    }
+    outgoing_message_queue.destroy();
+    transport.close();
+    is_connected = false;
   }
   
   

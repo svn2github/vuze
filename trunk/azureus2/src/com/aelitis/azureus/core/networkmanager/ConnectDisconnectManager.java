@@ -35,14 +35,17 @@ import org.gudy.azureus2.core3.util.*;
  * Manages new connection establishment and ended connection termination.
  */
 public class ConnectDisconnectManager {
-  private static final int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;
+  private static final int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  //NOTE: WinXP SP2 limits to 10 max at any given time
+  private static final int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;
   private static final int CONNECT_ATTEMPT_TIMEOUT = 30*1000;  //30sec
+  private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
   
   private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
   private final LinkedList new_requests = new LinkedList();
   private final HashMap pending_attempts = new HashMap();
   private final HashMap canceled_requests = new HashMap();
   private final LinkedList pending_closes = new LinkedList();
+  private final Random random = new Random();
   
   private static final boolean SHOW_CONNECT_STATS = false;
   
@@ -68,134 +71,148 @@ public class ConnectDisconnectManager {
   }
   
   
-  private void addNewOutboundRequests() {
-    synchronized( new_requests ) {
-      while( pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS && !new_requests.isEmpty() ) {
-        final ConnectionRequest request = (ConnectionRequest)new_requests.removeFirst();
-        
-        synchronized( canceled_requests ) {
-          if( canceled_requests.containsKey( request.listener ) ) {  //it's been canceled
-            canceled_requests.remove( request.listener );
-            continue;
-          }
-        }
-        
-        try {
-          request.channel = SocketChannel.open();
-          
-          String rcv_size = System.getProperty("socket.SO_RCVBUF");
-          if ( rcv_size != null ) request.channel.socket().setReceiveBufferSize( Integer.parseInt( rcv_size ) );
-          
-          String snd_size = System.getProperty("socket.SO_SNDBUF");
-          if ( snd_size != null ) request.channel.socket().setSendBufferSize( Integer.parseInt( snd_size ) );
+  private void addNewOutboundRequests() {    
+    while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+      ConnectionRequest cr;
+      synchronized( new_requests ) {
+        if( new_requests.isEmpty() )  break;
+        cr = (ConnectionRequest)new_requests.removeFirst();
+      }
+      addNewRequest( cr );
+    }
+  }
+  
+  
 
-          String ip_tos = System.getProperty("socket.IPTOS");
-          if ( ip_tos != null ) request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+  private void addNewRequest( final ConnectionRequest request ) {
+    synchronized( canceled_requests ) {
+      if( canceled_requests.containsKey( request.listener ) ) {  //it's been canceled
+        canceled_requests.remove( request.listener );
+        return;
+      }
+    }
+    
+    try {
+      request.channel = SocketChannel.open();
+      
+      String rcv_size = System.getProperty("socket.SO_RCVBUF");
+      if ( rcv_size != null ) request.channel.socket().setReceiveBufferSize( Integer.parseInt( rcv_size ) );
+      
+      String snd_size = System.getProperty("socket.SO_SNDBUF");
+      if ( snd_size != null ) request.channel.socket().setSendBufferSize( Integer.parseInt( snd_size ) );
 
-          String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-          if ( bindIP.length() > 6 ) {
-            request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
-          }
-          
-          request.channel.configureBlocking( false );
-          request.channel.connect( request.address );
-          
-          connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
-            public void selectSuccess( Object attachment ) {
-              synchronized( canceled_requests ) {
-                if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
-                  try {
-                    if( request.channel.finishConnect() ) {
-                      
-                      if( SHOW_CONNECT_STATS ) {
-                        long queue_wait_time = request.connect_start_time - request.request_start_time;
-                        long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-                        int num_queued = new_requests.size();
-                        int num_connecting = pending_attempts.size();
-                        System.out.println("S: queue_wait_time="+queue_wait_time+
-                                           ", connect_time="+connect_time+
-                                           ", num_queued="+num_queued+
-                                           ", num_connecting="+num_connecting);
-                      }
-                      
-                      
-                      request.listener.connectSuccess( request.channel );
-                    }
-                    else { //should never happen
-                      System.out.println( "finishConnect() failed" );
-                      request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
-                      synchronized( pending_closes ) {
-                        pending_closes.addLast( request.channel );
-                      }
-                    }
+      String ip_tos = System.getProperty("socket.IPTOS");
+      if ( ip_tos != null ) request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+
+      String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+      if ( bindIP.length() > 6 ) {
+        request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+      }
+      
+      request.channel.configureBlocking( false );
+      request.channel.connect( request.address );
+      
+      connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
+        public void selectSuccess( Object attachment ) {
+          synchronized( canceled_requests ) {
+            if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
+              try {
+                if( request.channel.finishConnect() ) {
+                  
+                  if( SHOW_CONNECT_STATS ) {
+                    long queue_wait_time = request.connect_start_time - request.request_start_time;
+                    long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+                    int num_queued = new_requests.size();
+                    int num_connecting = pending_attempts.size();
+                    System.out.println("S: queue_wait_time="+queue_wait_time+
+                                       ", connect_time="+connect_time+
+                                       ", num_queued="+num_queued+
+                                       ", num_canceled="+canceled_requests.size()+
+                                       ", num_connecting="+num_connecting);
                   }
-                  catch( Throwable t ) {
-                    
-                    if( SHOW_CONNECT_STATS ) {
-                      long queue_wait_time = request.connect_start_time - request.request_start_time;
-                      long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-                      int num_queued = new_requests.size();
-                      int num_connecting = pending_attempts.size();
-                      System.out.println("F: queue_wait_time="+queue_wait_time+
-                                         ", connect_time="+connect_time+
-                                         ", num_queued="+num_queued+
-                                         ", num_connecting="+num_connecting);
-                    }
-                    
-                    request.listener.connectFailure( t );
-                    synchronized( pending_closes ) {
-                      pending_closes.addLast( request.channel );
-                    }
-                  }
+                  
+                  request.listener.connectSuccess( request.channel );
                 }
-                else {  //if canceled, no need to invoke listener
-                  canceled_requests.remove( request.listener );
+                else { //should never happen
+                  System.out.println( "finishConnect() failed" );
+                  request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
                   synchronized( pending_closes ) {
                     pending_closes.addLast( request.channel );
                   }
                 }
               }
-              pending_attempts.remove( request );
+              catch( Throwable t ) {
+                
+                if( SHOW_CONNECT_STATS ) {
+                  long queue_wait_time = request.connect_start_time - request.request_start_time;
+                  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+                  int num_queued = new_requests.size();
+                  int num_connecting = pending_attempts.size();
+                  System.out.println("F: queue_wait_time="+queue_wait_time+
+                                     ", connect_time="+connect_time+
+                                     ", num_queued="+num_queued+
+                                     ", num_canceled="+canceled_requests.size()+
+                                     ", num_connecting="+num_connecting);
+                }
+                
+                request.listener.connectFailure( t );
+                synchronized( pending_closes ) {
+                  pending_closes.addLast( request.channel );
+                }
+              }
             }
-            
-            public void selectFailure( Throwable msg ) {
-              System.out.println( "selectFailure" );
-              
+            else {  //if already canceled, no need to invoke listener
+              canceled_requests.remove( request.listener );
               synchronized( pending_closes ) {
                 pending_closes.addLast( request.channel );
               }
-              pending_attempts.remove( request );
-              synchronized( canceled_requests ) {  //cleaup, remove from cancel list
-                canceled_requests.remove( request.listener );
-              }
-              request.listener.connectFailure( msg );
-            }
-          }, null );
-   
-          request.connect_start_time = SystemTime.getCurrentTime();
-          pending_attempts.put( request, null );
-        }
-        catch( Throwable t ) {
-          t.printStackTrace();
-          if( request.channel != null ) {
-            synchronized( pending_closes ) {
-              pending_closes.addLast( request.channel );
             }
           }
-          request.listener.connectFailure( t );
+          pending_attempts.remove( request );
         }
         
+        public void selectFailure( Throwable msg ) {
+          System.out.println( "selectFailure" );
+          synchronized( pending_closes ) {
+            pending_closes.addLast( request.channel );
+          }
+          synchronized( canceled_requests ) {
+            if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
+              request.listener.connectFailure( msg );
+            }
+            else {  //if already canceled, no need to invoke listener
+              canceled_requests.remove( request.listener );
+            }
+          }
+          pending_attempts.remove( request );
+        }
+      }, null );
+
+      request.connect_start_time = SystemTime.getCurrentTime();
+      pending_attempts.put( request, null );
+    }
+    catch( Throwable t ) {
+      t.printStackTrace();
+      if( request.channel != null ) {
+        synchronized( pending_closes ) {
+          pending_closes.addLast( request.channel );
+        }
       }
+      request.listener.connectFailure( t );
     }
   }
   
   
+  
   private void runSelect() {
-    connect_selector.select( 1000 );
+    connect_selector.select( 100 );
+    int num_stalled_requests = 0;
+    
     //do connect attempt timeout checks
     for( Iterator i = pending_attempts.keySet().iterator(); i.hasNext(); ) {
       ConnectionRequest request = (ConnectionRequest)i.next();
-      if( SystemTime.getCurrentTime() - request.connect_start_time > CONNECT_ATTEMPT_TIMEOUT ) {
+      long waiting_time = SystemTime.getCurrentTime() - request.connect_start_time;
+      if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
         i.remove();
         synchronized( canceled_requests ) {  //cancel it for when it finally gets selected
           canceled_requests.put( request.listener, null );
@@ -205,6 +222,20 @@ public class ConnectDisconnectManager {
         }
         request.listener.connectFailure( new Throwable( "Connection attempt aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
       }
+      else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
+        num_stalled_requests++;
+      }
+    }
+    
+    //check if our connect queue is stalled, and expand if so
+    if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+      ConnectionRequest cr = null;
+      synchronized( new_requests ) {
+        if( !new_requests.isEmpty() ) {
+          cr = (ConnectionRequest)new_requests.removeFirst();
+        }
+      }
+      if( cr != null )  addNewRequest( cr );
     }
   }
   
@@ -232,7 +263,14 @@ public class ConnectDisconnectManager {
   protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
     ConnectionRequest cr = new ConnectionRequest( address, listener );
     synchronized( new_requests ) {
-      new_requests.addLast( cr );
+      //insert at a random position because new connections are usually added in 50-peer
+      //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
+      //connect attempts if there are multiple torrents running
+      int insert_pos = 0;
+      if( new_requests.size() > 0 ) {
+        insert_pos = random.nextInt( new_requests.size() );
+      }
+      new_requests.add( insert_pos, cr );
     }
   }
   
@@ -253,6 +291,15 @@ public class ConnectDisconnectManager {
    * @param listener_key used in the initial connect request
    */
   protected void cancelRequest( ConnectListener listener_key ) {
+    synchronized( new_requests ) {
+      for( Iterator i = new_requests.iterator(); i.hasNext(); ) {
+        ConnectionRequest request = (ConnectionRequest)i.next();
+        if( request.listener == listener_key ) {
+          i.remove();
+          return;
+        }
+      }
+    }
     synchronized( canceled_requests ) {
       canceled_requests.put( listener_key, null );
     }
