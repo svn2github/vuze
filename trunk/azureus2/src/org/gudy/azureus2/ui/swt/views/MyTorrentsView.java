@@ -332,10 +332,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
-    //itemPriority.setImage(ImageRepository.getImage("stop"));
+    itemPriority.setImage(ImageRepository.getImage("speed"));
     
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
+    
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.PUSH);
     Messages.setLanguageText(itemHigh, "MyTorrentsView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.PUSH);
@@ -379,9 +380,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
+    itemChangeTracker.setImage(ImageRepository.getImage("add_tracker"));
     
     final MenuItem itemEditTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
+    itemEditTracker.setImage(ImageRepository.getImage("edit_trackers"));
     
     final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
@@ -391,7 +394,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
-    
+    itemChangeTable.setImage(ImageRepository.getImage("columns"));
     
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {

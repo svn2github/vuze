@@ -59,6 +59,11 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
     loadImage(display, "org/gudy/azureus2/ui/icons/export.gif", "export");
     loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
+    loadImage(display, "org/gudy/azureus2/ui/icons/add_tracker.gif", "add_tracker");
+    loadImage(display, "org/gudy/azureus2/ui/icons/edit_trackers.gif", "edit_trackers");
+    loadImage(display, "org/gudy/azureus2/ui/icons/columns.gif", "columns");
+    loadImage(display, "org/gudy/azureus2/ui/icons/speed.gif", "speed");
+    
     
     //ToolBar Icons
     
