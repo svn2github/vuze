@@ -17,6 +17,7 @@ FEATURE: Core | Non-blocking sockets based TCP tracker implementation [Parg]
 FEATURE: UI   | Torrent export option added to SWT UI [Parg]
 FEATURE: Core | Client identification plugin interface [Parg]
 FEATURE: UI   | Keyboard shortcut parsing system [CrazyAlchemist]
+FEATURE: UI   | System tray menus for setting global upload and download bandwidth limits [CrazyAlchemist]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar]

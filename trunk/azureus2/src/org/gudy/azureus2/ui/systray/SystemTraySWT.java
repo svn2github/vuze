@@ -20,18 +20,10 @@
  */
 package org.gudy.azureus2.ui.systray;
 
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Tray;
-import org.eclipse.swt.widgets.TrayItem;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -41,6 +33,8 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+
+import java.util.List;
 
 /**
  * @author Olivier Chalouhi
@@ -80,7 +74,12 @@ public class SystemTraySWT {
     Messages.setLanguageText(itemCloseAll,"SystemTray.menu.closealldownloadbars");
     
     new MenuItem(menu,SWT.SEPARATOR);
-    
+
+    createUploadLimitMenu(menu);
+    createDownloadLimitMenu(menu);
+
+    new MenuItem(menu, SWT.SEPARATOR);
+
     final MenuItem itemStartAll = new MenuItem(menu,SWT.NULL);
     Messages.setLanguageText(itemStartAll,"SystemTray.menu.startalltransfers");
     
@@ -92,7 +91,7 @@ public class SystemTraySWT {
     
     final MenuItem itemResume = new MenuItem(menu,SWT.NULL);
     Messages.setLanguageText(itemResume,"SystemTray.menu.resumetransfers");
-    
+
     new MenuItem(menu,SWT.SEPARATOR);
     
     final MenuItem itemExit = new MenuItem(menu,SWT.NULL);
@@ -176,8 +175,92 @@ public class SystemTraySWT {
       }
     });               
   }
-  
-  public void dispose() {
+
+    /**
+     * Creates the global upload limit context menu item
+     * @param parent The system tray contextual menu
+     */
+    private final void createUploadLimitMenu(final Menu parent)
+    {
+        final MenuItem uploadSpeedItem = new MenuItem(parent, SWT.CASCADE);
+        uploadSpeedItem.setText(MessageText.getString("GeneralView.label.maxuploadspeed"));
+
+        final Menu uploadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+        createLimitMenuItems("Max Upload Speed KBs", 1024*1024, uploadSpeedMenu); // 1MiB - see MyTorrentsView
+        uploadSpeedItem.setMenu(uploadSpeedMenu);
+    }
+
+    /**
+     * Creates the global download limit context menu item
+     * @param parent The system tray contextual menu
+     */
+    private final void createDownloadLimitMenu(final Menu parent)
+    {
+        final MenuItem downloadSpeedItem = new MenuItem(parent, SWT.CASCADE);
+        downloadSpeedItem.setText(MessageText.getString("GeneralView.label.maxdownloadspeed"));
+
+        final Menu downloadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+        createLimitMenuItems("Max Download Speed KBs", 1024*1024, downloadSpeedMenu); // 1MiB starting point
+        downloadSpeedItem.setMenu(downloadSpeedMenu);
+    }
+
+    /**
+     * Creates the submenu items for bandwidth limit
+     * @param configKey Configuration key to get initial max bandwidth
+     * @param maxInitialValue
+     * @param parent Parent menu to populate the items in
+     */
+    private final void createLimitMenuItems(final String configKey, int maxInitialValue, final Menu parent) {
+        final int speedPartitions = 10;
+        final MenuItem[] items = new MenuItem[speedPartitions + 1];
+
+        int maxBandwidth = COConfigurationManager.getIntParameter(configKey,0) * 1024;
+
+        items[0] = new MenuItem(parent, SWT.CHECK);
+        items[0].setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
+        items[0].setData("maxkb", new Integer(0));
+        items[0].setSelection(maxBandwidth == 0);
+        items[0].addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+
+        // set default for calculations
+        if(maxBandwidth == 0) maxBandwidth = maxInitialValue;
+        for (int i = 2; i < speedPartitions + 2; i++) {
+            final int bandwidth = maxBandwidth / speedPartitions * (speedPartitions + 2 - i);
+            items[i - 1] = new MenuItem(parent, SWT.CHECK);
+            items[i - 1].setData("maxkb", new Integer(bandwidth));
+            items[i - 1].setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(bandwidth));
+            items[i - 1].setSelection(bandwidth == maxBandwidth);
+            items[i - 1].addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+        }
+    }
+
+    /**
+     * Gets the selection listener of a upload or download limit menu item (including unlimited)
+     * @param items The array of limit menu items
+     * @param configKey The configuration key
+     * @return The selection listener
+     */
+   private final Listener getLimitMenuItemListener(final MenuItem[] items, final String configKey)
+   {
+       return new Listener() {
+           public void handleEvent(Event event) {
+               for(int i = 0; i < items.length; i++) {
+                    if(items[i] == event.widget)
+                    {
+                        items[i].setSelection(true);
+                        COConfigurationManager.setParameter(configKey, ((Integer)items[i].getData("maxkb")).intValue() / 1024);
+                    }
+                    else {
+                        items[i].setSelection(false);
+                    }
+                }
+
+               // do not recompute speed limit partitions to avoid items jumping around the place from the user's POV
+           }
+       };
+   }
+
+    public void dispose() {
     if(trayItem != null && !trayItem.isDisposed()) {
       trayItem.dispose();
     }
