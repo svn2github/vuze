@@ -7,7 +7,10 @@
 package org.gudy.azureus2.core;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
+
+import org.jmule.util.SHA1;
 
 /**
  * A SHA-1 hasher used to check pieces.
@@ -16,10 +19,15 @@ import java.security.MessageDigest;
  */
 public class SHA1Hasher {
   private MessageDigest _messageDigest = null;
-
+  private SHA1 sha1;
+  private ByteBuffer resultBuffer;
+  
   /** Creates a new instance of SHA1Hasher */
   public SHA1Hasher() throws java.security.NoSuchAlgorithmException {
     _messageDigest = MessageDigest.getInstance("SHA-1");
+    sha1 = new SHA1();
+    resultBuffer = ByteBuffer.allocate(20);
+    resultBuffer.order(ByteOrder.BIG_ENDIAN);
   }
 
   public byte[] calculateHash(byte[] bytes) {
@@ -30,11 +38,18 @@ public class SHA1Hasher {
   public byte[] calculateHash(ByteBuffer buffer) {
     //Temp stores the current buffer's position
     int position = buffer.position();
-    while (buffer.hasRemaining()) {
-      _messageDigest.update(buffer.get());
-    }
+    sha1.update(buffer);
     //Restores the buffer's position
     buffer.position(position);
-    return _messageDigest.digest();
+    
+    resultBuffer.position(0);
+    sha1.finalDigest(resultBuffer);
+    
+    byte[] result = new byte[20];
+    resultBuffer.position(0);
+    resultBuffer.get(result);
+    System.out.println(result);
+    
+    return result;
   }
 }
