@@ -39,35 +39,36 @@ public class Messages {
 
     // TODO Auto-generated constructor stub
   }
-  public static void updateLanguageForControl(Widget composite) {
-    if (composite == null || composite.isDisposed())
+  public static void updateLanguageForControl(Widget widget) {
+    if (widget == null || widget.isDisposed())
       return;
 
-    updateLanguageFromData(composite);
+    updateLanguageFromData(widget);
+    updateToolTipFromData(widget);
 
-    if (composite instanceof CTabFolder) {
-      CTabFolder folder = (CTabFolder) composite;
+    if (widget instanceof CTabFolder) {
+      CTabFolder folder = (CTabFolder) widget;
       CTabItem[] items = folder.getItems();
       for (int i = 0; i < items.length; i++) {
         updateLanguageForControl(items[i]);
         updateLanguageForControl(items[i].getControl());
       }
-    } else if (composite instanceof TabFolder) {
-      TabFolder folder = (TabFolder) composite;
+    } else if (widget instanceof TabFolder) {
+      TabFolder folder = (TabFolder) widget;
       TabItem[] items = folder.getItems();
       for (int i = 0; i < items.length; i++) {
         updateLanguageForControl(items[i]);
         updateLanguageForControl(items[i].getControl());
       }
     }
-    else if (composite instanceof Composite) {
-      Composite group = (Composite) composite;
+    else if (widget instanceof Composite) {
+      Composite group = (Composite) widget;
       Control[] controls = group.getChildren();
       for (int i = 0; i < controls.length; i++) {
         updateLanguageForControl(controls[i]);
       }
-      if (composite instanceof Table) {
-        Table table = (Table) composite;
+      if (widget instanceof Table) {
+        Table table = (Table) widget;
         TableColumn[] columns = table.getColumns();
         for (int i = 0; i < columns.length; i++) {
           updateLanguageFromData(columns[i]);
@@ -76,12 +77,12 @@ public class Messages {
       }
       group.layout();
     }
-    else if (composite instanceof MenuItem) {
-      MenuItem menuItem = (MenuItem) composite;
+    else if (widget instanceof MenuItem) {
+      MenuItem menuItem = (MenuItem) widget;
       updateLanguageForControl(menuItem.getMenu());
     }
-    else if (composite instanceof Menu) {
-      Menu menu = (Menu) composite;
+    else if (widget instanceof Menu) {
+      Menu menu = (Menu) widget;
       if (menu.getStyle() == SWT.POP_UP)
         System.out.println("POP_UP");
 
@@ -95,8 +96,23 @@ public class Messages {
   public static void setLanguageText(Widget widget, String key) {
     widget.setData(key);
     updateLanguageFromData(widget);
+    updateToolTipFromData(widget);
   }
   
+  
+  private static void updateToolTipFromData(Widget widget) {
+    if(widget instanceof Control) {
+      String key = (String) widget.getData();
+      if(key != null) {
+        if(!key.endsWith(".tooltip"))
+          key += ".tooltip";
+        String toolTip = MessageText.getString(key);
+        if(!toolTip.equals('!' + key + '!')) {
+          ((Control)widget).setToolTipText(toolTip);
+        }
+      }
+    }
+  }
   
   /**
    * Set the given widget's tool tip using the given MessagesBundle property.
@@ -115,6 +131,9 @@ public class Messages {
 
   public static void updateLanguageFromData(Widget widget) {
     if (widget.getData() != null) {
+      String key = (String) widget.getData();
+      if(key.endsWith(".tooltip"))
+        return;
       if (widget instanceof MenuItem)
          ((MenuItem) widget).setText(MessageText.getString((String) widget.getData()));
       else if (widget instanceof TableColumn)
