@@ -33,6 +33,15 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( new TRTrackerServerImpl( port ));
+		return( new TRTrackerServerImpl( port, false ));
+	}
+	
+	public static TRTrackerServer
+	createSSL(
+		int		port )
+		
+		throws TRTrackerServerException
+	{
+		return( new TRTrackerServerImpl( port, true ));
 	}
 }

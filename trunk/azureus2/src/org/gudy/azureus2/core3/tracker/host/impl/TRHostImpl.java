@@ -107,7 +107,7 @@ TRHostImpl
 											
 												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 											
-												startServer( port );
+												startServer( port, false );
 												
 											}catch( Throwable e ){
 												
@@ -219,12 +219,14 @@ TRHostImpl
 			e.printStackTrace();	
 		}
 		
-		int	port;
+		int		port;
+		boolean	ssl;
 		
 		if ( state == TRHostTorrent.TS_PUBLISHED ){
 		
 			port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-						
+			
+			ssl	= false;		
 		}else{
 		
 			port = torrent.getAnnounceURL().getPort();
@@ -233,9 +235,11 @@ TRHostImpl
 				
 				port = DEFAULT_PORT;
 			}
+			
+			ssl = torrent.getAnnounceURL().getProtocol().equalsIgnoreCase("https");
 		}
 		
-		TRTrackerServer server = startServer( port );
+		TRTrackerServer server = startServer( port, ssl );
 		
 		TRHostTorrent host_torrent;
 	
@@ -271,7 +275,8 @@ TRHostImpl
 	
 	protected synchronized TRTrackerServer
 	startServer(
-		int		port )
+		int		port,
+		boolean	ssl )
 		
 		throws TRHostException
 	{
@@ -282,7 +287,14 @@ TRHostImpl
 				
 			try{
 				
-				server = TRTrackerServerFactory.create( port );
+				if ( ssl ){
+					
+					server = TRTrackerServerFactory.createSSL( port );
+				
+				}else{
+				
+					server = TRTrackerServerFactory.create( port );
+				}
 					
 				server_map.put( new Integer( port ), server );
 					
@@ -351,7 +363,7 @@ TRHostImpl
 				
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 
-		String	url = "http://";
+		String	url = torrent.getAnnounceURL().getProtocol() + "://";
 		
 		if ( bind_ip.length() < 7 ){
 				
@@ -829,7 +841,9 @@ TRHostImpl
 									
 									int	 	tracker_port 	= ((TRHostTorrentHostImpl)host_torrent).getPort();
 											
-									URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
+									String protocol = torrent_to_send.getAnnounceURL().getProtocol();
+									
+									URL announce_url = new URL( protocol + "://" + tracker_ip + ":" + tracker_port + "/announce" );
 									
 									torrent_to_send.setAnnounceURL( announce_url );
 									

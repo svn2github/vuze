@@ -28,6 +28,8 @@ import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Map;
 
+import javax.net.ssl.*;
+
 //import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -53,7 +55,6 @@ TRTrackerClientClassicImpl
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
-
 	
 	private TOTorrent				torrent;
 	private TimerEvent				current_timer_event;
@@ -604,8 +605,35 @@ TRTrackerClientClassicImpl
 		try{      
 	  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
 	  
-	  		HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
-	  
+			HttpURLConnection con;
+			
+	  		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+	  			
+	  				// see ConfigurationChecker for SSL client defaults
+	  				
+	  			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+	  			
+	  				// allow for certs that contain IP addresses rather than dns names
+	  				
+	  			ssl_con.setHostnameVerifier(
+	  				new HostnameVerifier()
+	  				{
+	  					public boolean
+	  					verify(
+	  						String		host,
+	  						SSLSession	session )
+	  					{
+	  						return( true );
+	  					}
+	  				});
+	  				
+	  			con = ssl_con;
+	  			
+	  		}else{
+	  		
+	  			con = (HttpURLConnection) reqUrl.openConnection();
+	  		}
+	  		
 	  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 	  	  
  	  		con.connect();

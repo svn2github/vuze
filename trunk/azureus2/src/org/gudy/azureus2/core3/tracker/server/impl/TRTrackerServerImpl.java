@@ -26,6 +26,9 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
+import javax.net.ssl.*;
+import java.security.*;
+
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.ipfilter.*;
@@ -35,6 +38,9 @@ public class
 TRTrackerServerImpl 
 	implements TRTrackerServer
 {
+	protected static final String SSL_KEYS		= ".keystore";
+	protected static final String SSL_PASSWORD	= "changeit";
+	
 	protected static final int THREAD_POOL_SIZE				= 10;
 	
 	protected static final int RETRY_MINIMUM_SECS			= 60;
@@ -42,6 +48,18 @@ TRTrackerServerImpl
 	protected static final int CLIENT_TIMEOUT_MULTIPLIER	= 3;
 	
 	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
+	
+	static String	keystore;
+	
+	static{
+			// keytool -genkey -keystore %home%\.certs -keypass changeit -storepass changeit -keyalg rsa -alias azureus
+
+			// keytool -export -keystore %home%\.certs -keypass changeit -storepass changeit -alias azureus -file azureus.cer
+
+			// keytool -import -keystore %home%\.keystore -alias azureus -file azureus.cer
+			
+		keystore = FileUtil.getApplicationFile(SSL_KEYS).getAbsolutePath();
+	}
 	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();
 	
@@ -62,7 +80,8 @@ TRTrackerServerImpl
 	
 	public
 	TRTrackerServerImpl(
-		int		_port )
+		int			_port,
+		boolean		_ssl  )
 		
 		throws TRTrackerServerException
 	{
@@ -90,39 +109,113 @@ TRTrackerServerImpl
 
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 
-		try{
-			ServerSocket ss;
+		if ( _ssl ){
 			
-			if ( bind_ip.length() < 7 ){
+			try {
 				
-				ss = new ServerSocket( port, 128 );
+				Security.addProvider((java.security.Provider)
+						Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
+   
+				SSLContext context = SSLContext.getInstance( "TLS" );
+ 
+					// Create the key manager factory used to extract the server key
+  
+				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+ 
+				KeyStore key_store = KeyStore.getInstance("JKS");
+       
+				InputStream kis;
+   
+				kis = new FileInputStream(keystore);
+   
+				key_store.load(kis, SSL_PASSWORD.toCharArray());
+ 
+				kis.close();
+      
+				keyManagerFactory.init(key_store, SSL_PASSWORD.toCharArray());
+  
+					// Initialize the context with the key managers
+  
+				context.init(  	keyManagerFactory.getKeyManagers(), 
+							   	null,
+								new java.security.SecureRandom());
+ 	      
+				SSLServerSocketFactory factory = context.getServerSocketFactory();
+ 
+				SSLServerSocket ssl_server_socket;
 				
-			}else{
+				if ( bind_ip.length() < 7 ){
+					
+					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128 );
+					
+				}else{
+					
+					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128, InetAddress.getByName(bind_ip));
+				}
+
+				String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
+  
+				ssl_server_socket.setEnabledCipherSuites(cipherSuites);
+ 
+				ssl_server_socket.setNeedClientAuth(false);
 				
-				ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
-			}
-		
-			final ServerSocket	f_ss = ss;
-			
-			Thread accept_thread = 
-					new Thread("TRTrackerServer:accept.loop")
-					{
-						public void
-						run()
+				final SSLServerSocket	f_ss = ssl_server_socket;
+				
+				Thread accept_thread = 
+						new Thread("TRTrackerServer:accept.loop(ssl)")
 						{
-							acceptLoop( f_ss );
-						}
-					};
+							public void
+							run()
+							{
+								acceptLoop( f_ss );
+							}
+						};
+			
+				accept_thread.setDaemon( true );
+			
+				accept_thread.start();									
+			
+			}catch( Throwable e){
+				  
+				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
+   
+			}
+		}else{
+			
+			try{
+				ServerSocket ss;
+				
+				if ( bind_ip.length() < 7 ){
+					
+					ss = new ServerSocket( port, 128 );
+					
+				}else{
+					
+					ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
+				}
+			
+				final ServerSocket	f_ss = ss;
+				
+				Thread accept_thread = 
+						new Thread("TRTrackerServer:accept.loop")
+						{
+							public void
+							run()
+							{
+								acceptLoop( f_ss );
+							}
+						};
+			
+				accept_thread.setDaemon( true );
+			
+				accept_thread.start();									
 		
-			accept_thread.setDaemon( true );
-		
-			accept_thread.start();									
-	
-		}catch( Throwable e ){
-						
-			throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-		}			
-		
+			}catch( Throwable e ){
+							
+				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
+			}			
+		}
+			 
 		Thread timer_thread = 
 			new Thread("TrackerServer:timer.loop")
 			{
