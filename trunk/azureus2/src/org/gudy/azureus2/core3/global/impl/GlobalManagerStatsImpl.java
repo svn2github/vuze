@@ -46,8 +46,8 @@ GlobalManagerStatsImpl
 	  private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
-	  private Average data_send_speed = Average.getInstance(1000, 5);  //average over 5s, update every 1000ms
-    private Average protocol_send_speed = Average.getInstance(1000, 5);  //average over 5s, update every 1000ms
+	  private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
 
 	  protected 

@@ -40,8 +40,8 @@ PEPeerManagerStatsImpl
 	private final Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1s.
 	private final Average protocol_receive_speed = Average.getInstance(1000, 10);
   
-  private final Average data_send_speed  = Average.getInstance(1000, 5);  //average over 5s, update every 1s.
-  private final Average protocol_send_speed  = Average.getInstance(1000, 5);
+  private final Average data_send_speed  = Average.getInstance(1000, 10);  //average over 10s, update every 1s.
+  private final Average protocol_send_speed  = Average.getInstance(1000, 10);
   
 	private final Average overallSpeed = Average.getInstance(5000, 100); //average over 100s, update every 5s
 
