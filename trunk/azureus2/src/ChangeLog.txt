@@ -25,6 +25,7 @@ CHANGE: Status now shows when it is re-checking pieces on download completion [N
 CHANGE: URL dialogs are initialized with the first valid link beginning with http:// from clipboard [Rele]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
+BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
 
 20.11.03 | Azureus 2.0.4.2
 

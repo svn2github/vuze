@@ -100,7 +100,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     for (int j = 0; j < generalCharsets.length; j++) {
       for (int i = 1; i < candidates.length; i++) {
       	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
-        if(candidates[i].getValue() != null && generalCharsets[j].equals(candidates[i].getDecoder().getName()) && !choosableCandidates.contains(candidates[i])) {
+        if(generalCharsets[j].equals(candidates[i].getDecoder().getName()) && !choosableCandidates.contains(candidates[i])) {
           choosableCandidates.add(candidates[i]);
           break;
         }
@@ -111,7 +111,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     for (int j = 0; j < generalCharsets.length; j++) {
     	for (int i = 1; i < candidates.length; i++) {
     		if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
-    		if(candidates[i].getValue() != null && !choosableCandidates.contains(candidates[i])) {
+    		if(!choosableCandidates.contains(candidates[i])) {
     			choosableCandidates.add(candidates[i]);
     			break;
     		}
