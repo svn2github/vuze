@@ -23,6 +23,7 @@ import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -78,4 +79,22 @@ public class SWTManagerImpl
   {
     addView(view, false);
   } 
+  
+  /* 
+   * Not working due to class loader being different between plugins and
+   * main program.
+   * 
+  public boolean loadImage(String resource,String name) {
+    try {
+      ImageRepository.loadImage(getDisplay(),resource,name);
+      return true;
+    } catch(Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+  
+  public Image getImage(String name) {
+    return ImageRepository.getImage(name);
+  }*/
 }

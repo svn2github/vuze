@@ -63,4 +63,26 @@ public interface SWTManager
    * @since 2.1.0.2
    */
   public void addView(PluginView view, boolean autoOpen);
+  
+  /**
+   * A Plugin might call this method to load an image from
+   * a resource (eg: "org/my_name/my_plugin/images/te_image.gif"
+   * @see getImage(String name)
+   * @param resource the resource path to the image
+   * @param name the name used for the image, please use names starting with your plugin name.
+   * @return true is the image was correctly loaded
+   * @since 2.1.0.6
+   */
+  //public boolean loadImage(String resource,String name);
+  
+  /**
+   * Once an image is loaded (@see loadImage(String resource,String name) )
+   * a plugin can retrieve it by calling this method.
+   * 
+   * @param name the name used in loadImage to identify the image.
+   * @return the image
+   *
+   */
+  //public Image getImage(String name);
+  
 }
