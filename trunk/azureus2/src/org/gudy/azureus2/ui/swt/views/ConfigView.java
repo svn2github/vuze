@@ -1712,18 +1712,11 @@ public class ConfigView extends AbstractIView {
     //ctfConfig.setSize(ctfConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
   public void delete() {
     MainWindow.getWindow().setConfig(null);
-    Utils.disposeComposite(tfConfig);
-    //Utils.disposeComposite(ctfConfig);
+    Utils.disposeComposite(tfConfig);    
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
   public String getFullTitle() {
     return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
   }

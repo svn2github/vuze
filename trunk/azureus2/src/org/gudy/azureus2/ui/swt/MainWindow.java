@@ -160,6 +160,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Tab 	my_tracker_tab;
   private IView my_tracker_view;
   
+  private Tab 	stats_tab;
+  
+  
   private Tab console;
   private Tab config;
   private Tab irc;
@@ -510,6 +513,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           irc = new Tab(new IrcView());
         else
           irc.setFocus();
+      }
+    });
+    
+    MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
+    view_stats.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        if (stats_tab == null)
+          stats_tab = new Tab(new SpeedView(globalManager));
+        else
+          stats_tab.setFocus();
       }
     });
 
@@ -2020,6 +2034,20 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	 */
   public void setConfig(Tab tab) {
     config = tab;
+  }
+  
+  /**
+   * @return
+   */
+  public Tab getStats() {
+    return stats_tab;
+  }
+
+  /**
+   * @param tab
+   */
+  public void setStats(Tab tab) {
+    stats_tab = tab;
   }
 
   /**
