@@ -47,7 +47,6 @@ PlatformManagerUpdateChecker
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 	
-	protected PlatformManagerImpl		platform;
 	protected PluginInterface			plugin_interface;
 	
 	public void
@@ -56,15 +55,19 @@ PlatformManagerUpdateChecker
 	{
 		plugin_interface	= _plugin_interface;
 		
+		String	version = "1.0";
+		
 		try{
-			platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
+			PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
+			
+			version = platform.getVersion();
 			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", platform==null?"1.0":platform.getVersion());
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", version );
 		
 		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
 		
