@@ -34,7 +34,7 @@ public class Start {
       Socket sck = null;
       PrintWriter pw = null;
       try {          
-        System.out.println("StartSocket: passing startup args to already-running process.");
+        System.out.println("StartSocket: passing startup args to already-running Azureus java process.");
         
         sck = new Socket("127.0.0.1", 6880);
         
