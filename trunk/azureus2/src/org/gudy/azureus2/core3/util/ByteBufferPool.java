@@ -87,31 +87,37 @@ public class ByteBufferPool {
 
   public ByteBuffer getFreeBuffer(int length) {
     int size = 0;
-    ArrayList pool = null;
+    ArrayList buffPool = null;
     if(length <= SIZE_8K) {
       size = SIZE_8K;
-      pool = freeBuffers8k;
+      buffPool = freeBuffers8k;
     } else if(length <= SIZE_16K) {
       size = SIZE_16K;
-      pool = freeBuffers16k;
+      buffPool = freeBuffers16k;
     } else if(length <= SIZE_32K) {
       size = SIZE_32K; 
-      pool = freeBuffers32k;
+      buffPool = freeBuffers32k;
     } else if(length <= SIZE_64K) {
       size = SIZE_64K;
-      pool = freeBuffers64k;
+      buffPool = freeBuffers64k;
     }
     
-    if(size == 0 || pool == null)
-        return null;
-    
+    if(size == 0 || buffPool == null) {
+      System.out.println("ByteBufferPool::getFreeBuffer:: null pool OR requested length too big: " + length);
+      return null;      
+    }
+        
     synchronized (this) {
-      if (pool.size() == 0) {
-        return allocateNewBuffer(size);
+      ByteBuffer buff;
+      if (buffPool.size() == 0) {
+        buff = allocateNewBuffer(size);
       }
       else {
-        return (ByteBuffer) pool.remove(pool.size() - 1);
+        buff = (ByteBuffer) buffPool.remove(buffPool.size() - 1);
+        //TODO Check to make sure this buffer has no still-existing outside references
       }
+      buff.clear();   //scrub the buffer
+      return buff;
     }
     
   }
@@ -138,8 +144,5 @@ public class ByteBufferPool {
     }
   }
 
-  public synchronized void clearFreeBuffers() {
-    //Gudy : Really wrong to want to free those ...
-    //freeBuffers.clear();
-  }
+
 }
