@@ -202,7 +202,7 @@ public class DonationWindow2 {
             tempGC.setFont(mainFont);
             tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes()),80,14,true);
             tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()),235,14,true);
-            tempGC.drawText(stats.getUpTime() / (60*60) + " " + MessageText.getString("DonationWindow.text.hours"),465,14,true);
+            tempGC.drawText(stats.getTotalUpTime() / (60*60) + " " + MessageText.getString("DonationWindow.text.hours"),465,14,true);
             tempGC.drawText(textToSet,10,60,true);
             tempGC.setFont(null);
             tempGC.drawText(MessageText.getString("DonationWindow.text.downloaded"),70,32,true);
@@ -419,7 +419,7 @@ public class DonationWindow2 {
 	    //Check for last asked version
 	    String lastVersionAsked = COConfigurationManager.getStringParameter("donations.lastVersion","");
 	         
-	    long upTime = StatsFactory.getStats().getUpTime();
+	    long upTime = StatsFactory.getStats().getTotalUpTime();
 	    int hours = (int) (upTime / (60*60)); //secs * mins
 	    
 	    //Ask every DONATIONS_ASK_AFTER hours.

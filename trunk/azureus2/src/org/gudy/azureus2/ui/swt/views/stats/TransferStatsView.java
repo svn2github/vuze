@@ -128,7 +128,9 @@ public class TransferStatsView extends AbstractIView {
     
     totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getDownloadedBytes()));
     totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getUploadedBytes()));
-    totalTime.setText("" + totalStats.getUpTime() / (60*60));
+
+    sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
+    totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
   }  
   
   public String getData() {

@@ -38,5 +38,5 @@ public interface OverallStats extends GeneralStats {
   public void setLogLevel(int logLevel);
   
   public String getXMLExport();
-  
+
 }

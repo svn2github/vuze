@@ -27,7 +27,7 @@ package org.gudy.azureus2.core3.stats.transfer;
 public interface GeneralStats {
 
   /**
-   * @return the number of donwloaded bytes
+   * @return the number of downloaded bytes
    */
   public long getDownloadedBytes();
   
@@ -37,9 +37,14 @@ public interface GeneralStats {
   public long getUploadedBytes();
   
   /**
-   * @return the 'up time' in seconds
+   * @return the total lifetime 'up time' in seconds
    */
-  public long getUpTime();
+  public long getTotalUpTime();
+  
+  /**
+   * @return this session uptime in seconds
+   */
+  public long getSessionUpTime();
   
   /**
    * @return the average download speed in bytes per second

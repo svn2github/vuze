@@ -20,7 +20,6 @@
  */
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +48,8 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   long lastDownloaded;
   long lastUploaded;
   long lastUptime; 
+  
+  long session_start_time = SystemTime.getCurrentTime();
   
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
@@ -149,10 +150,14 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 		return totalUploaded;
 	}
 
-	public long getUpTime() {
+	public long getTotalUpTime() {
 		return totalUptime;
   }
 
+  public long getSessionUpTime() {
+    return (SystemTime.getCurrentTime() - session_start_time) / 1000;
+  }
+  
 	public void perform(TimerEvent event) {
     updateStats();
 	}
