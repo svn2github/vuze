@@ -37,8 +37,11 @@ public class Colors implements ParameterListener {
   public static final int BLUES_MIDLIGHT = (BLUES_DARKEST + 1) / 4;
   public static final int BLUES_MIDDARK = ((BLUES_DARKEST + 1) / 2)
       + BLUES_MIDLIGHT;
+  public static final int FADED_LIGHTEST = 0;
+  public static final int FADED_DARKEST = 9;
   
   public static Color[] blues = new Color[BLUES_DARKEST + 1];
+  public static Color[] faded = new Color[FADED_DARKEST + 1];
   public static Color colorProgressBar;
   public static Color colorInverse;
   public static Color colorShiftLeft;
@@ -77,6 +80,12 @@ public class Colors implements ParameterListener {
             - ((float) i / (float) (blues.length - 1));
         hslColor.blend(tR, tG, tB, blendBy);
         blues[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(),
+            hslColor.getBlue());
+        int iSat = hslColor.getSaturation();
+        if (iSat != 0)
+          hslColor.setSaturation(iSat / 2);
+        // else black!
+        faded[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(),
             hslColor.getBlue());
         if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
           toBeDisposed.dispose();

@@ -42,7 +42,7 @@ public class PiecesItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-  private final static int INDEX_COLOR_INVERSE = Colors.BLUES_DARKEST + 1;
+  private final static int INDEX_COLOR_FADEDSTARTS = Colors.BLUES_DARKEST + 1;
   // only supports 0 or 1 border width
   private final static int borderHorizontalSize = 1;
   private final static int borderVerticalSize = 1;
@@ -202,20 +202,17 @@ public class PiecesItem
               }
             }
             nbComplete += nbAvailable;
-            if (needed) {
-              // cheat
-              index = INDEX_COLOR_INVERSE;
-            } else {
-              index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-            }
+            index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
+            if (!needed)
+              index += INDEX_COLOR_FADEDSTARTS;
           }
   
           if (imageBuffer[i] != index) {
             imageBuffer[i] = index;
             if (bImageBufferValid) {
               bImageChanged = true;
-              if (imageBuffer[i] == INDEX_COLOR_INVERSE)
-                gcImage.setForeground(Colors.colorInverse);
+              if (imageBuffer[i] >= INDEX_COLOR_FADEDSTARTS)
+                gcImage.setForeground(Colors.faded[index - INDEX_COLOR_FADEDSTARTS]);
               else
                 gcImage.setForeground(Colors.blues[index]);
               gcImage.drawLine(i + x0, y0, i + x0, y1);
@@ -229,8 +226,8 @@ public class PiecesItem
             if (iLastIndex == imageBuffer[i]) {
               iWidth++;
             } else {
-              if (iLastIndex == INDEX_COLOR_INVERSE)
-                gcImage.setBackground(Colors.colorInverse);
+              if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+                gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
               else
                 gcImage.setBackground(Colors.blues[iLastIndex]);
               gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
@@ -238,8 +235,8 @@ public class PiecesItem
               iLastIndex = imageBuffer[i];
             }
           }
-          if (iLastIndex == INDEX_COLOR_INVERSE)
-            gcImage.setBackground(Colors.colorInverse);
+          if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+            gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
           else
             gcImage.setBackground(Colors.blues[iLastIndex]);
           gcImage.fillRectangle(x1 - iWidth + 1, y0, iWidth, y1 - y0 + 1);
