@@ -284,7 +284,8 @@ public class ConnectDisconnectManager {
       for( Iterator can_it = canceled_requests.iterator(); can_it.hasNext(); ) {
         ConnectListener key = (ConnectListener)can_it.next();
         
-        //boolean found = false;      
+        ConnectionRequest to_remove = null;
+        
         for( Iterator pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext(); ) {
           ConnectionRequest request = (ConnectionRequest)pen_it.next();
           if( request.listener == key ) {
@@ -299,13 +300,14 @@ public class ConnectDisconnectManager {
               pending_closes_mon.exit();
             }
             
-            //found = true;
-            pen_it.remove();
+            to_remove = request;
             break;
           }
         }
         
-        //if( !found )  Debug.out( "~~~ canceled request not found ~~~" );
+        if( to_remove != null ) {
+          pending_attempts.remove( to_remove );
+        }
       }
       
       canceled_requests.clear();
