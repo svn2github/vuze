@@ -21,7 +21,7 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-
+import org.gudy.azureus2.plugins.PluginConfig;
 /**
  * @author Olivier
  *
@@ -32,9 +32,9 @@ public class ColorParameter extends ParameterImpl
 	private int defaultGreen;
 	private int defaultBlue;
 	
-	public ColorParameter(String key, String label, int red,int green,int blue)
+	public ColorParameter(PluginConfig config,String key, String label, int red,int green,int blue)
 	{ 
-		super(key, label);
+		super(config,key, label);
     this.defaultRed = red;
     this.defaultGreen = green;
     this.defaultBlue = blue;

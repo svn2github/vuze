@@ -119,7 +119,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		boolean 	defaultValue )
 	{
-		BooleanParameterImpl res = new BooleanParameterImpl( key_prefix + key, resource_name, defaultValue );
+		BooleanParameterImpl res = new BooleanParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
 		
 		parameters.add( res );
 		
@@ -141,7 +141,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		String  	defaultValue )
 	{
-		StringParameterImpl res = new StringParameterImpl( key_prefix + key, resource_name, defaultValue );
+		StringParameterImpl res = new StringParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
 	
 		parameters.add( res );
 		
@@ -154,7 +154,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		int	 		defaultValue )
 	{
-		IntParameterImpl res = new IntParameterImpl( key_prefix + key, resource_name, defaultValue );
+		IntParameterImpl res = new IntParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
 		
 		parameters.add( res );
 		

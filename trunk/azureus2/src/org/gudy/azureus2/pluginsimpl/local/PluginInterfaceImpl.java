@@ -258,7 +258,7 @@ PluginInterfaceImpl
 
 
   public PluginConfigUIFactory getPluginConfigUIFactory() {
-    return new PluginConfigUIFactoryImpl(pluginConfigKey);
+    return new PluginConfigUIFactoryImpl(config,pluginConfigKey);
   }
   
   public String

@@ -30,5 +30,6 @@ public interface
 BooleanParameter 
 	extends EnablerParameter
 {
-
+	public boolean
+	getValue();
 }

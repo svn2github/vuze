@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
+import org.gudy.azureus2.plugins.PluginConfig;
 
 /**
  * @author epall
@@ -32,10 +33,16 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 {
 
-  String pluginKey;
+  String 		pluginKey;
+  PluginConfig	config;
   
-  public PluginConfigUIFactoryImpl(String pluginKey) {
-    this.pluginKey = pluginKey;
+  public 
+  PluginConfigUIFactoryImpl(
+  	PluginConfig	_config,
+  	String 			_pluginKey) 
+  {
+  	config		= _config;
+    pluginKey 	= _pluginKey;
   }
   
   
@@ -45,7 +52,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
     int defaultValue,
     int[] values,
     String[] labels) {
-    return new IntsParameter(pluginKey + "." + key,label,defaultValue,values,labels);
+    return new IntsParameter(config,pluginKey + "." + key,label,defaultValue,values,labels);
   }
 
 	public EnablerParameter createBooleanParameter(
@@ -53,7 +60,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		boolean defaultValue)
 	{
-	  return new BooleanParameterImpl(pluginKey + "." + key, label, defaultValue);
+	  return new BooleanParameterImpl(config,pluginKey + "." + key, label, defaultValue);
 	}
 
 	public Parameter createIntParameter(
@@ -61,7 +68,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		int defaultValue)
 	{
-	  return new IntParameterImpl(pluginKey + "." + key, label, defaultValue);
+	  return new IntParameterImpl(config,pluginKey + "." + key, label, defaultValue);
 		
 	}
 
@@ -70,7 +77,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		String defaultValue)
 	{
-		return new StringParameterImpl(pluginKey + "." + key, label, defaultValue);
+		return new StringParameterImpl(config,pluginKey + "." + key, label, defaultValue);
 	}
 	
 	public Parameter createStringParameter(
@@ -79,7 +86,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 			String defaultValue,
 			String[] values,
 			String[] labels) {
-	  return new StringsParameter(pluginKey + "." + key,label,defaultValue,values,labels);
+	  return new StringsParameter(config,pluginKey + "." + key,label,defaultValue,values,labels);
 	}
 
 	public Parameter createFileParameter(
@@ -87,14 +94,14 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		String defaultValue)
 	{
-	  return new FileParameter(pluginKey + "." + key, label, defaultValue);
+	  return new FileParameter(config,pluginKey + "." + key, label, defaultValue);
 	}
 	
 	public Parameter createDirectoryParameter(
 	    String key,
 			String label,
 			String defaultValue) {
-	  return new DirectoryParameter(pluginKey + "." + key, label, defaultValue);
+	  return new DirectoryParameter(config,pluginKey + "." + key, label, defaultValue);
 	}
 
 	public Parameter createColorParameter(
@@ -104,7 +111,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
     int defaultValueGreen,
     int defaultValueBlue)
 	{
-	  return new ColorParameter(pluginKey + "." + key,label,defaultValueRed,defaultValueGreen,defaultValueBlue);
+	  return new ColorParameter(config,pluginKey + "." + key,label,defaultValueRed,defaultValueGreen,defaultValueBlue);
 	}
 
 }

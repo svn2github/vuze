@@ -23,6 +23,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 
 
+import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 
@@ -30,12 +31,21 @@ import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
  * @author Olivier
  *
  */
-public class BooleanParameterImpl extends ParameterImpl implements BooleanParameter
+public class 
+BooleanParameterImpl 
+	extends 	ParameterImpl 
+	implements 	BooleanParameter
 {
 	private boolean defaultValue;
-	public BooleanParameterImpl(String key, String label, boolean defaultValue)
+	
+	public 
+	BooleanParameterImpl(
+		PluginConfig	config,
+		String 			key, 
+		String 			label, 
+		boolean 		defaultValue)
 	{ 
-		super(key, label);
+		super( config, key, label);
  
 		this.defaultValue = defaultValue;
  
@@ -46,5 +56,9 @@ public class BooleanParameterImpl extends ParameterImpl implements BooleanParame
 		return defaultValue;
 	}
 
- 
+	public boolean
+	getValue()
+	{
+		return( config.getPluginBooleanParameter( getKey(), getDefaultValue()));
+	}
 }

@@ -28,13 +28,14 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  */
 
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
+import org.gudy.azureus2.plugins.PluginConfig;
 
 public class IntParameterImpl extends ParameterImpl implements IntParameter
 {
 	private int defaultValue;
-	public IntParameterImpl(String key, String label, int defaultValue)
+	public IntParameterImpl(PluginConfig config,String key, String label, int defaultValue)
 	{ 
-		super(key, label);
+		super(config,key, label);
     this.defaultValue = defaultValue;
 	}
 	
@@ -45,5 +46,9 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	{
 		return defaultValue;
 	}
-
+	public int
+	getValue()
+	{
+		return( config.getPluginIntParameter( getKey(), getDefaultValue()));
+	}
 }

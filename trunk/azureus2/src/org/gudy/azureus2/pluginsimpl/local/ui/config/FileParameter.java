@@ -26,12 +26,15 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
+
+import org.gudy.azureus2.plugins.PluginConfig;
+
 public class FileParameter extends ParameterImpl
 {
 	private String defaultValue;
-	public FileParameter(String key, String label, String defaultValue)
+	public FileParameter(PluginConfig config,String key, String label, String defaultValue)
 	{ 
-		super(key, label);
+		super(config,key, label);
     this.defaultValue = defaultValue;
 	}
 	/**

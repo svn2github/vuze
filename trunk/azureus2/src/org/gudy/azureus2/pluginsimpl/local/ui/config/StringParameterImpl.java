@@ -27,14 +27,15 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  *
  */
 
+import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 
 public class StringParameterImpl extends ParameterImpl implements StringParameter
 {
 	private String defaultValue;
-	public StringParameterImpl(String key, String label, String defaultValue)
+	public StringParameterImpl(PluginConfig config,String key, String label, String defaultValue)
 	{ 
-		super(key, label);
+		super(config,key, label);
     this.defaultValue = defaultValue;
 	}
 	/**
@@ -44,5 +45,9 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 	{
 		return defaultValue;
 	}
-
+	public String
+	getValue()
+	{
+		return( config.getPluginStringParameter( getKey(), getDefaultValue()));
+	}
 }

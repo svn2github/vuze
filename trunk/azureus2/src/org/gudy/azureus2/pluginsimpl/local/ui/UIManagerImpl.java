@@ -165,13 +165,18 @@ UIManagerImpl
 	
 	public BooleanParameter
 	addBooleanParameter2(
-		String 		key,
-		String 		resource_name,
-		boolean 	defaultValue )
+		final String 	key,
+		String 			resource_name,
+		final boolean 	defaultValue )
 	{	
 		return( 
 			new BooleanParameter()
 			{
+				public boolean
+				getValue()
+				{
+					return( pi.getPluginconfig().getPluginBooleanParameter( key, defaultValue));
+				}
 				public void addEnabledOnSelection(Parameter parameter){}
 				public void addDisabledOnSelection(Parameter parameter){}
 			});
@@ -188,13 +193,18 @@ UIManagerImpl
 	
 	public StringParameter
 	addStringParameter2(
-		String 		key,
-		String 		resource_name,
-		String	 	defaultValue )
+		final String 		key,
+		String 				resource_name,
+		final String	 	defaultValue )
 	{
 		return(
 				new StringParameter()
 				{
+					public String
+					getValue()
+					{
+						return( pi.getPluginconfig().getPluginStringParameter( key, defaultValue));
+					}
 					public void addEnabledOnSelection(Parameter parameter){}
 					public void addDisabledOnSelection(Parameter parameter){}
 				});	
@@ -202,13 +212,18 @@ UIManagerImpl
 	
 	public IntParameter
 	addIntParameter2(
-		String 		key,
-		String 		resource_name,
-		int	 		defaultValue )
+		final String 	key,
+		String 			resource_name,
+		final int	 	defaultValue )
 	{
 		return(
 				new IntParameter()
 				{
+					public int
+					getValue()
+					{
+						return( pi.getPluginconfig().getPluginIntParameter( key, defaultValue));
+					}
 					public void addEnabledOnSelection(Parameter parameter){}
 					public void addDisabledOnSelection(Parameter parameter){}
 				});		

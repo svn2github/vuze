@@ -31,4 +31,6 @@ public interface
 IntParameter 
 	extends EnablerParameter
 {
+	public int
+	getValue();
 }

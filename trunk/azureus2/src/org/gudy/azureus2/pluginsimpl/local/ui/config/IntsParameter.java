@@ -26,6 +26,9 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
+
+import org.gudy.azureus2.plugins.PluginConfig;
+
 public class IntsParameter extends ParameterImpl
 {
 	private int defaultValue;
@@ -34,13 +37,14 @@ public class IntsParameter extends ParameterImpl
 	
 	
 	public IntsParameter(
-	    String key,
+			PluginConfig config,
+			String key,
 			String label,
 			int defaultValue,
 			int[] values,
 			String[] labels)
 	{ 
-		super(key, label);
+		super(config,key, label);
     this.defaultValue = defaultValue;
     this.values = values;
     this.labels = labels;

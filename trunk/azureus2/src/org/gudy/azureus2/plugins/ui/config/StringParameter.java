@@ -31,4 +31,6 @@ public interface
 StringParameter
 	extends EnablerParameter
 {
+	public String
+	getValue();
 }

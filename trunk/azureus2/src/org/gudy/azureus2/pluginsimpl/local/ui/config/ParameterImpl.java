@@ -25,23 +25,32 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.PluginConfig;
 
 /**
  * @author epall
  *
  */
-public class ParameterImpl implements EnablerParameter
+public class 
+ParameterImpl 
+	implements EnablerParameter
 {
-	private String key;
-	private String label;
+	protected 	PluginConfig	config;
+	private 	String 			key;
+	private 	String 			label;
 	
 	private List toDisable	= new ArrayList();
 	private List toEnable	= new ArrayList();
 	  
-	public ParameterImpl(String key, String label)
+	public 
+	ParameterImpl(
+		PluginConfig	_config,
+		String 			_key, 
+		String 			_label )
 	{
-		this.key = key;
-		this.label = label;
+		config	= _config;
+		key		= _key;
+		label 	= _label;
 	}
 	/**
 	 * @return Returns the key.
