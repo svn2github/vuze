@@ -39,8 +39,6 @@ import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
