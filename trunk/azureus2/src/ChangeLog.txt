@@ -51,6 +51,8 @@ CHANGE: UI   | Azureus should work with SWT 2.12 until we break backwards compat
 CHANGE: UI   | Shrink "My Torrents" Context menu [TuxPaper]
 CHANGE: UI   | Systray4j removed: system tray support now from SWT built-in code (Requires SWT-M8+) [Gudy]
 CHANGE: UI   | Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
+CHANGE: UI   | The Donation Window is now Closeable using the 'Esc' Key [Gudy]
+CHANGE: UI   | In the Donation Window the OK button should be on top of other Controls [Gudy]
 
 BUGFIX: Core | Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Core | First Priority rules based on time now work across sessions [TuxPaper]
@@ -64,7 +66,8 @@ BUGFIX: UI   | Close on OS X should now always be ok [Gudy]
 BUGFIX: UI   | Fix for the General View in a torrent details, not being layout correctly [Gudy]
 BUGFIX: UI   | Fix for the toolbar on linux / OS X [Gudy]
 BUGFIX: UI   | Fix for the Torrent Maker not getting the correct Tracker when choosing from the Combo on OS X [Gudy]
-BUGFIX: UI   | Freeze on exit under OSX [Gudy]
+BUGFIX: UI   | Fix for the Freeze on exit under OSX [Gudy]
+
 
 
 
