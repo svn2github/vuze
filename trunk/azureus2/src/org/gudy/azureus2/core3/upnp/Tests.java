@@ -23,6 +23,8 @@ package org.gudy.azureus2.core3.upnp;
 import org.cybergarage.upnp.ControlPoint;
 import org.cybergarage.upnp.Device;
 import org.cybergarage.upnp.DeviceList;
+import org.cybergarage.upnp.device.SearchResponseListener;
+import org.cybergarage.upnp.ssdp.SSDPPacket;
 
 /**
  * @author Olivier
@@ -41,7 +43,15 @@ public class Tests {
      String devName = dev.getFriendlyName();
      System.out.println("[" + i + "] = " + devName );     
     }
-    ctrlPoint.stop();
-    ctrlPoint.finalize();
+    
+    SearchResponseListener listener = new SearchResponseListener() {
+			public void deviceSearchResponseReceived(SSDPPacket packet) {			
+        System.out.println(packet.getUSN() + " - " + packet.getST() + " - " + packet.getLocation());
+			}
+    };
+    
+    ctrlPoint.addSearchResponseListener(listener);
+    
+    ctrlPoint.search("upnp:rootdevice");   
   }
 }
