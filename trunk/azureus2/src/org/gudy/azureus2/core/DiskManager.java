@@ -117,7 +117,8 @@ public class DiskManager {
     try {      
       File f = new File(path);
       if(f.isDirectory()) {
-        fileName = new String((byte[]) info.get("name"), "UTF-8");
+        fileName = new String((byte[]) info.get("name"), 
+        	LocaleUtil.getCharset((byte[])info.get("name")));
       } else {
         fileName = f.getName();
         path = f.getParent();       
@@ -189,7 +190,8 @@ public class DiskManager {
           if (j != (fileList.size() - 1)) //are we the filename?
             {
             try {
-              pathBuffer.append(new String((byte[]) fileList.get(j), "UTF-8"));
+              pathBuffer.append(new String((byte[]) fileList.get(j), 
+              	LocaleUtil.getCharset((byte[]) fileList.get(j))));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
@@ -204,7 +206,7 @@ public class DiskManager {
             //add the file entry to the file holder list 
             try {
               btFileList.add(
-                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "UTF-8"), fileLength));
+                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), LocaleUtil.getCharset((byte[])fileList.get(j))), fileLength));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;

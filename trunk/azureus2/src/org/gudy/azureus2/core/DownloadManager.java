@@ -104,7 +104,7 @@ public class DownloadManager extends Component {
         metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
       metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
       Map info = (Map) metaData.get("info"); //$NON-NLS-1$
-      name = new String((byte[]) info.get("name"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
+      name = new String((byte[]) info.get("name"), LocaleUtil.getCharset((byte[])info.get("name"))); //$NON-NLS-1$ //$NON-NLS-2$
       byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
       nbPieces = pieces.length / 20;
       metaData.put("torrent filename", torrentFileName.getBytes("UTF8")); //$NON-NLS-1$ //$NON-NLS-2$
