@@ -734,50 +734,83 @@ DHTControlImpl
 		List					contacts,
 		DHTOperationListener	listener )
 	{
+		final AESemaphore	sem = new AESemaphore( "DHTControl:put:store" );
+		
 		for (int i=0;i<contacts.size();i++){
 		
 			DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
 			
-			if ( !router.isID( contact.getID())){
-					
-				if ( listener != null ){
-					
-					for (int j=0;j<value_sets.length;j++){
-						for (int k=0;k<value_sets[j].length;k++){
-							listener.wrote( contact, value_sets[j][k] );
+			if ( router.isID( contact.getID())){
+				
+				sem.release();
+				
+			}else{
+				
+				try{
+					if ( listener != null ){
+						
+						for (int j=0;j<value_sets.length;j++){
+							
+							for (int k=0;k<value_sets[j].length;k++){
+								
+								listener.wrote( contact, value_sets[j][k] );
+							}
 						}
 					}
+					
+					contact.sendStore( 
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							storeReply(
+								DHTTransportContact _contact,
+								byte[]				_diversifications )
+							{
+									// TODO: store diversifications
+								
+								try{
+									DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
+																
+									router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+								
+								}finally{
+									
+									sem.release();
+								}	
+							}
+							
+							public void
+							failed(
+								DHTTransportContact 	_contact,
+								Throwable 				_error )
+							{
+								try{
+									DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																			
+									router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+									
+								}finally{
+									
+									sem.release();
+								}
+							}
+						},
+						encoded_keys, 
+						value_sets );
+					
+				}catch( Throwable e ){
+					
+					sem.release();
+					
+					Debug.printStackTrace(e);
+					
 				}
-				
-				contact.sendStore( 
-					new DHTTransportReplyHandlerAdapter()
-					{
-						public void
-						storeReply(
-							DHTTransportContact _contact,
-							byte[]				_diversifications )
-						{
-								// TODO: store diversifications
-							
-							DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
-														
-							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
-						}	
-						
-						public void
-						failed(
-							DHTTransportContact 	_contact,
-							Throwable 				_error )
-						{
-							DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
-							
-														
-							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
-						}
-					},
-					encoded_keys, 
-					value_sets );
 			}
+		}
+		
+		for (int i=0;i<contacts.size();i++){
+
+			sem.reserve();
 		}
 	}
 	
