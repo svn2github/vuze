@@ -64,6 +64,11 @@ public class FileItem implements SortableItem{
 
     String tmp;
 
+    if (fileInfo.getDownloaded() == fileInfo.getLength())
+      item.setForeground(blues[4]);
+    else
+      item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+
     tmp = fileInfo.getName();
     if (!oldTexts[0].equals(tmp)) {
       oldTexts[0] = tmp;
@@ -112,11 +117,6 @@ public class FileItem implements SortableItem{
     if (!oldTexts[7].equals(tmp)) {
       oldTexts[7] = tmp;
       item.setText(7, tmp);
-      if(tmp.equals(MessageText.getString("FileItem.read"))) { //$NON-NLS-1$
-        item.setForeground(blues[4]);
-      } else {
-        item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-      }
     }
     
     tmp = MessageText.getString("FileItem.normal"); //$NON-NLS-1$

@@ -648,6 +648,9 @@ DownloadManagerImpl
     // the DownloadManager is INITIALIZED
     if ( state != _state ) {
       state = _state;
+      // sometimes, downloadEnded() doesn't get called, so we must check here too
+      if (state == STATE_SEEDING)
+        setOnlySeeding(true);
       informStateChanged( state );
     }
   }
