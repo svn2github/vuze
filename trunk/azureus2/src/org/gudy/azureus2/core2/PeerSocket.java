@@ -220,16 +220,12 @@ public class PeerSocket extends PeerConnection {
     cancelRequests();
 
     //3. Close the socket
-    try {
-      if (socket != null && socket.isConnected())
+    if (socket != null) {
+      try {
         socket.close();
-    }
-    catch (Exception e) {
-      logger.log(
-        componentID,
-        evtErrors,
-        Logger.ERROR,
-        "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+      } catch (Exception e) {
+        logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+      }
     }
 
     //4. release the read Buffer
