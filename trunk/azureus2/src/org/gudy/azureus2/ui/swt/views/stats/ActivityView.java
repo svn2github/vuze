@@ -60,10 +60,7 @@ public class ActivityView extends AbstractIView {
   SpeedGraphic downSpeedGraphic;
   
   Canvas upSpeedCanvas;
-  SpeedGraphic upSpeedGraphic;
-  
-  
-  UpdateThread updateThread;
+  SpeedGraphic upSpeedGraphic;  
   
   public ActivityView(GlobalManager manager) {
     this.manager = manager;
@@ -71,25 +68,9 @@ public class ActivityView extends AbstractIView {
     this.totalStats = StatsFactory.getStats();
   }
   
-  private class UpdateThread extends Thread {
-    boolean bContinue;
-    
-    public void run() {
-      try {
-        bContinue = true;
-        while(bContinue) {
-          downSpeedGraphic.addIntValue((int)manager.getStats().getDownloadAverage());
-          upSpeedGraphic.addIntValue((int)manager.getStats().getUploadAverage());
-          Thread.sleep(1000);
-        }
-      } catch(Exception e) {
-        e.printStackTrace();        
-      }
-    }
-    
-    public void stopIt() {
-      bContinue = false;
-    }
+  public void periodicUpdate() {
+    downSpeedGraphic.addIntValue((int)manager.getStats().getDownloadAverage());
+    upSpeedGraphic.addIntValue((int)manager.getStats().getUploadAverage());
   }
   
   public void initialize(Composite composite) {
@@ -120,14 +101,9 @@ public class ActivityView extends AbstractIView {
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
-    
-    updateThread = new UpdateThread(); 
-    updateThread.setDaemon(true);
-    updateThread.start();
   }
   
-  public void delete() {
-    updateThread.stopIt();
+  public void delete() {    
     MainWindow.getWindow().setStats(null);
     Utils.disposeComposite(panel);
     downSpeedGraphic.dispose();

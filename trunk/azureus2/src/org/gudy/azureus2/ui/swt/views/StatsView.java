@@ -54,8 +54,32 @@ public class StatsView extends AbstractIView {
   IView viewStats;
   IView viewCache;
   
+  UpdateThread updateThread;
+  
   public StatsView(GlobalManager manager) {
    this.manager = manager;
+  }
+  
+  private class UpdateThread extends Thread {
+    boolean bContinue;
+    
+    public void run() {
+      try {
+        bContinue = true;
+        while(bContinue) {   
+          ((ActivityView)viewActivity).periodicUpdate();
+          ((CacheView)viewCache).periodicUpdate();
+          
+          Thread.sleep(1000);
+        }
+      } catch(Exception e) {
+        e.printStackTrace();        
+      }
+    }
+    
+    public void stopIt() {
+      bContinue = false;
+    }
   }
   
   public void initialize(Composite composite) {
@@ -95,6 +119,10 @@ public class StatsView extends AbstractIView {
     
     refresh();
     viewActivity.getComposite().layout(true);
+    
+    updateThread = new UpdateThread(); 
+    updateThread.setDaemon(true);
+    updateThread.start();
   }
   
   public void refresh() {
@@ -130,6 +158,7 @@ public class StatsView extends AbstractIView {
   }
   
   public void delete() {
+    updateThread.stopIt();
     MainWindow.getWindow().setStats(null);    
     viewActivity.delete();
     viewStats.delete();

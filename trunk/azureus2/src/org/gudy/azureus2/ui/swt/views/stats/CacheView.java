@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views.stats;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
@@ -60,6 +62,10 @@ public class CacheView extends AbstractIView {
   
   Label lblWritesToCache,lblWritesToFile,lblPercentWrites;
   ProgressBar pbWrites;
+  
+  Canvas  readsFromFile,readsFromCache,writesToCache,writesToFile;
+  
+  SpeedGraphic rffGraph,rfcGraph,wtcGraph,wtfGraph;
   
   public CacheView() {
     try {
@@ -162,7 +168,64 @@ public class CacheView extends AbstractIView {
     lblReadsFromFile = new Label(gCacheReads,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblReadsFromFile.setLayoutData(gridData);
+    lblReadsFromFile.setLayoutData(gridData);        
+  }
+  
+  private void generateSpeedGroup() {
+    GridData gridData;
+    
+    Group gCacheSpeeds = new Group(panel,SWT.BORDER);
+    Messages.setLanguageText(gCacheSpeeds,"CacheView.reads.title");
+    gCacheSpeeds.setLayoutData(new GridData(GridData.FILL_BOTH));
+    
+    GridLayout layoutGeneral = new GridLayout();
+    layoutGeneral.numColumns = 3;    
+    gCacheSpeeds.setLayout(layoutGeneral);
+    Label lbl;
+    
+    lbl = new Label(gCacheSpeeds,SWT.NULL);
+    lbl = new Label(gCacheSpeeds,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.speeds.reads");
+    lbl = new Label(gCacheSpeeds,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.speeds.writes");
+    
+    lbl = new Label(gCacheSpeeds,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.speeds.fromCache");
+    
+    readsFromCache = new Canvas(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    readsFromCache.setLayoutData(gridData);
+    rfcGraph = SpeedGraphic.getInstance();
+    rfcGraph.initialize(readsFromCache);
+    
+    
+    writesToCache = new Canvas(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    writesToCache.setLayoutData(gridData);
+    wtcGraph = SpeedGraphic.getInstance();
+    wtcGraph.initialize(writesToCache);
+    
+    lbl = new Label(gCacheSpeeds,SWT.NULL);
+    Messages.setLanguageText(lbl,"CacheView.speeds.fromFile");
+    
+    readsFromFile = new Canvas(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    readsFromFile.setLayoutData(gridData);
+    rffGraph = SpeedGraphic.getInstance();
+    rffGraph.initialize(readsFromFile);
+    
+    writesToFile = new Canvas(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    writesToFile.setLayoutData(gridData);
+    wtfGraph = SpeedGraphic.getInstance();
+    wtfGraph.initialize(writesToFile);
+  }
+  
+  public void periodicUpdate() {
+    rfcGraph.addIntValue((int)stats.getAverageBytesReadFromCache());
+    rffGraph.addIntValue((int)stats.getAverageBytesReadFromFile());
+    wtcGraph.addIntValue((int)stats.getAverageBytesWrittenToCache());
+    wtfGraph.addIntValue((int)stats.getAverageBytesWrittenToFile());
   }
   
   private void generateWritesGroup() {
