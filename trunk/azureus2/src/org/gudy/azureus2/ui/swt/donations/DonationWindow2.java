@@ -54,6 +54,7 @@ public class DonationWindow2 {
   
   private String headerText,mainText,footerText;
   int timeToWait;
+  OverallStats stats;
   
   Image workingImage;
   Image background;
@@ -62,7 +63,7 @@ public class DonationWindow2 {
   
   public DonationWindow2(Display display) {
       this.display = display;   
-      OverallStats stats = StatsFactory.getStats();
+      stats = StatsFactory.getStats();
       headerText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
       + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
       + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n";
@@ -139,6 +140,9 @@ public class DonationWindow2 {
             //tempGC.setForeground(MainWindow.white);
             if(mainFont == null || mainFont.isDisposed()) return;
             tempGC.setFont(mainFont);
+            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes()),85,15,true);
+            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()),240,15,true);
+            tempGC.drawText(stats.getUpTime() / (60*60) + " hours",470,15,true);
             tempGC.drawText(textToSet,10,60,true);
             tempGC.dispose();
             Image oldImage = workingImage;
