@@ -312,6 +312,11 @@ public class TableView
     // -----------
     // Add 1 to position because we make a non resizable 0-sized 1st column
     // to fix the 1st column gap problem (Eclipse Bug 43910)
+
+    // SWT does not set 0 column width as expected in OS X; see bug 43910
+    // this will be removed when a SWT-provided solution is available to satisfy all platforms with identation issue
+    bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
+
     if (bSkipFirstColumn) {
       TableColumn tc = new TableColumn(table, SWT.NULL);
       tc.setWidth(0);
