@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.ByteFormater;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.PeerStats;
 
@@ -205,7 +204,7 @@ public class GeneralView implements IView {
       }
     });
     maxUploads.select(
-      ConfigurationManager.getInstance().getIntParameter("Max Uploads", 4) - 2);
+      manager.getMaxUploads()-2);
 
     new Label(gTransfer, SWT.LEFT).setText("Uploaded : ");
     upload = new Label(gTransfer, SWT.LEFT);

@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.Logger;
 
 /**
  * @author Olivier
@@ -83,7 +82,7 @@ public class MainWindow implements IComponentListener {
         if (view != null) {
           display.asyncExec(new Runnable() {
             public void run() {
-              if (!mainWindow.isDisposed() && mainWindow.isVisible()) {
+              if (!mainWindow.isDisposed() && mainWindow.isVisible()) {            
                 view.refresh();
                 Tab.refresh();
                 statusDown.setText("D: " + globalManager.getDownloadSpeed());
@@ -126,7 +125,6 @@ public class MainWindow implements IComponentListener {
     config = null;
     downloadViews = new HashMap();
     downloadBars = new HashMap();
-    Logger.createLogger();
     //The display
     display = new Display();
     ImageRepository.loadImages(display);
