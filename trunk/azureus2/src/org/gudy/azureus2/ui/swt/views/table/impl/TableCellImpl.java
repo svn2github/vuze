@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -91,7 +91,7 @@ public class TableCellImpl
         }
       };
     } else {
-      bufferedTableItem = new BufferedGraphicTableItem2((BufferedTableRow)tableRow, position) {
+      bufferedTableItem = new BufferedGraphicTableItem((BufferedTableRow)tableRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
         }
@@ -193,16 +193,16 @@ public class TableCellImpl
 
   public Point getSize() {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
-    return ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
+    return ((BufferedGraphicTableItem)bufferedTableItem).getSize();
   }
 
   public int getWidth() {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return -1;
-    Point pt = ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
+    Point pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
     if (pt == null)
       return -1;
     return pt.x;
@@ -210,9 +210,9 @@ public class TableCellImpl
 
   public int getHeight() {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return -1;
-    Point pt = ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
+    Point pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
     if (pt == null)
       return -1;
     return pt.y;
@@ -220,37 +220,37 @@ public class TableCellImpl
 
   public boolean setGraphic(Image img) {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
-    return ((BufferedGraphicTableItem2)bufferedTableItem).setGraphic(img);
+    return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
   }
 
   public Image getGraphic() {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
-    return ((BufferedGraphicTableItem2)bufferedTableItem).getGraphic();
+    return ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
   }
 
   public void setFillCell(boolean bFillCell) {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem2)bufferedTableItem).fillCell = bFillCell;
+    ((BufferedGraphicTableItem)bufferedTableItem).fillCell = bFillCell;
   }
 
   public void setMarginHeight(int height) {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem2)bufferedTableItem).marginHeight = height;
+    ((BufferedGraphicTableItem)bufferedTableItem).marginHeight = height;
   }
 
   public void setMarginWidth(int width) {
     if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem2)bufferedTableItem).marginWidth = width;
+    ((BufferedGraphicTableItem)bufferedTableItem).marginWidth = width;
   }
 
   /* End TYPE_GRAPHIC Functions */
