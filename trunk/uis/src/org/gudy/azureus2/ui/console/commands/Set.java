@@ -137,9 +137,9 @@ public class Set implements IConsoleCommand {
 		} else {
 			Iterator I = COConfigurationManager.getAllowedParameters().iterator();
 			Hashtable backmap = new Hashtable();
-			Enumeration enum = ExternalUIConst.parameterlegacy.keys();
-			while (enum.hasMoreElements()) {
-				Object o = enum.nextElement();
+			Enumeration xenum = ExternalUIConst.parameterlegacy.keys();
+			while (xenum.hasMoreElements()) {
+				Object o = xenum.nextElement();
 				backmap.put(ExternalUIConst.parameterlegacy.get(o), o);
 			}
 			TreeSet srt = new TreeSet();
