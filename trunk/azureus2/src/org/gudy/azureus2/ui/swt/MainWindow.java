@@ -37,6 +37,8 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
@@ -126,6 +128,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Menu menuBar;
   private IconBar iconBar;
 
+  //NICO handle swt on macosx
+  public static boolean isAlreadyDead = false;
+  public static boolean isDisposeFromListener = false;
+  
   public static Color[] blues = new Color[5];
   public static Color black;
   public static Color blue;
@@ -747,6 +753,20 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());
+    
+    //NICO catch the dispose event from file/quit on osx
+    mainWindow.addDisposeListener(new DisposeListener() {
+    	public void widgetDisposed(DisposeEvent event) {
+    		if (!isAlreadyDead) {
+    			isDisposeFromListener = true;
+    			if (mainWindow != null) {
+    				mainWindow.removeDisposeListener(this);
+    				dispose();
+    			}
+    			isAlreadyDead = true;
+    		}
+    	}      
+    });
     
     mainWindow.open();
     mainWindow.forceActive();
@@ -1743,6 +1763,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public boolean dispose() {
     if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation())
       return false;
+    isAlreadyDead = true; //NICO try to never die twice...
     if (this.trayIcon != null)
       SysTrayMenu.dispose();
     stopFolderWatcher();
@@ -1757,7 +1778,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
     COConfigurationManager.save();
 
-    mainWindow.dispose();
+    //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
+    if(!mainWindow.isDisposed() && !isDisposeFromListener) {
+    	mainWindow.dispose();
+    }
 
     if (instanceCount-- == 0) {
       for (int i = 0; i < blues.length; i++) {
