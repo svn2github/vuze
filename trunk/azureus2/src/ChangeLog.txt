@@ -5,11 +5,14 @@ xx.xx.04 | Azureus 2.0.8.1
 
 FEATURE: Show last time IPFilter list was updated in status area [Parg]
 FEATURE: Prelimary support for "compact" announce protocol [Parg]
+FEATURE: Download Speed column in "My Torrents" turns red if below speed set in Queue config. [TuxPaper]
 
 CHANGE: 
 
 BUGFIX: 
 
+PLANNED: Fix of startup issues
+PLANNED: Fix Config Window not opening
 
 
 08.03.04 | Azureus 2.0.8.0

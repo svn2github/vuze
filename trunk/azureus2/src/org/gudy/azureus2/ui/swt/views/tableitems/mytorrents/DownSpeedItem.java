@@ -21,25 +21,60 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 
 /**
  * @author Olivier
  *
  */
-public class DownSpeedItem extends TorrentItem {
-
+public class DownSpeedItem extends TorrentItem implements ParameterListener {
+  private int iMinActiveSpeed;
   
   
   public DownSpeedItem(
     TorrentRow torrentRow,
     int position) {
     super(torrentRow, position);
+
+    iMinActiveSpeed = COConfigurationManager.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
+    COConfigurationManager.addParameterListener("StartStopManager_iMinSpeedForActiveDL", this);
   }
 
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getDownloadAverage()));
+    long iDLAverage = torrentRow.getManager().getStats().getDownloadAverage();
+    if (setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage))) {
+      changeColor(iDLAverage);
+    }
+  }
+  
+  private void changeColor() {
+    try {
+      changeColor(torrentRow.getManager().getStats().getDownloadAverage());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
+  private void changeColor(long iDLAverage) {
+    try 
+    {
+      setItemForeground((iDLAverage < iMinActiveSpeed) ? MainWindow.red : null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  public void parameterChanged(String parameterName) {
+    iMinActiveSpeed = COConfigurationManager.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
+    changeColor();
+  }
+
+  public void dispose() {
+    COConfigurationManager.removeParameterListener("StartStopManager_iMinSpeedForActiveDL", this);
+  }
 }
