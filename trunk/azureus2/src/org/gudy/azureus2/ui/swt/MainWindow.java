@@ -4,7 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.awt.print.Paper;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -105,7 +104,6 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
-import org.gudy.azureus2.ui.swt.animations.shell.TestWindow;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;

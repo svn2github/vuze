@@ -12,7 +12,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Table;
@@ -22,7 +21,6 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.views.PiecesView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier

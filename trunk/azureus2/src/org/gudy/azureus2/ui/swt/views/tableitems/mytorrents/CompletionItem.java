@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;

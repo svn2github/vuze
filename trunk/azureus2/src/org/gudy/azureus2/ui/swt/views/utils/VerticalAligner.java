@@ -20,7 +20,6 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;

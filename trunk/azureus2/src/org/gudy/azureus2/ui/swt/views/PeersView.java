@@ -15,9 +15,7 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -46,7 +44,6 @@ import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
-import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
  * @author Olivier

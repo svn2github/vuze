@@ -21,17 +21,9 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
@@ -94,7 +86,7 @@ public class PiecesItem extends TorrentGraphicItem  {
       bImageSizeChanged = imageBounds.width != bounds.width ||
                           imageBounds.height != bounds.height;
     }
-    if (bImageSizeChanged) {
+    if (bImageSizeChanged) {      
       image = new Image(torrentRow.getTableItem().getDisplay(), bounds.width, bounds.height);
       imageBounds = image.getBounds();
       bImageBufferValid = false;

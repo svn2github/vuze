@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
   public String configSectionGetParentSection() {

@@ -1,7 +1,5 @@
 package org.gudy.azureus2.ui.common.util;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 
 public class HSLColor {
   private final static int HSLMAX = 255;

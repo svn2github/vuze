@@ -22,7 +22,6 @@ package org.gudy.azureus2.core3.upnp;
 
 import java.util.*;
 
-import org.cybergarage.http.HTTPRequest;
 import org.cybergarage.upnp.Action;
 import org.cybergarage.upnp.Argument;
 import org.cybergarage.upnp.ArgumentList;
@@ -34,7 +33,6 @@ import org.cybergarage.upnp.ServiceList;
 import org.cybergarage.upnp.UPnPStatus;
 import org.cybergarage.upnp.device.*;
 import org.cybergarage.upnp.ssdp.*;
-import org.cybergarage.upnp.event.*;
 import org.cybergarage.upnp.control.*;
 import org.cybergarage.util.Debug;
 

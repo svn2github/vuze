@@ -249,6 +249,8 @@ public class EnumeratorEditor {
   }
   
   private void close() {
+    if(blue != null && ! blue.isDisposed())
+      blue.dispose();
     shell.dispose();
   }
   
