@@ -51,6 +51,14 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   
 
   public void sendMessage( Message message ) {
+    if( message instanceof MessageAdapter ) {
+      //the message must have been originally created by core and wrapped
+      //so just use original core message...i.e. unwrap out of MessageAdapter
+      core_queue.addMessage( ((MessageAdapter)message).getCoreMessage(), false );
+      return;
+    }
+    
+    //message originally created by plugin
     core_queue.addMessage( new MessageAdapter( message ), false );
   }
   
@@ -60,6 +68,13 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
       new com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener() {
       
         public boolean messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          if( message instanceof MessageAdapter ) {
+            //the message must have been originally created by plugin encoder and wrapped
+            //so just use original plugin message...i.e. unwrap out of MessageAdapter
+            return listener.messageAdded( ((MessageAdapter)message).getPluginMessage() );
+          }
+          
+          //message originally created by core
           return listener.messageAdded( new MessageAdapter( message ) );
         }
 
@@ -67,6 +82,14 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
         public void messageRemoved( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
 
         public void messageSent( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          if( message instanceof MessageAdapter ) {
+            //the message must have been originally created by plugin encoder and wrapped
+            //so just use original plugin message...i.e. unwrap out of MessageAdapter
+            listener.messageSent( ((MessageAdapter)message).getPluginMessage() );
+            return;
+          }
+          
+          //message originally created by core
           listener.messageSent( new MessageAdapter( message ) );
         }
 
@@ -93,6 +116,14 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   
   
   public void notifyOfExternalSend( Message message ) {
+    if( message instanceof MessageAdapter ) {
+      //the message must have been originally created by core and wrapped
+      //so just use original core message...i.e. unwrap out of MessageAdapter
+      core_queue.notifyOfExternallySentMessage( ((MessageAdapter)message).getCoreMessage() );
+      return;
+    }
+    
+    //message originally created by plugin
     core_queue.notifyOfExternallySentMessage( new MessageAdapter( message ) );
   }
 }

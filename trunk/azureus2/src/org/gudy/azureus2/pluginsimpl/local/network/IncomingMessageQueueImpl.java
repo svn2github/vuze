@@ -95,6 +95,14 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
   
   
   public void notifyOfExternalReceive( Message message ) {
+    if( message instanceof MessageAdapter ) {
+      //the message must have been originally created by core and wrapped
+      //so just use original core message...i.e. unwrap out of MessageAdapter
+      core_queue.notifyOfExternallyReceivedMessage( ((MessageAdapter)message).getCoreMessage() );
+      return;
+    }
+    
+    //message originally created by plugin
     core_queue.notifyOfExternallyReceivedMessage( new MessageAdapter( message ) );
   }
   
