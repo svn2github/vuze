@@ -1468,7 +1468,7 @@ TRTrackerClientClassicImpl
 					try {
 							//use 3/4 of what tracker is asking us to wait, in order not to be considered as timed-out by it
 						
-						time_to_wait = (3 * ((Long) metaData.get("interval")).intValue()) / 4; //$NON-NLS-1$
+						time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7; //$NON-NLS-1$
 						
 							// guard against crazy return values
 						
