@@ -152,6 +152,13 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       String exec = javaPath + "java\" -classpath \"" + classPath
       + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
       + userPath + "\" \"" + libraryPath + "\"";
+      
+      LGLogger.log("SWT Updater is about to execute : " + exec);
+      
+      File f = new File("updateSWT.log");
+      FileOutputStream fosLog = new FileOutputStream(f,true);
+      fosLog.write(("SWT Updater is about to execute : " + exec + "\n").getBytes());  
+      
       Program.launch(exec);
     } catch(Exception e) {
       e.printStackTrace();
