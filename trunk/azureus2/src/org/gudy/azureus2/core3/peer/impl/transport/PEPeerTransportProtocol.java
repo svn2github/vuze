@@ -22,8 +22,6 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -1559,15 +1557,18 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			
 			ip_resolved = ip;
 		
-			try{
-				InetAddress addr = InetAddress.getByName( ip_resolved );
-				
-				ip_resolved 		= addr.getHostName();
-				
-			}catch( UnknownHostException e ){
-				
-				ip_resolved	= ip;
-			}
+			IPToHostNameResolver.addResolverRequest( 
+				ip_resolved,
+				new IPToHostNameResolverListener()
+				{
+					public void
+					completed(
+						String		res,
+						boolean		ok )
+					{
+						ip_resolved	= res;
+					}
+				});
 		}
 		
 		return( ip_resolved );

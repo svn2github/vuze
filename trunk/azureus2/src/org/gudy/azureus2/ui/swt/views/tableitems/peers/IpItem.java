@@ -58,6 +58,7 @@ public class IpItem
   /** Default Constructor */
   public IpItem() {
     super("ip", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
   public void refresh(TableCell cell) {
