@@ -175,7 +175,7 @@ public class VirtualChannelSelector {
      *   (2) the select operation is performed;
      *   (3) listener notification of completed selects
      *   (4) new registrations are processed;
-     * @param timeout in ms
+     * @param timeout in ms; if zero, block indefinitely
      * @return number of sockets selected
      */
     public int select( long timeout ) {

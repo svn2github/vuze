@@ -246,7 +246,7 @@ AEProxyImpl
 		while( true ){
 			
 			try{
-				selector.select(100);
+				selector.select( 1000 );
 				
 					// only use one selector to trigger the timeouts!
 				

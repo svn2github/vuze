@@ -38,7 +38,6 @@ public class WriteController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int SELECT_TIME = 50;
   private static final int PROCESSOR_SLEEP_TIME = 20;
   
   
@@ -71,7 +70,7 @@ public class WriteController {
   
   private void writeSelectorLoop() {
     while( true ) {
-      write_selector.select( SELECT_TIME );      
+      write_selector.select( 0 );      
     }
   }
   

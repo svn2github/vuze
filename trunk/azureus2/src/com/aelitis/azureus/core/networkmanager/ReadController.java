@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.util.AEThread;
  */
 public class ReadController {
   private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
-  private static final int SELECT_TIME = 50;
+
   
   protected ReadController() {
     //start read processing
@@ -45,7 +45,7 @@ public class ReadController {
   
   private void readLoop() {
     while( true ) {
-      read_selector.select( SELECT_TIME );
+      read_selector.select( 0 );
     }
   }
   
