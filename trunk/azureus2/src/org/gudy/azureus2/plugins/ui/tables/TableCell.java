@@ -22,7 +22,7 @@
  
 package org.gudy.azureus2.plugins.ui.tables;
 
-import org.eclipse.swt.graphics.Image;
+import org.gudy.azureus2.plugins.ui.Graphic;
 
 /** This interface provides access to an Azureus table cell.
  *
@@ -158,26 +158,26 @@ public interface TableCell {
    */
   public int getHeight();
   
-  /** Sets the SWT image to be drawn.
+  /** Sets the image to be drawn.
    *
-   * @param img Image to be stored & drawn
+   * @param img image to be stored & drawn
    * @return true - image was changed.<br>
    *         false = image was the same
    */
-  public boolean setGraphic(Image img);
+  public boolean setGraphic(Graphic img);
 
   /** Retrieve the SWT graphic related to this table item for
    * TableColumn objects of TYPE_GRAPHIC only.
    *
    * @return the Image that is draw in the cell, or null if there is none.
    */
-  public Image getGraphic();
+  public Graphic getGraphic();
   
   /** TODO:
   /** Sets the image to be drawn to the file specified for
    * TableColumn objects of TYPE_GRAPHIC only.
    * 
-   * @param imageLocation path and filename of image
+   * @param imageLocation URI of image
    * @return true - image was changed.<br>
    *         false = image was the same
    *
