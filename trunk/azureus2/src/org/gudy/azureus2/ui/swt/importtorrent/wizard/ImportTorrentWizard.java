@@ -150,11 +150,15 @@ ImportTorrentWizard
 								
 				}catch( TOTorrentException e ){
 				
+					e.printStackTrace();
+					
 					error_title 	= MessageText.getString("importTorrentWizard.process.importfail.title");
 				
 					error_detail	= TorrentUtils.exceptionToText( e ); 
 				}
 			}catch( TOTorrentException e ){
+				
+				e.printStackTrace();
 				
 				error_title 	= MessageText.getString("importTorrentWizard.process.torrentfail.title");
 				

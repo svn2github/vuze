@@ -155,6 +155,8 @@ TOTorrentXMLSerialiser
 				writeTag( "CREATED_BY", created_by );					
 			}
 			
+			writeTag( "TORRENT_HASH", torrent.getHash());
+			
 			writeInfo();
 			
 			Map additional_properties = torrent.getAdditionalProperties();
@@ -206,29 +208,42 @@ TOTorrentXMLSerialiser
 				
 					for (int i=0;i<files.length;i++){
 					
-						TOTorrentFileImpl	file	= files[i];
-										
-						writeTag( "LENGTH", file.getLength());
-					
-						writeLine( "<PATH>");
+						writeLine( "<FILE>");
 						
-						try{				
+						try{
 							
 							indent();
 							
-							byte[][]	path_comps = file.getPathComponents();
+							TOTorrentFileImpl	file	= files[i];
+											
+							writeTag( "LENGTH", file.getLength());
 						
-							for (int j=0;j<path_comps.length;j++){
-
-								writeTag( "COMPONENT", path_comps[j] );							
+							writeLine( "<PATH>");
+							
+							try{				
+								
+								indent();
+								
+								byte[][]	path_comps = file.getPathComponents();
+							
+								for (int j=0;j<path_comps.length;j++){
+	
+									writeTag( "COMPONENT", path_comps[j] );							
+								}
+						
+							}finally{
+								
+								exdent();
 							}
-					
+							
+							writeLine( "</PATH>");
+				
 							Map additional_properties = file.getAdditionalProperties();
 						
 							Iterator prop_it = additional_properties.keySet().iterator();
-						
-							while( prop_it.hasNext()){
 							
+							while( prop_it.hasNext()){
+								
 								String	key = (String)prop_it.next();
 							
 								writeGenericMapEntry( key, additional_properties.get( key ));
@@ -238,7 +253,7 @@ TOTorrentXMLSerialiser
 							exdent();
 						}
 						
-						writeLine( "</PATH>");
+						writeLine( "</FILE>");
 					}
 				}finally{
 					
@@ -454,6 +469,11 @@ TOTorrentXMLSerialiser
 		
 		throws TOTorrentException
 	{
+		String data = ByteFormatter.nicePrint( bytes, true );
+			
+		return( data );
+
+		/*
 		try{
 		
 			return( URLEncoder.encode(new String( bytes, Constants.DEFAULT_ENCODING ), Constants.DEFAULT_ENCODING));
@@ -462,7 +482,8 @@ TOTorrentXMLSerialiser
 
 			throw( new TOTorrentException( 	"TOTorrentXMLSerialiser: unsupported encoding for '" + new String(bytes) + "'",
 										TOTorrentException.RT_UNSUPPORTED_ENCODING));
-		}	
+		}
+		*/
 	}
 	protected String
 	escapeXML(

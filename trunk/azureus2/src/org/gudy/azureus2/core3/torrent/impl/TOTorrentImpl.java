@@ -577,12 +577,20 @@ TOTorrentImpl
 	}
 	
 	protected void
-	addAdditionalInfoProperty(
+	addAdditionalProperty(
 		String			name,
 		Object			value )
 	{
-		additional_info_properties.put( name, value );
-	}	
+		additional_properties.put( name, value );
+	}
+		
+	protected void
+		addAdditionalInfoProperty(
+			String			name,
+			Object			value )
+		{
+			additional_info_properties.put( name, value );
+		}	
 	
 	protected Map
 	getAdditionalInfoProperties()

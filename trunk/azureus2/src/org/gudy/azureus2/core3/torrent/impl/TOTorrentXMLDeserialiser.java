@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.torrent.impl;
  *
  */
 
+import java.util.*;
 import java.io.*;
 import java.net.*;
 
@@ -53,15 +54,12 @@ TOTorrentXMLDeserialiser
 			SimpleXMLParserDocument	doc = SimpleXMLParserDocumentFactory.create( file );
 			
 			TOTorrent res = decodeRoot( doc );
-			
-			res.print();
-			
-		
-			throw( new TOTorrentException( "parp", TOTorrentException.RT_DECODE_FAILS ));
-			
+					
+			return( res );
+						
 		}catch( SimpleXMLParserDocumentException e ){
-		
-			throw( new TOTorrentException( "parp", TOTorrentException.RT_DECODE_FAILS ));
+					
+			throw( new TOTorrentException( e.toString(), TOTorrentException.RT_DECODE_FAILS ));
 		}
 	}
 	
@@ -83,6 +81,8 @@ TOTorrentXMLDeserialiser
 			
 			SimpleXMLParserDocumentNode	info_node 	= null;
 			
+			byte[]	torrent_hash = null;
+			
 			for (int i=0;i<kids.length;i++){
 				
 				SimpleXMLParserDocumentNode	kid = kids[i];
@@ -100,34 +100,35 @@ TOTorrentXMLDeserialiser
 						throw( new TOTorrentException( "ANNOUNCE_URL malformed", TOTorrentException.RT_DECODE_FAILS));
 					}
 					
-				}else if ( name.equalsIgnoreCase( "ANNOUNCE_LIST ")){
+				}else if ( name.equalsIgnoreCase( "ANNOUNCE_LIST")){
 					
 					// todo
 					
-				}else if ( name.equalsIgnoreCase( "COMMENT ")){
+				}else if ( name.equalsIgnoreCase( "COMMENT")){
 					
 					torrent.setComment( kid.getValue());
 					
-				}else if ( name.equalsIgnoreCase( "CREATED_BY ")){
+				}else if ( name.equalsIgnoreCase( "CREATED_BY")){
 					
 					torrent.setCreatedBy( kid.getValue());
 					
-				}else if ( name.equalsIgnoreCase( "CREATION_DATE ")){
-					
-					try{
-					
-						torrent.setCreationDate( Long.parseLong(kid.getValue()));
+				}else if ( name.equalsIgnoreCase( "CREATION_DATE")){
+										
+					torrent.setCreationDate( readGenericLong( kid ).longValue());
 						
-					}catch(Throwable e){
+				}else if ( name.equalsIgnoreCase( "TORRENT_HASH")){
+										
+					torrent_hash	= readGenericBytes( kid );
 						
-						throw( new TOTorrentException( "CREATION_DATE invalid - must be 'long' value", TOTorrentException.RT_DECODE_FAILS));
-					}
 				}else if ( name.equalsIgnoreCase( "INFO" )){
 					
 					decodeInfo( kid, torrent );
 					
 				}else{
-						// generic entry
+					
+					mapEntry entry = readGenericMapEntry( kid );
+					
+					torrent.addAdditionalProperty( entry.name, entry.value );
 				}
 			}
 
@@ -137,6 +138,14 @@ TOTorrentXMLDeserialiser
 			}
 			
 			torrent.setAnnounceURL( announce_url );
+			
+			if ( torrent_hash != null ){
+			
+				if ( !Arrays.equals( torrent.getHash(), torrent_hash )){
+					
+					System.out.println( "hash differs from expected"); // !!!!	
+				}
+			}
 			
 			return( torrent );
 		}else{
@@ -162,61 +171,262 @@ TOTorrentXMLDeserialiser
 			SimpleXMLParserDocumentNode	kid = kids[i];
 				
 			String	name = kid.getName();
-				
-				System.out.println( "info:" + name );
-				
+								
 			if ( name.equalsIgnoreCase( "PIECE_LENGTH")){
 				
-				try{
-				
-					torrent.setPieceLength( Long.parseLong( kid.getValue()));
+				torrent.setPieceLength( readGenericLong( kid ).longValue());
 					
-				}catch( Throwable e ){
-
-					throw( new TOTorrentException( "PIECE_LENGTH invalid - must be 'long' value", TOTorrentException.RT_DECODE_FAILS));
-				}
-				
 			}else if ( name.equalsIgnoreCase( "LENGTH")){
 	
 				torrent.setSimpleTorrent( true );
 				
-				try{
-				
-					torrent_length = Long.parseLong( kid.getValue());
-					
-				}catch( Throwable e ){
-
-					throw( new TOTorrentException( "LENGTH invalid - must be 'long' value", TOTorrentException.RT_DECODE_FAILS));
-				}
+				torrent_length =  readGenericLong( kid ).longValue();
 				
 			}else if ( name.equalsIgnoreCase( "NAME")){
 				
-				try{
+				torrent.setName( readGenericBytes( kid ));
 				
-					torrent.setName( URLDecoder.decode( kid.getValue(), Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING ));
-				
-				}catch( UnsupportedEncodingException e ){
-
-					throw( new TOTorrentException( "NAME invalid - unsupported encoding", TOTorrentException.RT_DECODE_FAILS));				
-				}
 			}else if ( name.equalsIgnoreCase( "FILES" )){
 				
-				torrent.setFiles( new TOTorrentFileImpl[]{});			// !!!!
-			// todo
-			}else if ( name.equalsIgnoreCase( "PIECES" )){
+				torrent.setSimpleTorrent( false );
 				
-				torrent.setPieces( new byte[][]{} );
-				// todo
+				SimpleXMLParserDocumentNode[] file_nodes = kid.getChildren();
+				
+				TOTorrentFileImpl[]	files = new TOTorrentFileImpl[ file_nodes.length ];
+				
+				for (int j=0;j<files.length;j++){
+					
+					SimpleXMLParserDocumentNode	file_node = file_nodes[j];
+					
+					SimpleXMLParserDocumentNode[]	file_entries = file_node.getChildren();
+					
+					long		file_length	= 0;
+					byte[][]	path_comps	= null;
+					
+					Vector	additional_props	= new Vector();
+					
+					for ( int k=0;k<file_entries.length;k++){
+						
+						SimpleXMLParserDocumentNode	file_entry = file_entries[k];
+						
+						String	entry_name = file_entry.getName();
+						
+						if ( entry_name.equalsIgnoreCase( "LENGTH" )){
+					
+							file_length = readGenericLong(file_entry).longValue();
+					
+						}else if ( entry_name.equalsIgnoreCase( "PATH" )){
+							
+							SimpleXMLParserDocumentNode[]	path_nodes = file_entry.getChildren();
+							
+							path_comps = new byte[path_nodes.length][];
+							
+							for (int n=0;n<path_nodes.length;n++){
+								
+								path_comps[n] = readGenericBytes( path_nodes[n] );
+							}
+						}else{
+							
+							additional_props.addElement( readGenericMapEntry( file_entry ));
+						}
+					}
+					
+					files[j] = new TOTorrentFileImpl( file_length, path_comps );
+					
+					for (int k=0;k<additional_props.size();k++){
+						
+						mapEntry	entry = (mapEntry)additional_props.elementAt(k);
+						
+						files[j].setAdditionalProperty( entry.name, entry.value );
+					}
+					
+				}
+				
+				torrent.setFiles( files );
+				
+			}else if ( name.equalsIgnoreCase( "PIECES" )){
+	
+				SimpleXMLParserDocumentNode[]	piece_nodes = kid.getChildren();
+				
+				byte[][]	pieces = new byte[piece_nodes.length][];
+				
+				for (int j=0;j<pieces.length;j++){
+					
+					pieces[j] = readGenericBytes( piece_nodes[j] );			
+				}
+				
+				torrent.setPieces( pieces );
 			}else{
 				
-				// todo generic
+				mapEntry entry = readGenericMapEntry( kid );
+					
+				torrent.addAdditionalInfoProperty( entry.name, entry.value );
 			}
 		}
 		
 		if ( torrent.isSimpleTorrent()){
 	
-			torrent.setFiles( new TOTorrentFileImpl[]{});			// !!!!
+			torrent.setFiles( 
+				new TOTorrentFileImpl[]{ 
+						new TOTorrentFileImpl( 	torrent_length,
+												new byte[][]{ torrent.getName()})});
 		}
+	}
 	
+	protected mapEntry
+	readGenericMapEntry(
+		SimpleXMLParserDocumentNode		node ) 
+		
+		throws TOTorrentException
+	{
+		if ( !node.getName().equalsIgnoreCase("KEY")){
+			
+			throw( new TOTorrentException( "Additional property invalid, must be KEY nodeb", TOTorrentException.RT_DECODE_FAILS));				
+		}
+		
+		String 	name = node.getAttribute("name").getValue();
+				
+		SimpleXMLParserDocumentNode[]	kids = node.getChildren();
+		
+		if ( kids.length != 1 ){
+		
+			throw( new TOTorrentException( "Additional property invalid, must have one child", TOTorrentException.RT_DECODE_FAILS));				
+		}
+		
+		String	type = kids[0].getName();
+		
+		Object  value = readGenericValue( kids[0] );
+		
+		return( new mapEntry( name, value ));
+	}
+
+	protected Object
+	readGenericValue(
+		SimpleXMLParserDocumentNode	node )
+		
+		throws TOTorrentException
+	{
+		String	name = node.getName();
+		
+		if ( name.equalsIgnoreCase( "BYTES")){
+			
+			return( readGenericBytes( node ));
+					
+		}else if ( name.equalsIgnoreCase( "LONG" )){
+					
+			return( readGenericLong( node ));
+					
+		}else if ( name.equalsIgnoreCase( "LIST" )){
+					
+			return( readGenericList( node ));
+					
+		}else if ( name.equalsIgnoreCase( "MAP" )){
+					
+			return( readGenericMap( node ));
+					
+		}else{
+					
+			throw( new TOTorrentException( "Additional property invalid, sub-key '" + name + "' not recognised", TOTorrentException.RT_DECODE_FAILS));				
+		}
+	}
+	
+	protected byte[]
+	readGenericBytes(
+		SimpleXMLParserDocumentNode node )
+		
+		throws TOTorrentException
+	{
+		String value = node.getValue();
+		
+		byte[]	res = new byte[value.length()/2];
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = (byte)Integer.parseInt( value.substring(i*2,i*2+2), 16 );
+			
+		}
+		
+		return( res );
+		/*
+		try{
+				
+			return( URLDecoder.decode( node.getValue(), Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING ));
+				
+		}catch( UnsupportedEncodingException e ){
+
+			throw( new TOTorrentException( "bytes invalid - unsupported encoding", TOTorrentException.RT_DECODE_FAILS));				
+		}
+		*/
+	}
+	
+	protected Long
+	readGenericLong(
+		SimpleXMLParserDocumentNode node )
+		
+		throws TOTorrentException
+	{
+		String	value = node.getValue();
+		
+		try{
+			
+			return( new Long( value ));
+			
+		}catch( Throwable e ){
+		
+			throw( new TOTorrentException( "long value invalid", TOTorrentException.RT_DECODE_FAILS));				
+		}
+	}
+	
+	protected Map
+	readGenericMap(
+		SimpleXMLParserDocumentNode node )
+		
+		throws TOTorrentException
+	{
+		Map res = new HashMap();
+		
+		SimpleXMLParserDocumentNode[]	kids = node.getChildren();
+		
+		for (int i=0;i<kids.length;i++){
+			
+			mapEntry	entry = readGenericMapEntry( kids[i] );
+			
+			res.put( entry.name, entry.value );
+		}
+		
+		return( res );
+	}
+	
+	protected List
+	readGenericList(
+		SimpleXMLParserDocumentNode node )
+		
+		throws TOTorrentException
+	{
+		List res = new ArrayList();
+		
+		SimpleXMLParserDocumentNode[]	kids = node.getChildren();
+		
+		for (int i=0;i<kids.length;i++){
+			
+			res.add( readGenericValue( kids[i]));
+		}
+		
+		return( res );
+	}
+	
+	protected class
+	mapEntry
+	{
+		String		name;
+		Object		value;
+		
+		mapEntry(
+			String	_name,
+			Object	_value )
+		{
+			name	= _name;
+			value	= _value;
+		}
 	}
 }
