@@ -1088,10 +1088,7 @@ PEPeerControlImpl
 
   
   private void unChoke() {
-    // Only Choke-Unchoke Every 10 secs
-    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0) {
-      return;
-    }
+    
 
     // We retreive the current non-choking peers
     List nonChoking = getNonChokingPeers();
@@ -1110,7 +1107,12 @@ PEPeerControlImpl
       //Determine the N (nbUnchoke best peers)
       //Maybe we'll need some other test when we are a seed ...
       prepareBestUnChokedPeers(nbUnchoke - nonChoking.size());
-      nonChoking = getNonChokingPeers();
+      return;
+    }
+    
+    //  Only Choke-Unchoke Every 10 secs
+    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0) {
+      return;
     }
 
     // Determine the N (nbUnchoke best peers)
