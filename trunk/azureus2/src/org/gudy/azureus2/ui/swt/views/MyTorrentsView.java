@@ -37,6 +37,8 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -108,6 +110,7 @@ public class MyTorrentsView extends AbstractIView
   private Composite composite;
   private Composite panel;
   private Table table;
+  private Font fontButton = null;
   private HashMap objectToSortableItem;
   private HashMap tableItemToObject;
   private Menu menu;
@@ -352,11 +355,24 @@ public class MyTorrentsView extends AbstractIView
       }
 
 
+
+      int iFontPixelsHeight = 10;
+      int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
       for (int i = 0; i < categories.length; i++) {
         final Button catButton = new Button(cCategories, SWT.TOGGLE);
-        RowData rd = new RowData();
-        rd.height = 17;
-        catButton.setLayoutData(rd);
+        if (i == 0 && fontButton == null) {
+          Font f = catButton.getFont();
+          FontData fd = f.getFontData()[0];
+          fd.setHeight(iFontPointHeight);
+          fontButton = new Font(cCategories.getDisplay(), fd); 
+        }
+        catButton.setFont(fontButton);
+        catButton.pack(true);
+        if (catButton.getSize().y > 0) {
+          RowData rd = new RowData();
+          rd.height = catButton.getSize().y - 4;
+          catButton.setLayoutData(rd);
+        }
         
         String name = categories[i].getName();
         if (categories[i].getType() == Category.TYPE_USER)
@@ -1312,6 +1328,10 @@ public class MyTorrentsView extends AbstractIView
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
+    if (fontButton != null && !fontButton.isDisposed()) {
+      fontButton.dispose();
+      fontButton = null;
+    }
     if (table != null && !table.isDisposed()) {
       Utils.saveTableColumn(table.getColumns());
     }
