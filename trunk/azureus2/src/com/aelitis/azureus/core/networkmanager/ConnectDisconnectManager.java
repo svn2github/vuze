@@ -118,19 +118,36 @@ public class ConnectDisconnectManager {
     try {
       request.channel = SocketChannel.open();
       
-      int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
-      if( rcv_size > 0 ) request.channel.socket().setReceiveBufferSize( rcv_size );
+      try {  //advanced socket options
+        int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
+        if( rcv_size > 0 ) {
+          LGLogger.log( "Setting socket receive buffer size for outgoing connection [" +request.address+ "] to: " + rcv_size );
+          request.channel.socket().setReceiveBufferSize( rcv_size );
+        }
       
-      int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-      if( snd_size > 0 ) request.channel.socket().setSendBufferSize( snd_size );
+        int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+        if( snd_size > 0 ) {
+          LGLogger.log( "Setting socket send buffer size for outgoing connection [" +request.address+ "] to: " + snd_size );
+          request.channel.socket().setSendBufferSize( snd_size );
+        }
 
-      String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-      if( ip_tos.length() > 0 ) request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+        String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+        if( ip_tos.length() > 0 ) {
+          LGLogger.log( "Setting socket TOS field for outgoing connection [" +request.address+ "] to: " + ip_tos );
+          request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+        }
 
-      String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-      if ( bindIP.length() > 6 ) {
-        LGLogger.log( "Binding outgoing connection [" +request.address+ "] to local IP address: " + bindIP );
-        request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+        String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+        if ( bindIP.length() > 6 ) {
+          LGLogger.log( "Binding outgoing connection [" +request.address+ "] to local IP address: " + bindIP );
+          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+        }
+      }
+      catch( Throwable t ) {
+        String msg = "Error while processing advanced socket options.";
+        Debug.out( msg, t );
+        LGLogger.logAlert( msg, t, false );
+        //dont pass the exception outwards, so we will continue processing connection without advanced options set
       }
       
       request.channel.configureBlocking( false );
