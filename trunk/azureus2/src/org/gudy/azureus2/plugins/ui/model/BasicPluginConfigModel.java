@@ -35,4 +35,10 @@ BasicPluginConfigModel
 		String 		key,
 		String 		resource_name,
 		boolean 	defaultValue );
+	
+	public void
+	addStringParameter(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue );
 }

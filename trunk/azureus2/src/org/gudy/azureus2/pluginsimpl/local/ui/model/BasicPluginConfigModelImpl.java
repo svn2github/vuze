@@ -111,6 +111,15 @@ BasicPluginConfigModelImpl
 		parameters.add( new Object[]{ key_prefix + key, resource_name, new Boolean(defaultValue) });
 	}
 	
+	public void
+	addStringParameter(
+		String 		key,
+		String 		resource_name,
+		String  	defaultValue )
+	{
+		parameters.add( new Object[]{ key_prefix + key, resource_name, defaultValue });
+	}
+	
 	public Composite 
 	configSectionCreate(
 		Composite parent ) 
@@ -139,8 +148,21 @@ BasicPluginConfigModelImpl
 			//gridData.widthHint = 40;
 			
 			String	key = (String)x[0];
-						
-			new BooleanParameter(gMainTab, key, ((Boolean)x[2]).booleanValue());
+			Object	def	= x[2];
+			
+			//System.out.println( "key = " + key );
+			
+			if ( def instanceof Boolean ){
+			
+				new BooleanParameter(gMainTab, key, ((Boolean)def).booleanValue());
+				
+			}else{
+				gridData = new GridData();
+				
+				gridData.widthHint = 150;
+
+				new StringParameter(gMainTab, key, (String)def ).setLayoutData( gridData );
+			}
 		}
 		
 		return( gMainTab );
