@@ -93,7 +93,6 @@ PEPeerServerImpl
     while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
-        //sck.socket().setReuseAddress(true);
         if (bindIP.length() < 7) {
            sck.socket().bind(new InetSocketAddress(port));
         }
