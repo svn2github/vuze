@@ -841,7 +841,7 @@ public class GlobalManagerImpl
       return false;
 
     if ((manager.getStats().getDownloadCompleted() == 1000) &&
-        (COConfigurationManager.getBooleanParameter("bRepositionCompleted")))
+        (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0))
       return false;
 
     return manager.getPosition() > 1;
@@ -854,7 +854,7 @@ public class GlobalManagerImpl
     boolean isCompleted = manager.getStats().getDownloadCompleted() == 1000;
 
     if (isCompleted &&
-        (COConfigurationManager.getBooleanParameter("bRepositionCompleted")))
+        (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0))
       return false;
 
     int numInGroup = 0;

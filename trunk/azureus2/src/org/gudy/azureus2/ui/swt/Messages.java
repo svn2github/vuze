@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.config.IParameter;
 
 /**
  * @author Arbeiten
@@ -127,6 +128,10 @@ public class Messages {
       }
     }
     
+  }
+
+  public static void setLanguageText(IParameter paramObject, String key) {
+    setLanguageText(paramObject.getControl(), key, false);
   }
 
   public static void setLanguageText(Widget widget, String key) {

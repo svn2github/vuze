@@ -67,12 +67,6 @@ public class UIConst {
   	for (int i = 0; i < logComponents.length; i++)
   		for (int j = 0; j <= 3; j++)
   			parameterlegacy.put("Logger_bLog" + logComponents[i] + "-" + j,"bLog" + logComponents[i] + "-" + j);
-
-    parameterlegacy.put("StartStopManager_bRepositionCompleted", "bRepositionCompleted");
-  	parameterlegacy.put("StartStopManager_iPeersAsFullCopy", "numPeersAsFullCopy");
-  	parameterlegacy.put("StartStopManager_iFakeFullCopySeedStart", "iFakeFullCopySeedStart");
-  	parameterlegacy.put("StartStopManager_iMinPeersToBoostNoSeeds", "minPeersToBoostNoSeeds");
-  	parameterlegacy.put("StartStopManager_iMinSpeedForActiveDL", "minSpeedForActiveDL");
   }
   
   public static void shutdown() {
