@@ -245,7 +245,7 @@ public class Colors implements ParameterListener {
         newColor = new Color(display, rgbDefault);
         // Since the color is not longer overriden, reset back to default
         // so that the user sees the correct color in Config.
-        COConfigurationManager.setParameter("Colors." + sName, rgbDefault); 
+        COConfigurationManager.setRGBParameter("Colors." + sName, rgbDefault.red, rgbDefault.green, rgbDefault.blue ); 
       }
 
       if (toBeDeleted != null && !toBeDeleted.isDisposed())

@@ -73,7 +73,7 @@ public class ColorParameter implements IParameter, ParameterListener {
         if (newColor == null)
           return;
         newColorChosen();
-        COConfigurationManager.setParameter(name, newColor);
+        COConfigurationManager.setRGBParameter(name, rV,gV,bV );
       }
     });
     

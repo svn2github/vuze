@@ -21,8 +21,8 @@
  
 package org.gudy.azureus2.core3.config;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
+//import org.eclipse.swt.graphics.Color;
+//import org.eclipse.swt.graphics.RGB;
 
 import java.util.Map;
 import java.util.Set;
@@ -142,6 +142,7 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getDirectoryParameter( _name ));
 	}
 	
+	/*
 	public static boolean
 	setParameter(String parameter, Color value) 
 	{
@@ -153,7 +154,8 @@ COConfigurationManager
 	{
 		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
-
+	*/
+	
 	public static boolean
 	setRGBParameter(String parameter, int red, int green, int blue) 
 	{
