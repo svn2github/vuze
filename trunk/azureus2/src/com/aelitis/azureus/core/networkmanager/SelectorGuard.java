@@ -134,7 +134,13 @@ public class SelectorGuard {
         SelectionKey key = (SelectionKey)i.next();
 
         SelectableChannel channel = key.channel();
-        channel.register(newSelector, key.interestOps(), key.attachment());
+        
+        try{
+          channel.register(newSelector, key.interestOps(), key.attachment());
+        }
+        catch( Throwable t ) {
+          Debug.out( t );
+        }
       }
         
     	//close old
