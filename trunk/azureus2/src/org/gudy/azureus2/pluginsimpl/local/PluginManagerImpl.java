@@ -54,7 +54,7 @@ PluginManagerImpl
 		return( singleton );
 	}
 	
-	public static void
+	public static PluginManager
 	startAzureus(
 		int			ui_type,
 		Properties	properties )
@@ -122,6 +122,13 @@ PluginManagerImpl
 			
 			org.gudy.azureus2.ui.swt.Main.main(new String[0]);
 		}
+		
+		if ( azureus_core == null ){
+			
+			throw( new RuntimeException( "Azureus core failed to initialise" ));
+		}
+		
+		return( azureus_core.getPluginManager());
 	}
 	
 	public static synchronized void
@@ -188,7 +195,7 @@ PluginManagerImpl
 		PluginInitializer.queueRegistration( plugin_class );
 	}
 	
-	public static PluginInterface
+	public PluginInterface
 	getPluginInterfaceByID(
 		String		id )
 	{
@@ -205,7 +212,7 @@ PluginManagerImpl
 		return( null );
 	}
 	
-	public static PluginInterface
+	public PluginInterface
 	getPluginInterfaceByClass(
 		Class		c )
 	{
@@ -222,7 +229,7 @@ PluginManagerImpl
 		return( null );
 	}
 	
-	public static PluginInterface[]
+	public PluginInterface[]
 	getPluginInterfaces()
 	{
 		List	l = PluginInitializer.getPluginInterfaces();
@@ -234,7 +241,7 @@ PluginManagerImpl
 		return( res );
 	}
 	
-	public static PluginInterface
+	public PluginInterface
 	getDefaultPluginInterface()
 	{
 		return( PluginInitializer.getDefaultInterface());
@@ -253,5 +260,12 @@ PluginManagerImpl
 	getPlugins()
 	{
 		return( pi.getPlugins());
+	}
+	
+	public void
+	firePluginEvent(
+		int	ev )
+	{
+		PluginInitializer.fireEvent( ev );
 	}
 }

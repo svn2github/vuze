@@ -31,10 +31,10 @@ import java.io.File;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 public class 
@@ -42,7 +42,8 @@ ShareUtils
 {
 	public static void
 	shareFile(
-		final Shell		shell )
+		final AzureusCore	azureus_core,
+		final Shell			shell )
 	{
 		new AEThread("shareFile")
 		{
@@ -77,7 +78,7 @@ ShareUtils
 				
 				if ( path[0] != null ){
 					
-					shareFile( path[0] );
+					shareFile( azureus_core, path[0] );
 				}
 			}
 		}.start();
@@ -85,24 +86,27 @@ ShareUtils
 
 	public static void
 	shareDir(
+		AzureusCore	azureus_core,
 		Shell		shell )
 	{
-		shareDirSupport( shell, false, false );
+		shareDirSupport( azureus_core, shell, false, false );
 	}
 	
 	public static void
 	shareDirContents(
+		AzureusCore	azureus_core,
 		Shell		shell,
 		boolean		recursive )
 	{
-		shareDirSupport( shell, true, recursive );
+		shareDirSupport( azureus_core, shell, true, recursive );
 	}
 	
 	protected static void
 	shareDirSupport(
-		final Shell		shell,
-		final boolean	contents,
-		final boolean	recursive )
+		final AzureusCore	azureus_core,
+		final Shell			shell,
+		final boolean		contents,
+		final boolean		recursive )
 	{
 		new AEThread("shareDirSupport")
 		{
@@ -142,11 +146,11 @@ ShareUtils
 					
 					if ( contents ){
 						
-						shareDirContents( path[0], recursive );
+						shareDirContents( azureus_core, path[0], recursive );
 						
 					}else{
 						
-						shareDir( path[0] );
+						shareDir( azureus_core, path[0] );
 					}
 				}
 			}
@@ -155,7 +159,8 @@ ShareUtils
 	
 	public static void
 	shareFile(
-		final String	file_name )
+		final AzureusCore	azureus_core,
+		final String		file_name )
 	{
 		new AEThread("shareFile")
 		{
@@ -163,7 +168,7 @@ ShareUtils
 			run()
 			{
 				try{
-					PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
+					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addFile(new File(file_name));
 					
 				}catch( Throwable e ){
 					
@@ -175,7 +180,8 @@ ShareUtils
 
 	public static void
 	shareDir(
-		final String	file_name )
+		final AzureusCore	azureus_core,
+		final String		file_name )
 	{
 		new AEThread("shareDir")
 		{
@@ -183,7 +189,7 @@ ShareUtils
 			run()
 			{
 				try{
-					PluginInitializer.getDefaultInterface().getShareManager().addDir(new File(file_name));
+					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addDir(new File(file_name));
 					
 				}catch( Throwable e ){
 					
@@ -195,8 +201,9 @@ ShareUtils
 	
 	public static void
 	shareDirContents(
-		final String	file_name,
-		final boolean	recursive )
+		final AzureusCore	azureus_core,
+		final String		file_name,
+		final boolean		recursive )
 	{
 		new AEThread("shareDirCntents")
 		{
@@ -204,7 +211,7 @@ ShareUtils
 			run()
 			{
 				try{
-					PluginInitializer.getDefaultInterface().getShareManager().addDirContents(new File(file_name), recursive);
+					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addDirContents(new File(file_name), recursive);
 			
 				}catch( Throwable e ){
 					

@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
@@ -40,7 +42,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
  */
 public class OpenUrlWindow {
 
-  public OpenUrlWindow(final Display display, String linkURL) {
+  public 
+  OpenUrlWindow(
+  	final AzureusCore	azureus_core,
+	final Display 		display, 
+	String 				linkURL) 
+  {
     final Shell shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(MessageText.getString("openUrl.title"));
     shell.setImage(ImageRepository.getImage("azureus"));
@@ -80,7 +87,7 @@ public class OpenUrlWindow {
     ok.setText(MessageText.getString("Button.ok"));
     ok.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {        
-        new FileDownloadWindow(display,url.getText());
+        new FileDownloadWindow(azureus_core,display,url.getText());
         shell.dispose();
       }
     }); 

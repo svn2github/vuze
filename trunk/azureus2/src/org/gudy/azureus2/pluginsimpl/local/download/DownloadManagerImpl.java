@@ -32,6 +32,7 @@ import java.net.URL;
 
 import org.eclipse.swt.widgets.Display;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -56,16 +57,17 @@ DownloadManagerImpl
 	
 	public synchronized static DownloadManagerImpl
 	getSingleton(
-		GlobalManager	global_manager )
+		AzureusCore	azureus_core )
 	{
 		if ( singleton == null ){
 			
-			singleton = new DownloadManagerImpl( global_manager );
+			singleton = new DownloadManagerImpl( azureus_core );
 		}
 		
 		return( singleton );
 	}
 	
+	protected AzureusCore	azureus_core;
 	protected GlobalManager	global_manager;
 	protected List			listeners		= new ArrayList();
 	protected List			downloads		= new ArrayList();
@@ -73,9 +75,10 @@ DownloadManagerImpl
 	
 	protected
 	DownloadManagerImpl(
-		GlobalManager	_global_manager )
+		AzureusCore	_azureus_core )
 	{
-		global_manager	= _global_manager;
+		azureus_core	= _azureus_core;
+		global_manager	= _azureus_core.getGlobalManager();
 		
 		global_manager.addListener(
 			new GlobalManagerListener()
@@ -155,7 +158,7 @@ DownloadManagerImpl
 	addDownload(
 		File fileName ) 
 	{
-		TorrentOpener.openTorrent(fileName.toString());
+		TorrentOpener.openTorrent(azureus_core, fileName.toString());
 	}
 
 	public void 
@@ -170,7 +173,7 @@ DownloadManagerImpl
 					public void
 					run()
 					{
-						new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url.toString());
+						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString());
 					}
 				});
 	}

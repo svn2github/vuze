@@ -114,7 +114,7 @@ PluginInitializer
    
   private STProgressListener listener;
   
-  private GlobalManager	global_manager;
+  private AzureusCore		azureus_core;
   
   private PluginInterface	default_plugin;
   private PluginManager		plugin_manager;
@@ -124,12 +124,12 @@ PluginInitializer
   
   public static synchronized PluginInitializer
   getSingleton(
-  	GlobalManager 	gm,
+  	AzureusCore		 	azureus_core,
 	STProgressListener 	listener )
   {
   	if ( singleton == null ){
   		
-  		singleton = new PluginInitializer( gm, listener );
+  		singleton = new PluginInitializer( azureus_core, listener );
   		
   		for (int i=0;i<registration_queue.size();i++){
   			
@@ -170,12 +170,12 @@ PluginInitializer
   
   protected 
   PluginInitializer(
-  	GlobalManager gm,
+  	AzureusCore 		_azureus_core,
 	STProgressListener listener) 
   {
-  	global_manager	= gm;
+  	azureus_core	= _azureus_core;
   	
-  	global_manager.addListener( this );
+  	azureus_core.getGlobalManager().addListener( this );
   	
     this.listener 	= listener;
     
@@ -749,11 +749,17 @@ PluginInitializer
   		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key );
   	}
   }
- 	
+ 
+  protected AzureusCore
+  getAzureusCore()
+  {
+  	return( azureus_core );
+  }
+  
   protected GlobalManager
   getGlobalManager()
   {
-  	return( global_manager );
+  	return( azureus_core.getGlobalManager() );
   }
   
   public static PluginInterface

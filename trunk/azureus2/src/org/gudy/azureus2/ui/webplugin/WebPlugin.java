@@ -507,7 +507,7 @@ WebPlugin
 				public void
 				initializationComplete()
 				{
-					PluginInterface pi_upnp = PluginManager.getPluginInterfaceByClass( UPnPPlugin.class );
+					PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
 					
 					if ( pi_upnp == null ){
 						

@@ -40,6 +40,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -53,6 +55,7 @@ public class Wizard {
 
   List		listeners = new ArrayList();
   
+  AzureusCore	azureus_core;
   Display display;
   Shell wizardWindow;
   Label title;
@@ -67,13 +70,24 @@ public class Wizard {
   
   int wizardHeight;
   
-  public Wizard(Display display,String keyTitle) {
-    this(display);
+  public 
+  Wizard(
+  	AzureusCore		azureus_core,
+  	Display 		display,
+	String 			keyTitle) 
+  {
+    this(azureus_core,display);
     setTitleKey(keyTitle);
   }
 
-  public Wizard(Display display) {
-    this.display = display;
+  public 
+  Wizard(
+  	AzureusCore		_azureus_core,
+	Display 		display ) 
+  {
+  	azureus_core	= _azureus_core;
+    this.display 	= display;
+    
     wizardWindow = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
@@ -412,6 +426,12 @@ public class Wizard {
   	int height = p.y + wizardHeight;
   	if(height > wizardWindow.getSize().y)
   		wizardWindow.setSize(400,height);
+  }
+  
+  public AzureusCore
+  getAzureusCore()
+  {
+  	return( azureus_core );
   }
 
   public void

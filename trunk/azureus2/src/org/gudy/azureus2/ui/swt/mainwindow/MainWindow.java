@@ -56,10 +56,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.disk.TorrentFolderWatcher;
-import org.gudy.azureus2.core3.disk.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.*;
@@ -75,11 +75,11 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
 import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
 import org.gudy.azureus2.plugins.update.UpdateManagerListener;
-import org.gudy.azureus2.pluginsimpl.local.*;
 
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.IconBar;
@@ -110,7 +110,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   private GUIUpdater updater;
 
   //Package visibility for GUIUpdater
-  GlobalManager       globalManager;
+  AzureusCore			azureus_core;
+  GlobalManager       	globalManager;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
@@ -159,14 +160,32 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   private Tab config;
   
   
-  public MainWindow(GlobalManager gm, Initializer initializer) {    
-    LGLogger.log("MainWindow start");
-    this.globalManager = gm;
-    this.initializer = initializer;
-    this.display = SWTThread.getInstance().getDisplay();
-    window = this;
-    initializer.addListener(this);
-    display.syncExec(this);
+  public 
+  MainWindow(
+  	AzureusCore		_azureus_core,
+	Initializer 	initializer) 
+  { 
+  	try{
+	    LGLogger.log("MainWindow start");
+	    
+	    azureus_core	= _azureus_core;
+	    
+	    this.globalManager = azureus_core.getGlobalManager();
+	    
+	    this.initializer = initializer;
+	    
+	    this.display = SWTThread.getInstance().getDisplay();
+	    
+	    window = this;
+	    
+	    initializer.addListener(this);
+	    
+	    display.syncExec(this);
+	    
+  	}catch( AzureusCoreException e ){
+  		
+  		e.printStackTrace();
+  	}
   }
   
   public void run() {
@@ -680,10 +699,10 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 	    }
     }
 
-    PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
+    azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
     
     if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
-    	ConfigureWizard	wizard = new ConfigureWizard(display);
+    	ConfigureWizard	wizard = new ConfigureWizard(getAzureusCore(),display);
     	
     	wizard.addListener(
     		new WizardListener()
@@ -691,13 +710,14 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     			public void
     			closed()
     			{
-    				PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+   					azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
     			}
     		});
     }else{
-    	PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+    	
+    	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
     }
-
+  
     if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null)
         tray = new TrayWindow(this);
@@ -719,7 +739,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 
   private void startFolderWatcher() {
     if(folderWatcher == null)
-      folderWatcher = TorrentFolderWatcher.getFolderWatcher(globalManager);
+      folderWatcher = TorrentFolderWatcher.getFolderWatcher(azureus_core);
 	  folderWatcher.startIt();
   }
 
@@ -746,7 +766,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   showMyShares() 
   {
   	if (my_shares_tab == null) {
-  		my_shares_tab = new Tab(new MySharesView(globalManager));
+  		my_shares_tab = new Tab(new MySharesView(azureus_core));
   	} else {
   		my_shares_tab.setFocus();
   		refreshIconBar();
@@ -755,7 +775,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   public void showMyTorrents() {
     if (mytorrents == null) {
-      mytorrents = new Tab(new MyTorrentsSuperView(globalManager));
+      mytorrents = new Tab(new MyTorrentsSuperView(azureus_core));
     } else
       mytorrents.setFocus();
     	refreshIconBar();
@@ -848,7 +868,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         }
       }
       public void drop(DropTargetEvent event) {
-        TorrentOpener.openDroppedTorrents(event);
+        TorrentOpener.openDroppedTorrents(azureus_core,event);
       }
     });
   }
@@ -1245,7 +1265,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       return;
     }
     if(itemKey.equals("open_url")) {
-      TorrentOpener.openUrl();
+      TorrentOpener.openUrl(azureus_core);
       return;
     }
     if(itemKey.equals("open_folder")) {
@@ -1253,7 +1273,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       return;
     }
     if(itemKey.equals("new")) {
-      new NewTorrentWizard(display);
+      new NewTorrentWizard(getAzureusCore(),display);
       return;
     }
     IView currentView = getCurrentView();
@@ -1293,7 +1313,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   public void showConfig() {
     if (config == null)
-      config = new Tab(new ConfigView());
+      config = new Tab(new ConfigView( azureus_core ));
     else
       config.setFocus();
   }
@@ -1407,7 +1427,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   }
   
   private void addUpdateListener() {
-    PluginInitializer.getDefaultInterface().getUpdateManager().addListener(new UpdateManagerListener () {
+  	azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(new UpdateManagerListener () {
       public void checkInstanceCreated(UpdateCheckInstance instance) {
         
         switchStatusToUpdate();
@@ -1499,4 +1519,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     }
   }
   
+  public AzureusCore
+  getAzureusCore()
+  {
+  	return( azureus_core );
+  }
 }

@@ -7,6 +7,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -20,6 +22,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 
 public class MyTorrentsSuperView extends AbstractIView  {
+  private AzureusCore	azureus_core;
+  
   private GlobalManager globalManager;
   private MyTorrentsView torrentview;
   private MyTorrentsView seedingview;
@@ -85,8 +89,9 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_COMPLETE)
   };
 
-  public MyTorrentsSuperView(GlobalManager globalManager) {
-    this.globalManager = globalManager;
+  public MyTorrentsSuperView(AzureusCore	_azureus_core) {
+  	azureus_core		= _azureus_core;
+    this.globalManager = azureus_core.getGlobalManager();
 
     TableColumnManager tcExtensions = TableColumnManager.getInstance();
     for (int i = 0; i < tableCompleteItems.length; i++) {
@@ -122,7 +127,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     
     Composite child1 = new Composite(form,SWT.NULL);
     child1.setLayout(new FillLayout());
-    torrentview = new MyTorrentsView(globalManager, false, tableIncompleteItems);
+    torrentview = new MyTorrentsView(azureus_core, false, tableIncompleteItems);
     torrentview.initialize(child1);
     child1.addListener(SWT.Resize, new Listener() {
       public void handleEvent(Event e) {
@@ -134,7 +139,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
 
     Composite child2 = new Composite(form,SWT.NULL);
     child2.setLayout(new FillLayout());
-    seedingview = new MyTorrentsView(globalManager, true, tableCompleteItems);
+    seedingview = new MyTorrentsView(azureus_core, true, tableCompleteItems);
     seedingview.initialize(child2);
     int weight = COConfigurationManager.getIntParameter("MyTorrents.SplitAt", 30);
     if (weight > 100)

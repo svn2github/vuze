@@ -71,12 +71,12 @@ PluginManager
    *
    * @since 2.0.6.0
    */  
-	public static void
+	public static PluginManager
 	startAzureus(
 		int			ui_type,
 		Properties	properties )
 	{
-		PluginManagerImpl.startAzureus( ui_type, properties );
+		return( PluginManagerImpl.startAzureus( ui_type, properties ));
 	}
 	
   /**
@@ -122,6 +122,7 @@ PluginManager
 	{
 		PluginManagerImpl.registerPlugin( plugin_class );
 	}
+
 	
 	/**
 	 * returns the plugin interface with a given id, or null if not found
@@ -131,23 +132,19 @@ PluginManager
    * @since 2.1.0.0
 	 */
 	
-	public static PluginInterface
+	public abstract PluginInterface
 	getPluginInterfaceByID(
-		String		id )
-	{
-		return( PluginManagerImpl.getPluginInterfaceByID(id));
-	}
+		String		id );
+
 	
 	/**
    *
    * @since 2.1.0.0
    */
-	public static PluginInterface
+	public abstract PluginInterface
 	getPluginInterfaceByClass(
-		Class		c )
-	{
-		return( PluginManagerImpl.getPluginInterfaceByClass(c));
-	}
+		Class		c );
+
 
 	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
@@ -157,11 +154,9 @@ PluginManager
    * @since 2.1.0.0
 	 */
 	
-	public static PluginInterface[]
-	getPluginInterfaces()
-	{
-		return( PluginManagerImpl.getPluginInterfaces());
-	}
+	public abstract PluginInterface[]
+	getPluginInterfaces();
+
 	
 	/**
 	 * returns the default plugin interface that can be used to access plugin functionality without an
@@ -169,11 +164,9 @@ PluginManager
 	 * @return	null if unavailable 
 	 */
 	
-	public static PluginInterface
-	getDefaultPluginInterface()
-	{
-		return( PluginManagerImpl.getDefaultPluginInterface());	
-	}
+	public abstract PluginInterface
+	getDefaultPluginInterface();
+
 	
 	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
@@ -185,4 +178,8 @@ PluginManager
 	
 	public abstract PluginInterface[]
 	getPlugins();
+	
+	public abstract void
+	firePluginEvent(
+		int		event_type );
 }

@@ -43,12 +43,16 @@ CorePatchChecker
 {
 	public static final boolean	TESTING	= false;
 	
+	protected PluginInterface	plugin_interface;
+	
 	public void 
 	initialize(
-		PluginInterface plugin_interface )
+		PluginInterface _plugin_interface )
 	  
 	  	throws PluginException
 	{
+		plugin_interface	= _plugin_interface;
+		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Core Patcher" );
 
 		if ( TESTING || !Constants.isCVSVersion()){
@@ -105,7 +109,7 @@ CorePatchChecker
 	{
 		Update[]	updates = instance.getUpdates();
 		
-		final PluginInterface updater_plugin = PluginManager.getPluginInterfaceByClass( UpdaterUpdateChecker.class );
+		final PluginInterface updater_plugin = plugin_interface.getPluginManager().getPluginInterfaceByClass( UpdaterUpdateChecker.class );
 		
 		for (int i=0;i<updates.length;i++){
 			

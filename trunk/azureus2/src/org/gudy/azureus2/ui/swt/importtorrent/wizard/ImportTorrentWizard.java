@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -49,9 +50,10 @@ ImportTorrentWizard
   
 	public 
 	ImportTorrentWizard(
+		AzureusCore	azureus_core,
 		Display 	display )
 	{
-		super(display,"importTorrentWizard.title");
+		super(azureus_core,display,"importTorrentWizard.title");
 	
 		ImportTorrentWizardInputPanel input_panel = new ImportTorrentWizardInputPanel(this,null);
 	

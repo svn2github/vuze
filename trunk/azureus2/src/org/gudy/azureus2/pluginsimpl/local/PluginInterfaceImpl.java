@@ -169,14 +169,14 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentFile(String fileName) {
-    TorrentOpener.openTorrent(fileName);
+    TorrentOpener.openTorrent(initialiser.getAzureusCore(),fileName);
   }
 
   /**
    * @deprecated
    */
   public void openTorrentURL(String url) {
-    new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
+    new FileDownloadWindow(initialiser.getAzureusCore(),MainWindow.getWindow().getDisplay(),url);
   }
       
   public String getPluginName()
@@ -287,7 +287,7 @@ PluginInterfaceImpl
   public DownloadManager
   getDownloadManager()
   {
-  	return( DownloadManagerImpl.getSingleton(initialiser.getGlobalManager()));
+  	return( DownloadManagerImpl.getSingleton(initialiser.getAzureusCore()));
   }
   
   public TorrentManager
@@ -354,11 +354,11 @@ PluginInterfaceImpl
   		return(getPlugin() instanceof UnloadablePlugin );
   	}
   	
- 	PluginInterface[]	pis = PluginManager.getPluginInterfaces();
+ 	List	pis = PluginInitializer.getPluginInterfaces();
   	
-  	for (int i=0;i<pis.length;i++){
+  	for (int i=0;i<pis.size();i++){
   		
-  		PluginInterface	pi = pis[i];
+  		PluginInterface	pi = (PluginInterface)pis.get(i);
   		
   		String other_dir = pi.getPluginDirectoryName();
   		
@@ -401,11 +401,11 @@ PluginInterfaceImpl
 		
   	}else{
   		
-		PluginInterface[]	pis = PluginManager.getPluginInterfaces();
+		List	pis = PluginInitializer.getPluginInterfaces();
 		 
-		for (int i=0;i<pis.length;i++){
+		for (int i=0;i<pis.size();i++){
 	  		
-	  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)pis[i];
+	  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)pis.get(i);
 	  		
 			String other_dir = pi.getPluginDirectoryName();
 	  		

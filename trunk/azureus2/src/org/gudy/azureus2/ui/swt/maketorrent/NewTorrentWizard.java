@@ -31,6 +31,8 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -58,8 +60,12 @@ public class NewTorrentWizard extends Wizard {
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
 
-  public NewTorrentWizard(Display display) {
-    super(display, "wizard.title");
+  public 
+  NewTorrentWizard(
+  	AzureusCore		azureus_core,
+	Display 		display) 
+  {
+    super(azureus_core, display, "wizard.title");
     trackers.add(new ArrayList());
     trackerURL = Utils.getLinkFromClipboard(display);
     ModePanel panel = new ModePanel(this, null);

@@ -45,6 +45,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -65,6 +68,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  */
 public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
+  private AzureusCore			azureus_core;
   private UpdateCheckInstance	check_instance;
 	
   Display display;  
@@ -93,10 +97,13 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   private static final int COL_SIZE = 2;
   
   
-  public UpdateWindow(
+  public 
+  UpdateWindow(
+  		AzureusCore			_azureus_core,
   		UpdateCheckInstance	_check_instance ) 
   {
-  	check_instance = _check_instance;
+  	azureus_core	= _azureus_core;
+  	check_instance 	= _check_instance;
   	
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
@@ -308,18 +315,6 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     updateWindow.forceActive();       
   }
   
-  public static void main(String args[]) throws Exception{
-    Application app = new Application() {
-      public void run() {
-       new UpdateWindow(null);
-      }
-      
-      public void stopIt() {
-       
-      }
-    };
-    SWTThread.createInstance(app);    
-  }
   
   private void checkMandatory() {
     TableItem[] items = table.getItems();
@@ -498,7 +493,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     	// this HAS to be done this way around else the restart inherits
     	// the 6880 port listen. However, this is a general problem....
       MainWindow.getWindow().dispose();
-      Restarter.restartForUpgrade();
+      Restarter.restartForUpgrade( azureus_core );
     } else {
       updateWindow.dispose();      
     }

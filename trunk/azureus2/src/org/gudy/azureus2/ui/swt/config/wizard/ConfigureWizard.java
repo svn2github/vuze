@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.config.wizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -53,8 +55,12 @@ public class ConfigureWizard extends Wizard {
   boolean completed = false;
  
 
-  public ConfigureWizard(Display display) {
-    super(display,"configureWizard.title");
+  public 
+  ConfigureWizard(
+  	AzureusCore		azureus_core,
+	Display 		display) 
+  {
+    super(azureus_core,display,"configureWizard.title");
     WelcomePanel panel = new WelcomePanel(this,null);
     this.setFirstPanel(panel);
     try  {

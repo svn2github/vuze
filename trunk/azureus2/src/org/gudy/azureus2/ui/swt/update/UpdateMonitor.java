@@ -23,6 +23,8 @@
 package org.gudy.azureus2.ui.swt.update;
 
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -34,7 +36,6 @@ import org.gudy.azureus2.update.CoreUpdateChecker;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
  * @author Olivier Chalouhi
@@ -48,24 +49,30 @@ UpdateMonitor
 
 	protected static UpdateMonitor		singleton;
 	
-	protected UpdateWindow 			current_window;
-  
-	protected UpdateCheckInstance		current_instance;
-	
 	public static synchronized UpdateMonitor
-	getSingleton()
+	getSingleton(
+		AzureusCore		core )
 	{
 		if ( singleton == null ){
 			
-			singleton = new UpdateMonitor();
+			singleton = new UpdateMonitor( core );
 		}
 		
 		return( singleton );
 	}
+
+	protected AzureusCore			azureus_core;
+	protected UpdateWindow 			current_window;
+	  
+	protected UpdateCheckInstance	current_instance;
+		
 	
 	protected 
-	UpdateMonitor() 
+	UpdateMonitor(
+		AzureusCore		_azureus_core ) 
 	{
+		azureus_core	= _azureus_core;
+		
 	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,
 	            new TimerEventPerformer()
@@ -164,7 +171,7 @@ UpdateMonitor
 		
 	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
 	    
-	  	UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager(); 
+	  	UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
 		
 	  	current_instance = um.createUpdateCheckInstance();
 		  	
@@ -179,7 +186,7 @@ UpdateMonitor
 	complete(
 		UpdateCheckInstance		instance )
 	{
-		PluginInterface core_plugin = PluginManager.getPluginInterfaceByClass( CoreUpdateChecker.class );
+		PluginInterface core_plugin = azureus_core.getPluginManager().getPluginInterfaceByClass( CoreUpdateChecker.class );
 		
 		String latest_version = core_plugin.getPluginProperties().getProperty( CoreUpdateChecker.LATEST_VERSION_PROPERTY );
 		
@@ -226,7 +233,7 @@ UpdateMonitor
     		
     		if ( current_window == null || current_window.isDisposed()){
     			
-	    		current_window = new UpdateWindow( instance );
+	    		current_window = new UpdateWindow( azureus_core, instance );
 				
 	    		for( int i = 0 ;  i < us.length; i++ ){
 				

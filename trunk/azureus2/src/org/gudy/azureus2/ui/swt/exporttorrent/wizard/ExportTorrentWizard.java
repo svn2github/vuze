@@ -33,6 +33,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -49,9 +51,10 @@ ExportTorrentWizard
   
 	public 
 	ExportTorrentWizard(
+		AzureusCore	azureus_core,	
  		Display 	display )
 	{
-		super(display,"exportTorrentWizard.title");
+		super(azureus_core,display,"exportTorrentWizard.title");
 	
 		ExportTorrentWizardInputPanel input_panel = new ExportTorrentWizardInputPanel(this,null);
 	
@@ -60,10 +63,11 @@ ExportTorrentWizard
   
 	public 
 	ExportTorrentWizard(
+		AzureusCore		azureus_core,	
 		Display 		display,
 		DownloadManager	dm )
 	{
-		super(display,"exportTorrentWizard.title");
+		super(azureus_core, display,"exportTorrentWizard.title");
 	
 		setTorrentFile( dm.getTorrentFileName());
 		

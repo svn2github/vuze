@@ -112,7 +112,7 @@ AzureusCoreImpl
 			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
 		}
 
-	    PluginInitializer.getSingleton(global_manager,this).initializePlugins( this );
+	    PluginInitializer.getSingleton(this,this).initializePlugins( this );
 	        
 	    LGLogger.log("Initializing Plugins complete");
 

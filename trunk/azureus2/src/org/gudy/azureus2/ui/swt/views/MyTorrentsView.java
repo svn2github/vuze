@@ -22,7 +22,6 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.io.File;
 import java.util.*;
 import org.eclipse.swt.SWT;
 
@@ -36,6 +35,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -81,6 +83,7 @@ public class MyTorrentsView
                   CategoryManagerListener,
                   CategoryListener
 {
+	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
   private boolean isSeedingView;
@@ -101,15 +104,20 @@ public class MyTorrentsView
 
   private boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
 
-  public MyTorrentsView(GlobalManager globalManager, boolean isSeedingView,
-                        TableColumnCore[] basicItems) {
+  public 
+  MyTorrentsView(
+  		AzureusCore			_azureus_core, 
+		boolean 			isSeedingView,
+        TableColumnCore[] 	basicItems) 
+  {
     super((isSeedingView) ? TableManager.TABLE_MYTORRENTS_COMPLETE
                           : TableManager.TABLE_MYTORRENTS_INCOMPLETE,
           "MyTorrentsView", basicItems, "#", 
           SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     ptIconSize = new Point(16, 16);
-    this.globalManager = globalManager;
-    this.isSeedingView = isSeedingView;
+    azureus_core		= _azureus_core;
+    this.globalManager 	= azureus_core.getGlobalManager();
+    this.isSeedingView 	= isSeedingView;
 
     downloadBars = MainWindow.getWindow().getDownloadBars();
     currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
@@ -679,7 +687,7 @@ public class MyTorrentsView
       public void handleEvent(Event event) {
         DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
         if (dm != null)
-          new ExportTorrentWizard(itemExport.getDisplay(), dm);
+          new ExportTorrentWizard(azureus_core, itemExport.getDisplay(), dm);
       }
     });
 
@@ -942,7 +950,7 @@ public class MyTorrentsView
           moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
           drag_drop_line_start = -1;
         } else {
-          TorrentOpener.openDroppedTorrents(event);
+          TorrentOpener.openDroppedTorrents(azureus_core, event);
         }
       }
     });

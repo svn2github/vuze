@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -51,6 +50,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
+
+import com.aelitis.azureus.core.*;
 
 /**
  * @author Olivier
@@ -78,6 +79,8 @@ public class ConfigView extends AbstractIView {
       3500,4000,4500,5000 };
   */
 
+  AzureusCore		azureus_core;
+  
   Composite cConfig;
   Composite cConfigSection;
   StackLayout layoutConfigSection;
@@ -87,7 +90,11 @@ public class ConfigView extends AbstractIView {
   TreeItem treePlugins;
   ArrayList pluginSections;
 
-  public ConfigView() {
+  public 
+  ConfigView(
+  	AzureusCore		_azureus_core ) 
+  {
+  	azureus_core	= _azureus_core;
   }
 
   /* (non-Javadoc)
@@ -214,7 +221,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceDisplay(),
                                          new ConfigSectionIPFilter(),
                                          new ConfigSectionStats(),
-                                         new ConfigSectionTracker(),
+                                         new ConfigSectionTracker(azureus_core),
                                          new ConfigSectionTrackerExt(),
                                          new ConfigSectionSecurity(),
                                          new ConfigSectionSharing(),
@@ -523,7 +530,7 @@ public class ConfigView extends AbstractIView {
       }
     });
     
-    List pluginIFs = PluginInitializer.getPluginInterfaces();
+    List pluginIFs = Arrays.asList( azureus_core.getPluginManager().getPlugins());
     
     Collections.sort( 
     		pluginIFs,

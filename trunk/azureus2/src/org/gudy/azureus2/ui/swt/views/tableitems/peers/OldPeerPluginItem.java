@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.peers.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 
 /** Cell/Factory to support old style Plugin columns

@@ -39,6 +39,8 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.program.Program;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -51,6 +53,16 @@ import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.auth.*;
 
 public class ConfigSectionTracker implements ConfigSectionSWT {
+	
+	protected	AzureusCore	azureus_core;
+	
+	public
+	ConfigSectionTracker(
+		AzureusCore		_azureus_core )
+	{
+		azureus_core	= _azureus_core;
+	}
+	
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
@@ -246,7 +258,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
 
     check_button.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event event) {
-          IpCheckerWizard wizard = new IpCheckerWizard(display);
+          IpCheckerWizard wizard = new IpCheckerWizard(azureus_core, display);
           wizard.setIpSetterCallBack(new IpSetterCallBack() {
               public void setIp(final String ip) {
                 if(display == null || display.isDisposed())

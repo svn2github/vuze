@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.update;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -39,15 +41,17 @@ Restarter
 	protected String	classpath_prefix;
 	
 	public static void 
-	restartForUpgrade() 
+	restartForUpgrade(
+		AzureusCore		azureus_core ) 
 	{
-		new Restarter().restartForUpgradeSupport();
+		new Restarter().restartForUpgradeSupport(azureus_core);
 	}
 	
 	protected void
-	restartForUpgradeSupport()
+	restartForUpgradeSupport(
+		AzureusCore		azureus_core )
 	{
-		PluginInterface pi = PluginManager.getPluginInterfaceByID( "azupdater" );
+		PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
 		
 		if ( pi == null ){
 			

@@ -36,7 +36,7 @@ public class Main implements ILocaleUtilChooser {
 	
 	    core.setLocaleChooser( this );
 	    
-	    startServer = new StartServer(this);
+	    startServer = new StartServer(core,this);
 	
 	    boolean debugGUI = Boolean.getBoolean("debug");
 	    
@@ -91,14 +91,18 @@ public class Main implements ILocaleUtilChooser {
   }
   
   
-  public void useParam(String args[]) {
+  public void 
+  useParam(
+  	AzureusCore	azureus_core,
+  	String 		args[]) 
+  {
     if(args.length != 0) {
       if(args[0].equals("args")) {
         if(args.length > 1)
         {
           LGLogger.log( "Main::useParam: open '" + args[1] + "'");
 
-          TorrentOpener.openTorrent(args[1]);
+          TorrentOpener.openTorrent(azureus_core, args[1]);
         }
       }
     }

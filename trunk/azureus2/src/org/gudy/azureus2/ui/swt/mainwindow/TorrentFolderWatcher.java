@@ -5,19 +5,17 @@
  * 
  */
  
-package org.gudy.azureus2.core3.disk;
+package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 /**
  * This class can watch folders for new torrents and imports them.
@@ -28,10 +26,11 @@ public class TorrentFolderWatcher {
   private static FolderWatcher folderWatcher;
   private static MainWindow mainWindow = MainWindow.getWindow();
 
-  public static FolderWatcher getFolderWatcher(
-  		GlobalManager	_global_manager ) {
+  public static FolderWatcher 
+  getFolderWatcher(
+  		AzureusCore	_azureus_core ) {
     if(null == folderWatcher)
-      folderWatcher = new FolderWatcher(_global_manager);
+      folderWatcher = new FolderWatcher(_azureus_core);
     return folderWatcher;
   }
   
@@ -40,7 +39,7 @@ public class TorrentFolderWatcher {
   	extends Thread 
 	implements ParameterListener 
   {
-  	private GlobalManager	global_manager;
+  	private AzureusCore	azureus_core;
     private boolean finished = true;
     private int waitTime = 60000;
     private boolean startWatchedTorrentsStopped = true;
@@ -51,11 +50,11 @@ public class TorrentFolderWatcher {
     
     public 
 	FolderWatcher(
-    	GlobalManager	_global_manager ) 
+    	AzureusCore	_azureus_core ) 
     {
       super("FolderWatcher"); //$NON-NLS-1$
       
-      global_manager = _global_manager;
+      azureus_core = _azureus_core;
       
       setPriority(Thread.MIN_PRIORITY);
       parameterChanged("");
@@ -120,7 +119,7 @@ public class TorrentFolderWatcher {
         	// the default torrent save dir the same as the import dir
         
         try{      	
-        	if ( global_manager.getDownloadManager(TorrentUtils.readFromFile( file )) != null ){
+        	if ( azureus_core.getGlobalManager().getDownloadManager(TorrentUtils.readFromFile( file )) != null ){
         		
         		continue;
         	}
@@ -135,10 +134,10 @@ public class TorrentFolderWatcher {
         if ( !saved || path.length() < 1) {
         	File imported = new File( watchFolderString, file.getName() + ".imported" );
         	file.renameTo( imported );
-        	TorrentOpener.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
+        	TorrentOpener.openTorrent(azureus_core,watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
         }
         else {
-          TorrentOpener.openTorrent(watchFolderString + file.getName(), startWatchedTorrentsStopped, false);
+          TorrentOpener.openTorrent(azureus_core,watchFolderString + file.getName(), startWatchedTorrentsStopped, false);
           delList.add( file );  //add file for deletion
         }
         LGLogger.log(LGLogger.INFORMATION, "Imported " + watchFolderString + "/" + currentFileList[i]);

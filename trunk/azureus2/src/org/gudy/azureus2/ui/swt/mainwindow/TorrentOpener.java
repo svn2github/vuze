@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -67,17 +69,23 @@ public class TorrentOpener {
   }
   
   
-  public static void openTorrent(final String fileName) {
+  public static void 
+  openTorrent(
+  	AzureusCore		azureus_core,
+	String 			fileName) 
+  {
   	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
   	
-    openTorrent(fileName, default_start_stopped, false);
+    openTorrent(azureus_core,fileName, default_start_stopped, false);
   }
 
   public static void 
   openTorrent(
+  	  AzureusCore	azureus_core,
       final String  fileName, 
-    final boolean   startInStoppedState,
-    boolean     from_drag_and_drop ) {
+	  final boolean   startInStoppedState,
+	  boolean     from_drag_and_drop ) 
+  {
     try {
       if (!FileUtil.isTorrentFile(fileName)){
         
@@ -85,7 +93,7 @@ public class TorrentOpener {
           
           LGLogger.log( "MainWindow::openTorrent: file it not a torrent file, sharing" );
 
-          ShareUtils.shareFile( fileName );
+          ShareUtils.shareFile( azureus_core, fileName );
         
           return;
         }
@@ -356,19 +364,30 @@ public class TorrentOpener {
   }
 
 
-  public static void openUrl() {
-    openUrl(null);
+  public static void 
+  openUrl(
+  	AzureusCore	azureus_core )
+  {
+    openUrl(azureus_core,null);
   }
 
 
-  public static void openUrl(String linkURL) {
+  public static void 
+  openUrl(
+  	AzureusCore	azureus_core,
+	String 		linkURL) 
+  {
     if(linkURL != null && linkURL.length() > 20 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
-      new FileDownloadWindow(display, linkURL);
+      new FileDownloadWindow(azureus_core,display, linkURL);
     else
-      new OpenUrlWindow(display, linkURL);
+      new OpenUrlWindow(azureus_core, display, linkURL);
   }
   
-  public static void openDroppedTorrents(DropTargetEvent event) {
+  public static void 
+  openDroppedTorrents(
+  	AzureusCore		azureus_core,
+  	DropTargetEvent event) 
+  {
     if(event.data == null)
       return;
     if(event.data instanceof String[]) {
@@ -381,7 +400,7 @@ public class TorrentOpener {
       for (int i = 0;(i < sourceNames.length); i++) {
         final File source = new File(sourceNames[i]);
         if (source.isFile())
-          TorrentOpener.openTorrent(source.getAbsolutePath(), startInStoppedState, true );
+          TorrentOpener.openTorrent(azureus_core, source.getAbsolutePath(), startInStoppedState, true );
         else if (source.isDirectory()){
           
           String  dir_name = source.getAbsolutePath();
@@ -389,18 +408,18 @@ public class TorrentOpener {
           String  drop_action = COConfigurationManager.getStringParameter("config.style.dropdiraction", "0");
         
           if ( drop_action.equals("1")){
-            ShareUtils.shareDir(dir_name);
+            ShareUtils.shareDir(azureus_core,dir_name);
           }else if ( drop_action.equals("2")){
-            ShareUtils.shareDirContents( dir_name, false );
+            ShareUtils.shareDirContents( azureus_core,dir_name, false );
           }else if ( drop_action.equals("3")){
-            ShareUtils.shareDirContents( dir_name, true );
+            ShareUtils.shareDirContents( azureus_core,dir_name, true );
           }else{
             TorrentOpener.openTorrentsFromDirectory(dir_name, startInStoppedState);
           }
         }
       }
     } else {
-      TorrentOpener.openUrl(((URLTransfer.URLType)event.data).linkURL);
+      TorrentOpener.openUrl(azureus_core,((URLTransfer.URLType)event.data).linkURL);
     }
   }
   

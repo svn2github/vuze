@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TableItem;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -48,7 +49,6 @@ import org.gudy.azureus2.ui.swt.views.tableitems.myshares.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.pluginsimpl.local.*;
 
 /**
  * @author parg
@@ -64,12 +64,19 @@ public class MySharesView
     new NameItem(),
     new TypeItem()
   };
+  	private AzureusCore		azureus_core;
+  	
 	private GlobalManager	global_manager;
 	
-	public MySharesView(GlobalManager globalManager) {
+	public 
+	MySharesView(
+		AzureusCore	_azureus_core )
+	{	
     super(TableManager.TABLE_MYSHARES, "MySharesView", basicItems, "name", 
           SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
-		global_manager = globalManager;
+    
+    	azureus_core	= _azureus_core;
+		global_manager = azureus_core.getGlobalManager();
 	}
 	 
   public void initialize(Composite composite) {
@@ -123,7 +130,7 @@ public class MySharesView
   private void createRows() {
 		try{
 
-			ShareManager	sm = PluginInitializer.getDefaultInterface().getShareManager();
+			ShareManager	sm = azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager();
 			
 			ShareResource[]	shares = sm.getShares();
 			
@@ -209,7 +216,7 @@ public class MySharesView
     super.delete();
 
 	 	try {
-	 		PluginInitializer.getDefaultInterface().getShareManager().removeListener(this);
+	 		azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().removeListener(this);
 	 	}catch( ShareException e ){
 	 		e.printStackTrace();
 	 	}

@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.StringTokenizer;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -19,12 +20,14 @@ import org.gudy.azureus2.core3.logging.*;
  * @author Olivier
  * 
  */
-public class StartServer
+public class 
+StartServer
 {
   public static final String ACCESS_STRING = "Azureus Start Server Access";
   private ServerSocket socket;
   private int state;
-  private Main main;
+  private AzureusCore	azureus_core;
+  private Main 			main;
 
   private boolean bContinue;
   public static final int STATE_FAULTY = 0;
@@ -32,9 +35,11 @@ public class StartServer
 
   public 
   StartServer(
-  	Main main ) 
+  	AzureusCore		_azureus_core,
+  	Main 			main ) 
   {
     try {
+    	azureus_core	= _azureus_core;
         this.main = main;
         
         socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
@@ -104,7 +109,7 @@ public class StartServer
                   
               	  LGLogger.log( "Main::startServer: decoded to '" + debug_str + "'");
               	                  
-                  main.useParam(args);
+                  main.useParam(azureus_core,args);
               }
             }
           }

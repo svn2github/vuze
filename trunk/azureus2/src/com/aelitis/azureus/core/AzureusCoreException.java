@@ -29,7 +29,7 @@ package com.aelitis.azureus.core;
 
 public class 
 AzureusCoreException
-	extends Exception
+	extends RuntimeException
 {
 	public
 	AzureusCoreException(

@@ -31,6 +31,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Label;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
@@ -44,7 +46,7 @@ import org.eclipse.swt.widgets.Button;
  * 
  */
 public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
-  
+  AzureusCore	azureus_core;
   Display display;
   Shell shell;
   ProgressBar progressBar;
@@ -53,7 +55,14 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   Button cancel;  
   TorrentDownloader downloader;
   
-  public FileDownloadWindow(Display display,final String url) {
+  public 
+  FileDownloadWindow(
+  		AzureusCore	_azureus_core,
+  		Display 	display,
+		final String url) 
+  {
+  	azureus_core	= _azureus_core;
+  	
     String dirName = null;
     if(COConfigurationManager.getBooleanParameter("Save Torrent Files",true)) {
       try {
@@ -182,7 +191,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
             //If the Shell has been disposed, then don't process the torrent.
             if(shell != null && ! shell.isDisposed()) {
               shell.dispose();
-              TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
+              TorrentOpener.openTorrent(azureus_core, downloader.getFile().getAbsolutePath());
             }
           }
    

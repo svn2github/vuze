@@ -65,9 +65,9 @@ Initializer
   
   public 
   Initializer(
-  		AzureusCore		_core,
-  		StartServer 	_server,
-		String[] 		_args ) 
+  		final AzureusCore		_core,
+  		StartServer 			_server,
+		String[] 				_args ) 
   {
     
     listeners = new ArrayList();
@@ -146,7 +146,7 @@ Initializer
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
 										
-										Restarter.restartForUpgrade();
+										Restarter.restartForUpgrade(_core);
 									}finally{
 												
 										sem.release();
@@ -241,7 +241,7 @@ Initializer
 		    		    
 		    		    Cursors.init();
 		    		    
-		    		    new MainWindow(gm,Initializer.this);
+		    		    new MainWindow(core,Initializer.this);
 		    		    
 		    		    AssociationChecker.checkAssociations();
 
@@ -259,7 +259,7 @@ Initializer
 
 	    		    SWTUpdateChecker.initialize();
 	    		    
-	    		    UpdateMonitor.getSingleton();	// setup the update monitor
+	    		    UpdateMonitor.getSingleton( core );	// setup the update monitor
 	    			
 	    		    //Tell listeners that all is initialized :
 	    		    
@@ -270,7 +270,7 @@ Initializer
 	    		    
 	    		    //Finally, open torrents if any.
 	    		    if (args.length != 0) {
-	    		      TorrentOpener.openTorrent( args[0]);
+	    		      TorrentOpener.openTorrent( core, args[0]);
 	    		    }
 	    		}
 			});
@@ -382,15 +382,9 @@ Initializer
   
   public static void main(String args[]) 
   {
-  	try{
-  		AzureusCore		core = AzureusCoreFactory.create();
+ 	AzureusCore		core = AzureusCoreFactory.create();
 
-  		new Initializer( core, null,args);
-  		
-  	}catch( AzureusCoreException e ){
-  		
-  		e.printStackTrace();
-  	}
+ 	new Initializer( core, null,args);
   }
  
 }
