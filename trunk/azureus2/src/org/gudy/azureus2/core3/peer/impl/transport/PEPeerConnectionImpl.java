@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerStatsImpl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 PEPeerConnectionImpl
@@ -227,7 +228,13 @@ PEPeerConnectionImpl
 		DiskManagerRequest	request )
 	{
     synchronized (requested) {
-      return( requested.contains( request ));
+      if ( requested.contains( request )) {
+        return true;
+      }
+      else {
+      	LGLogger.log(0,0,LGLogger.ERROR,"Piece #"+request.getPieceNumber()+"not requested");
+        return false;
+      }
     }
 	}
 	
