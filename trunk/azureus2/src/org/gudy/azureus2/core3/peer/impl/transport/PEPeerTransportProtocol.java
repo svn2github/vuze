@@ -87,7 +87,6 @@ PEPeerTransportProtocol
   //A flag to indicate if we're reading the length or the message
 	private boolean readingLength;
 
-  private int loopFactor;
   private boolean incoming;
   private volatile boolean closing;
   private PEPeerTransportProtocolState currentState;
@@ -98,7 +97,6 @@ PEPeerTransportProtocol
   
   //socket writing vars:
   private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
-  private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
   private int allowed_to_write = 0;
   private boolean force_flush_mode = false;
   private long force_start_time = 0;
@@ -108,6 +106,9 @@ PEPeerTransportProtocol
   private int used = 0;
   private int maxUpload = 100*1024*1024;
   private long last_write_time = 0;
+  
+  private long last_bw_check_time = 0;
+
   
   //The client name identification	
 	private String client = "";
@@ -154,7 +155,6 @@ PEPeerTransportProtocol
   /**
    * The Default Contructor for outgoing connections.
    * @param manager the manager that will handle this PeerConnection
-   * @param table the graphical table in which this PeerConnection should display its info
    * @param peerId the other's peerId which will be checked during Handshaking
    * @param ip the peer Ip Address
    * @param port the peer port
@@ -223,7 +223,6 @@ PEPeerTransportProtocol
     PEPeerTransportSpeedLimiter.getLimiter().addUploader( this );
   	this.closing = false;
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
-  	this.loopFactor = 0;
   }
 
   
@@ -653,7 +652,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   
   public int processWrite() {
     try {
-      loopFactor++;
       return write();
     }
     catch (Exception e) {
@@ -1045,9 +1043,16 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     
     if( outgoing_message_queue.getTotalSize() > 0 ) {
       //update allowed bytes
+      
       if( PEPeerTransportSpeedLimiter.getLimiter().isLimited( this ) ) {
-        if( loopFactor % 10 == 0 ) {
+        if( SystemTime.getCurrentTime() - last_bw_check_time > 50 ) {
+          if( used >= (95 * allowed) / 100 )
+            maxUpload = max( 110 * allowed / 100, 50 );
+          if( used < (90 * allowed) / 100 )
+            maxUpload = max( (100 * used) / 100, 10 );
+          
           allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms( this );
+          last_bw_check_time = SystemTime.getCurrentTime();
           allowed_to_write += allowed;
           used = 0;
         }
@@ -1074,7 +1079,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             //System.out.println(ip+ ": ready=" +data_ready+ " written=" +written+ " ff=" +flush );
           }
           catch( Throwable t ) {
-            t.printStackTrace();
+            System.out.println( "DEBUG: " + t.getMessage() );
             closeAll("Error while writing to " +ip+ ": " +t.getMessage(), true, true);
             return PEPeerControl.NO_SLEEP;
           }
@@ -1085,23 +1090,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           }
           
           if( written > 0 ) {  //update stats
-            //UploadSpeedCounter.updateStats( written );
+            force_flush_mode = false;
+            allowed_to_write -= written;
+            last_write_time = SystemTime.getCurrentTime();
+            
           	stats.sent( written );
             manager.sent( written );
-            if( PEPeerTransportSpeedLimiter.getLimiter().isLimited( this ) ) {
-              used += written;
-              if( loopFactor % 10 == 9 ) {
-                if( used >= (95 * allowed) / 100 )
-                  maxUpload = max( 110 * allowed / 100, 50 );
-                if( used < (90 * allowed) / 100 )
-                  maxUpload = max( (100 * used) / 100, 10 );
-              }
-            }
+            used += written;
           }
                     
-          force_flush_mode = false;
-          allowed_to_write = 0;
-          last_write_time = SystemTime.getCurrentTime();
         }
         else if( !force_flush_mode ) { //not enough data for a full write, start flush
           force_flush_mode = true;

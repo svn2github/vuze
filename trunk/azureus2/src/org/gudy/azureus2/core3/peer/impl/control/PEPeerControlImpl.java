@@ -226,22 +226,15 @@ PEPeerControlImpl
   private class PeerUpdater extends AEThread {
     private boolean bContinue = true;
 
-    private long started[];
-
     public PeerUpdater() {
       super("Peer Updater"); //$NON-NLS-1$
       setPriority(Thread.NORM_PRIORITY - 1);
-      started = new long[10];
     }
 
     public void run() {
-        
       while (bContinue) {
         
-      	for (int i = 9; i > 0; i--) {
-          started[i] = started[i - 1];
-        }
-        started[0] = SystemTime.getCurrentTime();
+        long start_time = SystemTime.getCurrentTime();
         
         synchronized (_peer_transports) {
           for (int i=0; i < _peer_transports.size(); i++) {
@@ -260,26 +253,11 @@ PEPeerControlImpl
             }
           }
         }
-                
-        try {
-        	long wait = 20;
-          wait -= (SystemTime.getCurrentTime() - started[0]);
-          if (started[4] != 0) {
-            for (int i = 0; i < 9; i++) {
-              wait += 20 + (started[i + 1] - started[i]);
-            }
-          }
-   
-          if (wait > 30)
-            wait = 30;
-
-          if (wait > 10)
-            Thread.sleep(wait);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
         
+        if( SystemTime.getCurrentTime() - start_time < 20 ) {
+          try {  Thread.sleep( 20 );  } catch(Exception e) {}
+        }
+
       }
     }
 
