@@ -31,8 +31,12 @@ public class Updater {
                     + "bin"
                     + System.getProperty("file.separator");
       
-
-    File oldFile = new File(userPath, "Azureus2.jar");
+    String relativePath = "";
+    if(System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
+      relativePath = "Azureus.app/Contents/Resources/Java/";
+    }
+    
+    File oldFile = new File(userPath, relativePath + "Azureus2.jar");
     File updateFile = new File(oldFile.getParentFile(), "Azureus2-new.jar");
     File logFile = new File( userPath, "update.log" );
     
