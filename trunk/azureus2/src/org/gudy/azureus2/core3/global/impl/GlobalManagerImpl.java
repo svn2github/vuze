@@ -634,9 +634,8 @@ public class GlobalManagerImpl
             if (mDownload.containsKey("state")) {
               state = ((Long) mDownload.get("state")).intValue();
               if (state != DownloadManager.STATE_STOPPED &&
-                  state != DownloadManager.STATE_QUEUED &&
-                  state != DownloadManager.STATE_WAITING)
-                state = DownloadManager.STATE_WAITING;
+                  state != DownloadManager.STATE_QUEUED)
+                state = DownloadManager.STATE_QUEUED;
             }
             else {
               int stopped = ((Long) mDownload.get("stopped")).intValue();
@@ -706,6 +705,10 @@ public class GlobalManagerImpl
         catch (UnsupportedEncodingException e1) {
           //Do nothing and process next.
         }
+        catch (Throwable e) {
+          LGLogger.log("Error while loading downloads.  One download may not have been added to the list.");
+          e.printStackTrace();
+        }
       }
       // Someone could have mucked with the config file and set weird positions,
       // so fix them up.
@@ -747,7 +750,6 @@ public class GlobalManagerImpl
 		      dmMap.put("path", dm.getFullName());
 		      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
           int state = dm.getState();
-          // XXX: Add "&& SeedingQREnabled"
           if (state == DownloadManager.STATE_SEEDING)
             state = DownloadManager.STATE_QUEUED;
           else if (state == DownloadManager.STATE_ERROR)

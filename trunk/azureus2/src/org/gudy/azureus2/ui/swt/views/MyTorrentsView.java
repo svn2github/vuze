@@ -245,6 +245,9 @@ public class MyTorrentsView extends AbstractIView
     createMenu();
     createTable();
     createDragDrop();
+
+    composite.layout();
+
     COConfigurationManager.addParameterListener("Graphics Update", this);
     COConfigurationManager.addParameterListener("Confirm Data Delete", this);
 

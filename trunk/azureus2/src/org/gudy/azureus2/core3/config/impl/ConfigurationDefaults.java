@@ -237,12 +237,13 @@ public class ConfigurationDefaults {
 
     // Start/Stop Automation Stuff
     def.put("StartStopManager_iNumPeersAsFullCopy", new Long(0));
-    def.put("StartStopManager_iFakeFullCopySeedStart", new Long(0));
+    def.put("StartStopManager_iFakeFullCopySeedStart", new Long(1));
     def.put("StartStopManager_iMinPeersToBoostNoSeeds", new Long(1));
     def.put("StartStopManager_iMinSpeedForActiveDL", new Long(512));
     def.put("StartStopManager_iRankType", new Long(1));
     def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
     def.put("StartStopManager_bAutoReposition", new Long(0));
+    def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
