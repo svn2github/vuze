@@ -47,7 +47,7 @@ public class MyTorrentsView implements IView, IComponentListener {
   };
 
   private GlobalManager globalManager;
-  private String title = "My Torrents";
+  private String title = Messages.getString("MyTorrentsView.mytorrents"); //$NON-NLS-1$
 
   private Composite panel;
   private Table table;
@@ -60,7 +60,7 @@ public class MyTorrentsView implements IView, IComponentListener {
 
   public MyTorrentsView(GlobalManager globalManager) {
     this.ascending = true;
-    this.lastField = "";
+    this.lastField = ""; //$NON-NLS-1$
     this.globalManager = globalManager;
     managerItems = new HashMap();
     managers = new HashMap();
@@ -84,24 +84,24 @@ public class MyTorrentsView implements IView, IComponentListener {
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     table.setLayoutData(gridData);
     String[] columnsHeader =
-      { "Name", "Size", "Done", "Status", "Seeds", "Peers", "Down Speed", "Up Speed", "ETA", "Tracker", "Priority" };
+      { Messages.getString("MyTorrentsView.name"), Messages.getString("MyTorrentsView.size"), Messages.getString("MyTorrentsView.done"), Messages.getString("MyTorrentsView.status"), Messages.getString("MyTorrentsView.seeds"), Messages.getString("MyTorrentsView.peers"), Messages.getString("MyTorrentsView.downspeed"), Messages.getString("MyTorrentsView.upspeed"), Messages.getString("MyTorrentsView.eta"), Messages.getString("MyTorrentsView.tracker"), Messages.getString("MyTorrentsView.priority") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
     int[] columnsSize = { 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NULL);
       column.setText(columnsHeader[i]);
       column.setWidth(columnsSize[i]);
     }
-    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name"));
-    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size"));
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done"));
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("status"));
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("seeds"));
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("peers"));
-    table.getColumn(6).addListener(SWT.Selection, new StringColumnListener("ds"));
-    table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("us"));
-    table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("eta"));
-    table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("tracker"));
-    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("priority"));
+    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
+    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
+    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("status")); //$NON-NLS-1$
+    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("seeds")); //$NON-NLS-1$
+    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("peers")); //$NON-NLS-1$
+    table.getColumn(6).addListener(SWT.Selection, new StringColumnListener("ds")); //$NON-NLS-1$
+    table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("us")); //$NON-NLS-1$
+    table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("eta")); //$NON-NLS-1$
+    table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("tracker")); //$NON-NLS-1$
+    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("priority")); //$NON-NLS-1$
 
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
@@ -109,38 +109,38 @@ public class MyTorrentsView implements IView, IComponentListener {
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
 
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
-    itemDetails.setText("Show details");
+    itemDetails.setText(Messages.getString("MyTorrentsView.menu.showdetails")); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
 
     final MenuItem itemBar = new MenuItem(menu, SWT.CHECK);
-    itemBar.setText("Show download Bar");
+    itemBar.setText(Messages.getString("MyTorrentsView.menu.showdownloadbar")); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    itemOpen.setText("Open");
+    itemOpen.setText(Messages.getString("MyTorrentsView.menu.open")); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    itemPriority.setText("Set Priority");
+    itemPriority.setText(Messages.getString("MyTorrentsView.menu.setpriority")); //$NON-NLS-1$
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-    itemHigh.setText("High");
+    itemHigh.setText(Messages.getString("MyTorrentsView.menu.setpriority.high")); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-    itemLow.setText("Low");
+    itemLow.setText(Messages.getString("MyTorrentsView.menu.setpriority.low")); //$NON-NLS-1$
 
     final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
-    itemStart.setText("Start");
+    itemStart.setText(Messages.getString("MyTorrentsView.menu.start")); //$NON-NLS-1$
 
     final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-    itemStop.setText("Stop");
+    itemStop.setText(Messages.getString("MyTorrentsView.menu.stop")); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
-    itemRemove.setText("Remove");
+    itemRemove.setText(Messages.getString("MyTorrentsView.menu.remove")); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -413,45 +413,45 @@ public class MyTorrentsView implements IView, IComponentListener {
   }
 
   private String getStringField(DownloadManager manager, String field) {
-    if (field.equals("name"))
+    if (field.equals("name")) //$NON-NLS-1$
       return manager.getName();
 
-    if (field.equals("ds"))
+    if (field.equals("ds")) //$NON-NLS-1$
       return manager.getDownloadSpeed();
 
-    if (field.equals("us"))
+    if (field.equals("us")) //$NON-NLS-1$
       return manager.getUploadSpeed();
 
-    if (field.equals("eta"))
+    if (field.equals("eta")) //$NON-NLS-1$
       return manager.getETA();
 
-    if (field.equals("tracker"))
+    if (field.equals("tracker")) //$NON-NLS-1$
       return manager.getTrackerStatus();
 
-    if (field.equals("priority"))
+    if (field.equals("priority")) //$NON-NLS-1$
       return manager.getName();
 
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   private long getIntField(DownloadManager manager, String field) {
 
-    if (field.equals("size"))
+    if (field.equals("size")) //$NON-NLS-1$
       return manager.getSize();
 
-    if (field.equals("done"))
+    if (field.equals("done")) //$NON-NLS-1$
       return manager.getCompleted();
 
-    if (field.equals("status"))
+    if (field.equals("status")) //$NON-NLS-1$
       return manager.getState();
 
-    if (field.equals("seeds"))
+    if (field.equals("seeds")) //$NON-NLS-1$
       return manager.getNbSeeds();
 
-    if (field.equals("peers"))
+    if (field.equals("peers")) //$NON-NLS-1$
       return manager.getNbPeers();
 
-    if (field.equals("priority"))
+    if (field.equals("priority")) //$NON-NLS-1$
       return manager.getPriority();
 
     return 0;

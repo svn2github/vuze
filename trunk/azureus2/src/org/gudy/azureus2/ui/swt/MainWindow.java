@@ -53,8 +53,8 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.0.8";
-  private String latestVersion = "";
+  private static final String VERSION = "2.0.0.8"; //$NON-NLS-1$
+  private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
 
@@ -89,7 +89,7 @@ public class MainWindow implements IComponentListener {
     int waitTime = 250;
 
     public Updater() {
-      super("GUI updater");
+      super("GUI updater"); //$NON-NLS-1$
     }
 
     public void run() {
@@ -135,9 +135,7 @@ public class MainWindow implements IComponentListener {
           }
         });
       }
-    }
-
-    public void stopIt() {
+    }    public void stopIt() {
       finished = true;
     }
   }
@@ -147,10 +145,10 @@ public class MainWindow implements IComponentListener {
      * @see java.lang.Thread#run()
      */
     public void run() {
-      String message = "";
+      String message = ""; //$NON-NLS-1$
       int nbRead = 0;
       try {
-        URL reqUrl = new URL("http://www.gudy.org/azureus/version.php");
+        URL reqUrl = new URL("http://www.gudy.org/azureus/version.php"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         InputStream is = con.getInputStream();
@@ -161,18 +159,18 @@ public class MainWindow implements IComponentListener {
         while (nbRead != -1) {
           nbRead = is.read(data);
           if (nbRead != -1)
-            message += new String(data, 0, nbRead, "ISO-8859-1");
+            message += new String(data, 0, nbRead, "ISO-8859-1"); //$NON-NLS-1$
           Thread.sleep(10);
         }
-        Map decoded = BDecoder.decode(message.getBytes("ISO-8859-1"));
-        latestVersion = new String((byte[]) decoded.get("version"), "ISO-8859-1");
+        Map decoded = BDecoder.decode(message.getBytes("ISO-8859-1")); //$NON-NLS-1$
+        latestVersion = new String((byte[]) decoded.get("version"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
           public void run() {
             if (statusText.isDisposed())
               return;
-            statusText.setText("Azureus " + VERSION + " / Latest : " + latestVersion);
+            statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
           }
         });
       }
@@ -183,7 +181,7 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            statusText.setText("Azureus " + VERSION + " / Latest : unknown");
+            statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + Messages.getString("MainWindow.status.unknown")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
           }
         });
       }
@@ -210,32 +208,32 @@ public class MainWindow implements IComponentListener {
     white = new Color(display, new RGB(255, 255, 255));
     //The Main Window    
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE);
-    mainWindow.setText("Azureus");
-    mainWindow.setImage(ImageRepository.getImage("azureus"));
+    mainWindow.setText("Azureus"); //$NON-NLS-1$
+    mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     //The Main Menu
     menuBar = new Menu(mainWindow, SWT.BAR);
     mainWindow.setMenuBar(menuBar);
     //The File Menu
     MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
-    fileItem.setText("File");
+    fileItem.setText(Messages.getString("MainWindow.menu.file")); //$NON-NLS-1$
     Menu fileMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     fileItem.setMenu(fileMenu);
     MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
-    file_new.setText("Open");
+    file_new.setText(Messages.getString("MainWindow.menu.file.open")); //$NON-NLS-1$
     new MenuItem(fileMenu, SWT.SEPARATOR);
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-    file_exit.setText("Exit");
+    file_exit.setText(Messages.getString("MainWindow.menu.file.exit")); //$NON-NLS-1$
 
     Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     file_new.setMenu(newMenu);
     MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
-    file_new_torrent.setText(".torrent File");
+    file_new_torrent.setText(".torrent " + Messages.getString("file")); //$NON-NLS-1$ //$NON-NLS-2$
     file_new_torrent.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent" });
-        fDialog.setFilterNames(new String[] { "*.torrent" });
-        fDialog.setText("Choose the torrent file");
+        fDialog.setFilterExtensions(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setFilterNames(new String[] { "*.torrent" }); //$NON-NLS-1$
+        fDialog.setText(Messages.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
           return;
@@ -245,11 +243,11 @@ public class MainWindow implements IComponentListener {
     // MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
     //file_new_url.setText("URL");
     MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
-    file_new_folder.setText("Folder");
+    file_new_folder.setText(Messages.getString("MainWindow.menu.file.folder")); //$NON-NLS-1$
     file_new_folder.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-        fDialog.setText("Choose the directory containing the torrent files");
+        fDialog.setText(Messages.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
           return;
@@ -265,12 +263,12 @@ public class MainWindow implements IComponentListener {
 
     //The View Menu
     MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
-    viewItem.setText("View");
+    viewItem.setText(Messages.getString("MainWindow.menu.view")); //$NON-NLS-1$
     Menu viewMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     viewItem.setMenu(viewMenu);
 
     MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
-    view_torrents.setText("My Torrents");
+    view_torrents.setText(Messages.getString("MainWindow.menu.view.mytorrents")); //$NON-NLS-1$
     view_torrents.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (mytorrents == null)
@@ -281,7 +279,7 @@ public class MainWindow implements IComponentListener {
     });
 
     MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
-    view_config.setText("Configuration");
+    view_config.setText(Messages.getString("MainWindow.menu.view.configuration")); //$NON-NLS-1$
     view_config.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (config == null)
@@ -292,7 +290,7 @@ public class MainWindow implements IComponentListener {
     });
 
     MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
-    view_console.setText("Console");
+    view_console.setText(Messages.getString("MainWindow.menu.view.console")); //$NON-NLS-1$
     view_console.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (console == null)
@@ -371,7 +369,7 @@ public class MainWindow implements IComponentListener {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusText.setText("Azureus " + VERSION + " / Latest : checking...");
+    statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + Messages.getString("MainWindow.status.checking") + "..."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
     statusText.setLayoutData(gridData);
 
     Thread versionChecker = new VersionChecker();
@@ -402,7 +400,7 @@ public class MainWindow implements IComponentListener {
     catch (NoClassDefFoundError e) {}
 
     if (available) {
-      trayIcon = new SystemTray(this, "azureus.ico");
+      trayIcon = new SystemTray(this, "azureus.ico"); //$NON-NLS-1$
     }
     else
       tray = new TrayWindow(this);
@@ -427,7 +425,7 @@ public class MainWindow implements IComponentListener {
 
   protected void addCloseDownloadBarsToMenu(Menu menu) {
     MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
-    view_closeAll.setText("Close All Download Bars");
+    view_closeAll.setText(Messages.getString("MainWindow.menu.closealldownloadbars")); //$NON-NLS-1$
     view_closeAll.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         closeDownloadBars();
@@ -503,9 +501,9 @@ public class MainWindow implements IComponentListener {
       return;
     if (((DownloadManager) created).getState() == DownloadManager.STATE_STOPPED)
       return;
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Details", true))
+    if (ConfigurationManager.getInstance().getBooleanParameter("Open Details", true)) //$NON-NLS-1$
       openManagerView((DownloadManager) created);
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Bar", false)) {
+    if (ConfigurationManager.getInstance().getBooleanParameter("Open Bar", false)) { //$NON-NLS-1$
       synchronized (downloadBars) {
         MinimizedWindow mw = new MinimizedWindow((DownloadManager) created, mainWindow);
         downloadBars.put(created, mw);
@@ -619,16 +617,16 @@ public class MainWindow implements IComponentListener {
     final String _fileName = fileName;
     display.asyncExec(new Runnable() {
       public void run() {
-        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", "");
-        if (savePath.equals("")) {
+        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        if (savePath.length() == 0) {
           mainWindow.setActive();
           DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
-          dDialog.setText("Choose the save path");
+          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+          dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath")); //$NON-NLS-1$
           savePath = dDialog.open();
           if (savePath == null)
             return;
-          ConfigurationManager.getInstance().setParameter("Default Path", savePath);
+          ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
           ConfigurationManager.getInstance().save();
         }
         globalManager.addDownloadManager(new DownloadManager(globalManager, _fileName, savePath));
@@ -639,19 +637,19 @@ public class MainWindow implements IComponentListener {
   public void openTorrents(final String path, final String fileNames[]) {
     display.asyncExec(new Runnable() {
       public void run() {
-        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", "");
-        if (savePath.equals("")) {
+        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        if (savePath.length() == 0) {
           mainWindow.setActive();
           DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
-          dDialog.setText("Choose the save path for ALL files");
+          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+          dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
           savePath = dDialog.open();
           if (savePath == null)
             return;
-          ConfigurationManager.getInstance().setParameter("Default Path", savePath);
+          ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
           ConfigurationManager.getInstance().save();
         }
-        String separator = System.getProperty("file.separator");
+        String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
           globalManager.addDownloadManager(
             new DownloadManager(globalManager, path + separator + fileNames[i], savePath));
@@ -666,7 +664,7 @@ public class MainWindow implements IComponentListener {
       return;
     File[] files = f.listFiles(new FileFilter() {
       public boolean accept(File arg0) {
-        if (arg0.getName().endsWith(".torrent"))
+        if (arg0.getName().endsWith(".torrent")) //$NON-NLS-1$
           return true;
         return false;
       }
@@ -674,7 +672,7 @@ public class MainWindow implements IComponentListener {
     if (files.length == 0)
       return;
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    dDialog.setText("Choose the save path for ALL the files");
+    dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
     String savePath = dDialog.open();
     if (savePath == null)
       return;

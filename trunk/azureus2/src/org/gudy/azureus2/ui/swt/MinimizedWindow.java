@@ -56,7 +56,7 @@ public class MinimizedWindow {
     //   The splash Screen setup
     splash = new Shell(main, SWT.ON_TOP);
     lDrag = new Label(splash, SWT.NULL);
-    lDrag.setImage(ImageRepository.getImage("dragger"));
+    lDrag.setImage(ImageRepository.getImage("dragger")); //$NON-NLS-1$
     lDrag.pack();
     int hSizeImage = lDrag.getSize().y;
     int xSize = lDrag.getSize().x + 3;
@@ -99,7 +99,7 @@ public class MinimizedWindow {
     Label l1 = new Label(splash, SWT.NONE);
     l1.setBackground(blues[0]);
     l1.setForeground(blues[4]);
-    l1.setText("Name:");
+    l1.setText(Messages.getString("MinimizedWindow.name") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
     l1.addMouseListener(mListener);
     l1.addMouseMoveListener(mMoveListener);
     l1.pack();
@@ -111,7 +111,7 @@ public class MinimizedWindow {
 
     splashFile = new Label(splash, SWT.NONE);
     splashFile.setBackground(blues[0]);
-    splashFile.setText("");
+    splashFile.setText(""); //$NON-NLS-1$
     splashFile.addMouseListener(mListener);
     splashFile.addMouseMoveListener(mMoveListener);
     splashFile.setSize(250, hSize);
@@ -130,7 +130,7 @@ public class MinimizedWindow {
 
     splashPercent = new Label(splash, SWT.NONE);
     splashPercent.setBackground(blues[0]);
-    splashPercent.setText("");
+    splashPercent.setText(""); //$NON-NLS-1$
     splashPercent.addMouseListener(mListener);
     splashPercent.addMouseMoveListener(mMoveListener);
     splashPercent.setSize(45, hSize);
@@ -149,7 +149,7 @@ public class MinimizedWindow {
 
     splashDown = new Label(splash, SWT.NONE);
     splashDown.setBackground(blues[0]);
-    splashDown.setText("");
+    splashDown.setText(""); //$NON-NLS-1$
     splashDown.addMouseListener(mListener);
     splashDown.addMouseMoveListener(mMoveListener);
     splashDown.setSize(65, hSize);
@@ -168,7 +168,7 @@ public class MinimizedWindow {
 
     splashUp = new Label(splash, SWT.NONE);
     splashUp.setBackground(blues[0]);
-    splashUp.setText("");
+    splashUp.setText(""); //$NON-NLS-1$
     splashUp.addMouseListener(mListener);
     splashUp.addMouseMoveListener(mMoveListener);
     splashUp.setSize(65, hSize);
@@ -201,7 +201,7 @@ public class MinimizedWindow {
     return;
    splashFile.setText(manager.getName());
    int percent = manager.getCompleted();
-   splashPercent.setText((percent/10) + "." + (percent%10) + " %");
+   splashPercent.setText((percent/10) + "." + (percent%10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
    splashDown.setText(manager.getDownloadSpeed());
    splashUp.setText(manager.getUploadSpeed());
   }  

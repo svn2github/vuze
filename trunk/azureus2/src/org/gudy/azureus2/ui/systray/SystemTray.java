@@ -12,6 +12,7 @@ import java.util.List;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.Messages;
 
 import snoozesoft.systray4j.SysTrayMenu;
 import snoozesoft.systray4j.SysTrayMenuAdapter;
@@ -37,17 +38,17 @@ public class SystemTray extends SysTrayMenuAdapter {
 	public SystemTray(MainWindow main, String fileName) {
 		this.main = main;
 		this.fileName = fileName;
-		URL iconUrl = ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/azureus.ico");
+		URL iconUrl = ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/azureus.ico"); //$NON-NLS-1$
 		SysTrayMenuIcon icon = new SysTrayMenuIcon(iconUrl);		
 		menu = new SysTrayMenu(icon);		
-		SysTrayMenuItem item = new SysTrayMenuItem("Exit", "exit");
+		SysTrayMenuItem item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.exit"), "exit"); //$NON-NLS-1$ //$NON-NLS-2$
 		item.addSysTrayMenuListener(this);
 		menu.addItem(item);
 		menu.addSeparator();
-    item = new SysTrayMenuItem("Close All Download Bars", "close_all_download_bars");
+    item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.closealldownloadbars"), "close_all_download_bars"); //$NON-NLS-1$ //$NON-NLS-2$
     item.addSysTrayMenuListener(this);
     menu.addItem(item); // org.eclipse.swt.SWTException: Invalid thread access
-		item = new SysTrayMenuItem("Show Azureus", "show");
+		item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.show") + " Azureus", "show"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		item.addSysTrayMenuListener(this);
 		menu.addItem(item);
 		icon.addSysTrayMenuListener(this);
@@ -72,9 +73,9 @@ public class SystemTray extends SysTrayMenuAdapter {
 			}
 		}
 		toolTip.append(seeding);
-		toolTip.append(" seeding, ");
+		toolTip.append(Messages.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
 		toolTip.append(downloading);
-		toolTip.append(" downloading, D: ");
+		toolTip.append(Messages.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
 		toolTip.append(main.getGlobalManager().getDownloadSpeed());
 		toolTip.append(", U: ");
 		toolTip.append(main.getGlobalManager().getUploadSpeed());
@@ -93,11 +94,11 @@ public class SystemTray extends SysTrayMenuAdapter {
 	 */
 	public void menuItemSelected(SysTrayMenuEvent event) {
 		String cmd = event.getActionCommand();
-		if (cmd.equals("exit")) {
+		if (cmd.equals("exit")) { //$NON-NLS-1$
 			dispose();
-		} else if (cmd.equals("show")) {
+		} else if (cmd.equals("show")) { //$NON-NLS-1$
 			show();
-    } else if (cmd.equals("close_all_download_bars")) {
+    } else if (cmd.equals("close_all_download_bars")) { //$NON-NLS-1$
       main.closeDownloadBars();
     }
 	}

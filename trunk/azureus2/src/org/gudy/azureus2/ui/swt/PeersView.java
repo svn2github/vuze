@@ -47,22 +47,22 @@ public class PeersView implements IView, IComponentListener {
     table.setHeaderVisible(true);
     String[] titles =
       {
-        "Ip",
-        "Port",
+        Messages.getString("PeersView.ip"), //$NON-NLS-1$
+        Messages.getString("PeersView.port"), //$NON-NLS-1$
         "T",
         "I",
         "C",
-        "Pieces",
-        "%",
-        "Down Speed",
-        "Down",
+        Messages.getString("PeersView.pieces"), //$NON-NLS-1$
+        "%", //$NON-NLS-1$
+        Messages.getString("PeersView.downloadspeed"), //$NON-NLS-1$
+        Messages.getString("PeersView.download"), //$NON-NLS-1$
         "I",
         "C",
-        "Up Speed",
-        "Up",
+        Messages.getString("PeersView.uploadspeed"), //$NON-NLS-1$
+        Messages.getString("PeersView.upload"), //$NON-NLS-1$
         "Stat Up",
         "S",
-        "Overall Down Speed",
+        Messages.getString("PeersView.downloadspeedoverall"), //$NON-NLS-1$
         "Opt. Unchoke",
         "Client" };
     int[] align =
@@ -108,30 +108,30 @@ public class PeersView implements IView, IComponentListener {
     table.getColumn(16).setWidth(30);
     table.getColumn(17).setWidth(60);
     
-    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip"));
-    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port"));
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("t"));
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("i"));
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("c"));
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("done"));
-    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("done"));
-    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("ds"));
-    table.getColumn(8).addListener(SWT.Selection, new IntColumnListener("down"));
-    table.getColumn(9).addListener(SWT.Selection, new IntColumnListener("i2"));
-    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("c2"));
-    table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("us"));
-    table.getColumn(12).addListener(SWT.Selection, new IntColumnListener("up"));
-    table.getColumn(13).addListener(SWT.Selection, new IntColumnListener("su"));
-    table.getColumn(14).addListener(SWT.Selection, new IntColumnListener("s"));
-    table.getColumn(15).addListener(SWT.Selection, new IntColumnListener("od"));
-    table.getColumn(16).addListener(SWT.Selection, new IntColumnListener("opt"));
-    table.getColumn(17).addListener(SWT.Selection, new StringColumnListener("client"));
+    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip")); //$NON-NLS-1$
+    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port")); //$NON-NLS-1$
+    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("t")); //$NON-NLS-1$
+    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("i")); //$NON-NLS-1$
+    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("c")); //$NON-NLS-1$
+    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("ds")); //$NON-NLS-1$
+    table.getColumn(8).addListener(SWT.Selection, new IntColumnListener("down")); //$NON-NLS-1$
+    table.getColumn(9).addListener(SWT.Selection, new IntColumnListener("i2")); //$NON-NLS-1$
+    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("c2")); //$NON-NLS-1$
+    table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("us")); //$NON-NLS-1$
+    table.getColumn(12).addListener(SWT.Selection, new IntColumnListener("up")); //$NON-NLS-1$
+    table.getColumn(13).addListener(SWT.Selection, new IntColumnListener("su")); //$NON-NLS-1$
+    table.getColumn(14).addListener(SWT.Selection, new IntColumnListener("s")); //$NON-NLS-1$
+    table.getColumn(15).addListener(SWT.Selection, new IntColumnListener("od")); //$NON-NLS-1$
+    table.getColumn(16).addListener(SWT.Selection, new IntColumnListener("opt")); //$NON-NLS-1$
+    table.getColumn(17).addListener(SWT.Selection, new StringColumnListener("client")); //$NON-NLS-1$
     
     
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
-    item.setText("Snubbed");
+    item.setText(Messages.getString("PeersView.menu.snubbed")); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -210,14 +210,14 @@ public class PeersView implements IView, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return "Details";
+    return Messages.getString("PeersView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return "Details";
+    return Messages.getString("PeersView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
@@ -253,51 +253,51 @@ public class PeersView implements IView, IComponentListener {
 
   //Sorting methods
   private boolean getBooleanFiedl(PeerSocket peerSocket, String field) {
-    if (field.equals("t"))
+    if (field.equals("t")) //$NON-NLS-1$
       return peerSocket.isIncoming();
 
-    if (field.equals("i"))
+    if (field.equals("i")) //$NON-NLS-1$
       return peerSocket.isInterested();
 
-    if (field.equals("c"))
+    if (field.equals("c")) //$NON-NLS-1$
       return peerSocket.isChoked();
 
-    if (field.equals("i2"))
+    if (field.equals("i2")) //$NON-NLS-1$
       return peerSocket.isInteresting();
 
-    if (field.equals("i2"))
+    if (field.equals("i2")) //$NON-NLS-1$
       return peerSocket.isChoking();
     return false;
   }
   
   private String getStringField(PeerSocket peerSocket, String field) {
-    if (field.equals("ip"))
+    if (field.equals("ip")) //$NON-NLS-1$
       return peerSocket.getIp();
 
-    if (field.equals("client"))
+    if (field.equals("client")) //$NON-NLS-1$
       return peerSocket.getClient();    
 
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   private long getIntField(PeerSocket peerSocket, String field) {
 
-    if (field.equals("port"))
+    if (field.equals("port")) //$NON-NLS-1$
       return peerSocket.getPort();
 
-    if (field.equals("done"))
+    if (field.equals("done")) //$NON-NLS-1$
       return peerSocket.getPercentDone();
  
-    if (field.equals("ds"))
+    if (field.equals("ds")) //$NON-NLS-1$
       return peerSocket.getStats().getDownloadSpeedRaw();
 
-    if (field.equals("us"))
+    if (field.equals("us")) //$NON-NLS-1$
       return peerSocket.getStats().getuploadSpeedRaw();
 
-    if (field.equals("down"))
+    if (field.equals("down")) //$NON-NLS-1$
       return peerSocket.getStats().getTotalReceivedRaw();
 
-    if (field.equals("up"))
+    if (field.equals("up")) //$NON-NLS-1$
       return peerSocket.getStats().getTotalSentRaw();   
 
     if(getBooleanFiedl(peerSocket,field))
@@ -307,7 +307,7 @@ public class PeersView implements IView, IComponentListener {
   }
 
   private boolean ascending = false;
-  private String lastField = "";
+  private String lastField = ""; //$NON-NLS-1$
 
   private void orderInt(String field) {
     if (lastField.equals(field))

@@ -39,7 +39,7 @@ public class PiecesView implements IView, IComponentListener {
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
     String[] titlesPieces =
-      { "#", "Size", "# of Blocks", "Blocks", "Completed", "Availability" };
+      { "#", Messages.getString("PiecesView.size"), Messages.getString("PiecesView.numberofblocks"), Messages.getString("PiecesView.blocks"), Messages.getString("PiecesView.completed"), Messages.getString("PiecesView.availability") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
     int[] alignPieces =
       { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.RIGHT, SWT.RIGHT };
     for (int i = 0; i < titlesPieces.length; i++) {
@@ -87,14 +87,14 @@ public class PiecesView implements IView, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return "Pieces";
+    return Messages.getString("PiecesView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return "Pieces";
+    return Messages.getString("PiecesView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

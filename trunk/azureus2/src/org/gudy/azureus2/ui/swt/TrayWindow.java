@@ -50,9 +50,9 @@ public class TrayWindow implements IComponentListener {
     this.main = _main;
     this.display = main.getDisplay();
     minimized = new Shell(main.getShell(), SWT.ON_TOP);
-    minimized.setText("Azureus");
+    minimized.setText("Azureus"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
-    label.setImage(ImageRepository.getImage("azureus"));
+    label.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     label.setSize(16, 16);
     minimized.setSize(18, 18);
     screen = display.getClientArea();
@@ -106,7 +106,7 @@ public class TrayWindow implements IComponentListener {
     label.setMenu(menu);
 
     MenuItem file_show = new MenuItem(menu, SWT.NULL);
-    file_show.setText("Show Azureus");
+    file_show.setText(Messages.getString("TrayWindow.menu.show") + " Azureus"); //$NON-NLS-1$ //$NON-NLS-2$
     menu.setDefaultItem(file_show);
     file_show.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -119,7 +119,7 @@ public class TrayWindow implements IComponentListener {
     new MenuItem(menu,SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
-    file_exit.setText("Exit");
+    file_exit.setText(Messages.getString("TrayWindow.menu.exit")); //$NON-NLS-1$
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         main.dispose();
@@ -152,12 +152,12 @@ public class TrayWindow implements IComponentListener {
     if(minimized.isDisposed() || ! minimized.isVisible())
       return;
     StringBuffer toolTip = new StringBuffer();
-    String separator = "";
+    String separator = ""; //$NON-NLS-1$
     synchronized(managers) {
       for(int i = 0 ; i < managers.size() ; i++) {
         DownloadManager manager = (DownloadManager) managers.get(i);
         String name = manager.getName();
-        String completed = (manager.getCompleted() / 10) + "." + (manager.getCompleted() % 10) + "%";
+        String completed = (manager.getCompleted() / 10) + "." + (manager.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
         toolTip.append(separator);
         toolTip.append(name);
         toolTip.append(" -- C: ");
@@ -166,7 +166,7 @@ public class TrayWindow implements IComponentListener {
         toolTip.append(manager.getDownloadSpeed());
         toolTip.append(", U : ");
         toolTip.append(manager.getUploadSpeed());        
-        separator = "\n" ;
+        separator = "\n" ; //$NON-NLS-1$
       }
     }
     //label.setToolTipText(toolTip.toString());
