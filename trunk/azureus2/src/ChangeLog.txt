@@ -22,6 +22,7 @@ FEATURE: UI   | Synthesized speech alerts for Mac OS X; Go to Azureus / Preferen
 FEATURE: UI   | New file icon for Mac OS X [CrazyAlchemist]
 FEATURE: Plug | Generic Messaging API: inter-client message passing [Nolar]
 FEATURE: Core | Separate protocol payload and overhead stats [Nolar]
+FEATURE: Core | Data deletion can now defer to Recycle Bin and Trash under Windows and Mac OS X, respectively [Parg, CrazyAlchemist]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar, Gouss]
@@ -35,6 +36,7 @@ CHANGE: UI   | RFE #1092614: Informational popup messages now auto-close after 5
 CHANGE: UI   | Miscellaneous cosmetics updates for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [CrazyAlchemist]
 CHANGE: UI   | Main menu bar should now be more streamlined in its arrangement [CrazyAlchemist]
+CHANGE: UI   | Console view will now display information logged (for the duration of the application session) when the Console view is closed [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
