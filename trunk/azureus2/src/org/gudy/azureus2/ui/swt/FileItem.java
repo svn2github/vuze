@@ -167,14 +167,13 @@ public class FileItem {
         int index = (nbAvailable * 4) / (a1 - a0);
         //System.out.print(index);
         gcImage.setBackground(blues[index]);
-        Rectangle rect = new Rectangle(i, 1, 1, height);
-        gcImage.fillRectangle(rect);
+        gcImage.fillRectangle(i,1,1,height);
       }
       gcImage.dispose();
     }
     gc.setForeground(blues[4]);
     gc.drawImage(piecesImage, x0, y0);
-    gc.drawRectangle(new Rectangle(x0, y0, width, height));
+    gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
 
     loopFactor++;

@@ -114,13 +114,12 @@ public class PieceTableItem {
         color = blue;
       }
       gcImage.setBackground(color);
-      Rectangle rect = new Rectangle(a0, 1, a1, height);
-      gcImage.fillRectangle(rect);
+      gcImage.fillRectangle(a0,1,a1,height);
     }
     gcImage.dispose();
     gc.setForeground(MainWindow.grey);
     gc.drawImage(image, x0, y0);
-    gc.drawRectangle(new Rectangle(x0, y0, width, height));
+    gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
     image.dispose();
   }

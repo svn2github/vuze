@@ -516,8 +516,7 @@ public class GeneralView extends AbstractIView {
             }
             int index = (nbAvailable * 4) / (a1 - a0);
             gcImage.setBackground(MainWindow.blues[index]);
-            Rectangle rect = new Rectangle(i, 1, 1, height);
-            gcImage.fillRectangle(rect);
+            gcImage.fillRectangle(i,1,1,height);
           }
         }
         gcImage.dispose();
@@ -530,7 +529,7 @@ public class GeneralView extends AbstractIView {
       return;
     gc.setForeground(MainWindow.grey);
     gc.drawImage(pImage, x0, y0);
-    gc.drawRectangle(new Rectangle(x0, y0, width, height));
+    gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
   }
 
@@ -557,11 +556,9 @@ public class GeneralView extends AbstractIView {
       GC gcImage = new GC(fImage);
       int limit = (width * total) / 1000;
       gcImage.setBackground(MainWindow.blues[4]);
-      Rectangle rect = new Rectangle(1, 1, limit, height);
-      gcImage.fillRectangle(rect);
+      gcImage.fillRectangle(1,1,limit,height);
       gcImage.setBackground(MainWindow.blues[0]);
-      rect = new Rectangle(limit, 1, width, height);
-      gcImage.fillRectangle(rect);
+      gcImage.fillRectangle(limit,1,width,height);
       gcImage.dispose();
       if (filePercent != null && !filePercent.isDisposed())
         filePercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -571,7 +568,7 @@ public class GeneralView extends AbstractIView {
       return;
     gc.setForeground(MainWindow.grey);
     gc.drawImage(fImage, x0, y0);
-    gc.drawRectangle(new Rectangle(x0, y0, width, height));
+    gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {

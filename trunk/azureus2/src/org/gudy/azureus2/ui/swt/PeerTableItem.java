@@ -102,7 +102,7 @@ public class PeerTableItem {
       //If the image is still valid, simply copy it :)
       gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);
-      gc.drawRectangle(new Rectangle(x0, y0, width, height));
+      gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
     }
     else {
@@ -132,14 +132,13 @@ public class PeerTableItem {
           int index = (nbAvailable * 4) / (a1 - a0);
           //System.out.print(index);
           gcImage.setBackground(MainWindow.blues[index]);
-          Rectangle rect = new Rectangle(i, 1, 1, height);
-          gcImage.fillRectangle(rect);
+          gcImage.fillRectangle(i,1,1,height);
         }
       }
       gcImage.dispose();
       gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);
-      gc.drawRectangle(new Rectangle(x0, y0, width, height));
+      gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
     }
   }
