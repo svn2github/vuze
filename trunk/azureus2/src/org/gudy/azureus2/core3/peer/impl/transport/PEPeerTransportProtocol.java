@@ -640,8 +640,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	  			throw new IOException("End of Stream Reached");
 	  		}
 	  		else  {
-          //if (readBuffer.limit() > 13) //uncomment to only count stats for piece data messages
-	  			stats.received(read);            
+        if (readBuffer.limit() > 13) {
+	  				stats.received(read);
+        }
 	  		}
 	  	}
 	  	catch (IOException e) {
