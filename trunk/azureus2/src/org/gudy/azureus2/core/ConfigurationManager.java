@@ -38,10 +38,11 @@ public class ConfigurationManager {
 	public void load(String filename)
 	{	
 		FileInputStream fin = null;
+    BufferedInputStream bin = null;
 		try {
 			//open the file
 			fin = new FileInputStream(this.getApplicationPath() + filename);      
-			BufferedInputStream bin = new BufferedInputStream(fin);  		
+			bin = new BufferedInputStream(fin);  		
 			propertiesMap = BDecoder.decode(bin);  			
 		} catch (FileNotFoundException e) {
 			//create the file!
@@ -53,7 +54,18 @@ public class ConfigurationManager {
 			} catch (IOException e1) {				
 				e1.printStackTrace();
 			}
-		}
+    } finally {
+      try {
+        if (fin != null)
+          fin.close();
+      } catch (Exception e) {
+      }
+      try {
+        if (bin != null)
+          bin.close();
+      } catch (Exception e) {
+      }
+    }
 	}
   
   public void load()
@@ -61,24 +73,25 @@ public class ConfigurationManager {
     load("azureus.config");
   }
 	
-	public void save(String filename)
-	{
-		//re-encode the data
-		byte[] torrentData = BEncoder.encode(propertiesMap);
-		//open a file stream
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(this.getApplicationPath() + filename);
-		} catch (FileNotFoundException e) {			
-			e.printStackTrace();
-		}
-		//write the data out
-		try {
-			fos.write(torrentData);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+  public void save(String filename) {
+    //re-encode the data
+    byte[] torrentData = BEncoder.encode(propertiesMap);
+    //open a file stream
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(this.getApplicationPath() + filename);
+      //write the data out
+      fos.write(torrentData);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (fos != null)
+          fos.close();
+      } catch (Exception e) {
+      }
+    }
+  }
   
   public void save()
   {
@@ -146,7 +159,7 @@ public class ConfigurationManager {
 	private String getStringParameter(String parameter, byte[] defaultValue)
 	{
 		try {
-			return new String((byte[])this.getByteParameter(parameter, defaultValue), "ISO-8859-1");
+			return new String(this.getByteParameter(parameter, defaultValue), "ISO-8859-1");
 		} catch (Exception e) {			
 			//e.printStackTrace();
 			return null;
