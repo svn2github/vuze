@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.maketorrent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
@@ -47,11 +48,14 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
  * @author Olivier
@@ -135,6 +139,23 @@ public class MultiTrackerEditor {
     gridData.heightHint = 150;
     treeGroups.setLayoutData(gridData);
     
+    treeGroups.addMouseListener(
+    		new MouseAdapter() 
+    		{
+    			public void 
+    			mouseDoubleClick(
+    				MouseEvent arg0 )
+    			{
+    				if(treeGroups.getSelectionCount() == 1) {
+    					TreeItem treeItem = treeGroups.getSelection()[0];
+    					String type = (String) treeItem.getData("type");
+    					if(type.equals("tracker")) {
+    						editTreeItem(treeItem);
+    					}
+    				}
+    			}
+    		});
+    		
     Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
@@ -232,8 +253,34 @@ public class MultiTrackerEditor {
     oldName = currentName;
   }
 
-  private void computeSaveEnable() {
-    btnSave.setEnabled(anonymous || !("".equals(currentName)));
+  private void computeSaveEnable() 
+  {
+  	boolean	enabled = anonymous || !("".equals(currentName));
+  	
+  	if ( enabled ){
+  		
+ 	  	TreeItem[] groupItems = treeGroups.getItems();
+		 
+ 	  	outer:
+	  	for(int i = 0 ; i < groupItems.length ; i++) {
+	  		TreeItem group = groupItems[i];      
+	  		TreeItem[] trackerItems = group.getItems();
+	  		for(int j = 0 ; j < trackerItems.length ; j++) {
+		  			
+	  			if ( ! validURL(trackerItems[j].getText())){
+	  				
+	  				enabled = false;
+	  				
+	  				break outer;
+		  		}
+		  	}
+	  	}
+  	}
+  	
+  	if ( enabled != btnSave.getEnabled()){
+  		
+  		btnSave.setEnabled( enabled );
+  	}
   }
   
   private void refresh() {
@@ -355,17 +402,36 @@ public class MultiTrackerEditor {
     // The control that will be the editor must be a child of the Tree
     final Text text = new Text(treeGroups, SWT.BORDER);
     text.setText(item.getText());
+    text.setForeground(item.getForeground());
     text.setSelection(item.getText().length());
     text.addListener (SWT.DefaultSelection, new Listener () {
       public void handleEvent (Event e) {
-        item.setText(text.getText());
+      	String url = text.getText();
+      	if ( validURL(url)){
+      		text.setForeground( MainWindow.black );
+      		item.setForeground( MainWindow.black );
+      	}else{
+      		text.setForeground( MainWindow.red );
+      		item.setForeground( MainWindow.red );
+      	}
+      	item.setText(url);
+        computeSaveEnable();
         removeEditor();
       }
     });
     
     text.addListener(SWT.Modify, new Listener() {
     	public void handleEvent (Event e) {
-    		item.setText(text.getText());
+    		String url = text.getText();
+    		if ( validURL(url)){
+    			text.setForeground( MainWindow.black );
+    			item.setForeground( MainWindow.black );
+    		}else{
+    			text.setForeground( MainWindow.red );
+    			item.setForeground( MainWindow.red );
+    		}
+    		item.setText(url);
+     		computeSaveEnable();
     	}
     });
     
@@ -389,6 +455,28 @@ public class MultiTrackerEditor {
 
     // Assign focus to the text control
     text.setFocus ();
+  }
+  
+  private boolean
+  validURL(
+  	String	str )
+  {
+  	try{
+  		URL url = new URL(str);
+  		
+  		String prot = url.getProtocol().toLowerCase();
+  		
+  		if ( prot.equals( "http") || prot.equals( "https" )){
+  			
+  			return( true );
+  		}
+  		
+  		return( false );
+  		
+  	}catch( Throwable e ){
+  		
+  		return( false );
+  	}
   }
   
   private void removeEditor() {
