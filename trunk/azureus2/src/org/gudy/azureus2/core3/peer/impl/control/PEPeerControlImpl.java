@@ -695,14 +695,8 @@ PEPeerControlImpl
 	  Arrays.fill(upRates, -1);
 	
 	  for (int i = 0; i < peer_transports.size(); i++) {
-	    PEPeerTransport pc = null;
-	    try {
-	      pc = (PEPeerTransport) peer_transports.get(i);
-	    }
-	    catch (Exception e) {
-	    	Debug.printStackTrace( e );
-	      break;
-	    }
+	    PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+
 	    if (pc.transferAvailable()) {
 	    	long upRate = pc.getStats().getReception();
 	      testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
@@ -1263,25 +1257,21 @@ PEPeerControlImpl
     List	peer_transports = peer_transports_cow;
     
     for (int i = 0; i < peer_transports.size(); i++){
-    
-        try {
-        	PEPeerTransport	pc = (PEPeerTransport)peer_transports.get(i);
+
+      PEPeerTransport	pc = (PEPeerTransport)peer_transports.get(i);
         	
-            if ( pc.isChoking()){
+      if ( pc.isChoking()){
             	
-            	choking_count++;
+        choking_count++;
             	
-            	if ( pc.isInteresting()){
+        if ( pc.isInteresting()){
             		
-            		interesting_and_choking_count++;
-            	}
-            }else{
-            	non_choking_count++;
-            }
-        }catch (Exception e) {
-          	
-            continue;
+          interesting_and_choking_count++;
         }
+      }else{
+        non_choking_count++;
+      }
+
     }
 
     	// lazily initialise this list
@@ -1406,13 +1396,8 @@ PEPeerControlImpl
     List	peer_transports = peer_transports_cow;
     
     for (int i = 0; i < peer_transports.size(); i++) {
-      PEPeerTransport pc = null;
-      try {
-        pc = (PEPeerTransport) peer_transports.get(i);
-      }
-      catch (Exception e) {
-        break;
-      }
+      PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+
       if (pc.isInteresting() && pc.isChoking()) {
       	long upRate = pc.getStats().getReception();
         testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
@@ -1456,20 +1441,16 @@ PEPeerControlImpl
     if (!_finished && bestUploaders.size() < upRates.length) {
       
         for (int i = 0; i < peer_transports.size(); i++) {
-          PEPeerTransport pc = null;
-          try {
-            pc = (PEPeerTransport) peer_transports.get(i);
-          }
-          catch (Exception e) {
-            break;
-          }
+          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+
           if (pc != currentOptimisticUnchoke
             && pc.isInteresting()
             && pc.isInterested()
             && bestUploaders.size() < upRates.length
             && !pc.isSnubbed()
             && (_downloadManager.getStats().getUploaded() / (_downloadManager.getStats().getDownloaded() + 16000)) < 10) {
-            bestUploaders.add(pc);
+            
+              bestUploaders.add(pc);
           }
         }
   
@@ -1480,13 +1461,8 @@ PEPeerControlImpl
 
       
         for (int i = 0; i < peer_transports.size(); i++) {
-          PEPeerTransport pc = null;
-          try {
-            pc = (PEPeerTransport) peer_transports.get(i);
-          }
-          catch (Exception e) {
-            continue;
-          }
+          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+
           if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
             long upRate = 0;
             	//If peer we'll use the overall uploaded value
@@ -1907,17 +1883,6 @@ PEPeerControlImpl
     return _diskManager.getPieceLength();
   }
 
-  /*
-  public boolean validateHandshaking(PEPeer pc, byte[] peerId) {
-    PEPeerTransport pcTest = PEPeerTransportFactory.createTransport(this, peerId, pc.getIp(), pc.getPort(), true);
-    try{
-      _peer_transports_mon.enter();
-      return !_peer_transports.contains(pcTest);
-    }finally{
-      _peer_transports_mon.exit();
-    }
-  }
-  */
 
   public int 
   getNbPeers() 
