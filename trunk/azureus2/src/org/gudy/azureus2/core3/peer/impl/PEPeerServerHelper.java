@@ -33,6 +33,10 @@ PEPeerServerHelper
 	extends PEPeerServer 
 {
 	public void
-	setController(
-		PEPeerControl	control );
+	setServerAdapter(
+		PEPeerServerAdapter	adapter );
+		
+	public PEPeerTransport
+	createPeerTransport(
+		Object		param );
 }

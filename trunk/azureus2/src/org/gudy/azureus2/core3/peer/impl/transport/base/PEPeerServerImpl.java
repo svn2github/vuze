@@ -50,7 +50,7 @@ PEPeerServerImpl
   private int port;
   private ServerSocketChannel sck;
   private boolean bContinue;
-  private PEPeerControl manager;
+  private PEPeerServerAdapter adapter;
 
   private static int instanceCount = 0;
 
@@ -142,7 +142,7 @@ PEPeerServerImpl
             "BT Server has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
-          manager.addPeerTransport(new PEPeerTransportImpl(manager,sckClient));
+		  adapter.addPeerTransport(sckClient);
         } 
       }  
     }
@@ -154,30 +154,47 @@ PEPeerServerImpl
     LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopped");
   }
 
-  public void startServer(){
-  	start();	// Thread method
-  }
-  public void stopServer() {
-    bContinue = false;
+  	public PEPeerTransport
+  	createPeerTransport(
+		Object		param )
+	{
+		return( new PEPeerTransportImpl(adapter.getControl(),(SocketChannel)param, null));
+	}
+	
+  	public void 
+  	startServer()
+  	{
+  		start();	// Thread method
+  	}
+  	
+  	public void 
+  	stopServer() 
+  	{
+    	bContinue = false;
 
-    //this will most probably raise an exception ;)
-    try {
-      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopping");
-      sck.close();
-    }
-    catch (Exception e) {
-      LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Error catched while stopping server : " + e);
-    }
-    instanceCount--;
-  }
+    		//this will most probably raise an exception ;)
+    	try{
+    		
+      		LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopping");
+      		
+      		sck.close();
+    	}catch (Exception e) {
+    		
+      		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Error catched while stopping server : " + e);
+    	}
+    	
+    	instanceCount--;
+  	}
   
 
   public int getPort() {
     return port;
   }
 
-  public void setController(PEPeerControl manager) {
-    this.manager = manager;
+  public void 
+  setServerAdapter(
+  	PEPeerServerAdapter _adapter ) 
+  {
+    adapter = _adapter;
   }
-
 }

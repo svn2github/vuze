@@ -1,7 +1,7 @@
 /*
- * File    : PEPeerTransportFactory.java
- * Created : 21-Oct-2003
- * By      : stuff
+ * File    : PEPeerServerAdapter.java
+ * Created : 24-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -26,36 +26,14 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.transport.base.*;
-import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
-
-public class 
-PEPeerTransportFactory 
+public interface 
+PEPeerServerAdapter 
 {
-	static boolean shared_port = false;
+	public PEPeerControl
+	getControl();
 	
-	public static PEPeerTransport
-	createTransport(
-		PEPeerControl	 	control, 
-		byte[] 				peerId, 
-		String 				ip, 
-		int 				port, 
-		boolean 			fake )
-	{
-		return( new PEPeerTransportImpl( control, peerId, ip, port, fake ));
-	}
+	public void
+	addPeerTransport(
+		Object		param );
 
-	public static PEPeerServer
-	createServer()
-	{
-		if ( shared_port ){
-			
-			return( new PESharedPortServerImpl());
-			
-		}else{
-		
-			return( new PEPeerServerImpl());
-		}
-	}
 }

@@ -47,8 +47,9 @@ PEPeerTransportImpl
 {
 		//The SocketChannel associated with this peer
 		
-	private SocketChannel socket;
-
+	private SocketChannel 	socket;
+	private byte[]			leading_data;
+	
 	  /**
 	   * The Default Contructor for outgoing connections.
 	   * @param manager the manager that will handle this PeerTransport
@@ -80,7 +81,8 @@ PEPeerTransportImpl
   	public 
   	PEPeerTransportImpl(
   		PEPeerControl 	manager, 
-  		SocketChannel 	sck ) 
+  		SocketChannel 	sck,
+  		byte[]			_leading_data ) 
   	{
     	super( 	manager, 
     			null,		// no peer id 
@@ -89,7 +91,8 @@ PEPeerTransportImpl
     			true,
     			false ) ;
     
-    	socket = sck;
+    	socket 			= sck;
+    	leading_data	= _leading_data;
   	}
   
 	protected void 
@@ -186,6 +189,17 @@ PEPeerTransportImpl
         Debug.out(msg);
         return -1;
       }
+        if ( leading_data != null ){
+        
+        	buffer.put( leading_data);
+        
+        	int	len = leading_data.length;
+        		
+        	leading_data = null;
+        	
+        	return( len );
+  		}
+  		
 		return(socket.read(buffer));
   	}
   

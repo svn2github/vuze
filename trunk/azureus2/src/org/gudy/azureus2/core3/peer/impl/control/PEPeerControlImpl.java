@@ -126,7 +126,7 @@ PEPeerControlImpl
     _connections = new ArrayList();
 
     //The Server that handle incoming connections
-     _server.setController(this);
+     _server.setServerAdapter(this);
 
     _diskManager.setPeerManager(this);
 
@@ -1238,11 +1238,16 @@ PEPeerControlImpl
    * to the list of peer connections.
    * @param sckClient the incoming connection socket
    */
-  public void addPeerTransport(PEPeerTransport trans) {
+  public void addPeerTransport(Object param) {
     
-    this.insertPeerSocket( trans );
+    this.insertPeerSocket( _server.createPeerTransport(param));
   }
 
+  public PEPeerControl
+  getControl()
+  {
+  	return( this );
+  }
 
   /**
    * The way to remove a peer from our peer list.

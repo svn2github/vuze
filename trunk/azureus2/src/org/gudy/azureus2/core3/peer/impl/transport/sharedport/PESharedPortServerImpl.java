@@ -25,8 +25,104 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  * @author parg
  *
  */
-public class 
-PESharedPortServerImpl 
-{
 
+import java.nio.channels.SocketChannel;
+
+import org.gudy.azureus2.core3.peer.impl.*;
+
+import org.gudy.azureus2.core3.peer.impl.transport.base.*;
+
+public class 
+PESharedPortServerImpl
+	implements PEPeerServerHelper
+{
+	protected static PEPeerServerHelper		server_delegate;
+	protected static PESharedPortSelector	selector;
+	
+	protected PEPeerServerAdapter	adapter;
+	
+	public
+	PESharedPortServerImpl()
+	{
+		synchronized( PESharedPortServerImpl.class ){
+			
+			if ( server_delegate == null ){
+			
+					// TODO: add code to deal with lack of ports...
+						
+				server_delegate = new PEPeerServerImpl();
+				
+				selector = new PESharedPortSelector();
+				
+				server_delegate.setServerAdapter( 
+					new PEPeerServerAdapter()
+					{
+						public void
+						addPeerTransport(
+							Object		param )
+						{
+								// new incoming connection
+								
+							selector.addSocket((SocketChannel)param);
+						}
+							
+						public PEPeerControl
+						getControl()
+						{
+							System.out.println( "PESharedPortServer::getControl - should never be called!!!!");
+		
+							throw( new RuntimeException( "whoops!"));
+						}
+					});
+					
+				server_delegate.startServer();
+			}
+		}
+	}
+	
+	public int
+	getPort()
+	{
+		return( server_delegate.getPort());
+	}
+	
+	public void
+	startServer()
+	{		
+		selector.addHash( this, adapter.getControl().getHash() );
+	}
+	
+	public void
+	stopServer()
+	{
+		selector.removeHash( this, adapter.getControl().getHash() );
+	}
+	
+	public void
+	setServerAdapter(
+		PEPeerServerAdapter	_adapter )
+	{
+		adapter	= _adapter;
+	}
+		
+	protected void
+	connectionReceived(
+		SocketChannel		socket,
+		byte[]				data_read )
+	{
+		adapter.addPeerTransport( new Object[]{ socket, data_read });
+	}
+	
+	public PEPeerTransport
+	createPeerTransport(
+		Object		param )
+	{
+		Object[]	temp = (Object[])param;
+		
+		SocketChannel	channel = (SocketChannel)temp[0];
+		byte[]			data	= (byte[])temp[1];
+		
+		
+		return( new PEPeerTransportImpl( adapter.getControl(), channel, data ));
+	}
 }

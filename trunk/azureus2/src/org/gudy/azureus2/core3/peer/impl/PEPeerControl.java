@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 
 public interface
 PEPeerControl
-	extends PEPeerManager
+	extends PEPeerManager, PEPeerServerAdapter
 {
 	public PEPeerStatsImpl
 	createPeerStats();
@@ -44,10 +44,6 @@ PEPeerControl
 
 	public void 
 	peerRemoved(PEPeer pc);
-
-	public void
-	addPeerTransport(
-		PEPeerTransport	transport );
 		
 	public DiskManagerRequest
 	createDiskManagerRequest(

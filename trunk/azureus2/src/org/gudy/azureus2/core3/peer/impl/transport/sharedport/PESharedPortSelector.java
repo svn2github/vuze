@@ -1,5 +1,5 @@
 /*
- * File    : PESharedPortTransportImpl.java
+ * File    : PESharedPortSelector.java
  * Created : 24-Nov-2003
  * By      : parg
  * 
@@ -25,8 +25,32 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  * @author parg
  *
  */
-public class 
-PESharedPortTransportImpl 
-{
 
+import java.nio.channels.SocketChannel;
+
+public class 
+PESharedPortSelector 
+{
+	public void
+	addSocket(
+		SocketChannel		_socket )
+	{
+		System.out.println( "socket added");
+	}
+	
+	public void
+	addHash(
+		PESharedPortServerImpl		_server,
+		byte[]						_hash )
+	{
+		System.out.println( "hash added");
+	}	
+	
+	public void
+	removeHash(
+		PESharedPortServerImpl		_server,
+		byte[]						_hash )
+	{
+		System.out.println( "hash removed");
+	}
 }
