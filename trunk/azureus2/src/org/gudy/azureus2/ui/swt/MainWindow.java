@@ -613,7 +613,7 @@ public class MainWindow implements IComponentListener {
     gridData.horizontalSpan = 3;
 
     final Label step2 = new Label(s, SWT.LEFT);
-    step2.setText("- "+MessageText.getString("MainWindow.upgrade.setp2")+"\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    step2.setText("- "+MessageText.getString("MainWindow.upgrade.step2")+"\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     step2.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
