@@ -29,21 +29,18 @@ package org.gudy.azureus2.pluginsimpl.torrent;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.*;
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.pluginsimpl.download.*;
 
 public class 
 TorrentAnnounceURLListImpl
 	implements TorrentAnnounceURLList
 {
-	protected TOTorrent		torrent;
+	protected TorrentImpl		torrent;
 	
 	protected
 	TorrentAnnounceURLListImpl(
-		TOTorrent	_torrent )
+		TorrentImpl	_torrent )
 	{
 		torrent	= _torrent;
 	}
@@ -51,7 +48,7 @@ TorrentAnnounceURLListImpl
 	public TorrentAnnounceURLListSet[]
 	getSets()
 	{
-		TOTorrentAnnounceURLGroup	group = torrent.getAnnounceURLGroup();
+		TOTorrentAnnounceURLGroup	group = torrent.getTorrent().getAnnounceURLGroup();
 		
 		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
 		
@@ -69,7 +66,7 @@ TorrentAnnounceURLListImpl
 	setSets(
 		TorrentAnnounceURLListSet[]		sets )
 	{
-		TOTorrentAnnounceURLGroup	group = torrent.getAnnounceURLGroup();
+		TOTorrentAnnounceURLGroup	group = torrent.getTorrent().getAnnounceURLGroup();
 				
 		TOTorrentAnnounceURLSet[]	res = new TOTorrentAnnounceURLSet[sets.length];
 		
@@ -87,14 +84,19 @@ TorrentAnnounceURLListImpl
 	create(
 		URL[]		urls )
 	{
-		return( new TorrentAnnounceURLListSetImpl( this, torrent.getAnnounceURLGroup().createAnnounceURLSet(urls)));
+		return( new TorrentAnnounceURLListSetImpl( this, torrent.getTorrent().getAnnounceURLGroup().createAnnounceURLSet(urls)));
 	}
 	
 	public void
 	addSet(
 		URL[]		urls )
 	{
-		TorrentUtils.announceGroupsInsertLast( torrent, urls );
+		if ( setAlreadyExists( urls )){
+			
+			return;
+		}
+		
+		TorrentUtils.announceGroupsInsertLast( torrent.getTorrent(), urls );
 		
 		updated();
 	}
@@ -103,24 +105,73 @@ TorrentAnnounceURLListImpl
 	insertSetAtFront(
 		URL[]		urls )
 	{
-		TorrentUtils.announceGroupsInsertFirst( torrent, urls );
+		if ( setAlreadyExists( urls )){
+			
+			return;
+		}
+		
+		TorrentUtils.announceGroupsInsertFirst( torrent.getTorrent(), urls );
 		
 		updated();
+	}
+	
+	protected boolean
+	setAlreadyExists(
+		URL[]		urls )
+	{
+		TOTorrentAnnounceURLGroup	group = torrent.getTorrent().getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+
+		for (int i=0;i<sets.length;i++){
+			
+			URL[]	u = sets[i].getAnnounceURLs();
+			
+			if ( u.length != urls.length ){
+				
+				continue;
+			}
+			
+			boolean	all_found = true;
+			
+			for (int j=0;j<urls.length;j++){
+				
+				URL	u1 = urls[j];
+				
+				boolean	this_found = false;
+				
+				for ( int k=0;k<u.length;k++){
+					
+					URL	u2 = u[k];
+					
+					if ( u1.toString().equals( u2.toString())){
+						
+						this_found = true;
+						
+						break;
+					}
+				}
+				
+				if ( !this_found ){
+					
+					all_found = false;
+					
+					break;
+				}
+			}
+			
+			if ( all_found ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
 	}
 	
 	protected void
 	updated()
 	{
-		try{
-			DownloadImpl dm = (DownloadImpl)DownloadManagerImpl.getDownloadStatic( torrent );
-		
-			if ( dm != null ){
-			
-				dm.torrentChanged();
-			}
-		}catch( DownloadException e ){
-			
-			// torrent may not be running
-		}
+		torrent.updated();
 	}
 }

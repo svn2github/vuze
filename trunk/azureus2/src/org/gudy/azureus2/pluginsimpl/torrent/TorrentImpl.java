@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.pluginsimpl.download.*;
 
 public class 
 TorrentImpl
@@ -68,10 +70,19 @@ TorrentImpl
 		return( torrent.getAnnounceURL());
 	}
 	
+	public void
+	setAnnounceURL(
+		URL		url )
+	{
+		torrent.setAnnounceURL( url );
+		
+		updated();
+	}
+
 	public TorrentAnnounceURLList
 	getAnnounceURLList()
 	{
-		return( new TorrentAnnounceURLListImpl( torrent ));
+		return( new TorrentAnnounceURLListImpl( this ));
 	}
 
 	public TOTorrent
@@ -202,6 +213,21 @@ TorrentImpl
 		torrent.addTorrentAnnounceURLSet( urls );
 	}
   
+	protected void
+	updated()
+	{
+		try{
+			DownloadImpl dm = (DownloadImpl)DownloadManagerImpl.getDownloadStatic( torrent );
+		
+			if ( dm != null ){
+			
+				dm.torrentChanged();
+			}
+		}catch( DownloadException e ){
+			
+			// torrent may not be running
+		}
+	}
 	
 	public void
 	save()

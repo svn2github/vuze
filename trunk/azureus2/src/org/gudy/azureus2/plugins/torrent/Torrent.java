@@ -38,6 +38,10 @@ Torrent
 	public URL
 	getAnnounceURL();
 	
+	public void
+	setAnnounceURL(
+		URL		url );
+	
 		/**
 		 * get the announce list for multi-tracker torrents. Will always be present but
 		 * may contain 0 sets which means that this is not a multi-tracker torrent

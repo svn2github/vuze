@@ -29,8 +29,11 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.test;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.*;
 
@@ -53,6 +56,39 @@ Main
 			
 			e.printStackTrace();
 		}
+		
+
+		/*
+		_plugin_interface.getDownloadManager().addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						Torrent t = download.getTorrent();
+						
+						System.out.println( "torrent added:" + t.getName());
+						
+						try{
+							
+							t.getAnnounceURLList().insertSetAtFront(new URL[]{new URL("http://plopp/")});
+							
+							t.save();
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+					}
+				});
+		*/
 		
 		final JFrame	frame = new JFrame( "Azureus Swing UI" );
 
