@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.messaging;
 
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.messaging.*;
 import org.gudy.azureus2.pluginsimpl.local.network.TCPTransportImpl;
@@ -67,7 +68,6 @@ public class MessageStreamDecoderAdapter implements com.aelitis.azureus.core.pee
 
   public int getDataBytesDecoded() {  return plug_decoder.getDataBytesDecoded();  }
 
-  public void destroy() {  plug_decoder.destroy();  }
-  
+  public ByteBuffer destroy() {  return plug_decoder.destroy();  }
 
 }

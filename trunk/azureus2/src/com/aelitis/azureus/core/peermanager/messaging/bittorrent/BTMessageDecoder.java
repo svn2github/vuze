@@ -63,8 +63,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int data_bytes_last_read = 0;
   
   private int data_bytes_owed = 0;
-  
-  
+
   
   
   public BTMessageDecoder() {
@@ -140,8 +139,22 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   public int getDataBytesDecoded() {  return data_bytes_last_read;  }
     
   
+  public ByteBuffer destroy() {
+    int lbuff_read = length_buffer.position();
+    int pbuff_read = payload_buffer == null ? 0 : payload_buffer.position();
+    
+    ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
+    
+    length_buffer.flip();
+    unused.put( length_buffer );
+    
+    if ( payload_buffer != null ) {
+      payload_buffer.flip();
+      unused.put( payload_buffer );
+    }
+    
+    unused.flip();
 
-  public void destroy() {
     destroyed_count++;
 
     if( direct_payload_buffer != null ) {
@@ -154,6 +167,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       msg.destroy();
     }
     messages_last_read.clear();
+    
+    return unused;
   }
   
   

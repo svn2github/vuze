@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.peermanager.messaging;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
@@ -57,10 +58,10 @@ public interface MessageStreamDecoder {
    */
   public int getDataBytesDecoded();
   
-  
   /**
    * Destroy this decoder, i.e. perform cleanup.
+   * @return any bytes already-read and still remaining within the decoder
    */
-  public void destroy();
+  public ByteBuffer destroy();
     
 }

@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.messaging;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.network.Transport;
 
@@ -56,11 +57,11 @@ public interface MessageStreamDecoder {
    * Get the number of (piece) data bytes decoded from the transport, from the last decode op.
    * @return number of data bytes received
    */
-  public int getDataBytesDecoded();
-  
+  public int getDataBytesDecoded(); 
   
   /**
    * Destroy this decoder, i.e. perform cleanup.
+   * @return any bytes already-read and still remaining within the decoder
    */
-  public void destroy();
+  public ByteBuffer destroy();
 }

@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -59,12 +60,17 @@ public class IncomingMessageQueue {
   
   /**
    * Set the message stream decoder that will be used to decode incoming messages.
-   * @param stream_decoder to use
+   * @param new_stream_decoder to use
    */
-  public void setDecoder( MessageStreamDecoder stream_decoder ) {
+  public void setDecoder( MessageStreamDecoder new_stream_decoder ) {
     stopQueueProcessing();
-    this.stream_decoder.destroy();
-    this.stream_decoder = stream_decoder;
+    
+    ByteBuffer already_read = stream_decoder.destroy();
+    
+    connection.getTCPTransport().setAlreadyRead( already_read );
+    
+    stream_decoder = new_stream_decoder;
+    
     startQueueProcessing();
   }
   

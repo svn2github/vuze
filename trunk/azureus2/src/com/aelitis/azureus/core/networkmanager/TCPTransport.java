@@ -85,6 +85,16 @@ public class TCPTransport {
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
   }
   
+  
+  /**
+   * Inject the given already-read data back into the read stream.
+   * @param bytes_already_read data
+   */
+  public void setAlreadyRead( ByteBuffer bytes_already_read ) {
+    data_already_read = bytes_already_read;
+  }
+  
+  
   /**
    * Get the socket channel used by the transport.
    * @return the socket channel
