@@ -87,6 +87,7 @@ StartStopRulesDefaultPlugin
   int iRankType;
   int iFakeFullCopySeedStart;
   int iRankTypeSeedFallback;
+  boolean bAutoReposition;
 
   public void
   initialize(
@@ -166,9 +167,7 @@ StartStopRulesDefaultPlugin
           public void downloadAdded( Download  download )
           {
             if (!downloadDataMap.containsKey(download)) {
-              synchronized (downloadDataMap) {
-                downloadDataMap.put( download, new downloadData(download) );
-              }
+              downloadDataMap.put( download, new downloadData(download) );
             }
 
             download.addListener( download_listener );
@@ -181,9 +180,7 @@ StartStopRulesDefaultPlugin
             download.removeListener( download_listener );
 
             if (downloadDataMap.containsKey(download)) {
-              synchronized (downloadDataMap) {
-                downloadDataMap.remove(download);
-              }
+              downloadDataMap.remove(download);
             }
 
             somethingChanged = true;
@@ -246,6 +243,7 @@ StartStopRulesDefaultPlugin
     ignoreSeedCount = plugin_config.getIntParameter("Ignore Seed Count", 0);
     iFakeFullCopySeedStart = plugin_config.getIntParameter("StartStopManager_iFakeFullCopySeedStart");
     iRankTypeSeedFallback = plugin_config.getIntParameter("StartStopManager_iRankTypeSeedFallback");
+    bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
   }
 
   protected void process() {
@@ -274,10 +272,8 @@ StartStopRulesDefaultPlugin
 
     // pull the data into an local array, so we don't have to lock/synchronize
     downloadData[] dlDataArray;
-    synchronized (downloadDataMap) {
-      dlDataArray = (downloadData[])
-        downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
-    }
+    dlDataArray = (downloadData[])
+      downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
     // Loop 1 of 2:
     // - Build a QR list for sorting
     // - Build Count Totals
@@ -383,7 +379,8 @@ StartStopRulesDefaultPlugin
         }catch (Exception ignore) {/*ignore*/}
       }
 
-      if ((iRankType != RANK_NONE) &&
+      if (bAutoReposition &&
+          (iRankType != RANK_NONE) &&
           download.getStats().getDownloadCompleted(false) == 1000 &&
           okToProcessComplete)
         download.setPosition(++posComplete);
@@ -573,9 +570,7 @@ StartStopRulesDefaultPlugin
           	else
             	log.log( LoggerChannel.LT_INFORMATION, "Remove ["+t.getName()+"]: file not found" );
 
-            synchronized (downloadDataMap) {
-              downloadDataMap.remove(download);
-            }
+            downloadDataMap.remove(download);
             download.remove();
 
           }catch( DownloadRemovalVetoException e ){
@@ -1097,6 +1092,9 @@ StartStopRulesDefaultPlugin
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.seeds");
 */
+      label = new Label(gQR, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition"); //$NON-NLS-1$
+      BooleanParameter removeOnStopParam = new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
 
       return gQR;
     }
