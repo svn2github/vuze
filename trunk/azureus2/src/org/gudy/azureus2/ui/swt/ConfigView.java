@@ -168,6 +168,12 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 40;
     new IntParameter(gGlobal, "max active torrents", 4).setLayoutData(gridData); //$NON-NLS-1$
 
+    label = new Label(gGlobal, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(gGlobal, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
+
     Group gTransfer = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -215,11 +221,11 @@ public class ConfigView extends AbstractIView {
     label = new Label(gDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Open Details", true); //$NON-NLS-1$
-    
+
     label = new Label(gDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Open Bar", false); //$NON-NLS-1$
-    
+
     Button enter = new Button(gConfig, SWT.PUSH);
     Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);

@@ -32,30 +32,33 @@ public class GlobalManager extends Component {
   public class Checker extends Thread {
     boolean finished = false;
     int loopFactor;
-    
+
     public Checker() {
       super("Global Status Checker");
       loopFactor = 0;
     }
-    
-    
 
     public void run() {
       while (!finished) {
-                
+
         loopFactor++;
-        if(loopFactor >= 6000) {
+        if (loopFactor >= 6000) {
           loopFactor = 0;
           trackerChecker.update();
         }
-        
+
         synchronized (managers) {
           int nbStarted = 0;
+          int nbDownloading = 0;
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
-            if (manager.getState() == DownloadManager.STATE_DOWNLOADING
-              || manager.getState() == DownloadManager.STATE_SEEDING)
+            if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
+              nbDownloading++;
+            }
+            if (manager.getState() == DownloadManager.STATE_SEEDING) {
+              nbStarted++;
+            }
           }
           boolean alreadyOneAllocatingOrChecking = false;
           for (int i = 0; i < managers.size(); i++) {
@@ -65,9 +68,12 @@ public class GlobalManager extends Component {
               alreadyOneAllocatingOrChecking = true;
             }
             int nbMax = ConfigurationManager.getInstance().getIntParameter("max active torrents", 4);
-            if (manager.getState() == DownloadManager.STATE_READY && ((nbMax == 0) || (nbStarted < nbMax))) {
+            int nbMaxDownloads = ConfigurationManager.getInstance().getIntParameter("max downloads", 4);
+            if (manager.getState() == DownloadManager.STATE_READY && ((nbMax == 0) || (nbStarted < nbMax)) && ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads))) {
               manager.startDownload();
               nbStarted++;
+              if(manager.getCompleted() != 1000)
+                nbDownloading++;
             }
 
             if (((manager.getState() == DownloadManager.STATE_ALLOCATING)
@@ -115,7 +121,7 @@ public class GlobalManager extends Component {
     synchronized (managers) {
       managers.add(manager);
     }
-    
+
     this.objectAdded(manager);
     saveDownloads();
   }
