@@ -519,16 +519,20 @@ public class MainWindow implements IComponentListener {
 
     mainWindow.addListener(SWT.Close, new Listener() {
       public void handleEvent(Event event) {
-        event.doit = false;
-        mainWindow.setVisible(false);
-        if (tray != null)
-          tray.setVisible(true);
-        synchronized (downloadBars) {
-          Iterator iter = downloadBars.values().iterator();
-          while (iter.hasNext()) {
-            MinimizedWindow mw = (MinimizedWindow) iter.next();
-            mw.setVisible(true);
+        if (ConfigurationManager.getInstance().getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
+          event.doit = false;
+          mainWindow.setVisible(false);
+          if (tray != null)
+            tray.setVisible(true);
+          synchronized (downloadBars) {
+            Iterator iter = downloadBars.values().iterator();
+            while (iter.hasNext()) {
+              MinimizedWindow mw = (MinimizedWindow) iter.next();
+              mw.setVisible(true);
+            }
           }
+        } else {
+          dispose();
         }
       }
     });
@@ -1237,17 +1241,16 @@ public class MainWindow implements IComponentListener {
   }
  
   private String getCanonicalFileName(String filename) {
-	// Sometimes Windows use filename in 8.3 form and cannot
-	// match .torrent extension. To solve this, canonical path
-	// is used to get back the long form
+    // Sometimes Windows use filename in 8.3 form and cannot
+    // match .torrent extension. To solve this, canonical path
+    // is used to get back the long form
 
-	String canonicalFileName=filename;
-	try {
-		canonicalFileName=new java.io.File(filename).getCanonicalPath();
-	}
-	catch (java.io.IOException ioe) {
-	}
-	return canonicalFileName;
+    String canonicalFileName = filename;
+    try {
+      canonicalFileName = new File(filename).getCanonicalPath();
+    } catch (IOException ignore) {
+    }
+    return canonicalFileName;
   }
 
   public void openTorrent(final String fileName) {

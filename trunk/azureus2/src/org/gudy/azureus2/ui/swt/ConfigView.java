@@ -227,6 +227,10 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Open Bar", false); //$NON-NLS-1$
 
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
+    new BooleanParameter(gDisplay, "Close To Tray", true); //$NON-NLS-1$
+
     Group gStart = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
