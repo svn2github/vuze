@@ -22,6 +22,9 @@ FEATURE: Added ability to automatically exclude files when making torrents (e.g.
 FEATURE: MyTracker row right-click support for copying torrent URL to clipboard [Parg]
 FEATURE: UDP authentication protocol added [Parg]
 FEATURE: SWT libs auto-updater [Gudy]
+FEATURE: webui + xml/http "access" property support for IP range [Parg]
+FEATURE: easy to use "basic plugin view": see PluginInterface::getUIManager::getBasicPluginViewModel [Parg, Gudy]
+FEATURE: webui + xml/http plugins have had basic plugin view added [Parg]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
