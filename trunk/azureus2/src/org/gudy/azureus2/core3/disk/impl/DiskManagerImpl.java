@@ -1614,8 +1614,10 @@ DiskManagerImpl
       PEPeer peer = writers[i];
       if(peer != null) {
         ByteBuffer buffer = readBlock(pieceNumber,offset,length);
+        buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
-        piece.addWrite(new PEPieceWrite(i,peer,hash));
+        ByteBufferPool.getInstance().freeBuffer(buffer);
+        piece.addWrite(new PEPieceWrite(i,peer,hash));        
       }
       offset += length;
     }        
