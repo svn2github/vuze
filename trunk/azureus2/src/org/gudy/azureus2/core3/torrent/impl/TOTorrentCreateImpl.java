@@ -172,6 +172,11 @@ TOTorrentCreateImpl
 		
 		report( "Torrent.create.progress.hashing");
 
+		for (int i=0;i<progress_listeners.size();i++){
+					
+			((TOTorrentProgressListener)progress_listeners.get(i)).reportProgress( 0 );
+		}
+			
 		boolean add_other_per_file_hashes 	= add_other_hashes&&!getSimpleTorrent();
 		
 		file_hasher = 

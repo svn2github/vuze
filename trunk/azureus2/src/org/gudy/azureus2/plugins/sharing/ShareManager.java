@@ -58,6 +58,15 @@ ShareManager
 	
 		throws ShareException, ShareResourceDeletionVetoException;
 	
+	/**
+	 * adding shares can take a long time due to the torrent creation process. The current
+	 * activity can be interrupted by calling this function, in which case the original 
+	 * activity will fail with a ShareException
+	 */
+	
+	public void
+	cancelOperation();
+	
 	public void
 	addListener(
 		ShareManagerListener	listener );

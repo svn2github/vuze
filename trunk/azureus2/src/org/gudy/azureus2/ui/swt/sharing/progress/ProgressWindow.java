@@ -55,7 +55,9 @@ ProgressWindow
 	
 	protected StyledText		tasks;
 	protected ProgressBar		progress;
+	protected Button 			cancel_button;
 	
+
 	protected boolean			shell_opened;
 	
 	public
@@ -81,102 +83,87 @@ ProgressWindow
 	}
 	
 	protected class
-	progressDialog extends PopupShell implements AnimableShell
-	{
-		//protected Shell			shell;
-		
+	progressDialog 
+		extends 	PopupShell 
+		implements 	AnimableShell
+	{		
 		protected
 		progressDialog(
-			Display				display )
+			Display				dialog_display )
 		{
-      super(display);
-			if ( display.isDisposed()){
+			super(dialog_display);
+			
+			if ( dialog_display.isDisposed()){
 								
 				return;
 			}
 			
-			//shell = new Shell( display, SWT.DIALOG_TRIM );
-			
-			//shell.setImage(ImageRepository.getImage("azureus"));
 			shell.setText(MessageText.getString("sharing.progress.title"));
 			
-			//GridLayout layout = new GridLayout();
-			//layout.numColumns = 3;
-			
-			//shell.setLayout (layout);
-			
-			//Composite panel = new Composite(shell, SWT.NULL);
-			//GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-			//panel.setLayoutData(gridData);
-			//layout = new GridLayout();
-			//layout.numColumns = 1;
-			//panel.setLayout(layout);
 
 			tasks = new StyledText(shell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
-			tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));      
+			tasks.setBackground(dialog_display.getSystemColor(SWT.COLOR_WHITE));      
       
-      
-			//gridData = new GridData(GridData.FILL_BOTH);
-			//gridData.heightHint = 200;
-			//tasks.setLayoutData(gridData);
-
 			progress = new ProgressBar(shell, SWT.NULL);
 			progress.setMinimum(0);
 			progress.setMaximum(100);            
-      
-			//gridData = new GridData(GridData.FILL_HORIZONTAL);
-			//progress.setLayoutData(gridData);		
-			
-			// buttons
-						
-			//Composite comp = new Composite(panel,SWT.NULL);
-			//gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
-			//gridData.grabExcessHorizontalSpace = true;
-			//gridData.horizontalSpan = 1;
-			//comp.setLayoutData(gridData);
-			//GridLayout layoutButtons = new GridLayout();
-			//layoutButtons.numColumns = 2;
-			//comp.setLayout(layoutButtons);
-			
-			
-			//new Label(comp,SWT.NULL);
-			
+      			
+				
 			Button hide_button = new Button(shell,SWT.PUSH);
 			hide_button.setText(MessageText.getString("sharing.progress.hide"));
-			//gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
-			//gridData.grabExcessHorizontalSpace = true;
-			//gridData.widthHint = 70;
-			//hide_button.setLayoutData(gridData);
+			
+			cancel_button = new Button(shell,SWT.PUSH);
+			cancel_button.setText(MessageText.getString("sharing.progress.cancel"));
+			cancel_button.setEnabled( false );
       
+	      //Layout :
+	      
+	      //Progress Bar on bottom, with Hide button next to it.
+			
+	      FormData formData;
+	      formData = new FormData();
+	      formData.right = new FormAttachment(100,-5);
+	      formData.bottom = new FormAttachment(100,-10);
+	      
+	      hide_button.setLayoutData(formData);
+	     
+	      formData = new FormData();
+	      formData.right = new FormAttachment(hide_button,-5);
+	      formData.bottom = new FormAttachment(100,-10);
+	      
+	      cancel_button.setLayoutData(formData);
+	            
+	      formData = new FormData();
+	      formData.right = new FormAttachment(cancel_button,-5);
+	      formData.left = new FormAttachment(0,50);
+	      formData.bottom = new FormAttachment(100,-10);
+	      
+	      progress.setLayoutData(formData);
+	      
+	      formData = new FormData();
+	      formData.right = new FormAttachment(100,-5);
+	      formData.bottom = new FormAttachment(100,-50);
+	      formData.top = new FormAttachment(0,5);
+	      formData.left = new FormAttachment(0,5);
+	      
+	      tasks.setLayoutData(formData);
+	      
+	      
+	      layout();
       
-      //Layout :
-      
-      //Progress Bar on bottom, with Hide button next to it.
-      FormData formData;
-      formData = new FormData();
-      formData.right = new FormAttachment(100,-5);
-      formData.bottom = new FormAttachment(100,-10);
-      
-      hide_button.setLayoutData(formData);
-      
-      formData = new FormData();
-      formData.right = new FormAttachment(hide_button,-5);
-      formData.left = new FormAttachment(0,50);
-      formData.bottom = new FormAttachment(100,-10);
-      
-      progress.setLayoutData(formData);
-      
-      formData = new FormData();
-      formData.right = new FormAttachment(100,-5);
-      formData.bottom = new FormAttachment(100,-50);
-      formData.top = new FormAttachment(0,5);
-      formData.left = new FormAttachment(0,5);
-      
-      tasks.setLayoutData(formData);
-      
-      
-      layout();
-      
+			cancel_button.addListener(SWT.Selection,new Listener() {
+				public void handleEvent(Event e) {
+					try{
+						cancel_button.setEnabled( false );
+						
+						PluginInitializer.getDefaultInterface().getShareManager().cancelOperation();
+						
+					}catch( ShareException f ){
+						Debug.printStackTrace(f);
+					}
+				}
+			});
+			
 			hide_button.addListener(SWT.Selection,new Listener() {
 				public void handleEvent(Event e) {
 					hidePanel();
@@ -195,12 +182,12 @@ ProgressWindow
 			});
 
 			
-      Rectangle bounds = display.getClientArea();    
-      x0 = bounds.x + bounds.width - 255;
-      x1 = bounds.x + bounds.width;
-
-      y0 = bounds.y + bounds.height;
-      y1 = bounds.y + bounds.height - 155;
+	      Rectangle bounds = dialog_display.getClientArea();    
+	      x0 = bounds.x + bounds.width - 255;
+	      x1 = bounds.x + bounds.width;
+	
+	      y0 = bounds.y + bounds.height;
+	      y1 = bounds.y + bounds.height - 155;
 					
 			shell.setLocation(x0,y0);
 		}
@@ -307,7 +294,7 @@ ProgressWindow
 					{
 						if (progress != null && !progress.isDisposed()){
 							
-							//dialog.showPanel();
+							cancel_button.setEnabled( percent_complete < 100 );
 							
 							progress.setSelection(percent_complete);
 						}

@@ -156,8 +156,18 @@ ShareResourceFileOrDirImpl
 										
 			creator.addListener( manager );
 			
-			TOTorrent	to_torrent = creator.create();
+			TOTorrent	to_torrent;
+			
+			try{
+				manager.setTorrentCreator( creator );
+			
+				to_torrent = creator.create();
 	
+			}finally{
+					
+				manager.setTorrentCreator( null );
+			}
+			
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( to_torrent );
 			
 			File	save_dir;
@@ -186,9 +196,19 @@ ShareResourceFileOrDirImpl
 				item.writeTorrent();
 			}
 			
+		}catch( TOTorrentException e ){
+			
+			if ( e.getReason() == TOTorrentException.RT_CANCELLED ){
+				
+				throw( new ShareException("ShareResource: Operation cancelled", e));
+				
+			}else{
+				
+				throw( new ShareException("ShareResource: Torrent create failed", e));
+			}
 		}catch( Throwable e ){
 			
-			throw( new ShareException("ShareResourceFile:Torrent create failed", e));
+			throw( new ShareException("ShareResource: Torrent create failed", e));
 		}
 	}
 	

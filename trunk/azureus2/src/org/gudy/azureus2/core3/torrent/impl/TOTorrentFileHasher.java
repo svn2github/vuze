@@ -137,6 +137,10 @@ TOTorrentFileHasher
 				per_file_ed2k_digest = ed2k_hash.getDigest();
 			}
 			
+		}catch( TOTorrentException e ){
+			
+			throw( e );
+			
 		}catch( Throwable e ){
 			
 			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",

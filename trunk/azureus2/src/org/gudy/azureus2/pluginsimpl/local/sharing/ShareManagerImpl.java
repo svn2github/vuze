@@ -53,6 +53,8 @@ ShareManagerImpl
 
 	protected AEMonitor				this_mon	= new AEMonitor( "ShareManager" );
 
+	protected TOTorrentCreator		to_creator;
+	
 	public static ShareManagerImpl
 	getSingleton()
 	
@@ -596,6 +598,27 @@ ShareManagerImpl
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+		// bit of a hack this, but to do it properly would require extensive rework to decouple the
+		// process of saying "share file" and then actually doing it 
+	
+	protected  void
+	setTorrentCreator(
+		TOTorrentCreator	_to_creator )
+	{
+		to_creator	= _to_creator;
+	}
+	
+	public void
+	cancelOperation()
+	{
+		TOTorrentCreator	temp = to_creator;
+		
+		if ( temp != null ){
+			
+			temp.cancel();
 		}
 	}
 	
