@@ -52,26 +52,21 @@ PlatformManagerImpl
 	{
 		if ( singleton == null && !init_tried ){
 			
+			init_tried	= true;
+			
 			try{
-				init_tried	= true;
+				singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
 				
-				try{
-					singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
+			}catch( Throwable e ){
+				
+				LGLogger.log( "Win32Platform: failed to initialise", e );
+				
+				if ( e instanceof PlatformManagerException ){
 					
-				}catch( Throwable e ){
-					
-					LGLogger.log( "Win32Platform: failed to initialise", e );
-					
-					if ( e instanceof PlatformManagerException ){
-						
-						throw((PlatformManagerException)e);
-					}
-					
-					throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
+					throw((PlatformManagerException)e);
 				}
-			}finally{
 				
-				new PlatformManagerUpdateChecker( singleton );
+				throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
 			}
 		}
 		

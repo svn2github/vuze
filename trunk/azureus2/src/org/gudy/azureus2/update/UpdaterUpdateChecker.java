@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.platform.win32;
+package org.gudy.azureus2.update;
 
 /**
  * @author parg
@@ -33,97 +33,91 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
-import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.update.*;
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.pluginsimpl.local.update.*;
 
 public class 
-PlatformManagerUpdateChecker
-	implements Plugin, UpdatableComponent
+UpdaterUpdateChecker
+	implements UpdatableComponent
 {
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 
-	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update/";
+	public static final String	UPDATE_DIR					= Constants.SF_WEB_SITE + "update/";
+	public static final String	UPDATE_SF_PROPERTIES_FILE	= UPDATE_DIR + "Updater.jar.properties";
 	
-	
-	protected PlatformManagerImpl		platform;
-	protected PluginInterface			plugin_interface;
-	
-	public void
-	initialize(
-		PluginInterface	_plugin_interface)
+	public static void
+	registerUpdatableComponent()
 	{
-		plugin_interface	= _plugin_interface;
-		
-		try{
-			platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", platform==null?"1.0":platform.getVersion());
-		
-		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
-		
-			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
-		}
+	}
+	
+	protected
+	UpdaterUpdateChecker()
+	{		
+		UpdateManagerImpl.getSingleton().registerUpdatableComponent( this, true );
 	}
 	
 	public void
 	checkForUpdate(
 		final UpdateChecker	checker )
 	{
-		try{			
-			Properties	props = plugin_interface.getPluginProperties();
+		String	current_version = ""; // !!!!
+		
+		LGLogger.log( "UpdaterUpdateChecker:Updater.jar update check starts: current = " + current_dll_version );
+		
+		try{
+			ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 			
-			SFPluginDetails	sf_details = SFPluginDetailsLoaderFactory.getSingleton().getPluginDetails( plugin_interface.getPluginID());
-					
-			String	current_dll_version = plugin_interface.getPluginVersion();
+			ResourceDownloader	rd = rdf.create( new URL(UPDATE_PROPERTIES_FILE));
+
+			rd	= rdf.getRetryDownloader( rd, 5 );
 			
-			LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_dll_version );
-						
+			String  current_az_version 	= Constants.getBaseVersion();
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
-						
+			
+			InputStream is = rd.download();
+			
+			Properties	props = new Properties();
+			
+			props.load( is );
+			
 			String	target_dll_version	= null;
 			
-			String sf_plugin_version	= sf_details.getVersion();
+			Iterator it = props.keySet().iterator();
 			
-			String sf_comp_version	 	= sf_plugin_version;
+				// find the most recent version
 			
-			if ( current_az_is_cvs ){
+			while( it.hasNext()){
 				
-				String	sf_cvs_version = sf_details.getCVSVersion();
+				String	this_az_version 	= (String)it.next();
+				String	this_dll_version	= (String)props.get(this_az_version);
 				
-				if ( sf_cvs_version.length() > 0 ){
+				String	this_base 	= Constants.getBaseVersion( this_az_version );
+				boolean	this_cvs	= Constants.isCVSVersion( this_az_version );
+				
+				if ( current_az_is_cvs != this_cvs ){
 					
-						// sf cvs version ALWAYS entry in _CVS
+					continue;
+				}
+				
+				if ( Constants.compareVersions( this_base, current_az_version ) == 0 ){
 					
-					sf_plugin_version	= sf_cvs_version;
-					
-					sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
+					if ( Constants.compareVersions( this_dll_version, current_dll_version ) > 0 ){
+						
+						target_dll_version	= this_dll_version;
+						
+						break;
+					}
 				}
 			}
-			
-			// 	System.out.println("comp version = " + sf_comp_version );
-			
-			if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
-				
-				target_dll_version	= sf_comp_version;
-			}
-	
+		
 			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
 			
 			if ( target_dll_version != null ){
 				
 				String	target = UPDATE_DIR + PlatformManagerImpl.DLL_NAME + "_" + target_dll_version + ".dll";
-			
-				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				
 				ResourceDownloader dll_rd = rdf.create( new URL( target ));
 			

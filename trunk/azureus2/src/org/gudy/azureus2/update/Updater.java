@@ -26,35 +26,43 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
-public class Updater {
-
-  public static final String VERSION  = "1.1";
-  
-  public static final char NOT_FOUND  = '0';
-  public static final char READY      = '1';
-  public static final char FOUND      = '2';
-    
-  public static final String		LOG_FILE_NAME	= "update.log";
+public class 
+Updater 
+{
+	public static final String VERSION  = "2.0";
+	  	    
+	public static final String		LOG_FILE_NAME	= "update.log";
   
   		// change these and you'll need to change the UpdateInstaller !!!!
   
 	protected static final String	UPDATE_DIR 	= "updates";
 	protected static final String	ACTIONS		= "install.act";
 
-  public static void main(String[] args) {   
-    if (args.length < 3) {
-      System.out.println("Usage: Updater full_classpath full_librarypath full_userpath [config override]");
-      System.exit(-1);
-    }
+		// this method called by reflection when checking for update checker update
+	
+	public static String
+	getVersion()
+	{
+		return( VERSION );
+	}
+	
+	public static void 
+	main(
+		String[] args) 
+	{   
+		if (args.length < 3) {
+			System.out.println("Usage: Updater full_classpath full_librarypath full_userpath [config override]");
+			System.exit(-1);
+		}
     
-    if ( args[0].equals( "restart" )){
+		if ( args[0].equals( "restart" )){
     	
-    	newRestart( args );
-    }else{
+			newRestart( args );
+		}else{
     	
-    	oldRestart( args );
-    }
-  }
+			oldRestart( args );
+		}
+	}
   
   protected static void
   oldRestart(

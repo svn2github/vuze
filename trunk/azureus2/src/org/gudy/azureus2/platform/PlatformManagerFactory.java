@@ -42,15 +42,27 @@ PlatformManagerFactory
 		if ( platform_manager == null && !init_tried ){
 		
 			init_tried	= true;
-			
-			String OS = System.getProperty("os.name").toLowerCase();
-			    
-			if ( OS.indexOf("windows") >= 0 ){
+						    
+			if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
 				
 				platform_manager = PlatformManagerImpl.getSingleton();
 			}
 		}
 		
 		return( platform_manager );
+	}
+	
+	public static int
+	getPlatformType()
+	{
+		String OS = System.getProperty("os.name").toLowerCase();
+	    
+		if ( OS.indexOf("windows") >= 0 ){
+			
+			return( PlatformManager.PT_WINDOWS );
+		}else{
+			
+			return( PlatformManager.PT_OTHER );
+		}
 	}
 }

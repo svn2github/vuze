@@ -279,7 +279,7 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	public String[]
+	public synchronized String[]
 	getPluginNames()
 		
 		throws SFPluginDetailsException
@@ -296,7 +296,7 @@ SFPluginDetailsLoaderImpl
 		return( res );
 	}
 	
-	public SFPluginDetails
+	public synchronized SFPluginDetails
 	getPluginDetails(
 		String		name )
 	
@@ -319,11 +319,13 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException	
 	{
-		SFPluginDetails[]	res = new SFPluginDetails[plugin_names.size()];
+		String[]	plugin_names = getPluginNames();
+		
+		SFPluginDetails[]	res = new SFPluginDetails[plugin_names.length];
 	
-		for (int i=0;i<plugin_names.size();i++){
+		for (int i=0;i<plugin_names.length;i++){
 			
-			res[i] = getPluginDetails((String)plugin_names.get(i));
+			res[i] = getPluginDetails(plugin_names[i]);
 		}
 		
 		return( res );
@@ -367,6 +369,15 @@ SFPluginDetailsLoaderImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			((SFPluginDetailsLoaderListener)listeners.get(i)).log( log );
+		}
+	}
+	
+	public void
+	reset()
+	{
+		synchronized( SFPluginDetailsLoaderImpl.class ){
+			
+			singleton	= null;
 		}
 	}
 	

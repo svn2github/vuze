@@ -101,7 +101,21 @@ PluginUpdatePlugin
 		
 		config.addBooleanParameter( "enable.update", "Plugin.pluginupdate.enablecheck", true );
 		
-		plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
+		UpdateManager	update_manager = plugin_interface.getUpdateManager();
+		
+		update_manager.addListener(
+			new UpdateManagerListener()
+			{
+				public void
+				checkInstanceCreated(
+					UpdateCheckInstance	inst )
+				{
+					SFPluginDetailsLoaderFactory.getSingleton().reset();
+				}
+				
+			});
+		
+		update_manager.registerUpdatableComponent( this, false );
 	}
 	
 	public void
@@ -160,7 +174,7 @@ PluginUpdatePlugin
 				log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
 			}
 		
-			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.create();
+			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.getSingleton();
 			
 			loader.addListener( 
 				new SFPluginDetailsLoaderListener()
@@ -248,7 +262,10 @@ PluginUpdatePlugin
 					
 					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + az_plugin_version + ", Latest: " + sf_plugin_version );
 					
-					if ( comp < 0 ){
+					if ( comp < 0 && ! ( plugin_interface.getPlugin() instanceof UpdatableComponent)){
+													
+							// only update if newer verison + plugin itself doesn't handle
+							// the update
 						
 						log.log( LoggerChannel.LT_INFORMATION, "    Description:" );
 						

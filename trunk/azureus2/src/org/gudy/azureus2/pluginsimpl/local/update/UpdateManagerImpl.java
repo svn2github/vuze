@@ -44,7 +44,8 @@ UpdateManagerImpl
 		return( singleton );
 	}
 
-	protected List	components = new ArrayList();
+	protected List	components 	= new ArrayList();
+	protected List	listeners	= new ArrayList();
 	
 	protected 
 	UpdateManagerImpl()
@@ -76,6 +77,27 @@ UpdateManagerImpl
 		
 		components.toArray( comps );
 		
-		return( new UpdateCheckInstanceImpl( comps ));
+		UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
+		}
+		
+		return( res );
+	}
+	
+	public void
+	addListener(
+		UpdateManagerListener	l )
+	{
+		listeners.add(l);
+	}
+	
+	public void
+	removeListener(
+		UpdateManagerListener	l )
+	{
+		listeners.remove(l);
 	}
 }

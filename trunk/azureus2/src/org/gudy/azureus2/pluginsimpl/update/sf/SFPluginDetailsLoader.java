@@ -47,6 +47,9 @@ SFPluginDetailsLoader
 		throws SFPluginDetailsException;
 	
 	public void
+	reset();
+	
+	public void
 	addListener(
 		SFPluginDetailsLoaderListener		l );
 	

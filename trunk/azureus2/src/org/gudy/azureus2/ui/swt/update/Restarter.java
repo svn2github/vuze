@@ -30,7 +30,8 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 public class 
 Restarter 
 {    
-  private static final String mainClass = "org.gudy.azureus2.update.Updater";
+	 private static final String mainClass 		= "org.gudy.azureus2.update.Updater";
+	 private static final String updater_jar 	= "Updater.jar";
   
   
   public static void 
@@ -133,6 +134,7 @@ Restarter
 		String[]	properties,
 		String[] 	parameters) 
   {
+  	
     //Classic restart way using Runtime.exec directly on java(w)
     String classPath = System.getProperty("java.class.path");
         

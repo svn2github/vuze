@@ -33,7 +33,7 @@ public class
 SFPluginDetailsLoaderFactory 
 {
 	public static SFPluginDetailsLoader
-	create()
+	getSingleton()
 	{
 		return( SFPluginDetailsLoaderImpl.getSingleton());
 	}

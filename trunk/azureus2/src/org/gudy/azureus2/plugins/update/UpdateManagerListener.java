@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 19-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,36 +20,16 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.plugins.update;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
-
-public class 
-Test 
+public interface 
+UpdateManagerListener 
 {
-	public static void
-	main(
-		String[]	args )
-	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.getSingleton();
-		
-		try{
-			String[]	keys = dl.getPluginNames();
-			
-			for (int i=0;i<keys.length;i++){
-				
-				System.out.println( "key =" + keys[i]);
-			}
-			
-			System.out.println( "parp = " + dl.getPluginDetails( keys[0] ).getDownloadURL());
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-	}
+	public void
+	checkInstanceCreated(
+		UpdateCheckInstance	instance );
 }

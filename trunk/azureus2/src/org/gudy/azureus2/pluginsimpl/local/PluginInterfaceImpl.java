@@ -508,11 +508,16 @@ PluginInterfaceImpl
 		String		str,
 		String		val )
 	{
-  		if ( str.equalsIgnoreCase( "plugin.id" ) || str.equalsIgnoreCase("plugin.version" )){
-  		 			
-  			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + str + "' - action ignored" );
+  			// if its us then we probably know what we're doing :P
+  		
+  		if ( !plugin.getClass().getName().startsWith( "org.gudy")){
   			
-  			return( null );
+	  		if ( str.equalsIgnoreCase( "plugin.id" ) || str.equalsIgnoreCase("plugin.version" )){
+	  		 			
+	  			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + str + "' - action ignored" );
+	  			
+	  			return( null );
+	  		}
   		}
   		
   		return( super.setProperty( str, val ));
@@ -523,16 +528,21 @@ PluginInterfaceImpl
 		Object	key,
 		Object	value )
 	{
-  		if ((!initialising ) && key instanceof String ){
+			// if its us then we probably know what we're doing :P
+  		
+  		if ( !plugin.getClass().getName().startsWith( "org.gudy")){
   			
-  			String	k_str = (String)key;
-  			
-  	 		if ( k_str.equalsIgnoreCase( "plugin.id" ) || k_str.equalsIgnoreCase("plugin.version" )){
-  	 	  		
-  	 			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + k_str + "' - action ignored" );
-  	 		 
-  	 			return( null );
-  	 	  	}
+	 		if ((!initialising ) && key instanceof String ){
+	  			
+	  			String	k_str = (String)key;
+	  			
+	  	 		if ( k_str.equalsIgnoreCase( "plugin.id" ) || k_str.equalsIgnoreCase("plugin.version" )){
+	  	 	  		
+	  	 			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + k_str + "' - action ignored" );
+	  	 		 
+	  	 			return( null );
+	  	 	  	}
+	  		}
   		}
   		
   		return( super.put( key, value ));

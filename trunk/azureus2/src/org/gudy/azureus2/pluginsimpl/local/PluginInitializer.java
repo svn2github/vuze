@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 
+import org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
@@ -54,12 +55,17 @@ PluginInitializer
 	implements GlobalManagerListener
 {
 
-  private Class[]	builtin_plugins = 
-    	{ 		 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
-                 ShareHosterPlugin.class,
-                 TrackerDefaultWeb.class,
-                 UpdateLanguagePlugin.class,
-  		    	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class,
+	// class name, plugin id, plugin key (key used for config props so if you change
+	// it you'll need to migrate the config)
+	// "id" is used when checking for updates
+	
+  private Object[][]	builtin_plugins = { 
+    		{	 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class, "<internal>", "" },
+    		{	 ShareHosterPlugin.class, "<internal>", "ShareHoster" },
+    		{    TrackerDefaultWeb.class, "<internal>", "TrackerDefault", },
+    		{    UpdateLanguagePlugin.class, "<internal>", "UpdateLanguagePlugin" },
+    		{	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class, "<internal>", "PluginUpdate" },
+    		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
         };
   
   private String[] builtin_plugin_keys = 
@@ -121,7 +127,7 @@ PluginInitializer
   			try{
   				Class cla = (Class)registration_queue.get(i);
   				
-  				singleton.initializePluginFromClass(cla, cla.getName());
+  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
   				
   			}catch(PluginException e ){
   				
@@ -145,7 +151,7 @@ PluginInitializer
   	}else{
   		
   		try{
-  			singleton.initializePluginFromClass( _class, _class.getName());
+  			singleton.initializePluginFromClass( _class, "<internal>", _class.getName());
   			
 		}catch(PluginException e ){
   				
@@ -219,7 +225,10 @@ PluginInitializer
      for (int i=0;i<builtin_plugins.length;i++){
     	
      	try{
-     		initializePluginFromClass( builtin_plugins[i], builtin_plugin_keys[i] );
+     		initializePluginFromClass(
+     				(Class)builtin_plugins[i][0], 
+					(String)builtin_plugins[i][1],
+					(String)builtin_plugins[i][2] );
      		
 		}catch(PluginException e ){
   				
@@ -509,6 +518,7 @@ PluginInitializer
   protected void 
   initializePluginFromClass(
   	Class 	plugin_class,
+	String	plugin_id,
 	String	plugin_config_key )
   
   	throws PluginException
@@ -533,7 +543,7 @@ PluginInitializer
 						plugin_config_key,
 						new Properties(),
 						"",
-						"<internal>",
+						plugin_id,
 						null );
   		
   		plugin.initialize(plugin_interface);
@@ -582,7 +592,7 @@ PluginInitializer
   		
   	}else{
   		
-  		initializePluginFromClass( (Class) key, config_key );
+  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key );
   	}
   }
  	

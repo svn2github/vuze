@@ -49,4 +49,13 @@ UpdateManager
 	
 	public UpdateCheckInstance
 	createUpdateCheckInstance();
+	
+	public void
+	addListener(
+		UpdateManagerListener	l );
+	
+	public void
+	removeListener(
+		UpdateManagerListener	l );
+	
 }
