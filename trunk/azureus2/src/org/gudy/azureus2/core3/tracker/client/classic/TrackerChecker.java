@@ -15,26 +15,40 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker {
+public class TrackerChecker implements TRTrackerScraperListener {
 
-  private HashMap 					trackers; 
-  private TRTrackerScraperImpl		scraper;
+  /** List of Trackers. 
+   * key = Tracker URL string
+   * value = TrackerStatus object
+   */
+  private HashMap           trackers;
+  /** TRTrackerScraperImpl object associated with this object.
+   */
+  private TRTrackerScraperImpl    scraper;
   
-  private Map toUpdate;  
+  /* Time when next scrape needs to be performed. */
+  private long lNextScrapeTime = 0;
+  /* The next scrape belongs to this TrackerStatus */
+  private TrackerStatus nextTrackerStatus = null;
+  /* Next scrape will be for this torrent's hash.  */
+  private byte[] nextTrackerHash;
   
-  protected TrackerChecker(
-  		TRTrackerScraperImpl	_scraper ) 
-  {
-  	scraper		= _scraper;
-  	
-    trackers 	= new HashMap();
+  /** Initialize TrackerChecker.  
+   *
+   * @note Since there is only one TRTrackerScraperImpl, there will only be one
+   *       TrackerChecker instance.
+   *
+   * XXX: would Timer be better? "Timer tasks should complete quickly"
+   */
+  protected TrackerChecker(TRTrackerScraperImpl  _scraper) {
+    scraper   = _scraper;
+    scraper.addListener(this);
     
-    toUpdate = new HashMap();
+    trackers  = new HashMap();
     
     Thread t = new Thread("Tracker Scrape") {
-       public void run() 
-       {
-       	runScrapes();
+       public void run() {
+        runScrapes();
       }
     };
     
@@ -44,116 +58,166 @@ public class TrackerChecker {
   }
   
 
-  protected TRTrackerScraperResponseImpl 
-  getHashData(
-  	TRTrackerClient	tracker_client ) 
-  {
-  	try{
-  	
-  		return( getHashData( tracker_client.getTrackerUrl(), tracker_client.getTorrent().getHashWrapper()));
-  		
-  	}catch( TOTorrentException e ){
-  		
-  		e.printStackTrace();
-  		
-  		return( null );
-  	}
-  }	
-  
-   protected TRTrackerScraperResponseImpl 
-   getHashData(
-	 TOTorrent	torrent ) 
-   {
-	 try{
-  	
-		 return( getHashData( torrent.getAnnounceURL().toString(), torrent.getHashWrapper()));
-  		
-	 }catch( TOTorrentException e ){
-  		
-		 e.printStackTrace();
-  		
-		 return( null );
-	 }
-   }	
+  /** Retrieves the last cached Scraper Response based on a TRTrackerClient's
+   * current URL (announce-list entry or announce) and its torrent's hash.
+   *
+   * @return The cached scrape response.  Can be null.
+   */
+  protected TRTrackerScraperResponseImpl getHashData(TRTrackerClient tracker_client) {
+    try {
+      return getHashData(tracker_client.getTrackerUrl(), 
+                         tracker_client.getTorrent().getHashWrapper());
 
-	protected void 
- 	removeHash(
-   		TRTrackerClient	tracker_client ) 
- 	{
-   		try{
-  	
-	   		removeHash( tracker_client.getTrackerUrl(), tracker_client.getTorrent().getHashWrapper());
-  		
-   		}catch( TOTorrentException e ){
-  		
-	   		e.printStackTrace();
-
-		}
- 	}	
+    } catch (TOTorrentException e) {
+      e.printStackTrace();
+      return null;
+    }
+  } 
   
-	protected void 
-  	removeHash(
-		TOTorrent	torrent ) 
-  	{
-		try{
-  	
-			removeHash( torrent.getAnnounceURL().toString(), torrent.getHashWrapper());
-  		
-		}catch( TOTorrentException e ){
-  		
-			e.printStackTrace();
-		}
-  	}	
+  /** Retrieves the last cached Scraper Response based on a TOTorrent's
+   * Announce URL (not announce-list) and hash.
+   *
+   * @return The cached scrape response.  Can be null.
+   */
+  protected TRTrackerScraperResponseImpl getHashData(TOTorrent  torrent) {
+    try {
+      return getHashData(torrent.getAnnounceURL().toString(), 
+                         torrent.getHashWrapper());
+      
+    } catch(TOTorrentException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }  
 
-	protected void 
-	removeHash(String trackerUrl,HashWrapper hash) 
-	{
-		// TODO: this doesn't handle multiple tracker torrents yet
-		
-	    TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
-	    
-	    if( ts != null ){
-	    	
-	    	//System.out.println( "removing hash for " + trackerUrl );
-	    	
-	      	ts.removeHash(hash);
-	    }
-	}
+  /** Retrieves the last cached Scraper Response for the supplied tracker URL 
+   *  and hash. If no cache has exists for the hash, one is created.
+   *
+   * @return The cached scrape response.  Can be null.
+   */
+  protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,
+                                                     final HashWrapper hash) {
+    // can be null when first called and url not yet set up...
+    if ( trackerUrl == null ){
+      return( null );
+    }
   
-	protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,final HashWrapper hash) 
-  {
-		// can be null when first called and url not yet set up...
-		
-	if ( trackerUrl == null ){
-		return( null );
-	}
-	
+    byte[] hashBytes = hash.getHash();
+
+    TRTrackerScraperResponseImpl data = null;
+
     if (trackers.containsKey(trackerUrl)) {
       final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
-      TRTrackerScraperResponseImpl data = ts.getHashData(hash);
-      if(data != null)
-        return data;
-      else {
-        synchronized( toUpdate ) {
-          toUpdate.put(hash, ts);
-        }
-        return null;
-      }        
+      data = ts.getHashData(hashBytes);
+      if (data == null) {
+        //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
+        data = ts.addHash(hashBytes);
+      }
+    } else {
+      //System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
+      final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
+      synchronized (trackers) {
+        trackers.put(trackerUrl, ts);
+      }
+      data = ts.addHash(hashBytes);
     }
     
-    //System.out.println( "adding hash for " + trackerUrl );
-    final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
-    synchronized (trackers) {
-      trackers.put(trackerUrl, ts);
-    }
-    synchronized( toUpdate ) {
-      toUpdate.put(hash, ts);
-    }
-    return null;
+    return data;
   }
   
 
-  protected void asyncUpdateAll() {
+  /** Removes the scrape task and data associated with the TRTrackerClient's 
+   * current url (announce-list entry or announce) and its torrent's hash 
+   */
+  protected void removeHash(TRTrackerClient tracker_client) {
+    try{
+      removeHash(tracker_client.getTrackerUrl(), 
+                 tracker_client.getTorrent().getHashWrapper());
+      
+    } catch (TOTorrentException e) {
+      e.printStackTrace();
+    }
+  } 
+  
+  /** Removes the scrape task and data associated with the TOTorrent's
+   * Announce URL (not announce-list) and hash.
+   */
+  protected void removeHash(TOTorrent torrent) {
+    try{
+      removeHash(torrent.getAnnounceURL().toString(), torrent.getHashWrapper());
+      
+    } catch (TOTorrentException e) {
+      e.printStackTrace();
+    }
+  } 
+
+  /** Removes the scrape task and data associated with the supplied tracker
+   * URL and torrent hash.
+   */
+  protected void removeHash(String trackerUrl, HashWrapper hash) {
+    // TODO: this doesn't handle multiple tracker torrents yet
+
+    TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
+    if (ts != null){
+      //System.out.println( "removing hash for " + trackerUrl );
+      ts.removeHash(hash);
+    }
+  }
+  
+  /* Forced synchronous scrape of the supplied torrent.
+   */
+  protected void syncUpdate(TOTorrent torrent) {
+    try {
+      byte[] hash = torrent.getHash();
+      
+      synchronized (trackers) {
+        Iterator iter = trackers.values().iterator();
+        while (iter.hasNext()){
+          TrackerStatus ts = (TrackerStatus) iter.next();
+
+          Map hashmap = ts.getHashes();
+
+          if ( hashmap.get( hash ) != null ){
+            ts.updateSingleHash( hash, true, false );
+            return;
+          }
+        }
+      }  
+    } catch (TOTorrentException e) {
+      e.printStackTrace();
+    }
+  }
+    
+  
+  /** Loop indefinitely, waiting for the next scrape, and scraping.
+   */
+  private void runScrapes() {
+    while (true) {
+      //System.out.println("Waiting for " + (lNextScrapeTime - System.currentTimeMillis()) + "ms");
+      while (lNextScrapeTime == 0 || lNextScrapeTime > System.currentTimeMillis()) {
+        try { 
+          Thread.sleep(1000); 
+        } catch (Exception e) {/**/}
+      }
+
+      if (nextTrackerStatus != null) {
+        nextTrackerStatus.updateSingleHash(nextTrackerHash, false);
+        try { Thread.sleep(250); } catch (Exception e) {/**/}
+      }
+      
+      checkForNextScrape();
+    }
+  }
+  
+  /** Finds the torrent that will be needing a scrape next.
+   *
+   * XXX: Timer.schedule 
+   */
+  private synchronized void checkForNextScrape() {
+    // search for the next scrape
+    TRTrackerScraperResponseImpl nextResponse = null;
+    long lNewNextScrapeTime = 0;
+
     synchronized (trackers) {
       Iterator iter = trackers.values().iterator();
       while (iter.hasNext()) {
@@ -161,82 +225,45 @@ public class TrackerChecker {
         Map hashmap = ts.getHashes();
         
         synchronized( hashmap ){
-          Iterator iterHashes = hashmap.keySet().iterator();
+          Iterator iterHashes = hashmap.values().iterator();
           while( iterHashes.hasNext() ) {
-            HashWrapper hash = (HashWrapper) iterHashes.next();
-            synchronized( toUpdate ) {
-              toUpdate.put(hash, ts);
+            TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)iterHashes.next();
+            long lResponseNextScrapeTime = response.getNextScrapeStartTime();
+            if ((nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
+                (nextTrackerStatus != response.getTrackerStatus() ||
+                 nextTrackerHash != response.getHash())) {
+              lNewNextScrapeTime = lResponseNextScrapeTime;
+              nextResponse = response;
             }
-          }
-        }
-      }
-    }
-  }
-
-  protected void
-  syncUpdate(
-  	TOTorrent	torrent )
-  {
-  	try{
-	  	HashWrapper	hash = torrent.getHashWrapper();
-	  	
-	    synchronized (trackers) {
-	    	
-	        Iterator iter = trackers.values().iterator();
-	        
-	        while (iter.hasNext()){
-	        	
-	        	TrackerStatus ts = (TrackerStatus) iter.next();
-	          
-	        	Map hashmap = ts.getHashes();
-	          
-	        	if ( hashmap.get( hash ) != null ){
-	  
-	        		ts.updateSingleHash( hash, true );
-	          	
-	        		return;
-	        	}
-	        	}
-	      	}  
-  		}catch( TOTorrentException e ){
-  			
-  			e.printStackTrace();
-  		}
-  	}
+          } // while hashes
+        } // synchronized( hashmap ){
+      } // while trackers
+    } // synchronized( trackers)
     
-  
-  private void runScrapes() {
-    while (true) {
-      Map doUpdate = null;
-      
-      // get the list
-    	synchronized(toUpdate) {
-        if ( !toUpdate.isEmpty() ) {
-          doUpdate = new HashMap(toUpdate);
-          toUpdate.clear();
-        }
-      }
-      
-      // run the updates
-      if (doUpdate != null) {
-        Iterator it = doUpdate.keySet().iterator();
-        while( it.hasNext() ) {
-          HashWrapper hash = (HashWrapper)it.next();
-          TrackerStatus ts = (TrackerStatus)doUpdate.get(hash);
-
-          ts.updateSingleHash(hash,false);
-
-          try { Thread.sleep(25); } catch (Exception e) {/**/}
-        }
-      }
-      else {
-        try { Thread.sleep(1000); } catch (Exception e) {/**/}
-      }
+    // no next scrape was found.  search again in a minute
+    if (nextResponse == null) {
+      nextTrackerStatus = null;
+      lNextScrapeTime = System.currentTimeMillis() + 1000 * 60;
+    } else {
+      nextTrackerStatus = nextResponse.getTrackerStatus();
+      nextTrackerHash = nextResponse.getHash();
+      lNextScrapeTime = lNewNextScrapeTime;
     }
   }
 
-          
-          
 
-
+  // TRTrackerScraperListener
+  /** Check if the new scrape's next scrape time is next in line.
+    */
+  public void scrapeReceived(TRTrackerScraperResponse response) {
+    long lResponseNextScrapeTime = response.getNextScrapeStartTime();
+    if (lResponseNextScrapeTime < lNextScrapeTime) {
+      // next in line
+      nextTrackerStatus = response.getTrackerStatus();
+      nextTrackerHash = response.getHash();
+      lNextScrapeTime = lResponseNextScrapeTime;
+      //System.out.println("Next Scrape Time set to " + lNextScrapeTime);
+      // XXX Timer.schedule(timetask, ..)
+    }
+  }
 }

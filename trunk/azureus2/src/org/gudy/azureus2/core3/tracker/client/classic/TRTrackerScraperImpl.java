@@ -109,7 +109,7 @@ TRTrackerScraperImpl
 		
 		return( res );
 	}
-	
+
 	public void
 	remove(
 		TOTorrent		torrent )
@@ -124,12 +124,6 @@ TRTrackerScraperImpl
 		tracker_checker.removeHash( tracker_client );
 	}
 		
-	public void
-	update()
-	{
-		tracker_checker.asyncUpdateAll();
-	}
-	
 	protected void
 	scrapeReceived(
 		TRTrackerScraperResponse		response )

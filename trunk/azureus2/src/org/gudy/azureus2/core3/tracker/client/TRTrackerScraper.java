@@ -43,7 +43,7 @@ TRTrackerScraper
 	public TRTrackerScraperResponse
 	scrape(
 		TRTrackerClient	tracker_client );
-		
+
 	public void
 	remove(
 		TOTorrent		torrent );
@@ -52,9 +52,6 @@ TRTrackerScraper
 	remove(
 		TRTrackerClient	tracker_client );
 		
-	public void
-	update();
-	
 	public void
 	addListener(
 		TRTrackerScraperListener	l );

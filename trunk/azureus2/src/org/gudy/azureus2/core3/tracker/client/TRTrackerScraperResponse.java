@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.core3.tracker.client;
 
+import org.gudy.azureus2.core3.tracker.client.classic.TrackerStatus;
+
 /**
  * @author parg
  *
@@ -38,17 +40,28 @@ TRTrackerScraperResponse
 	
 	public int
 	getPeers();
+	
+	public void 
+	setSeedsPeers(int iSeeds, int iPeers);
   
   public boolean
   isValid();
 
-    public long
-    getScrapeStartTime();
- 
-    public long
-    getNextScrapeStartTime();
+  public long
+  getScrapeStartTime();
 
-    public void
-	 setNextScrapeStartTime(long nextScrapeStartTime);
+  public long
+  getNextScrapeStartTime();
+
+  public void
+  setNextScrapeStartTime(long nextScrapeStartTime);
     
+  public TrackerStatus 
+  getTrackerStatus();
+
+	public String
+	getStatusString();
+
+	public void setStatusString(String status);
+		
 }

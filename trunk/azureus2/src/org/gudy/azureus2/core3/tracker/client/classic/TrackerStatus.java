@@ -19,23 +19,29 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.tracker.client.*;
 
 /**
  * @author Olivier
  * 
  */
+ 
+/** One TrackerStatus object handles scrape functionality for all torrents
+ * on one tracker.
+ */
 public class TrackerStatus {
+  private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
   private String scrapeURL = null;
  
+  /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
   private HashMap 					hashes;
-   private TRTrackerScraperImpl		scraper;
+  /** only needed to notify listeners */ 
+  private TRTrackerScraperImpl		scraper;
     
 
-  public 
-  TrackerStatus(
-  	TRTrackerScraperImpl	_scraper,
-  	String 					trackerUrl) 
-  {    	
+  public TrackerStatus(TRTrackerScraperImpl	_scraper, String trackerUrl) {    	
   	scraper		= _scraper;
     
     hashes = new HashMap();
@@ -45,176 +51,267 @@ public class TrackerStatus {
       int position = trackerUrl.lastIndexOf('/');
       if(	position >= 0 &&
       		trackerUrl.length() >= position+9 && 
-      		trackerUrl.substring(position+1,position+9).equals("announce")){
-      		
-      		
+      		trackerUrl.substring(position+1,position+9).equals("announce")) {
+
         this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
-        
         // System.out.println( "url = " + trackerUrl + ", scrape =" + scrapeURL );
-     }else{
-		LGLogger.log(0,0,LGLogger.INFORMATION,"can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
-     }
+       } else {
+        LGLogger.log(0, 0, LGLogger.INFORMATION,
+                     "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
+       }
     } catch (Exception e) {
-    	
       e.printStackTrace();
     } 
   }
 
-  protected TRTrackerScraperResponseImpl 
-  getHashData(HashWrapper hash) 
-  {
+  protected TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
   	synchronized( hashes ){
-  		
+  		return (TRTrackerScraperResponseImpl) hashes.get(hash.getHash());
+  	}
+  }
+
+  protected TRTrackerScraperResponseImpl getHashData(byte[] hash) {
+  	synchronized( hashes ){
   		return (TRTrackerScraperResponseImpl) hashes.get(hash);
   	}
   }
 
 
+  protected synchronized void updateSingleHash(HashWrapper hash, boolean force) {
+    updateSingleHash(hash.getHash(), force, true);
+  }
 
-  protected synchronized void 
-  updateSingleHash(
-  	HashWrapper hash,
-	boolean		force ) 
-  {      
+  protected synchronized void updateSingleHash(byte[] hash, boolean force) {
+    updateSingleHash(hash, force, true);
+  }
+
+  protected synchronized void updateSingleHash(byte[] hash, boolean force, boolean async) {      
+    //System.out.println("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
     
-    if(scrapeURL == null) return;
+    // TODO: Go through hashes and pick out other scrapes that are "close to"
+    //       wanting a new scrape.
+
+    TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+    if (response == null) {
+      response = addHash(hash);
+    } else if ((!force) && 
+               response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
+      LGLogger.log(0, 0, LGLogger.INFORMATION,
+                   "Skipping scrape for hash "+ByteFormatter.nicePrint(hash, true));
+      return;
+    }
     
-    synchronized( hashes ){
-      TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
-      
-      if(response == null){
-        hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
-      }
-      else if ( (!force) && response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
-        LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping scrape for hash "+ByteFormatter.nicePrint(hash.getHash(), true));
-        return;
+    // when the tracker is slow to reply, this function may be called 
+    // called again right after it just ran with the same hash
+    // so, Fake a next scrape start time
+    response.setNextScrapeStartTime(System.currentTimeMillis() + FAULTY_SCRAPE_RETRY_INTERVAL);
+    response.setStatusString(MessageText.getString("Scrape.status.scraping"));
+
+    new ThreadedScrapeRunner(response, hash, force, async);
+  }
+
+  /** Does the scrape and decoding asynchronously.
+    *
+    * TODO: Allow handling of multiple TRTrackerScraperResponseImpl objects
+    *       on one URL
+    */
+  private class ThreadedScrapeRunner extends Thread {
+    byte[] hash;
+    boolean force;
+    TRTrackerScraperResponseImpl response;
+
+    public ThreadedScrapeRunner(TRTrackerScraperResponseImpl _response, 
+                                byte[] _hash, boolean _force, boolean async) {
+      super("ThreadedScrapeRunner");
+      hash = _hash;
+      force = _force;
+      response = _response;
+
+      if (async) {
+        setDaemon(true);
+        start();
+      } else {
+        run();
       }
     }
-          
-    try {
-      String info_hash = "?info_hash=";
-      info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-      URL reqUrl = new URL(scrapeURL + info_hash);
-      
-      LGLogger.log(0,0,LGLogger.SENT,"Accessing scrape interface using url : " + reqUrl);
- 
-      ByteArrayOutputStream message = new ByteArrayOutputStream();
-      
-      long scrapeStartTime = System.currentTimeMillis();
-      
-      if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
-      	
-      	scrapeUDP( reqUrl, message, hash.getHash());
-      	
-      }else{
-      	
-      	scrapeHTTP( reqUrl, message );
+
+    public void run() {
+      if (scrapeURL == null)  {
+        response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                                 MessageText.getString("Scrape.status.error.badURL"));
+        return;
       }
-        
             
-      LGLogger.log(0,0,LGLogger.RECEIVED,"Response from scrape interface : " + message);
-      
-      Map map = BDecoder.decode(message.toByteArray());
-      
-      Map mapFiles = (Map) map.get("files");
-      
-      //retrieve the scrape data for the relevent infohash
-      Map scrapeMap = (Map)mapFiles.get(new String(hash.getHash(), Constants.BYTE_ENCODING));
-      
-      if ( scrapeMap == null ){
-      	
-      	// System.out.println("scrape: hash missing from reply");
-      	
-      }else{
-      	
-	      //retrive values
-	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
-	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
-
-	      //create the response
-         TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(hash.getHash(), seeds, peers, scrapeStartTime);
+      try {
+        String info_hash = "?info_hash=";
+        info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
+                                       Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+        URL reqUrl = new URL(scrapeURL + info_hash);
+        
+        LGLogger.log(0,0,LGLogger.SENT,"Accessing scrape interface using url : " + reqUrl);
+   
+        ByteArrayOutputStream message = new ByteArrayOutputStream();
+        
+        long scrapeStartTime = System.currentTimeMillis();
+        
+        if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
+        	scrapeUDP( reqUrl, message, hash);
+        }else{
+        	scrapeHTTP( reqUrl, message );
+        }
           
-	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
-	      Map mapFlags = (Map) map.get("flags");
-	      if (mapFlags != null) {
-	        int scrapeInterval = ((Long) mapFlags.get("min_request_interval")).intValue();
-	        
-           if (scrapeInterval < 10*59) scrapeInterval = 10*59;
-           if (scrapeInterval > 60*60) scrapeInterval = 60*60;
+              
+        LGLogger.log(0, 0, LGLogger.RECEIVED, "Response from scrape interface : " + message);
+        
+        Map map = BDecoder.decode(message.toByteArray());
+        
+        Map mapFiles = (Map) map.get("files");
+        
+        //retrieve the scrape data for the relevent infohash
+        Map scrapeMap = (Map)mapFiles.get(new String(hash, Constants.BYTE_ENCODING));
+        
+        if ( scrapeMap == null ){
+          response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                                   MessageText.getString("Scrape.status.error.nohash"));
+        	// System.out.println("scrape: hash missing from reply");
+        } else {
+  	      //retrieve values
+  	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
+  	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
+  
+  	      //create the response
+          response = new TRTrackerScraperResponseImpl(TrackerStatus.this, hash, 
+                                                      seeds, peers, 
+                                                      scrapeStartTime);
+            
+  	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
+  	      int scrapeInterval = 10 * 60;
+  	      Map mapFlags = (Map) map.get("flags");
+  	      if (mapFlags != null) {
+            scrapeInterval = ((Long)mapFlags.get("min_request_interval")).intValue();
 
-           long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
-           response.setNextScrapeStartTime(nextScrapeTime);
-           
-           //Debug.out("scrape min_request_interval = " +scrapeInterval);
-	      }
+            if (scrapeInterval < 10*59) scrapeInterval = 10*59;
+            if (scrapeInterval > 60*60) scrapeInterval = 60*60;
+  
+            //Debug.out("scrape min_request_interval = " +scrapeInterval);
+  	      }
 
-	      //update the hash list
-	      synchronized( hashes ) {
-	        hashes.put(new HashWrapper(hash.getHash()), response);
-	      }
-	  
-	      //notifiy listeners
-	      scraper.scrapeReceived( response );
+          long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
+          response.setNextScrapeStartTime(nextScrapeTime);
+          response.setStatusString(MessageText.getString("Scrape.status.ok"));
+        }
+  
+      } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+      } catch (Exception e) {
+        LGLogger.log(LGLogger.ERROR, 
+  									"Response from scrape interface " + scrapeURL + " : " + e);
+   
+        response = new TRTrackerScraperResponseImpl(TrackerStatus.this, hash);
+        response.setNextScrapeStartTime(System.currentTimeMillis() + 
+                                        FAULTY_SCRAPE_RETRY_INTERVAL);
+        response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                                 e.getMessage());
       }
-
-    } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
-    } catch (Exception ignore) {
+      
+      String s = response.getStatusString();
+      if (!s.endsWith(".")) {
+        s += ".  ";
+      } else if (!s.equals("")) {
+        s += "  ";
+      }
+      String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
+      response.setStatusString(s + 
+                               MessageText.getString("Scrape.status.nextScrapeAt", 
+                                                     params));
+  
+      //update the hash list
+      synchronized( hashes ) {
+        hashes.put(hash, response);
+      }
+  
+      //notifiy listeners
+      scraper.scrapeReceived( response );
     }
   }
   
-  protected void
-  scrapeHTTP(
-  	URL						reqUrl,
-	ByteArrayOutputStream	message )
-  
+  protected void scrapeHTTP(URL reqUrl, ByteArrayOutputStream message)
   	throws IOException
   {
   	TRTrackerClientUtilsImpl.checkForBlacklistedURLs( reqUrl );
   	
-	reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
+    reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
   	//System.out.println( "trying " + scrape.toString());
   	
   	InputStream is = null;
   	
   	try{
-	  	HttpURLConnection con;
+	  	HttpURLConnection con = null;
 	  	
-	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-	  		
-	  		// see ConfigurationChecker for SSL client defaults
-	  		
-	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
-	  		
-	  		// allow for certs that contain IP addresses rather than dns names
-	  		
-	  		ssl_con.setHostnameVerifier(
-	  				new HostnameVerifier()
-	  				{
-	  					public boolean
-	  					verify(
-	  							String		host,
-								SSLSession	session )
-	  					{
-	  						return( true );
-	  					}
-	  				});
-	  		
-	  		con = ssl_con;
-	  		
-	  	}else{
-	  		
-	  		con = (HttpURLConnection) reqUrl.openConnection();
-	  		
-	  	}
-	  	
-	  	con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-	  	
-	  	// some trackers support gzip encoding of replies
-	  	
-	  	con.addRequestProperty("Accept-Encoding","gzip");
-	  	
-	  	con.connect();
+	    // TODO: replace iOtherPorts with config-based equiv.
+	    // XXX: This is great for scrape, but announce needs this too otherwise
+	    //      it's pretty pointless. (ie. scrape suceeds, seeding starts, bug fails to connect to tracker)
+	    //      Need to update tracker URL.
+	    int[] iOtherPorts = {-1, 443};
+	    boolean passed = false;
+	    String sNewURL = scrapeURL;
+	    String sNewURLFull = reqUrl.toString();
+	    int iOldPort = reqUrl.getPort();
+	    ConnectException connectexception = null;
+      for (int i = 0; i < iOtherPorts.length; i++) {
+        try {
+          if (iOtherPorts[i] != -1) {
+            if (iOldPort == -1)
+              break;
+
+            sNewURL = scrapeURL.replaceAll(":" + reqUrl.getPort() + "/", 
+                                           ":" + String.valueOf(iOtherPorts[i]) + "/");
+            sNewURLFull = reqUrl.toString().replaceAll(":" + reqUrl.getPort() + "/", 
+                                                       ":" + String.valueOf(iOtherPorts[i]) + "/");
+          }
+          reqUrl = new URL(sNewURLFull);
+    	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+    	  		// see ConfigurationChecker for SSL client defaults
+    	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+    	  		
+    	  		// allow for certs that contain IP addresses rather than dns names
+    	  		ssl_con.setHostnameVerifier(
+    	  				new HostnameVerifier() {
+    	  					public boolean verify(String host, SSLSession session) {
+    	  						return( true );
+    	  					}
+    	  				});
+    	  		
+    	  		con = ssl_con;
+    	  		
+    	  	} else {
+    	  		con = (HttpURLConnection) reqUrl.openConnection();
+    	  	}
+
+    	  	con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
+	      	// some trackers support gzip encoding of replies
+	  	    con.addRequestProperty("Accept-Encoding","gzip");
+    	  	con.connect();
+
+          passed = true;
+          if (iOtherPorts[i] != -1) {
+            LGLogger.log(LGLogger.INFORMATION, 
+      									"Scrape changed from port " + iOldPort + " to " + iOtherPorts[i]);
+          }
+        } catch (ConnectException e1) { 
+          if (connectexception == null)
+            connectexception = e1;/** Connection timed out: connect */
+        }
+
+        if (passed)
+          break;
+      }
+
+      if (passed) {
+        scrapeURL = sNewURL;
+      } else {
+        throw(connectexception);
+      }
 	  	
 	  	is = con.getInputStream();
 	
@@ -225,7 +322,6 @@ public class TrackerStatus {
 	  	// System.out.println( "encoding = " + encoding );
 	  	
 	  	if ( gzip ){
-	  		
 	  		is = new GZIPInputStream( is );
 	  	}
 	  	
@@ -246,12 +342,12 @@ public class TrackerStatus {
 	  			return;
 	  		}
 	  	}
-	  }finally {
-	  	if(is != null)
-	  		try {
-	  		is.close();
-	  	} catch (IOException e1) {
-	  	}
+	  } finally {
+	  	if (is != null) {
+        try {
+	  		  is.close();
+  	  	} catch (IOException e1) { }
+  	  }
 	  }
   }
   
@@ -418,14 +514,22 @@ public class TrackerStatus {
   }
   
 
-  
-  protected void 
-  removeHash(
-  	HashWrapper hash)
-  {
+  protected TRTrackerScraperResponseImpl addHash(byte[] hash) {
+    TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(this, hash);
+    response.setStatusString(MessageText.getString("Scrape.status.initializing"));
   	synchronized( hashes ){
-  		
-  		hashes.remove( hash );
+      hashes.put(hash, response);
+  	}
+
+    //notifiy listeners
+    scraper.scrapeReceived( response );
+
+  	return response;
+  }
+  
+  protected void removeHash(HashWrapper hash) {
+  	synchronized( hashes ){
+  		hashes.remove( hash.getHash() );
   	}
   }
   
@@ -433,4 +537,8 @@ public class TrackerStatus {
   protected Map getHashes() {
     return hashes;
   }
+
+	protected void scrapeReceived(TRTrackerScraperResponse response) {
+	  scraper.scrapeReceived(response);
+	}
 }

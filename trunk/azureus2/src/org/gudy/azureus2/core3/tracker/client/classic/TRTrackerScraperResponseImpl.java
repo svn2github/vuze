@@ -11,75 +11,86 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 
-public class 
-TRTrackerScraperResponseImpl 
-	implements TRTrackerScraperResponse
+public class TRTrackerScraperResponseImpl 
+  implements TRTrackerScraperResponse
 {
-	protected byte[]	hash;
-    protected int 		seeds;
-    protected int 		peers;
-    protected boolean 	valid;
-    
-    private long scrapeStartTime;
-    private long nextScrapeStartTime;
-
-    protected 
-    TRTrackerScraperResponseImpl(
-    	byte[]	_hash,
-		int 	_seeds, 
-		int 	_peers,
-      long _scrapeStartTime) 
-    {
-    	hash		= _hash;
-    	seeds 		= _seeds;
-    	peers 	= _peers;
-      
-    	if( seeds == -1 && peers == -1 ){
-    		
-    		valid = false;
-    		
-    	}else{
-    		
-    		valid = true;
-    	}
-        
-    	scrapeStartTime = _scrapeStartTime;
-      nextScrapeStartTime = -1;
-    }
-
-    public byte[]
-    getHash()
-    {
-    	return( hash );
-    }
-    
-	public int
-	getSeeds()
-	{
-		return( seeds );
-	}
-	
-	public int
-	getPeers()
-	{
-		return( peers);
-	}
+  protected byte[]  hash;
+  protected int     seeds;
+  protected int     peers;
+  protected boolean   valid;
   
-  public boolean
-  isValid()
-  {
+  private long scrapeStartTime;
+  private long nextScrapeStartTime;
+  private TrackerStatus ts;
+  private String sStatus = "";
+
+  protected TRTrackerScraperResponseImpl(TrackerStatus _ts,
+                                         byte[] _hash) {
+    this(_ts, _hash, -1, -1, -1);
+  }
+
+  protected TRTrackerScraperResponseImpl(TrackerStatus _ts,
+                                         byte[] _hash,
+                                         int  _seeds, 
+                                         int  _peers,
+                                         long _scrapeStartTime)  {
+    hash = _hash;
+    seeds = _seeds;
+    peers = _peers;
+    ts = _ts;
+    scrapeStartTime = _scrapeStartTime;
+    
+    valid = (seeds >= 0 && peers >= 0);
+    nextScrapeStartTime = -1;
+  }
+
+  public byte[] getHash() {
+    return hash;
+  }
+    
+  public TrackerStatus getTrackerStatus() {
+    return ts;
+  }
+
+  public int getSeeds() {
+    return seeds ;
+  }
+  
+  public int getPeers() {
+    return peers;
+  }
+  
+	public void setSeedsPeers(int iSeeds, int iPeers) {
+	  seeds = iSeeds;
+	  peers = iPeers;
+    valid = (seeds >= 0 && peers >= -1);
+    
+    // XXX Is this a good idea?
+    ts.scrapeReceived(this);
+	}
+
+  // XXX Change to getStatus
+  public boolean isValid() {
     return( valid);
   }
   
-    public long getScrapeStartTime() {
-    	return scrapeStartTime;
-    }
+  public long getScrapeStartTime() {
+    return scrapeStartTime;
+  }
 
-    public long getNextScrapeStartTime() {
-    	return nextScrapeStartTime;
-    }
+  public long getNextScrapeStartTime() {
+    return nextScrapeStartTime;
+  }
  
-    public void setNextScrapeStartTime(long nextScrapeStartTime) {
-    	this.nextScrapeStartTime = nextScrapeStartTime;
-   }
+  public void setNextScrapeStartTime(long nextScrapeStartTime) {
+    this.nextScrapeStartTime = nextScrapeStartTime;
+  }
+   
+  public String getStatusString() {
+    return sStatus;
+  }
+  
+  public void setStatusString(String s) {
+    sStatus = s;
+  }
 }

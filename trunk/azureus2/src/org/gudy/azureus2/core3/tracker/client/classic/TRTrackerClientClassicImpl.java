@@ -1493,6 +1493,14 @@ TRTrackerClientClassicImpl
 				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
 				     }
 				   }
+				   
+				  //System.out.println("Response from Announce: " + new String(data));
+          Long lIncomplete = null;
+          Long lComplete = (Long)metaData.get("complete");
+				  if (lComplete != null) {
+				    System.out.println("VICTORY! Announce contained 'complete' of " + lComplete);
+            lIncomplete = (Long)metaData.get("incomplete");
+          }
 						
 						//build the list of peers
 					List valid_meta_peers = new ArrayList();
@@ -1591,8 +1599,32 @@ TRTrackerClientClassicImpl
 					
 					failure_added_time = 0;
 					
-					resp.setExtensions((Map)metaData.get( "extensions" ));
+					Map extensions = (Map)metaData.get( "extensions" );
+					resp.setExtensions(extensions);
 					
+					if (extensions != null && lComplete == null) {
+            lComplete = (Long)extensions.get("complete");
+  				  if (lComplete != null) {
+  				    System.out.println("VICTORY2! Announce contained 'complete' of " + lComplete);
+              lIncomplete = (Long)extensions.get("incomplete");
+  				  }
+ 				  }
+
+          if (lComplete != null && lIncomplete != null) {
+            TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
+            if (scraper != null) {
+              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
+              if (scrapeResponse != null) {
+                long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
+                long lNewNextScrapeTime = System.currentTimeMillis() + 10*60*1000;
+                if (lNextScrapeTime < lNewNextScrapeTime) {
+                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
+                }
+                scrapeResponse.setSeedsPeers(lComplete.intValue(), lIncomplete.intValue());
+              }
+            }
+          }
+            
 					return( resp );  
 
 				}catch( IOException e ){

@@ -747,9 +747,17 @@ DownloadManagerImpl
   
 
   public String getTrackerStatus() {
-	if (tracker_client != null)
-	  return tracker_client.getStatusString();
-	return "";
+    if (tracker_client != null)
+      return tracker_client.getStatusString();
+    // to tracker, return scrape
+    if (torrent != null && globalManager != null) {
+      TRTrackerScraperResponse response = globalManager.getTrackerScraper().scrape(torrent);
+      if (response != null) {
+        return response.getStatusString();
+      }
+    }
+
+    return "";
   }
 
   	// this is called asynchronously when a response is received
