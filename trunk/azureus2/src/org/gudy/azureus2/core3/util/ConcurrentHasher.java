@@ -38,6 +38,7 @@ ConcurrentHasher
 	
 	protected static ConcurrentHasher		singleton	= new ConcurrentHasher();
 	
+	protected int			processor_num;
 	
 	protected List			requests		= new LinkedList();
 	protected List			hashers			= new ArrayList();
@@ -47,13 +48,26 @@ ConcurrentHasher
 		
 	protected AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
 
+	
+	public static ConcurrentHasher
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
+	public static boolean
+	concurrentHashingAvailable()
+	{
+		return( getSingleton().processor_num > 1 );
+	}
+	
 	protected
 	ConcurrentHasher()
 	{
 			// TODO: number of processors can apparently change....
 			// so periodically grab num + reserve/release as necessary
 		
-		int processor_num = Runtime.getRuntime().availableProcessors();
+		processor_num = Runtime.getRuntime().availableProcessors();
 		
 			// just in case :P
 		
@@ -151,12 +165,7 @@ ConcurrentHasher
 		scheduler.start();
 	}
 	
-	public static ConcurrentHasher
-	getSingleton()
-	{
-		return( singleton );
-	}
-	
+
 		/**
 		 * add a synchronous request - on return it will have run (or been cancelled)
 	     */
@@ -215,7 +224,7 @@ ConcurrentHasher
 		
 		int		threads			= 1;
 		
-		final long	buffer_size		= 32*1024;
+		final long	buffer_size		= 128*1024;
 		final long	loop			= 1024;
 		
 		for (int i=0;i<threads;i++){
@@ -225,18 +234,16 @@ ConcurrentHasher
 				public void
 				run()
 				{
-					SHA1Hasher sha1_hasher = new SHA1Hasher();
-					
-					ByteBuffer	buffer = ByteBuffer.allocate((int)buffer_size);
+					// SHA1Hasher sha1_hasher = new SHA1Hasher();
 					
 					long	start = System.currentTimeMillis();
+					ByteBuffer	buffer = ByteBuffer.allocate((int)buffer_size);
 					
 					for (int j=0;j<loop;j++){
 						
-						buffer.position(0);
-						
+												
 						//sha1_hasher.calculateHash( buffer );
-						hasher.addRequest( buffer ).getResult();
+						ConcurrentHasherRequest req = hasher.addRequest( buffer );
 					}
 					
 					long	elapsed = System.currentTimeMillis() - start;

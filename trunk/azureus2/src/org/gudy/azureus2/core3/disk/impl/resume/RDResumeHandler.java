@@ -117,6 +117,9 @@ RDResumeHandler
 			final AESemaphore	pending_checks_sem 	= new AESemaphore( "RD:PendingChecks" );
 			int					pending_check_num	= 0;
 
+			DiskManagerPiece[]	pieces	= disk_manager.getPieces();
+
+
 			if ( resumeEnabled ){
 				
 				boolean resumeValid = false;
@@ -127,8 +130,6 @@ RDResumeHandler
 				
 				Map resumeMap = torrent.getAdditionalMapProperty("resume");
 				
-				DiskManagerPiece[]	pieces	= disk_manager.getPieces();
-
 				if (resumeMap != null) {
 					
 						// backward compatability here over path management changes :(
@@ -295,6 +296,31 @@ RDResumeHandler
 						}
 					}
 				}
+			}else{
+				
+					// resume not enabled, recheck everything
+				
+				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
+										
+					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
+						
+					pending_check_num++;
+					
+					writer_and_checker.checkPiece(
+						i,
+						new CheckPieceResultHandler()
+						{
+							public void
+							processResult(
+								int		p,
+								int		r,
+								Object	user_data )
+							{
+								pending_checks_sem.release();
+							}
+						},
+						null );
+				}								
 			}
 						
 			while( pending_check_num > 0 ){

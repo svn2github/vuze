@@ -66,7 +66,7 @@ DMWriterAndCheckerImpl
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
-		global_write_queue_block_sem_size	= write_limit_blocks==0?128:write_limit_blocks;
+		global_write_queue_block_sem_size	= write_limit_blocks==0?256:write_limit_blocks;
 		
 		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
@@ -437,6 +437,7 @@ DMWriterAndCheckerImpl
 			            //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
 			            
 			            int entry_read_limit = buffer.position( DirectByteBuffer.SS_DW ) + tempPiece.getLength();
+			            
 			            buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
 			
 			            tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read
@@ -517,24 +518,14 @@ DMWriterAndCheckerImpl
 								});
 	
     		    }else{
-	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW));
 
-					byte[] testHash = current_hash_request.getResult();
-					
-					current_hash_request	= null;
-					
-					if ( testHash == null ){
-					
-							// cancelled
-												
-						return;
-					}
-					
+					byte[] testHash = new SHA1Hasher().calculateHash( buffer.getBuffer(DirectByteBuffer.SS_DW ));
+										
 					byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-					
+										
 					check_result	= CheckPieceResultHandler.OP_SUCCESS;
 					
-					for (int i = 0; i < 20; i++){
+					for (int i = 0; i < testHash.length; i++){
 						
 						if ( testHash[i] != required_hash[i]){
 							
