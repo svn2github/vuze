@@ -1507,7 +1507,7 @@ public class StartStopRulesDefaultPlugin
         return false;
       }
       
-      // FP doesn't apply when P:S >= 10:1
+      // FP doesn't apply when S:P >= 10:1
       int numPeers = calcPeersNoUs(dl);
       int numSeeds = calcSeedsNoUs(dl);
       if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= 10) {
