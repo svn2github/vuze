@@ -32,10 +32,13 @@ CHANGE: Core | Decreased cpu usage when downloading and faster speeds in LAN net
 CHANGE: UI   | RFE #1092614: Popup messages now auto-close after 5 seconds - unless the message window is closed manually, or if the mouse is over it / details view is open (the timing will be 'reset' then) [CrazyAlchemist]
 CHANGE: UI   | Miscellaneous cosmetics updates for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [CrazyAlchemist]
+CHANGE: UI   | New .torrent file icon for Mac OS X [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
 BUGFIX: UI   | Corrected save dialog behaviour on Make Torrent Wizard regarding file selection [CrazyAlchemist]
+BUGFIX: UI   | Bug #953619 concerning Mac OS X: Double-clicking .torrent files and launching torrent:// URIs now activate Azureus with the expected Finder dialogs (Dragging files to the Dock icon will continue to malfunction for the indefinite future) [CrazyAlchemist]
+BUGFIX: UI   | Bug #1120995: Improper validation could allow unreasonably low global upload cap [CrazyAlchemist]
 
 
 
