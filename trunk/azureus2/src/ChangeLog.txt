@@ -33,7 +33,6 @@ CHANGE: UI   | RFE #1092614: Informational popup messages now auto-close after 5
 CHANGE: UI   | Miscellaneous cosmetics updates for Mac OS X [CrazyAlchemist]
 CHANGE: UI   | Bug #1112278: https:// URLs now autopaste in Open URL window [CrazyAlchemist]
 CHANGE: UI   | New .torrent file icon for Mac OS X [CrazyAlchemist]
-CHANGE: UI   | Categories are now represented in an alternate interface, which is always visible [CrazyAlchemist]
 CHANGE: UI   | Main menu bar should now be more streamlined in its arrangement [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
@@ -45,6 +44,7 @@ BUGFIX: UI   | Main window no longer tries to steal focus on opening (Mac OS X) 
 BUGFIX: UI   | Pop up messages no longer try to steal focus (Mac OS X) [CrazyAlchemist]
 BUGFIX: UI   | Resolved fuzzy dock icon display under Mac OS X if Column Setup is opened [CrazyAlchemist]
 BUGFIX: UI   | Upload caps for individual transfers now display more sensible values if global upload cap is set to unlimited [CrazyAlchemist]
+BUGFIX: UI   | In My Torrents, a category view will no longer prevent its corresponding table view's horizontal scrolling [CrazyAlchemist]
 
 
 
