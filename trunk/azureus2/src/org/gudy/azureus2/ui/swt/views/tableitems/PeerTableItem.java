@@ -181,10 +181,10 @@ public class PeerTableItem {
       oldTexts[1] = tmp;
     }
 
-    tmp = "l";
+    tmp = "L";
     boolean isIcoming = peerSocket.isIncoming();
     if (isIcoming)
-      tmp = "r";
+      tmp = "R";
     if (!oldTexts[2].equals(tmp)) {
       item.setText(2, tmp);
       oldTexts[2] = tmp;
