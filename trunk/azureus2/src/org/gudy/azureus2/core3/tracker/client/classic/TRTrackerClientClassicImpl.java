@@ -94,7 +94,7 @@ TRTrackerClientClassicImpl
 	private String port;
 	private String ip_override;
   
-  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 
@@ -1489,7 +1489,7 @@ TRTrackerClientClassicImpl
   }
   
   public void parameterChanged(String parameterName) {
-    maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+    maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   }
   
   
