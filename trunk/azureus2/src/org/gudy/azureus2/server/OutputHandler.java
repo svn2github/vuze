@@ -31,6 +31,7 @@ import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core.PeerStats;
 
 
 public class OutputHandler {
@@ -332,6 +333,7 @@ public class OutputHandler {
     handleConfigInt(tmpl, "Server_iTimeout");
     handleConfigInt(tmpl, "Server_iMaxHTTPConnections");
     handleConfigInt(tmpl, "Server_iLogCount");
+    handleConfigInt(tmpl, "Server_iRefresh");
   }
   
   private void handleTorrents(Template tmpl) {
@@ -361,17 +363,19 @@ public class OutputHandler {
           h.put("Torrents_Torrent_Checking", Boolean.TRUE);
         h.put("Torrents_Torrent_PercentDone", Integer.toString(dm.getCompleted()/10));
         h.put("Torrents_Torrent_PercentLeft", Integer.toString((1000-dm.getCompleted())/10));
-        h.put("Torrents_Torrent_PercentDonePrec", Long.toString(((long) dm.getCompleted())/10));
-        h.put("Torrents_Torrent_PercentLeftPrec", Long.toString((1000- (long) dm.getCompleted())/10));
+        h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) dm.getCompleted())/10));
+        h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) dm.getCompleted())/10));
         h.put("Torrents_Torrent_SpeedDown", dm.getDownloadSpeed());
         h.put("Torrents_Torrent_SpeedUp", dm.getUploadSpeed());
-        h.put("Torrents_Torrent_FileSize", Long.toString(dm.getSize()));
-        h.put("Torrents_Torrent_FileSizeDone", Long.toString(((long) dm.getCompleted())*((long) dm.getSize())/1000));
+        h.put("Torrents_Torrent_FileSize", PeerStats.format(dm.getSize()));
+        h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
         h.put("Torrents_Torrent_FileName", dm.getName());
         h.put("Torrents_Torrent_Status", this.status.get(new Integer(dmstate)));
         h.put("Torrents_Torrent_Seeds", Integer.toString(dm.getNbSeeds()));
         h.put("Torrents_Torrent_Peers", Integer.toString(dm.getNbPeers()));
         h.put("Torrents_Torrent_ETA", (dm.getETA()=="")?"&nbsp;":dm.getETA());
+        h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
+        h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
@@ -427,6 +431,7 @@ public class OutputHandler {
       Template tmpl = (Template) this.server.htmlTemplates.get(req);
       tmpl.clearParams();
       tmpl.setParam("Global_ServerName", this.server.serverName());
+      tmpl.setParam("Global_Refresh", ConfigurationManager.getInstance().getIntParameter("Server_iRefresh"));
       this.handleConfig(tmpl);
       this.handleTorrents(tmpl);
       this.handleLog(tmpl);

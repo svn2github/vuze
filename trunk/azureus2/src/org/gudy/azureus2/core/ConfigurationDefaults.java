@@ -83,6 +83,8 @@ public class ConfigurationDefaults {
     def.put("Server_sBindIP", "");
     // Number of remembered log entries
     def.put("Server_iLogCount", new Long(200));
+    // Auto-refresh torrents every (seconds)
+    def.put("Server_iRefresh", new Long(20));
   }
   
   //TODO:: Move this to a FileManager class?
