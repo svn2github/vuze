@@ -38,10 +38,11 @@ DHTUDPPacketRequestStats
 {
 	public
 	DHTUDPPacketRequestStats(
-		long						_connection_id,
-		DHTTransportUDPContactImpl	_contact )
+		long							_connection_id,
+		DHTTransportUDPContactImpl		_local_contact,
+		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_STATS, _connection_id, _contact );
+		super( DHTUDPPacket.ACT_REQUEST_STATS, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected

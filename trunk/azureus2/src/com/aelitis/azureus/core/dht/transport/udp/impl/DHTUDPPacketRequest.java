@@ -55,14 +55,15 @@ DHTUDPPacketRequest
 	DHTUDPPacketRequest(
 		int								_type,
 		long							_connection_id,
-		DHTTransportUDPContactImpl		_contact )
+		DHTTransportUDPContactImpl		_local_contact,
+		DHTTransportUDPContactImpl		_remote_contact )
 	{
 		super( _type, _connection_id );
 		
-		version	= DHTUDPPacket.VERSION;
+		version	= _remote_contact.getProtocolVersion();
 		
-		originator_address		= _contact.getExternalAddress();
-		originator_instance_id	= _contact.getInstanceID();
+		originator_address		= _local_contact.getExternalAddress();
+		originator_instance_id	= _local_contact.getInstanceID();
 		originator_time			= SystemTime.getCurrentTime();
 	}
 	

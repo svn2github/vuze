@@ -551,7 +551,7 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		final DHTUDPPacketRequestPing	request = 
-			new DHTUDPPacketRequestPing( connection_id, local_contact );
+			new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
 			
 		try{
 			checkAddress( contact );
@@ -645,7 +645,7 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		final DHTUDPPacketRequestStats	request = 
-			new DHTUDPPacketRequestStats( connection_id, local_contact );
+			new DHTUDPPacketRequestStats( connection_id, local_contact, contact );
 			
 		try{
 			checkAddress( contact );
@@ -740,7 +740,7 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 	
 		final DHTUDPPacketRequestPing	request = 
-			new DHTUDPPacketRequestPing( connection_id, local_contact );
+			new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
 		
 		try{
 			checkAddress( contact );
@@ -950,7 +950,7 @@ DHTTransportUDPImpl
 				// System.out.println( "    packet " + packet_count + ": keys = " + packet_entries + ", values = " + packet_value_count );
 				
 				final DHTUDPPacketRequestStore	request = 
-					new DHTUDPPacketRequestStore( connection_id, local_contact );
+					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
 			
 				request.setKeys( packet_keys );
 				
@@ -1063,7 +1063,7 @@ DHTTransportUDPImpl
 			checkAddress( contact );
 			
 			final DHTUDPPacketRequestFindNode	request = 
-				new DHTUDPPacketRequestFindNode( connection_id, local_contact );
+				new DHTUDPPacketRequestFindNode( connection_id, local_contact, contact );
 			
 			request.setID( nid );
 			
@@ -1177,7 +1177,7 @@ DHTTransportUDPImpl
 			checkAddress( contact );
 			
 			final DHTUDPPacketRequestFindValue	request = 
-				new DHTUDPPacketRequestFindValue( connection_id, local_contact );
+				new DHTUDPPacketRequestFindValue( connection_id, local_contact, contact );
 			
 			request.setID( key );
 			
@@ -1360,7 +1360,8 @@ DHTTransportUDPImpl
 					new DHTUDPPacketReplyError(
 							request.getTransactionId(),
 							request.getConnectionId(),
-							local_contact );
+							local_contact,
+							originating_contact );
 				
 				reply.setErrorType( DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG );
 				
@@ -1380,7 +1381,8 @@ DHTTransportUDPImpl
 						new DHTUDPPacketReplyPing(
 								request.getTransactionId(),
 								request.getConnectionId(),
-								local_contact );
+								local_contact,
+								originating_contact );
 					
 					packet_handler.send( reply, request.getAddress());
 					
@@ -1392,7 +1394,8 @@ DHTTransportUDPImpl
 						new DHTUDPPacketReplyStats(
 								request.getTransactionId(),
 								request.getConnectionId(),
-								local_contact );
+								local_contact,
+								originating_contact );
 					
 					reply.setStats( full_stats );
 					
@@ -1411,7 +1414,8 @@ DHTTransportUDPImpl
 						new DHTUDPPacketReplyStore(
 								request.getTransactionId(),
 								request.getConnectionId(),
-								local_contact );
+								local_contact,
+								originating_contact );
 					
 					packet_handler.send( reply, request.getAddress());
 					
@@ -1428,7 +1432,8 @@ DHTTransportUDPImpl
 						new DHTUDPPacketReplyFindNode(
 								request.getTransactionId(),
 								request.getConnectionId(),
-								local_contact );
+								local_contact,
+								originating_contact );
 								
 					reply.setContacts( res );
 					
@@ -1449,7 +1454,8 @@ DHTTransportUDPImpl
 						new DHTUDPPacketReplyFindValue(
 							request.getTransactionId(),
 							request.getConnectionId(),
-							local_contact );
+							local_contact,
+							originating_contact );
 					
 					if ( res instanceof DHTTransportValue[] ){
 						

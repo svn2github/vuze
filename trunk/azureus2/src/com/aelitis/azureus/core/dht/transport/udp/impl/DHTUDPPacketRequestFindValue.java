@@ -42,10 +42,11 @@ DHTUDPPacketRequestFindValue
 	
 	public
 	DHTUDPPacketRequestFindValue(
-		long						_connection_id,
-		DHTTransportUDPContactImpl	_contact )
+		long							_connection_id,
+		DHTTransportUDPContactImpl		_local_contact,
+		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_FIND_VALUE, _connection_id, _contact );
+		super( DHTUDPPacket.ACT_REQUEST_FIND_VALUE, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected

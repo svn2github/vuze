@@ -46,6 +46,12 @@ DHTTransportFullStats
 	public long
 	getRouterContacts();
 	
+	public long
+	getRouterUptime();
+	
+	public int
+	getRouterCount();
+	
 		// Transport
 	
 		// totals

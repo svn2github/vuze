@@ -73,6 +73,8 @@ DHTControlImpl
 	private int			B;
 	private int			max_rep_per_node;
 	
+	private long		router_start_time;
+	private int			router_count;
 	
 	private ThreadPool	internal_lookup_pool;
 	private ThreadPool	external_lookup_pool;
@@ -169,7 +171,10 @@ DHTControlImpl
 	protected void
 	createRouter(
 		DHTTransportContact		_local_contact)
-	{		
+	{	
+		router_start_time	= SystemTime.getCurrentTime();
+		router_count++;
+		
 		local_contact	= _local_contact;
 		
 		router	= DHTRouterFactory.create( 
@@ -252,6 +257,18 @@ DHTControlImpl
 			});	
 		
 		database.setControl( this );
+	}
+	
+	public long
+	getRouterUptime()
+	{
+		return( SystemTime.getCurrentTime() - router_start_time );
+	}
+	
+	public int
+	getRouterCount()
+	{
+		return( router_count );
 	}
 	
 	public DHTTransport

@@ -36,11 +36,12 @@ DHTUDPPacketReplyStore
 {
 	public
 	DHTUDPPacketReplyStore(
-		int					trans_id,
-		long				conn_id,
-		DHTTransportContact	contact)
+		int						trans_id,
+		long					conn_id,
+		DHTTransportContact		local_contact,
+		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_STORE, trans_id, conn_id, contact );
+		super( DHTUDPPacket.ACT_REPLY_STORE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected

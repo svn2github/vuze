@@ -523,6 +523,7 @@ DHTUDPUtils
 				
 	protected static void
 	serialiseStats(
+		int						version,
 		DataOutputStream		os,
 		DHTTransportFullStats	stats )
 	
@@ -549,13 +550,20 @@ DHTUDPUtils
 		
 		os.writeLong( stats.getIncomingRequests());
 		
-		String	version = stats.getVersion() + "["+DHTUDPPacket.VERSION+"]";
+		String	azversion = stats.getVersion() + "["+DHTUDPPacket.VERSION+"]";
 		
-		serialiseByteArray( os, version.getBytes(), 64);
+		serialiseByteArray( os, azversion.getBytes(), 64);
+		
+		if ( version >= 5 ){
+			
+			os.writeLong( stats.getRouterUptime());
+			os.writeInt( stats.getRouterCount());
+		}
 	}
 	
 	protected static DHTTransportFullStats
 	deserialiseStats(
+		int					version,
 		DataInputStream		is )
 	
 		throws IOException
@@ -581,7 +589,20 @@ DHTUDPUtils
 		
 		final long incoming_requests			= is.readLong();
 		
-		final String	version = new String( deserialiseByteArray( is, 64 ));
+		final String	az_version = new String( deserialiseByteArray( is, 64 ));
+		
+		final long	router_uptime;
+		final int	router_count;
+		
+		if ( version >= 5 ){
+			
+			router_uptime	= is.readLong();
+			router_count	= is.readInt();
+		}else{
+			
+			router_uptime	= 0;
+			router_count	= 0;
+		}
 		
 		DHTTransportFullStats	res = 
 			new DHTTransportFullStats()
@@ -612,6 +633,17 @@ DHTUDPUtils
 					return( router_contacts );
 				}
 			
+				public long
+				getRouterUptime()
+				{
+					return( router_uptime );
+				}
+				
+				public int
+				getRouterCount()
+				{
+					return( router_count );
+				}
 				public long
 				getTotalBytesReceived()
 				{
@@ -695,7 +727,7 @@ DHTUDPUtils
 				public String
 				getVersion()
 				{
-					return( version );
+					return( az_version );
 				}
 				
 				public String
@@ -721,8 +753,10 @@ DHTUDPUtils
 							getRouterContacts() + 
 							",database:" +
 							getDBValuesStored()+
-							",version:" + getVersion());
-				}
+							",version:" + getVersion()+","+
+							getRouterUptime() + ","+
+							getRouterCount());
+					}
 			};
 	
 		

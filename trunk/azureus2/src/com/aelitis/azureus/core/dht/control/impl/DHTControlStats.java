@@ -209,6 +209,18 @@ DHTControlStats
 		return( router_snapshot[DHTRouterStats.ST_CONTACTS]);
 	}
 	
+	public long
+	getRouterUptime()
+	{
+		return( control.getRouterUptime());
+	}
+	
+	public int
+	getRouterCount()
+	{
+		return( control.getRouterCount());
+	}
+	
 	public String
 	getVersion()
 	{
@@ -238,6 +250,8 @@ DHTControlStats
 				getRouterContacts() + 
 				",database:" +
 				getDBValuesStored()+
-				",version:" + getVersion());
+				",version:" + getVersion()+","+
+				getRouterUptime() + ","+
+				getRouterCount());
 	}
 }

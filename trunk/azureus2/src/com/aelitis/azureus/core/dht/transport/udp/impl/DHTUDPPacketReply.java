@@ -52,17 +52,18 @@ DHTUDPPacketReply
 		int					_type,
 		int					_trans_id,
 		long				_conn_id,
-		DHTTransportContact	_contact)
+		DHTTransportContact	_local_contact,
+		DHTTransportContact	_remote_contact )
 	{
 		super( _type, _trans_id );
 		
 		connection_id	= _conn_id;
 		
-		version			= DHTUDPPacket.VERSION;
+		version			= _remote_contact.getProtocolVersion();
 		
-		target_instance_id	= _contact.getInstanceID();
+		target_instance_id	= _local_contact.getInstanceID();
 		
-		skew	= _contact.getClockSkew();
+		skew	= _local_contact.getClockSkew();
 	}
 	
 	protected
