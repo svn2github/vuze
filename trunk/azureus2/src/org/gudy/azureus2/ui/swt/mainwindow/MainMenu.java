@@ -112,24 +112,11 @@ public class MainMenu {
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
        
-      //No need for exit on OS X
-      if(! Constants.isOSX) {
-
-        
-        new MenuItem(fileMenu, SWT.SEPARATOR);
-  
-        MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-        Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
-        
-        file_exit.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            mainWindow.dispose();
-          }
-        });
-      }
       
       MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_restart, "MainWindow.menu.file.restart"); //$NON-NLS-1$
+      
+      new MenuItem(fileMenu, SWT.SEPARATOR);
       
       file_restart.addListener(SWT.Selection, new Listener() {
 
@@ -140,7 +127,22 @@ public class MainMenu {
         AzureusCoreFactory.getSingleton().restart( false );
         }
       });
-      	// file->open submenus
+      
+      
+      //No need for exit on OS X
+      if(! Constants.isOSX) {
+
+        MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
+        Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
+        
+        file_exit.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.dispose();
+          }
+        });
+      }
+      
+      // file->open submenus
       
       Menu newMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
       file_new.setMenu(newMenu);
