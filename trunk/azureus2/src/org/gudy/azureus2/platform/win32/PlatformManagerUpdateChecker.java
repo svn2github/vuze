@@ -62,23 +62,23 @@ PlatformManagerUpdateChecker
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Platform-Specific Support" );
 
-		String	version = "1.0";
+		String	version = "1.0";	// default version if plugin not present
 		
-		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
+		PlatformManager platform	= PlatformManagerFactory.getPlatformManager();
 
-			try{
-				PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
-			
-				if ( platform != null ){
-					
-					version = platform.getVersion();
-				}
+		if (  platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+
+			if ( platform.hasCapability( PlatformManagerCapabilities.GetVersion )){
 				
-			}catch( Throwable e ){
-			
-				Debug.printStackTrace( e );
+				try{
+					version = platform.getVersion();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
-
+			
 			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
 			
 		}else{

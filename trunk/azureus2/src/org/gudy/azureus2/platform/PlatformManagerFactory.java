@@ -24,6 +24,7 @@ package org.gudy.azureus2.platform;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author parg
@@ -32,31 +33,40 @@ import org.gudy.azureus2.core3.util.Constants;
 public class 
 PlatformManagerFactory 
 {
-	protected static boolean				init_tried;
 	protected static PlatformManager		platform_manager;
 	protected static AEMonitor				class_mon	= new AEMonitor( "PlatformManagerFactory");
 	
 	public static PlatformManager
 	getPlatformManager()
-	
-		throws PlatformManagerException
 	{
 		try{
 			class_mon.enter();
 		
-			if ( platform_manager == null && !init_tried ){
-			
-				init_tried	= true;
-							    
-				if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
-					platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
+			if ( platform_manager == null ){
+										  
+				try{
+					if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
+						
+						platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
+						
+					}else if( getPlatformType() == PlatformManager.PT_MACOSX ){
+						
+	                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
+	                    
+					}
+				}catch( PlatformManagerException e ){
+					
+						// exception will already have been logged
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
 				}
-                else if( getPlatformType() == PlatformManager.PT_MACOSX ){
-                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
-                }
-                else{
-                    platform_manager = DummyPlatformManager.getSingleton();
-                }
+			}
+			
+			if ( platform_manager == null ){
+				
+				platform_manager = org.gudy.azureus2.platform.dummy.PlatformManagerImpl.getSingleton();
 			}
 			
 			return( platform_manager );
@@ -71,9 +81,13 @@ PlatformManagerFactory
 	getPlatformType()
 	{
 		if ( Constants.isWindows ){
+			
 			return( PlatformManager.PT_WINDOWS );
+			
         } else if (Constants.isOSX){
+        	
             return ( PlatformManager.PT_MACOSX );
+            
 		}else{
 			return( PlatformManager.PT_OTHER );
 		}

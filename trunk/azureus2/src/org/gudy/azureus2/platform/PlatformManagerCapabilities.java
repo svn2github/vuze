@@ -30,6 +30,7 @@ package org.gudy.azureus2.platform;
  */
 public final class PlatformManagerCapabilities
 {
+    public static final PlatformManagerCapabilities GetVersion = new PlatformManagerCapabilities("getVersion");
     public static final PlatformManagerCapabilities CreateCommandLineProcess = new PlatformManagerCapabilities("CreateCommandLineProcess");
     public static final PlatformManagerCapabilities UseNativeNotification = new PlatformManagerCapabilities("UseNativeNotification");
     public static final PlatformManagerCapabilities UseNativeScripting = new PlatformManagerCapabilities("UseNativeScripting");

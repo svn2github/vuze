@@ -115,6 +115,7 @@ PlatformManagerImpl
         capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
         capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
         capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
+        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
     }
 
     protected void
@@ -175,7 +176,7 @@ PlatformManagerImpl
 		return( 0 );
 	}
 	
-	protected String
+	public String
 	getVersion()
 	{
 		return( access.getVersion());

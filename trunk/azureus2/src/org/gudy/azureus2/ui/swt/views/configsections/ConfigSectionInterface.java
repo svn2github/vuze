@@ -291,48 +291,44 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 
     	// reset associations
  
-    try{
-	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
-	    
-	    if (platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations)){
-	    	
-		    Composite cResetAssoc = new Composite(cArea, SWT.NULL);
-		    layout = new GridLayout();
-		    layout.marginHeight = 0;
-		    layout.marginWidth = 0;
-		    layout.numColumns = 2;
-		    cResetAssoc.setLayout(layout);
-		    cResetAssoc.setLayoutData(new GridData());
-		 
-		    label = new Label(cResetAssoc, SWT.NULL);
-		    Messages.setLanguageText(label, "ConfigView.section.interface.resetassoc");
-
-		    Button reset = new Button(cResetAssoc, SWT.PUSH);
-		    Messages.setLanguageText(reset, "ConfigView.section.interface.resetassocbutton"); //$NON-NLS-1$
-
-		    reset.addListener(SWT.Selection, new Listener() {
-		      public void handleEvent(Event event) {
-		      	
-		      	try{
-		      		platform.registerApplication();
-		      		
-		      	}catch( PlatformManagerException e ){
-		      	
-		      		LGLogger.logUnrepeatableAlert("Failed to register application", e );
-		      	}
-		      }
-		    });
-		    
-		    new BooleanParameter(cArea, "config.interface.checkassoc",true, "ConfigView.section.interface.checkassoc");
-		    
-		    label = new Label(cArea, SWT.NULL);
-		    label = new Label(cArea, SWT.NULL);
-		
-	    }
-    }catch( PlatformManagerException e ){
-    	
-    }
+    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
     
+    if (platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations)){
+    	
+	    Composite cResetAssoc = new Composite(cArea, SWT.NULL);
+	    layout = new GridLayout();
+	    layout.marginHeight = 0;
+	    layout.marginWidth = 0;
+	    layout.numColumns = 2;
+	    cResetAssoc.setLayout(layout);
+	    cResetAssoc.setLayoutData(new GridData());
+	 
+	    label = new Label(cResetAssoc, SWT.NULL);
+	    Messages.setLanguageText(label, "ConfigView.section.interface.resetassoc");
+
+	    Button reset = new Button(cResetAssoc, SWT.PUSH);
+	    Messages.setLanguageText(reset, "ConfigView.section.interface.resetassocbutton"); //$NON-NLS-1$
+
+	    reset.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	      	
+	      	try{
+	      		platform.registerApplication();
+	      		
+	      	}catch( PlatformManagerException e ){
+	      	
+	      		LGLogger.logUnrepeatableAlert("Failed to register application", e );
+	      	}
+	      }
+	    });
+	    
+	    new BooleanParameter(cArea, "config.interface.checkassoc",true, "ConfigView.section.interface.checkassoc");
+	    
+	    label = new Label(cArea, SWT.NULL);
+	    label = new Label(cArea, SWT.NULL);
+	
+    }
+ 
     return cDisplay;
   }
   

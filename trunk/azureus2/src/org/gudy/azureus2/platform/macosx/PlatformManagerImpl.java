@@ -110,6 +110,13 @@ public class PlatformManagerImpl implements PlatformManager
         return PT_MACOSX;
     }
 
+    public String getVersion()
+
+    throws PlatformManagerException
+	{
+	throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+    
     /**
      * {@inheritDoc}
      * @see org.gudy.azureus2.core3.util.SystemProperties#getUserPath()

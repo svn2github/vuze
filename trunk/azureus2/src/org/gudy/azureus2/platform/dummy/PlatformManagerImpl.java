@@ -1,33 +1,39 @@
-package org.gudy.azureus2.platform;
+package org.gudy.azureus2.platform.dummy;
+
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 
 
 /**
  * @version 1.0
  */
-final class DummyPlatformManager implements PlatformManager
+
+public class PlatformManagerImpl implements PlatformManager
 {
 
     private static PlatformManager singleton;
 
     static
     {
-        singleton = new DummyPlatformManager();
+        singleton = new PlatformManagerImpl();
     }
-
-    protected static PlatformManager getSingleton()
+    
+    public static PlatformManager getSingleton()
     {
         return singleton;
     }
 
-    private DummyPlatformManager() {}
+    private PlatformManagerImpl() {}
 
     /**
      * {@inheritDoc}
      */
     public int getPlatformType()
     {
-        return PlatformManager.PT_OTHER;
+        return( PlatformManagerFactory.getPlatformType());
     }
 
     /**
@@ -80,6 +86,13 @@ final class DummyPlatformManager implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
+    public String getVersion()
+
+    throws PlatformManagerException
+	{
+	throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+    
     /**
      * {@inheritDoc}
      */
