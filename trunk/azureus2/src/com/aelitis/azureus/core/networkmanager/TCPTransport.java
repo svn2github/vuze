@@ -375,7 +375,7 @@ public class TCPTransport {
     
     if( bytes_read == 0 ) {
       zero_read_count++;
-      if( zero_read_count % 100 == 0 && zero_read_count > 0 ) {
+      if( zero_read_count % 50 == 0 ) {
         System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-reads=" +zero_read_count );
       }
     }
