@@ -227,7 +227,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //    serverproperties.setProperty("server.www",new Boolean(www_server).toString());
     //    serverproperties.setProperty("server.webconfig.username",config_user);
     //    serverproperties.setProperty("server.webconfig.password",config_password);
-    storeServerProperties();
+    //storeServerProperties();
     
     ObjectOutputStream file=new ObjectOutputStream(new FileOutputStream(DATA_FILE));
     file.writeObject(dic);
@@ -239,7 +239,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
    */
   public void restoreSettings()//throws Exception
   {
-    getServerProperties();
+    //getServerProperties();
     //    use_proxy = new Boolean(serverproperties.getProperty("server.http-proxy","false")).booleanValue();
     //    try { proxy = InetAddress.getByName(ConfigurationManager.getInstance().getStringParameter("Server_sDownstreamProxyHost"));
     //    } catch ( UnknownHostException e) {}
@@ -396,7 +396,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   }
   /**
    * @since 0.4.10a
-   */
+   *
   public Properties getServerProperties() {
     if (serverproperties == null) {
       serverproperties = new Properties();
@@ -407,10 +407,10 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
       }
     }
     return serverproperties;
-  }
+  }*/
   /**
    * @since 0.4.10a
-   */
+   *
   public void storeServerProperties() {
     if (serverproperties==null) return;
     try {

@@ -727,6 +727,7 @@ public class Jhttpp2HTTPSession extends Thread {
       }
       out.flush();
       file_in.close(); // finished!
+      in_st.close();
     } else {
       tmpl.setParam("Global_ServerName", ConfigurationManager.getInstance().getStringParameter("Server_sName"));
       if (ConfigurationManager.getInstance().getIntParameter("Server_iRefresh")!=0)
