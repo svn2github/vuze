@@ -1732,6 +1732,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	
 
   /////////////////////////////////////////////////////////////////
+  /*
   public boolean equals( Object obj ) {
     if (this == obj)  return true;
     if (obj != null && obj instanceof PEPeerTransportProtocol) {
@@ -1743,6 +1744,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     return false;
   }
   public int hashCode() {  return hashcode;  }
+  */
   /////////////////////////////////////////////////////////////////
 
 

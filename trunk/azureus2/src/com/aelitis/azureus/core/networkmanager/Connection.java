@@ -148,6 +148,7 @@ public class Connection {
   
   
   ///////////////////////////////////////////////////////////
+  /*
   public boolean equals( Object obj ) {
     if( this == obj )  return true;
     if( obj != null && obj instanceof Connection ) {
@@ -158,6 +159,7 @@ public class Connection {
   }
   public int hashCode() {  return remote_address.hashCode();  }
   public String toString() {  return remote_address.toString();  }
+  */
   ////////////////////////////////////////////////////////////
   
   

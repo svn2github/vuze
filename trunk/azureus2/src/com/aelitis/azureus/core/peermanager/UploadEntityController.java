@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.networkmanager.*;
  * each connection has its own specialized entity.
  */
 public class UploadEntityController {
-  private final IdentityHashMap upgraded_connections = new IdentityHashMap();
+  private final HashMap upgraded_connections = new HashMap();
   private final AEMonitor lock = new AEMonitor( "UploadEntityController:lock" );
   private final PacketFillingMultiPeerUploader global_uploader;
   
