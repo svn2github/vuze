@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc.,  59 Temple Plac(int)e, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: Md5Hasher.java,v 1.2 2004-01-02 17:08:37 parg Exp $
+ * $Id: Md5Hasher.java,v 1.3 2004-02-16 10:01:01 parg Exp $
  *
  ********************************************************************************/
 
@@ -35,8 +35,8 @@ import java.nio.ByteOrder;
  * use final, it will reset the MD5 instance for a new calculation.
  *
  * @author emarant
- * @version $Revision: 1.2 $
- * <br>Last changed by $Author: parg $ on $Date: 2004-01-02 17:08:37 $
+ * @version $Revision: 1.3 $
+ * <br>Last changed by $Author: parg $ on $Date: 2004-02-16 10:01:01 $
  */
 public final class Md5Hasher {
     
@@ -130,6 +130,32 @@ public final class Md5Hasher {
         if (i<inputLen){
             buffer.put(input);
         }
+    }
+    
+    public void
+    update(
+    	byte[]		data )
+    {
+    	update( ByteBuffer.wrap( data ));
+    }
+    
+    public byte[]
+    getDigest()
+    {
+    	ByteBuffer result_buffer = ByteBuffer.allocate(16);
+    	
+    	finalDigest(result_buffer);
+    	
+    	byte[] result = new byte[16];
+    	
+    	result_buffer.position(0);
+    	
+    	for(int i = 0 ; i < result.length ; i++) {
+    		
+    		result[i] = result_buffer.get();
+    	}   
+    	
+    	return result;   
     }
     
     /**

@@ -134,6 +134,10 @@ TOTorrentCreateImpl
 		}
 										 
 		setPieces( hasher.getPieces());
+		
+		System.out.println( "sha1 = " + ByteFormatter.nicePrint( hasher.getSHA1Digest(), true));
+		System.out.println( "md5  = " + ByteFormatter.nicePrint( hasher.getMD5Digest(), true));
+		System.out.println( "md4  = " + ByteFormatter.nicePrint( hasher.getMD4Digest(), true));
 	}
 	
 	protected void

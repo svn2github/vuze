@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.torrent.impl;
 
 
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -38,6 +39,13 @@ TOTorrentFileHasher
 	protected byte[]	buffer;
 	protected int		buffer_pos;
 	 
+	protected SHA1Hasher					overall_sha_hash;
+	protected MD4Hasher						overall_md4_hash;
+	protected Md5Hasher						overall_md5_hash;
+	protected byte[]						md4_digest;
+	protected byte[]						md5_digest;
+	protected byte[]						sha1_digest;
+	
 	protected TOTorrentFileHasherListener	listener;
 		
 	protected
@@ -45,6 +53,18 @@ TOTorrentFileHasher
 		int								_piece_length,
 		TOTorrentFileHasherListener		_listener )
 	{
+		try{
+			overall_sha_hash = new SHA1Hasher();
+			
+			overall_md4_hash = new MD4Hasher();
+			
+			overall_md5_hash = new Md5Hasher();
+			
+		}catch( NoSuchAlgorithmException e ){
+			
+			e.printStackTrace();
+		}
+		
 		piece_length	= _piece_length;
 		listener		= _listener;
 		
@@ -81,6 +101,10 @@ TOTorrentFileHasher
 						
 						byte[] hash = new SHA1Hasher().calculateHash(buffer);
 
+						overall_sha_hash.update( buffer );
+						overall_md4_hash.update( buffer );
+						overall_md5_hash.update( buffer );
+						
 						pieces.add( hash );
 						
 						if ( listener != null ){
@@ -127,6 +151,10 @@ TOTorrentFileHasher
 				
 				pieces.addElement(new SHA1Hasher().calculateHash(rem));
 				
+				overall_sha_hash.update( rem );
+				overall_md4_hash.update( rem );
+				overall_md5_hash.update( rem );
+				
 				if ( listener != null ){
 							
 					listener.pieceHashed( pieces.size() );
@@ -135,6 +163,13 @@ TOTorrentFileHasher
 				buffer_pos = 0;
 			}
 		
+			if ( md5_digest == null ){
+				
+				md5_digest	= overall_md5_hash.getDigest();
+				md4_digest	= overall_md4_hash.getDigest();			
+				sha1_digest	= overall_sha_hash.getDigest();
+			}
+			
 			byte[][] res = new byte[pieces.size()][];
 		
 			pieces.copyInto( res );
@@ -146,5 +181,45 @@ TOTorrentFileHasher
 			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",
 											TOTorrentException.RT_READ_FAILS ));
 		}
+	}
+	
+	protected byte[]
+	getMD5Digest()
+	
+		throws TOTorrentException
+	{
+		if ( md5_digest == null ){
+			
+			getPieces();
+		}
+		
+		return( md5_digest );
+	}
+	
+	protected byte[]
+	getMD4Digest()
+	
+		throws TOTorrentException
+	{
+		if ( md4_digest == null ){
+			
+			getPieces();
+		}
+		
+		return( md4_digest );
+	}
+	
+	
+	protected byte[]
+	getSHA1Digest()
+	
+		throws TOTorrentException
+	{
+		if ( sha1_digest == null ){
+			
+			getPieces();
+		}
+		
+		return( sha1_digest );
 	}
 }

@@ -52,4 +52,25 @@ public final class SHA1Hasher {
     
     return result;
   }
+  
+  public void
+  update(
+  	byte[]		data )
+  {
+  	sha1.update( ByteBuffer.wrap( data ));
+  }
+  
+  public byte[]
+  getDigest()
+  {
+  	resultBuffer.position(0);
+  	sha1.finalDigest(resultBuffer);
+  	
+  	byte[] result = new byte[20];
+  	resultBuffer.position(0);
+  	resultBuffer.get(result);
+//    System.out.println(result);
+  	
+  	return result;	
+  }
 }
