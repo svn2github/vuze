@@ -492,6 +492,7 @@ public class StartStopRulesDefaultPlugin
     int totalIncompleteQueued = 0;
     int totalFirstPriority = 0;
     int totalStalledSeeders = 0;
+    int total0PeerSeeders = 0;
 
     // pull the data into an local array, so we don't have to lock/synchronize
     downloadData[] dlDataArray;
@@ -540,6 +541,8 @@ public class StartStopRulesDefaultPlugin
               totalForcedSeeding++;
           } else if (state == Download.ST_SEEDING) {
             totalStalledSeeders++;
+            if (bAutoStart0Peers && calcPeersNoUs(download) == 0 && scrapeResultOk(download))
+              total0PeerSeeders++;
           }
           if (state == Download.ST_READY ||
               state == Download.ST_WAITING ||
@@ -928,7 +931,7 @@ public class StartStopRulesDefaultPlugin
         // Change to waiting if queued and we have an open slot
         } else if ((state == Download.ST_QUEUED) &&
                    (numWaitingOrSeeding < maxSeeders) && 
-                   ((activeSeedingCount + totalStalledSeeders + totalDownloading) < maxTorrents) &&
+                   ((activeSeedingCount + totalStalledSeeders - total0PeerSeeders + totalDownloading) < maxTorrents) &&
                    (dlData.getSeedingRank() > -2) && 
                    !higherQueued) {
           try {
