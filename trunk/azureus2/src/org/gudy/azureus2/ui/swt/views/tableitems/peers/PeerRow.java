@@ -21,7 +21,6 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
-import org.gudy.azureus2.ui.swt.views.utils.DataHolder;
 
 /**
  * This class (GUI) represents a row into the peers table.
