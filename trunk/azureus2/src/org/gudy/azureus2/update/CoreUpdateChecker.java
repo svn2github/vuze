@@ -371,11 +371,57 @@ CoreUpdateChecker
 			
 			String	java_version = System.getProperty("java.version");
 			
+			if ( java_version == null ){
+				
+				java_version = "unknown";
+			}
+			
+			String	java_vendor	= System.getProperty( "java.vm.vendor" );
+			
+			if ( java_vendor == null ){
+				
+				java_vendor = "unknown";
+			}
+			
+			long	max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
+			
+			PluginInterface[] plugins = plugin_interface.getPluginManager().getPluginInterfaces();
+			
+			
+			List	pids = new ArrayList();
+			
+			for (int i=0;i<plugins.length;i++){
+				
+				String	pid = plugins[i].getPluginID();
+				
+					// filter out built-in and core ones
+				
+				if ( 	!pid.startsWith( "<" ) &&
+						!pid.startsWith( "azupdater" ) &&
+						!pid.startsWith( "azplatform" ) &&
+						!pids.contains( pid )){
+				
+					pids.add( pid );
+				}
+			}
+			
+			String	plugins_str = "";
+
+			for (int i=0;i<pids.size();i++){
+				
+				String	pid = (String)pids.get(i);
+				
+				plugins_str += ( plugins_str.length()==0?"":";")+pid ;
+			}
+			
 			url_str += "?id=" + id + 
 							"&version=" + Constants.AZUREUS_VERSION + 
 							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") +
-							"&java=" + URLEncoder.encode( java_version, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-		}
+							"&java=" + URLEncoder.encode( java_version, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") + 
+							"&javavendor=" + URLEncoder.encode( java_vendor, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") +
+							"&javamx=" + max_mem +
+							"&plugins=" + URLEncoder.encode( plugins_str, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+			}
 		
 		return( new URL( url_str ));
 	}
