@@ -1,5 +1,5 @@
 /*
- * File    : MyIPCheckerFactory.java
+ * File    : ExternalIPCheckerImpl.java
  * Created : 09-Nov-2003
  * By      : parg
  * 
@@ -19,21 +19,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.ipchecker.extipchecker;
+package org.gudy.azureus2.core3.ipchecker.extipchecker.impl;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.ipchecker.extipchecker.impl.*;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
 
 public class 
-ExternalIPCheckerFactory 
+ExternalIPCheckerImpl
+	implements ExternalIPChecker 
 {
-	public static ExternalIPChecker
-	create()
+	static ExternalIPCheckerService[]	services;
+	
+	static{
+		services = new ExternalIPCheckerService[]{
+							new ExternalIPCheckerServiceDynDNS(),
+						};
+	}
+	public ExternalIPCheckerService[]
+	getServices()
 	{
-		return( new ExternalIPCheckerImpl());
+		return( services );
 	}
 }

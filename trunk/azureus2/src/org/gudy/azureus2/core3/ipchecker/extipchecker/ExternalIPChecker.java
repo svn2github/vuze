@@ -25,8 +25,9 @@ package org.gudy.azureus2.core3.ipchecker.extipchecker;
  * @author parg
  *
  */
-public class 
+public interface 
 ExternalIPChecker 
 {
-
+	public ExternalIPCheckerService[]
+	getServices();
 }

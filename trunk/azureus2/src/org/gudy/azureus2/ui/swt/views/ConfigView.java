@@ -14,6 +14,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -33,6 +34,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -913,19 +915,77 @@ public class ConfigView extends AbstractIView {
 		
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.ip"); 
 		
-	  StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
+	  final StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
+	  
+	  Button check_button = new Button(gTracker, SWT.PUSH);
+	  
+	  Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
 
-	  label = new Label(gTracker, SWT.NULL);
+	  check_button.addListener(SWT.Selection, new Listener() {
+
+		 public void 
+		 handleEvent(Event event) 
+		 {
+		 		// hack for the moment - this will kick off "check ip" wizard
+		 		
+			ExternalIPChecker checker = ExternalIPCheckerFactory.create();
+			
+			ExternalIPCheckerService[]	services = checker.getServices();
+			
+			services[0].addListener(
+				new ExternalIPCheckerServiceListener()
+				{
+					public void
+					checkComplete(
+						ExternalIPCheckerService		service,
+						final String					ip )
+					{
+						Display	display = cConfig.getDisplay();
+						
+						if ( !display.isDisposed()){
+						
+							display.asyncExec(
+								new Runnable()
+								{
+							  		public void 
+							  		run() 
+							  		{
+										tracker_ip.setValue( ip );
+							  		}
+								});
+						}
+					}
+		
+					public void
+					checkFailed(
+						ExternalIPCheckerService	service,
+						String						reason )
+					{
+						System.out.println( "oops - " + reason );
+					}
+		
+					public void
+					reportProgress(
+						ExternalIPCheckerService	service,
+						String						message )
+					{
+						System.out.println( "progress - " + message );
+					}
+			});
+			
+			services[0].initiateCheck(10000);
+		 }
+	   });
 		
 	  // row
 		
-	 label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
 		
-	 Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
 		
-	 IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
+	  IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
 
-	 label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
 		
 			// row
 			

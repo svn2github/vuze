@@ -1,5 +1,5 @@
 /*
- * File    : MyIPCheckerFactory.java
+ * File    : ExternalIPCheckerServiceListener.java
  * Created : 09-Nov-2003
  * By      : parg
  * 
@@ -25,15 +25,21 @@ package org.gudy.azureus2.core3.ipchecker.extipchecker;
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.ipchecker.extipchecker.impl.*;
-
-public class 
-ExternalIPCheckerFactory 
+public interface 
+ExternalIPCheckerServiceListener 
 {
-	public static ExternalIPChecker
-	create()
-	{
-		return( new ExternalIPCheckerImpl());
-	}
+	public void
+	checkComplete(
+		ExternalIPCheckerService	service,
+		String						ip );
+		
+	public void
+	checkFailed(
+		ExternalIPCheckerService	service,
+		String						reason );
+		
+	public void
+	reportProgress(
+		ExternalIPCheckerService	service,
+		String						message );
 }

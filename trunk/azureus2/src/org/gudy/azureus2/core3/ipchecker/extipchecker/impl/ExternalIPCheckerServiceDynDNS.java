@@ -1,5 +1,5 @@
 /*
- * File    : MyIPCheckerFactory.java
+ * File    : ExternalIPCheckerServiceDynDNS.java
  * Created : 09-Nov-2003
  * By      : parg
  * 
@@ -19,21 +19,44 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.ipchecker.extipchecker;
+package org.gudy.azureus2.core3.ipchecker.extipchecker.impl;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.ipchecker.extipchecker.impl.*;
-
 public class 
-ExternalIPCheckerFactory 
+ExternalIPCheckerServiceDynDNS
+	extends ExternalIPCheckerServiceImpl 
 {
-	public static ExternalIPChecker
-	create()
+	protected static final String	CHECKER_URL	= "http://checkip.dyndns.org/";
+	
+	protected
+	ExternalIPCheckerServiceDynDNS()
 	{
-		return( new ExternalIPCheckerImpl());
+		super( "IPChecker.external.service.dyndns" );
+	}
+	
+	public void
+	initiateCheck(
+		long		timeout )
+	{
+		super.initiateCheck( timeout );
+	}
+	
+	protected void
+	initiateCheckSupport()
+	{
+		reportProgress( "Loading web page '" + CHECKER_URL + "'");
+		
+		String	page = loadPage( CHECKER_URL );
+
+		reportProgress( "Analysing Response" );		
+				
+		String	IP = extractIPAddress( page );
+				
+		reportProgress( "Extracted IP address '" + IP + "'" );
+		
+		informSuccess( IP==null?"":IP );
 	}
 }
