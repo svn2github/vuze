@@ -149,6 +149,8 @@ PRUDPPacketHandlerImpl
 					PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
 					
 					if ( now - request.getCreateTime() >= RECEIVE_TIMEOUT ){
+					
+						LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
 						
 						request.setException(new PRUDPPacketHandlerException("timed out"));
 					}
@@ -170,19 +172,20 @@ PRUDPPacketHandlerImpl
 			PRUDPPacketReply.deserialiseReply( 
 				new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet.getLength())));
 
-		System.out.println( "PRUDPPacketHandler: received " + reply.getString());
-		System.out.println( "\tdst:" + socket.getLocalSocketAddress());
-		System.out.println( "\tsrc:" + packet.getSocketAddress());
+		LGLogger.log( "PRUDPPacketHandler: reply packet received: " + reply.getString()); 
+				
+		synchronized( requests ){
+			
+			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.get(new Integer(reply.getTransactionId()));
 		
-		PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.get(new Integer(reply.getTransactionId()));
-		
-		if ( request == null ){
+			if ( request == null ){
 			
-			LGLogger.log( "PRUDPPacketReceiver: unmatched reply received, discarding:" + reply.getString());
+				LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + reply.getString());
 			
-		}else{
+			}else{
 			
-			request.setReply( reply );
+				request.setReply( reply );
+			}
 		}
 	}
 	
@@ -211,9 +214,7 @@ PRUDPPacketHandlerImpl
 				requests.put( new Integer( request_packet.getTransactionId()), request );
 			}
 			
-			System.out.println( "PRUDPPacketHandler: sending " + request_packet.getString());
-			System.out.println( "\tsrc:" + socket.getLocalSocketAddress());
-			System.out.println( "\tdst:" + packet.getSocketAddress());
+			LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString()); 
 			
 			try{
 				socket.send( packet );
@@ -232,6 +233,8 @@ PRUDPPacketHandlerImpl
 			throw( e );
 			
 		}catch( Throwable e ){
+			
+			LGLogger.log( "PRUDPPacketHandler: sendAndReceive failed", e ); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:sendAndReceive failed", e ));
 		}

@@ -31,6 +31,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
@@ -58,9 +59,7 @@ TRTrackerServerProcessorUDP
 	
 	public void
 	run()
-	{
-		System.out.println( "UDPProcessor: packet length = " + packet.getLength() + ", address = " + packet.getAddress() + ", port = " + packet.getPort());
-		
+	{		
 		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
 		
 		try{
@@ -68,7 +67,7 @@ TRTrackerServerProcessorUDP
 			
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
 			
-			System.out.println( "UDPRequest:" + request.getString());
+			LGLogger.log( "TRTrackerServerProcessorUDP: packet received: " + request.getString()); 
 			
 			PRUDPPacket	reply;
 			
