@@ -12,6 +12,8 @@ CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK)
 CHANGE: Azureus now responds as Server: Azureus <version> in tracker http comms [Parg]
 
 BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
+BUGFIX: Fast resuming with Chinese directories: Bug #869749 [Parg]
+BUGFIX: System tray icon re-shown after explorer.exe crash (again) [Rele]
 
 
 19.12.03 | Azureus 2.0.6.0
