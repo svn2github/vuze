@@ -118,20 +118,15 @@ TOTorrentImpl
 					{
 						byte[]	res = serialiseToByteArray();
 						
-						FileOutputStream os = null;
+            BufferedOutputStream bos = null;
 						
 						try{
-							os = new FileOutputStream( output_file );
-                            
-                     os.getChannel().force(true);
-							
-							os.write( res );
-                            
-                     os.flush();
-						
-							os.close();
-							
-							return( null );
+              bos = new BufferedOutputStream( new FileOutputStream( output_file, false ), 8192 );
+							bos.write( res );
+							bos.flush();
+              
+              bos.close();
+              return null;
 							
 						}catch( Throwable e){
 							
@@ -140,10 +135,10 @@ TOTorrentImpl
 							
 						}finally{
 							
-							if ( os != null ){
+							if ( bos != null ){
 								
 								try{
-									os.close();
+									bos.close();
 									
 								}catch( IOException e ){
 								

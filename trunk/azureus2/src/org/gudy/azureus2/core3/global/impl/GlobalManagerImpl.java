@@ -26,13 +26,7 @@ package org.gudy.azureus2.core3.global.impl;
  *
  */
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +38,6 @@ import java.util.Collections;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -607,8 +600,13 @@ public class GlobalManagerImpl
     try {
       //open the file
       File configFile = FileUtil.getApplicationFile("downloads.config");
+      
+      if ( configFile.length() <= 1L ) {
+        throw new FileNotFoundException();
+      }
+      
       fin = new FileInputStream(configFile);
-      bin = new BufferedInputStream(fin);
+      bin = new BufferedInputStream(fin, 8192);
       Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
       int numDownloading = 0;
@@ -718,7 +716,7 @@ public class GlobalManagerImpl
       fixUpDownloadManagerPositions();
     }
     catch (FileNotFoundException e) {
-      //Do nothing
+      LGLogger.log("Unable to load downloads.config: file not found or file is zero-sized");
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -784,39 +782,25 @@ public class GlobalManagerImpl
 	    }
 	    map.put("downloads", list);
         
-	    FileOutputStream fos = null;
+      BufferedOutputStream bos = null;
        
 	    try {
 	    	//encode the data
 	    	byte[] torrentData = BEncoder.encode(map);
             
-         File oldFile = FileUtil.getApplicationFile("downloads.config");
-         File newFile = FileUtil.getApplicationFile("downloads.config.new");
+	    	File file = FileUtil.getApplicationFile("downloads.config");
          
-         //write the data out
-	    	fos = new FileOutputStream(newFile);
-         fos.getChannel().force(true);
-	      fos.write(torrentData);
-         fos.flush();
-         
-          //close the output stream
-         fos.close();
-         fos = null;
-         
-         //delete the old file
-         if ( !oldFile.exists() || oldFile.delete() ) {
-            //rename the new one
-            newFile.renameTo(oldFile);
-         }
-                  
+	    	bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
+	    	bos.write( torrentData );
+	    	bos.flush();           
 	    }
 	    catch (Exception e) {
 	      e.printStackTrace();
 	    }
 	    finally {
 	      try {
-	        if (fos != null)
-	          fos.close();
+	        if (bos != null)
+	          bos.close();
 	      }
 	      catch (Exception e) {}
 	    }
