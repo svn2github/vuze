@@ -189,37 +189,41 @@ public class IncomingMessageQueue {
    * Start processing (reading) incoming messages.
    */
   public void startQueueProcessing() {
-    if( !is_processing_enabled ) {
-      connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
+    try{  listeners_mon.enter();
+    
+      if( !is_processing_enabled ) {
+        connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
         
-        public void readyToRead() {
-          try {
-            if( !is_processing_enabled ) {
-              throw new IOException( "readyToRead():: !is_processing_enabled" );
-            }
-            
-            receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
-          }
-          catch( Throwable e ) {
-            if( e.getMessage() == null ) {
-              Debug.out( "null read exception message: ", e );
-            }
-            else {
-              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                  e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-                
-                System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+          public void readyToRead() {
+            try {
+              if( !is_processing_enabled ) {
+                throw new IOException( "readyToRead():: !is_processing_enabled" );
               }
+            
+              receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
             }
+            catch( Throwable e ) {
+              if( e.getMessage() == null ) {
+                Debug.out( "null read exception message: ", e );
+              }
+              else {
+                if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                    e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                    e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+                
+                  System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+                }
+              }
               
-            connection.notifyOfException( e );
+              connection.notifyOfException( e );
+            }
           }
-        }
-      });
+        });
       
-      is_processing_enabled = true;
+        is_processing_enabled = true;
+      }
     }
+    finally{  listeners_mon.exit();  }
   }
   
   
@@ -227,10 +231,14 @@ public class IncomingMessageQueue {
    * Stop processing (reading) incoming messages.
    */
   public void stopQueueProcessing() {
-    if( is_processing_enabled ) {
-      is_processing_enabled = false;
-      connection.getTCPTransport().cancelReadSelects();
+    try{  listeners_mon.enter();
+    
+      if( is_processing_enabled ) {
+        is_processing_enabled = false;
+        connection.getTCPTransport().cancelReadSelects();
+      }
     }
+    finally{  listeners_mon.exit();  }
   }
   
   
@@ -273,9 +281,8 @@ public class IncomingMessageQueue {
    * Destroy this queue.
    */
   public void destroy() {
+    stopQueueProcessing();
     stream_decoder.destroy();
-    listeners.clear();
-    is_processing_enabled = false;
   }
   
   
