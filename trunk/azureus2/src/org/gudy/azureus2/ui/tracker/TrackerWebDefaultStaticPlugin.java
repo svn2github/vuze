@@ -51,18 +51,7 @@ TrackerWebDefaultStaticPlugin
 			
 		Hashtable	params = null;
 		
-		if ( url.equals("/")){
-			
-			for (int i=0;i<welcome_files.length;i++){
-				
-				if ( welcome_files[i].exists()){
-					
-					url = "/" + welcome_pages[i];
-					
-					break;
-				}
-			}
-		}
+		url = mapHomePage( url );
 		
 		int	p_pos = url.indexOf( '?' );
 		
@@ -106,7 +95,7 @@ TrackerWebDefaultStaticPlugin
 			
 			String	file_type = str.substring(pos+1);
 			
-			if ( file_type.equals("tmpl")){
+			if ( file_type.equals("php") || file_type.equals("tmpl")){
 			
 				Hashtable	args = new Hashtable();
 			

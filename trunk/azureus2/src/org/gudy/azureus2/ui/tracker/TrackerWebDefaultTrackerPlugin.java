@@ -129,10 +129,7 @@ TrackerWebDefaultTrackerPlugin
 				}
 			}else{
 				
-				if ( url.equals( "/")){
-					
-					url = "/index.tmpl";
-				}
+				url = mapHomePage( url );
 				
 				Hashtable	params = null;
 				
@@ -162,7 +159,7 @@ TrackerWebDefaultTrackerPlugin
 					
 					String	file_type = url.substring(pos+1);
 					
-					if ( file_type.equals("tmpl")){
+					if ( file_type.equals("php") || file_type.equals("tmpl")){
 						
 						Hashtable	args = new Hashtable();
 						

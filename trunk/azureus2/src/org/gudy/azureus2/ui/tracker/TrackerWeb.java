@@ -44,7 +44,7 @@ TrackerWeb
 {
 	protected static final String	NL			= "\r\n";
 	
-	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.tmpl" };
+	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
 	protected PluginInterface		plugin_interface;
@@ -409,5 +409,19 @@ TrackerWeb
 	  if(st.countTokens() != 4)
 	    return "*";
 	  return st.nextToken() + "." + st.nextToken() + "." + st.nextToken() + ".*";
+	}
+	
+	// Map the Homepage URL.
+	protected String mapHomePage( String url_in )
+	{
+	  if ( url_in.equals("/")){
+		for (int i=0;i<welcome_files.length;i++){
+		  if ( welcome_files[i].exists()){
+			url_in = "/" + welcome_pages[i];
+			return (url_in);
+		  }
+		}
+	  }
+	  return (url_in);
 	}
 }
