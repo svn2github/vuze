@@ -213,20 +213,17 @@ public class Identification {
     }
 
     String sPeerID = "";
-    for (int i = 0; i < peerID.length; i++) {
-      int num = 0xFF & peerID[i];
-      if (num < 16) sPeerID += "0";
-      sPeerID += Integer.toHexString(num).toUpperCase();
-  }
-    sPeerID += ": ";
-    for (int i = 0; i < peerID.length; i++) {
-      if ((0xFF & peerID[i]) < 32)
-        peerID[i] = 32;
-      if ((0xFF & peerID[i]) > 127)
-        peerID[i] = 32;
+    try {
+    	for (int i = 0; i < peerID.length; i++) {
+    		if ((0xFF & peerID[i]) < 32)
+    			peerID[i] = 32;
+    		if ((0xFF & peerID[i]) > 127)
+    			peerID[i] = 32;
+    	}
+    	sPeerID = new String(peerID, Constants.BYTE_ENCODING).replaceAll(" ", "-");
     }
-    sPeerID += new String(peerID).replaceAll(" ", "");
-
-    return MessageText.getString("PeerSocket.unknown") + " (" + sPeerID + ")";
+    catch (UnsupportedEncodingException ignore) {}
+    
+    return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
 }
 }
