@@ -32,9 +32,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 /* Manage Tables
  *
