@@ -108,8 +108,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     
     FormLayout layout = new FormLayout();
     layout.spacing = 5;
-    layout.marginHeight = 5;
-    layout.marginWidth = 5;
+    layout.marginHeight = 10;
+    layout.marginWidth = 10;
     FormData formData;
     updateWindow.setLayout(layout);
     
