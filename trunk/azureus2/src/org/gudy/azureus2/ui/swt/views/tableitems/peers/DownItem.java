@@ -45,7 +45,9 @@ public class DownItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     long value = (peer == null) ? 0 : peer.getStats().getTotalReceived();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

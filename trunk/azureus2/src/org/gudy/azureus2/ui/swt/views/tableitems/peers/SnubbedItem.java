@@ -47,7 +47,9 @@ public class SnubbedItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     long value = (peer == null) ? 0 : (peer.isSnubbed() ? 1 : 0);
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     if (cell.setText((value == 1) ? "*" : "")) {
       ((TableCellCore)cell).getTableRowCore().setForeground((value == 1) ? Colors.grey 
                                                                      : null);

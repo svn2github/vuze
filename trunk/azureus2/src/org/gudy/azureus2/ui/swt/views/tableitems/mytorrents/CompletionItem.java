@@ -87,7 +87,11 @@ public class CompletionItem
       }
   
       int percentDone = getPercentDone(cell);
-      boolean bImageBufferValid = (lastPercentDone == percentDone) && 
+      if (!cell.setSortValue(percentDone) && cell.isValid())
+        return;
+
+      boolean bImageBufferValid = (!cell.setSortValue(percentDone)) &&
+                                  (lastPercentDone == percentDone) && 
                                   (lastWidth == newWidth) && 
                                   cell.isValid();
       if (bImageBufferValid) {
@@ -135,7 +139,6 @@ public class CompletionItem
       if (!bImageBufferValid) {
         cell.setGraphic(image);
       }
-      cell.setSortValue(percentDone);
     }
   
     public int getPercentDone(TableCell cell) {

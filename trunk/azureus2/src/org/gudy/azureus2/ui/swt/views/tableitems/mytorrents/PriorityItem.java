@@ -45,7 +45,9 @@ public class PriorityItem
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getPriority();
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     String tmp = (value == DownloadManager.HIGH_PRIORITY) ? "ManagerItem.high" 
                                                           : "ManagerItem.low";
     cell.setText(MessageText.getString(tmp));

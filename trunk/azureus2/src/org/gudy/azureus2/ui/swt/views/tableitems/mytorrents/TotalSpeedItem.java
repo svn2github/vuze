@@ -46,7 +46,9 @@ public class TotalSpeedItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getStats().getTotalAverage();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
   }
 }

@@ -46,7 +46,9 @@ public class UniquePieceItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     long value = (peer == null) ? 0 : peer.getUniqueAnnounce();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText((value == -1) ? MessageText.getString("PeersView.uniquepiece.none")
                                : "" + value);
   }

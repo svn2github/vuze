@@ -62,7 +62,9 @@ public class HealthItem
       
       DownloadManager dm = (DownloadManager)cell.getDataSource();
       int wealth = (dm == null) ? 0 : dm.getHealthStatus();
-      cell.setSortValue(wealth);
+      if (!cell.setSortValue(wealth) && cell.isValid())
+        return;
+
       if(wealth == DownloadManager.WEALTH_KO) {
       	image_name = "st_ko";   
       } else if (wealth == DownloadManager.WEALTH_OK) {

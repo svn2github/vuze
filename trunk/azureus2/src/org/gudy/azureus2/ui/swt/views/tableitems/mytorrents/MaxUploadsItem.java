@@ -39,7 +39,8 @@ public class MaxUploadsItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getStats().getMaxUploads();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
     cell.setText(String.valueOf(value));
   }
 }

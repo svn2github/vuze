@@ -49,7 +49,8 @@ public class DoneItem
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     int value = (dm == null) ? 0 : dm.getStats().getCompleted();
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
     cell.setText(DisplayFormatters.formatPercentFromThousands(value));
   }
 }

@@ -61,6 +61,8 @@ public class AvailabilityItem
     PEPeerManager pm = dm.getPeerManager();
     if (pm != null) {
       float f = pm.getMinAvailability();
+      if (!cell.setSortValue((long)f * 1000) && cell.isValid())
+        return;
       if (f != 0) {
         int numZeros = zeros.length();
         sText = String.valueOf((int)(f * iTimesBy));
@@ -69,7 +71,6 @@ public class AvailabilityItem
         sText = sText.substring(0, sText.length() - numZeros + 1) + "." + 
                 sText.substring(sText.length() - numZeros + 1);
       }
-      cell.setSortValue((long)(f * 1000));
     } else {
       cell.setSortValue(0);
     }

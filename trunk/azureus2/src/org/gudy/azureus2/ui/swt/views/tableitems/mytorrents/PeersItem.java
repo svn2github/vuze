@@ -52,6 +52,10 @@ public class PeersItem
       if (hd != null && hd.isValid())
         lTotalPeers = hd.getPeers();
     }
+
+    long value = lConnectedPeers * 10000000 + lTotalPeers;
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
     
     String tmp = String.valueOf(lConnectedPeers); //$NON-NLS-1$
     if (lTotalPeers != -1)
@@ -59,6 +63,5 @@ public class PeersItem
     else
       lTotalPeers = 0;
     cell.setText(tmp);
-    cell.setSortValue(lConnectedPeers * 10000000 + lTotalPeers);
   }
 }

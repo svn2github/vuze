@@ -46,7 +46,9 @@ public class PercentItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     int value = (peer == null) ? 0 : peer.getPercentDone();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(DisplayFormatters.formatPercentFromThousands(value));
   }
 }

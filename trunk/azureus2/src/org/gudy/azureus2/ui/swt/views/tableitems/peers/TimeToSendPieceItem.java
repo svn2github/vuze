@@ -46,7 +46,9 @@ public class TimeToSendPieceItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     long value = (peer == null) ? 0 : peer.getUploadHint();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(TimeFormater.format(value / 1000));
   }
 }

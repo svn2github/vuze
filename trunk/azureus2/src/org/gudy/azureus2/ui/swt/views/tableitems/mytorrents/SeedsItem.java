@@ -53,12 +53,15 @@ public class SeedsItem
         lTotalSeeds = hd.getSeeds();
     }
     
+    long value = lConnectedSeeds * 10000000 + lTotalSeeds;
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     String tmp = String.valueOf(lConnectedSeeds); //$NON-NLS-1$
     if (lTotalSeeds != -1)
       tmp += " (" + lTotalSeeds + ")";
     else
       lTotalSeeds = 0;
     cell.setText(tmp);
-    cell.setSortValue(lConnectedSeeds * 10000000 + lTotalSeeds);
   }
 }

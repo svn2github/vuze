@@ -46,7 +46,8 @@ public class ETAItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getStats().getETA();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
     cell.setText(DisplayFormatters.formatETA(value));
   }
 }

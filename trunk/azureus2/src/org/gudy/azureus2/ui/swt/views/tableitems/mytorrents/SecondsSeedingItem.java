@@ -46,7 +46,9 @@ public class SecondsSeedingItem
     long value = (dm == null) ? 0 : dm.getStats().getSecondsDownloading() +
                                     dm.getStats().getSecondsOnlySeeding();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(TimeFormater.format(value));
   }
 }

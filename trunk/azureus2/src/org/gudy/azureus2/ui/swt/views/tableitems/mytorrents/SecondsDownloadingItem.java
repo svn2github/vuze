@@ -46,7 +46,9 @@ public class SecondsDownloadingItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getStats().getSecondsDownloading();
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(TimeFormater.format(value));
   }
 }

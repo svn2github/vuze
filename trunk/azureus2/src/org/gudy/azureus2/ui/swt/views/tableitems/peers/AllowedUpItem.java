@@ -47,7 +47,9 @@ public class AllowedUpItem
     if (peer != null && !peer.isChoking())
       value = peer.getAllowed() * 5;
 
-    cell.setSortValue(value);
+    if (!cell.setSortValue(value) && cell.isValid())
+      return;
+
     cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
   }
 }
