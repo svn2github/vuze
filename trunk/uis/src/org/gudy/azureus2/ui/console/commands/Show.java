@@ -137,8 +137,8 @@ public class Show extends IConsoleCommand {
 						ps = null;
 					}
 					if (ps != null) {
-						totalReceived += dm.getStats().getDownloaded();
-						totalSent += dm.getStats().getUploaded();
+						totalReceived += dm.getStats().getTotalDataBytesReceived();
+						totalSent += dm.getStats().getTotalDataBytesSent();
 						totalDiscarded += ps.getTotalDiscarded();
 						connectedSeeds += dm.getNbSeeds();
 						connectedPeers += dm.getNbPeers();
@@ -148,7 +148,7 @@ public class Show extends IConsoleCommand {
 					ci.out.println();
 				}
 			}
-			ci.out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getUploadAverage()));
+			ci.out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataReceiveRate() + ci.gm.getStats().getProtocolReceiveRate() ) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataSendRate() + ci.gm.getStats().getProtocolSendRate() ));
 
 			ci.out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
 			ci.out.println("Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers));
@@ -277,13 +277,13 @@ public class Show extends IConsoleCommand {
 				} else
 					return "\t";
 			case 'd':
-				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getDownloadAverage());
+				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getDataReceiveRate());
 			case 'u':
-				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getUploadAverage());
+				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getDataSendRate());
 			case 'D':
 				return DisplayFormatters.formatDownloaded(dm.getStats());
 			case 'U':
-				return DisplayFormatters.formatByteCountToKiBEtc(dm.getStats().getUploaded());
+				return DisplayFormatters.formatByteCountToKiBEtc(dm.getStats().getTotalDataBytesSent());
 			case 's':
 				return Integer.toString(dm.getNbSeeds());
 			case 'p':

@@ -74,8 +74,8 @@ public class RSSHandler implements httpRequestHandlerIF {
 					ps = null;
 				}
 				if (ps != null) {
-					totalReceived += dm.getStats().getDownloaded();
-					totalSent += dm.getStats().getUploaded();
+					totalReceived += dm.getStats().getTotalDataBytesReceived();
+					totalSent += dm.getStats().getTotalDataBytesSent();
 					totalDiscarded += ps.getTotalDiscarded();
 					connectedSeeds += dm.getNbSeeds();
 					connectedPeers += dm.getNbPeers();
@@ -135,10 +135,10 @@ public class RSSHandler implements httpRequestHandlerIF {
 						response += dm.getDisplayName();
 				}
 				response += "</span> (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") <i><b>ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "</b></i><br>\t\tSpeed: ";
-				response += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
-				response += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
+				response += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()) + " / ";
+				response += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()) + "\tAmount: ";
 				response += DisplayFormatters.formatDownloaded(stats) + " / ";
-				response += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
+				response += DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()) + "\tConnections: ";
 				if (hd == null || !hd.isValid()) {
 					response += Integer.toString(dm.getNbSeeds()) + "(?) / ";
 					response += Integer.toString(dm.getNbPeers()) + "(?)";
@@ -150,7 +150,7 @@ public class RSSHandler implements httpRequestHandlerIF {
 				//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
 				// true));
 			}
-			response += "Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getUploadAverage())+"<br>";
+			response += "Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getDataReceiveRate()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.getGlobalManager().getStats().getDataSendRate())+"<br>";
 			response += "Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded)+"<br>";
 			response += "Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers)+"<br>";
 		} else
