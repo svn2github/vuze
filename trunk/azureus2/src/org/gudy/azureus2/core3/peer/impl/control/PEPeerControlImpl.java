@@ -1709,7 +1709,12 @@ PEPeerControlImpl
     }
     
     long averageSpeed = _averageReceptionSpeed.getAverage();
-    return dataRemaining / (averageSpeed + 1);
+    long lETA = dataRemaining / (averageSpeed + 1);
+    // stop the flickering of ETA from "Finished" to "x seconds" when we are 
+    // just about complete, but the data rate is jumpy.
+    if (lETA == 0)
+      lETA = 1;
+    return lETA;
   }
   
   	// the following three methods must be used when adding to/removing from peer transports
