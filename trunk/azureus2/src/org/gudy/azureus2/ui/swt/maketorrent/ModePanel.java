@@ -27,6 +27,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -171,6 +173,7 @@ public class ModePanel extends AbstractWizardPanel {
     while (iter.hasNext()) {
       tracker.add((String) iter.next());
     }
+    
     tracker.addModifyListener(new ModifyListener() {
       /*
 			 * (non-Javadoc)
@@ -192,6 +195,24 @@ public class ModePanel extends AbstractWizardPanel {
         wizard.setErrorMessage(errorMessage);
         wizard.setNextEnabled(valid);
 
+      }
+    });
+    
+    tracker.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        String text = tracker.getText();        
+        setTrackerUrl(text);
+        
+        boolean valid = true;
+        String errorMessage = "";
+        try {
+          new URL(text);
+        } catch (MalformedURLException ex) {
+          valid = false;
+          errorMessage = MessageText.getString("wizard.invalidurl");
+        }
+        wizard.setErrorMessage(errorMessage);
+        wizard.setNextEnabled(valid);
       }
     });
     updateTrackerURL();
@@ -361,6 +382,18 @@ public class ModePanel extends AbstractWizardPanel {
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
   public IWizardPanel getNextPanel() {
+    
+    //OSX work-arround to Fix SWT BUG #43396 :
+    //Combo doesn't fire Selection Event
+    if(Constants.isOSX) {
+      //In case we're not using the localTracker, refresh the
+      //Tracker URL from the Combo text
+      if( ! ((NewTorrentWizard) wizard).localTracker) {
+        setTrackerUrl(tracker.getText());
+      }
+    }
+    
+    
     if(((NewTorrentWizard) wizard).useMultiTracker)
       return new MultiTrackerPanel((NewTorrentWizard) wizard, this);
 
