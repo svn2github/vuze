@@ -66,19 +66,19 @@ public class PieceTableItem {
     String tmp;
 
     tmp = "" + piece.pieceNumber;
-    if (oldTexts[0].equals("")) {
+    if (oldTexts[0].length() == 0) {
       item.setText(0, tmp);
       oldTexts[0] = tmp;
     }
 
     tmp = PeerStats.format(piece.length);
-    if (oldTexts[1].equals("")) {
+    if (oldTexts[1].length() == 0) {
       item.setText(1, tmp);
       oldTexts[1] = tmp;
     }
 
     tmp = "" + piece.nbBlocs;
-    if (oldTexts[2].equals("")) {
+    if (oldTexts[2].length() == 0) {
       item.setText(2, tmp);
       oldTexts[2] = tmp;
     }

@@ -18,9 +18,9 @@ public class TrackerConnection
   private String trackerUrl;
   private byte[] hash;
   private byte[] peerId;
-  private long uploaded;
-  private long downloaded;
-  private long remaining;
+//  private long uploaded;
+//  private long downloaded;
+//  private long remaining;
   private int port;
   
   private PeerManager manager;
@@ -54,16 +54,16 @@ public class TrackerConnection
     }
     byte[] azureus = (new String("Azureus")).getBytes();
     for(int i = 5 ;i < 12 ; i++) {
-    	peerId[i] = azureus[i-5];
+      peerId[i] = azureus[i-5];
     }
     for(int i = 0 ; i < 5 ; i++)
     {
       peerId[i] = (byte) 0;
     }
     
-    uploaded = 0;
-    downloaded = 0;
-    remaining = 0; 
+//    uploaded = 0;
+//    downloaded = 0;
+//    remaining = 0; 
     
     this.port = port;
     Logger.getLogger().log(componentID,evtLifeCycle,Logger.INFORMATION,"Tracker Connection Created using url : " + trackerUrl);
@@ -102,8 +102,8 @@ public class TrackerConnection
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();             
       con.connect();
       InputStream is = con.getInputStream(); 
-      int length = con.getContentLength();
-      //System.out.println(length);
+//      int length = con.getContentLength();
+//      System.out.println(length);
       byte[] data = new byte[1024];
       String message = "";
       int nbRead = 0;
@@ -150,13 +150,13 @@ public class TrackerConnection
     request += "&uploaded=" + manager.uploaded();
     request += "&downloaded=" + manager.downloaded();
     request += "&left=" + manager.getRemaining();
-    if(!evt.equals(""))
+    if(evt.length() != 0)
       request += "&event=" + evt;
     if(evt.equals("stopped"))
       request += "&numpeers=0";
     ConfigurationManager config = ConfigurationManager.getInstance();
     String ip = config.getStringParameter("Override Ip","");
-    if(! ip.equals(""))
+    if(ip.length() != 0)
       request += "&ip=" + ip;
     
     return request;
