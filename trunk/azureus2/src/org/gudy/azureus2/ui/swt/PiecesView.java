@@ -19,7 +19,7 @@ import org.gudy.azureus2.core.Piece;
  * @author Olivier
  * 
  */
-public class PiecesView implements IView, IComponentListener {
+public class PiecesView extends AbstractIView implements IComponentListener {
 
   DownloadManager manager;
   Table table;
@@ -39,12 +39,12 @@ public class PiecesView implements IView, IComponentListener {
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
     String[] titlesPieces =
-      { "#", Messages.getString("PiecesView.size"), Messages.getString("PiecesView.numberofblocks"), Messages.getString("PiecesView.blocks"), Messages.getString("PiecesView.completed"), Messages.getString("PiecesView.availability") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+      { "#", "size", "numberofblocks", "blocks", "completed", "availability" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
     int[] alignPieces =
       { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.RIGHT, SWT.RIGHT };
     for (int i = 0; i < titlesPieces.length; i++) {
       TableColumn column = new TableColumn(table, alignPieces[i]);
-      column.setText(titlesPieces[i]);      
+      Messages.setLanguageText(column, "PiecesView." + titlesPieces[i]); //$NON-NLS-1$
     }
     table.getColumn(0).setWidth(50);
     table.getColumn(1).setWidth(60);

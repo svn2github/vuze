@@ -27,7 +27,7 @@ import org.gudy.azureus2.core2.PeerSocket;
  * @author Olivier
  * 
  */
-public class PeersView implements IView, IComponentListener {
+public class PeersView extends AbstractIView implements IComponentListener {
 
   DownloadManager manager;
   Table table;
@@ -47,24 +47,24 @@ public class PeersView implements IView, IComponentListener {
     table.setHeaderVisible(true);
     String[] titles =
       {
-        Messages.getString("PeersView.ip"), //$NON-NLS-1$
-        Messages.getString("PeersView.port"), //$NON-NLS-1$
+        "ip", //$NON-NLS-1$
+        "port", //$NON-NLS-1$
         "T",
-        "I",
-        "C",
-        Messages.getString("PeersView.pieces"), //$NON-NLS-1$
+        "I1",
+        "C1",
+        "pieces", //$NON-NLS-1$
         "%", //$NON-NLS-1$
-        Messages.getString("PeersView.downloadspeed"), //$NON-NLS-1$
-        Messages.getString("PeersView.download"), //$NON-NLS-1$
-        "I",
-        "C",
-        Messages.getString("PeersView.uploadspeed"), //$NON-NLS-1$
-        Messages.getString("PeersView.upload"), //$NON-NLS-1$
-        "Stat Up",
+        "downloadspeed", //$NON-NLS-1$
+        "download", //$NON-NLS-1$
+        "I2",
+        "C2",
+        "uploadspeed", //$NON-NLS-1$
+        "upload", //$NON-NLS-1$
+        "statup",
         "S",
-        Messages.getString("PeersView.downloadspeedoverall"), //$NON-NLS-1$
-        "Opt. Unchoke",
-        "Client" };
+        "downloadspeedoverall", //$NON-NLS-1$
+        "optunchoke",
+        "client" };
     int[] align =
       {
         SWT.LEFT,
@@ -87,7 +87,7 @@ public class PeersView implements IView, IComponentListener {
         SWT.LEFT };
     for (int i = 0; i < titles.length; i++) {
       TableColumn column = new TableColumn(table, align[i]);
-      column.setText(titles[i]);
+      Messages.setLanguageText(column, "PeersView." + titles[i]);
     }
     table.getColumn(0).setWidth(100);
     table.getColumn(1).setWidth(0);
@@ -131,7 +131,7 @@ public class PeersView implements IView, IComponentListener {
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
-    item.setText(Messages.getString("PeersView.menu.snubbed")); //$NON-NLS-1$
+    Messages.setLanguageText(item, "PeersView.menu.snubbed"); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {

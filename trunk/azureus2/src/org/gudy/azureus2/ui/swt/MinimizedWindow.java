@@ -62,7 +62,7 @@ public class MinimizedWindow {
     int xSize = lDrag.getSize().x + 3;
     lDrag.setLocation(0, 0);
 
-    final Display _display = display;
+//    final Display _display = display;
     MouseListener mListener = new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
         xPressed = e.x;
@@ -99,7 +99,7 @@ public class MinimizedWindow {
     Label l1 = new Label(splash, SWT.NONE);
     l1.setBackground(blues[0]);
     l1.setForeground(blues[4]);
-    l1.setText(Messages.getString("MinimizedWindow.name") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
+    Messages.setLanguageText(l1, "MinimizedWindow.name"); //$NON-NLS-1$
     l1.addMouseListener(mListener);
     l1.addMouseMoveListener(mMoveListener);
     l1.pack();

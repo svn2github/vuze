@@ -37,7 +37,7 @@ public class TrayWindow implements IComponentListener {
   Display display;
   Shell minimized;
   Label label;
-  Menu menu;
+  private Menu menu;
 
   private Rectangle screen;
 
@@ -102,11 +102,12 @@ public class TrayWindow implements IComponentListener {
     label.addMouseListener(mListener);
     label.addMouseMoveListener(mMoveListener);
 
-    Menu menu = new Menu(minimized, SWT.CASCADE);
+    menu = new Menu(minimized, SWT.CASCADE);
     label.setMenu(menu);
 
     MenuItem file_show = new MenuItem(menu, SWT.NULL);
-    file_show.setText(Messages.getString("TrayWindow.menu.show") + " Azureus"); //$NON-NLS-1$ //$NON-NLS-2$
+    file_show.setData("TrayWindow.menu.show");
+    file_show.setText(Messages.getString((String)file_show.getData()));
     menu.setDefaultItem(file_show);
     file_show.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -119,7 +120,8 @@ public class TrayWindow implements IComponentListener {
     new MenuItem(menu,SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
-    file_exit.setText(Messages.getString("TrayWindow.menu.exit")); //$NON-NLS-1$
+    file_exit.setData("TrayWindow.menu.exit");
+    file_exit.setText(Messages.getString((String)file_exit.getData()));
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         main.dispose();
@@ -190,6 +192,10 @@ public class TrayWindow implements IComponentListener {
     synchronized(managers) {    
       managers.remove(removed);
     }
+  }
+  
+  public void updateLanguage() {
+    MainWindow.updateMenuText(menu);
   }
 
 }
