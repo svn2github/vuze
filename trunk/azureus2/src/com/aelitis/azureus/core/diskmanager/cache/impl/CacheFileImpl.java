@@ -456,7 +456,6 @@ CacheFileImpl
 														
 							entry.setClean();
 			
-							System.out.println("read-ahead =" + actual_read_ahead );
 							try{
 								
 								this_mon.enter();
