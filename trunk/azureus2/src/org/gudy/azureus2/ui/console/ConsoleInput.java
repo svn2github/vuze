@@ -10,7 +10,6 @@
 
 package org.gudy.azureus2.ui.console;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Reader;
