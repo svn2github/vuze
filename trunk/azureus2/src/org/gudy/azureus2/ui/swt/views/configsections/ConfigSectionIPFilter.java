@@ -166,6 +166,9 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 			}
 		});
     
+    BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning",true);
+    Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
+
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
     String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
     int[] sizes = { 200, 110, 110 };

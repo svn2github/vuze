@@ -2369,7 +2369,7 @@ PEPeerControlImpl
       	// no need to reset the bad chunk count as the peer is going to be disconnected and
       	// if it comes back it'll start afresh
       
-      if(nbWarnings > WARNINGS_LIMIT) {
+      if(nbWarnings > WARNINGS_LIMIT && COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")) {
       	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
       }
       //Close connection in 2nd
