@@ -167,6 +167,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
   /* Forced synchronous scrape of the supplied torrent.
    */
   protected void syncUpdate(TOTorrent torrent) {
+    if (torrent == null)
+      return;
+
     try {
       byte[] hash = torrent.getHash();
       

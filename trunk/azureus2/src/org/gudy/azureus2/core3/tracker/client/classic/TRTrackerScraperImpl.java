@@ -87,6 +87,9 @@ TRTrackerScraperImpl
 		TOTorrent		torrent,
 		boolean			force )
 	{
+    if (torrent == null)
+      return null;
+
 		if ( force ){
 			
 			tracker_checker.syncUpdate( torrent );

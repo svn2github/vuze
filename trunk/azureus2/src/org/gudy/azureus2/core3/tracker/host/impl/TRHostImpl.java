@@ -398,6 +398,9 @@ TRHostImpl
 	lookupHostTorrent(
 		TOTorrent	torrent )
 	{
+	  if (torrent == null)
+	    return null;
+
 		try{
 			return((TRHostTorrent)host_torrent_hash_map.get( torrent.getHashWrapper()));
 			
