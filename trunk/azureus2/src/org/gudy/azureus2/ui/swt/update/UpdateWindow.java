@@ -30,12 +30,18 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Widget;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Application;
@@ -92,7 +98,7 @@ public class UpdateWindow implements Runnable{
     
     SashForm sash = new SashForm(updateWindow,SWT.VERTICAL);
        
-    table = new Table(sash,SWT.BORDER);
+    table = new Table(sash,SWT.BORDER | SWT.SINGLE);
     String[] names = {"name" , "version" , "size"};
     int[] sizes = {220,80,80};
     for(int i = 0 ; i < names.length ; i++) {
@@ -102,7 +108,20 @@ public class UpdateWindow implements Runnable{
     }
     table.setHeaderVisible(true);
     
-    stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY);
+    table.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        TableItem[] items = table.getSelection();
+        if(items.length == 0) return;
+        Update update = (Update) items[0].getData();
+        String[] descriptions = update.getDescription();
+        stDescription.setText("");
+        for(int i = 0 ; i < descriptions.length ; i++) {
+          stDescription.append(descriptions[i] + "\n");
+        }
+      }
+    });
+    
+    stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
     
     btnCancel = new Button(updateWindow,SWT.PUSH);
     Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
@@ -145,6 +164,18 @@ public class UpdateWindow implements Runnable{
         TableItem item = new TableItem(table,SWT.NULL);
         item.setData(update);
         item.setText(0,update.getName());  
+        item.setText(1,update.getNewVersion());
+        ResourceDownloader[] rds = update.getDownloaders();
+        long totalLength = 0;
+        for(int i = 0 ; i < rds.length ; i++) {
+          try {
+            totalLength += rds[i].getSize();
+          } catch(Exception e) {
+          }
+        }                
+        
+        item.setText(2,DisplayFormatters.formatByteCountToBase10KBEtc(totalLength));                
+        
         
         
         updateWindow.open();
