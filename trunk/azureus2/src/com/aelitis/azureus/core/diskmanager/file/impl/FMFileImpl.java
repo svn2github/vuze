@@ -41,7 +41,12 @@ public abstract class
 FMFileImpl
 	implements FMFile
 {
-	protected static long REOPEN_EVERY_BYTES = 50 * 1024 * 1024;
+	protected static final long REOPEN_EVERY_BYTES 		= 50 * 1024 * 1024;
+	protected static final int 	WRITE_RETRY_LIMIT		= 10;
+	protected static final int	WRITE_RETRY_DELAY		= 100;
+	
+	protected static final boolean	DEBUG	= true;
+	
 	protected long lBytesRead = 0;
 	protected long lClosedAt = 0;
 
@@ -325,17 +330,17 @@ FMFileImpl
   	}
 	}
 	
-	protected long
+	protected void
 	writeSupport(
 		DirectByteBuffer		buffer,
 		long					position )
 	
 		throws FMFileManagerException
 	{
-		return( writeSupport(new DirectByteBuffer[]{buffer}, position ));
+		writeSupport(new DirectByteBuffer[]{buffer}, position );
 	}
 	
-	protected long
+	protected void
 	writeSupport(
 		DirectByteBuffer[]		buffers,
 		long					position )
@@ -344,7 +349,7 @@ FMFileImpl
 	{
 		if (raf == null){
 			
-			throw new FMFileManagerException( "FMFile::write: raf is null" );
+			throw( new FMFileManagerException( "FMFile::write: raf is null" ));
 		}
     
 		FileChannel fc = raf.getChannel();
@@ -353,22 +358,133 @@ FMFileImpl
 			
 			if (fc.isOpen()){
 				
+				long	expected_write 	= 0;
+				long	actual_write	= 0;
+				
+				if ( DEBUG ){
+				
+					for (int i=0;i<buffers.length;i++){
+						
+						expected_write += buffers[i].limit() - buffers[i].position();
+					}
+				}
+				
 				fc.position( position );
 				
 				if ( buffers.length == 1 ){
 					
-					return( buffers[0].write(fc));
+					DirectByteBuffer	bb = buffers[0];
+					
+					int	loop	= 0;
+					
+					while( bb.position() != bb.limit()){
+																		
+						int	written = bb.write(fc);
+						
+						actual_write	+= written;
+						
+						if ( written > 0 ){
+							
+							loop	= 0;
+							
+							if ( DEBUG ){
+								
+								if (  bb.position() != bb.limit()){
+								
+									System.out.println( "FMFile::write: **** partial write ****");
+								}
+							}
+						}else{
+						
+							loop++;
+							
+							System.out.println( "FMFile::write: zero length write - retrying" );
+							
+							if ( loop == WRITE_RETRY_LIMIT ){
+								
+								throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
+							}else{
+								
+								try{
+									Thread.sleep( WRITE_RETRY_DELAY*loop );
+									
+								}catch( InterruptedException e ){
+									
+									throw( new FMFileManagerException( "FMFile::write: interrupted" ));
+								}
+							}
+						}
+					}
 					
 				}else{
 					
 					ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
 					
+					ByteBuffer	last_bb	= null;
+					
 					for (int i=0;i<bbs.length;i++){
 						
 						bbs[i] = buffers[i].getBuffer();
+						
+						if ( bbs[i].position() != bbs[i].limit()){
+							
+							last_bb	= bbs[i];
+						}
 					}
 					
-					return( fc.write( bbs ));
+					if ( last_bb != null ){
+											  
+						int	loop	= 0;
+						
+						while( last_bb.position() != last_bb.limit()){
+							
+							long	written = fc.write( bbs );
+							
+							actual_write	+= written;
+							
+							if ( written > 0 ){
+								
+								loop	= 0;
+								
+								if ( DEBUG ){
+									
+									if ( last_bb.position() != last_bb.limit()){
+									
+										System.out.println( "FMFile::write: **** partial write ****");
+									}
+								}
+								
+							}else{
+							
+								loop++;
+								
+								System.out.println( "FMFile::write: zero length write - retrying" );
+								
+								if ( loop == WRITE_RETRY_LIMIT ){
+									
+									throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
+								}else{
+									
+									try{
+										Thread.sleep( WRITE_RETRY_DELAY*loop );
+										
+									}catch( InterruptedException e ){
+										
+										throw( new FMFileManagerException( "FMFile::write: interrupted" ));
+									}
+								}
+							}						
+						}
+					}
+				}
+				
+				if ( DEBUG ){
+
+					if ( expected_write != actual_write ){
+						
+						throw( new FMFileManagerException( "FMFile::write: expected write/actual write mismatch" ));
+					
+					}
 				}
 			}else{
 				

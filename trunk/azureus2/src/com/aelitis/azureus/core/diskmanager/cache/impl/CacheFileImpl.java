@@ -71,7 +71,7 @@ CacheFileImpl
 			}
 		};
 		
-	protected final static boolean	TRACE					= false;
+	protected final static boolean	TRACE					= true;
 	protected final static boolean	TRACE_CACHE_CONTENTS	= false;
 	
 	
@@ -234,12 +234,14 @@ CacheFileImpl
 					manager.cacheBytesRead( read_length );
 					
 					if ( TRACE ){
+						
 						System.out.println( "cacheRead: cache use ok [entries = " + used_entries + "]" );
 					}
 									
 				}else{
 					
 					if ( TRACE ){
+						
 						System.out.println( "cacheRead: cache use fails, reverting to plain read" );
 					}
 							
@@ -316,6 +318,7 @@ CacheFileImpl
 						cache.add( entry );
 						
 						if ( TRACE_CACHE_CONTENTS ){
+							
 							printCache();
 						}
 						
@@ -323,24 +326,14 @@ CacheFileImpl
 						
 					}else{
 						
-						long	actual_size = getFMFile().write( file_buffer, file_position );
-						
-						if ( actual_size != write_length ){
-							
-							throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
-						}	
-						
+						getFMFile().write( file_buffer, file_position );
+												
 						manager.fileBytesWritten( write_length );
 					}
 				}
 			}else{
 				
-				long	actual_size = getFMFile().write( file_buffer, file_position );
-				
-				if ( actual_size != write_length ){
-					
-					throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
-				}
+				getFMFile().write( file_buffer, file_position );
 			}
 			
 		}catch( FMFileManagerException e ){
@@ -359,7 +352,7 @@ CacheFileImpl
 	protected void
 	flushCache(
 		long				file_position,
-		long				length,	// -1 -> do all from position onwards
+		long				length,					// -1 -> do all from position onwards
 		boolean				release_entries,
 		long				minimum_to_release )	// -1 = all
 	
@@ -502,26 +495,42 @@ CacheFileImpl
 		try{
 			if ( TRACE ){
 				
-				System.out.println( "flushCache: writing " + multi_block_entries.size() + " entries" );
+				System.out.println( "multiBlockFlush: writing " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "," + release_entries + "]" );			
 			}
 			
 			DirectByteBuffer[]	buffers = new DirectByteBuffer[ multi_block_entries.size()];
 			
+			long	expected_per_entry_write = 0;
+			
 			for (int i=0;i<buffers.length;i++){
 				
-				buffers[i] = ((CacheEntry)multi_block_entries.get(i)).getBuffer();
-			}
-			
-			long	actual_size = getFMFile().write( buffers, multi_block_start );
-			
-			long	expected	= multi_block_next - multi_block_start;
-			
-			if ( actual_size != expected ){
+				CacheEntry	entry = (CacheEntry)multi_block_entries.get(i);
 				
-				throw( new CacheFileManagerException( "Short write: required = " + expected + ", actual = " + actual_size ));
+					// sanitity check - we should always be flushing entire entries
+			
+				DirectByteBuffer	buffer = entry.getBuffer();
+				
+				if ( buffer.limit() - buffer.position() != entry.getLength()){
+					
+					throw( new CacheFileManagerException( "flush: inconsistent entry length, position wrong" ));
+				}
+				
+				expected_per_entry_write	+= entry.getLength();
+				
+				buffers[i] = buffer;
 			}
 			
-			manager.cacheBytesWritten( expected );
+			long	expected_overall_write	= multi_block_next - multi_block_start;
+
+			if ( expected_per_entry_write != expected_overall_write ){
+		
+				throw( new CacheFileManagerException( "flush: inconsistent write length, entrys = " + expected_per_entry_write + " overall = " + expected_overall_write ));
+				
+			}
+			
+			getFMFile().write( buffers, multi_block_start );
+									
+			manager.cacheBytesWritten( expected_overall_write );
 			
 		}catch( FMFileManagerException e ){
 			
@@ -562,13 +571,14 @@ CacheFileImpl
 				
 				if ( TRACE ){
 					
-					System.out.println( "flushCache: " + getName());
+					System.out.println( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
 				}
 				
 				flushCache( 0, -1, release_entries, minumum_to_release);
 			}
 		}
 	}
+	
 	
 	protected void
 	printCache()
@@ -747,6 +757,14 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		flushCache( false, -1 );
+	}
+	
+	public void
+	clearCache()
+	
+		throws CacheFileManagerException
+	{
+		flushCache(true, -1);
 	}
 	
 	public void

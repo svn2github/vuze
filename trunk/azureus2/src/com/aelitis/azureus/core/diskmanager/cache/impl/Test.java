@@ -46,13 +46,13 @@ Test
 		try{
 			CacheFileManagerImpl	manager = (CacheFileManagerImpl)CacheFileManagerFactory.getSingleton();
 			
-			manager.initialise( false, 8*1024*1024 );
+			//manager.initialise( false, 8*1024*1024 );
 	
-			new Test().writeTest(manager);
+			//new Test().writeTest(manager);
 			
-			manager.initialise( true, 8*1024*1024 );
+			manager.initialise( true, 1*1024*1024 );
 
-			new Test().writeTest(manager);
+			new Test().randomTest(manager);
 			
 		}catch( Throwable e ){
 			
@@ -88,7 +88,7 @@ Test
 			
 			long	start = System.currentTimeMillis();
 			
-			int		loop	= 100000;
+			int		loop	= 10000;
 			int		block	= 1*1024;
 			
 			for (int i=0;i<loop;i++){
@@ -107,6 +107,57 @@ Test
 			long	elapsed = now - start;
 			
 			System.out.println( "time = " + elapsed + ", speed = " + (total/elapsed));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public void
+	manualTest(
+		CacheFileManager	manager )
+	{
+		try{
+			final File	f = new File("C:\\temp\\cachetest.dat" );
+			
+			f.delete();
+			
+			CacheFile	cf = manager.createFile(
+					new CacheFileOwner()
+					{
+						public String
+						getCacheFileOwnerName()
+						{
+							return( "file " + f.toString() );
+						}
+						
+						public TOTorrentFile
+						getCacheFileTorrentFile()
+						{
+							return( null );
+						}
+					},
+					f );
+			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(512);
+			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(512);
+			DirectByteBuffer	write_buffer3 = DirectByteBufferPool.getBuffer(512);
+			
+			cf.writeAndHandoverBuffer( write_buffer2, 512 );
+				
+			cf.flushCache();
+			
+			cf.writeAndHandoverBuffer( write_buffer3, 1024 );
+			cf.writeAndHandoverBuffer( write_buffer1, 0 );
+			
+			cf.flushCache();
+			
+			write_buffer1 = DirectByteBufferPool.getBuffer(512);
+			cf.writeAndHandoverBuffer( write_buffer1, 0 );
+
+			cf.flushCache();
+				
+			cf.close();
 			
 		}catch( Throwable e ){
 			
@@ -209,9 +260,7 @@ Test
 						
 						if ( data_read[i] != bytes[ i+start ]){
 							
-							System.out.println( "data read mismatch" );
-							
-							break;
+							throw( new Exception( "data read mismatch" ));
 						}
 					}
 					
@@ -242,30 +291,15 @@ Test
 					
 					cf.flushCache();
 					
-				}else if ( function < 93 ){
+				}else if ( function < 91 ){
+					
+					cf.clearCache();
 					
 					//System.out.println( "closing file" );
 					
-					///cf.close();
+					//cf.close();
 				}
 			}
-			/*
-			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(512);
-			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(512);
-			
-			cf.writeAndHandoverBuffer( write_buffer1, 0 );
-			cf.writeAndHandoverBuffer( write_buffer2, 512 );
-			
-			DirectByteBuffer	read_buffer = DirectByteBufferPool.getBuffer(10);
-
-			cf.read( read_buffer, 503 );
-			read_buffer.position(5);
-			cf.read( read_buffer, 503 );
-			read_buffer.position(0);
-			cf.read( read_buffer, 503 );
-			*/
-			
-			//cf.close();
 			
 		}catch( Throwable e ){
 			

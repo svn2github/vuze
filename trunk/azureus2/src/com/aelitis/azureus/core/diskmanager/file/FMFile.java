@@ -84,14 +84,14 @@ FMFile
 		throws FMFileManagerException;
 	
 	
-	public long
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long				position )
 	
 		throws FMFileManagerException;
 	
-	public long
+	public void
 	write(
 		DirectByteBuffer[]	buffers,
 		long				position )

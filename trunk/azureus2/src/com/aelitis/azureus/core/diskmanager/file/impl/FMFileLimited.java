@@ -155,7 +155,7 @@ FMFileLimited
 	}
 	
 	
-	public synchronized long
+	public synchronized void
 	write(
 		DirectByteBuffer	buffer,
 		long		position )
@@ -164,10 +164,10 @@ FMFileLimited
 	{
 		ensureOpen();
 			
-		return( writeSupport( buffer, position ));
+		writeSupport( buffer, position );
 	}
 	
-	public synchronized long
+	public synchronized void
 	write(
 		DirectByteBuffer[]	buffers,
 		long				position )
@@ -176,7 +176,7 @@ FMFileLimited
 	{
 		ensureOpen();
 			
-		return( writeSupport( buffers, position ));
+		writeSupport( buffers, position );
 	}
 	
 	public synchronized void

@@ -92,11 +92,26 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+		/**
+		 * flushes the cache to disk but retains entries
+		 * @throws CacheFileManagerException
+		 */
+	
 	public void
 	flushCache()
 	
 		throws CacheFileManagerException;
-		
+	
+		/**
+		 * flushes the cache and discards entries
+		 * @throws CacheFileManagerException
+		 */
+	
+	public void
+	clearCache()
+	
+		throws CacheFileManagerException;
+
 	public void
 	close()
 	
