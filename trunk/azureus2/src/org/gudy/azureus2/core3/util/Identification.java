@@ -27,7 +27,7 @@ public class Identification {
 
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
-        if ((peerID[8] == (byte)0) && (peerID[11] == (byte)0)) return "Shadow";
+        
         if (peerID[8] == (byte)45) {
           String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
           String name = "Shadow ";
@@ -35,6 +35,16 @@ public class Identification {
             name = name.concat(version.charAt(i) + ".");
           }
           name = name + version.charAt(2);
+          return name;
+        }
+        
+        if (peerID[8] == (byte)0) {  // is next Burst version still using this?
+          String name = "Shadow ";
+          for (int i = 1; i < 3; i++) {
+            name = name.concat(String.valueOf(peerID[i]) + ".");
+          }
+          name = name + String.valueOf(peerID[3]);
+          System.out.println(name);
           return name;
         }
       }
@@ -53,7 +63,7 @@ public class Identification {
       
       
       String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
-      if (old_azureus.equals("Azureus")) return "Azureus";
+      if (old_azureus.equals("Azureus")) return "Azureus 2.0.3.2";
       
       
       String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
@@ -75,7 +85,7 @@ public class Identification {
       
       
       String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
-      if (btfans.equals("btfans")) return "btFans";
+      if (btfans.equals("btfans")) return "BitComet"; // "BitComet"? or "SimpleBT"? 
       
       
       boolean allZero = true;
@@ -84,7 +94,7 @@ public class Identification {
       }
       
       if ((allZero) && (peerID[12] == (byte)97) && (peerID[13] == (byte)97)) {
-        return "Experimental 3.2.1b-2";
+        return "Experimental 3.2.1b2";
       }
       if ((allZero) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
         return "Experimental 3.1";
@@ -97,6 +107,10 @@ public class Identification {
     if (DEBUG_UNKNOWN && !DEBUG_ALL) {
       try {
         System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
+        for (int i=0; i < 19; i++) {
+          System.out.print(i+"=" + peerID[i] + " ");
+        }
+        System.out.println("19=" + peerID[19]);
       } catch (Exception ignore) {/*ignore*/} 
     }
     
