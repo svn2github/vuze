@@ -193,12 +193,12 @@ public class VirtualChannelSelector {
       	for( int i=0; i < register_list.size(); i++ ) {
       	  RegistrationData data = (RegistrationData)register_list.get( i );
       	  try {
-      	    if( data.channel.isOpen() && data.channel.keyFor( selector ) == null ) {
+      	    if( data.channel.isOpen() ) {
       	      data.channel.register( selector, INTEREST_OP, data );
       	    }
       	    else {
       	      data.listener.selectFailure( new Throwable( "channel is closed" ) );
-      	      Debug.out( "channel is closed" );
+      	      //Debug.out( "channel is closed" );
       	    }
       	  }
       	  catch (Throwable t) {
