@@ -38,6 +38,6 @@ public class UpSpeedItem extends PeerItem  {
   }
   
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKBEtcPerSec(peerRow.getPeerSocket().getStats().getUploadAverage()));
+    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(peerRow.getPeerSocket().getStats().getUploadAverage()));
   }
 }

@@ -266,11 +266,11 @@ public class ConsoleInput extends Thread {
                     else
                       tstate += dm.getName();
                   }
-                  tstate += " (" + DisplayFormatters.formatByteCountToKBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
-                  tstate += DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()) + " / ";
-                  tstate += DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
+                  tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
+                  tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
+                  tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
                   tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
-                  tstate += DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()) + "\tConnections: ";
+                  tstate += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
                   if (hd == null || !hd.isValid()) {
                     tstate += Integer.toString(dm.getNbSeeds()) + "(?) / ";
                     tstate += Integer.toString(dm.getNbPeers()) + "(?)";
@@ -283,9 +283,9 @@ public class ConsoleInput extends Thread {
                   // true));
                   out.println();
                 }
-                out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKBEtcPerSec(gm.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKBEtcPerSec(gm.getStats().getUploadAverage()));
+                out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getUploadAverage()));
 
-                out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));
+                out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
                 out.println("Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers));
               } else
                 out.println("No Torrents");

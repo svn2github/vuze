@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 
 /**
  * @author Olivier
@@ -43,13 +44,39 @@ public class SpeedView extends AbstractIView {
   GlobalManagerStats stats;
   
   Composite panel;
-  Canvas downSpeedCanvas;
-  Canvas upSpeedCanvas;
   
+  Canvas downSpeedCanvas;
+  SpeedGraphic downSpeedGraphic;
+  
+  Canvas upSpeedCanvas;
+  SpeedGraphic upSpeedGraphic;
+  
+  UpdateThread updateThread;
   
   public SpeedView(GlobalManager manager) {
     this.manager = manager;
     this.stats = manager.getStats();
+  }
+  
+  private class UpdateThread extends Thread {
+    boolean bContinue;
+    
+    public void run() {
+      try {
+        bContinue = true;
+        while(bContinue) {
+          downSpeedGraphic.addIntValue(manager.getStats().getDownloadAverage());
+          upSpeedGraphic.addIntValue(manager.getStats().getUploadAverage());
+          Thread.sleep(1000);
+        }
+      } catch(Exception e) {
+        e.printStackTrace();        
+      }
+    }
+    
+    public void stopIt() {
+      bContinue = false;
+    }
   }
   
   public void initialize(Composite composite) {
@@ -66,7 +93,8 @@ public class SpeedView extends AbstractIView {
     downSpeedCanvas = new Canvas(gDownSpeed,SWT.NULL);
     gridData = new GridData(GridData.FILL_BOTH);
     downSpeedCanvas.setLayoutData(gridData);
-    
+    downSpeedGraphic = SpeedGraphic.getInstance();
+    downSpeedGraphic.initialize(downSpeedCanvas);
     
     Group gUpSpeed = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gUpSpeed,"SpeedView.uploadSpeed.title");
@@ -77,19 +105,31 @@ public class SpeedView extends AbstractIView {
     upSpeedCanvas = new Canvas(gUpSpeed,SWT.NULL);
     gridData = new GridData(GridData.FILL_BOTH);
     upSpeedCanvas.setLayoutData(gridData);
+    upSpeedGraphic = SpeedGraphic.getInstance();
+    upSpeedGraphic.initialize(upSpeedCanvas);
+    
+    updateThread = new UpdateThread(); 
+    updateThread.setDaemon(true);
+    updateThread.start();
   }
   
   public void delete() {
+    updateThread.stopIt();
     MainWindow.getWindow().setStats(null);
     Utils.disposeComposite(panel);    
   }
 
   public String getFullTitle() {
-    return MessageText.getString("StatsView.title.full"); //$NON-NLS-1$
+    return MessageText.getString("SpeedView.title.full"); //$NON-NLS-1$
   }
   
   public Composite getComposite() {
     return panel;
+  }
+  
+  public void refresh() {
+    downSpeedGraphic.refresh();
+    upSpeedGraphic.refresh();
   }
   
 }

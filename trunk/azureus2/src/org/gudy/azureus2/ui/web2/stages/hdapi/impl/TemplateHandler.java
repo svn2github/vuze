@@ -206,11 +206,11 @@ public class TemplateHandler implements httpRequestHandlerIF {
           h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000 - (float) stats.getCompleted()) / 10));
         } catch (ArithmeticException e) {
         }
-        h.put("Torrents_Torrent_SpeedDown", DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()));
-        h.put("Torrents_Torrent_SpeedUp", DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()));
-        h.put("Torrents_Torrent_FileSize", DisplayFormatters.formatByteCountToKBEtc(dm.getSize()));
+        h.put("Torrents_Torrent_SpeedDown", DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()));
+        h.put("Torrents_Torrent_SpeedUp", DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()));
+        h.put("Torrents_Torrent_FileSize", DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()));
         try {
-          h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKBEtc((((long) stats.getCompleted()) * ((long) dm.getSize())) / 1000));
+          h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKiBEtc((((long) stats.getCompleted()) * ((long) dm.getSize())) / 1000));
         } catch (ArithmeticException e) {
         }
         if (dm.getName() == null)
@@ -232,7 +232,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
         h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));
         h.put("Torrents_Torrent_ETA", (DisplayFormatters.formatETA(stats.getETA()) == "") ? "&nbsp;" : DisplayFormatters.formatETA(stats.getETA()));
         h.put("Torrents_Torrent_SizeDown", DisplayFormatters.formatDownloaded(stats));
-        h.put("Torrents_Torrent_SizeUp", DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()));
+        h.put("Torrents_Torrent_SizeUp", DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()));
         h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
         //				if ((in.useragent.toUpperCase().indexOf("LYNX") != -1)
         //					|| (in.useragent.toUpperCase().indexOf("LINKS") != -1)
@@ -242,11 +242,11 @@ public class TemplateHandler implements httpRequestHandlerIF {
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
-      tmpl.setParam("Torrents_TotalSpeedDown", DisplayFormatters.formatByteCountToKBEtcPerSec(UIConst.GM.getStats().getDownloadAverage()));
-      tmpl.setParam("Torrents_TotalSpeedUp", DisplayFormatters.formatByteCountToKBEtcPerSec(UIConst.GM.getStats().getUploadAverage()));
-      tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKBEtc(totalReceived));
-      tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKBEtc(totalSent));
-      tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));
+      tmpl.setParam("Torrents_TotalSpeedDown", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getDownloadAverage()));
+      tmpl.setParam("Torrents_TotalSpeedUp", DisplayFormatters.formatByteCountToKiBEtcPerSec(UIConst.GM.getStats().getUploadAverage()));
+      tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKiBEtc(totalReceived));
+      tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKiBEtc(totalSent));
+      tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
       tmpl.setParam("Torrents_TotalSeedsConnected", Integer.toString(connectedSeeds));
       tmpl.setParam("Torrents_TotalPeersConnected", Integer.toString(connectedPeers));
     }

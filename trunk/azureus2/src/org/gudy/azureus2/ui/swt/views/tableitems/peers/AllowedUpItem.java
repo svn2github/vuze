@@ -39,8 +39,8 @@ public class AllowedUpItem extends PeerItem  {
   
   public void refresh() {
     if(peerRow.getPeerSocket().isChoking())
-      setText(DisplayFormatters.formatByteCountToKBEtcPerSec(0));
+      setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(0));
     else
-      setText(DisplayFormatters.formatByteCountToKBEtcPerSec(peerRow.getPeerSocket().getAllowed()*5));
+      setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(peerRow.getPeerSocket().getAllowed()*5));
   }
 }

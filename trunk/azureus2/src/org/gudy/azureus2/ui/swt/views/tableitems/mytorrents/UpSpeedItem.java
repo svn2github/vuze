@@ -37,7 +37,7 @@ public class UpSpeedItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKBEtcPerSec(torrentRow.getManager().getStats().getUploadAverage()));
+    setText("" + DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getUploadAverage()));
   }
 
 }

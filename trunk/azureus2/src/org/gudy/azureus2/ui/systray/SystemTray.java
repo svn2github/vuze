@@ -85,9 +85,9 @@ public class SystemTray extends SysTrayMenuAdapter {
 		toolTip.append(MessageText.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
 		toolTip.append(downloading);
 		toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
-		toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(main.getGlobalManager().getStats().getDownloadAverage()));
+		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(main.getGlobalManager().getStats().getDownloadAverage()));
 		toolTip.append(", U: ");
-		toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(main.getGlobalManager().getStats().getUploadAverage()));
+		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(main.getGlobalManager().getStats().getUploadAverage()));
 
 		menu.setToolTip(toolTip.toString());
     if(!menu.isIconVisible())

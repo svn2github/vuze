@@ -547,10 +547,10 @@ public class GeneralView extends AbstractIView {
     
     setStats(
 		DisplayFormatters.formatDownloaded(stats),
-		DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()),
-		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()),
-		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()),
-		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getTotalAverage()),
+		DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()),
+		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()),
+		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()),
+		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getTotalAverage()),
       	seeds,
       	peers,
 		DisplayFormatters.formatHashFails(manager),
@@ -560,7 +560,7 @@ public class GeneralView extends AbstractIView {
     
     setInfos(
       manager.getName(),
-	  DisplayFormatters.formatByteCountToKBEtc(manager.getSize()),
+	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
       manager.getSavePath(),
       ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),

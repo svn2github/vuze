@@ -492,7 +492,7 @@ DownloadManagerImpl
 
   public String getPieceLength() {
 	if (diskManager != null)
-	  return DisplayFormatters.formatByteCountToKBEtc(diskManager.getPieceLength());
+	  return DisplayFormatters.formatByteCountToKiBEtc(diskManager.getPieceLength());
 	return ""; //$NON-NLS-1$
   }
 

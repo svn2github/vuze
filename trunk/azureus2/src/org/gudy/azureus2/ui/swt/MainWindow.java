@@ -228,8 +228,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
             }
 
             ipBlocked.setText("IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
-            statusDown.setText("D: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
-            statusUp.setText("U: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
+            statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
+            statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
 					}
 
           if (!mainWindow.isDisposed()) {            

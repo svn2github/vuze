@@ -242,7 +242,7 @@ StatsWriterImpl
 		try{
 			indent();
 							
-			writeTag( "TEXT",	DisplayFormatters.formatByteCountToKBEtc( raw ));
+			writeTag( "TEXT",	DisplayFormatters.formatByteCountToKiBEtc( raw ));
 			writeTag( "RAW",	raw);
 							
 		}finally{
@@ -263,7 +263,7 @@ StatsWriterImpl
 		try{
 			indent();
 							
-			writeTag( "TEXT",	DisplayFormatters.formatByteCountToKBEtcPerSec( raw ));
+			writeTag( "TEXT",	DisplayFormatters.formatByteCountToKiBEtcPerSec( raw ));
 			writeTag( "RAW",	raw);
 							
 		}finally{

@@ -73,13 +73,13 @@ public class FileItem implements SortableItem{
       item.setImage(0, icon);
     }
 
-    tmp = DisplayFormatters.formatByteCountToKBEtc(fileInfo.getLength());
+    tmp = DisplayFormatters.formatByteCountToKiBEtc(fileInfo.getLength());
     if (!oldTexts[1].equals(tmp)) {
       oldTexts[1] = tmp;
       item.setText(1, tmp);
     }
 
-    tmp = DisplayFormatters.formatByteCountToKBEtc(fileInfo.getDownloaded());
+    tmp = DisplayFormatters.formatByteCountToKiBEtc(fileInfo.getDownloaded());
     if (!oldTexts[2].equals(tmp)) {
       oldTexts[2] = tmp;
       item.setText(2, tmp);

@@ -199,11 +199,11 @@ implements SortableItem
 		
 		item.setText( 6, "" + torrent.getCompletedCount());
 		
-		item.setText( 7, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
+		item.setText( 7, "" + DisplayFormatters.formatByteCountToKiBEtc(uploaded));
 		
-		item.setText( 8, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
+		item.setText( 8, "" + DisplayFormatters.formatByteCountToKiBEtc(downloaded));
 		
-		item.setText( 9, "" + DisplayFormatters.formatByteCountToKBEtc(left));
+		item.setText( 9, "" + DisplayFormatters.formatByteCountToKiBEtc(left));
 		
 		if ( seed_count != 0 ){
 			

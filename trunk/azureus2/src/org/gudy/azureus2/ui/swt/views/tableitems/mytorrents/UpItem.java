@@ -39,7 +39,7 @@ public class UpItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + DisplayFormatters.formatByteCountToKBEtc(torrentRow.getManager().getStats().getUploaded()));
+    setText("" + DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getUploaded()));
   }
 
 }

@@ -38,6 +38,6 @@ public class TotalDownSpeedItem extends PeerItem  {
   }
   
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKBEtcPerSec(peerRow.getPeerSocket().getStats().getTotalAverage()));
+    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(peerRow.getPeerSocket().getStats().getTotalAverage()));
   }
 }

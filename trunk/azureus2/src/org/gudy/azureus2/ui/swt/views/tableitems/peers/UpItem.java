@@ -38,6 +38,6 @@ public class UpItem extends PeerItem  {
   }
   
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKBEtc(peerRow.getPeerSocket().getStats().getTotalSent()));
+    setText(DisplayFormatters.formatByteCountToKiBEtc(peerRow.getPeerSocket().getStats().getTotalSent()));
   }
 }

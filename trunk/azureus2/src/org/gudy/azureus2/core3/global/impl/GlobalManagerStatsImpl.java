@@ -82,15 +82,15 @@ GlobalManagerStatsImpl
 
 
 	  public String getTotalSent() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalSent);
+		return DisplayFormatters.formatByteCountToKiBEtc(totalSent);
 	  }
 
 	  public String getTotalReceived() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
+		return DisplayFormatters.formatByteCountToKiBEtc(totalReceived);
 	  }
     
 	  public String getTotalDiscarded() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalDiscarded);
+		return DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded);
 	  }  
 
 	  public long getTotalSentRaw() {

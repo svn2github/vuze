@@ -74,7 +74,7 @@ public class PieceTableItem implements SortableItem{
       oldTexts[0] = tmp;
     }
 
-    tmp = DisplayFormatters.formatByteCountToKBEtc(piece.getLength());
+    tmp = DisplayFormatters.formatByteCountToKiBEtc(piece.getLength());
     if (!oldTexts[1].equals(tmp)) {
       item.setText(1, tmp);
       oldTexts[1] = tmp;

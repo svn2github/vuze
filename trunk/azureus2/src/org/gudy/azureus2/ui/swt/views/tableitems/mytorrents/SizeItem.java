@@ -35,7 +35,7 @@ public class SizeItem extends TorrentItem {
   }
 
   public void refresh() {    
-    setText(DisplayFormatters.formatByteCountToKBEtc(torrentRow.getManager().getSize()));
+    setText(DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getSize()));
   }
 
 }

@@ -38,6 +38,6 @@ public class StatUpItem extends PeerItem  {
   }
   
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKBEtcPerSec(peerRow.getPeerSocket().getStats().getStatisticSentAverage()));
+    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(peerRow.getPeerSocket().getStats().getStatisticSentAverage()));
   }
 }

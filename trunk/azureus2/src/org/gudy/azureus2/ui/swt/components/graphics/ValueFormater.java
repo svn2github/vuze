@@ -1,6 +1,6 @@
 /*
- * File    : TorrentItem.java
- * Created : 24 nov. 2003
+ * File    : ValueFormater.java
+ * Created : 15 déc. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -18,26 +18,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.ui.swt.views.tableitems.peers;
-
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+package org.gudy.azureus2.ui.swt.components.graphics;
 
 /**
  * @author Olivier
  *
  */
-public class DiscardedItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public DiscardedItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
-  }
-  
-  public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtc(peerRow.getPeerSocket().getStats().getTotalDiscarded()));
-  }
+public interface ValueFormater {
+  public String format(int value);
 }
