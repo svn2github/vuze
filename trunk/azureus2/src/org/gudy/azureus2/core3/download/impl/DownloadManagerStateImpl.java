@@ -86,6 +86,8 @@ DownloadManagerStateImpl
 
 	private List		listeners	= new ArrayList();
 	
+	private List		will_be_read_list	= new ArrayList();
+	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
 
@@ -783,6 +785,8 @@ DownloadManagerStateImpl
 	getStringAttribute(
 		String	attribute_name )
 	{
+		informWillRead( attribute_name );
+		
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 		
 		if ( attributes == null || !(attributes.get( attribute_name) instanceof byte[] )){
@@ -864,31 +868,7 @@ DownloadManagerStateImpl
 			
 			write_required	= true;
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				try{
-					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
-						this,
-						new DownloadManagerStateEvent()
-						{
-							public int
-							getType()
-							{
-								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
-							}
-							
-							public Object
-							getData()
-							{
-								return( attribute_name );
-							}
-						});
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			informWritten( attribute_name );
 		}
 	}
 	
@@ -912,6 +892,8 @@ DownloadManagerStateImpl
 	getListAttributeSupport(
 		String	attribute_name )
 	{
+		informWillRead( attribute_name );
+		
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 		
 		List	res = new ArrayList();
@@ -1004,31 +986,7 @@ DownloadManagerStateImpl
 			
 			write_required	= true;
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				try{
-					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
-						this,
-						new DownloadManagerStateEvent()
-						{
-							public int
-							getType()
-							{
-								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
-							}
-							
-							public Object
-							getData()
-							{
-								return( attribute_name );
-							}
-						});
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			informWritten( attribute_name );
 		}
 	}
 	
@@ -1036,6 +994,8 @@ DownloadManagerStateImpl
 	getMapAttribute(
 		String	attribute_name )
 	{
+		informWillRead( attribute_name );
+		
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 		
 		if ( attributes != null ){
@@ -1104,31 +1064,7 @@ DownloadManagerStateImpl
 			
 			write_required	= true;
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				try{
-					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
-						this,
-						new DownloadManagerStateEvent()
-						{
-							public int
-							getType()
-							{
-								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
-							}
-							
-							public Object
-							getData()
-							{
-								return( attribute_name );
-							}
-						});
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			informWritten( attribute_name );
 		}
 	}
 	
@@ -1137,6 +1073,106 @@ DownloadManagerStateImpl
 		DownloadManager	dm )
 	{
 		return( new nullState(dm));
+	}
+	
+	protected void
+	informWritten(
+		final String		attribute_name )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+					this,
+					new DownloadManagerStateEvent()
+					{
+						public int
+						getType()
+						{
+							return( DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN );
+						}
+						
+						public Object
+						getData()
+						{
+							return( attribute_name );
+						}
+					});
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void
+	informWillRead(
+		final String		attribute_name )
+	{
+			// avoid potential recursion will a will-be-read causing a write that then
+			// causes a further will-be-read...
+		
+		boolean	do_it = false;
+	
+		try{
+			
+			try{
+				this_mon.enter();
+				
+				if ( !will_be_read_list.contains( attribute_name )){
+					
+					do_it	= true;
+					
+					will_be_read_list.add( attribute_name );
+				}
+			}finally{
+				
+				this_mon.exit();
+				
+			}
+		
+			if ( do_it ){
+				
+				for (int i=0;i<listeners.size();i++){
+					
+					try{
+						((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+							this,
+							new DownloadManagerStateEvent()
+							{
+								public int
+								getType()
+								{
+									return( DownloadManagerStateEvent.ET_ATTRIBUTE_WILL_BE_READ );
+								}
+								
+								public Object
+								getData()
+								{
+									return( attribute_name );
+								}
+							});
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		}finally{
+			
+			if ( do_it ){
+				
+				try{
+					this_mon.enter();
+					
+					will_be_read_list.remove( attribute_name );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
+		}
 	}
 	
 	public void

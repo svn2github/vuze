@@ -803,7 +803,10 @@ DownloadImpl
 		DownloadManagerState			state,
 		DownloadManagerStateEvent		event )
 	{
-		if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED ){
+		final int type = event.getType();
+		
+		if ( 	type == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ||
+				type == DownloadManagerStateEvent.ET_ATTRIBUTE_WILL_BE_READ 	){
 			
 			String	name = (String)event.getData();
 			
@@ -823,7 +826,9 @@ DownloadImpl
 									public int
 									getType()
 									{
-										return( DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE );
+										return( type==DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN
+													?DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WRITTEN
+													:DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WILL_BE_READ	);
 									}
 									
 									public Object

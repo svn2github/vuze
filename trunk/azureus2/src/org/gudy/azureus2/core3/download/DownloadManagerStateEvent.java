@@ -30,7 +30,8 @@ package org.gudy.azureus2.core3.download;
 public interface 
 DownloadManagerStateEvent 
 {
-	public static final int	ET_ATTRIBUTE_CHANGED		= 1;	// data will be string attribute name
+	public static final int	ET_ATTRIBUTE_WRITTEN		= 1;	// data will be string attribute name
+	public static final int	ET_ATTRIBUTE_WILL_BE_READ	= 2;	// data will be string attribute name
 	
 	public int
 	getType();

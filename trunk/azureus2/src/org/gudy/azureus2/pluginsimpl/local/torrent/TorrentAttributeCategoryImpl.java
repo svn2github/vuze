@@ -60,7 +60,7 @@ TorrentAttributeCategoryImpl
 								}
 							
 								public TorrentAttribute
-								getAttribte()
+								getAttribute()
 								{
 									return( TorrentAttributeCategoryImpl.this );
 								}
@@ -98,7 +98,7 @@ TorrentAttributeCategoryImpl
 								}
 							
 								public TorrentAttribute
-								getAttribte()
+								getAttribute()
 								{
 									return( TorrentAttributeCategoryImpl.this );
 								}

@@ -37,7 +37,7 @@ TorrentAttributeEvent
 	getType();
 	
 	public TorrentAttribute
-	getAttribte();
+	getAttribute();
 	
 	public Object
 	getData();

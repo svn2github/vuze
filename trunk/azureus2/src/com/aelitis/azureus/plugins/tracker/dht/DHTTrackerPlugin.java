@@ -476,7 +476,7 @@ DHTTrackerPlugin
 		Download				download,
 		DownloadPropertyEvent	event )
 	{
-		if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE ){
+		if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WRITTEN ){
 			
 			if ( 	event.getData() == ta_networks ||
 					event.getData() == ta_peer_sources ){

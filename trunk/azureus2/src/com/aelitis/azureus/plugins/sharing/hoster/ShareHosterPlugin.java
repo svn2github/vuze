@@ -215,7 +215,7 @@ ShareHosterPlugin
 								Download				download,
 								DownloadPropertyEvent	event )
 							{
-								if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE ){
+								if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WRITTEN ){
 									
 									TorrentAttribute	at = (TorrentAttribute)event.getData();
 									

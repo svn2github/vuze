@@ -30,7 +30,8 @@ package org.gudy.azureus2.plugins.download;
 public interface 
 DownloadPropertyEvent 
 {
-	public static final int	PT_TORRENT_ATTRIBUTE	= 1;	// data is a TorrentAttribute
+	public static final int	PT_TORRENT_ATTRIBUTE_WRITTEN		= 1;	// data is a TorrentAttribute
+	public static final int	PT_TORRENT_ATTRIBUTE_WILL_BE_READ	= 2;	// data is a TorrentAttribute
 	
 	public int
 	getType();

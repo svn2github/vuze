@@ -72,7 +72,9 @@ DHTPluginStorageManager
 	
 	private File	data_dir;
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTPluginStorageManager" );
+	private AEMonitor	address_mon	= new AEMonitor( "DHTPluginStorageManager:address" );
+	private AEMonitor	contact_mon	= new AEMonitor( "DHTPluginStorageManager:contact" );
+	private AEMonitor	storage_mon	= new AEMonitor( "DHTPluginStorageManager:storage" );
 	
 	private Map					recent_addresses	= new HashMap();
 	
@@ -98,7 +100,7 @@ DHTPluginStorageManager
 		DHT		dht )
 	{
 		try{
-			this_mon.enter();
+			contact_mon.enter();
 						
 			File	target = new File( data_dir, "contacts.dat" );
 
@@ -126,7 +128,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			contact_mon.exit();
 		}
 	}
 	
@@ -135,7 +137,7 @@ DHTPluginStorageManager
 		DHT		dht )
 	{
 		try{
-			this_mon.enter();
+			contact_mon.enter();
 						
 			File	saving = new File( data_dir, "contacts.saving" );
 			File	target = new File( data_dir, "contacts.dat" );
@@ -173,7 +175,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			contact_mon.exit();
 		}
 	}
 	
@@ -181,13 +183,13 @@ DHTPluginStorageManager
 	readRecentAddresses()
 	{
 		try{
-			this_mon.enter();
+			address_mon.enter();
 			
 			recent_addresses = readMapFromFile( "addresses" );
 	
 		}finally{
 			
-			this_mon.exit();
+			address_mon.exit();
 		}
 	}
 	
@@ -195,7 +197,7 @@ DHTPluginStorageManager
 	writeRecentAddresses()
 	{
 		try{
-			this_mon.enter();
+			address_mon.enter();
 				// remove any old crud
 			
 			Iterator	it = recent_addresses.keySet().iterator();
@@ -220,7 +222,7 @@ DHTPluginStorageManager
 	
 		}finally{
 			
-			this_mon.exit();
+			address_mon.exit();
 		}
 	}
 	
@@ -229,7 +231,7 @@ DHTPluginStorageManager
 		String		address )
 	{
 		try{
-			this_mon.enter();
+			address_mon.enter();
 
 			recent_addresses.put( address, new Long( SystemTime.getCurrentTime()));
 		
@@ -237,7 +239,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			address_mon.exit();
 		}
 	}
 	
@@ -246,13 +248,13 @@ DHTPluginStorageManager
 		String		address )
 	{
 		try{
-			this_mon.enter();
+			address_mon.enter();
 
 			return( recent_addresses.containsKey( address ));
 					
 		}finally{
 			
-			this_mon.exit();
+			address_mon.exit();
 		}
 	}
 	
@@ -262,8 +264,6 @@ DHTPluginStorageManager
 		String		file_prefix )
 	{
 		try{
-			this_mon.enter();
-			
 			File target = new File( data_dir, file_prefix + ".dat" );
 			
 			if ( !target.exists()){
@@ -285,12 +285,8 @@ DHTPluginStorageManager
 			}
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
+			Debug.printStackTrace( e );	
+		}		
 		
 		return( new HashMap());
 	}
@@ -301,8 +297,6 @@ DHTPluginStorageManager
 		String		file_prefix )
 	{
 		try{
-			this_mon.enter();
-		
 			File	saving = new File( data_dir, file_prefix + ".saving" );
 			File	target = new File( data_dir, file_prefix + ".dat" );
 
@@ -341,10 +335,6 @@ DHTPluginStorageManager
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
-	
-		}finally{
-			
-			this_mon.exit();
 		}
 	}
 	
@@ -358,13 +348,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT key created");
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			return(	getStorageKey( key ));
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -375,13 +365,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT key deleted" );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			deleteStorageKey((storageKey)key );
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -393,13 +383,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT value read" );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			((storageKey)key).read();
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -411,13 +401,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT value added" );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			((storageKey)key).valueChanged( 1, value.getValue().length);
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -430,13 +420,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT value updated" );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 			
 			((storageKey)key).valueChanged( 0, new_value.getValue().length - old_value.getValue().length);
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -448,13 +438,13 @@ DHTPluginStorageManager
 		//System.out.println( "DHT value deleted" );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			((storageKey)key).valueChanged( -1, -value.getValue().length);
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -473,7 +463,7 @@ DHTPluginStorageManager
 			// must always return a value - original if no diversification exists
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			byte[][]	res = followDivChain( wrapper, put_operation );
 				
@@ -489,7 +479,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -504,7 +494,7 @@ DHTPluginStorageManager
 		HashWrapper	wrapper = new HashWrapper( key );
 		
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 		
 			diversification	div = lookupDiversification( wrapper );
 		
@@ -532,7 +522,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	} 
 	
@@ -629,7 +619,7 @@ DHTPluginStorageManager
 	readDiversifications()
 	{
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 			
 			Map	map = readMapFromFile( "diverse" );
 	
@@ -668,7 +658,7 @@ DHTPluginStorageManager
 			
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
@@ -676,7 +666,7 @@ DHTPluginStorageManager
 	writeDiversifications()
 	{
 		try{
-			this_mon.enter();
+			storage_mon.enter();
 	
 			Map	map = new HashMap();
 			
@@ -715,7 +705,7 @@ DHTPluginStorageManager
 	
 		}finally{
 			
-			this_mon.exit();
+			storage_mon.exit();
 		}
 	}
 	
