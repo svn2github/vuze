@@ -16,7 +16,9 @@ FEATURE: Added a column to My Torrents : 'Downloaded'
 FEATURE: Added a column to My Torrents : 'Uploaded'
 FEATURE: Peers (details) table can now be customized (choice of columns and order)
 FEATURE: All Peers (details) table are synchronized
+FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 
+TODO: Add SSL stuff to FAQ [Parg]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
