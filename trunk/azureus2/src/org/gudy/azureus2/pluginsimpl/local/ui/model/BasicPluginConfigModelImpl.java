@@ -38,13 +38,13 @@ import org.eclipse.swt.layout.*;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.plugins.ui.model.*;
@@ -166,23 +166,31 @@ BasicPluginConfigModelImpl
 		return( res );	
 	}
 	
+	public LabelParameter
+	addLabelParameter2(
+		String		resource_name )
+	{
+		LabelParameterImpl res = new LabelParameterImpl( pi.getPluginconfig(), key_prefix, resource_name );
+		
+		parameters.add( res );
+		
+		return( res );		
+	}
+
 	public Composite 
 	configSectionCreate(
 		Composite parent ) 
 	{
-		GridData gridData;
-		GridLayout layout;
-		Label label;
 		
 			// main tab set up
 		
 		Composite gMainTab = new Composite(parent, SWT.NULL);
 		
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		GridData main_gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		
-		gMainTab.setLayoutData(gridData);
+		gMainTab.setLayoutData(main_gridData);
 		
-		layout = new GridLayout();
+		GridLayout layout = new GridLayout();
 		
 		layout.numColumns = 2;
 		
@@ -196,13 +204,10 @@ BasicPluginConfigModelImpl
 			
 			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
 		
-			label = new Label(gMainTab, SWT.NULL);
+			Label label = new Label(gMainTab, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
 			
 			Messages.setLanguageText(label, param.getLabel());
-			
-			gridData = new GridData();
-			//gridData.widthHint = 40;
-			
+						
 			String	key = param.getKey();
 						
 			//System.out.println( "key = " + key );
@@ -217,22 +222,37 @@ BasicPluginConfigModelImpl
 						
 				swt_param = new IntParameter(gMainTab, key, ((IntParameterImpl)param).getDefaultValue());
 				
-				gridData = new GridData();
+				GridData gridData = new GridData();
 				gridData.widthHint = 100;
 				
 				swt_param.setLayoutData( gridData );
 							
-			}else{
-				gridData = new GridData();
+			}else if ( param instanceof StringParameterImpl ){
+				
+				GridData gridData = new GridData();
 				
 				gridData.widthHint = 150;
 
 				swt_param = new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue());
 				
 				swt_param.setLayoutData( gridData );
+				
+			}else{
+				
+					// label
+				
+				GridData gridData = new GridData();
+				gridData.horizontalSpan	= 2;
+				
+				label.setLayoutData( gridData );
+				
+				swt_param	= null;
 			}
 			
-			comp_map.put( param, new Object[]{swt_param, swt_param.getControl(), label });
+			if ( swt_param != null ){
+				
+				comp_map.put( param, new Object[]{swt_param, swt_param.getControl(), label });
+			}
 		}
 		
 		for (int i=0;i<parameters.size();i++){

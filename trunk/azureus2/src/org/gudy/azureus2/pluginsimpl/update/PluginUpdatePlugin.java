@@ -114,8 +114,8 @@ PluginUpdatePlugin
 		
 		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel( "plugins", "plugins.update");
 		
-		config.addBooleanParameter( "enable.update", "Plugin.pluginupdate.enablecheck", true );
-		
+		config.addBooleanParameter2( "enable.update", "Plugin.pluginupdate.enablecheck", true );
+				
 		UpdateManager	update_manager = plugin_interface.getUpdateManager();
 		
 		update_manager.addListener(

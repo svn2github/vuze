@@ -219,5 +219,12 @@ UIManagerImpl
 					public void addDisabledOnSelection(Parameter parameter){}
 				});		
 	}
+	
+	public LabelParameter
+	addLabelParameter2(
+		String		resource )
+	{
+		return( new LabelParameter(){});
+	}
   }
 }

@@ -80,4 +80,8 @@ BasicPluginConfigModel
 		String 		key,
 		String 		resource_name,
 		int	 		defaultValue );
+	
+	public LabelParameter
+	addLabelParameter2(
+		String 		resource_name );
 }
