@@ -708,7 +708,29 @@ DiskManagerImpl
 	}
 
 	public boolean filesExist() {
-		String basePath = path + System.getProperty("file.separator") + rootPath;
+		//String basePath = path + System.getProperty("file.separator") + rootPath;
+		
+		// ok, we sometimes end up here with
+		// path=d:\temp, rootPath=test\
+		// for an original path of d:\temp\test
+		// So we need to make sure that the basePath ends up back as
+		// d:\temp\test\
+		
+		String	tempRoot 	= rootPath;
+		
+		if ( tempRoot.endsWith(File.separator)){
+			
+			tempRoot = tempRoot.substring(0,tempRoot.length()-1);
+		}
+		
+		String basePath = FileUtil.smartFullName( path, tempRoot );
+		
+		if ( !basePath.endsWith(File.separator)){
+			
+			basePath += File.separator;
+		}
+		
+		//System.out.println( "path=" + path + ", root=" + rootPath + ", base = " + basePath );
 		
 		for (int i = 0; i < btFileList.size(); i++) {
 			//get the BtFile
@@ -717,6 +739,7 @@ DiskManagerImpl
 			String tempPath = basePath + tempFile.getPath();
 			//get file name
 			String tempName = tempFile.getName();
+			//System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
 			//get file length
 			long length = tempFile.getLength();
 
@@ -727,7 +750,7 @@ DiskManagerImpl
 			  return false;
 			}
 			else if (f.length() != length) {
-			  errorMessage = tempPath + tempName + " not corrects size.";
+			  errorMessage = tempPath + tempName + " not correct size.";
 				return false;
 			}
 		}
