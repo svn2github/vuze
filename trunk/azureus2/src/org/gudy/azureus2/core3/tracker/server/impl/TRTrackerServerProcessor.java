@@ -151,7 +151,7 @@ TRTrackerServerProcessor
 				
 				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 				
-				Map	hash_entry = torrent.exportScrapeToMap();
+				Map	hash_entry = this_torrent.exportScrapeToMap();
 				
 				files.put( str_hash, hash_entry );
 			}
