@@ -35,12 +35,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
  */
 public class SWTDownloadURLsGetter implements DownloadListener{
   
-  public static String[] swtURLProviders = {
-      "http://azureus.sourceforge.net/swt_version.php" ,
-      "http://www.gudy.org/azureus/swt_version.php" ,
-      "http://www.keecall.com/azureus/swt_version.php"
-  };
-  
   SWTDownloadURLsListener listener;
   String platform;
   int index;
@@ -63,11 +57,11 @@ public class SWTDownloadURLsGetter implements DownloadListener{
      processData(is);
    } else {    
      index++;
-     if(index < swtURLProviders.length && !canceled) {
+     if(index < SWTUpdateChecker.swtURLProviders.length && !canceled) {
        download();
      }
      else {
-       listener.reportURLs(null);
+       listener.reportURLs(null,-1);
      }
    }
   }
@@ -77,7 +71,7 @@ public class SWTDownloadURLsGetter implements DownloadListener{
   }
   
   private void download() {
-    String url = swtURLProviders[index];
+    String url = SWTUpdateChecker.swtURLProviders[index];
     String downloadURL = url + "?platform=" + platform;
     listener.processName(MessageText.getString("swt.updater.urlsgetter.downloading") + "\n" + downloadURL);
     new URLDownloader(this,downloadURL);
@@ -87,14 +81,16 @@ public class SWTDownloadURLsGetter implements DownloadListener{
     BufferedReader br = new BufferedReader(new InputStreamReader(is));
     String line;
     ArrayList response = new ArrayList();
+    int size = -1;
     try {
+      size = Integer.parseInt(br.readLine());
       while((line = br.readLine()) != null) {
         response.add(line);
       }
     } catch(IOException e) {
       e.printStackTrace();
     }
-    listener.reportURLs((String[])response.toArray(new String[response.size()]));
+    listener.reportURLs((String[])response.toArray(new String[response.size()]),size);
   }
   
   public void cancel() {

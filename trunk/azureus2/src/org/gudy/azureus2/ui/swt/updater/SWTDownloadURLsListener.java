@@ -26,5 +26,5 @@ package org.gudy.azureus2.ui.swt.updater;
  */
 public interface SWTDownloadURLsListener extends ProgressListener{
   
-  public void reportURLs(String[] urls);
+  public void reportURLs(String[] urls, int size);
 }
