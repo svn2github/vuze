@@ -33,10 +33,10 @@ public class SystemTray extends SysTrayMenuAdapter {
 
 	MainWindow main;
 	SysTrayMenu menu;
-	
+	private static SystemTray systemTray = null; 
 	int refreshFactor = 0;
   
-  private static final String[] menuItems = {"show", "closealldownloadbars", null, "exit"};
+  private static final String[] menuItems = {"show", "closealldownloadbars", "stopalldownloads", null, "exit"};
 
 	public SystemTray(MainWindow main) {
 		this.main = main;
@@ -53,6 +53,7 @@ public class SystemTray extends SysTrayMenuAdapter {
         menu.addSeparator();
     }
 		icon.addSysTrayMenuListener(this);
+    systemTray = this;
 	}
 
   public void updateLanguage() {
@@ -108,6 +109,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 			dispose();
 		} else if (cmd.equals("show")) { //$NON-NLS-1$
 			show();
+    } else if (cmd.equals("stopalldownloads")) { //$NON-NLS-1$
+      main.getGlobalManager().stopAllDownloads();
     } else if (cmd.equals("closealldownloadbars")) { //$NON-NLS-1$
       main.closeDownloadBars();
     }
@@ -141,7 +144,10 @@ public class SystemTray extends SysTrayMenuAdapter {
 			 * @see java.lang.Runnable#run()
 			 */
 			public void run() {
-				main.dispose();
+				if(!main.dispose()) {
+          menu.getIcon().addSysTrayMenuListener(systemTray);
+          menu.showIcon();
+        }
 			}
 		});
 	}

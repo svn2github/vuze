@@ -345,15 +345,17 @@ public class GlobalManagerImpl
     stats_writer.start();
   }
 
-  public boolean addDownloadManagerStopped(String fileName, String savePath) {
-    if(addDownloadManager(fileName, savePath)) {
-      ((DownloadManager)managers.get(managers.size()-1)).setState(DownloadManager.STATE_STOPPED);
-      return true;
-    }
-    return false;
+  public boolean addDownloadManager(String fileName, String savePath) {
+    return addDownloadManagerStopped(fileName, savePath, false);
   }
 
-  public boolean addDownloadManager(String fileName, String savePath) {
+  /**
+   * @param startStopped if true, the download will be added in STOPPED state
+   * @return true, if the download was added
+   *
+   * @author Rene Leonhardt
+   */
+  public boolean addDownloadManagerStopped(String fileName, String savePath, boolean startStopped) {
 	File torrentDir	= null;
 	File fDest		= null;
 	
@@ -392,6 +394,8 @@ public class GlobalManagerImpl
       boolean correct = addDownloadManager(manager);
       if (!correct) {
         fDest.delete();
+      } else if(startStopped) {
+        manager.setState(DownloadManager.STATE_STOPPED);
       }
       return correct;
     }
@@ -474,13 +478,23 @@ public class GlobalManagerImpl
     if (!isStopped) {
       checker.stopIt();
       saveDownloads();
-      while (managers.size() != 0) {
-        DownloadManager manager = (DownloadManager) managers.remove(0);
-        manager.stopIt();
-      }
+      stopAllDownloads();
+      managers.clear();
       isStopped = true;
       
       stats_writer.stop();
+    }
+  }
+
+  /**
+   * Stops all downloads without removing them
+   *
+   * @author Rene Leonhardt
+   */
+  public void stopAllDownloads() {
+    for (Iterator iter = managers.iterator(); iter.hasNext();) {
+      DownloadManager manager = (DownloadManager) iter.next();
+      manager.stopIt();
     }
   }
 

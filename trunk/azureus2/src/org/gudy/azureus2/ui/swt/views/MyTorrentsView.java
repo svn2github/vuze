@@ -959,10 +959,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 //*/
         if (e.stateMask == (SWT.CTRL|SWT.SHIFT)) {
           // CTRL+SHIFT+S stop all Torrents
-          if(e.character == 0x13) {
-            table.selectAll();
-            stopSelectedTorrents();
-          }
+          if(e.character == 0x13)
+            globalManager.stopAllDownloads();
         } else if (e.stateMask == SWT.CTRL) {
           // CTRL+CURSOR DOWN move selected Torrents one down
           if(e.keyCode == 0x1000001)

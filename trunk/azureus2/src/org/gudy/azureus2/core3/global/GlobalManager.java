@@ -34,10 +34,17 @@ GlobalManager
 		String			file_name,
 		String			save_path );
 
+  /**
+   * @param startStopped if true, the download will be added in STOPPED state
+   * @return true, if the download was added
+   *
+   * @author Rene Leonhardt
+   */
   public boolean
   addDownloadManagerStopped(
     String fileName,
-    String savePath);
+    String savePath,
+    boolean startStopped);
   
 	public void
 	removeDownloadManager(
@@ -48,7 +55,15 @@ GlobalManager
 	
 	public void
 	stopAll();
-	
+
+  /**
+   * Stops all downloads without removing them
+   *
+   * @author Rene Leonhardt
+   */
+  public void
+  stopAllDownloads();
+    
 	public TRTrackerScraper
 	getTrackerScraper();
 	

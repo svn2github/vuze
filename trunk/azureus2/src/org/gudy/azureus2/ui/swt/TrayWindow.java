@@ -117,6 +117,14 @@ public class TrayWindow implements GlobalManagerListener {
 
     main.addCloseDownloadBarsToMenu(menu);
 
+    MenuItem file_stopalldownloads = new MenuItem(menu, SWT.NULL);
+    Messages.setLanguageText(file_stopalldownloads, "TrayWindow.menu.stopalldownloads"); //$NON-NLS-1$
+    file_stopalldownloads.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        globalManager.stopAllDownloads();
+      }
+    });
+
     new MenuItem(menu, SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
