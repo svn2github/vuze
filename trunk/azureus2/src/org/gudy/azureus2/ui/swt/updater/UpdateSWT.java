@@ -37,7 +37,7 @@ public class UpdateSWT {
   static FileOutputStream fosLog;
   static String userDir;
   public static void main(String args[]) throws Exception {
-    File f = new File("updateSWT.log");
+    File f = new File(userDir + "updateSWT.log");
     fosLog = new FileOutputStream(f,true);
     String toLog = "SWT Updater started with parameters : \n";
     for(int i = 0 ; i < args.length ; i++) {
@@ -84,7 +84,10 @@ public class UpdateSWT {
     String toLog = "SWT Updater is doing Generic Update\n";
     fosLog.write(toLog.getBytes()); 
     
-    ZipFile zipFile = new ZipFile(zipFileName);
+    toLog = "SWT Updater is opening zip file : " + userDir + zipFileName + "\n";
+    fosLog.write(toLog.getBytes());
+    
+    ZipFile zipFile = new ZipFile(userDir + zipFileName);
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
@@ -111,10 +114,10 @@ public class UpdateSWT {
     String toLog = "SWT Updater is doing Carbon (OSX) Update\n";
     fosLog.write(toLog.getBytes());
     
-    toLog = "SWT Updater is opening zip file : " + zipFileName + "\n";
+    toLog = "SWT Updater is opening zip file : " + userDir + zipFileName + "\n";
     fosLog.write(toLog.getBytes());
     
-    ZipFile zipFile = new ZipFile(zipFileName);
+    ZipFile zipFile = new ZipFile(userDir +  zipFileName);
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {     
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
