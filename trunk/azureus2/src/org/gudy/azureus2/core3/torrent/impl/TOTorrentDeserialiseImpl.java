@@ -174,19 +174,19 @@ TOTorrentDeserialiseImpl
 				
 				if ( key.equalsIgnoreCase( TK_ANNOUNCE )){
 							
-					String url_str = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+          String announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
 					
-					url_str=url_str.replaceAll( " ", "" );
+          announce_url = announce_url.replaceAll( " ", "" );
 					
 					try{
 					
-						setAnnounceURL( new URL( url_str ));
+						setAnnounceURL( new URL( announce_url ));
 						
 					}catch( MalformedURLException e ){
 						
 						e.printStackTrace();
 						
-						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + url_str + "'",
+						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "'",
 														TOTorrentException.RT_DECODE_FAILS ));
 					}
 					
@@ -195,7 +195,11 @@ TOTorrentDeserialiseImpl
 					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
 					
 					if ( announce_list != null ){
-						
+            
+            String announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+            announce_url = announce_url.replaceAll( " ", "" );
+            boolean announce_url_found = false;
+            
 						for (int i=0;i<announce_list.size();i++){
 							
 							List	set = (List)announce_list.get(i);
@@ -209,6 +213,11 @@ TOTorrentDeserialiseImpl
 									String url_str = readStringFromMetaData((byte[])set.get(j));
 									
 									url_str=url_str.replaceAll( " ", "" );
+                  
+                  //check to see if the announce url is somewhere in the announce-list
+                  if ( url_str.equalsIgnoreCase( announce_url )) {
+                    announce_url_found = true;
+                  }
 											
 									urls.add( new URL( url_str ));		
 							
@@ -227,6 +236,19 @@ TOTorrentDeserialiseImpl
 								addTorrentAnnounceURLSet( url_array );
 							}
 						}
+            
+            //if the original announce url isn't found, add it to the list
+            if ( !announce_url_found ) {
+              try {
+              	Vector urls = new Vector();
+              	urls.add( new URL( announce_url ));
+              	URL[] url_array = new URL[ urls.size() ];
+              	urls.copyInto( url_array );
+              	addTorrentAnnounceURLSet( url_array );
+              }
+              catch (Exception e) { e.printStackTrace(); }
+            }
+            
 					}
 				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
 					
