@@ -50,8 +50,9 @@ PluginConfig
    *
    * @since 2.1.0.0
    */
-	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL			= "Max Connections Global";
+	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL						= "Max Connections Global";
 	
+	public static final String CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION			= "SOCKS Proxy No Inward Connection";
 
   /**
    * returns the value of a core float parameter

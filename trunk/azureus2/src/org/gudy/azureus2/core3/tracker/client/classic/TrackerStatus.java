@@ -226,14 +226,20 @@ public class TrackerStatus {
       }
     }
 
-    public void runSupport() {
-      if (scrapeURL == null)  {
+    public void 
+	runSupport() 
+    {
+      if ( scrapeURL == null ){
+      	
         return;
       }
       
-      //LGLogger.log( "ThreadedScrapeRunner:: responses.size()=" +responses.size()+ ", bSingleHashScrapes=" +bSingleHashScrapes );
+      LGLogger.log( "TrackerStatus: scraping '" + scrapeURL + "', number of hashes = " +responses.size()+ ", single_hash_scrapes = " +bSingleHashScrapes );
             
       boolean	original_bSingleHashScrapes = bSingleHashScrapes;
+      
+      boolean	disable_all_scrapes		= !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Enable");
+      boolean	disable_stopped_scrapes	= !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Stopped Enable");
       
       try {
       		// if URL already includes a query component then just append our params
@@ -243,22 +249,42 @@ public class TrackerStatus {
       	char	first_separator = scrapeURL.indexOf('?')==-1?'?':'&';
       	
         String info_hash = "";
-        for (int i = 0; i < responses.size(); i++) {
+        
+ 	        for (int i = 0; i < responses.size(); i++) {
+        	
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
-          response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
-                             MessageText.getString("Scrape.status.scraping"));
+          
           byte[] hash = response.getHash();
           
-          one_of_the_hashes	= hash;
-          
-          info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
-          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
-                                         Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+          if ( 	disable_all_scrapes ||
+          		(disable_stopped_scrapes && !scraper.isTorrentDownloading( hash ))){
+          	
+	            response.setNextScrapeStartTime(
+	            		SystemTime.getCurrentTime() + 
+	                    FAULTY_SCRAPE_RETRY_INTERVAL);
+	
+	            response.setStatus(		TRTrackerScraperResponse.ST_ERROR,
+	            						MessageText.getString("Scrape.status.disabled"));
+	            
+	            scraper.scrapeReceived( response );
+
+          }else{
+          	
+	          response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+	                             MessageText.getString("Scrape.status.scraping"));
+	          
+	          one_of_the_hashes	= hash;
+	          
+	          info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
+	          
+	          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
+	                                         Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+          }
         }
 
         if ( one_of_the_hashes == null ){
         	
-        	Debug.out( "No hashes for scrape" );
+        	return;
         	
         }else{
         	
@@ -277,10 +303,15 @@ public class TrackerStatus {
         long scrapeStartTime = SystemTime.getCurrentTime();
         
         if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
-          // TODO: support multi hash scrapes on UDP
-        	scrapeUDP( reqUrl, message, ((TRTrackerScraperResponseImpl)responses.get(0)).getHash());
+
+        		// TODO: support multi hash scrapes on UDP
+        	
+        	scrapeUDP( reqUrl, message, one_of_the_hashes );
+        	
         	bSingleHashScrapes = true;
+        	
         }else{
+        	
         	scrapeHTTP( reqUrl, message );
         }
                 
@@ -568,7 +599,11 @@ public class TrackerStatus {
     }
   }
   
-  protected void scrapeHTTP(URL reqUrl, ByteArrayOutputStream message)
+  protected void 
+  scrapeHTTP(
+  	URL 					reqUrl, 
+	ByteArrayOutputStream 	message )
+  
   	throws IOException
   {
   	TRTrackerUtils.checkForBlacklistedURLs( reqUrl );

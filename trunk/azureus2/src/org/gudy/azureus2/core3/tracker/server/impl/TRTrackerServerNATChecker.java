@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+
 public class 
 TRTrackerServerNATChecker 
 {
@@ -198,7 +200,8 @@ TRTrackerServerNATChecker
 							boolean	ok = false;
 														
 							try{
-								InetSocketAddress address = new InetSocketAddress( host, port );
+								InetSocketAddress address = 
+									new InetSocketAddress( AEProxyFactory.getAddressMapper().internalise(host), port );
 								
 								socket = new Socket();
 																

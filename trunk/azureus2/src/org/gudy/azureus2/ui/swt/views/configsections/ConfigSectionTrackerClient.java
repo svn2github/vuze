@@ -87,6 +87,33 @@ ConfigSectionTrackerClient
     read_timeout.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
 
+    	//////////////////////SCRAPE GROUP ///////////////////
+    
+    Group scrapeGroup = new Group(gMainTab,SWT.NULL);
+    Messages.setLanguageText(scrapeGroup,"ConfigView.group.scrape");
+    GridLayout gridLayout = new GridLayout();
+    gridLayout.numColumns = 1;
+    scrapeGroup.setLayout(gridLayout);
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    scrapeGroup.setLayoutData( gridData );
+    
+    label = new Label(scrapeGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.client.scrapeinfo");
+
+    BooleanParameter	scrape = 
+    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Enable", true,
+    							"ConfigView.section.tracker.client.scrapeenable");
+    
+    BooleanParameter	scrape_stopped = 
+    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Stopped Enable", true,
+    							"ConfigView.section.tracker.client.scrapestoppedenable");
+    
+    scrape.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( scrape_stopped.getControls()));
+
+    ////// main tab 
+    
     // row
 
     gridData = new GridData();
@@ -111,7 +138,7 @@ ConfigSectionTrackerClient
     
     Group overrideGroup = new Group(gMainTab,SWT.NULL);
     Messages.setLanguageText(overrideGroup,"ConfigView.group.override");
-    GridLayout gridLayout = new GridLayout();
+    gridLayout = new GridLayout();
     gridLayout.numColumns = 2;
     overrideGroup.setLayout(gridLayout);
     
