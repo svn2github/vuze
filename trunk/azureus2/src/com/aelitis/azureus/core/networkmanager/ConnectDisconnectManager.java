@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -126,7 +127,7 @@ public class ConnectDisconnectManager {
 
       String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
       if ( bindIP.length() > 6 ) {
-        System.out.println( "Binding to local IP address: " + bindIP );
+        LGLogger.log( "Binding outgoing connection [" +request.address+ "] to local IP address: " + bindIP );
         request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
       }
       
