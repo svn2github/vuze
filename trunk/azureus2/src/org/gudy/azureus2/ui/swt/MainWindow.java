@@ -1024,7 +1024,7 @@ public class MainWindow implements IComponentListener {
       String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
       String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
 
-      File updaterJar = GlobalManager.getApplicationFile("Updater.jar"); //$NON-NLS-1$
+      File updaterJar = FileUtil.getApplicationFile("Updater.jar"); //$NON-NLS-1$
       if (!updaterJar.isFile()) {
         URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
@@ -1118,7 +1118,7 @@ public class MainWindow implements IComponentListener {
     FileOutputStream fos = null;
     InputStream in = null;
     try {
-      File originFile = GlobalManager.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
+      File originFile = FileUtil.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
       File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
       URL reqUrl = null;
       if (latestVersionFileName == null) {
