@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.common.util.LocaleUtilHeadless;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
@@ -37,8 +38,7 @@ public class Main implements ILocaleUtilChooser {
     p.put("java.awt.headless", "true");
     System.setProperties(p);
     gm = GlobalManagerFactory.create();
-    PluginInitializer.getSingleton(gm,null).initializePlugins();
-    
+    PluginInitializer.getSingleton(gm,null).initializePlugins( PluginManager.UI_NONE );  
   
     server = new Jhttpp2Server(gm, true);
     ci = new ConsoleInput("Main", gm, System.in, System.out, Boolean.TRUE);
