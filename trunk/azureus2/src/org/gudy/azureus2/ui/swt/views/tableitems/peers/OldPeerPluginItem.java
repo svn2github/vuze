@@ -62,6 +62,7 @@ public class OldPeerPluginItem
   {
     PluginPeerItem pluginItem;
     TableCell cell;
+    boolean bTextSet;
   
     public Cell(TableCell item) {
       cell = item;
@@ -78,12 +79,22 @@ public class OldPeerPluginItem
     public void refresh(TableCell cell) {
       try {
         if (cell.isShown()) {
+          bTextSet = false;
           pluginItem.refresh();
 
-          if (oldFactoryType.equals(PluginPeerItemFactory.TYPE_STRING))
-            cell.setSortValue(pluginItem.getStringValue());
-          else
-            cell.setSortValue(pluginItem.getIntValue());
+          if (oldFactoryType.equals(PluginPeerItemFactory.TYPE_STRING)) {
+            String s = pluginItem.getStringValue();
+            cell.setSortValue(s);
+            // Some plugins didn't think a refresh actually meant we needed new
+            // text..
+            if (!bTextSet && !cell.isValid())
+              cell.setText(s);
+          } else {
+            int i = pluginItem.getIntValue();
+            if (!bTextSet && !cell.isValid())
+              cell.setText(String.valueOf(i));
+            cell.setSortValue(i);
+          }
         }
       } catch(Throwable e) {
         LGLogger.log(LGLogger.ERROR,"Plugin in PeersView generated an exception : " + e );
@@ -92,6 +103,7 @@ public class OldPeerPluginItem
     }
     
     public boolean setText(String s) {
+      bTextSet = true;
       return cell.setText(s);
     }
   }
