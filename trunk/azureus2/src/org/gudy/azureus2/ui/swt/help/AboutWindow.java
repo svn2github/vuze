@@ -103,13 +103,13 @@ public class AboutWindow {
     gInternet.setLayoutData(gridData);
   
     final String[][] link =
-      { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "featurerequests", "forumdiscussion" }, {
+      { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
         "http://azureus.sourceforge.net/",
           "http://sourceforge.net/projects/azureus/",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
           "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
-          "http://sourceforge.net/tracker/?atid=575157&group_id=84122&func=browse",
-          "http://sourceforge.net/forum/forum.php?forum_id=291997" }
+          "http://sourceforge.net/forum/?group_id=84122",
+          "http://azureus.sourceforge.net/wiki/" }
     };
   
     for (int i = 0; i < link[0].length; i++) {
