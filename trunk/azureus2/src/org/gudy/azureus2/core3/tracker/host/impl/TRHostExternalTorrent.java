@@ -117,6 +117,10 @@ TRHostExternalTorrent
 	{
 		return( null );
 	}
+  
+  public void
+  addTorrentAnnounceURLSet( URL[] urls ){}
+  
 	
 	public byte[][]
 	getPieces()

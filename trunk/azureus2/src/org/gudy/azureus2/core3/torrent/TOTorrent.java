@@ -97,7 +97,7 @@ TOTorrent
   
   
   /**
-   * Add a set of URLS to the torrent's group of announce urls.
+   * Add a set of URLS to the end of the torrent's group of announce urls.
    */
   public void
   addTorrentAnnounceURLSet( URL[] urls );

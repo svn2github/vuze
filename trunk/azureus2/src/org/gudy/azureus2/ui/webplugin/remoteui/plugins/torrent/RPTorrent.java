@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent;
 
+import java.net.*;
+
 /**
  * @author parg
  *
@@ -173,4 +175,8 @@ RPTorrent
 	{
 		notSupported();
 	}
+  
+  public void addAnnounceURLTrackerGroup( URL[] urls ) {
+    notSupported();
+  }
 }
