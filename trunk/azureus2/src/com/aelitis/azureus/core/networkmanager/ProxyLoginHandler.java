@@ -327,6 +327,8 @@ public class ProxyLoginHandler {
     ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );
 
     if( socks5_handshake_phase == 0 ) {  // say hello
+      System.out.println( "socks5 write phase 0" );
+      
       handshake.put( (byte)5 ); // socks 5
       handshake.put( (byte)2 ); // 2 methods
       handshake.put( (byte)0 ); // no auth
@@ -339,6 +341,8 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 1 ) {  // user/password auth
+      System.out.println( "socks5 write phase 1" );
+      
       handshake.put( (byte)1 ); // user/pw version
       handshake.put( (byte)socks_user.length() ); // user length
       handshake.put( socks_user.getBytes() );
@@ -352,6 +356,8 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 2 ) {  // request
+      System.out.println( "socks5 write phase 2" );
+      
       handshake.put( (byte)5 ); // version
       handshake.put( (byte)1 ); // connect
       handshake.put( (byte)0 ); // reserved
@@ -383,8 +389,11 @@ public class ProxyLoginHandler {
       return new ByteBuffer[] { handshake, ByteBuffer.allocate( 5 ) };
     }
     
+    System.out.println( "socks5 write phase 3..." );
+    
     //reply has to be processed in two parts as it has variable length component at the end
     //socks5_handshake_phase == 3, part two
+    socks5_handshake_phase = 4;
     return new ByteBuffer[] { null, ByteBuffer.allocate( socks5_address_length ) };    
   }
   
@@ -392,6 +401,8 @@ public class ProxyLoginHandler {
   
   private boolean parseSocks5Reply( ByteBuffer reply ) throws Exception {
     if( socks5_handshake_phase == 1 ) { // reply from hello
+      System.out.println( "socks5 read phase 1" );
+      
       reply.get();  // version byte
       byte method = reply.get();
 
@@ -408,6 +419,8 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 2 ) {  // reply from auth
+      System.out.println( "socks5 read phase 2" );
+      
       reply.get();  // version byte
       byte status = reply.get();
 
@@ -420,6 +433,8 @@ public class ProxyLoginHandler {
     
     
     if( socks5_handshake_phase == 3 ) {   // reply from request, first part
+      System.out.println( "socks5 read phase 3" );
+      
       reply.get();  // version byte
       byte rep = reply.get();
 
@@ -456,6 +471,8 @@ public class ProxyLoginHandler {
       return false;
     }
     
+    System.out.println( "socks5 read phase 4..." );
+    //socks5_handshake_phase 4
     //reply from request, last part
     return true;  //only done AFTER last part of request reply has been read from stream
   }
