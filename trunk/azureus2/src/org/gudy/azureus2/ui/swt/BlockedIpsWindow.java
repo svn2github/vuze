@@ -43,7 +43,11 @@ public class BlockedIpsWindow {
     window.setImage(ImageRepository.getImage("azureus"));
     
     FormLayout layout = new FormLayout();
-    layout.spacing = 3;
+    try {
+      layout.spacing = 3;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     layout.marginHeight = 3;
     layout.marginWidth = 3;
     window.setLayout(layout);

@@ -50,7 +50,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
-import org.eclipse.swt.widgets.Monitor;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
@@ -191,15 +190,19 @@ public class Utils {
   centreWindow(
   	Shell	shell )
   {
-	Rectangle displayRect = shell.getMonitor().getClientArea();
+    Rectangle displayRect;
+    try {
+    	displayRect = shell.getMonitor().getClientArea();
+    } catch (NoSuchMethodError e) {
+      displayRect = shell.getDisplay().getClientArea();
+    }
+
+    Rectangle shellRect = shell.getBounds();
 	
-	Rectangle shellRect = shell.getBounds();
-	
-	int x = (displayRect.width - shellRect.width) / 2;
-	
-	int y = (displayRect.height - shellRect.height) / 2;
-	
-	shell.setLocation(x, y);
+    int x = (displayRect.width - shellRect.width) / 2;
+    int y = (displayRect.height - shellRect.height) / 2;
+
+    shell.setLocation(x, y);
   }  
 
   /**

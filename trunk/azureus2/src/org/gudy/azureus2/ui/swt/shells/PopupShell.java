@@ -62,7 +62,13 @@ public class PopupShell {
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0;
     layout.marginWidth= 0;
-    layout.spacing = 0;
+    try {
+      layout.spacing = 0;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
     
     shell.setLayout(layout);
   }

@@ -161,8 +161,12 @@ BufferedTableRow
 		}
 		
 		foreground_colors[index] = new_color;
-		
-    item.setForeground(index, new_color);
+
+    try {
+      item.setForeground(index, new_color);
+    } catch (NoSuchMethodError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     
     return true;
 	}

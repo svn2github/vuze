@@ -68,7 +68,11 @@ public class HealthHelpWindow {
     FormLayout layout = new FormLayout();
     layout.marginHeight = 3;
     layout.marginWidth = 3;
-    layout.spacing = 3;
+    try {
+      layout.spacing = 3;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     window.setLayout(layout);
     FormData formData;
     

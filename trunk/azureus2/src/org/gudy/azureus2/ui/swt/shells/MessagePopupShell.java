@@ -76,7 +76,12 @@ public class MessagePopupShell implements AnimableShell {
     shell.setSize(250,150);
     shell.setImage(ImageRepository.getImage("azureus"));
     FormLayout layout = new FormLayout();
-    layout.marginHeight = 0; layout.marginWidth = 0 ; layout.spacing = 0;
+    layout.marginHeight = 0; layout.marginWidth = 0; 
+    try {
+      layout.spacing = 0;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     shell.setLayout(layout);
     
     
@@ -130,8 +135,8 @@ public class MessagePopupShell implements AnimableShell {
     btnHide.setLayoutData(formData);
     
     formData = new FormData();
-    formData.left = new FormAttachment(0);
-    formData.top = new FormAttachment(0);
+    formData.left = new FormAttachment(0,0);
+    formData.top = new FormAttachment(0,0);
     lblImage.setLayoutData(formData);
     
     shell.layout();
