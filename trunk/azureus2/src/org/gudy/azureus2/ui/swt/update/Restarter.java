@@ -62,14 +62,14 @@ Restarter
 		
  	 	String	app_path = SystemProperties.getApplicationPath();
 	  	
-	  	if ( app_path.endsWith(File.separator)){
+	  	while( app_path.endsWith(File.separator)){
 	  		
 	  		app_path = app_path.substring(0,app_path.length()-1);
 	  	}
 	  	
 	 	String	user_path = SystemProperties.getUserPath();
 	  	
-	  	if ( user_path.endsWith(File.separator)){
+	  	while( user_path.endsWith(File.separator)){
 	  		
 	  		user_path = user_path.substring(0,user_path.length()-1);
 	  	}
