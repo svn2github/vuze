@@ -140,7 +140,7 @@ public class SelectorGuard {
     	//register old selector's keyset with new selector
       for (Iterator i = _bad_selector.keys().iterator(); i.hasNext();) {
         SelectionKey key = (SelectionKey)i.next();
-        i.remove();
+
         SelectableChannel channel = key.channel();
         channel.register(newSelector, key.interestOps(), key.attachment());
       }
