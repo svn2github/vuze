@@ -59,56 +59,50 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cTransfer.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 2;
     cTransfer.setLayout(layout);
 
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    gridData.horizontalSpan = 2;
-    new IntParameter(cTransfer, "Max Clients", 100).setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.slowconnect"); //$NON-NLS-1$
-    new BooleanParameter(cTransfer, "Slow Connect", false); //$NON-NLS-1$
-    new Label(cTransfer, SWT.NULL);
     
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed");
     gridData = new GridData();
     gridData.widthHint = 30;
-    gridData.horizontalSpan = 2;
-    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
-    paramMaxUploads.setLayoutData(gridData);
-    
-    
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    gridData.horizontalSpan = 1;
     IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 5, -1, true);
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed.kbs");
     paramMaxUploadSpeed.setLayoutData(gridData);
 
     
+    
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$
-    new BooleanParameter(cTransfer, "Allow Same IP Peers", false); //$NON-NLS-1$
-    new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxclients");
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    new IntParameter(cTransfer, "Max Clients", 100).setLayoutData(gridData);
+
+    
 
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.prioritizefirstpiece"); //$NON-NLS-1$
-    new BooleanParameter(cTransfer, "Prioritize First Piece", false); //$NON-NLS-1$
-    new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploads");
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
+    paramMaxUploads.setLayoutData(gridData);
 
+    
+    Composite cTransfer2 = new Composite(cTransfer, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 1;
+    cTransfer2.setLayout(layout);
+    cTransfer2.setLayoutData(new GridData());
+    
+    new BooleanParameter(cTransfer2, "Slow Connect", false, "ConfigView.label.slowconnect");
+    new BooleanParameter(cTransfer2, "Old.Socket.Polling.Style", false, "ConfigView.label.oldpollingstyle");
+    new BooleanParameter(cTransfer2, "Allow Same IP Peers", false, "ConfigView.label.allowsameip");
+    new BooleanParameter(cTransfer2, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
+    
     if(!System.getProperty("os.name").equals("Mac OS X")) {
-      label = new Label(cTransfer, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.playdownloadfinished"); //$NON-NLS-1$
-      new BooleanParameter(cTransfer, "Play Download Finished", false); //$NON-NLS-1$
+      new BooleanParameter(cTransfer2, "Play Download Finished", false, "ConfigView.label.playdownloadfinished");
     }
+    
     return cTransfer;
   }
 }
