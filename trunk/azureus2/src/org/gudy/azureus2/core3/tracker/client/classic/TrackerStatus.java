@@ -286,7 +286,7 @@ public class TrackerStatus {
 	ByteArrayOutputStream	message,
 	byte[]					hash )
   
-  throws Exception
+  		throws Exception
   {
 	int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
 	
@@ -294,76 +294,86 @@ public class TrackerStatus {
 	
 	InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort());
 	
-	// TODO: loop 4 times if connect fails? 15 secs each ?
+	for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
 	
-	PRUDPPacket connect_request = new PRUDPPacketRequestConnect(0);
-	
-	PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
-	
-	if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
-		
-		PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
-		
-		long	my_connection = connect_reply.getConnectionId();
-		
-		PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
+		try{
+			PRUDPPacket connect_request = new PRUDPPacketRequestConnect(0);
+			
+			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
+			
+			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
+				
+				PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
+				
+				long	my_connection = connect_reply.getConnectionId();
+				
+				PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
+								
+				reply = handler.sendAndReceive( scrape_request, destination );
+				
+				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
+					
+					PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
+					
+					Map	map = new HashMap();
+					
+					/*
+					int	interval = scrape_reply.getInterval();
+					
+					if ( interval != 0 ){
 						
-		reply = handler.sendAndReceive( scrape_request, destination );
-		
-		if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
-			
-			PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
-			
-			Map	map = new HashMap();
-			
-			/*
-			int	interval = scrape_reply.getInterval();
-			
-			if ( interval != 0 ){
+						map.put( "interval", new Long(interval ));
+					}
+					*/
+					
+					byte[][]	hashes 		= scrape_reply.getHashes();
+					int[]		complete 	= scrape_reply.getComplete();
+					int[]		downloaded 	= scrape_reply.getComplete();
+					int[]		incomplete 	= scrape_reply.getComplete();
+					
+					Map	files = new ByteEncodedKeyHashMap();
+					
+					map.put( "files", files );
+					
+					for (int i=0;i<hashes.length;i++){
+						
+						Map	file = new HashMap();
+						
+						byte[]	resp_hash = hashes[i];
+						
+						// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
+					
+						files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
+						
+						file.put( "complete", new Long(complete[i]));
+						file.put( "downloaded", new Long(downloaded[i]));
+						file.put( "incomplete", new Long(incomplete[i]));
+					}
+					
+					byte[] data = BEncoder.encode( map );
+					
+					message.write( data );
+					
+					return;
+				}else{
+					
+					LGLogger.log(LGLogger.ERROR, 
+									"Response from scrape interface : " +
+										((PRUDPPacketReplyError)reply).getMessage());
+				}
+			}else{
 				
-				map.put( "interval", new Long(interval ));
+				LGLogger.log(LGLogger.ERROR, 
+						"Response from scrape interface : " +
+						((PRUDPPacketReplyError)reply).getMessage());
 			}
-			*/
+		}catch( PRUDPPacketHandlerException e ){
 			
-			byte[][]	hashes 		= scrape_reply.getHashes();
-			int[]		complete 	= scrape_reply.getComplete();
-			int[]		downloaded 	= scrape_reply.getComplete();
-			int[]		incomplete 	= scrape_reply.getComplete();
-			
-			Map	files = new ByteEncodedKeyHashMap();
-			
-			map.put( "files", files );
-			
-			for (int i=0;i<hashes.length;i++){
+			if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
 				
-				Map	file = new HashMap();
-				
-				byte[]	resp_hash = hashes[i];
-				
-				// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
-			
-				files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
-				
-				file.put( "complete", new Long(complete[i]));
-				file.put( "downloaded", new Long(downloaded[i]));
-				file.put( "incomplete", new Long(incomplete[i]));
+				throw( e );
 			}
-			
-			byte[] data = BEncoder.encode( map );
-			
-			message.write( data );
-			
-		}else{
-			
-			LGLogger.log(LGLogger.ERROR, 
-							"Response from scrape interface : " +
-								((PRUDPPacketReplyError)reply).getMessage());
 		}
-	}else{
-		
-		LGLogger.log(LGLogger.ERROR, 
-				"Response from scrape interface : " +
-				((PRUDPPacketReplyError)reply).getMessage());
 	}
   }
   

@@ -38,9 +38,7 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 PRUDPPacketHandlerImpl
 	implements PRUDPPacketHandler
-{
-	public static final int RECEIVE_TIMEOUT	= 15000;
-	
+{	
 	protected int				port;
 	protected DatagramSocket	socket;
 	
@@ -96,7 +94,7 @@ PRUDPPacketHandlerImpl
 					
 			socket.setReuseAddress(true);
 			
-			socket.setSoTimeout( RECEIVE_TIMEOUT );
+			socket.setSoTimeout( PRUDPPacket.DEFAULT_UDP_TIMEOUT );
 			
 			init_sem.release();
 			
@@ -136,7 +134,7 @@ PRUDPPacketHandlerImpl
 	{
 		long	now = System.currentTimeMillis();
 		
-		if ( now - last_timeout_check >= RECEIVE_TIMEOUT ){
+		if ( now - last_timeout_check >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
 			
 			last_timeout_check	= now;
 			
@@ -148,9 +146,11 @@ PRUDPPacketHandlerImpl
 					
 					PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
 					
-					if ( now - request.getCreateTime() >= RECEIVE_TIMEOUT ){
+					if ( now - request.getCreateTime() >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
 					
 						LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
+						
+							// don't change the text of this message, it's used elsewhere
 						
 						request.setException(new PRUDPPacketHandlerException("timed out"));
 					}

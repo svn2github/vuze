@@ -33,7 +33,9 @@ import java.util.*;
 public abstract class 
 PRUDPPacket 
 {
-	public static final int	MAX_PACKET_SIZE	= 8192;
+	public static final int	MAX_PACKET_SIZE			= 8192;
+	public static final int DEFAULT_UDP_TIMEOUT		= 15000;
+	public static final int DEFAULT_RETRY_COUNT		= 4;
 	
 	public static final int	ACT_REQUEST_CONNECT		= 0;
 	public static final int	ACT_REQUEST_ANNOUNCE	= 1;
