@@ -527,7 +527,7 @@ TRTrackerServerImpl
 			
 			if ( entry == null ){
 			
-				entry = new TRTrackerServerTorrentImpl( this, hash );
+				entry = new TRTrackerServerTorrentImpl( hash );
 			
 				torrent_map.put( hash, entry );
 			}

@@ -41,7 +41,6 @@ TRTrackerServerTorrentImpl
 	
 	public static final int	MIN_CACHE_ENTRY_SIZE	= 10;
 	
-	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
 
 	protected Map				peer_map 		= new HashMap();
@@ -62,10 +61,8 @@ TRTrackerServerTorrentImpl
 	
 	protected
 	TRTrackerServerTorrentImpl(
-		TRTrackerServerImpl		_server,
 		HashWrapper				_hash )
 	{
-		server		= _server;
 		hash		= _hash;
 		
 		stats		= new TRTrackerServerTorrentStatsImpl( this );
@@ -271,7 +268,7 @@ TRTrackerServerTorrentImpl
 		}										
 	}
 	
-	public synchronized Map
+	protected synchronized Map
 	exportAnnounceToList(
 		boolean		include_seeds,
 		int			num_want,
@@ -575,7 +572,7 @@ TRTrackerServerTorrentImpl
 		return( root );
 	}
 	
-	public synchronized void
+	protected synchronized void
 	checkTimeouts()
 	{
 		long	now = SystemTime.getCurrentTime();

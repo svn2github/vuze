@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.tracker.server.impl.tcp;
 
 import java.net.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.net.ssl.*;
@@ -203,14 +204,21 @@ TRTrackerServerTCP
 				final Socket socket = ss.accept();
 								
 				String	ip = socket.getInetAddress().getHostAddress();
-								
-				if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
+				
+				if ( checkDOS( ip )){
 					
-					thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
+					socket.close();
 					
 				}else{
 					
-					socket.close();
+					if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
+						
+						thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
+						
+					}else{
+						
+						socket.close();
+					}
 				}
 				
 			}catch( Throwable e ){
@@ -219,7 +227,171 @@ TRTrackerServerTCP
 			}
 		}
 	}
+	
+	static boolean	LOG_DOS_TO_FILE	= false;
+	
+	static{
 		
+		LOG_DOS_TO_FILE = System.getProperty("azureus.log.dos") != null;
+	}
+	
+	protected static File		dos_log_file;
+	
+	Map	DOS_map = 
+		new LinkedHashMap( 1000, (float)0.75, true )
+		{
+			protected boolean 
+			removeEldestEntry(
+				Map.Entry eldest) 
+			{
+				return( checkDOSRemove( eldest ));
+			}
+		};
+	
+	List	dos_list	= new ArrayList(128);
+	
+	long	last_dos_check				= 0;
+	long	MAX_DOS_ENTRIES				= 10000;
+	long	MAX_DOS_RETENTION			= 10000;
+	int		DOS_CHECK_DEAD_WOOD_COUNT	= 512;
+	int		DOS_MIN_INTERVAL			= 1000;
+	int		dos_check_count				= 0;
+	
+	protected boolean
+	checkDOS(
+		String		ip )
+	
+		throws UnknownHostException
+	{
+		InetAddress	inet_address = InetAddress.getByName(ip);
+		
+		if ( inet_address.isLoopbackAddress() || InetAddress.getLocalHost().equals( inet_address )){
+			
+			return( false);
+		}
+		
+		boolean	res;
+		
+		last_dos_check = SystemTime.getCurrentTime();
+		
+		DOSEntry	entry = (DOSEntry)DOS_map.get(ip);
+		
+		if ( entry == null ){
+						
+			entry = new DOSEntry(ip);
+			
+			DOS_map.put( ip, entry );
+			
+			res	= false;
+			
+		}else{
+	
+			res = last_dos_check - entry.last_time < DOS_MIN_INTERVAL;
+			
+			if ( res && LOG_DOS_TO_FILE ){
+				
+				dos_list.add( entry );
+			}
+			
+			entry.last_time = last_dos_check;
+		}
+		
+			// remove dead wood
+		
+		dos_check_count++;
+		
+		if ( dos_check_count == DOS_CHECK_DEAD_WOOD_COUNT ){
+			
+			dos_check_count = 0;
+			
+			Iterator	it = DOS_map.values().iterator();
+			
+			while( it.hasNext()){
+				
+				DOSEntry	this_entry = (DOSEntry)it.next();
+				
+				if ( last_dos_check - this_entry.last_time > MAX_DOS_RETENTION ){
+					
+					it.remove();
+										
+				}else{
+					
+					break;
+				}
+			}
+			
+			if ( dos_list.size() > 0 ){
+				
+				synchronized( TRTrackerServerTCP.class ){
+					
+					if ( dos_log_file == null ){
+											
+						dos_log_file = new File( System.getProperty("user.dir" ) + File.separator + "dos.log" );
+					}
+					
+					PrintWriter pw = null;
+					
+					try{
+						
+						pw = new PrintWriter( new FileWriter( dos_log_file, true ));
+						
+						for (int i=0;i<dos_list.size();i++){
+							
+							DOSEntry	this_entry = (DOSEntry)dos_list.get(i);
+							
+							String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date(this_entry.last_time ));
+						
+							pw.println( ts + this_entry.ip );
+						}
+						
+					}catch( Throwable e ){
+						
+					}finally{
+						
+						dos_list.clear();
+						
+						if ( pw != null ){
+							
+							try{
+								
+								pw.close();
+								
+							}catch( Throwable e ){
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return( res );
+	}
+	
+	protected boolean
+	checkDOSRemove(
+		Map.Entry		eldest )
+	{
+		boolean res = 	DOS_map.size() > MAX_DOS_ENTRIES || 
+						last_dos_check - ((DOSEntry)eldest.getValue()).last_time > 	MAX_DOS_RETENTION;
+				
+		return( res );
+	}
+	
+	protected class
+	DOSEntry
+	{
+		String		ip;
+		long		last_time;
+		
+		protected
+		DOSEntry(
+			String		_ip )
+		{
+			ip			= _ip;
+			last_time	= last_dos_check;
+		}
+	}
+	
 	public int
 	getPort()
 	{
