@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.Vector;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -12,6 +14,7 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -28,6 +31,8 @@ public class MinimizedWindow {
   Shell splash;
   Label lDrag;
 
+  private static final Vector downloadBars = new Vector(); 
+
   private Color[] blues;
 
   private int xPressed, yPressed;
@@ -39,7 +44,7 @@ public class MinimizedWindow {
   private Label splashPercent;
   private Label splashDown;
   private Label splashUp;
-  
+
   private DownloadManager manager;
   private Display display;
 
@@ -62,7 +67,6 @@ public class MinimizedWindow {
     int xSize = lDrag.getSize().x + 3;
     lDrag.setLocation(0, 0);
 
-//    final Display _display = display;
     MouseListener mListener = new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
         xPressed = e.x;
@@ -83,7 +87,9 @@ public class MinimizedWindow {
           int dY = yPressed - e.y;
           //System.out.println("dX,dY : " + dX + " , " + dY);
           Point currentLoc = splash.getLocation();
-          splash.setLocation(currentLoc.x - dX, currentLoc.y - dY);
+          currentLoc.x -= dX;
+          currentLoc.y -= dY;
+          setSnapLocation(currentLoc);
           //System.out.println("Position : " + xPressed + " , " + yPressed);
         }
       }
@@ -183,7 +189,32 @@ public class MinimizedWindow {
       }
     });
     splash.setSize(xSize + 3, hSize + 2);
+    downloadBars.add(splash);
     splash.setVisible(true);
+  }
+
+  private void setSnapLocation(Point currentLoc) {
+    if (downloadBars.size() > 1) {
+      Rectangle snap = splash.getBounds();
+      snap.x -= 10;
+      snap.y -= 10;
+      snap.height += 20;
+      snap.width += 20;
+      for (int i = 0; i < downloadBars.size(); i++) {
+        Shell downloadBar = (Shell) downloadBars.get(i);
+        if (downloadBar != splash && !downloadBar.isDisposed()) {
+          Rectangle rectangle = downloadBar.getBounds();
+          if (snap.intersects(rectangle)) {
+            Point cursor = splash.getDisplay().getCursorLocation();
+            if (!(cursor.x < snap.x || cursor.x > snap.x + snap.width || cursor.y < snap.y || cursor.y > snap.y + snap.height))
+              currentLoc.x = rectangle.x;
+            currentLoc.y = currentLoc.y > rectangle.y ? rectangle.y + rectangle.height : rectangle.y - rectangle.height;
+            //            splash.getDisplay().setCursorLocation(currentLoc.x + 2, currentLoc.y + 2);
+          }
+        }
+      }
+    }
+    splash.setLocation(currentLoc);
   }
 
   public void close() {
@@ -193,7 +224,8 @@ public class MinimizedWindow {
           blues[i].dispose();
       }
     }
-    splash.dispose();    
+    splash.dispose();
+    downloadBars.remove(this);    
   }
   
   public void refresh() {
