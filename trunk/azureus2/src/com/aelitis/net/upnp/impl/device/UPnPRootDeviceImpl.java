@@ -42,8 +42,9 @@ public class
 UPnPRootDeviceImpl 
 	implements  UPnPRootDevice
 {
-	protected UPnPImpl		upnp;
-	protected InetAddress	local_address;
+	protected UPnPImpl			upnp;
+	protected NetworkInterface	network_interface;
+	protected InetAddress		local_address;
 	
 	protected URL			location;
 	protected URL			url_base_for_relative_urls;
@@ -54,15 +55,17 @@ UPnPRootDeviceImpl
 	
 	public
 	UPnPRootDeviceImpl(
-		UPnPImpl	_upnp,
-		InetAddress	_local_address,
-		URL			_location )
+		UPnPImpl			_upnp,
+		NetworkInterface	_network_interface,
+		InetAddress			_local_address,
+		URL					_location )
 	
 		throws UPnPException
 	{
-		upnp			= _upnp;
-		local_address	= _local_address;
-		location		= _location;
+		upnp				= _upnp;
+		network_interface	= _network_interface;
+		local_address		= _local_address;
+		location			= _location;
 		
 		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
 			
@@ -150,6 +153,12 @@ UPnPRootDeviceImpl
 	getUPnP()
 	{
 		return( upnp );
+	}
+	
+	public NetworkInterface
+	getNetworkInterface()
+	{
+		return( network_interface );
 	}
 	
 	public InetAddress

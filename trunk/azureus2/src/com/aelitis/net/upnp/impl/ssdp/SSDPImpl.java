@@ -194,7 +194,7 @@ SSDPImpl
 									public void
 									runSupport()
 									{
-										handleSocket( ni_address, mc_sock);
+										handleSocket( network_interface, ni_address, mc_sock);
 									}
 								};
 								
@@ -224,7 +224,7 @@ SSDPImpl
 								public void
 								runSupport()
 								{
-									handleSocket( ni_address, control_socket );
+									handleSocket( network_interface, ni_address, control_socket );
 								}
 							});
 														
@@ -344,6 +344,7 @@ SSDPImpl
 	
 	protected void
 	handleSocket(
+		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		DatagramSocket		socket )
 	{
@@ -363,7 +364,7 @@ SSDPImpl
 					
 				successful_accepts++;
 				
-				receivePacket( local_address, packet );
+				receivePacket( network_interface, local_address, packet );
 				
 			}catch( Throwable e ){
 				
@@ -386,6 +387,7 @@ SSDPImpl
 	
 	protected void
 	receivePacket(
+		NetworkInterface	network_interface,
 		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
@@ -521,7 +523,7 @@ SSDPImpl
 	
 				if ( location != null ){
 					
-					gotRoot( local_address, location );
+					gotRoot( network_interface, local_address, location );
 				}
 			}else{
 				
@@ -535,12 +537,13 @@ SSDPImpl
 	
 	protected void
 	gotRoot(
-		InetAddress	local_address,
-		URL		location )
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPListener)listeners.get(i)).rootDiscovered( local_address, location );
+			((SSDPListener)listeners.get(i)).rootDiscovered( network_interface, local_address, location );
 		}
 	}
 

@@ -117,8 +117,9 @@ UPnPImpl
 	
 	public void
 	rootDiscovered(
-		InetAddress	local_address,
-		URL			location )
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location )
 
 	{
 		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
@@ -137,6 +138,20 @@ UPnPImpl
 				return;
 			}
 			
+				// an alternative situation is where the same device is discovered by two network interfaces
+				// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
+				// if this is the case we just use the first NI through which it was discovered and
+				// map to that NI's local address
+			
+			if ( 	root_device.getLocation().equals( location ) &&
+					root_device.getNetworkInterface().equals( network_interface )){
+			
+				log( "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
+						root_device.getNetworkInterface());
+
+				return;
+			}
+			
 				// something changed, resetablish everything
 			
 			root_locations.remove( location.getHost());
@@ -147,7 +162,7 @@ UPnPImpl
 		log( "UPnP: root discovered = " + location + ", local = " + local_address.toString() );
 		
 		try{
-			root_device = new UPnPRootDeviceImpl( this, local_address, location );
+			root_device = new UPnPRootDeviceImpl( this, network_interface, local_address, location );
 		
 			List	listeners;
 			

@@ -34,8 +34,9 @@ SSDPListener
 {
 	public void
 	rootDiscovered(
-		InetAddress	local_address,
-		URL			location );
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location );
 	
 	public void
 	rootAlive(
