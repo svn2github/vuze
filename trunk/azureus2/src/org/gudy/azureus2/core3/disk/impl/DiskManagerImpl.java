@@ -126,7 +126,10 @@ DiskManagerImpl
 				{
 					DiskManagerListener	listener = (DiskManagerListener)_listener;
 					
-					listener.stateChanged(((Integer)value).intValue());
+					if (type == LDT_STATECHANGED) {
+					  int params[] = (int[])value;
+  					listener.stateChanged(params[0], params[1]);
+  				}
 				}
 			});		
 	
@@ -1608,10 +1611,10 @@ DiskManagerImpl
 		int		_state ) 
 	{
 		if ( state_set_via_method != _state ){
-			
+		  int params[] = {state_set_via_method, _state};
 			state_set_via_method = _state;
 			
-			listeners.dispatch( LDT_STATECHANGED, new Integer(_state));
+			listeners.dispatch( LDT_STATECHANGED, params);
 		}
 	}
 	
@@ -2111,8 +2114,10 @@ DiskManagerImpl
   	DiskManagerListener	l )
   {
  	listeners.addListener( l );
+
+	  int params[] = {getState(), getState()};
   		
-  	listeners.dispatch( l, LDT_STATECHANGED, new Integer(getState()));
+  	listeners.dispatch( l, LDT_STATECHANGED, params);
   }
   
   public void

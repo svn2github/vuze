@@ -1637,8 +1637,8 @@ public class MyTorrentsView extends AbstractIView
 	// categorymanagerlistener Functions
   public void downloadManagerAdded(Category category, DownloadManager manager)
   {
-    if ((manager.getStats().getCompleted() == 1000 && isSeedingView) ||
-        (manager.getStats().getCompleted() != 1000 && !isSeedingView)) {
+    if ((manager.getStats().getDownloadCompleted() == 1000 && isSeedingView) ||
+        (manager.getStats().getDownloadCompleted() != 1000 && !isSeedingView)) {
       synchronized (objectToSortableItem) {
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
           if (item == null) {
@@ -1669,42 +1669,31 @@ public class MyTorrentsView extends AbstractIView
 
 
   // DownloadManagerListener Functions
-  // move TorrentRow from one pane to another if needed
   public void stateChanged(DownloadManager manager, int state)
   {
-    // Can't use getCompleted() in these states..
-    if (state == DownloadManager.STATE_INITIALIZING ||
-        state == DownloadManager.STATE_INITIALIZED ||
-        state == DownloadManager.STATE_ALLOCATING ||
-        state == DownloadManager.STATE_CHECKING ||
-        state == DownloadManager.STATE_STOPPING ||
-        state == DownloadManager.STATE_FINISHING)
-      return;
+  }
 
-    boolean completed = (manager.getStats().getCompleted() == 1000);
+  public void completionChanged(DownloadManager manager, boolean bCompleted) {
+    // manager has moved lists
     synchronized (objectToSortableItem) {
       TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
       if (item == null) {
         // check to see if it should be in this view
-        if ((isSeedingView && completed) ||
-            (!isSeedingView && !completed)) {
+        if ((isSeedingView && bCompleted) ||
+            (!isSeedingView && !bCompleted)) {
           // Add to view
           item = new TorrentRow(this,table, manager);
           objectToSortableItem.put(manager, item);
-          // XXX Blah.. temporary
-          globalManager.fixUpDownloadManagerPositions();
         }
       } else { // item exists in view
         // does it belong?
-        if ((isSeedingView && !completed) ||
-            (!isSeedingView && completed)) {
+        if ((isSeedingView && !bCompleted) ||
+            (!isSeedingView && bCompleted)) {
           TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(manager);
           if (managerItem != null) {
             TableItem tableItem = managerItem.getTableItem();
             tableItemToObject.remove(tableItem);
             managerItem.delete();
-            // XXX Blah.. temporary
-            globalManager.fixUpDownloadManagerPositions();
           }
         }
       }

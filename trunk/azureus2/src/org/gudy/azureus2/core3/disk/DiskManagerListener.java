@@ -29,6 +29,6 @@ public interface
 DiskManagerListener 
 {
 	public void
-	stateChanged(
-		int	state );
+	stateChanged(int oldState, int	newState );
+
 }

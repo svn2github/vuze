@@ -36,6 +36,17 @@ DownloadManagerListener
 		DownloadManager manager,
 		int		state );
 		
+  /** Notification that we were downloading and the download has completed
+   */
 	public void
 	downloadComplete(DownloadManager manager);
+
+  /** Notification that the completion state has changed.
+   *  Tells you when we switched from Completed to Incompleted (or visa versa)
+   *  Does not get called when diskManager goes into CHECKING, but does
+   *  when it goes out of CHECKING, to avoid torrents jumping momentarily from 
+   *  Completed to Incompleted to Completed again.
+   */
+  public void
+  completionChanged(DownloadManager manager, boolean bCompleted);
 }

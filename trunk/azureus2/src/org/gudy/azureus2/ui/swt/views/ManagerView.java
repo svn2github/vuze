@@ -216,6 +216,9 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   public void downloadComplete(DownloadManager manager) {   
   }
 
+  public void completionChanged(DownloadManager manager, boolean bCompleted) {
+  }
+
   public void stateChanged(DownloadManager manager, int state) {
     if(folder == null || folder.isDisposed())
       return;    

@@ -56,6 +56,7 @@ DownloadManagerImpl
 	
 	private static final int LDT_STATECHANGED		= 1;
 	private static final int LDT_DOWNLOADCOMPLETE	= 2;
+	private static final int LDT_COMPLETIONCHANGED = 3;
 	
 	private ListenerManager	listeners 	= ListenerManager.createManager(
 			"DMM:ListenDispatcher",
@@ -76,6 +77,9 @@ DownloadManagerImpl
 					}else if ( type == LDT_DOWNLOADCOMPLETE ){
 						
 						listener.downloadComplete(DownloadManagerImpl.this);
+
+					}else if ( type == LDT_COMPLETIONCHANGED ){
+						listener.completionChanged(DownloadManagerImpl.this, ((Boolean)value).booleanValue());
 					}
 				}
 			});		
@@ -161,6 +165,8 @@ DownloadManagerImpl
 	 * Current Implementation:
 	 * - implies that the user completed the download at one point
 	 * - Checks if there's Data Missing when torrent is done (or torrent load)
+	 *
+	 * Perhaps a better name would be "bCompleted"
 	 */
 	protected boolean onlySeeding;
 	
@@ -400,7 +406,7 @@ DownloadManagerImpl
 			  path = f.getParent();
 
       if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, path)) {
-			  stats.setCompleted(1000);
+			  stats.setDownloadCompleted(1000);
 			  setOnlySeeding(true);
 			} else {
 			  setOnlySeeding(false);
@@ -468,6 +474,7 @@ DownloadManagerImpl
   public void setOnlySeeding(boolean onlySeeding) {
     if (this.onlySeeding != onlySeeding) {
       this.onlySeeding = onlySeeding;
+
       if (onlySeeding) {
         String errMessage = filesExistErrorMessage();
         if (errMessage != "") {
@@ -475,6 +482,18 @@ DownloadManagerImpl
           errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
         }
       }
+
+      //LGLogger.log("setOnlySeeding("+onlySeeding+")");
+  	  // we are in a new list, move to the end
+  	  // -1 position means it hasn't been added to the global list.  We shouldn't
+  	  // touch it, since it'll get a position once it's adding is complete
+      if (globalManager != null && position != -1) {
+  		  DownloadManager[] dms = { DownloadManagerImpl.this };
+  		  globalManager.moveEnd(dms);
+  		  // we left a gap, fixup
+        globalManager.fixUpDownloadManagerPositions();
+      }
+      listeners.dispatch( LDT_COMPLETIONCHANGED, new Boolean( onlySeeding ));
     }
   }
 	
@@ -593,6 +612,7 @@ DownloadManagerImpl
 			
 			if (diskManager != null){
 				stats.setCompleted(stats.getCompleted());
+				stats.setDownloadCompleted(stats.getDownloadCompleted());
 	      
 			  if (diskManager.getState() == DiskManager.READY){
 			    diskManager.dumpResumeDataToDisk(true, false);
@@ -620,17 +640,13 @@ DownloadManagerImpl
   }
 
   public void setState(int _state){
-  	
-  		// note: there is a DIFFERENCE between the state held on the DownloadManager and
-  		// that reported via getState as getState incorporated DiskManager states when
-  		// the DownloadManager is INITIALIZED
-  	
-  	if ( state != _state ){
-  		
-		state = _state;
-	
-		informStateChanged( state );
-  	}
+    // note: there is a DIFFERENCE between the state held on the DownloadManager and
+    // that reported via getState as getState incorporated DiskManager states when
+    // the DownloadManager is INITIALIZED
+    if ( state != _state ) {
+      state = _state;
+      informStateChanged( state );
+    }
   }
 
   public int getNbSeeds() {
@@ -1073,9 +1089,6 @@ DownloadManagerImpl
 
     setOnlySeeding(true);
 	
-    if(globalManager != null)
-      globalManager.fixUpDownloadManagerPositions();
-
     informDownloadEnded();
   }
 
@@ -1088,15 +1101,19 @@ DownloadManagerImpl
   			new DiskManagerListener()
   			{
   				public void
-  				stateChanged(
-  					int		disk_manager_state )
+  				stateChanged(int oldDMState,
+  					int		newDMState )
   				{
-  					if ( disk_manager_state == DiskManager.FAULTY ){
+  					if ( newDMState == DiskManager.FAULTY ){
   						
   						setErrorDetail( diskManager.getErrorMessage());
   						stopIt(STATE_ERROR);
   					}
   					
+  					if (oldDMState == DiskManager.CHECKING) {
+  				    DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
+            }
+  					  
   					int	dl_state = getState();
   					
   					if ( dl_state != state ){
@@ -1128,8 +1145,9 @@ DownloadManagerImpl
 				setState(STATE_CHECKING);
       	// remove resume data
 		  	torrent.removeAdditionalProperty("resume");
-				diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
-				while (diskManager.getState() != DiskManager.FAULTY &&
+		  	initializeDiskManager();
+				while (diskManager != null &&
+				       diskManager.getState() != DiskManager.FAULTY &&
 				       diskManager.getState() != DiskManager.READY) {
 					try {
 						Thread.sleep(100);
@@ -1137,7 +1155,12 @@ DownloadManagerImpl
 						e.printStackTrace();
 					}
 				}
-				stats.setCompleted(stats.getCompleted());
+				if (diskManager == null) {
+				  LGLogger.log(LGLogger.ERROR, "diskManager destroyed while trying to recheck!");
+				  setState(STATE_STOPPED);
+				  return;
+				}
+				stats.setDownloadCompleted(stats.getDownloadCompleted());
 			  if (diskManager.getState() == DiskManager.READY) {
 			    diskManager.dumpResumeDataToDisk(true, false);
 					diskManager.stopIt();
@@ -1190,7 +1213,11 @@ DownloadManagerImpl
   }
 
   public void setPosition(int newPosition) {
-  	position = newPosition;
+    if (newPosition != position) {
+//  	  LGLogger.log(getName() + "] setPosition from "+position+" to "+newPosition);
+//    	Debug.outStackTrace();
+    	position = newPosition;
+    }
   }
 
 	public Category getCategory() {
@@ -1198,7 +1225,6 @@ DownloadManagerImpl
 	}
 	
 	public void setCategory(Category cat) {
-	  LGLogger.log("SET "+ getName() + " Category = "+cat.getName()+";Type="+cat.getType());
 	  if (cat == category)
 	    return;
 	  if (cat != null && cat.getType() != Category.TYPE_USER)

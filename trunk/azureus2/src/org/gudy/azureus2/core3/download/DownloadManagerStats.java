@@ -31,8 +31,25 @@ DownloadManagerStats
 	public int
 	getMaxUploads();
 	
+  /** Find out percentage done of current state
+   * Use getDownloadCompleted() if you wish to find out a torrents download completion level
+   *
+   * @return 0 to 1000, 0% to 100% respectively
+   *         When state is Allocating, Checking, or Initializing, this
+   *         returns the % done of that task
+   *         Any other state MAY return getDownloadCompleted()
+   */
 	public int
 	getCompleted();
+
+  /** Retrieve the level of download completion
+   * @return 0 - 1000
+   */
+	public int
+	getDownloadCompleted();
+	
+	public void 
+	setDownloadCompleted(int completed);
 				
 	public long
 	getDownloaded();

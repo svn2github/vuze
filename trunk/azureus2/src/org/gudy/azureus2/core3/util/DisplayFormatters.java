@@ -249,6 +249,8 @@ DisplayFormatters
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
+			default :
+			tmp = String.valueOf(state);
 		}
 	
 		if (manager.isForceStart() &&
@@ -311,6 +313,8 @@ DisplayFormatters
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
+			default :
+			tmp = String.valueOf(state);
 		}
 	
 		return( tmp );

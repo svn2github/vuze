@@ -70,6 +70,12 @@ DownloadStats
 	public int
 	getCompleted();
 	
+  /** Retrieve the level of download completion
+   * @return 0 - 1000
+   */
+	public int
+	getDownloadCompleted();
+
 	/**
 	 * Gives the number of bytes downloaded
 	 * @return

@@ -117,6 +117,11 @@ GlobalManager
   moveTo(
   		DownloadManager manager, int newPosition );
 
+  /** Verifies the positions of the DownloadManagers, 
+   *  filling in gaps and shifting duplicate IDs down if necessary.
+   *
+   *  This does not need to be called after MoveXXX functions.
+   */
 	public void
 	fixUpDownloadManagerPositions();
 

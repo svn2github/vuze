@@ -444,6 +444,9 @@ DownloadImpl
 	downloadComplete(DownloadManager manager)
 	{	
 	}
+
+  public void completionChanged(DownloadManager manager, boolean bCompleted) {
+  }
 	
 	public void
 	addListener(

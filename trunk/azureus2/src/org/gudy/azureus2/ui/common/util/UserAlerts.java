@@ -45,6 +45,10 @@ UserAlerts
 				{
 					downloadFinished();
 				}
+
+        public void 
+        completionChanged(DownloadManager manager, boolean bCompleted) {
+        }
 			}; 
 			
     	global_manager.addListener(

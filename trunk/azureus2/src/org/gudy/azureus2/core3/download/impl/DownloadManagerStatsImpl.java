@@ -41,6 +41,7 @@ DownloadManagerStatsImpl
 		//Completed (used for auto-starting purposes)
 		
 	protected int completed;
+	protected int downloadCompleted;
 	
 		// saved downloaded and uploaded
 		
@@ -131,20 +132,45 @@ DownloadManagerStatsImpl
 	  return -1;   //return exactly -1 if ETA is unknown
 	}
 
-	public int 
-	getCompleted() 
-	{
+	public int getCompleted() {
 		DiskManager	dm = download_manager.getDiskManager();
 		
-	  if (dm == null)
-		return completed;
-	  if (dm.getState() == DiskManager.ALLOCATING || dm.getState() == DiskManager.CHECKING || dm.getState() == DiskManager.INITIALIZING)
-		return dm.getPercentDone();
+	  if (dm == null) {
+	    int state = download_manager.getState();
+	    if (state == DownloadManager.STATE_ALLOCATING ||
+	        state == DownloadManager.STATE_CHECKING ||
+	        state == DownloadManager.STATE_INITIALIZING)
+	      return completed;
+	    else
+	      return downloadCompleted;
+	  }
+	  if (dm.getState() == DiskManager.ALLOCATING || 
+	      dm.getState() == DiskManager.CHECKING || 
+	      dm.getState() == DiskManager.INITIALIZING)
+      return dm.getPercentDone();
 	  else {
-		long total = dm.getTotalLength();
-		return total == 0 ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
+      long total = dm.getTotalLength();
+      return total == 0 ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
 	  }
 	}
+
+	public void setCompleted(int completed) {
+	  this.completed = completed;
+	}
+
+	public int getDownloadCompleted() {
+    DiskManager	dm = download_manager.getDiskManager();
+    if (dm == null)
+      return downloadCompleted;
+
+    long total = dm.getTotalLength();
+    return (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
+  }
+  
+  public void setDownloadCompleted(int completed) {
+    downloadCompleted = completed;
+  }
+
 
 	/**
 	 * @return
@@ -237,9 +263,6 @@ DownloadManagerStatsImpl
 	  return( 0 );
 	}
       
-	public void setCompleted(int completed) {
-	  this.completed = completed;
-	}
   
 	public int getShareRatio() {
 	  long downloaded,uploaded;

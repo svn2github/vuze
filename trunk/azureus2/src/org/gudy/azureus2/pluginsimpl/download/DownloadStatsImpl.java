@@ -84,6 +84,12 @@ DownloadStatsImpl
 	{
 		return( dm_stats.getCompleted());
 	}
+
+	public int
+	getDownloadCompleted()
+	{
+		return( dm_stats.getDownloadCompleted());
+	}
 	
 	public long
 	getDownloaded()

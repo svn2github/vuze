@@ -38,6 +38,22 @@ public class Debug {
     System.out.println(header.concat(className).concat(methodName).concat(String.valueOf(lineNumber)).concat(":"));
     System.out.println("  ".concat(debug_message).concat("\n"));
   }
+  
+  public static void outStackTrace() {
+    // skip the last two, since they'll most likely be main
+    outStackTrace(2);
+  }
+
+  public static void outStackTrace(int endNumToSkip) {
+    try {
+      throw new Exception();
+    }
+    catch (Exception e) {
+      StackTraceElement st[] = e.getStackTrace();
+      for (int i = 1; i < st.length - endNumToSkip; i++)
+        System.out.println(st[i].toString());
+    }
+  }
 
 	public static void
 	killAWTThreads()
