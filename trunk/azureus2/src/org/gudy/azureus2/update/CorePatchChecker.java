@@ -54,7 +54,7 @@ CorePatchChecker
 				System.out.println( "CorePatchChecker: TESTING !!!!" );
 			}
 			
-			pi.getUpdateManager().registerUpdatableComponent( this, true );
+			pi.getUpdateManager().registerUpdatableComponent( this, false );
 		}
 	}
 	
