@@ -525,7 +525,8 @@ PEPeerControlImpl
       
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
       if (moveWhenDone) {
-        _diskManager.moveCompletedFiles();
+        String newName = _diskManager.moveCompletedFiles();
+        if (newName.length() > 0) _manager.setTorrentFileName(newName);
       }
       
       _manager.setState(DownloadManager.STATE_SEEDING);

@@ -121,6 +121,8 @@ DownloadManager
 	
 	public String
 	getTorrentFileName();
+  
+   public void setTorrentFileName(String string);
 	
 	public String
 	getSavePathForSave();

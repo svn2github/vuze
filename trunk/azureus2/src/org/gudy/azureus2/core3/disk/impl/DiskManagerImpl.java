@@ -1564,22 +1564,24 @@ DiskManagerImpl
   
   /**
    * Moves files to the CompletedFiles directory.
+   * Returns a string path to the new torrent file.
    */
-  public void moveCompletedFiles() {
+  public String moveCompletedFiles() {
     String fullPath;
     String subPath;
     File destDir;
     File delDir;
+    String returnName = "";
     
     //make sure the torrent hasn't already been moved
-    if (alreadyMoved) return;
+    if (alreadyMoved) return returnName;
     alreadyMoved = true;
     
     boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-    if (!moveWhenDone) return;
+    if (!moveWhenDone) return returnName;
     
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-    if (moveToDir.length() == 0) return;
+    if (moveToDir.length() == 0) return returnName;
     
     try {
       for (int i=0; i < files.length; i++) {
@@ -1638,10 +1640,12 @@ DiskManagerImpl
         oldTorrentFile.delete();
         //update torrent meta-info to point to new torrent file
         torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
+        returnName = newTorrentFile.getCanonicalPath();
       }
       
     } catch (Exception e) { e.printStackTrace(); }
     
+    return returnName;
   }
    
     
