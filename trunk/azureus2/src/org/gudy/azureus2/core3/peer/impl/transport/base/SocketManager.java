@@ -14,6 +14,10 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+
+
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 /**
  * Handles socket connections.
@@ -27,6 +31,9 @@ public class SocketManager {
   private final ArrayList connectionsToClose = new ArrayList();
   private final ArrayList listenersToClose = new ArrayList();
   private Selector selector = null;
+  private VirtualOutboundSelector v_selector;
+  
+  private static final boolean USE_VIRTUAL = Constants.isOSX;
   
   
   private SocketManager() {
@@ -42,11 +49,25 @@ public class SocketManager {
   
   private void mainLoop() {
     try {
-      selector = Selector.open();
+      if( USE_VIRTUAL ) {
+        v_selector = new VirtualOutboundSelector();
+      }
+      else {
+        selector = Selector.open();
+      }
+      
       while( true ) {
         addNewOutboundRequests();
-        runSelect();
-        notificationOfConnects();
+        
+        if( USE_VIRTUAL ) {
+          runSelectVirtual();
+          notificationOfConnectsVirtual();
+        }
+        else {
+          runSelect();
+          notificationOfConnects();
+        }
+        
         doClosings();
       }
     }
@@ -71,6 +92,8 @@ public class SocketManager {
           
           size = System.getProperty("socket.SO_SNDBUF");
           if ( size != null ) channel.socket().setSendBufferSize( Integer.parseInt( size ) );
+          //channel.socket().setSendBufferSize( NetworkManager.WRITE_WINDOW_SIZE );
+          
           
           String ip_tos = System.getProperty("socket.IPTOS");
           if ( ip_tos != null ) channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
@@ -82,9 +105,15 @@ public class SocketManager {
           }
           
           channel.configureBlocking( false );
-          channel.connect( address );
-          SelectionKey key = channel.register( selector, SelectionKey.OP_CONNECT );
-          pendingOutboundConnections.put( key, listener );
+          channel.connect( address );  //TODO reverse order with channel registration ???
+          if( USE_VIRTUAL ) {
+            v_selector.register( channel );
+            pendingOutboundConnections.put( channel, listener );
+          }
+          else {
+            SelectionKey key = channel.register( selector, SelectionKey.OP_CONNECT );
+            pendingOutboundConnections.put( key, listener );
+          }
         }
         catch (Throwable t) {
           //t.printStackTrace();
@@ -110,6 +139,12 @@ public class SocketManager {
       e.printStackTrace();
       try{  Thread.sleep( 1000 );  } catch( Exception ex) { ex.printStackTrace(); }
     }
+  }
+  
+  
+  private void runSelectVirtual() {
+    v_selector.select();
+    try{  Thread.sleep( 1000 );  }catch(Exception e) { e.printStackTrace(); }
   }
   
   
@@ -154,6 +189,42 @@ public class SocketManager {
           }
           catch (Throwable x) { x.printStackTrace(); }
       	}
+      }
+    }
+  }
+  
+  
+  private void notificationOfConnectsVirtual() {
+    Map selected = v_selector.getReadySelections();
+    for( Iterator i = selected.keySet().iterator(); i.hasNext(); ) {
+      SocketChannel channel = (SocketChannel)i.next();
+      String msg = (String)selected.get( channel );
+      i.remove();
+      OutboundConnectionListener listener = (OutboundConnectionListener)pendingOutboundConnections.remove( channel );
+
+      boolean canceled = false;
+      synchronized( listenersToClose ) {
+        if ( listenersToClose.contains( listener )) {
+          listenersToClose.remove( listener );
+          canceled = true;
+        }
+      }
+      
+      if ( canceled ) {
+        synchronized( connectionsToClose ) {
+          connectionsToClose.add( channel );
+        } 
+      }
+      else {
+        if( msg == null ) {  //connect success
+          listener.connectionDone( channel, null );
+        }
+        else {  //connect failure
+          listener.connectionDone( null, msg );
+          synchronized( connectionsToClose ) {
+            connectionsToClose.add( channel );
+          }
+        }
       }
     }
   }
