@@ -158,6 +158,11 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
       // See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
       new BooleanParameter(cLook, "SWT_bGTKTableBug", true, "ConfigView.section.style.verticaloffset");
     }
+    
+    
+    if( Constants.isOSX ) {
+      new BooleanParameter(cLook, "enable_small_osx_fonts", true, "ConfigView.section.style.osx_small_fonts");
+    }
 
     new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", 
                          "ConfigView.section.style.alternateTablePainting");

@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-import com.aelitis.azureus.core.proxy.socks.*;
 
 
 /**
@@ -363,6 +362,15 @@ ConfigurationChecker
 	    }
 	    
 	    
+      if( Constants.isOSX ) {
+        if( COConfigurationManager.getBooleanParameter( "enable_small_osx_fonts" ) ) {
+          System.setProperty( "org.eclipse.swt.internal.carbon.smallFonts", "1" );
+        }
+        else {
+          System.getProperties().remove( "org.eclipse.swt.internal.carbon.smallFonts" );
+        } 
+      }
+      
 	    
 	    //remove a trailing slash, due to user manually entering the path in config
 	    String[] path_params = { "Default save path",

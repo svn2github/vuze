@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.io.File;
+
 
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -338,6 +338,9 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.IPTOS", "" );
     def.put( "confirm_torrent_removal", new Long(0) );
     def.put( "add_torrents_silently", new Long(0) );
+    def.put( "enable_small_osx_fonts", new Long(1) );
+    
+    
     
   }
   
