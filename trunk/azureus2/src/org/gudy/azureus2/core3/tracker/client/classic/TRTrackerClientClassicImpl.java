@@ -78,7 +78,7 @@ TRTrackerClientClassicImpl
 	
 	private int					tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
-	private TRTrackerResponse	last_response			= new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
+	private TRTrackerResponse	last_response			= null;
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
   
@@ -341,10 +341,10 @@ TRTrackerClientClassicImpl
 
 	  long		secs_to_wait = current_time_to_wait_secs;
 													
-	  if( last_response.getStatus() != TRTrackerResponse.ST_ONLINE ) {
-  			
+	  if( last_response != null && last_response.getStatus() != TRTrackerResponse.ST_ONLINE ) {
+      
 	    secs_to_wait = getErrorRetryInterval();
-										
+							
 	  }
     else{
         
@@ -1849,6 +1849,9 @@ TRTrackerClientClassicImpl
 	public TRTrackerResponse
 	getLastResponse()
 	{
+    if( last_response == null ) {
+      return new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
+    }
 		return( last_response );
 	}
 	
