@@ -73,6 +73,8 @@ PESharedPortSelector
 		Map		outstanding_sockets	= new HashMap();
 		
 		List	sockets_to_handover = new ArrayList();
+        
+      SelectorGuard selectorGuard = new SelectorGuard(50, 5);
 		
 		while (true){
 			
@@ -119,6 +121,11 @@ PESharedPortSelector
 				}
 				
 				int select_res = selector.select(500);
+                
+            //make sure the selector is OK
+            if (!selectorGuard.isSelectorOK(select_res)) {
+            	selector = SelectorGuard.repairSelector(selector);
+            }
 			 			
 					// make sure that any socket removed in the previous loop are now handed over
 					// do this *after* subsequent select to ensure that the removes have
