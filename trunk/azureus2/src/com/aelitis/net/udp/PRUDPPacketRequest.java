@@ -34,7 +34,7 @@ public abstract class
 PRUDPPacketRequest
 	extends PRUDPPacket
 {	
-	public static final int	HEADER_SIZE	= 16;
+	public static final int	PR_HEADER_SIZE	= 16;
 	
 	
 	private static Map	packet_decoders	= new HashMap();

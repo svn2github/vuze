@@ -41,7 +41,7 @@ public class
 DHTUDPPacketRequest 
 	extends PRUDPPacketRequest
 {
-	public static final int	HEADER_SIZE	= PRUDPPacketRequest.HEADER_SIZE + 13 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+	public static final int	DHT_HEADER_SIZE	= PRUDPPacketRequest.PR_HEADER_SIZE + 13 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
 	
 
 	private byte				version;

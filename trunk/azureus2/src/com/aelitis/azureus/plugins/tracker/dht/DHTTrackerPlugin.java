@@ -68,7 +68,8 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
 	private static final int	ANNOUNCE_MIN		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX		= 60*60*1000;
-	private static final int	NUM_WANT			= 100;
+	
+	private static final int	NUM_WANT			= 35;	// Limit to ensure replies fit in 1 packet
 	
 	private PluginInterface		plugin_interface;
 	

@@ -33,7 +33,7 @@ public abstract class
 PRUDPPacketReply
 	extends PRUDPPacket
 {		
-	public static final int	HEADER_SIZE	= 8;
+	public static final int	PR_HEADER_SIZE	= 8;
 	
 	private static Map	packet_decoders	= new HashMap();
 	

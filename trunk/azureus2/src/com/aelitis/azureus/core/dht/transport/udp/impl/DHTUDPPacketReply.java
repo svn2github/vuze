@@ -38,7 +38,7 @@ public class
 DHTUDPPacketReply
 	extends PRUDPPacketReply
 {
-	public static final int	HEADER_SIZE	= PRUDPPacketReply.HEADER_SIZE + 13;
+	public static final int	DHT_HEADER_SIZE	= PRUDPPacketReply.PR_HEADER_SIZE + 13;
 	
 	
 	private long	connection_id;
