@@ -57,6 +57,8 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   Table table;
   boolean noChange;
   
+  IpRange ipRanges[];
+  
   public
   ConfigSectionIPFilter(
   	AzureusCore		_azureus_core )
@@ -104,7 +106,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false); //$NON-NLS-1$
     Messages.setLanguageText(deny.getControl(), "ConfigView.section.ipfilter.allow");
 
-    table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
+    table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
     String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
     int[] sizes = { 200, 110, 110 };
     int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
@@ -117,7 +119,8 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
     table.setHeaderVisible(true);
 
-    gridData = new GridData(GridData.FILL_BOTH);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.heightHint = 400;
     table.setLayoutData(gridData);
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
@@ -150,8 +153,10 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
         if (selection.length == 0)
           return;
         removeRange((IpRange) selection[0].getData());
-        table.remove(table.indexOf(selection[0]));
-        selection[0].dispose();
+        ipRanges = filter.getRanges();
+        table.setItemCount(ipRanges.length);
+        table.clearAll();
+        table.redraw();
       }
     });
 
@@ -185,7 +190,24 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     IAdditionalActionPerformer enabler = new ChangeSelectionActionPerformer(controls);
     enabled.setAdditionalActionPerformer(enabler);
 
-    populateTable();
+    ipRanges = filter.getRanges();
+
+    table.addListener(SWT.SetData,new Listener() {
+      public void handleEvent(Event event) {
+        TableItem item = (TableItem) event.item;
+		int index = table.indexOf (item);
+		IpRange range = ipRanges[index];		
+        item.setText(0, range.getDescription());
+        item.setText(1, range.getStartIp());
+        item.setText(2, range.getEndIp());
+        item.setData(range);
+      }
+    });
+    
+    table.setItemCount(ipRanges.length);
+    table.clearAll();
+	// bug 69398 on Windows
+	table.redraw();
     
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
@@ -207,9 +229,10 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
                     table.getColumn(1).getWidth() - 
                     table.getColumn(2).getWidth() - 20;
     if (iNewWidth > 50)
-      table.getColumn(0).setWidth(iNewWidth);
+      table.getColumn(0).setWidth(iNewWidth);          
   }
 
+  /*
   private void populateTable() {
     if( table == null || table.isDisposed() ) {
       return;
@@ -237,12 +260,12 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
         }
       }
     });
-  }
+  }*/
 
   public void removeRange(IpRange range) {
   	filter.removeRange( range );
-    noChange = false;
-    refresh();
+    //noChange = false;
+    //refresh();
   }
 
   public void editRange(IpRange range) {
@@ -253,8 +276,8 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
   public void addRange() {
     new IpFilterEditor(azureus_core,table.getDisplay(), table, null);
-    noChange = false;
-    refresh();
+    //noChange = false;
+    //refresh();
   }
 
   public void refresh() {
@@ -262,11 +285,11 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       return;
     noChange = true;
     TableItem[] items = table.getItems();
-    for (int i = 0; i < items.length; i++) {
-      IpRange range = (IpRange) items[i].getData();
+    for (int i = 0; i < items.length; i++) {      
       if (items[i] == null || items[i].isDisposed())
         continue;
       String tmp = items[i].getText(0);
+      IpRange range = (IpRange) items[i].getData();
       if (range.getDescription() != null && !range.getDescription().equals(tmp))
         items[i].setText(0, range.getDescription());
 

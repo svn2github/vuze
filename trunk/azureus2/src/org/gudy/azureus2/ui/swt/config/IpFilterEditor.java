@@ -118,11 +118,10 @@ public class IpFilterEditor {
         if (newRange) {
           azureus_core.getIpFilterManager().getIPFilter().addRange(range);
           TableItem item = new TableItem(table,SWT.NULL);
-          item.setData(range);
-          item.setImage(0,ImageRepository.getImage("ipfilter"));
+          item.setData(range);          
           item.setText(0, range.getDescription());
           item.setText(1, range.getStartIp());
-          item.setText(2, range.getEndIp());
+          item.setText(2, range.getEndIp());          
         }else{
         	TableItem[] items = table.getItems();
         	
