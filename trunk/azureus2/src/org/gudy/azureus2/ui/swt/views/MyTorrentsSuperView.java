@@ -53,6 +53,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new AvailabilityItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE)
   };
 
@@ -78,6 +79,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new AvailabilityItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_COMPLETE)
   };
 
