@@ -66,9 +66,8 @@ public class BDecoder {
         while ((tempByteArray = (byte[]) BDecoder.decodeInputStream(bais)) != null) {
           //decode some more
           Object value = BDecoder.decodeInputStream(bais);
-          //add the value to the map
-          //tempMap.put(new String(tempByteArray, "ISO-8859-1"), value);
-		 tempMap.put(new String(tempByteArray, "UTF8"), value);
+          //add the value to the map          
+		  tempMap.put(new String(tempByteArray, "ISO-8859-1"), value);
         }
 
         //return the map
