@@ -43,9 +43,9 @@ CacheFileManagerImpl
 {
 	public static final boolean	DEBUG	= true;
 	
-	public static final int	CACHE_CLEANER_TICKS		= 5;	// every 10 seconds
+	public static final int	CACHE_CLEANER_TICKS		= 10;	// every 10 seconds
 	
-	public static final int	STATS_UPDATE_FREQUENCY	= 2*1000;
+	public static final int	STATS_UPDATE_FREQUENCY	= 1*1000;
 	
 	static{
 		if ( DEBUG ){

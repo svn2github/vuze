@@ -73,7 +73,7 @@ CacheFileImpl
 			}
 		};
 		
-	protected static boolean	TRACE						= false;
+	protected static boolean		TRACE					= false;
 	protected final static boolean	TRACE_CACHE_CONTENTS	= false;
 	
 	static{
@@ -86,13 +86,17 @@ CacheFileImpl
 		}
 	}
 	
-	protected final static boolean	READAHEAD_ENABLE		= true;
-	protected final static int		READAHEAD_MAX			= 65536;
+	protected final static boolean	READAHEAD_ENABLE	= true;
+	protected final static int		READAHEAD_MAX		= 65536;
+	protected final static int		READAHEAD_HISTORY	= 32;
 	
 	protected CacheFileManagerImpl		manager;
 	protected FMFile					file;
 	
-	protected TreeSet					cache	= new TreeSet(comparator);
+	protected long[]					read_history		= new long[ READAHEAD_HISTORY ];
+	protected int						read_history_next	= 0;
+	
+	protected TreeSet					cache			= new TreeSet(comparator);
 			
 	protected int read_ahead_size				= 0;
 	
@@ -104,6 +108,8 @@ CacheFileImpl
 	{
 		manager		= _manager;
 		file		= _file;
+		
+		Arrays.fill( read_history, -1 );
 		
 		if ( _torrent_file != null ){
 			
@@ -160,6 +166,15 @@ CacheFileImpl
 			
 			synchronized( this ){
 
+					// record the position of the byte *following* the end of this read
+				
+				read_history[read_history_next++]	= file_position + read_length;
+
+				if ( read_history_next == READAHEAD_HISTORY ){
+					
+					read_history_next	= 0;
+				}
+				
 				Iterator	it = cache.iterator();
 				
 				while( ok && writing_left > 0 && it.hasNext()){
@@ -231,8 +246,14 @@ CacheFileImpl
 			}
 			
 			if ( ok && writing_left == 0 ){
+				
+					// only record this as a cache read hit if we haven't just read the 
+					// data from the file system
+				
+				if ( !recursive ){
 					
-				manager.cacheBytesRead( read_length );
+					manager.cacheBytesRead( read_length );
+				}
 					
 				if ( TRACE ){
 						
@@ -251,11 +272,31 @@ CacheFileImpl
 				file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
 					
 				try{
-					if ( 	!recursive &&
-							READAHEAD_ENABLE &&
-							read_length <  read_ahead_size &&
-							file_position + read_ahead_size <= file.getLength()){
+					boolean	do_read_ahead	= 
+								!recursive &&
+								READAHEAD_ENABLE &&
+								read_length <  read_ahead_size &&
+								file_position + read_ahead_size <= file.getLength();
+
+					if ( do_read_ahead ){
+
+							// only read ahead if this is a continuation of a prior read within history
+						
+						do_read_ahead	= false;
+						
+						for (int i=0;i<READAHEAD_HISTORY;i++){
 							
+							if ( read_history[i] == file_position ){
+								
+								do_read_ahead	= true;
+								
+								break;
+							}
+						}
+					}
+					
+					if ( do_read_ahead ){
+												
 						if ( TRACE ){
 								
 							LGLogger.log( "\tperforming read-ahead" );
