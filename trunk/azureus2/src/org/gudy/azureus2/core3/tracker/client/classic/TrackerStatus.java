@@ -754,8 +754,8 @@ public class TrackerStatus {
 							*/
 							
 							int[]		complete 	= scrape_reply.getComplete();
-							int[]		downloaded 	= scrape_reply.getComplete();
-							int[]		incomplete 	= scrape_reply.getComplete();
+							int[]		downloaded 	= scrape_reply.getDownloaded();
+							int[]		incomplete 	= scrape_reply.getIncomplete();
 							
 							Map	files = new ByteEncodedKeyHashMap();
 							
