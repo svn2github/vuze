@@ -132,8 +132,7 @@ Initializer
 				
 				public boolean
 				restartRequested(
-					final AzureusCore		core,
-					final boolean			update_only )
+					final AzureusCore		core )
 				{
 					final AESemaphore				sem 	= new AESemaphore("SWTInit:restart");
 					final AzureusCoreException[]	error 	= {null};
@@ -150,8 +149,6 @@ Initializer
 												
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
-										
-										azureus_core.restart( update_only );
 										
 									}finally{
 												

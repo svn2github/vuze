@@ -189,7 +189,7 @@ PluginManagerImpl
 		}
 		
 		try{
-			azureus_core.requestRestart( false );
+			azureus_core.requestRestart();
 			
 		}catch( Throwable e ){
 							

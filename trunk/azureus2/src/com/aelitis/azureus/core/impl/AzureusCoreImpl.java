@@ -124,7 +124,7 @@ AzureusCoreImpl
 		
 			if ( running ){
 				
-				throw( new AzureusCoreException( "core already running" ));
+				throw( new AzureusCoreException( "Core: already running" ));
 			}
 			
 			running	= true;
@@ -143,7 +143,7 @@ AzureusCoreImpl
 
 	    PluginInitializer.getSingleton(this,this).initializePlugins( this );
 	        
-	    LGLogger.log("Initializing Plugins complete");
+	    LGLogger.log("Core: Initializing Plugins complete");
 
 	    new AEThread("Plugin Init Complete")
 	       {
@@ -160,12 +160,12 @@ AzureusCoreImpl
 	       }.start();
          
             
-	    //Catch non-user-initiated VM shutdown
-      //TODO: This does not seem to catch Windows' shutdown events, despite what Sun's
-      //documentation says. See for possible fix:
-      //http://www-106.ibm.com/developerworks/ibm/library/i-signalhandling
-      //http://www.smotricz.com/kabutz/Issue043.html 
-      //http://www.geeksville.com/~kevinh/projects/javasignals/
+			    //Catch non-user-initiated VM shutdown
+		      //TODO: This does not seem to catch Windows' shutdown events, despite what Sun's
+		      //documentation says. See for possible fix:
+		      //http://www-106.ibm.com/developerworks/ibm/library/i-signalhandling
+		      //http://www.smotricz.com/kabutz/Issue043.html 
+		      //http://www.geeksville.com/~kevinh/projects/javasignals/
       
 	    Runtime.getRuntime().addShutdownHook( 
 	    		new AEThread("Shutdown Hook") 
@@ -177,11 +177,12 @@ AzureusCoreImpl
 				        	
 				        	try{
 				          	
-				        		System.out.println( "Forced VM shutdown...auto-stopping..." );
+				        		System.out.println( "Core: Forced VM shutdown...auto-stopping..." );
 				          	
 				        		AzureusCoreImpl.this.stop();
 				        		
 				        	}catch( Throwable e ){  
+				        		
 				        		Debug.printStackTrace( e );
 				        	}
 				        }
@@ -195,12 +196,14 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
+		LGLogger.log("Core: Stop operation starts");
+		
 		try{
 			this_mon.enter();
 		
 			if ( !running ){
 				
-				throw( new AzureusCoreException( "core not running" ));
+				throw( new AzureusCoreException( "Core not running" ));
 			}		
 			
 			running	= false;
@@ -220,6 +223,15 @@ AzureusCoreImpl
 		NonDaemonTaskRunner.waitUntilIdle();
 		
 		AEDiagnostics.shutdown();
+		
+		LGLogger.log("Core: Stop operation completes");
+
+			// if any installers exist then we need to closedown via the updater
+		
+		if ( getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
+			
+			AzureusRestarterFactory.create( this ).restart( true );
+		}
 	}
 	
 	
@@ -230,39 +242,46 @@ AzureusCoreImpl
 	{
 		for (int i=0;i<lifecycle_listeners.size();i++){
 			
-			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( this )){
+			if ( !((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( this )){
+				
+				LGLogger.log("Core: Request to stop the core has been denied");
 				
 				return;
 			}
 		}
-
+			
 		stop();
 	}
 	
 	public void
-	restart(
-		boolean	update_only )
+	restart()
 	
 		throws AzureusCoreException
 	{
-		AzureusRestarterFactory.create( this ).restart( update_only );
+		if ( running ){
+			
+			stop();
+		}
+		
+		AzureusRestarterFactory.create( this ).restart( false );
 	}
 	
 	public void
-	requestRestart(
-		boolean	update_only )
+	requestRestart()
 	
 		throws AzureusCoreException
 	{
 		for (int i=0;i<lifecycle_listeners.size();i++){
 			
-			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this,update_only )){
+			if (!((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this )){
+				
+				LGLogger.log("Core: Request to restart the core has been denied");
 				
 				return;
 			}
 		}
 		
-		throw( new AzureusCoreException("Restart request unhandled" ));
+		restart();
 	}
 	
 	public GlobalManager
@@ -272,7 +291,7 @@ AzureusCoreImpl
 	{
 		if ( !running ){
 			
-			throw( new AzureusCoreException( "core not running" ));
+			throw( new AzureusCoreException( "Core not running" ));
 		}
 		
 		return( global_manager );
@@ -285,7 +304,7 @@ AzureusCoreImpl
 	{	
 		if ( !running ){
 	
-			throw( new AzureusCoreException( "core not running" ));
+			throw( new AzureusCoreException( "Core not running" ));
 
 		}
 		

@@ -58,6 +58,8 @@ UpdateManagerImpl
 	protected List	components 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
+	protected List	installers	= new ArrayList();
+	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UpdateManager" );
 
 	protected
@@ -157,9 +159,22 @@ UpdateManagerImpl
 		
 		throws UpdateException
 	{
-		return( new UpdateInstallerImpl());
+		UpdateInstaller	installer = new UpdateInstallerImpl();
+		
+		installers.add( installer );
+		
+		return( installer );
 	}
 	
+	public UpdateInstaller[]
+	getInstallers()
+	{
+		UpdateInstaller[]	res = new UpdateInstaller[installers.size()];
+		
+		installers.toArray( res );
+		
+		return( res );
+	}
 	
 	public void
 	restart()
@@ -176,8 +191,14 @@ UpdateManagerImpl
 		throws UpdateException
 	{
 		try{
-			azureus_core.requestRestart( !restart_after );
-			
+			if ( restart_after ){
+				
+				azureus_core.requestRestart();
+				
+			}else{
+				
+				azureus_core.requestStop();
+			}
 		}catch( Throwable e ){
 			
 			throw( new UpdateException( "UpdateManager:applyUpdates fails", e ));

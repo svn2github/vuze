@@ -123,7 +123,7 @@ public class MainMenu {
         // this HAS to be done this way around else the restart inherits
       	// the 6880 port listen. However, this is a general problem....
         MainWindow.getWindow().dispose();
-        AzureusCoreFactory.getSingleton().restart( false );
+        AzureusCoreFactory.getSingleton().restart();
         }
       });
       

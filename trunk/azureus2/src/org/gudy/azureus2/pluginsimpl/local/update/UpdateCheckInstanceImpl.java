@@ -306,7 +306,7 @@ UpdateCheckInstanceImpl
 	
 		throws UpdateException
 	{
-		return( new UpdateInstallerImpl());
+		return( manager.createInstaller());
 	}
 	
 	public void

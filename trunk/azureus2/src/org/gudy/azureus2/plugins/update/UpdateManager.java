@@ -88,6 +88,14 @@ UpdateManager
 		throws UpdateException;
 	
 		/**
+		 * returns the currently declared installers, if any
+		 * @return
+		 */
+	
+	public UpdateInstaller[]
+	getInstallers();
+	
+		/**
 		 * restart azureus after applying any updates
 		 * @deprecated - use applyUpdates
 		 * @throws UpdateException

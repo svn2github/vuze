@@ -548,12 +548,16 @@ UpdateWindow
     MainWindow.getWindow().setUpdateNeeded(null);
     
     //If restart is required, then restart
-    if(restartRequired) {
+    if( restartRequired && restartNow) {
     	// this HAS to be done this way around else the restart inherits
     	// the 6880 port listen. However, this is a general problem....
+    	
       MainWindow.getWindow().dispose();
-      azureus_core.restart( false );
-    } else {
+      
+      azureus_core.restart( );
+      
+    }else{
+    	
       updateWindow.dispose();      
     }
   }
