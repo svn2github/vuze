@@ -1051,7 +1051,9 @@ PEPeerControlImpl
     }
     if(currentOptimisticUnchoke != null) {
       if(!bestUploaders.contains(currentOptimisticUnchoke)) {
-        bestUploaders.remove(bestUploaders.size()-1);
+        if(bestUploaders.size() > 0) {
+          bestUploaders.remove(bestUploaders.size()-1);
+        }
         bestUploaders.add(currentOptimisticUnchoke);
       }
     }
@@ -1208,7 +1210,7 @@ PEPeerControlImpl
 
       for (int i = index; i < _connections.size() + index; i++) {
         PEPeerTransport pc = (PEPeerTransport) _connections.get(i % _connections.size());
-        if (!pc.isSeed() && !bestUploaders.contains(pc) && pc.isInteresting() && !pc.isSnubbed()) {
+        if (!pc.isSeed() && pc.isInteresting() && !pc.isSnubbed()) {
           currentOptimisticUnchoke = pc;
           break;
         }
@@ -1938,13 +1940,15 @@ PEPeerControlImpl
 		    int random = (int) (Math.random() * nbChunks);
 		    EndGameModeChunk chunk = (EndGameModeChunk) endGameModeChunks.get(random);
 		    int pieceNumber = chunk.getPieceNumber();
-		    if(peer.getAvailable()[pieceNumber]) {
-		      peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
+		    if(peer.getAvailable()[pieceNumber]) {		      
 		      PEPiece piece = _pieces[pieceNumber];
 		      if(piece != null) {
+		       peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
 		       piece.markBlock(chunk.getBlockNumber());
 		      } else {
-		        System.out.println("End Game Mode :: Piece is null");
+		        endGameModeChunks.remove(chunk);
+		        System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
+		        return false;
 		      }
 		      return true;
 		    }
