@@ -171,48 +171,57 @@ public class GlobalManagerImpl
         saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
 
-    public void runSupport() {
+    public void 
+	runSupport() 
+    {
       while (!finished) {
 
       	try{
 	        loopFactor++;
-	        determineSaveResumeDataInterval();
-
-	        try{
-	        	managers_mon.enter();
 	        
-	          if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
-	            saveDownloads();
-	            needsSaving = false;
-	          }
-
-	          for (int i = 0; i < managers_cow.size(); i++) {
-	            DownloadManager manager = (DownloadManager) managers_cow.get(i);
-	            
-             	if (loopFactor % saveResumeLoopCount == 0) {
-            		manager.saveResumeData();
-	            }
-	            /*
-	             * seeding rules have been moved to StartStopRulesDefaultPlugin
-	             */
-	            
+	        determineSaveResumeDataInterval();
+	        
+	        if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
+          	
+	        	saveDownloads();
             
-	            // Handle forced starts here
-	            if (manager.getState() == DownloadManager.STATE_READY &&
-	                manager.isForceStart()) {
-	              manager.startDownload();
-	              
-	              if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
-	                //set previous hash fails and discarded values
-	                manager.getStats().setSavedDiscarded();
-	                manager.getStats().setSavedHashFails();
-	              }
-	            }
-	          }
-	        }finally{
-	        	
-	        	managers_mon.exit();
+	        	needsSaving = false;
 	        }
+	        
+	        List	managers_ref = managers_cow;
+	        
+	        for (int i = 0; i < managers_ref.size(); i++) {
+          	
+	        	DownloadManager manager = (DownloadManager) managers_ref.get(i);
+            
+	        	if ( loopFactor % saveResumeLoopCount == 0 ) {
+	        		
+	        		manager.saveResumeData();
+	        	}
+	        	
+		            /*
+		             * seeding rules have been moved to StartStopRulesDefaultPlugin
+		             */
+	              
+	         		// Handle forced starts here
+         	
+	        	if (	manager.getState() == DownloadManager.STATE_READY &&
+	        			manager.isForceStart()) {
+            	
+	        		manager.startDownload();
+	              
+	        		if ( manager.getState() == DownloadManager.STATE_DOWNLOADING ){
+	            	
+			            	//set previous hash fails and discarded values
+			            	//parg - looks dodgy to me this - relies on synchronous change from
+			            	//ready->downloading
+		            	
+	        			manager.getStats().setSavedDiscarded();
+	        			manager.getStats().setSavedHashFails();
+		            }
+	           }
+          }
+
       	}catch( Throwable e ){
       		
       		Debug.printStackTrace( e );
