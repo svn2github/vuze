@@ -210,13 +210,21 @@ PEPeerConnectionImpl
 		return requested.size();
 	}
 
+	/**
+	 * 
+	 * @return	may be null for performance purposes
+	 */
+	
 	public List 
 	getExpiredRequests() {
-		Vector result = new Vector();
+		Vector result = null;
 		for (int i = 0; i < requested.size(); i++) {
 			try {
 				DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
 				if (request.isExpired()) {
+					if ( result == null ){
+						result = new Vector();
+					}
 					result.add(request);
 				}
 			}

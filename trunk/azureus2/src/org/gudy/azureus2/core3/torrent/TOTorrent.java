@@ -25,6 +25,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.HashWrapper;
+
 public interface 
 TOTorrent
 {
@@ -127,7 +129,18 @@ TOTorrent
 	 
 	public byte[]
 	getHash()
+				
+		throws TOTorrentException;
+
+	/**
+	 * convenience method to get a wrapped hash for performance purposes
+	 * @return
+	 * @throws TOTorrentException
+	 */
 	
+	public HashWrapper
+	getHashWrapper()
+				
 		throws TOTorrentException;
 
 	/**

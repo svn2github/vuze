@@ -50,7 +50,7 @@ public class TrackerChecker {
   {
   	try{
   	
-  		return( getHashData( tracker_client.getTrackerUrl(), tracker_client.getTorrent().getHash()));
+  		return( getHashData( tracker_client.getTrackerUrl(), tracker_client.getTorrent().getHashWrapper()));
   		
   	}catch( TOTorrentException e ){
   		
@@ -66,7 +66,7 @@ public class TrackerChecker {
    {
 	 try{
   	
-		 return( getHashData( torrent.getAnnounceURL().toString(), torrent.getHash()));
+		 return( getHashData( torrent.getAnnounceURL().toString(), torrent.getHashWrapper()));
   		
 	 }catch( TOTorrentException e ){
   		
@@ -76,20 +76,13 @@ public class TrackerChecker {
 	 }
    }	
 
-   protected TRTrackerScraperResponseImpl getHashData(String trackerUrl, byte[] hash) 
-	{
-  		if(trackerUrl != null)
-			return getHashData(trackerUrl,new HashWrapper(hash));
-  		return null;
-	}
-
 	protected void 
  	removeHash(
    		TRTrackerClient	tracker_client ) 
  	{
    		try{
   	
-	   		removeHash( tracker_client.getTrackerUrl(), new HashWrapper(tracker_client.getTorrent().getHash()));
+	   		removeHash( tracker_client.getTrackerUrl(), tracker_client.getTorrent().getHashWrapper());
   		
    		}catch( TOTorrentException e ){
   		
@@ -104,7 +97,7 @@ public class TrackerChecker {
   	{
 		try{
   	
-			removeHash( torrent.getAnnounceURL().toString(), new HashWrapper(torrent.getHash()));
+			removeHash( torrent.getAnnounceURL().toString(), torrent.getHashWrapper());
   		
 		}catch( TOTorrentException e ){
   		

@@ -713,7 +713,7 @@ PEPeerControlImpl
           List expired = pc.getExpiredRequests();
           //::May want to make this an ArrayList unless you
           //::need the synchronization a vector offers -Tyler
-          if (expired.size() > 0) {
+          if (expired != null && expired.size() > 0) {
             pc.setSnubbed(true);
 
             //Only cancel first request if more than 2 mins have passed

@@ -37,8 +37,9 @@ public class
 TRHostExternalTorrent 
 	implements TOTorrent
 {
-	protected byte[]	hash;
-	protected URL		announce_url;
+	protected byte[]		hash;
+	protected HashWrapper	hash_wrapper;
+	protected URL			announce_url;
 	
 	protected Map		additional_properties = new HashMap();
 	
@@ -48,6 +49,7 @@ TRHostExternalTorrent
 		URL		_announce_url  )
 	{
 		hash			= _hash;
+		hash_wrapper	= new HashWrapper( hash );
 		announce_url	= _announce_url;
 		
 		TorrentUtils.setDefaultTorrentEncoding( this );
@@ -148,6 +150,14 @@ TRHostExternalTorrent
 		throws TOTorrentException
 	{
 		return( hash );
+	}
+	
+	public HashWrapper
+	getHashWrapper()
+
+		throws TOTorrentException
+	{
+		return( hash_wrapper );
 	}
 	
 	public boolean

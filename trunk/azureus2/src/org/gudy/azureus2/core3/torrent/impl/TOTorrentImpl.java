@@ -56,6 +56,7 @@ TOTorrentImpl
 	private byte[][]	pieces;
 	
 	private byte[]		torrent_hash;
+	private HashWrapper	torrent_hash_wrapper;
 	
 	private boolean				simple_torrent;
 	private TOTorrentFileImpl[]	files;
@@ -460,6 +461,18 @@ TOTorrentImpl
 		return( torrent_hash );
 	}
 	
+	public HashWrapper
+	getHashWrapper()
+
+		throws TOTorrentException
+	{
+		if ( torrent_hash_wrapper == null ){
+			getHash();
+		}
+		
+		return( torrent_hash_wrapper );
+	}
+	
 	public boolean
 	hasSameHashAs(
 		TOTorrent		other )
@@ -488,6 +501,8 @@ TOTorrentImpl
 				
 			torrent_hash = s.calculateHash(BEncoder.encode(info));
 	
+			torrent_hash_wrapper = new HashWrapper( torrent_hash );
+			
 		}catch( Throwable e ){
 				
 			throw( new TOTorrentException( 	"TOTorrent::setHashFromInfo: fails '" + e.toString() + "'",

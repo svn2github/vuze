@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerStatsImpl;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
@@ -53,6 +54,7 @@ DownloadImpl
 	implements Download, DownloadManagerListener, DownloadManagerTrackerListener
 {
 	protected DownloadManager		download_manager;
+	protected DownloadStatsImpl		download_stats;
 	
 	protected int		latest_state		= ST_STOPPED;
 	
@@ -68,6 +70,7 @@ DownloadImpl
 		DownloadManager		_dm )
 	{
 		download_manager	= _dm;
+		download_stats		= new DownloadStatsImpl( download_manager );
 		
 		download_manager.addListener( this );
 	}
@@ -380,7 +383,7 @@ DownloadImpl
 	public DownloadStats
 	getStats()
 	{
-		return( new DownloadStatsImpl( download_manager ));
+		return( download_stats );
 	}
 	
 	protected void
