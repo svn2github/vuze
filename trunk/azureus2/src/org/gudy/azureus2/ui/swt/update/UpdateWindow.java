@@ -379,7 +379,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
   public void reportActivity(ResourceDownloader downloader, final String activity) {
     setStatusText(activity);
-    appendDetails(downloader.getName() + " : " + activity);
+    appendDetails(activity);
   }
   
   private void setStatusText(final String text) {

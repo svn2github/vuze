@@ -16,16 +16,15 @@ public class Updater {
     
   
   public static void main(String[] args) {
-    FileWriter log = null;
-    
     if (args.length < 3) {
       System.out.println("Usage: Updater full_classpath full_librarypath full_userpath");
       System.exit(-1);
     }
     
-    String classPath    = args[0];
-    String libraryPath  = args[1];
-    String userPath     = args[2];
+    String command	    = args[0];
+    String app_path		= args[1];
+    String user_path    = args[2];
+    
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
@@ -36,17 +35,20 @@ public class Updater {
       relativePath = "Azureus.app/Contents/Resources/Java/";
     }
     
-    File oldFile = new File(userPath, relativePath + "Azureus2.jar");
-    File updateFile = new File(oldFile.getParentFile(), "Azureus2-new.jar");
-    File logFile = new File( userPath, "update.log" );
+    //File oldFile = new File(userPath, relativePath + "Azureus2.jar");
+    //File updateFile = new File(oldFile.getParentFile(), "Azureus2-new.jar");
+    File logFile = new File( user_path, "update.log" );
+    
+    FileWriter log = null;
     
     try {
       log = new FileWriter( logFile, true );
       
-      log.write("Updater:: classPath=" + classPath
-                         + " libraryPath=" + libraryPath
-                         + " userPath=" + userPath + "\n");
+      log.write("Updater:: command=" + command
+                         + " app_path=" + app_path
+                         + " user_path=" + user_path + "\n");
       
+      /*
       log.write("Updater:: oldFile=" + oldFile.getAbsolutePath()
                     + " updateFile=" + updateFile.getAbsolutePath() + "\n");
     
@@ -79,6 +81,7 @@ public class Updater {
         else log.write("not found\n");
       }
       else log.write("not found\n");
+      */
     }
     catch (Exception e) {
       try {

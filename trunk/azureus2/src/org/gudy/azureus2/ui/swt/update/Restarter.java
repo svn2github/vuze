@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.update;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class Restarter {
@@ -70,12 +71,7 @@ public class Restarter {
     String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
     + "\" " + mainClass;
     
-    /*
-    //Parameters if needed.
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
-    */
+    exec = addParameters( exec );
     
     exec_win32(exec);
   }
@@ -106,12 +102,7 @@ public class Restarter {
     String exec = "\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
     + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
     
-    /*
-    //Parameters if needed.
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
-    */
+    exec = addParameters( exec );
     
     exec_OSX(exec);
   }
@@ -155,12 +146,7 @@ public class Restarter {
     String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
     + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
     
-    /*
-    //Parameters if needed.
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
-    */
+    exec = addParameters( exec );
     
     exec_Linux(exec);
   }
@@ -190,6 +176,37 @@ public class Restarter {
       LGLogger.log("RestartUtil has encountered an exception : " + e);
       e.printStackTrace();
     }
+  }
+  
+  private static String
+  addParameters(
+  	String	exec )
+  {
+ 	String	app_path = SystemProperties.getApplicationPath();
+  	
+  	if ( app_path.endsWith(File.separator)){
+  		
+  		app_path = app_path.substring(0,app_path.length()-1);
+  	}
+  	
+ 	String	user_path = SystemProperties.getUserPath();
+  	
+  	if ( user_path.endsWith(File.separator)){
+  		
+  		user_path = user_path.substring(0,user_path.length()-1);
+  	}
+  	
+  	String[]	parameters = {
+  			"restart",
+  			app_path,
+  			user_path,
+  	};
+  	
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    return( exec );
   }
 }
 
