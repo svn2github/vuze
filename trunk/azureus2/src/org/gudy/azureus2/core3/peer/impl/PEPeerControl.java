@@ -53,11 +53,6 @@ PEPeerControl
 		int pieceLength,
 		PEPeer pcOrigin );
 
-	public boolean 
-	isOptimisticUnchoke(
-		PEPeer 		pc);
-
-	
 	public void
 	updateSuperSeedPiece(
 	    PEPeer peer,

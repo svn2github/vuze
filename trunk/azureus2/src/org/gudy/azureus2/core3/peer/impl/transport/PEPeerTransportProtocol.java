@@ -147,6 +147,10 @@ PEPeerTransportProtocol
   }
   
   
+  private boolean is_optimistic_unchoke = false;
+  
+  
+  
   
   
   
@@ -503,14 +507,21 @@ PEPeerTransportProtocol
   
   public void sendChoke() {
   	if ( getPeerState() != TRANSFERING ) return;
+    
+    System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " choked");
+    
     outgoing_piece_message_handler.removeAllPieceRequests();
     connection.getOutgoingMessageQueue().addMessage( new BTChoke(), false );
     choking_other_peer = true;
+    is_optimistic_unchoke = false;
   }
 
   
   public void sendUnChoke() {
     if ( getPeerState() != TRANSFERING ) return;
+    
+    System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
+    
     connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
     choking_other_peer = false;
   }
@@ -647,7 +658,11 @@ PEPeerTransportProtocol
   public String getClient() {  return client;  }
   
   public boolean isIncoming() {  return incoming;  }  
-  public boolean isOptimisticUnchoke() {  return manager.isOptimisticUnchoke(this);  }
+  
+  
+  public boolean isOptimisticUnchoke() {  return is_optimistic_unchoke && !isChokedByMe();  }
+  public void setOptimisticUnchoke( boolean is_optimistic ) {  is_optimistic_unchoke = is_optimistic;  }
+  
   
   public PEPeerControl getControl() {  return manager;  }
   public PEPeerManager getManager() {  return manager;  }

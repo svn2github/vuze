@@ -79,6 +79,8 @@ Peer
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();
+  
+  public void setOptimisticUnchoke( boolean is_optimistic );
 	
   public void hasSentABadChunk( int piece_number );
 	

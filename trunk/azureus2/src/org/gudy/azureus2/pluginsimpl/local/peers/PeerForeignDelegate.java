@@ -331,6 +331,10 @@ PeerForeignDelegate
 	{
 		return( foreign.isOptimisticUnchoke());
 	}
+  
+  public void setOptimisticUnchoke( boolean is_optimistic ) {
+    foreign.setOptimisticUnchoke( is_optimistic );
+  }
 
 	
 	public void 

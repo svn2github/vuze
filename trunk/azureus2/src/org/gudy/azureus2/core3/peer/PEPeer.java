@@ -126,6 +126,7 @@ PEPeer
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();
+  public void setOptimisticUnchoke( boolean is_optimistic );
 	
   /**
    * Peer sent bad piece data chunk.
