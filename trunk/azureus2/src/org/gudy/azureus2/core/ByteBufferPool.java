@@ -50,16 +50,15 @@ public class ByteBufferPool {
 
   private ByteBuffer allocateNewBuffer() {
     try {
+      System.gc();
       ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
       usedBuffers.add(buffer);
       //System.out.println("Pool Size :" + buffers.size());
       return buffer;
     } catch (Exception e) {
-      Logger.getLogger().log(
-        componentID,
-        evtAllocation,
-        Logger.ERROR,
-        "Memory allocation failed. Reason : " + e);     
+      System.out.println("Memory allocation failed:");
+      e.printStackTrace();
+      System.out.println("freeMemory=" + Runtime.getRuntime().freeMemory() + ", totalMemory=" + Runtime.getRuntime().totalMemory() + ", maxMemory=" + Runtime.getRuntime().maxMemory());
       return null;
     }
   }
@@ -88,5 +87,6 @@ public class ByteBufferPool {
 
   public synchronized void clearFreeBuffers() {
     freeBuffers.clear();
+    System.gc();
   }
 }
