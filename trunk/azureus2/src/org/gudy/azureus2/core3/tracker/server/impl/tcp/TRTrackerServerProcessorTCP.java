@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.tracker.server.impl.tcp;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 import sun.misc.BASE64Decoder;
 
@@ -71,7 +72,7 @@ TRTrackerServerProcessorTCP
 				e.printStackTrace();
 			}
 										
-			String	header = "";
+			String	header_plus = "";
 				
 			try{
 										
@@ -79,7 +80,7 @@ TRTrackerServerProcessorTCP
 				
 				byte[]	buffer = new byte[1024];
 				
-				while( header.length()< 4096 ){
+				while( header_plus.length()< 4096 ){
 						
 					int	len = is.read(buffer);
 						
@@ -88,9 +89,9 @@ TRTrackerServerProcessorTCP
 						break;
 					}
 									
-					header += new String( buffer, 0, len );
+					header_plus += new String( buffer, 0, len );
 									
-					if ( header.endsWith( NL+NL )){
+					if ( header_plus.endsWith( NL+NL )){
 						
 						break;
 					}
@@ -98,7 +99,7 @@ TRTrackerServerProcessorTCP
 		
 				if ( LGLogger.isLoggingOn()){
 					
-					String	log_str = header;
+					String	log_str = header_plus;
 					
 					int	pos = log_str.indexOf( NL );
 					
@@ -114,44 +115,53 @@ TRTrackerServerProcessorTCP
 				
 				ByteArrayInputStream	data = null;
 				
-				if ( header.startsWith( "GET " )){
+				String	actual_header;
+				String	lowercase_header;
+				
+				if ( header_plus.startsWith( "GET " )){
+				
+					actual_header		= header_plus;
+					lowercase_header	= actual_header.toLowerCase();
 					
-				}else if ( header.startsWith( "POST ")){
+				}else if ( header_plus.startsWith( "POST ")){
 					
-					int	header_end = header.indexOf(NL+NL);
+					int	header_end = header_plus.indexOf(NL+NL);
 					
 					if ( header_end == -1 ){
 					
 						throw( new TRTrackerServerException( "header truncated" ));
 					}
 					
-					int	cl_start = header.indexOf("Content-Length:");
+					actual_header 		= header_plus.substring(0,header_end+2);
+					lowercase_header	= actual_header.toLowerCase();
+					
+					int	cl_start = lowercase_header.indexOf("content-length:");
 					
 					if ( cl_start == -1 ){
 						
 						throw( new TRTrackerServerException( "header Content-Length start missing" ));
 					}
 					
-					int	cl_end = header.indexOf( NL, cl_start );
+					int	cl_end = actual_header.indexOf( NL, cl_start );
 					
 					if ( cl_end == -1 ){
 						
 						throw( new TRTrackerServerException( "header Content-Length end missing" ));
 					}
 					
-					int	content_length = Integer.parseInt( header.substring(cl_start+15,cl_end ).trim());
+					int	content_length = Integer.parseInt( actual_header.substring(cl_start+15,cl_end ).trim());
 					
 					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 					
 						// if we have X<NL><NL>Y get Y
 					
-					int	rem = header.length() - (header_end+4);
+					int	rem = header_plus.length() - (header_end+4);
 					
 					if ( rem > 0 ){
 						
 						content_length	-= rem;
 						
-						baos.write( header.substring(header.length()-rem).getBytes());
+						baos.write( header_plus.substring(header_plus.length()-rem).getBytes());
 					}
 					
 					while( content_length > 0 ){
@@ -173,10 +183,10 @@ TRTrackerServerProcessorTCP
 					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
 				}else{
 					
-					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
+					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header_plus.length()>256?header_plus.substring(0,256):header_plus)+"')" ));
 				}
 				
-				String	url = header.substring(4).trim();
+				String	url = actual_header.substring(4).trim();
 				
 				int	pos = url.indexOf( " " );
 				
@@ -187,7 +197,8 @@ TRTrackerServerProcessorTCP
 								
 				url = url.substring(0,pos);
 				
-				processRequest( header,
+				processRequest( actual_header,
+								lowercase_header,
 								url, 
 								socket.getInetAddress().getHostAddress(),
 								data,
@@ -200,7 +211,7 @@ TRTrackerServerProcessorTCP
 							
 			}catch( Throwable e ){
 				
-				// e.printStackTrace();
+				 //e.printStackTrace();
 			}
 	
 		}finally{
@@ -220,6 +231,7 @@ TRTrackerServerProcessorTCP
 	protected void
 	processRequest(
 		String			header,
+		String			lowercase_header,
 		String			str,
 		String			client_ip_address,
 		InputStream		is,
@@ -230,6 +242,8 @@ TRTrackerServerProcessorTCP
 		try{
 			Map	root = new HashMap();
 				
+			boolean	gzip_reply = false;
+			
 			try{
 				int	request_type;
 			
@@ -275,6 +289,19 @@ TRTrackerServerProcessorTCP
 				if ( !doAuthentication( header, os, true )){
 					
 					return;
+				}
+				
+				
+				int	enc_pos = lowercase_header.indexOf( "accept-encoding:");
+				
+				if ( enc_pos != -1 ){
+					
+					int	e_pos = header.indexOf( NL, enc_pos );
+					
+					if ( e_pos != -1 ){
+						
+						gzip_reply = header.substring(enc_pos+16,e_pos).toLowerCase().indexOf("gzip") != -1;
+					}
 				}
 				
 				int	pos = 0;
@@ -405,18 +432,38 @@ TRTrackerServerProcessorTCP
 		
 			byte[] data = BEncoder.encode( root );
 				
+			if ( gzip_reply ){
+				
+				ByteArrayOutputStream tos = new ByteArrayOutputStream(data.length);
+				
+				GZIPOutputStream gos = new GZIPOutputStream( tos );
+				
+				gos.write( data );
+				
+				gos.close();
+				
+				data = tos.toByteArray();
+			}
+			
 			// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
 				
-			String output_header = 
-							"HTTP/1.1 200 OK" + NL + 
-							"Content-Type: text/html" + NL +
-							"Server: "+ Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-							"Connection: close" + NL+
-							"Content-Length: " + data.length + NL + 
-							NL;
-	
-			os.write( output_header.getBytes());
+			StringBuffer output_header = new StringBuffer(data.length+256);
+			
+			output_header	.append( "HTTP/1.1 200 OK" ).append( NL ) 
+						 	.append( "Content-Type: text/html" ).append( NL )
+							.append( "Server: " ).append( Constants.AZUREUS_NAME ).append( " " ).append( Constants.AZUREUS_VERSION ).append( NL )
+							.append( "Connection: close" ).append( NL )
+							.append( "Content-Length: " ).append( data.length ).append( NL );
+			
+			if ( gzip_reply ){
 				
+				output_header.append( "Content-Encoding: gzip" ).append( NL );
+			}
+				
+			output_header.append( NL );
+	
+			os.write( output_header.toString().getBytes());
+						
 			os.write( data );
 							
 		}finally{
