@@ -73,6 +73,8 @@ public class TorrentRow implements SortableItem {
         items.add(new TrackerStatusItem(TorrentRow.this,itemEnumerator.getPositionByName("tracker")));
         items.add(new PriorityItem(TorrentRow.this,itemEnumerator.getPositionByName("priority")));
         items.add(new ShareRatioItem(TorrentRow.this,itemEnumerator.getPositionByName("shareRatio")));
+        items.add(new DownItem(TorrentRow.this,itemEnumerator.getPositionByName("down")));
+        items.add(new UpItem(TorrentRow.this,itemEnumerator.getPositionByName("up")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -165,7 +167,13 @@ public class TorrentRow implements SortableItem {
       return manager.getStats().getETA();
     
     if (field.equals("shareRatio")) //$NON-NLS-1$
-          return manager.getStats().getShareRatio();
+      return manager.getStats().getShareRatio();
+    
+    if (field.equals("down")) //$NON-NLS-1$
+      return manager.getStats().getDownloaded();
+    
+    if (field.equals("up")) //$NON-NLS-1$
+      return manager.getStats().getUploaded();
     
     return 0;
   }  
