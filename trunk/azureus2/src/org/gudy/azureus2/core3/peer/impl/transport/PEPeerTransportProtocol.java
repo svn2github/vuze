@@ -585,19 +585,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
 			if (!lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
 				int length = lengthBuffer.getInt(DirectByteBuffer.SS_PEER,0);
-		  
-        //message size should never be greater than 16K+9b
-        if( length > 16393 ) {
-          System.out.println( "!!!~~~ ERROR: incoming message size too large: " +length+ " ~~~!!!" );
-        }
-        
+
 				if(length < 0) {
 					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
       
-				if(length >= DirectByteBufferPool.MAX_SIZE) {
-					closeAll(PEPeerTransportProtocol.this + " : length greater than max size : " + length,true, true);
+				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
+				if( length > 16393 ) {
+					closeAll(PEPeerTransportProtocol.this + " : incoming message size too large: " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
         
