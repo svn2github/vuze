@@ -419,7 +419,7 @@ public class FileUtil {
       FileChannel dest = null;
       try {
         source = new FileInputStream( _source ).getChannel();
-        dest = new FileInputStream( _dest ).getChannel();
+        dest = new FileOutputStream( _dest ).getChannel();
       
         source.transferTo(0, source.size(), dest);
         return true;
