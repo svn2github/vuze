@@ -22,9 +22,16 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -39,40 +46,42 @@ import org.gudy.azureus2.core3.internat.MessageText;
  */
 public class OpenUrlWindow {
 
-  Display display;
-  Shell shell;
-  
   public OpenUrlWindow(final Display display, String linkURL) {
-    this.display = display;
-    shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(MessageText.getString("openUrl.title"));
     shell.setImage(ImageRepository.getImage("azureus"));
     
     GridData gridData;
     GridLayout layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 2;
     shell.setLayout(layout);        
-    
-    Label label = new Label(shell,SWT.NULL);
+    Label label = new Label(shell, SWT.NULL);
     label.setText(MessageText.getString("openUrl.url"));
+    gridData = new GridData();
+    label.setLayoutData(gridData);
     
-    final Text url = new Text(shell,SWT.BORDER);
+    final Text url = new Text(shell, SWT.BORDER);
 
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData();//GridData.FILL_HORIZONTAL
     gridData.widthHint=300;
+    url.setLayoutData(gridData);
     if(linkURL == null)
       Utils.setTextLinkFromClipboard(shell, gridData, url);
     else
       Utils.setTextLink(shell, gridData, url, linkURL);
     url.setSelection(url.getText().length());
-    gridData.horizontalSpan = 2;
-    url.setLayoutData(gridData);
     
-    new Label(shell,SWT.NULL);
-    Button ok = new Button(shell,SWT.PUSH);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    Composite panel = new Composite(shell, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    panel.setLayout(layout);        
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    panel.setLayoutData(gridData);
+    Button ok = new Button(panel,SWT.PUSH);
+    gridData = new GridData();
     gridData.widthHint = 100;    
-    gridData.horizontalAlignment = GridData.END;
+    gridData.horizontalSpan = 2;
     ok.setLayoutData(gridData);
     ok.setText(MessageText.getString("openUrl.ok"));
     ok.addListener(SWT.Selection,new Listener() {
@@ -83,10 +92,9 @@ public class OpenUrlWindow {
     }); 
     shell.setDefaultButton (ok);
     
-    Button cancel = new Button(shell,SWT.PUSH);
+    Button cancel = new Button(panel,SWT.PUSH);
     gridData = new GridData();
     gridData.widthHint = 100;
-    gridData.horizontalAlignment = GridData.END;
     cancel.setLayoutData(gridData);
     cancel.setText(MessageText.getString("openUrl.cancel"));
     cancel.addListener(SWT.Selection,new Listener() {
@@ -96,6 +104,7 @@ public class OpenUrlWindow {
     });        
     
     shell.pack();
+    Utils.createURLDropTarget(shell, url);
     shell.open();
   }
 }

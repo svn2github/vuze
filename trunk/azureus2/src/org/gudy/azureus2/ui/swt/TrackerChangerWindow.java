@@ -5,9 +5,16 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -22,32 +29,35 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
  * 
  */
 public class TrackerChangerWindow {
-
   public TrackerChangerWindow(final Display display, final TRTrackerClient trackerConnection) {
     final Shell shell = new Shell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     shell.setImage(ImageRepository.getImage("azureus"));
     GridLayout layout = new GridLayout();
-    layout.numColumns = 2;
-    layout.makeColumnsEqualWidth = true;
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NONE);
     label.setText(MessageText.getString("TrackerChangerWindow.newtracker"));    
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+    GridData gridData = new GridData();
     gridData.widthHint = 200;
-    gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
 
     final Text url = new Text(shell, SWT.BORDER);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
+    gridData = new GridData();
+    gridData.widthHint = 300;
     url.setLayoutData(gridData);
     Utils.setTextLinkFromClipboard(shell, gridData, url);
-    
-    Button ok = new Button(shell, SWT.PUSH);
+
+    Composite panel = new Composite(shell, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    panel.setLayout(layout);        
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    panel.setLayoutData(gridData);
+    Button ok = new Button(panel, SWT.PUSH);
     ok.setText(MessageText.getString("TrackerChangerWindow.ok"));
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    gridData = new GridData();
     gridData.widthHint = 70;
     ok.setLayoutData(gridData);
     shell.setDefaultButton(ok);
@@ -66,9 +76,9 @@ public class TrackerChangerWindow {
       }
     });
 
-    Button cancel = new Button(shell, SWT.PUSH);
+    Button cancel = new Button(panel, SWT.PUSH);
     cancel.setText(MessageText.getString("TrackerChangerWindow.cancel"));
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    gridData = new GridData();
     gridData.widthHint = 70;
     cancel.setLayoutData(gridData);
     cancel.addListener(SWT.Selection, new Listener() {
@@ -81,6 +91,7 @@ public class TrackerChangerWindow {
     });
 
     shell.pack();
+    Utils.createURLDropTarget(shell, url);
     shell.open();
   }
 }

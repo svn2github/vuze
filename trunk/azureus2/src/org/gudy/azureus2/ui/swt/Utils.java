@@ -25,7 +25,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
@@ -38,6 +43,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.ui.swt.URLTransfer.URLType;
 
 /**
  * @author Olivier
@@ -109,11 +115,13 @@ public class Utils {
       GC gc = new GC(url);
       FontMetrics fm = gc.getFontMetrics();
       int width = (link.length() + 10) * fm.getAverageCharWidth();
-      if (width > shell.getDisplay().getBounds().width) {
-        gridData.widthHint = shell.getDisplay().getBounds().width - 20;
-        shell.setLocation(0, 0);
-      } else {
-        gridData.widthHint = width;
+      if(width > gridData.widthHint) {
+        if (width > shell.getDisplay().getBounds().width) {
+          gridData.widthHint = shell.getDisplay().getBounds().width - 20;
+          shell.setLocation(0, 0);
+        } else {
+          gridData.widthHint = width;
+        }
       }
     }
     url.setText(link);
@@ -186,5 +194,28 @@ public class Utils {
 	int y = (displayRect.height - shellRect.height) / 2;
 	
 	shell.setLocation(x, y);
+  }
+
+  /**
+   * @param control the control (usually a Shell) to add the DropTarget
+   * @param url the Text control where to set the link text
+   *
+   * @author Rene Leonhardt
+   */
+  public static void createURLDropTarget(final Control control, final Text url) {
+    DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance()});
+    dropTarget.addDropListener(new DropTargetAdapter() {
+      public void dragOver(DropTargetEvent event) {
+        event.detail = DND.DROP_LINK;
+      }
+      public void drop(DropTargetEvent event) {
+        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.widthHint=300;
+        setTextLink(control instanceof Shell ? (Shell) control : control.getShell(), gridData, url, ((URLTransfer.URLType)event.data).linkURL);
+        url.setLayoutData(gridData);
+        control.pack();
+      }
+    });
   }
 }
