@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.core;
+package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -31,17 +31,15 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 /**
  *
  */
-public class CorePong implements Message {
-  private static final String msg_id = "CORE_PONG";
-  private static final byte msg_version = (byte)1;
+public class AZPong implements AZMessage {
   
-  public String getID() {  return msg_id;  }
+  public String getID() {  return AZMessage.ID_AZ_PONG;  }
 
-  public byte getVersion() {  return msg_version;  }
+  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
 
-  public String getDescription() {  return msg_id;  }
+  public String getDescription() {  return getID() + getType();  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  } 
   
@@ -52,7 +50,7 @@ public class CorePong implements Message {
     
     if( data != null )  data.returnToPool();
     
-    return new CorePong();
+    return new AZPong();
   }
   
   public void destroy() { /*nothing*/ } 

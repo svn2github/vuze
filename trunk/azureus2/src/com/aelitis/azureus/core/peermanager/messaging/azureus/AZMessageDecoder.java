@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.core;
+package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,7 +36,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
 /**
  * Length-prefixed message decoding.
  */
-public class CoreMessageDecoder implements MessageStreamDecoder {
+public class AZMessageDecoder implements MessageStreamDecoder {
   private static final int MIN_MESSAGE_LENGTH = 6;  //4 byte id length + at least 1 byte for id + 1 byte version
   private static final int MAX_MESSAGE_LENGTH = 65536;  //64K arbitrary limit
   
@@ -65,7 +65,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
   
   
   
-  public CoreMessageDecoder() {
+  public AZMessageDecoder() {
     /*nothing*/
   }
   
@@ -214,7 +214,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
         DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
           
         try {
-          Message msg = CoreMessageFactory.createCoreMessage( payload );
+          Message msg = AZMessageFactory.createAZMessage( payload );
           messages_last_read.add( msg );
 
           //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc

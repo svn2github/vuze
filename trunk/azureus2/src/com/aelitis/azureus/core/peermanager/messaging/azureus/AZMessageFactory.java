@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.core;
+package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -37,10 +37,10 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
 /**
- * Factory for handling core message creation.
+ * Factory for handling AZ message creation.
  * NOTE: wire format: [total message length] + [id length] + [id bytes] + [version byte] + [payload bytes]
  */
-public class CoreMessageFactory {
+public class AZMessageFactory {
   private static final byte bss = DirectByteBuffer.SS_MSG;
   
   
@@ -66,23 +66,23 @@ public class CoreMessageFactory {
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
-    MessageManager.getSingleton().registerMessage( new CorePing() );
-    MessageManager.getSingleton().registerMessage( new CorePong() );
+    MessageManager.getSingleton().registerMessage( new AZPing() );
+    MessageManager.getSingleton().registerMessage( new AZPong() );
   }
   
   
   
   /**
-   * Construct a new core message instance from the given message raw byte stream.
+   * Construct a new AZ message instance from the given message raw byte stream.
    * @param stream_payload data
-   * @return decoded/deserialized core message
+   * @return decoded/deserialized AZ message
    * @throws MessageException if message creation failed
    */
-  public static Message createCoreMessage( DirectByteBuffer stream_payload ) throws MessageException {
+  public static Message createAZMessage( DirectByteBuffer stream_payload ) throws MessageException {
     int id_length = stream_payload.getInt( bss );
 
     if( id_length < 1 || id_length > 1024 || id_length > stream_payload.remaining( bss ) - 1 ) {
-      throw new MessageException( "invalid core id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss ) );
+      throw new MessageException( "invalid AZ id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss ) );
     }
     
     byte[] id_bytes = new byte[ id_length ];
@@ -98,11 +98,11 @@ public class CoreMessageFactory {
   
   
   /**
-   * Create the proper core raw message from the given base message.
+   * Create the proper AZ raw message from the given base message.
    * @param base_message to create from
-   * @return core raw message
+   * @return AZ raw message
    */
-  public static RawMessage createCoreRawMessage( Message base_message ) {
+  public static RawMessage createAZRawMessage( Message base_message ) {
     byte[] id_bytes = base_message.getID().getBytes();
     DirectByteBuffer[] payload = base_message.getData();
     
@@ -125,7 +125,7 @@ public class CoreMessageFactory {
       raw_buffs[i+1] = payload[i];
     }
      
-    LegacyData ld = (LegacyData)legacy_data.get( base_message.getID() );  //determine if a legacy bt message
+    LegacyData ld = (LegacyData)legacy_data.get( base_message.getID() );  //determine if a legacy BT message
     
     if( ld != null ) {  //legacy message, use pre-configured values
       return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );

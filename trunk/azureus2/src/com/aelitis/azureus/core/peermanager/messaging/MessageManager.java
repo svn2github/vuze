@@ -28,8 +28,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 
 
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageFactory;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactory;
-import com.aelitis.azureus.core.peermanager.messaging.core.CoreMessageFactory;
 
 
 
@@ -64,8 +64,8 @@ public class MessageManager {
    * Perform manager initialization.
    */
   public void initialize() {
-    BTMessageFactory.init();  //register bt message types
-    CoreMessageFactory.init();  //register core message types
+    AZMessageFactory.init();  //register AZ message types
+    BTMessageFactory.init();  //register BT message types
   }
   
 

@@ -1,5 +1,5 @@
 /*
- * Created on Feb 8, 2005
+ * Created on Feb 20, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,29 +20,19 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.core;
+package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
-
-import com.aelitis.azureus.core.networkmanager.RawMessage;
-import com.aelitis.azureus.core.peermanager.messaging.*;
-
-
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
- * 
- *
+ * A core AZ type peer message.
  */
-public class CoreMessageEncoder implements MessageStreamEncoder {
+public interface AZMessage extends Message {
 
-  public CoreMessageEncoder() {
-    /*nothing*/
-  }
+  public static final String ID_AZ_HANDSHAKE  = "AZ_HANDSHAKE";
+  public static final String ID_AZ_PING       = "AZ_PING";
+  public static final String ID_AZ_PONG       = "AZ_PONG";
   
   
-  
-  public RawMessage encodeMessage( Message message ) {
-    return CoreMessageFactory.createCoreRawMessage( message );
-  }
-
-  
+  public static final byte AZ_DEFAULT_VERSION = (byte)1;
 }
