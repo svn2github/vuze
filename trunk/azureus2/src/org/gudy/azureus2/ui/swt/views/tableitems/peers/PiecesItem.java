@@ -57,7 +57,7 @@ public class PiecesItem
   /** Default Constructor */
   public PiecesItem() {
     super("pieces", TableManager.TABLE_TORRENT_PEERS);
-    initializeAsGraphic(POSITION_INVISIBLE, 100);
+    initializeAsGraphic(POSITION_LAST, 200);
   }
 
   public void cellAdded(TableCell cell) {
