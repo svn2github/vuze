@@ -100,6 +100,7 @@ public class PeersView
   }
 
   public void fillMenu(final Menu menu) {
+    /*
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
 
     menu.addListener(SWT.Show, new Listener() {
@@ -121,6 +122,7 @@ public class PeersView
         ((PEPeer)row.getDataSource(true)).setSnubbed(item.getSelection());
       }
     });
+    */
     
     new MenuItem(menu, SWT.SEPARATOR);
 
