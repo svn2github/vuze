@@ -723,6 +723,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
     
+    /*
     MenuItem testAnimation = new MenuItem(helpMenu, SWT.NULL);
     testAnimation.setText("Animation Test");
     testAnimation.addListener(SWT.Selection, new Listener() {
@@ -730,6 +731,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         new TestWindow(display);
       }
     });
+    */
     
     MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
     Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$

@@ -13,9 +13,9 @@ CHANGE: All config/pref files utilize .bak backup files [Parg]
 BUGFIX: Fix of startup issues under Win95/98/Me [TuxPaper]
 BUGFIX: Locale-specific dir creation [Parg]
 BUGFIX: Hebrew language works now [TuxPaper]
-BUGFIX: Fixed long load times in Linux by removing extra long drop-down lists in Configuration view and General tab [TuxPaper]
-
-IN-PROGRESS: Fix for Pieces and Files views off-by-one row drawing glitch under linux [TuxPaper]
+BUGFIX: Fixed long load times under Linux of Configuration view and General tab [TuxPaper]
+BUGFIX: Popup windows now center in main monitor on multi-monitor setups [TuxPaper]
+BUGFIX: Fix for Pieces and Files views off-by-one row drawing glitch under linux [TuxPaper]
 
 
 
