@@ -64,7 +64,7 @@ BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are
 BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
 BUGFIX: Core | Fix for UPnP failing if trailing spaces in 'action name' [Parg]
 BUGFIX: Core | Fixed bug in choke/unchoke logic when number of connected peers < max upload slots [Nolar]
-
+BUGGIX: UI   | Fixed bug with sharing window re-animating even when opened [Gudy]
 
 
 
