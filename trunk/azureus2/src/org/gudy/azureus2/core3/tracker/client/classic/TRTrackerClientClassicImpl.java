@@ -1804,7 +1804,7 @@ TRTrackerClientClassicImpl
 		
 		if ( p2 != null ){
 			
-			System.out.println( "merging peer set: p1 = " + peers.size() + ", p2 = " + p2.size());
+			LGLogger.log( "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
 		
 			for (int i=0;i<p2.size();i++){
 				

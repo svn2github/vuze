@@ -31,7 +31,7 @@ import java.util.*;
 public class 
 NonDaemonTaskRunner 
 {
-	public static final int	LINGER_PERIOD	= 5000;
+	public static final int	LINGER_PERIOD	= 2500;
 	
 	protected static NonDaemonTaskRunner	singleton;
 	
@@ -57,14 +57,7 @@ NonDaemonTaskRunner
 	
 		throws Throwable
 	{
-		if ( !Thread.currentThread().isDaemon()){
-			
-			return(target.run());
-			
-		}else{
-				
-			return(getSingleton().runSupport( target ));
-		}
+		return(getSingleton().runSupport( target ));
 	}
 	
 	protected Object
@@ -83,11 +76,17 @@ NonDaemonTaskRunner
 			
 			if ( current_thread == null ){
 				
+				final Semaphore wait_sem = new Semaphore();
+				
 				current_thread = new Thread("NonDaemonTaskRunner" )
 					{
 						public void
 						run()
 						{
+							wait_sem.release();
+							
+							System.out.println( "non daemon starts" );
+							
 							while(true){
 								
 								task_sem.reserve(LINGER_PERIOD);
@@ -108,12 +107,16 @@ NonDaemonTaskRunner
 									}
 								}
 							}
+							
+							System.out.println( "non daemon ends" );
 						}
 					};
 						
 				current_thread.setDaemon(false);
 				
 				current_thread.start();	
+				
+				wait_sem.reserve();
 			}
 		}
 		
