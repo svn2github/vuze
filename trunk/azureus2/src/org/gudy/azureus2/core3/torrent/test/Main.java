@@ -149,7 +149,7 @@ Main
 					}else{
 		
 						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
-								new File("c:\\temp\\The.Hulk.DVDRiP.XViD-DEiTY"), 
+								new File("c:\\temp\\qqq"), 
 								new URL("http://localhost:6969/announce" ), 
 								list);
 					}

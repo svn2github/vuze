@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core.MessageText;
 
 public class 
 TOTorrentCreateImpl
@@ -114,7 +115,7 @@ TOTorrentCreateImpl
 	{
 		setPieceLength( _piece_length );
 		
-		report( "Piece length: " + _piece_length );
+		report( MessageText.getString("Torrent.create.progress.piecelength") + _piece_length );
 		
 		TOTorrentFileHasher	hasher = new TOTorrentFileHasher((int)_piece_length, progress_listener==null?null:this );
 		
@@ -126,6 +127,8 @@ TOTorrentCreateImpl
 											TOTorrentException.RT_ZERO_LENGTH ));
 		}
 		
+		report( MessageText.getString("Torrent.create.progress.hashing"));
+
 		if ( getSimpleTorrent()){
 							
 			long length = hasher.add( _torrent_base );
@@ -222,7 +225,7 @@ TOTorrentCreateImpl
 	{
 		long	res = (calculateTotalFileSize( file ) + (piece_length-1))/piece_length;
 		
-		report( "Piece count: " + res );
+		report( MessageText.getString("Torrent.create.progress.piececount") + res );
 		
 		return( res );
 	}
@@ -247,12 +250,13 @@ TOTorrentCreateImpl
 		
 		throws TOTorrentException
 	{
-		report( "Parsing files");
+		report( MessageText.getString("Torrent.create.progress.parsingfiles"));
 		
 		long res = getTotalFileSizeSupport( file );
 		
-		report( "Total file size: " + res );
-		report( "Total file count: " + total_file_count );
+		report( MessageText.getString("Torrent.create.progress.totalfilesize") + res );
+
+		report( MessageText.getString("Torrent.create.progress.totalfilecount") + total_file_count );
 		
 		return( res );
 	}
