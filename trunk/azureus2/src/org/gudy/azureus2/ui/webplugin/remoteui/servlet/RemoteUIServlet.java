@@ -167,7 +167,7 @@ RemoteUIServlet
 								
 				RPRequest	rp_request = (RPRequest)dis.readObject();
 				
-				System.out.println( "RemoteUIServler:got request: " + rp_request.getString());
+				// System.out.println( "RemoteUIServlet:got request: " + rp_request.getString());
 				
 				RPReply	reply = processRequest( rp_request );
 				
@@ -245,7 +245,8 @@ RemoteUIServlet
 				return( reply );
 				
 			}else{
-				System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
+				// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
+				
 				object._setLocal();
 				
 				if ( method.equals( "_refresh" )){

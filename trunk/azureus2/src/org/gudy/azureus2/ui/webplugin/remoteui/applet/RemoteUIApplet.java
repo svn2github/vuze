@@ -189,7 +189,7 @@ RemoteUIApplet
 		
 		    url = new URL( url.getProtocol() + "://" +url.getHost() + ":" + url.getPort() + "/process.cgi" );
 			
-			System.out.println( "doc base = " + url );
+			// System.out.println( "doc base = " + url );
 			
 			HttpURLConnection con;
 			
