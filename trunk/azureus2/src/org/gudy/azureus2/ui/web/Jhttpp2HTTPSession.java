@@ -90,7 +90,7 @@ public class Jhttpp2HTTPSession extends Thread {
       if (parameterlegacy==null) {
         parameterlegacy = new LegacyHashtable();
         parameterlegacy.put("Core_sOverrideIP", "Override Ip");
-        parameterlegacy.put("Core_bAllocateNew", "Allocate New");
+        parameterlegacy.put("Core_bAllocateNew", "Zero New");
         parameterlegacy.put("Core_iLowPort", "Low Port");
         parameterlegacy.put("Core_iHighPort", "High Port");
         parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
@@ -109,7 +109,7 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
         parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
         messagetextmap = new LegacyHashtable();
-        messagetextmap.put("allocatenew", "allocatenewfiles");
+        messagetextmap.put("allocatenew", "zeronewfiles");
         messagetextmap.put("lowport", "serverportlow");
         messagetextmap.put("highport", "serverporthigh");
         messagetextmap.put("useresume", "usefastresume");

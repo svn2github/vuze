@@ -570,12 +570,14 @@ public class ConfigView extends AbstractIView {
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     gFile.setLayout(layout);
+    Label label;
     
-
-    Label label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
-    new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
+    /*
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
+    new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
+    */
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$

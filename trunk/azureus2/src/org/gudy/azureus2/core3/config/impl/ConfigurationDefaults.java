@@ -68,10 +68,8 @@ public class ConfigurationDefaults {
     // Override Ip ("Override Ip")
     //def.put("Core_sOverrideIP", "");
     def.put("Override Ip", "");
-    // Allocate new files ("Allocate New")
-    //def.put("Core_bAllocateNew", new Long(1));
-    def.put("Allocate New", new Long(1));
-    // Allocate new files incrementally ("Enable incremental file creation")
+    //def.put("Core_bAllocateNew", new Long(0));
+    //def.put("Zero New", new Long(0));
     //def.put("Core_bIncrementalAllocate", new Long(0)); *
     def.put("Enable incremental file creation", new Long(0));
     // Lower port to use for BT ("Low Port")

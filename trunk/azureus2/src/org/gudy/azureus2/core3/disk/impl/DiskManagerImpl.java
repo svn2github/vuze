@@ -694,11 +694,11 @@ DiskManagerImpl
 			long length = tempFile.getLength();
 
 			File f = new File(tempPath, tempName);
-			//Test if files exists
+
 			RandomAccessFile raf = null;
 
 			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
-			//boolean preZero = COConfigurationManager.getBooleanParameter("Allocate New", true);
+			//boolean preZero = COConfigurationManager.getBooleanParameter("Zero New", false);
          boolean bCreateFile=false;
 			
 			if (!f.exists()) {
@@ -713,11 +713,11 @@ DiskManagerImpl
 				buildDirectoryStructure(tempPath);
 				
 				try {
-					// test: throws Exception if filename is not supported by os
+					//test: throws Exception if filename is not supported by os
 					f.getCanonicalPath();
-					/* create the new file */
+					//create the new file
 					raf = new RandomAccessFile(f, "rw");
-					/* if we don't want incremental file creation, pre-allocate file */
+					//if we don't want incremental file creation, pre-allocate file
 					if (!incremental) raf.setLength(length);
 					/*
 					//if we want to fill file with zeros - formerly "Allocate new files"
@@ -741,7 +741,7 @@ DiskManagerImpl
 					this.errorMessage = e.getMessage();
 					return false;
 				}
-			/* the file exists */
+			//the file exists
 			} else {               
 				try {
 					raf = new RandomAccessFile(f, "rw");
