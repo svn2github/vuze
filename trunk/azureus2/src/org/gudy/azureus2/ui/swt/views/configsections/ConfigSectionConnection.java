@@ -147,55 +147,12 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     enableSocks.setLayoutData(formData); 
     
+    
 //////////////////////
-    
-    final BooleanParameter enableSocksPeer = new BooleanParameter(cServer, "Enable.SOCKS.peer", false, "ConfigView.section.proxy.enable_socks.peer");
-    formData = new FormData();
-    formData.top = new FormAttachment( enableSocks.getControl() );
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    enableSocksPeer.setLayoutData(formData); 
-
-    
-    String[] socks_types = {
-            "V4",
-            "V4a",
-            "V5",
-        };
-
-       String dropLabels[] = new String[socks_types.length];
-       String dropValues[] = new String[socks_types.length];
-       for (int i = 0; i < socks_types.length; i++) {
-
-          dropLabels[i] = socks_types[i];
-          dropValues[i] = socks_types[i];
-       }
-       
-       
-       final BooleanParameter socksPeerInform = new BooleanParameter(cServer, "Proxy.SOCKS.peer.inform", true, "ConfigView.section.proxy.peer.informtracker");
-       formData = new FormData();
-       formData.top = new FormAttachment( enableSocks.getControl() );
-       formData.left = new FormAttachment(enableSocksPeer.getControl());  // 2 params for Pre SWT 3.0
-       socksPeerInform.setLayoutData(formData);
-       
-       StringListParameter	socksType  = new StringListParameter(cServer, "Proxy.SOCKS.version", "V4", dropLabels, dropValues);
-       formData = new FormData();
-       formData.top = new FormAttachment( enableSocks.getControl(), 0 );
-       formData.left = new FormAttachment(socksPeerInform.getControl());  // 2 params for Pre SWT 3.0
-       socksType.setLayoutData(formData); 
-   
-       Label lSocksVersion = new Label(cServer, SWT.NULL);
-       Messages.setLanguageText(lSocksVersion, "ConfigView.section.proxy.socks.version");
-       formData = new FormData();
-       formData.top = new FormAttachment(enableSocks.getControl(),0);
-       formData.left = new FormAttachment(socksType.getControl());
-       lSocksVersion.setLayoutData(formData);
- 
-       
- //////////////////////
 
     StringParameter pHost = new StringParameter(cServer, "Proxy.Host", "");
     formData = new FormData();
-    formData.top = new FormAttachment(enableSocksPeer.getControl());
+    formData.top = new FormAttachment(enableSocks.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     pHost.setLayoutData(formData);
@@ -203,7 +160,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     Label lHost = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(lHost, "ConfigView.section.proxy.host");
     formData = new FormData();
-    formData.top = new FormAttachment(enableSocksPeer.getControl(),5);
+    formData.top = new FormAttachment(enableSocks.getControl(),5);
     formData.left = new FormAttachment(pHost.getControl());
     lHost.setLayoutData(formData);
 
@@ -255,6 +212,122 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(pPass.getControl());
     lPass.setLayoutData(formData);
     
+//////////////////////
+    
+    final BooleanParameter enableSocksPeer = new BooleanParameter(cServer, "Proxy.Data.Enable", false, "ConfigView.section.proxy.enable_socks.peer");
+    formData = new FormData();
+    formData.top = new FormAttachment( pPass.getControl() );
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    enableSocksPeer.setLayoutData(formData); 
+
+    
+    String[] socks_types = {
+            "V4",
+            "V4a",
+            "V5",
+        };
+
+       String dropLabels[] = new String[socks_types.length];
+       String dropValues[] = new String[socks_types.length];
+       for (int i = 0; i < socks_types.length; i++) {
+
+          dropLabels[i] = socks_types[i];
+          dropValues[i] = socks_types[i];
+       }
+       
+       
+       final BooleanParameter socksPeerInform = new BooleanParameter(cServer, "Proxy.Data.SOCKS.inform", true, "ConfigView.section.proxy.peer.informtracker");
+       formData = new FormData();
+       formData.top = new FormAttachment( pPass.getControl() );
+       formData.left = new FormAttachment(enableSocksPeer.getControl());  // 2 params for Pre SWT 3.0
+       socksPeerInform.setLayoutData(formData);
+       
+       StringListParameter	socksType  = new StringListParameter(cServer, "Proxy.Data.SOCKS.version", "V4", dropLabels, dropValues);
+       formData = new FormData();
+       formData.top = new FormAttachment( pPass.getControl(), 0 );
+       formData.left = new FormAttachment(socksPeerInform.getControl());  // 2 params for Pre SWT 3.0
+       socksType.setLayoutData(formData); 
+   
+       Label lSocksVersion = new Label(cServer, SWT.NULL);
+       Messages.setLanguageText(lSocksVersion, "ConfigView.section.proxy.socks.version");
+       formData = new FormData();
+       formData.top = new FormAttachment(pPass.getControl(),0);
+       formData.left = new FormAttachment(socksType.getControl());
+       lSocksVersion.setLayoutData(formData);
+ 
+       
+//////////////////////
+       
+       final BooleanParameter sameConfig = new BooleanParameter(cServer, "Proxy.Data.Same", true, "ConfigView.section.proxy.peer.same");
+       formData = new FormData();
+       formData.top = new FormAttachment( enableSocksPeer.getControl() );
+       formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+       sameConfig.setLayoutData(formData); 
+
+ //////////////////////
+
+    StringParameter pDataHost = new StringParameter(cServer, "Proxy.Data.Host", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(sameConfig.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 105;
+    pDataHost.setLayoutData(formData);
+    
+    Label lDataHost = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lDataHost, "ConfigView.section.proxy.host");
+    formData = new FormData();
+    formData.top = new FormAttachment(sameConfig.getControl(),5);
+    formData.left = new FormAttachment(pDataHost.getControl());
+    lDataHost.setLayoutData(formData);
+
+ //////////////////////
+
+    StringParameter pDataPort = new StringParameter(cServer, "Proxy.Data.Port", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataHost.getControl());
+    formData.left = new FormAttachment(0,0);
+    formData.width = 40;
+    pDataPort.setLayoutData(formData);
+    
+    Label lDataPort = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lDataPort, "ConfigView.section.proxy.port");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataHost.getControl(),5);
+    formData.left = new FormAttachment(pDataHost.getControl());
+    lDataPort.setLayoutData(formData);
+
+ //////////////////////
+    
+    StringParameter pDataUser = new StringParameter(cServer, "Proxy.Data.Username", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataPort.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 105;
+    pDataUser.setLayoutData(formData);
+    
+    Label lDataUser = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lDataUser, "ConfigView.section.proxy.username");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataPort.getControl(),5);
+    formData.left = new FormAttachment(pDataUser.getControl());
+    lDataUser.setLayoutData(formData);
+    
+ //////////////////////
+    
+    StringParameter pDataPass = new StringParameter(cServer, "Proxy.Data.Password", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataUser.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 105;
+    pDataPass.setLayoutData(formData);
+    
+    Label lDataPass = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(lDataPass, "ConfigView.section.proxy.password");
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataUser.getControl(),5);
+    formData.left = new FormAttachment(pDataPass.getControl());
+    lDataPass.setLayoutData(formData);
+    
  //////////////////////
     
     final Control[] proxy_controls = new Control[]
@@ -269,17 +342,6 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
 	    pPass.getControl(),
     };
     
-    //IAdditionalActionPerformer proxyButton = new ChangeSelectionActionPerformer(controls);
-    //enableProxy.setAdditionalActionPerformer(proxyButton);
-    
-    final Control[] socks_controls = new Control[]
-		{
-    		enableSocksPeer.getControl(),
-			socksType.getControl(),
-			lSocksVersion,
-			socksPeerInform.getControl(),
- 		};
-    
     IAdditionalActionPerformer proxy_enabler =
         new GenericActionPerformer(new Control[]{}) {
           public void performAction()
@@ -288,41 +350,48 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
           		
           		proxy_controls[i].setEnabled( enableProxy.isSelected());
           	}
-          	
-            if ( enableProxy.isSelected()){
-            
-            	if ( enableSocks.isSelected()){
-            		
-            		socks_controls[0].setEnabled(true);
-            		
-					if ( enableSocksPeer.isSelected()){
-						
-						socks_controls[1].setEnabled(true);
-						socks_controls[2].setEnabled(true);
-	
-					}else{
-						socks_controls[1].setEnabled(false);
-						socks_controls[2].setEnabled(false);
-					}
-            	}else{
-            		
-    				for(int i=0;i<socks_controls.length;i++){
-    					
-    					socks_controls[i].setEnabled(false);
-    				}
-            	}
-			}else{
-				for(int i=0;i<socks_controls.length;i++){
-					
-					socks_controls[i].setEnabled(false);
-				}
-			}
           }
         };
+        
+        
+        final Control[] proxy_peer_controls = new Control[]
+			    {	lDataHost,
+				    pDataHost.getControl(),
+				    lDataPort,
+				    pDataPort.getControl(),
+				    lDataUser,
+				    pDataUser.getControl(),
+				    lDataPass,
+				    pDataPass.getControl(),
+			    };
+        
+        final Control[] proxy_peer_details = new Control[]
+				{
+        			sameConfig.getControl(),
+        			socksPeerInform.getControl(),
+					socksType.getControl(),
+					lSocksVersion,
+				};
+        
+        IAdditionalActionPerformer proxy_peer_enabler =
+            new GenericActionPerformer(new Control[]{}) {
+              public void performAction()
+              {
+             	for (int i=0;i<proxy_peer_controls.length;i++){
+              		
+              		proxy_peer_controls[i].setEnabled( enableSocksPeer.isSelected() && !sameConfig.isSelected());
+              	}
+             	for (int i=0;i<proxy_peer_details.length;i++){
+              		
+             		proxy_peer_details[i].setEnabled( enableSocksPeer.isSelected());
+              	}
+              }
+            };
     
     enableSocks.setAdditionalActionPerformer( proxy_enabler );
     enableProxy.setAdditionalActionPerformer( proxy_enabler );
-    enableSocksPeer.setAdditionalActionPerformer( proxy_enabler );
+    enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
+    sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
     
  //////////////////////
     

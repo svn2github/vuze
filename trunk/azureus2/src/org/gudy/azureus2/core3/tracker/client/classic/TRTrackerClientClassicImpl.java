@@ -127,10 +127,8 @@ TRTrackerClientClassicImpl
 
 	static{
 	 	socks_peer_inform	= 	
-	  		COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
-	  		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)&&
-	  		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false)&&
-	 		COConfigurationManager.getBooleanParameter("Proxy.SOCKS.peer.inform", true );
+	  		COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false)&&
+	 		COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform", true );
 	 }
 	
 	public final static int componentID = 2;

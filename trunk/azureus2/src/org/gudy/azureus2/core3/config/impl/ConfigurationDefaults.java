@@ -189,7 +189,7 @@ public class ConfigurationDefaults {
     // for "Stop Ratio" ignore rule
     def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
     
-    //proxy defaults
+    	//tracker proxy defaults
     def.put( "Enable.Proxy", new Long(0) );
     def.put( "Enable.SOCKS", new Long(0) );
     def.put( "Proxy.Host", "" );
@@ -197,6 +197,16 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Username", "" );
     def.put( "Proxy.Password", "" );
     
+    	// data proxy defaults
+    def.put( "Proxy.Data.Enable", new Long(0));
+    def.put( "Proxy.Data.SOCKS.version", "V4" );
+    def.put( "Proxy.Data.SOCKS.inform", new Long(1));
+    def.put( "Proxy.Data.Same", new Long(1));
+    def.put( "Proxy.Data.Host", "" );
+    def.put( "Proxy.Data.Port", "" );
+    def.put( "Proxy.Data.Username", "" );
+    def.put( "Proxy.Data.Password", "" );
+
     //old
     def.put( "Start Num Peers", new Long(-1) );
     def.put( "Max Upload Speed", new Long(-1) );
@@ -311,9 +321,6 @@ public class ConfigurationDefaults {
     def.put( "Enable System Tray", new Long(1));
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
     def.put( "Ignore.peer.ports", "0" );
-    def.put( "Enable.SOCKS.peer", new Long(0));
-    def.put( "Proxy.SOCKS.version", "V4" );
-    def.put( "Proxy.SOCKS.peer.inform", new Long(1));
     def.put( "Security.JAR.tools.dir", "" );
   }
   

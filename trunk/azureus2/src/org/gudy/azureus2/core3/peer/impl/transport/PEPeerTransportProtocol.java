@@ -168,15 +168,15 @@ PEPeerTransportProtocol
 
   static{
   	socks_peer_proxy_enable	= 	
-  		COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
-  		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)&&
- 		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false);
+  		COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false);
   	
-	socks_version =	COConfigurationManager.getStringParameter("Proxy.SOCKS.version" );
+	socks_version =	COConfigurationManager.getStringParameter("Proxy.Data.SOCKS.version" );
 		  	
-  	socks_host 		= COConfigurationManager.getStringParameter("Proxy.Host");
+    boolean	socks_same = COConfigurationManager.getBooleanParameter("Proxy.Data.Same", true);
+
+  	socks_host 				= COConfigurationManager.getStringParameter(socks_same?"Proxy.Host":"Proxy.Data.Host");
   	
-  	String socks_port_str 		= COConfigurationManager.getStringParameter("Proxy.Port");
+  	String socks_port_str 	= COConfigurationManager.getStringParameter(socks_same?"Proxy.Port":"Proxy.Data.Port");
   	
   	if ( socks_peer_proxy_enable ){
   		
@@ -192,8 +192,8 @@ PEPeerTransportProtocol
   		socks_port	= 0;
   	}
   	
-  	socks_user 		= COConfigurationManager.getStringParameter("Proxy.Username");
-  	socks_password 	= COConfigurationManager.getStringParameter("Proxy.Password");
+  	socks_user 		= COConfigurationManager.getStringParameter(socks_same?"Proxy.Username":"Proxy.Data.Username");
+  	socks_password 	= COConfigurationManager.getStringParameter(socks_same?"Proxy.Password":"Proxy.Data.Password");
 
   }
 
