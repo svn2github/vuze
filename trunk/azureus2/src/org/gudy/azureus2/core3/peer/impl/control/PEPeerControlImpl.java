@@ -525,18 +525,10 @@ PEPeerControlImpl
 		for (int i = 0; i < peers.length; i++){
       	
 			TRTrackerResponsePeer	peer = peers[i];
-		
-			byte[]	this_peer_id = peer.getPeerId();
-		
-				// ignore ourselves
-				
-			// System.out.println( "addPeer: myPeerId=" + ByteFormatter.nicePrint(_myPeerId ) + ", received = " + ByteFormatter.nicePrint(this_peer_id));
-			
-        	if (!Arrays.equals(this_peer_id, _myPeerId)){
-           
-        	   insertPeerSocket( this_peer_id, peer.getIPAddress(), peer.getPort());
-        	}                
-  		}
+          
+			insertPeerSocket( peer.getPeerId(), peer.getIPAddress(), peer.getPort());     
+		}
+    
  	}
 
   /**
