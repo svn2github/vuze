@@ -262,23 +262,27 @@ ListenerManager
 	{		
 		for (int i=0;i<listeners_ref.size();i++){
 		
-			try{
 			
-				if ( target_with_exception != null ){
+			if ( target_with_exception != null ){
 					
-					// System.out.println( name + ":dispatchWithException" );
+				// System.out.println( name + ":dispatchWithException" );
+				
+					// DON'T catch and handle exceptions here are they are permitted to
+					// occur!
+				
+				target_with_exception.dispatchWithException( listeners_ref.get(i), type, value );
 					
-					target_with_exception.dispatchWithException( listeners_ref.get(i), type, value );
-					
-				}else{
-					
+			}else{
+			
+				try{
 						// System.out.println( name + ":dispatch" );
 						
 					target.dispatch( listeners_ref.get(i), type, value );
-				}
-			}catch( Throwable e ){
 					
-				Debug.printStackTrace( e );
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
 			}
 		}
 	}
@@ -291,23 +295,26 @@ ListenerManager
 	
 		throws Throwable
 	{		
-		try{
-			if ( target_with_exception != null ){
+		if ( target_with_exception != null ){
 				
-					// System.out.println( name + ":dispatchWithException" );
+				// System.out.println( name + ":dispatchWithException" );
 				
-				target_with_exception.dispatchWithException( listener, type, value );
+				// DON'T catch and handle exceptions here are they are permitted to
+				// occur!
+
+			target_with_exception.dispatchWithException( listener, type, value );
 				
-			}else{
+		}else{
+			try{
 				
 					// System.out.println( name + ":dispatch" );
 				
 				target.dispatch( listener, type, value );
-			}
 			
-		}catch( Throwable e ){
+			}catch( Throwable e ){
 					
-			Debug.printStackTrace( e );
+				Debug.printStackTrace( e );
+			}
 		}
 	}
 	

@@ -177,4 +177,10 @@ public class ImageRepository {
     }
     return image;
   }
+  
+  public static Image
+  getFolderImage()
+  {
+  	return( (Image) images.get("folder"));
+  }
 }

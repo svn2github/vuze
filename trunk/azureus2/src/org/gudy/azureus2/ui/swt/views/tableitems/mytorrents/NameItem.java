@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -56,16 +57,40 @@ public class NameItem
 
     //setText returns true only if the text is updated
     if (cell.setText(name)) {
+    	
+    	boolean	folder_icon	= false;
+    	
+    	if ( dm != null ){
+    		
+    			// for non-simple torrents the target is always a directory
+    		
+    		TOTorrent	torrent = dm.getTorrent();
+    		
+    		if ( torrent != null && !torrent.isSimpleTorrent()){
+    			
+    			folder_icon	= true;
+    		}
+    	}
       //in which case we also update the icon
-      int sep = name.lastIndexOf('.');
-			if(sep < 0) sep = 0;
-
-      name = name.substring(sep);
-      Program program = Program.findProgram(name);
-      Image icon = ImageRepository.getIconFromProgram(program);
-      // cheat for core, since we really know it's a TabeCellImpl and want to use
-      // those special functions not available to Plugins
-      ((TableCellCore)cell).setImage(icon);
+    	
+    	if ( folder_icon ){
+    		
+    		Image icon = ImageRepository.getFolderImage();
+    		
+    		((TableCellCore)cell).setImage(icon);
+    		
+    	}else{
+	      int sep = name.lastIndexOf('.');
+		
+	      if(sep < 0) sep = 0;
+	
+	      name = name.substring(sep);
+	      Program program = Program.findProgram(name);
+	      Image icon = ImageRepository.getIconFromProgram(program);
+	      // cheat for core, since we really know it's a TabeCellImpl and want to use
+	      // those special functions not available to Plugins
+	      ((TableCellCore)cell).setImage(icon);
+    	}
     }
   }
 }
