@@ -613,6 +613,7 @@ public class GlobalManagerImpl
       Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
       int numDownloading = 0;
+      int numCompleted = 0;
 
       Iterator iter = null;
       //v2.0.3.0+ vs older mode
@@ -675,11 +676,6 @@ public class GlobalManagerImpl
           }
           if (lCompleted != null) {
             dm.getStats().setDownloadCompleted(lCompleted.intValue());
-            if (lCompleted.intValue() < 1000)
-              numDownloading++;
-          }
-          else {
-            numDownloading++;
           }
           
           if (lDiscarded != null) {
@@ -689,15 +685,22 @@ public class GlobalManagerImpl
             dm.getStats().saveHashFails(lHashFails.intValue());
           }
           
-          if (lPosition != null)
-            dm.setPosition(lPosition.intValue());
-          else if (dm.getStats().getDownloadCompleted(false) < 1000)
-            dm.setPosition(numDownloading);
-            
           if (sCategory != null) {
             Category cat = CategoryManager.getCategory(sCategory);
             if (cat != null) dm.setCategory(cat);
           }
+
+          boolean bCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
+          if (bCompleted) 
+            ++numCompleted;
+          else
+            ++numDownloading;
+  	      dm.setOnlySeeding(bCompleted);
+
+          if (lPosition != null)
+            dm.setPosition(lPosition.intValue());
+          else if (dm.getStats().getDownloadCompleted(false) < 1000)
+            dm.setPosition(bCompleted ? numCompleted : numDownloading);
 
           this.addDownloadManager(dm, false);
 
