@@ -20,12 +20,12 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 /** A listener that triggers based on refresh interval specified in 
- * {@link TableColumn.getRefreshInterval()}
+ * {@link TableColumn#getRefreshInterval()}
  *
  * @author TuxPaper
  */
 public interface TableCellRefreshListener {
-  /** Triggered based on refresh interval specified in {@link TableColumn.getRefreshInterval()}
+  /** Triggered based on refresh interval specified in {@link TableColumn#getRefreshInterval()}
    *
    * @param cell TableCell that the refresh trigger is for
    */

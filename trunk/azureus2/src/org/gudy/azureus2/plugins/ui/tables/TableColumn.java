@@ -51,31 +51,31 @@ public interface TableColumn {
    *
    * @param iAlignment See {@link #setAlignment(int)}
    * @param iPosition See {@link #setPosition(int)}
-   * @param iSize See {@link #setSize(int)}
-   * @param iInterval See {@link #setInterval(int)}
+   * @param iWidth See {@link #setWidth(int)}
+   * @param iInterval See {@link #setRefreshInterval(int)}
    */
   public void initialize(int iAlignment, int iPosition, 
-                         int iSize, int iInterval);
+                         int iWidth, int iInterval);
 
 
   /** Initialize a group of variables all at once.  Saves on individual setXxx.
    *
    * @param iAlignment See {@link #setAlignment(int)}
    * @param iPosition See {@link #setPosition(int)}
-   * @param iSize See {@link #setSize(int)}
+   * @param iWidth See {@link #setWidth(int)}
    */
-  public void initialize(int iAlignment, int iPosition, int iSize);
+  public void initialize(int iAlignment, int iPosition, int iWidth);
   
   /**
    * The logical name of the column. This was set via
-   * {@link TableColumnManager.createColumn} and can not be changed.
+   * {@link TableManager#createColumn} and can not be changed.
    *
    * @return the column name (identification)
    */
   public String getName();
 
   /** Which table the column will be visible in.  This was set via
-   * {@link TableColumnManager.createColumn} and can not be changed.
+   * {@link TableManager#createColumn} and can not be changed.
    *
    * @return {@link TableManager}.TABLE_* constant(s)
    */
@@ -86,15 +86,15 @@ public interface TableColumn {
    * <P>
    * NOTE: This MUST be set BEFORE adding the column to a table.
    * <br>
-   * The default type is {@link TYPE_STRING}.
+   * The default type is {@link #TYPE_TEXT}.
    *
-   * @param type {@link TYPE_STRING}, or {@link TYPE_LONG}, or {@link TYPE_GRAPHIC}
+   * @param type {@link #TYPE_TEXT}, {@link #TYPE_GRAPHIC}
    */
   public void setType(int type);
 
   /** Returns the type of the contained data.
    *
-   * @return type TYPE_STRING, or TYPE_LONG, or TYPE_GRAPHIC
+   * @return type TYPE_TEXT, or TYPE_GRAPHIC
    */
   public int getType();
   
@@ -113,7 +113,7 @@ public interface TableColumn {
   public int getWidth();
   
   /** Location to put the column.  When set before being added to the UI
-   * (see {@link TableManager.addColumn}), the supplied value will be used
+   * (see {@link TableManager#addColumn}), the supplied value will be used
    * as the default position.  If the user has moved the column previously,
    * the new position will be used, and the default position will be ignored.
    *

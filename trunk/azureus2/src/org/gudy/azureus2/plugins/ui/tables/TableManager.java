@@ -56,7 +56,7 @@ public interface TableManager
    * and if you wish to have a short description of the column (visible when
    * the user is setting up columns), create another entry with the same key
    * plus ".info".  For the example above:<br>
-   *    <code>Files.column.quality.info=<i>One line description<i></code>
+   *    <code>Files.column.quality.info=<i>One line description</i></code>
    *
    *
    * @param tableID Which table the column will be visible in. See {@link TableManager}.

@@ -81,7 +81,7 @@ public interface PluginInterface {
    * Azureus will look-up for PeersView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
    *
-   * @deprecated use {@link UIManager.addColumn}
+   * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
   
@@ -92,7 +92,7 @@ public interface PluginInterface {
    * Azureus will look-up for MyTorrentsView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
    *
-   * @deprecated use {@link UIManager.addColumn}
+   * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
    */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
 
