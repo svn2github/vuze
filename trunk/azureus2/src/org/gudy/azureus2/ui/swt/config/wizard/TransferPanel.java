@@ -43,8 +43,6 @@ public class TransferPanel extends AbstractWizardPanel {
   Label nbMaxActive;
   Label nbMaxDownloads;
   Label nbMaxUploadsPerTorrent;
-  Label nbMaxSeedingsWithDL;
-  Label nbMaxSeedingsNoDL;
 
   private static final int upRates[] =
     {
@@ -148,25 +146,18 @@ public class TransferPanel extends AbstractWizardPanel {
     cMaxUpSpeed.setLayoutData(gridData);
 
     label = new Label(panel, SWT.NULL);
+    Messages.setLanguageText(label, "configureWizard.transfer.maxActiveTorrents");
+    nbMaxActive = new Label(panel, SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    nbMaxActive.setLayoutData(gridData);
+
+    label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.transfer.maxDownloads");
     nbMaxDownloads = new Label(panel, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     nbMaxDownloads.setLayoutData(gridData);
-
-    label = new Label(panel, SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.transfer.maxSeedingsWithDLs");
-    nbMaxSeedingsWithDL = new Label(panel, SWT.NULL);
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    nbMaxSeedingsWithDL.setLayoutData(gridData);
-
-    label = new Label(panel, SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.transfer.maxSeedingsNoDLs");
-    nbMaxSeedingsNoDL = new Label(panel, SWT.NULL);
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    nbMaxSeedingsNoDL.setLayoutData(gridData);
 
     label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.transfer.maxUploadsPerTorrent");
@@ -210,45 +201,29 @@ public class TransferPanel extends AbstractWizardPanel {
 
   public void computeAll(int maxUploadSpeed) {
     if (maxUploadSpeed != 0) {
-    	int maxDownloads = maxUploadSpeed / 10;
-    	if (maxDownloads < 1)
-    		maxDownloads = 1;
-    		
-    	int maxSeedingsWithDL = 0;
-    	if (maxDownloads > 5) {
-    		int newMax = 5 + ((maxDownloads - 5) / 2);
-    		maxSeedingsWithDL = (maxDownloads - newMax);
-    		maxDownloads = newMax;
-    	}
-    	
-    	int maxSeedingsNoDL = maxUploadSpeed / 15;
-    	if (maxSeedingsNoDL < 1) maxSeedingsNoDL = 1;
-    	
-      int realSpeed = maxUploadSpeed / maxDownloads;
-      int maxUploads = (realSpeed) / 3;
-      if (maxUploads > 50)
-        maxUploads = 50;
-      else if (maxUploads < 1)
-      	maxUploads = 1;
+      int speedPerTorrent = (maxUploadSpeed + 60) / 13;
+      int nbMaxDownloads = maxUploadSpeed / speedPerTorrent;
+      int nbMaxActive = (15 * nbMaxDownloads) / 10;
+      int realSpeed = maxUploadSpeed / nbMaxDownloads;
+      int nbMaxUploads = (realSpeed) / 2;
+      if (nbMaxUploads > 50)
+        nbMaxUploads = 50;
 
-      ((ConfigureWizard) wizard).maxDownloads = maxDownloads;
-      ((ConfigureWizard) wizard).nbUploadsPerTorrent = maxUploads;
-      ((ConfigureWizard) wizard).maxSeedingsWithDL = maxSeedingsWithDL;
-      ((ConfigureWizard) wizard).maxSeedingsNoDL = maxSeedingsNoDL;
+      ((ConfigureWizard) wizard).maxActiveTorrents = nbMaxActive;
+      ((ConfigureWizard) wizard).maxDownloads = nbMaxDownloads;
+      ((ConfigureWizard) wizard).nbUploadsPerTorrent = nbMaxUploads;
     }
     else {
+      ((ConfigureWizard) wizard).maxActiveTorrents = 0;
       ((ConfigureWizard) wizard).maxDownloads = 0;
       ((ConfigureWizard) wizard).nbUploadsPerTorrent = 4;
-      ((ConfigureWizard) wizard).maxSeedingsWithDL = 1;
-      ((ConfigureWizard) wizard).maxSeedingsNoDL = 3;
     }
     refresh();
   }
 
   public void refresh() {
+    nbMaxActive.setText("" + ((ConfigureWizard) wizard).maxActiveTorrents);
     nbMaxDownloads.setText("" + ((ConfigureWizard) wizard).maxDownloads);
-    nbMaxSeedingsWithDL.setText("" + ((ConfigureWizard) wizard).maxSeedingsWithDL);
-    nbMaxSeedingsNoDL.setText("" + ((ConfigureWizard) wizard).maxSeedingsNoDL);
     nbMaxUploadsPerTorrent.setText("" + ((ConfigureWizard) wizard).nbUploadsPerTorrent);
   }
 

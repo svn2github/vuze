@@ -69,9 +69,8 @@ public class FinishPanel extends AbstractWizardPanel {
     ConfigureWizard cfWizard = ((ConfigureWizard)wizard);
     COConfigurationManager.setParameter("Max Upload Speed",cfWizard.maxUpSpeed * 1024);
     COConfigurationManager.setParameter("Max Uploads",cfWizard.nbUploadsPerTorrent);
+    COConfigurationManager.setParameter("max active torrents",cfWizard.maxActiveTorrents);
     COConfigurationManager.setParameter("max downloads",cfWizard.maxDownloads);
-    COConfigurationManager.setParameter("max seeding when dling",cfWizard.maxSeedingsWithDL);
-    COConfigurationManager.setParameter("max seeding no dling",cfWizard.maxSeedingsNoDL);
     COConfigurationManager.setParameter("TCP.Listen.Port",cfWizard.serverTCPListenPort);
     //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
 	//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);

@@ -37,9 +37,8 @@ public class ConfigureWizard extends Wizard {
   //Transfer settings
   int upSpeed = 1;
   int maxUpSpeed = 5;
+  int maxActiveTorrents = 1;
   int maxDownloads = 1;
-  int maxSeedingsWithDL = 0;
-  int maxSeedingsNoDL = 1;
   int nbUploadsPerTorrent = 3;
   
   //Server / NAT Settings
