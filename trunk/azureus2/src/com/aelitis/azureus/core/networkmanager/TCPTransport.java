@@ -29,6 +29,7 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 
@@ -53,6 +54,11 @@ public class TCPTransport {
   private String description = "<disconnected>";
   private TransportDebugger		transport_debugger;
   private ByteBuffer data_already_read = null;
+  private final boolean is_inbound_connection;
+  
+  private long total_read = 0;
+  private long zero_read_count = 0;
+  private long last_zero_read_time = 0;
   
   
   
@@ -63,6 +69,7 @@ public class TCPTransport {
     socket_channel = null;
     is_connected = false;
     is_ready_for_write = false;
+    is_inbound_connection = false;
     
     transport_debugger	= _owner.getDebugger();
   }
@@ -88,7 +95,9 @@ public class TCPTransport {
     
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
-    description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
+    total_read += already_read.remaining();
+    is_inbound_connection = true;  //well, true only if the given socket was actually accepted
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
     transport_debugger = _owner.getDebugger();
   }
   
@@ -126,6 +135,9 @@ public class TCPTransport {
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
+    if( !is_connected ) {
+      return 0;
+    }
     
     //TODO temp debug code
     if( array_offset < 0 || array_offset >= buffers.length ) {
@@ -302,6 +314,10 @@ public class TCPTransport {
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null )  throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
 
+    if( !is_connected ) {
+      return 0;
+    }
+    
     
     
     //TODO temp debug code
@@ -357,25 +373,33 @@ public class TCPTransport {
       }      
     }
  
+    
+    if( socket_channel == null ) {
+      System.out.println( "read(): [" +description+ "]: socket_channel == null, is_connected=" +is_connected );
+    }
+    
+    if( buffers == null ) {
+      System.out.println( "read: buffers == null" );
+    }
+    
 
     long bytes_read = socket_channel.read( buffers, array_offset, length );
     total_read += bytes_read;
     
     if( bytes_read < 0 ) {
-      throw new IOException( "end of stream on socket read, [total="+(total_read+1)+"]" );
+      throw new IOException( "end of stream on socket read, [total bytes read="+(total_read+1)+"]" );
     }
     
     if( bytes_read == 0 ) {
-      //System.out.println( "[" +System.currentTimeMillis()+ "] bytes_read == 0" );
+      long time = last_zero_read_time == 0 ? 0 : SystemTime.getCurrentTime() - last_zero_read_time;
+      last_zero_read_time = SystemTime.getCurrentTime();
+      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read [" +(++zero_read_count)+ "x, " +time+ "ms]" );
     }
     
     return bytes_read;
   }
   
-  
-  private long total_read = 0;
-  
-  
+
 
  
   /**
@@ -403,7 +427,7 @@ public class TCPTransport {
         socket_channel = channel;
         is_connected = true;
         connect_request_key = null;
-        description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
+        description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
         is_ready_for_write = true;
         
         if( is_read_select_requested ) {  //delayed start

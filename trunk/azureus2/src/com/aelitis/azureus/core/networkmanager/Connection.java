@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 
@@ -44,10 +45,7 @@ public class Connection {
   private ConnectionListener connection_listener;
   private final OutgoingMessageQueue outgoing_message_queue = new OutgoingMessageQueue();
   private boolean is_connected;
-    
-  
-  private long zero_read_time = 0;
-  
+
   
   private final IncomingMessageQueue incoming_message_queue = new IncomingMessageQueue( new IncomingMessageQueue.ProcessingHandler() {
     public void enableProcessing() {     
@@ -56,23 +54,19 @@ public class Connection {
           
           //TODO do limited rate read op
           try {
-            
-            if( zero_read_time != 0 ) {
-              if( SystemTime.getCurrentTime() - zero_read_time > 20 ) {
-                zero_read_time = 0;
-              }
-            }
-            else {
-              int read = incoming_message_queue.receiveFromTransport( tcp_transport, 1024*1024 );
-              
-              if( read < 1 ) {
-                zero_read_time = SystemTime.getCurrentTime();
-              }
-            }
-            
+            incoming_message_queue.receiveFromTransport( tcp_transport, 1024*1024 );
           }
           catch( Throwable e ) {
-            System.out.println( "read exception: " +e.getMessage() );
+            if( e.getMessage() == null ) {
+              Debug.out( "null read exception message: ", e );
+            }
+            else {
+              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 ) {
+                
+                System.out.println( "read exception [" +tcp_transport.getDescription()+ "]: " +e.getMessage() );
+              }
+            }
+              
             notifyOfException( e );
           }
           

@@ -138,7 +138,9 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
     for( int i = start_buff; i < 3; i++ ) {  //set buffer limits according to bytes allowed
       ByteBuffer bb = decode_array[ i ];
       
-      if( bb == null )  System.out.println( "bb["+i+"] == null" );
+      if( bb == null ) {
+        System.out.println( "preReadProcess:: bb["+i+"] == null, start_buff=" +start_buff+ ", type=" +decode_array[0].get(0) );
+      }
       
       
       if( shrink_remaining_buffers ) {

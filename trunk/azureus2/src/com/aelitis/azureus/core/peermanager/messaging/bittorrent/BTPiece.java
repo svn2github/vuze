@@ -100,7 +100,7 @@ public class BTPiece implements BTMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 8 ) {
-      throw new MessageException( "decode error: payload.remaining() < 8" );
+      throw new MessageException( "decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 8" );
     }
     
     int number = data.getInt( DirectByteBuffer.SS_MSG );
