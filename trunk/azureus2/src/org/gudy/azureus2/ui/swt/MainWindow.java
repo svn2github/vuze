@@ -103,6 +103,7 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
+import org.gudy.azureus2.ui.swt.animations.shell.TestWindow;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
@@ -722,6 +723,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
     
+    MenuItem testAnimation = new MenuItem(helpMenu, SWT.NULL);
+    testAnimation.setText("Animation Test");
+    testAnimation.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new TestWindow(display);
+      }
+    });
+    
     MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
     Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
       help_faq.addListener(SWT.Selection, new Listener() {
@@ -1099,7 +1108,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     	}
     }.start();
     
-    checkForDonationPopup();
+    checkForDonationPopup();      
     
   }catch( Throwable e ){
 		e.printStackTrace();

@@ -85,11 +85,11 @@ public class SHA1SpeedTest {
       
       
       System.out.print("Gudy SHA1-2");
+      dBuffer.position(0);
+      dBuffer.limit( buffsize );
       long g2ds = System.currentTimeMillis();
-      for (int i=0; i < loops; i++) {
-        dBuffer.position(0);
-        dBuffer.limit( buffsize );
-        sha1Gudy.digest2( dBuffer );
+      for (int i=0; i < loops; i++) {        
+        sha1Gudy.digest( dBuffer );
       }
       long g2de = System.currentTimeMillis();
     
