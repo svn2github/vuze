@@ -452,7 +452,9 @@ IPAddressRangeManager
 			
 			entry	e = (entry)merged_entries[i];
 			
-			long	span = e.getMergedEndLong() - e.getStartLong();
+				// span is inclusive
+			
+			long	span = ( e.getMergedEndLong() - e.getStartLong()) + 1;
 			
 			total_span	+= span;
 		}
