@@ -107,30 +107,30 @@ public class BTHandshake implements BTMessage, RawMessage {
 
   public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
     if( !id.equals( getID() ) ) {
-      throw new MessageException( "decode error: invalid id" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid id" );
     }
     
     if( version != getVersion()  ) {
-      throw new MessageException( "decode error: invalid version" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid version" );
     }
     
     if( data == null ) {
-      throw new MessageException( "decode error: data == null" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 68 ) {
-      throw new MessageException( "decode error: payload.remaining() < 68" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 68" );
     }
     
     if( data.get( DirectByteBuffer.SS_MSG ) != (byte)PROTOCOL.length() ) {
-      throw new MessageException( "decode error: payload.get() != (byte)PROTOCOL.length()" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.get() != (byte)PROTOCOL.length()" );
     }
     
     byte[] header = new byte[ PROTOCOL.getBytes().length ];
     data.get( DirectByteBuffer.SS_MSG, header );
     
     if( !PROTOCOL.equals( new String( header ) ) ) {
-      throw new MessageException( "decode error: !PROTOCOL.equals( new String( header ) )" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: !PROTOCOL.equals( new String( header ) )" );
     }
     
     byte[] reserved = new byte[ 8 ];

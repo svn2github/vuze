@@ -62,25 +62,25 @@ public class BTHave implements BTMessage {
   
   public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
     if( !id.equals( getID() ) ) {
-      throw new MessageException( "decode error: invalid id" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid id" );
     }
     
     if( version != getVersion()  ) {
-      throw new MessageException( "decode error: invalid version" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid version" );
     }
     
     if( data == null ) {
-      throw new MessageException( "decode error: data == null" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 4 ) {
-      throw new MessageException( "decode error: payload.remaining() < 4" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 4" );
     }
     
     int number = data.getInt( DirectByteBuffer.SS_MSG );
     
     if( number < 0 ) {
-      throw new MessageException( "decode error: number < 0" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: number < 0" );
     }
     
     data.returnToPool();

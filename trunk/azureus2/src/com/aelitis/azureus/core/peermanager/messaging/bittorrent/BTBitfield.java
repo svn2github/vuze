@@ -58,15 +58,15 @@ public class BTBitfield implements BTMessage {
 
   public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
     if( !id.equals( getID() ) ) {
-      throw new MessageException( "decode error: invalid id" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid id" );
     }
     
     if( version != getVersion()  ) {
-      throw new MessageException( "decode error: invalid version" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid version" );
     }
     
     if( data == null ) {
-      throw new MessageException( "decode error: data == null" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
         
     return new BTBitfield( data );

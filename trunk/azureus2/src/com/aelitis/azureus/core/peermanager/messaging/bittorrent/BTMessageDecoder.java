@@ -222,7 +222,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           }
           catch( MessageException me ) {
             Debug.out( me );
-            throw new IOException( "message decode failed: " + me.getMessage() );
+            throw new IOException( "message decode failed on determineBTMessageType: " + me.getMessage() );
           }
             
           read = 1 + payload_buffer.position();
@@ -259,7 +259,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
-            Debug.out( me );
+            //Debug.out( me );
             throw new IOException( "message decode failed: " + me.getMessage() );
           }
         }
@@ -315,7 +315,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         }
         else if( message_length < 0 || message_length > 16393 ) {  //should never be > 16KB+9B, as we never request chunks > 16KB
           String msg = "Invalid message length given for legacy message decode: " + message_length;
-          Debug.out( msg );
+          //Debug.out( msg );
           throw new IOException( msg );
         }
         else if( message_length == 0 ) {  //keep-alive message         

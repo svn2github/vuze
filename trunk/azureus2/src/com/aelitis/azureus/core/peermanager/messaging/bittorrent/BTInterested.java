@@ -50,15 +50,15 @@ public class BTInterested implements BTMessage {
     
   public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
     if( !id.equals( getID() ) ) {
-      throw new MessageException( "decode error: invalid id" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid id" );
     }
     
     if( version != getVersion()  ) {
-      throw new MessageException( "decode error: invalid version" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid version" );
     }
     
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
-      throw new MessageException( "decode error: payload not empty" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload not empty" );
     }
     
     if( data != null )  data.returnToPool();
