@@ -69,7 +69,7 @@ TRTrackerServerProcessorTCP
 										
 			}catch ( SocketException e ){
 													
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 										
 			String	header_plus = "";
@@ -212,7 +212,7 @@ TRTrackerServerProcessorTCP
 							
 			}catch( Throwable e ){
 				
-				 e.printStackTrace();
+				 // e.printStackTrace();
 			}
 	
 		}finally{
@@ -222,7 +222,7 @@ TRTrackerServerProcessorTCP
 																							
 			}catch( Throwable e ){
 													
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 		}
 	}
@@ -435,11 +435,11 @@ TRTrackerServerProcessorTCP
 				
 				String	message = e.getMessage();
 				
-				e.printStackTrace();
+				// e.printStackTrace();
 				
 				if ( message == null || message.length() == 0 ){
 
-					e.printStackTrace();
+					// e.printStackTrace();
 								
 					message = e.toString();
 				}
