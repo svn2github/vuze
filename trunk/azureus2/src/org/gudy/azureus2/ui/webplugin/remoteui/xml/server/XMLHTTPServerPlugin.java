@@ -32,6 +32,7 @@ import java.util.Properties;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.pluginsimpl.remote.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -64,7 +65,9 @@ XMLHTTPServerPlugin
 		throws PluginException
 	{	
 		super.initialize( _plugin_interface );
-				
+			
+		BasicPluginConfigModel	config = getConfigModel();
+		
 		request_handler = new RPRequestHandler( _plugin_interface );		
 	}
 	

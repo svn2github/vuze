@@ -63,7 +63,10 @@ WebPlugin
 	
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
 	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
-	
+
+	public static final String	CONFIG_UPNP_ENABLE				= "UPnP Enable";
+	public static final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
+
 	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
 	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
@@ -268,6 +271,13 @@ WebPlugin
 			config_model.addStringListParameter2(
 					CONFIG_PROTOCOL, "webui.protocol", new String[]{ "http", "https" }, CONFIG_PROTOCOL_DEFAULT );
 		
+		
+		final BooleanParameter	upnp_enable = 
+			config_model.addBooleanParameter2( 
+							CONFIG_UPNP_ENABLE, 
+							"webui.upnpenable",
+							CONFIG_UPNP_ENABLE_DEFAULT );
+
 		StringParameter	param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
 		StringParameter	param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
 		StringParameter	param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
@@ -497,7 +507,15 @@ WebPlugin
 						
 					}else{
 						
-						((UPnPPlugin)pi_upnp.getPlugin()).addMapping( plugin_interface.getPluginName(), true, port, true );
+						if ( upnp_enable.getValue()){
+							
+							((UPnPPlugin)pi_upnp.getPlugin()).addMapping( plugin_interface.getPluginName(), true, port, true );
+							
+						}else{
+							
+							log.log( "UPnP disabled for the plugin, not attempting port mapping");
+							
+						}
 					}
 				}
 				
