@@ -165,27 +165,36 @@ DMWriterAndCheckerImpl
 	  }
 
 	  public boolean zeroFile( DiskManagerFileInfoImpl file, long length ) {
-	  	CacheFile	fm_file = file.getCacheFile();
+	  	CacheFile	cache_file = file.getCacheFile();
 			long written = 0;
 			synchronized (file){
 			  try{
 			    if( length == 0 ) { //create a zero-length file if it is listed in the torrent
-	          fm_file.setLength( 0 );
+	          cache_file.setLength( 0 );
 	        }
 	        else {
 	          while (written < length && bOverallContinue) {
-	            allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
-	            if ((length - written) < allocateAndTestBuffer.remaining())
-	              allocateAndTestBuffer.limit((int) (length - written));
-	             int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
-	             allocateAndTestBuffer.position(0);
-	             written += deltaWriten;
-	             disk_manager.setAllocated( disk_manager.getAllocated() + deltaWriten );
-	             disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
+	          	int	write_size = allocateAndTestBuffer.capacity();
+	            if ((length - written) < write_size ){
+	            	
+	              write_size = (int)(length - written);
+	            }
+	            
+	            allocateAndTestBuffer.limit(write_size);
+	             
+	            cache_file.write(allocateAndTestBuffer, written);
+	            
+	            allocateAndTestBuffer.position(0);
+	            
+	            written += write_size;
+	            
+	            disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
+	            
+	            disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
 	          }
 	        }
 					if (!bOverallContinue) {
-					   fm_file.close();
+					   cache_file.close();
 					   return false;
 					}
 			  } catch (Exception e) {  e.printStackTrace();  }
@@ -237,7 +246,7 @@ DMWriterAndCheckerImpl
 					try {
 		                    
 							   //if the file is large enough
-						if ( tempPiece.getFile().getCacheFile().getSize() >= tempPiece.getOffset()){
+						if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
 							
 							tempPiece.getFile().getCacheFile().read(allocateAndTestBuffer, tempPiece.getOffset());
 							
@@ -358,6 +367,8 @@ DMWriterAndCheckerImpl
 				current_piece = pieceList.get(currentFile);
 			}
 	
+			boolean	buffer_handed_over	= false;
+			
 			//Now tempPiece points to the first file that contains data for this block
 			while (buffer.hasRemaining()) {
 				current_piece = pieceList.get(currentFile);
@@ -373,13 +384,29 @@ DMWriterAndCheckerImpl
 					
 				long limit = buffer.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
 	       
-				if (limit < realLimit) {
+				if (limit < realLimit){
+					
 					buffer.limit((int)limit);
 				}
 	
+					// surely we always have remaining here?
+				
 				if ( buffer.hasRemaining() ){
 
-					current_piece.getFile().getCacheFile().write( buffer, fileOffset + (offset - previousFilesLength));
+					long	pos = fileOffset + (offset - previousFilesLength);
+					
+					if ( limit < realLimit ){
+						
+						current_piece.getFile().getCacheFile().write( buffer, pos );
+						
+					}else{
+						
+						current_piece.getFile().getCacheFile().writeAndHandoverBuffer( buffer, pos );
+						
+						buffer_handed_over	= true;
+						
+						break;
+					}
 				}
 					
 				buffer.limit(realLimit);
@@ -389,7 +416,15 @@ DMWriterAndCheckerImpl
 				previousFilesLength = offset;
 			}
 			
-			buffer.returnToPool();
+			if ( !buffer_handed_over ){
+			
+					// the last write for a block should always be handed over, hence we
+					// shouln't get here....
+				
+				Debug.out( "buffer not handed over to file cache!" );
+				
+				buffer.returnToPool();
+			}
 			
 			return( true );
 			

@@ -60,13 +60,8 @@ CacheFile
 		throws CacheFileManagerException;
 
 	public long
-	getSize()
-	
-		throws CacheFileManagerException;
-	
-	public long
 	getLength()
-		
+	
 		throws CacheFileManagerException;
 
 	public void
@@ -78,15 +73,22 @@ CacheFile
 	public void
 	read(
 		DirectByteBuffer	buffer,
-		long		offset )
+		long				offset )
 	
 		throws CacheFileManagerException;
 	
 	
-	public int
+	public void
 	write(
 		DirectByteBuffer	buffer,
-		long		position )
+		long				position )
+	
+		throws CacheFileManagerException;
+	
+	public void
+	writeAndHandoverBuffer(
+		DirectByteBuffer	buffer,
+		long				position )
 	
 		throws CacheFileManagerException;
 	

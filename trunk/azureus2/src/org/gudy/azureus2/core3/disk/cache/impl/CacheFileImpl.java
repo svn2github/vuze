@@ -107,30 +107,17 @@ CacheFileImpl
 	}
 
 	public long
-	getSize()
+	getLength()
 	
 		throws CacheFileManagerException
 	{
 		try{
+			
+				// not sure of the difference between "size" and "length" here. Old code
+				// used to use "size" so I'm going to carry on for the moment in case
+				// there is some weirdness here
 			
 			return( file.getSize());
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(e);
-			
-			return( 0 );
-		}
-	}
-	
-	public long
-	getLength()
-		
-		throws CacheFileManagerException
-	{
-		try{
-			
-			return( file.getLength());
 			
 		}catch( FMFileManagerException e ){
 			
@@ -175,7 +162,7 @@ CacheFileImpl
 		
 	
 	
-	public int
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long				position )
@@ -183,17 +170,36 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		try{
+			long	write_size = buffer.limit() - buffer.position();
 			
-			return( file.write( buffer, position ));
+			long	actual_size = file.write( buffer, position );
+			
+			if ( actual_size != write_size ){
+				
+				throw( new CacheFileManagerException( "Short write: required = " + write_size + ", actual = " + actual_size ));
+			}
 			
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(e);
-			
-			return( 0 );
 		}
 	}
+	
+	public void
+	writeAndHandoverBuffer(
+		DirectByteBuffer	buffer,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			write( buffer, position );
+			
+		}finally{
 		
+			buffer.returnToPool();
+		}
+	}
 	
 	public void
 	close()
