@@ -70,7 +70,7 @@ public class FileUtil {
     try {
       TOTorrentFactory.deserialiseFromBEncodedFile(check);
       return true;
-    } catch (TOTorrentException e) {
+    } catch (Throwable e) {
       return false;
     }
   }

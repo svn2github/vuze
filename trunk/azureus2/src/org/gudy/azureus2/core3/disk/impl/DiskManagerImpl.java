@@ -2219,6 +2219,13 @@ DiskManagerImpl
     File destDir;
     String returnName = "";
     
+    	// don't move non-persistent files as these aren't managed by us
+    
+    if (!dmanager.isPersistent()){
+    	
+    	return( returnName );
+    }
+    
     //make sure the torrent hasn't already been moved
     synchronized(this) {
       if (alreadyMoved) return returnName;
