@@ -252,19 +252,18 @@ public class ConfigView extends AbstractIView {
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.autoupdate"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Auto Update", true); //$NON-NLS-1$
-    
+
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openconsole"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Open Console", false); //$NON-NLS-1$
-        
+
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openconfig"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Open Config", false); //$NON-NLS-1$
-    
+
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Start Minimized", false); //$NON-NLS-1$
-
 
     Group gIrc = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gIrc, "ConfigView.section.irc"); //$NON-NLS-1$
@@ -285,14 +284,27 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 150;
     new StringParameter(gIrc, "Irc Channel", "#azureus-users").setLayoutData(gridData); //$NON-NLS-1$
-    
+
     label = new Label(gIrc, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.irclogin"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
     new StringParameter(gIrc, "Irc Login", "user" + (int) (Math.random() * 100000)).setLayoutData(gridData); //$NON-NLS-1$
-   
-   
+
+    Group gSecurity = new Group(gConfig, SWT.NULL);
+    Messages.setLanguageText(gSecurity, "ConfigView.section.security"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gSecurity.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gSecurity.setLayout(layout);
+
+    label = new Label(gSecurity, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new PasswordParameter(gSecurity, "Password").setLayoutData(gridData); //$NON-NLS-1$
+
     Button enter = new Button(gConfig, SWT.PUSH);
     Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);

@@ -10,9 +10,11 @@ import java.net.URL;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.PasswordWindow;
 
 import snoozesoft.systray4j.SysTrayMenu;
 import snoozesoft.systray4j.SysTrayMenuAdapter;
@@ -119,7 +121,10 @@ public class SystemTray extends SysTrayMenuAdapter {
 			 * @see java.lang.Runnable#run()
 			 */
 			public void run() {
-				main.setVisible(true);
+        if(ConfigurationManager.getInstance().getByteParameter("Password","".getBytes()).length == 0)          
+				  main.setVisible(true);
+        else
+          PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
 			}
 		});
 	}

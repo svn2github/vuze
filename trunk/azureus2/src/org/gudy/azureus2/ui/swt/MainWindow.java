@@ -467,11 +467,11 @@ public class MainWindow implements IComponentListener {
     });
 
     mytorrents = new Tab(new MyTorrentsView(globalManager));
-    if(ConfigurationManager.getInstance().getBooleanParameter("Open Console",false))
-       console = new Tab(new ConsoleView());
-    if(ConfigurationManager.getInstance().getBooleanParameter("Open Config",false))
-        config = new Tab(new ConfigView());    
-       
+    if (ConfigurationManager.getInstance().getBooleanParameter("Open Console", false))
+      console = new Tab(new ConsoleView());
+    if (ConfigurationManager.getInstance().getBooleanParameter("Open Config", false))
+      config = new Tab(new ConfigView());
+
     gridData = new GridData(GridData.FILL_HORIZONTAL);
 
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
@@ -558,14 +558,19 @@ public class MainWindow implements IComponentListener {
         }
       }
     });
-    
-    if(ConfigurationManager.getInstance().getBooleanParameter("Start Minimized",false))
-           minimizeToTray(null);
+
+    if (ConfigurationManager.getInstance().getBooleanParameter("Start Minimized", false))
+      minimizeToTray(null);
+
+    if (ConfigurationManager.getInstance().getByteParameter("Password", "".getBytes()).length > 0) {
+      mainWindow.setVisible(false);
+      PasswordWindow.showPasswordWindow(display);
+    }
   }
 
   private void minimizeToTray(ShellEvent event) {
     //Added this test so that we can call this method will null parameter.
-    if(event != null)
+    if (event != null)
       event.doit = false;
     mainWindow.setVisible(false);
     if (tray != null)
@@ -686,7 +691,7 @@ public class MainWindow implements IComponentListener {
 
   private void closeSplashWindow() {
     if (splash != null) {
-      splash.close();
+      splash.dispose();
       splash = null;
     }
   }
@@ -1179,9 +1184,9 @@ public class MainWindow implements IComponentListener {
 
     if (tray != null)
       tray.dispose();
-    if(irc != null)
-        irc.dispose();
-        
+    if (irc != null)
+      irc.dispose();
+
     display.dispose();
   }
 

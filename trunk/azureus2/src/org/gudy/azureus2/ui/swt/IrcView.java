@@ -77,6 +77,7 @@ public class IrcView extends AbstractIView implements IrcListener {
         }
       }
     });
+    inputField.setFocus();
     userSumUp = new Label(composite, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 120;
