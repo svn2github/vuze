@@ -115,6 +115,8 @@ FMFileImpl
 		throws FMFileManagerException
 	{
 		try{
+      if (raf == null) throw new FMFileManagerException( "FMFile::getSize: raf is null" );
+      
 			FileChannel	channel = raf.getChannel();
 			
 			if ( channel.isOpen()){
@@ -179,10 +181,10 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		FileChannel fc = raf.getChannel();
+    if (raf == null) throw new FMFileManagerException( "FMFile::read: raf is null" );
     
-    if (fc == null) throw new FMFileManagerException( "FMFile::read: file channel is null" );
-		
+		FileChannel fc = raf.getChannel();
+    		
 		if ( !fc.isOpen()){
 			
 			Debug.out("FileChannel is closed: " + file.getAbsolutePath());
@@ -213,10 +215,10 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+    if (raf == null) throw new FMFileManagerException( "FMFile::write: raf is null" );
+    
 		FileChannel fc = raf.getChannel();
     
-    if (fc == null) throw new FMFileManagerException( "FMFile::write: file channel is null" );
-		
 		try{
 			
 			if (fc.isOpen()){
