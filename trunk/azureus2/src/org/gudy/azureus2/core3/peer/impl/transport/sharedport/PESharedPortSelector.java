@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 
@@ -255,7 +256,21 @@ PESharedPortSelector
 	getIP(
 		SocketChannel	socket )
 	{
-		return( socket.socket().getInetAddress().getHostAddress());
+		Socket s = socket.socket();
+		
+		if ( s == null ){
+			
+			return( "??.??.??.??");
+		}
+		
+		InetAddress addr = s.getInetAddress();
+		
+		if ( addr == null ){
+			
+			return( "??.??.??.??");
+		}
+		
+		return( addr.getHostAddress());
 	}
 	
 	protected class
