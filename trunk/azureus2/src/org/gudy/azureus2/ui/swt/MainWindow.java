@@ -110,14 +110,14 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.systray.SystemTray;
+//import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 
-import snoozesoft.systray4j.SysTrayMenu;
+//import snoozesoft.systray4j.SysTrayMenu;
 
 /**
  * @author Olivier
@@ -208,7 +208,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private MenuItem selectedLanguageItem;
 
   private TrayWindow tray;
-  private SystemTray trayIcon;
+  //private SystemTray trayIcon;
   private SystemTraySWT systemTraySWT;
   
 
@@ -819,8 +819,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
       */
       systemTraySWT = new SystemTraySWT(this);
-    } catch (Throwable e) { 
-      /** < SWT 3.0M8 **/ 
+    } catch (Throwable e) {
+      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
+      /*
       LGLogger.log(LGLogger.ERROR, 
                    "Warning: Using non-native SysTray object.  " +
                    "Upgrade to SWT3.0M8 or greater for more reliable SysTray");
@@ -842,6 +843,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       } else {
         tray = new TrayWindow(this);
       }
+      */
     }
     
     
@@ -1606,10 +1608,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         ((TabFolder)folder).update();
       }
     }
+    /*
     if (trayIcon != null) {
       trayIcon.updateLanguage();
       trayIcon.refresh();
     }
+    */
     if (tray != null)
       tray.updateLanguage();
 
@@ -1630,9 +1634,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   			((TabFolder)folder).update();
   		}
   	}
+    /*
   	if (trayIcon != null) {
   		trayIcon.refresh();
   	} 
+    */
   }
  
   private void showSplashWindow() {
@@ -1891,7 +1897,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       File logFile = new File( userPath, "update.log" );
       FileWriter log = new FileWriter( logFile, true );
       
-      log.write(new Date(System.currentTimeMillis()).toString() + "\n");
+      log.write(new Date(SystemTime.getCurrentTime()).toString() + "\n");
       log.write("updateJar:: classPath=" + classPath
                          + " libraryPath=" + libraryPath
                          + " userPath=" + userPath + "\n");
@@ -2358,8 +2364,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if (visible) {
       if (tray != null)
         tray.setVisible(false);
+      /*
       if (trayIcon != null)
         trayIcon.showIcon();
+      */
       mainWindow.forceActive();
       mainWindow.setMinimized(false);
     }
@@ -2381,8 +2389,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Tab.closeAllTabs();
 
     isAlreadyDead = true; //NICO try to never die twice...
+    /*
     if (this.trayIcon != null)
       SysTrayMenu.dispose();
+    */
     stopFolderWatcher();
     if (startServer != null)
       startServer.stopIt();

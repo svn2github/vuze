@@ -1,9 +1,6 @@
+// Created on 15 juil. 2003
+
 /*
- * Created on 15 juil. 2003
- *
- * To change the template for this generated file go to
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
 package org.gudy.azureus2.ui.systray;
 
 import java.net.URL;
@@ -23,12 +20,7 @@ import snoozesoft.systray4j.SysTrayMenuEvent;
 import snoozesoft.systray4j.SysTrayMenuIcon;
 import snoozesoft.systray4j.SysTrayMenuItem;
 
-/**
- * @author oc
- *
- * To change the template for this generated type comment go to
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
+
 public class SystemTray extends SysTrayMenuAdapter {
 
 	MainWindow main;
@@ -94,16 +86,12 @@ public class SystemTray extends SysTrayMenuAdapter {
 //    if(!menu.isIconVisible())
     menu.showIcon();
 	}
-	/* (non-Javadoc)
-	 * @see snoozesoft.systray4j.SysTrayMenuListener#iconLeftDoubleClicked(snoozesoft.systray4j.SysTrayMenuEvent)
-	 */
+
 	public void iconLeftDoubleClicked(SysTrayMenuEvent event) {
 		show();
 	}
 
-	/* (non-Javadoc)
-	 * @see snoozesoft.systray4j.SysTrayMenuAdapter#menuItemSelected(snoozesoft.systray4j.SysTrayMenuEvent)
-	 */
+
 	public void menuItemSelected(SysTrayMenuEvent event) {
 		String cmd = event.getActionCommand();
 		if (cmd.equals("exit")) { //$NON-NLS-1$
@@ -124,9 +112,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		if (display == null || display.isDisposed())
 			return;
 		display.asyncExec(new Runnable() {
-			/* (non-Javadoc)
-			 * @see java.lang.Runnable#run()
-			 */
+
 			public void run() {
         if (!COConfigurationManager.getBooleanParameter("Password enabled",false))          
 				  main.setVisible(true);
@@ -143,9 +129,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		if (display == null || display.isDisposed())
 			return;
 		display.asyncExec(new Runnable() {
-			/* (non-Javadoc)
-			 * @see java.lang.Runnable#run()
-			 */
+
 			public void run() {
 				if(!main.dispose()) {
           menu.getIcon().addSysTrayMenuListener(systemTray);
@@ -159,3 +143,4 @@ public class SystemTray extends SysTrayMenuAdapter {
     menu.showIcon();
   }
 }
+*/
