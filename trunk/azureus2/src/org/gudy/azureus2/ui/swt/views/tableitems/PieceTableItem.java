@@ -129,8 +129,8 @@ public class PieceTableItem implements SortableItem{
     if (x1 < 10 || y1 < 3)
       return;
     Image image = new Image(display, bounds.width, bounds.height);
-    Color blue = MainWindow.blues[4];
-    Color green = MainWindow.blues[1];
+    Color blue = MainWindow.blues[MainWindow.BLUES_DARKEST];
+    Color green = MainWindow.blues[MainWindow.BLUES_MIDLIGHT];
     Color downloaded = MainWindow.red;
     Color color;
     GC gcImage = new GC(image);

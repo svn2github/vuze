@@ -86,14 +86,18 @@ public class DonationWindow {
     FormLayout layout = new FormLayout();
     layout.marginHeight = 5;
     layout.marginWidth = 5;
-    layout.spacing = 5;
+    try {
+      layout.spacing = 5;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     FormData formData;
     shell.setLayout(layout);    
     
     final Label textHeader = new Label(shell,SWT.NULL);    
     formData = new FormData();
-    formData.right = new FormAttachment(100);
-    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100,0);
+    formData.left = new FormAttachment(0,0);
     textHeader.setLayoutData(formData);
     
     textHeader.setText(headerText);        
@@ -115,12 +119,12 @@ public class DonationWindow {
       fontDataMain[i].setStyle(SWT.BOLD);     
     }
     textMain.setFont(new Font(display,fontDataMain));
-    textMain.setForeground(MainWindow.blues[4]);
-    //textMain.setBackground(MainWindow.blues[0]);
+    textMain.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    //textMain.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
     formData = new FormData();
     formData.top = new FormAttachment(textHeader);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);    
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);    
     textMain.setLayoutData(formData);
     
     final Button radioDonate = new Button(shell,SWT.RADIO);

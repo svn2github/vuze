@@ -43,7 +43,7 @@ public class StatusItem extends TorrentItem {
     if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager()))) {
       int state = torrentRow.getManager().getState();
       if (state == DownloadManager.STATE_SEEDING)
-        setForeground(MainWindow.blues[3]);
+        setForeground(MainWindow.blues[MainWindow.BLUES_MIDDARK]);
       else if (state == DownloadManager.STATE_ERROR)
         setForeground(MainWindow.red_ManagerItem);
       else

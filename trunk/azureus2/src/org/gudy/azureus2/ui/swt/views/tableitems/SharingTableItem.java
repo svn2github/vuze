@@ -208,9 +208,9 @@ SharingTableItem
 		
 		if ( seed_count != 0 ){
 			
-			if ( !item.getForeground().equals( MainWindow.blues[3])){
+			if ( !item.getForeground().equals( MainWindow.blues[MainWindow.BLUES_MIDDARK])){
 				
-				item.setForeground( MainWindow.blues[3]);
+				item.setForeground( MainWindow.blues[MainWindow.BLUES_MIDDARK]);
 			}
 		}
 		*/

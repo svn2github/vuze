@@ -132,8 +132,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       int oldAverage = 0;
       Display display = drawCanvas.getDisplay();
       int maxHeight = scale.getScaledValue(max);
-      Color background = MainWindow.blues[4];
-      Color foreground = MainWindow.blues[1];      
+      Color background = MainWindow.blues[MainWindow.BLUES_DARKEST];
+      Color foreground = MainWindow.blues[MainWindow.BLUES_MIDLIGHT];
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)

@@ -143,7 +143,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static boolean isAlreadyDead = false;
   public static boolean isDisposeFromListener = false;
   
-  public static Color[] blues = new Color[5];
+  public static final int BLUES_LIGHTEST = 0;
+  public static final int BLUES_DARKEST = 9;
+  public static final int BLUES_MIDLIGHT = (BLUES_DARKEST+1) / 4;
+  public static final int BLUES_MIDDARK = ((BLUES_DARKEST+1) / 2) + BLUES_MIDLIGHT;
+  public static Color[] blues = new Color[BLUES_DARKEST + 1];
+  public static Color colorInverse;
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -1209,12 +1214,34 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       r = COConfigurationManager.getIntParameter("Color Scheme.red",r);
       g = COConfigurationManager.getIntParameter("Color Scheme.green",g);
       b = COConfigurationManager.getIntParameter("Color Scheme.blue",b);
-      for(int i = 0 ; i < 5 ; i++) {
+      HSLColor hslColor = new HSLColor();
+      Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+      int tR = colorTables.getRed();
+      int tG = colorTables.getGreen();
+      int tB = colorTables.getBlue();
+      // 0 == window background (white)
+      // [blues.length-1] == rgb
+      // in between == blend
+      for (int i = 0; i < blues.length ; i++) {
         Color toBeDisposed = blues[i];
-        blues[i] = new Color(display,r+((255-r)*(4-i))/4,g+((255-g)*(4-i))/4,b+((255-b)*(4-i))/4);
+        hslColor.initHSLbyRGB(r, g, b);
+        float blendBy = (i == 0) ? 1 : (float)1.0 - ((float)i / (float)(blues.length - 1));
+        hslColor.blend(tR, tG, tB, blendBy);
+        
+        blues[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(), 
+                             hslColor.getBlue());
+
         if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
           toBeDisposed.dispose();
         }
+      }
+      
+      Color toBeDisposed = colorInverse;
+      hslColor.initHSLbyRGB(r, g, b);
+      hslColor.reverseColor();
+      colorInverse = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
+        toBeDisposed.dispose();
       }
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
@@ -2155,6 +2182,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         if (blues[i] != null && !blues[i].isDisposed())
           blues[i].dispose();
       }
+      if (colorInverse != null && !colorInverse.isDisposed())
+        colorInverse.dispose();
       if (grey != null && !grey.isDisposed())
         grey.dispose();
       if (black != null && !black.isDisposed())
