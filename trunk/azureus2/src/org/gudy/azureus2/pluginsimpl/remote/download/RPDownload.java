@@ -561,4 +561,10 @@ RPDownload
 	{
 		notSupported();
 	}
+  
+  public String getTorrentFileName() {
+ 		notSupported();
+		return ("");
+ }
+  
 }
