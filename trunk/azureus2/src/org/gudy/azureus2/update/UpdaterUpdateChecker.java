@@ -46,16 +46,29 @@ UpdaterUpdateChecker
 	checkPlugin()
 	{
 		try{
-		    File pluginDirectory = FileUtil.getApplicationFile("plugins");
+				// this is a bootstrap to ensure that the updater plugin exists
+			
+		    File user_plugin_dir = FileUtil.getUserFile("plugins");
 
-		    File updater_plugin = new File( pluginDirectory, "azupdater" );
+		    File user_updater_plugin = new File( user_plugin_dir, "azupdater" );
+	
+		    File user_updater_props = new File( user_updater_plugin, "plugin.properties" );
 		    
-		    updater_plugin.mkdirs();
+		    if ( user_updater_props.exists()){
+		    	
+		    	return;
+		    }
 		    
-		    File	props = new File( updater_plugin, "plugin.properties" );
+		    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
+
+		    File shared_updater_plugin = new File( shared_plugin_dir, "azupdater" );
+		    
+		    shared_updater_plugin.mkdirs();
+		    
+		    File	props = new File( shared_updater_plugin, "plugin.properties" );
 		    
 		    if ( props.exists()){
-		    	
+		    		    	
 		    	return;
 		    }
 		    
