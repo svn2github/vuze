@@ -534,7 +534,7 @@ public class ConfigView extends AbstractIView {
 					Object	o1,
 					Object	o2 )
     			{
-    				return( ((PluginInterface)o1).getPluginName().compareTo(((PluginInterface)o2).getPluginName()));
+    				return( ((PluginInterface)o1).getPluginName().compareToIgnoreCase(((PluginInterface)o2).getPluginName()));
     			}
 			});
     
@@ -544,8 +544,7 @@ public class ConfigView extends AbstractIView {
     int numPlugins = 0;
     for (int i = 0; i < pluginIFs.size(); i++) {
       PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
-      label = new Label(infoGroup, SWT.NULL);
-
+ 
       Properties p = pluginIF.getPluginProperties();
       
       String plugin_name = pluginIF.getPluginName();
@@ -571,7 +570,8 @@ public class ConfigView extends AbstractIView {
       
       // Blank means it's internal
       if (sDirName != ""){
-      	
+        label = new Label(infoGroup, SWT.NULL);
+
       	String	broken_str = pluginIF.isOperational()?"":(" - " + MessageText.getString("ConfigView.pluginlist.broken"));
       	
       	String shared_str = user_plugin?"":" [" + MessageText.getString("ConfigView.pluginlist.shared") + "]";
