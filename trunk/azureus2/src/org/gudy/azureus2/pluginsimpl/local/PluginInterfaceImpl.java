@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
@@ -33,6 +34,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
+import org.gudy.azureus2.pluginsimpl.local.messaging.MessageManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.local.sharing.ShareManagerImpl;
@@ -68,6 +70,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
+
+
 
 /**
  * @author Olivier
@@ -496,6 +500,10 @@ PluginInterfaceImpl
    
    public ConnectionManager getConnectionManager() {
      return ConnectionManagerImpl.getSingleton();
+   }
+   
+   public MessageManager getMessageManager() {
+     return MessageManagerImpl.getSingleton();
    }
    
    

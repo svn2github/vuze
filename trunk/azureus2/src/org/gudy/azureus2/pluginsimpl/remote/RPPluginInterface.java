@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
@@ -490,6 +491,12 @@ RPPluginInterface
      notSupported();
      return null; 
    }
+   
+   public MessageManager getMessageManager() {
+     notSupported();
+     return null; 
+   }
+   
    
    public DistributedDatabase
    getDistributedDatabase()

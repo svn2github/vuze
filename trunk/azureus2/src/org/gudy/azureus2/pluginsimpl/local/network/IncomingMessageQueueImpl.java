@@ -87,5 +87,8 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
   }
   
   
+  public void notifyOfExternalReceive( Message message ) {
+    core_queue.notifyOfExternallyReceivedMessage( new MessageAdapter( message ) );
+  }
   
 }

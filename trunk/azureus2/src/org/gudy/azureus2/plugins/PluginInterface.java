@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -418,6 +419,15 @@ public interface PluginInterface {
    * @return manager
    */
   public ConnectionManager getConnectionManager(); 
+  
+  
+  /**
+   * Get the peer messaging manager.
+   * @since 2.2.0.3
+   * @return manager
+   */
+  public MessageManager getMessageManager();
+  
   
   /**
    * Get th edistributed database

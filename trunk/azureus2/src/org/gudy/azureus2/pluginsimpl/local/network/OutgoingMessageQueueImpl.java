@@ -91,4 +91,8 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
     }
   }
   
+  
+  public void notifyOfExternalSend( Message message ) {
+    core_queue.notifyOfExternallySentMessage( new MessageAdapter( message ) );
+  }
 }

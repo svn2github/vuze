@@ -43,17 +43,20 @@ public class BTMessageFactory {
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
-    MessageManager.getSingleton().registerMessage( new BTBitfield( null ) );
-    MessageManager.getSingleton().registerMessage( new BTCancel( -1, -1, -1 ) );
-    MessageManager.getSingleton().registerMessage( new BTChoke() );
-    MessageManager.getSingleton().registerMessage( new BTHandshake( new byte[0], new byte[0] ) );
-    MessageManager.getSingleton().registerMessage( new BTHave( -1 ) );
-    MessageManager.getSingleton().registerMessage( new BTInterested() );
-    MessageManager.getSingleton().registerMessage( new BTKeepAlive() );
-    MessageManager.getSingleton().registerMessage( new BTPiece() );
-    MessageManager.getSingleton().registerMessage( new BTRequest( -1, -1 , -1 ) );
-    MessageManager.getSingleton().registerMessage( new BTUnchoke() );
-    MessageManager.getSingleton().registerMessage( new BTUninterested() );
+    try {
+      MessageManager.getSingleton().registerMessageType( new BTBitfield( null ) );
+      MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1 ) );
+      MessageManager.getSingleton().registerMessageType( new BTChoke() );
+      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0] ) );
+      MessageManager.getSingleton().registerMessageType( new BTHave( -1 ) );
+      MessageManager.getSingleton().registerMessageType( new BTInterested() );
+      MessageManager.getSingleton().registerMessageType( new BTKeepAlive() );
+      MessageManager.getSingleton().registerMessageType( new BTPiece() );
+      MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1 ) );
+      MessageManager.getSingleton().registerMessageType( new BTUnchoke() );
+      MessageManager.getSingleton().registerMessageType( new BTUninterested() );
+    }
+    catch( MessageException me ) {  me.printStackTrace();  }
   }
 
   

@@ -138,6 +138,51 @@ public class IncomingMessageQueue {
     return bytes_read;   
   }
   
+
+  
+  
+  /**
+   * Notifty the queue (and its listeners) of a message received externally on the queue's behalf.
+   * @param message received externally
+   */
+  public void notifyOfExternallyReceivedMessage( Message message ) {
+    ArrayList listeners_ref = listeners;  //copy-on-write
+    boolean handled = false;
+
+    DirectByteBuffer[] dbbs = message.getData();
+    int size = 0;
+    for( int i=0; i < dbbs.length; i++ ) {
+      size += dbbs[i].remaining( DirectByteBuffer.SS_NET );
+    }
+    
+    
+    for( int x=0; x < listeners_ref.size(); x++ ) {
+      MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( x );
+      handled = handled || mql.messageReceived( message );
+      
+      if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+        mql.dataBytesReceived( size );
+      }
+      else {
+        mql.protocolBytesReceived( size );
+      }
+    }
+    
+    if( !handled ) {
+      if( listeners_ref.size() > 0 ) {
+        System.out.println( "no registered listeners [out of " +listeners_ref.size()+ "] handled decoded message [" +message.getDescription()+ "]" );
+      }
+      
+      DirectByteBuffer[] buffs = message.getData();
+      for( int x=0; x < buffs.length; x++ ) {
+        buffs[ x ].returnToPool();
+      }
+    }
+    
+    System.out.println( "notifiedOfExternallyReceivedMessage:: [" +message.getID()+ "] size=" +size );
+  }
+  
+  
   
   
   /**

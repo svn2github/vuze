@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2005
+ * Created on Feb 24, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,41 +20,27 @@
  *
  */
 
-package org.gudy.azureus2.plugins.network;
-
-import org.gudy.azureus2.plugins.messaging.*;
+package org.gudy.azureus2.plugins.messaging;
 
 
 /**
- * Inbound message queue.
+ * Manages peer message handling.
  */
-public interface IncomingMessageQueue {
+public interface MessageManager {
 
   /**
-   * Set the message stream decoder that will be used to decode incoming messages.
-   * @param stream_decoder to use
+   * Register the given message type with the manager for processing.
+   * NOTE: A message type needs to be registered in order for support to be
+   * advertised to other peers.
+   * @param message instance to use for decoding
+   * @throws MessageException if this message type has already been registered
    */
-  public void setDecoder( MessageStreamDecoder stream_decoder );
+  public void registerMessageType( Message message ) throws MessageException;
   
   
   /**
-   * Register queue listener.
-   * @param listener to register
+   * Remove registration of given message type from manager.
+   * @param message type to remove
    */
-  public void registerListener( IncomingMessageQueueListener listener );
-  
-  
-  /**
-   * Remove registration of queue listener.
-   * @param listener to remove
-   */
-  public void deregisterListener( IncomingMessageQueueListener listener );
-  
-  
-  /**
-   * Notifty the queue (and its listeners) of a message received externally on the queue's behalf.
-   * @param message received externally
-   */
-  public void notifyOfExternalReceive( Message message );
-  
+  public void deregisterMessageType( Message message );
 }

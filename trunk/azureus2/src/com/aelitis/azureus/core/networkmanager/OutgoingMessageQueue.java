@@ -665,6 +665,41 @@ public class OutgoingMessageQueue {
   }
 
   
+  
+  /**
+   * Notifty the queue (and its listeners) of a message sent externally on the queue's behalf.
+   * @param message sent externally
+   */
+  public void notifyOfExternallySentMessage( Message message ) {
+    ArrayList listeners_ref = listeners;
+
+    DirectByteBuffer[] buffs = message.getData();
+    int size = 0;
+    for( int i=0; i < buffs.length; i++ ) {
+      size += buffs[i].remaining( DirectByteBuffer.SS_NET );
+    }
+    
+    for( int i=0; i < listeners_ref.size(); i++ ) {
+      MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
+
+      listener.messageSent( message );
+      
+      if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+        listener.dataBytesSent( size );
+      }
+      else {
+        listener.protocolBytesSent( size );
+      }
+    }
+    
+    System.out.println( "notifiedOfExternallySentMessage:: [" +message.getID()+ "] size=" +size );
+    
+  }
+  
+  
+  
+  
+  
   private static class NotificationItem {
     private static final int MESSAGE_ADDED        = 0;
     private static final int MESSAGE_REMOVED      = 1;

@@ -63,20 +63,27 @@ public class MessageManager {
   
   
   /**
-   * Register the given message with the manager for processing.
+   * Register the given message type with the manager for processing.
    * @param message instance to use for decoding
-   */  
-  public void registerMessage( Message message ) {
+   * @throws MessageException if this message type has already been registered
+   */
+  public void registerMessageType( Message message ) throws MessageException {
     Object key = new String( message.getID() + message.getVersion() );
+    
+    if( message_registrations.containsKey( key ) ) {
+      throw new MessageException( "message type [" +message.getID()+ ":" +message.getVersion()+ "] already registered!" );
+    }
+    
     message_registrations.put( key, message );
   }
   
   
+  
   /**
-   * Remove registration of given message from manager.
+   * Remove registration of given message type from manager.
    * @param message type to remove
    */
-  public void deregisterMessage( Message message ) {
+  public void deregisterMessageType( Message message ) {
     Object key = new String( message.getID() + message.getVersion() );
     message_registrations.remove( key );
   }

@@ -146,4 +146,5 @@ Peer
    * @return messages available for use, or null of supported is yet unknown
    */
   public Message[] getSupportedMessages();
+
 }

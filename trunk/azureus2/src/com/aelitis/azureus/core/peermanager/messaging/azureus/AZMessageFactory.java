@@ -66,9 +66,12 @@ public class AZMessageFactory {
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
-    MessageManager.getSingleton().registerMessage( new AZHandshake( new byte[20], "", "", new String[0], new byte[0]) );
-    MessageManager.getSingleton().registerMessage( new AZPing() );
-    MessageManager.getSingleton().registerMessage( new AZPong() );
+    try {
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", new String[0], new byte[0]) );
+      MessageManager.getSingleton().registerMessageType( new AZPing() );
+      MessageManager.getSingleton().registerMessageType( new AZPong() );
+    }
+    catch( MessageException me ) {  me.printStackTrace();  }
   }
   
   

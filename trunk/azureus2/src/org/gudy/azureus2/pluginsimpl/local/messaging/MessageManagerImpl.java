@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2005
+ * Created on Feb 24, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,44 +20,39 @@
  *
  */
 
-package org.gudy.azureus2.plugins.network;
+package org.gudy.azureus2.pluginsimpl.local.messaging;
 
 import org.gudy.azureus2.plugins.messaging.*;
 
 
 
 /**
- * Queue for sending outgoing messages.
+ *
  */
-public interface OutgoingMessageQueue {
+public class MessageManagerImpl implements MessageManager {
+  
+  private static final MessageManagerImpl instance = new MessageManagerImpl();
+  
+  
+  public static MessageManagerImpl getSingleton() {  return instance;  }
+  
+  
+  private MessageManagerImpl() {
+    /*nothing*/
+  }
+  
+  
+  public void registerMessageType( Message message ) throws MessageException {
+    try {
+      com.aelitis.azureus.core.peermanager.messaging.MessageManager.getSingleton().registerMessageType( new MessageAdapter( message ) );
+    }
+    catch( com.aelitis.azureus.core.peermanager.messaging.MessageException me ) {
+      throw new MessageException( me.getMessage() );
+    }
+  }
 
-  /**
-   * Set the message stream encoder that will be used to encode outgoing messages.
-   * @param encoder to use
-   */
-  public void setEncoder( MessageStreamEncoder encoder );
-  
-  /**
-   * Queue the given message for sending.
-   * @param message to send
-   */
-  public void sendMessage( Message message );
-  
-  /**
-   * Register queue listener.
-   * @param listener to register
-   */
-  public void registerListener( OutgoingMessageQueueListener listener );
-  
-  /**
-   * Remove registration of queue listener.
-   * @param listener to remove
-   */
-  public void deregisterListener( OutgoingMessageQueueListener listener );
-  
-  /**
-   * Notifty the queue (and its listeners) of a message sent externally on the queue's behalf.
-   * @param message sent externally
-   */
-  public void notifyOfExternalSend( Message message );  
+  public void deregisterMessageType( Message message ) {
+    com.aelitis.azureus.core.peermanager.messaging.MessageManager.getSingleton().deregisterMessageType( new MessageAdapter( message ) );
+  }
+    
 }
