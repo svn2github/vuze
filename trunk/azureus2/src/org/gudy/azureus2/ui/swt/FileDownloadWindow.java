@@ -189,7 +189,9 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
             retry.setEnabled(true); 
           }
           
-          shell.pack();
+          if ( !shell.isDisposed()){
+          	shell.pack();
+          }
         }
       });
     }
