@@ -89,8 +89,12 @@ PESharedPortServerImpl
 					}
 				}catch( IOException e ){
 					
+					String	message = e.getMessage();
+					
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "PESharedPortServer: failed to establish selector" + e.toString());
 					
+					LGLogger.logAlertUsingResource(	LGLogger.AT_ERROR, "SharedPortServer.alert.selectorfailed" ); 
+										
 					e.printStackTrace();
 				}
 			}

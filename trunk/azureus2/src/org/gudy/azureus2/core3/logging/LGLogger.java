@@ -13,6 +13,7 @@ package org.gudy.azureus2.core3.logging;
 import java.io.*;
 
 import org.gudy.azureus2.core3.logging.impl.*;
+import org.gudy.azureus2.core3.internat.*;
 
 public class 
 LGLogger 
@@ -135,6 +136,23 @@ LGLogger
 		LGLoggerImpl.logAlert(type,message);
 	}
 	
+	public static void
+	logAlertUsingResource(
+		int			type,
+		String		resource_key )
+	{
+		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key ));
+	}
+
+	public static void
+	logAlertUsingResource(
+		int			type,
+		String		resource_key,
+		String[]	params )
+	{
+		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key, params ));
+	}
+
 	public static void
 	logAlert(
 		String		message,

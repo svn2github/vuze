@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.*;
 
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -65,6 +66,28 @@ public class MessageText {
     }
   }
 
+  /**
+   * Expands a message text and replaces occurrences of %1 with first param, %2 with second...
+   * @param key
+   * @param params
+   * @return
+   */
+  
+  public static String 
+  getString(
+  		String		key,
+		String[]	params )
+  {
+  	String	res = getString(key);
+  	
+  	for(int i=0;i<params.length;i++){
+  		
+  		res = res.replaceAll("%"+(i+1), params[i]);
+  	}
+  	
+  	return( res );
+  }
+  
   public static String getDefaultLocaleString(String key) {
     // TODO Auto-generated method stub
     try {
