@@ -100,7 +100,7 @@ RPPluginConfig
 		
 		for (int i=0;i<cached_property_names.length;i++){
 			
-			System.out.println( "cache:" + cached_property_names[i] + "=" + cached_property_values[i] );
+			// System.out.println( "cache:" + cached_property_names[i] + "=" + cached_property_values[i] );
 			
 			property_cache.put(cached_property_names[i],cached_property_values[i]);
 		}

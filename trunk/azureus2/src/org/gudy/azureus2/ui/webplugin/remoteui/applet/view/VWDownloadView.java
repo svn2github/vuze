@@ -48,7 +48,7 @@ VWDownloadView
 	
 	public
 	VWDownloadView(
-		MDDownloadModel		model )
+		final MDDownloadModel		model )
 	{
 		sorter = new TableSorter(model);
 		
@@ -71,18 +71,21 @@ VWDownloadView
 					}
 				});
 		
-		TableColumnModel cm = table.getColumnModel();
-
-		int[]	widths = { 30, -1, 60, 90, 80, 80, 50, 50, 50, 60, 70, 50, 60 };
+		// table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS );
 		
-		for (int i=0;i<widths.length;i++){
+		TableColumnModel cm = table.getColumnModel();
+		
+		int[]	max_widths = { 30, -1, 60, 90, 80, 80, 50, 50, 80, 60, 70, 50, 60 };
+		//int[]	max_widths = { 30, -1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+		
+		for (int i=0;i<max_widths.length;i++){
 			
-			if ( widths[i] != -1 ){
+			if ( max_widths[i] != -1 ){
 				
-				cm.getColumn(i).setMaxWidth(widths[i]);
+				cm.getColumn(i).setMaxWidth(max_widths[i]);
 			}
 		}
-	
+		
 		int[]	byte_columns 		= { 2, 3, 8 };
 		int[]	bytesec_columns 	= { 9, 10 };
 		int[]	rhs_columns			= { 5, 6, 7 };
@@ -252,6 +255,62 @@ VWDownloadView
 						return( res );
 					}
 				});
+		
+		model.addTableModelListener(
+			new TableModelListener()
+			{
+				public void
+				tableChanged(
+					TableModelEvent		ev )
+				{
+					TableModel	mod = table.getModel();
+					
+					TableColumnModel	col_mod = table.getColumnModel();
+					
+					for (int i=0;i<mod.getColumnCount();i++){
+						
+						TableColumn col = col_mod.getColumn(i);
+						
+						TableCellRenderer rend = col.getCellRenderer();
+						
+						if ( rend == null ){
+							
+							continue;
+						}
+						
+						int	max_width = 0;
+						
+						for (int j=0;j<mod.getRowCount();j++){
+						
+							Object data = model.getValueAt( j, i );
+							
+							Component comp = rend.getTableCellRendererComponent( table, data, false, false, j, i );
+							
+							if ( comp instanceof JLabel ){
+								
+								JLabel	lab = (JLabel)comp;
+								
+								int width = SwingUtilities.computeStringWidth(lab.getFontMetrics(lab.getFont()),lab.getText());
+								
+								if ( width > max_width ){
+									
+									max_width	= width;
+								}
+							}
+						}
+						
+						max_width += 8;
+						
+						if( max_width > 0 && max_width > col.getMaxWidth()){
+							
+							// System.out.println( "setting max width to" + max_width );
+							
+							col.setMaxWidth( max_width );
+							col.setMinWidth( max_width );
+						}
+					}
+				}
+			});
 		
 		sorter.addMouseListenerToHeaderInTable(table);
 
