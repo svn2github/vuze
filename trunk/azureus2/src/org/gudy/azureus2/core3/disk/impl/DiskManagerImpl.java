@@ -2507,6 +2507,7 @@ DiskManagerImpl
   private void loadFilePriorities() {
     if ( files == null ) return;
     Map file_priorities = (Map)dmanager.getData( "file_priorities" );
+    if ( file_priorities == null ) return;
     for (int i=0; i < files.length; i++) {
       DiskManagerFileInfo file = files[i];
       if (file == null) return;
