@@ -75,9 +75,10 @@ DMReaderImpl
 	public void
 	stop()
 	{
-		if (readThread != null)
+		if (readThread != null){
+		
 			readThread.stopIt();
- 
+		}
 	}
 	
 	public DiskManagerReadRequest
@@ -262,6 +263,7 @@ DMReaderImpl
 							}
 						
 							drr = (DiskReadRequest)readQueue.remove(0);
+							
 						}finally{
 							
 							readQueue_mon.exit();
@@ -297,6 +299,7 @@ DMReaderImpl
 				readQueue_mon.enter();
 				
 				bReadContinue = false;
+				
 			}finally{
 				
 				readQueue_mon.exit();
@@ -304,7 +307,8 @@ DMReaderImpl
 			
 			readQueueSem.releaseForever();
 						
-			while (readQueue.size() != 0) {
+			while (readQueue.size() != 0){
+				
 				readQueue.remove(0);
 			}
 		}

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
@@ -265,10 +266,12 @@ RDResumeHandler
 							{
 								public void
 								processResult(
-									int		p,
-									int		r,
+									int		piece_number,
+									int		result,
 									Object	user_data )
 								{
+									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+
 									pending_checks_sem.release();
 								}
 							},
@@ -312,10 +315,12 @@ RDResumeHandler
 						{
 							public void
 							processResult(
-								int		p,
-								int		r,
+								int		piece_number,
+								int		result,
 								Object	user_data )
 							{
+								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+
 								pending_checks_sem.release();
 							}
 						},

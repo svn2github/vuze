@@ -825,19 +825,21 @@ DiskManagerImpl
 		
 		piece_picker.stop();
 		
-		if (files != null) {
-			for (int i = 0; i < files.length; i++) {
-				try {
+		if (files != null){
+			
+			for (int i = 0; i < files.length; i++){
+				
+				try{
 					if (files[i] != null) {
 						
 						files[i].getCacheFile().close();
 					}
-				} catch (Exception e) {
+				}catch (Exception e){
+					
 					Debug.printStackTrace( e );
 				}
 			}
 		}
- 
   }
 
 

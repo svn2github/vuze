@@ -1164,14 +1164,24 @@ PEPeerControlImpl
   
   private static final int FORCE_PIECE	= -1;
   
-  private void getRarestPieces(PEPeerTransport pc,int rangePercent,boolean onlyNonAllocatedPieces) {
+  private void 
+  getRarestPieces(
+  	PEPeerTransport 	pc,
+	int 				rangePercent,
+	boolean 			onlyNonAllocatedPieces) 
+  {
     boolean[] piecesAvailable = pc.getAvailable();
+    
     Arrays.fill(_piecesRarest, false);
 
-    if ( FORCE_PIECE != -1 ){
+    if ( FORCE_PIECE != -1 && FORCE_PIECE < dm_pieces.length ){
+    	
     	if ( !dm_pieces[FORCE_PIECE].getDone() && !_downloading[FORCE_PIECE] && piecesAvailable[FORCE_PIECE]){
     		
-    		_piecesRarest[FORCE_PIECE]	= true;
+    		if ( !onlyNonAllocatedPieces || _pieces[FORCE_PIECE] == null ){
+    			
+    			_piecesRarest[FORCE_PIECE]	= true;
+    		}
     	}
     	
     	return;
@@ -2168,8 +2178,10 @@ PEPeerControlImpl
 	    
 	    if( recheck_on_completion ) {  //this is a recheck, so don't send HAVE msgs
 	    	
-	      if( result) { //piece ok
+	      if ( result){
 	        
+	        // ok
+	      	
 	      }else{  	//piece failed
 	      			//restart the download afresh
 	      	
