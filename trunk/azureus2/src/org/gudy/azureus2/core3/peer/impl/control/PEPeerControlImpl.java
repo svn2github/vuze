@@ -905,14 +905,9 @@ PEPeerControlImpl
         float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + maxAllowed);
         percentage = (int)(currConnectionPercent * 100);
       }
-    }
-    
-    boolean just_completed = _finished && SystemTime.getCurrentTime() - _timeFinished < 10000;
-        
-    if( !just_completed ) {
+      
       _tracker.setRefreshDelayOverrides( percentage );
     }
-
   }
   	
  

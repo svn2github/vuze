@@ -93,7 +93,7 @@ TRTrackerClientClassicImpl
 	
 	private boolean			update_in_progress	= false;
 	
-	private long			rd_last_override;
+	private long			rd_last_override = 0;
 	private int				rd_override_percentage	= 100;
 
   	private List trackerUrlLists;
@@ -332,8 +332,8 @@ TRTrackerClientClassicImpl
 				}
 			}
 		};
-			
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
+    
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 	
 	public void
@@ -424,8 +424,10 @@ TRTrackerClientClassicImpl
 		}
 		
 		long	now = SystemTime.getCurrentTime();
-
-		if ( ( SystemTime.isErrorLast10sec() || now - rd_last_override > OVERRIDE_PERIOD ) && rd_override_percentage != percentage ){
+    //only start overriding once the tracker announce update has been called
+    boolean override_allowed = rd_last_override > 0 && now - rd_last_override > OVERRIDE_PERIOD;
+    
+		if ( ( SystemTime.isErrorLast10sec() || override_allowed ) && rd_override_percentage != percentage ){
 		
 			try{
 				this_mon.enter();
@@ -535,16 +537,18 @@ TRTrackerClientClassicImpl
 				
 				current_timer_event.cancel();
 			}
-			
+
       String msg = "requestUpdate():: New tracker update event scheduled for " +SystemTime.getCurrentTime()+ " [+" +(SystemTime.getCurrentTime() - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
       LGLogger.log( msg );
+      
+      rd_last_override = SystemTime.getCurrentTime();  //"pause" overrides for 10s
       
 			current_timer_event = 
 				tracker_timer.addEvent( 
 					SystemTime.getCurrentTime(),
 					timer_event_action );
-		}finally{
-			
+		}
+    finally{
 			this_mon.exit();
 		}
 	}
