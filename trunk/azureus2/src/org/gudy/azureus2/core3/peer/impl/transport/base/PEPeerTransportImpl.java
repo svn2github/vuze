@@ -50,7 +50,7 @@ PEPeerTransportImpl
 	private SocketChannel 	socket;
   private volatile boolean connected = false;
   private volatile boolean connect_error = false;
-  private String error_msg = "";
+  private volatile String error_msg = "";
   
 	
 	  /**
