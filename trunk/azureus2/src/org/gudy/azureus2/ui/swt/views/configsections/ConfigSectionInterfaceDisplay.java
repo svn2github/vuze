@@ -97,6 +97,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
 
     new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
     new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
+    new BooleanParameter(cLook, "add_torrents_silently",false, "ConfigView.section.interface.display.add_torrents_silently");
     
     if ( Constants.isWindowsXP ) {
       final Button enableXPStyle = new Button(cLook, SWT.CHECK);

@@ -19,6 +19,7 @@ FEATURE: UI   | Added Seed2PeerRatio item to MyTorrents view [Nolar]
 FEATURE: UI   | Added detailed connection State to peers view [Nolar]
 FEATURE: Core | Optimistic Connect: drop inactive connections in order to find better ones [Nolar]
 FEATURE: UI   | Added Connected Time item to peers view [Nolar]
+FEATURE: UI   | Option to add torrent downloads silently (without activating main Azureus window) [Nolar]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -50,8 +51,11 @@ BUGFIX: Core | Fix potential connection establishment backlog [Nolar]
 BUGFIX: Core | Fix potential DOS by timing out stalled connections [Nolar]
 BUGFIX: UI   | Fix Health icons sometimes not refreshing [Nolar]
 BUGFIX: Core | Fix bug in re-announce interval override calculation when connection limit has been reached [Nolar]
-BUGFIX: UI   | Fix bug with Azureus crashing when quitting on OS X if the stats view has been opened [Gudy]
-BUGFIX: UI   | Fix the icon bug on OS X [Gudy]
+BUGFIX: UI   | Fix bug with Azureus crashing when quitting on OSX if the Stats view has been opened [Gudy]
+BUGFIX: UI   | Fix the fuzzy Azureus icon bug under OSX [Gudy]
+BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are set [Gudy]
+
+
 
 
 

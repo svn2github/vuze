@@ -112,7 +112,10 @@ StartServer
       	  LGLogger.log( "Main::startServer: received '" + line + "'");
       	 
           if (line != null) {
-            showMainWindow();
+            if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
+              showMainWindow();
+            }
+
             StringTokenizer st = new StringTokenizer(line, ";");           
             int i = 0;
             if(st.countTokens() > 1) {

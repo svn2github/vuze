@@ -139,10 +139,7 @@ public class TorrentOpener {
 
     if(display != null && ! display.isDisposed())
       display.asyncExec(new AERunnable(){
-        public void runSupport() {
-          if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
-            mainWindow.setActive();
-          
+        public void runSupport() {          
           new AEThread("TorrentOpener::openTorrent") {
             public void runSupport() {
               try{
@@ -286,9 +283,8 @@ public class TorrentOpener {
   display.asyncExec(new AERunnable(){
      public void runSupport()
      {
-       mainWindow.setActive();
 
-      new AEThread("TorrentOpener"){
+       new AEThread("TorrentOpener"){
           public void runSupport() {
             boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
 
@@ -418,7 +414,7 @@ public class TorrentOpener {
   	AzureusCore	azureus_core,
 	String 		linkURL) 
   {
-    if(linkURL != null && linkURL.length() > 12 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+    if( linkURL != null && linkURL.length() > 12 && COConfigurationManager.getBooleanParameter("Add URL Silently") )
       new FileDownloadWindow(azureus_core,display, linkURL, null );
     else
       new OpenUrlWindow(azureus_core, display, linkURL, null);
