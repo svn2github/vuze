@@ -304,7 +304,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   public void editRange(IpRange range) {
     new IpFilterEditor(azureus_core,table.getDisplay(), table, range);
     noChange = false;
-    refresh();
+    //refresh();
   }
 
   public void addRange() {
@@ -323,8 +323,11 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
         continue;
       String tmp = items[i].getText(0);
       IpRange range = (IpRange) items[i].getData();
-      if (range.getDescription() != null && !range.getDescription().equals(tmp))
-        items[i].setText(0, range.getDescription());
+      
+      String	desc = range.getDescription();
+
+      if (desc != null && !desc.equals(tmp))
+        items[i].setText(0, desc);
 
       tmp = items[i].getText(1);
       if (range.getStartIp() != null && !range.getStartIp().equals(tmp))
