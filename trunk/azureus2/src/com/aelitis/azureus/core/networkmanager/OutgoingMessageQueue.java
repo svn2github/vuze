@@ -197,7 +197,7 @@ public class OutgoingMessageQueue {
             if( msg == urgent_message ) urgent_message = null;
             total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
-            LGLogger.log( LGLogger.CORE_NETWORK, "Sending " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
+            LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
             notifySentListeners( msg );
             msg.destroy();
           }
