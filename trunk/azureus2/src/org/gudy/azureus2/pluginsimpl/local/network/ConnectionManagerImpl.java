@@ -34,7 +34,13 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
  */
 public class ConnectionManagerImpl implements ConnectionManager {
   
-  public ConnectionManagerImpl() {
+  private static final ConnectionManagerImpl instance = new ConnectionManagerImpl();
+  
+  
+  public static ConnectionManagerImpl getSingleton() {  return instance;  }
+  
+  
+  private ConnectionManagerImpl() {
     /*nothing*/
   }
   

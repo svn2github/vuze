@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2005
+ * Created on Feb 11, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -22,40 +22,32 @@
 
 package org.gudy.azureus2.plugins.network;
 
-import org.gudy.azureus2.plugins.messaging.*;
+import org.gudy.azureus2.plugins.messaging.Message;
 
 
 
 /**
- * Queue for sending outgoing messages.
+ * Listener for incoming message queue.
  */
-public interface OutgoingMessageQueue {
+public interface IncomingMessageQueueListener {
 
   /**
-   * Set the message stream encoder that will be used to encode outgoing messages.
-   * @param encoder to use
+   * A message has been read from the connection.
+   * @param message recevied
+   * @return true if this message was accepted, false if not handled
    */
-  public void setEncoder( MessageStreamEncoder encoder );
+  public boolean messageReceived( Message message );
   
   /**
-   * Queue the given message for sending.
-   * @param message to send
+   * The given number of protocol (overhead) bytes read from the connection.
+   * @param byte_count number of protocol bytes
    */
-  public void sendMessage( Message message );
+  public void protocolBytesReceived( int byte_count );
   
   /**
-   * Register queue listener.
-   * @param listener to register
+   * The given number of (piece) data bytes read from the connection.
+   * @param byte_count number of data bytes
    */
-  public void registerListener( OutgoingMessageQueueListener listener );
-  
-  /**
-   * Remove registration of queue listener.
-   * @param listener to remove
-   */
-  public void deregisterListener( OutgoingMessageQueueListener listener );
-  
-  
-  //public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException;  //TODO run it?
+  public void dataBytesReceived( int byte_count );
   
 }

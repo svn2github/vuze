@@ -22,9 +22,32 @@
 
 package org.gudy.azureus2.plugins.network;
 
+import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
+
+
 /**
- *
+ * Inbound message queue.
  */
 public interface IncomingMessageQueue {
 
+  /**
+   * Set the message stream decoder that will be used to decode incoming messages.
+   * @param stream_decoder to use
+   */
+  public void setDecoder( MessageStreamDecoder stream_decoder );
+  
+  
+  /**
+   * Register queue listener.
+   * @param listener to register
+   */
+  public void registerListener( IncomingMessageQueueListener listener );
+  
+  
+  /**
+   * Remove registration of queue listener.
+   * @param listener to remove
+   */
+  public void deregisterListener( IncomingMessageQueueListener listener );
+  
 }

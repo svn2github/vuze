@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2005
+ * Created on Feb 11, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -20,42 +20,34 @@
  *
  */
 
-package org.gudy.azureus2.plugins.network;
+package org.gudy.azureus2.pluginsimpl.local.network;
 
-import org.gudy.azureus2.plugins.messaging.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.plugins.network.Transport;
 
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 /**
- * Queue for sending outgoing messages.
+ *
  */
-public interface OutgoingMessageQueue {
-
-  /**
-   * Set the message stream encoder that will be used to encode outgoing messages.
-   * @param encoder to use
-   */
-  public void setEncoder( MessageStreamEncoder encoder );
+public class TCPTransportImpl implements Transport {
+  private final TCPTransport core_transport;
   
-  /**
-   * Queue the given message for sending.
-   * @param message to send
-   */
-  public void sendMessage( Message message );
-  
-  /**
-   * Register queue listener.
-   * @param listener to register
-   */
-  public void registerListener( OutgoingMessageQueueListener listener );
-  
-  /**
-   * Remove registration of queue listener.
-   * @param listener to remove
-   */
-  public void deregisterListener( OutgoingMessageQueueListener listener );
+  protected TCPTransportImpl( TCPTransport core_transport ) {
+    this.core_transport = core_transport;
+  }
   
   
-  //public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException;  //TODO run it?
   
+  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+    return core_transport.read( buffers, array_offset, length );
+  }
+  
+ 
+  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+    return core_transport.write( buffers, array_offset, length );
+  }
+ 
 }

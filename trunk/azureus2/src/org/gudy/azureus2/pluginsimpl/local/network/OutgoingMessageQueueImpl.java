@@ -54,26 +54,27 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   }
   
 
-  public void addMessage( Message message ) {
+  public void sendMessage( Message message ) {
     core_queue.addMessage( new AdapterMessageImpl( message ), false );
   }
   
 
   public void registerListener( final OutgoingMessageQueueListener listener ) {
-    com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener core_listener = new com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-        listener.messageAdded( new AdapterMessageImpl( message ) );
-      }
+    com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener core_listener =
+      new com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener() {
+        public void messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          listener.messageAdded( new AdapterMessageImpl( message ) );
+        }
 
-      public void messageRemoved( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
+        public void messageRemoved( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
 
-      public void messageSent( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-        listener.messageSent( new AdapterMessageImpl( message ) );
-      }
+        public void messageSent( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          listener.messageSent( new AdapterMessageImpl( message ) );
+        }
 
-      public void protocolBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
+        public void protocolBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
 
-      public void dataBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
+        public void dataBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
     };
     
     registrations.put( listener, core_listener );  //save this mapping for later
@@ -85,7 +86,7 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   public void deregisterListener( OutgoingMessageQueueListener listener ) {
     //retrieve saved mapping
     com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener core_listener =
-      (com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener)registrations.get( listener );
+      (com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener)registrations.remove( listener );
     
     if( core_listener != null ) {
       core_queue.cancelQueueListener( core_listener );

@@ -235,20 +235,20 @@ public class IncomingMessageQueue {
    */
   public interface MessageQueueListener {
     /**
-     * A message has been read from the transport.
+     * A message has been read from the connection.
      * @param message recevied
      * @return true if this message was accepted, false if not handled
      */
     public boolean messageReceived( Message message );
     
     /**
-     * The given number of protocol (overhead) bytes read from the transport.
+     * The given number of protocol (overhead) bytes read from the connection.
      * @param byte_count number of protocol bytes
      */
     public void protocolBytesReceived( int byte_count );
     
     /**
-     * The given number of (piece) data bytes read from the transport.
+     * The given number of (piece) data bytes read from the connection.
      * @param byte_count number of data bytes
      */
     public void dataBytesReceived( int byte_count );

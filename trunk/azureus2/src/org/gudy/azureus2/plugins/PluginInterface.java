@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
@@ -408,6 +409,16 @@ public interface PluginInterface {
   
   public ClientIDManager
   getClientIDManager();
+  
+  
+  /**
+   * Get the connection manager.
+   * @since 2.2.0.3
+   * @return manager
+   */
+  public ConnectionManager getConnectionManager(); 
+  
+  
   
   /**
    *

@@ -58,5 +58,12 @@ public interface Connection {
    * @return inbound message queue
    */
   public IncomingMessageQueue getIncomingMessageQueue();
+  
+  
+  /**
+   * Get the connection's underyling transport.
+   * @return data transport
+   */
+  //public Transport getTransport();
 
 }
