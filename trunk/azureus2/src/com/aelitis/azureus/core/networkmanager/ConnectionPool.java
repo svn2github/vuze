@@ -300,7 +300,7 @@ public class ConnectionPool {
     
     int remaining = total_bytes_available - total_bytes_used;
     if( remaining >= mss_size ) {
-      total_bytes_used += doConnectionWrites( remaining );
+      total_bytes_used += doConnectionWritesBurst( remaining );
     }
     
     //System.out.println("total_bytes_available="+total_bytes_available+", total_bytes_used="+total_bytes_used   );
@@ -327,18 +327,15 @@ public class ConnectionPool {
     
     int remaining = max_bytes_allowed - total_bytes_used;
     if( remaining >= mss_size ) {
-      total_bytes_used += doConnectionWrites( remaining );
+      total_bytes_used += doConnectionWritesBurst( remaining );
     }
 
     //System.out.println("max_bytes_allowed="+max_bytes_allowed+", total_bytes_used="+total_bytes_used  );
     return total_bytes_used;
   }
   
-  
-  private int doConnectionWrites( int max_bytes_allowed ) {
-    int total_bytes_used = 0;
-    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-    
+  /*
+  private int doConnectionWritesFair( int max_bytes_allowed ) {    
     //add new connections
     synchronized( added_connections ) {
       for( int i=0; i < added_connections.size(); i++ ) {
@@ -357,7 +354,8 @@ public class ConnectionPool {
       removed_connections.clear();
     }
 
-    
+    int total_bytes_used = 0;
+    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     int num_connections = connections.size();
     int num_empty = 0;
     int num_seen_this_round = 0;
@@ -399,6 +397,76 @@ public class ConnectionPool {
       num_seen_this_round++;
     }
     
+    
+    //System.out.println( "writes: max=" +max_bytes_allowed+ ", out=" + total_bytes_used );
+    return total_bytes_used;
+  }
+  */
+  
+  
+  private int doConnectionWritesBurst( int max_bytes_allowed ) {    
+    //add new connections
+    synchronized( added_connections ) {
+      for( int i=0; i < added_connections.size(); i++ ) {
+        Connection conn = (Connection)added_connections.get( i );
+        connections.addLast( conn );
+      }
+      added_connections.clear();
+    }
+    
+    //remove removed connections
+    synchronized( removed_connections ) {
+      for( int i=0; i < removed_connections.size(); i++ ) {
+        Connection conn = (Connection)removed_connections.get( i );
+        connections.remove( conn );
+      }
+      removed_connections.clear();
+    }
+    
+    int total_bytes_used = 0;
+    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    int num_connections = connections.size();
+    int num_seen = 0;
+    
+    while( max_bytes_allowed - total_bytes_used >= mss_size && num_seen < num_connections ) {
+      Connection conn = (Connection)connections.removeFirst();
+      
+      if( conn.isTransportReadyForWrite() ) {
+        OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
+        int size = omq.getTotalSize();
+        boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > FLUSH_WAIT_TIME ? true : false;
+        if( size >= mss_size || forced_flush || omq.hasUrgentMessage() ) {
+          int num_bytes_to_write;
+          
+          if( size < mss_size ) {
+            num_bytes_to_write = size;
+          }
+          else {
+            int num_full_packets = size / mss_size;
+            num_bytes_to_write = num_full_packets * mss_size;
+          }
+          
+          int written = 0;
+          try {
+            written = omq.deliverToTransport( num_bytes_to_write );
+            if( written < num_bytes_to_write ) {  //unable to deliver all data....add to selector for readiness notification
+              conn.setTransportReadyForWrite( false );
+              NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );
+              //System.out.println(written +" < "+ num_bytes_to_write+ " sendbuff="+ conn.getTransport().getSocketChannel().socket().getSendBufferSize());
+            }
+          } 
+          catch( Throwable t ) {
+            //System.out.println( "doConnectionWrites: " + t.getMessage() );
+            conn.setTransportReadyForWrite( false );
+            conn.notifyOfException( t );
+          }
+          total_bytes_used += written;
+        }
+      }
+      
+      connections.addLast( conn );
+      num_seen++;
+    }
     
     //System.out.println( "writes: max=" +max_bytes_allowed+ ", out=" + total_bytes_used );
     return total_bytes_used;
