@@ -896,6 +896,8 @@ public class FileUtil {
 					}
 				}
 				
+					// if we've failed then tidy up any partial copy that has been performed
+				
 				if ( !success ){
 					
 					if ( to_file.exists()){
