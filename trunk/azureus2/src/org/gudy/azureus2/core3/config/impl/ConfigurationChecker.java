@@ -286,6 +286,12 @@ public class ConfigurationChecker {
       String old_dir = System.getProperty("user.home") + "/Library/Azureus/";
       results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
     }
+    
+    //migrate from old ~/Azureus/ to ~/.Azureus/
+    if( Constants.isLinux ) {
+      String old_dir = System.getProperty("user.home") + "/Azureus/";
+      results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
+    }
 
     ConfigurationManager.getInstance().load();
     COConfigurationManager.setParameter("Already_Migrated", true);

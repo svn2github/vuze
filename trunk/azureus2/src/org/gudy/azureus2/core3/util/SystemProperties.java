@@ -35,7 +35,7 @@ public class SystemProperties {
   
   /**
    * Returns the full path to the user's home azureus directory.
-   * Under unix, this is usually ~/Azureus/
+   * Under unix, this is usually ~/.Azureus/
    * Under Windows, this is usually .../Documents and Settings/username/Application Data/Azureus/
    * Under OSX, this is usually /Users/username/Library/Application Support/Azureus/
    */
@@ -92,7 +92,7 @@ public class SystemProperties {
     
     }else{
     	
-      user_path = userhome + SEP + AZ_DIR + SEP;
+      user_path = userhome + SEP + "." + AZ_DIR + SEP;
       
       LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + user_path );
     }
