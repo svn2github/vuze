@@ -159,15 +159,38 @@ PlatformManagerImpl
 		
 
 		try{
-			access.deleteKey( 	
+			try{
+				access.deleteKey( 	
+					AEWin32Access.HKEY_CURRENT_USER,
+					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent",
+					true );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+			
+			try{
+				access.deleteKey( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					".torrent" );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
 			
-			access.deleteKey( 	
+			try{
+				access.deleteKey( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent",
 					true );
-			
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					".torrent",

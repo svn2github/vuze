@@ -57,7 +57,7 @@ AssociationChecker
 		    		}
 		    	}
 		    }
-		}catch( PlatformManagerException e ){
+		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
