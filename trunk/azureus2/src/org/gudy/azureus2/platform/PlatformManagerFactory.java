@@ -31,19 +31,26 @@ import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
 public class 
 PlatformManagerFactory 
 {
-	public static PlatformManager
+	protected static boolean				init_tried;
+	protected static PlatformManager		platform_manager;
+	
+	public static synchronized PlatformManager
 	getPlatformManager()
+	
+		throws PlatformManagerException
 	{
-		String OS = System.getProperty("os.name").toLowerCase();
-		    
-		if ( OS.indexOf("windows") >= 0 ){
+		if ( platform_manager == null && !init_tried ){
+		
+			init_tried	= true;
 			
-			return( PlatformManagerImpl.getSingleton());
-			
-		}else{
-			
-			return( null );
+			String OS = System.getProperty("os.name").toLowerCase();
+			    
+			if ( OS.indexOf("windows") >= 0 ){
+				
+				platform_manager = PlatformManagerImpl.getSingleton();
+			}
 		}
 		
+		return( platform_manager );
 	}
 }

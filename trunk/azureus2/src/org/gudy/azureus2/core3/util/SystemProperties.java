@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.platform.*;
 
 /**
  * Utility class to manage system-dependant information.
@@ -90,9 +91,22 @@ public class SystemProperties {
       		// 2) if it doesn't, try and grab the last component of APPDATA and stick this
       		//    on user.home. If this exists, use it.
       		// 3) otherwise use the windows default
-        try {      	
+        try {  
+        	
+        	String	reg_app_data = null;
+        	
+        	try{
+        		reg_app_data = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
+        		
+        	}catch( Throwable e ){
+        		
+        		//e.printStackTrace();
+        	}
+        	
           user_dir_win = getEnvironmentalVariable( "APPDATA" );
         
+          LGLogger.log( "reg_app_data = " + reg_app_data + ", env_app_data = " + user_dir_win );
+          
           if ( user_dir_win != null && user_dir_win != "" ){
 
             if ( !new File( user_dir_win ).exists()){

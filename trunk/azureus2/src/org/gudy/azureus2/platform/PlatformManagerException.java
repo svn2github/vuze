@@ -26,21 +26,22 @@ package org.gudy.azureus2.platform;
  * @author parg
  *
  */
-public interface 
-PlatformManager 
+public class 
+PlatformManagerException
+	extends Exception
 {
-	public String
-	getUserDataDirectory()
+	public
+	PlatformManagerException(
+		String		str )
+	{
+		super(str);
+	}
 	
-		throws PlatformManagerException;
-	
-	public boolean
-	isApplicationRegistered()
-	
-		throws PlatformManagerException;
-	
-	public void
-	registerApplication()
-	
-		throws PlatformManagerException;
+	public
+	PlatformManagerException(
+		String		str,
+		Throwable	cause )
+	{
+		super(str, cause );
+	}
 }

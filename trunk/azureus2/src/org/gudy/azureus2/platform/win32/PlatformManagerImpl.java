@@ -27,8 +27,12 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.platform.win32.access.*;
+import org.gudy.azureus2.core3.logging.*;
+
 
 public class 
 PlatformManagerImpl
@@ -40,6 +44,8 @@ PlatformManagerImpl
 	
 	public static synchronized PlatformManagerImpl
 	getSingleton()
+	
+		throws PlatformManagerException	
 	{
 		if ( singleton == null && !init_tried ){
 			
@@ -50,6 +56,14 @@ PlatformManagerImpl
 				
 			}catch( Throwable e ){
 				
+				LGLogger.log( "Win32Platform: failed to initialise", e );
+				
+				if ( e instanceof PlatformManagerException ){
+					
+					throw((PlatformManagerException)e);
+				}
+				
+				throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
 			}
 		}
 		
@@ -58,22 +72,129 @@ PlatformManagerImpl
 	
 	protected AEWin32Access		access;
 	
+	protected File				az_exe;
+	
 	protected
 	PlatformManagerImpl(
 		AEWin32Access		_access )
+	
+		throws PlatformManagerException
 	{
 		access	= _access;
+	
+		try{
+			String az_home = access.getAzureusInstallDir();
+			
+			az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
+		
+		}catch( Throwable e ){
+				
+			throw( new PlatformManagerException( "Failed to read Azureus install location"));
+			
+		}
+		
+		if ( !az_exe.exists()){
+			
+			throw( new PlatformManagerException( "Azureus.exe not found"));
+		}
+	}
+	
+	public String
+	getUserDataDirectory()
+	
+		throws PlatformManagerException
+	{
+		try{
+			return( access.getUserAppData());
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to read registry details", e ));
+		}		
 	}
 	
 	public boolean
 	isApplicationRegistered()
+	
+		throws PlatformManagerException
 	{
-		return( false );
+		try{
+			String	test = 
+				access.readStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\shell\\open\\command",
+					"" );
+			
+			return( test.equals( "\"" + az_exe.toString() + "\" \"%1\"" ));
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to read registry details", e ));
+		}
 	}
 	
 	public void
 	registerApplication()
+	
+		throws PlatformManagerException
 	{
+		// 	WriteRegStr HKCR ".torrent" "" "BitTorrent"
+		// 	WriteRegStr HKCR "BitTorrent" "" "Bittorrent File"
+		// 	WriteRegStr HKCR "BitTorrent\shell" "" "open"
+		// 	WriteRegStr HKCR "BitTorrent\DefaultIcon" "" $INSTDIR\Azureus.exe,1
+		// 	WriteRegStr HKCR "BitTorrent\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
+		// 	WriteRegStr HKCR "BitTorrent\Content Type" "" "application/x-bittorrent"
 		
+
+		try{
+			access.deleteKey( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					".torrent" );
+			
+			access.deleteKey( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent",
+					true );
+			
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					".torrent",
+					"",
+					"BitTorrent" );
+		
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent",
+					"",
+					"Bittorrent File" );
+			
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\shell",
+					"",
+					"open" );
+			
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\DefaultIcon",
+					"",
+					az_exe.toString() + ",1" );
+			
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\shell\\open\\command",
+					"",
+					"\"" + az_exe.toString() + "\" \"%1\"" );
+					
+			access.writeStringValue( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					"BitTorrent\\Content Type" ,
+					"",
+					"application/x-bittorrent" );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to write registry details", e ));
+		}
 	}
 }
