@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.updater.SWTDownloader;
 
 /**
@@ -50,58 +51,68 @@ public class SWTUpdateChecker implements UpdatableComponent
       "http://www.keecall.com/azureus/swt_version.php"
   };
   
+  public static void
+  initialize()
+  {
+    PluginInitializer.getDefaultInterface().getUpdateManager().registerUpdatableComponent(new SWTUpdateChecker(),true);
+  }
   
   public SWTUpdateChecker() {    
   }
   
   public void checkForUpdate(final UpdateChecker checker) {
-    SWTVersionGetter versionGetter = new SWTVersionGetter();
-    if( versionGetter.needsUpdate()) {
-      
-      String[] mirrors = versionGetter.getMirrors();
-      
-      //TODO : Create the correct downloader for the URLs ...
-      ResourceDownloader swtDownloader = null;
-      try {
-        ResourceDownloaderFactoryImpl.getSingleton().create(new URL(mirrors[0]));
-      } catch(Exception e) {
-        e.printStackTrace();
-      }
-      
-      /*swtDownloader.addListener(new ResourceDownloaderListener() {
-        
-        public boolean completed(ResourceDownloader downloader, InputStream data) {
-          //On completion, process the InputStream to store temp files
-          return processData(checker,data);
-        }
-        
-        public void failed(ResourceDownloader downloader,
-            ResourceDownloaderException e) {
-          // We're not interested in failure
-
-        }
-
-        public void reportActivity(ResourceDownloader downloader,
-            String activity) {
-          // We're not interested in activity
-
-        }
-
-        public void reportPercentComplete(ResourceDownloader downloader,
-            int percentage) {
-          // We're not interested in percent
-
-        }
-      });*/
-      
-      checker.addUpdate("SWT Libray for " + versionGetter.getPlatform(),
-          new String[] {"SWT is the graphical library used by Azureus"},
-          "" + versionGetter.getLatestVersion(),
-          swtDownloader,
-          Update.RESTART_REQUIRED_YES
-          );      
-      
-    }
+  	try{
+	    SWTVersionGetter versionGetter = new SWTVersionGetter();
+	    if( versionGetter.needsUpdate()) {
+	      
+	      String[] mirrors = versionGetter.getMirrors();
+	      
+	      //TODO : Create the correct downloader for the URLs ...
+	      ResourceDownloader swtDownloader = null;
+	      try {
+	      	swtDownloader = ResourceDownloaderFactoryImpl.getSingleton().create(new URL(mirrors[0]));
+	      } catch(Exception e) {
+	        e.printStackTrace();
+	      }
+	      
+	      /*swtDownloader.addListener(new ResourceDownloaderListener() {
+	        
+	        public boolean completed(ResourceDownloader downloader, InputStream data) {
+	          //On completion, process the InputStream to store temp files
+	          return processData(checker,data);
+	        }
+	        
+	        public void failed(ResourceDownloader downloader,
+	            ResourceDownloaderException e) {
+	          // We're not interested in failure
+	
+	        }
+	
+	        public void reportActivity(ResourceDownloader downloader,
+	            String activity) {
+	          // We're not interested in activity
+	
+	        }
+	
+	        public void reportPercentComplete(ResourceDownloader downloader,
+	            int percentage) {
+	          // We're not interested in percent
+	
+	        }
+	      });*/
+	      
+	      checker.addUpdate("SWT Libray for " + versionGetter.getPlatform(),
+	          new String[] {"SWT is the graphical library used by Azureus"},
+	          "" + versionGetter.getLatestVersion(),
+	          swtDownloader,
+	          Update.RESTART_REQUIRED_YES
+	          );      
+	      
+	    }
+  	}finally{
+  		
+  		checker.completed();
+  	}
     
   }
   

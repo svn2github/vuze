@@ -121,8 +121,9 @@ public class Initializer implements STProgressListener, Application {
     nextTask();
     reportCurrentTaskByKey( "splash.openViews");
     
+    SWTUpdateChecker.initialize();
+    
     new UpdateMonitor();
-    PluginInitializer.getDefaultInterface().getUpdateManager().registerUpdatableComponent(new SWTUpdateChecker(),true);
     //Tell listeners that all is initialized :
     Alerts.initComplete();
     
