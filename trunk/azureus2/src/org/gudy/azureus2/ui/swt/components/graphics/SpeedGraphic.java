@@ -127,7 +127,7 @@ public class SpeedGraphic extends ScaledGraphic {
         Color tempcolor = new Color(display,r,g,b);
         gcImage.setForeground(tempcolor);
         gcImage.setBackground(foreground);        
-        gcImage.fillGradientRectangle(xDraw,bounds.height - 2 - height,1, height,true);
+        gcImage.fillGradientRectangle(xDraw,bounds.height - 1 - height,1, height,true);
         tempcolor.dispose();
         
         int average = computeAverage(position);
