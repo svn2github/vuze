@@ -1,13 +1,14 @@
 /*
- * Created on 12 Jun 2003 by Olivier Chalouhi
- *
- * Modified on 15 Jan 2004 by Alon Rohter
+ * Created on Jan 30, 2004 by Alon Rohter
  */
+
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.math.*;
+
+import org.gudy.azureus2.core3.util.*;
 
 
 /**
@@ -15,9 +16,9 @@ import java.math.*;
  * It always tries to find a free buffer in the buffer pool
  * before creating a new one.
  */
-public class ByteBufferPool {
+public class DirectByteBufferPool {
 
-  private static ByteBufferPool pool;
+  private static DirectByteBufferPool pool;
   
   // There is no point in allocating buffers smaller than 4K,
   // as direct ByteBuffers are page-aligned to the underlying
@@ -31,17 +32,14 @@ public class ByteBufferPool {
   public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
   
   private final Map buffersMap;
+  private final Object poolsLock;
+  private final Timer compactionTimer;
   
-  private Object poolsLock;
-  
-  private Timer compactionTimer;
   private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
-  
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
- 
   
-  private ByteBufferPool() {
+  private DirectByteBufferPool() {
     buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
     
     //create the buffer pool for each buffer size
@@ -50,7 +48,7 @@ public class ByteBufferPool {
         ArrayList bufferPool = new ArrayList();
         buffersMap.put(size, bufferPool);
     }
-    
+
     poolsLock = new Object();
     
     //initiate periodic timer to check free memory usage
@@ -70,10 +68,9 @@ public class ByteBufferPool {
   /**
    * Allocate and return a new direct ByteBuffer.
    */
-  private ByteBuffer allocateNewBuffer(int size) {
+  private ByteBuffer allocateNewBuffer(final int _size) {
     try {
-      ByteBuffer buffer = ByteBuffer.allocateDirect(size);
-      return buffer;
+      return ByteBuffer.allocateDirect(_size);
     }
     catch (OutOfMemoryError e) {
        Debug.out("Running garbage collector...");
@@ -81,8 +78,7 @@ public class ByteBufferPool {
        runGarbageCollection();
 
        try {
-          ByteBuffer buffer = ByteBuffer.allocateDirect(size);
-          return buffer;
+          return ByteBuffer.allocateDirect(_size);
        } catch (OutOfMemoryError ex) {
        	 Debug.out("Memory allocation failed: Out of direct memory space\n"
                   + "TO FIX: Use the -XX:MaxDirectMemorySize=512m command line option.");
@@ -92,31 +88,28 @@ public class ByteBufferPool {
   }
 
   
-  private static synchronized ByteBufferPool getInstance() {
-    if (pool == null) {
-    	pool = new ByteBufferPool();
-    }
+  private static synchronized DirectByteBufferPool getInstance() {
+    if (pool == null)  pool = new DirectByteBufferPool();
     return pool;
   }
 
   
   /**
    * Retrieve a buffer from the buffer pool of size at least
-   * <b>length</b>, and no larger than <b>ByteBufferPool.MAX_SIZE</b>
+   * <b>length</b>, and no larger than <b>DirectByteBufferPool.MAX_SIZE</b>
    */
-  public static ByteBuffer getFreeBuffer(int length) {
-    if (length < 1) {
-        Debug.out("requested length [" +length+ "] < 1");
+  public static ByteBuffer getFreeBuffer(final int _length) {
+    if (_length < 1) {
+        Debug.out("requested length [" +_length+ "] < 1");
         return null;
     }
 
-    if (length > MAX_SIZE) {
-        Debug.out("requested length [" +length+ "] > MAX_SIZE [" +MAX_SIZE+ "]");
+    if (_length > MAX_SIZE) {
+        Debug.out("requested length [" +_length+ "] > MAX_SIZE [" +MAX_SIZE+ "]");
         return null;
     }
 
-    ByteBufferPool bbp = ByteBufferPool.getInstance();
-    return bbp.getBuffer(length);
+    return DirectByteBufferPool.getInstance().getBuffer(_length);
   }
   
   
@@ -124,37 +117,34 @@ public class ByteBufferPool {
    * Retrieve an appropriate buffer from the free pool, or
    * create a new one if the pool is empty.
    */
-  private ByteBuffer getBuffer(int length) {
-    Integer reqVal = new Integer(length);
+  private ByteBuffer getBuffer(final int _length) {
+    Integer reqVal = new Integer(_length);
     
-    //make sure we don't remove a buffer when running compaction
-    synchronized( poolsLock ) {
-      
-      //loop through the buffer pools to find a buffer big enough
-      Iterator it = buffersMap.keySet().iterator();
-      while (it.hasNext()) {
-        Integer keyVal = (Integer)it.next();
+    //loop through the buffer pools to find a buffer big enough
+    Iterator it = buffersMap.keySet().iterator();
+    while (it.hasNext()) {
+      Integer keyVal = (Integer)it.next();
 
-        //check if the buffers in this pool are big enough
-        if (reqVal.compareTo(keyVal) <= 0) {
-            ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
+      //check if the buffers in this pool are big enough
+      if (reqVal.compareTo(keyVal) <= 0) {
+        ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
             
-            ByteBuffer buff;
-            synchronized (bufferPool) {
-                //if there are no free buffers in the pool, create a new one.
-                //otherwise use one from the pool
-                if (bufferPool.isEmpty()) {
-                    buff = allocateNewBuffer(keyVal.intValue());
-                }
-                else {
-                    buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
-                }
+        ByteBuffer buff;
+        synchronized ( poolsLock ) { //make sure we don't remove a buffer when running compaction
+          //if there are no free buffers in the pool, create a new one.
+          //otherwise use one from the pool
+          if (bufferPool.isEmpty()) {
+            buff = allocateNewBuffer(keyVal.intValue());
+          }
+          else {
+            synchronized ( bufferPool ) {
+              buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
             }
-            buff.clear();   //scrub the buffer
-            return buff;
+          }
         }
+        buff.clear();   //scrub the buffer
+        return buff;
       }
-      
     }
     
     //we should never get here
@@ -168,28 +158,27 @@ public class ByteBufferPool {
    * *** Remember to set the local buffer reference to
    * null after returning the buffer to the pool ***
    */
-  public static void freeBuffer(ByteBuffer buffer) {
-    ByteBufferPool bbp = ByteBufferPool.getInstance();
-    bbp.free(buffer);
+  public static void freeBuffer(ByteBuffer _buffer) {
+    DirectByteBufferPool.getInstance().free(_buffer);
   }
   
   
   /**
    * Return the given buffer to the appropriate pool.
    */
-  private void free(ByteBuffer buffer) {
-    Integer buffSize = new Integer(buffer.capacity());
+  private void free(ByteBuffer _buffer) {
+    Integer buffSize = new Integer(_buffer.capacity());
     
     ArrayList bufferPool = (ArrayList)buffersMap.get(buffSize);
     
-    synchronized (bufferPool) {
-    	if (bufferPool != null) {
-        //no need to sync around 'poolsLock', as adding during compaction is ok
-    		bufferPool.add(buffer);
-    	}
-    	else {
-        Debug.out("Invalid buffer given; could not find proper buffer pool");
-    	}
+    if (bufferPool != null) {
+      //no need to sync around 'poolsLock', as adding during compaction is ok
+      synchronized ( bufferPool ) {
+        bufferPool.add(_buffer);
+      }
+    }
+    else {
+      Debug.out("Invalid buffer given; could not find proper buffer pool");
     }
   }
   
@@ -246,8 +235,8 @@ public class ByteBufferPool {
   /**
    * Fairly removes free buffers from the pools to limit memory usage.
    */
-  private void compactFreeBuffers(long bytes_used) {
-    int numPools = buffersMap.size();
+  private void compactFreeBuffers(final long bytes_used) {
+    final int numPools = buffersMap.size();
     long bytesToFree = 0;
     int maxPoolSize = 0;
     
