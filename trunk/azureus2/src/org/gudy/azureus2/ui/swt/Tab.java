@@ -48,28 +48,36 @@ public class Tab {
       tabItem = new CTabItem(folder, SWT.NULL);
     }
     
-    //if(_view instanceof ConfigView) {
-    //  composite = new ScrolledComposite(folder, SWT.H_SCROLL | SWT.V_SCROLL);
-    //} else {
-    composite = new Composite(folder, SWT.NULL);
-    //}
-    GridLayout layout = new GridLayout();
-    layout.numColumns = 1;
-    layout.horizontalSpacing = 0;
-    layout.verticalSpacing = 0;
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    composite.setLayout(layout);
-    GridData gridData = new GridData(GridData.FILL_BOTH);
-    try {
-      _view.initialize(composite);
-      _view.getComposite().setLayoutData(gridData);
-      tabItem.setControl(composite);
-      tabItem.setText(view.getShortTitle());
-      folder.setSelection(tabItem);
-      tabs.put(tabItem, view);
-    } catch (Exception e) {
-      e.printStackTrace();
+    if(!( _view instanceof MyTorrentsView)) {
+      composite = new Composite(folder, SWT.NULL);
+      GridLayout layout = new GridLayout();
+      layout.numColumns = 1;
+      layout.horizontalSpacing = 0;
+      layout.verticalSpacing = 0;
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      composite.setLayout(layout);
+      GridData gridData = new GridData(GridData.FILL_BOTH);
+      try {
+        _view.initialize(composite);
+        _view.getComposite().setLayoutData(gridData);
+        tabItem.setControl(composite);
+        tabItem.setText(view.getShortTitle());
+        folder.setSelection(tabItem);
+        tabs.put(tabItem, view);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    } else {
+      try {
+        _view.initialize(folder);              
+        tabItem.setControl(_view.getComposite());
+        tabItem.setText(view.getShortTitle());
+        folder.setSelection(tabItem);
+        tabs.put(tabItem, view);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 

@@ -61,6 +61,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
   */
   private GlobalManager globalManager;
 
+  private Composite composite;
   private Composite panel;
   private Table table;
   private HashMap managerItems;
@@ -82,22 +83,33 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
-  public void initialize(Composite composite) {
-    if(panel != null && panel.isReparentable()) {
-      panel.setParent(composite);
+  public void initialize(Composite composite0) {
+    if(panel != null) {      
       return;
     }
+    composite = new Composite(composite0, SWT.NULL);
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 1;
+    layout.horizontalSpacing = 0;
+    layout.verticalSpacing = 0;
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    composite.setLayout(layout);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
+          
     panel = new Composite(composite, SWT.NULL);
-    GridLayout layout = new GridLayout(1, false);
+    panel.setLayoutData(gridData);
+    
+    layout = new GridLayout(1, false);
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     layout.verticalSpacing = 0;
+    layout.horizontalSpacing = 0;
     panel.setLayout(layout);
-
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-
-    gridData = new GridData(GridData.FILL_BOTH);
+    
+      
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+    gridData = new GridData(GridData.FILL_BOTH); 
     table.setLayoutData(gridData);
     String[] columnsHeader = { "#", "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
     int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
@@ -594,7 +606,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
   public Composite getComposite() {
-    return panel;
+    return composite;
   }
 
   /* (non-Javadoc)
