@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
@@ -860,6 +861,12 @@ Test
 			return( null );
 		}
 		
+		public PeerIdentityDataID
+		getPeerIdentityDataID()
+		{
+			return( null );
+		}
+
 		public byte[]
 		getPeerId()
 		{

@@ -100,7 +100,9 @@ TRTrackerClientClassicImpl
   
   	private String trackerUrlListString;
   
-  	private byte[] torrent_hash;
+  	private byte[]				torrent_hash;
+  	private PeerIdentityDataID	peer_data_id;
+  	
 	private String info_hash = "info_hash=";
 	private byte[] tracker_peer_id;
 	private String tracker_peer_id_str = "&peer_id=";
@@ -244,6 +246,8 @@ TRTrackerClientClassicImpl
 	try {
 	
 		torrent_hash = _torrent.getHash();
+		
+		peer_data_id = new PeerIdentityDataID( torrent_hash );
 		
 		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
@@ -1459,7 +1463,7 @@ TRTrackerClientClassicImpl
   {
     int MAX_PEERS = 100;
     
-    int maxAllowed = PeerUtils.numNewConnectionsAllowed( torrent_hash );
+    int maxAllowed = PeerUtils.numNewConnectionsAllowed( peer_data_id );
     
     if ( maxAllowed < 0 || maxAllowed > MAX_PEERS ) {
       maxAllowed = MAX_PEERS;

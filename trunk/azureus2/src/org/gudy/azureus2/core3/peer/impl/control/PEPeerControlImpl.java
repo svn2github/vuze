@@ -62,8 +62,8 @@ PEPeerControlImpl
   private boolean 	_finished;
   private boolean	restart_initiated;
   
-  private boolean[] _piecesRarest;
-  private byte[] _hash;
+  private boolean[] 			_piecesRarest;
+  private PeerIdentityDataID 	_hash;
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
@@ -171,14 +171,14 @@ PEPeerControlImpl
     
     try{
     
-    	_hash = _tracker.getTorrent().getHash();
+    	_hash = new PeerIdentityDataID( _tracker.getTorrent().getHash());
     	
     }catch( TOTorrentException e ){
     	
     		// this should never happen
     	Debug.printStackTrace( e );
     	
-    	_hash = new byte[20]; 
+    	_hash = new PeerIdentityDataID( new byte[20] ); 
     }
     
     this.nbHashFails = 0;
@@ -1699,7 +1699,13 @@ PEPeerControlImpl
 
   //get the hash value
   public byte[] getHash() {
-    return _hash;
+    return _hash.getDataID();
+  }
+
+  public PeerIdentityDataID
+  getPeerIdentityDataID()
+  {
+  	return( _hash );
   }
 
   //get the peer id value

@@ -365,7 +365,7 @@ PEPeerTransportProtocol
 	    
 	  	//remove identity
 	  	if ( this.id != null && identityAdded ) {
-	  		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
+	  		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.id );
 	  	}
 	
 	    if ( lengthBuffer != null ) {
@@ -942,6 +942,8 @@ PEPeerTransportProtocol
     else handshake_data.get(DirectByteBuffer.SS_PEER,reserved);
     //Ignores reserved bytes
 
+    PeerIdentityDataID	my_peer_data_id = manager.getPeerIdentityDataID();
+    
     byte[] hash = manager.getHash();
     byte[] otherHash = new byte[20];
     if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < otherHash.length) {
@@ -988,10 +990,12 @@ PEPeerTransportProtocol
     }
 
     //make sure we are not already connected to this peer
-    boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
+    boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, otherPeerId );
     boolean sameIP = false;
+    
+    
     if( !COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ) {
-      if( PeerIdentityManager.containsIPAddress( otherHash, ip ) ) {
+      if( PeerIdentityManager.containsIPAddress( my_peer_data_id, ip ) ) {
         sameIP = true;
       }
     }
@@ -1007,14 +1011,14 @@ PEPeerTransportProtocol
     }
 
     //make sure we haven't reached our connection limit
-    int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
+    int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
     if( maxAllowed == 0 ) {
       closeAll( "Too many existing peer connections", false, false );
       handshake_data.returnToPool();
       return;
     }
 
-    PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
+    PeerIdentityManager.addIdentity( my_peer_data_id, otherPeerId, ip );
     identityAdded = true;
 
     LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );

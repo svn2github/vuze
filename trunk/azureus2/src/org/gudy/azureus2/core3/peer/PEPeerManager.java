@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -64,6 +65,9 @@ PEPeerManager
 		
 	public byte[]
 	getHash();
+	
+	public PeerIdentityDataID
+	getPeerIdentityDataID();
 	
 	public byte[]
 	getPeerId();

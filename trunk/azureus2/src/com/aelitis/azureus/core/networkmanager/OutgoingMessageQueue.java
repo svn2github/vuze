@@ -333,7 +333,6 @@ public class OutgoingMessageQueue {
     int protocol_written = 0;
     
     ArrayList messages_sent = null;
-    if( !manual_listener_notify ) messages_sent = new ArrayList();
     
     try{
       queue_mon.enter();
@@ -390,6 +389,11 @@ public class OutgoingMessageQueue {
               }
             }
             else {
+              if ( messages_sent == null ){
+              	
+              	messages_sent = new ArrayList();
+              }
+              
               messages_sent.add( msg );
             }
           }
@@ -460,15 +464,18 @@ public class OutgoingMessageQueue {
           if( data_written > 0 )  listener.dataBytesSent( data_written );
           if( protocol_written > 0 )  listener.protocolBytesSent( protocol_written );
           
-          for( int x=0; x < messages_sent.size(); x++ ) {
-            ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
-
-            listener.messageSent( msg );
-            
-            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
-              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
-              msg.destroy();
-            }
+          if ( messages_sent != null ){
+          	
+	          for( int x=0; x < messages_sent.size(); x++ ) {
+	            ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
+	
+	            listener.messageSent( msg );
+	            
+	            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
+	              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
+	              msg.destroy();
+	            }
+	          }
           }
         }
       }
