@@ -84,6 +84,8 @@ public class CompletionItem extends TorrentItem  {
      	}
       GC gcImage = new GC(image);
       int percentDone = torrentRow.getManager().getStats().getCompleted();        
+      gcImage.setBackground(MainWindow.blues[0]);
+      gcImage.fillRectangle(0,1,width,1+height);
       gcImage.setBackground(MainWindow.blues[4]);
       gcImage.fillRectangle(0,1,(percentDone*width)/1000,1+height);        
       gcImage.dispose();
