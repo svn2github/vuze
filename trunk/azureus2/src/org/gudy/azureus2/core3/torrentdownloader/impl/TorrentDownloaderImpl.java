@@ -76,9 +76,11 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       
       if (_file != null) {
         File temp = new File(_file);
-        this.directoryname = temp.getAbsoluteFile().getParent();
         if (!temp.isDirectory()) {
+		  this.directoryname = temp.getAbsolutePath();
+        } else {
           this.filename = temp.getName();
+		  this.directoryname = temp.getAbsoluteFile().getParent();
         }
       }
       this.state = STATE_INIT;
