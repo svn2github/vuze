@@ -162,9 +162,8 @@ PEPeerTransportProtocol
       }
       
       public void connectSuccess() {  //will be called immediately
-        initializeConnection();
-
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
+        initializeConnection();
       }
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -211,10 +210,8 @@ PEPeerTransportProtocol
           return;
         }
         
-        initializeConnection();
-
         LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
-
+        initializeConnection();
         sendBTHandshake();
       }
         
@@ -872,9 +869,7 @@ PEPeerTransportProtocol
       }
     }
     //ensure we dont get stuck in the handshaking phases
-    else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ||
-             connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD ) {
-      
+    else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ) {
       long wait_time = SystemTime.getCurrentTime() - connection_established_time;
       
       if( wait_time < 0 ) {  //oops, system clock went backwards
@@ -883,8 +878,7 @@ PEPeerTransportProtocol
       }
       
       if( wait_time > 3*60*1000 ) { //3min timeout
-        String phase = connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ? "handshaking" : "bitfield";
-        closeConnection( toString() + ": Timed out while waiting in " +phase+ " phase", true );
+        closeConnection( toString() + ": Timed out while waiting for handshake", true );
         return true;
       }
     }
@@ -1038,7 +1032,8 @@ PEPeerTransportProtocol
        
       changePeerState( PEPeer.TRANSFERING );
       
-      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+      connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
+      
       sendBitField(); 
     }
     
@@ -1092,7 +1087,8 @@ PEPeerTransportProtocol
      
     changePeerState( PEPeer.TRANSFERING );
     
-    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+    connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
+
     sendBitField();
   }
   
@@ -1350,9 +1346,7 @@ PEPeerTransportProtocol
           decodeAZHandshake( (AZHandshake)message );
           return true;
         }
-        
-        connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-        
+
         if( message.getID().equals( BTMessage.ID_BT_BITFIELD ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
           decodeBitfield( (BTBitfield)message );
           return true;

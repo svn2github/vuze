@@ -60,9 +60,6 @@ public class StateItem
         case PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE :
           state_text = MessageText.getString( "PeersView.state.handshake" );
           break;
-        case PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD :
-          state_text = MessageText.getString( "PeersView.state.bitfield" );
-          break;
         case PEPeerTransport.CONNECTION_FULLY_ESTABLISHED :
           state_text = MessageText.getString( "PeersView.state.established" );
           break;

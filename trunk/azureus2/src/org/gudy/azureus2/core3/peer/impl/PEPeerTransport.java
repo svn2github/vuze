@@ -38,7 +38,6 @@ PEPeerTransport
   public static final int CONNECTION_PENDING                = 0;
   public static final int CONNECTION_CONNECTING             = 1;
   public static final int CONNECTION_WAITING_FOR_HANDSHAKE  = 2;
-  public static final int CONNECTION_WAITING_FOR_BITFIELD   = 3;
   public static final int CONNECTION_FULLY_ESTABLISHED      = 4;
   
 
