@@ -241,6 +241,12 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
   
     	// row
 
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
+                         "ConfigView.section.tracker.natcheckenable").setLayoutData( gridData );
+    	// row
+
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.ip");
 
@@ -453,7 +459,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
 
     passwordEnableWeb.setAdditionalActionPerformer(enabler);
     passwordEnableTorrent.setAdditionalActionPerformer(enabler);
-    
+
     // row
 
     gridData = new GridData();
