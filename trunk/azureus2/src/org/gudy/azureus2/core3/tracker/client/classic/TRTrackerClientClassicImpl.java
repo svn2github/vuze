@@ -1916,6 +1916,8 @@ TRTrackerClientClassicImpl
 				
 				TRTrackerResponsePeer	peer = peers[i];
 				
+					// remove and reinsert to maintain most recent last
+				
 				tracker_peer_cache.remove( peer.getIPAddress());
 				
 				tracker_peer_cache.put( peer.getIPAddress(), peer );
@@ -1978,18 +1980,50 @@ TRTrackerClientClassicImpl
 	protected TRTrackerResponsePeer[]
 	getPeersFromCache()
 	{
+			// use double the num_want as no doubt a fair few connections will fail and
+			// we want to get a decent reconnect rate
+		
+		int	num_want = calculateNumWant() * 2;
+	
 		synchronized( tracker_peer_cache ){
-      
-			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
+
+			if ( tracker_peer_cache.size() <= num_want ){
+				
+				TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
+				
+				tracker_peer_cache.values().toArray( res );
+				
+			    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+		                   "TRTrackerClient: returned " + res.length + " cached peers" );
+			    
+				return( res );
+			}
 			
-      tracker_peer_cache.values().toArray( res );
+			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[num_want];
 			
-      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                   "TRTrackerClient: returned " + res.length + " cached peers" );
+			Iterator	it = tracker_peer_cache.keySet().iterator();
 			
-      return( res );
+				// take 'em out and put them back in so we cycle through the peers
+				// over time
+			
+			for (int i=0;i<num_want;i++){
+				
+				String	key = (String)it.next();
+				
+				res[i] = (TRTrackerResponsePeer)tracker_peer_cache.get(key);
+				
+				it.remove();
+			}
+			
+			for (int i=0;i<num_want;i++){
+				
+				tracker_peer_cache.put( res[i].getIPAddress(), res[i] );
+			}
+			
+		    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+	                   "TRTrackerClient: returned " + res.length + " cached peers" );
+		    
+			return( res );
 		}
-	}
-  
-  
+	} 
 }
