@@ -1377,7 +1377,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
               //we're probably in end-game mode then
               if( manager.isInEndGameMode() )  msg += ", but piece block ignored as already written in end-game mode";
               else  msg += ", but piece block ignored as already written";
-              Debug.out( msg );  //TODO remove debug
               message_buff.returnToPool();
             }
             else {
