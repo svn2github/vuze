@@ -30,7 +30,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerStatsImpl;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
