@@ -83,6 +83,10 @@ public class StartStopRulesDefaultPlugin
   
   private static final int FORCE_ACTIVE_FOR = 30000;
 
+  private static final int FORCE_CHECK_PERIOD				= 30000;
+  private static final int CHECK_FOR_GROSS_CHANGE_PERIOD	= 30000;
+  private static final int PROCESS_CHECK_PERIOD				= 500;
+  
   private PluginInterface     plugin_interface;
   private PluginConfig        plugin_config;
   private DownloadManager     download_manager;
@@ -201,8 +205,8 @@ public class StartStopRulesDefaultPlugin
     download_manager = plugin_interface.getDownloadManager();
     download_manager.addListener(new StartStopDMListener());
     
-    changeCheckerTimer.schedule(new ChangeCheckerTimerTask(), 10000, 30000);
-    changeCheckerTimer.schedule(new ChangeFlagCheckerTask(), 10000, 500);
+    changeCheckerTimer.schedule(new ChangeCheckerTimerTask(), 10000, CHECK_FOR_GROSS_CHANGE_PERIOD );
+    changeCheckerTimer.schedule(new ChangeFlagCheckerTask(), 10000, PROCESS_CHECK_PERIOD );
   }
   
   private void recalcAllSeedingRanks(boolean force) {
@@ -245,14 +249,29 @@ public class StartStopRulesDefaultPlugin
    */
   private class ChangeFlagCheckerTask extends TimerTask 
   {
+  	long	last_process_time = 0;
+	
     public void run() {
       if (closingDown)
         return;
 
+      long	now = SystemTime.getCurrentTime();
+      
+      if ( 	now < last_process_time  ||
+      		now - last_process_time >= FORCE_CHECK_PERIOD ){
+      	
+      	somethingChanged	= true;
+      }
+      		
       if (somethingChanged) {
+      	
         try {
-          process();
+        	last_process_time	= now;
+        	
+        	process();
+        	
         } catch( Exception e ) {
+        	
         	Debug.printStackTrace( e );
         }
       }
@@ -1393,54 +1412,65 @@ public class StartStopRulesDefaultPlugin
     /** Assign Seeding Rank based on RankType
      * @return New Seeding Rank Value
      */
-    public int recalcSeedingRank() {
+    public int 
+	recalcSeedingRank() 
+    {
     	try{
     		downloadData_this_mon.enter();
     	
 	      DownloadStats stats = dl.getStats();
 	      int numCompleted = stats.getDownloadCompleted(false);
 	
-	      // make undownloaded sort to top so they start can first.
+	      	// make undownloaded sort to top so they start can first.
+	      
 	      if (numCompleted < 1000) {
 	        setSeedingRank(SR_INCOMPLETE_ENDS_AT - dl.getPosition());
 	        return sr;
 	      }
 	
+	      	// here we are seeding
+	      
 	      int shareRatio = stats.getShareRatio();
 	
-	      int numPeers = calcPeersNoUs(dl);
-	      int numSeeds = calcSeedsNoUs(dl);
-	      if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
-	          numSeeds += numPeers / numPeersAsFullCopy;
-	
-	      boolean bScrapeResultsOk = (numPeers > 0) || (numSeeds > 0) || scrapeResultOk(dl);
+	      int num_peers_excluding_us = calcPeersNoUs(dl);
+	      int num_seeds_excluding_us = calcSeedsNoUs(dl);
+	      
+	      if (numPeersAsFullCopy != 0 && num_seeds_excluding_us >= iFakeFullCopySeedStart){
+	      	
+	          num_seeds_excluding_us += num_peers_excluding_us / numPeersAsFullCopy;
+	      }
+	      
+	      boolean bScrapeResultsOk = (num_peers_excluding_us > 0) || (num_seeds_excluding_us > 0) || scrapeResultOk(dl);
 	
 	      int newSR = 0;
 	
-	      if (isFirstPriority())
+	      if (isFirstPriority()){
+	      	
 	        newSR = SR_FIRST_PRIORITY_STARTS_AT;
-	
-	      /** 
-	       * Check ignore rules
-	       */
-	      // never apply ignore rules to First Priority Matches
-	      // (we don't want leechers circumventing the 0.5 rule)
-	      else {
-	        if (numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
+	        
+	      }else{
+	      
+		      /** 
+		       * Check ignore rules
+		       */
+		      // never apply ignore rules to First Priority Matches
+		      // (we don't want leechers circumventing the 0.5 rule)
+	      
+	        if (num_peers_excluding_us == 0 && bScrapeResultsOk && bIgnore0Peers) {
 	          setSeedingRank(SR_0PEERS);
 	          return SR_0PEERS;
 	        }
 	
 	        if (iIgnoreShareRatio != 0 && 
 	            shareRatio > iIgnoreShareRatio && 
-	            numSeeds >= iIgnoreShareRatio_SeedStart &&
+	            num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart &&
 	            shareRatio != -1) {
 	          setSeedingRank(SR_SHARERATIOMET);
 	          return sr;
 	        }
 	  
 	        //0 means disabled
-	        if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
+	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
 	          setSeedingRank(SR_NUMSEEDSMET);
 	          return SR_NUMSEEDSMET;
 	        }
@@ -1448,9 +1478,9 @@ public class StartStopRulesDefaultPlugin
 	        // Skip if Stop Peers Ratio exceeded
 	        // (More Peers for each Seed than specified in Config)
 	        //0 means never stop
-	        if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
-	          float ratio = (float) numPeers / numSeeds;
-	          if (ratio <= iIgnoreRatioPeers && numSeeds >= iIgnoreRatioPeers_SeedStart) {
+	        if (iIgnoreRatioPeers != 0 && num_seeds_excluding_us != 0) {
+	          float ratio = (float) num_peers_excluding_us / num_seeds_excluding_us;
+	          if (ratio <= iIgnoreRatioPeers && num_seeds_excluding_us >= iIgnoreRatioPeers_SeedStart) {
 	            setSeedingRank(SR_RATIOMET);
 	            return SR_RATIOMET;
 	          }
@@ -1524,36 +1554,36 @@ public class StartStopRulesDefaultPlugin
 	       */
 	
 	      if ((iRankType == RANK_SEEDCOUNT) && 
-	          (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds))
+	          (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > num_seeds_excluding_us))
 	      {
 	        if (bScrapeResultsOk) {
 	          int limit = SR_FIRST_PRIORITY_STARTS_AT / 2 - 10000;
-	          newSR += limit/(numSeeds + 1) +
-	                   ((bPreferLargerSwarms ? 1 : -1) * numPeers * 5);
-	          if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
+	          newSR += limit/(num_seeds_excluding_us + 1) +
+	                   ((bPreferLargerSwarms ? 1 : -1) * num_peers_excluding_us * 5);
+	          if (num_seeds_excluding_us == 0 && num_peers_excluding_us >= minPeersToBoostNoSeeds)
 	            newSR += limit;
 	        }
 	
 	      } else { // iRankType == RANK_SPRATIO or we are falling back
-	        if (numPeers != 0) {
-	          if (numSeeds == 0) {
-	            if (numPeers >= minPeersToBoostNoSeeds)
+	        if (num_peers_excluding_us != 0) {
+	          if (num_seeds_excluding_us == 0) {
+	            if (num_peers_excluding_us >= minPeersToBoostNoSeeds)
 	              newSR += 20000;
 	          }
 	          else { // numSeeds != 0 && numPeers != 0
-	            if (numPeers > numSeeds) {
+	            if (num_peers_excluding_us > num_seeds_excluding_us) {
 	              // give poor seeds:peer ratio a boost 
-	              newSR += 10000 - (numSeeds * 10000 / numPeers);
+	              newSR += 10000 - (num_seeds_excluding_us * 10000 / num_peers_excluding_us);
 	            }
 	            else { // Peers <= Seeds
-	              newSR += numPeers * 1000 / numSeeds;
+	              newSR += num_peers_excluding_us * 1000 / num_seeds_excluding_us;
 	            }
 	          }
 	
 	          if (bPreferLargerSwarms)
-	            newSR += numPeers * 5;
+	            newSR += num_peers_excluding_us * 5;
 	          else
-	            newSR -= numPeers * 5;
+	            newSR -= num_peers_excluding_us * 5;
 	        }
 	      }
 	

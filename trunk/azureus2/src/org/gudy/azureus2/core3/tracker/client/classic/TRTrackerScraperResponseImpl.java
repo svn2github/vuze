@@ -99,12 +99,16 @@ public class TRTrackerScraperResponseImpl
     sStatus = sLastStatus;
   }
   
-  protected void setScrapeStartTime(long time) {
+  public void 
+  setScrapeStartTime(long time) 
+  {
     scrapeStartTime = time;
   }
     
   
-  public long getScrapeStartTime() {
+  public long 
+  getScrapeStartTime() 
+  {
     return scrapeStartTime;
   }
 

@@ -55,6 +55,10 @@ TRTrackerScraperResponse
   public long
   getScrapeStartTime();
 
+  public void
+  setScrapeStartTime(
+  	long		time );
+  
   public long
   getNextScrapeStartTime();
 

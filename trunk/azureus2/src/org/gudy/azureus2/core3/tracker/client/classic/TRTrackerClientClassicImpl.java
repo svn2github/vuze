@@ -1916,10 +1916,21 @@ TRTrackerClientClassicImpl
 		              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
 		              if (scrapeResponse != null) {
 		                long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-		                long lNewNextScrapeTime = SystemTime.getCurrentTime() + 10*60*1000;
+		                long now = SystemTime.getCurrentTime();
+		                
+		                long lNewNextScrapeTime =  now + 10*60*1000;
+		                
+		                	// make it look as if the scrape has just run. Important
+		                	// as seeding rules may make calculations on when the 
+		                	// scrape value were set
+		                
+		                scrapeResponse.setScrapeStartTime( now );
+		                
 		                if (lNextScrapeTime < lNewNextScrapeTime) {
+		                	
 		                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
 		                }
+		                
 		                scrapeResponse.setSeedsPeers(lComplete.intValue(), lIncomplete.intValue());
 		              }
 		            }
