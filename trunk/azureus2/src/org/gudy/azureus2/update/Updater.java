@@ -150,9 +150,8 @@ public class Updater {
 
   public static File getFileFromURL(URL url) {
     File file = null;
-//    String urlString = "jar:file:/D:/Overnet/BitTorrent/links/Azureus%20-%20java%20bittorrent%20client/Updater3.jar!/org/gudy/azureus2/update/Updater.class";
     String urlString = url.toString();
-    System.out.println("urlString: " + urlString);
+//    System.out.println("urlString: " + urlString);
     if(urlString.startsWith("jar:file:/")) {
       int posDirectory = urlString.indexOf(".jar!", 11);
       String jarName = urlString.substring(4, posDirectory+4);
