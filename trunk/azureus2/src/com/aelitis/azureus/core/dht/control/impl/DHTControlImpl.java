@@ -1445,7 +1445,7 @@ DHTControlImpl
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
-		DHTDBValue[]	values	= database.get( new HashWrapper( key ), max_values);
+		DHTDBValue[]	values	= database.get( new HashWrapper( key ), max_values, true );
 					
 		if ( values.length > 0 ){
 			
@@ -1551,7 +1551,7 @@ DHTControlImpl
 			
 			byte[]	encoded_key		= key.getHash();
 			
-			DHTDBValue[]	values	= database.get( key, 0 );
+			DHTDBValue[]	values	= database.get( key, 0, false );
 			
 			if ( values.length == 0 ){
 				

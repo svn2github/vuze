@@ -43,6 +43,8 @@ DHTDBMapping
 	private Map				direct_originator_map			= new LinkedHashMap(16, 0.75f, true );
 	private Map				indirect_originator_value_map	= new LinkedHashMap(16, 0.75f, true );
 	
+	private int				hits;
+	
 	protected
 	DHTDBMapping(
 		HashWrapper	_key )
@@ -226,6 +228,17 @@ DHTDBMapping
 		return( originator_value_id );
 	}
 	
+	protected void
+	addHit()
+	{
+		hits++;
+	}
+	
+	protected int
+	getHits()
+	{
+		return( hits );
+	}
 	
 	protected DHTDBValueImpl[]
 	get(

@@ -321,7 +321,8 @@ DHTDBImpl
 	public DHTDBValue[]
 	get(
 		HashWrapper		key,
-		int				max_values )	// 0 -> all
+		int				max_values,	// 0 -> all
+		boolean			external_request )	
 	{
 		try{
 			this_mon.enter();
@@ -333,6 +334,11 @@ DHTDBImpl
 			if ( mapping == null ){
 				
 				return( new DHTDBValueImpl[0]);
+			}
+			
+			if ( external_request ){
+				
+				mapping.addHit();
 			}
 			
 			return( mapping.get( max_values, true ));
@@ -729,44 +735,51 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 	
-				Iterator	it2 = mapping.getValues();
-				
-				while( it2.hasNext()){
+				if ( mapping.getSize() == 0 ){
 					
-					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
+					it.remove();
 					
-					int	distance = value.getCacheDistance();
+				}else{
 					
-						// distance = 0 are explicitly published and need to be explicitly removed
+					Iterator	it2 = mapping.getValues();
 					
-					if ( distance == 1 ){
+					while( it2.hasNext()){
 						
-							// distance 1 = initial store location. We use the initial creation date
-							// when deciding whether or not to remove this, plus a bit, as the 
-							// original publisher is supposed to republish these
+						DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 						
-						if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+						int	distance = value.getCacheDistance();
+						
+							// distance = 0 are explicitly published and need to be explicitly removed
+						
+						if ( distance == 1 ){
 							
-							DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+								// distance 1 = initial store location. We use the initial creation date
+								// when deciding whether or not to remove this, plus a bit, as the 
+								// original publisher is supposed to republish these
 							
-							it2.remove();
-						}
-						
-					}else if ( distance > 1 ){
-						
-							// distance 2 get 1/2 time, 3 get 1/4 etc.
-							// these are indirectly cached at the nearest location traversed
-							// when performing a lookup. the store time is used when deciding
-							// whether or not to remove these in an ever reducing amount the
-							// further away from the correct cache position that the value is
-						
-						long	permitted = cache_republish_interval >> (distance-1);
-						
-						if ( now - value.getStoreTime() >= permitted ){
+							if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+								
+								DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+								
+								it2.remove();
+							}
 							
-							DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+						}else if ( distance > 1 ){
 							
-							it2.remove();
+								// distance 2 get 1/2 time, 3 get 1/4 etc.
+								// these are indirectly cached at the nearest location traversed
+								// when performing a lookup. the store time is used when deciding
+								// whether or not to remove these in an ever reducing amount the
+								// further away from the correct cache position that the value is
+							
+							long	permitted = cache_republish_interval >> (distance-1);
+							
+							if ( now - value.getStoreTime() >= permitted ){
+								
+								DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+								
+								it2.remove();
+							}
 						}
 					}
 				}
@@ -785,7 +798,7 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 			
-			logger.log( "Stored values = " + getSize()); 
+			logger.log( "Stored keys = " + stored_values.size() + ", values = " + getSize()); 
 
 			Iterator	it = stored_values.entrySet().iterator();
 			
@@ -829,20 +842,54 @@ DHTDBImpl
 					data[1]	= s;
 				}
 			}
+			
+			it = count.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Integer	k = (Integer)it.next();
+				
+				Object[]	data = (Object[])count.get(k);
+				
+				logger.log( "    " + k + " -> " + data[0] + " entries" ); // ": " + data[1]);
+			}
+			
+			it = stored_values.entrySet().iterator();
+			
+			String	str 		= "    ";
+			int		str_entries	= 0;
+			
+			while( it.hasNext()){
+						
+				Map.Entry		entry = (Map.Entry)it.next();
+				
+				HashWrapper		value_key	= (HashWrapper)entry.getKey();
+				
+				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
+				
+				if ( str_entries == 16 ){
+					
+					logger.log( str );
+					
+					str = "    ";
+					
+					str_entries	= 0;
+				}
+				
+				str_entries++;
+				
+				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits();
+			}
+			
+			if ( str_entries > 0 ){
+				
+				logger.log( str );
+			}
 		}finally{
 			
 			this_mon.exit();
 		}
 				
-		Iterator	it = count.keySet().iterator();
-		
-		while( it.hasNext()){
-			
-			Integer	k = (Integer)it.next();
-			
-			Object[]	data = (Object[])count.get(k);
-			
-			logger.log( "    " + k + " -> " + data[0] + ": " + data[1]);
-		}
+
 	}
 }

@@ -57,7 +57,8 @@ DHTDB
 	public DHTDBValue[]
 	get(
 		HashWrapper		key,
-		int				max_values );
+		int				max_values,
+		boolean			external_request );
 		
 	public DHTDBValue
 	remove(	
