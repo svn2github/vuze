@@ -43,6 +43,7 @@ public class OutgoingMessageQueue {
   private final ArrayList sent_listeners = new ArrayList();
   private final ArrayList byte_listeners = new ArrayList();
   private ProtocolMessage urgent_message = null;
+  private volatile boolean destroyed = false;
   
   
   /**
@@ -58,6 +59,7 @@ public class OutgoingMessageQueue {
    * Destroy this queue; i.e. perform cleanup actions.
    */
   protected void destroy() {
+    destroyed = true;
     synchronized( queue ) {
       while( !queue.isEmpty() ) {
       	((ProtocolMessage)queue.remove( 0 )).destroy();
@@ -86,8 +88,11 @@ public class OutgoingMessageQueue {
    * @param message message to add
    */
   public void addMessage( ProtocolMessage message ) {
+    
+    if( destroyed ) System.out.println("addMessage:: already destroyed");
+    
     removeMessagesOfType( message.typesToRemove() );
-    synchronized( queue ) {  
+    synchronized( queue ) {
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
@@ -99,7 +104,7 @@ public class OutgoingMessageQueue {
       }
       queue.add( pos, message );
       total_size += message.getPayload().remaining();
-    }
+    } 
     notifyAddListeners( message );
   }
   
@@ -158,9 +163,9 @@ public class OutgoingMessageQueue {
    * @return number of bytes delivered
    * @throws IOException
    */
-  protected int deliverToTransport( int max_bytes ) throws IOException {
+  protected int deliverToTransport( int max_bytes ) throws IOException {    
     int written = 0;
-    synchronized( queue ) {     
+    synchronized( queue ) {
     	if( !queue.isEmpty() ) {
         ByteBuffer[] buffers = new ByteBuffer[ queue.size() ];
         int[] starting_pos = new int[ queue.size() ];
