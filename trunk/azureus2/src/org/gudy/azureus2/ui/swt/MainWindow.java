@@ -420,6 +420,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if (instanceCount == 0) {      
       try {
         allocateBlues();
+    LGLogger.log(".. blues done");
         
         black = new Color(display, new RGB(0, 0, 0));
         blue = new Color(display, new RGB(0, 0, 170));
@@ -429,14 +430,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         background = new Color(display , new RGB(248,248,248));
         red_ConsoleView = new Color(display, new RGB(255, 192, 192));
         red_ManagerItem = new Color(display, new RGB(255, 68, 68));
+    LGLogger.log(".. colors done");
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
+    LGLogger.log(".. cursor done");
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
         e.printStackTrace();
       }
     }
     instanceCount++;
-    LGLogger.log("Done allocating Colors..");
+    LGLogger.log("Starting Main Window Init..");
 
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
@@ -1124,6 +1127,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       e.printStackTrace();
     }
     try {
+      colorShift = new Color(display, r, g, b);
+/*
       float[] hsb = new float[3];
       java.awt.Color.RGBtoHSB(r, g, b, hsb);
       hsb[0] += 0.10;
@@ -1131,9 +1136,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       	hsb[0] -= 1;
       java.awt.Color awtColorShift = java.awt.Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
       colorShift = new Color(display, awtColorShift.getRed(), awtColorShift.getGreen(), awtColorShift.getBlue());
+*/
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Color Shift Failure, using default 'blue'");
-      colorShift = new Color(display, r, g, b);
     }
     
   }
