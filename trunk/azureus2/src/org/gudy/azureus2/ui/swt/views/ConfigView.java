@@ -156,6 +156,7 @@ public class ConfigView extends AbstractIView {
 	itemPlugins.setText("Plugins");
 
 	TabFolder tfPlugins = new TabFolder(tfConfig, SWT.TOP | SWT.FLAT);
+	String[] names;
 	Parameter[] tempParams;
 	ParameterRepository repository = ParameterRepository.getInstance();
 	TabItem tempTab;
@@ -163,9 +164,10 @@ public class ConfigView extends AbstractIView {
 	GridLayout tempLayout;
 	Label tempLabel;
 	
-	for(int i = 0; i < repository.getSize(); i++)
+	names = repository.getNames();
+	for(int i = 0; i < names.length; i++)
 	{
-		tempParams = repository.getParameterBlock(repository.getNames()[i]);
+		tempParams = repository.getParameterBlock(names[i]);
 		tempTab = new TabItem(tfPlugins, SWT.NULL);
 		tempTab.setText(repository.getNames()[i]);
 		
