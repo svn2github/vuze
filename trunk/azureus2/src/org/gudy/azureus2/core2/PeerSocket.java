@@ -415,8 +415,7 @@ public class PeerSocket extends PeerConnection {
           analyseBuffer(readBuffer);         
           if(getState() == TRANSFERING && readingLength) {
             process();
-          }
-            
+          }            
         }
       }
     }
