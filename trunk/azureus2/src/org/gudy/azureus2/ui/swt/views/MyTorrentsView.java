@@ -528,8 +528,6 @@ public class MyTorrentsView
           }
           itemBar.setSelection(barsOpened);
 
-          itemMoveDown.setEnabled(moveDown);
-          itemMoveUp.setEnabled(moveUp);
           itemMoveTop.setEnabled(moveUp);
           itemMoveEnd.setEnabled(moveDown);
 
@@ -1218,6 +1216,11 @@ public class MyTorrentsView
   private void moveSelectedTorrentsDown() {
     // Don't use runForSelectDataSources to ensure the order we want
     Object[] dataSources = getSelectedDataSources();
+    Arrays.sort(dataSources, new Comparator() {
+      public int compare (Object a, Object b) {
+        return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+      }
+    });
     for (int i = dataSources.length - 1; i >= 0; i--) {
       DownloadManager dm = (DownloadManager)dataSources[i];
       if (dm.isMoveableDown()) {
@@ -1232,6 +1235,11 @@ public class MyTorrentsView
   private void moveSelectedTorrentsUp() {
     // Don't use runForSelectDataSources to ensure the order we want
     Object[] dataSources = getSelectedDataSources();
+    Arrays.sort(dataSources, new Comparator() {
+      public int compare (Object a, Object b) {
+        return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+      }
+    });
     for (int i = 0; i < dataSources.length; i++) {
       DownloadManager dm = (DownloadManager)dataSources[i];
       if (dm.isMoveableUp()) {
@@ -1316,10 +1324,11 @@ public class MyTorrentsView
       return up;
     if(itemKey.equals("bottom"))
       return down;
+    // enable up and down so that we can do the "selection rotate trick"
     if(itemKey.equals("up"))
-      return up;
+      return true;
     if(itemKey.equals("down"))
-      return down;
+      return true;
     return false;
   }
 
