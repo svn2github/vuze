@@ -67,7 +67,7 @@ public class MessageManager {
    * @param message instance to use for decoding
    * @throws MessageException if this message type has already been registered
    */
-  public void registerMessageType( Message message ) throws MessageException {
+  public synchronized void registerMessageType( Message message ) throws MessageException {
     Object key = new String( message.getID() + message.getVersion() );
     
     if( message_registrations.containsKey( key ) ) {
