@@ -76,10 +76,17 @@ PESharedPortSelector
 		
 		while (true){
 			
-			try {
-					//	could optimise these syncs if required....
+			try{
 				
-				synchronized( this ){
+					// concurrent access to the selector from a second thread causes problems
+					// Initially null-pointer exceptions were generated within the Select itself.
+					// This was "fixed" by synchronizing the registration and post-select key
+					// operations. However, there still remained the problem that on a Linux syste,
+					// the thread management was such that the register was being help up by the
+					// fact that the registration occurred when the selector was selecting. Hence
+					// the move to stick them on a list and pick them up here
+				
+				synchronized( register_list ){
 					
 					if ( register_list.size() > 0 ){
 						
@@ -112,7 +119,13 @@ PESharedPortSelector
 				}
 				
 				int select_res = selector.select(500);
-			 			   
+			 			
+					// make sure that any socket removed in the previous loop are now handed over
+					// do this *after* subsequent select to ensure that the removes have
+					// been processed before the socket is used elsewhere. Not sure if this
+					// is essential but the code was added when looking into other
+					// problems and might as well stay here for the moment :)
+				
 				for (int i=0;i<sockets_to_handover.size();i++){
 			  	
 			  		socketData	sd = (socketData) sockets_to_handover.get(i);
@@ -123,132 +136,129 @@ PESharedPortSelector
 			  	sockets_to_handover.clear();
 			  
 			  	if ( select_res > 0 ){
-			  	
-			  		synchronized( this ){
-			  	
-				    	Iterator ready_it = selector.selectedKeys().iterator();
-				    
-	        	    	while (ready_it.hasNext()){
-	        	    	
-					  		SelectionKey key = (SelectionKey)ready_it.next();
-					  
-				      		ready_it.remove();
-				      
-				      		SocketChannel channel = (SocketChannel)key.channel();
-				      
-				      		boolean remove_this_key = false;
-						
-							if ( key.isValid() && key.isReadable() ){
-							
-						  		socketData socket_data = (socketData)outstanding_sockets.get( channel );
-						  
-						  		if ( socket_data == null ){
-						  	
-						    		LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find socket buffer" );
-						    
-						    		remove_this_key = true;
-						    
-						  		}else{
-						  			
-						    		try{
-						    
-						      			ByteBuffer buffer = socket_data.getBuffer();
-						    
-						      			int len = channel.read(buffer);
-	              
-						      			if ( len < 0 ){  //other end closed the connection
-						    
-						        			remove_this_key = true;
-						      			}else{
-						      				
-						        			if ( buffer.position() >= 48 ){
-						        				
-						          				byte[]	contents = new byte[buffer.position()];
-						          				
-						          				buffer.flip();
-						          				
-						          				buffer.get( contents );
-						          				
-	                    						HashWrapper	hw = new HashWrapper(contents,28,20);
-	                    						
-	                       		  				PESharedPortServerImpl server = (PESharedPortServerImpl)hash_map.get( hw );
-	                         
-			                         			if ( server == null ){
-			                         				
-			                           				remove_this_key = true;
-			                           				
-			                           				LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find server hash" );
-			                           				
-											 	}else{
-			                           				outstanding_sockets.remove( channel );
-			                           				
-			                           				key.cancel();
-			                           
-			    					   				socket_data.setHandoverServer( server );
-			    					   
-			                           				socket_data.setHandoverData( contents );
-			                           
-			                           				sockets_to_handover.add( socket_data );
-			                          			}
-							  	  			}
-						  				}
-						    		}catch( IOException e ){
-						    			
-						      			remove_this_key	= true;
-						      			
-						      			LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: error occurred during socket read: " + e.toString());
-						  	 		}
-	              
-					  	  		}
-							}else{ 
-							
-								Debug.out("key is invalid or is not readable"); 
-							}
-						
-							if ( remove_this_key ){
-							
-						  		outstanding_sockets.remove( channel );
-						 	
-						 			// no need to cancel the key as close does it for us
-						 	
-			              		try{
-							    	channel.close();
-							    	
-						  		}catch( IOException e ){ 
-						  		}
-							}
-	        	    	} 
-	
+			  				  	
+			    	Iterator ready_it = selector.selectedKeys().iterator();
+			    
+        	    	while (ready_it.hasNext()){
+        	    	
+				  		SelectionKey key = (SelectionKey)ready_it.next();
+				  
+			      		ready_it.remove();
+			      
+			      		SocketChannel channel = (SocketChannel)key.channel();
+			      
+			      		boolean remove_this_key = false;
 					
-				    	Iterator	keys_it = selector.keys().iterator();
-				    
-						long	now = System.currentTimeMillis();
-	        
-						while( keys_it.hasNext() ){
+						if ( key.isValid() && key.isReadable() ){
 						
-					  		SelectionKey key = (SelectionKey)keys_it.next();
-					  
-					  		SocketChannel channel = (SocketChannel)key.channel();
-					  
 					  		socketData socket_data = (socketData)outstanding_sockets.get( channel );
-	          
-					  		if ( socket_data != null ){
+					  
+					  		if ( socket_data == null ){
 					  	
-					    		if ( now - socket_data.getLastUseTime() > SOCKET_TIMEOUT ){
-					    	
-					      			LGLogger.log(0, 0, LGLogger.INFORMATION, getIP(socket_data.getSocket())+" : PESharedPortSelector: timed out socket connection" );
-					      
-					      			outstanding_sockets.remove( channel );
-					      
-					      				// no need to cancel the key as close does it for us
-					      								
-						  			try{
-							  			channel.close();
-						  			}catch( IOException e ){
-						  			} 
-							  	}	
-					    	}	
-						}	
+					    		LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find socket buffer" );
+					    
+					    		remove_this_key = true;
+					    
+					  		}else{
+					  			
+					    		try{
+					    
+					      			ByteBuffer buffer = socket_data.getBuffer();
+					    
+					      			int len = channel.read(buffer);
+              
+					      			if ( len < 0 ){  //other end closed the connection
+					    
+					        			remove_this_key = true;
+					      			}else{
+					      				
+					        			if ( buffer.position() >= 48 ){
+					        				
+					          				byte[]	contents = new byte[buffer.position()];
+					          				
+					          				buffer.flip();
+					          				
+					          				buffer.get( contents );
+					          				
+                    						HashWrapper	hw = new HashWrapper(contents,28,20);
+                    						
+                       		  				PESharedPortServerImpl server = (PESharedPortServerImpl)hash_map.get( hw );
+                         
+		                         			if ( server == null ){
+		                         				
+		                           				remove_this_key = true;
+		                           				
+		                           				LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find server hash" );
+		                           				
+										 	}else{
+		                           				outstanding_sockets.remove( channel );
+		                           				
+		                           				key.cancel();
+		                           
+		    					   				socket_data.setHandoverServer( server );
+		    					   
+		                           				socket_data.setHandoverData( contents );
+		                           
+		                           				sockets_to_handover.add( socket_data );
+		                          			}
+						  	  			}
+					  				}
+					    		}catch( IOException e ){
+					    			
+					      			remove_this_key	= true;
+					      			
+					      			LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: error occurred during socket read: " + e.toString());
+					  	 		}
+              
+				  	  		}
+						}else{ 
+						
+							Debug.out("key is invalid or is not readable"); 
+						}
+					
+						if ( remove_this_key ){
+						
+					  		outstanding_sockets.remove( channel );
+					 	
+					 			// no need to cancel the key as close does it for us
+					 	
+		              		try{
+						    	channel.close();
+						    	
+					  		}catch( IOException e ){ 
+					  		}
+						}
+        	    	} 
+
+				
+			    	Iterator	keys_it = selector.keys().iterator();
+			    
+					long	now = System.currentTimeMillis();
+        
+					while( keys_it.hasNext() ){
+					
+				  		SelectionKey key = (SelectionKey)keys_it.next();
+				  
+				  		SocketChannel channel = (SocketChannel)key.channel();
+				  
+				  		socketData socket_data = (socketData)outstanding_sockets.get( channel );
+          
+				  		if ( socket_data != null ){
+				  	
+				    		if ( now - socket_data.getLastUseTime() > SOCKET_TIMEOUT ){
+				    	
+				      			LGLogger.log(0, 0, LGLogger.INFORMATION, getIP(socket_data.getSocket())+" : PESharedPortSelector: timed out socket connection" );
+				      
+				      			outstanding_sockets.remove( channel );
+				      
+				      				// no need to cancel the key as close does it for us
+				      								
+					  			try{
+						  			channel.close();
+					  			}catch( IOException e ){
+					  			} 
+						  	}	
+				    	}	
 				  	}				
 			  	}          
 			}catch( Throwable e ){
@@ -274,70 +284,72 @@ PESharedPortSelector
 				catch( InterruptedException f ){ f.printStackTrace(); }
 				
 					// recreate the selector
+										
+				try{
+					selector.close();
 					
-				synchronized( this ){
+				}catch( Throwable f ){
+				}
+			
+				try{
+		
+					selector = Selector.open();
+			
+					Iterator	s_it = outstanding_sockets.keySet().iterator();
+				
+					while( s_it.hasNext()){
 					
+						SocketChannel channel = (SocketChannel)s_it.next();
+		
+						channel.register(selector,SelectionKey.OP_READ);
+					}
+				}catch( Throwable f ){
+					
+						// worst case, drop the connections
+						
 					try{
 						selector.close();
 						
-					}catch( Throwable f ){
+					}catch( Throwable g ){
 					}
-				
+					
 					try{
-			
+					
 						selector = Selector.open();
-				
+						
 						Iterator	s_it = outstanding_sockets.keySet().iterator();
-					
+				
 						while( s_it.hasNext()){
-						
-							SocketChannel channel = (SocketChannel)s_it.next();
-			
-							channel.register(selector,SelectionKey.OP_READ);
-						}
-					}catch( Throwable f ){
-						
-							// worst case, drop the connections
-							
-						try{
-							selector.close();
-							
-						}catch( Throwable g ){
-						}
-						
-						try{
-						
-							selector = Selector.open();
-							
-							Iterator	s_it = outstanding_sockets.keySet().iterator();
 					
-							while( s_it.hasNext()){
-						
-								SocketChannel channel = (SocketChannel)s_it.next();
-								
-								try{
-									channel.close();
-								}catch( Throwable h ){
-								}
+							SocketChannel channel = (SocketChannel)s_it.next();
+							
+							try{
+								channel.close();
+							}catch( Throwable h ){
 							}
-							
-							outstanding_sockets.clear();
-							
-						}catch( Throwable g ){
 						}
+						
+						outstanding_sockets.clear();
+						
+					}catch( Throwable g ){
 					}
 				}
 			}
 		}
 	}
 	
-	public synchronized void
+	public void
 	addSocket(
 		SocketChannel		_socket )
 	{		
-		socketData	sd = new socketData( _socket );
+		synchronized( register_list ){
+			
+			socketData	sd = new socketData( _socket );
      
-		register_list.add( sd );
+			register_list.add( sd );
+		}
+		
+		selector.wakeup();
 	}
 	
 	public void
