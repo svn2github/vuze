@@ -161,6 +161,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 100;
     new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
+    new Label(gFile, SWT.NULL);
     
     
     label = new Label(gFile, SWT.NULL);
