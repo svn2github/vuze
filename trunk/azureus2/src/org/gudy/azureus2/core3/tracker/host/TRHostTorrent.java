@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.torrent.*;
 public interface 
 TRHostTorrent 
 {
+	public static final int	TS_FAILED	= 0;
 	public static final int	TS_STOPPED	= 1;
 	public static final int	TS_STARTED	= 2;
 	

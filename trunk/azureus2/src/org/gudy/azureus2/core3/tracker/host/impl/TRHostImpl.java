@@ -27,8 +27,10 @@ package org.gudy.azureus2.core3.tracker.host.impl;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -40,13 +42,13 @@ TRHostImpl
 {
 	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
 
-	protected static final char		CR			= '\015';
-	protected static final char		FF			= '\012';
-	protected static final String	NL			= "\015\012";
+	protected static final String	NL			= "\r\n";
 	
 	protected static TRHostImpl		singleton;
 	
-	protected Hashtable	server_map 	= new Hashtable();
+	protected TRHostConfigImpl		config;
+		
+	protected Hashtable				server_map 	= new Hashtable();
 	
 	protected List	host_torrents		= new ArrayList();
 	
@@ -68,14 +70,32 @@ TRHostImpl
 	
 	protected
 	TRHostImpl()
-	{			
+	{	
+		config = new TRHostConfigImpl(this);	
+		
 		TRTrackerClientFactory.addListener( this );
 	}
 	
+	public void
+	initialise(
+		TRHostTorrentFinder	finder )
+	{
+		config.loadConfig( finder );
+	}
 
 	public synchronized void
 	addTorrent(
 		TOTorrent		torrent )
+		
+		throws TRHostException
+	{
+		addTorrent( torrent, TRHostTorrent.TS_STARTED );
+	}
+	
+	public synchronized void
+	addTorrent(
+		TOTorrent		torrent,
+		int				state )
 		
 		throws TRHostException
 	{
@@ -123,14 +143,17 @@ TRHostImpl
 		
 		startHosting( host_torrent );
 		
-			// start off running
+		if ( state == TRHostTorrent.TS_STARTED ){
 					
-		host_torrent.start();
+			host_torrent.start();
+		}
 
 		for (int i=0;i<listeners.size();i++){
 			
 			((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
 		}
+		
+		config.saveConfig();
 	}
 	
 	protected void
@@ -207,7 +230,9 @@ TRHostImpl
 			
 				((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
 			}
-		}		
+		}
+		
+		config.saveConfig();		
 	}
 	
 	protected void
@@ -267,7 +292,9 @@ TRHostImpl
 		if ( tc != null ){
 			
 			tc.refreshListeners();
-		}			
+		}
+		
+		config.saveConfig();			
 	}
 	
 	public synchronized TRHostTorrent[]
@@ -305,40 +332,222 @@ TRHostImpl
 		
 		throws IOException
 	{
-		System.out.println( "url = " + url );
-		
 		if ( !COConfigurationManager.getBooleanParameter( "Tracker Publish Enable", true )){
 			
 			return( false );
 		}
 		
-		String	reply_string = "<HTML><BODY>";
+		byte[]		reply_bytes		= null;
+		String		content_type	= "text/html";
+		String		reply_status	= "200";
 		
-		synchronized( this ){
-		
-			for (int i=0;i<host_torrents.size();i++){
-			
-				TRHostTorrentImpl	torrent = (TRHostTorrentImpl)host_torrents.get(i);
+		try{
+			if ( url.equals( "/" )){	
 				
-				reply_string += "<UL>" + new String(torrent.getTorrent().getName()) + "</UL>";
-			}	
+				String	reply_string = 
+				"<html>" +
+				"<head>" +
+				"<title> Azureus : Java BitTorrent Client Tracker</title>" + 
+				"<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">" +
+				"<META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\">" +
+				"<meta name=\"keywords\" content=\"BitTorrent, bt, java, client, azureus\">" +
+				"<link rel=\"stylesheet\" href=\"http://azureus.sourceforge.net/style.css\" type=\"text/css\">" +
+				"</head>" +
+				"<body>" +
+				//"<table align=\"center\" class=\"body\" cellpadding=\"0\" cellspacing=\"0\">" + 
+				//"<tr><td>" +
+				"<table align=\"center\" class=\"main\" cellpadding=\"0\" cellspacing=\"0\">" +
+				"<tr><td>" +
+				"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" bordercolor=\"#111111\" width=\"100%\">" +
+				"  <tr>" +
+				"	<td><a href=\"http://azureus.sourceforge.net/\"><img src=\"http://azureus.sourceforge.net/img/Azureus_banner.gif\" border=\"0\" alt=\"Azureus\" hspace=\"0\" width=\"100\" height=\"40\" /></a></td>" +
+				"	<td><p align=\"center\"><font size=\"5\">Azureus: BitTorrent Client Tracker</font></td>" +
+				"  </tr>" +
+				"</table>" +
+				"<table align=\"center\" class=\"main1\" bgcolor=\"#526ED6\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">" +
+				"<tr><td valign=\"top\" height=\"20\"></td></tr>" +
+				"<tr>" +
+				"  <td valign=\"top\">"+
+				"   <table align=\"center\" border=\"1\" cellpadding=\"2\" cellspacing=\"1\" bordercolor=\"#111111\" width=\"96%\" bgcolor=\"#D7E0FF\">" +
+				"   <thead>" +
+				"     <tr>" +
+				"	    <td width=\"50%\" bgcolor=\"#FFDEAD\">Torrent</td>" +
+				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Status</td>" +
+				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Size</td>" +
+				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Seeds</td>" +
+				"	    <td width=\"10%\" bgcolor=\"#FFDEAD\">Peers</td>" +
+				"	  </tr>" +
+				"    </thread>";
+				
+				StringBuffer	table_bit = new StringBuffer(1024);
+				
+				synchronized( this ){
+				
+						for (int i=0;i<host_torrents.size();i++){
+					
+							TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrents.get(i);
+						
+							TOTorrent	torrent = host_torrent.getTorrent();
+							
+							String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
+							
+							String	torrent_name = new String(torrent.getName());
+							
+							TRHostPeer[]	peers = host_torrent.getPeers();
+							
+							int	seed_count 		= 0;
+							int non_seed_count	= 0;
+							
+							for (int j=0;j<peers.length;j++){
+								
+								if ( peers[j].isSeed()){
+									
+									seed_count++;
+									
+								}else{
+									
+									non_seed_count++;
+								}
+							}
+							
+							int	status = TRHostTorrent.TS_STARTED;
+							
+							String	status_str;
+							
+							if ( status == TRHostTorrent.TS_STARTED ){
+
+								status_str = "Running";
+								
+							}else if ( status == TRHostTorrent.TS_STOPPED ){
+								
+								status_str = "Stopped";
+								
+							}else{
+								
+								status_str = "Failed";
+							}
+							
+							table_bit.append( "<tr>" );
+							
+							table_bit.append( "<td width=\"50%\">"+
+											  "<a href=\"/torrents/" + torrent_name + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
+											  
+							table_bit.append( "<td width=\"10%\">" + status_str + "</td>" );
+											  
+							table_bit.append( "<td width=\"10%\">" + 
+											  DisplayFormatters.formatByteCountToKBEtc( torrent.getSize()) + "</td>" );
+											  
+							table_bit.append( "<td width=\"10%\">" + 
+											  seed_count + "</td>" );
+											  
+							table_bit.append( "<td width=\"10%\">" + 
+											  non_seed_count + "</td>" );
+											  
+							table_bit.append( "</tr>" );
+						}	
+					}
+				
+				reply_string += table_bit;
+				
+				reply_string +=
+				"    </table>" +
+				"    <tr><td>&nbsp;</tr></td>" +
+				"  </td>" +
+				"</tr>" +
+				"</table>" +
+				"</td></tr>" +
+				"</table>" +
+				//"</td></tr>" +
+				//"</table>" +
+				"</body>" +
+				"</html>";
+						
+				reply_bytes = reply_string.getBytes();
+								
+			}else if ( url.startsWith( "/torrents/")){
+				
+				String	str = url.substring(10);
+				
+				int	pos = str.indexOf ( "?" );
+				
+				String	hash_str = str.substring(pos+1);
+				
+				byte[]	hash = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING );
+				
+				synchronized( this ){
+				
+					for (int i=0;i<host_torrents.size();i++){
+					
+						TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrents.get(i);
+						
+						TOTorrent	torrent = host_torrent.getTorrent();
+						
+						if ( Arrays.equals( hash, torrent.getHash())){
+						
+							reply_bytes = BEncoder.encode(torrent.serialiseToMap());
+							
+							break;
+						}
+					}
+				}
+				
+				if ( reply_bytes != null ){
+					
+					content_type 	= "application/x-bittorrent";
+					
+				}else{
+					
+					reply_bytes = new byte[0];
+				
+					reply_status	= "404";
+				}
+			}else{
+					
+				System.out.println( "Invalid url" );
+							
+				reply_bytes = new byte[0];
+				
+				reply_status	= "404";
+				
+			}
+		}catch( Throwable e ){
+		
+			content_type = "text/html";
+			
+			reply_bytes = e.toString().getBytes();
+			
+			reply_status = "200";	
 		}
 		
-		reply_string += "</BODY></HTML>";
-		
-		byte[] data = reply_string.getBytes();
-		
-		String reply_header = "HTTP/1.1 200 OK" + NL + 
-						"Content-Type: text/html" + NL +
-						"Content-Length: " + data.length + 
-						NL + NL;
+		String reply_header = 
+						"HTTP/1.1 " + reply_status + (reply_status.equals( "200" )?" OK":" BAD") + NL + 
+						"Content-Type: " + content_type + NL +
+						"Content-Length: " + reply_bytes.length + NL +
+						NL;
 	
 		os.write( reply_header.getBytes());
 				
-		os.write( data );
-
+		os.flush();
+		
+		os.write( reply_bytes );
+		
+		os.flush();
+		
+		
+			// this really can't be right, but without it Internet Explorer won't
+			// download files properly...
+		
+		try{
+			Thread.sleep(1000);
+			
+		}catch( InterruptedException e ){
+			
+			e.printStackTrace();
+		}
+		
 		return( true );
 	}
+	
 	public synchronized void
 	addListener(
 		TRHostListener	l )

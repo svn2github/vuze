@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +49,8 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -257,6 +260,38 @@ public class GlobalManagerImpl
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
+    
+    TRHostFactory.create().initialise( 
+    	new TRHostTorrentFinder()
+    	{
+    		public TOTorrent
+    		lookupTorrent(
+    			byte[]		hash )
+    		{
+    			for (int i=0;i<managers.size();i++){
+    				
+    				DownloadManager	dm = (DownloadManager)managers.get(i);
+    				
+    				TOTorrent t = dm.getTorrent();
+    				
+    				if ( t != null ){
+    					
+    					try{
+    						if ( Arrays.equals( hash, t.getHash())){
+    							
+    							return( t );
+    						}
+    					}catch( TOTorrentException e ){
+    						
+    						e.printStackTrace();
+    					}
+    				}
+    			}
+    			
+    			return( null );
+    		}
+    	});
+    	
     checker = new Checker();
     checker.start();
     

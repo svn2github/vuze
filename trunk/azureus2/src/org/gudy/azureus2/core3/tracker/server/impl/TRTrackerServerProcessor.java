@@ -51,6 +51,7 @@ TRTrackerServerProcessor
 		server	= _server;
 		
 		try{
+									
 			InputStream	is = _socket.getInputStream();
 			
 			String	header = "";
@@ -103,6 +104,7 @@ TRTrackerServerProcessor
 		}finally{
 		
 			try{
+				
 				_socket.close();
 				
 			}catch( Throwable e ){
@@ -112,7 +114,7 @@ TRTrackerServerProcessor
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	processRequest(
 		String			str,
 		String			client_ip_address,
@@ -239,7 +241,7 @@ TRTrackerServerProcessor
 										
 				byte[]	hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
 				
-				System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
+				// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
 									
 				// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
 													
@@ -316,7 +318,7 @@ TRTrackerServerProcessor
 		
 			byte[] data = BEncoder.encode( root );
 				
-			System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
+			// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
 				
 			String header = "HTTP/1.1 200 OK" + NL + 
 							"Content-Type: text/html" + NL +
@@ -330,7 +332,7 @@ TRTrackerServerProcessor
 		}finally{
 			
 			os.flush();
-				
+			
 			os.close();
 		}
 	}

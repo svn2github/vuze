@@ -424,6 +424,19 @@ TOTorrentImpl
 	}
 	
 	public long
+	getSize()
+	{
+		long	res = 0;
+		
+		for (int i=0;i<files.length;i++){
+			
+			res += files[i].getLength();
+		}
+		
+		return( res );
+	}
+
+	public long
 	getPieceLength()
 	{
 		return( piece_length );

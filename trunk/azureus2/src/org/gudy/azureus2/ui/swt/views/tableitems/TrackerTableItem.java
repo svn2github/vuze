@@ -123,6 +123,10 @@ TrackerTableItem
 			
 			status = MessageText.getString( "MyTrackerView.status.stopped");
 			
+		}else if ( s == TRHostTorrent.TS_FAILED ){
+			
+			status = MessageText.getString( "MyTrackerView.status.failed");
+			
 		}else{
 			
 			status = "?";

@@ -87,6 +87,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.core3.plugins.PluginView;
 import org.gudy.core3.plugins.impl.PluginInitializer;
@@ -646,8 +647,13 @@ public class MainWindow implements GlobalManagerListener {
       });
     }
 
-    mytorrents = new Tab(new MyTorrentsView(globalManager));
+    showMyTorrents(); // mytorrents = new Tab(new MyTorrentsView(globalManager));
 
+	if ( TRHostFactory.create().getTorrents().length > 0 ){
+		
+		showMyTracker();
+	}
+	
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());
     if (COConfigurationManager.getBooleanParameter("Open Config", false))

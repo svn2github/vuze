@@ -105,9 +105,16 @@ TRTrackerServerImpl
 		while(true){
 	
 			try{				
-				Socket socket = ss.accept();
-				
-				new TRTrackerServerProcessor( this, socket );
+				final Socket socket = ss.accept();
+								
+				new Thread()
+					{
+						public void
+						run()
+						{			
+							new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
+						}
+					}.start();
 
 			}catch( Throwable e ){
 				

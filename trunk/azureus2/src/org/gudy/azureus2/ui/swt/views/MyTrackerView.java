@@ -189,7 +189,7 @@ MyTrackerView
 					
 					int	status = host_torrent.getStatus();
 					
-					if ( status != TRHostTorrent.TS_STOPPED ){
+					if ( status == TRHostTorrent.TS_STARTED ){
 						
 						start_ok	= false;
 						
