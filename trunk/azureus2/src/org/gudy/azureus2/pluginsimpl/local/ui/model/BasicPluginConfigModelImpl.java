@@ -157,7 +157,7 @@ BasicPluginConfigModelImpl
 		String 		key,
 		String 		resource_name,
 		int			encoding_type,	
-		String	 	defaultValue )
+		byte[]	 	defaultValue )
 	{
 		PasswordParameterImpl res = new PasswordParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, encoding_type, defaultValue );
 		

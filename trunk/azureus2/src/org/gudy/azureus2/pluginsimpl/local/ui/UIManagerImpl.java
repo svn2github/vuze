@@ -212,7 +212,7 @@ UIManagerImpl
 		String 		key,
 		String 		resource_name,
 		int			encoding_type,	
-		String	 	defaultValue )
+		byte[]	 	defaultValue )
 	{
 		return( new PasswordParameterImpl(pi.getPluginconfig(),key,resource_name,encoding_type, defaultValue));
 	}

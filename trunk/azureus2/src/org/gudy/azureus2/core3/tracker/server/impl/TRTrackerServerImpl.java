@@ -257,9 +257,15 @@ TRTrackerServerImpl
 	}
 	
 	public boolean
-	hasExternalAuthoriser()
+	hasExternalAuthorisation()
 	{
 		return( auth_listeners.size() > 0 );
+	}	
+	
+	public boolean
+	hasInternalAuthorisation()
+	{
+		return( web_password_enabled || tracker_password_enabled );
 	}
 	
 	public boolean

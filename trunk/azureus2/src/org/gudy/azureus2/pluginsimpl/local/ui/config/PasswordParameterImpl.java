@@ -45,17 +45,17 @@ PasswordParameterImpl
 		String 			key, 
 		String 			label,
 		int				_encoding_type,
-		String 			_defaultValue)
+		byte[] 			_defaultValue)
 	{ 
 		super(config,key, label);
 		
-		if ( _defaultValue == null || _defaultValue.length() == 0 ){
+		if ( _defaultValue == null ){
 			
 			defaultValue = new byte[0];
 			
 		}else{
 			
-			defaultValue = _defaultValue.getBytes();
+			defaultValue = _defaultValue;
 
 			if ( _encoding_type == ET_SHA1 ){
 				

@@ -292,6 +292,11 @@ RPPluginConfig
 	  	notSupported();
 	  }
 	  
+	  public void setPluginParameter(String key,byte[] value)
+	  {
+	  	notSupported();
+	  }
+	  
 	  public void
 	  save()
 	  	throws PluginException

@@ -80,7 +80,7 @@ BasicPluginConfigModel
 		String 		key,
 		String 		resource_name,
 		int			encoding_type,		// see PasswordParameter.ET_ constants
-		String	 	defaultValue );
+		byte[]	 	defaultValue );		// plain default value
 	
 	public IntParameter
 	addIntParameter2(

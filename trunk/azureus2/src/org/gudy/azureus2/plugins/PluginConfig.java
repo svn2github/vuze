@@ -225,6 +225,14 @@ PluginConfig
    * @since 2.0.4.2
    */
   public void setPluginParameter(String key,boolean value);
+  
+  /**
+   * @since 2.1.0.2
+   * @param key
+   * @param value
+   */
+  
+  public void setPluginParameter(String key,byte[] value);
 
   /**
    * @return the prefix used when storing configuration values in the config file for

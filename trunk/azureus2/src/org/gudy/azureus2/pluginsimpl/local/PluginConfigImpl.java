@@ -194,6 +194,11 @@ PluginConfigImpl
 		config.setParameter(this.key+key, value);
 	}
 	
+	public void setPluginParameter(String key,byte[] value)
+	{
+		config.setParameter(this.key+key, value);
+	}
+
 	public void
 	save()
 	{

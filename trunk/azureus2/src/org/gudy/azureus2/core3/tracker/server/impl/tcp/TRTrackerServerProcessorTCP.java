@@ -547,7 +547,30 @@ TRTrackerServerProcessorTCP
 			
 			int	x = header.indexOf( "Authorization:" );
 			
-			if ( x != -1 ){
+			if ( x == -1 ){
+				
+					// auth missing. however, if we have external auth defined
+					// and external auth is happy with junk then allow it through
+				
+				if ( server.hasExternalAuthorisation()){
+					
+					try{
+						String	resource_str = 
+							( server.isSSL()?"https":"http" ) + "://" +
+								server.getHost() + ":" + server.getPort() + url_path;
+						
+						URL	resource = new URL( resource_str );
+					
+						if ( server.performExternalAuthorisation( resource, "", "" )){
+							
+							return( true );
+						}
+					}catch( MalformedURLException e ){
+						
+						e.printStackTrace();
+					}
+				}
+			}else{
 															
 					//			Authorization: Basic dG9tY2F0OnRvbWNhdA==
 		
@@ -565,55 +588,65 @@ TRTrackerServerProcessorTCP
 				String	user = decoded.substring(0,cp);
 				String  pw	 = decoded.substring(cp+1);
 				
-				try{
-					String	resource_str = 
-						( server.isSSL()?"https":"http" ) + "://" +
-							server.getHost() + ":" + server.getPort() + url_path;
-					
-					URL	resource = new URL( resource_str );
+				boolean	auth_failed	= false;
 				
-					if ( server.performExternalAuthorisation( resource, user, pw )){
+				if ( server.hasExternalAuthorisation()){
+					
+					try{
+						String	resource_str = 
+							( server.isSSL()?"https":"http" ) + "://" +
+								server.getHost() + ":" + server.getPort() + url_path;
 						
-						return( true );
-					}
-				}catch( MalformedURLException e ){
+						URL	resource = new URL( resource_str );
 					
-					e.printStackTrace();
-				}
-				
-				try{
-			
-					SHA1Hasher hasher = new SHA1Hasher();
-					
-					byte[] password = pw.getBytes();
-					
-					byte[] encoded;
-					
-					if( password.length > 0){
-					
-						encoded = hasher.calculateHash(password);
-						
-					}else{
-						
-						encoded = new byte[0];
-					}
-					
-					if ( user.equals( "<internal>")){
-						
-						byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
-
-						if ( Arrays.equals( internal_pw, server.getPassword())){
+						if ( server.performExternalAuthorisation( resource, user, pw )){
 							
 							return( true );
 						}
-					}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
-								Arrays.equals(encoded, server.getPassword())){
-						 	
-						 return( true );			 	
+					}catch( MalformedURLException e ){
+						
+						e.printStackTrace();
 					}
-				}catch( Exception e ){
 					
-					e.printStackTrace();
+					auth_failed	= true;
+				}
+				
+				if ( server.hasInternalAuthorisation() && !auth_failed ){
+					
+					try{
+				
+						SHA1Hasher hasher = new SHA1Hasher();
+						
+						byte[] password = pw.getBytes();
+						
+						byte[] encoded;
+						
+						if( password.length > 0){
+						
+							encoded = hasher.calculateHash(password);
+							
+						}else{
+							
+							encoded = new byte[0];
+						}
+						
+						if ( user.equals( "<internal>")){
+							
+							byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
+	
+							if ( Arrays.equals( internal_pw, server.getPassword())){
+								
+								return( true );
+							}
+						}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
+									Arrays.equals(encoded, server.getPassword())){
+							 	
+							 return( true );			 	
+						}
+					}catch( Exception e ){
+						
+						e.printStackTrace();
+					}
 				}
 			}
 			

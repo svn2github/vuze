@@ -133,12 +133,13 @@ TRTrackerServerProcessorUDP
 				//<parg_home> where <hash> = first 8 bytes of sha1(<old_packet> + <user_padded_to_8> + sha1(pass))
 				//<XTF> Yes
 				
+								
 				byte[] sha1_pw = null;
 				
-				if ( server.hasExternalAuthoriser()){
+				if ( server.hasExternalAuthorisation()){
 					
 					try{
-						URL	resource = new URL( "udp://localhost/" );
+						URL	resource = new URL( "udp://" + server.getHost() + ":" + server.getPort() + "/" );
 					
 						sha1_pw = server.performExternalAuthorisation( resource, auth_user );
 						
@@ -147,30 +148,40 @@ TRTrackerServerProcessorUDP
 						e.printStackTrace();
 						
 					}
-				}
-				
-				if ( sha1_pw == null ){
 					
-					sha1_pw = server.getPassword();
-				}
-				
-				SHA1Hasher	hasher = new SHA1Hasher();
-				
-				hasher.update( data, 0, packet_data_length);
-				hasher.update( auth_user_bytes );
-				hasher.update( sha1_pw );
-				
-				byte[]	digest = hasher.getDigest();
-				
-				for (int i=0;i<auth_hash.length;i++){
-					
-					if ( auth_hash[i] != digest[i] ){
+					if ( sha1_pw == null ){
 				
 						LGLogger.log( "TRTrackerServerProcessorUDP: auth fails for user '" + auth_user + "'"); 
 
 						reply = new PRUDPPacketReplyError( request.getTransactionId(), "Access Denied" );
+					}
+				}else{
+					
+					sha1_pw = server.getPassword();
+				}
+				
+					// if we haven't already failed then check the PW
+				
+				if ( reply == null ){
+					
+					SHA1Hasher	hasher = new SHA1Hasher();
+					
+					hasher.update( data, 0, packet_data_length);
+					hasher.update( auth_user_bytes );
+					hasher.update( sha1_pw );
+					
+					byte[]	digest = hasher.getDigest();
+					
+					for (int i=0;i<auth_hash.length;i++){
 						
-						break;
+						if ( auth_hash[i] != digest[i] ){
+					
+							LGLogger.log( "TRTrackerServerProcessorUDP: auth fails for user '" + auth_user + "'"); 
+	
+							reply = new PRUDPPacketReplyError( request.getTransactionId(), "Access Denied" );
+							
+							break;
+						}
 					}
 				}
 			}

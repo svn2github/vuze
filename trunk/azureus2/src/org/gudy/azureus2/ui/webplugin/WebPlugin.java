@@ -36,6 +36,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
 
@@ -43,6 +45,17 @@ public class
 WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
+	public static final String	CONFIG_MIGRATED			= "Config Migrated";
+	
+	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
+	public static final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
+	
+	public static final String	CONFIG_USER				= "User";
+	public static final String	CONFIG_USER_DEFAULT		= "";
+	
+	public static final String	CONFIG_PASSWORD			= "Password";
+	public static final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
+	
 	public static final String DEFAULT_PORT		= "8089";
 	public static final String DEFAULT_PROTOCOL	= "HTTP";
 	public static final String DEFAULT_ACCESS	= "all";
@@ -73,7 +86,9 @@ WebPlugin
 		
 		log = plugin_interface.getLogger().getChannel("WebPlugin");
 
-		final BasicPluginViewModel model = plugin_interface.getUIManager().createBasicPluginViewModel( plugin_interface.getPluginName());
+		UIManager	ui_manager = plugin_interface.getUIManager();
+		
+		final BasicPluginViewModel model = ui_manager.createBasicPluginViewModel( plugin_interface.getPluginName());
 		
 		model.getStatus().setText( "Running" );
 		model.getActivity().setVisible( false );
@@ -98,6 +113,55 @@ WebPlugin
 					model.getLogArea().appendText( error.toString()+"\n");
 				}
 			});
+		
+		PluginConfig	plugin_config = plugin_interface.getPluginconfig();
+		
+		BasicPluginConfigModel	config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
+		
+		if ( !plugin_config.getPluginBooleanParameter( CONFIG_MIGRATED, false )){
+			
+			plugin_config.setPluginParameter( CONFIG_MIGRATED, true );
+			
+			System.out.println( "migrating" );
+			
+			plugin_config.setPluginParameter(
+					CONFIG_PASSWORD_ENABLE,
+					plugin_config.getBooleanParameter(
+							"Tracker Password Enable Web", CONFIG_PASSWORD_ENABLE_DEFAULT ));
+			
+			plugin_config.setPluginParameter(
+					CONFIG_USER,
+					plugin_config.getStringParameter(
+							"Tracker Username", CONFIG_USER_DEFAULT ));
+			
+			plugin_config.setPluginParameter(
+					CONFIG_PASSWORD,
+					plugin_config.getByteParameter(
+							"Tracker Password", CONFIG_PASSWORD_DEFAULT ));
+					
+		}
+		
+		final BooleanParameter	pw_enable = 
+			config_model.addBooleanParameter2( 
+							CONFIG_PASSWORD_ENABLE, 
+							"webui.passwordenable",
+							CONFIG_PASSWORD_ENABLE_DEFAULT );
+		
+		final StringParameter		user_name = 
+			config_model.addStringParameter2( 
+							CONFIG_USER, 
+							"webui.user",
+							CONFIG_USER_DEFAULT );
+		
+		final PasswordParameter	password = 
+			config_model.addPasswordParameter2( 
+							CONFIG_PASSWORD, 
+							"webui.password",
+							PasswordParameter.ET_SHA1,
+							CONFIG_PASSWORD_DEFAULT );
+		
+		pw_enable.addEnabledOnSelection( user_name );
+		pw_enable.addEnabledOnSelection( password );
 		
 		tracker = plugin_interface.getTracker();
 	
@@ -247,26 +311,48 @@ WebPlugin
 				
 							
 		try{
-			TrackerWebContext	context = tracker.createWebContext( port, protocol );
+			TrackerWebContext	context = 
+				tracker.createWebContext(
+						plugin_interface.getAzureusName() + " - " + plugin_interface.getPluginName(), 
+						port, protocol );
 		
 			context.addPageGenerator( this );
 	
-			/*
 			context.addAuthenticationListener(
 				new TrackerAuthenticationAdapter()
 				{
-					public boolean
+					String	last_pw		= "";
+					byte[]	last_hash	= {};
+					
+					public synchronized boolean
 					authenticate(
 						URL			resource,
 						String		user,
-						String		password )
+						String		pw )
 					{
-						System.out.println( "res:" + resource.toString() + ":" + user + "/" + password );
+						if ( !pw_enable.getValue()){
+							
+							return( true );
+						}
 						
-						return( false );
+						if ( !user.equals(user_name.getValue())){
+							
+							return( false );
+						}
+						
+						byte[]	hash = last_hash;
+						
+						if (  !last_pw.equals( pw )){
+														
+							hash = plugin_interface.getUtilities().calculateSHA1( pw.getBytes());
+							
+							last_pw		= pw;
+							last_hash	= hash;
+						}
+						
+						return( Arrays.equals( hash, password.getValue()));
 					}
 				});
-			*/
 			
 		}catch( TrackerException e ){
 			
