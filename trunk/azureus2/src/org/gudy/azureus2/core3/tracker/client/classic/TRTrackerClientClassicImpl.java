@@ -376,7 +376,7 @@ TRTrackerClientClassicImpl
   			
   		}else{
   		
-  			port_num	= NetworkManager.getSingleton().getIncomingConnectionManager().getTCPListeningPortNumber();
+  			port_num	= NetworkManager.getSingleton().getIncomingSocketChannelManager().getTCPListeningPortNumber();
   		}
   		
   		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
@@ -1224,7 +1224,7 @@ TRTrackerClientClassicImpl
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getIncomingConnectionManager().getTCPListeningPortNumber() );
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getIncomingSocketChannelManager().getTCPListeningPortNumber() );
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			

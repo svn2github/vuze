@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 public class BTHave implements BTMessage {
   private final DirectByteBuffer buffer;
   private final String description;
+  private final int piece_number;
 
   public BTHave( int piece_number ) {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
@@ -42,8 +43,11 @@ public class BTHave implements BTMessage {
     buffer.flip( DirectByteBuffer.SS_BT );
     
     description = BTMessage.ID_BT_HAVE + " piece #" + piece_number;
+    this.piece_number = piece_number;
   }
   
+  
+  public int getPieceNumber() {  return piece_number;  }
   
 
   public String getID() {  return BTMessage.ID_BT_HAVE;  }
@@ -73,15 +77,17 @@ public class BTHave implements BTMessage {
       throw new MessageException( "decode error: payload.remaining() < 4" );
     }
     
-    int piece_number = data.getInt( DirectByteBuffer.SS_MSG );
+    int number = data.getInt( DirectByteBuffer.SS_MSG );
     
-    if( piece_number < 0 ) {
-      throw new MessageException( "decode error: piece_number < 0" );
+    if( number < 0 ) {
+      throw new MessageException( "decode error: number < 0" );
     }
     
     data.returnToPool();
     
-    return new BTHave( piece_number );
+    return new BTHave( number );
   }
 
+  public void destroy() {  /*nothing*/  }
+  
 }

@@ -166,13 +166,13 @@ public class OutgoingBTPieceMessageHandler {
       
       for( Iterator i = queued_messages.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
-        if( entry.getValue().equals( dmr ) ) {
+        if( entry.getValue().equals( dmr ) ) {  //it's already been queued
           BTPiece msg = (BTPiece)entry.getKey();
           if( outgoing_message_queue.removeMessage( msg, true ) ) {
             i.remove();
             num_messages_in_queue--;
           }
-          return;
+          break;  //do manual listener notify
         }
       }
     }

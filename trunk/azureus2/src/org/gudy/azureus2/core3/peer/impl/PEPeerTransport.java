@@ -42,8 +42,6 @@ PEPeerTransport
   public static final int CONNECTION_FULLY_ESTABLISHED      = 4;
   
 
-	public int
-	processRead();
   	
 	public void
 	sendChoke();
@@ -78,8 +76,6 @@ PEPeerTransport
 	  boolean closedOnError,
 	  boolean attemptReconnect);
 			
-	public boolean
-	isReadyToRequest();
 		
 	public boolean
 	transferAvailable();
@@ -93,11 +89,6 @@ PEPeerTransport
 	public PEPeerControl
 	getControl();
   
-	public int getReadSleepTime();
-	public long getLastReadTime();
-  
-	public void setReadSleepTime(int time);
-	public void setLastReadTime(long time);
   
   
 	/**

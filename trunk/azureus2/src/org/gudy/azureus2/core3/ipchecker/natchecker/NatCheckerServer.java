@@ -45,7 +45,7 @@ public class NatCheckerServer extends AEThread {
     private boolean valid = false;    
     private boolean bContinue = true;
     private final boolean use_incoming_router;
-    private IncomingConnectionManager.ByteMatcher matcher;
+    private NetworkManager.ByteMatcher matcher;
     
     
     public NatCheckerServer(int _port, final String _check) {     
@@ -58,7 +58,7 @@ public class NatCheckerServer extends AEThread {
         //test port and currently-configured listening port are the same,
         //so register for incoming connection routing
         
-        matcher = new IncomingConnectionManager.ByteMatcher() {
+        matcher = new NetworkManager.ByteMatcher() {
           public int size() {  return incoming_handshake.getBytes().length;  }
 
           public boolean matches( ByteBuffer to_compare ) {             
@@ -70,9 +70,9 @@ public class NatCheckerServer extends AEThread {
           }
         };
         
-        NetworkManager.getSingleton().getIncomingConnectionManager().registerMatchBytes( 
+        NetworkManager.getSingleton().getIncomingSocketChannelManager().registerMatchBytes( 
             matcher,
-            new IncomingConnectionManager.MatchListener() {
+            new IncomingSocketChannelManager.MatchListener() {
               public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
                 LGLogger.log( "Incoming connection from [" +channel+ "] successfully routed to NAT CHECKER" );
                 
@@ -87,7 +87,7 @@ public class NatCheckerServer extends AEThread {
                   Debug.out( "Nat check write failed", t );
                 }
                 
-                NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel ); 
+                NetworkManager.getSingleton().closeSocketChannel( channel ); 
               }
             }
         );
@@ -147,7 +147,7 @@ public class NatCheckerServer extends AEThread {
       bContinue = false;
       
       if( use_incoming_router ) {
-        NetworkManager.getSingleton().getIncomingConnectionManager().deregisterMatchBytes( matcher );
+        NetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
       }
       else if( server != null ) {
         try {

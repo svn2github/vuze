@@ -28,10 +28,18 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportDebugger;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.networkmanager.IncomingConnectionManager;
+import com.aelitis.azureus.core.networkmanager.Connection;
+import com.aelitis.azureus.core.networkmanager.ConnectionOwner;
+import com.aelitis.azureus.core.networkmanager.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.TransportDebugger;
+import com.aelitis.azureus.core.networkmanager.TransportOwner;
+import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 
 /**
@@ -55,6 +63,8 @@ public class PeerManager {
     legacy_handshake_header.put( (byte)BTHandshake.PROTOCOL.length() );
     legacy_handshake_header.put( BTHandshake.PROTOCOL.getBytes() );
     legacy_handshake_header.flip();
+    
+    MessageManager.getSingleton();  //ensure it gets initialized
   }
   
   
@@ -78,7 +88,7 @@ public class PeerManager {
    * @param manager legacy controller
    */
   public void registerLegacyPeerManager( final PEPeerControl manager ) {
-    IncomingConnectionManager.ByteMatcher matcher = new IncomingConnectionManager.ByteMatcher() {
+    NetworkManager.ByteMatcher matcher = new NetworkManager.ByteMatcher() {
       public int size() {  return 48;  }
 
       public boolean matches( ByteBuffer to_compare ) { 
@@ -106,20 +116,28 @@ public class PeerManager {
       }
     };
     
+    
     //register for incoming connection routing   
-    NetworkManager.getSingleton().getIncomingConnectionManager().registerMatchBytes( 
-        matcher,
-        new IncomingConnectionManager.MatchListener() {
-          public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
-            PEPeerTransport transport = PEPeerTransportFactory.createTransport( manager, channel, read_so_far );
-            manager.addPeerTransport( transport );
-          }
-        }
-    );
+    NetworkManager.getSingleton().requestIncomingConnectionRouting( new ConnectionOwner() {
+      public TransportOwner getTransportOwner() {
+        return new TransportOwner() {
+          public TransportDebugger getDebugger() {  return null;  }  //no write debugging
+        };
+      }
+    },
+    
+    matcher,
+    
+    new NetworkManager.RoutingListener() {
+      public void connectionRouted( Connection connection ) {
+        LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
+        manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, connection ) );
+      }
+    });
     
     legacy_managers.put( manager, matcher );
   }
+  
   
   
   /**
@@ -128,9 +146,9 @@ public class PeerManager {
    */
   public void deregisterLegacyPeerManager( final PEPeerControl manager ) {
     //remove incoming routing registration 
-    IncomingConnectionManager.ByteMatcher matcher = (IncomingConnectionManager.ByteMatcher)legacy_managers.get( manager );
+    NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.get( manager );
     if( matcher != null ) {
-      NetworkManager.getSingleton().getIncomingConnectionManager().deregisterMatchBytes( matcher );
+      NetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
     }
     else {
       Debug.out( "matcher == null" );

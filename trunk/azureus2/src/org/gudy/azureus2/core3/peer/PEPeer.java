@@ -40,10 +40,11 @@ PEPeer
   public final static int CLOSING       = 40;
 	public final static int DISCONNECTED 	= 50;
 	
-	public PEPeerManager
-	getManager();
 	
-	public int getState();	// from above set
+	public int getPeerState();	// from above set
+  
+  public PEPeerManager
+  getManager();
 
 	public byte[] getId();
 

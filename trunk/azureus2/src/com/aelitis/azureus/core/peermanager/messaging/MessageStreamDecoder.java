@@ -24,7 +24,7 @@ package com.aelitis.azureus.core.peermanager.messaging;
 
 import java.io.IOException;
 
-import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 /**
  * Decodes a message stream.
@@ -37,7 +37,14 @@ public interface MessageStreamDecoder {
    * @return number of bytes decoded
    * @throws IOException on decoding error
    */
-  public int decodeStream( Transport transport, int max_bytes ) throws IOException;
+  public int decodeStream( TCPTransport transport, int max_bytes ) throws IOException;
+  
+  
+  /**
+   * Destroy this decoder, i.e. perform cleanup.
+   */
+  public void destroy();
+  
   
   
   

@@ -21,9 +21,7 @@
 package org.gudy.azureus2.core3.peer.impl.transport;
 
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -40,34 +38,17 @@ import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
 
-/**
- * @author Olivier
- *
- */
-public abstract class 
+
+public class 
 PEPeerTransportProtocol
 	implements PEPeerTransport, ConnectionOwner
 {
-	//TODO xx
-	// these appear in the plugin interface as well so don't renumber without
-	// fixing things up
-	public final static byte BT_CHOKED 			= 0;
-	public final static byte BT_UNCHOKED 		= 1;
-	public final static byte BT_INTERESTED 		= 2;
-	public final static byte BT_UNINTERESTED 	= 3;
-	public final static byte BT_HAVE 			= 4;
-	public final static byte BT_BITFIELD 		= 5;
-	public final static byte BT_REQUEST 		= 6;
-	public final static byte BT_PIECE 			= 7;
-	public final static byte BT_CANCEL 			= 8;
-	
-  
+ 
 	private PEPeerControl manager;
-	private byte[] id;
+	private byte[] peer_id;
 	private String ip;
 	private String ip_resolved;
 	private IPToHostNameResolverRequest	ip_resolver_request;
@@ -93,7 +74,7 @@ PEPeerTransportProtocol
 
   private boolean incoming;
   private volatile boolean closing = false;
-  private PEPeerTransportProtocolState currentState;
+  private int current_peer_state;
   
   private Connection connection;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
@@ -108,15 +89,7 @@ PEPeerTransportProtocol
   
   //The client name identification	
 	private String client = "";
-
-	//Reader inner loop counter
-	private int processLoop;
-  
-  
-	//Flag to indicate if the connection is in a stable enough state to send a request.
-	//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
-	private boolean readyToRequest;
-  
+    
 	//Number of bad chunks received from this peer
 	private int nbBadChunks;
 	
@@ -126,14 +99,10 @@ PEPeerTransportProtocol
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
 
-  //TODO xx
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
   public final static int evtLifeCycle = 1;
   public final static int evtErrors = 2;
-  
-  private int readSleepTime;
-  private long lastReadTime;
 
   private long last_message_sent_time = 0;
   private long last_message_received_time = 0;
@@ -166,107 +135,97 @@ PEPeerTransportProtocol
   
   
   
-  private static final boolean	socks_peer_proxy_enable;
-  private static final String	socks_version;
-  private static final String	socks_host;
-  private static  int			socks_port;
-  private static final String	socks_user;
-  private static final String	socks_password;
-
-  static{
-  	socks_peer_proxy_enable	= 	
-  		COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false);
-  	
-	socks_version =	COConfigurationManager.getStringParameter("Proxy.Data.SOCKS.version" );
-		  	
-    boolean	socks_same = COConfigurationManager.getBooleanParameter("Proxy.Data.Same", true);
-
-  	socks_host 				= COConfigurationManager.getStringParameter(socks_same?"Proxy.Host":"Proxy.Data.Host");
-  	
-  	String socks_port_str 	= COConfigurationManager.getStringParameter(socks_same?"Proxy.Port":"Proxy.Data.Port");
-  	
-  	if ( socks_peer_proxy_enable ){
-  		
-	  	try{
-	  		socks_port = Integer.parseInt( socks_port_str );
-	  		
-	  	}catch( Throwable e ){
-	  		
-	  		Debug.printStackTrace(e);
-	  	}
-  	}else{
-  		
-  		socks_port	= 0;
-  	}
-  	
-  	socks_user 		= COConfigurationManager.getStringParameter(socks_same?"Proxy.Username":"Proxy.Data.Username");
-  	socks_password 	= COConfigurationManager.getStringParameter(socks_same?"Proxy.Password":"Proxy.Data.Password");
-
-  }
 
   
-
-  /*
-	 * This object constructors will let the PeerConnection partially created,
-	 * but hopefully will let us gain some memory for peers not going to be
-	 * accepted.
-	 */
-
-  /**
-   * The Default Contructor for outgoing connections.
-   * @param manager the manager that will handle this PeerConnection
-   * @param ip the peer Ip Address
-   * @param port the peer port
-   */
-	public 
-	PEPeerTransportProtocol(
-  		PEPeerControl 	_manager,
-  		String 			_ip, 
-  		int 			_port,
-  		boolean			_incoming_connection,
-		SocketChannel 	channel,  //hack for incoming connections. null otherwise
-  		final byte[]	data_already_read )
-	{		
-		manager	= _manager;
-		ip 		= _ip;
-		port 	= _port;
-	 	    
-		uniquePiece = -1;
-		
-		incoming = _incoming_connection;
-
-		stats = (PEPeerStatsImpl)manager.createPeerStats();
-		
-		if( incoming ) {
-      connection = NetworkManager.getSingleton().createNewInboundConnection( this, channel );
+  
+  //INCOMING
+  public PEPeerTransportProtocol( PEPeerControl _manager, Connection _connection ) {
+    manager = _manager;
+    ip    = _connection.getSocketChannel().socket().getInetAddress().getHostAddress();
+    port  = _connection.getSocketChannel().socket().getPort();
+    incoming = true;
+    
+    init();
+    
+    connection = _connection;
+    
+    //"fake" a connect request to register our listener
+    connection.connect( new Connection.ConnectionListener() {
+      public void connectStarted() {
+        connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+      }
       
-      //"fake" a connect request to register our listener
-      connection.connect( new Connection.ConnectionListener() {
-        public void connectStarted() {
-          connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-        }
+      public void connectSuccess() {  //will be called immediately
+        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
+        registerForMessageHandling();
+        current_peer_state = PEPeer.HANDSHAKING;
+        sendHandshake();
+      }
+      
+      public void connectFailure( Throwable failure_msg ) {  //should never happen
+        Debug.out( "ERROR: incoming connect failure: ", failure_msg );
+        closeAll( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+      }
+      
+      public void exceptionThrown( Throwable error ) {
+        closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+      }
+    });
+  }
+  
+  
+  
+  //OUTGOING
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _ip, int _port ) {
+    manager = _manager;
+    ip    = _ip;
+    port  = _port;
+    incoming = false;
+    
+    init();
+    
+    connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, ip, port );
+      
+    current_peer_state = PEPeer.CONNECTING;
+    
+    connection.connect( new Connection.ConnectionListener() {
+      public void connectStarted() {
+        connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+      }
+ 
+      public void connectSuccess() {
+        LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
+        registerForMessageHandling();
+        current_peer_state = PEPeer.HANDSHAKING;
+        sendHandshake();
+      }
         
-        public void connectSuccess() {  //will be called immediately
-          LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
-          currentState = new StateHandshaking( false, data_already_read );
-        }
+      public void connectFailure( Throwable failure_msg ) {
+        closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+      }
         
-        public void connectFailure( Throwable failure_msg ) {  //should never happen
-          Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-          closeAll( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
-        }
-        
-        public void exceptionThrown( Throwable error ) {
-          closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
-        }
-      });
-		}
-    else { //outgoing
-			currentState = new StateConnecting();
-		}
-	}
+      public void exceptionThrown( Throwable error ) {
+        closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+      }
+    });
+      
+    LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);
+  }
+  
+  
 
-
+  
+  
+  private void init() {
+    uniquePiece = -1;
+    
+    stats = (PEPeerStatsImpl)manager.createPeerStats();
+  }
+  
+  
+  
+  
+  
 
   /**
    * Private method that will finish fields allocation, once the handshaking is ok.
@@ -347,9 +306,12 @@ PEPeerTransportProtocol
   			this_mon.exit();
   		}
   		
-	    currentState = new StateClosing();
       
-        LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
+      current_peer_state = PEPeer.CLOSING;
+      
+      connection.getIncomingMessageQueue().stopQueueProcessing();
+
+      LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
       
 	  	//Cancel any pending requests (on the manager side)
 	  	cancelRequests();
@@ -365,34 +327,23 @@ PEPeerTransportProtocol
 	      //outgoing_have_message_aggregator = null;
 	    }
 	    	    
-	    if( connection != null ) {
-	    	if( connection_registered ) {
-          PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
-	    	}
-	    	connection.close();
-	    	//connection = null;
+	    
+	    if( connection_registered ) {
+	      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
 	    }
-	    
-	    
-	    try{
-	    	recent_outgoing_requests_mon.enter();
-	    
-	    	recent_outgoing_requests.clear();
-	      
-	    }finally{
-	    	
-	    	recent_outgoing_requests_mon.exit();
-	    }
-	    
+      
+	    connection.close();
+
+	    recent_outgoing_requests.clear();
+   
 	    if ( ip_resolver_request != null ){
-	    	
 	    	ip_resolver_request.cancel();
 	    }
 	    
 	    
 	  	//remove identity
-	  	if ( this.id != null && identityAdded ) {
-	  		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.id );
+	  	if ( this.peer_id != null && identityAdded ) {
+	  		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.peer_id );
 	  	}
 	
 	  		//	Send a logger event
@@ -410,857 +361,31 @@ PEPeerTransportProtocol
   }
 
 	
-  private class StateConnecting implements PEPeerTransportProtocolState {
-    
-    private StateConnecting() 
-    {
-    	
-        Connection.ConnectionListener	cl;
-    
-    	if ( socks_peer_proxy_enable ){
-    		
-    		connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, socks_host, socks_port );
- 		
-     	    cl = 
-                new Connection.ConnectionListener() {
-     	             public void connectStarted() {
-     	               connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-     	             }
-           
-                   public void connectSuccess() {
-                     LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
-                     setChannel( connection.getSocketChannel() );
-                     currentState = new SOCKSStateHandshaking();
-                   }
-                   
-                   public void connectFailure( Throwable failure_msg ) {
-                     closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
-                   }
-                   
-                   public void exceptionThrown( Throwable error ) {
-                     closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
-                   }
-                 };
-    		
-    	}else{
-    		
-    		connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, ip, port );
-      
-    	    cl = 
-                new Connection.ConnectionListener() {
-                   public void connectStarted() {
-                     connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-                   }
-            
-                   public void connectSuccess() {
-                     LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
-                     setChannel( connection.getSocketChannel() );
-                     currentState = new StateHandshaking( false, null );
-                   }
-                   
-                   public void connectFailure( Throwable failure_msg ) {
-                     closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
-                   }
-                   
-                   public void exceptionThrown( Throwable error ) {
-                     closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
-                   }
-                 };
-    	}
-
-      connection.connect( cl );
-      
-      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);
-    }
-    
-  	public int process() {
-        return PEPeerControl.WAITING_SLEEP;
-  	}
-
-  	public int getState() {
-  		return CONNECTING;
-  	}
-  }
-		
-  private class 
-  SOCKSStateHandshaking 
-  	implements PEPeerTransportProtocolState 
-  {
-    DirectByteBuffer socks_handshake_read_buff;
-    
-    int	 	handshake_phase = 0;
-    int 	socks_v5_reply_rem_length;
-    
-    private SOCKSStateHandshaking() {
-      //do this here to ensure connections stuck in socks-handshaking state can be timed out
-      connection_established_time = SystemTime.getCurrentTime();
-      
-      allocateAll();
-    }
-    
-    public int process() 
-    {
- 	    if ( socks_handshake_read_buff == null ){
-       
-	    	int	next_handshake_phase	= 100;
-	    	int	expected_reply_size;
-	    	
-           	String	mapped_ip = AEProxyFactory.getAddressMapper().internalise(ip);
-
-	    	ByteBuffer	socks_out	= ByteBuffer.allocate(256+mapped_ip.length());
-            
-    	   	  
-	    	if ( socks_version.equals( "V4" )){
-	    		   	    		
-                socks_out.put((byte)4);					// socks 4(a)
-                socks_out.put((byte)1);					// command = CONNECT
-                socks_out.putShort((short)port);  
-                
-                try{
-                	
-                	byte[]	ip_bytes = HostNameToIPResolver.syncResolve(ip).getAddress();
-                
-	                socks_out.put(ip_bytes[0]);
-	                socks_out.put(ip_bytes[1]);
-	                socks_out.put(ip_bytes[2]);
-	                socks_out.put(ip_bytes[3]);
-                
-                }catch( Throwable e ){
-                	
-                	Debug.printStackTrace(e);
-                	
-       				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
-
-       				return(0);
-                }
-                
-                if ( socks_user.length() > 0 ){
-                	
-                	socks_out.put( socks_user.getBytes());
-                }	
-                
-                socks_out.put((byte)0);
-                
-                expected_reply_size		= 8;
-                
-	    	}else if ( socks_version.equals( "V4a" )){
-	    		   	    		
-                socks_out.put((byte)4);					// socks 4(a)
-                socks_out.put((byte)1);					// command = CONNECT
-                socks_out.putShort((short)port);        // port
-                socks_out.put((byte)0);
-                socks_out.put((byte)0);
-                socks_out.put((byte)0);
-                socks_out.put((byte)1);	// indicates socks 4a
-                
-                if ( socks_user.length() > 0 ){
-                	
-                	socks_out.put( socks_user.getBytes());
-                }
-                
-                socks_out.put((byte)0);
-                socks_out.put( mapped_ip.getBytes());
-				socks_out.put((byte)0);
-				
-				expected_reply_size		= 8;
-				
-	    	}else{
-	    		
-	    		if ( handshake_phase == 0 ){
-	    			
-	    				// say hello
-	    			
-	    			socks_out.put((byte)5);					// socks 5
-		            socks_out.put((byte)2);					// 2 methods
-		            socks_out.put((byte)0);					// no auth
-		            socks_out.put((byte)2);					// user/pw
-
-		            next_handshake_phase	= 1;
-		            
-		            expected_reply_size		= 2;
-		            
-	    		}else if ( handshake_phase == 1 ){
-	    			
-	    				// user/password auth
-	    			
-  	    			socks_out.put((byte)1);							// user/pw version
-   		            socks_out.put((byte)socks_user.length());		// user length
-		            socks_out.put(socks_user.getBytes());
-   		            socks_out.put((byte)socks_password.length());	// password length
-		            socks_out.put(socks_password.getBytes());
-
-   		            next_handshake_phase	= 2;
-   		         
-		            expected_reply_size		= 2;
-		            
-	    		}else if ( handshake_phase == 2 ){
-	    			
-	    				// request
-	    			
-	                socks_out.put((byte)5);				// version			
-	    			socks_out.put((byte)1);				// connect			
-  	    			socks_out.put((byte)0);				// reserved			
-
-  	    				// use the maped ip for dns resolution so we don't leak the
-  	    				// actual address if this is a secure one (e.g. I2P one)
-  	    			                	
-	                try{
-	                	
-	                	byte[]	ip_bytes = HostNameToIPResolver.syncResolve(mapped_ip).getAddress();
-	                
-     	    			socks_out.put((byte)1);				// IP4			
-
-		                socks_out.put(ip_bytes[0]);
-		                socks_out.put(ip_bytes[1]);
-		                socks_out.put(ip_bytes[2]);
-		                socks_out.put(ip_bytes[3]);
-	                
-	                }catch( Throwable e ){
-	                	
-     	    			socks_out.put((byte)3);						// address type = domain name			
-     	    			socks_out.put((byte)mapped_ip.length());	// address type = domain name			
-     	    			socks_out.put( mapped_ip.getBytes());
-	                }
-	                
-    	            socks_out.putShort((short)port);    // port
-
-	                	// reply has to be processed in two parts as it has
-	                	// a variable length component
-	                
-  		            next_handshake_phase	= 3;
-
-	    			expected_reply_size		= 5;
-	    			
-	    		}else{
-	    			
- 		            next_handshake_phase	= 100;
-
-	    			expected_reply_size		= socks_v5_reply_rem_length;
-    			
-	    		}
-	    	}
-	    	
-			socks_out.limit( socks_out.position());
-			 
-            socks_out.position(0);
-            
-            	// TODO: fix this!
-            
-            SocketChannel	chan = connection.getSocketChannel();
-            
-            try{
-                while( socks_out.position() != socks_out.limit() ){
-                	
-                	chan.write( socks_out );
-                }
-          	                
-                handshake_phase	= next_handshake_phase;
-    	        
-            }catch (IOException e) {
-	        	
-				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
-				
-				if ( socks_handshake_read_buff != null ){
-				
-					socks_handshake_read_buff.returnToPool();
-					
-					socks_handshake_read_buff	= null;
-				}
-				
-				return 0;
-			}  
-            
-        	if ( socks_handshake_read_buff != null ){
-        		
-        		socks_handshake_read_buff.returnToPool();
-        	}
-            
-            socks_handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, expected_reply_size );
-            
-            if ( socks_handshake_read_buff == null ) {
-            	
-              closeAll( PEPeerTransportProtocol.this + ": SOCKS handshake_read_buff is null", true, false );
-              
-              return(0);
-            }
-	    }
-	  
-      if ( socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-      	
-        try {
-        	
-          int read = readData( socks_handshake_read_buff );
-          
-          if( read == 0 ) {
-          	
-            return PEPeerControl.DATA_EXPECTED_SLEEP;
-            
-          }else if( read < 0 ){
-          	
-			 throw new IOException( "SOCKS: End of Stream reached" );
-          }
-        }catch (IOException e) {
-        	
-			closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
-			
-			socks_handshake_read_buff.returnToPool();
-        
-			return 0;
-		}
-	}
-      
-      if( !socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-      	
-      	try{
-      		/*
-      		socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
-        
-			byte[]	trace = new byte[socks_handshake_read_buff.limit(DirectByteBuffer.SS_PEER)];
-			
-			socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER, trace );
-			
-			System.out.println( PEPeerTransportProtocol.this + ":state= " + handshake_phase + ", v5l = " + socks_v5_reply_rem_length + ", data = '" + new String(trace) + "' / " + ByteFormatter.nicePrint(trace) );
-			*/
-      		
-      		socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
-      	
-      		if ( socks_version.equals( "V4" ) || socks_version.equals( "V4a")){
-      			
-		        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-		        byte	resp 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-        
-		        if ( ver != 0 || resp != 90 ){
-		        	
-					closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: connection declined (" + resp + ")", true, false );
-		        
-					return 0;
-		        	
-		        }
-      		}else{
-      			
-      				// version 5 replies
-      			
-      			if ( handshake_phase == 1 ){
-      				
-      					// reply from hello
-      				
-      					// version byte
-      				
-			        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-			        
-			        byte	method 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-	        
-			        if ( method != 0 && method != 2 ){
-				
-			        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: no valid method (" + method + ")", true, false );
-				        
-						return 0;
-			        }
-			        
-			        	// no auth -> go to request phase
-			        
-			        if ( method == 0 ){
-			        	
-			        	handshake_phase	= 2;
-			        }
-      			}else if ( handshake_phase == 2 ){
-      				
-      					// reply from auth
-      				
-      					// version byte
-      				
-			        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-			        
-			        byte	status 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-	        
-			        if ( status != 0 ){
-				
-			        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: authentication fails", true, false );
-				        
-						return 0;
-			        }
-			        
-      			}else if ( handshake_phase == 3 ){
-      				
-      					// reply from request, first part
-      				
-      					// version byte
-      				
-			        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-			        
-			        byte	rep 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );		        
-			        
-			        if ( rep != 0 ){
-			        	
-			        	String	error_msgs[] = {
-			        			"",
-				        		"General SOCKS server failure",			        	
-					            "connection not allowed by ruleset",	
-					            "Network unreachable",	
-					            "Host unreachable",	
-					            "Connection refused",	
-					            "TTL expired",	
-					            "Command not supported",	
-					            "Address type not supported",	
-			        	};
-			        	
-			        	String	error_msg = rep<error_msgs.length?error_msgs[rep]:"Unknown error";
-
-			        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: request failure ( " + error_msg + "/" + rep + " )", true, false );
-				        
-						return 0;
-			        }
-			        
-			        	// reserved byte
-			        
-			        socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-			        
-			        byte	atype 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-
-			        byte	first_address_byte 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-
-			        int	address_len;
-			        
-			        if ( atype == 1 ){
-			        
-			        	address_len = 3;	// already read one
-			        	
-			        }else if ( atype == 3 ){
-			        		
-			        		// domain name, first byte gives length of remainder
-			        	
-			        	address_len = first_address_byte;
-			        	
-			        }else{
-			        	
-			        	address_len	= 15;	// already read one
-			        }
-			        
-			        socks_v5_reply_rem_length	= address_len + 2; // 2 for port
-      			}else{
-
-      				// last part of v5 request
-      			}
-      		}
-      	}finally{
-      		
-	        socks_handshake_read_buff.returnToPool();
-	        
-	        socks_handshake_read_buff	= null;
-      	}
-      	
-      	if ( handshake_phase == 100 ){
-      		
-      		currentState = new StateHandshaking( true, null );
-      	}
-      }
-      
-      return PEPeerControl.NO_SLEEP;
-      }
-    
-	  public int getState() {
-			return HANDSHAKING;
-	  }
-	}
 
   
   
   
-  private class 
-  StateHandshaking 
-  	implements PEPeerTransportProtocolState 
-  {
-    DirectByteBuffer handshake_read_buff;
-    boolean sent_our_handshake = false;
-  
-    private StateHandshaking( boolean already_initialised, byte[] data_already_read ) {
-      connection_established_time = SystemTime.getCurrentTime();
-      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
-      
-      if ( !already_initialised ){
-    		allocateAll();
-    	}
-      
-      handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 68 );
-      if( handshake_read_buff == null ) {
-        closeAll( PEPeerTransportProtocol.this + ": handshake_read_buff is null", true, false );
-        return;
-      }
-
-      if( data_already_read != null ) {
-        handshake_read_buff.put( DirectByteBuffer.SS_PEER, data_already_read );
-      }
-    }
-    
-    public int process() 
-    {
-      if( !sent_our_handshake ) {  //TODO we should wait until we receive their handshake completely on incoming connections, before sending our own
-        if ( getState() == CLOSING ) return 0;
-        
-        connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ), false );
-        sent_our_handshake = true;
-      }
-      
-      if( handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-        try {
-          int read = readData( handshake_read_buff );
-          if( read == 0 ) {
-            return PEPeerControl.DATA_EXPECTED_SLEEP;
-          }
-          else if( read < 0 ) {
-						throw new IOException( "End of Stream reached" );
-          }
-        }
-        catch (IOException e) {
-					closeAll( PEPeerTransportProtocol.this + ": StateHandshaking:: " + e, true, false );
-					handshake_read_buff.returnToPool();
-          return 0;
-				}
-			}
-      
-      if( !handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) { //we've read all their handshake in
-        handleHandShakeResponse( handshake_read_buff );
-      }
-      
-      return PEPeerControl.NO_SLEEP;
-	      
-      }
-    
-	  public int getState() {
-			return HANDSHAKING;
-	  }
-	}
-
-  
-  protected void handleHandShakeResponse( DirectByteBuffer handshake_data ) {
-    handshake_data.position(DirectByteBuffer.SS_PEER, 0);
-
-    byte b;
-    if ((b = handshake_data.get(DirectByteBuffer.SS_PEER)) != (byte) BTHandshake.PROTOCOL.length()) {
-      closeAll(toString() + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
-      handshake_data.returnToPool();
-      return;
-    }
-
-    byte[] protocol = BTHandshake.PROTOCOL.getBytes();
-    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < protocol.length) {
-      closeAll(toString() + " has sent handshake, but handshake is of wrong size : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
-      handshake_data.returnToPool();
-      return;
-    }
-    else {
-      handshake_data.get(DirectByteBuffer.SS_PEER,protocol);
-      if (!(new String(protocol)).equals(BTHandshake.PROTOCOL)) {
-        closeAll(toString() + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
-        handshake_data.returnToPool();
-        return;
-      }
-    }
-
-    byte[] reserved = new byte[8];
-    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < reserved.length) {
-      closeAll(toString() + " has sent handshake, but handshake is of wrong size(2) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
-      handshake_data.returnToPool();
-      return;
-    }
-    handshake_data.get(DirectByteBuffer.SS_PEER,reserved);   //Ignore reserved bytes
-
-    PeerIdentityDataID	my_peer_data_id = manager.getPeerIdentityDataID();
-    
-    byte[] hash = manager.getHash();
-    byte[] otherHash = new byte[20];
-    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < otherHash.length) {
-      closeAll(toString() + " has sent handshake, but handshake is of wrong size(3) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
-      handshake_data.returnToPool();
-      return;
-    }
-    else {
-      handshake_data.get(DirectByteBuffer.SS_PEER,otherHash);
-      for (int i = 0; i < 20; i++) {
-        if (otherHash[i] != hash[i]) {
-          closeAll(toString() + " has sent handshake, but infohash is wrong",true, false);
-          handshake_data.returnToPool();
-          return;
-        }
-      }
-    }
-
-    byte[] otherPeerId = new byte[20];
-    if (handshake_data.remaining(DirectByteBuffer.SS_PEER) < otherPeerId.length) {
-      closeAll(toString() + " has sent handshake, but handshake is of wrong size(4) : " + handshake_data.remaining(DirectByteBuffer.SS_PEER),true, true);
-      handshake_data.returnToPool();
-      return;
-    }
-    handshake_data.get( DirectByteBuffer.SS_PEER, otherPeerId );
-
-    this.id = otherPeerId;
-
-    //decode a client identification string from the given peerID
-    client = PeerClassifier.getClientDescription( otherPeerId );
-
-    //make sure the client type is not banned
-    if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-      closeAll( toString() + ": " +client+ " client type not allowed to connect, banned", false, false );
-      handshake_data.returnToPool();
-      return;
-    }
-
-    //make sure we are not connected to ourselves
-    if( Arrays.equals( manager.getPeerId(), otherPeerId ) ) {
-      closeAll( toString() + ": peerID matches myself", false, false );
-      handshake_data.returnToPool();
-      return;
-    }
-
-    //make sure we are not already connected to this peer
-    boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, otherPeerId );
-    boolean sameIP = false;
-    
-    
-    	//  allow loopback connects for co-located proxy-based connections and testing
-    
-    boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
-								ip.equals( "127.0.0.1" );
-
-    if( !same_allowed ){
-    	
-      if( PeerIdentityManager.containsIPAddress( my_peer_data_id, ip )) {
-      	
-        sameIP = true;
-      }
-    }
-    
-    if( sameIdentity ) {
-      closeAll( toString() + " exchanged handshake, but peer matches pre-existing identity", false, false );
-      handshake_data.returnToPool();
-      return;
-    }
-    if( sameIP ) {
-      closeAll( toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false );
-      handshake_data.returnToPool();
-      return;
-    }
-
-    //make sure we haven't reached our connection limit
-    int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
-    if( maxAllowed == 0 ) {
-      closeAll( toString() + ": Too many existing peer connections", false, false );
-      handshake_data.returnToPool();
-      return;
-    }
-
-    PeerIdentityManager.addIdentity( my_peer_data_id, otherPeerId, ip );
-    identityAdded = true;
-
-    LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
-
-    handshake_data.returnToPool();
-    
-    
-    //extended protocol processing
-    if( (reserved[0] & 128) == 128 ) {  //if first (high) bit is set
-      //System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
-      
-      //TODO sendExtendedProtocolSupportList();
-    }
-
-    /*
-    for( int i=0; i < reserved.length; i++ ) {
-      int val = reserved[i] & 0xFF;
-      if( val != 0 ) {
-        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
-      }
-    }
-    */
-    
-    sendBitField();
-   
-    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
-    
-    //fudge to ensure optimistic-connect code processes connections that have never sent a data message
-    last_data_message_received_time = SystemTime.getCurrentTime();
-    
-    currentState = new StateTransfering();
+  private void sendHandshake() {
+    connection_established_time = SystemTime.getCurrentTime();
+    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
+    allocateAll();
+    connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ), false );
   }
   
   
   
   
-private class 
-StateTransfering 
-	implements PEPeerTransportProtocolState 
-{
-  DirectByteBuffer	lengthBuffer 	= new DirectByteBuffer(ByteBuffer.allocate(4));
-  boolean 			readingLength 	= true;
-  
-  DirectByteBuffer message_read_buff;
-  
-  public int process() 
-  {
-    if( ++processLoop > 10 ) {
-      return PEPeerControl.NO_SLEEP;
-    }
-          
-    if (readingLength) {
-      if (lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER) ) {          
-        try {
-          int read = readData(lengthBuffer);
-          
-          if (read == 0) {
-            //If there's nothing pending on the socket, then
-            //we can quite safely send a request while we wait
-            if(lengthBuffer.remaining(DirectByteBuffer.SS_PEER) == 4) {
-              readyToRequest = true;
-              return PEPeerControl.WAITING_SLEEP;
-            }
-            else {
-              //wait a bit before trying again
-              return PEPeerControl.DATA_EXPECTED_SLEEP;
-            }
-          }
-          else if (read < 0) {
-            throw new IOException("End of Stream Reached");
-          }
-        }
-        catch (IOException e) {
-          closeAll(PEPeerTransportProtocol.this + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
-          return PEPeerControl.NO_SLEEP;
-        }
-			}
-
-			if (!lengthBuffer.hasRemaining(DirectByteBuffer.SS_PEER)) {
-				int length = lengthBuffer.getInt(DirectByteBuffer.SS_PEER,0);
-
-        //this message-length-read round is done, time to read the payload
-        readingLength = false;
-        //reset the position for next round
-        lengthBuffer.position( DirectByteBuffer.SS_PEER, 0 );
-        
-				if(length < 0) {
-					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
-					return PEPeerControl.NO_SLEEP;
-				}
-      
-				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
-				if( length > 16393 ) {
-          System.out.println( PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length );
-					closeAll(PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length,true, true);
-					return PEPeerControl.NO_SLEEP;
-				}
-        
-				if (length > 0) {
-          message_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, length );
-          if( message_read_buff == null) {
-            closeAll( PEPeerTransportProtocol.this + ": message_read_buff is null", true, false );
-            return PEPeerControl.NO_SLEEP;
-          }
-          
-					//'piece' data messages are greater than length 13
-          if ( length > 13 ) {
-            readyToRequest = true;
-          }
-          //protocol message, don't request until we know what the message is
-          else {
-            readyToRequest = false;
-          }
-				}
-				else {
-				  //length is 0 : Keep alive message, process next
-          connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-          last_message_received_time = SystemTime.getCurrentTime();
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, PEPeerTransportProtocol.this + " sent keep-alive" );
-					readingLength = true;
-				}
-			}
-		}
-    
-	  if (!readingLength) {
-	  	try {
-	  		int read = readData( message_read_buff );
-        
-        if (read == 0) {
-          //nothing on the socket, wait a bit before trying again
-          return PEPeerControl.DATA_EXPECTED_SLEEP;
-        }
-	  		else if (read < 0) {
-	  			throw new IOException("End of Stream Reached");
-	  		}
-	  		else {
-	  		  if( message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13 &&
-              connection_state != PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD ) {
-	  		    stats.received(read);
-	  		  }
-	  		}
-	  	}
-	  	catch (IOException e) {
-	  		closeAll(PEPeerTransportProtocol.this + " : StateTransfering::End of Stream Reached (reading data)",true, true);
-	  		message_read_buff.returnToPool();
-        return PEPeerControl.NO_SLEEP;
-	  	}
-    
-	  	if( !message_read_buff.hasRemaining(DirectByteBuffer.SS_PEER) ) {
-	  		//After each message has been received, we're not ready to request anymore,
-	  		//Unless we finish the socket's queue, or we start receiving a piece.
-	  		readyToRequest = false;
-        
-        readingLength = analyzeIncomingMessage( message_read_buff );
-        
-	  		if( getState() == TRANSFERING && readingLength ) {
-	  			process();
-	  			return PEPeerControl.NO_SLEEP;
-	  		}
-	  	}
-	  }
-    
-      return PEPeerControl.NO_SLEEP;
-	}
-
-	public int getState() {
-	  return TRANSFERING;
-	}
-  }
-
-  private static class StateClosing implements PEPeerTransportProtocolState {
-    public int process() { return PEPeerControl.NO_SLEEP; }
-
-    public int getState() {
-      return CLOSING;
-    }
-  }
-
-  /*
-  private static class StateClosed implements PEPeerTransportProtocolState {
-  	public int process() { return PEPeerControl.NO_SLEEP; }
-
-  	public int getState() {
-  		return DISCONNECTED;
-  	}
-  }
-  */
 
   
-  public int processRead() {
-  	try {
-  		processLoop = 0;
-  		if (currentState != null) {
-  			return currentState.process();
-  		}
-      else return PEPeerControl.NO_SLEEP;
-  	}
-  	catch (Throwable e) {
-  		Debug.printStackTrace( e );
-  		closeAll(toString() + " : Exception in process : " + e,true, false);
-      return PEPeerControl.NO_SLEEP;
-  	}
-  }
+  
+  
+  
+  
   
 
-  public int getState() {
-	if (currentState != null)
-	  return currentState.getState();
-	return 0;
-  }
+  public int getPeerState() {  return current_peer_state;  }
 
+  
   
   public int getPercentDoneInThousandNotation() {
     if( other_peer_has_pieces == null ) {  return 0;  }
@@ -1281,265 +406,7 @@ StateTransfering
     return (!choked_by_other_peer && interested_in_other_peer);
   }
 
-  
-  private boolean analyzeIncomingMessage( DirectByteBuffer message_buff ) {
-    if ( getState() == CLOSING ) return false;
     
-    boolean logging_is_on = LGLogger.isLoggingOn();
-    
-    message_buff.position( DirectByteBuffer.SS_PEER, 0 );
-    
-    //*any* message received at this point means we're established, even though 99/100 it'll be the optional bitfield message
-    connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-    
-    last_message_received_time = SystemTime.getCurrentTime();
-    
-    
-    int pieceNumber, pieceOffset, pieceLength;
-    byte cmd = message_buff.get( DirectByteBuffer.SS_PEER );
-    switch( cmd ) {
-      case BT_CHOKED :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
-          closeAll( toString() + " choking received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is choking you" );
-        }
-        choked_by_other_peer = true;
-        cancelRequests();
-        message_buff.returnToPool();
-        return true;
-      case BT_UNCHOKED :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
-          closeAll( toString() + " unchoking received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is unchoking you" );
-        }
-        choked_by_other_peer = false;
-        message_buff.returnToPool();
-        return true;
-      case BT_INTERESTED :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
-          closeAll( toString() + " interested received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is interested" );
-        }
-        other_peer_interested_in_me = true;
-        message_buff.returnToPool();
-        return true;
-      case BT_UNINTERESTED :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 1 ) {
-          closeAll( toString() + " uninterested received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is not interested" );
-        }
-        other_peer_interested_in_me = false;
-
-        //force send any pending haves in case one of them would make the other peer interested again
-        if( outgoing_have_message_aggregator != null ) {
-          outgoing_have_message_aggregator.forceSendOfPending();
-        }
-
-        message_buff.returnToPool();
-        return true;
-      case BT_HAVE :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 5 ) {
-          closeAll( toString() + " have received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has " + pieceNumber );
-        }
-        have( pieceNumber );
-        message_buff.returnToPool();
-        return true;
-      case BT_BITFIELD :
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has sent BitField" );
-        }
-        setBitField( message_buff );
-        checkInterested();
-        checkSeed();
-        message_buff.returnToPool();
-        return true;
-      case BT_REQUEST :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 13 ) {
-          closeAll( toString() + " request received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceLength = message_buff.getInt( DirectByteBuffer.SS_PEER );
-
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength - 1) );
-        }
-
-        if( manager.checkBlock( pieceNumber, pieceOffset, pieceLength ) ) {
-          if( !choking_other_peer ) {
-            outgoing_piece_message_handler.addPieceRequest( pieceNumber, pieceOffset, pieceLength );
-          }
-          else {
-            LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength) + " but peer is currently choked. Request dropped" );
-          }
-        }
-        else {
-          closeAll( toString() + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength) + " which is an invalid request.", true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        message_buff.returnToPool();
-        return true;
-      case BT_PIECE :
-        last_data_message_received_time = SystemTime.getCurrentTime();
-        
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) < 9 ) {
-          closeAll( toString() + " piece block received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceLength = message_buff.limit( DirectByteBuffer.SS_PEER ) - message_buff.position( DirectByteBuffer.SS_PEER );
-        
-        String msg = "";
-        if( logging_is_on ) {
-          msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength - 1);
-        }
-        
-        if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
-        	
-        	int	pos = message_buff.position( DirectByteBuffer.SS_PEER );
-        	
-        	long	offset = ((long)pieceNumber)*getControl().getPieceLength(0) + pieceOffset;
-        	
-        	for (int i=0;i<pieceLength;i++){
-        		
-				byte	v = message_buff.get( DirectByteBuffer.SS_PEER );
-				
-				if ((byte)offset != v ){
-					
-					System.out.println( "piece: read is bad at " + offset +
-										": expected = " + (byte)offset + ", actual = " + v );
-					
-					break;
-				}
-				
-				offset++;       		
-        	}
-        	
-        	message_buff.position( DirectByteBuffer.SS_PEER, pos );
-        }
-        
-        DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
-
-        if( manager.checkBlock( pieceNumber, pieceOffset, message_buff ) ) {
-          if( alreadyRequested( request ) ) {  //from active request
-            removeRequest( request );
-            setSnubbed( false );
-            reSetRequestsTime();
-            
-            if( manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {  //oops, looks like this block has already been downloaded
-              //we're probably in end-game mode then
-              if( manager.isInEndGameMode() )  msg += ", but piece block ignored as already written in end-game mode";
-              else  msg += ", but piece block ignored as already written";
-              message_buff.returnToPool();
-            }
-            else {
-              manager.received( pieceLength );
-              manager.writeBlock( pieceNumber, pieceOffset, message_buff, this );
-              requests_completed++;
-            }
-          }
-          else { //initial request may have already expired, but check if we can use the data anyway
-            if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
-              boolean ever_requested;
-              try{
-              	recent_outgoing_requests_mon.enter();
-              
-                ever_requested = recent_outgoing_requests.containsKey( request );
-              }finally{
-              	
-              	recent_outgoing_requests_mon.exit();
-              }
-              if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
-                msg += ", piece block data recovered as useful";
-                manager.received( pieceLength );
-                setSnubbed( false );
-                reSetRequestsTime();
-                manager.writeBlockAndCancelOutstanding( pieceNumber, pieceOffset, message_buff, this );
-                requests_recovered++;
-                printRequestStats();
-              }
-              else {
-                msg += ", but piece block discarded as never requested";
-                stats.discarded( pieceLength );
-                manager.discarded( pieceLength );
-                message_buff.returnToPool();
-                requests_discarded++;
-                printRequestStats();
-              }
-            }
-            else {
-              msg += ", but piece block discarded as already written";
-              stats.discarded( pieceLength );
-              manager.discarded( pieceLength );
-              message_buff.returnToPool();
-              requests_discarded++;
-              printRequestStats();
-            }
-          }
-        }
-        else {
-          msg += ", but piece block discarded as invalid";
-          stats.discarded( pieceLength );
-          manager.discarded( pieceLength );
-          message_buff.returnToPool();
-          requests_discarded++;
-          printRequestStats();
-        }
-
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
-        }
-        return true;
-      case BT_CANCEL :
-        if( message_buff.limit( DirectByteBuffer.SS_PEER ) != 13 ) {
-          closeAll( toString() + " cancel received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
-          message_buff.returnToPool();
-          return false;
-        }
-        pieceNumber = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceOffset = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        pieceLength = message_buff.getInt( DirectByteBuffer.SS_PEER );
-        if( logging_is_on ) {
-          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength - 1) );
-        }
-        outgoing_piece_message_handler.removePieceRequest( pieceNumber, pieceOffset, pieceLength );
-        message_buff.returnToPool();
-        return true;
-      default :
-        Debug.out( toString() + " has sent an unknown protocol message id: " + cmd );
-        closeAll( toString() + " has sent a wrong message " + cmd, true, true );
-        message_buff.returnToPool();
-        return false;
-    }
-  }
-  
   
   private void printRequestStats() {
     if( SHOW_DISCARD_RATE_STATS ) {
@@ -1550,41 +417,28 @@ StateTransfering
   }
   
 
-  private void have(int pieceNumber) {
-    if ((pieceNumber >= other_peer_has_pieces.length) || (pieceNumber < 0)) {
-      closeAll(toString() + " gave invalid pieceNumber:" + pieceNumber,true, true);
-    }
-    else {    
-      other_peer_has_pieces[pieceNumber] = true;
-      int pieceLength = manager.getPieceLength(pieceNumber);
-      stats.haveNewPiece(pieceLength);
-      manager.havePiece(pieceNumber, pieceLength, this);
-      if (!interested_in_other_peer) {
-        checkInterested(pieceNumber);
-      }
-      checkSeed();
-    }
-  }
+  
 
   /**
 	 * Checks if it's a seed or not.
 	 */
   private void checkSeed() {
-	for (int i = 0; i < other_peer_has_pieces.length; i++) {
-	  if (!other_peer_has_pieces[i])
-		return;
-	}
-	seed = true;
+    for (int i = 0; i < other_peer_has_pieces.length; i++) {
+      if (!other_peer_has_pieces[i]) {
+        return;
+      }
+    }
+    seed = true;
   }
 
 
   public boolean request( int pieceNumber, int pieceOffset, int pieceLength) {
-  	if (getState() != TRANSFERING) {
+  	if (getPeerState() != TRANSFERING) {
   		manager.requestCanceled( manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return false;
   	}	
   	DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
-  	if( !alreadyRequested( request ) ) {
+  	if( !hasBeenRequested( request ) ) {
   		addRequest( request );
       try{
       	recent_outgoing_requests_mon.enter();
@@ -1601,8 +455,8 @@ StateTransfering
   
 
   public void sendCancel( DiskManagerReadRequest request ) {
-  	if ( getState() != TRANSFERING ) return;
-		if ( alreadyRequested( request ) ) {
+  	if ( getPeerState() != TRANSFERING ) return;
+		if ( hasBeenRequested( request ) ) {
 			removeRequest( request );
       connection.getOutgoingMessageQueue().addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() ), false );
 		}
@@ -1610,7 +464,7 @@ StateTransfering
 
   
   public void sendHave( int pieceNumber ) {
-		if ( getState() != TRANSFERING ) return;
+		if ( getPeerState() != TRANSFERING ) return;
     //only force if the other peer doesn't have this piece and is not yet interested
     boolean force = !other_peer_has_pieces[ pieceNumber ] && !other_peer_interested_in_me;
     outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force );
@@ -1619,7 +473,7 @@ StateTransfering
 
   
   public void sendChoke() {
-  	if ( getState() != TRANSFERING ) return;
+  	if ( getPeerState() != TRANSFERING ) return;
     outgoing_piece_message_handler.removeAllPieceRequests();
     connection.getOutgoingMessageQueue().addMessage( new BTChoke(), false );
     choking_other_peer = true;
@@ -1627,42 +481,19 @@ StateTransfering
 
   
   public void sendUnChoke() {
-    if ( getState() != TRANSFERING ) return;
+    if ( getPeerState() != TRANSFERING ) return;
     connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
     choking_other_peer = false;
   }
 
 
   private void sendKeepAlive() {
-    if ( getState() != TRANSFERING ) return;
+    if ( getPeerState() != TRANSFERING ) return;
     connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(), false );
   }
   
   
-  private void setBitField(DirectByteBuffer buffer) {
-	byte[] dataf = new byte[(manager.getPiecesNumber() + 7) / 8];
-     
-	if (buffer.remaining(DirectByteBuffer.SS_PEER) < dataf.length) {
-     LGLogger.log(componentID, evtProtocol, LGLogger.ERROR, 
-                  toString() + " has sent invalid BitField: too short");
-	  return;
-   }
-   
-	buffer.get(DirectByteBuffer.SS_PEER,dataf);
-	for (int i = 0; i < other_peer_has_pieces.length; i++) {
-	  int index = i / 8;
-	  int bit = 7 - (i % 8);
-	  byte bData = dataf[index];
-	  byte b = (byte) (bData >> bit);
-	  if ((b & 0x01) == 1) {
-	    other_peer_has_pieces[i] = true;
-	    manager.updateSuperSeedPiece(this,i);
-	  }
-	  else {
-      other_peer_has_pieces[i] = false;
-	  }
-	}
-  }
+  
 
   
   /**
@@ -1670,7 +501,7 @@ StateTransfering
    * Scans the whole pieces to determine if it's interested or not
    */
   private void checkInterested() {
-    if ( getState() == CLOSING ) return;
+    if ( getPeerState() == CLOSING ) return;
     
 		boolean newInterested = false;
 		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
@@ -1696,7 +527,7 @@ StateTransfering
    * @param pieceNumber the piece number that has been received
    */
   private void checkInterested( int pieceNumber ) {
-    if ( getState() == CLOSING ) return;
+    if ( getPeerState() == CLOSING ) return;
     
     DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		boolean newInterested = !pieces[ pieceNumber ].getDone();
@@ -1712,17 +543,15 @@ StateTransfering
 
   /**
    * Private method to send the bitfield.
-   * The bitfield will only be sent if there is at least one piece available.
    */
   private void sendBitField() {
-    if ( getState() == CLOSING ) return;
+    if ( getPeerState() == CLOSING ) return;
     
 		//In case we're in super seed mode, we don't send our bitfield
 		if ( manager.isSuperSeedMode() ) return;
     
     //create bitfield
 		ByteBuffer buffer = ByteBuffer.allocate( (manager.getPiecesNumber() + 7) / 8 );
-		boolean atLeastOne = false;
 		
 		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		
@@ -1733,7 +562,6 @@ StateTransfering
 			bToSend = bToSend << 1;
 			if ( pieces[i].getDone()) {
 				bToSend += 1;
-				atLeastOne = true;
 			}
 			if ( (i % 8) == 7 ) buffer.put( (byte)bToSend );
 		}
@@ -1744,20 +572,17 @@ StateTransfering
 
     buffer.flip();
     
-		if ( atLeastOne ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTBitfield( new DirectByteBuffer( buffer ) ), false );
-		}
+    connection.getOutgoingMessageQueue().addMessage( new BTBitfield( new DirectByteBuffer( buffer ) ), false );
 	}
 
   
-  public byte[] getId() {  return id;  }
+  public byte[] getId() {  return peer_id;  }
   public String getIp() {  return ip;  }
   public int getPort() {  return port;  }
   public String getClient() {  return client;  }
   
   public boolean isIncoming() {  return incoming;  }  
   public boolean isOptimisticUnchoke() {  return manager.isOptimisticUnchoke(this);  }
-  public boolean isReadyToRequest() {  return readyToRequest;  }
   
   public PEPeerControl getControl() {  return manager;  }
   public PEPeerManager getManager() {  return manager;  }
@@ -1773,10 +598,7 @@ StateTransfering
   public boolean isSnubbed() {  return snubbed;  }
   public void setSnubbed(boolean b) {  snubbed = b;  }
 
-  //TODO: remove abstract methods
-  protected abstract void setChannel( SocketChannel channel );
-  protected abstract int readData( DirectByteBuffer	buffer ) throws IOException;
-  
+
   public void hasSentABadChunk() {  nbBadChunks++;  }
   public int getNbBadChunks() {  return nbBadChunks;  }
   public void resetNbBadChunks(){ nbBadChunks = 0; }
@@ -1786,16 +608,7 @@ StateTransfering
   public void setUniqueAnnounce(int _uniquePiece) {  uniquePiece = _uniquePiece;  }
   public int getUniqueAnnounce() {  return uniquePiece;  }
 
-  public int getReadSleepTime() { return readSleepTime; }
-  public void setReadSleepTime(int time) { readSleepTime = time; }
-  public long getLastReadTime() { return lastReadTime; }
-  public void setLastReadTime(long time) { lastReadTime = time; }
 
-  protected PEPeerTransportDataReader
-  getDataReader()
-  {
-  	return( manager.getDataReader());
-  }
 
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key) {
@@ -1850,44 +663,28 @@ StateTransfering
 	}
 	
 
-  /////////////////////////////////////////////////////////////////
-  /*
-  public boolean equals( Object obj ) {
-    if (this == obj)  return true;
-    if (obj != null && obj instanceof PEPeerTransportProtocol) {
-    	PEPeerTransportProtocol other = (PEPeerTransportProtocol)obj;
-      if ( this.ip.equals(other.ip) && this.port == other.port ) {
-      	return true;
-      }
-    }
-    return false;
-  }
-  public int hashCode() {  return hashcode;  }
-  */
-  /////////////////////////////////////////////////////////////////
 
-
-		protected void cancelRequests() 
-		{
-			if ( requested != null ) {
-		        try{
-		        	requested_mon.enter();
+	private void cancelRequests() {
+	  if ( requested != null ) {
+	    try{
+	      requested_mon.enter();
 		        
-		          for (int i = requested.size() - 1; i >= 0; i--) {
-		            DiskManagerReadRequest request = (DiskManagerReadRequest) requested.remove(i);
-		            manager.requestCanceled(request);
-		          }
-		        }finally{
+	      for (int i = requested.size() - 1; i >= 0; i--) {
+	        DiskManagerReadRequest request = (DiskManagerReadRequest) requested.remove(i);
+	        manager.requestCanceled(request);
+	      }
+	    }finally{
 		        	
-		        	requested_mon.exit();
-		        }
-	      }
-	      if( !closing ) {
-	        //cancel any unsent requests in the queue
-	        Message[] type = { new BTRequest() };
-	        connection.getOutgoingMessageQueue().removeMessagesOfType( type, false );
-	      }
-		}
+	      requested_mon.exit();
+	    }
+	  }
+	  if( !closing ) {
+	    //cancel any unsent requests in the queue
+	    Message[] type = { new BTRequest() };
+	    connection.getOutgoingMessageQueue().removeMessagesOfType( type, false );
+	  }
+	}
+  
 
 		public int 
 		getNbRequests() {
@@ -1931,18 +728,15 @@ StateTransfering
 		    }
 		}
 		
-		protected boolean
-		alreadyRequested(
-			DiskManagerReadRequest	request )
-		{
-			try{
-				requested_mon.enter();
+    
+		private boolean	hasBeenRequested( DiskManagerReadRequest request ) {
+			try{  requested_mon.enter();
 	    
 				return requested.contains( request );
-			}finally{
-				requested_mon.exit();
-			}
+      }
+      finally{  requested_mon.exit();  }
 		}
+    
 		
 		protected void
 		addRequest(
@@ -2111,5 +905,424 @@ StateTransfering
     return time;
   }
   
+  
+  
+  private void decodeHandshake( BTHandshake handshake ) {
+    //extended protocol processing
+    if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
+      //System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
+      
+      //TODO sendExtendedProtocolSupportList();
+    }
+
+    /*
+    for( int i=0; i < reserved.length; i++ ) {
+      int val = reserved[i] & 0xFF;
+      if( val != 0 ) {
+        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
+      }
+    }
+    */
+    
+    
+    PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
+      
+    if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
+      closeAll( toString() + " has sent handshake, but infohash is wrong", true, false );
+      handshake.destroy();
+      return;
+    }
+    
+    peer_id = handshake.getPeerId();
+
+    //decode a client identification string from the given peerID
+    client = PeerClassifier.getClientDescription( peer_id );
+
+    //make sure the client type is not banned
+    if( !PeerClassifier.isClientTypeAllowed( client ) ) {
+      closeAll( toString() + ": " +client+ " client type not allowed to connect, banned", false, false );
+      handshake.destroy();
+      return;
+    }
+
+    //make sure we are not connected to ourselves
+    if( Arrays.equals( manager.getPeerId(), peer_id ) ) {
+      closeAll( toString() + ": peerID matches myself", false, false );
+      handshake.destroy();
+      return;
+    }
+
+    //make sure we are not already connected to this peer
+    boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, peer_id );
+    boolean sameIP = false;
+      
+      
+    //allow loopback connects for co-located proxy-based connections and testing
+    boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || ip.equals( "127.0.0.1" );
+    if( !same_allowed ){  
+      if( PeerIdentityManager.containsIPAddress( my_peer_data_id, ip )) {
+        sameIP = true;
+      }
+    }
+      
+    if( sameIdentity ) {
+      closeAll( toString() + " exchanged handshake, but peer matches pre-existing identity", false, false );
+      handshake.destroy();
+      return;
+    }
+    
+    if( sameIP ) {
+      closeAll( toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false );
+      handshake.destroy();
+      return;
+    }
+
+    //make sure we haven't reached our connection limit
+    int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
+    if( maxAllowed == 0 ) {
+      closeAll( toString() + ": Too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ "]", false, false );
+      handshake.destroy();
+      return;
+    }
+
+    PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );
+    identityAdded = true;
+
+    LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
+
+    handshake.destroy();
+
+    sendBitField();
+     
+    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+      
+    //fudge to ensure optimistic-connect code processes connections that have never sent a data message
+    last_data_message_received_time = SystemTime.getCurrentTime();
+      
+    current_peer_state = PEPeer.TRANSFERING;
+  }
+  
+  
+  
+  
+  private void decodeBitfield( BTBitfield bitfield ) {
+    DirectByteBuffer field = bitfield.getBitfield();
+   
+    byte[] dataf = new byte[ (manager.getPiecesNumber() + 7) / 8 ];
+         
+    if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
+      LGLogger.log( componentID, evtProtocol, LGLogger.ERROR, toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
+      bitfield.destroy();
+      return;
+    }
+       
+    field.get( DirectByteBuffer.SS_PEER, dataf );
+    
+    for (int i = 0; i < other_peer_has_pieces.length; i++) {
+      int index = i / 8;
+      int bit = 7 - (i % 8);
+      byte bData = dataf[index];
+      byte b = (byte) (bData >> bit);
+      if ((b & 0x01) == 1) {
+        other_peer_has_pieces[i] = true;
+        manager.updateSuperSeedPiece(this,i);
+      }
+      else {
+        other_peer_has_pieces[i] = false;
+      }
+    }
+
+    checkInterested();
+    checkSeed();
+    bitfield.destroy();
+  }
+  
+  
+  
+  private void decodeChoke( BTChoke choke ) {    
+    choked_by_other_peer = true;
+    cancelRequests();
+    choke.destroy();
+  }
+  
+  
+  private void decodeUnchoke( BTUnchoke unchoke ) {
+    choked_by_other_peer = false;
+    unchoke.destroy();
+  }
+  
+  
+  private void decodeInterested( BTInterested interested ) {
+    other_peer_interested_in_me = true;
+    interested.destroy();                                                   
+  }
+  
+  
+  private void decodeUninterested( BTUninterested uninterested ) {
+    other_peer_interested_in_me = false;
+
+    //force send any pending haves in case one of them would make the other peer interested again
+    if( outgoing_have_message_aggregator != null ) {
+      outgoing_have_message_aggregator.forceSendOfPending();
+    }
+
+    uninterested.destroy();
+  }
+  
+  
+  
+  
+  private void decodeHave( BTHave have ) {
+    int piece_number = have.getPieceNumber();
+    
+    if ((piece_number >= other_peer_has_pieces.length) || (piece_number < 0)) {
+      closeAll( toString() + " gave invalid piece_number: " + piece_number, true, true );
+      have.destroy();
+      return;
+    }
+
+    other_peer_has_pieces[piece_number] = true;
+    int pieceLength = manager.getPieceLength(piece_number);
+    stats.haveNewPiece(pieceLength);
+    manager.havePiece(piece_number, pieceLength, this);
+    
+    if (!interested_in_other_peer) {
+      checkInterested(piece_number);
+    }
+    
+    checkSeed();
+     
+    have.destroy();
+  }
+  
+  
+  
+  private void decodeRequest( BTRequest request ) {
+    int number = request.getPieceNumber();
+    int offset = request.getPieceOffset();
+    int length = request.getLength();
+    
+    if( !manager.checkBlock( number, offset, length ) ) {
+      closeAll( toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " which is an invalid request.", true, true );
+      request.destroy();
+      return;
+    }
+      
+    if( !choking_other_peer ) {
+      outgoing_piece_message_handler.addPieceRequest( number, offset, length );
+    }
+    else {
+      LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " but peer is currently choked. Request ignored." );
+    }
+
+    request.destroy();  
+  }
+  
+  
+  
+  private void decodePiece( BTPiece piece ) {
+    last_data_message_received_time = SystemTime.getCurrentTime();
+    
+    int number = piece.getPieceNumber();
+    int offset = piece.getPieceOffset();
+    DirectByteBuffer payload = piece.getPieceData();
+    int length = payload.remaining( DirectByteBuffer.SS_PEER );
+    
+    /*
+    if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
+      int pos = payload.position( DirectByteBuffer.SS_PEER );
+      long  off = ((long)number) * getControl().getPieceLength(0) + offset;
+      for (int i=0;i<length;i++){
+        byte  v = payload.get( DirectByteBuffer.SS_PEER );
+        if ((byte)off != v ){      
+          System.out.println( "piece: read is bad at " + off + ": expected = " + (byte)off + ", actual = " + v );
+          break;
+        }
+        off++;           
+      }
+      payload.position( DirectByteBuffer.SS_PEER, pos );
+    }
+    */
+    
+    String error_msg = toString() + " has sent #" + number + ":" + offset + "->" + (offset + length) + ", ";
+    
+    if( !manager.checkBlock( number, offset, payload ) ) {
+      LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as invalid." );
+      stats.discarded( length );
+      manager.discarded( length );
+      requests_discarded++;
+      printRequestStats();
+      piece.destroy();
+      return;
+    }
+    
+    DiskManagerReadRequest request = manager.createDiskManagerRequest( number, offset, length );
+    boolean piece_error = true;
+
+    if( hasBeenRequested( request ) ) {  //from active request
+      removeRequest( request );
+      setSnubbed( false );
+      reSetRequestsTime();
+        
+      if( manager.isBlockAlreadyWritten( number, offset ) ) {  //oops, looks like this block has already been downloaded
+        //we're probably in end-game mode then
+        if( manager.isInEndGameMode() ) {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block ignored as already written in end-game mode." );
+          //we dont count end-game mode duplicates towards discarded, since this is a normal side-effect of the mode
+        }
+        else {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as already written." );
+          stats.discarded( length );
+          manager.discarded( length );
+          requests_discarded++;
+          printRequestStats();
+        }
+      }
+      else {  //successfully received piece!
+        manager.received( length );
+        manager.writeBlock( number, offset, payload, this );
+        requests_completed++;
+        piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+      }
+    }
+    else {  //initial request may have already expired, but check if we can use the data anyway
+      if( !manager.isBlockAlreadyWritten( number, offset ) ) {
+        boolean ever_requested;
+        
+        try{  recent_outgoing_requests_mon.enter();
+          ever_requested = recent_outgoing_requests.containsKey( request );
+        }
+        finally{  recent_outgoing_requests_mon.exit();  }
+        
+        if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "expired piece block data recovered as useful." );
+          manager.received( length );
+          setSnubbed( false );
+          reSetRequestsTime();
+          manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
+          requests_recovered++;
+          printRequestStats();
+          piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+        }
+        else {
+          LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as never requested." );
+          stats.discarded( length );
+          manager.discarded( length );
+          requests_discarded++;
+          printRequestStats();
+        }
+      }
+      else {
+        LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as already written." );
+        stats.discarded( length );
+        manager.discarded( length );
+        requests_discarded++;
+        printRequestStats();
+      }
+    }
+    
+    if( piece_error )  piece.destroy();
+  }
+  
+  
+  
+  private void decodeCancel( BTCancel cancel ) {
+    int number = cancel.getPieceNumber();
+    int offset = cancel.getPieceOffset();
+    int length = cancel.getLength();
+    
+    outgoing_piece_message_handler.removePieceRequest( number, offset, length );
+    cancel.destroy();
+  }
+  
+  
+  
+  private void registerForMessageHandling() {
+    connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
+      public boolean messageReceived( Message message ) {      
+        LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, "Received message [" +message.getID()+ ":" +message.getVersion()+  ":" +message.getDescription()+ "] from " +PEPeerTransportProtocol.this );
+        
+        last_message_received_time = SystemTime.getCurrentTime();
+        
+        if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeHandshake( (BTHandshake)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_BITFIELD ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeBitfield( (BTBitfield)message );
+          return true;
+        }
+        
+        connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
+          
+        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeChoke( (BTChoke)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeUnchoke( (BTUnchoke)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_INTERESTED ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeInterested( (BTInterested)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_UNINTERESTED ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeUninterested( (BTUninterested)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_HAVE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeHave( (BTHave)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_REQUEST ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeRequest( (BTRequest)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_PIECE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodePiece( (BTPiece)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_CANCEL ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          decodeCancel( (BTCancel)message );
+          return true;
+        }
+        
+        if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+          //do nothing
+          message.destroy();
+          return true;
+        }       
+        
+        String reason = "Received unknown message: " +message.getID()+ ":" +message.getVersion();
+        Debug.out( reason );
+        //closeAll( reason, true, true );  //TODO
+        
+        return false;
+      }
+      
+      public void protocolBytesReceived( int byte_count ) {
+        //update stats
+        stats.protocol_recevied( byte_count );
+        manager.protocol_received( byte_count );
+      }
+      
+      public void dataBytesReceived( int byte_count ) {
+        //update stats
+        stats.received( byte_count );
+        //we dont call manager.received(byte_count) here, as piece message handler will do it if piece is ok
+      }
+    });
+    
+    connection.getIncomingMessageQueue().startQueueProcessing();
+  }
   
 }

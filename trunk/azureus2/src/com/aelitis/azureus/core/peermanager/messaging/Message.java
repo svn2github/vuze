@@ -87,4 +87,9 @@ public interface Message {
   public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException;
     
   
+  /**
+   * Destroy the message; i.e. perform cleanup actions.
+   */
+  public void destroy();
+  
 }

@@ -26,11 +26,12 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.impl.transport.base.*;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
+
+import com.aelitis.azureus.core.networkmanager.Connection;
 
 
 public class 
@@ -52,22 +53,15 @@ PEPeerTransportFactory
 		String 				ip, 
 		int 				port )
 	{
-		return( new PEPeerTransportImpl( control, ip, port ));
+    return new PEPeerTransportProtocol( control, ip, port );    
 	}
   
   
-  /**
-   * Create a new default incoming connection transport.
-   * @param control
-   * @param channel
-   * @param leading_data
-   * @return transport
-   */
-  public static PEPeerTransport createTransport( PEPeerControl control, SocketChannel channel, ByteBuffer leading_data ) {
-    byte[] data = new byte[ leading_data.remaining() ];
-    leading_data.get( data );
-    return new PEPeerTransportImpl( control, channel, data );
+  //incoming
+  public static PEPeerTransport createTransport( PEPeerControl control, Connection connection ) {
+    return new PEPeerTransportProtocol( control, connection );
   }
+  
   
   
 

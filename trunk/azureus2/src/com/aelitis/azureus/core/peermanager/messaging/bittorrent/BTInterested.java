@@ -65,4 +65,6 @@ public class BTInterested implements BTMessage {
     
     return new BTInterested();
   }
+  
+  public void destroy() {  /*nothing*/  }
 }

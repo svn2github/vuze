@@ -127,9 +127,6 @@ PeerForeignDelegate
 	  	manager.peerRemoved(foreign);
 	}
 			
-	public boolean isReadyToRequest() {    
-	    return true;
-	 }
 		
 	public List
 	getExpiredRequests()
@@ -171,17 +168,9 @@ PeerForeignDelegate
   
 	
 
-	 //nothing to process
-	public int processRead(){ return 0;}
-  
   
   public int getConnectionState() {  return 0;  }
 	  
-	  //used for process() timing...not needed
-	public int getReadSleepTime(){ return 0; }
-	public long getLastReadTime(){ return 0; }
-	public void setReadSleepTime(int time){}
-	public void setLastReadTime(long time){}
   
   //TODO: parg?
   public void doKeepAliveCheck() {}
@@ -211,7 +200,7 @@ PeerForeignDelegate
 	}
 	
 	public int 
-	getState()
+	getPeerState()
 	{
 		return( foreign.getState());
 	}

@@ -22,10 +22,15 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import org.gudy.azureus2.core3.util.SystemTime;
+
+
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 /**
@@ -35,12 +40,54 @@ import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
 public class Connection {
   private final ConnectionOwner	owner;
   private final InetSocketAddress remote_address;
-  private final Transport transport;
+  private final TCPTransport tcp_transport;
   private ConnectionListener connection_listener;
   private final OutgoingMessageQueue outgoing_message_queue = new OutgoingMessageQueue();
   private boolean is_connected;
+    
   
-
+  private long zero_read_time = 0;
+  
+  
+  private final IncomingMessageQueue incoming_message_queue = new IncomingMessageQueue( new IncomingMessageQueue.ProcessingHandler() {
+    public void enableProcessing() {     
+      tcp_transport.requestReadSelects( new TCPTransport.ReadListener() {
+        public void readyToRead() {
+          
+          //TODO do limited rate read op
+          try {
+            
+            if( zero_read_time != 0 ) {
+              if( SystemTime.getCurrentTime() - zero_read_time > 20 ) {
+                zero_read_time = 0;
+              }
+            }
+            else {
+              int read = incoming_message_queue.receiveFromTransport( tcp_transport, 1024*1024 );
+              
+              if( read < 1 ) {
+                zero_read_time = SystemTime.getCurrentTime();
+              }
+            }
+            
+          }
+          catch( Throwable e ) {
+            System.out.println( "read exception: " +e.getMessage() );
+            notifyOfException( e );
+          }
+          
+        }
+      });
+    }
+    
+    public void disableProcessing() {
+      tcp_transport.cancelReadSelects();
+    }
+  });
+  
+  
+  
+  
   
   /**
    * Constructor for new OUTbound connection.
@@ -50,7 +97,7 @@ public class Connection {
   protected Connection( ConnectionOwner	_owner, InetSocketAddress _remote_address ) {
   	owner = _owner;
     remote_address = _remote_address;
-    transport = new Transport(owner.getTransportOwner());
+    tcp_transport = new TCPTransport( owner.getTransportOwner() );
     is_connected = false;
   }
   
@@ -58,12 +105,14 @@ public class Connection {
   /**
    * Constructor for new INbound connection.
    * The connection is assumed to be already established, by the given already-connected channel.
+   * @param _owner of connection
    * @param _remote_channel connected by
+   * @param data_already_read bytestream already read during routing
    */
-  protected Connection( ConnectionOwner _owner, SocketChannel _remote_channel ) {
+  protected Connection( ConnectionOwner _owner, SocketChannel _remote_channel, ByteBuffer data_already_read ) {
   	owner	= _owner;
     remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
-    transport = new Transport( owner.getTransportOwner(), _remote_channel );
+    tcp_transport = new TCPTransport( owner.getTransportOwner(), _remote_channel, data_already_read );
     is_connected = true;
   }
   
@@ -83,7 +132,7 @@ public class Connection {
       return;
     }
     
-    transport.establishOutboundConnection( remote_address, new Transport.ConnectListener() {
+    tcp_transport.establishOutboundConnection( remote_address, new TCPTransport.ConnectListener() {
       public void connectAttemptStarted() {
         connection_listener.connectStarted();
       }
@@ -113,8 +162,9 @@ public class Connection {
    * Close and shutdown this connection.
    */
   public void close() {
+    incoming_message_queue.destroy();
     outgoing_message_queue.destroy();
-    transport.close();
+    tcp_transport.close();
     is_connected = false;
   }
   
@@ -131,7 +181,7 @@ public class Connection {
   }
   
   
-  
+
   
   /**
    * Get the connection's outgoing message queue.
@@ -139,21 +189,40 @@ public class Connection {
    */
   public OutgoingMessageQueue getOutgoingMessageQueue() {  return outgoing_message_queue;  }
   
+  
   /**
-   * Get the connection's data transport interface.
+   * Get the connection's incoming message queue.
+   * @return inbound message queue
+   */
+  public IncomingMessageQueue getIncomingMessageQueue() {  return incoming_message_queue;  }
+  
+  
+  
+  
+  
+  /**
+   * Get the connection's data tcp transport interface.
    * @return the transport
    */
-  protected Transport getTransport() {  return transport;  }
+  protected TCPTransport getTCPTransport() {  return tcp_transport;  }
   
   
   /**
-   * TEMP METHOD UNTIL SOCKET READING IS HANDLED INTERNALLY
+   * TEMP METHOD UNTIL SOCKET READING IS HANDLED INTERNALLY  //TODO
    */
   public SocketChannel getSocketChannel() {
-    return transport.getSocketChannel();
+    return tcp_transport.getSocketChannel();
   }
   
 
+  
+  
+  public String toString() {
+    return tcp_transport.getDescription();
+  }
+  
+  
+  
   
   
   /**

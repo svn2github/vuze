@@ -23,21 +23,23 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Debug;
 
 
+
 /**
- * TODO
+ *
  */
 public class NetworkManager {
   private static final NetworkManager instance = new NetworkManager();
 
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
-  private final IncomingConnectionManager incoming_connection_manager = new IncomingConnectionManager();
+  private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
   private final WriteController write_controller = new WriteController();
   private final ReadController read_controller = new ReadController();
 
@@ -59,7 +61,7 @@ public class NetworkManager {
   
   
   /**
-   * Create a new unconnected remote peer connection.
+   * Create a new unconnected remote peer connection (for outbound-initiated connections).
    * @param remote_address ip address or hostname of remote peer
    * @param remote_port to connect to
    * @return a new connection
@@ -74,15 +76,31 @@ public class NetworkManager {
   }
   
   
+  
   /**
-   * TEMP METHOD UNTIL INBOUND CONNECTIONS ARE HANDLED INTERNALLY
-   * TODO
+   * Request the acceptance and routing of new incoming connections that match the given initial byte sequence.
+   * @param owner of connection
+   * @param matcher initial byte sequence used for routing
+   * @param listener for handling new inbound connections
    */
-  public Connection createNewInboundConnection( ConnectionOwner owner, SocketChannel channel ) {
-    Connection conn = new Connection( owner, channel );
-    return conn;
+  public void requestIncomingConnectionRouting( final ConnectionOwner owner, ByteMatcher matcher, final RoutingListener listener ) {
+    incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
+      public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
+        listener.connectionRouted( new Connection( owner, channel, read_so_far ) );
+      }
+    });
   }
   
+  
+  /**
+   * Cancel a request for inbound connection routing.
+   * @param matcher byte sequence originally used to register
+   */
+  public void cancelIncomingConnectionRouting( ByteMatcher matcher ) {
+    incoming_socketchannel_manager.deregisterMatchBytes( matcher );
+  }
+  
+
   
   /**
    * Add an upload entity for write processing.
@@ -101,20 +119,27 @@ public class NetworkManager {
     write_controller.removeWriteEntity( entity );
   }
   
+
+  /**
+   * Get the manager for new incoming socket channel connections.
+   * @return manager
+   */
+  public IncomingSocketChannelManager getIncomingSocketChannelManager() {  return incoming_socketchannel_manager;  }
+  
+  /**
+   * Asynchronously close the given socket channel.
+   * @param channel to close
+   */
+  public void closeSocketChannel( SocketChannel channel ) {
+    connect_disconnect_manager.closeConnection( channel );
+  }
   
   
   /**
-   * Get the socket connect and disconnect manager.
-   * @return manager
+   * Get the socket channel connect / disconnect manager.
+   * @return connect manager
    */
-  public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
-  
-  
-  /**
-   * Get the manager for new incoming connections.
-   * @return manager
-   */
-  public IncomingConnectionManager getIncomingConnectionManager() {  return incoming_connection_manager;  }
+  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
   
   
   
@@ -140,5 +165,42 @@ public class NetworkManager {
    * @return mss size in bytes
    */
   public int getTcpMssSize() {  return tcp_mss_size;  }
+  
+  
+  
+  
+  
+  
+  
+  /**
+   * Byte stream match filter for routing.
+   */
+  public interface ByteMatcher {
+    /**
+     * Get the number of bytes this matcher requires.
+     * @return size in bytes
+     */
+    public int size();
+    
+    /**
+     * Check byte stream for match.
+     * @param to_compare
+     * @return true if a match, false if not a match
+     */
+    public boolean matches( ByteBuffer to_compare );
+  }
+  
+  
+  
+  /**
+   * Listener for routing events.
+   */
+  public interface RoutingListener {
+    /**
+     * The given incoming connection has been accepted.
+     * @param connection accepted
+     */
+    public void connectionRouted( Connection connection );
+  }
   
 }

@@ -69,6 +69,13 @@ public class BTRequest implements BTMessage {
   }
   
   
+  public int getPieceNumber() {  return piece_number;  }
+  
+  public int getPieceOffset() {  return piece_offset;  }
+  
+  public int getLength() {  return length;  }
+  
+  
     
   public String getID() {  return BTMessage.ID_BT_REQUEST;  }
   
@@ -120,7 +127,9 @@ public class BTRequest implements BTMessage {
   }
   
   
-   
+  public void destroy() { /*nothing*/ } 
+  
+  
   //used for removing individual requests from the message queue
   public boolean equals( Object obj ) {
     if( this == obj )  return true;

@@ -37,6 +37,9 @@ public class BTPiece implements BTMessage {
   private final DirectByteBuffer[] buffer;
   private final String description;
   
+  private final int piece_number;
+  private final int piece_offset;
+  
   
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 8 ) );
@@ -48,6 +51,8 @@ public class BTPiece implements BTMessage {
     
     int length = data.remaining( DirectByteBuffer.SS_BT );
     description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    this.piece_number = piece_number;
+    this.piece_offset = piece_offset;
   }
   
   
@@ -58,7 +63,17 @@ public class BTPiece implements BTMessage {
   public BTPiece() {
     buffer = null;
     description = null;
+    piece_number = -1;
+    piece_offset = -1;
   }
+  
+  
+  public int getPieceNumber() {  return piece_number;  }
+  
+  public int getPieceOffset() {  return piece_offset;  }
+  
+  public DirectByteBuffer getPieceData() {  return buffer[1];  }
+  
   
 
   public String getID() {  return BTMessage.ID_BT_PIECE;  }
@@ -88,16 +103,20 @@ public class BTPiece implements BTMessage {
       throw new MessageException( "decode error: payload.remaining() < 8" );
     }
     
-    int piece_number = data.getInt( DirectByteBuffer.SS_MSG );
-    if( piece_number < 0 ) {
-      throw new MessageException( "decode error: piece_number < 0" );
+    int number = data.getInt( DirectByteBuffer.SS_MSG );
+    if( number < 0 ) {
+      throw new MessageException( "decode error: number < 0" );
     }
     
-    int piece_offset = data.getInt( DirectByteBuffer.SS_MSG );
-    if( piece_offset < 0 ) {
-      throw new MessageException( "decode error: piece_offset < 0" );
+    int offset = data.getInt( DirectByteBuffer.SS_MSG );
+    if( offset < 0 ) {
+      throw new MessageException( "decode error: offset < 0" );
     }
     
-    return new BTPiece( piece_number, piece_offset, data );
+    return new BTPiece( number, offset, data );
+  }
+  
+  public void destroy() {
+    if( buffer != null )  buffer[1].returnToPool();
   }
 }

@@ -44,7 +44,7 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canWrite() {
-    if( !connection.getTransport().isReadyForWrite() )  {
+    if( !connection.getTCPTransport().isReadyForWrite() )  {
       return false;  //underlying transport not ready
     }
     if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
@@ -57,7 +57,7 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
   }
   
   public boolean doWrite() {
-    if( !connection.getTransport().isReadyForWrite() )  {
+    if( !connection.getTCPTransport().isReadyForWrite() )  {
       Debug.out("dW:not ready");
       return false;
     }
@@ -80,7 +80,7 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
     
     int written = 0;
     try {
-      written = connection.getOutgoingMessageQueue().deliverToTransport( connection.getTransport(), num_bytes_to_write, false );
+      written = connection.getOutgoingMessageQueue().deliverToTransport( connection.getTCPTransport(), num_bytes_to_write, false );
     }
     catch( IOException e ) {
       connection.notifyOfException( e );

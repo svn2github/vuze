@@ -65,7 +65,7 @@ PeerImpl
 	public int 
 	getState()
 	{
-		int	state = delegate.getState();
+		int	state = delegate.getPeerState();
 		
 		switch( state ){
 			

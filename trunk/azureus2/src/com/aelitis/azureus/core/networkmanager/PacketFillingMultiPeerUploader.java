@@ -280,7 +280,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
         Connection conn = (Connection)ready_connections.removeFirst();
         
-        if( !conn.getTransport().isReadyForWrite() ) {  //not yet ready for writing
+        if( !conn.getTCPTransport().isReadyForWrite() ) {  //not yet ready for writing
           ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
@@ -300,7 +300,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
           int written = 0;
           try {
-            written = conn.getOutgoingMessageQueue().deliverToTransport( conn.getTransport(), num_bytes_available, true );
+            written = conn.getOutgoingMessageQueue().deliverToTransport( conn.getTCPTransport(), num_bytes_available, true );
                    
             if( written > 0 ) {  
               manual_notifications.add( conn );  //register it for manual listener notification

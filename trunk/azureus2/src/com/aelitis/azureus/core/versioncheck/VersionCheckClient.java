@@ -22,9 +22,9 @@
 
 package com.aelitis.azureus.core.versioncheck;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -35,6 +35,9 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.TransportDebugger;
+import com.aelitis.azureus.core.networkmanager.TransportOwner;
 
 
 /**
@@ -47,7 +50,7 @@ public class VersionCheckClient {
   private static final VersionCheckClient instance = new VersionCheckClient();
   private Map last_check_data = null;
   private final AEMonitor check_mon = new AEMonitor( "versioncheckclient" );
-  private long last_check_time = 0;
+  private long last_check_time = 0; 
   
   
   private VersionCheckClient() {
@@ -136,35 +139,80 @@ public class VersionCheckClient {
   private Map performVersionCheck( Map data_to_send ) throws Exception {
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
     
-    SocketChannel channel = null;
+    final TCPTransport transport = new TCPTransport( new TransportOwner() {  //use transport for proxy capabilities
+      public TransportDebugger getDebugger() {  return null;  }
+    });
     
-    try{
-      channel = SocketChannel.open();
-      channel.configureBlocking( true );
-      channel.connect( new InetSocketAddress( SERVER_ADDRESS, SERVER_PORT ) );
-      channel.finishConnect();
+    final AESemaphore block = new AESemaphore( "versioncheck" );
+    final Throwable[] errors = new Throwable[1];
     
+    transport.establishOutboundConnection( new InetSocketAddress( SERVER_ADDRESS, SERVER_PORT ), new TCPTransport.ConnectListener() {  //NOTE: async operation!
+      public void connectAttemptStarted() {  /*nothing*/ }
+      
+     public void connectSuccess() {
+       block.release();       
+     }
+     
+     public void connectFailure( Throwable failure_msg ) {
+       errors[0] = failure_msg;
+       block.release();  
+     }
+    });
+    
+    block.reserve();  //block while waiting for connect
+    
+    //connect op finished   
+    
+    if( errors[0] != null ) {  //connect failure
+      transport.close();
+      String error = errors[0].getMessage();
+      throw new IOException( "version check connect operation failed: " + error == null ? "[]" : error );
+    }
+    
+    //connect success  
+    try{    
+      final StreamDecoder decoder = new StreamDecoder( "AZR" );
+      final ByteBuffer[] reply = new ByteBuffer[1];
+         
+      transport.requestReadSelects( new TCPTransport.ReadListener() {
+        public void readyToRead() {
+          try {
+            reply[0] = decoder.decode( transport );
+            
+            if( reply[0] != null ) {  //reading complete
+              block.release();
+            }
+          }
+          catch( Throwable t ) {
+            errors[0] = t;
+            block.release();
+          }
+        }
+      });
+      
+      
       ByteBuffer message = ByteBuffer.wrap( BEncoder.encode( data_to_send ) );
-    
       StreamEncoder encoder = new StreamEncoder( "AZH", message );
-    
+      
       while( true ) {  //send message
-        if( encoder.encode( channel ) ) {
+        if( encoder.encode( transport ) ) {
           break;
         }
       }
-    
-      StreamDecoder decoder = new StreamDecoder( "AZR" );
-    
-      ByteBuffer reply;
-      while( true ) {  //receive reply
-        reply = decoder.decode( channel );
-        if( reply != null ) {
-          break;
-        }
+
+      block.reserve();  //block while waiting for read completion
+      
+      //read op finished
+      
+      if( errors[0] != null ) {  //read failure
+        transport.close();
+        String error = errors[0].getMessage();
+        throw new IOException( "version check read operation failed: " + error == null ? "[]" : error );
       }
-    
-      Map reply_message = BDecoder.decode( reply.array() );
+      
+      //read success
+      
+      Map reply_message = BDecoder.decode( reply[0].array() );
       
       LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply_message.size()+ " reply keys." );
 
@@ -173,7 +221,7 @@ public class VersionCheckClient {
       return reply_message;
     }
     finally {
-      if( channel != null )  channel.close();
+      transport.close();
     }
   }
   

@@ -63,9 +63,4 @@ public interface RawMessage extends Message {
    */
   public Message[] messagesToRemove();
   
-  /**
-   * Destroy the message; i.e. perform cleanup actions.
-   */
-  public void destroy();
-
 }

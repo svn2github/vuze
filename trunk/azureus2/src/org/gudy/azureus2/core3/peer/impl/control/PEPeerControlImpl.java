@@ -24,7 +24,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.base.DataReaderOwner;
-import org.gudy.azureus2.core3.peer.impl.transport.base.DataReaderSpeedLimiter;
 import org.gudy.azureus2.core3.peer.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
@@ -102,12 +101,10 @@ PEPeerControlImpl
 
   
   private DownloadManager _downloadManager;
-  private PeerUpdater peerUpdater;
   
   private int nbHashFails;
   
 
-  private static final int PEER_UPDATER_INTERVAL = 50;
   
   private long mainloop_loop_count;
   private static final int MAINLOOP_INTERVAL   = 100;
@@ -139,8 +136,7 @@ PEPeerControlImpl
   private long		ip_filter_last_update_time;
   
   private Map		user_data;
-  
-  private PEPeerTransportDataReader		download_speed_limiter;
+
   
   private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
@@ -241,7 +237,8 @@ PEPeerControlImpl
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
-	download_speed_limiter = 
+
+    /*
 				DataReaderSpeedLimiter.getSingleton().getDataReader(
 						new DataReaderOwner()
 					{
@@ -251,6 +248,8 @@ PEPeerControlImpl
 								return( _downloadManager.getStats().getMaxDownloadKBSpeed() * 1024 );
 							}
 					});
+  */
+  
     
     setDiskManager(_diskManager);
     
@@ -261,9 +260,6 @@ PEPeerControlImpl
     if ( superSeedMode ){
     	initialiseSuperSeedMode();
     }
-    
-    peerUpdater = new PeerUpdater();
-    peerUpdater.start();
     
     
     new AEThread( "Peer Manager"){
@@ -279,54 +275,7 @@ PEPeerControlImpl
   }
 
   
-  private class 
-  PeerUpdater 
-  extends AEThread 
-  {
-    private boolean bContinue = true;
-
-    public PeerUpdater() {
-      super("Peer Updater"); //$NON-NLS-1$
-      setPriority(Thread.NORM_PRIORITY - 1);
-    }
-
-    public void runSupport() {
-      while (bContinue) {
-        
-        long start_time = SystemTime.getCurrentTime();
-        
-        try{
-        	List	peer_transports = peer_transports_cow;
-                       	
-	          for (int i=0; i < peer_transports.size(); i++) {
-	            PEPeerTransport ps = (PEPeerTransport) peer_transports.get(i);
-	
-	            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
-	              ps.setReadSleepTime( ps.processRead() );
-	              if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
-	            }
-	          }
-        }catch( Throwable e ){
-        	
-        	Debug.printStackTrace( e );
-        }
-         
-        long loop_time = SystemTime.getCurrentTime() - start_time;
-        
-        //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
-        
-        if( loop_time < PEER_UPDATER_INTERVAL && loop_time >= 0 ) {
-          try {  Thread.sleep( PEER_UPDATER_INTERVAL - loop_time );  } catch(Exception e) {}
-        }
-
-      }
-    }
-
-    public void stopIt() {
-      bContinue = false;
-    }
-  }
-  
+ 
   
   
   private void mainLoop() {
@@ -421,9 +370,7 @@ PEPeerControlImpl
       	peer_transports_mon.exit();
     }
   
-    
-    // Stop the peer updater
-    peerUpdater.stopIt();
+
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
@@ -431,8 +378,6 @@ PEPeerControlImpl
         pieceRemoved(_pieces[i]);
     }
 
-
-	download_speed_limiter	= null;
 	
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
@@ -760,7 +705,7 @@ PEPeerControlImpl
         //in order to make more consecutive requests, and improve
         //cache efficiency
         if(pc.getNbRequests() <= (3 * maxRequests) / 5) {        
-	        while ((pc.isReadyToRequest() && pc.getState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
+	        while ((pc.getPeerState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
 	          if(endGameMode)
 	            found = findPieceInEndGameMode(pc);
 	          else
@@ -858,7 +803,7 @@ PEPeerControlImpl
   	    
       for (int i = 0; i < peer_transports.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-        if (pc.getState() == PEPeer.TRANSFERING) {
+        if (pc.getPeerState() == PEPeer.TRANSFERING) {
           List expired = pc.getExpiredRequests();
 
           if (expired != null && expired.size() > 0) {
@@ -1521,7 +1466,7 @@ PEPeerControlImpl
           
       for (int i = 0; i < peer_transports.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-        if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
+        if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
           pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
         }
       }
@@ -1535,7 +1480,7 @@ PEPeerControlImpl
       _seeds = _peers = _remotes = 0;
       for (int i = 0; i < peer_transports.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-        if (pc.getState() == PEPeer.TRANSFERING) {
+        if (pc.getPeerState() == PEPeer.TRANSFERING) {
           if (pc.isSeed())
             _seeds++;
           else
@@ -1620,9 +1565,14 @@ PEPeerControlImpl
   }
 
   
-  public void protocol_sent( int length ) {
+  public void protocol_sent( int length ) {  //TODO
     
   }
+
+  public void protocol_received( int length ) {  //TODO
+    
+  }
+  
   
   //setup the diskManager
   
@@ -1818,7 +1768,7 @@ PEPeerControlImpl
       
         for (int i = peer_transports.size() - 1; i >= 0; i--) {
           PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-          if (pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
+          if (pc != pcOrigin && pc.getPeerState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
               ((PEPeerStatsImpl)pc.getStats()).statisticSent(pieceLength / availability);
@@ -2725,7 +2675,7 @@ PEPeerControlImpl
     iter = sortedPeers.iterator();
     while(iter.hasNext()) {
       PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
-      if((peer.getUniqueAnnounce() == -1) && (peer.getState() == PEPeer.TRANSFERING)) {
+      if((peer.getUniqueAnnounce() == -1) && (peer.getPeerState() == PEPeer.TRANSFERING)) {
         selectedPeer = peer;
         break;
       }
@@ -2841,11 +2791,6 @@ PEPeerControlImpl
   
   public DiskManager getDiskManager() {  return _diskManager;   }
   
-  public PEPeerTransportDataReader
-  getDataReader()
-  {
-  	return( download_speed_limiter );
-  }
   
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   

@@ -26,10 +26,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
+
 
 
 /**
- * Encodes and writes a message into a socket channel byte stream.
+ * Encodes and writes a message into a socket channel or transport byte stream.
  * The stream format looks like:
  * 1) one byte for the handshake key length
  * 2) handshake key bytes
@@ -38,6 +42,7 @@ import java.nio.channels.SocketChannel;
  */
 public class StreamEncoder {
   private final ByteBuffer payload;
+  private long first_encode_time = 0;
   
   /**
    * Create a new encoder using the given handshake key and message.
@@ -58,16 +63,42 @@ public class StreamEncoder {
   /**
    * Perform a write operation on the given channel,
    * i.e. encode the message into a stream.
+   * NOTE: If given channel is in blocking mode, then internal timeout check will not function.
    * @param channel connection to write to
    * @return true if message writing is complete, false if more writing is required for encoding
    * @throws IOException on channel write exception or stream encode error
    */
   public boolean encode( SocketChannel channel ) throws IOException {
+    if( first_encode_time == 0 ) {
+      first_encode_time = SystemTime.getCurrentTime();
+    }
+    
     channel.write( payload );
+    
     if( !payload.hasRemaining() ) {
       return true;
     }
-    return false;
+
+    if( SystemTime.getCurrentTime() - first_encode_time > 30*1000 ) {
+      throw new IOException( "encode timeout after 30sec" );
+    }
+      
+    try{  Thread.sleep( 10 );  }catch( Throwable t ) {  t.printStackTrace(); }
+      
+    return false;    
   }
 
+  
+  /**
+   * Perform a write operation on the given transport,
+   * i.e. encode the message into a stream.
+   * @param transport connection to write to
+   * @return true if message writing is complete, false if more writing is required for encoding
+   * @throws IOException on channel write exception or stream encode error
+   */
+  public boolean encode( TCPTransport transport ) throws IOException {
+    return encode( transport.getSocketChannel() );
+  }
+  
+  
 }

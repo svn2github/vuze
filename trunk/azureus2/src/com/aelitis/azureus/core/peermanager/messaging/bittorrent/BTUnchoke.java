@@ -66,4 +66,7 @@ public class BTUnchoke implements BTMessage {
     
     return new BTUnchoke();
   }
+  
+  public void destroy() { /*nothing*/ } 
+  
 }

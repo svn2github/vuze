@@ -127,16 +127,31 @@ PEPeerManager
   
   public int getNbRemoteConnections();
   
-	public void
-	received(
-		int		l );	
-	
-	public void
-	sent(
-		int		l );	
-	
   
+  /**
+   * Data bytes received.
+   * @param l
+   */
+	public void	received(	int	l );	
+	
+  /**
+   * Data bytes sent.
+   * @param l
+   */
+	public void	sent( int	l );
+	
+  /**
+   * Protocol bytes sent.
+   * @param length
+   */
   public void protocol_sent( int length );
+  
+  /**
+   * Protocol bytes received.
+   * @param length
+   */
+  public void protocol_received( int length );
+  
   
   
 	public void

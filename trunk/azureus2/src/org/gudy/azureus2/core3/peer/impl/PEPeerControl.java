@@ -75,9 +75,7 @@ PEPeerControl
   
 	public DiskManager getDiskManager();
 	
-	public PEPeerTransportDataReader
-	getDataReader();
-  
+
   
   /**
    * Insert the given transport.

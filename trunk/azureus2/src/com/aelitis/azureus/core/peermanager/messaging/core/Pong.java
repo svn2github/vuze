@@ -62,4 +62,6 @@ public class Pong implements Message {
     
     return new Pong();
   }
+  
+  public void destroy() { /*nothing*/ } 
 }

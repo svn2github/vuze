@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-2005.01.xx | Azureus 2.2.0.3
+2005.02.xx | Azureus 2.2.0.3
 
 FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
 FEATURE: Core | Client support for the 'min interval' announce extension [Nolar]
@@ -19,13 +19,16 @@ FEATURE: Core | Client identification plugin interface [Parg]
 FEATURE: UI   | Keyboard shortcut parsing system [CrazyAlchemist]
 FEATURE: UI   | System tray menus for setting global upload and download bandwidth limits [CrazyAlchemist]
 FEATURE: UI   | Synthesized speech alerts for Mac OS X; Go to Azureus / Preferences to enable it [CrazyAlchemist]
+FEATURE: Plug | Generic Messaging API: inter-client message passing [Nolar]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
-CHANGE: Core | Added many new peerid identifications [Nolar]
+CHANGE: Core | Added many new peerid identifications [Nolar, Gouss]
 CHANGE: Core | First piece priority option now also prioritizes last piece of file [Nolar]
 CHANGE: Core | NAT check functions even when downloads have already been started [Nolar]
 CHANGE: UI   | Reintroduced download completion alerts in Mac OS X (use System Preferences / Sound to set the alert sound of choice) [CrazyAlchemist]
 CHANGE: UI   | For Mac OS X, contextual menu items no longer carry images for better compliance with Aqua Human Interface Guidelines [CrazyAlchemist]
+CHANGE: Core | Update check can now check via configured proxy [Nolar]
+CHANGE: Core | Decreased cpu usage when downloading and faster speeds in LAN network environment [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]

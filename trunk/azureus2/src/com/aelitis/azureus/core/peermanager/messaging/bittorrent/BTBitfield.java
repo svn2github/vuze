@@ -41,6 +41,10 @@ public class BTBitfield implements BTMessage {
     buffer = new DirectByteBuffer[] { bitfield };
   }
   
+  
+  public DirectByteBuffer getBitfield() {  return buffer[0];  }
+  
+  
 
   public String getID() {  return BTMessage.ID_BT_BITFIELD;  }
   
@@ -68,10 +72,8 @@ public class BTBitfield implements BTMessage {
     return new BTBitfield( data );
   }
   
+  public void destroy() {
+    if( buffer[0] != null )  buffer[0].returnToPool();
+  }
 
-  
-  
-  
-
-  
 }

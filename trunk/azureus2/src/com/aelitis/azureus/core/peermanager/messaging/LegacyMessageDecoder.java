@@ -28,7 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 /**
@@ -57,6 +57,9 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   
   private final MessageStreamDecoder.DecodeListener decode_listener;
   
+
+  
+  
   
   protected LegacyMessageDecoder( MessageStreamDecoder.DecodeListener listener ) {
     this.decode_listener = listener;
@@ -64,7 +67,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
                                     
   
   
-  public int decodeStream( Transport transport, int max_bytes ) throws IOException {
+  public int decodeStream( TCPTransport transport, int max_bytes ) throws IOException {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
@@ -86,7 +89,6 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       
       bytes_remaining -= bytes_read;
       
-      //if( bytes_read < 1 )   //TODO better ?
       if( bytes_read < bytes_possible ) {
         break;
       }
@@ -106,34 +108,59 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   
   
   
+  public void destroy() {
+    payload_buffer = null;
+    
+    if( direct_payload_buffer != null ) {
+      direct_payload_buffer.returnToPool();
+      direct_payload_buffer = null;
+    }
+ 
+    messages.clear();
+  }
+  
+  
+  
+  
   
   private int preReadProcess( int allowed ) {
     if( allowed < 1 ) {
       System.out.println( "allowed < 1" );
     }
     
+    decode_array[ 1 ] = payload_buffer;  //ensure the decode array has the latest payload pointer
+    
     int bytes_available = 0;
     boolean shrink_remaining_buffers = false;
     int start_buff = reading_length_mode ? 2 : 0;
+    boolean marked = false;    
     
     for( int i = start_buff; i < 3; i++ ) {  //set buffer limits according to bytes allowed
       ByteBuffer bb = decode_array[ i ];
+      
+      if( bb == null )  System.out.println( "bb["+i+"] == null" );
+      
       
       if( shrink_remaining_buffers ) {
         bb.limit( 0 );  //ensure no read into this next buffer is possible
       }
       else {
-        pre_read_start_buffer = i;
-        pre_read_start_position = bb.position();
-        
         int remaining = bb.remaining();
+        
+        if( remaining < 1 )  continue;  //skip full buffer
+
+        if( !marked ) {
+          pre_read_start_buffer = i;
+          pre_read_start_position = bb.position();
+          marked = true;
+        }
 
         if( remaining > allowed ) {  //read only part of this buffer
           bb.limit( bb.position() + allowed );  //limit current buffer
           bytes_available += bb.remaining();
           shrink_remaining_buffers = true;  //shrink any tail buffers
         }
-        else {  //full type buffer is allowed to be read
+        else {  //full buffer is allowed to be read
           bytes_available += remaining;
           allowed -= remaining;  //count this buffer toward allowed and move on to the next
         }
@@ -157,24 +184,21 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       payload_buffer.limit( message_length - 1 );
       length_buffer.limit( 4 );
       
-      int read;
-      if( pre_read_start_buffer == 0 ) {  //started at type buffer, happens at least once each message
-        read = type_buffer.position() - pre_read_start_position;
-        protocol_bytes_read += read;
-        
-        if( !type_buffer.hasRemaining() ) {  //check payload buffer
+      int read = 0;
+      if( pre_read_start_buffer == 0 ) {  //started at type buffer, happens at least once each message        
+        if( !type_buffer.hasRemaining() ) {  //check type buffer
           type_buffer.position( 0 );
           byte id = type_buffer.get();
           
           try {
-            reading_data_message = MessageFactory.determineLegacyMessageType( id ) == Message.TYPE_DATA_PAYLOAD;
+            reading_data_message = reading_handshake_message ? false : MessageFactory.determineLegacyMessageType( id ) == Message.TYPE_DATA_PAYLOAD;
           }
           catch( MessageException me ) {
             Debug.out( me );
             throw new IOException( "message decode failed: " + me.getMessage() );
           }
             
-          read += payload_buffer.position();
+          read = 1 + payload_buffer.position();
         }
       }
       else {  //starting at payload buffer
@@ -201,6 +225,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           handshake_data.putInt( HANDSHAKE_FAKE_LENGTH );
           handshake_data.put( type_buffer );
           handshake_data.put( payload_buffer );
+          handshake_data.flip();
           
           try {
             Message handshake = MessageFactory.createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, new DirectByteBuffer( handshake_data ) );
@@ -258,6 +283,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
         if( message_length == HANDSHAKE_FAKE_LENGTH ) {  //handshake message
           reading_handshake_message = true;
           payload_buffer = ByteBuffer.allocate( 68 - 5 );  //we've already read 4 bytes, plus 1 byte preceding type buffer
+          message_length = 68 - 4;  //restore 'real' length
         }
         else if( message_length < 0 || message_length > 16393 ) {  //should never be > 16KB+9B, as we never request chunks > 16KB
           String msg = "Invalid message length given for legacy message decode: " + message_length;

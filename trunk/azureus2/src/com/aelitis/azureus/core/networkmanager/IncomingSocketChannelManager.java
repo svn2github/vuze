@@ -34,10 +34,10 @@ import org.gudy.azureus2.core3.util.*;
 
 
 /**
- * Accepts new incoming connections and manages routing of them
+ * Accepts new incoming socket connections and manages routing of them
  * to registered handlers.
  */
-public class IncomingConnectionManager {
+public class IncomingSocketChannelManager {
 
   private final ArrayList connections = new ArrayList();
   private final AEMonitor connections_mon = new AEMonitor( "IncomingConnectionManager:conns" );
@@ -58,7 +58,7 @@ public class IncomingConnectionManager {
   /**
    * Create manager and begin accepting and routing new connections.
    */
-  protected IncomingConnectionManager() {    
+  protected IncomingSocketChannelManager() {    
     //allow dynamic port number changes
     COConfigurationManager.addParameterListener( "TCP.Listen.Port", new ParameterListener() {
       public void parameterChanged(String parameterName) {
@@ -116,7 +116,7 @@ public class IncomingConnectionManager {
    * @param matcher byte filter sequence
    * @param listener to call upon match
    */
-  public void registerMatchBytes( ByteMatcher matcher, MatchListener listener ) {
+  public void registerMatchBytes( NetworkManager.ByteMatcher matcher, MatchListener listener ) {
     try {  match_buffers_mon.enter();
     
       if( matcher.size() > max_match_buffer_size ) {
@@ -134,7 +134,7 @@ public class IncomingConnectionManager {
    * Remove the given byte sequence match from the registration list.
    * @param to_remove byte sequence originally used to register
    */
-  public void deregisterMatchBytes( ByteMatcher to_remove ) {
+  public void deregisterMatchBytes( NetworkManager.ByteMatcher to_remove ) {
     try {  match_buffers_mon.enter();
     
       match_buffers.remove( to_remove );
@@ -142,7 +142,7 @@ public class IncomingConnectionManager {
       if( to_remove.size() == max_match_buffer_size ) { //recalc longest buffer if necessary
         max_match_buffer_size = 0;
         for( Iterator i = match_buffers.keySet().iterator(); i.hasNext(); ) {
-          ByteMatcher bm = (ByteMatcher)i.next();
+          NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
           if( bm.size() > max_match_buffer_size ) {
             max_match_buffer_size = bm.size();
           }
@@ -297,7 +297,7 @@ public class IncomingConnectionManager {
       
       for( Iterator i = match_buffers.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
-        ByteMatcher bm = (ByteMatcher)entry.getKey();
+        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
         
         if( orig_position < bm.size() ) {  //not enough bytes yet to compare
           continue;
@@ -381,24 +381,7 @@ public class IncomingConnectionManager {
   
   
   
-  /**
-   * Byte stream match filter for routing.
-   */
-  public interface ByteMatcher {
-    /**
-     * Get the number of bytes this matcher requires.
-     * @return size in bytes
-     */
-    public int size();
     
-    /**
-     * Check byte stream for match.
-     * @param to_compare
-     * @return true if a match, false if not a match
-     */
-    public boolean matches( ByteBuffer to_compare );
-  }
-  
   
   
   /**

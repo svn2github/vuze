@@ -30,7 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 
 /**
@@ -322,7 +322,7 @@ public class OutgoingMessageQueue {
    * @return number of bytes delivered
    * @throws IOException on delivery error
    */
-  public int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
+  public int deliverToTransport( TCPTransport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
@@ -639,7 +639,7 @@ public class OutgoingMessageQueue {
     private static final int PROTOCOL_BYTES_SENT  = 4;
     private final int type;
     private RawMessage message;
-    private Transport transport;
+    private TCPTransport transport;
     private int byte_count = 0;
     private NotificationItem( int notification_type ) {
       type = notification_type;

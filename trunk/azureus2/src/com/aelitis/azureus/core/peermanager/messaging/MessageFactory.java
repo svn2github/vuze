@@ -41,7 +41,6 @@ public class MessageFactory {
    */  
   protected static void registerMessage( Message message ) {
     Object key = new String( message.getID() + message.getVersion() );
-    System.out.println( "computed key=[" + key +"]" );
     message_registrations.put( key, message );
   }
   

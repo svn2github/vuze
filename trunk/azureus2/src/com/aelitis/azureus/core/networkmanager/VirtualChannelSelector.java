@@ -292,6 +292,12 @@ public class VirtualChannelSelector {
             if( deregister_after_select_success ) { 
                 key.cancel();
             }
+            
+            
+            if( INTEREST_OP == OP_READ && !key.isReadable() ) {
+              Debug.out( "!key.isReadable()" );
+            }
+            
             boolean	progress_made = data.listener.selectSuccess( this, data.channel, data.attachment );
             
             if ( progress_made ){

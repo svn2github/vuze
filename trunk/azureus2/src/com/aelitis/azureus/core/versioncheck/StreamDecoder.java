@@ -28,6 +28,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 
 /**
@@ -46,6 +49,8 @@ public class StreamDecoder {
   private ByteBuffer payload_length_buffer;
   private boolean reading_payload_length = true;
   private ByteBuffer payload_buffer;
+  
+  private long first_decode_time = 0;
   
   
   
@@ -67,12 +72,16 @@ public class StreamDecoder {
    * @throws IOException on channel read exception or stream decode error
    */
   public ByteBuffer decode( SocketChannel channel ) throws IOException {
+    if( first_decode_time == 0 ) {
+      first_decode_time = SystemTime.getCurrentTime();
+    }
+    
     if( handshaking ) {
       
       int bytes_read = channel.read( handshake_buffer );
       
       if( bytes_read < 0 ) {
-        throw new IOException( "end of stream on socket read" );
+        throw new IOException( "end of stream on socket read [handshaking]" );
       }
       
       if( bytes_read == 0 ) {
@@ -99,7 +108,7 @@ public class StreamDecoder {
     if( !handshaking ) {
       if( reading_payload_length ) {
         if( channel.read( payload_length_buffer ) < 0 ) {
-          throw new IOException( "end of stream" );
+          throw new IOException( "end of stream on socket read [payload length]" );
         }
         
         if( !payload_length_buffer.hasRemaining() ) {
@@ -115,18 +124,44 @@ public class StreamDecoder {
       }
       
       if( !reading_payload_length ) {
-        if( channel.read( payload_buffer ) < 0 ) {
-          throw new IOException( "end of stream" );
-        }
+        
+        int bytes_read = channel.read( payload_buffer );
         
         if( !payload_buffer.hasRemaining() ) {
+          
+          if( bytes_read < 0 )  System.out.println( "streamdecoder: bytes_read < 0 BUT !payload_buffer.hasRemaining()" );
+          
           payload_buffer.flip();
           return payload_buffer;  //read processing complete
+        }
+        
+        if( bytes_read < 0 ) {
+          throw new IOException( "end of stream on socket read [payload payload]" );
         }
       }
     }
 
+    if( SystemTime.getCurrentTime() - first_decode_time > 30*1000 ) {
+      throw new IOException( "decode timeout after 30sec" );
+    }
+      
+    try{  Thread.sleep( 10 );  }catch( Throwable t ) {  t.printStackTrace(); }
+    
     return null;
+  }
+  
+  
+  
+  
+  /**
+   * Perform a read operation on the given transport,
+   * i.e. decode the stream into a message.
+   * @param transport connection to read from
+   * @return message payload if reading complete, else null if more reading is required for decoding
+   * @throws IOException on channel read exception or stream decode error
+   */
+  public ByteBuffer decode( TCPTransport transport ) throws IOException {
+    return decode( transport.getSocketChannel() );
   }
   
 }

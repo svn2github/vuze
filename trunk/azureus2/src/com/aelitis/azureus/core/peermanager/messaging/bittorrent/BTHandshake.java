@@ -35,11 +35,16 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
  */
 public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
-  
+  //public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
+  public static final byte[] RESERVED = new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
   
   private final DirectByteBuffer[] buffer;
   private final String description;
+  
+  private final byte[] reserved_bytes;
+  private final byte[] datahash_bytes;
+  private final byte[] peer_id_bytes;
+  
   
   
   /**
@@ -66,6 +71,10 @@ public class BTHandshake implements BTMessage, RawMessage {
                   " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) +
                   " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
       
+    this.reserved_bytes = reserved;
+    this.datahash_bytes = data_hash;
+    this.peer_id_bytes = peer_id;
+    
       /* for( int i=7; i >= 0; i-- ) {
            byte b = (byte) (RESERVED[0] >> i);
            int val = b & 0x01;
@@ -75,6 +84,15 @@ public class BTHandshake implements BTMessage, RawMessage {
   }
   
 
+  
+  public byte[] getReserved() {  return reserved_bytes;  }
+  
+  public byte[] getDataHash() {  return datahash_bytes;  }
+  
+  public byte[] getPeerId() {  return peer_id_bytes;  }
+  
+  
+    
   
 
   // message

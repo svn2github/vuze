@@ -27,6 +27,18 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTCancel;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTChoke;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTKeepAlive;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUnchoke;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUninterested;
+
 
 
 
@@ -43,14 +55,35 @@ public class MessageManager {
   private boolean message_list_payload_dirty = true;
   
   
+  
   private MessageManager() {
-    /* nothing */
-    
-    
-    //TODO register default messages
+    registerLegacyMessages();
   }
   
+  
   public static MessageManager getSingleton() {  return instance;  }
+  
+  
+  
+  
+  
+  private void registerLegacyMessages() {
+    MessageFactory.registerMessage( new BTBitfield( null ) );
+    MessageFactory.registerMessage( new BTCancel( -1, -1, -1 ) );
+    MessageFactory.registerMessage( new BTChoke() );
+    MessageFactory.registerMessage( new BTHandshake( new byte[0], new byte[0] ) );
+    MessageFactory.registerMessage( new BTHave( -1 ) );
+    MessageFactory.registerMessage( new BTInterested() );
+    MessageFactory.registerMessage( new BTKeepAlive() );
+    MessageFactory.registerMessage( new BTPiece() );
+    MessageFactory.registerMessage( new BTRequest( -1, -1 , -1 ) );
+    MessageFactory.registerMessage( new BTUnchoke() );
+    MessageFactory.registerMessage( new BTUninterested() );
+  }
+  
+  
+  
+  
   
   
 
@@ -70,7 +103,7 @@ public class MessageManager {
   }
   
 
-  public void unregisterMessage( Message message ) throws MessageException {
+  public void deregisterMessage( Message message ) throws MessageException {
     MessageData md = new MessageData( message );
     
     try {  message_map_mon.enter();

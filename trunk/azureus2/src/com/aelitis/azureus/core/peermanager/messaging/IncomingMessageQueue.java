@@ -27,7 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 
 
@@ -39,14 +39,27 @@ public class IncomingMessageQueue {
   private volatile ArrayList listeners = new ArrayList();  //copy-on-write
   private final AEMonitor listeners_mon = new AEMonitor( "IncomingMessageQueue" );
   
+  private final ProcessingHandler processing_handler;
+  private boolean is_processing_enabled = false;
+  
   private MessageStreamDecoder stream_decoder;
   
   private final MessageStreamDecoder.DecodeListener decode_listener = new MessageStreamDecoder.DecodeListener() {
     public void messageDecoded( Message message ) {
       ArrayList listeners_ref = listeners;  //copy-on-write
+      boolean handled = false;
+      
       for( int i=0; i < listeners_ref.size(); i++ ) {
         MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( i );
-        mql.messageReceived( message );
+        handled = handled || mql.messageReceived( message );
+      }
+      
+      if( !handled ) {  //this should never happen
+        Debug.out( "no registered listeners handled decoded message!" );
+        DirectByteBuffer[] buffs = message.getData();
+        for( int i=0; i < buffs.length; i++ ) {
+          buffs[ i ].returnToPool();
+        }
       }
     }
     
@@ -72,7 +85,9 @@ public class IncomingMessageQueue {
   /**
    * Create a new message queue.
    */
-  public IncomingMessageQueue() {
+  public IncomingMessageQueue( ProcessingHandler handler ) {
+    this.processing_handler = handler;
+    
     //TODO check for decoder type
     stream_decoder = new LegacyMessageDecoder( decode_listener );
   }
@@ -86,14 +101,43 @@ public class IncomingMessageQueue {
    * @return number of bytes received
    * @throws IOException on receive error
    */
-  public int receiveFromTransport( Transport transport, int max_bytes ) throws IOException {
+  public int receiveFromTransport( TCPTransport transport, int max_bytes ) throws IOException {
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
     }
     
+    if( listeners.isEmpty() ) {
+      Debug.out( "no queue listeners registered!" );
+      return 0;
+    }
+    
     return stream_decoder.decodeStream( transport, max_bytes );    
   }
+  
+  
+  
+  /**
+   * Start processing (reading) incoming messages.
+   */
+  public void startQueueProcessing() {
+    if( !is_processing_enabled ) {
+      processing_handler.enableProcessing();
+      is_processing_enabled = true;
+    }
+  }
+  
+  
+  /**
+   * Stop processing (reading) incoming messages.
+   */
+  public void stopQueueProcessing() {
+    if( is_processing_enabled ) {
+      processing_handler.disableProcessing();
+      is_processing_enabled = false;
+    }
+  }
+  
   
   
   
@@ -129,6 +173,30 @@ public class IncomingMessageQueue {
   
   
   
+  
+  /**
+   * Destroy this queue.
+   */
+  public void destroy() {
+    stream_decoder.destroy();
+  }
+  
+  
+  
+  
+  public interface ProcessingHandler {
+    public void enableProcessing();
+    
+    public void disableProcessing();
+    
+    
+    
+  }
+  
+
+  
+  
+  
   /**
    * For notification of queue events.
    */
@@ -136,8 +204,9 @@ public class IncomingMessageQueue {
     /**
      * A message has been read from the transport.
      * @param message recevied
+     * @return true if this message was accepted, false if not handled
      */
-    public void messageReceived( Message message );
+    public boolean messageReceived( Message message );
     
     /**
      * The given number of protocol (overhead) bytes read from the transport.

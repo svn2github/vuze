@@ -424,7 +424,7 @@ public class ConnectDisconnectManager {
    * Close the given connection.
    * @param channel to close
    */
-  public void closeConnection( SocketChannel channel ) {
+  protected void closeConnection( SocketChannel channel ) {
     try{
     	pending_closes_mon.enter();
     

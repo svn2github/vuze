@@ -27,28 +27,39 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 
 
 /**
- * Represents a peer transport connection (eg. a network socket).
+ * Represents a peer TCP transport connection (eg. a network socket).
  */
-public class Transport {
+public class TCPTransport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
   private boolean is_connected;
+  
   private boolean is_ready_for_write;
   private boolean is_write_select_pending = false;
   private Throwable write_select_failure = null;
+  
+  private boolean is_read_select_requested = false;
+  private boolean is_read_select_enabled = false;
+  private ReadListener read_select_listener = null;
+  private Throwable read_select_failure = null;
+  
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
   private String description = "<disconnected>";
   private TransportDebugger		transport_debugger;
+  private ByteBuffer data_already_read = null;
+  
+  
   
   /**
    * Constructor for disconnected transport.
    */
-  protected Transport( TransportOwner _owner ) {
+  public TCPTransport( TransportOwner _owner ) {
     socket_channel = null;
     is_connected = false;
     is_ready_for_write = false;
@@ -56,12 +67,25 @@ public class Transport {
     transport_debugger	= _owner.getDebugger();
   }
   
+  
   /**
    * Constructor for connected transport.
+   * @param _owner of transport
    * @param channel connection
+   * @param already_read bytes from the channel
    */
-  protected Transport( TransportOwner _owner, SocketChannel channel ) {
+  protected TCPTransport( TransportOwner _owner, SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
+    this.data_already_read = already_read;
+    
+    /*
+    int old = already_read.position();
+    byte[] raw = new byte[ already_read.remaining() ];
+    already_read.get( raw );
+    already_read.position( old );
+    System.out.println( "already_read=[" +new String( raw )+ "]" );
+    */
+    
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
     description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
@@ -72,7 +96,7 @@ public class Transport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  protected SocketChannel getSocketChannel() {  return socket_channel;  }
+  public SocketChannel getSocketChannel() {  return socket_channel;  }
   
   
   /**
@@ -95,11 +119,11 @@ public class Transport {
    * NOTE: Works like GatheringByteChannel.
    * @param buffers from which bytes are to be retrieved
    * @param array_offset offset within the buffer array of the first buffer from which bytes are to be retrieved
-   * @param array_length maximum number of buffers to be accessed
+   * @param length maximum number of buffers to be accessed
    * @return number of bytes written
    * @throws IOException on write error
    */
-  public long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
+  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
     
@@ -108,15 +132,15 @@ public class Transport {
       Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
     }
     
-    if( array_length < 1  || array_length > buffers.length - array_offset ) {
-      Debug.out( "array_length < 1  || array_length > buffers.length - array_offset" );
+    if( length < 1  || length > buffers.length - array_offset ) {
+      Debug.out( "length < 1  || length > buffers.length - array_offset" );
     }
     
     if( buffers.length < 1 ) {
       Debug.out( "buffers.length < 1" );
     }
     
-    for( int i=0; i < buffers.length; i++ ) {
+    for( int i = array_offset; i < (array_offset + length); i++ ) {
       ByteBuffer bb = buffers[ i ];
       
       if( bb == null ) {
@@ -125,8 +149,7 @@ public class Transport {
     }
     
     
-    
-    
+
     
     try { 
       if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
@@ -134,8 +157,8 @@ public class Transport {
       if( enable_efficient_write ) {
         try {
           long written = transport_debugger==null?
-          					socket_channel.write( buffers, array_offset, array_length ):
-          					transport_debugger.write( socket_channel, buffers, array_offset, array_length );
+          					socket_channel.write( buffers, array_offset, length ):
+          					transport_debugger.write( socket_channel, buffers, array_offset, length );
           					
           if( written < 1 )  requestWriteSelect();
           return written;
@@ -156,7 +179,7 @@ public class Transport {
     
       //single-buffer mode
       long written_sofar = 0;
-      for( int i=array_offset; i < array_length; i++ ) {
+      for( int i=array_offset; i < (array_offset + length); i++ ) {
         int data_length = buffers[ i ].remaining();
         int written = transport_debugger==null?
         					socket_channel.write( buffers[ i ] ):
@@ -192,11 +215,76 @@ public class Transport {
       }
 
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-        is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
         is_write_select_pending = false;
         write_select_failure = msg;
+        is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
       }
-    }, null);
+    }, null );
+  }
+  
+  
+  
+  /**
+   * Enable transport read selection.
+   * @param listener to handle readiness
+   */
+  public void requestReadSelects( ReadListener listener ) {
+    if( !is_read_select_enabled ) {
+      if( !is_read_select_requested ) {
+        is_read_select_requested = true;
+        
+        if( !is_connected ) {  //socket isnt established yet, so we'll have to register for read selection later
+          read_select_listener = listener;
+          System.out.println( "READ SELECT REQUESTED BEFORE CONNECTED" );
+        } 
+        else {  //start now
+          startReadSelects( listener );
+        }
+      }
+      else {
+        System.out.println( "READ SELECT ALREADY REQUESTED !!!" );
+      }
+    }
+    else {
+      System.out.println( "READ SELECT ALREADY ENABLED !!!" );
+    }
+  }
+
+  
+  /**
+   * Disable transport read selection.
+   */
+  public void cancelReadSelects() {
+    is_read_select_requested = false;
+    read_select_listener = null;
+    
+    if( is_read_select_enabled ) {
+      if( socket_channel == null )  Debug.out( "cancelReadSelects: socket_channel == null" );
+      is_read_select_enabled = false;
+      NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
+    }
+  }
+  
+  
+  
+  private void startReadSelects( final ReadListener listener ) {
+    if( socket_channel == null )  System.out.println( "startReadSelects: socket_channel == null" );
+    
+    NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+        is_read_select_requested = false;
+        is_read_select_enabled = true;
+        listener.readyToRead();
+        return true;
+      }
+
+      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+        read_select_failure = msg;
+        is_read_select_requested = false;
+        is_read_select_enabled = true;
+        listener.readyToRead();  //so that the resulting read attempt will throw an exception
+      }
+    }, null );
   }
   
   
@@ -207,26 +295,29 @@ public class Transport {
    * NOTE: Works like ScatteringByteChannel.
    * @param buffers into which bytes are to be placed
    * @param array_offset offset within the buffer array of the first buffer into which bytes are to be placed
-   * @param array_length maximum number of buffers to be accessed
+   * @param length maximum number of buffers to be accessed
    * @return number of bytes read
    * @throws IOException on read error
    */
-  public long read( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
+  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+    if( read_select_failure != null )  throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
+
+    
     
     //TODO temp debug code
     if( array_offset < 0 || array_offset >= buffers.length ) {
       Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
     }
     
-    if( array_length < 1  || array_length > buffers.length - array_offset ) {
-      Debug.out( "array_length < 1  || array_length > buffers.length - array_offset" );
+    if( length < 1  || length > buffers.length - array_offset ) {
+      Debug.out( "length < 1  || length > buffers.length - array_offset" );
     }
     
     if( buffers.length < 1 ) {
       Debug.out( "buffers.length < 1" );
     }
     
-    for( int i=0; i < buffers.length; i++ ) {
+    for( int i = array_offset; i < (array_offset + length); i++ ) {
       ByteBuffer bb = buffers[ i ];
       
       if( bb == null ) {
@@ -236,35 +327,72 @@ public class Transport {
     
     
     
-    
-    long bytes_read = socket_channel.read( buffers, array_offset, array_length );
+    //insert already-read data into the front of the stream
+    if( data_already_read != null ) {
+      int inserted = 0;
+      
+      for( int i = array_offset; i < (array_offset + length); i++ ) {
+        ByteBuffer bb = buffers[ i ];
+        
+        int orig_limit = data_already_read.limit();
+        
+        if( data_already_read.remaining() > bb.remaining() ) {
+          data_already_read.limit( data_already_read.position() + bb.remaining() ); 
+        }
+        
+        inserted += data_already_read.remaining();
+        
+        bb.put( data_already_read );
+        
+        data_already_read.limit( orig_limit );
+        
+        if( !data_already_read.hasRemaining() ) {
+          data_already_read = null;
+          break;
+        }
+      }
+      
+      if( !buffers[ array_offset + length - 1 ].hasRemaining() ) {  //the last buffer has nothing left to read into normally
+        return inserted;  //so return right away, skipping socket read
+      }      
+    }
+ 
+
+    long bytes_read = socket_channel.read( buffers, array_offset, length );
+    total_read += bytes_read;
     
     if( bytes_read < 0 ) {
-      throw new IOException( "end of stream on socket read" );
+      throw new IOException( "end of stream on socket read, [total="+(total_read+1)+"]" );
     }
     
     if( bytes_read == 0 ) {
-      Debug.out( "bytes_read == 0" );
-      return 0;
+      //System.out.println( "[" +System.currentTimeMillis()+ "] bytes_read == 0" );
     }
     
     return bytes_read;
   }
   
   
+  private long total_read = 0;
+  
+  
 
  
   /**
    * Request the transport connection be established.
+   * NOTE: Will automatically connect via configured proxy if necessary.
    * @param address remote peer address to connect to
    * @param listener establishment failure/success listener
    */
-  protected void establishOutboundConnection( InetSocketAddress address, final ConnectListener listener ) {
+  public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
     if( is_connected ) {
       System.out.println( "transport already connected" );
       listener.connectSuccess();
       return;
     }
+    
+    final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
+    final TCPTransport transport_instance = this;    
     
     ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
       public void connectAttemptStarted() {
@@ -274,10 +402,30 @@ public class Transport {
       public void connectSuccess( SocketChannel channel ) {
         socket_channel = channel;
         is_connected = true;
-        is_ready_for_write = true;
         connect_request_key = null;
         description = channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort();
-        listener.connectSuccess();
+        is_ready_for_write = true;
+        
+        if( is_read_select_requested ) {  //delayed start
+          System.out.println( "DELAYED READ SELECT STARTED" );
+          startReadSelects( read_select_listener );
+          read_select_listener = null;
+        }
+                
+        if( use_proxy ) {  //proxy server connection established, login
+          System.out.println( "Socket connection established to proxy server [" +description+ "], login initiated..." );
+          
+          new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
+            public void connectSuccess() {
+              System.out.println( "Proxy login successful." );
+              listener.connectSuccess();
+            }
+            public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
+          });
+        }
+        else {  //direct connection established, notify
+          listener.connectSuccess();
+        }
       }
 
       public void connectFailure( Throwable failure_msg ) {
@@ -290,20 +438,30 @@ public class Transport {
     };
     
     connect_request_key = connect_listener;
-    NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( address, connect_listener );
+    
+    InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.SOCKS_SERVER_ADDRESS : address;
+    
+    NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
   }
+  
+    
   
   
   /**
    * Close the transport connection.
    */
-  protected void close() {
+  public void close() {
+    cancelReadSelects();
+    is_ready_for_write = false;
+    
     if( is_connected ) {
       is_connected = false;
+      
       if( is_write_select_pending ) {
         NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
         is_write_select_pending = false;
       }
+      
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
     }
     else if( connect_request_key != null ) {
@@ -311,28 +469,28 @@ public class Transport {
       connect_request_key = null;
     }
     
-    is_ready_for_write = false;
     socket_channel = null;
   }
+     
   
   
   
-////////////////////////////////////
+  
   /**
    * Listener for notification of connection establishment.
    */
-   protected interface ConnectListener {
-     /**
-      * The connection establishment process has started,
-      * i.e. the connection is actively being attempted.
-      */
-     public void connectAttemptStarted();   
+  public interface ConnectListener {
+    /**
+     * The connection establishment process has started,
+     * i.e. the connection is actively being attempted.
+     */
+    public void connectAttemptStarted();   
      
-     /**
-      * The connection attempt succeeded.
-      * The connection is now established.
-      */
-     public void connectSuccess() ;
+    /**
+     * The connection attempt succeeded.
+     * The connection is now established.
+     */
+    public void connectSuccess() ;
     
     /**
      * The connection attempt failed.
@@ -340,8 +498,17 @@ public class Transport {
      */
     public void connectFailure( Throwable failure_msg );
   }
-///////////////////////////////////
+ 
    
    
+  /**
+   * Listener for notification for transport reads.
+   */
+  public interface ReadListener {
+    /**
+     * Notification of transport read readiness.
+     */
+    public void readyToRead();
+  }
   
 }

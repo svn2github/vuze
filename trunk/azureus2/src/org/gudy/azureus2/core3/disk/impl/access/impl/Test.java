@@ -1082,6 +1082,8 @@ Test
 		}
 
     public void protocol_sent( int length ) {}
+    
+    public void protocol_received( int length ) {}
 		
 		public void
 		discarded(

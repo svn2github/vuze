@@ -62,4 +62,6 @@ public class Ping implements Message {
     
     return new Ping();
   }
+  
+  public void destroy() { /*nothing*/ } 
 }
