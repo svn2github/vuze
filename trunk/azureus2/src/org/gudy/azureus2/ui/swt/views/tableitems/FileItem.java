@@ -19,6 +19,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
@@ -221,7 +222,7 @@ public class FileItem implements SortableItem{
       }
       gcImage.dispose();
       
-      last_draw_time = System.currentTimeMillis();
+      last_draw_time = SystemTime.getCurrentTime();
     }
     gc.setForeground(blues[MainWindow.BLUES_DARKEST]);
     gc.drawImage(piecesImage, x0, y0);
