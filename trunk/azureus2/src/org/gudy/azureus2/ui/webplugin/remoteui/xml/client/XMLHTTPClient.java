@@ -40,9 +40,8 @@ XMLHTTPClient
 	protected
 	XMLHTTPClient()
 	{
-		boolean	quick_test = true;
-		
-		
+		boolean	quick_test = false;
+			
 		try{
 			long	req_id = 0;
 			
@@ -90,6 +89,26 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
+				
+				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
+				
+				for (int i=0;i<kids.length;i++){
+				
+					String dl_oid	= kids[i].getChild( "_object_id" ).getValue().trim();
+				
+					System.out.println( "kid: oid = " + dl_oid );
+					
+					res = sendRequest( 
+							"<REQUEST>" +
+								"<OBJECT><_object_id>" + dl_oid + "</_object_id></OBJECT>" +
+								"<METHOD>stop</METHOD>"+
+								"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+								"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+							"</REQUEST>");
+					
+					res.print();
+						
+				}
 				
 			}
 

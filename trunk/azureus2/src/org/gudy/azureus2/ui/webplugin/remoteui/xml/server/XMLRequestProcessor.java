@@ -63,7 +63,7 @@ XMLRequestProcessor
 					
 			e.printStackTrace();
 			
-			writeTag("ERROR", e.toString());
+			writeTag("ERROR", exceptionToString(e));
 
 		}finally{
 			
@@ -84,18 +84,56 @@ XMLRequestProcessor
 		
 		RPReply reply = request_handler.processRequest( req_obj );
 
-		try{
-			Object	response = reply.getResponse();
-		
-			serialiseObject( response, "" );
+			// void methods result in null return
+
+		if ( reply != null ){
 			
-		}catch( RPException e ){
+			try{
+				Object	response = reply.getResponse();
 			
-			e.printStackTrace();
-			
-			writeTag("ERROR", e.toString());
-			
+					// null responses are represented by no response
+				
+				if ( response != null ){
+					
+					serialiseObject( response, "" );
+				}
+				
+			}catch( RPException e ){
+				
+				e.printStackTrace();
+				
+				writeTag("ERROR", exceptionToString(e));
+				
+			}
 		}
+	}
+	
+	protected String
+	exceptionToString(
+		Throwable e )
+	{
+		Throwable cause = e.getCause();
+		
+		if ( cause != null ){
+			
+			String	m = cause.getMessage();
+			
+			if ( m != null ){
+				
+				return( m );
+			}
+			
+			return( cause.toString());
+		}
+		
+		String	m = e.getMessage();
+		
+		if ( m != null ){
+			
+			return( m );
+		}
+		
+		return( e.toString());
 	}
 	
 	protected Object
