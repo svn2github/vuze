@@ -239,7 +239,7 @@ PEPeerManagerImpl
                      synchronized (_connections) {
                         //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
                         /* add connection */
-                        _connections.add(new PEPeerSocketImpl(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
+                        _connections.add(new PEPeerSocketImpl((PEPeerManagerImpl)testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
                      }
                   }
                   /* wait */
@@ -1579,4 +1579,20 @@ PEPeerManagerImpl
   	return( new PEPeerStatsImpl( getPieceLength()));
   }
 
+  public DiskManagerRequest
+  createDiskManagerRequest(
+  	int pieceNumber,
+  	int offset,
+  	int length )
+  {
+  	return( _diskManager.createRequest( pieceNumber, offset, length ));
+  }
+  
+  protected DiskManagerDataQueueItem
+  createDiskManagerDataQueueItem(
+  	DiskManagerRequest	req )
+  {
+  	return( _diskManager.createDataQueueItem( req ));
+  }
+  
 }

@@ -102,7 +102,7 @@ DiskManagerImpl
 	private BitSet[] priorityLists;
 	//private int[][] priorityLists;
 
-	private DiskManagerFileInfo[] files;
+	private DiskManagerFileInfoImpl[] files;
 
 	//long[] filesDone;
 	//RandomAccessFile[] fileArray;
@@ -239,7 +239,7 @@ DiskManagerImpl
 		//we now have a list of files and their lengths
 		//allocate / check every file
 		//fileArray = new RandomAccessFile[btFileList.size()];
-		files = new DiskManagerFileInfo[btFileList.size()];
+		files = new DiskManagerFileInfoImpl[btFileList.size()];
 		boolean newFiles = this.allocateFiles(rootPath, btFileList);
 		if (this.state == FAULTY)
 			return;
@@ -523,7 +523,7 @@ DiskManagerImpl
 	}
 
 	private static class BtFile {
-		private DiskManagerFileInfo _file;
+		private DiskManagerFileInfoImpl _file;
 		private String _path;
 		private String _name;
 		private String _originalName = null;
@@ -563,10 +563,10 @@ DiskManagerImpl
 		public String getName() {
 			return _name;
 		}
-		public DiskManagerFileInfo getFileInfo() {
+		public DiskManagerFileInfoImpl getFileInfo() {
 			return _file;
 		}
-		public void setFileInfo(DiskManagerFileInfo file) {
+		public void setFileInfo(DiskManagerFileInfoImpl file) {
 			_file = file;
 		}
 	}
@@ -605,7 +605,7 @@ DiskManagerImpl
 		public void run() {
 			while (bContinue) {
 				while (readQueue.size() != 0) {
-					DiskManagerDataQueueItem item = (DiskManagerDataQueueItem)readQueue.remove(0);
+					DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 					DiskManagerRequest request = item.getRequest();
 
 					// temporary fix for bug 784306
@@ -624,7 +624,7 @@ DiskManagerImpl
 		public void stopIt() {
 			this.bContinue = false;
 			while (readQueue.size() != 0) {
-				DiskManagerDataQueueItem item = (DiskManagerDataQueueItem)readQueue.remove(0);
+				DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 				item.setLoading(false);
 			}
 		}
@@ -757,7 +757,7 @@ DiskManagerImpl
 
 			//add the file to the array
 
-			DiskManagerFileInfo fileInfo = new DiskManagerFileInfo();
+			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl();
 			fileInfo.setPath(tempPath);
 			fileInfo.setName(tempName);
 			int separator = tempName.lastIndexOf(".");
@@ -787,7 +787,7 @@ DiskManagerImpl
 			fileInfo.setDownloaded(0);
 			fileInfo.setFile(f);
 			fileInfo.setRaf(raf);
-			fileInfo.setAccessmode(DiskManagerFileInfo.WRITE);
+			fileInfo.setAccessmode(DiskManagerFileInfoImpl.WRITE);
 			files[i] = fileInfo;
 
 			//setup this files RAF reference
@@ -959,6 +959,7 @@ DiskManagerImpl
 
 	public void enqueueReadRequest(DiskManagerDataQueueItem item) {
 		readQueue.add(item);
+		((DiskManagerDataQueueItemImpl)item).setLoading( true );
 	}
 
 	//MODIFY THIS TO WORK WITH PATH/FILES
@@ -1054,7 +1055,7 @@ DiskManagerImpl
 
 	// refactored out of readBlock() - Moti
 	// reads a file into a buffer, returns true when no error, otherwise false.
-	private boolean readFileInfoIntoBuffer(DiskManagerFileInfo file, ByteBuffer buffer, long offset) {
+	private boolean readFileInfoIntoBuffer(DiskManagerFileInfoImpl file, ByteBuffer buffer, long offset) {
 		synchronized (file) {
 			RandomAccessFile raf = file.getRaf();
 			FileChannel fc = raf.getChannel();
@@ -1344,7 +1345,7 @@ DiskManagerImpl
 								RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
 								files[i].setRaf(newRaf);
 								raf.close();
-								files[i].setAccessmode(DiskManagerFileInfo.READ);
+								files[i].setAccessmode(DiskManagerFileInfoImpl.READ);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -1398,7 +1399,7 @@ DiskManagerImpl
 			int completion = -1;
 			for (int k = 0; k < pieceList.size(); k++) {
 				//get the piece and the file 
-				DiskManagerFileInfo fileInfo = (pieceList.get(k)).getFile();
+				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
 				//If the file isn't skipped
 				if(fileInfo.isSkipped())
 					continue;
@@ -1446,7 +1447,7 @@ DiskManagerImpl
 
 			for (int j = 0; j < pieceList.size(); j++) {
 				//get the piece and the file 
-				DiskManagerFileInfo fileInfo = (pieceList.get(j)).getFile();
+				DiskManagerFileInfoImpl fileInfo = (pieceList.get(j)).getFile();
 				if (fileInfo.getFirstPieceNumber() == -1)
 					fileInfo.setFirstPieceNumber(i);
 				fileInfo.setNbPieces(fileInfo.getNbPieces() + 1);
@@ -1537,6 +1538,22 @@ DiskManagerImpl
 	 */
 	public PEPiece[] getPieces() {
 		return pieces;
+	}
+	
+	public DiskManagerRequest
+	createRequest(
+		int pieceNumber,
+		int offset,
+		int length )
+	{
+		return( new DiskManagerRequestImpl( pieceNumber, offset, length ));
+	}
+	
+	public DiskManagerDataQueueItem
+	createDataQueueItem(
+		DiskManagerRequest	request )
+	{
+		return( new DiskManagerDataQueueItemImpl( request ));
 	}
 
 }

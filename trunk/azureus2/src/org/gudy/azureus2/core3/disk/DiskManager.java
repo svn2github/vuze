@@ -55,7 +55,17 @@
 		int pieceNumber, 
 		int offset, 
 		int length );
-
+		
+	public DiskManagerRequest
+	createRequest(
+		int pieceNumber,
+		int offset,
+		int length );
+		
+	public DiskManagerDataQueueItem
+	createDataQueueItem(
+		DiskManagerRequest	request );
+		
 	public void 
 	enqueueReadRequest(
 		DiskManagerDataQueueItem item );

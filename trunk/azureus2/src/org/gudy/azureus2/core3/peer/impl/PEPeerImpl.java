@@ -34,23 +34,23 @@ public class
 PEPeerImpl
 	implements PEPeer
 {
+	PEPeerManagerImpl manager;
+	byte[] id;
+	String ip;
+	int port;
 
-	public PEPeerImpl(PEPeerManager manager, String ip, int port) {
+	public PEPeerImpl(PEPeerManagerImpl manager, String ip, int port) {
 	  this.manager = manager;
 	  this.ip = ip;
 	  this.port = port;
 	  this.id = null;
 	}
 
-	public PEPeerImpl(PEPeerManager manager, byte[] id, String ip, int port) {
+	public PEPeerImpl(PEPeerManagerImpl manager, byte[] id, String ip, int port) {
 	  this(manager, ip, port);
 	  this.id = id;
 	}
 
-	PEPeerManager manager;
-	byte[] id;
-	String ip;
-	int port;
 
 	/**
 	 * @return

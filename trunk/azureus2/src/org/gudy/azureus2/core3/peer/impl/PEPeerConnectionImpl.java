@@ -42,7 +42,7 @@ PEPeerConnectionImpl
 	 * @param ip
 	 * @param port
 	 */
-	public PEPeerConnectionImpl(PEPeerManager manager, String ip, int port) {
+	public PEPeerConnectionImpl(PEPeerManagerImpl manager, String ip, int port) {
 	  super(manager, ip, port);
 	}
 
@@ -52,7 +52,7 @@ PEPeerConnectionImpl
 	 * @param ip
 	 * @param port
 	 */
-	public PEPeerConnectionImpl(PEPeerManager manager, byte[] id, String ip, int port) {
+	public PEPeerConnectionImpl(PEPeerManagerImpl manager, byte[] id, String ip, int port) {
 	  super(manager, id, ip, port);
 	}
 

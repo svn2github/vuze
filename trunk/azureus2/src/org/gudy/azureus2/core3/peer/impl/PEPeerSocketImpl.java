@@ -51,7 +51,72 @@ PEPeerSocketImpl
 	extends PEPeerConnectionImpl
 	implements PEPeerSocket 
 {
+	//The SocketChannel associated with this peer
+	private SocketChannel socket;
+	//The reference to the current ByteBuffer used for reading on the socket.
+	private ByteBuffer readBuffer;
+	//The Buffer for reading the length of the messages
+	private ByteBuffer lengthBuffer;
+	//A flag to indicate if we're reading the length or the message
+	private boolean readingLength;
+	//The reference tp the current ByteBuffer used to write on the socket
+	private ByteBuffer writeBuffer;
+	//A flag to indicate if we're sending protocol messages or data
+	private boolean writeData;
+	private int allowed;
+	private int used;
+	private int loopFactor;
 
+	//The keepAlive counter
+	private int keepAlive;
+
+	//The Queue for protocol messages
+	private List protocolQueue;
+
+	//The Queue for data messages
+	private List dataQueue;
+	private boolean incoming;
+	private boolean closing;
+	private State currentState;
+
+	//The maxUpload ...
+	int maxUpload = 1024 * 1024;
+
+	//The client
+	String client = "";
+
+	//Reader / Writer Loop
+	private int processLoop;
+  
+	//Number of connections made since creation
+	private int nbConnections;
+  
+	//Flag to indicate if the connection is in a stable enough state to send a request.
+	//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
+	private boolean readyToRequest;
+  
+	//Flag to determine when a choke message has really been sent
+	private boolean waitingChokeToBeSent;
+
+	public final static int componentID = 1;
+	public final static int evtProtocol = 0;
+	// Protocol Info
+	public final static int evtLifeCycle = 1;
+	// PeerConnection Life Cycle
+	public final static int evtErrors = 2;
+	// PeerConnection Life Cycle
+	private final static String PROTOCOL = "BitTorrent protocol";
+	private final static byte BT_CHOKED = 0;
+	private final static byte BT_UNCHOKED = 1;
+	private final static byte BT_INTERESTED = 2;
+	private final static byte BT_UNINTERESTED = 3;
+	private final static byte BT_HAVE = 4;
+	private final static byte BT_BITFIELD = 5;
+	private final static byte BT_REQUEST = 6;
+	private final static byte BT_PIECE = 7;
+	private final static byte BT_CANCEL = 8;
+
+ 
   /*
      * This object constructors will let the PeerConnection partially created,
      * but hopefully will let us gain some memory for peers not going to be
@@ -66,7 +131,7 @@ PEPeerSocketImpl
    * @param ip the peer Ip Address
    * @param port the peer port
    */
-  public PEPeerSocketImpl(PEPeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
+  public PEPeerSocketImpl(PEPeerManagerImpl manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake)
       return;
@@ -103,7 +168,7 @@ PEPeerSocketImpl
    * @param table the graphical table in which this PeerConnection should display its info
    * @param sck the SocketChannel that handles the connection
    */
-  public PEPeerSocketImpl(PEPeerManager manager, SocketChannel sck) {
+  public PEPeerSocketImpl(PEPeerManagerImpl manager, SocketChannel sck) {
     super(manager, sck.socket().getInetAddress().getHostAddress(), sck.socket().getPort());
     this.socket = sck;
     this.incoming = true;
@@ -271,7 +336,7 @@ PEPeerSocketImpl
   }
 
   protected void sendData(DiskManagerRequest request) {
-    dataQueue.add(new DiskManagerDataQueueItem(request));
+    dataQueue.add(manager.createDiskManagerDataQueueItem(request));
   }
 
   public synchronized void closeAll(boolean closedOnError) {
@@ -629,7 +694,7 @@ PEPeerSocketImpl
           LGLogger.RECEIVED,
           ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
         if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-          sendData(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+          sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
         }
         else {
           LGLogger.log(
@@ -667,7 +732,7 @@ PEPeerSocketImpl
           evtProtocol,
           LGLogger.RECEIVED,
           ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-        DiskManagerRequest request = new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
+        DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
         if (requested.contains(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
           requested.remove(request);
           manager.received(pieceLength);
@@ -712,7 +777,7 @@ PEPeerSocketImpl
           evtProtocol,
           LGLogger.RECEIVED,
           ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-        removeRequestFromQueue(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+        removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
         readMessage(readBuffer);
         break;
      default:
@@ -767,7 +832,7 @@ PEPeerSocketImpl
       evtProtocol,
       LGLogger.SENT,
       ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-    requested.add(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+    requested.add(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
     ByteBuffer buffer = ByteBuffer.allocate(17);
     buffer.putInt(13);
     buffer.put(BT_REQUEST);
@@ -1066,7 +1131,6 @@ PEPeerSocketImpl
         if (!choking) {
           if (!item.isLoading() && !choking) {
             manager.enqueueReadRequest(item);
-            item.setLoading(true);
           }
           if (item.isLoaded()) {
             dataQueue.remove(0);
@@ -1074,7 +1138,6 @@ PEPeerSocketImpl
               DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
               if (!itemNext.isLoading()) {
                 manager.enqueueReadRequest(itemNext);
-                itemNext.setLoading(true);
               }
             }
             DiskManagerRequest request = item.getRequest();
@@ -1143,72 +1206,6 @@ PEPeerSocketImpl
     return null;
   }
 
-  //The SocketChannel associated with this peer
-  private SocketChannel socket;
-  //The reference to the current ByteBuffer used for reading on the socket.
-  private ByteBuffer readBuffer;
-  //The Buffer for reading the length of the messages
-  private ByteBuffer lengthBuffer;
-  //A flag to indicate if we're reading the length or the message
-  private boolean readingLength;
-  //The reference tp the current ByteBuffer used to write on the socket
-  private ByteBuffer writeBuffer;
-  //A flag to indicate if we're sending protocol messages or data
-  private boolean writeData;
-  private int allowed;
-  private int used;
-  private int loopFactor;
-
-  //The keepAlive counter
-  private int keepAlive;
-
-  //The Queue for protocol messages
-  private List protocolQueue;
-
-  //The Queue for data messages
-  private List dataQueue;
-  private boolean incoming;
-  private boolean closing;
-  private State currentState;
-
-  //The maxUpload ...
-  int maxUpload = 1024 * 1024;
-
-  //The client
-  String client = "";
-
-  //Reader / Writer Loop
-  private int processLoop;
-  
-  //Number of connections made since creation
-  private int nbConnections;
-  
-  //Flag to indicate if the connection is in a stable enough state to send a request.
-  //Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
-  private boolean readyToRequest;
-  
-  //Flag to determine when a choke message has really been sent
-  private boolean waitingChokeToBeSent;
-
-  public final static int componentID = 1;
-  public final static int evtProtocol = 0;
-  // Protocol Info
-  public final static int evtLifeCycle = 1;
-  // PeerConnection Life Cycle
-  public final static int evtErrors = 2;
-  // PeerConnection Life Cycle
-  private final static String PROTOCOL = "BitTorrent protocol";
-  private final static byte BT_CHOKED = 0;
-  private final static byte BT_UNCHOKED = 1;
-  private final static byte BT_INTERESTED = 2;
-  private final static byte BT_UNINTERESTED = 3;
-  private final static byte BT_HAVE = 4;
-  private final static byte BT_BITFIELD = 5;
-  private final static byte BT_REQUEST = 6;
-  private final static byte BT_PIECE = 7;
-  private final static byte BT_CANCEL = 8;
-
- 
   /**
    * @return
    */
