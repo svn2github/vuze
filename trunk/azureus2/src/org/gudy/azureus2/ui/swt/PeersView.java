@@ -58,7 +58,7 @@ public class PeersView implements IView, IComponentListener {
         "Up",
         "Stat Up",
         "S",
-        "Av. Lvl.",
+        "Overall Down Speed",
         "Opt. Unchoke",
         "Client" };
     int[] align =

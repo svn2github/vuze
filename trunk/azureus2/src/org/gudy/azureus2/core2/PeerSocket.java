@@ -1093,5 +1093,9 @@ public class PeerSocket extends PeerConnection {
 	public String getClient() {
 		return client;
 	}
+	
+	public boolean isOptimisticUnchoke() {
+		return manager.isOptimisticUnchoke(this);
+	}
 
 }

@@ -1324,5 +1324,9 @@ public class PeerManager extends Thread {
       }
     }
   }
+  
+  public boolean isOptimisticUnchoke(PeerSocket pc) {
+  	return pc == currentOptimisticUnchoke;
+  }
 
 }

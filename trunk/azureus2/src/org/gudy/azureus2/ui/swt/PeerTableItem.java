@@ -251,28 +251,17 @@ public class PeerTableItem {
 
 		boolean available[] = pc.getAvailable();
 		int sum = 0;
-		int availabilityLevel = 0;
 		int availability[] = pc.getManager().getAvailability();
 		for (int i = 0; i < available.length; i++) {
 			if (available[i]) {
-				if (availability[i] > 0)
-					availabilityLevel += 100 / availability[i];
 				sum++;
 			}
 		}
-		if (sum > 0)
-			availabilityLevel /= sum;
 		sum = (sum * 1000) / (available.length);
 		tmp = (sum / 10) + "." + (sum % 10) + " %";
 		if (!(oldTexts[6].equals(tmp))) {
 			item.setText(6, tmp);
 			oldTexts[6] = tmp;
-		}
-
-		tmp = "" + availabilityLevel;
-		if (!(oldTexts[15].equals(tmp))) {
-			item.setText(15, tmp);
-			oldTexts[15] = tmp;
 		}
 
 		tmp = "" + pc.getClient();
@@ -323,13 +312,20 @@ public class PeerTableItem {
 			item.setText(13, tmp);
 			oldTexts[13] = tmp;
 		}
-		/*
+
+		tmp = stats.getOverAllDownloadSpeed();
+		if (!(oldTexts[15].equals(tmp))) {
+			item.setText(15, tmp);
+			oldTexts[15] = tmp;
+		}
+
+		
 		tmp = "";
 		if(pc.isOptimisticUnchoke()) tmp = "*";
 		    if (!(oldTexts[16].equals(tmp))) {
 		      item.setText(16, tmp);
 		      oldTexts[16] = tmp;
-		    }*/
+		    }
 
 	}
 
