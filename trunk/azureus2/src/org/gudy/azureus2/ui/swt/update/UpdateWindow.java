@@ -195,7 +195,8 @@ UpdateWindow
     });
     
     stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);    
-
+    stDescription.setWordWrap(true);
+    
     progress = new ProgressBar(updateWindow,SWT.NULL);
     progress.setMinimum(0);
     progress.setMaximum(100);
