@@ -1,6 +1,6 @@
 /*
  * File    : MultiTrackerEditor.java
- * Created : 3 d�c. 2003}
+ * Created : 3 déc. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
