@@ -661,7 +661,6 @@ public class MyTorrentsView extends AbstractIView
                 forceStart = false;
             }
           }
-          forceStartEnabled &= forceStart;
           itemBar.setSelection(barsOpened);
 
           itemMoveDown.setEnabled(moveDown);
