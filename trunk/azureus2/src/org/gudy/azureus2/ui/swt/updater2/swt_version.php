@@ -6,9 +6,24 @@
 	
 	if(! isset($platform) || $platform == '')
 		exit();
+		
+	if(! isset($version) || $version == '')
+		$version 	= @$_GET['version'];	
 	
 	echo($latestVersion . "\n");
-
+	
+	if(substr($version, 7) == "2.1.0.1") {
+	if($platform == "win32") { ?>
+http://download2.eclipse.org/downloads/drops/S-3.0RC2-200406111814/download.php?dropFile=swt-3.0RC2-win32.zip
+<?php } else if($platform == "motif") { ?>
+http://download2.eclipse.org/downloads/drops/S-3.0RC2-200406111814/download.php?dropFile=swt-3.0RC2-linux-motif.zip
+<?php } else if($platform == "gtk") { ?>
+http://download2.eclipse.org/downloads/drops/S-3.0RC2-200406111814/download.php?dropFile=swt-3.0RC2-linux-gtk.zip
+<?php } else if($platform == "carbon") { ?>
+http://download2.eclipse.org/downloads/drops/S-3.0RC2-200406111814/download.php?dropFile=swt-3.0RC2-macosx-carbon.zip
+		}
+	} else {
+	
 	if($platform == "win32") { ?>
 http://mirror.tiscali.dk/eclipse/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-win32.zip
 http://download2.eclipse.org/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-win32.zip
@@ -21,4 +36,5 @@ http://download2.eclipse.org/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-linu
 <?php } else if($platform == "carbon") { ?>
 http://mirror.tiscali.dk/eclipse/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-macosx-carbon.zip
 http://download2.eclipse.org/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-macosx-carbon.zip
+	<?php } ?>
 <?php } ?>
