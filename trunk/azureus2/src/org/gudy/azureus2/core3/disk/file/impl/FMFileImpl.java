@@ -180,6 +180,8 @@ FMFileImpl
 		throws FMFileManagerException
 	{
 		FileChannel fc = raf.getChannel();
+    
+    if (fc == null) throw new FMFileManagerException( "FMFile::read: file channel is null" );
 		
 		if ( !fc.isOpen()){
 			
@@ -212,6 +214,8 @@ FMFileImpl
 		throws FMFileManagerException
 	{
 		FileChannel fc = raf.getChannel();
+    
+    if (fc == null) throw new FMFileManagerException( "FMFile::write: file channel is null" );
 		
 		try{
 			
