@@ -164,8 +164,7 @@ DMWriterAndCheckerImpl
 
 			started	= true;
       
-      
-      COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
+			COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
 			
 			writeThread = new DiskWriteThread();
 			
@@ -188,12 +187,14 @@ DMWriterAndCheckerImpl
 				return;
 			}
 		
+			started	= false;
+			
 				// when we exit here we guarantee that all file usage operations have completed
 				// i.e. writes and checks (checks being doubly async)
 			
 			bOverallContinue	= false;
       
-      COConfigurationManager.removeParameterListener( "diskmanager.friendly.hashchecking", param_listener );
+			COConfigurationManager.removeParameterListener( "diskmanager.friendly.hashchecking", param_listener );
       
 			if ( current_hash_request != null ){
 				
@@ -864,7 +865,12 @@ DMWriterAndCheckerImpl
 					
 					try{
 						int	entry_count = writeCheckQueueSem.reserveSet( 64 );
-											
+							
+						if ( !bWriteContinue){
+							
+							break;
+						}
+
 						for (int i=0;i<entry_count;i++){
 							
 							final QueueElement	elt;
