@@ -51,8 +51,6 @@ public class SelectorGuard {
   private long select_op_time;
   private int num_keys_selected;
   
-  private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
-  
   private HashMap conseq_keys = new HashMap();
   private static final int CONSEQ_SELECT_THRESHOLD = 200;
   
@@ -105,13 +103,7 @@ public class SelectorGuard {
     
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error
-      consecutiveZeroSelects = 0;
-      
-      if( DISABLED ) {  //this bug should not happen when running under 1.5 JRE
-        LGLogger.log( "WARNING: It looks like the socket selector is spinning, even though you are running JRE 1.5 series." );
-        return true;
-      }
-      
+      consecutiveZeroSelects = 0;      
       return false;
     }
     
@@ -173,8 +165,9 @@ public class SelectorGuard {
     HashMap new_keys = new HashMap();
     boolean spin_detected = false;
     
-    if( select_op_time > 30 || num_keys_selected >= 10 ) {  //the select op didnt return immediately
-      //must have blocked, no spinning
+    if( select_op_time > 30 || num_keys_selected >= 10 ) {
+      //the select op didnt return immediately (must have blocked),
+      //or there were many keys also selected
     }
     else {
       for( Iterator i = selected_keys.iterator(); i.hasNext(); ) {
