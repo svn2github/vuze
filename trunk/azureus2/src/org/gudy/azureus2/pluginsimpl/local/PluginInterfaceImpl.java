@@ -37,8 +37,6 @@ import org.gudy.azureus2.pluginsimpl.local.ui.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.PluginConfigUIFactoryImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.pluginsimpl.local.utils.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
@@ -59,6 +57,7 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -251,14 +250,16 @@ PluginInterfaceImpl
   	return( pluginConfigKey );
   }
   
+  /** @deprecated Use getUIManager().getTableManager().createColumn */
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
-    PeersTableExtensions.getInstance().addExtension(columnName,item);
+    TableColumnManager.getInstance().addExtension(columnName,item);
   }
   
+  /** @deprecated Use getUIManager().getTableManager().createColumn */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory item) {
-    MyTorrentsTableExtensions.getInstance().addExtension(columnName,item);
+    TableColumnManager.getInstance().addExtension(columnName,item);
   }
-  
+
   public Tracker getTracker() {
   	return( TrackerImpl.getSingleton( initialiser.getTrackerHost()));
   }
