@@ -1577,13 +1577,14 @@ public class ConfigView extends AbstractIView {
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.torrentsperpage"); 
 	  
-	  final IntParameter tracker_skip = new IntParameter(gTracker, "Tracker Skip", 20 );
+	  final IntParameter tracker_skip = new IntParameter(gTracker, "Tracker Skip", 0 );
 	  
 	  gridData = new GridData();
-	  gridData.horizontalSpan = 2;
+	  gridData.horizontalSpan = 1;
 	  gridData.widthHint = 100;
 	  tracker_skip.setLayoutData( gridData );
 
+	  label = new Label(gTracker, SWT.NULL);
 	  label = new Label(gTracker, SWT.NULL);
 	  label = new Label(gTracker, SWT.NULL);
 	  gridData = new GridData();
