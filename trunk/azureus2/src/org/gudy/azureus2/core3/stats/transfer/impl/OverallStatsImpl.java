@@ -105,7 +105,7 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	  load("azureus.statistics");
 	}
   
-  private void save(String filename) {  
+  private synchronized void save(String filename) {  
 	  //open a file stream
 	  BufferedOutputStream bos = null;
 	  try {
@@ -216,14 +216,17 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     updateStats();
   }
 
-  private void updateStats() {
+  private synchronized void updateStats() {
     GlobalManagerStats stats = manager.getStats();
     
-    totalDownloaded += stats.getTotalReceivedRaw() - lastDownloaded;
-    lastDownloaded = stats.getTotalReceivedRaw();
+    long	current_total_received 	= stats.getTotalReceivedRaw();
+    long	current_total_sent		= stats.getTotalSentRaw();
     
-    totalUploaded += stats.getTotalSentRaw() - lastUploaded;
-    lastUploaded = stats.getTotalSentRaw();
+    totalDownloaded +=  current_total_received - lastDownloaded;
+    lastDownloaded = current_total_received;
+    
+    totalUploaded +=  current_total_sent - lastUploaded;
+    lastUploaded = current_total_sent;
     
     totalUptime += System.currentTimeMillis() / 1000 - lastUptime;
     lastUptime = System.currentTimeMillis() / 1000;
