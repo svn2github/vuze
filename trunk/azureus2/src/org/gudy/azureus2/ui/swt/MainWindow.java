@@ -522,11 +522,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
     formData = new FormData();
-    formData.top = new FormAttachment(mainWindow);
+    formData.top = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(10, 0); // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(90, 0); // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
-    
+
     this.iconBar = new IconBar(mainWindow);
     this.iconBar.setCurrentEnabler(this);
     
@@ -535,8 +535,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     this.iconBar.setLayoutData(formData);
-    
+
     separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
+
     formData = new FormData();
     formData.top = new FormAttachment(iconBar.coolBar);
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -608,7 +609,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     }
     
-    
+
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
     formData = new FormData();
     formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
@@ -623,7 +624,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     folder.setLayoutData(formData);
     
-    
+
     GridLayout layout_status = new GridLayout();
     layout_status.numColumns = 4;
     layout_status.horizontalSpacing = 1;
