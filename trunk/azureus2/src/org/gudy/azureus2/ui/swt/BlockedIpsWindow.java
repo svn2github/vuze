@@ -63,7 +63,7 @@ public class BlockedIpsWindow {
     formData.bottom = new FormAttachment(btnOk);   
     text.setLayoutData(formData);
     text.setText(ips);
-    
+    text.setEditable(false);
     
     Messages.setLanguageText(btnOk,"Button.ok");
     formData = new FormData();

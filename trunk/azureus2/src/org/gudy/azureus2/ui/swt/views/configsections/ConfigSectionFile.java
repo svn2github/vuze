@@ -241,8 +241,8 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	    layout.numColumns = 3;
 	    gMoveCompleted.setLayout(layout);
 	
-	    label = new Label(gMoveCompleted, SWT.NULL);
-	    Messages.setLanguageText(label, "ConfigView.label.directory"); 
+	    Label lDir = new Label(gMoveCompleted, SWT.NULL);
+	    Messages.setLanguageText(lDir, "ConfigView.label.directory"); 
 	
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    final StringParameter movePathParameter = new StringParameter(gMoveCompleted, "Completed Files Directory", "");
@@ -281,13 +281,15 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	    moveOnly.setLayoutData(gridData);
 	
 	
-	    Control[] controls3 = new Control[6];
-	    controls3[0] = movePathParameter.getControl();
-	    controls3[1] = browse3;
-	    controls3[2] = lMoveTorrent;
-	    controls3[3] = moveTorrent.getControl();
-	    controls3[4] = lMoveOnly;
-	    controls3[5] = moveOnly.getControl();
+	    Control[] controls3 = new Control[]{
+	    		lDir,
+	    		movePathParameter.getControl(),
+			    browse3,
+			    lMoveTorrent,
+			    moveTorrent.getControl(),
+			    lMoveOnly,
+			    moveOnly.getControl()};
+	    	
 	    IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls3);
 	    moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 

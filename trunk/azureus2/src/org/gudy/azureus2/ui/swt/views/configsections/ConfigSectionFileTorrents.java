@@ -76,8 +76,8 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     
     // Save .Torrent files to..
     
-    label = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.savetorrents"); //$NON-NLS-1$
+    Label lsave = new Label(cTorrent, SWT.NULL);
+    Messages.setLanguageText(lsave, "ConfigView.label.savetorrents"); //$NON-NLS-1$
     BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files", true); //$NON-NLS-1$
 
     Composite gSaveTorrents = new Composite(cTorrent, SWT.NULL);
@@ -89,8 +89,8 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     layout.numColumns = 3;
     gSaveTorrents.setLayout(layout);
 
-    label = new Label(gSaveTorrents, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.savedirectory"); //$NON-NLS-1$
+    Label lSaveDir = new Label(gSaveTorrents, SWT.NULL);
+    Messages.setLanguageText(lSaveDir, "ConfigView.label.savedirectory"); //$NON-NLS-1$
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     final StringParameter torrentPathParameter = new StringParameter(gSaveTorrents, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -123,11 +123,13 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     gridData.horizontalSpan = 2;
     saveTorrentBackup.setLayoutData(gridData);
 
-    Control[] controls = new Control[4];
-    controls[0] = torrentPathParameter.getControl();
-    controls[1] = browse2;
-    controls[2] = lSaveTorrentBackup;
-    controls[3] = saveTorrentBackup.getControl();
+    Control[] controls = new Control[]{
+    		lSaveDir,
+			torrentPathParameter.getControl(),
+			browse2,
+			lSaveTorrentBackup,
+			saveTorrentBackup.getControl() };
+    
     IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
     saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
 
@@ -146,8 +148,8 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     layout.numColumns = 3;
     gWatchFolder.setLayout(layout);
 
-    label = new Label(gWatchFolder, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.importdirectory"); //$NON-NLS-1$
+    Label lImportDir = new Label(gWatchFolder, SWT.NULL);
+    Messages.setLanguageText(lImportDir, "ConfigView.label.importdirectory"); //$NON-NLS-1$
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
 //    gridData = new GridData();
@@ -191,13 +193,15 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     startWatchedTorrentsStopped.setLayoutData(gridData);
-    controls = new Control[6];
-    controls[0] = watchFolderPathParameter.getControl();
-    controls[1] = browse4;
-    controls[2] = lWatchTorrentFolderInterval;
-    controls[3] = iWatchTorrentFolderIntervalParameter.getControl();
-    controls[4] = lStartWatchedTorrentsStopped;
-    controls[5] = startWatchedTorrentsStopped.getControl();
+    controls = new Control[]{
+    		lImportDir,
+			watchFolderPathParameter.getControl(),
+    		browse4,
+			lWatchTorrentFolderInterval,
+			iWatchTorrentFolderIntervalParameter.getControl(),
+			lStartWatchedTorrentsStopped,
+			startWatchedTorrentsStopped.getControl() };
+    
     IAdditionalActionPerformer grayPathAndButton3 = new ChangeSelectionActionPerformer(controls);
     watchFolder.setAdditionalActionPerformer(grayPathAndButton3);
 

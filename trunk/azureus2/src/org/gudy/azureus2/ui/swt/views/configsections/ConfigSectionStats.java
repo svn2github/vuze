@@ -91,7 +91,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
-    Control[] controls = new Control[7];
+    Control[] controls = new Control[11];
 
     // row
 
@@ -128,24 +128,26 @@ public class ConfigSectionStats implements ConfigSectionSWT {
 
     Label lSaveFile = new Label(gStats, SWT.NULL);
     Messages.setLanguageText(lSaveFile, "ConfigView.section.stats.savefile"); //$NON-NLS-1$
-
+    controls[3] = lSaveFile;
+    
     gridData = new GridData();
     gridData.widthHint = 150;
     final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     fileParameter.setLayoutData(gridData);
-    controls[3] = fileParameter.getControl();
+    controls[4] = fileParameter.getControl();
     label = new Label(gStats, SWT.NULL);
 
     // row
 
     Label lxslFile = new Label(gStats, SWT.NULL);
     Messages.setLanguageText(lxslFile, "ConfigView.section.stats.xslfile"); //$NON-NLS-1$
-
+    controls[5] = lxslFile;
+    
     gridData = new GridData();
     gridData.widthHint = 150;
     final StringParameter xslParameter = new StringParameter(gStats, "Stats XSL File", "" );
     xslParameter.setLayoutData(gridData);
-    controls[4] = xslParameter.getControl();
+    controls[6] = xslParameter.getControl();
     Label lxslDetails = new Label(gStats, SWT.NULL);
     Messages.setLanguageText(lxslDetails, "ConfigView.section.stats.xslfiledetails"); //$NON-NLS-1$
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#20";
@@ -159,11 +161,15 @@ public class ConfigSectionStats implements ConfigSectionSWT {
         Program.launch(linkFAQ);
       }
     });
+    controls[7] = lxslDetails;
+    
     // row
 
     Label lSaveFreq = new Label(gStats, SWT.NULL);
 
     Messages.setLanguageText(lSaveFreq, "ConfigView.section.stats.savefreq");
+    controls[8] = lSaveFreq;
+    
     final String spLabels[] = new String[statsPeriods.length];
     final int spValues[] = new int[statsPeriods.length];
     for (int i = 0; i < statsPeriods.length; i++) {
@@ -184,8 +190,8 @@ public class ConfigSectionStats implements ConfigSectionSWT {
       spValues[i] = statsPeriods[i];
     }
 
-    controls[5] = lSaveFreq;
-    controls[6] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
+    controls[9] = lSaveFreq;
+    controls[10] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
     return gStats;

@@ -85,7 +85,7 @@ NonDaemonTaskRunner
 						{
 							wait_sem.release();
 							
-							System.out.println( "non daemon starts" );
+							// System.out.println( "non daemon starts" );
 							
 							while(true){
 								
@@ -108,7 +108,7 @@ NonDaemonTaskRunner
 								}
 							}
 							
-							System.out.println( "non daemon ends" );
+							// System.out.println( "non daemon ends" );
 						}
 					};
 						
