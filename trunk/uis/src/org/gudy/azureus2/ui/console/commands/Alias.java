@@ -48,7 +48,7 @@ public class Alias extends OptionsConsoleCommand {
 	 * @see org.gudy.azureus2.ui.console.commands.IConsoleCommand#getCommandDescriptions()
 	 */
 	public String getCommandDescriptions() {
-		return "alias [-d] [aliasname] [arguments...]\t\tadd/modify/delete aliases. use with no argument to show existing aliases";
+		return "alias [-d] [aliasname] [arguments...]\tadd/modify/delete aliases. use with no argument to show existing aliases";
 	}
 
 	/* (non-Javadoc)
