@@ -81,6 +81,7 @@ NewTorrentWizard
   List trackers = new ArrayList();
   
   boolean autoOpen = false;
+  boolean autoHost = false;
   
   
   TOTorrentCreator creator = null;

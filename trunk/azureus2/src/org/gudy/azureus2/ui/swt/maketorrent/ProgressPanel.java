@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TrackersUtil;
@@ -125,7 +126,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     try {
       URL url = new URL(_wizard.trackerURL);
       
-      TOTorrent torrent;
+      final TOTorrent torrent;
       
       if ( _wizard.getPieceSizeComputed()){
       	
@@ -199,6 +200,17 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 												: DownloadManager.STATE_QUEUED,
 						true,	// persistent 
 						true );	// for seeding
+                
+                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).localTracker ){
+                	
+                	try{
+                		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true );
+                		
+                	}catch( TRHostException e ){
+                		
+                		LGLogger.logRepeatableAlert( "Host operation fails", e );
+                	}
+                }
 
             }
 		}.start();
