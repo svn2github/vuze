@@ -1253,13 +1253,51 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
+		
+			// not sure of the difference between "size" and "length" here. Old code
+			// used to use "size" so I'm going to carry on for the moment in case
+			// there is some weirdness here
+		
 		try{
+				// bug found here with "incremental creation" failing with lots of hash
+				// fails. Caused by the reported length not taking into account the cache
+				// entries that have yet to be flushed.
 			
-				// not sure of the difference between "size" and "length" here. Old code
-				// used to use "size" so I'm going to carry on for the moment in case
-				// there is some weirdness here
+			long	physical_size = file.getSize();
 			
-			return( file.getSize());
+			if ( manager.isCacheEnabled()){
+				
+				try{
+					this_mon.enter();
+			
+					Iterator	it = cache.iterator();
+					
+						// last entry is furthest down the file
+					
+					while( it.hasNext()){
+					
+						CacheEntry	entry = (CacheEntry)it.next();
+					
+						if ( !it.hasNext()){
+							
+							long	entry_file_position 	= entry.getFilePosition();
+							int		entry_length			= entry.getLength();
+
+							long	logical_size = entry_file_position + entry_length;
+							
+							if ( logical_size > physical_size ){
+								
+								physical_size	= logical_size;								
+							}
+						}
+					}
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
+			
+			return( physical_size );
 			
 		}catch( FMFileManagerException e ){
 			
