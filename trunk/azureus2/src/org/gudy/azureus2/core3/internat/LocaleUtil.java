@@ -38,7 +38,7 @@ public class LocaleUtil implements ILocaleUtilChooser {
   protected String lastChoosedEncoding = null;
   protected boolean waitForUserInput = true;
   
-  protected static ILocaleUtilChooser chooser = null;
+  private static ILocaleUtilChooser chooser = null;
   
   public static LocaleUtil getLocaleUtil(Object lastEncoding) {
     return (chooser==null)?new LocaleUtil(lastEncoding):chooser.getProperLocaleUtil(lastEncoding);
