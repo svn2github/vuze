@@ -258,20 +258,16 @@ PEPeerTransportProtocol
    
   
   public void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
-  	try{
-  		this_mon.enter();
   	
-	    //System.out.println(reason + ", " + closedOnError+ ", " + attemptReconnect);
-	    
-	  	LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
-	  	
 	  	if (closing) {
 	  		return;
 	  	}
 	  	closing = true;
-	    
+
 	    currentState = new StateClosing();
-	  	
+      
+      LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
+      
 	  	//Cancel any pending requests (on the manager side)
 	  	cancelRequests();
 	  	  	
@@ -332,10 +328,7 @@ PEPeerTransportProtocol
 	  	else {
 	      manager.peerConnectionClosed( this, false );
 	  	}
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
+
   }
 
 	
