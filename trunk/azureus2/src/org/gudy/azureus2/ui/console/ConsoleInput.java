@@ -802,6 +802,8 @@ public class ConsoleInput extends Thread {
 					commandStart(subcommand);
 				} else if (command.equalsIgnoreCase("stop") || command.equalsIgnoreCase("h")) {
 					commandTorrentCommand(TORRENTCOMMAND_STOP, subcommand);
+				} else if (command.equalsIgnoreCase("check") || command.equalsIgnoreCase("c")) {
+					commandTorrentCommand(TORRENTCOMMAND_CHECK, subcommand);
 				} else if (command.equalsIgnoreCase("move") || command.equalsIgnoreCase("m")) {
 					commandMove(subcommand);
 				} else if (command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("r")) {
