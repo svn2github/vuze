@@ -225,7 +225,7 @@ public class PeerSocket extends PeerConnection {
 
     //5. release the write Buffer
     if (writeBuffer != null) {
-      ByteBufferPool.getInstance().freeBuffer(readBuffer);
+      ByteBufferPool.getInstance().freeBuffer(writeBuffer);
       if (writeData) {
         SpeedLimiter.getLimiter().removeUploader(this);
       }
