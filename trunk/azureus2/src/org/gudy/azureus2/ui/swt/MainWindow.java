@@ -103,7 +103,6 @@ import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;

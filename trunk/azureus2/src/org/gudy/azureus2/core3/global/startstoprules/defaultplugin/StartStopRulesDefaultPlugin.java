@@ -29,7 +29,6 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
-import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TimeFormater;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
