@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-2004.07.xx | Azureus 2.1.0.3
+2004.07.08 | Azureus 2.1.0.4
 
 FEATURE: Core | Show built-in plugins in config view [Parg]
 FEATURE: Core | Fallback encoding for torrents (a-zA-Z0-9 type encoding with hex chars for others) [Parg]
@@ -30,9 +30,10 @@ BUGFIX: Core | Fix for 'completed' announce event not being sent on occasion [No
 BUGFIX: Core | Fix for occassional missing of resume data write -> recheck on start up [Parg]
 BUGFIX: Core | Bad peers not being detected on hashfail if they contributed all blocks [Parg]
 BUGFIX: Core | Better handling of "auto import" + default torrent save dir being the same [Parg]
+BUGFIX: Core | Strip resume data on open of new torrent [Parg]
 BUGFIX: UI   | Fix bug where failed-hashcheck pieces never reappeared in Pieces view [Nolar]
 BUGFIX: Plug | Web UI authentication for torrent download not working with default port URLs [Parg]
-BUGFIX: Core | Strip resume data on open of new torrent [Parg]
+
 
 
 2004.06.21 | Azureus 2.1.0.2
