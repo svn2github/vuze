@@ -12,9 +12,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -87,6 +85,7 @@ public class Tab {
         tabItem = new TabItem((TabFolder) folder, SWT.NULL);
       }
     }
+    /*
     folder.addMouseListener(new MouseAdapter() {
       public void mouseDown(MouseEvent arg0) {
         if(arg0.button == 2) {
@@ -103,6 +102,7 @@ public class Tab {
 //    System.out.println("selected: "+selectedItem.getText());
         }
       }
+      
       public void mouseUp(MouseEvent arg0) {
         eventCloseAllowed = true;
         if(selectedItem != null) {
@@ -112,7 +112,7 @@ public class Tab {
             ((TabFolder) _folder).setSelection(new TabItem[]{(TabItem)selectedItem});
         }
       }
-    });
+    });*/
 
     if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView)) {
       composite = new Composite(folder, SWT.NULL);
@@ -126,6 +126,7 @@ public class Tab {
       GridData gridData = new GridData(GridData.FILL_BOTH);
       try {
         _view.initialize(composite);
+        _view.setTabListener();
         _view.getComposite().setLayoutData(gridData);
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(composite);
@@ -411,15 +412,31 @@ public class Tab {
       }
     };
   }
+  
+  public static KeyAdapter defaultListener;
 
-  public static void addTabKeyListenerToComposite(Composite folder) {
-    folder.addKeyListener(createTabKeyListener());
+  public static synchronized void addTabKeyListenerToComposite(Composite folder) {
+    if(folder == null)
+      return;
+
+    if(defaultListener == null)      
+      defaultListener = createTabKeyListener();
+
+    addTabKeyListenerToComposite(defaultListener,folder);    
+  }
+  
+  public static void addTabKeyListenerToComposite(KeyListener listener,Composite folder) {    
+    folder.removeKeyListener(listener);
+    folder.addKeyListener(listener);
     Control[] children = folder.getChildren();
     for (int i = 0; i < children.length; i++) {
       if(children[i] instanceof Composite)
-        addTabKeyListenerToComposite((Composite) children[i]);
-      else
-        children[i].addKeyListener(createTabKeyListener());
+        addTabKeyListenerToComposite(listener,(Composite) children[i]);
+      else {
+				children[i].removeKeyListener(listener);
+        children[i].addKeyListener(listener);
+			}
     }
   }
+  
 }

@@ -649,14 +649,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     };
     
     if(!useCustomTab) {
-      ((TabFolder)folder).addKeyListener(new KeyAdapter() {
-        public void keyReleased(KeyEvent keyEvent) {
-          //System.out.println(keyEvent.keyCode);
-          if(keyEvent.character == SWT.ESC) {
-            Tab.closeCurrent();
-          }
-        }
-      });
+      Tab.addTabKeyListenerToComposite(folder);
       ((TabFolder)folder).addSelectionListener(selectionAdapter);
     } else {    
       ((CTabFolder)folder).setSelectionBackground(new Color[] { white }, new int[0]);

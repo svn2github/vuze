@@ -125,7 +125,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       }
     });
     refresh();
-    super.initialize(composite);
   }
 
   /* (non-Javadoc)

@@ -133,7 +133,6 @@ public class ConfigView extends AbstractIView {
     initSaveButton(); 
     TabItem[] items = {itemFile};
     tfConfig.setSelection(items);
-    super.initialize(composite);
     //Utils.changeBackgroundComposite(cConfig,MainWindow.getWindow().getBackground());
   }
 

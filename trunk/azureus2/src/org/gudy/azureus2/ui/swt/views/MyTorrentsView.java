@@ -148,7 +148,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     createDragDrop();
     COConfigurationManager.addParameterListener("Graphics Update", this);
     globalManager.addListener(this);
-    super.initialize(composite0);
   }
   
   

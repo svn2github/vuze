@@ -16,9 +16,13 @@ import org.gudy.azureus2.ui.swt.Utils;
  */
 public abstract class AbstractIView implements IView {
 
-  public void initialize(Composite composite){
-    Tab.addTabKeyListenerToComposite(composite);
+  public void initialize(Composite composite){    
   }
+  
+  public final void setTabListener() {
+    Tab.addTabKeyListenerToComposite(getComposite());
+  }
+  
   public Composite getComposite(){ return null; }
   public void refresh(){}
   

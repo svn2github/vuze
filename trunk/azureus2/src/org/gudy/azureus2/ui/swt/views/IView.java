@@ -60,5 +60,8 @@ public interface IView extends IconBarEnabler {
    * Called when the language needs updating
    *
    */
-  public void updateLanguage();  
+  public void updateLanguage();
+  
+  
+  public void setTabListener();
 }
