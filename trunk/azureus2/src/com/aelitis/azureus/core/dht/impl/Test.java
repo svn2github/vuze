@@ -43,11 +43,21 @@ public class
 Test 
 {
 	static int	num_dhts	= 100;
-	static int	num_stores	= 10000;
+	static int	num_stores	= 1000;
 
 	static int		K			= 5;
 	static int		B			= 1;
 	static int		ID_BYTES	= 4;
+	
+	static int		fail_percentage	= 00;
+	
+	static Properties	dht_props = new Properties();
+
+	static{
+		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(5));
+		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(1));
+		dht_props.put( DHT.PR_MAX_VALUES_STORED, new Integer(1000));
+	}
 	
 	static Map	check = new HashMap();
 
@@ -55,6 +65,7 @@ Test
 	main(
 		String[]		args )
 	{
+		
 		DHTLog.setLoggingEnabled( false );
 		
 		try{
@@ -69,22 +80,42 @@ Test
 			}
 
 			for (int i=0;i<num_dhts-1;i++){
-			
-				transports[i+1].importContact( new ByteArrayInputStream( transports[i].getLocalContact().getID()));
+							
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 				
-				dhts[i].join();
+				DataOutputStream	daos = new DataOutputStream( baos );
+				
+				transports[i].getLocalContact().exportContact( daos );
+				
+				daos.close();
+				
+				transports[i+1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+
+				
+				dhts[i].integrate();
 				
 				if ( i > 0 && i%10 == 0 ){
+					
 					System.out.println( "Integrated " + i + " DHTs" );
 				}
-
 			}
 			
-			transports[num_dhts-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
+			{
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				
+				DataOutputStream	daos = new DataOutputStream( baos );
+				
+				transports[0].getLocalContact().exportContact( daos );
+				
+				daos.close();
+				
+				transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+			}
 			
-			dhts[num_dhts-1].join();
 			
-			DHTTransportLoopbackImpl.setFailPercentage(0);
+			dhts[num_dhts-1].integrate();
+			
+			DHTTransportLoopbackImpl.setFailPercentage(fail_percentage);
 			
 			//dht1.print();
 			
@@ -208,7 +239,22 @@ Test
 						
 						System.out.println( "-> " + (res==null?"null":new String(res)));
 					}
+				}else if ( command == 'e' ){
 					
+					dht = (DHT)store_index.get( rhs );
+					
+					if ( dht == null ){
+						
+						System.out.println( "DHT not found" );
+						
+					}else{
+						
+						DataOutputStream	daos = new DataOutputStream( new FileOutputStream( "C:\\temp\\dht.state"));
+						
+						dht.exportState( daos, 0 );
+						
+						daos.close();
+					}
 				}else if ( command == 'g' ){
 					
 					System.out.println( "Using dht " + dht_index );
@@ -242,9 +288,17 @@ Test
 					
 					stats_before = transports[num_dhts-1].getStats().snapshot();
 					
-					transports[num_dhts-1].importContact( new ByteArrayInputStream( transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().getID()));
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 					
-					dht.join();
+					DataOutputStream	daos = new DataOutputStream( baos );
+					
+					transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().exportContact( daos );
+					
+					daos.close();
+					
+					transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+					
+					dht.integrate();
 
 					dht.print();
 					
@@ -286,7 +340,7 @@ Test
 		
 		check.put(id,"");
 		
-		DHT	dht = DHTFactory.create( transport, K, B );
+		DHT	dht = DHTFactory.create( transport, dht_props );
 		
 		dhts[i]	= dht;					
 

@@ -23,8 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.util.*;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -39,6 +38,8 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
+	public static		int		VERSION			= 1;
+	
 	public static 		int		LATENCY			= 0;
 	public static		int		FAIL_PERCENTAGE	= 0;
 		
@@ -220,30 +221,46 @@ DHTTransportLoopbackImpl
 	protected DHTTransportRequestHandler
 	getRequestHandler()
 	{
-		return( original_request_handler );
+		return( delegator_request_handler );
+	}
+	
+	public void
+	exportContact(
+		DHTTransportContact	contact,
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		os.writeInt( VERSION );
+		
+		os.writeInt( id_byte_length );
+		
+		os.write( contact.getID());
 	}
 	
 	public void
 	importContact(
-		InputStream		is )
+		DataInputStream		is )
 	
 		throws IOException
 	{
+		int	version = is.readInt();
+		
+		if ( version != VERSION ){
+			
+			throw( new IOException( "Unsuported version" ));
+
+		}
+		int	id_len	= is.readInt();
+		
+		if ( id_len != id_byte_length ){
+			
+			throw( new IOException( "Imported contact has incorrect ID length" ));
+		}
+		
 		byte[]	id = new byte[id_byte_length];
 		
-		int	read = 0;
-		
-		while( read < id.length ){
-			
-			int	len = is.read( id, read, id.length - read );
-		
-			if ( len <= 0 ){
-				
-				throw( new IOException( "read fails" ));
-			}
-			
-			read	+= len;
-		}
+		is.read( id );
 		
 		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		

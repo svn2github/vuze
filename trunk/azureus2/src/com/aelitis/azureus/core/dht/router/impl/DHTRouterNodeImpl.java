@@ -38,8 +38,6 @@ import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 public class 
 DHTRouterNodeImpl
 {
-	private static final int	MAX_REPLACEMENTS	= 5;	// TODO:
-	
 	private DHTRouterImpl	router;
 	private int				depth;
 	private boolean			contains_router_node_id;
@@ -128,9 +126,10 @@ DHTRouterNodeImpl
 	
 	protected DHTRouterContact
 	addReplacement(
-		DHTRouterContactImpl	replacement )
+		DHTRouterContactImpl	replacement,
+		int						max_rep_per_node )
 	{
-		if ( MAX_REPLACEMENTS == 0 ){
+		if ( max_rep_per_node == 0 ){
 			
 			return( null );
 		}
@@ -141,7 +140,7 @@ DHTRouterNodeImpl
 			
 		}else{
 				
-			if ( replacements.size() == MAX_REPLACEMENTS ){
+			if ( replacements.size() == max_rep_per_node ){
 				
 					// if this replacement is known to be alive, replace any existing
 					// replacements that haven't been known to be alive
@@ -163,7 +162,7 @@ DHTRouterNodeImpl
 						// no unknown existing replacements but this is "newer" than the existing
 						// ones so replace the oldest one
 					
-					if ( replacements.size() == MAX_REPLACEMENTS ){
+					if ( replacements.size() == max_rep_per_node ){
 						
 						replacements.remove(0);
 					}
@@ -176,7 +175,7 @@ DHTRouterNodeImpl
 						
 						DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
 				
-						if ( !( r.hasBeenAlive() || r.isPingOutstanding())){
+						if ( !r.hasBeenAlive()){
 							
 							replacements.remove(i);
 							
@@ -187,7 +186,7 @@ DHTRouterNodeImpl
 			}
 		}
 		
-		if ( replacements.size() == MAX_REPLACEMENTS ){
+		if ( replacements.size() == max_rep_per_node ){
 			
 				// no room, drop the contact
 			
@@ -195,31 +194,7 @@ DHTRouterNodeImpl
 		}
 		
 		replacements.add( replacement );
-		
-			// we need to find a bucket contact to ping - if it fails then it might be replaced with
-			// this one
-		
-		for (int i=0;i<buckets.size();i++){
-			
-			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
-			
-				// never consider ourselves for eviction
-			
-			if ( router.isID( contact.getID())){
 				
-				continue;
-			}
-			
-			if ( !contact.isPingOutstanding()){
-				
-				contact.setPingOutstanding( true );
-				
-				router.requestPing( contact );
-				
-				break;
-			}
-		}
-		
 		return( replacement );
 	}
 	
@@ -274,16 +249,12 @@ DHTRouterNodeImpl
 				
 		if ( buckets.remove( contact )){
 			
-			contact.setPingOutstanding( false );
-			
 			contact.setAlive();
 			
 			buckets.add( contact );
 			
 		}else if ( replacements.remove( contact )){
-			
-			contact.setPingOutstanding( false );
-			
+						
 			contact.setAlive();
 			
 			replacements.add( contact );		
@@ -321,7 +292,7 @@ DHTRouterNodeImpl
 							buckets.add( rep );
 							
 							replaced	= true;
-														
+							
 							router.requestNodeAdd( rep );
 							
 							break;
@@ -337,6 +308,9 @@ DHTRouterNodeImpl
 						DHTLog.log( DHTLog.getString( contact.getID()) + ": using unknown replacement " + DHTLog.getString(rep.getID()));
 
 						buckets.add( rep );
+						
+							// add-node logic will ping the node if its not known to
+							// be alive
 						
 						router.requestNodeAdd( rep );
 					}

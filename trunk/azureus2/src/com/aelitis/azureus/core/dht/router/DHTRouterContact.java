@@ -33,6 +33,18 @@ DHTRouterContact
 	public byte[]
 	getID();
 	
-	public Object
+	public DHTRouterContactAttachment
 	getAttachment();
+	
+		/**
+		 * indicates whether or not a message has been received from, or an operation has
+		 * successfully been made to, the contact.
+		 * @return
+		 */
+	
+	public boolean
+	hasBeenAlive();
+	
+	public String
+	getString();
 }

@@ -22,8 +22,11 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
+import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 
 /**
  * @author parg
@@ -34,20 +37,19 @@ public class
 DHTRouterContactImpl
 	implements DHTRouterContact
 {
-	private static final int	MAX_FAIL_COUNT	= 1;	// TODO:
-	
-	private byte[]		node_id;
-	private Object		attachment;
+	private byte[]							node_id;
+	private DHTRouterContactAttachment		attachment;
 	
 	private boolean		has_been_alive;
-	private boolean		ping_outstanding;
 	private int			fail_count;
+	private long		first_alive_time;
+	private long		first_fail_or_last_alive_time;
 	
 	protected
 	DHTRouterContactImpl(
-		byte[]		_node_id,
-		Object		_attachment,
-		boolean		_has_been_alive )
+		byte[]							_node_id,
+		DHTRouterContactAttachment		_attachment,
+		boolean							_has_been_alive )
 	{
 		node_id			= _node_id;
 		attachment		= _attachment;
@@ -60,30 +62,23 @@ DHTRouterContactImpl
 		return(node_id );
 	}
 
-	public Object
+	public DHTRouterContactAttachment
 	getAttachment()
 	{
 		return( attachment );
 	}
 	
-	public boolean
-	isPingOutstanding()
-	{
-		return( ping_outstanding );
-	}
-	
-	public void
-	setPingOutstanding(
-		boolean		p )
-	{
-		ping_outstanding	= p;
-	}
-	
 	public void
 	setAlive()
 	{
-		fail_count		= 0;
-		has_been_alive	= true;
+		fail_count							= 0;
+		first_fail_or_last_alive_time		= SystemTime.getCurrentTime();
+		has_been_alive						= true;
+		
+		if ( first_alive_time == 0 ){
+			
+			first_alive_time = first_fail_or_last_alive_time;
+		}
 	}
 	
 	public boolean
@@ -92,17 +87,53 @@ DHTRouterContactImpl
 		return( has_been_alive );
 	}
 	
-	public boolean
+	protected long
+	getTimeAlive()
+	{
+		if ( fail_count > 0 || first_alive_time == 0 ){
+			
+			return( 0 );
+		}
+		
+		return( SystemTime.getCurrentTime() - first_alive_time );
+	}
+	
+	protected boolean
 	setFailed()
 	{
 		fail_count++;
 		
-		return( fail_count >= MAX_FAIL_COUNT );
+		if ( fail_count == 1 ){
+			
+			first_fail_or_last_alive_time = SystemTime.getCurrentTime();
+		}
+		
+		return( hasFailed());
 	}
 	
-	protected String
+	protected boolean
+	hasFailed()
+	{
+		return( fail_count >= attachment.getMaxFailCount());
+	}
+	
+	protected long
+	getFirstFailTime()
+	{
+		return( fail_count==0?0:first_fail_or_last_alive_time );
+	}
+	
+	protected long
+	getLastAliveTime()
+	{
+		return( fail_count==0?first_fail_or_last_alive_time:0 );
+	}
+	
+	public String
 	getString()
 	{
-		return( DHTLog.getString(node_id) + "[" + (has_been_alive?"alive":"unknown" ) + "]");
+		return( DHTLog.getString(node_id) + "[" + (has_been_alive?"alive":"unknown" ) + 
+				",fail=" + fail_count +
+				",alive=" + getTimeAlive() + "]");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 20-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,41 +20,38 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.control.impl;
+
+import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-
-public interface 
-DHTTransport 
-{	
-		/**
-		 * Gives access to the node ID for this transport 
-		 * @return
-		 */
+public class 
+DHTControlContactImpl
+	implements DHTRouterContactAttachment
+{
+	private DHTTransportContact		contact;
+	
+	protected
+	DHTControlContactImpl(
+		DHTTransportContact		_contact )
+	{
+		contact	= _contact;
+	}
+	
+	public int
+	getMaxFailCount()
+	{
+		return( contact.getMaxFailCount());
+	}
 	
 	public DHTTransportContact
-	getLocalContact();
-	
-	public void
-	importContact(
-		DataInputStream		is )
-	
-		throws IOException;
-	
-		/**
-		 * Set the handler for incoming requests
-		 * @param receiver
-		 */
-	
-	public void
-	setRequestHandler(
-		DHTTransportRequestHandler	receiver );
-	
-	public DHTTransportStats
-	getStats();
+	getContact()
+	{
+		return( contact );
+	}
 }

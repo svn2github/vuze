@@ -34,11 +34,12 @@ DHTRouterFactory
 {
 	public static DHTRouter
 	create(
-		int					K,
-		int					B,
-		byte[]				id,
-		Object				attachment )
+		int							K,
+		int							B,
+		int							max_rep_per_node,
+		byte[]						id,
+		DHTRouterContactAttachment	attachment )
 	{
-		return( new DHTRouterImpl( K, B, id, attachment ));
+		return( new DHTRouterImpl( K, B, max_rep_per_node, id, attachment ));
 	}
 }

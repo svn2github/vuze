@@ -34,6 +34,17 @@ import com.aelitis.azureus.core.dht.transport.DHTTransport;
 public interface 
 DHT 
 {
+		// all property values are Integer values
+	
+	public static final String	PR_CONTACTS_PER_NODE					= "EntriesPerNode";
+	public static final String	PR_NODE_SPLIT_FACTOR					= "NodeSplitFactor";
+	public static final String	PR_SEARCH_CONCURRENCY					= "SearchConcurrency";
+	public static final String	PR_MAX_REPLACEMENTS_PER_NODE			= "ReplacementsPerNode";
+	public static final String	PR_CACHE_AT_CLOSEST_N					= "CacheClosestN";
+	public static final String	PR_ORIGINAL_REPUBLISH_INTERVAL			= "OriginalRepublishInterval";
+	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
+	public static final String	PR_MAX_VALUES_STORED					= "MaxValuesStored";
+
 	public void
 	put(
 		byte[]		key,
@@ -47,6 +58,9 @@ DHT
 	remove(
 		byte[]		key );
 	
+	public int
+	getIntProperty(
+		String		name );
 	
 	public DHTTransport
 	getTransport();
@@ -55,12 +69,14 @@ DHT
 		 * externalises information that allows the DHT to be recreated at a later date
 		 * and populated via the import method
 		 * @param os
+		 * @param max  maximum to export, 0 -> all
 		 * @throws IOException
 		 */
 	
 	public void
 	exportState(
-		OutputStream	os )
+		DataOutputStream	os,
+		int					max )
 	
 		throws IOException;
 	
@@ -72,7 +88,7 @@ DHT
 	
 	public void
 	importState(
-		InputStream		is )
+		DataInputStream		is )
 	
 		throws IOException;
 	
@@ -82,7 +98,7 @@ DHT
 		 */
 	
 	public void
-	join();
+	integrate();
 	
 
 	public void

@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.control.impl;
 
+import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -50,28 +51,48 @@ DHTControlImpl
 	private DHTTransport	transport;
 	private DHTRouter		router;
 	
-	private	int			node_id_byte_count	= 0;
-	private int			search_concurrency	= 3;	// TODO: fix
-	private int			CACHE_AT_CLOSEST_N	= 1;	// TODO: parameterise
+	private	int			node_id_byte_count;
+	private int			search_concurrency;
+	private int			cache_at_closest_n;
 	
-	private int			ORIGINAL_REPUBLISH_INTERVAL			= 60000;	// TODO:
+	private int			original_republish_interval;
 	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 120000;
 	
-	private int			CACHE_REPUBLISH_INTERVAL	= 15000;	// TODO:
+	private int			cache_republish_interval;
 	
-	private long		MAX_VALUES_STORED	= 100000;	// TODO:
+	private long		max_values_stored;
+	
 	private Map			stored_values = new HashMap();
 	
-	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL	= 60000;	// TODO:
+	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
 	private long		last_cache_expiry_check;
 	
 	public
 	DHTControlImpl(
 		DHTTransport	_transport,
-		DHTRouter		_router )
+		int				_K,
+		int				_B,
+		int				_max_rep_per_node,
+		int				_search_concurrency,
+		int				_original_republish_interval,
+		int				_cache_republish_interval,
+		int				_cache_at_closest_n,
+		int				_max_values_stored )
 	{
 		transport	= _transport;
-		router		= _router;
+		
+		search_concurrency				= _search_concurrency;
+		original_republish_interval		= _original_republish_interval;
+		cache_republish_interval		= _cache_republish_interval;
+		cache_at_closest_n				= _cache_at_closest_n;
+		max_values_stored				= _max_values_stored;
+		
+		DHTTransportContact	local_contact = transport.getLocalContact();
+		
+		router	= DHTRouterFactory.create( 
+					_K, _B, _max_rep_per_node,
+					local_contact.getID(), 
+					new DHTControlContactImpl( local_contact ));
 		
 		node_id_byte_count	= router.getID().length;
 		
@@ -82,35 +103,7 @@ DHTControlImpl
 				requestPing(
 					DHTRouterContact	contact )
 				{
-					((DHTTransportContact)contact.getAttachment()).sendPing(
-							new DHTTransportReplyHandlerAdapter()
-							{
-								public void
-								pingReply(
-									DHTTransportContact _contact )
-								{
-									DHTLog.indent( router );
-									
-									DHTLog.log( "ping ok" );
-									
-									router.contactAlive( _contact.getID(), _contact );
-									
-									DHTLog.exdent();
-								}	
-								
-								public void
-								failed(
-									DHTTransportContact 	_contact )
-								{
-									DHTLog.indent( router );
-									
-									DHTLog.log( "ping failed" );
-									
-									router.contactDead( _contact.getID(), _contact );
-
-									DHTLog.exdent();
-								}
-							});
+					DHTControlImpl.this.requestPing( contact );
 				}
 				
 				public void
@@ -137,7 +130,7 @@ DHTControlImpl
 		// TODO: add listener, pick up node ID changes + reseed if changed
 				
 		timer.addPeriodicEvent(
-			ORIGINAL_REPUBLISH_INTERVAL,
+			original_republish_interval,
 			new TimerEventPerformer()
 			{
 				public void
@@ -160,7 +153,7 @@ DHTControlImpl
 			// regarding non-republising benefit from this 
 		
 		timer.addPeriodicEvent(
-				CACHE_REPUBLISH_INTERVAL + 10000 - (int)(Math.random()*20000),
+				cache_republish_interval + 10000 - (int)(Math.random()*20000),
 				new TimerEventPerformer()
 				{
 					public void
@@ -186,6 +179,12 @@ DHTControlImpl
 		return( transport );
 	}
 	
+	public DHTRouter
+	getRouter()
+	{
+		return( router );
+	}
+	
 	public void
 	contactImported(
 		DHTTransportContact	contact )
@@ -195,11 +194,50 @@ DHTControlImpl
 
 			byte[]	id = contact.getID();
 		
-			router.contactKnown( id, contact);
+			router.contactKnown( id, new DHTControlContactImpl(contact));
 				
 		}finally{
 			
 			DHTLog.exdent();
+		}
+	}
+	
+	public void
+	exportState(
+		DataOutputStream	daos,
+		int					max )
+	
+		throws IOException
+	{
+		List	contacts = router.findBestContacts( max );
+				
+		daos.writeInt( contacts.size());
+				
+		for (int i=0;i<contacts.size();i++){
+			
+			DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+			
+			System.out.println( "export:" + contact.getString());
+			
+			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+			
+			t_contact.exportContact( daos );
+		}
+		
+		daos.flush();
+	}
+		
+	public void
+	importState(
+		DataInputStream		dais )
+		
+		throws IOException
+	{
+		int	num = dais.readInt();
+		
+		for (int i=0;i<num;i++){
+			
+			transport.importContact( dais );
 		}
 	}
 	
@@ -275,7 +313,7 @@ DHTControlImpl
 							
 							DHTLog.log( "store ok" );
 							
-							router.contactAlive( _contact.getID(), _contact );
+							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 							
 							DHTLog.exdent();
 						}	
@@ -288,7 +326,7 @@ DHTControlImpl
 							
 							DHTLog.log( "store failed" );
 							
-							router.contactDead( _contact.getID(), _contact );
+							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 							
 							DHTLog.exdent();
 						}
@@ -332,7 +370,7 @@ DHTControlImpl
 				
 					// cache the value at the 'n' closest seen locations
 				
-				for (int i=1;i<Math.min(1+CACHE_AT_CLOSEST_N,result_and_closest.size());i++){
+				for (int i=1;i<Math.min(1+cache_at_closest_n,result_and_closest.size());i++){
 					
 					((DHTTransportContact)result_and_closest.get(i)).sendStore( 
 							new DHTTransportReplyHandlerAdapter()
@@ -345,7 +383,7 @@ DHTControlImpl
 									
 									DHTLog.log( "cache store ok" );
 									
-									router.contactAlive( contact.getID(), contact );
+									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
 									
 									DHTLog.exdent();
 								}	
@@ -358,7 +396,7 @@ DHTControlImpl
 									
 									DHTLog.log( "cache store failed" );
 									
-									router.contactDead( contact.getID(), contact );
+									router.contactDead( contact.getID(), new DHTControlContactImpl(contact));
 									
 									DHTLog.exdent();
 								}
@@ -541,7 +579,7 @@ DHTControlImpl
 									
 									DHTLog.log( "findNodeReply: " + DHTLog.getString( reply_contacts ));
 							
-									router.contactAlive( target_contact.getID(), target_contact );
+									router.contactAlive( target_contact.getID(), new DHTControlContactImpl(target_contact));
 									
 									synchronized( contacts_to_query ){
 												
@@ -571,7 +609,7 @@ DHTControlImpl
 											
 												// dunno if its alive or not, however record its existance
 											
-											router.contactKnown( contact.getID(), contact );
+											router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
 											
 											if (	contacts_queried.get( new HashWrapper( contact.getID())) == null &&
 													!contacts_to_query.contains( contact )){
@@ -613,7 +651,7 @@ DHTControlImpl
 									
 									DHTLog.log( "findValueReply: " + DHTLog.getString( value ));
 									
-									router.contactAlive( contact.getID(), contact );
+									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
 									
 									value_search_result[0]	= value;
 		
@@ -644,7 +682,7 @@ DHTControlImpl
 									
 									DHTLog.log( "Reply: findNode/findValue -> failed" );
 									
-									router.contactDead( target_contact.getID(), target_contact );
+									router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
 		
 								}finally{
 																	
@@ -716,7 +754,7 @@ DHTControlImpl
 
 			DHTLog.log( "pingRequest from " + DHTLog.getString( originating_contact.getID()));
 			
-			router.contactAlive( originating_contact.getID(), originating_contact );
+			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 			
 		}finally{
 			
@@ -735,11 +773,11 @@ DHTControlImpl
 
 			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID()));
 
-			router.contactAlive( originating_contact.getID(), originating_contact );
+			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
 			synchronized( stored_values ){
 				
-				if ( stored_values.size() >= MAX_VALUES_STORED ){
+				if ( stored_values.size() >= max_values_stored ){
 					
 						// just drop it
 					
@@ -771,7 +809,7 @@ DHTControlImpl
 
 			DHTLog.log( "findNodeRequest from " + DHTLog.getString( originating_contact.getID()));
 
-			router.contactAlive( originating_contact.getID(), originating_contact );
+			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 			
 			List	l = getClosestKContactsList( id );
 			
@@ -808,7 +846,7 @@ DHTControlImpl
 			
 			if ( value != null ){
 				
-				router.contactAlive( originating_contact.getID(), originating_contact );
+				router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
 				return( value );
 				
@@ -871,7 +909,7 @@ DHTControlImpl
 			// first refresh any leaves that have not performed at least one lookup in the
 			// last period
 		
-		router.refreshIdleLeaves( CACHE_REPUBLISH_INTERVAL );
+		router.refreshIdleLeaves( cache_republish_interval );
 		
 		Map	republish = new HashMap();
 		
@@ -903,7 +941,7 @@ DHTControlImpl
 						
 						value.setStoreTime( now );
 						
-					}else if ( now - value.getStoreTime() <= CACHE_REPUBLISH_INTERVAL ){
+					}else if ( now - value.getStoreTime() <= cache_republish_interval ){
 						
 						// System.out.println( "skipping store" );
 						
@@ -952,25 +990,46 @@ DHTControlImpl
 			}
 		}
 	}
+		
+	protected void
+	requestPing(
+		DHTRouterContact	contact )
+	{
+		((DHTControlContactImpl)contact.getAttachment()).getContact().sendPing(
+				new DHTTransportReplyHandlerAdapter()
+				{
+					public void
+					pingReply(
+						DHTTransportContact _contact )
+					{
+						DHTLog.indent( router );
+						
+						DHTLog.log( "ping ok" );
+						
+						router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+						
+						DHTLog.exdent();
+					}	
+					
+					public void
+					failed(
+						DHTTransportContact 	_contact )
+					{
+						DHTLog.indent( router );
+						
+						DHTLog.log( "ping failed" );
+						
+						router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 	
-	protected byte[]	last_new_contact;
+						DHTLog.exdent();
+					}
+				});
+	}
 	
 	protected void
 	nodeAddedToRouter(
 		DHTRouterContact	new_contact )
-	{
-		// we keep a list of recently added node ids as a defence against a node being
-		// added, failing, getting added... This is a particular problem when running
-		// with a loopback connection with a high failure percentage and can end in 
-		// stack overflows (which obviously wouldn't happen with a real transport)
-		
-		if ( Arrays.equals( new_contact.getID(), last_new_contact )){
-			
-			//return;
-		}
-		
-		last_new_contact	= new_contact.getID();
-		
+	{		
 		// when a new node is added we must check to see if we need to transfer
 		// any of our values to it.
 		
@@ -980,7 +1039,12 @@ DHTControlImpl
 			
 			if ( stored_values.size() == 0 ){
 				
-				// nothing to do
+					// nothing to do, ping it if it isn't known to be alive
+				
+				if ( !new_contact.hasBeenAlive()){
+					
+					requestPing( new_contact );
+				}
 				
 				return;
 			}
@@ -1003,6 +1067,11 @@ DHTControlImpl
 			
 			if ( !close ){
 				
+				if ( !new_contact.hasBeenAlive()){
+					
+					requestPing( new_contact );
+				}
+
 				return;
 			}
 			
@@ -1058,59 +1127,79 @@ DHTControlImpl
 			}
 		}
 		
-		Iterator	it = values_to_store.entrySet().iterator();
-		
-		DHTTransportContact	t_contact = (DHTTransportContact)new_contact.getAttachment();
-
-		while( it.hasNext()){
+		if ( values_to_store.size() > 0 ){
 			
-			Map.Entry	entry = (Map.Entry)it.next();
+			Iterator	it = values_to_store.entrySet().iterator();
 			
-			HashWrapper	key		= (HashWrapper)entry.getKey();
+			DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
+	
+			boolean	first_value	= true;
 			
-			DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper	key		= (HashWrapper)entry.getKey();
+				
+				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
 					
-			t_contact.sendStore( 
-					new DHTTransportReplyHandlerAdapter()
-					{
-						public void
-						storeReply(
-							DHTTransportContact _contact )
+				final boolean	ping_replacement = 
+					first_value && !new_contact.hasBeenAlive();
+				
+				first_value	= false;
+				
+				t_contact.sendStore( 
+						new DHTTransportReplyHandlerAdapter()
 						{
-							DHTLog.indent( router );
+							public void
+							storeReply(
+								DHTTransportContact _contact )
+							{
+								DHTLog.indent( router );
+								
+								DHTLog.log( "add store ok" );
+								
+								router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+								
+								DHTLog.exdent();
+							}	
 							
-							DHTLog.log( "add store ok" );
-							
-							router.contactAlive( _contact.getID(), _contact );
-							
-							DHTLog.exdent();
-						}	
+							public void
+							failed(
+								DHTTransportContact 	_contact )
+							{
+									// we ignore failures when propagating values as there might be
+									// a lot to propagate and one failure would remove the newly added
+									// node. given that the node has just appeared, and can therefore be
+									// assumed to be alive, this is acceptable behaviour. 
+									// If we don't do this then we can get a node appearing and disappearing
+									// and taking up loads of resources
+								
+									// however, for contacts that aren't known to be alive
+									// we use one of the stores in place of a ping to ascertain liveness
+								
+								if ( ping_replacement ){
+									
+									DHTLog.indent( router );
+									
+									DHTLog.log( "add store failed" );
+									
+									router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+									
+									DHTLog.exdent();
+								}
+							}
+						},
+						key.getHash(), 
+						new DHTControlValueImpl( value, -1 ));
 						
-						public void
-						failed(
-							DHTTransportContact 	_contact )
-						{
-								// we ignore failures when propagating values as there might be
-								// a lot to propagate and one failure would remove the newly added
-								// node. given that the node has just appeared, and can therefore be
-								// assumed to be alive, this is acceptable behaviour. 
-								// If we don't do this then we can get a node appearing and disappearing
-								// and taking up loads of resources
-							
-							/*
-							DHTLog.indent( router );
-							
-							DHTLog.log( "add store failed" );
-							
-							router.contactDead( _contact.getID(), _contact );
-							
-							DHTLog.exdent();
-							*/
-						}
-					},
-					key.getHash(), 
-					new DHTControlValueImpl( value, -1 ));
-					
+			}
+		}else{
+			
+			if ( !new_contact.hasBeenAlive()){
+				
+				requestPing( new_contact );
+			}
 		}
 	}
 	
@@ -1144,7 +1233,7 @@ DHTControlImpl
 			
 			if ( distance == 1 ){
 				
-				if ( now - value.getCreationTime() > ORIGINAL_REPUBLISH_INTERVAL + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+				if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
 					
 					DHTLog.log( "removing cache entry at level " + distance );
 					
@@ -1155,7 +1244,7 @@ DHTControlImpl
 				
 					// distance 2 get 1/2 time, 3 get 1/4 etc.
 				
-				long	permitted = CACHE_REPUBLISH_INTERVAL >> (distance-1);
+				long	permitted = cache_republish_interval >> (distance-1);
 				
 				if ( now - value.getStoreTime() >= permitted ){
 					
@@ -1221,7 +1310,7 @@ DHTControlImpl
 
 		for (int i=0;i<l.size();i++){
 			
-			sorted_set.add( (DHTTransportContact)((DHTRouterContact)l.get(i)).getAttachment());
+			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getContact());
 		}
 		
 		return( sorted_set );

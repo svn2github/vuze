@@ -39,11 +39,13 @@ public class
 DHTRouterImpl
 	implements DHTRouter
 {
-	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 512;
+	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 1024;
 	
-	private int		K = 2;
-	private int		B = 5;
-	private int		SMALLEST_SUBTREE_MAX;
+	private int		K;
+	private int		B;
+	private int		max_rep_per_node;
+	
+	private int		smallest_subtree_max;
 	
 	private DHTRouterAdapter		adapter;
 	
@@ -63,27 +65,30 @@ DHTRouterImpl
 	
 	public
 	DHTRouterImpl(
-		int					_K,
-		int					_B,
-		byte[]				_router_node_id,
-		Object				_attachment )
+		int										_K,
+		int										_B,
+		int										_max_rep_per_node,
+		byte[]									_router_node_id,
+		DHTRouterContactAttachment				_attachment )
 	{
 		synchronized( DHTRouterImpl.class ){
 			
 			random = new Random( random_seed++);
 		}
 		
-		K		= _K;
-		B		= _B;
+		K					= _K;
+		B					= _B;
+		max_rep_per_node	= _max_rep_per_node;
 		
-		SMALLEST_SUBTREE_MAX	= 1;
+		
+		smallest_subtree_max	= 1;
 		
 		for (int i=0;i<B;i++){
 			
-			SMALLEST_SUBTREE_MAX	*= 2;
+			smallest_subtree_max	*= 2;
 		}
 		
-		SMALLEST_SUBTREE_MAX	+= SMALLEST_SUBTREE_MAX_EXCESS;
+		smallest_subtree_max	+= SMALLEST_SUBTREE_MAX_EXCESS;
 		
 		router_node_id	= _router_node_id;
 		
@@ -94,8 +99,6 @@ DHTRouterImpl
 		buckets.add( local_contact );
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
-		
-		smallest_subtree	= root;
 	}
 	
 	public DHTRouterStats
@@ -133,16 +136,16 @@ DHTRouterImpl
 	
 	public DHTRouterContact
 	contactKnown(
-		byte[]	node_id,
-		Object	attachment )
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment )
 	{
 		return( addContact( node_id, attachment, false ));
 	}
 	
 	public DHTRouterContact
 	contactAlive(
-		byte[]	node_id,
-		Object	attachment )
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment )
 	{
 		return( addContact( node_id, attachment, true ));
 	}
@@ -159,8 +162,8 @@ DHTRouterImpl
 
 	public DHTRouterContact
 	contactDead(
-		byte[]	node_id,
-		Object	attachment )
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment )
 	{
 		try{
 			synchronized( this ){
@@ -187,9 +190,9 @@ DHTRouterImpl
 	
 	public DHTRouterContact
 	addContact(
-		byte[]	node_id,
-		Object	attachment,
-		boolean	known_to_be_alive )
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment,
+		boolean						known_to_be_alive )
 	{	
 		try{
 			synchronized( this ){
@@ -206,9 +209,9 @@ DHTRouterImpl
 	
 	protected DHTRouterContact
 	addContactSupport(
-		byte[]	node_id,
-		Object	attachment,
-		boolean	known_to_be_alive )
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment,
+		boolean						known_to_be_alive )
 	{		
 		DHTRouterNodeImpl	current_node = root;
 			
@@ -287,7 +290,7 @@ DHTRouterImpl
 							if ( 	part_of_smallest_subtree &&
 									too_deep_to_split &&
 									( !contains_router_node_id ) &&
-									getContactCount( smallest_subtree ) > SMALLEST_SUBTREE_MAX ){
+									getContactCount( smallest_subtree ) > smallest_subtree_max ){
 								
 								Debug.out( "DHTRouter: smallest subtree max size violation" );
 								
@@ -353,7 +356,7 @@ DHTRouterImpl
 							
 							DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
 							
-							return( current_node.addReplacement( new_contact));					
+							return( current_node.addReplacement( new_contact, max_rep_per_node ));					
 						}
 					}else{
 						
@@ -561,6 +564,64 @@ DHTRouterImpl
 		}
 	}
 	
+	public List
+	findBestContacts(
+		int		max )
+	{
+		Set	set = 
+			new TreeSet(
+					new Comparator()
+					{
+						public int
+						compare(
+							Object	o1,
+							Object	o2 )
+						{
+							DHTRouterContactImpl	c1 = (DHTRouterContactImpl)o1;
+							DHTRouterContactImpl	c2 = (DHTRouterContactImpl)o2;
+							
+							return((int)( c2.getTimeAlive() - c1.getTimeAlive()));
+						}
+					});
+		
+		
+		findBestContacts( set, root );
+		
+		List	result = new ArrayList( max );
+	
+		Iterator	it = set.iterator();
+		
+		while( it.hasNext() && (max <= 0 || result.size() < max )){
+			
+			result.add( it.next());
+		}
+		
+		return( result );
+	}
+	
+	protected void
+	findBestContacts(
+		Set					set,
+		DHTRouterNodeImpl	node )
+	{
+		List	buckets = node.getBuckets();
+		
+		if ( buckets == null ){
+			
+			findBestContacts( set, node.getLeft());
+			
+			findBestContacts( set, node.getRight());
+		}else{
+			
+			for (int i=0;i<buckets.size();i++){
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+								
+				set.add( contact );
+			}
+		}
+	}
+	
 	public void
 	seed()
 	{
@@ -586,12 +647,12 @@ DHTRouterImpl
 		List				nodes_to_refresh,
 		DHTRouterNodeImpl	node,
 		byte[]				path,
-		boolean				ignore_smallest_subtree,
+		boolean				seeding,
 		long				max_permitted_idle )	// 0 -> don't check
 	{
 			// when seeding we don't do the smallest subtree
 		
-		if ( ignore_smallest_subtree && node == smallest_subtree ){
+		if ( seeding && node == smallest_subtree ){
 			
 			return;
 		}
@@ -606,9 +667,9 @@ DHTRouterImpl
 		
 		if ( node.getBuckets() != null ){
 		
-				// and we also don't refresh the bucket containing the router id 
+				// and we also don't refresh the bucket containing the router id when seeding
 			
-			if ( node.containsRouterNodeID()){
+			if ( seeding && node.containsRouterNodeID()){
 				
 				return;
 			}
@@ -627,11 +688,11 @@ DHTRouterImpl
 			
 			path[depth/8] = (byte)( path[depth/8] | mask );
 			
-			refreshNodes( nodes_to_refresh, node.getLeft(), path,ignore_smallest_subtree, max_permitted_idle  );
+			refreshNodes( nodes_to_refresh, node.getLeft(), path,seeding, max_permitted_idle  );
 			
 			path[depth/8] = (byte)( path[depth/8] & ~mask );
 		
-			refreshNodes( nodes_to_refresh, node.getRight(), path,ignore_smallest_subtree, max_permitted_idle  );
+			refreshNodes( nodes_to_refresh, node.getRight(), path,seeding, max_permitted_idle  );
 		}
 	}
 	

@@ -65,8 +65,8 @@ DHTRouter
 	
 	public DHTRouterContact
 	contactKnown(
-		byte[]	node_id,
-		Object	attachment );
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment );
 	
 		/**
 		 * Adds a contact to the router and marks it as "known to be alive"
@@ -77,8 +77,8 @@ DHTRouter
 	
 	public DHTRouterContact
 	contactAlive(
-		byte[]	node_id,
-		Object	attachment );
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment );
 
 		/**
 		 * Informs the router that an attempt to interact with the contact failed 
@@ -89,8 +89,8 @@ DHTRouter
 	
 	public DHTRouterContact
 	contactDead(
-		byte[]	node_id,
-		Object	attachment );
+		byte[]						node_id,
+		DHTRouterContactAttachment	attachment );
 	
 	public DHTRouterContact
 	findContact(
@@ -111,6 +111,16 @@ DHTRouter
 	public void
 	refreshIdleLeaves(
 		long	idle_max );
+	
+		/**
+		 * returns a list of best contacts in terms of uptime, best first
+		 * @param max
+		 * @return
+		 */
+	
+	public List
+	findBestContacts(
+		int		max );
 	
 	public DHTRouterStats
 	getStats();

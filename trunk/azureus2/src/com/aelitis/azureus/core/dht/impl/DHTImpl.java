@@ -22,13 +22,11 @@
 
 package com.aelitis.azureus.core.dht.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.Properties;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.*;
-import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 
 /**
@@ -40,20 +38,53 @@ public class
 DHTImpl 
 	implements DHT
 {
-	private DHTRouter		router;
 	private DHTControl		control;
+	private	Properties		properties;
 	
 	public 
 	DHTImpl(
-		DHTTransport	transport,
-		int				K,
-		int				B )
+		DHTTransport	_transport,
+		Properties		_properties )
 	{		
-		DHTTransportContact	local_contact = transport.getLocalContact();
-
-		router	= DHTRouterFactory.create( K, B, local_contact.getID(), local_contact );
+		properties	= _properties;
 		
-		control = DHTControlFactory.create( transport, router );
+		int		K 		= getProp( PR_CONTACTS_PER_NODE, 			DHTControl.K_DEFAULT );
+		int		B 		= getProp( PR_NODE_SPLIT_FACTOR, 			DHTControl.B_DEFAULT );
+		int		max_r	= getProp( PR_MAX_REPLACEMENTS_PER_NODE, 	DHTControl.MAX_REP_PER_NODE_DEFAULT );
+		int		conc 	= getProp( PR_SEARCH_CONCURRENCY, 			DHTControl.SEARCH_CONCURRENCY_DEFAULT );
+		int		o_rep 	= getProp( PR_ORIGINAL_REPUBLISH_INTERVAL, 	DHTControl.ORIGINAL_REPUBLISH_INTERVAL_DEFAULT );
+		int		c_rep 	= getProp( PR_CACHE_REPUBLISH_INTERVAL, 	DHTControl.CACHE_REPUBLISH_INTERVAL_DEFAULT );
+		int		c_n 	= getProp( PR_CACHE_AT_CLOSEST_N, 			DHTControl.CACHE_AT_CLOSEST_N_DEFAULT );
+		int		max_v 	= getProp( PR_MAX_VALUES_STORED, 			DHTControl.MAX_VALUES_STORED_DEFAULT );
+		
+		control = DHTControlFactory.create( 
+				_transport, 
+				K, B, max_r,
+				conc, o_rep, c_rep, c_n, max_v );
+	}
+	
+	protected int
+	getProp(
+		String		name,
+		int			def )
+	{
+		Integer	x = (Integer)properties.get(name);
+		
+		if ( x == null ){
+			
+			properties.put( name, new Integer( def ));
+			
+			return( def );
+		}
+		
+		return( x.intValue());
+	}
+	
+	public int
+	getIntProperty(
+		String		name )
+	{
+		return(((Integer)properties.get(name)).intValue());
 	}
 	
 	public void
@@ -85,25 +116,28 @@ DHTImpl
 	}
 	
 	public void
-	join()
+	integrate()
 	{
 		control.seed();	
 	}
 	
 	public void
 	exportState(
-		OutputStream	os )
+		DataOutputStream	os,
+		int					max )
 	
 		throws IOException
 	{	
+		control.exportState( os, max );
 	}
 	
 	public void
 	importState(
-		InputStream		is )
+		DataInputStream		is )
 	
 		throws IOException
 	{	
+		control.importState( is );
 	}
 	
 	public void

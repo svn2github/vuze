@@ -30,8 +30,11 @@ package com.aelitis.azureus.core.dht.transport;
 import java.io.*;
 
 public interface 
-DHTTransportContact 
+DHTTransportContact
 {
+	public int
+	getMaxFailCount();
+	
 	public byte[]
 	getID();
 	
@@ -56,8 +59,8 @@ DHTTransportContact
 		byte[]						key );
 		
 	public void
-	exportState(
-		OutputStream	os )
+	exportContact(
+		DataOutputStream	os )
 	
 		throws IOException;
 }

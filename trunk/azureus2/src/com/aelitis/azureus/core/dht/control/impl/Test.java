@@ -53,9 +53,9 @@ Test
 		//    :9A79BE61:    to query = {6FB84AED,B6589FC6,812ED456,DA4B9237}
 		//    :9A79BE61:    ok = {77DE68DA,1B645389,356A192B,31BD9B9F,310B86E0}
 		
-		final byte[]	target 	= { (byte)0x31, (byte)0x01, (byte)0x7a, (byte)0x72 };
-		final byte[]	t1 		= { (byte)0x77, (byte)0xde, (byte)0x68, (byte)0xda };
-		final byte[]	t2 		= { (byte)0x31, (byte)0xbd, (byte)0x9b, (byte)0x9f };
+		final byte[]	target 	= { (byte)0x35, (byte)0x6a, (byte)0x19, (byte)0x28 };
+		final byte[]	t1 		= { (byte)0x76, (byte)0x1f, (byte)0x22, (byte)0xb2 };
+		final byte[]	t2 		= { (byte)0x47, (byte)0x2b, (byte)0x07, (byte)0xb9 };
 				   
 			
 		byte[]	d1 = DHTControlImpl.computeDistance( target, t1 );

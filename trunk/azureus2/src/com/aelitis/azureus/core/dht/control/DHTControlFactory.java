@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.dht.control;
 
 import com.aelitis.azureus.core.dht.control.impl.DHTControlImpl;
-import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
 /**
@@ -37,8 +36,22 @@ DHTControlFactory
 	public static DHTControl
 	create(
 		DHTTransport	transport,
-		DHTRouter		router )
+		int				K,
+		int				B,
+		int				max_rep_per_node,
+		int				search_concurrency,
+		int				original_republish_interval,
+		int				cache_republish_interval,
+		int				cache_at_closest_n,
+		int				max_values_stored )
 	{
-		return( new DHTControlImpl( transport, router ));
+		return( new DHTControlImpl( 
+						transport, 
+						K, B, max_rep_per_node,
+						search_concurrency,
+						original_republish_interval,
+						cache_republish_interval,
+						cache_at_closest_n,
+						max_values_stored ));
 	}
 }

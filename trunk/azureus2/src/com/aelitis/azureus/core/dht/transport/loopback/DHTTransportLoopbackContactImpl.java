@@ -22,8 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport.loopback;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -47,6 +46,12 @@ DHTTransportLoopbackContactImpl
 	{
 		transport	= _transport;
 		id			= _id;
+	}
+	
+	public int
+	getMaxFailCount()
+	{
+		return( 5 );
 	}
 	
 	public void
@@ -88,11 +93,11 @@ DHTTransportLoopbackContactImpl
 	}
 	
 	public void
-	exportState(
-		OutputStream	os )
+	exportContact(
+		DataOutputStream	os )
 	
 		throws IOException
 	{
-		os.write( id );
+		transport.exportContact( this, os );
 	}
 }

@@ -255,6 +255,12 @@ DHTLog
 		DHTTransportValue	value )
 	{
 		if ( ADD_TRACE ){
+			
+			if ( value == null ){
+				
+				return( "<null>");
+			}
+			
 			return( getString(value.getValue()) + "<" + value.getCacheDistance() + ">" );
 		}else{
 			return( "" );
