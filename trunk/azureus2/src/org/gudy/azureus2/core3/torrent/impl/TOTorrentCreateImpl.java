@@ -101,13 +101,13 @@ TOTorrentCreateImpl
 	{
 		setIgnoreList();
 
-		setCreationDate( SystemTime.getCurrentTime() / 1000);
+		setCreationDate( System.currentTimeMillis() / 1000);
 		
 		setCreatedBy( Constants.AZUREUS_NAME + "/" + Constants.AZUREUS_VERSION );
 		
 		setPieceLength( _piece_length );
 		
-		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKiBEtc(_piece_length ));
+		report( "Torrent.create.progress.piecelength", _piece_length );
 		
 		piece_count = calculateNumberOfPieces( _torrent_base,_piece_length );
 		
@@ -117,7 +117,7 @@ TOTorrentCreateImpl
 											TOTorrentException.RT_ZERO_LENGTH ));
 		}
 		
-		report( MessageText.getString("Torrent.create.progress.hashing"));
+		report( "Torrent.create.progress.hashing");
 
 		boolean add_other_per_file_hashes 	= add_other_hashes&&!getSimpleTorrent();
 		
@@ -257,7 +257,7 @@ TOTorrentCreateImpl
 	{
 		long	res = getPieceCount(calculateTotalFileSize( file ), piece_length );
 		
-		report( MessageText.getString("Torrent.create.progress.piececount") + res );
+		report( "Torrent.create.progress.piececount", ""+res );
 		
 		return( res );
 	}
@@ -282,13 +282,13 @@ TOTorrentCreateImpl
 		
 		throws TOTorrentException
 	{
-		report( MessageText.getString("Torrent.create.progress.parsingfiles"));
+		report( "Torrent.create.progress.parsingfiles" );
 		
 		long res = getTotalFileSizeSupport( file );
 		
-		report( MessageText.getString("Torrent.create.progress.totalfilesize") + DisplayFormatters.formatByteCountToKiBEtc(res));
+		report( "Torrent.create.progress.totalfilesize", res );
 
-		report( MessageText.getString("Torrent.create.progress.totalfilecount") + total_file_count );
+		report( "Torrent.create.progress.totalfilecount", ""+total_file_count );
 		
 		return( res );
 	}
@@ -341,11 +341,32 @@ TOTorrentCreateImpl
 	
 	protected void
 	report(
-		String	str )
+		String	resource_key )
+	{
+		report( resource_key, null );
+	}
+	
+	protected void
+	report(
+		String	resource_key,
+		long	bytes )
 	{
 		if ( progress_listener != null ){
 			
-			progress_listener.reportCurrentTask( str );		
+			report( resource_key, DisplayFormatters.formatByteCountToKiBEtc( bytes ));
+		}
+	}
+	
+	protected void
+	report(
+		String	resource_key,
+		String	additional_text )
+	{
+		if ( progress_listener != null ){
+			
+			String	prefix = MessageText.getString(resource_key);
+			
+			progress_listener.reportCurrentTask( prefix + (additional_text==null?"":additional_text ));		
 		}
 	}
 	
@@ -441,7 +462,15 @@ TOTorrentCreateImpl
 	protected void
 	setIgnoreList()
 	{
-		String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+		String	ignore_list;
+		
+		try{
+			ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+			
+		}catch( NoClassDefFoundError e ){
+			
+			return;
+		}
 		
 		int	pos = 0;
 		
@@ -477,7 +506,7 @@ TOTorrentCreateImpl
 	{
 		if ( ignore_map.get(file.toLowerCase()) != null ){
 
-			report(MessageText.getString("Torrent.create.progress.ignoringfile" ) + " '" + file + "'" );
+			report( "Torrent.create.progress.ignoringfile", " '" + file + "'" );
 			
 			return( true );
 		}
