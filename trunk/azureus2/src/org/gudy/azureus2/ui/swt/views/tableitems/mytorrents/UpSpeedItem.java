@@ -71,17 +71,21 @@ public class UpSpeedItem
 
     public void refresh(TableCell cell) {
       DownloadManager dm = (DownloadManager)cell.getDataSource();
-      long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
-    if (!cell.setSortValue(value) && cell.isValid())
-      return;
-
+      long value;
+      int iState;
+      if (dm == null) {
+        iState = iLastState;
+        value = 0;
+      } else {
+        iState = dm.getState();
+        value = dm.getStats().getUploadAverage();
+      }
+      if (!cell.setSortValue(value) && cell.isValid() && (iState == iLastState))
+        return;
   
-      if (dm != null) {
-        int iState = dm.getState();
-        if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
-            (iState != iLastState)) {
-          changeColor(cell, value, iState);
-        }
+      if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
+          (iState != iLastState)) {
+        changeColor(cell, value, iState);
       }
     }
 
