@@ -120,6 +120,14 @@ public interface TableCell {
    *         False - Sort Value was already set to value supplied.
    */
   public boolean setSortValue(long valueToSort);
+  
+  /**
+   * Sets a float value that the column sorting will act upon.
+   * @param valueToSort float sort value
+   * @return true if sort value changed, or false if sort value already set to value supplied
+   */
+  public boolean setSortValue( float valueToSort );
+  
 
   /** Retrieves the sorting value
    *

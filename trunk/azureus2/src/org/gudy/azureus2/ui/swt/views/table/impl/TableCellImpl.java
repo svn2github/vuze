@@ -211,6 +211,14 @@ public class TableCellImpl
     sortValue = new Long(valueToSort);
     return true;
   }
+  
+  public boolean setSortValue( float valueToSort ) {
+    if( sortValue instanceof Float && ((Float)sortValue).floatValue() == valueToSort ) {
+      return false;
+    }
+    sortValue = new Float( valueToSort );
+    return true;
+  }
 
   public Comparable getSortValue() {
     if (sortValue == null) {
