@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: org.gudy.azureus2.ui.common.Main
+Class-Path: commons-cli-1.0.jar log4j.jar pircbot.jar swt.jar swt-pi.jar systray4j.jar
+
