@@ -2,11 +2,8 @@ package org.gudy.azureus2.core;
 
 
 import java.net.InetSocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
 
 /**
  * The Bittorrent server to accept incoming connections.
@@ -24,7 +21,6 @@ public class Server extends Thread
 //  private static final int MAX_CONNECTIONS = 50;
   private int port;
   private ServerSocketChannel sck;
-  private Selector selector;
   private boolean bContinue;
   private PeerManager manager;
 
@@ -63,31 +59,17 @@ public class Server extends Thread
   }
   
   public void run()
-  {
+  {    
     try {
-      sck.configureBlocking(false);
-      selector = Selector.open();
-      sck.register(selector, SelectionKey.OP_ACCEPT);
+      sck.configureBlocking(true);
       Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is ready to accept incoming connections");
       while (bContinue) {
         if(manager.uploadsFree()) {
-          if (selector.select() > 0) {
-            Iterator it = selector.selectedKeys().iterator();
-            SelectionKey key = (SelectionKey) it.next();
-            it.remove();
-            if (key.isValid() && key.isAcceptable()) {
-              try {
-                ServerSocketChannel keyChannel = (ServerSocketChannel)key.channel();
-                SocketChannel sckClient = keyChannel.accept();
-                if(sckClient != null) {
-                  Logger.getLogger().log(componentID,evtNewConnection,Logger.INFORMATION,"BT Server has accepted an incoming connection from : " + sckClient.socket().getInetAddress().getHostAddress());
-                  sckClient.configureBlocking(false);
-                  manager.addPeer(sckClient);
-                }
-              } catch(Exception e) {
-                key.cancel();
-              }
-            }
+          SocketChannel sckClient = sck.accept();
+          if (sckClient != null) {
+            Logger.getLogger().log(componentID,evtNewConnection,Logger.INFORMATION,"BT Server has accepted an incoming connection from : " + sckClient.socket().getInetAddress().getHostAddress());
+            sckClient.configureBlocking(false);
+            manager.addPeer(sckClient);
           }
         }
         try {
@@ -95,17 +77,11 @@ public class Server extends Thread
         } catch(Exception ignore) {
         }
       }
-    } catch (Exception e)  {
-      if (bContinue)
-        Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);
-    } finally {
-      if(selector != null)
-        try {
-          selector.close();
-        } catch (Exception ignore) {
-        }
+    } catch (Exception e)  {               
+      if (bContinue)            
+        Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);            
     }
-
+    
     Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is stopped");
   }
 
