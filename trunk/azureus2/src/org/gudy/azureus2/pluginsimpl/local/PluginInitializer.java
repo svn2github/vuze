@@ -114,11 +114,14 @@ PluginInitializer
   
   private AzureusCore		azureus_core;
   
-  private PluginInterface	default_plugin;
-  private PluginManager		plugin_manager;
+  private PluginInterfaceImpl	default_plugin;
+  private PluginManager			plugin_manager;
   
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
+  
+  private boolean	initialisation_complete;
+  
   
   public static synchronized PluginInitializer
   getSingleton(
@@ -812,6 +815,11 @@ PluginInitializer
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownInitiated();
   	} 
+  	
+  	if ( default_plugin != null ){
+  		
+  		default_plugin.closedownInitiated();
+  	}
   }
   
   public void
@@ -820,7 +828,12 @@ PluginInitializer
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownComplete();
-  	}  	
+  	}  
+  	
+ 	if ( default_plugin != null ){
+  		
+  		default_plugin.closedownComplete();
+  	}
   }
   
   protected void
@@ -845,12 +858,24 @@ PluginInitializer
   protected void
   initialisationCompleteSupport()
   {
+  	initialisation_complete	= true;
+  	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).initialisationComplete();
   	}
+  	
+  	if ( default_plugin != null ){
+  		
+  		default_plugin.initialisationComplete();
+  	}
   }
   
+  protected boolean
+  isInitialisationComplete()
+  {
+  	return( initialisation_complete );
+  }
   
   public static void
   initialisationComplete()

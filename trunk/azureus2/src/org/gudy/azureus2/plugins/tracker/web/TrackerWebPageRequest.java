@@ -47,4 +47,7 @@ TrackerWebPageRequest
 	
 	public InputStream
 	getInputStream();
+	
+	public TrackerWebContext
+	getContext();
 }

@@ -34,21 +34,24 @@ public class
 TrackerWebPageRequestImpl
 	implements TrackerWebPageRequest
 {
-	protected Tracker		tracker;
-	protected String		client_address;
-	protected String		url;
-	protected String		header;
-	protected InputStream	is;
+	protected Tracker			tracker;
+	protected TrackerWebContext	context;
+	protected String			client_address;
+	protected String			url;
+	protected String			header;
+	protected InputStream		is;
 	
 	protected
 	TrackerWebPageRequestImpl(
-		Tracker		_tracker,
-		String		_client_address,
-		String		_url,
-		String		_header,
-		InputStream	_is )
+		Tracker				_tracker,
+		TrackerWebContext	_context,
+		String				_client_address,
+		String				_url,
+		String				_header,
+		InputStream			_is )
 	{
 		tracker			= _tracker;
+		context			= _context;
 		client_address	= _client_address;
 		url				= _url;
 		header			= _header;
@@ -59,6 +62,12 @@ TrackerWebPageRequestImpl
 	getTracker()
 	{
 		return( tracker );
+	}
+	
+	public TrackerWebContext
+	getContext()
+	{
+		return( context );
 	}
 	
 	public String
