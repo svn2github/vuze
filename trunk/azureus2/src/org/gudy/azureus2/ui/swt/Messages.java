@@ -9,9 +9,13 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -36,8 +40,6 @@ import org.eclipse.swt.widgets.Widget;
 public class Messages {
 
   private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
-  private static final String prefix = "MessagesBundle";
-  private static final String extension = ".properties";
 
   private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
   public static Locale LOCALE_ENGLISH = new Locale("en", "EN");
@@ -71,19 +73,51 @@ public class Messages {
   }
 
   public static Locale[] getLocales() {
-    File bundleDirectory =
-      new File(
-        URI.create(ClassLoader.getSystemResource(BUNDLE_NAME.replace('.', '/').concat(".properties")).toString()))
-        .getParentFile();
-    String[] bundles = bundleDirectory.list(new FilenameFilter() {
-      public boolean accept(File dir, String name) {
-        return name.startsWith(prefix) && name.endsWith(extension);
+    String bundleFolder = BUNDLE_NAME.replace('.', '/');
+    final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.')+1);
+    final String extension = ".properties";
+
+    String urlString = ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
+//    System.out.println("urlString: " + urlString);
+    String[] bundles = null;
+    if(urlString.startsWith("jar:file:/")) {
+      try {
+        int posDirectory = urlString.indexOf(".jar!", 11);
+        String jarName = urlString.substring(4, posDirectory+4);
+//        System.out.println("jarName: " + jarName);
+        URI uri = URI.create(jarName);
+        File jar = new File(uri);
+//        System.out.println("jar: " + jar.getAbsolutePath());
+        JarFile jarFile = new JarFile(jar);
+        Enumeration entries = jarFile.entries();
+        ArrayList list = new ArrayList(250);
+        while (entries.hasMoreElements()) {
+          JarEntry jarEntry = (JarEntry) entries.nextElement();
+          if(jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length()+extension.length()+7) {
+//            System.out.println("jarEntry: " + jarEntry.getName());
+            list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length())); // "MessagesBundle_de_DE.properties"
+          }
+        }
+        bundles = (String[]) list.toArray(new String[list.size()]);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    });
+    } else {
+      File bundleDirectory = new File(URI.create(urlString)).getParentFile();
+//      System.out.println("bundleDirectory: " + bundleDirectory.getAbsolutePath());
+        
+      bundles = bundleDirectory.list(new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+          return name.startsWith(prefix) && name.endsWith(extension);
+        }
+      });
+    }
 
     Locale[] foundLocales = new Locale[bundles.length];
     for (int i = 0; i < bundles.length; i++) {
+//      System.out.println("ResourceBundle: " + bundles[i]);
       String locale = bundles[i].substring(prefix.length(), bundles[i].length() - extension.length());
+//      System.out.println("Locale: " + locale);
       foundLocales[i] =
         locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
     }
