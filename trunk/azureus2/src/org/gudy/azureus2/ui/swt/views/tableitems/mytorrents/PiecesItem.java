@@ -54,12 +54,12 @@ public class PiecesItem extends TorrentGraphicItem  {
     DownloadManager infoObj = torrentRow.getManager();
     if (infoObj == null)
       return;
-    Image img = (Image)infoObj.getData("Image");
+    Image img = (Image)infoObj.getData("PiecesImage");
     if (img != null && !img.isDisposed())
       img.dispose();
 
-    infoObj.setData("ImageBuffer", null);
-    infoObj.setData("Image", null);
+    infoObj.setData("PiecesImageBuffer", null);
+    infoObj.setData("PiecesImage", null);
   }
 
   public void refresh() {
@@ -92,13 +92,13 @@ public class PiecesItem extends TorrentGraphicItem  {
     if (drawWidth < 10 || y1 < 3)
       return;
     boolean bImageBufferValid = true;
-    int[] imageBuffer = (int [])infoObj.getData("ImageBuffer");
+    int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
     if (imageBuffer == null || imageBuffer.length != x1) {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
 
-    Image image = (Image)infoObj.getData("Image");
+    Image image = (Image)infoObj.getData("PiecesImage");
     GC gcImage;
     boolean bImageChanged;
     Rectangle imageBounds;
@@ -197,8 +197,8 @@ public class PiecesItem extends TorrentGraphicItem  {
     Image oldImage = getGraphic();
     if (bImageChanged || image != oldImage) {
       setGraphic(image);
-      infoObj.setData("Image", image);
-      infoObj.setData("ImageBuffer", imageBuffer);
+      infoObj.setData("PiecesImage", image);
+      infoObj.setData("PiecesImageBuffer", imageBuffer);
     }
   }
 }
