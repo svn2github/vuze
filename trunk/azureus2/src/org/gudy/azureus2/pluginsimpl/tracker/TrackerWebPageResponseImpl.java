@@ -108,6 +108,8 @@ TrackerWebPageResponseImpl
 		}
 
 		reply_header +=
+			"Server: "+ Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
+			"Connection: close" + NL+
 			"Content-Type: " + content_type + NL +
 			"Content-Length: " + reply_bytes.length + NL +
 			NL;
