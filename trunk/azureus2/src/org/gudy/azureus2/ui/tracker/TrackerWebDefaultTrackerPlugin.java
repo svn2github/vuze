@@ -61,7 +61,7 @@ TrackerWebDefaultTrackerPlugin
 		
 		OutputStream	os = response.getOutputStream();
 		
-		//System.out.println( "default request: " + url);
+		// System.out.println( "TrackerWebDefaultTrackerPlugin: " + url);
 		
 		try{
 			if ( url.startsWith( "/torrents/")){
@@ -129,7 +129,10 @@ TrackerWebDefaultTrackerPlugin
 				}
 			}else{
 				
-				url = mapHomePage( url );
+				if ( url.equals("/")){
+					
+					url = "/index.tmpl";
+				}
 				
 				Hashtable	params = null;
 				
@@ -163,11 +166,8 @@ TrackerWebDefaultTrackerPlugin
 						Hashtable	args = new Hashtable();
 						
 						args.put( "filehandle", new InputStreamReader( is ));
-						System.out.println("filename set");
-						args.put( "page_url", (String)url);
-						System.out.println("page_url set");
 
-						handleTemplate( params, args, os );
+						handleTemplate( url, params, args, os );
 	
 						return( true );
 						
@@ -182,6 +182,8 @@ TrackerWebDefaultTrackerPlugin
 			}
 		}catch( Throwable e ){
 						
+			e.printStackTrace();
+			
 			os.write( e.toString().getBytes());
 		}
 

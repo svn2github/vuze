@@ -116,6 +116,7 @@ TrackerWeb
 	
 	protected void
 	handleTemplate(
+		String			page_url,
 		Hashtable		params,
 		Hashtable		args,
 		OutputStream	os )
@@ -247,9 +248,7 @@ TrackerWeb
 			System.out.println("end: "+end+"\n");
 
 		}
-		System.out.println("debug blah 1");
-		String page_url = (String)args.get( "page_url" );
-		System.out.println(page_url);
+
 		t.setParam( "page_url", page_url );
 		//Pagenation
 		if (pagenation)

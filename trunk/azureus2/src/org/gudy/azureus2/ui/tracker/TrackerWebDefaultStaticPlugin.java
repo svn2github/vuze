@@ -98,11 +98,8 @@ TrackerWebDefaultStaticPlugin
 				Hashtable	args = new Hashtable();
 			
 				args.put( "filename", canonical_file.toString());
-				System.out.println("filename set");
-				args.put( "page_url", (String)url);
-				System.out.println("page_url set");
 				
-				handleTemplate( params, args, os );
+				handleTemplate( url, params, args, os );
 
 				return( true );
 				
