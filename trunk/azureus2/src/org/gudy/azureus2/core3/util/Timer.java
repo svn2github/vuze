@@ -31,11 +31,11 @@ import java.util.*;
 public class Timer
 	implements Runnable
 {	
-	ThreadPool	thread_pool;
+	protected ThreadPool	thread_pool;
 		
-	Set	events = new TreeSet();
-	
-	Object	lock = new Object(){};
+	protected Set	events = new TreeSet();
+		
+	protected long	unique_id_next	= 0;
 	
 	public
 	Timer(
@@ -103,7 +103,11 @@ public class Timer
 					
 					// System.out.println( "firing event");
 					
-					thread_pool.run(((TimerEvent)events_to_run.get(i)).getRunnable());
+					TimerEvent	ev = (TimerEvent)events_to_run.get(i);
+					
+					ev.setHasRun();
+					
+					thread_pool.run(ev.getRunnable());
 				}
 				
 			}catch( Throwable e ){
@@ -127,7 +131,7 @@ public class Timer
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		TimerEvent	event = new TimerEvent( this, creation_time, when, performer );
+		TimerEvent	event = new TimerEvent( this, unique_id_next++, creation_time, when, performer );
 		
 		events.add( event );
 		
@@ -159,6 +163,21 @@ public class Timer
 			// System.out.println( "event cancelled (" + event.getWhen() + ") - queue = " + events.size());
 	
 			notify();
+		}
+	}
+	
+	public synchronized void
+	dump()
+	{
+		System.out.println( "Timer '" + thread_pool.getName() + "': dump" );
+
+		Iterator	it = events.iterator();
+		
+		while(it.hasNext()){
+			
+			TimerEvent	ev = (TimerEvent)it.next();
+			
+			System.out.println( "\t" + ev + ": when = " + ev.getWhen() + ", run = " + ev.hasRun() + ", can = " + ev.isCancelled());
 		}
 	}
 }

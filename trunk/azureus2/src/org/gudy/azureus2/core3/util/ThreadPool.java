@@ -129,4 +129,10 @@ ThreadPool
 			my_sem.release();
 		}
 	}
+	
+	public String
+	getName()
+	{
+		return( name );
+	}
 }

@@ -309,8 +309,10 @@ TRTrackerClientClassicImpl
 			
 			return( REFRESH_MINIMUM_SECS );
 		}
-		
-		return( (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000));
+				
+		int rem = (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000);
+				
+		return( rem );
 	}
 
 	public int

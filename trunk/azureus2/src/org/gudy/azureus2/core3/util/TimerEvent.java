@@ -36,15 +36,20 @@ TimerEvent
 	protected TimerEventPerformer	performer;
 	
 	protected boolean		cancelled;
+	protected boolean		has_run;
+	
+	protected long			unique_id	= 1;
 	
 	protected
 	TimerEvent(
 		Timer					_timer,
+		long					_unique_id,
 		long					_created,
 		long					_when,
 		TimerEventPerformer		_performer )
 	{
 		timer		= _timer;
+		unique_id	= _unique_id;
 		when		= _when;
 		performer	= _performer;
 		
@@ -88,10 +93,38 @@ TimerEvent
 	{
 		return( cancelled );
 	}
+	
+	protected void
+	setHasRun()
+	{
+		has_run	= true;
+	}
+	
+	public boolean
+	hasRun()
+	{
+		return( has_run );
+	}
+	
+	protected long
+	getUniqueId()
+	{
+		return( unique_id );
+	}
+	
 	public int
 	compareTo(
 		Object		other )
 	{
-		return((int)( when - ((TimerEvent)other).getWhen()));
+		long	res =  when - ((TimerEvent)other).getWhen();
+
+		if ( res == 0 ){
+			
+			return((int)( unique_id - ((TimerEvent)other).getUniqueId()));
+			
+		}else{
+			
+			return((int)res);
+		}
 	}
 }
