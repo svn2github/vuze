@@ -65,7 +65,7 @@ PEPeerControlImpl
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
-  private PEPiece[] 				_pieces;
+  private PEPieceImpl[] 				_pieces;
   private PEPeerServerHelper 			_server;
   private PEPeerManagerStatsImpl 		_stats;
   private TRTrackerClient _tracker;
@@ -1703,7 +1703,7 @@ PEPeerControlImpl
     //  the piece has been written correctly
     if (result) {
 
-      PEPiece piece = _pieces[pieceNumber];
+      PEPieceImpl piece = _pieces[pieceNumber];
       
       if(piece != null) {
         
@@ -1718,10 +1718,10 @@ PEPeerControlImpl
             PEPeer correctSender = null;
             Iterator iterPerBlock = listPerBlock.iterator();
             while(iterPerBlock.hasNext()) {
-              PEPieceWrite write = (PEPieceWrite) iterPerBlock.next();
-              if(write.correct) {
-                correctHash = write.hash;
-                correctSender = write.sender;
+              PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
+              if(write.isCorrect()) {
+                correctHash = write.getHash();
+                correctSender = write.getSender();
               }
             }
             //System.out.println("Correct Hash " + correctHash);
@@ -1730,10 +1730,10 @@ PEPeerControlImpl
               List peersToDisconnect = new ArrayList();
               iterPerBlock = listPerBlock.iterator();
               while(iterPerBlock.hasNext()) {
-                PEPieceWrite write = (PEPieceWrite) iterPerBlock.next();
-                if(! Arrays.equals(write.hash,correctHash)) {
+              	PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
+                if(! Arrays.equals(write.getHash(),correctHash)) {
                   //Bad peer found here
-                  PEPeer peer = write.sender;
+                  PEPeer peer = write.getSender();
                   peer.hasSentABadChunk();
                   if(!peersToDisconnect.contains(peer))
                     peersToDisconnect.add(peer);                  
@@ -2022,7 +2022,7 @@ PEPeerControlImpl
   }
   
   public boolean needsMD5CheckOnCompletion(int pieceNumber) {
-    PEPiece piece = _pieces[pieceNumber];    
+    PEPieceImpl piece = _pieces[pieceNumber];    
     if(piece == null)
       return false;
     return piece.getPieceWrites().size() > 0;

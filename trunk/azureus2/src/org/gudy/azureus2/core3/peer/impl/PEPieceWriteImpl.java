@@ -1,7 +1,7 @@
 /*
  * File    : PEPieceWriteImpl.java
- * Created : 7 nov. 2003 16:04:47
- * By      : Olivier 
+ * Created : 27-Dec-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,30 +18,52 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.peer;
 
+package org.gudy.azureus2.core3.peer.impl;
 
 /**
- * @author Olivier
- * 
+ * @author parg
+ *
  */
-public class PEPieceWrite {
-  
-  public int blockNumber;
-  public PEPeer sender;
-  public byte[] hash;
-  public boolean correct;
-  
-  public PEPieceWrite(int blockNumber,PEPeer sender, byte[] hash) {
-    this(blockNumber,sender,hash,false);
-  }
-  
-  public PEPieceWrite(int blockNumber,PEPeer sender, byte[] hash,boolean correct) {
-    this.blockNumber = blockNumber;
-    this.sender = sender;
-    this.hash = hash;
-    this.correct = correct;
-  }
-  
+
+import org.gudy.azureus2.core3.peer.*;
+
+public class 
+PEPieceWriteImpl
+{	
+	protected int blockNumber;
+	protected PEPeer sender;
+	protected byte[] hash;
+	protected boolean correct;
+		
+	public PEPieceWriteImpl(int blockNumber,PEPeer sender, byte[] hash,boolean correct) {
+		this.blockNumber = blockNumber;
+		this.sender = sender;
+		this.hash = hash;
+		this.correct = correct;
+	}
+	
+	public PEPeer
+	getSender()
+	{
+		return( sender );
+	}
+	
+	public int
+	getBlockNumber()
+	{
+		return( blockNumber );
+	}
+	
+	public byte[]
+	getHash()
+	{
+		return( hash );
+	}
+	
+	public boolean
+	isCorrect()
+	{
+		return( correct );
+	}
 }

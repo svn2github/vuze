@@ -206,8 +206,8 @@ PEPieceImpl
     }
     Iterator iter = result.iterator();
     while(iter.hasNext()) {
-      PEPieceWrite write = (PEPieceWrite) iter.next();
-      if(write.blockNumber != blockNumber)
+      PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
+      if(write.getBlockNumber() != blockNumber)
         iter.remove();
     }
     return result;
@@ -221,8 +221,8 @@ PEPieceImpl
      }
     Iterator iter = result.iterator();
     while(iter.hasNext()) {
-      PEPieceWrite write = (PEPieceWrite) iter.next();
-      if(peer == null || ! peer.equals(write.sender))
+      PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
+      if(peer == null || ! peer.equals(write.getSender()))
         iter.remove();
     }
      return result;
@@ -237,10 +237,19 @@ PEPieceImpl
     completed = 0;
   }
   
-  public void addWrite(PEPieceWrite write) {
+  protected void addWrite(PEPieceWriteImpl write) {
     writes.add(write);
   }
   
+  public void 
+  addWrite(
+  		int blockNumber,
+		PEPeer sender, 
+		byte[] hash,
+		boolean correct	)
+  {
+  	addWrite( new PEPieceWriteImpl( blockNumber, sender, hash, correct ));
+  }
   public PEPeer[] getWriters() {
     return writers;
   }

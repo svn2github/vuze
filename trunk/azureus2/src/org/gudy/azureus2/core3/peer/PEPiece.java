@@ -19,9 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.peer;
-
-import java.util.List;
+package org.gudy.azureus2.core3.peer;
 
 /**
  * Represents a Piece and the status of its different chunks (un-requested, requested, downloaded, written).
@@ -53,14 +51,21 @@ PEPiece
   
   public boolean[] getRequested(); 
   
-  public void addWrite(PEPieceWrite write);
+  /**
+   * record details of a piece's blocks that have been completed for bad peer detection purposes
+   * @param blockNumber
+   * @param sender
+   * @param hash
+   * @param correct
+   */
   
-  public List getPieceWrites();
-  
-  public List getPieceWrites(int blockNumber);
-  
-  public List getPieceWrites(PEPeer peer);
-  
+  public void 
+  addWrite(
+  		int blockNumber,
+		PEPeer sender, 
+		byte[] hash,
+		boolean correct	);
+    
   public void reset();
   
   public PEPeer[] getWriters();
