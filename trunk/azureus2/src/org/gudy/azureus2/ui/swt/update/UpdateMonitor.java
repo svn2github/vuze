@@ -308,5 +308,11 @@ UpdateMonitor
 	cancelled(
 		UpdateCheckInstance		instance )
 	{
+		MainWindow mainWindow = MainWindow.getWindow();
+		
+		mainWindow.setStatusText( 
+		    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
+					" / MainWindow.status.latestversion " + "Unknown" );
+
 	}
 }

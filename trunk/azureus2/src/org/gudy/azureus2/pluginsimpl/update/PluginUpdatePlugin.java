@@ -345,7 +345,9 @@ PluginUpdatePlugin
 				
 				final PluginInterface	pi_being_checked 	= (PluginInterface)plugins_to_check.get(i);
 				final String			plugin_id 			= pi_being_checked.getPluginID();
-								
+					
+				checker.reportProgress( plugin_id + "/" + pi_being_checked.getPluginName());
+
 				boolean	found	= false;
 				
 				for (int j=0;j<ids.length;j++){

@@ -91,6 +91,15 @@ UpdateChecker
 	public void
 	failed();
 	
+		/**
+		 * report a progress string to registered listeners
+		 * @param str
+		 */
+	
+	public void
+	reportProgress(
+		String	str );
+	
 	public void
 	addListener(
 		UpdateCheckerListener	l );
@@ -99,4 +108,11 @@ UpdateChecker
 	removeListener(
 		UpdateCheckerListener	l );
 	
+	public void
+	addProgressListener(
+		UpdateProgressListener	l );
+	
+	public void
+	removeProgressListener(
+		UpdateProgressListener	l );
 }

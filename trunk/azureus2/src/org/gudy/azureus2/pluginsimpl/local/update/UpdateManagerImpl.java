@@ -112,7 +112,7 @@ UpdateManagerImpl
 			
 			components.toArray( comps );
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, name, comps );
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( this, type, name, comps );
 			
 			for (int i=0;i<listeners.size();i++){
 				
@@ -137,7 +137,7 @@ UpdateManagerImpl
 	
 			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, name, comps );
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( this, type, name, comps );
 			
 			for (int i=0;i<listeners.size();i++){
 				

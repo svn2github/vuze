@@ -44,6 +44,7 @@ UpdateCheckInstanceImpl
 	
 	protected AESemaphore	sem 	= new AESemaphore("UpdateCheckInstance");
 
+	protected UpdateManager	manager;
 	protected int			check_type;
 	protected String		name;
 
@@ -57,10 +58,12 @@ UpdateCheckInstanceImpl
 	
 	protected
 	UpdateCheckInstanceImpl(
+		UpdateManager				_manager,
 		int							_check_type,
 		String						_name,
 		UpdatableComponentImpl[]	_components )
 	{
+		manager		= _manager;
 		check_type	= _check_type;
 		name		= _name;
 		components	= _components;
@@ -227,7 +230,13 @@ UpdateCheckInstanceImpl
 					
 					for (int i=0;i<listeners.size();i++){
 					
-						((UpdateCheckInstanceListener)listeners.get(i)).complete( UpdateCheckInstanceImpl.this );
+						try{
+							((UpdateCheckInstanceListener)listeners.get(i)).complete( UpdateCheckInstanceImpl.this );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
 					}
 				}
 			};
@@ -240,7 +249,7 @@ UpdateCheckInstanceImpl
 	protected UpdateImpl
 	addUpdate(
 		UpdatableComponentImpl	comp,
-		String					name,
+		String					update_name,
 		String[]				desc,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
@@ -250,7 +259,7 @@ UpdateCheckInstanceImpl
 			this_mon.enter();
 		
 			UpdateImpl	update = 
-				new UpdateImpl( name, desc, new_version, 
+				new UpdateImpl( update_name, desc, new_version, 
 								downloaders, comp.isMandatory(), restart_required );
 			
 			updates.add( update );
@@ -338,7 +347,13 @@ UpdateCheckInstanceImpl
 			
 			for (int i=0;i<listeners.size();i++){
 					
-				((UpdateCheckInstanceListener)listeners.get(i)).cancelled( this );
+				try{
+					((UpdateCheckInstanceListener)listeners.get(i)).cancelled( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}
@@ -349,11 +364,26 @@ UpdateCheckInstanceImpl
 		return( cancelled );
 	}
 	
+	public UpdateManager
+	getManager()
+	{
+		return( manager );
+	}
+	
 	public void
 	addListener(
 		UpdateCheckInstanceListener	l )
 	{
 		listeners.add( l );
+		
+		if ( completed ){
+			
+			l.complete( this );
+			
+		}else if ( cancelled ){
+			
+			l.cancelled( this );
+		}
 	}
 	
 	public void

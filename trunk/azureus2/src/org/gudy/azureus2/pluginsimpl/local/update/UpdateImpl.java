@@ -161,7 +161,13 @@ UpdateImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((UpdateListener)listeners.get(i)).complete( this );
+			try{
+				((UpdateListener)listeners.get(i)).complete( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	public void

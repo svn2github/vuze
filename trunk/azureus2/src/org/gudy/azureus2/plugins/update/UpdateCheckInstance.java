@@ -82,6 +82,14 @@ UpdateCheckInstance
 		UpdatableComponent		component,
 		boolean					mandatory );
 	
+		/**
+		 * Access to the update manager
+		 * @return
+		 */
+	
+	public UpdateManager
+	getManager();
+	
 	public void
 	addListener(
 		UpdateCheckInstanceListener	l );

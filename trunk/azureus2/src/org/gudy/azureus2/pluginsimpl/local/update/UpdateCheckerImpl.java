@@ -44,11 +44,13 @@ UpdateCheckerImpl
 	
 	protected boolean						completed;
 	protected boolean						failed;
-	protected boolean						sem_released;
-	
 	protected boolean						cancelled;
 
-	protected List	listeners	= new ArrayList();
+	protected boolean						sem_released;
+	
+
+	protected List	listeners			= new ArrayList();
+	protected List	progress_listeners	= new ArrayList();
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "UpdateChecker" );
 
@@ -185,7 +187,13 @@ UpdateCheckerImpl
 		
 		for (int i=0;i<listeners.size();i++){
 			
-			((UpdateCheckerListener)listeners.get(i)).cancelled( this );
+			try{
+				((UpdateCheckerListener)listeners.get(i)).cancelled( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -227,6 +235,62 @@ UpdateCheckerImpl
 		
 			listeners.remove(l);
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	reportProgress(
+		String		str )
+	{
+		List	ref = progress_listeners;
+		
+		for (int i=0;i<ref.size();i++){
+			
+			try{
+				((UpdateProgressListener)ref.get(i)).reportProgress( str );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	addProgressListener(
+		UpdateProgressListener	l )
+	{
+		try{
+			this_mon.enter();
+		
+			List	new_l = new ArrayList( progress_listeners );
+			
+			new_l.add( l );
+			
+			progress_listeners	= new_l;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	removeProgressListener(
+		UpdateProgressListener	l )
+	{
+		try{
+			this_mon.enter();
+		
+			List	new_l = new ArrayList( progress_listeners );
+			
+			new_l.remove( l );
+			
+			progress_listeners	= new_l;
+				
 		}finally{
 			
 			this_mon.exit();
