@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
  */
 
 import java.io.*;
-import java.nio.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.util.*;
