@@ -28,6 +28,11 @@ import java.util.*;
 public interface 
 TOTorrent
 {
+	/**
+	 * Get the name of the torrent
+	 * @return
+	 */
+	
 	public String
 	getName();
 
@@ -39,9 +44,20 @@ TOTorrent
 	public void
 	setName(
 		String		name );
-		
+	
+	/**
+	 * A "simple torrent" is one that consists of a single file on its own (i.e. not in a
+	 * nested directory). 
+	 * @return
+	 */	
+	
 	public boolean
 	isSimpleTorrent();
+	
+	/**
+	 * Comment is an optional torrent property
+	 * @return
+	 */
 	
 	public String
 	getComment();
@@ -49,14 +65,25 @@ TOTorrent
 	public void
 	setComment(
 		String		comment );
-		
+	
+	/**
+	 * Gets the creation date of the torrent. Optional property, 0 returned if not set
+	 * @return
+	 */	
+	
 	public long
 	getCreationDate();
 	
 	public void
 	setCreationDate(
 		long		date );
-		
+	
+	/**
+	 * A torrent must have a URL that identifies the tracker. This method returns it. However
+	 * an extension to this exists to allow multiple trackers, and their backups, to be defined.
+	 * See below
+	 * @return
+	 */	
 	public URL
 	getAnnounceURL();
 
@@ -68,15 +95,35 @@ TOTorrent
 	public TOTorrentAnnounceURLGroup
 	getAnnounceURLGroup();
 	 
+	 /**
+	  * This method provides access to the SHA1 hash values (20 bytes each) that correspond
+	  * to the pieces of the torrent.
+	  * @return
+	  */
 	public byte[][]
 	getPieces();
 
+	/**
+	 * Returns the piece length used for the torrent
+	 * @return
+	 */
 	public long
 	getPieceLength();
 
+	/**
+	 * A torrent consists of one or more files. These are accessed via this method.
+	 * @return
+	 */ 
 	public TOTorrentFile[]
 	getFiles();
 	
+	 /**
+	  * A torrent has a unique SHA1 (20 byte) hash that is computed from some of its contents.
+	  * It is used, for example, when contacting a tracker to identify the torrent.
+	  * @return
+	  * @throws TOTorrentException
+	  */
+	 
 	public byte[]
 	getHash()
 	
@@ -134,17 +181,32 @@ TOTorrent
 	getAdditionalMapProperty(
 		String		name );
 		
+	 /**
+	  * This method will serialise a torrent using the standard "b-encoding" mechanism into a file
+	  * @param file
+	  * @throws TOTorrentException
+	  */
 	public void
 	serialiseToFile(
 		File		file )
 		  
 		throws TOTorrentException;
 
+	 /**
+	  * This method will serialise a torrent into a Map consistent with that used by the 
+	  * "b-encoding" routines defined elsewhere
+	  * @return
+	  * @throws TOTorrentException
+	  */
 	public Map
 	serialiseToMap()
 		  
 		throws TOTorrentException;
 
+	 /**
+	  * A diagnostic method for dumping the tracker contents to "stdout"
+	  *
+	  */
 	public void
 	print();
 }
