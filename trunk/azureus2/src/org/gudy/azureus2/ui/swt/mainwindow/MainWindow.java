@@ -18,6 +18,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolderAdapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
@@ -40,15 +41,18 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -116,8 +120,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private boolean useCustomTab;
   private Composite folder;
       
+  private Composite statusArea;
+  
   private CLabel statusText;
   private String statusTextKey;
+  
+  private Group statusUpdate;
+  private Label statusUpdateLabel;
+  private ProgressBar statusUpdateProgressBar;
+  private Button statusUpdateButton;
   
   //Package visibility for GUIUpdater
   CLabel ipBlocked;
@@ -324,11 +335,63 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     GridData gridData;
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    statusText = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusText.setLayoutData(gridData);
-
     
-
+    //Composite with StackLayout
+    statusArea = new Composite(statusBar, SWT.NULL);
+    statusArea.setLayoutData(gridData);
+    
+    StackLayout layoutStatusAera = new StackLayout();
+    statusArea.setLayout(layoutStatusAera);
+    
+    //Either the Status Text
+    statusText = new CLabel(statusArea, SWT.SHADOW_IN);
+    int height = statusText.computeSize(150,SWT.DEFAULT).y;
+    
+    //Or a composite with a label, a label, a progressBar and a button
+    statusUpdate = new Group(statusArea, SWT.BORDER);
+    statusUpdate.setSize(SWT.DEFAULT,height);
+    FormLayout layoutStatusUpdate = new FormLayout();
+    layoutStatusUpdate.marginHeight = 0;
+    layoutStatusUpdate.marginWidth = 0;
+    layoutStatusUpdate.spacing = 5;
+    statusUpdate.setLayout(layoutStatusUpdate);
+    
+    statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
+    statusUpdateLabel.setText("Alea jacta est");
+    statusUpdateProgressBar = new ProgressBar(statusUpdate,SWT.HORIZONTAL);
+    statusUpdateButton = new Button(statusUpdate,SWT.PUSH);
+    Messages.setLanguageText(statusUpdateButton,"Button.cancel");
+    int ctrlHeight,top;
+    
+    formData = new FormData();
+    formData.left = new FormAttachment(0);
+    ctrlHeight = statusUpdateLabel.computeSize(100,SWT.DEFAULT).y;
+    top = (height - ctrlHeight) / 2;
+    formData.top = new FormAttachment(0,top);
+    formData.width = 150;
+    formData.height = height;
+    statusUpdateLabel.setLayoutData(formData);
+    
+    formData = new FormData();
+    formData.right = new FormAttachment(100);
+    ctrlHeight = statusUpdateButton.computeSize(100,SWT.DEFAULT).y;
+    top = (height - ctrlHeight) / 2;
+    //formData.top = new FormAttachment(0,top);
+    formData.width = 100;
+    formData.height = height;
+    statusUpdateButton.setLayoutData(formData);
+    
+    formData = new FormData();
+    formData.left = new FormAttachment(statusUpdateLabel);
+    formData.right = new FormAttachment(statusUpdateButton);
+    ctrlHeight = statusUpdateProgressBar.computeSize(100,SWT.DEFAULT).y;
+    top = (height - ctrlHeight) / 2;
+    formData.top = new FormAttachment(0,top);
+    formData.height = height;    
+    statusUpdateProgressBar.setLayoutData(formData);    
+    
+    layoutStatusAera.topControl = statusUpdate;
+    
     gridData = new GridData();
     gridData.widthHint = 220;
     ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
