@@ -123,7 +123,7 @@ public class BTHandshake implements BTMessage, RawMessage {
     data.get( DirectByteBuffer.SS_MSG, header );
     
     if( !PROTOCOL.equals( new String( header ) ) ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: !PROTOCOL.equals( new String( header ) )" );
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid protocol given: " + new String( header ) );
     }
     
     byte[] reserved = new byte[ 8 ];
