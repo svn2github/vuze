@@ -90,7 +90,7 @@ AzureusCoreImpl
 	
 	public void
 	setLocaleChooser(
-		ILocaleUtilChooser		_util )
+		LocaleUtil		_util )
 	{
 		LocaleUtil.setLocaleUtilChooser(_util);
 	}
@@ -245,8 +245,18 @@ AzureusCoreImpl
 		return this;
 	}
 	
-	public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
-		return( new String( array ));
+	public String 
+	getChoosableCharsetString(
+	  	byte[] 	array,
+		Object	decision_owner )
+	
+		throws UnsupportedEncodingException 
+	{
+		String	res = new String( array );
+		    
+		setLastChosenDecoder( getSystemDecoder());
+		    
+		return( res );	
 	}
 	
 	public void 

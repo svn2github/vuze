@@ -12,7 +12,6 @@ import org.gudy.azureus2.core3.util.*;
 
 public abstract class
 LocaleUtil 
-	implements ILocaleUtilChooser 
 {
   
   private static final String systemEncoding = System.getProperty("file.encoding");
@@ -107,9 +106,9 @@ LocaleUtil
  
   private LocaleUtilDecoder lastChosenDecoder = null;
    
-  private static ILocaleUtilChooser chooser = null;
+  private static LocaleUtil chooser = null;
     
-  public static void setLocaleUtilChooser(ILocaleUtilChooser ch) {
+  public static void setLocaleUtilChooser(LocaleUtil ch) {
 	chooser=ch;
   }
    
@@ -132,17 +131,17 @@ LocaleUtil
   	lastChosenDecoder	= d;
   }
   
-  protected static Candidate[] 
+  protected static LocaleUtilDecoderCandidate[] 
   getCandidates(
 	byte[] array ) 
   {
-	Candidate[] candidates = new Candidate[charsetDecoders.length];
+	LocaleUtilDecoderCandidate[] candidates = new LocaleUtilDecoderCandidate[charsetDecoders.length];
     
 	boolean show_less_likely_conversions = COConfigurationManager.getBooleanParameter("File.Decoder.ShowLax" );
 
 	for (int i = 0; i < charsetDecoders.length; i++){
     	
-	  candidates[i] = new Candidate(i);
+	  candidates[i] = new LocaleUtilDecoderCandidate(i);
       
 	  try{
 			LocaleUtilDecoder decoder = charsetDecoders[i];
@@ -151,9 +150,7 @@ LocaleUtil
 
 			if ( str != null ){
 				
-				candidates[i].value = str;
-        		
-				candidates[i].decoder = decoder;
+				candidates[i].setDetails( decoder, str );
 			}
 	  } catch (Exception ignore) {
       	
@@ -182,90 +179,24 @@ LocaleUtil
 	return candidates;
   }
   
-  protected static class 
-  Candidate 
-	implements Comparable 
-  {
-	private int					index;
-	private String 				value;
-	private LocaleUtilDecoder	decoder;
-    
-	protected
-	Candidate(
-		int	_index )
-	{
-		index	= _index;
-	}
-	
-	public String getValue() {
-	  return value;
-	}
-    
-	public LocaleUtilDecoder getDecoder() {
-	  return decoder;
-	}
-    
-	public int 
-	compareTo(Object o) 
-	{
-	  Candidate candidate = (Candidate)o;
-      
-	  int	res;
-      
-	  if( value == null && candidate.value == null){
-      
-		res	= 0;
-        
-	  }else if ( value == null ){
-      	
-		res = 1;
-        
-	  }else if ( candidate.value == null ){
-      	
-		res = -1;
-      	
-	  }else{
-      
-		res = value.length() - candidate.value.length();
-        
-		if ( res == 0 ){
-        	
-			res = index - candidate.index;
-		}
-	  }
-      
-	  // System.out.println( "comp:" + this.name + "/" + candidate.name + " -> " + res );
-      
-	  return( res );
-	}
-	/**
-	 * only used for contains()
-	 * Warning: this implementation covers not all special cases
-	 */
-	public boolean equals(Object obj) {
-	  Candidate other = (Candidate) obj;
-     
-	 if ( value == null && other.value == null ){
-		return( true );
-	 }else if ( value == null || other.value == null ){
-		return( false );
-	 }else{
-		return( value.equals( other.value ));
-	 }
-	}
-  }
-  
+  	// overridden if required to give better behaviour!
   
   public String 
   getChoosableCharsetString(
   	byte[] 		array,
 	Object		decision_owner)
   
-  	throws UnsupportedEncodingException 
+  	throws UnsupportedEncodingException
   {
-	throw new UnsupportedEncodingException("Hello, this is your base class speaking. You need to implement an ILocaleUtilChooser interface. This method is abstract here.");
+	String	res = new String( array );
+	    
+	setLastChosenDecoder( getSystemDecoder());
+	    
+	return( res );
   }
-
+  
+  public abstract LocaleUtil 
+  getProperLocaleUtil();
   
   public 
   LocaleUtil() 

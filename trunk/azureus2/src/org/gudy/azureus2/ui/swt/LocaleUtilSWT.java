@@ -25,10 +25,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
@@ -40,7 +37,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 public class 
 LocaleUtilSWT 
 	extends LocaleUtil 
-	implements ILocaleUtilChooser 
 {
   
   boolean waitForUserInput = true;
@@ -73,7 +69,7 @@ LocaleUtilSWT
   		rememberedDecoder			= null;
   	}
   	
-    Candidate[] candidates = getCandidates(array);
+    LocaleUtilDecoderCandidate[] candidates = getCandidates(array);
 
     if( rememberEncodingDecision && rememberedDecoder != null) {
     	
@@ -156,7 +152,7 @@ LocaleUtilSWT
    	}
  
 
-    final Candidate[] candidatesToChoose = (Candidate[]) choosableCandidates.toArray(new Candidate[choosableCandidates.size()]);
+    final LocaleUtilDecoderCandidate[] candidatesToChoose = (LocaleUtilDecoderCandidate[]) choosableCandidates.toArray(new LocaleUtilDecoderCandidate[choosableCandidates.size()]);
        
     waitForUserInput	= true;
     
@@ -214,7 +210,7 @@ LocaleUtilSWT
     return candidatesToChoose[choosedIndex].getValue(); 
   }    
 
-  private void showChoosableEncodingWindow(final Shell shell, final Candidate[] candidates) {
+  private void showChoosableEncodingWindow(final Shell shell, final LocaleUtilDecoderCandidate[] candidates) {
     final Display display = shell.getDisplay();
     final Shell s = new Shell(shell, SWT.TITLE | SWT.PRIMARY_MODAL);
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
@@ -318,7 +314,7 @@ LocaleUtilSWT
     }
   }
 
-  private void setChoosedIndex(final Shell s, final Table table, final Button checkBox, Candidate[] candidates) {
+  private void setChoosedIndex(final Shell s, final Table table, final Button checkBox, LocaleUtilDecoderCandidate[] candidates) {
     int selectedIndex = table.getSelectionIndex();
     if(-1 == selectedIndex) 
       return;

@@ -30,7 +30,8 @@ package com.aelitis.azureus.core;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+
 import org.gudy.azureus2.plugins.*;
 
 public interface 
@@ -38,7 +39,7 @@ AzureusCore
 {
 	public void
 	setLocaleChooser(
-		ILocaleUtilChooser		_util );
+		LocaleUtil		_util );
 	
 	public void
 	start()

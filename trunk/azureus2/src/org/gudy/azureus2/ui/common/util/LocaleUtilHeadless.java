@@ -12,14 +12,13 @@ package org.gudy.azureus2.ui.common.util;
 
 import java.io.UnsupportedEncodingException;
 
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
  *
  * @author  tobi
  */
-public class LocaleUtilHeadless extends LocaleUtil implements ILocaleUtilChooser {
+public class LocaleUtilHeadless extends LocaleUtil{
   
   /** Creates a new instance of LocaleUtilServer */
   public LocaleUtilHeadless() {
@@ -33,7 +32,8 @@ public class LocaleUtilHeadless extends LocaleUtil implements ILocaleUtilChooser
   
   public String 
   getChoosableCharsetString(
-  	byte[] array)
+  	  	byte[] 	array,
+		Object	decision_owner )
   
   	throws UnsupportedEncodingException 
   {

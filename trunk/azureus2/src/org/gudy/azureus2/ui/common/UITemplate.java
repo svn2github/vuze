@@ -10,7 +10,11 @@ package org.gudy.azureus2.ui.common;
  *
  * @author  tobi
  */
-public abstract class UITemplate implements org.gudy.azureus2.core3.internat.ILocaleUtilChooser, IUserInterface {
+public abstract class 
+UITemplate 
+	extends org.gudy.azureus2.core3.internat.LocaleUtil
+	implements IUserInterface 
+{
   
   private boolean started = false;
   /** Creates a new instance of UITemplate */
@@ -29,9 +33,7 @@ public abstract class UITemplate implements org.gudy.azureus2.core3.internat.ILo
   public void startUI() {
     started = true;
   }
-  
-  abstract public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil();
-  
+   
   public boolean isStarted() {
     return started;
   }

@@ -8,7 +8,6 @@ import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
@@ -17,7 +16,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
  * @author Olivier
  * 
  */
-public class Main implements ILocaleUtilChooser {  
+public class Main extends LocaleUtil {  
   
   public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
 	
