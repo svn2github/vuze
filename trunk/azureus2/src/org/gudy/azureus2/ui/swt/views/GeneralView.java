@@ -1187,7 +1187,49 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		hash.setText( _hash);
 		pieceNumber.setText( "" + _pieceNumber); //$NON-NLS-1$
 		pieceSize.setText( _pieceLength);
+
+		String	old_comment = comment.getText();
+	
 		comment.setText( _comment);
+	
+		if ( _comment != null && !old_comment.equals( _comment )){
+
+			String	lc = _comment.toLowerCase();
+			
+			final int	http_pos = lc.indexOf( "http" );
+			
+			if ( http_pos != -1 ){
+				
+				comment.setCursor(Cursors.handCursor);
+				
+				comment.setForeground(Colors.blue);
+				 
+				comment.addMouseListener(new MouseAdapter() {
+					public void 
+					mouseUp(
+						MouseEvent event) 
+					{        
+			          if(event.button == 1) {
+			          	
+			  	        String url = comment.getText().substring( http_pos );
+			  	        
+			  	        for (int i=0;i<url.length();i++){
+			  	        	
+			  	        	if ( Character.isWhitespace( url.charAt(i))){
+			  	        		
+			  	        		url = url.substring( 0, i );
+			  	        		
+			  	        		break;
+			  	        	}
+			  	        }
+			  	    
+			  	        Program.launch(url); 
+			          }
+					}
+				});
+			}
+		}
+
 		creation_date.setText( _creation_date );
       }
     });
