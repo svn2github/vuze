@@ -198,12 +198,12 @@ PEPeerTransportProtocol
     port  = _port;
     incoming = false;
     
-    init();
-    
     if( port < 0 || port > 65535 ) {
-      Debug.out( "Given remote port is invalid: " + port );
       closeConnection( "Given remote port is invalid: " + port, false );
+      return;
     }
+    
+    init();
     
     connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
     
