@@ -351,9 +351,15 @@ public class GlobalManagerImpl
       }
       
       String fName = fDest.getCanonicalPath();
-      DownloadManager manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false );
-      manager = addDownloadManager(manager, true);
-      if ( manager == null ) {
+      
+      DownloadManager new_manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false );
+      
+      DownloadManager manager = addDownloadManager(new_manager, true);
+      
+      	// if a different manager is returned then an existing manager for this torrent
+      	// exists and the new one isn't needed (yuck)
+      
+      if ( manager == null || manager != new_manager ) {
         fDest.delete();
         File backupFile = new File(fName + ".bak");
         if(backupFile.exists())
