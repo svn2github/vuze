@@ -44,7 +44,6 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -108,8 +107,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   Button		updateButton;
 
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
-  private boolean bInitializeDone = false;
-  private boolean bPaintListenersAdded = false;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -119,8 +116,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    LGLogger.log("General View Initialization Starts");
-    long lStartTime = System.currentTimeMillis();
 
     this.display = composite.getDisplay();
 
@@ -198,9 +193,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     availabilityPercent.setLayoutData(gridData);
     Messages.setLanguageText(availabilityPercent, "GeneralView.label.status.pieces_available.tooltip");
     
-    LGLogger.log("GeneralView Part 1: " + (System.currentTimeMillis() - lStartTime) + "ms");
-    lStartTime = System.currentTimeMillis();
-
     gTransfer = new Group(genComposite, SWT.SHADOW_OUT);
     Messages.setLanguageText(gTransfer, "GeneralView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -284,20 +276,18 @@ public class GeneralView extends AbstractIView implements ParameterListener {
         catch (Exception e) {}
       }
     });
-/*
-    maxUploads = new Combo(gTransfer, SWT.SINGLE | SWT.READ_ONLY);
-    for (int i = 2; i < 501; i++)
-      maxUploads.add(" " + i); //$NON-NLS-1$
-    maxUploads.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        manager.getStats().setMaxUploads(2 + maxUploads.getSelectionIndex());
+
+    maxUploads.addListener(SWT.FocusOut, new Listener() {
+      public void handleEvent(Event event) {
+        try {
+          int value = Integer.parseInt(maxUploads.getText());
+          if (value < 2) {
+            maxUploads.setText("2");
+          }
+        }
+        catch (Exception e) {}
       }
     });
-    maxUploads.select(manager.getStats().getMaxUploads() - 2);
-*/
-
-    LGLogger.log("GeneralView Part 2: " + (System.currentTimeMillis() - lStartTime) + "ms");
-    lStartTime = System.currentTimeMillis();
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
@@ -535,9 +525,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     });
     
     
-    LGLogger.log("GeneralView Part 3: " + (System.currentTimeMillis() - lStartTime) + "ms");
-    lStartTime = System.currentTimeMillis();
-
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
@@ -587,8 +574,27 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     comment.setLayoutData(gridData);
  
     
-    LGLogger.log("GeneralView Part 4: " + (System.currentTimeMillis() - lStartTime) + "ms");
-    lStartTime = System.currentTimeMillis();
+    fileImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updateOverall(true);
+        }
+      }
+    });
+    piecesImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updatePiecesInfo(true);
+        }
+      }
+    });
+    availabilityImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0 && e.width > 0 && e.height > 0) {
+          updateAvailability();
+        }
+      }
+    });
 
     if(System.getProperty("os.name").equals("Mac OS X")) {
       Shell shell = MainWindow.getWindow().getShell();
@@ -600,18 +606,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
 
-    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to layout");
-    lStartTime = System.currentTimeMillis();
-
     COConfigurationManager.addParameterListener("Graphics Update", this);
-
-    updateAvailability();
-    updatePiecesInfo(true);
-    updateOverall(true);
-
-    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to initially draw bars");
-
-    bInitializeDone = true;
   }
 
   /* (non-Javadoc)
@@ -635,33 +630,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       updateOverall(false);
     }
     
-    if (!bPaintListenersAdded && bInitializeDone) {
-      bPaintListenersAdded = true;
-      LGLogger.log("GeneralView: Paint listeners added");
-      
-      fileImage.addListener(SWT.Paint, new Listener() {
-        public void handleEvent(Event e) {
-          if (e.count == 0 && e.width > 0 && e.height > 0) {
-            updateOverall(true);
-          }
-        }
-      });
-      piecesImage.addListener(SWT.Paint, new Listener() {
-        public void handleEvent(Event e) {
-          if (e.count == 0 && e.width > 0 && e.height > 0) {
-            updatePiecesInfo(true);
-          }
-        }
-      });
-      availabilityImage.addListener(SWT.Paint, new Listener() {
-        public void handleEvent(Event e) {
-          if (e.count == 0 && e.width > 0 && e.height > 0) {
-            updateAvailability();
-          }
-        }
-      });
-    }
-
     setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");

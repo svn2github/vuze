@@ -150,7 +150,7 @@ public class GlobalManagerImpl
 
     private void determineSaveResumeDataInterval() {
       int saveResumeInterval = COConfigurationManager.getIntParameter("Save Resume Interval", 5);
-      if (saveResumeInterval > 1 && saveResumeInterval < 21)
+      if (saveResumeInterval >= 1 && saveResumeInterval <= 90)
         saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
 

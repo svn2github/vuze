@@ -28,10 +28,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -39,15 +37,11 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -57,9 +51,6 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   Table table;
   boolean noChange;
   
-  public ConfigSectionIPFilter() {
-  }
-
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
@@ -83,7 +74,6 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
-    Label label;
 
     filter = IpFilter.getInstance();
 

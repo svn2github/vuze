@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -89,11 +90,10 @@ public class HealthItem extends TorrentItem  {
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
-    
+
     int x0 = bounds.x + 1;
     int y0 = bounds.y + VerticalAligner.getAlignement();
     
-    Table table = row.getTable();
     if(image != null) {
       GC gc = new GC(row.getTable());
       gc.setClipping(clipping);

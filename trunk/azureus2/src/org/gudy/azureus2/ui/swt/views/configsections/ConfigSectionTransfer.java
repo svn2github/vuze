@@ -22,17 +22,20 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 public class ConfigSectionTransfer implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -75,13 +78,12 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
 
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
-    final String upLabels[] = new String[499];
-    final int upValues[] = new int[upLabels.length];
-    for (int i = 0; i < upLabels.length; i++) {
-      upLabels[i] = " " + (i + 2); //$NON-NLS-1$
-      upValues[i] = i + 2;
-    }
-    new IntListParameter(cTransfer, "Max Uploads", 4, upLabels, upValues); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads"); 
+    paramMaxUploads.setLayoutData(gridData);
+    paramMaxUploads.setMinValue(3);
+
 
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
@@ -94,7 +96,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
       upsValues[i] = 1024 * ConfigView.upRates[i];
     }
     new IntListParameter(cTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
-
+    
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$
     new BooleanParameter(cTransfer, "Allow Same IP Peers", false); //$NON-NLS-1$

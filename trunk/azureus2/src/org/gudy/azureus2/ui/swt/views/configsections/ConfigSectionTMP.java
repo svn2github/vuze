@@ -1,5 +1,5 @@
 /*
- * File    : ConfigPanel*.java
+ * File    : ConfigSection*.java
  * Created : 11 mar. 2004
  * By      : TuxPaper
  * 
@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -34,7 +36,7 @@ public class ConfigSectionTMP implements ConfigSectionSWT {
   }
 
 	public String configSectionGetName() {
-		return "*";
+		return "newsectionname";
 	}
 
   public void configSectionSave() {
@@ -45,7 +47,18 @@ public class ConfigSectionTMP implements ConfigSectionSWT {
   
 
   public Composite configSectionCreate(final Composite parent) {
-    new Composite(parent, SWT.NULL);
-    return null;
+    GridData gridData;
+    GridLayout layout;
+
+    Composite cSection = new Composite(parent, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    cSection.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    cSection.setLayout(layout);
+
+    // Place SWT config items here
+
+    return cSection;
   }
 }

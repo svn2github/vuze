@@ -94,7 +94,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
-    layout.numColumns = 3;
+    layout.numColumns = 4;
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
@@ -102,19 +102,16 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
+    
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    IntParameter paramSaveInterval = new IntParameter(cArea, "Save Resume Interval");
+    paramSaveInterval.setLayoutData(gridData); 
+    Label lblMinutes = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(lblMinutes, "ConfigView.text.minutes");
 
-    final String saveResumeLabels[] = new String[19];
-    final int saveResumeValues[] = new int[19];
-    for (int i = 2; i < 21; i++) {
-      saveResumeLabels[i - 2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
-      saveResumeValues[i - 2] = i;
-    }
 
-    IntListParameter listSave = new IntListParameter(cArea, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
-
-    Control[] controls = new Control[2];
-    controls[0] = label;
-    controls[1] = listSave.getControl();
+    Control[] controls = { label, lblMinutes, paramSaveInterval.getControl() };
     IAdditionalActionPerformer performer = new ChangeSelectionActionPerformer(controls);
     bpUseResume.setAdditionalActionPerformer(performer);
 

@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.views.PiecesView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -100,7 +101,7 @@ public class PieceTableItem implements SortableItem{
     Rectangle bounds = item.getBounds(3);
     int width = bounds.width - 1;
     int x0 = bounds.x;
-    int y0 = bounds.y + 1;
+    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
     int height = bounds.height - 3;
     if (width < 10 || height < 3)
       return;

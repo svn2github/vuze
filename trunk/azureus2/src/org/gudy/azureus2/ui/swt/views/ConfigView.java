@@ -70,9 +70,9 @@ public class ConfigView extends AbstractIView {
       110,120,130,140,150,160,170,180,190,200,
       210,220,230,240,250,
       275,300,325,350,375,400,425,450,475,500,
-      550,600,650,700,750,800,850,900,950,1000,
-      1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,
-      2250,2500,2750,3000,
+      550,600,650,700,750,
+      800,900,1000,1100,1200,1300,1400,1500,
+      1750,2000,2250,2500,2750,3000,
       3500,4000,4500,5000 };
 
   Composite cConfig;
@@ -91,7 +91,6 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-long y = System.currentTimeMillis();
     GridData gridData;
     /*
     /--cConfig-------------------------------------------------------\
@@ -189,7 +188,13 @@ long y = System.currentTimeMillis();
 
 
 
-    // Add plugin sections
+    // Add sections
+    /** How to add a new section
+     * 1) Create a new implementation of ConfigSectionSWT in a new file
+     *    (Use the ConfigSectionTMP.java as a template if it's still around)
+     * 2) import it into here
+     * 3) add it to the internal sections list
+     */
     pluginSections = ConfigSectionRepository.getInstance().getList();
 
     ConfigSection[] internalSections = { new ConfigSectionFile(), 
@@ -209,8 +214,6 @@ long y = System.currentTimeMillis();
                                          new ConfigSectionLogging()
                                         };
     pluginSections.addAll(0, Arrays.asList(internalSections));
-
-    LGLogger.log("DoneConfigLayout: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
 
     for (int i = 0; i < pluginSections.size(); i++) {
       ConfigSection section = (ConfigSection)pluginSections.get(i);
@@ -251,7 +254,6 @@ long y = System.currentTimeMillis();
           treeItem.setData("ConfigSectionSWT", section);
           
           //sc.setContent(c);
-          //System.out.println("DoneConfig"+name+": " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
           e.printStackTrace();
@@ -270,12 +272,10 @@ long y = System.currentTimeMillis();
 
     initSaveButton();
 
-    LGLogger.log("DonePluginConfigs: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
     TreeItem[] items = { tree.getItems()[0] };
     tree.setSelection(items);
     // setSelection doesn't trigger a SelectionListener, so..
     showSection(items[0]);
-    LGLogger.log("DoneInitialize: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
   }
 
   private void showSection(TreeItem section) {
@@ -308,13 +308,17 @@ long y = System.currentTimeMillis();
   }
 
   private Composite createConfigSection(String sNameID) {
-    return createConfigSection(null, sNameID);
+    return createConfigSection(null, sNameID, -1, true);
   }
 
-  private Composite createConfigSection(TreeItem treeItemParent, String sNameID) {
-    return createConfigSection(treeItemParent, sNameID, true);
+  private Composite createConfigSection(String sNameID, int position) {
+    return createConfigSection(null, sNameID, position, true);
   }
-  private Composite createConfigSection(TreeItem treeItemParent, String sNameID, boolean bPrefix) {
+
+  private Composite createConfigSection(TreeItem treeItemParent, 
+                                        String sNameID, 
+                                        int position, 
+                                        boolean bPrefix) {
     ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
     sc.setExpandHorizontal(true);
     sc.setExpandVertical(true);
@@ -323,10 +327,17 @@ long y = System.currentTimeMillis();
     Composite cConfigSection = new Composite(sc, SWT.NULL);
 
     TreeItem treeItem;
-    if (treeItemParent == null)
-      treeItem = new TreeItem(tree, SWT.NULL);
-    else
-      treeItem = new TreeItem(treeItemParent, SWT.NULL);
+    if (treeItemParent == null) {
+      if (position >= 0)
+        treeItem = new TreeItem(tree, SWT.NULL, position);
+      else
+        treeItem = new TreeItem(tree, SWT.NULL);
+    } else {
+      if (position >= 0)
+        treeItem = new TreeItem(treeItemParent, SWT.NULL, position);
+      else
+        treeItem = new TreeItem(treeItemParent, SWT.NULL);
+    }
     Messages.setLanguageText(treeItem, ((bPrefix) ? sSectionPrefix : "") + sNameID);
     treeItem.setData("Panel", sc);
     treeItem.setData("ID", sNameID);
@@ -388,7 +399,7 @@ long y = System.currentTimeMillis();
   {
     Label label;
 
-    Composite infoGroup = createConfigSection(ConfigSection.SECTION_PLUGINS);
+    Composite infoGroup = createConfigSection(ConfigSection.SECTION_PLUGINS, 6);
     TreeItem treePlugins = findTreeItem(tree, ConfigSection.SECTION_PLUGINS);
     infoGroup.setLayout(new GridLayout());
     infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
@@ -448,7 +459,7 @@ long y = System.currentTimeMillis();
       //       <"ConfigView.plugins." + displayName> was never implemented in the
       //       first place, a check for it has not been created
       boolean bUsePrefix = MessageText.keyExists(sSectionPrefix + "plugins." + pluginName);
-      Composite pluginGroup = createConfigSection(treePlugins, pluginName, bUsePrefix);
+      Composite pluginGroup = createConfigSection(treePlugins, pluginName, -1, bUsePrefix);
       GridLayout pluginLayout = new GridLayout();
       pluginLayout.numColumns = 3;
       pluginGroup.setLayout(pluginLayout);
