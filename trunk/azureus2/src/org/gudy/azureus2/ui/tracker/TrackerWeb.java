@@ -72,16 +72,77 @@ TrackerWeb
 		tracker.addPageGenerator( this );
 	}
 	
+	protected Hashtable
+	decodeParams(
+		String	str )
+	{
+		Hashtable	params = new Hashtable();
+		
+		int	pos = 0;
+		
+		while(true){
+		
+			int	p1 = str.indexOf( '&', pos );
+			
+			String	bit;
+			
+			if ( p1 == -1 ){
+				
+				bit = str.substring(pos);
+				
+			}else{
+				
+				bit = str.substring(pos,p1);
+				
+				pos = p1+1;
+			}
+			
+			int	p2 = bit.indexOf('=');
+			
+			if ( p2 == -1 ){
+			
+				params.put(bit,"true");
+				
+			}else{
+				
+				params.put(bit.substring(0,p2), bit.substring(p2+1));
+			}
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
+		}
+		
+		return( params );
+	}
+	
 	protected void
 	handleTemplate(
+		Hashtable		params,
 		Hashtable		args,
 		OutputStream	os )
 	
 		throws IOException
-	{		
+	{	
+		/*
+		__FIRST__
+		True for the first run of the loop, false otherwise 
+		__LAST__ 
+		True for the last run of the loop, false otherwise 
+		__ODD__ 
+		True for every other iteration of the loop - a loop starts at 1 
+		__INNER__
+		True if both __FIRST__ and __LAST__ are false 
+		__COUNTER__
+		Which iteration is currently on. Starts at 1.(new in 0.1.1) 
+		*/
+		
+		args.put( "loop_context_vars", "true" );
+		
 		Template t = new Template( args );
 
-		// set up the paramters
+			// set up the parameters
 		
 		Vector torrent_info = new Vector();
 		
@@ -145,6 +206,9 @@ TrackerWeb
 				
 				row.put( "download_url", "/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str );
 
+			}else{
+				
+				row.put( "download_url", "" );
 			}
 			
 			row.put( "status", status_str );

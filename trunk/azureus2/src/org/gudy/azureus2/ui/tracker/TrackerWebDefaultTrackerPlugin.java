@@ -61,7 +61,7 @@ TrackerWebDefaultTrackerPlugin
 		
 		OutputStream	os = response.getOutputStream();
 		
-		// System.out.println( "default request: " + url);
+		//System.out.println( "default request: " + url);
 		
 		try{
 			if ( url.startsWith( "/torrents/")){
@@ -134,6 +134,17 @@ TrackerWebDefaultTrackerPlugin
 					url = "/index.tmpl";
 				}
 				
+				Hashtable	params = null;
+				
+				int	p_pos = url.indexOf( '?' );
+				
+				if ( p_pos != -1 ){
+					
+					params = decodeParams( url.substring( p_pos+1 ));
+					
+					url = url.substring(0,p_pos);
+				}	
+				
 				InputStream is = TrackerWebDefaultTrackerPlugin.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/tracker/templates" + url );
 				
 				if ( is == null ){
@@ -157,7 +168,7 @@ TrackerWebDefaultTrackerPlugin
 						
 						args.put( "filehandle", new InputStreamReader( is ));
 						
-						handleTemplate( args, os );
+						handleTemplate( params, args, os );
 	
 						return( true );
 						

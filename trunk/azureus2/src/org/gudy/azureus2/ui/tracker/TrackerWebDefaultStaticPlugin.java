@@ -48,7 +48,9 @@ TrackerWebDefaultStaticPlugin
 		throws IOException
 	{
 		String	url = request.getURL();
-				
+			
+		Hashtable	params = null;
+		
 		if ( url.equals("/")){
 			
 			for (int i=0;i<welcome_files.length;i++){
@@ -62,13 +64,22 @@ TrackerWebDefaultStaticPlugin
 			}
 		}
 		
+		int	p_pos = url.indexOf( '?' );
+		
+		if ( p_pos != -1 ){
+			
+			params = decodeParams( url.substring( p_pos+1 ));
+			
+			url = url.substring(0,p_pos);
+		}
+		
 		OutputStream	os = response.getOutputStream();
 		
 		String	target = file_root + url.replace('/',File.separatorChar);
 		
 		File canonical_file = new File(target).getCanonicalFile();
 				
-		// System.out.println( "static request: " + canonical_file.toString());
+		//System.out.println( "static request: " + canonical_file.toString());
 		
 			// make sure some fool isn't trying to use ../../ to escape from web dir
 		
@@ -101,7 +112,7 @@ TrackerWebDefaultStaticPlugin
 			
 				args.put( "filename", canonical_file.toString());
 			
-				handleTemplate( args, os );
+				handleTemplate( params, args, os );
 
 				return( true );
 				

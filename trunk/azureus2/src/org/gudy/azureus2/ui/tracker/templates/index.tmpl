@@ -29,10 +29,10 @@
         <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
           <thead>
             <tr>
-              <td width="30%" bgcolor="#FFDEAD">Torrent</td>
+              <td width="26%" bgcolor="#FFDEAD">Torrent</td>
               <td width="10%" bgcolor="#FFDEAD">Status</td>
               <td width="10%" bgcolor="#FFDEAD">Size</td>
-              <td width="8%" bgcolor="#FFDEAD">Seeds</td>
+              <td width="6%" bgcolor="#FFDEAD">Seeds</td>
               <td width="6%" bgcolor="#FFDEAD">Peers</td>
               <td width="6%" bgcolor="#FFDEAD">Tot Up</td>
               <td width="6%" bgcolor="#FFDEAD">Tot Down</td>
@@ -40,6 +40,7 @@
               <td width="6%" bgcolor="#FFDEAD">Ave Down</td>
               <td width="6%" bgcolor="#FFDEAD">Left</td>
               <td width="6%" bgcolor="#FFDEAD">Comp</td>
+              <td width="6%" bgcolor="#FFDEAD">More</td>
             </tr>
             </thread>
 
@@ -47,7 +48,7 @@
 
             <tr>
               <td>
-              <a href"<tmpl_var url>><tmpl_var name></a></td>
+              <a href="<tmpl_var download_url>"><tmpl_var name></a></td>
               <td><tmpl_var status></td>
               <td><tmpl_var size></td>
               <td><b>
@@ -64,6 +65,7 @@
               <td><tmpl_var download_speed></td>
               <td><tmpl_var total_left></td>
               <td><tmpl_var completed></td>
+              <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
             </tr>
 
 		</tmpl_loop>

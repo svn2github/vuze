@@ -435,6 +435,8 @@ TRTrackerServerProcessor
 				
 				String	message = e.getMessage();
 				
+				//e.printStackTrace();
+				
 				if ( message == null || message.length() == 0 ){
 
 					e.printStackTrace();
