@@ -71,9 +71,12 @@ public class ConfigurationDefaults {
   public ConfigurationDefaults() {
     def = new HashMap();
     
-    /** General settings **/
-    // Default save directory
-    def.put("General_sDefaultSave_Directory", SystemProperties.getUserPath()+"download");
+    
+    
+    //NOTE: only used in the console UI AFAIK; replaced by "Default save path"
+    def.put("General_sDefaultSave_Directory", SystemProperties.getUserPath()+"downloads");
+    
+    
     // Default torrent directory
     def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
     
@@ -119,7 +122,7 @@ public class ConfigurationDefaults {
     def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
     def.put("General_bEnableLanguageUpdate", new Long(0));
     def.put("Use default data dir", new Long(1));
-    def.put("Default save path", "");
+    def.put("Default save path", SystemProperties.getUserPath()+"downloads");
     def.put("GUI_SWT_bFancyTab", new Long(1));
     def.put("GUI_SWT_bAlternateTablePainting", new Long(0));
     def.put("update.start",new Long(1));
