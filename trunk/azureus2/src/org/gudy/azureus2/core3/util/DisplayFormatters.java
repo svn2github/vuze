@@ -367,4 +367,17 @@ DisplayFormatters
   	
   	return( temp.format(new Date(date)));
   }
+  
+  public static String
+  formatDateShort(
+    long    date )
+  {
+    if ( date == 0 ){
+      return( "" );
+    }
+    
+    SimpleDateFormat temp = new SimpleDateFormat("MMM dd, HH:mm a");
+    
+    return( temp.format(new Date(date)));
+  }
 }
