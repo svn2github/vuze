@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -45,5 +46,21 @@ public class Utils {
     }    
     composite.dispose();
   }
+  
+  public static void changeBackgroundComposite(Composite composite,Color color) {
+      if(composite == null || composite.isDisposed())
+          return;
+      Control[] controls = composite.getChildren();
+      for(int i = 0 ; i < controls.length ; i++) {
+        Control control = controls[i];                
+        if(control != null && ! control.isDisposed()) {
+          if(control instanceof Composite) {
+            changeBackgroundComposite((Composite) control,color);
+          }
+          control.setBackground(color);
+        }
+      }    
+      composite.setBackground(color);
+    }
 
 }

@@ -114,6 +114,8 @@ public class MainWindow implements GlobalManagerListener {
   public static Color grey;
   public static Color red;
   public static Color white;
+  private static Color background;
+  
   public static Color red_ConsoleView;
   public static Color red_ManagerItem;
   public static Cursor handCursor;
@@ -346,6 +348,7 @@ public class MainWindow implements GlobalManagerListener {
       grey = new Color(display, new RGB(170, 170, 170));
       red = new Color(display, new RGB(255, 0, 0));
       white = new Color(display, new RGB(255, 255, 255));
+      background = new Color(display , new RGB(248,248,248));
       red_ConsoleView = new Color(display, new RGB(255, 192, 192));
       red_ManagerItem = new Color(display, new RGB(255, 68, 68));
       handCursor = new Cursor(display, SWT.CURSOR_HAND);
@@ -1666,6 +1669,25 @@ public class MainWindow implements GlobalManagerListener {
 	 */
   public TrayWindow getTray() {
     return tray;
+  }
+
+  /**
+   * @return Returns the background.
+   */
+  public Color getBackground() {
+    return background;
+  }
+
+  /**
+   * @param background The background to set.
+   */
+  public void setBackground(Color background) {
+    if(MainWindow.background != null && !MainWindow.background.isDisposed()) {
+      Color old = MainWindow.background;
+      MainWindow.background = background;
+      old.dispose();
+    }
+    
   }
 
 }

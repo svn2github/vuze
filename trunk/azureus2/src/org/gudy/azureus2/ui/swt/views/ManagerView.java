@@ -9,6 +9,8 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -20,11 +22,18 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class ManagerView extends AbstractIView {
 
   DownloadManager manager;
+  TabFolder folder;
+  TabItem itemGeneral;
+  TabItem itemDetails;
+  TabItem itemPieces;
+  TabItem itemFiles;
+  /*
   CTabFolder folder;
   CTabItem itemGeneral;
   CTabItem itemDetails;
   CTabItem itemPieces;
   CTabItem itemFiles;
+  */
   IView viewGeneral;
   IView viewDetails;
   IView viewPieces;
@@ -78,13 +87,20 @@ public class ManagerView extends AbstractIView {
    */
   public void initialize(Composite composite) {
   	if (folder == null) {
-    	folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
-    	folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
+      folder = new TabFolder(composite, SWT.LEFT);
+      folder.setBackground(MainWindow.getWindow().getBackground());
+    	//folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
+    	//folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
   	}
+    itemGeneral = new TabItem(folder, SWT.NULL);
+    itemDetails = new TabItem(folder, SWT.NULL);
+    itemPieces  = new TabItem(folder, SWT.NULL);
+    itemFiles   = new TabItem(folder, SWT.NULL);
+    /*
     itemGeneral = new CTabItem(folder, SWT.NULL);
     itemDetails = new CTabItem(folder, SWT.NULL);
     itemPieces = new CTabItem(folder, SWT.NULL);
-    itemFiles = new CTabItem(folder, SWT.NULL);
+    itemFiles = new CTabItem(folder, SWT.NULL);*/
     viewGeneral = new GeneralView(manager);
     viewGeneral.initialize(folder);
     viewDetails = new PeersView(manager);
@@ -101,7 +117,8 @@ public class ManagerView extends AbstractIView {
     itemPieces.setControl(viewPieces.getComposite());
     Messages.setLanguageText(itemFiles, viewFiles.getData());
     itemFiles.setControl(viewFiles.getComposite());
-    folder.setSelection(itemGeneral);
+    TabItem items[] = {itemGeneral};
+    folder.setSelection(items);
     manager.addListener((PiecesView)viewPieces);
     manager.addListener((PeersView)viewDetails);
   }

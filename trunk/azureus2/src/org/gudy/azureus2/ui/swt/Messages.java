@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Widget;
@@ -46,6 +48,13 @@ public class Messages {
     if (composite instanceof CTabFolder) {
       CTabFolder folder = (CTabFolder) composite;
       CTabItem[] items = folder.getItems();
+      for (int i = 0; i < items.length; i++) {
+        updateLanguageForControl(items[i]);
+        updateLanguageForControl(items[i].getControl());
+      }
+    } else if (composite instanceof TabFolder) {
+      TabFolder folder = (TabFolder) composite;
+      TabItem[] items = folder.getItems();
       for (int i = 0; i < items.length; i++) {
         updateLanguageForControl(items[i]);
         updateLanguageForControl(items[i].getControl());
@@ -102,6 +111,8 @@ public class Messages {
          ((Button) widget).setText(MessageText.getString((String) widget.getData()));
       else if (widget instanceof CTabItem)
          ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
+      else if (widget instanceof TabItem)
+         ((TabItem) widget).setText(MessageText.getString((String) widget.getData()));
       else if(widget instanceof Shell) 
         ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
       else

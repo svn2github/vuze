@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -96,7 +98,8 @@ public class ConfigView extends AbstractIView {
   IpFilter filter;
 
   Composite cConfig;
-  CTabFolder ctfConfig;
+  //CTabFolder ctfConfig;
+  TabFolder tfConfig;
   Table table;
   Label passwordMatch;
 
@@ -115,21 +118,25 @@ public class ConfigView extends AbstractIView {
     configLayout.numColumns = 2;
     cConfig.setLayout(configLayout);
 
-    ctfConfig = new CTabFolder(cConfig, SWT.TOP | SWT.FLAT);
-    ctfConfig.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
+    tfConfig = new TabFolder(cConfig, SWT.TOP | SWT.FLAT);
+    //ctfConfig = new CTabFolder(cConfig, SWT.TOP | SWT.FLAT);
+    //ctfConfig.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
     
-    CTabItem itemFile = initGroupFile();
+    TabItem itemFile = initGroupFile();
+    //CTabItem itemFile = initGroupFile();
+    
     initGroupServer();
     initGroupDownloads();
     initGroupTransfer();
     initGroupDisplay();
     initGroupIrc();
-	initGroupFilter();
-	initStats();
+    initGroupFilter();
+    initStats();
     
     initSaveButton(); 
-       
-    ctfConfig.setSelection(itemFile);
+    TabItem[] items = {itemFile};
+    tfConfig.setSelection(items);
+    Utils.changeBackgroundComposite(cConfig,MainWindow.getWindow().getBackground());
   }
 
   private void initSaveButton() {
@@ -152,10 +159,12 @@ public class ConfigView extends AbstractIView {
   private void initGroupFilter() {
     GridData gridData;
     Label label;
-    CTabItem itemFilter = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemFilter = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemFilter = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemFilter, "ipFilter.shortTitle"); //$NON-NLS-1$
 
-    Group gFilter = new Group(ctfConfig, SWT.NULL);
+    Group gFilter = new Group(tfConfig, SWT.NULL);
+    //Group gFilter = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.FILL_BOTH);
     gFilter.setLayoutData(gridData);
 
@@ -262,10 +271,12 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     GridLayout layout;
     Label label;
-    CTabItem itemIrc = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemIrc = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemIrc = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemIrc, "ConfigView.section.irc"); //$NON-NLS-1$
 
-    Group gIrc = new Group(ctfConfig, SWT.NULL);
+    Group gIrc = new Group(tfConfig, SWT.NULL);
+    //Group gIrc = new Group(ctfConfig, SWT.NULL);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gIrc.setLayoutData(gridData);
@@ -298,10 +309,12 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     GridLayout layout;
     Label label;
-    CTabItem itemDisplay = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemDisplay = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemDisplay = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemDisplay, "ConfigView.section.display"); //$NON-NLS-1$
 
-    Group gDisplay = new Group(ctfConfig, SWT.NULL);
+    Group gDisplay = new Group(tfConfig, SWT.NULL);
+    //Group gDisplay = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDisplay.setLayoutData(gridData);
     layout = new GridLayout();
@@ -384,10 +397,12 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     GridLayout layout;
     Label label;
-    CTabItem itemTransfer = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemTransfer = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemTransfer = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
 
-    Group gTransfer = new Group(ctfConfig, SWT.NULL);
+    Group gTransfer = new Group(tfConfig, SWT.NULL);
+    //Group gTransfer = new Group(ctfConfig, SWT.NULL);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTransfer.setLayoutData(gridData);
@@ -446,10 +461,12 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     GridLayout layout;
     Label label;
-    CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemDownloads = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemDownloads, "ConfigView.section.seeding"); //$NON-NLS-1$
 
-    Group gDownloads = new Group(ctfConfig, SWT.NULL);
+    Group gDownloads = new Group(tfConfig, SWT.NULL);
+    //Group gDownloads = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDownloads.setLayoutData(gridData);
     layout = new GridLayout();
@@ -533,10 +550,12 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     GridLayout layout;
     Label label;
-    CTabItem itemServer = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemServer = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemServer = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemServer, "ConfigView.section.server"); //$NON-NLS-1$
 
-    Group gServer = new Group(ctfConfig, SWT.NULL);
+    Group gServer = new Group(tfConfig, SWT.NULL);
+    //Group gServer = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gServer.setLayoutData(gridData);
     layout = new GridLayout();
@@ -570,12 +589,15 @@ public class ConfigView extends AbstractIView {
     itemServer.setControl(gServer);
   }
 
-  private CTabItem initGroupFile() {
+  private TabItem initGroupFile() {
+  //private CTabItem initGroupFile() {
     GridData gridData;
-    CTabItem itemFile = new CTabItem(ctfConfig, SWT.NULL);
+    TabItem itemFile = new TabItem(tfConfig, SWT.NULL);
+    //CTabItem itemFile = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemFile, "ConfigView.section.files"); //$NON-NLS-1$
 
-    Group gFile = new Group(ctfConfig, SWT.NULL);
+    Group gFile = new Group(tfConfig, SWT.NULL);
+    //Group gFile = new Group(ctfConfig, SWT.NULL);
 
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
@@ -628,7 +650,8 @@ public class ConfigView extends AbstractIView {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+        //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
         dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
         String path = dialog.open();
@@ -652,7 +675,8 @@ public class ConfigView extends AbstractIView {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+        //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(torrentPathParameter.getValue());
         dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath")); //$NON-NLS-1$
         String path = dialog.open();
@@ -680,7 +704,8 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(browse3, "ConfigView.button.browse"); //$NON-NLS-1$
     browse3.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+        //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(movePathParameter.getValue());
         dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); //$NON-NLS-1$
         String path = dialog.open();
@@ -717,10 +742,12 @@ public class ConfigView extends AbstractIView {
 	 GridData gridData;
 	 GridLayout layout;
 	 Label label;
-	 CTabItem itemStats = new CTabItem(ctfConfig, SWT.NULL);
+   TabItem itemStats = new TabItem(tfConfig, SWT.NULL);
+	 //CTabItem itemStats = new CTabItem(ctfConfig, SWT.NULL);
 	 Messages.setLanguageText(itemStats, "ConfigView.section.stats"); //$NON-NLS-1$
 
-	 Group gStats = new Group(ctfConfig, SWT.NULL);
+   Group gStats = new Group(tfConfig, SWT.NULL);
+	 //Group gStats = new Group(ctfConfig, SWT.NULL);
 	 gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 	 gStats.setLayoutData(gridData);
 	 layout = new GridLayout();
@@ -751,7 +778,8 @@ public class ConfigView extends AbstractIView {
 	   * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 	   */
 	  public void handleEvent(Event event) {
-		DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+      DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+		//DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
 		dialog.setFilterPath(pathParameter.getValue());
 		dialog.setText(MessageText.getString("ConfigView.section.stats.choosedefaultsavepath")); //$NON-NLS-1$
 		String path = dialog.open();
@@ -865,7 +893,8 @@ public class ConfigView extends AbstractIView {
 
   public void updateLanguage() {
     super.updateLanguage();
-    ctfConfig.setSize(ctfConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    tfConfig.setSize(tfConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    //ctfConfig.setSize(ctfConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   /* (non-Javadoc)
@@ -873,7 +902,8 @@ public class ConfigView extends AbstractIView {
    */
   public void delete() {
     MainWindow.getWindow().setConfig(null);
-    Utils.disposeComposite(ctfConfig);
+    Utils.disposeComposite(tfConfig);
+    //Utils.disposeComposite(ctfConfig);
   }
 
   /* (non-Javadoc)
@@ -914,11 +944,13 @@ public class ConfigView extends AbstractIView {
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), range);
+    new IpFilterEditor(tfConfig.getDisplay(), table, filter.getIpRanges(), range);
+    //new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), range);
   }
 
   public void addRange() {
-    new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), null);
+    new IpFilterEditor(tfConfig.getDisplay(), table, filter.getIpRanges(), null);
+    //new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), null);
   }
 
 }

@@ -9,6 +9,7 @@ import java.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -96,7 +97,7 @@ public class GeneralView extends AbstractIView {
   public void initialize(Composite composite) {
     this.display = composite.getDisplay();
 
-    genComposite = new Composite(composite, SWT.NULL);
+    genComposite = new Canvas(composite, SWT.NULL);
     GridLayout genLayout = new GridLayout();
     genLayout.numColumns = 1;
     genComposite.setLayout(genLayout);
@@ -142,6 +143,7 @@ public class GeneralView extends AbstractIView {
     piecesPercent.setLayoutData(gridData);
 
     gAvailability = new Group(genComposite, SWT.SHADOW_OUT);
+    gAvailability.setBackground(MainWindow.getWindow().getBackground());
     Messages.setLanguageText(gAvailability, "GeneralView.section.availability"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gAvailability.setLayoutData(gridData);
@@ -336,6 +338,8 @@ public class GeneralView extends AbstractIView {
         Arrays.fill(pieces, false);
       }
     });
+    
+    Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
 
   /* (non-Javadoc)
