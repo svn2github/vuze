@@ -93,8 +93,7 @@ public class UploadManager {
       public void messageAdded( ProtocolMessage message ) {
         if( message.getType() == BTProtocolMessage.BT_PIECE ) {  //is sending piece data
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
-            conn_data.state = ConnectionData.STATE_UPGRADED;
-
+            
             standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
               public int getCurrentNumBytesAllowed() {
                 ByteBucket group_bucket;
@@ -138,6 +137,7 @@ public class UploadManager {
                 standard_bucket.setBytesUsed( num_bytes_written );
               }
             });
+            conn_data.state = ConnectionData.STATE_UPGRADED;
           }
         }
       }
@@ -177,8 +177,8 @@ public class UploadManager {
     }
     finally{ standard_peer_connections_mon.exit(); }
     
-    standard_entity_controller.registerPeerConnection( connection );
     connection.getOutgoingMessageQueue().registerQueueListener( listener );
+    standard_entity_controller.registerPeerConnection( connection );
   }
   
   

@@ -78,13 +78,15 @@ public class WriteController {
       if( check_high_first ) {
         ready_entity = getNextReadyHighPriorityEntity();
         if( ready_entity != null ) { //ready high entity found
-          ready_entity.doWrite();
+          boolean success = ready_entity.doWrite();
+          if( !success ) System.out.println( "doWrite0 failed" );
           check_high_first = false; //start with normal next round
         }
         else { //none ready in high-priority, so check normal-priority
           ready_entity = getNextReadyNormalPriorityEntity();
           if( ready_entity != null ) { //ready normal entity found
-            ready_entity.doWrite();
+            boolean success = ready_entity.doWrite();
+            if( !success ) System.out.println( "doWrite1 failed" );
           }
           else { //none ready in normal-priority either, so sleep
             try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
@@ -95,12 +97,14 @@ public class WriteController {
         check_high_first = true; //start with high next round
         ready_entity = getNextReadyNormalPriorityEntity();
         if( ready_entity != null ) { //ready normal entity found
-          ready_entity.doWrite();
+          boolean success = ready_entity.doWrite();
+          if( !success ) System.out.println( "doWrite2 failed" );
         }
         else { //none ready in normal-priority, so check high-priority
           ready_entity = getNextReadyHighPriorityEntity();
           if( ready_entity != null ) { //ready high entity found
-            ready_entity.doWrite();
+            boolean success = ready_entity.doWrite();
+            if( !success ) System.out.println( "doWrite3 failed" );
             check_high_first = false;  //start with normal again next round
           }
           else { //none ready in high-priority either, so sleep
