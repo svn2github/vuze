@@ -434,8 +434,9 @@ public class ConfigView extends AbstractIView {
     
     final String _sPluginDir = sPluginDir;
     
+    //TODO : Fix it for windows
     label.addMouseListener(new MouseAdapter() {
-      public void mouseDown(MouseEvent arg0) {
+      public void mouseUp(MouseEvent arg0) {
         if(_sPluginDir.endsWith("/plugins/")) {
           File f = new File(_sPluginDir);
           if(f.exists() && f.isDirectory()) {

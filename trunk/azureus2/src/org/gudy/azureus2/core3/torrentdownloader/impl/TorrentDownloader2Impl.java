@@ -121,7 +121,7 @@ TorrentDownloader2Impl
 					
 					total_read += read;
 			        
-					if (size != 0){
+					if (size > 0){
 						
 						informPercentDone(( 100 * total_read ) / size );
 					}
