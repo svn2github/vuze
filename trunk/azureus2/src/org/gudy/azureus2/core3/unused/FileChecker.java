@@ -2,11 +2,12 @@
  * Created on 3 juil. 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.unused;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
+import org.gudy.azureus2.core.DiskManager;
 import org.gudy.azureus2.core3.torrent.*;
 
 /**
