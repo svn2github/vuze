@@ -125,8 +125,11 @@ public class Identification {
       }
       
       
-      String g3torrent = new String(peerID, 0, 12, Constants.BYTE_ENCODING);
-      if (g3torrent.equals("-G3g3rmz    ")) return "G3 Torrent";
+      //String g3torrent = new String(peerID, 0, 12, Constants.BYTE_ENCODING);
+      //if (g3torrent.equals("-G3g3rmz    ")) return "G3 Torrent";
+      // changed for bug 926066
+      String g3torrent = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
+      if (g3torrent.equals("-G3")) return "G3 Torrent";
       
       
       String bittorrentplus = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
