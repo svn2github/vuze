@@ -48,10 +48,10 @@ GlobalManagerStatsImpl
 	  GlobalManagerStatsImpl()
 	  {
 
-		//average over 10s, update every 2000ms.
-		receptionSpeed = Average.getInstance(2000, 15);
+		//average over 10s, update every 1000ms.
+		receptionSpeed = Average.getInstance(1000, 10);
 
-		//average over 5s, update every 100ms.
+		//average over 5s, update every 1000ms.
 		sendingSpeed = Average.getInstance(1000, 5);
 	  }
   
