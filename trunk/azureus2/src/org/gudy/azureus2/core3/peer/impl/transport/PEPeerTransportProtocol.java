@@ -1347,13 +1347,13 @@ PEPeerTransportProtocol
           return true;
         }
         
+        connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
+        
         if( message.getID().equals( BTMessage.ID_BT_BITFIELD ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
           decodeBitfield( (BTBitfield)message );
           return true;
         }
-        
-        connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-          
+         
         if( message.getID().equals( BTMessage.ID_BT_CHOKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
           decodeChoke( (BTChoke)message );
           return true;
