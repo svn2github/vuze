@@ -257,9 +257,6 @@ public class MainMenu {
       final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL); 
       Messages.setLanguageText(itemResume,"MainWindow.menu.download.resumedownloads");
 
-      final Object[]	currentPauseData = new Object[1];
-      
-      
       itemStartAll.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
         	mainWindow.getGlobalManager().startAllDownloads();
@@ -275,14 +272,14 @@ public class MainMenu {
       itemPause.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) 
         {
-        	currentPauseData[0] = mainWindow.getGlobalManager().pauseDownloads();
+        	mainWindow.getGlobalManager().pauseDownloads();
         }
       });
       
       itemResume.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) 
         {
- 			mainWindow.getGlobalManager().resumeDownloads(currentPauseData[0]);
+          mainWindow.getGlobalManager().resumeDownloads();
         }
       });
       
@@ -293,14 +290,9 @@ public class MainMenu {
     			menuShown(
     				MenuEvent	menu )
           		{
-         			boolean	can_pause = 	mainWindow.getGlobalManager().canPauseDownloads();
-	
-         			itemPause.setEnabled(can_pause);
-         			
-          			boolean	can_resume = 	currentPauseData[0] != null &&
-          									mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
-          			
-          			itemResume.setEnabled(can_resume);
+          		  itemPause.setEnabled( mainWindow.getGlobalManager().canPauseDownloads() );
+         			          			
+          		  itemResume.setEnabled( mainWindow.getGlobalManager().canResumeDownloads() );
           		}
           		
         		public void

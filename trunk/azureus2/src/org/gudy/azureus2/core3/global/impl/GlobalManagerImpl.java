@@ -136,6 +136,10 @@ public class GlobalManagerImpl
   
   private TorrentFolderWatcher torrent_folder_watcher;
   
+  private ArrayList paused_list = new ArrayList();
+  
+  
+  
   
   /* Whether the GlobalManager is active (false) or stopped (true) */
   private boolean 					isStopped = false;
@@ -638,122 +642,80 @@ public class GlobalManagerImpl
     }
   }
   
+  
+  
+  public void pauseDownloads() {
+    for( Iterator i = managers.iterator(); i.hasNext(); ) {
+      DownloadManager manager = (DownloadManager)i.next();
+      
+      if ( manager.getTorrent() == null ) {
+        continue;
+      }
+      
+      int state = manager.getState();
+      
+      if( state != DownloadManager.STATE_STOPPED &&
+          state != DownloadManager.STATE_ERROR &&
+          state != DownloadManager.STATE_STOPPING ) {
+        
+        try {
+          manager.stopIt( DownloadManager.STATE_STOPPED );
+          paused_list.add( manager.getTorrent().getHashWrapper() );
+        }
+        catch( TOTorrentException e ) {  Debug.printStackTrace( e );  }
+      }
+    }
+  }
+  
+  
+  public boolean canPauseDownloads() {
+    for( Iterator i = managers.iterator(); i.hasNext(); ) {
+      DownloadManager manager = (DownloadManager)i.next();
+      
+      if( manager.getTorrent() == null ) {
+        continue;
+      }
+      
+      int state = manager.getState();
+      
+      if( state != DownloadManager.STATE_STOPPED &&
+          state != DownloadManager.STATE_ERROR &&
+          state != DownloadManager.STATE_STOPPING ) {
+        
+        return true;
+      }
+    }
+    
+    return false;
+  }
 
-  	public Object
-	pauseDownloads()
-  	{
-  		List	result = new ArrayList();
-  		
-  		for (Iterator iter = managers.iterator(); iter.hasNext();){
-  			
-  			DownloadManager manager = (DownloadManager) iter.next();
-  			
-  			if ( manager.getTorrent() == null ){
-  				
-  				continue;
-  			}
-  			
-  			int	state = manager.getState();
-  			
-  			if ( 	state != DownloadManager.STATE_STOPPED &&
-  					state != DownloadManager.STATE_ERROR &&
-					state != DownloadManager.STATE_STOPPING ){
-  				
-  		
-  				try{
-  				
-  					manager.stopIt(DownloadManager.STATE_STOPPED);
-  					
-  					result.add( manager.getTorrent().getHashWrapper());
-  					
-  				}catch( TOTorrentException e ){
-  					
-  					Debug.printStackTrace( e );
-  				}
-  			}
-  		}
-  		
-  		return( result );
-  	}
+
+  public void resumeDownloads() {
+    for( int i=0; i < paused_list.size(); i++ ) {      
+      HashWrapper hash = (HashWrapper)paused_list.get( i );
+      DownloadManager manager = getDownloadManager( hash.getHash() );
+      
+      if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+        manager.startDownloadInitialized( true );
+      }
+    }
+    paused_list.clear();
+  }
+
+
+  public boolean canResumeDownloads() {
+    for( int i=0; i < paused_list.size(); i++ ) {      
+      HashWrapper hash = (HashWrapper)paused_list.get( i );
+      DownloadManager manager = getDownloadManager( hash.getHash() );
+      
+      if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
   
-  	public boolean
-	canPauseDownloads()
-  	{
-  		List	result = new ArrayList();
-  		
-  		for (Iterator iter = managers.iterator(); iter.hasNext();){
-  			
-  			DownloadManager manager = (DownloadManager) iter.next();
-  			
-  			if ( manager.getTorrent() == null ){
-  				
-  				continue;
-  			}
-  			
-  			int	state = manager.getState();
-  			
-  			if ( 	state != DownloadManager.STATE_STOPPED &&
-  					state != DownloadManager.STATE_ERROR &&
-					state != DownloadManager.STATE_STOPPING ){
-  				
-  				return( true );
-  			}
-  		}
-  		
-  		return( false );
-  	}
-  	
-  	public void
-	resumeDownloads(
-		Object	pause_state )
-  	{
-  		if ( pause_state == null ){
-  			
-  			return;
-  		}
-  		
-  		List	hashes = (List)pause_state;
-  		
-  		for (int i=0;i<hashes.size();i++){
-  			
-  			HashWrapper	hash = (HashWrapper)hashes.get(i);
-  			
-  			DownloadManager	manager = getDownloadManager( hash.getHash());
-  			
-  			if ( 	manager != null && 
-  					manager.getState() == DownloadManager.STATE_STOPPED ){
-  				
-  				manager.startDownloadInitialized(true);
-  			}
-  		}
-  	}
-  
-  	public boolean
-	canResumeDownloads(
-		Object	pause_state )
-  	{
-  		if ( pause_state == null ){
-  			
-  			return( false );
-  		}
-  		
- 		List	hashes = (List)pause_state;
-  		
-  		for (int i=0;i<hashes.size();i++){
-  			
-  			HashWrapper	hash = (HashWrapper)hashes.get(i);
-  			
-  			DownloadManager	manager = getDownloadManager( hash.getHash());
-  			
-  			if ( 	manager != null && 
-  					manager.getState() == DownloadManager.STATE_STOPPED ){
-  		
-  				return( true );
-  			}
-  		}
-  		
-  		return( false );
-  	}
   
   
   private void loadDownloads(AzureusCoreListener listener) 

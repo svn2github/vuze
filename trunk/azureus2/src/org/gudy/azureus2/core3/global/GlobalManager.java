@@ -105,36 +105,36 @@ GlobalManager
      * @return an object to supply when resuming the downloads - defines the paused state
      */
     
-    public Object
-	pauseDownloads();
+    
     
     /**
-     * indicates whether or not there are 1 or more downloads that can be paused
-     * @return
+     * Pauses (stops) all running downloads/seedings.
      */
+    public void pauseDownloads();
     
- 	public boolean
-	canPauseDownloads();
-  	
+
     /**
-     * resume (starts) all downloads paused by an earlier pauseDownloads call
-     * @param pause_state
+     * Indicates whether or not there are any downloads that can be paused.
+     * @return true if there is at least one download to pause, false if none
      */
-    
-    public void
-	resumeDownloads(
-		Object	pause_state );
+    public boolean canPauseDownloads();
+
+ 	
+    /**
+     * Resumes (starts) all downloads paused by the previous pauseDownloads call.
+     */
+    public void resumeDownloads();
+
     
     /**
-     * Indicates whether the supplied "pause state" is still valid (refers to downloads that aren't running)
-     * @param pause_state
-     * @return
+     * Indicates whether or not there are any paused downloads to resume.
+     * @return true if there is at least one download to resume, false if none.
      */
+    public boolean canResumeDownloads();
     
-    public boolean
-	canResumeDownloads(
-		Object	pause_state );
-	
+    
+    
+    
 	public TRTrackerScraper
 	getTrackerScraper();
 	

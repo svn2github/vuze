@@ -113,17 +113,16 @@ public class SystemTraySWT {
       }
     });
     
-    final Object[] currentPauseData = { null };
     
     itemPause.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-        	currentPauseData[0] = SystemTraySWT.this.mainWindow.getGlobalManager().pauseDownloads();
+        	SystemTraySWT.this.mainWindow.getGlobalManager().pauseDownloads();
         }
       });
       
     itemResume.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-          SystemTraySWT.this.mainWindow.getGlobalManager().resumeDownloads(currentPauseData[0]);
+          SystemTraySWT.this.mainWindow.getGlobalManager().resumeDownloads();
         }
       });
       
@@ -135,15 +134,9 @@ public class SystemTraySWT {
     			menuShown(
     				MenuEvent	_menu )
           		{
-           			boolean	can_pause = 	SystemTraySWT.this.mainWindow.getGlobalManager().canPauseDownloads();
-           			
-           		  	itemPause.setEnabled(can_pause);
-           		  
-          			boolean	can_resume = 	
-          				currentPauseData[0] != null &&
-						SystemTraySWT.this.mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
+          		  itemPause.setEnabled( SystemTraySWT.this.mainWindow.getGlobalManager().canPauseDownloads() );
           			
-          			itemResume.setEnabled(can_resume);
+          			itemResume.setEnabled( SystemTraySWT.this.mainWindow.getGlobalManager().canResumeDownloads() );
           		}
           		
         		public void
