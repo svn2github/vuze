@@ -306,7 +306,16 @@ AuthenticatorWindow
 		 	});
 	    
 			shell.setDefaultButton( bOk );
+			
+			shell.addListener(SWT.Traverse, new Listener() {	
+				public void handleEvent(Event e) {
+					if ( e.character == SWT.ESC){
+						close( false );
+					}
+				}
+			});
 
+		
 		 	shell.pack ();
 		 	
 			Utils.centreWindow( shell );
