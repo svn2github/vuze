@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.tracker.server.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 TRTrackerServerNATChecker 
@@ -179,7 +180,8 @@ TRTrackerServerNATChecker
 			
 			if ( check_queue.size() > CHECK_QUEUE_LIMIT ){
 				
-				Debug.out( "NAT Check queue size too large, check skipped" );
+				LGLogger.log( "NAT Check queue size too large, check for '" + host + ":" + port + "' skipped" );
+				//Debug.out( "NAT Check queue size too large, check skipped" );
 				
 				listener.NATCheckComplete( true );
 				
