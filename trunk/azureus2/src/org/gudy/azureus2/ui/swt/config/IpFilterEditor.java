@@ -124,6 +124,8 @@ public class IpFilterEditor {
         	        items[i].setText(0, range.getDescription());
         	        items[i].setText(1, range.getStartIp());
         	        items[i].setText(2, range.getEndIp());
+        	        
+        	        break;
         	   	}
         	}
         }
