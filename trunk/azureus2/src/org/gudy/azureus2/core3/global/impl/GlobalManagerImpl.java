@@ -731,6 +731,12 @@ public class GlobalManagerImpl
             stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
           }
           
+          Long already_allocated = (Long)mDownload.get( "allocated" );
+          if( already_allocated != null && already_allocated.intValue() == 1 ) {
+            dm.setDataAlreadyAllocated( true );
+          }
+          
+          
           //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
           try {
           	//load file priorities
@@ -817,6 +823,7 @@ public class GlobalManagerImpl
           List file_priorities = (List)dm.getData( "file_priorities" );
           if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
 
+          dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
           
 		      list.add(dmMap);
 	      }

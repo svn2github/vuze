@@ -32,6 +32,7 @@ BUGFIX: Core | Don't delete the imported .torrent file if the import dir happens
 BUGFIX: Core | Torrents leave READY state quicker after other torrents are re-queued [TuxPaper]
 BUGFIX: Core | Fix for Fast Resume not working when a 0-byte file exists in the torrent [Nolar]
 BUGIFX: Core | Fix for Fast Resume not working when Incremental File Creation is enabled [Nolar]
+BUGFIX: Core | Show error message if previously-allocated data cannot be found, instead of re-creating it [Nolar]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Bug #966867: Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]

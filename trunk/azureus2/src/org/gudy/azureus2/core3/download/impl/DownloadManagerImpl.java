@@ -232,6 +232,9 @@ DownloadManagerImpl
 	private PEPeerManagerListener	peer_manager_listener;
 
   private HashMap data;
+  
+  private boolean data_already_allocated = false;
+  
    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	public 
@@ -1479,4 +1482,12 @@ DownloadManagerImpl
       data.put(key, value);
     }
   }
+  
+  
+  public boolean isDataAlreadyAllocated() {  return data_already_allocated;  }
+  
+  public void setDataAlreadyAllocated( boolean already_allocated ) {
+    data_already_allocated = already_allocated;
+  }
+    
 }

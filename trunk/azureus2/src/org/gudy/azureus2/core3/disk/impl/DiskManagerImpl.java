@@ -1042,6 +1042,14 @@ DiskManagerImpl
         allocated += length;
       }
       else {  //we need to allocate it
+        
+        //make sure it hasn't previously been allocated
+        if( dmanager.isDataAlreadyAllocated() ) {
+          this.errorMessage = "Pre-existing file not found: " + f.getAbsolutePath();
+          setState( FAULTY );
+          return -1;
+        }
+        
         try {
           File directory = new File( tempPath );
           if( !directory.exists() ) {
@@ -1087,6 +1095,8 @@ DiskManagerImpl
 		}
     
     loadFilePriorities();
+    
+    dmanager.setDataAlreadyAllocated( true );
     
 		return numNewFiles;
 	}

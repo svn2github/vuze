@@ -307,4 +307,21 @@ DownloadManager
   public Object getData (String key);
   /** To store arbitrary objects against this object. */
   public void setData (String key, Object value);
+  
+  
+  /**
+   * Determine whether disk allocation has already been done.
+   * Used for checking if data is missing on a previously-loaded torrent.
+   * @return true if data files have already been allocated
+   */
+  public boolean isDataAlreadyAllocated();
+  
+  /**
+   * Set whether data allocation has already been done, so we know
+   * when to allocate and when to throw a missing-data error message.
+   * @param already_allocated
+   */
+  public void setDataAlreadyAllocated( boolean already_allocated );
+  
+  
 }
