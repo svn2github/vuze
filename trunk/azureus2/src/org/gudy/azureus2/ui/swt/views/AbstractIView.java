@@ -33,7 +33,8 @@ public abstract class AbstractIView implements IView {
    */
   public void delete(){
     Composite comp = getComposite();
-    Utils.disposeComposite(comp);
+    if (!comp.isDisposed())
+      comp.dispose();
   }
 
   public String getData(){ return null; }
