@@ -37,8 +37,9 @@ CHANGE: UI   | New .torrent file icon for Mac OS X [CrazyAlchemist]
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
 BUGFIX: UI   | Corrected save dialog behaviour on Make Torrent Wizard regarding file selection [CrazyAlchemist]
-BUGFIX: UI   | Bug #953619 concerning Mac OS X: Double-clicking .torrent files and launching torrent:// URIs now activate Azureus with the expected Finder dialogs (Dragging files to the Dock icon will continue to malfunction for the indefinite future) [CrazyAlchemist]
+BUGFIX: UI   | Bug #953619 concerning Mac OS X: Double-clicking .torrent files now activate Azureus with the expected Finder dialogs (Dragging files to the Dock icon will continue to malfunction for the indefinite future) [CrazyAlchemist]
 BUGFIX: UI   | Bug #1120995: Improper validation could allow unreasonably low global upload cap [CrazyAlchemist]
+BUGFIX: UI   | Main window no longer tries to steal focus on opening (Mac OS X) [CrazyAlchemist]
 
 
 
