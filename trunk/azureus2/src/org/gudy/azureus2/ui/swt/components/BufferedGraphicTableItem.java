@@ -116,8 +116,8 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
     //         "ta="+table.getClientArea()+";bounds="+bounds, false);
 
+    Rectangle imageBounds = image.getBounds();
     if (fillCell) {
-      Rectangle imageBounds = image.getBounds();
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
 /*
@@ -136,6 +136,8 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
         //debugOut("doPaint() sizewrong", false);
         return;
       }
+    } else if (imageBounds.width < bounds.width) {
+      bounds.x += (bounds.width - imageBounds.width) / 2;
     }
     
     Rectangle tableBounds = table.getClientArea();
