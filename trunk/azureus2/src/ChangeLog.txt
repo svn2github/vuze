@@ -14,6 +14,7 @@ FEATURE: UDP tracker version 2 support added [Parg]
 FEATURE: Linux system tray support [Gudy]
 FEATURE: Right-click menu sorting of columns [TuxPaper]
 FEATURE: HTTP scrapes to same tracker combined into one request if tracker supports it [TuxPaper]
+FEATURE: In the Details view, pieces that we don't yet have from a peer are shown in inverse color [Nolar]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
