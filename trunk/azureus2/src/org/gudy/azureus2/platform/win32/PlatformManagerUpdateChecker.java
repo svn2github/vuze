@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 
 public class 
@@ -62,7 +63,7 @@ PlatformManagerUpdateChecker
 	
 	public void
 	checkForUpdate(
-		UpdateChecker	checker )
+		final UpdateChecker	checker )
 	{
 		String	current_dll_version = platform==null?"1.0":platform.getVersion();
 		
@@ -126,6 +127,44 @@ PlatformManagerUpdateChecker
 				
 				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 
+				final String f_target_dll_version	= target_dll_version;
+				
+				dll_rd.addListener( 
+						new ResourceDownloaderListener()
+						{
+							public void
+							reportPercentComplete(
+								ResourceDownloader	downloader,
+								int					percentage )
+							{								
+							}
+							
+							public void
+							reportActivity(
+								ResourceDownloader	downloader,
+								String				activity )
+							{	
+							}
+								
+							public boolean
+							completed(
+								final ResourceDownloader	downloader,
+								InputStream					data )
+							{	
+								installUpdate( checker, downloader, f_target_dll_version, data );
+									
+								return( true );
+							}
+							
+							public void
+							failed(
+								ResourceDownloader			downloader,
+								ResourceDownloaderException e )
+							{
+							}
+							
+						});
+
 				checker.addUpdate(
 						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
 						new String[]{"This DLL supports native operations such as file-associations" },
@@ -142,6 +181,32 @@ PlatformManagerUpdateChecker
 		}finally{
 			
 			checker.completed();
+		}
+	}
+	
+	protected void
+	installUpdate(
+		UpdateChecker		checker,
+		ResourceDownloader	rd,
+		String				version,
+		InputStream			data )
+	{
+		try{
+			String	temp_dll_name 	= PlatformManagerImpl.DLL_NAME + "_" + version + ".dll";
+			String	target_dll_name	= PlatformManagerImpl.DLL_NAME + ".dll";
+			
+			
+			UpdateInstaller	installer = checker.createInstaller();
+			
+			installer.addResource( temp_dll_name, data );
+			
+			installer.addMoveAction( 
+					temp_dll_name,
+					installer.getInstallDir() + File.separator + target_dll_name );
+			
+		}catch( Throwable e ){
+			
+			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
 	}
 }

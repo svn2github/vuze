@@ -82,6 +82,14 @@ UpdateCheckerImpl
 					downloaders, restart_required ));
 	}
 	
+	public UpdateInstaller
+	createInstaller()
+	
+		throws UpdateException
+	{
+		return( new UpdateInstallerImpl());
+	}
+
 	public synchronized void
 	completed()
 	{

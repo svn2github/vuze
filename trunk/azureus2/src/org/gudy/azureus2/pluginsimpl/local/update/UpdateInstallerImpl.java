@@ -1,0 +1,172 @@
+/*
+ * Created on 16-May-2004
+ * Created by Paul Gardner
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
+
+package org.gudy.azureus2.pluginsimpl.local.update;
+
+/**
+ * @author parg
+ *
+ */
+
+import java.io.*;
+
+import org.gudy.azureus2.plugins.update.*;
+
+import org.gudy.azureus2.core3.util.*;
+
+public class 
+UpdateInstallerImpl
+	implements UpdateInstaller
+{
+	protected static final String	UPDATE_DIR 	= "updates";
+	protected static final String	ACTIONS		= "install.act";
+	
+	protected File	install_dir;
+	
+	protected
+	UpdateInstallerImpl()
+	
+		throws UpdateException
+	{
+		synchronized( UpdateInstallerImpl.class){
+			
+			String	update_dir = getInstallDir() + File.separator + UPDATE_DIR;
+			
+			for (int i=1;i<1024;i++){
+				
+				File	try_dir = new File( update_dir + File.separator + "inst_" + i );
+								
+				if ( !try_dir.exists()){
+					
+					if ( !try_dir.mkdirs()){
+		
+						throw( new UpdateException( "Failed to create a temporary installation dir"));
+					}
+					
+					install_dir	= try_dir;
+					
+					break;
+				}
+			}
+			
+			if ( install_dir == null ){
+				
+				throw( new UpdateException( "Failed to find a temporary installation dir"));
+			}
+		}
+	}
+	
+	public void
+	addResource(
+		String			resource_name,
+		InputStream		is )
+	
+		throws UpdateException
+	{
+		try{
+			File	target_file = new File(install_dir, resource_name );
+		
+			FileUtil.copyFile( is, new FileOutputStream( target_file ));
+			
+		}catch( Throwable e ){
+			
+			throw( new UpdateException( "UpdateInstaller: resource addition fails", e ));
+		}
+	}
+		
+	public String
+	getInstallDir()
+	{
+		String	str = SystemProperties.getApplicationPath();
+		
+		if ( str.endsWith(File.separator)){
+			
+			str = str.substring(0,str.length()-1);
+		}
+		
+		return( str );
+	}
+		
+	public String
+	getUserDir()
+	{
+		String	str = SystemProperties.getUserPath();
+	
+		if ( str.endsWith(File.separator)){
+			
+			str = str.substring(0,str.length()-1);
+		}
+		
+		return( str );	
+	}
+	
+	public void
+	addMoveAction(
+		String		from_file_or_resource,
+		String		to_file )
+	
+		throws UpdateException
+	{
+		// System.out.println( "move action:" + from_file_or_resource + " -> " + to_file );
+		
+		if ( from_file_or_resource.indexOf(File.separator) == -1 ){
+			
+			from_file_or_resource = install_dir.toString() + File.separator + from_file_or_resource;
+		}
+		
+		appendAction( "move," + from_file_or_resource  + "," + to_file );
+	}
+	
+	protected void
+	appendAction(
+		String		data )
+	
+		throws UpdateException
+	{
+		PrintWriter	pw = null;
+	
+		try{		
+			
+			pw = new PrintWriter(new FileWriter( install_dir.toString() + File.separator + ACTIONS, true ));
+
+			pw.print( data );
+			
+		}catch( Throwable e ){
+			
+			throw( new UpdateException( "Failed to write actions file", e ));
+			
+		}finally{
+			
+			if ( pw != null ){
+		
+				try{
+		
+					pw.close();
+					
+				}catch( Throwable e ){
+	
+					throw( new UpdateException( "Failed to write actions file", e ));
+				}
+			}
+		}
+	}
+}

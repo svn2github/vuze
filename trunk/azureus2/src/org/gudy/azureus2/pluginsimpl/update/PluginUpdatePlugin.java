@@ -562,6 +562,8 @@ PluginUpdatePlugin
 										}
 									}
 									
+									final_target.getParentFile().mkdirs();
+									
 									entry_os = new FileOutputStream( final_target );
 								}
 								

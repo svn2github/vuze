@@ -58,6 +58,17 @@ UpdateChecker
 		int						restart_required );
 	
 		/**
+		 * For updates that require a stop, update-action and then start you create an installer.
+		 * This allows the specification of actions such as the replacement of a DLL 
+		 * @return
+		 */
+	
+	public UpdateInstaller
+	createInstaller()
+		
+		throws UpdateException;
+	
+		/**
 		 * Indicate that update checking is complete and that any updates required have
 		 * been added by the addUpdate methods
 		 */
