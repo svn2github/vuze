@@ -54,10 +54,13 @@ DownloadManagerImpl
 	private Vector	current_peers 	= new Vector();
 	private Vector	current_pieces	= new Vector();
   
-  	private DownloadManagerStatsImpl	stats;
-  	
+	private DownloadManagerStatsImpl	stats;
+	
+  private boolean startStopLocked;
   private int state;
+  
 
+  private boolean priorityLocked;
   private int priority;
 
   private String errorDetail;
@@ -119,8 +122,10 @@ DownloadManagerImpl
 	
 	stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
 	 
-	this.state = STATE_WAITING;
+	this.startStopLocked = false;
+  this.state = STATE_WAITING;
 	
+  this.priorityLocked = false;
 	this.priority = HIGH_PRIORITY;
 	
 	this.torrentFileName = torrentFileName;
@@ -658,4 +663,32 @@ DownloadManagerImpl
 	{
 		return( stats );
 	}
+  /**
+   * @return Returns the priorityLocked.
+   */
+  public boolean isPriorityLocked() {
+    return priorityLocked;
+  }
+
+  /**
+   * @param priorityLocked The priorityLocked to set.
+   */
+  public void setPriorityLocked(boolean priorityLocked) {
+    this.priorityLocked = priorityLocked;
+  }
+
+  /**
+   * @return Returns the startStopLocked.
+   */
+  public boolean isStartStopLocked() {
+    return startStopLocked;
+  }
+
+  /**
+   * @param startStopLocked The startStopLocked to set.
+   */
+  public void setStartStopLocked(boolean startStopLocked) {
+    this.startStopLocked = startStopLocked;
+  }
+
 }

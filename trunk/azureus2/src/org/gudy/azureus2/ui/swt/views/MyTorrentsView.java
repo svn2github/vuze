@@ -158,14 +158,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     new MenuItem(menu, SWT.SEPARATOR);
 
-	final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
-
-	final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
-	
-	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
+  	final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
+  	Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
+  
+  	final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
+  	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
+  	
+  	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
+  	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -186,9 +186,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     Messages.setLanguageText(itemHigh, "MyTorrentsView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.PUSH);
     Messages.setLanguageText(itemLow, "MyTorrentsView.menu.setpriority.low"); //$NON-NLS-1$
-
+    final MenuItem itemLockPriority = new MenuItem(menu, SWT.CHECK);
+    Messages.setLanguageText(itemLockPriority, "MyTorrentsView.menu.lockpriority");
+    
     new MenuItem(menu, SWT.SEPARATOR);
 
+    final MenuItem itemLockStartStop = new MenuItem(menu, SWT.CHECK);
+    Messages.setLanguageText(itemLockStartStop, "MyTorrentsView.menu.lockstartstop");
+    
     final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
 
@@ -227,7 +232,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
         itemMove.setEnabled(false);
         itemPriority.setEnabled(false);
+        itemLockPriority.setEnabled(false);
 
+        itemLockStartStop.setEnabled(false);
         itemStart.setEnabled(false);
         itemStop.setEnabled(false);
         itemRemove.setEnabled(false);
@@ -245,14 +252,16 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
+          itemLockPriority.setEnabled(true);
 
+          itemLockStartStop.setEnabled(true);
           itemStop.setEnabled(true);
 
           itemRemove.setEnabled(false);
           itemBar.setSelection(false);
 
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened;
-          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = true;
+          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, lockPriority, lockStartStop;
+          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = lockPriority = lockStartStop = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
             DownloadManager dm = (DownloadManager) managers.get(ti);
@@ -279,6 +288,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 moveDown = false;
               if (!dm.isMoveableUp())
                 moveUp = false;
+              
+              if(!dm.isPriorityLocked())
+                lockPriority = false;
+              if(!dm.isStartStopLocked())
+                lockStartStop = false;
             }
           }
           itemBar.setSelection(barsOpened);
@@ -286,6 +300,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           itemMoveDown.setEnabled(moveDown);
           itemMoveUp.setEnabled(moveUp);
 
+          itemLockPriority.setSelection(lockPriority);
+          
+          itemLockStartStop.setSelection(lockStartStop);
           itemStart.setEnabled(start);
           itemStop.setEnabled(stop);
           itemRemove.setEnabled(remove);
@@ -596,6 +613,28 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
           dm.setPriority(DownloadManager.LOW_PRIORITY);
+        }
+      }
+    });
+    
+    itemLockPriority.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          dm.setPriorityLocked(itemLockPriority.getSelection());
+        }
+      }
+    });
+    
+    itemLockStartStop.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          dm.setStartStopLocked(itemLockStartStop.getSelection());
         }
       }
     });

@@ -136,7 +136,7 @@ public class GlobalManagerImpl
               int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
               int shareRatio = manager.getStats().getShareRatio();
               //0 means unlimited
-              if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop) {
+              if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! manager.isStartStopLocked()) {
                 manager.stopIt();
               }
 
@@ -151,7 +151,7 @@ public class GlobalManagerImpl
                     int ratio = nbPeers / nbSeeds;
                     //Added a test over the shareRatio greater than 500
                     //Avoids disconnecting too early, even with many peers
-                    if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1))
+                    if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! manager.isStartStopLocked())
                       manager.stopIt();
                   }
                 }
@@ -162,7 +162,7 @@ public class GlobalManagerImpl
               int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
               int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio", 0);
               //0 means never start
-              if (minSeedsPerPeersRatio != 0) {
+              if (minSeedsPerPeersRatio != 0 && ! manager.isStartStopLocked()) {
                 TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
                 if (hd != null && hd.isValid()) {
                   int nbPeers = hd.getPeers();
@@ -181,7 +181,7 @@ public class GlobalManagerImpl
                   }
                 }
               }
-              if (nbMinSeeds > 0) {
+              if (nbMinSeeds > 0 && ! manager.isStartStopLocked()) {
                 TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
                 if (hd != null && hd.isValid()) {
                   int nbSeeds = hd.getSeeds();
@@ -226,6 +226,7 @@ public class GlobalManagerImpl
             }
 
             if ((manager.getState() == DownloadManager.STATE_SEEDING)
+              && (! manager.isPriorityLocked())
               && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
               && COConfigurationManager.getBooleanParameter("Switch Priority", false)) {
               manager.setPriority(DownloadManager.LOW_PRIORITY);
@@ -429,6 +430,8 @@ public class GlobalManagerImpl
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
+          Long lPriorityLocked = (Long) mDownload.get("priorityLocked");
+          Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1);
           dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
@@ -439,6 +442,16 @@ public class GlobalManagerImpl
           }
           if (lCompleted != null) {
             dm.getStats().setCompleted(lCompleted.intValue());
+          }
+          if(lPriorityLocked != null) {
+            if(lPriorityLocked.intValue() == 1) {
+              dm.setPriorityLocked(true);
+            }
+          }
+          if(lStartStopLocked != null) {
+            if(lStartStopLocked.intValue() == 1) {
+              dm.setStartStopLocked(true);
+            }
           }
           this.addDownloadManager(dm);
         }
@@ -488,6 +501,8 @@ public class GlobalManagerImpl
       dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
       dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
       dmMap.put("completed", new Long(dm.getStats().getCompleted()));
+      dmMap.put("priorityLocked", new Long(dm.isPriorityLocked() ? 1 : 0));
+      dmMap.put("startStopLocked", new Long(dm.isStartStopLocked() ? 1 : 0));
       list.add(dmMap);
     }
     map.put("downloads", list);
