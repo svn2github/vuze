@@ -1703,7 +1703,7 @@ DiskManagerImpl
         byte[] hash = computeMd5Hash(buffer);
         ByteBufferPool.getInstance().freeBuffer(buffer);
         buffer = null;
-        piece.addWrite(new PEPieceWrite(i,peer,hash));        
+        piece.addWrite(new PEPieceWrite(i,peer,hash,correct));        
       }
       offset += length;
     }        

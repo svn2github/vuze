@@ -1569,18 +1569,10 @@ PEPeerControlImpl
       if(piece != null) {
         
         List list = piece.getPieceWrites();
-        if(list.size() > 0) {
-          Iterator iter = list.iterator();
-          while(iter.hasNext()) {
-            PEPieceWrite write = (PEPieceWrite) iter.next();
-            try{
-              System.out.println(write.sender.getIp() + " : " + write.blockNumber + " C: "+ write.correct);
-            } catch(Exception ignore) { }
-          }
-          
+        if(list.size() > 0) {                  
           //For each Block
           for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
-            System.out.println("Processing block " + i);
+            //System.out.println("Processing block " + i);
             //Find out the correct hash
             List listPerBlock = piece.getPieceWrites(i);
             byte[] correctHash = null;
@@ -1593,7 +1585,7 @@ PEPeerControlImpl
                 correctSender = write.sender;
               }
             }
-            System.out.println("Correct Hash " + correctHash);
+            //System.out.println("Correct Hash " + correctHash);
             //If it's found                       
             if(correctHash != null) {
               List peersToDisconnect = new ArrayList();
