@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 21-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.html;
+package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 /**
  * @author parg
@@ -28,27 +28,74 @@ package org.gudy.azureus2.core3.html;
  */
 
 import java.io.*;
-import org.gudy.azureus2.core3.html.impl.*;
+
+import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-HTMLPageFactory 
+ResourceDownloaderErrorImpl
+	extends ResourceDownloaderBaseImpl
 {
-	public static HTMLPage
-	loadPage(
-		InputStream		is )
+	protected ResourceDownloaderException		error;
 	
-		throws HTMLException
+	protected
+	ResourceDownloaderErrorImpl(
+		ResourceDownloaderException	_error )
 	{
-		return( loadPage( is, true ));
+		error	= _error;
+	}
+			
+	public String
+	getName()
+	{
+		return( "<error>:" + error.getMessage());
 	}
 	
-	public static HTMLPage
-	loadPage(
-		InputStream		is,
-		boolean			close_file )
-	
-		throws HTMLException
+	public ResourceDownloader
+	getClone()
 	{
-		return( new HTMLPageImpl( is, close_file ));
+		return( this );
+	}
+	
+	public InputStream
+	download()
+	
+		throws ResourceDownloaderException
+	{
+		throw( error );
+	}
+	
+	
+	public void
+	asyncDownload()
+	{
+	}
+	
+	public long
+	getSize()
+	
+		throws ResourceDownloaderException
+	{	
+		throw( error );
+	}
+	
+	public void
+	cancel()
+	{
+	}
+	
+	public void
+	reportActivity(
+		String				activity )
+	{
+		informActivity( activity );
+	}
+	
+	public void
+	addListener(
+		ResourceDownloaderListener	l )
+	{
+		super.addListener(l);
+		
+		informFailed( error );
 	}
 }

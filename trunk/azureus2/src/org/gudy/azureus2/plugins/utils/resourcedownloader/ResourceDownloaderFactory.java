@@ -42,6 +42,19 @@ ResourceDownloaderFactory
 		URL		url );
 	
 		/**
+		 * creates a downloader that will be asked to create a ResourceDownloader
+		 * when required. Useful when used in combination with an alternate downloader
+		 * so that time isn't wasted creating downloaders for subsequent possibilities
+		 * if the first one succeeds
+		 * @param factory
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	create(
+		ResourceDownloaderDelayedFactory	factory );
+
+		/**
 		 * gets a downloader that will retry a number of times before failing
 		 * @param downloader
 		 * @param retry_count
@@ -77,4 +90,36 @@ ResourceDownloaderFactory
 	public ResourceDownloader
 	getAlternateDownloader(
 		ResourceDownloader[]		downloaders );
+	
+	public ResourceDownloader
+	getAlternateDownloader(
+		ResourceDownloader[]		downloaders,
+		int							max_to_try );
+	
+		/**
+		 * an alternative downloader that randomises the downloaders
+		 * @param downloaders
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	getRandomDownloader(
+		ResourceDownloader[]		downloaders );
+	
+	public ResourceDownloader
+	getRandomDownloader(
+		ResourceDownloader[]		downloaders,
+		int							max_to_try );
+	
+		/**
+		 * gets a downloader that will automatically follow META refresh tags
+		 * Will only do a single level of indirection
+		 * @param downloader
+		 * @return
+		 */
+	
+	public ResourceDownloader
+	getMetaRefreshDownloader(
+		ResourceDownloader			downloader );
+
 }

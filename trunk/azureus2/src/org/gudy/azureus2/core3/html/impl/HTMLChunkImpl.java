@@ -152,6 +152,52 @@ HTMLChunkImpl
 		return( res );
 	}
 	
+		/**
+		 * this just returns the tags themselves.
+		 * @param tag
+		 * @return
+		 */
+	
+	public String[]
+	getTags(
+		String	tag_name )
+	{
+		tag_name = tag_name.toLowerCase();
+							
+		String	lc_content = content.toLowerCase();
+							
+		int	pos	= 0;
+
+		List	res = new ArrayList();
+														
+		while(true){
+			
+			int	p1 = lc_content.indexOf( "<" + tag_name,  pos );
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
+			
+			int	p2 = lc_content.indexOf( ">", p1 );
+			
+			if ( p2 == -1 ){
+				
+				break;
+			}
+
+			res.add( content.substring( p1+1, p2 ));
+			
+			pos	= p2+1;
+		}
+		
+		String[]	x = new String[res.size()];
+		
+		res.toArray( x );
+		
+		return( x );
+	}
+	
 	public String[]
 	getTagPairContent(
 		String	tag_name )

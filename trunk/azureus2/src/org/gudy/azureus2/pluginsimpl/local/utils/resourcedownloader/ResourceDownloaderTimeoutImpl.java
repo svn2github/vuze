@@ -77,6 +77,8 @@ ResourceDownloaderTimeoutImpl
 		try{
 			ResourceDownloaderTimeoutImpl x = new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis );
 		
+			addReportListener( x );
+			
 			size = x.getSizeSupport();
 			
 		}finally{
@@ -90,10 +92,21 @@ ResourceDownloaderTimeoutImpl
 		return( size );
 	}
 	
+	protected void
+	setSize(
+		long	l )
+	{
+		size	= l;
+	}
+	
 	public ResourceDownloader
 	getClone()
 	{
-		return( new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis ));
+		ResourceDownloaderTimeoutImpl c = new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis );
+		
+		c.setSize( size );
+		
+		return( c );
 	}
 	
 	public InputStream

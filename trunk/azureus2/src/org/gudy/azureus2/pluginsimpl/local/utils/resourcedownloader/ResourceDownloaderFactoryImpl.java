@@ -51,6 +51,13 @@ ResourceDownloaderFactoryImpl
 	}
 	
 	public ResourceDownloader
+	create(
+		ResourceDownloaderDelayedFactory		factory )
+	{
+		return( new ResourceDownloaderDelayedImpl( factory ));
+	}
+	
+	public ResourceDownloader
 	getRetryDownloader(
 		ResourceDownloader		downloader,
 		int						retry_count )
@@ -70,6 +77,36 @@ ResourceDownloaderFactoryImpl
 	getAlternateDownloader(
 		ResourceDownloader[]		downloaders )
 	{
-		return( new ResourceDownloaderAlternateImpl( downloaders ));
+		return( new ResourceDownloaderAlternateImpl( downloaders, -1, false ));
+	}
+	
+	public ResourceDownloader
+	getAlternateDownloader(
+		ResourceDownloader[]		downloaders,
+		int							max_to_try )
+	{
+		return( new ResourceDownloaderAlternateImpl( downloaders, max_to_try, false ));
+	}
+	
+	public ResourceDownloader
+	getRandomDownloader(
+		ResourceDownloader[]		downloaders )
+	{
+		return( new ResourceDownloaderAlternateImpl( downloaders, -1, true ));
+	}
+	
+	public ResourceDownloader
+	getRandomDownloader(
+		ResourceDownloader[]		downloaders,
+		int							max_to_try )
+	{
+		return( new ResourceDownloaderAlternateImpl( downloaders, max_to_try, true ));
+	}
+	
+	public ResourceDownloader
+	getMetaRefreshDownloader(
+		ResourceDownloader			downloader )
+	{
+		return( new ResourceDownloaderMetaRefreshImpl( downloader ));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 25-Apr-2004
+ * Created on 21-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,39 +28,43 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.io.*;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-ResourceDownloaderRetryImpl 	
+ResourceDownloaderMetaRefreshImpl 	
 	extends 	ResourceDownloaderBaseImpl
 	implements	ResourceDownloaderListener
 {
+	public static final int	MAX_FOLLOWS = 1;
+	
 	protected ResourceDownloaderBaseImpl		delegate;
-	protected int								retry_count;
+	protected ResourceDownloaderBaseImpl		current_delegate;
+	
+	protected long						size	= -2;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
-	protected int						done_count;
 	protected Object					result;
+	protected int						done_count;
 	protected Semaphore					done_sem	= new Semaphore();
-		
-	protected long						size	= -2;
-	
+			
 	public
-	ResourceDownloaderRetryImpl(
-		ResourceDownloader	_delegate,
-		int					_retry_count )
+	ResourceDownloaderMetaRefreshImpl(
+		ResourceDownloader	_delegate )
 	{
 		delegate		= (ResourceDownloaderBaseImpl)_delegate;
-		retry_count		= _retry_count;
+		
+		current_delegate	= delegate;
 	}
 	
 	public String
 	getName()
 	{
-		return( delegate.getName() + ", retry=" + retry_count );
+		return( delegate.getName() + ", meta-refresh follower" );
 	}
 	
 	public long
@@ -68,55 +72,72 @@ ResourceDownloaderRetryImpl
 	
 		throws ResourceDownloaderException
 	{	
-		if ( size != -2 ){
+		if ( size == -2 ){
 			
-			return( size );
-		}
-		
-		try{
-			for (int i=0;i<retry_count;i++){
+			try{
+				size = getSizeSupport();
 				
-				try{
-					ResourceDownloader c =  delegate.getClone();
-					
-					addReportListener( c );
-					
-					size = c.getSize();
+			}finally{
 				
-					return( size );
+				if ( size == -2 ){
 					
-				}catch( ResourceDownloaderException e ){
-					
-					if ( i == retry_count - 1 ){
-						
-						throw( e );
-					}
+					size = -1;
 				}
-			}
-		}finally{
-			
-			if ( size == -2 ){
-				
-				size = -1;
 			}
 		}
 		
 		return( size );
 	}
 	
+	protected long
+	getSizeSupport()
+	
+		throws ResourceDownloaderException
+	{
+		try{
+			ResourceDownloader	x = delegate.getClone();
+			
+			addReportListener( x );
+			
+			HTMLPage	page = HTMLPageFactory.loadPage( x.download());
+			
+			URL	redirect = page.getMetaRefreshURL();
+	
+			if ( redirect == null ){
+				
+				ResourceDownloader c = delegate.getClone();
+				
+				addReportListener( c );
+				
+				return( c.getSize());
+			}else{
+				
+				ResourceDownloaderImpl c =  new ResourceDownloaderImpl( redirect );
+				
+				addReportListener( c );
+				
+				return( c.getSize());
+			}
+		}catch( HTMLException e ){
+			
+			throw( new ResourceDownloaderException( "getSize failed", e ));
+		}
+	}	
+	
 	protected void
 	setSize(
 		long	l )
 	{
 		size	= l;
+
 	}
 	
 	public ResourceDownloader
 	getClone()
 	{
-		ResourceDownloaderRetryImpl c =  new ResourceDownloaderRetryImpl( delegate.getClone(), retry_count );
+		ResourceDownloaderMetaRefreshImpl c = new ResourceDownloaderMetaRefreshImpl( delegate.getClone());
 		
-		c.setSize(size);
+		c.setSize( size );
 		
 		return( c );
 	}
@@ -141,7 +162,7 @@ ResourceDownloaderRetryImpl
 	public synchronized void
 	asyncDownload()
 	{
-		if ( done_count == retry_count || cancelled ){
+		if ( cancelled ){
 			
 			done_sem.release();
 			
@@ -150,13 +171,8 @@ ResourceDownloaderRetryImpl
 		}else{
 		
 			done_count++;
-			
-			if ( done_count > 1 ){
-				
-				informActivity( "download attempt " + done_count + " of " + retry_count );
-			}
-			
-			current_downloader = delegate.getClone();
+						
+			current_downloader = current_delegate.getClone();
 			
 			current_downloader.addListener( this );
 			
@@ -186,16 +202,74 @@ ResourceDownloaderRetryImpl
 		ResourceDownloader	downloader,
 		InputStream			data )
 	{
-		if ( informComplete( data )){
+		boolean	complete = false;
+		
+		try{
+			if ( done_count == 1 ){
+				
+					// assumption is that there is a refresh tag
+				
+				boolean	marked = false;
+				
+				if ( data instanceof ByteArrayInputStream){
+				
+					data.mark(data.available());
+					
+					marked	= true;
+				}
+				
+					// leave file open if marked so we can recover
+				
+				HTMLPage	page = HTMLPageFactory.loadPage( data, !marked );
+				
+				URL	redirect = page.getMetaRefreshURL();
+				
+				if ( redirect == null ){
+					
+					if ( !marked ){
+						
+						failed( downloader, new ResourceDownloaderException( "meta refresh tag not found and input stream not recoverable"));
+						
+					}else{
+					
+						data.reset();
+					
+						complete	= true;
+					}
+					
+				}else{
+				
+					current_delegate = new ResourceDownloaderImpl( redirect );
+					
+					informActivity( "meta-refresh -> " + current_delegate.getName());
+					
+					asyncDownload();
+				}
+				
+				if ( marked && !complete){
+					
+					data.close();
+				}
+			}else{
+				
+				complete = true;
+			}
 			
-			result	= data;
+			if ( complete ){
 			
-			done_sem.release();
+				if ( informComplete( data )){
+					
+					result	= data;
+					
+					done_sem.release();
+				}
+			}
+		}catch( Throwable e ){
 			
-			return( true );
+			failed( downloader, new ResourceDownloaderException("meta-refresh processing fails", e ));
 		}
 		
-		return( false );
+		return( true );
 	}
 	
 	public void
@@ -205,6 +279,8 @@ ResourceDownloaderRetryImpl
 	{
 		result		= e;
 		
-		asyncDownload();
+		done_sem.release();
+
+		informFailed(e);
 	}
 }

@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.html.impl;
  */
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.html.*;
 
@@ -38,7 +40,8 @@ HTMLPageImpl
 {
 	public
 	HTMLPageImpl(
-		InputStream		is )
+		InputStream		is,
+		boolean			close_file )
 	
 		throws HTMLException
 	{
@@ -70,7 +73,7 @@ HTMLPageImpl
 			
 		}finally{
 			
-			if ( br != null ){
+			if ( br != null && close_file ){
 				
 				try{
 					
@@ -84,5 +87,45 @@ HTMLPageImpl
 		}
 	}
 	
-
+	public URL
+	getMetaRefreshURL()
+	{
+	       // "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=xxxxxxx>";
+	       
+		String[]	tags = getTags( "META" );
+		
+		for (int i=0;i<tags.length;i++){
+			
+			String	tag 	= tags[i];
+			
+			String	lc_tag	= tag.toLowerCase();
+			
+			int pos = lc_tag.indexOf("http-equiv=\"refresh\"");
+							
+			int	url_start = lc_tag.indexOf( "url=" );
+			
+			if ( pos != -1 && url_start != -1 ){
+				
+				url_start += 4;
+				
+				int	e1 = lc_tag.indexOf( "\"", url_start );
+				int e2 = lc_tag.indexOf( ">", url_start );
+				
+				if ( e1 != -1 ){
+					
+					e2 = e1;
+				
+					try{
+						return( new URL(tag.substring(url_start, e2).trim()));
+						
+					}catch( MalformedURLException e ){
+						
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+				
+		return( null );
+	}
 }

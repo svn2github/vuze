@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -38,6 +39,8 @@ ResourceDownloaderAlternateImpl
 	implements	ResourceDownloaderListener
 {
 	protected ResourceDownloader[]		delegates;
+	protected int						max_to_try;
+	protected boolean					random;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
@@ -50,9 +53,34 @@ ResourceDownloaderAlternateImpl
 	
 	public
 	ResourceDownloaderAlternateImpl(
-		ResourceDownloader[]	_delegates )
+		ResourceDownloader[]	_delegates,
+		int						_max_to_try,
+		boolean					_random )
 	{
 		delegates		= _delegates;
+		max_to_try		= _max_to_try;
+		random			= _random;
+		
+		if ( max_to_try < 0 ){
+			
+			max_to_try = delegates.length;
+			
+		}else{
+			
+			max_to_try = Math.min( max_to_try, delegates.length );
+		}
+		
+		if ( random ){
+			
+			List	l = new ArrayList(Arrays.asList( delegates ));
+			
+			delegates = new ResourceDownloader[delegates.length];
+			
+			for (int i=0;i<delegates.length;i++){
+								
+				delegates[i] = (ResourceDownloader)l.remove((int)(Math.random()*l.size()));
+			}
+		}
 	}
 	
 	public String
@@ -74,16 +102,29 @@ ResourceDownloaderAlternateImpl
 	
 		throws ResourceDownloaderException
 	{		
+		if( delegates.length == 0 ){
+			
+			ResourceDownloaderException error = new ResourceDownloaderException( "Alternate download fails - 0 alteratives");
+			
+			informFailed( error );
+			
+			throw( error );
+		}
+		
 		if ( size != -2 ){
 			
 			return( size );
 		}
 		
 		try{
-			for (int i=0;i<delegates.length;i++){
+			for (int i=0;i<max_to_try;i++){
 				
 				try{
-					size = ((ResourceDownloaderBaseImpl)delegates[i]).getClone().getSize();
+					ResourceDownloader c = ((ResourceDownloaderBaseImpl)delegates[i]).getClone();
+					
+					addReportListener( c );
+					
+					size = c.getSize();
 					
 					break;
 					
@@ -106,6 +147,13 @@ ResourceDownloaderAlternateImpl
 		return( size );
 	}
 	
+	protected void
+	setSize(
+		long	l )
+	{
+		size	= l;
+	}
+	
 	public ResourceDownloader
 	getClone()
 	{
@@ -116,7 +164,11 @@ ResourceDownloaderAlternateImpl
 			clones[i] = ((ResourceDownloaderBaseImpl)delegates[i]).getClone();
 		}
 		
-		return( new ResourceDownloaderAlternateImpl( clones ));
+		ResourceDownloaderAlternateImpl c = new ResourceDownloaderAlternateImpl( clones, max_to_try, random );
+		
+		c.setSize(size);
+		
+		return( c );
 	}
 	
 	public InputStream
@@ -124,6 +176,15 @@ ResourceDownloaderAlternateImpl
 	
 		throws ResourceDownloaderException
 	{
+		if( delegates.length == 0 ){
+			
+			ResourceDownloaderException error = new ResourceDownloaderException( "Alternate download fails - 0 alteratives");
+			
+			informFailed( error );
+			
+			throw( error );
+		}
+		
 		asyncDownload();
 		
 		done_sem.reserve();
@@ -139,7 +200,7 @@ ResourceDownloaderAlternateImpl
 	public synchronized void
 	asyncDownload()
 	{
-		if ( current_index == delegates.length || cancelled ){
+		if ( current_index == max_to_try || cancelled ){
 			
 			done_sem.release();
 			

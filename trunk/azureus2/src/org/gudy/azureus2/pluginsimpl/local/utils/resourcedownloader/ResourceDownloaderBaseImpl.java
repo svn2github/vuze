@@ -38,10 +38,38 @@ ResourceDownloaderBaseImpl
 	protected List			listeners		= new ArrayList();
 	
 	protected boolean		result_informed;
+	protected Object		result_informed_data;
 	
 	public abstract ResourceDownloader
 	getClone();
 
+		// adds a listener that simply logs messages. used during size getting
+	
+	protected void
+	addReportListener(
+		ResourceDownloader	rd )
+	{
+		rd.addListener(
+				new ResourceDownloaderAdapter()
+				{
+					public void
+					reportActivity(
+						ResourceDownloader	downloader,
+						String				activity )
+					{
+						informActivity( activity );
+					}
+					
+					public void
+					failed(
+						ResourceDownloader			downloader,
+						ResourceDownloaderException e )
+					{
+						informActivity( downloader.getName() + ":" + e.getMessage());
+					}
+				});
+	}
+	
 	protected void
 	informPercentDone(
 		int	percentage )
@@ -84,6 +112,8 @@ ResourceDownloaderBaseImpl
 			}
 			
 			result_informed	= true;
+			
+			result_informed_data	= is;
 		}
 		
 		return( true );
@@ -97,6 +127,8 @@ ResourceDownloaderBaseImpl
 			
 			result_informed	= true;
 		
+			result_informed_data = e;
+			
 			for (int i=0;i<listeners.size();i++){
 				
 				((ResourceDownloaderListener)listeners.get(i)).failed(this,e);
@@ -125,6 +157,17 @@ ResourceDownloaderBaseImpl
 		ResourceDownloaderListener		l )
 	{
 		listeners.add( l );
+		
+		if ( result_informed ){
+			
+			if (result_informed_data instanceof InputStream ){
+				
+				l.completed( this, (InputStream)result_informed_data);
+			}else{
+				
+				l.failed( this, (ResourceDownloaderException)result_informed_data);
+			}
+		}
 	}
 	
 	public void

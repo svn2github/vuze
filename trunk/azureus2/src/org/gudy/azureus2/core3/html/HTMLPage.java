@@ -26,8 +26,13 @@ package org.gudy.azureus2.core3.html;
  * @author parg
  *
  */
+
+import java.net.URL;
+
 public interface 
 HTMLPage
 	extends HTMLChunk
 {
+	public URL
+	getMetaRefreshURL();
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 21-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,35 +20,18 @@
  *
  */
 
-package org.gudy.azureus2.core3.html;
+package org.gudy.azureus2.plugins.utils.resourcedownloader;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-import org.gudy.azureus2.core3.html.impl.*;
-
-public class 
-HTMLPageFactory 
+public interface 
+ResourceDownloaderDelayedFactory 
 {
-	public static HTMLPage
-	loadPage(
-		InputStream		is )
+	public ResourceDownloader
+	create()
 	
-		throws HTMLException
-	{
-		return( loadPage( is, true ));
-	}
-	
-	public static HTMLPage
-	loadPage(
-		InputStream		is,
-		boolean			close_file )
-	
-		throws HTMLException
-	{
-		return( new HTMLPageImpl( is, close_file ));
-	}
+		throws ResourceDownloaderException;
 }

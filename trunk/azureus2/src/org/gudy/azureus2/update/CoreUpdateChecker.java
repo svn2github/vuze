@@ -98,17 +98,17 @@ CoreUpdateChecker
 			
 			String url_str = Constants.SF_WEB_SITE + "version.php";
 			
-			boolean	TESTING = true;	// !!!!TODO: REMOVE THIS
+			boolean	TESTING = false;	// !!!!TODO: REMOVE THIS
 			
 			if ( TESTING ){
 			
-				System.out.println( "CoreUpdater: ID deliberately currently removed!!!!" );
+				System.out.println( "CoreUpdater: !!!! Testing mode !!!!" );
 				
-			}else{
-				if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
+			}
+			
+			if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
 				
-					url_str += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
-				}
+				url_str += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
 			}
 			
 			URL url = new URL(url_str); 
@@ -119,9 +119,11 @@ CoreUpdateChecker
 			
 			rd.addListener( rd_logger );
 			
-			InputStream	data = rd.download();
+			BufferedInputStream	data = new BufferedInputStream(rd.download());
 			
-			Map decoded = BDecoder.decode(new BufferedInputStream(data));
+			Map decoded = BDecoder.decode(data);
+			
+			data.close();
 			
 			String latest_version 			= null;
 			String latest_file_name			= null;
@@ -167,77 +169,68 @@ CoreUpdateChecker
 				return;
 			}
 			
-			URL[]	primary_mirrors = getPrimaryURLs( latest_file_name );
+			final String	f_latest_version	= latest_version;
+			final String	f_latest_file_name	= latest_file_name;
 			
-			/*
-			boolean current_az_is_cvs	= Constants.isCVSVersion();
-				
-			
-			String	target_dll_version	= null;
-			
-			String sf_plugin_version	= sf_details.getVersion();
-			
-			String sf_comp_version	 	= sf_plugin_version;
-	
-			String target_download		= sf_details.getDownloadURL();
-			
-			if ( current_az_is_cvs ){
-				
-				String	sf_cvs_version = sf_details.getCVSVersion();
-				
-				if ( sf_cvs_version.length() > 0 ){
-					
-						// sf cvs version ALWAYS entry in _CVS
-					
-					sf_plugin_version	= sf_cvs_version;
-					
-					sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
-					
-					target_download	= sf_details.getCVSDownloadURL();
-				}
-			}
-						
-			if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
-				
-				target_dll_version	= sf_comp_version;
-			}
-	
-			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
-			
-			if ( target_dll_version != null ){
-							
-				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
-				
-				ResourceDownloader dll_rd = rdf.create( new URL( target_download ));
-			
-					// get size here so it is cached
-				
-				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 
-				final String f_target_dll_version	= target_dll_version;
-				
-				dll_rd.addListener( 
-						new ResourceDownloaderAdapter()
+			ResourceDownloader[]	primary_mirrors = getPrimaryDownloaders( latest_file_name );
+
+				// the download hierarchy is primary mirrors first (randomised alternate)
+				// then backup mirrors (randomised alternate)
+			
+				// we don't want to load the backup mirrors until the primary mirrors fail
+			
+			ResourceDownloader		random_primary_mirrors = rdf.getRandomDownloader( primary_mirrors );
+			
+			ResourceDownloader		backup_downloader =
+				rdf.create(
+					new ResourceDownloaderDelayedFactory()
+					{
+						public ResourceDownloader
+						create()
 						{
-							public boolean
-							completed(
-								final ResourceDownloader	downloader,
-								InputStream					data )
-							{	
-								installUpdate( checker, downloader, f_target_dll_version, data );
-									
-								return( true );
-							}
-						});
+							ResourceDownloader[]	backup_mirrors = getBackupDownloaders( f_latest_file_name );
+						
+							return( rdf.getRandomDownloader( backup_mirrors ));
+						}
+					});
+			
+			ResourceDownloader	top_downloader = 
+				rdf.getAlternateDownloader( 
+						new ResourceDownloader[]
+							{
+								random_primary_mirrors,
+								backup_downloader,
+							});
+			
 
-				checker.addUpdate(
-						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
-						new String[]{"This DLL supports native operations such as file-associations" },
-						target_dll_version,
-						dll_rd,
+			top_downloader.addListener( rd_logger );
+			
+				// get size so it is cached
+			
+			top_downloader.getSize();		
+							
+			top_downloader.addListener( 
+					new ResourceDownloaderAdapter()
+					{
+						public boolean
+						completed(
+							final ResourceDownloader	downloader,
+							InputStream					data )
+						{	
+							installUpdate( checker, downloader, f_latest_version, data );
+									
+							return( true );
+						}
+					});
+
+			checker.addUpdate(
+						"Core Azureus Version",
+						new String[]{"Core Azureus Version" },
+						latest_version,
+						top_downloader,
 						Update.RESTART_REQUIRED_YES );
-			}
-			*/
+			
 		}catch( Throwable e ){
 			
 			log.log( e );
@@ -252,10 +245,12 @@ CoreUpdateChecker
 		}
 	}
 	
-	protected URL[]
-	getPrimaryURLs(
+	protected ResourceDownloader[]
+	getPrimaryDownloaders(
 		String		latest_file_name )
 	{
+		log.log( "Downloading primary mirrors" );
+		
 		List	res = new ArrayList();
 
 		try{
@@ -309,90 +304,86 @@ CoreUpdateChecker
 			log.log( "Failed to read primary mirror list", e );
 		}
 		
-		URL[]	urls = new URL[res.size()];
-		
-		res.toArray( urls );
-		
-		for (int i=0;i<urls.length;i++){
+		ResourceDownloader[]	dls = new ResourceDownloader[res.size()];
+				
+		for (int i=0;i<res.size();i++){
 			
-			log.log( "Primary mirror:" + urls[i].toString());
+			URL	url =(URL)res.get(i);
+			
+			log.log( "    Primary mirror:" +url.toString());
+			
+			ResourceDownloader dl = rdf.create( url );
+			
+			dl = rdf.getMetaRefreshDownloader( dl );
+			
+			dls[i] = dl;
 		}
 		
-		return( urls );
+		return( dls );
 	}
+	
+	protected ResourceDownloader[]
+	getBackupDownloaders(
+		String	latest_file_name )
+	{
+		List	res = new ArrayList();
+	
+		try{
+			if ( latest_file_name != null ){
+							
+				log.log( "Downloading backup mirrors" );
+				
+				URL mirrors_url = new URL("http://azureus.sourceforge.net/mirrors.php");
+				
+				ResourceDownloader	rd = rdf.create( mirrors_url );
+				
+				rd = rdf.getRetryDownloader( rd, RD_GET_MIRRORS_RETRIES );
+				
+				rd.addListener( rd_logger );
+				
+				BufferedInputStream	data = new BufferedInputStream(rd.download());
+				
+				Map decoded = BDecoder.decode(data);
+				
+				data.close();
+				
+				List mirrors = (List)decoded.get("mirrors");
 		
-		/*
-
-      //Grab a random mirror
-      if ( mirrors.size() > 0 ) {
-        int random = (int) (Math.random() * mirrors.size());
-        String mirror = (String) (mirrors.get(random));
-
-        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
-        String mirrorHtml = readUrl(mirrorUrl);
-        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=";
-        position = mirrorHtml.indexOf(pattern);
-        if ( position >= 0 ) {
-        	int end = mirrorHtml.indexOf("\">", position);
-          if ( end >= 0 ) {
-        	  reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
-            foundMirror = true;
-          }
-        }
-      }
-    }
-
-    if (reqUrl == null || !foundMirror) {
-    	reqUrl = getMirrorFromBackupList( log );
-    }
-    
-    HttpURLConnection con = null;
-    try {
-    	con = (HttpURLConnection) reqUrl.openConnection();
-    	con.connect();
-      in = con.getInputStream();
-    } catch (IOException e) {
-      //probably a 404 error, try one last time
-      if (con != null)  con.disconnect();
-      URL backup = getMirrorFromBackupList( log );
-      con = (HttpURLConnection) backup.openConnection();
-      con.connect();
-      in = con.getInputStream();
-    }
-    
-    
-    private URL getMirrorFromBackupList( FileWriter log ) {
-        try{ log.write("Retrieving backup SF mirror list..."); } catch (Exception e) {}
-        ByteArrayOutputStream message = new ByteArrayOutputStream();
-        int nbRead = 0;
-        HttpURLConnection con = null;
-        InputStream is = null;
-        try {
-          String url = "http://azureus.sourceforge.net/mirrors.php";
-          URL mirrorUrl = new URL(url);
-          con = (HttpURLConnection) mirrorUrl.openConnection();
-          con.connect();
-          is = con.getInputStream();
-          byte[] data = new byte[1024];
-          while (nbRead >= 0) {
-            nbRead = is.read(data);
-            if (nbRead >= 0) {
-              message.write(data, 0, nbRead);
-            }
-          }
-          Map decoded = BDecoder.decode(message.toByteArray());
-          List mirrors = (List)decoded.get("mirrors");
-          int random = (int) (Math.random() * mirrors.size());
-          String mirror = new String( (byte[])mirrors.get(random) );
-          return new URL( mirror + latestVersionFileName );
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-          return null;
-        }
-      }
-      */
-	/*
+				for (int i=0;i<mirrors.size();i++){
+					
+					String mirror = new String( (byte[])mirrors.get(i));
+					
+					try{
+						
+						res.add( new URL( mirror + latest_file_name ));
+						
+					}catch(Throwable e){
+						
+						log.log( "Invalid URL read:" + mirror, e );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			log.log( "Failed to read backup mirror list", e );
+		}
+		
+		ResourceDownloader[]	dls = new ResourceDownloader[res.size()];
+		
+		for (int i=0;i<res.size();i++){
+			
+			URL	url =(URL)res.get(i);
+			
+			log.log( "    Primary mirror:" +url.toString());
+			
+			ResourceDownloader dl = rdf.create( url );
+						
+			dls[i] = dl;
+		}
+		
+		return( dls );
+	}    
+ 
 	protected void
 	installUpdate(
 		UpdateChecker		checker,
@@ -400,6 +391,7 @@ CoreUpdateChecker
 		String				version,
 		InputStream			data )
 	{
+		/*
 		try{
 			String	temp_dll_name 	= PlatformManagerImpl.DLL_NAME + "_" + version + ".dll";
 			String	target_dll_name	= PlatformManagerImpl.DLL_NAME + ".dll";
@@ -417,6 +409,6 @@ CoreUpdateChecker
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
+		*/
 	}
-	*/
 }
