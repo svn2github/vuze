@@ -2246,7 +2246,27 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
 	if ( SystemProperties.isJavaWebStartInstance()){    	
  	
-    	System.exit(1);
+		Thread close = new Thread( "JWS Force Terminate")
+			{
+				public void
+				run()
+				{
+					try{
+						Thread.sleep(2500);
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+					
+					System.exit(1);
+				}
+			};
+			
+		close.setDaemon(true);
+		
+		close.start();
+    	
     }
     
     return true;
