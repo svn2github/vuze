@@ -21,7 +21,10 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,19 +33,27 @@ import java.util.Map;
  */
 public class ItemEnumerator {
 
-  private ItemDescriptor[] items;
+  private List items;
   private Map lookUp;
   
   protected ItemEnumerator(ItemDescriptor[] items) {
-    this.items = items;
+    this.items = new ArrayList(items.length);
     lookUp = new HashMap();
     for(int i = 0 ; i < items.length ; i++) {
-      lookUp.put(items[i].getName(),items[i]);
+      this.lookUp.put(items[i].getName(),items[i]);
+      this.items.add(items[i]);
     }
+    insureIntegrity();
   }
   
   public ItemDescriptor[] getItems() {
-    return items;
+    return (ItemDescriptor[]) this.items.toArray(new ItemDescriptor[items.size()]);
+  }
+  
+  public void addItemDescriptor(ItemDescriptor item) {
+    this.items.add(item);
+    this.lookUp.put(item.getName(),items);
+    insureIntegrity();
   }
   
   public void setPositionByName(String name,int position) {    
@@ -73,6 +84,23 @@ public class ItemEnumerator {
       return item.getType();    
     //In case the name isn't found
     return 0;
+  }
+  
+  private void insureIntegrity() {
+    int nbColumns = 0;
+    Iterator iter = items.iterator();
+    while(iter.hasNext()) {
+      ItemDescriptor item = (ItemDescriptor) iter.next();
+      if(item.getPosition() != -1)
+        nbColumns++;
+    }
+    iter = items.iterator();
+    while(iter.hasNext()) {
+      ItemDescriptor item = (ItemDescriptor) iter.next();
+      if(item.getPosition() >= nbColumns) {
+        item.setPosition(nbColumns - 1);
+      }        
+    }
   }
 
 }

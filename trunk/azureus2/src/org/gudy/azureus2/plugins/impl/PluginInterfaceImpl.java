@@ -29,6 +29,8 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.Parameter;
 import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.impl.ParameterRepository;
+import org.gudy.azureus2.plugins.ui.tables.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.impl.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -88,5 +90,9 @@ public class PluginInterfaceImpl implements PluginInterface {
   public PluginConfigUIFactory getPluginConfigUIFactory() {
     // TODO Auto-generated method stub
     return null;
+  }
+  
+  public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
+    PeersTableExtensions.getInstance().addExtension(columnName,item);
   }
 }

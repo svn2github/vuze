@@ -3,12 +3,15 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.impl.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.PeersView;
@@ -90,6 +93,14 @@ public class PeerRow implements SortableItem {
         items.add(new OptimisticUnchokeItem(PeerRow.this,itemEnumerator.getPositionByName("optunchoke")));
         items.add(new ClientItem(PeerRow.this,itemEnumerator.getPositionByName("client")));
         items.add(new DiscardedItem(PeerRow.this,itemEnumerator.getPositionByName("discarded")));
+        
+        Map extensions = PeersTableExtensions.getInstance().getExtensions();
+        Iterator iter = extensions.keySet().iterator();
+        while(iter.hasNext()) {
+          String name = (String) iter.next();
+          PluginPeerItemFactory ppif = (PluginPeerItemFactory) extensions.get(name);
+          items.add(new PluginItem(PeerRow.this,itemEnumerator.getPositionByName(name),ppif));
+        }
         
         view.setItem(row.getItem(),pc);
       }

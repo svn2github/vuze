@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import org.gudy.azureus2.plugins.ui.Parameter;
 import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
+import org.gudy.azureus2.plugins.ui.tables.PluginPeerItemFactory;
 
 
 /**
@@ -45,6 +46,13 @@ public interface PluginInterface {
    * @param fileName
    */
   public void addConfigUIParameters(Parameter parameters[], String displayName);
+  
+  /**
+   * 
+   * @param columnName
+   * @param item
+   */
+  public void addColumnToPeersTable(String columnName,PluginPeerItemFactory item);
   
   /**
    * A Plugin might ask Azureus to open a Torrent file

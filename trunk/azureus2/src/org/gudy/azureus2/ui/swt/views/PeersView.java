@@ -33,8 +33,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewEventDispacher;
+import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewListener;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
@@ -152,7 +152,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
       }
     };
     
-    itemEnumerator = ConfigBasedItemEnumerator.getInstance("Peers",tableItems);
+    itemEnumerator = PeersViewItemEnumerator.getItemEnumerator();    
     ItemDescriptor[] items = itemEnumerator.getItems();
     
     //Create all columns
@@ -230,7 +230,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     
     itemChangeTable.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("Peers",tableItems),PeersViewEventDispacher.getInstance(),"PeersView");       
+          new EnumeratorEditor(table.getDisplay(),PeersViewItemEnumerator.getItemEnumerator(),PeersViewEventDispacher.getInstance(),"PeersView");       
       }
     });
   }
