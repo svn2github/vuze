@@ -10,6 +10,7 @@ FEATURE: Slowly establish new connections to peers (for those with internet disc
 FEATURE: Re-check file(s) integrity after completion [Nolar]
 FEATURE: Bind to local IP address [Nolar]
 FEATURE: Export/import torrent data to/from XML file [Parg]
+FEATURE: Export of runtime statistics to XML file [Parg]
 
 CHANGE: Some GUI Changes, so that SWT WinXP theme is better supported [Gudy]
 CHANGE: Saving of torrent files to central dir now optional [Nolar]
