@@ -25,6 +25,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -136,9 +137,9 @@ StatsWriterPeriodicImpl
 
 		int	period = config_period;
 		
-		long	now = System.currentTimeMillis()/1000;
+		long	now = SystemTime.getCurrentTime() /1000;
 		
-		if ( now - last_write_time < period ){
+		if ( now - last_write_time < period && !SystemTime.isErrorLast10sec()){
 			
 			return;
 		}
