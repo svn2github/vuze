@@ -424,6 +424,8 @@ TrackerWeb
 						
 						t_row.put( "torrent_created_by", torrent.getCreatedBy());
 						
+						t_row.put( "torrent_created_on", DisplayFormatters.formatDate(torrent.getCreationDate() * 1000 ));
+						
 						t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKiBEtc(torrent.getPieceSize()));
 						
 						t_row.put( "torrent_piece_count", ""+torrent.getPieceCount());
