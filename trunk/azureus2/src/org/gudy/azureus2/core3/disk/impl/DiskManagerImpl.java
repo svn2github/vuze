@@ -72,7 +72,6 @@ DiskManagerImpl
 	private byte[][]	piecesHash;
 	private int 		nbPieces;
 	private long 		totalLength;
-	private boolean 	pieceDone[];
 	private int 		percentDone;
 	private long 		allocated;
 	private long 		remaining;
@@ -277,9 +276,7 @@ DiskManagerImpl
 
 	private void 
 	startSupport() 
-	{
-		pieceDone = new boolean[nbPieces];
-		
+	{		
 			//if the data file is already in the completed files dir, we want to use it
 		
 		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
@@ -308,7 +305,10 @@ DiskManagerImpl
       
 		int newFiles = allocateFiles();
       
-		if (getState() == FAULTY) return;
+		if ( getState() == FAULTY){
+			
+			return;
+		}
     
         pieceMap = piece_mapper.constructPieceMap();
 
@@ -731,10 +731,6 @@ DiskManagerImpl
 		return nbPieces;
 	}
 
-	public boolean[] getPiecesStatus() {
-		return pieceDone;
-	}
-
 	public int getPercentDone() {
 		return percentDone;
 	}
@@ -923,13 +919,7 @@ DiskManagerImpl
 	{
 		return( pieceMap[piece_number] );
 	}
-	
-	public boolean[]
-	getPiecesDone()
-	{
-		return( pieceDone );
-	}
-	
+		
 	public byte[]
 	getPieceHash(
 		int	piece_number )

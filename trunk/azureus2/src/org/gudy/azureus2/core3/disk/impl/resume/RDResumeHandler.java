@@ -35,9 +35,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
+import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.*;
+
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 
 /**
  * @author parg
@@ -254,7 +256,40 @@ RDResumeHandler
 					
 					if ( resumeValid ){
 						
-						dm_piece.setDone( resumeArray[i] == 1 );
+						boolean	ok = resumeArray[i] == 1;
+						
+						if ( ok ){
+						
+								// at least check that file sizes are OK for this piece to be valid
+							
+							PieceList list = disk_manager.getPieceList(i);
+							
+							for (int j=0;j<list.size();j++){
+								
+								PieceMapEntry	entry = list.get(j);
+								
+								try{
+									long	file_size 		= entry.getFile().getCacheFile().getLength();
+									long	expected_size 	= entry.getOffset() + entry.getLength();
+									
+									if ( file_size < expected_size ){
+										
+										ok	= false;
+										
+										LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
+
+										break;
+									}
+								}catch( CacheFileManagerException e ){
+									
+									Debug.printStackTrace(e);
+									
+									ok = false;
+								}
+							}
+						}
+						
+						dm_piece.setDone( ok );
 						
 					}else{								
 						
