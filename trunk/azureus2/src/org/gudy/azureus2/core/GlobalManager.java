@@ -94,7 +94,7 @@ public class GlobalManager extends Component {
 
               boolean mayStop = false;
               if (hd != null && hd.isValid()) {
-                if (hd.getSeeds() >= nbMinSeeds) {
+                if (hd.getSeeds() > nbMinSeeds) {
                   mayStop = true;
                 }
               }
