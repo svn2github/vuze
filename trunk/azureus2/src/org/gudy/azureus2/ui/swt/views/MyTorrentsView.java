@@ -358,7 +358,7 @@ public class MyTorrentsView extends AbstractIView
 
 
 
-      int iFontPixelsHeight = 10;
+      int iFontPixelsHeight = 11;
       int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
       for (int i = 0; i < categories.length; i++) {
         final Button catButton = new Button(cCategories, SWT.TOGGLE);
@@ -372,7 +372,7 @@ public class MyTorrentsView extends AbstractIView
         catButton.pack(true);
         if (catButton.getSize().y > 0) {
           RowData rd = new RowData();
-          rd.height = catButton.getSize().y - 4;
+          rd.height = catButton.getSize().y - 5;
           catButton.setLayoutData(rd);
         }
         
