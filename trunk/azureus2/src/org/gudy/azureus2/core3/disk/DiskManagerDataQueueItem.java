@@ -4,8 +4,6 @@
  */
 package org.gudy.azureus2.core3.disk;
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 
