@@ -67,7 +67,7 @@ public class Server extends Thread {
 
   public void run() {
     try {
-      sck.configureBlocking(true);
+      sck.configureBlocking(false);
       Logger.getLogger().log(
         componentID,
         evtLyfeCycle,
@@ -85,11 +85,10 @@ public class Server extends Thread {
           sckClient.configureBlocking(false);
           manager.addPeer(sckClient);
         }
-        try {
+        else {
           Thread.sleep(50);
-        }
-        catch (Exception ignore) {}
-      }
+        }    
+      }    
     }
     catch (Exception e) {
       if (bContinue)
