@@ -59,12 +59,12 @@ DownloadScrapeResultImpl
 	public int
 	getSeedCount()
 	{
-		return( response.getSeeds());
+		return( response==null?-1:response.getSeeds());
 	}
 	
 	public int
 	getNonSeedCount()
 	{
-		return( response.getPeers());
+		return( response==null?-1:response.getPeers());
 	}
 }

@@ -33,7 +33,7 @@ public class TrackerStatus {
   private HashMap hashes;
   private List hashList;
 
-  public TrackerStatus(String trackerUrl) {    
+  public TrackerStatus(String trackerUrl) {    	
     this.hashes = new HashMap();
     this.hashList = new Vector();
     try {
@@ -159,7 +159,9 @@ public class TrackerStatus {
           return;
         }
       }
-      //Logger.getLogger().log(0,0,Logger.INFORMATION,"Response from scrape interface : " + message);
+      
+      LGLogger.log(0,0,LGLogger.INFORMATION,"Response from scrape interface : " + message);
+      
       Map map = BDecoder.decode(message.toByteArray());
       Map mapFiles = (Map) map.get("files");
       Iterator iter = mapFiles.keySet().iterator();

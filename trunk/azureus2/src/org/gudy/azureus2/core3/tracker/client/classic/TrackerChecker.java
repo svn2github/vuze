@@ -18,7 +18,7 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class TrackerChecker {
 
-  private HashMap trackers;
+  private HashMap trackers; 
 
   protected TrackerChecker() {
     trackers = new HashMap();

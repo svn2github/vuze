@@ -72,9 +72,7 @@ ShareTester
 	public void 
 	initialize(
 		PluginInterface _pi )
-	{
-		System.out.println( "plugin initialize called");
-	
+	{	
 		plugin_interface = _pi;
 		
 		singleton = this;
@@ -101,7 +99,7 @@ ShareTester
 						downloadAdded(
 							final Download	download )
 						{
-							System.out.println("downloadAdded" + download );
+							System.out.println("downloadAdded: " + download );
 							
 							download.addListener(
 								new DownloadListener()
@@ -137,14 +135,7 @@ ShareTester
 											
 											System.out.println( "announceResult:" + result.getError());
 										}
-									}
-									
-									public void
-									announceFailed(
-										String	reason )
-									{
-										System.out.println( "announceFailed:" + reason );
-									}
+									}								
 								});
 						}
 						public void

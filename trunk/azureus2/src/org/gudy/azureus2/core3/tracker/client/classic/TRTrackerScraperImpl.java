@@ -58,14 +58,22 @@ TRTrackerScraperImpl
 	scrape(
 		TOTorrent		torrent )
 	{
-		return( tracker_checker.getHashData( torrent ));
+		TRTrackerScraperResponse	res = tracker_checker.getHashData( torrent );
+		
+		// System.out.println( "scrape: " + torrent + " -> " + (res==null?"null":""+res.getSeeds()));
+		
+		return( res );
 	}
 		
 	public TRTrackerScraperResponse
 	scrape(
 		TRTrackerClient	tracker_client )
 	{
-		return( tracker_checker.getHashData( tracker_client ));
+		TRTrackerScraperResponse	res = tracker_checker.getHashData( tracker_client );
+		
+		// System.out.println( "scrape: " + tracker_client + " -> " + (res==null?"null":""+res.getSeeds()));
+		
+		return( res );
 	}
 	
 	public void

@@ -579,6 +579,7 @@ DownloadManagerImpl
   }
 
   public TRTrackerScraperResponse getTrackerScrapeResponse() {
+  	// System.out.println("dl::getTSR" + this );
 	if (tracker_client != null  && globalManager != null)
 	  return globalManager.getTrackerScraper().scrape(tracker_client);
 	else
