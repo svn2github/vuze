@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 
@@ -72,18 +73,26 @@ public class ConfigSectionQueue implements ConfigSectionSWT {
     gridData.widthHint = 40;
     new IntParameter(gMainTab, "max active torrents").setLayoutData(gridData); //$NON-NLS-1$
 
+    String	bytes_per_sec 	= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_B );
+    String	k_per_sec 		= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
+
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL"); //$NON-NLS-1$
-    final String activeDLLabels[] = new String[54];
-    final int activeDLValues[] = new int[54];
+    final String activeDLLabels[] = new String[57];
+    final int activeDLValues[] = new int[57];
     int pos = 0;
-    for (int i = 0; i < 1024; i += 256) {
-      activeDLLabels[pos] = "" + i + " B/s";
+    for (int i = 0; i < 256; i += 64) {
+        activeDLLabels[pos] = "" + i + " " + bytes_per_sec;
+        activeDLValues[pos] = i;
+        pos++;
+    }
+    for (int i = 256; i < 1024; i += 256) {
+      activeDLLabels[pos] = "" + i + " " + bytes_per_sec;
       activeDLValues[pos] = i;
       pos++;
     }
     for (int i = 1; pos < activeDLLabels.length; i++) {
-      activeDLLabels[pos] = "" + i + " KB/s";
+      activeDLLabels[pos] = "" + i + " " + k_per_sec;
       activeDLValues[pos] = i * 1024;
       pos++;
     }
@@ -91,16 +100,22 @@ public class ConfigSectionQueue implements ConfigSectionSWT {
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveSeeding");
-    final String activeSeedingLabels[] = new String[24];
-    final int activeSeedingValues[] = new int[24];
+    final String activeSeedingLabels[] = new String[27];
+    final int activeSeedingValues[] = new int[27];
     pos = 0;
-    for (int i = 0; i < 1024; i += 256) {
-      activeSeedingLabels[pos] = "" + i + " B/s";
+        
+    for (int i = 0; i < 256; i += 64) {
+    	activeSeedingLabels[pos] = "" + i + " " + bytes_per_sec;
+    	activeSeedingValues[pos] = i;
+        pos++;
+    }
+    for (int i = 256; i < 1024; i += 256) {
+      activeSeedingLabels[pos] = "" + i + " " + bytes_per_sec;
       activeSeedingValues[pos] = i;
       pos++;
     }
     for (int i = 1; pos < activeSeedingLabels.length; i++) {
-      activeSeedingLabels[pos] = "" + i + " KB/s";
+      activeSeedingLabels[pos] = "" + i + " " + k_per_sec;
       activeSeedingValues[pos] = i * 1024;
       pos++;
     }
