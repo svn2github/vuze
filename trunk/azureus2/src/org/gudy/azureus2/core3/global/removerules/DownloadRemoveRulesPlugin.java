@@ -45,7 +45,7 @@ DownloadRemoveRulesPlugin
 {
 	public static final int			INITIAL_DELAY			= 30000;
 	public static final int			DELAYED_REMOVAL_PERIOD	= 30000;
-	public static final int			AELITIS_SEED_LIMIT		= 20000;
+	public static final int			AELITIS_SEED_LIMIT		= 10000;
 		
 	public static final String		AELITIS_HOST	= "aelitis.com";	// needs to be lowercase
 	
