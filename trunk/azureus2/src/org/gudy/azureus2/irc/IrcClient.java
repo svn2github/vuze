@@ -23,7 +23,7 @@ public class IrcClient extends PircBot {
   public IrcClient(MessageListener _listener) {
     this.srvName = ConfigurationManager.getInstance().getStringParameter("Irc Server", "irc.freenode.net");
     this.channel = ConfigurationManager.getInstance().getStringParameter("Irc Channel", "#azureus");
-    this.userName = channel = ConfigurationManager.getInstance().getStringParameter("Irc Login", "user" + (int) (Math.random() * 100000));
+    this.userName = ConfigurationManager.getInstance().getStringParameter("Irc Login", "user" + (int) (Math.random() * 100000));
     this.setName(userName);
     this.listener = _listener;
     Thread t = new Thread() {
