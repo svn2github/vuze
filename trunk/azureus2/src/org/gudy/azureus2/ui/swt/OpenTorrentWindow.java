@@ -76,8 +76,8 @@ public class OpenTorrentWindow {
     browseTorrent.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
-        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" });
-        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" });
+        fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" });
+        fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" });
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
         String fileName = fDialog.open();
         if (fileName != null) {

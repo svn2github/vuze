@@ -294,14 +294,14 @@ public class TorrentOpener {
 
             String separator = System.getProperty("file.separator"); //$NON-NLS-1$
             for (int i = 0; i < fileNames.length; i++) {
-              if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) {
-                if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".tor")) {
-                  continue;
-                }
-              }
+
+            	// parg: removed test on .torrent/.tor as we now support any file
+                     
               String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault,forSeeding);
-              if (savePath == null)
+              
+              if (savePath == null){
                 continue;
+              }
               
               try{
 	              globalManager.addDownloadManager(

@@ -98,7 +98,7 @@ ExportTorrentWizardInputPanel
 			
 			fd.setFileName(textPath.getText());
 			
-			fd.setFilterExtensions(new String[]{"*.torrent", "*.*"});
+			fd.setFilterExtensions(new String[]{"*.torrent", "*.tor", "*.*"});
 			
 			String path = fd.open();
 			
