@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 public interface 
 TOTorrent
 {
-	public static final String	DEFAULT_IGNORE_FILES	= ".DS_Store;Thumbs.db";
+	public static final String	DEFAULT_IGNORE_FILES	= ".DS_Store;Thumbs.db;desktop.ini";
 	
 	/**
 	 * Get the name of the torrent
