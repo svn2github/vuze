@@ -34,6 +34,8 @@ import java.net.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
+
 
 /**
  * @author Olivier
@@ -101,6 +103,11 @@ PEPeerTransportImpl
 		   //Create a new SocketChannel, left non-connected
 	   
 	   socket = SocketChannel.open();
+     
+	   String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+	   if (bindIP.length() > 6) {
+	     socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
+	   }
 	   
 		   //Configure it so it's non blocking
 	   
