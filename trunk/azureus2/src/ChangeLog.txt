@@ -4,6 +4,9 @@ AZUREUS CHANGELOG
 2004.06.xx | Azureus 2.1.0.1
 
 FEATURE: Plug | Tracker plugin supports simple category view
+FEATURE: Plug | Webui support for password protected trackers
+FEATURE: Plug | Webui attempts to get access to system clipboard to fix copy/paste issues
+
 FEATURE: Core | Health items now show if a torrent is being shared/published
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
