@@ -41,11 +41,11 @@ public class PeerUploadManager {
   private int standard_max_rate_bps;
   private final ByteBucket standard_bucket;
   private final HashMap standard_peer_connections = new HashMap();
-  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "UploadManager:SPC" );
+  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "PeerUploadManager:SPC" );
   private final UploadEntityController standard_entity_controller;
   
   private final HashMap group_buckets = new HashMap();
-  private final AEMonitor group_buckets_mon = new AEMonitor( "UploadManager:GB" );
+  private final AEMonitor group_buckets_mon = new AEMonitor( "PeerUploadManager:GB" );
   
   
   protected PeerUploadManager() {
