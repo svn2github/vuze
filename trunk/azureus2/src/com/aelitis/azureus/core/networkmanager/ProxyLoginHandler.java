@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -285,7 +284,7 @@ public class ProxyLoginHandler {
     handshake.put( (byte)1 ); // command = CONNECT
     handshake.putShort( (short)remote_address.getPort() );
 
-    byte[] ip_bytes = HostNameToIPResolver.syncResolve( remote_address.getAddress().getHostAddress() ).getAddress(); // TODO ok?
+    byte[] ip_bytes = HostNameToIPResolver.syncResolve( remote_address.getAddress().getHostAddress() ).getAddress();
 
     handshake.put( ip_bytes[ 0 ] );
     handshake.put( ip_bytes[ 1 ] );

@@ -29,7 +29,6 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -40,7 +39,6 @@ import org.gudy.azureus2.core3.util.Debug;
 public class TCPTransport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
-  private boolean is_connected;
 
   private boolean is_ready_for_write = false;  
   private Throwable write_select_failure = null;
@@ -54,17 +52,13 @@ public class TCPTransport {
   private final boolean is_inbound_connection;
   
   private int zero_read_count = 0;
-  
-  private final AEMonitor connect_state_mon = new AEMonitor( "TCPTransport:connect" );
-  
-  
+
   
   /**
    * Constructor for disconnected transport.
    */
   public TCPTransport() {
     socket_channel = null;
-    is_connected = false;
     is_ready_for_write = false;
     is_inbound_connection = false;
   }
@@ -78,9 +72,8 @@ public class TCPTransport {
   public TCPTransport( SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
     this.data_already_read = already_read;   
-    is_connected = true;
     is_ready_for_write = true;  //assume it is ready
-    is_inbound_connection = true;  //well, true only if the given socket was actually accepted
+    is_inbound_connection = true;
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
     
     registerSelectHandling();
@@ -132,7 +125,8 @@ public class TCPTransport {
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
-    if( !is_connected ) {
+    if( socket_channel == null ) {
+      Debug.out( "socket_channel == null" );
       return 0;
     }
     
@@ -240,13 +234,8 @@ public class TCPTransport {
   
   
   private void registerSelectHandling() {
-    if( !is_connected ) {  //socket isnt established yet
-      Debug.out( "ERROR: registerSelectHandling() called when not connected", new Exception("traceme") );
-      return;
-    }
-
     if( socket_channel == null ) {
-      System.out.println( "startReadSelects: socket_channel == null" );
+      Debug.out( "ERROR: registerSelectHandling():: socket_channel == null", new Exception("traceme") );
       return;
     }
 
@@ -305,12 +294,11 @@ public class TCPTransport {
     if( read_select_failure != null ) {
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
-
-    if( !is_connected ) {
-      System.out.println( "TCPTransport read() attempted while not connected!" );
+    
+    if( socket_channel == null ) {
+      Debug.out( "socket_channel == null" );
       return 0;
     }
-    
     
     /*
     if( array_offset < 0 || array_offset >= buffers.length ) {
@@ -367,7 +355,7 @@ public class TCPTransport {
  
     
     if( socket_channel == null ) {
-      System.out.println( "read(): [" +description+ "]: socket_channel == null, is_connected=" +is_connected );
+      System.out.println( "read(): [" +description+ "]: socket_channel == null" );
     }
     
     if( buffers == null ) {
@@ -402,69 +390,61 @@ public class TCPTransport {
    * @param listener establishment failure/success listener
    */
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
-    try {  connect_state_mon.enter();
-      if( is_connected ) {
-        Debug.out( "transport already connected" );
-        listener.connectSuccess();
-        return;
-      }
-    
-      final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
-      final TCPTransport transport_instance = this;    
-    
-      ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
-        public void connectAttemptStarted() {
-          listener.connectAttemptStarted();
-        }
-      
-        public void connectSuccess( SocketChannel channel ) {
-          try {  connect_state_mon.enter();
-            socket_channel = channel;
-            is_connected = true;
-            connect_request_key = null;
-            description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
-            is_ready_for_write = true;
-            
-            registerSelectHandling();
-          }
-          finally {  connect_state_mon.exit();  }
-          
-          if( use_proxy ) {  //proxy server connection established, login
-            LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
-          
-            new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
-              public void connectSuccess() {
-                LGLogger.log( "Proxy [" +description+ "] login successful." );
-                listener.connectSuccess();
-              }
-              public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
-            });
-          }
-          else {  //direct connection established, notify
-            listener.connectSuccess();
-          }
-        }
-
-        public void connectFailure( Throwable failure_msg ) {
-          try {  connect_state_mon.enter();
-            socket_channel = null;
-            is_connected = false;
-            is_ready_for_write = false;
-            connect_request_key = null;
-          }
-          finally {  connect_state_mon.exit();  }
-          
-          listener.connectFailure( failure_msg );
-        }
-      };
-    
-      connect_request_key = connect_listener;
-    
-      InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.SOCKS_SERVER_ADDRESS : address;
-    
-      NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
+    if( socket_channel != null ) {  //already connected
+      Debug.out( "socket_channel != null" );
+      listener.connectSuccess();
+      return;
     }
-    finally {  connect_state_mon.exit();  }
+    
+    final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
+    final TCPTransport transport_instance = this;    
+    
+    ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
+      public void connectAttemptStarted() {
+        listener.connectAttemptStarted();
+      }
+      
+      public void connectSuccess( SocketChannel channel ) {
+        socket_channel = channel;
+        connect_request_key = null;
+        is_ready_for_write = true;
+        description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
+
+        registerSelectHandling();
+
+        if( use_proxy ) {  //proxy server connection established, login
+          LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
+          
+          new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
+            public void connectSuccess() {
+              LGLogger.log( "Proxy [" +description+ "] login successful." );
+              listener.connectSuccess();
+            }
+            
+            public void connectFailure( Throwable failure_msg ) {
+              listener.connectFailure( failure_msg );
+            }
+          });
+        }
+        else {  //direct connection established, notify
+          listener.connectSuccess();
+        }
+      }
+
+      public void connectFailure( Throwable failure_msg ) {
+        socket_channel = null;
+        connect_request_key = null;
+        is_ready_for_write = false;
+
+        listener.connectFailure( failure_msg );
+      }
+    };
+    
+    connect_request_key = connect_listener;
+    
+    InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.SOCKS_SERVER_ADDRESS : address;
+    
+    NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
   }
   
     
@@ -474,26 +454,20 @@ public class TCPTransport {
    * Close the transport connection.
    */
   public void close() {
+    is_ready_for_write = false;
+
+    if( connect_request_key != null ) {
+      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+      connect_request_key = null;
+    }
+    
     if( socket_channel != null ){
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
+      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
     }
-    
-    is_ready_for_write = false;
 
-    try {  connect_state_mon.enter();
-      if( is_connected ) {
-        NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
-      }
-      else if( connect_request_key != null ) {
-        NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
-        connect_request_key = null;
-      }
-
-      socket_channel = null;
-      is_connected = false;
-    }
-    finally {  connect_state_mon.exit();  }
+    socket_channel = null;
   }
      
   
