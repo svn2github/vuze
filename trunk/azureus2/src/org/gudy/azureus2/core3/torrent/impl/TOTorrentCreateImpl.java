@@ -592,11 +592,16 @@ TOTorrentCreateImpl
 	protected void
 	cancel()
 	{
-		cancelled	= true;
+		if ( !cancelled ){
 		
-		if ( file_hasher != null ){
+			report( "Torrent.create.progress.cancelled");
+
+			cancelled	= true;
 			
-			file_hasher.cancel();
+			if ( file_hasher != null ){
+				
+				file_hasher.cancel();
+			}
 		}
 	}
 	
