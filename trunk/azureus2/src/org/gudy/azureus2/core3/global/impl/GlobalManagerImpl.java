@@ -452,7 +452,7 @@ public class GlobalManagerImpl
     try {
       File f = new File(fileName);
       
-      boolean saveTorrents = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
+      boolean saveTorrents = persistent&&COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
       if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
       else torrentDir = new File(f.getParent());
 
@@ -775,7 +775,7 @@ public class GlobalManagerImpl
       //Do nothing
     }
     catch (Exception e) {
-      // TODO Auto-generated catch block     
+      e.printStackTrace();
     }
     finally {
       try {
