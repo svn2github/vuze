@@ -257,17 +257,6 @@ public class ConfigView extends AbstractIView {
       }
     });
 
-    /*Button save = new Button(gFilter, SWT.PUSH);
-    gridData = new GridData(GridData.GRAB_VERTICAL | GridData.VERTICAL_ALIGN_END);
-    gridData.widthHint = 100;
-    save.setLayoutData(gridData);
-    Messages.setLanguageText(save, "ipFilter.save");
-    save.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event arg0) {
-        filter.save();
-      }
-    });*/
-
     populateTable();
 
     itemFilter.setControl(gFilter);
@@ -471,7 +460,7 @@ public class ConfigView extends AbstractIView {
     //CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemDownloads, "ConfigView.section.seeding"); //$NON-NLS-1$
 
-    Group gDownloads = new Group(tfConfig, SWT.NULL);
+    Group gDownloads = new Group(tfConfig, SWT.NULL);    
     //Group gDownloads = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDownloads.setLayoutData(gridData);
@@ -1172,16 +1161,26 @@ public class ConfigView extends AbstractIView {
 
   private void populateTable() {
     List ipRanges = filter.getIpRanges();
+    Display display = cConfig.getDisplay();
+    if(display == null || display.isDisposed()) {
+      return;
+    }
     synchronized (ipRanges) {
       Iterator iter = ipRanges.iterator();
       while (iter.hasNext()) {
-        IpRange range = (IpRange) iter.next();
-        TableItem item = new TableItem(table, SWT.NULL);
-        item.setImage(0, ImageRepository.getImage("ipfilter"));
-        item.setText(0, range.getDescription());
-        item.setText(1, range.getStartIp());
-        item.setText(2, range.getEndIp());
-        item.setData(range);
+        final IpRange range = (IpRange) iter.next();
+        display.asyncExec(new Runnable() {
+          public void run() {
+            if(table == null || table.isDisposed())
+              return;
+            TableItem item = new TableItem(table, SWT.NULL);
+            item.setImage(0, ImageRepository.getImage("ipfilter"));
+            item.setText(0, range.getDescription());
+            item.setText(1, range.getStartIp());
+            item.setText(2, range.getEndIp());
+            item.setData(range);
+          }
+        });        
       }
     }
   }
