@@ -55,23 +55,22 @@ public class ConnectDisconnectManager {
     });
   }
   
-  
   private static final int CONNECT_ATTEMPT_TIMEOUT = 30*1000;  //30sec
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
+  private static final boolean SHOW_CONNECT_STATS = false;
   
   private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
   
-  private final LinkedList 	new_requests 			= new LinkedList();
-  private final AEMonitor	new_requests_mon		= new AEMonitor( "ConnectDisconnectManager:NR");
-  private final HashMap 	pending_attempts 		= new HashMap();
-  private final ArrayList 	canceled_requests 		= new ArrayList();
-  private final AEMonitor	canceled_requests_mon	= new AEMonitor( "ConnectDisconnectManager:CR");
-  private final LinkedList 	pending_closes 			= new LinkedList();
-  private final AEMonitor	pending_closes_mon		= new AEMonitor( "ConnectDisconnectManager:PC");
+  private final LinkedList new_requests = new LinkedList();
+  private final ArrayList canceled_requests = new ArrayList();
+  private final AEMonitor	new_canceled_mon= new AEMonitor( "ConnectDisconnectManager:NCM");
+  
+  private final HashMap pending_attempts = new HashMap();
+  
+  private final LinkedList pending_closes = new LinkedList();
+  private final AEMonitor	pending_closes_mon = new AEMonitor( "ConnectDisconnectManager:PC");
      
   private final Random random = new Random();
-  
-  private static final boolean SHOW_CONNECT_STATS = false;
   
   
   
@@ -98,14 +97,14 @@ public class ConnectDisconnectManager {
   private void addNewOutboundRequests() {    
     while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
       try{
-      	new_requests_mon.enter();
+        new_canceled_mon.enter();
       
         if( new_requests.isEmpty() )  break;
         ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
         addNewRequest( cr ); 
       }
       finally{
-      	new_requests_mon.exit();
+        new_canceled_mon.exit();
       }
     }
   }
@@ -260,7 +259,7 @@ public class ConnectDisconnectManager {
   private void runSelect() {
     //do cancellations
     try{
-      canceled_requests_mon.enter();
+      new_canceled_mon.enter();
       
       for( Iterator can_it = canceled_requests.iterator(); can_it.hasNext(); ) {
         ConnectListener key = (ConnectListener)can_it.next();
@@ -292,7 +291,7 @@ public class ConnectDisconnectManager {
       canceled_requests.clear();
     }
     finally{
-      canceled_requests_mon.exit();
+      new_canceled_mon.exit();
     }
     
     
@@ -329,7 +328,7 @@ public class ConnectDisconnectManager {
     //check if our connect queue is stalled, and expand if so
     if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
       try{
-      	new_requests_mon.enter();
+        new_canceled_mon.enter();
       
         if( !new_requests.isEmpty() ) {
           ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
@@ -337,7 +336,7 @@ public class ConnectDisconnectManager {
         }
       }
       finally{
-      	new_requests_mon.exit();
+        new_canceled_mon.exit();
       }
     }
   }
@@ -371,7 +370,7 @@ public class ConnectDisconnectManager {
   protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
     ConnectionRequest cr = new ConnectionRequest( address, listener );
     try{
-    	new_requests_mon.enter();
+      new_canceled_mon.enter();
     
       //insert at a random position because new connections are usually added in 50-peer
       //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
@@ -383,7 +382,7 @@ public class ConnectDisconnectManager {
       new_requests.add( insert_pos, cr );
     }finally{
     	
-    	new_requests_mon.exit();
+      new_canceled_mon.exit();
     }
   }
   
@@ -410,8 +409,9 @@ public class ConnectDisconnectManager {
    */
   protected void cancelRequest( ConnectListener listener_key ) {
     try{
-    	new_requests_mon.enter();
+      new_canceled_mon.enter();
     
+      //check if we can cancel it right away
       for( Iterator i = new_requests.iterator(); i.hasNext(); ) {
         ConnectionRequest request = (ConnectionRequest)i.next();
         if( request.listener == listener_key ) {
@@ -419,24 +419,16 @@ public class ConnectDisconnectManager {
           return;
         }
       }
-    }finally{
-    	new_requests_mon.exit();
+      
+      canceled_requests.add( listener_key ); //else add for later removal during select
     }
-    
-    try{
-    	canceled_requests_mon.enter();
-    
-    	canceled_requests.add( listener_key );
-    }finally{
-    	
-    	canceled_requests_mon.exit();
+    finally{
+      new_canceled_mon.exit();
     }
   }
   
   
-  
-  
-  
+
   private static class ConnectionRequest {
     private final InetSocketAddress address;
     private final ConnectListener listener;
@@ -450,7 +442,6 @@ public class ConnectDisconnectManager {
       request_start_time = SystemTime.getCurrentTime();
     }
   }
-  
   
   
 ///////////////////////////////////////////////////////////  
