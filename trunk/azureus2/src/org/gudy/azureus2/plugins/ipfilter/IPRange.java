@@ -1,6 +1,6 @@
 /*
- * File    : IPFilter.java
- * Created : 02-Mar-2004
+ * File    : IPRange.java
+ * Created : 05-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -23,53 +23,45 @@ package org.gudy.azureus2.plugins.ipfilter;
 
 /**
  * @author parg
- *
+ * IPRange instances implement Comparable. Rules are identical start+end IPs
  */
 
-import java.io.File;
-
 public interface 
-IPFilter
+IPRange
+	extends Comparable
 {
-	public File
-	getFile();
-
-		/**
-		 * creates a new range but *doesn't* add it to the list. Use the add method
-		 * to add it
-		 * @param this_session_only	// not persisted if "this_session_only" is true
-		 * @return
-		 */
-	
-	public IPRange
-	createRange(
-		boolean this_session_only );
-	
-		/**
-		 * Adds a range. Only ranges created with "create" above can be added
-		 * @param range
-		 */
+	public String
+	getDescription();
 	
 	public void
-	addRange(
-		IPRange		range );
+	setDescription(
+		String	str );
+		
+	public boolean
+	isValid();
+  
+	public boolean
+	isSessionOnly();
+	
+	public String
+	getStartIP();
 	
 	public void
-	reload()
+	setStartIP(
+		String	str );
+		
+	public String
+	getEndIP();
 	
-		throws IPFilterException;
-	
-	public IPRange[]
-	getRanges();
-
+	public void
+	setEndIP(
+		String	str );
+  
+	public void
+	setSessionOnly(
+		boolean sessionOnly );
+		
 	public boolean 
 	isInRange(
-		String IPAddress );
-	
-	public IPBlocked[]
-	getBlockedIPs();
-	
-	public void 
-	block(
-		String IPAddress);
+		String ipAddress );
 }

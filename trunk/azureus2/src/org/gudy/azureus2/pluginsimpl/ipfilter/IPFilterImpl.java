@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.ipfilter;
  *
  */
 
+import java.util.*;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.ipfilter.*;
@@ -36,10 +37,18 @@ public class
 IPFilterImpl
 	implements IPFilter
 {
+	protected IpFilter		filter;
+	
+	public
+	IPFilterImpl()
+	{
+		filter = IpFilter.getInstance();
+	}
+	
 	public File
 	getFile()
 	{
-		return(IpFilter.getInstance().getFile());
+		return( filter.getFile());
 	}
 	
 	public void
@@ -48,11 +57,74 @@ IPFilterImpl
 		throws IPFilterException
 	{
 		try{
-			IpFilter.getInstance().reload();
+			filter.reload();
 			
 		}catch( Throwable e ){
 			
 			throw( new IPFilterException( "IPFilter::reload fails", e ));
 		}
+	}
+	
+	public IPRange[]
+	getRanges()
+	{
+		List	l = filter.getIpRanges();
+		
+		IPRange[]	res = new IPRange[l.size()];
+		
+		for (int i=0;i<l.size();i++){
+			
+			res[i] = new IPRangeImpl((IpRange)l.get(i));
+		}
+		
+		return( res );
+	}
+
+	public boolean 
+	isInRange(
+		String IPAddress )
+	{
+		return( filter.isInRange(IPAddress));
+	}
+	
+	public IPRange
+	createRange(
+		boolean this_session_only )
+	{
+		return( new IPRangeImpl( filter.createRange( this_session_only )));
+	}
+		
+	public void
+	addRange(
+		IPRange	range )
+	{
+		if ( !(range instanceof IPRangeImpl )){
+			
+			throw( new RuntimeException( "range must be created by createRange"));
+		}
+		
+		filter.getIpRanges().add( range );
+	}
+	
+	public IPBlocked[]
+	getBlockedIPs()
+	{
+		List	l = filter.getBlockedIps();
+		
+		IPBlocked[]	res = new IPBlocked[l.size()];
+		
+		for (int i=0;i<l.size();i++){
+			
+			res[i] = new IPBlockedImpl((BlockedIp)l.get(i));
+		}
+		
+		return( res );
+	}
+	
+	public void 
+	block(
+		String IPAddress)
+	{
+		filter.ban( IPAddress );
 	}
 }

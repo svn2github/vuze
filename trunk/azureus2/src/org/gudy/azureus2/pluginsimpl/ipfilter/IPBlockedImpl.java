@@ -1,6 +1,6 @@
 /*
- * File    : IPFilter.java
- * Created : 02-Mar-2004
+ * File    : IPBlocked.java
+ * Created : 05-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,57 +19,45 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.ipfilter;
+package org.gudy.azureus2.pluginsimpl.ipfilter;
 
 /**
  * @author parg
  *
  */
 
-import java.io.File;
+import org.gudy.azureus2.plugins.ipfilter.*;
 
-public interface 
-IPFilter
+import org.gudy.azureus2.core3.ipfilter.*;
+
+public class 
+IPBlockedImpl 
+	implements IPBlocked
 {
-	public File
-	getFile();
-
-		/**
-		 * creates a new range but *doesn't* add it to the list. Use the add method
-		 * to add it
-		 * @param this_session_only	// not persisted if "this_session_only" is true
-		 * @return
-		 */
+	protected BlockedIp	blocked;
 	
+	protected
+	IPBlockedImpl(
+		BlockedIp	_blocked )
+	{
+		blocked	= _blocked;
+	}
+	 
+	public String 
+	getBlockedIP()
+	{
+		return( blocked.getBlockedIp());
+	}
+	 
+	public long 
+	getBlockedTime()
+	{
+		return( blocked.getBlockedTime());
+	}
+	 
 	public IPRange
-	createRange(
-		boolean this_session_only );
-	
-		/**
-		 * Adds a range. Only ranges created with "create" above can be added
-		 * @param range
-		 */
-	
-	public void
-	addRange(
-		IPRange		range );
-	
-	public void
-	reload()
-	
-		throws IPFilterException;
-	
-	public IPRange[]
-	getRanges();
-
-	public boolean 
-	isInRange(
-		String IPAddress );
-	
-	public IPBlocked[]
-	getBlockedIPs();
-	
-	public void 
-	block(
-		String IPAddress);
+	getBlockingRange()
+	{
+	 	return( new IPRangeImpl( blocked.getBlockingRange()));
+	}
 }
