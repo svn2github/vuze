@@ -34,15 +34,13 @@ public class StartServer extends Thread {
     super("Start Server");
     try {
       this.main = main;
-      
-   	  LGLogger.log( "Main::startServer: starting listen on 6880");
-    
-      //socket = new ServerSocket(6880);
-	  socket = new ServerSocket(6880, 50, InetAddress.getByName("localhost")); //NOLAR: only bind to localhost
+      socket = new ServerSocket(6880, 50, InetAddress.getByName("localhost")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
+      LGLogger.log( "StartServer: listening on localhost:6880 for passed torrent info");
     }
     catch (Exception e) {
       state = STATE_FAULTY;
+      LGLogger.log( "StartServer ERROR: unable to bind to localhost:6880 for passed torrent info");
     }
   }
 
