@@ -30,76 +30,79 @@ package org.gudy.azureus2.pluginsimpl.local.update;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.update.*;
+
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public class 
-UpdateManagerImpl
-	implements UpdateManager
+UpdateImpl 
+	implements Update
 {
-	protected static UpdateManagerImpl		singleton = new UpdateManagerImpl();
+	protected UpdateManagerImpl			manager;
+	protected String					name;
+	protected ResourceDownloader[]		downloaders;
+	protected int						restart_required;
+
+	protected List						listeners = new ArrayList();
 	
-	public static UpdateManager
-	getSingleton()
+	protected
+	UpdateImpl(
+		UpdateManagerImpl		_manager,
+		String					_name,
+		ResourceDownloader[]	_downloaders,
+		int						_restart_required )
 	{
-		return( singleton );
+		manager				= _manager;
+		name				= _name;
+		downloaders			= _downloaders;
+		restart_required	= _restart_required;
 	}
 	
-	protected List	listeners	= new ArrayList();
-	protected List	updates 	= new ArrayList();
-	
-	protected 
-	UpdateManagerImpl()
+	public String
+	getName()
 	{
+		return( name );
+	}
+
+	public ResourceDownloader[]
+	getDownloaders()
+	{
+		return( downloaders );
 	}
 	
-	public Update
-	addUpdate(
-		String				name,
-		ResourceDownloader	downloader,
-		int					restart_required )
+	public void
+	setRestartRequired(
+		int	_restart_required )
 	{
-		return( addUpdate( name, new ResourceDownloader[]{ downloader }, restart_required ));
+		restart_required	= _restart_required;
 	}
 	
-	public synchronized Update
-	addUpdate(
-		String					name,
-		ResourceDownloader[]	downloaders,
-		int						restart_required )
+	public int
+	getRestartRequired()
 	{
-		UpdateImpl	update = new UpdateImpl( this, name, downloaders, restart_required );
-		
-		updates.add( update );
-		
+		return( restart_required );
+	}
+	
+
+	public void
+	cancel()
+	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((UpdateManagerListener)listeners.get(i)).updateAdded( this, update );
+			((UpdateListener)listeners.get(i)).cancelled( this );
 		}
-		
-		return( update );
-	}
-	
-	public synchronized Update[]
-	getUpdates()
-	{
-		Update[]	res = new Update[updates.size()];
-		
-		updates.toArray( res );
-		
-		return( res );
 	}
 	
 	public void
 	addListener(
-		UpdateManagerListener	l )
+		UpdateListener		l )
 	{
 		listeners.add( l );
 	}
 	
 	public void
 	removeListener(
-			UpdateManagerListener	l )
+		UpdateListener		l )
 	{
-		listeners.remove(l);
+		listeners.remove( l );
 	}
 }

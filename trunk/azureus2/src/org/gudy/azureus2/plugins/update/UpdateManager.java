@@ -39,7 +39,7 @@ UpdateManager
 		 * @param restart_required
 		 */
 	
-	public void
+	public Update
 	addUpdate(
 		String				name,
 		ResourceDownloader	downloader,
@@ -52,7 +52,7 @@ UpdateManager
 		 * @param restart_required
 		 */
 	
-	public void
+	public Update
 	addUpdate(
 		String					name,
 		ResourceDownloader[]	downloaders,
