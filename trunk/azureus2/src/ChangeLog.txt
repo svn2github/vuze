@@ -27,6 +27,8 @@ BUGFIX: Fix for OutOfMemoryError in DiskManager: Bug #865553 [TuxPaper]
 BUGFIX: Fix for 'Open a URL' downloading of .torrent file which contains white spaces: Bug #878990 [Parg]
 BUGFIX: Fix for Fast Resume with Chinese torrents: Bug #878015 [Parg]
 BUGFIX: Fix for excess thread creation when tracker does not support single-infohash scrapes [Nolar]
+BUGFIX: Fix for hash checking 0-byte files: Bug #853126 [Nolar]
+BUGFIX: Fix for opening files via Files tab when using MoveOnComplete: Bugs #860822, #878795 [Nolar] 
 
 
 
