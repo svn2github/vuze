@@ -125,7 +125,6 @@ PEPeerTransportProtocol
   private AEMonitor	recent_outgoing_requests_mon;
   
   private static final boolean SHOW_DISCARD_RATE_STATS;
-  
   static {
   	String	prop = System.getProperty( "show.discard.rate.stats" );
   	SHOW_DISCARD_RATE_STATS = prop != null && prop.equals( "1" );
@@ -138,8 +137,16 @@ PEPeerTransportProtocol
   private ArrayList peer_listeners;
   
   
+  //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
+  //lazy mode makes sure we never send a complete (seed) bitfield
+  private static final boolean ENABLE_LAZY_BITFIELD;
+  static {
+    String  prop = System.getProperty( "azureus.lazy.bitfield" );
+    ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
+  }
   
-
+  
+  
   
   
   //INCOMING
@@ -577,7 +584,8 @@ PEPeerTransportProtocol
 	}
   
 
-  
+
+    
   /**
    * Private method to send the bitfield.
    */
@@ -586,6 +594,8 @@ PEPeerTransportProtocol
     
 		//In case we're in super seed mode, we don't send our bitfield
 		if ( manager.isSuperSeedMode() ) return;
+    
+    ArrayList lazies = new ArrayList();
     
     //create bitfield
 		ByteBuffer buffer = ByteBuffer.allocate( (manager.getPiecesNumber() + 7) / 8 );
@@ -598,7 +608,17 @@ PEPeerTransportProtocol
 			if ( (i % 8) == 0 ) bToSend = 0;
 			bToSend = bToSend << 1;
 			if ( pieces[i].getDone()) {
-				bToSend += 1;
+        if( ENABLE_LAZY_BITFIELD ) {
+          if( i < 8 || i >= (pieces.length - (pieces.length % 8)) ) {  //first and last bytes
+            lazies.add( new Integer( i ) );  //send as a Have message instead
+          }
+          else {
+            bToSend += 1;
+          }
+        }
+        else {
+          bToSend += 1;
+        }
 			}
 			if ( (i % 8) == 7 ) buffer.put( (byte)bToSend );
 		}
@@ -610,6 +630,13 @@ PEPeerTransportProtocol
     buffer.flip();
     
     connection.getOutgoingMessageQueue().addMessage( new BTBitfield( new DirectByteBuffer( buffer ) ), false );
+    
+    for( int x=0; x < lazies.size(); x++ ) {
+      Integer num = (Integer)lazies.get( x );
+      
+      connection.getOutgoingMessageQueue().addMessage( new BTHave( num.intValue() ), false );
+    }
+                                   
 	}
 
   
