@@ -235,7 +235,7 @@ public class ConsoleInput extends Thread {
                     tstate+=Integer.toString(dm.getNbPeers())+"("+Integer.toString(hd.getPeers())+")";
                   }
                   out.println(tstate);
-                  out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
+                  //out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
                   out.println();
                 }
                 out.println(	"Total Speed (down/up): "+
