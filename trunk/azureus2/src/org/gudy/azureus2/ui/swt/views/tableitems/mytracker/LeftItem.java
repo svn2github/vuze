@@ -49,7 +49,10 @@ public class LeftItem
         value = longObject.longValue();
      }
 
-    cell.setSortValue(value);
-   cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

@@ -49,10 +49,8 @@ public class StatusItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    if (dm == null) {
-      cell.setText("");
-    } else if (cell.setText(DisplayFormatters.formatDownloadStatus(dm)) || 
-               !cell.isValid()) {
+    
+    if( cell.setText( dm == null ? "" : DisplayFormatters.formatDownloadStatus(dm) ) || !cell.isValid() ) {
       int state = dm.getState();
       if (state == DownloadManager.STATE_SEEDING)
         ((TableCellCore)cell).getTableRowCore().setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
@@ -61,5 +59,6 @@ public class StatusItem
       else
         ((TableCellCore)cell).getTableRowCore().setForeground(null);
     }
+ 
   }
 }

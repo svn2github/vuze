@@ -58,7 +58,6 @@ public class HealthItem
   private class Cell
           implements TableCellRefreshListener
   {
-    private String sLastImageName = "";
 
     public Cell(TableCell cell) {
       cell.addRefreshListener(this);
@@ -69,8 +68,9 @@ public class HealthItem
     public void refresh(TableCell cell) {
        
       DownloadManager dm = (DownloadManager)cell.getDataSource();
-      int wealth = (dm == null) ? 0 : dm.getHealthStatus();
-      if (!cell.setSortValue(wealth) && cell.isValid())
+      int health = (dm == null) ? 0 : dm.getHealthStatus();
+      
+      if (!cell.setSortValue(health) && cell.isValid())
         return;
 
       TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
@@ -78,16 +78,16 @@ public class HealthItem
       String image_name;
       String sHelpID;
 
-      if(wealth == DownloadManager.WEALTH_KO) {
+      if(health == DownloadManager.WEALTH_KO) {
       	image_name = "st_ko";   
       	sHelpID = "health.explain.red";
-      } else if (wealth == DownloadManager.WEALTH_OK) {
+      } else if (health == DownloadManager.WEALTH_OK) {
       	image_name = "st_ok";   
       	sHelpID = "health.explain.green";
-      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
+      } else if (health == DownloadManager.WEALTH_NO_TRACKER) {
       	image_name = "st_no_tracker";   
       	sHelpID = "health.explain.blue";
-      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
+      }else if (health == DownloadManager.WEALTH_NO_REMOTE) {
       	image_name = "st_no_remote";   
       	sHelpID = "health.explain.yellow";
       }else{
@@ -99,14 +99,13 @@ public class HealthItem
       	image_name += "_shared";
       }
       
-      if (!sLastImageName.equals(image_name) || !cell.isValid()) {
-        ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name));
+      if( ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name)) ) {
         String sToolTip = MessageText.getString(sHelpID);
         if (ht != null)
           sToolTip += "\n" + MessageText.getString("health.explain.share");
         cell.setToolTip(sToolTip);
-        sLastImageName = image_name;
       }
+      
     }
   }
 }

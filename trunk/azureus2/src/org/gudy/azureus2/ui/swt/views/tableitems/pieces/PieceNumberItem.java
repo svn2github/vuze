@@ -42,7 +42,10 @@ public class PieceNumberItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     long value = (piece == null) ? 0 : piece.getPieceNumber();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

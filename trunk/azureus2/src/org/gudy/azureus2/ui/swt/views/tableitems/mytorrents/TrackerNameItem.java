@@ -60,7 +60,7 @@ public class TrackerNameItem
         else break;
       }
     }
-    
+        
     cell.setText( name );
   }
 }

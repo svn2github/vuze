@@ -66,18 +66,17 @@ public class ShareRatioItem
   }
 
   public void refresh(TableCell cell) {
-    String shareRatio = "";
-
     DownloadManager dm = (DownloadManager)cell.getDataSource();
                        
     int sr = (dm == null) ? 0 : dm.getStats().getShareRatio();
     if (sr == -1)
       sr = Constants.INFINITY_AS_INT;
       
-    ((TableCellCore)cell).setForeground((sr < iMinShareRatio) ? Colors.colorWarning : null);
     if (!cell.setSortValue(sr) && cell.isValid())
       return;
-
+    
+    String shareRatio = "";
+    
     if (sr == Constants.INFINITY_AS_INT) {
       shareRatio = Constants.INFINITY_STRING;
     } else {
@@ -87,7 +86,10 @@ public class ShareRatioItem
       }
       shareRatio = (sr / 1000) + "." + partial;
     }
-    cell.setText(shareRatio);
+    
+    if( cell.setText(shareRatio) ) {
+      ((TableCellCore)cell).setForeground((sr < iMinShareRatio) ? Colors.colorWarning : null);
+    }
   }
 
   public void parameterChanged(String parameterName) {

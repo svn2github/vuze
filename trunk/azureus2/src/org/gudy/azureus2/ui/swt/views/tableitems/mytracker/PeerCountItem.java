@@ -48,7 +48,10 @@ public class PeerCountItem
         value = longObject.longValue();
      }
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

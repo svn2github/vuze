@@ -42,29 +42,31 @@ public class StatusItem
 
 
   public void refresh(TableCell cell) {
-    String sText;
     TRHostTorrent item = (TRHostTorrent)cell.getDataSource();
-    if (item == null) {
-      sText = "";
-    } else {
-  		int	iStatus = item.getStatus();
-  		String status = null;
-  		
-  		if (iStatus == TRHostTorrent.TS_STARTED) {
-  			status = "started";
-  		} else if (iStatus == TRHostTorrent.TS_STOPPED) {
-  			status = "stopped";
-  		} else if (iStatus == TRHostTorrent.TS_FAILED) {
-  			status = "failed";
-  		} else if (iStatus == TRHostTorrent.TS_PUBLISHED) {
-  			status = "published";
-  		}
 
-      sText = (status == null) ? "?" 
-                               : MessageText.getString("MyTrackerView.status." +
-                                                       status);
+    String status_text = "";
+    
+    if( item != null ) {
+      int status = item.getStatus();
+      
+      if( !cell.setSortValue( status ) && cell.isValid() ) {
+        return;
+      }
+      
+      if (status == TRHostTorrent.TS_STARTED) {
+        status_text = MessageText.getString( "MyTrackerView.status.started" );
+      }
+      else if (status == TRHostTorrent.TS_STOPPED) {
+        status_text = MessageText.getString( "MyTrackerView.status.stopped" );
+      }
+      else if (status == TRHostTorrent.TS_FAILED) {
+        status_text = MessageText.getString( "MyTrackerView.status.failed" );
+      }
+      else if (status == TRHostTorrent.TS_PUBLISHED) {
+        status_text = MessageText.getString( "MyTrackerView.status.published" );
+      }
     }
-
-    cell.setText(sText);
+    
+    cell.setText( status_text );
   }
 }

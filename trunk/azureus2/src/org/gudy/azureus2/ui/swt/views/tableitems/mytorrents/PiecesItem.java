@@ -96,7 +96,11 @@ public class PiecesItem
       // Named infoObj so code can be copied easily to the other PiecesItem
       DownloadManager infoObj = (DownloadManager)cell.getDataSource();
       long lCompleted = (infoObj == null) ? 0 : infoObj.getStats().getCompleted();
-      cell.setSortValue(lCompleted);
+      
+      if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
+        return;
+      }
+      
       if (infoObj == null)
         return;
   

@@ -77,7 +77,13 @@ public class CompletionItem
   
       
     
-    public void refresh(TableCell cell) {    
+    public void refresh(TableCell cell) {
+      int percentDone = getPercentDone(cell);
+      
+      if( !cell.setSortValue(percentDone) && cell.isValid() && lastPercentDone == percentDone ) {
+        return;
+      }
+      
       //Compute bounds ...
       int newWidth = cell.getWidth();
       if (newWidth <= 0)
@@ -89,18 +95,7 @@ public class CompletionItem
       if (x1 < 10 || y1 < 3) {
         return;
       }
-  
-      int percentDone = getPercentDone(cell);
-      if (!cell.setSortValue(percentDone) && cell.isValid())
-        return;
 
-      boolean bImageBufferValid = (!cell.setSortValue(percentDone)) &&
-                                  (lastPercentDone == percentDone) && 
-                                  cell.isValid();
-      if (bImageBufferValid) {
-        return;
-      }
-  
       lastPercentDone = percentDone;
 
       Image image = ((TableCellCore)cell).getGraphicSWT();
@@ -114,11 +109,11 @@ public class CompletionItem
         bImageSizeChanged = imageBounds.width != newWidth ||
                             imageBounds.height != newHeight;
       }
+      
       if (bImageSizeChanged) {
         image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
                           newWidth, newHeight);
         imageBounds = image.getBounds();
-        bImageBufferValid = false;
   
         // draw border
         gcImage = new GC(image);
@@ -138,9 +133,7 @@ public class CompletionItem
   
       gcImage.dispose();
         
-      if (!bImageBufferValid) {
-        ((TableCellCore)cell).setGraphic(image);
-      }
+      ((TableCellCore)cell).setGraphic(image);
     }
   
     public int getPercentDone(TableCell cell) {

@@ -44,7 +44,10 @@ public class TotalBytesOutItem
     TRHostTorrent item = (TRHostTorrent)cell.getDataSource();
     long value = (item == null) ? 0 : item.getTotalBytesOut();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

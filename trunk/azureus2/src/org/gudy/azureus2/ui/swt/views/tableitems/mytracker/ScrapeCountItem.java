@@ -43,7 +43,10 @@ public class ScrapeCountItem
     TRHostTorrent item = (TRHostTorrent)cell.getDataSource();
     long value = (item == null) ? 0 : item.getScrapeCount();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

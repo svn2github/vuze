@@ -36,7 +36,7 @@ public class StateItem
 {
   /** Default Constructor */
   public StateItem() {
-    super("state", POSITION_INVISIBLE, 65, TableManager.TABLE_TORRENT_PEERS);
+    super("state", POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
@@ -45,6 +45,11 @@ public class StateItem
     String state_text = "";
     if( peer != null ) {
       int state = peer.getConnectionState();
+      
+      if( !cell.setSortValue( state ) && cell.isValid() ) {
+        return;
+      }
+      
       switch( state ) {
         case PEPeerTransport.CONNECTION_PENDING :
           state_text = MessageText.getString( "PeersView.state.pending" );
@@ -63,6 +68,7 @@ public class StateItem
           break;
       }
     }
+    
     cell.setText( state_text );
   }
 }

@@ -43,7 +43,10 @@ public class CompletedItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     long value = (piece == null) ? 0 : piece.getCompleted();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

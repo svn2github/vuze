@@ -45,8 +45,7 @@ HostNameItem
 
 	  public void refresh(TableCell cell) {
 	    PEPeer peer = (PEPeer)cell.getDataSource();
-	    String sText = (peer == null) ? "" :peer.getIPHostName();
 
-	    cell.setText(sText);
+	    cell.setText( peer == null ? "" : peer.getIPHostName() );
 	  }
 }

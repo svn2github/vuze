@@ -44,7 +44,10 @@ public class AverageBytesInItem
     TRHostTorrent item = (TRHostTorrent)cell.getDataSource();
     long value = (item == null) ? 0 : item.getAverageBytesIn();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
   }
 }

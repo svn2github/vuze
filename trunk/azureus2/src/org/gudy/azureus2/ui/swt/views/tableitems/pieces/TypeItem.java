@@ -44,7 +44,10 @@ public class TypeItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     long value = (piece == null) ? 0 : piece.isSlowPiece() ? 0 : 1;
     
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(MessageText.getString("PiecesView.typeItem." + value));
   }
 }

@@ -43,7 +43,10 @@ public class AnnounceCountItem
     TRHostTorrent item = (TRHostTorrent)cell.getDataSource();
     long value = (item == null) ? 0 : item.getAnnounceCount();
 
-    cell.setSortValue(value);
+    if( !cell.setSortValue( value ) && cell.isValid() ) {
+      return;
+    }
+    
     cell.setText(""+value);
   }
 }

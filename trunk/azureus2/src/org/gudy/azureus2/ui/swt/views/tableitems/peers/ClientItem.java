@@ -45,8 +45,7 @@ public class ClientItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    String sText = (peer == null) ? "" : peer.getClient();
-    // this only changes from "" -> 
-    cell.setText(sText);
+
+    cell.setText( peer == null ? "" : peer.getClient() );
   }
 }

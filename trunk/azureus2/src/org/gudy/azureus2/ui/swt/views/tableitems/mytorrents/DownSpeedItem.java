@@ -81,6 +81,7 @@ public class DownSpeedItem
         iState = dm.getState();
         value = dm.getStats().getDownloadAverage();
       }
+      
       if (!cell.setSortValue(value) && cell.isValid() && (iState == iLastState))
         return;
   

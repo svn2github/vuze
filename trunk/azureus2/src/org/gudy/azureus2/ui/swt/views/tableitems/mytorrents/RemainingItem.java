@@ -51,7 +51,10 @@ public class RemainingItem
   public void refresh(TableCell cell) {
     long lRemaining = getRemaining(cell);
 
-    cell.setSortValue(lRemaining);
+    if( !cell.setSortValue( lRemaining ) && cell.isValid() ) {
+      return;
+    }
+    
     if (bLastValueEstimate) {
       cell.setText("~ " + DisplayFormatters.formatByteCountToKiBEtc(lRemaining));
     } else {
