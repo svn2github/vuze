@@ -25,9 +25,6 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.AEThread;
-
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
 
@@ -134,7 +131,7 @@ SSDPImpl
 						mc_sock.setLoopbackMode(true);
 											
 						Runtime.getRuntime().addShutdownHook(
-								new AEThread("SSDP:VMShutdown")
+								new Thread("SSDP:VMShutdown")
 								{
 									public void
 									run()
@@ -150,7 +147,7 @@ SSDPImpl
 								});
 						
 						Thread	group_thread = 
-							new AEThread("SSDP: MC listener")
+							new Thread("SSDP: MC listener")
 							{
 								public void
 								run()
@@ -171,20 +168,17 @@ SSDPImpl
 						
 						control_socket.bind( new InetSocketAddress(ni_address, SSDP_CONTROL_PORT ));
 		
-						Thread	control_thread = 
-							new AEThread("SSDP:listener")
+						upnp.getPluginInterface().getUtilities().createThread(
+							"SSDP:listener",
+							new Runnable()
 							{
 								public void
 								run()
 								{
 									handleSocket( ni_address, control_socket );
 								}
-							};
-							
-						control_thread.setDaemon( true );
-						
-						control_thread.start();
-						
+							});
+													
 					}catch( Throwable e ){
 					
 						e.printStackTrace();
@@ -192,19 +186,16 @@ SSDPImpl
 				}
 			}
 		
-			Thread	query_thread = 
-				new AEThread("SSDP:queryLoop")
-				{
-					public void
-					run()
+			upnp.getPluginInterface().getUtilities().createThread(
+					"SSDP:queryLoop",
+					new Runnable()
 					{
-						 queryLoop();
-					}
-				};
-				
-			query_thread.setDaemon(true);
-			
-			query_thread.start();
+						public void
+						run()
+						{
+							queryLoop();
+						}	
+					});
 			
 		}catch( Throwable e ){
 			
@@ -217,7 +208,7 @@ SSDPImpl
 	public void
 	searchNow()
 	{
-		long	now = SystemTime.getCurrentTime();
+		long	now = System.currentTimeMillis();
 		
 		if ( now - last_explicit_search < 10000 ){
 			

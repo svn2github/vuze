@@ -206,7 +206,7 @@ UPnPPlugin
 		}
 		
 		try{
-			upnp = UPnPFactory.getSingleton();
+			upnp = UPnPFactory.getSingleton( plugin_interface );
 				
 			upnp.addRootDeviceListener(
 				new UPnPListener()

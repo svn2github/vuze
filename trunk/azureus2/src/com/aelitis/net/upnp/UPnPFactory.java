@@ -29,14 +29,17 @@ package com.aelitis.net.upnp;
 
 import com.aelitis.net.upnp.impl.*;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 public class 
 UPnPFactory 
 {
 	public static UPnP
-	getSingleton()
+	getSingleton(
+		PluginInterface		plugin_interface )
 	
 		throws UPnPException
 	{
-		return( UPnPImpl.getSingleton());
+		return( UPnPImpl.getSingleton( plugin_interface));
 	}
 }

@@ -31,17 +31,15 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.logging.*;
 
-import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentFactory;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.device.*;
@@ -60,19 +58,22 @@ UPnPImpl
 	protected static UPnPImpl	singleton;
 	
 	public static synchronized UPnP
-	getSingleton()
+	getSingleton(
+		PluginInterface		plugin_interface )
 	
 		throws UPnPException
 	{
 		if ( singleton == null ){
 			
-			singleton = new UPnPImpl();
+			singleton = new UPnPImpl( plugin_interface );
 		}
 		
 		return( singleton );
 	}
 	
-	protected SSDP		ssdp;
+	protected PluginInterface		plugin_interface;
+	protected LoggerChannel			log;
+	protected SSDP					ssdp;
 	
 	protected Map		root_locations	= new HashMap();
 	
@@ -85,10 +86,15 @@ UPnPImpl
 	
 	
 	protected
-	UPnPImpl()
+	UPnPImpl(
+		PluginInterface		_plugin_interface )
 	
 		throws UPnPException
 	{
+		plugin_interface	= _plugin_interface;
+		
+		log		= plugin_interface.getLogger().getChannel("UPnP Core");
+		
 		ssdp = SSDPFactory.create( this );
 		
 		ssdp.addListener(this);
@@ -265,9 +271,9 @@ UPnPImpl
 				
 			String	data_str = data.toString();
 			
-			LGLogger.log( "UPnP:Response:" + data_str );
+			log.log( "UPnP:Response:" + data_str );
 			
-			return( SimpleXMLParserDocumentFactory.create( data_str ));
+			return( plugin_interface.getUtilities().getSimpleXMLParserDocumentFactory().create( data_str ));
 			
 		}catch( Throwable e ){
 			
@@ -298,7 +304,7 @@ UPnPImpl
 	
 		throws UPnPException
 	{
-		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+		ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
 		
 		ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
 		
@@ -330,7 +336,7 @@ UPnPImpl
 	
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
-		LGLogger.log( "UPnP:Request:" + request );
+		log.log( "UPnP:Request:" + request );
 
 		URL	control = service.getControlURL();
 		
@@ -462,9 +468,14 @@ UPnPImpl
 			trace_index = 1;
 		}
 		
-		return( FileUtil.getUserFile( "upnp_trace" + trace_index + ".log" ));
+		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "upnp_trace" + trace_index + ".log" ));
 	}
 	
+	public PluginInterface
+	getPluginInterface()
+	{
+		return( plugin_interface );
+	}
 	
 	public void
 	reportActivity(
@@ -569,7 +580,7 @@ UPnPImpl
 		String[]		args )
 	{
 		try{
-			UPnP	upnp = UPnPFactory.getSingleton();
+			UPnP	upnp = UPnPFactory.getSingleton(null);	// won't work with null ....
 				
 			upnp.addRootDeviceListener(
 					new UPnPListener()
