@@ -938,19 +938,41 @@ public class ConfigView extends AbstractIView {
 	  }
 	});
 
-	// row
-		
-	Label lSaveFile = new Label(gStats, SWT.NULL);
-	Messages.setLanguageText(lSaveFile, "ConfigView.section.stats.savefile"); //$NON-NLS-1$
-	
-	gridData = new GridData();
-	gridData.widthHint = 150;
-	final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME ); 
-  fileParameter.setLayoutData(gridData);
-  controls[3] = lSaveFile;
-  controls[4] = fileParameter.getControl();
-	label = new Label(gStats, SWT.NULL);
-
+   // row
+   
+   Label lSaveFile = new Label(gStats, SWT.NULL);
+   Messages.setLanguageText(lSaveFile, "ConfigView.section.stats.savefile"); //$NON-NLS-1$
+   
+   gridData = new GridData();
+   gridData.widthHint = 150;
+   final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME ); 
+   fileParameter.setLayoutData(gridData);
+   controls[3] = fileParameter.getControl();
+   label = new Label(gStats, SWT.NULL);
+   
+   // row
+   
+   Label lxslFile = new Label(gStats, SWT.NULL);
+   Messages.setLanguageText(lxslFile, "ConfigView.section.stats.xslfile"); //$NON-NLS-1$
+   
+   gridData = new GridData();
+   gridData.widthHint = 150;
+   final StringParameter xslParameter = new StringParameter(gStats, "Stats XSL File", "" ); 
+   xslParameter.setLayoutData(gridData);
+   controls[4] = xslParameter.getControl();
+   Label lxslDetails = new Label(gStats, SWT.NULL);
+   Messages.setLanguageText(lxslDetails, "ConfigView.section.stats.xslfiledetails"); //$NON-NLS-1$
+   final String linkFAQ = "http://azureus.sourceforge.net/faq.php#20";
+   lxslDetails.setCursor(MainWindow.handCursor);
+   lxslDetails.setForeground(MainWindow.blue);
+   lxslDetails.addMouseListener(new MouseAdapter() {
+   	public void mouseDoubleClick(MouseEvent arg0) {
+   		Program.launch(linkFAQ);
+   	}
+   	public void mouseDown(MouseEvent arg0) {
+   		Program.launch(linkFAQ);
+   	}
+   });  
 		// row
 		
 	Label lSaveFreq = new Label(gStats, SWT.NULL);
@@ -1278,7 +1300,7 @@ public class ConfigView extends AbstractIView {
 	    
 	   label = new Label(gTracker, SWT.NULL);
 	   Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info");
-     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#17";
+     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
      label.setCursor(MainWindow.handCursor);
      label.setForeground(MainWindow.blue);
      label.addMouseListener(new MouseAdapter() {

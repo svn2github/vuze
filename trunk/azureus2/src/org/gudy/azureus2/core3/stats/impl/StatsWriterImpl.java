@@ -30,6 +30,7 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
@@ -86,6 +87,13 @@ StatsWriterImpl
 	{
 		writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
+		String xsl = COConfigurationManager.getStringParameter( "Stats XSL File", "" );
+		
+		if ( xsl.length() > 0 ){
+			
+			writeLine( "<?xml-stylesheet type=\"text/xsl\" href=\"" + xsl + "\"?>" );
+		}
+		
 		writeLine( "<STATS>");
 	
 		try{
