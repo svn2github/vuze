@@ -63,6 +63,8 @@ IpFilter
 	public abstract IpRange[] getRanges();
 
 	public abstract boolean isInRange(String ipAddress);
+  
+  public abstract boolean isInRange(String ipAddress, String torrent_name);
 	
 	public abstract IpRange
 	createRange(boolean sessionOnly);

@@ -1070,7 +1070,7 @@ PEPeerControlImpl
     * private method to add a new outgoing peerConnection
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    if (!IpFilterImpl.getInstance().isInRange(ip)) {
+    if (!IpFilterImpl.getInstance().isInRange(ip, _manager.getName())) {
     	synchronized (_peer_transports) {
     		//create a peer socket for testing purposes
     		PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
@@ -1098,7 +1098,7 @@ PEPeerControlImpl
     //Get the max number of connections allowed
     boolean addFailed = false;
     String reason = "";
-    if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
+    if (!IpFilterImpl.getInstance().isInRange(ps.getIp(), _manager.getName())) {
        synchronized (_peer_transports) {
           if (!_peer_transports.contains(ps)) {
           	/* add connection */
@@ -2050,7 +2050,7 @@ PEPeerControlImpl
       synchronized( _peer_transports ) {
         for (int i=0; i < _peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
-          if ( IpFilterImpl.getInstance().isInRange( conn.getIp() )) {
+          if ( IpFilterImpl.getInstance().isInRange( conn.getIp(), _manager.getName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
         }

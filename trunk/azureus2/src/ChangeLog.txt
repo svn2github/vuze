@@ -26,6 +26,7 @@ CHANGE: Systray4j removed: system tray support now from SWT built-in code [Gudy]
 CHANGE: Config/pref/torrent file saving uses intermediate .saving file for more reliability [Nolar]
 CHANGE: New SHA-1 hasher: up to 25% faster [Gudy / Nolar]
 CHANGE: Currently-connected peer connections are dropped when IPFilter is enabled [Nolar]
+CHANGE: Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
 
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 BUGFIX: Fix for some discarded data due to occasional duplicate request [Nolar]

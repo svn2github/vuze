@@ -33,11 +33,13 @@ public class BlockedIpImpl implements BlockedIp {
   private String ip;
   private long time;
   private IpRange range;
+  private String torrentname;
   
-  public BlockedIpImpl(String ip,IpRange range) {
+  public BlockedIpImpl(String ip,IpRange range, String torrent_name) {
     this.ip = ip;
     this.range = range;
     this.time = SystemTime.getCurrentTime();
+    this.torrentname = torrent_name;
   }
   
   public String getBlockedIp() {
@@ -50,6 +52,10 @@ public class BlockedIpImpl implements BlockedIp {
   
   public long getBlockedTime() {
     return time;
+  }
+  
+  public String getTorrentName() {
+    return torrentname;
   }
 
 }

@@ -29,4 +29,5 @@ public interface BlockedIp {
   public String getBlockedIp();
   public long getBlockedTime();
   public IpRange getBlockingRange();
+  public String getTorrentName();
 }

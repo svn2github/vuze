@@ -183,7 +183,13 @@ IpFilterImpl
 	  }
 	}
   
-	public boolean isInRange(String ipAddress) {
+  
+  public boolean isInRange(String ipAddress) {
+    return isInRange( ipAddress, "" );
+  }
+  
+  
+	public boolean isInRange(String ipAddress, String torrent_name) {
 	  //In all cases, block banned ip addresses
 	  if(isBanned(ipAddress))
 	    return true;
@@ -198,7 +204,7 @@ IpFilterImpl
 			  if(ipRange.isInRange(ipAddress)) {
 			    if(!allow) {
 			      synchronized(ipsBlocked) {
-			        ipsBlocked.add(new BlockedIpImpl(ipAddress,ipRange));
+			        ipsBlocked.add(new BlockedIpImpl(ipAddress,ipRange, torrent_name));
 			      }
 						LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
 						nbIpsBlocked++;
@@ -211,7 +217,7 @@ IpFilterImpl
 		}
 	  if(allow) {
 	    synchronized(ipsBlocked) {
-	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null));
+	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
 	    }
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
 	    nbIpsBlocked++;
