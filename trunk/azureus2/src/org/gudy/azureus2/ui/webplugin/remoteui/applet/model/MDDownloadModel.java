@@ -163,7 +163,7 @@ MDDownloadModel
 				
 			}catch( Throwable e ){
 				
-				throw( new RPException( "start fails", e ));
+				throw( new RPException( "Start fails", e ));
 			}
 		}
 		
@@ -181,7 +181,7 @@ MDDownloadModel
 				
 			}catch( Throwable e ){
 				
-				throw( new RPException( "start fails", e ));
+				throw( new RPException( "Stop fails", e ));
 			}
 		}
 		
@@ -199,7 +199,7 @@ MDDownloadModel
 				
 			}catch( Throwable e ){
 				
-				throw( new RPException( "start fails", e ));
+				throw( new RPException( "Remove fails", e ));
 			}
 		}
 		

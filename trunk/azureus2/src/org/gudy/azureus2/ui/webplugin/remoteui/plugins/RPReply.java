@@ -48,6 +48,10 @@ RPReply
 		if ( response instanceof RPException ){
 			
 			throw((RPException)response);
+			
+		}else if ( response instanceof Throwable ){
+			
+			throw( new RPException("RPReply: exception occurred", (Throwable)response ));
 		}
 		
 		return( response );

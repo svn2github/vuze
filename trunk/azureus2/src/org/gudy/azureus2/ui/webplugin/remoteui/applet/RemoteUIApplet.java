@@ -96,8 +96,15 @@ RemoteUIApplet
 					
 					public void
 					error(
-						final Throwable 		e )
+						Throwable 		e )
 					{
+						Throwable cause = e.getCause();
+						
+						if ( cause != null ){
+							
+							e	= cause;
+						}
+						
 						JOptionPane.showMessageDialog( 
 								RemoteUIApplet.this, 
 								e.toString(),

@@ -46,6 +46,12 @@ RPRequest
 		params		= _params;
 	}
 	
+	public String
+	getString()
+	{
+		return( "obj=" + object+", method=" + method + ",params=" + params );
+	}
+	
 	public RPObject
 	getObject()
 	{

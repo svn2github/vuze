@@ -232,7 +232,18 @@ RPDownload
 	
 		throws DownloadException	
 	{
-		dispatcher.dispatch( new RPRequest( this, "initialize", null )).getResponse();
+		try{
+			dispatcher.dispatch( new RPRequest( this, "initialize", null )).getResponse();
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}
 	}
 	
 	public void
@@ -240,7 +251,18 @@ RPDownload
 	
 		throws DownloadException
 	{
-		dispatcher.dispatch( new RPRequest( this, "start", null )).getResponse();
+		try{
+			dispatcher.dispatch( new RPRequest( this, "start", null )).getResponse();
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}
 	}
 	
 	public void
@@ -248,7 +270,18 @@ RPDownload
 	
 		throws DownloadException
 	{
-		dispatcher.dispatch( new RPRequest( this, "stop", null )).getResponse();
+		try{
+			dispatcher.dispatch( new RPRequest( this, "stop", null )).getResponse();
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}
 	}
 	
 	public void
@@ -256,7 +289,18 @@ RPDownload
 	
 		throws DownloadException
 	{
-		dispatcher.dispatch( new RPRequest( this, "restart", null )).getResponse();
+		try{
+			dispatcher.dispatch( new RPRequest( this, "restart", null )).getResponse();
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}
 	}
 	
 	public boolean
@@ -295,7 +339,25 @@ RPDownload
 	
 		throws DownloadException, DownloadRemovalVetoException
 	{
-		dispatcher.dispatch( new RPRequest( this, "remove", null )).getResponse();
+		try{
+			dispatcher.dispatch( new RPRequest( this, "remove", null )).getResponse();
+			
+		}catch( RPException e ){
+			
+			Throwable cause = e.getCause();
+			
+			if ( cause instanceof DownloadException ){
+				
+				throw((DownloadException)cause);
+			}
+			
+			if ( cause instanceof DownloadRemovalVetoException ){
+				
+				throw((DownloadRemovalVetoException)cause);
+			}
+			
+			throw( e );
+		}
 	}
 	
 	public boolean

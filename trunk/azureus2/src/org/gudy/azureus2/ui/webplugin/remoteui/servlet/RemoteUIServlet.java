@@ -56,7 +56,7 @@ RemoteUIServlet
 								
 				RPRequest	rp_request = (RPRequest)dis.readObject();
 				
-				System.out.println( "got object: " + rp_request );
+				System.out.println( "RemoteUIServler:got request: " + rp_request.getString());
 				
 				RPReply	reply = processRequest( rp_request );
 				
