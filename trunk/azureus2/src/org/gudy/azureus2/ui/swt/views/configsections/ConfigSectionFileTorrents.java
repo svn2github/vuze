@@ -130,6 +130,13 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
     saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
 
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(
+    		cTorrent, 
+			"Default Start Torrents Stopped", false,
+    		"ConfigView.label.defaultstarttorrentsstopped").setLayoutData(gridData);
+
 
     // Watch Folder
     BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder", false,

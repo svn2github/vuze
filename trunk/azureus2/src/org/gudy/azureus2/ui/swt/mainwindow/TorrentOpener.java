@@ -68,7 +68,9 @@ public class TorrentOpener {
   
   
   public static void openTorrent(final String fileName) {
-    openTorrent(fileName, false, false);
+  	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+  	
+    openTorrent(fileName, default_start_stopped, false);
   }
 
   public static void 
@@ -207,15 +209,15 @@ public class TorrentOpener {
   }
 
   
-  public static void openTorrents(final String path, final String fileNames[]) {
+  protected static void openTorrents(final String path, final String fileNames[]) {
     openTorrents(path,fileNames,true);
   }
 
-  public static void openTorrentsForSeeding(final String path, final String fileNames[]) {
+  protected static void openTorrentsForSeeding(final String path, final String fileNames[]) {
     openTorrents(path,fileNames,false,true);
   }
   
-  public static void openTorrents(
+  protected static void openTorrents(
     final String path, 
     final String fileNames[],
     final boolean useDefault )
@@ -223,7 +225,7 @@ public class TorrentOpener {
     openTorrents(path,fileNames,useDefault,false);
   }
 
-  public static void openTorrents(
+  protected static void openTorrents(
     final String path, 
     final String fileNames[],
     final boolean useDefault,
@@ -232,10 +234,12 @@ public class TorrentOpener {
   display.asyncExec(new Runnable() {
      public void run()
      {
-      mainWindow.setActive();
+       mainWindow.setActive();
 
       new AEThread("TorrentOpener"){
           public void run() {
+            boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+
             String separator = System.getProperty("file.separator"); //$NON-NLS-1$
             for (int i = 0; i < fileNames.length; i++) {
               if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) {
@@ -246,7 +250,11 @@ public class TorrentOpener {
               String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault,forSeeding);
               if (savePath == null)
                 continue;
-              globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
+              globalManager.addDownloadManager(
+              				path + separator + fileNames[i], 
+							savePath,
+							default_start_stopped ? DownloadManager.STATE_STOPPED 
+                                    : DownloadManager.STATE_QUEUED);
             }
           }
         }.start();
@@ -255,7 +263,9 @@ public class TorrentOpener {
   }
 
   public static void openTorrentsFromDirectory(String directoryName) {
-    openTorrentsFromDirectory(directoryName, false);
+    boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+    
+    openTorrentsFromDirectory(directoryName, default_start_stopped);
   }
 
   public static void openTorrentsFromDirectory(String directoryName, final boolean startInStoppedState) {
