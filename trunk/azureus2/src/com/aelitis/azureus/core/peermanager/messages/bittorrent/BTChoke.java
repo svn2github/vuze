@@ -62,6 +62,8 @@ public class BTChoke implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return true;  }
   
+  public boolean isDataMessage() {  return false;  }
+  
   public void destroy() { }
   
   public int[] typesToRemove() {  return to_remove;  }

@@ -53,7 +53,8 @@ public class OutgoingBTHaveMessageAggregator {
     }
     public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
     public void messageSent( ProtocolMessage message ) {/*nothing*/}
-    public void bytesSent( int byte_count ) {/*nothing*/}
+    public void protocolBytesSent( int byte_count ) {/*ignore*/}
+    public void dataBytesSent( int byte_count ) {/*ignore*/}
   };
   
   

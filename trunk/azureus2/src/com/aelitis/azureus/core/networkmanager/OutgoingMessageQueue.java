@@ -327,13 +327,15 @@ public class OutgoingMessageQueue {
       return 0;
     }
     
-    int written = 0;
+    int data_written = 0;
+    int protocol_written = 0;
+    
     ArrayList messages_sent = null;
     if( !manual_listener_notify ) messages_sent = new ArrayList();
     
     try{
       queue_mon.enter();
-   
+
     	if( !queue.isEmpty() ) {
         ByteBuffer[] buffers = new ByteBuffer[ queue.size() ];
         int[] starting_pos = new int[ queue.size() ];
@@ -350,7 +352,9 @@ public class OutgoingMessageQueue {
     		if( total_sofar > max_bytes ) {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
-        written = (int)transport.write( buffers, 0, pos + 1 );  //NOTE: explicit conversion to int here...maybe someday sockets will be able to write >2GB/s
+             
+        transport.write( buffers, 0, pos + 1 );
+
         buffers[ pos ].limit( orig_limit );
         pos = 0;
         while( !queue.isEmpty() ) {
@@ -358,12 +362,22 @@ public class OutgoingMessageQueue {
           ByteBuffer bb = msg.getPayload().getBuffer(DirectByteBuffer.SS_NET);
           if( !bb.hasRemaining() ) {
             if( msg == urgent_message ) urgent_message = null;
-            total_size -= bb.limit() - starting_pos[ pos ];
+            
+            int bytes_written = bb.limit() - starting_pos[ pos ];
+            total_size -= bytes_written;
+            
+            if( msg.isDataMessage() ) {
+              data_written += bytes_written;
+            }
+            else {
+              protocol_written += bytes_written;
+            }
+            
             queue.remove( 0 );
-            LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
             if( manual_listener_notify ) {
               NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
               item.message = msg;
+              item.transport = transport;
               try {
                 delayed_notifications_mon.enter();
                 
@@ -377,8 +391,17 @@ public class OutgoingMessageQueue {
               messages_sent.add( msg );
             }
           }
-          else {
-            total_size -= (bb.limit() - bb.remaining()) - starting_pos[ pos ];
+          else {           
+            int bytes_written = (bb.limit() - bb.remaining()) - starting_pos[ pos ];
+            total_size -= bytes_written;
+            
+            if( msg.isDataMessage() ) {
+              data_written += bytes_written;
+            }
+            else {
+              protocol_written += bytes_written;
+            }
+            
             break;
           }
           pos++;
@@ -388,17 +411,33 @@ public class OutgoingMessageQueue {
       queue_mon.exit();
     }
     
-    if( written > 0 ) {
+    if( data_written + protocol_written > 0 ) {
       if( manual_listener_notify ) {
-        NotificationItem item = new NotificationItem( NotificationItem.BYTES_SENT );
-        item.byte_count = written;
-        try {
-          delayed_notifications_mon.enter();
-          
-          delayed_notifications.add( item );
+        
+        if( data_written > 0 ) {  //data bytes notify
+          NotificationItem item = new NotificationItem( NotificationItem.DATA_BYTES_SENT );
+          item.byte_count = data_written;
+          try {
+            delayed_notifications_mon.enter();
+            
+            delayed_notifications.add( item );
+          }
+          finally {
+            delayed_notifications_mon.exit();
+          }
         }
-        finally {
-          delayed_notifications_mon.exit();
+
+        if( protocol_written > 0 ) {  //protocol bytes notify
+          NotificationItem item = new NotificationItem( NotificationItem.PROTOCOL_BYTES_SENT );
+          item.byte_count = protocol_written;
+          try {
+            delayed_notifications_mon.enter();
+            
+            delayed_notifications.add( item );
+          }
+          finally {
+            delayed_notifications_mon.exit();
+          }
         }
       }
       else {  //do listener notification now
@@ -415,15 +454,17 @@ public class OutgoingMessageQueue {
         int num_listeners = listeners_copy.size();
         for( int i=0; i < num_listeners; i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
-          
-          listener.bytesSent( written );
+
+          if( data_written > 0 )  listener.dataBytesSent( data_written );
+          if( protocol_written > 0 )  listener.protocolBytesSent( protocol_written );
           
           for( int x=0; x < messages_sent.size(); x++ ) {
             ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
-            
+
             listener.messageSent( msg );
             
             if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
+              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
               msg.destroy();
             }
           }
@@ -431,7 +472,7 @@ public class OutgoingMessageQueue {
       }
     }
     
-    return written;
+    return data_written + protocol_written;
   }
   
   
@@ -486,13 +527,21 @@ public class OutgoingMessageQueue {
             MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
             listener.messageSent( item.message );
           }
+          LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +item.message.getDescription()+ " message to " + item.transport.getDescription() );
           item.message.destroy();
           break;
           
-        case NotificationItem.BYTES_SENT:
+        case NotificationItem.PROTOCOL_BYTES_SENT:
           for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
             MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
-            listener.bytesSent( item.byte_count );
+            listener.protocolBytesSent( item.byte_count );
+          }
+          break;
+          
+        case NotificationItem.DATA_BYTES_SENT:
+          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.dataBytesSent( item.byte_count );
           }
           break;
           
@@ -529,10 +578,17 @@ public class OutgoingMessageQueue {
     public void messageSent( ProtocolMessage message );
     
     /**
-     * The given number of bytes has been written to the transport.
-     * @param byte_count number of bytes
+     * The given number of protocol (overhead) bytes has been written to the transport.
+     * @param byte_count number of protocol bytes
      */
-    public void bytesSent( int byte_count );
+    public void protocolBytesSent( int byte_count );
+    
+    
+    /**
+     * The given number of (piece) data bytes has been written to the transport.
+     * @param byte_count number of data bytes
+     */
+    public void dataBytesSent( int byte_count );
   }
   
 
@@ -570,12 +626,14 @@ public class OutgoingMessageQueue {
 
   
   private static class NotificationItem {
-    private static final int MESSAGE_ADDED =    0;
-    private static final int MESSAGE_REMOVED =  1;
-    private static final int MESSAGE_SENT =     2;
-    private static final int BYTES_SENT =       3;
+    private static final int MESSAGE_ADDED        = 0;
+    private static final int MESSAGE_REMOVED      = 1;
+    private static final int MESSAGE_SENT         = 2;
+    private static final int DATA_BYTES_SENT      = 3;
+    private static final int PROTOCOL_BYTES_SENT  = 4;
     private final int type;
     private ProtocolMessage message;
+    private Transport transport;
     private int byte_count = 0;
     private NotificationItem( int notification_type ) {
       type = notification_type;

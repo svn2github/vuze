@@ -64,6 +64,8 @@ public class BTHave implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return false;  }
   
+  public boolean isDataMessage() {  return false;  }
+  
   public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }

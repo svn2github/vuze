@@ -73,6 +73,12 @@ public interface ProtocolMessage {
   public boolean isNoDelay();
   
   /**
+   * Is this a message containing (piece) data payload.
+   * @return true if data message, false if protocol message
+   */
+  public boolean isDataMessage();
+  
+  /**
    * Destroy the message; i.e. perform cleanup actions.
    */
   public void destroy();

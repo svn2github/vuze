@@ -81,6 +81,10 @@ PEPeerStatsImpl
 		totalSent += length;
 		sendingSpeed.addValue(length);
 	  }
+    
+    public void protocol_sent( int length ) {
+      
+    }
 
 	  public void haveNewPiece(int pieceLength) {
 		totalHave += pieceLength;

@@ -60,6 +60,8 @@ public class BTKeepAlive implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return false;  }
   
+  public boolean isDataMessage() {  return false;  }
+  
   public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }

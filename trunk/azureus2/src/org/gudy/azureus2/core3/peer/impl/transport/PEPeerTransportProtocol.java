@@ -283,12 +283,18 @@ PEPeerTransportProtocol
     //register bytes sent listener
     connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
       public void messageAdded( ProtocolMessage message ) { /*ignore*/ }
-
       public void messageRemoved( ProtocolMessage message ) { /*ignore*/ }
-
       public void messageSent( ProtocolMessage message ) { /*ignore*/ }
 
-      public void bytesSent( int byte_count ) {        
+      public void protocolBytesSent( int byte_count ) {
+        //update keep-alive info
+        last_bytes_sent_time = SystemTime.getCurrentTime();
+        //update stats
+        stats.protocol_sent( byte_count );
+        manager.protocol_sent( byte_count );
+      }
+      
+      public void dataBytesSent( int byte_count ) {
         //update keep-alive info
         last_bytes_sent_time = SystemTime.getCurrentTime();
         //update stats

@@ -249,7 +249,8 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
 
       public void messageRemoved( ProtocolMessage message ) {/*ignore*/}
       public void messageSent( ProtocolMessage message ) {/*ignore*/}
-      public void bytesSent( int byte_count ) {/*ignore*/}
+      public void protocolBytesSent( int byte_count ) {/*ignore*/}
+      public void dataBytesSent( int byte_count ) {/*ignore*/}
     };
     
     try {
@@ -317,7 +318,8 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       }
       
       public void messageSent( ProtocolMessage message ) {/*ignore*/}
-      public void bytesSent( int byte_count ) {/*ignore*/}
+      public void protocolBytesSent( int byte_count ) {/*ignore*/}
+      public void dataBytesSent( int byte_count ) {/*ignore*/}
     };
     
     peer_data.queue_listener = listener;  //attach listener
@@ -387,7 +389,8 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       }
       
       public void messageSent( ProtocolMessage message ) {/*nothing*/}
-      public void bytesSent( int byte_count ) {/*nothing*/}
+      public void protocolBytesSent( int byte_count ) {/*ignore*/}
+      public void dataBytesSent( int byte_count ) {/*ignore*/}
     };
     
     peer_data.connection = conn;

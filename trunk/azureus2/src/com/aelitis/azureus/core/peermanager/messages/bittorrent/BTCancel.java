@@ -69,6 +69,8 @@ public class BTCancel implements BTProtocolMessage {
   public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
   
   public boolean isNoDelay() {  return true;  }
+  
+  public boolean isDataMessage() {  return false;  }
     
   public void destroy() { }
   

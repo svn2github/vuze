@@ -73,6 +73,8 @@ public class BTHandshake implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return true;  }
   
+  public boolean isDataMessage() {  return false;  }
+  
   public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }

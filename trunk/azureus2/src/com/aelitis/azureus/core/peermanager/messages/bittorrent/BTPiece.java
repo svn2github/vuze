@@ -70,6 +70,8 @@ public class BTPiece implements BTProtocolMessage {
   
   public boolean isNoDelay() {  return false;  }
   
+  public boolean isDataMessage() {  return true;  }
+  
   public void destroy() {
     buffer.returnToPool();
   }

@@ -131,6 +131,10 @@ PEPeerManager
 	sent(
 		int		l );	
 	
+  
+  public void protocol_sent( int length );
+  
+  
 	public void
 	discarded(
 		int		l );		

@@ -1666,6 +1666,11 @@ PEPeerControlImpl
     _downloadManager.getStats().sent(length);
   }
 
+  
+  public void protocol_sent( int length ) {
+    
+  }
+  
   //setup the diskManager
   
   protected void 
