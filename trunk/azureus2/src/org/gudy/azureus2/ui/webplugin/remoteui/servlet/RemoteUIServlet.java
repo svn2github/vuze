@@ -43,13 +43,27 @@ public class
 RemoteUIServlet
 	extends WebPlugin
 {
+	static String[] resource_icon_names = {
+			//"ui/icons/start2.png",
+			"ui/icons/openFolder16x12.gif",
+			"ui/icons/start.gif",
+			"ui/icons/stop.gif",
+			"ui/icons/delete.gif",
+			"ui/icons/recheck.gif",		
+	};
+	
 	static String[] resource_names = {
+			
+		"ui/common/UIImageRepository.class",
+		
+		"ui/swing/UISwingImageRepository.class",	
+		
 		"ui/swt/views/AbstractIView.class",
 		"ui/swt/views/IView.class",
 		"ui/swt/IconBarEnabler.class",
 		
 		"ui/webplugin/remoteui/applet/RemoteUIApplet.class",
-		"ui/webplugin/remoteui/applet/RemoteUIMainPanelListener.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanelAdaptor.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel.class",
 		"ui/webplugin/remoteui/applet/model/MDDownloadModel.class",
 		"ui/webplugin/remoteui/applet/view/VWDownloadView.class",
@@ -83,6 +97,7 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/model/MDStatusAreaModel.class",
 		"ui/webplugin/remoteui/applet/view/VWStatusEntryBorder.class",
 		"ui/webplugin/remoteui/applet/model/MDConfigModelPropertyChangeEvent.class",
+		"ui/webplugin/util/WUJarReader.class",
 		
 		"core3/config/COConfigurationManager.class",
 		"core3/config/impl/ConfigurationManager.class",
@@ -177,7 +192,7 @@ RemoteUIServlet
 	{
 		String	url = request.getURL();
 		
-		if ( url.equals( "/remui.jar")){
+		if ( url.equals( "/remui.jar" ) || url.equals( "/remuiicons.jar" )){
 			
 			JarOutputStream	jos = null;
 			
@@ -187,7 +202,8 @@ RemoteUIServlet
 				WUJarBuilder.buildFromResources( 
 						jos, 
 						plugin_interface.getPluginClassLoader(), 
-						"org/gudy/azureus2", resource_names );
+						"org/gudy/azureus2", 
+						url.equals( "/remui.jar")?resource_names:resource_icon_names );
 				
 				response.setContentType("application/java-archive");
 				

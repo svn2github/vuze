@@ -94,17 +94,21 @@ TrackerWebContextImpl
 		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, _client_address, _url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
-		synchronized( this ){
-			
-			for (int i=0;i<generators.size();i++){
-				
+		for (int i=0;i<generators.size();i++){
+	
+			//try{
 				if (((TrackerWebPageGenerator)generators.get(i)).generate( request, reply )){
 					
 					reply.complete();
 					
+					// System.out.println( "process ok for '" + _url + "'" );
+					
 					return( true );
 				}
-			}
+			//}catch( Throwable e ){
+				
+				// System.out.println( "processing failed for '" + _url + "'" );
+			//}
 		}
 		
 		return( false );

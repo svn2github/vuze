@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
 
 import java.util.*;
 import java.util.zip.*;
+
 import java.net.*;
 import java.io.*;
 
@@ -39,6 +40,8 @@ import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Semaphore;
+import org.gudy.azureus2.ui.webplugin.util.*;
+
 import org.gudy.azureus2.pluginsremote.*;
 
 import org.gudy.azureus2.plugins.download.*;
@@ -54,6 +57,8 @@ RemoteUIApplet
 	protected RPPluginInterface		plugin_interface;
 	
 	protected RemoteUIMainPanel		panel;
+	
+	protected WUJarReader			jar_reader;
 	
 	protected Semaphore	dialog_sem			= new Semaphore(1);
 	protected ArrayList	outstanding_dialogs	= new ArrayList();
@@ -83,6 +88,8 @@ RemoteUIApplet
 	public void
 	start()
 	{
+		jar_reader	= new WUJarReader( "remuiicons.jar");
+		
 		try{
 			plugin_interface = RPFactory.getPlugin( this );
 			
@@ -92,24 +99,30 @@ RemoteUIApplet
 			
 			final DownloadManager		download_manager	= plugin_interface.getDownloadManager();
 				
-			panel = new RemoteUIMainPanel( plugin_interface, download_manager );
-			
-			panel.addListener(
-				new RemoteUIMainPanelListener()
-				{
-					public void
-					refresh()
-					{
-						
-					}
-					
-					public void
-					error(
-						Throwable 		e )
-					{
-						showError( e );
-					}
-				});
+			panel = new RemoteUIMainPanel( 
+						plugin_interface, 
+						download_manager,
+						new RemoteUIMainPanelAdaptor()
+						{
+							public InputStream
+							getResource(
+								String	name )
+							{
+								return( jar_reader.getResource( name ));
+							}
+							
+							public void
+							refresh()
+							{							
+							}
+							
+							public void
+							error(
+								Throwable 		e )
+							{
+								showError( e );
+							}
+						});
 			
 			setLayout(new BorderLayout());
 			

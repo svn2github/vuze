@@ -34,6 +34,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.gudy.azureus2.ui.swing.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.download.*;
@@ -48,14 +50,13 @@ RemoteUIMainPanel
 {
 	protected Properties				properties;
 	protected DownloadManager			download_manager;
+	protected RemoteUIMainPanelAdaptor	adapter;
 	
 	protected MDDownloadModel			download_model;
 	protected VWDownloadView			download_view;
 	
 	protected VWStatusAreaView			status_area;
-	
-	protected ArrayList					listeners = new ArrayList();
-	
+		
 	protected JTextArea		log_area;
 	
 	protected int			next_refresh;
@@ -65,13 +66,15 @@ RemoteUIMainPanel
 	
 	public
 	RemoteUIMainPanel(
-		final PluginInterface	_pi,
-		DownloadManager			_dm )
+		final PluginInterface		_pi,
+		DownloadManager				_dm,
+		RemoteUIMainPanelAdaptor	_adapter )
 	{
 		try{
 			properties				= _pi.getPluginProperties();
 			download_manager		= _dm;
-		
+			adapter					= _adapter;
+
 			String	mode_str = (String)properties.get("mode");
 						
 			boolean view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
@@ -80,19 +83,35 @@ RemoteUIMainPanel
 			
 			JToolBar tb = new JToolBar();
 			
-			JButton	refresh = new JButton( "Refresh");
+			JButton	refresh =				
+				new JButton( 	"Refresh",
+								new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/recheck.gif"))));
+
 			
 			tb.add( refresh );
 			
-			JButton	start = new JButton( "Start");
+			JButton	start = 
+				new JButton( 	"Start",
+								new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/start.gif"))));
+			
 			start.setEnabled( !view_mode );
 			tb.add( start );
 			
-			JButton	stop = new JButton( "Stop");
+			JButton	stop = 
+				new JButton( 	"Stop",
+								new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/stop.gif"))));
+
 			stop.setEnabled( !view_mode );
 			tb.add( stop );
 			
-			JButton	remove = new JButton( "Remove");
+			JButton	remove = 
+				new JButton( 	"Remove",
+								new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/delete.gif"))));
+
 			remove.setEnabled( !view_mode );
 			tb.add( remove );
 			
@@ -102,7 +121,11 @@ RemoteUIMainPanel
 			
 			tb.add( tf );
 			
-			JButton	open = new JButton( "Open");
+			JButton	open = 
+				new JButton( 	"Open",
+								new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/openFolder16x12.gif"))));
+
 			open.setEnabled( !view_mode );
 			tb.add( open );
 			
@@ -350,10 +373,7 @@ RemoteUIMainPanel
 	refresh()
 	{
 		try{
-			for (int i=0;i<listeners.size();i++){
-				
-				((RemoteUIMainPanelListener)listeners.get(i)).refresh();
-			}
+			adapter.refresh();
 			
 			int[]	old_rows = download_view.getSelectedRows();
 			
@@ -408,17 +428,7 @@ RemoteUIMainPanel
 	{
 		logMessage( e.getMessage());
 			
-		for (int i=0;i<listeners.size();i++){
-			
-			((RemoteUIMainPanelListener)listeners.get(i)).error( e );
-		}
-	}
-	
-	public void
-	addListener(
-		RemoteUIMainPanelListener	l )
-	{
-		listeners.add(l);
+		adapter.error( e );
 	}
 	
 	public void

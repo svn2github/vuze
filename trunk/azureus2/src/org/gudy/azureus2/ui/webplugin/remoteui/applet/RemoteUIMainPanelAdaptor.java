@@ -26,11 +26,17 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  *
  */
 
+import java.io.*;
+
 public interface 
-RemoteUIMainPanelListener 
+RemoteUIMainPanelAdaptor 
 {
 	public void
 	refresh();
+	
+	public InputStream
+	getResource(
+		String		name );
 	
 	public void
 	error(

@@ -7,16 +7,6 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.net.URI;
-import java.util.Enumeration;
-import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

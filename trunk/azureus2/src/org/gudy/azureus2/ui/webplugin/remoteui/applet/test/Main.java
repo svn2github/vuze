@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.test;
  *
  */
 
+import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -106,55 +107,64 @@ Main
 		
 		cont.setLayout( new BorderLayout());
 		
-		RemoteUIMainPanel	panel = new RemoteUIMainPanel( _plugin_interface, _plugin_interface.getDownloadManager());
+		RemoteUIMainPanel	panel = 
+			new RemoteUIMainPanel( 
+					_plugin_interface, 
+					_plugin_interface.getDownloadManager(),
+					new RemoteUIMainPanelAdaptor()
+					{
+						public InputStream
+						getResource(
+							String		name )
+						{
+							return( getClass().getClassLoader().getResourceAsStream( name ));
+						}
+						
+						public void
+						refresh()
+						{
+						}
+						
+						public void
+						error(
+							final Throwable 		e )
+						{
+							SwingUtilities.invokeLater(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											String	message_chain = "";
+											
+											Throwable	temp = e;
+											
+											while( temp != null ){
+												
+												String	this_message = temp.getMessage();
+												
+												if ( this_message != null ){
+													
+													message_chain += (message_chain.length()==0?"":"\n") + this_message;
+												}
+												
+												temp = temp.getCause();
+											}
+														
+											final String	message = message_chain.length()==0?e.toString():message_chain;
+	
+											JOptionPane.showMessageDialog( 
+													frame, 
+													message,
+													"Error Occurred",  
+													JOptionPane.ERROR_MESSAGE );
+										}
+									});
+						}
+					});
 		
 		cont.add( panel );	
 		
-		panel.addListener(
-				new RemoteUIMainPanelListener()
-				{
-					public void
-					refresh()
-					{
-					}
-					
-					public void
-					error(
-						final Throwable 		e )
-					{
-						SwingUtilities.invokeLater(
-								new Runnable()
-								{
-									public void
-									run()
-									{
-										String	message_chain = "";
-										
-										Throwable	temp = e;
-										
-										while( temp != null ){
-											
-											String	this_message = temp.getMessage();
-											
-											if ( this_message != null ){
-												
-												message_chain += (message_chain.length()==0?"":"\n") + this_message;
-											}
-											
-											temp = temp.getCause();
-										}
-													
-										final String	message = message_chain.length()==0?e.toString():message_chain;
-
-										JOptionPane.showMessageDialog( 
-												frame, 
-												message,
-												"Error Occurred",  
-												JOptionPane.ERROR_MESSAGE );
-									}
-								});
-					}
-				});
 		frame.setVisible(true);
 	}		
 }
