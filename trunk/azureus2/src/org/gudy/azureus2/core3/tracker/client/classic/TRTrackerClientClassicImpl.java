@@ -66,11 +66,11 @@ TRTrackerClientClassicImpl
 	private int					tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
 	private TRTrackerResponse	last_response			= new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
-	private int					last_update_time_secs;
-	private int					current_time_to_wait_secs;
+	private long				last_update_time_secs;
+	private long				current_time_to_wait_secs;
   
 	private int  failure_added_time = 0;
-   private long failure_time_last_updated = 0;
+    private long failure_time_last_updated = 0;
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -212,7 +212,7 @@ TRTrackerClientClassicImpl
 			perform(
 				TimerEvent	this_event )
 			{
-				int	secs_to_wait = getErrorRetryInterval();
+				long	secs_to_wait = getErrorRetryInterval();
 							
 				try{
 															
@@ -272,25 +272,27 @@ TRTrackerClientClassicImpl
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 	
-	protected int
+	protected long
 	getAdjustedSecsToWait()
 	{
-  		int		secs_to_wait = current_time_to_wait_secs;
+  		long		secs_to_wait = current_time_to_wait_secs;
 													
-  		if ( rd_override_use_minimum ||
-          (last_response.getStatus() != TRTrackerResponse.ST_ONLINE)){
-         secs_to_wait = getErrorRetryInterval();
+  		if ( 	rd_override_use_minimum ||
+  				last_response.getStatus() != TRTrackerResponse.ST_ONLINE ){
+  			
+  			secs_to_wait = getErrorRetryInterval();
 										
   		}else{
 							
 	  		secs_to_wait = (secs_to_wait*rd_override_percentage)/100;
 									
 	  		if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
+	  			
 		  		secs_to_wait = REFRESH_MINIMUM_SECS;
 	  		}
   		}
   		
-  		return( secs_to_wait );
+   		return( secs_to_wait );
 	}
 	
 	public int
@@ -339,7 +341,7 @@ TRTrackerClientClassicImpl
 					long	start 	= current_timer_event.getCreatedTime();
 					long	expiry	= current_timer_event.getWhen();
 					
-					int	secs_to_wait = getAdjustedSecsToWait();
+					long	secs_to_wait = getAdjustedSecsToWait();
 								
 					long target_time = start + (secs_to_wait*1000);
 
@@ -374,7 +376,7 @@ TRTrackerClientClassicImpl
 	public int
 	getLastUpdateTime()
 	{
-		return( last_update_time_secs );
+		return( (int)last_update_time_secs );
 	}
 
 	public void
@@ -425,7 +427,7 @@ TRTrackerClientClassicImpl
 				timer_event_action );
 	}
 	
-	protected int
+	protected long
 	requestUpdateSupport()
 	{
 		boolean	clear_progress = true;
@@ -443,7 +445,7 @@ TRTrackerClientClassicImpl
 				update_in_progress = true;
 			}
 	
-			last_update_time_secs	= (int)(System.currentTimeMillis()/1000);
+			last_update_time_secs	= System.currentTimeMillis()/1000;
 			
 			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
 		
@@ -530,7 +532,7 @@ TRTrackerClientClassicImpl
 				
 				listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 				
-				return((int) response.getTimeToWait());
+				return( response.getTimeToWait());
 			}else{
 				
 				tracker_status_str = "";
