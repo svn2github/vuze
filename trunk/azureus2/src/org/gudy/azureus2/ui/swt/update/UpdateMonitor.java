@@ -24,8 +24,13 @@ package org.gudy.azureus2.ui.swt.update;
 
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.*;
 
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+
+import org.gudy.azureus2.update.CoreUpdateChecker;
+
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -37,13 +42,31 @@ public class
 UpdateMonitor 
 	implements UpdateCheckInstanceListener 
 {
-	UpdateWindow 			current_window;
+	public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
+
+	protected UpdateWindow 			current_window;
   
-	UpdateCheckInstance		current_instance;
+	protected UpdateCheckInstance		current_instance;
 	
 	public 
 	UpdateMonitor() 
 	{
+		Timer version_check_timer = new Timer("Auto-update timer");
+
+	    version_check_timer.addPeriodicEvent( 
+	            AUTO_UPDATE_CHECK_PERIOD,
+	            new TimerEventPerformer()
+	            {
+	            	public void
+					perform(
+						TimerEvent  ev )
+					{
+	            		performCheck();
+					}
+	            });
+	      
+	    	// wait a bit before starting check to give rest of AZ time to initialise 
+	    
 		new DelayedEvent(
 				2500,
 				new Runnable()
@@ -59,6 +82,10 @@ UpdateMonitor
 	public void
 	performCheck()
 	{
+		MainWindow mainWindow = MainWindow.getWindow();
+		
+	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
+	    
 	  	UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager(); 
 		
 	  	current_instance = um.createUpdateCheckInstance();
@@ -106,6 +133,16 @@ UpdateMonitor
 	complete(
 		UpdateCheckInstance		instance )
 	{
+		PluginInterface core_plugin = PluginManager.getPluginInterfaceByClass( CoreUpdateChecker.class );
+		
+		String latest_version = core_plugin.getPluginProperties().getProperty( CoreUpdateChecker.LATEST_VERSION_PROPERTY );
+		
+		MainWindow mainWindow = MainWindow.getWindow();
+	
+	    mainWindow.setStatusText( 
+	    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
+				" / MainWindow.status.latestversion " + (latest_version==null?"Unknown":latest_version ));
+	    
 		if ( instance != current_instance ){
 			
 			return;

@@ -44,6 +44,8 @@ public class
 CoreUpdateChecker
 	implements Plugin, UpdatableComponent
 {
+	public static final String	LATEST_VERSION_PROPERTY	= "latest_version";
+	
 	public static final int	RD_GET_DETAILS_RETRIES	= 3;
 	public static final int	RD_GET_MIRRORS_RETRIES	= 3;
 	
@@ -145,7 +147,7 @@ CoreUpdateChecker
 			
 				latest_version = new String( b_version );
 				
-				plugin_interface.getPluginProperties().setProperty( "latest_version", latest_version );
+				plugin_interface.getPluginProperties().setProperty( LATEST_VERSION_PROPERTY, latest_version );
 				
 			}else{
 				

@@ -268,6 +268,22 @@ PluginManagerImpl
 		return( null );
 	}
 	
+	public static PluginInterface
+	getPluginInterfaceByClass(
+		Class		c )
+	{
+		PluginInterface[]	p = getPluginInterfaces();
+		
+		for (int i=0;i<p.length;i++){
+			
+			if ( p[i].getPlugin().getClass().equals( c )){
+				
+				return( p[i]);
+			}
+		}
+		
+		return( null );
+	}
 	
 	public static PluginInterface[]
 	getPluginInterfaces()

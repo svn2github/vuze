@@ -44,32 +44,12 @@ VersionChecker
 {	
   
   private static final int RECOMMENDED_SWT_VERSION = 3044; // (M8 = 3044) (M7 = 3038)
-  public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
   
-  private static Timer version_check_timer;
-  
+ 
   public static synchronized void
   checkForNewVersion()
   {
-    if ( version_check_timer == null ){
-      
-      version_check_timer = new Timer("Auto-update timer",1);
-
-      version_check_timer.addPeriodicEvent( 
-        AUTO_UPDATE_CHECK_PERIOD,
-        new TimerEventPerformer()
-        {
-          public void
-          perform(
-            TimerEvent  ev )
-          {
-            checkForNewVersion();
-          }
-        }
-       );
-    }
-  
-    new VersionChecker().start();
+ 
   }
   
   private String latestVersion;

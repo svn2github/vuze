@@ -116,6 +116,13 @@ PluginManager
 		return( PluginManagerImpl.getPluginInterfaceByID(id));
 	}
 	
+	public static PluginInterface
+	getPluginInterfaceByClass(
+		Class		c )
+	{
+		return( PluginManagerImpl.getPluginInterfaceByClass(c));
+	}
+
 	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
 	 * results as plugin initialisation is non-deterministic.
