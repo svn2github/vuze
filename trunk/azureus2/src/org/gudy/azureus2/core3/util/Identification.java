@@ -96,7 +96,11 @@ public class Identification {
         return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
       }
       
+      
+      String bittorrentplus = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
+      if (bittorrentplus.equals("Plus---")) return "BitTorrent Plus";   
   
+      
       String libtorrent = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       if (libtorrent.equals("LT")) {
         String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
