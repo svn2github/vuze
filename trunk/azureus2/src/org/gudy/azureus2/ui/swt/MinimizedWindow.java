@@ -37,7 +37,8 @@ public class MinimizedWindow {
 
   private int xPressed, yPressed;
   private boolean moving;
-  
+  private boolean snapped = false;
+
   private int hSize;
   
   private Label splashFile;
@@ -200,18 +201,23 @@ public class MinimizedWindow {
       snap.y -= 10;
       snap.height += 20;
       snap.width += 20;
-      for (int i = 0; i < downloadBars.size(); i++) {
-        Shell downloadBar = (Shell) downloadBars.get(i);
-        if (downloadBar != splash && !downloadBar.isDisposed()) {
-          Rectangle rectangle = downloadBar.getBounds();
-          if (snap.intersects(rectangle)) {
-            Point cursor = splash.getDisplay().getCursorLocation();
-            if (!(cursor.x < snap.x || cursor.x > snap.x + snap.width || cursor.y < snap.y || cursor.y > snap.y + snap.height))
+      Point cursor = splash.getDisplay().getCursorLocation();
+      if (!(cursor.x < snap.x || cursor.x > snap.x + snap.width || cursor.y < snap.y || cursor.y > snap.y + snap.height)) {
+        if(snapped)
+          return;
+        for (int i = 0; i < downloadBars.size(); i++) {
+          Shell downloadBar = (Shell) downloadBars.get(i);
+          if (downloadBar != splash && !downloadBar.isDisposed()) {
+            Rectangle rectangle = downloadBar.getBounds();
+            if (snap.intersects(rectangle)) {
               currentLoc.x = rectangle.x;
-            currentLoc.y = currentLoc.y > rectangle.y ? rectangle.y + rectangle.height : rectangle.y - rectangle.height;
-            //            splash.getDisplay().setCursorLocation(currentLoc.x + 2, currentLoc.y + 2);
+              currentLoc.y = currentLoc.y > rectangle.y ? rectangle.y + rectangle.height : rectangle.y - rectangle.height;
+              snapped = true;
+            }
           }
         }
+      } else {
+        snapped = false;
       }
     }
     splash.setLocation(currentLoc);
