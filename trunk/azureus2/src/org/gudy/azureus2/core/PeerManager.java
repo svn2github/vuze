@@ -49,6 +49,7 @@ public class PeerManager extends Thread {
 
   private DownloadManager _manager;
   private List requestsToFree;
+  private PeerUpdater peerUpdater;
 
   private int uploadCount = 0;
 
@@ -89,6 +90,68 @@ public class PeerManager extends Thread {
     setDiskManager(diskManager);
 
     requestsToFree = new ArrayList();
+
+    peerUpdater = new PeerUpdater();
+    peerUpdater.start();
+  }
+
+  private class PeerUpdater extends Thread {
+    private boolean bContinue = true;
+
+    private long started[];
+
+    public PeerUpdater() {
+      super("Peer Updater"); //$NON-NLS-1$
+      started = new long[10];
+    }
+
+    public void run() {
+      while (bContinue) {
+        for (int i = 9; i > 0; i--)
+          started[i] = started[i - 1];
+        started[0] = System.currentTimeMillis();
+        synchronized (_connections) {
+          for (int i = 0; i < _connections.size(); i++) {
+            PeerSocket ps = (PeerSocket) _connections.get(i);
+            if (ps.getState() == PeerSocket.DISCONNECTED) {
+              _connections.remove(ps);
+              i--;
+            } else {
+              try {
+                ps.process();
+              } catch (Exception e) {
+                ps.closeAll();
+              }
+            }
+          }
+        }
+        try {
+
+          long wait = 20;
+          wait -= (System.currentTimeMillis() - started[0]);
+          if (started[4] != 0)
+            for (int i = 0; i < 9; i++) {
+              wait += 20 + (started[i + 1] - started[i]);
+            }
+
+          if (wait > 30)
+            wait = 30;
+
+          //System.out.println(wait + "::" + started[0] + "-" + System.currentTimeMillis() + " : " + started[4]);
+          //if(iter++ % 50 == 0)
+          //  System.out.println(System.currentTimeMillis() % 10000);
+
+          if (wait > 10)
+            Thread.sleep(wait);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    public void stopIt() {
+      bContinue = false;
+    }
   }
 
   //main method
@@ -100,7 +163,7 @@ public class PeerManager extends Thread {
       {
       try {
         long timeStart = System.currentTimeMillis();
-        checkTracker(); //check the tracker status, update peers
+        checkTracker(timeStart / 1000); //check the tracker status, update peers
         checkCompletedPieces();
         //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
@@ -131,6 +194,9 @@ public class PeerManager extends Thread {
   }
 
   public void stopAll() {
+
+    //1. Stop the peer updater
+    peerUpdater.stopIt();
 
     //2. Stop itself
     _bContinue = false;
@@ -195,7 +261,7 @@ public class PeerManager extends Thread {
 
         try {
           //set the timeout			
-          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$		  
+          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         } catch (Exception e) {
           _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
@@ -207,39 +273,9 @@ public class PeerManager extends Thread {
 
         if (DEBUG) //print debug info
           {
-          System.out.println(_timeToWait);
+          System.out.println("Tracker Checker: timeToWait=" + _timeToWait);
         }
-        //build the list of peers
-        List peers = (List) metaData.get("peers"); //$NON-NLS-1$
-
-        //OLD WAY
-        //BtList peers = (BtList) metaData.getValue("peers");
-
-        //count the number of peers
-        int nbPeers = peers.size();
-
-        //for every peer
-        for (int i = 0; i < nbPeers; i++) {
-          Map peer = (Map) peers.get(i);
-          //build a dictionary object				
-          byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
-          //get the peer id
-          String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-          //get the peer ip address
-          int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-          //get the peer port number
-
-          if (!Arrays.equals(peerId, _myPeerId))
-            //::this should be quicker -Tyler
-            {
-            addPeer(peerId, ip, port);
-          }
-          //for(int j = 0 ; j < piBytes.length ; j++)
-          //{				
-          //same = same && (piBytes[j] == _myPeerId[j]);
-          //System.out.print(same + " ");
-          //}		                   
-        }
+        addPeersFromTracker(metaData);
         _trackerState = TRACKER_UPDATE;
         _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
         return; //break						
@@ -250,6 +286,47 @@ public class PeerManager extends Thread {
         _trackerStatus = MessageText.getString("PeerManager.status.offline"); //$NON-NLS-1$
         _timeToWait = 60;
       }
+    }
+  }
+
+  private void addPeersFromTracker(Map metaData) {
+    if(metaData == null)
+      return;
+    try {
+      //build the list of peers
+      List peers = (List) metaData.get("peers"); //$NON-NLS-1$
+      
+      //OLD WAY
+      //BtList peers = (BtList) metaData.getValue("peers");
+      
+      //count the number of peers
+      int nbPeers = peers.size();
+      
+      //for every peer
+      for (int i = 0; i < nbPeers; i++) {
+        Map peer = (Map) peers.get(i);
+        //build a dictionary object				
+        byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
+        //get the peer id
+        String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
+        //get the peer ip address
+        int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
+        //get the peer port number
+      
+        if (!Arrays.equals(peerId, _myPeerId))
+          //::this should be quicker -Tyler
+          {
+          addPeer(peerId, ip, port);
+        }
+        //for(int j = 0 ; j < piBytes.length ; j++)
+        //{				
+        //same = same && (piBytes[j] == _myPeerId[j]);
+        //System.out.print(same + " ");
+        //}		                   
+      }
+    } catch (Exception e) {
+      System.out.println("Problems with peer informations from Tracker");
+      e.printStackTrace();
     }
   }
 
@@ -399,9 +476,7 @@ public class PeerManager extends Thread {
    * This method will check the tracker. It creates a new thread so requesting the url won't freeze the program.
    *
    */
-  private void checkTracker() {
-    //get the time
-    long time = System.currentTimeMillis() / 1000;
+  private void checkTracker(long time) {
     //has the timeout expired?
     if ((time - _timeLastUpdate) > _timeToWait) //if so...
       {
@@ -633,10 +708,9 @@ public class PeerManager extends Thread {
       if (!_connections.contains(pc)) //if not
         {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
+          if(pc.isFake())
+            pc.initialize();
           _connections.add(pc); //add the connection
-          pc.process();
-        } else {
-          pc.closeAll(); // added closing
         }
       } else //our list already contains this connection
         {
@@ -954,7 +1028,7 @@ public class PeerManager extends Thread {
    */
   public void addPeer(byte[] peerId, String ip, int port) {
     //create a peer connection and insert it to the list    
-    this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, false));
+    this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, true));
   }
 
   /**

@@ -49,7 +49,7 @@ public class PeerSocket extends PeerConnection {
     initialize();
   }
 
-  private void initialize() {
+  public void initialize() {
     this.fake = false;
     this.incoming = false;
     allocateAll();
@@ -262,28 +262,6 @@ public class PeerSocket extends PeerConnection {
 //    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
   }
 
-  private class PeerUpdater extends Thread {
-    public PeerUpdater() {
-      super("Peer Updater"); //$NON-NLS-1$
-      setPriority(Thread.NORM_PRIORITY); // incoming ? Thread.MAX_PRIORITY : Thread.NORM_PRIORITY
-    }
-
-    public void run() {
-      while (!closing) {
-        loopFactor++;
-        if (currentState != null)
-          currentState.process();
-        write();
-        if(incoming) {
-          try {
-            Thread.sleep(30);
-          } catch (InterruptedException ignore) {
-          }
-        }
-      }
-    }
-  }
-
   private class StateConnecting implements State {
     public void process() {
       try {
@@ -398,12 +376,10 @@ public class PeerSocket extends PeerConnection {
   }
 
   public void process() {
-    if(peerUpdater == null) {
-      if(fake)
-        initialize();
-      peerUpdater = new PeerUpdater();
-      peerUpdater.start();
-    }
+    loopFactor++;
+    if (currentState != null)
+      currentState.process();
+    write();
   }
 
   public int getState() {
@@ -973,8 +949,6 @@ public class PeerSocket extends PeerConnection {
   private int used;
   private int loopFactor;
 
-  private PeerUpdater peerUpdater;
-
   private boolean fake = false;
 
   //The keepAlive counter
@@ -1039,6 +1013,13 @@ public class PeerSocket extends PeerConnection {
 
   public boolean isOptimisticUnchoke() {
     return manager.isOptimisticUnchoke(this);
+  }
+
+  /**
+   * @return true, if an incoming connection is not initialized yet
+   */
+  public boolean isFake() {
+    return fake;
   }
 
 }
