@@ -25,5 +25,17 @@ public class UIConst {
   public static void shutdown() {
     Main.shutdown();
   }
+  
+  public static synchronized boolean startUI(String ui, String[] args) {
+    if (UIS.containsKey(ui))
+      return false;
+    IUserInterface uif = UserInterfaceFactory.getUI(ui);
+    uif.init(false, true);
+    if (args!=null)
+      uif.processArgs(args);
+    uif.startUI();
+    UIS.put(ui, uif);
+    return true;
+  }
 
 }
