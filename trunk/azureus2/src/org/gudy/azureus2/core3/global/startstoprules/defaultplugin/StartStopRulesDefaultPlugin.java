@@ -420,7 +420,9 @@ StartStopRulesDefaultPlugin
     }
 
     int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
-    int iExtraFPs = (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) : 0;
+    int iExtraFPs = (maxActive != 0) && (maxDownloads != 0) && 
+                    (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) 
+                                                                        : 0;
 
     // We can also quit early if:
     // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
