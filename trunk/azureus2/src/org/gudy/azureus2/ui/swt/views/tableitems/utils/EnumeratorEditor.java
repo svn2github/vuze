@@ -12,7 +12,7 @@
  * http://dev.eclipse.org/viewcvs/index.cgi/%7Echeckout%7E/platform-swt-home/dev.html#snippets
  */
 
-package org.gudy.azureus2.ui.swt.test;
+package org.gudy.azureus2.ui.swt.views.tableitems.utils;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
@@ -29,21 +29,27 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
-public class Main {
+public class EnumeratorEditor {
   
   private Color blue;
   private Table table;
-  
+  private Shell shell;
   
   private boolean mousePressed;
   private TableItem selectedItem;
   Rectangle oldBounds;
   Image oldImage;
   
-  public Main() {
-    final Display display = new Display ();
+  /**
+   * @return Returns the shell.
+   */
+  public Shell getShell() {
+    return shell;
+  }
+
+  public EnumeratorEditor(final Display display, ItemEnumerator enumerator) {    
     blue = new Color(display,0,0,128);
-    final Shell shell = new Shell (display);
+    shell = new Shell (display);
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     GridData gridData;
@@ -79,11 +85,17 @@ public class Main {
     gridData.widthHint = 70;
     bApply.setLayoutData(gridData);
     
+    
     for (int i=0; i<2; i++) {
       TableColumn column = new TableColumn(table, SWT.NONE);    
     }
-    for (int i=0; i<12; i++) {
-      createTableRow(-1,"Toto" + i , false);
+    ItemDescriptor[] items = enumerator.getItems();
+    for (int i=-1; i<items.length; i++) {
+      for(int j=0;j<items.length;j++) {
+        int position = items[j].getPosition();
+        if(position == i)
+          createTableRow(-1,items[i].getName(), (items[i].getPosition() != -1));
+      }
     }
     TableItem item  = new TableItem(table,SWT.NULL);
     item.setText(1,"---");
@@ -161,10 +173,7 @@ public class Main {
     });
     shell.pack ();
     shell.open ();
-    while (!shell.isDisposed ()) {
-      if (!display.readAndDispatch ()) display.sleep ();
-    }
-    display.dispose ();
+    
 }
   
   private void createTableRow(int index,String name,boolean selected) {
@@ -187,8 +196,28 @@ public class Main {
     item.setData("button",button);      
   }
   
-public static void main(String[] args) {
-  new Main();
-}
+  public static void main(String[] args) {
+    Display display = new Display();
+    String[] tableItems = {
+               "#;I;25;0"
+              ,"name;S;250;1"
+              ,"size;I;70;2"
+              ,"done;I;55;3"
+              ,"status;I;80;4"
+              ,"seeds;I;45;5"
+              ,"peers;I;45;6"
+              ,"downspeed;I;70;7"
+              ,"upspeed;I;70;8"    
+              ,"eta;I;70;9"
+              ,"tracker;I;70;10"
+              ,"priority;I;70;11"
+            };    
+    ItemEnumerator itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
+    Shell shell = new EnumeratorEditor(display,itemEnumerator).getShell();
+    while (!shell.isDisposed ()) {
+          if (!display.readAndDispatch ()) display.sleep ();
+        }
+        display.dispose ();
+  }
 }
 
