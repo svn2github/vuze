@@ -24,11 +24,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -46,15 +49,17 @@ import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
  * @author Olivier Chalouhi
  *
  */
-public class ErrorPopupShell extends PopupShell implements AnimableShell {
+public class MessagePopupShell implements AnimableShell {
   
-  private Shell detailsShell; 
-  private Display display;
-  private Font fontTitle;
+  private Shell shell;
+  private Shell detailsShell;  
+  Image shellImg;
+  private Display display;  
   
-  public ErrorPopupShell(Display display,String title,String errorMessage,String details) {
-    super(display);
-    this.display = display;
+  public static final String ICON_ERROR = "error";
+  
+  public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {    
+    this.display = display;    
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
     detailsShell.setImage(ImageRepository.getImage("azureus"));
     
@@ -64,42 +69,43 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
     if(details != null)
       textDetails.setText(details);
     detailsShell.layout();    
-    detailsShell.setSize(500,300);
-    
-    FormData formData;
-        
-    Label errorIcon = new Label(shell,SWT.NULL);
-    errorIcon.setImage(ImageRepository.getImage("error"));
-    formData = new FormData();
-    formData.left = new FormAttachment(0,5);
-    formData.top = new FormAttachment(0,5);
-    errorIcon.setLayoutData(formData);
+    detailsShell.setSize(500,300);    
     
     
-    Label titleText = new Label(shell,SWT.NULL);
-    titleText.setText(title);        
-    formData = new FormData();
-    formData.left = new FormAttachment(errorIcon,5);
-    formData.right = new FormAttachment(100,-5);
-    formData.top = new FormAttachment(0,5);
-    titleText.setLayoutData(formData);
+    shell = new Shell(display,SWT.ON_TOP | SWT.APPLICATION_MODAL);
+    shell.setSize(250,150);
+    shell.setImage(ImageRepository.getImage("azureus"));
+    FormLayout layout = new FormLayout();
+    layout.marginHeight = 0; layout.marginWidth = 0 ; layout.spacing = 0;
+    shell.setLayout(layout);
     
-    Font tempFont = titleText.getFont();
+    
+    shellImg = new Image(display,ImageRepository.getImage("popup"),SWT.IMAGE_COPY);
+    GC gcImage = new GC(shellImg);
+    
+    Image imgIcon = ImageRepository.getImage(icon);
+    
+    gcImage.drawImage(imgIcon,5,5);
+    
+    Font tempFont = shell.getFont();
     FontData[] fontDataMain = tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {             
-      fontDataMain[i].setStyle(SWT.BOLD);     
+      fontDataMain[i].setStyle(SWT.BOLD);
+      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
     }
-    fontTitle = new Font(display,fontDataMain);
-    titleText.setFont(fontTitle);
     
-    Label messageText = new Label(shell,SWT.WRAP);
-    messageText.setText(errorMessage);
-    formData = new FormData();
-    formData.left = new FormAttachment(0,5);
-    formData.right = new FormAttachment(100,-5);
-    formData.top = new FormAttachment(errorIcon,5);
-    formData.bottom = new FormAttachment(100,-50);
-    messageText.setLayoutData(formData);
+    Font fontTitle = new Font(display,fontDataMain);
+    gcImage.setFont(fontTitle);
+    
+    GCStringPrinter.printString(gcImage,title,new Rectangle(59,11,182,43));
+    
+    gcImage.setFont(tempFont);
+    fontTitle.dispose();
+    
+    
+    GCStringPrinter.printString(gcImage,errorMessage, new Rectangle(5,40,240,60));
+    
+    gcImage.dispose();            
     
     final Button btnDetails = new Button(shell,SWT.TOGGLE);
     Messages.setLanguageText(btnDetails,"popup.error.details");    
@@ -107,6 +113,11 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
     
     Button btnHide = new Button(shell,SWT.PUSH);
     Messages.setLanguageText(btnHide,"popup.error.hide");    
+    
+    Label lblImage = new Label(shell,SWT.NULL);
+    lblImage.setImage(shellImg);
+    
+    FormData formData;
     
     formData = new FormData();    
     formData.right = new FormAttachment(btnHide,-5);
@@ -118,7 +129,12 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
     formData.bottom = new FormAttachment(100,-5);
     btnHide.setLayoutData(formData);
     
-    layout();
+    formData = new FormData();
+    formData.left = new FormAttachment(0);
+    formData.top = new FormAttachment(0);
+    lblImage.setLayoutData(formData);
+    
+    shell.layout();
     
     
     btnHide.addListener(SWT.Selection,new Listener() {
@@ -127,7 +143,7 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
           detailsShell.setVisible(false);
           detailsShell.forceActive();
           detailsShell.forceFocus();
-          currentAnimator = new LinearAnimator(ErrorPopupShell.this,new Point(x0,y1),new Point(x1,y1),20,30);
+          currentAnimator = new LinearAnimator(MessagePopupShell.this,new Point(x0,y1),new Point(x1,y1),20,30);
           currentAnimator.start();
           closeAfterAnimation = true;
         }
@@ -141,12 +157,12 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
     });
     
     Rectangle bounds = display.getClientArea();
-    x0 = bounds.width - 250;
+    x0 = bounds.width - 255;
     x1 = bounds.width;
     
     y0 = bounds.height;
-    y1 = bounds.height - 150;
-        
+    y1 = bounds.height - 155;
+    
     shell.setLocation(x0,y0);
     detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
     currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),20,30);
@@ -171,7 +187,7 @@ public class ErrorPopupShell extends PopupShell implements AnimableShell {
         public void run() {
           shell.dispose();
           detailsShell.dispose();
-          fontTitle.dispose();          
+          shellImg.dispose();          
         }
       });     
     }

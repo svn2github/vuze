@@ -107,7 +107,7 @@ import org.gudy.azureus2.ui.swt.animations.shell.TestWindow;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
-import org.gudy.azureus2.ui.swt.shells.ErrorPopupShell;
+import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -2976,7 +2976,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			mb.open();
       */
       
-      ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
+      MessagePopupShell eps = new MessagePopupShell(display,MessagePopupShell.ICON_ERROR,title,message,details);
 		}
  	});
    }

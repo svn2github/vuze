@@ -21,8 +21,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -38,31 +36,26 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 public class PopupShell {
   
   protected Shell shell;
+  
+  private String image;  
+  public static final String IMG_INFORMATION = "information";
+  
+  /**
+   * Constructs an ON_TOP popup 
+   * @param display
+   */
+  public PopupShell(Display display) {
+    this(display,SWT.ON_TOP);
+  }
       
-  public PopupShell(Display display) { 
+  public PopupShell(Display display,int type) { 
     
     if ( display.isDisposed()){          
       return;
     }
     
-    shell = new Shell(display,SWT.NO_TRIM | SWT.ON_TOP );            
+    shell = new Shell(display,type);            
     
-    Region region = new Region();
-    int[] border = {0,0 , 0,144 , 244,144 , 244,0}; 
-    region.add(border);
-    int[] corner1 = { 0,0  , 0,6 , 1,6 , 1,4 , 4,1 , 6,1 , 6,0};
-    region.subtract(corner1);
-    int[] corner2 = { 0,144  , 0,138 , 1,138 , 1,139  , 5,143 , 7,143 , 7,144};
-    region.subtract(corner2);
-    int[] corner3 = { 244,144  , 244,138 , 243,138 , 243,139 , 239,143, 237,143, 237,144};
-    region.subtract(corner3);
-    int[] corner4 = { 244,0  , 244,6 , 243,6 , 243,4 , 239,1, 237,1, 237,0};
-    region.subtract(corner4);
-    
-    //shell.setRegion(region);
-    
-    Rectangle size = region.getBounds();
-    //shell.setSize(size.width, size.height);
     shell.setSize(250,150);
     shell.setImage(ImageRepository.getImage("azureus"));
     
@@ -79,8 +72,8 @@ public class PopupShell {
     label.setImage(ImageRepository.getImage("popup"));
     
     FormData formData = new FormData();
-    formData.left = new FormAttachment(0,-1);
-    formData.top = new FormAttachment(0,-1);
+    formData.left = new FormAttachment(0,0);
+    formData.top = new FormAttachment(0,0);
     
     label.setLayoutData(formData); 
     

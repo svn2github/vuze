@@ -194,11 +194,11 @@ ProgressWindow
 
 			
       Rectangle bounds = display.getClientArea();    
-      x0 = bounds.width - 250;
+      x0 = bounds.width - 255;
       x1 = bounds.width;
       
       y0 = bounds.height;
-      y1 = bounds.height - 150;
+      y1 = bounds.height - 155;
 					
 			shell.setLocation(x0,y0);
 		}
