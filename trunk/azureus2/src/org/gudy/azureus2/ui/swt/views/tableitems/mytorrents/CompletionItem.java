@@ -63,6 +63,7 @@ public class CompletionItem
     int lastPercentDone = 0;
     
     public Cell(TableCell cell) {
+      cell.setFillCell(true);
       cell.addRefreshListener(this);
       cell.addDisposeListener(this);
     }

@@ -48,7 +48,7 @@ public abstract class BufferedGraphicTableItem
   /** Whether the graphic fills the whole cell.  If true, update() will be
    * called when the size of the cell has changed.
    */
-  public boolean fillCell = true;
+  public boolean fillCell = false;
 
   public BufferedGraphicTableItem(BufferedTableRow row,int position) {
     super(row, position);

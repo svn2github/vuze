@@ -55,6 +55,7 @@ public class BlocksItem
           implements TableCellRefreshListener, TableCellDisposeListener
   {
     public Cell(TableCell cell) {
+      cell.setFillCell(true);
       cell.addRefreshListener(this);
       cell.addDisposeListener(this);
     }

@@ -67,6 +67,7 @@ public class ProgressGraphItem
     private boolean bNoRed = false;
 
     public Cell(TableCell cell) {
+      cell.setFillCell(true);
       cell.addRefreshListener(this);
       cell.addDisposeListener(this);
     }

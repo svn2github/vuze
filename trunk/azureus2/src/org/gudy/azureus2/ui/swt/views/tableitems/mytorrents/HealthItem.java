@@ -58,7 +58,6 @@ public class HealthItem
       cell.addRefreshListener(this);
       cell.setMarginWidth(0);
       cell.setMarginHeight(0);
-      cell.setFillCell(false);
     }
     
     public void refresh(TableCell cell) {
