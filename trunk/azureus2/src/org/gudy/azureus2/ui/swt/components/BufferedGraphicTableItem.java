@@ -121,9 +121,14 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
         // Enable this for semi-fast visual update with some flicker
+        boolean ourGC = (gc == null);
+        if (ourGC)
+          gc = new GC(table);
         if (gc != null) {
           gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
                        bounds.x, bounds.y, bounds.width, bounds.height);
+          if (ourGC)
+            gc.dispose();
         }
 /*
         // _OR_ enable refresh() for slower visual update with lots of flicker
