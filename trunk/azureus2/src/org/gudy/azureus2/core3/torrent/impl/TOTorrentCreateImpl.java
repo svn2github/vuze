@@ -462,7 +462,7 @@ TOTorrentCreateImpl
 				pos	= p1+1;
 			}
 			
-			ignore_map.put(bit.toLowerCase(),"");
+			ignore_map.put(bit.trim().toLowerCase(),"");
 			
 			if ( p1 == -1 ){
 				
