@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.*;
 
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
 
 public class 
@@ -118,23 +119,26 @@ implements SortableItem
 	  	
 			return;
 	  	}
-	  		  	
-	  	String name = new String(torrent.getTorrent().getName());	// TODO: !!!!
-    
-		int sep = name.lastIndexOf('.');
-		 
-		if(sep < 0) sep = 0;
-		
-		String	key = name.substring(sep);
-		
-		Program program = Program.findProgram(key);
-		
-		Image icon = ImageRepository.getIconFromProgram(program);
-				
-		item.setImage( 0, icon);
-
-		item.setText( 0, name);
-		
+	  		
+	  	if ( item.getText(0) == null ){
+	  		
+		  	String name = TorrentUtils.getLocalisedName( torrent.getTorrent() );
+	    
+			int sep = name.lastIndexOf('.');
+			 
+			if(sep < 0) sep = 0;
+			
+			String	key = name.substring(sep);
+			
+			Program program = Program.findProgram(key);
+			
+			Image icon = ImageRepository.getIconFromProgram(program);
+					
+			item.setImage( 0, icon);
+	
+			item.setText( 0, name);
+	  	}
+	  	
 		String	tracker = torrent.getTorrent().getAnnounceURL().toString();
 
 		item.setText( 1, tracker);

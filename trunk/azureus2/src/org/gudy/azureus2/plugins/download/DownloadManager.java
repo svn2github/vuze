@@ -87,4 +87,12 @@ DownloadManager
 	public Download
 	getDownload(
 		Torrent		torrent );
+	
+	public void
+	addListener(
+		DownloadManagerListener	l );
+	
+	public void
+	removeListener(
+		DownloadManagerListener	l );
 }

@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
 import org.gudy.azureus2.core3.global.*;
@@ -61,6 +62,8 @@ DownloadManagerImpl
 	}
 	
 	protected GlobalManager	global_manager;
+	protected List			listeners		= new ArrayList();
+	protected List			downloads		= new ArrayList();
 	protected Map			download_map	= new HashMap();
 	
 	protected
@@ -68,6 +71,57 @@ DownloadManagerImpl
 		GlobalManager	_global_manager )
 	{
 		global_manager	= _global_manager;
+		
+		global_manager.addListener(
+			new GlobalManagerListener()
+			{
+				public void
+				downloadManagerAdded(
+						DownloadManager	dm )
+				{
+					synchronized( listeners ){
+						
+						downloads.add( dm );
+						
+						DownloadImpl	dl = new DownloadImpl(dm);
+						
+						download_map.put( dm, dl );
+						
+						for (int i=0;i<listeners.size();i++){
+							
+							((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
+						}
+					}
+				}
+				public void
+				downloadManagerRemoved(
+					DownloadManager	dm )
+				{
+					synchronized( listeners ){
+						
+						downloads.remove( dm );
+						
+						DownloadImpl	dl = (DownloadImpl)download_map.get( dm );
+						
+						if ( dl == null ){
+							
+							System.out.println( "DownloadManager:unknown manager removed");
+							
+						}else{
+						
+							for (int i=0;i<listeners.size();i++){
+								
+								((DownloadManagerListener)listeners.get(i)).downloadRemoved( dl );
+							}
+						}
+					}
+				}
+				
+				public void
+				destroyed()
+				{	
+				}
+			});
 		
 		global_manager.addDownloadWillBeRemovedListener(
 			new GlobalManagerDownloadWillBeRemovedListener()
@@ -123,7 +177,7 @@ DownloadManagerImpl
 			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
 		
-		return( new DownloadImpl(dm));
+		return( getDownload( dm ));
 	}
 
 	public Download
@@ -141,15 +195,25 @@ DownloadManagerImpl
 			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
 		
-		Download	res = new DownloadImpl(dm);
-		
-		// TODO: remove from map on removal
-		
-		download_map.put( dm, res );
-		
-		return( res );
+		return( getDownload( dm ));
 	}
 	
+	protected Download
+	getDownload(
+		DownloadManager	dm )
+	
+		throws DownloadException
+	{
+		Download dl = (Download)download_map.get(dm);
+		
+		if ( dl == null ){
+			
+			throw( new DownloadException("DownloadManager::getDownload: download not found"));
+		}
+		
+		return( dl );
+	}
+
 	public Download
 	getDownload(
 		Torrent		_torrent )
@@ -174,5 +238,25 @@ DownloadManagerImpl
 		}
 		
 		return( null );
+	}
+	
+	public void
+	addListener(
+		DownloadManagerListener	l )
+	{
+		synchronized( listeners ){
+			
+			listeners.add( l );
+		}
+	}
+	
+	public void
+	removeListener(
+		DownloadManagerListener	l )
+	{
+		synchronized( listeners ){
+			
+			listeners.remove(l);
+		}
 	}
 }

@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -91,6 +92,25 @@ ShareTester
 	initializationComplete()
 	{
 		try{
+			DownloadManager	dm = plugin_interface.getDownloadManager();
+			
+			dm.addListener(
+					new DownloadManagerListener()
+					{
+						public void
+						downloadAdded(
+							Download	download )
+						{
+							System.out.println("downloadAdded" + download );
+						}
+						public void
+						downloadRemoved(
+							Download	download )
+						{
+							System.out.println("downloadRemoved" + download );
+						}
+					});
+			
 			ShareManager	sm = plugin_interface.getShareManager();
 		
 			sm.addListener( this );

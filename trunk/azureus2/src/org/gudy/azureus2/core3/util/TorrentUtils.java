@@ -447,4 +447,22 @@ TorrentUtils
 	{
 		LocaleUtil.setDefaultTorrentEncoding( torrent );
 	}
+	
+	public static String
+	getLocalisedName(
+		TOTorrent		torrent )
+	{
+		try{
+			
+			LocaleUtilDecoder decoder = LocaleUtil.getTorrentEncoding( torrent );
+			
+			return( decoder.decodeString(torrent.getName()));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			return( new String( torrent.getName()));
+		}
+	}
 }

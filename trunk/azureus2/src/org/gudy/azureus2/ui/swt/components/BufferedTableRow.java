@@ -125,6 +125,17 @@ BufferedTableRow
 		item.setForeground(foreground);
 	}
 	
+	public String
+	getText(
+		int		index )
+	{
+		if ( index >= text_values.length ){
+			
+			return( null );
+		}
+		
+		return( text_values[index]);
+	}
   /**
    * @param index
    * @param new_value
