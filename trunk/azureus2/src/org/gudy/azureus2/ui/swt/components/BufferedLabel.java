@@ -86,11 +86,15 @@ BufferedLabel
 		
 		value = new_value;
 		
-		label.setText( value==null?"":value );	
+			// '&' chars that occur in the text are treated as accelerators and, for example,
+			// cause the nect character to be underlined on Windows. This is generally NOT
+			// the desired behaviour of a label in Azureus so by default we escape them
+		
+		label.setText( value==null?"":value.replaceAll("&", "&&" ));	
 	}	
 	
   public String getText() {
-    return label.getText();
+    return value==null?"":value;
   }
   
   public void addMouseListener(MouseListener listener) {
