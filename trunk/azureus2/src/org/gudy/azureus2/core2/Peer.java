@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.core2;
 
+import java.util.Arrays;
+
 import org.gudy.azureus2.core.PeerManager;
 
 /**
@@ -67,16 +69,11 @@ public class Peer {
       if (!(p.ip).equals(this.ip))
         return false;
       //same ip, we'll check peerId
-      byte[] otherId = p.getId();
-      if (otherId == null)
+      byte[] otherId;
+      if (this.id == null || (otherId = p.getId()) == null)
         return false;
-      if (this.id == null)
-        return false;
-      for (int i = 0; i < otherId.length; i++) {
-        if (otherId[i] != this.id[i])
-          return false;
-      }
-      return true;
+        
+      return Arrays.equals(this.id, otherId);
     }
 
 }
