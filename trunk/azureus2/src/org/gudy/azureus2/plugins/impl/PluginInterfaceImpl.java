@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.Parameter;
 import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
+import org.gudy.azureus2.plugins.ui.impl.ParameterRepository;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -74,11 +75,8 @@ public class PluginInterfaceImpl implements PluginInterface {
     return pluginDir;
   }
 
-  /*
-   * I think this is the more important one, rather than registerPluginParameter... -epall 11/20/03
-   * the data needs to be stored between the registration and the actual display, where should it go? -epall 11/20/03
-   */
   public void addConfigUIParameters(Parameter[] parameters, String displayName) {
+  	ParameterRepository.getInstance().addPlugin(parameters, displayName);
   }
 
 
