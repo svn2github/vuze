@@ -26,6 +26,7 @@ public class TrackerStatus {
   public TrackerStatus(String trackerUrl) {    
     this.hashes = new HashMap();
     try {
+      trackerUrl = trackerUrl.replaceAll(" ", "");
       int position = trackerUrl.lastIndexOf('/');
       if(position >= 0 && trackerUrl.substring(position+1,position+9).equals("announce"))
         this.scrapeURL = new URL(trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9));

@@ -43,6 +43,7 @@ public class TrackerConnection {
     //Get the Tracker url
     try {
       trackerUrl = new String((byte[]) metainfo.get("announce"), Constants.DEFAULT_ENCODING);
+      trackerUrl = trackerUrl.replaceAll(" ", "");
     } catch (Exception e) {
       e.printStackTrace();
     }
