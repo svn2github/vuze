@@ -42,6 +42,12 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
   
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
+  public boolean canWrite() {
+    if( connection.getOutgoingMessageQueue().getTotalSize() < 1 )  return false;  //no data to send
+    if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send any bytes
+    return true;
+  }
+  
   public boolean doWrite() {
     if( !connection.getTransport().isReadyForWrite() )  return false;
     

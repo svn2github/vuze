@@ -25,7 +25,13 @@ package com.aelitis.azureus.core.networkmanager;
 /**
  * Interface designation for rate-limited entities handled by a write controller.
  */
-public interface RateControlledWriteEntity {  
+public interface RateControlledWriteEntity {   
+  /**
+   * Is ready for a write op.
+   * @return true if it can write >0 bytes, false if not ready
+   */
+  public boolean canWrite();
+  
   /**
    * Attempt to do a write operation.
    * @return true if >0 bytes were written (success), false if 0 bytes were written (failure)

@@ -31,8 +31,8 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class WriteController {
   private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
-  private final LinkedList write_entities = new LinkedList();
-  private final AEMonitor write_entities_mon = new AEMonitor( "WriteController:WE" );
+  private final LinkedHashMap entities = new LinkedHashMap();
+  private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
   
   
   /**
@@ -69,55 +69,35 @@ public class WriteController {
   
   
   private void writeProcessorLoop() {
-    RateControlledWriteEntity current_entity = null;
-    int total_entities = 0;
-    int num_failed = 0;
-    long sleep_time = 0;
-    
     while( true ) {
-      try {
-        write_entities_mon.enter();
+      RateControlledWriteEntity ready_entity = null;
       
-        total_entities = write_entities.size();
-        
-        if( total_entities > 0 ) {
-          current_entity = (RateControlledWriteEntity)write_entities.removeFirst();
-          write_entities.addLast( current_entity );
-        }
-      }
-      finally {
-        write_entities_mon.exit();
-      }
-      
-      if( total_entities > 0 ) {
-        boolean success = current_entity.doWrite();
-        
-        if( success ) {
-          num_failed = 0;  //reset cumulative failure count
-        }
-        else {  //nothing written
-          num_failed++;  //increment cumulative failure count
-          if( num_failed >= total_entities ) {  //none of the entities wrote anything
-            num_failed = 0;  //reset so we dont sleep again before checking all entries
-            sleep_time = 10;  //sleep a bit
+      //find the next ready entity
+      try {  entities_mon.enter();
+        for( Iterator i = entities.keySet().iterator(); i.hasNext(); ) {
+          ready_entity = (RateControlledWriteEntity)i.next();
+          if( ready_entity.canWrite() ) {  //is ready
+            i.remove();  //remove from beginning and...
+            break;
           }
+          ready_entity = null;  //not ready, so leave at beginning for checking next round
+        }
+        
+        if( ready_entity != null ) {
+          entities.put( ready_entity, null );  //...put back at the end
         }
       }
-      else {  //no entities registered....just sleep
-        num_failed = 0;
-        sleep_time = 50;
-      }
+      finally {  entities_mon.exit();  }
       
-      if( sleep_time > 0 ) {
-        try {
-          Thread.sleep( sleep_time );
-        }
-        catch(Exception e) { Debug.printStackTrace(e); }
-        sleep_time = 0;  //reset sleep time
+      
+      if( ready_entity != null ) {
+        ready_entity.doWrite();  //do the write op
+      }
+      else { //none ready, so sleep a bit
+        try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
       }
     }
   }
-  
   
   
   /**
@@ -125,14 +105,11 @@ public class WriteController {
    * @param entity to process writes for
    */
   protected void addWriteEntity( RateControlledWriteEntity entity ) {
-    try {
-      write_entities_mon.enter();
-      
-      write_entities.addLast( entity );
+    try {  entities_mon.enter();
+    
+      entities.put( entity, null );
     }
-    finally {
-      write_entities_mon.exit();
-    }
+    finally {  entities_mon.exit();  }
   }
   
   
@@ -141,14 +118,11 @@ public class WriteController {
    * @param entity to remove from write processing
    */
   protected void removeWriteEntity( RateControlledWriteEntity entity ) {
-    try {
-      write_entities_mon.enter();
-      
-      write_entities.remove( entity );
+    try {  entities_mon.enter();
+    
+      entities.remove( entity );
     }
-    finally {
-      write_entities_mon.exit();
-    }
+    finally {  entities_mon.exit();  }
   }
   
   
