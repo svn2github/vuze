@@ -133,7 +133,7 @@ public class Main implements ILocaleUtilChooser {
 
   public void showMainWindow() {
     if(mainWindow != null) {
-      mainWindow.getDisplay().asyncExec(new Runnable() {
+      MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
         public void run() {
           if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || mainWindow.isVisible())          
             mainWindow.setVisible(true);
