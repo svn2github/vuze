@@ -138,6 +138,9 @@ DiskManager
 	getPieceNumberToDownload(
 		boolean[] 	_piecesRarest );
 	
+	public boolean
+	hasDownloadablePiece();
+	
 	public int 
 	getNumberOfPieces();
 

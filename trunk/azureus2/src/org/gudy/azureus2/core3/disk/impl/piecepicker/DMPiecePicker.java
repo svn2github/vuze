@@ -42,5 +42,8 @@ DMPiecePicker
 	public int 
 	getPiecenumberToDownload(
 		boolean[] _piecesRarest);
+	
+	public boolean
+	hasDownloadablePiece();
 
 }

@@ -1466,4 +1466,8 @@ DiskManagerImpl
 	{
 		return( piece_picker.getPiecenumberToDownload( _piecesRarest ));
 	}
+	
+	public boolean hasDownloadablePiece() {
+	    return piece_picker.hasDownloadablePiece();
+	}
 }

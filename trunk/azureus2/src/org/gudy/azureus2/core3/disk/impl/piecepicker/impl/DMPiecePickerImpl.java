@@ -40,14 +40,16 @@ public class
 DMPiecePickerImpl
 	implements DMPiecePicker, ParameterListener
 {
-	protected DiskManagerHelper		disk_manager;
+	private DiskManagerHelper		disk_manager;
 	
-	protected boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-	protected boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
-	protected int	nbPieces;
-	protected int 	pieceCompletion[];
+	private boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
+	private boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
+	private int		nbPieces;
+	private int 	pieceCompletion[];
+	private boolean	has_piece_to_download;
 	
-	protected BitSet[] priorityLists;
+	
+	private BitSet[] priorityLists;
 	
 	//private int[][] priorityLists;
 
@@ -68,6 +70,8 @@ DMPiecePickerImpl
     
 		pieceCompletion = new int[nbPieces];
 		
+		has_piece_to_download	= true;
+		
 		priorityLists = new BitSet[100];
 		
 		//    priorityLists = new int[10][nbPieces + 1];
@@ -81,7 +85,7 @@ DMPiecePickerImpl
 	stop()
 	{
 		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
-    COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", this);
+		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", this);
 	}
 	
 	public void 
@@ -89,7 +93,7 @@ DMPiecePickerImpl
 		String parameterName ) 
 	{
 	   firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-     completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
+	   completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	}
 	
 	public void 
@@ -147,6 +151,8 @@ DMPiecePickerImpl
 			pieceCompletion[i] = completion;
 		}
 
+		// this clears and resizes all priorityLists to the
+		// length of pieceCompletion
 		for (int i = 0; i < priorityLists.length; i++) {
 			BitSet list = priorityLists[i];
 			if (list == null) {
@@ -157,11 +163,20 @@ DMPiecePickerImpl
 			priorityLists[i]=list;
 		}
 		
-		int priority;
-		for (int j = 0; j < pieceCompletion.length; j++) {
-			priority = pieceCompletion[j];
-			if (priority >= 0) {
-				priorityLists[priority].set(j);
+	
+		has_piece_to_download	= false;
+		
+			// for all pieces, set the priority bits accordingly
+		
+		for (int i = 0; i < pieceCompletion.length; i++) {
+			
+			int priority = pieceCompletion[i];
+			
+			if ( priority >= 0 ){
+				
+				has_piece_to_download	= true;
+				
+				priorityLists[priority].set(i);
 			}
 		}
 	}
@@ -220,6 +235,12 @@ DMPiecePickerImpl
 
 		return ((Integer)_pieces.get((int) (Math.random() * _pieces.size()))).intValue();
 	}
+
+	public boolean
+	hasDownloadablePiece() 
+	{
+		return( has_piece_to_download );
+	}  
 
 	/*
 	  public int getPiecenumberToDownload(boolean[] _piecesRarest) {

@@ -305,16 +305,27 @@ PEPeerControlImpl
 
         checkFastPieces();
 
+        boolean forcenoseeds = disconnect_seeds_when_seeding;
+        
         if( !seeding_mode ) { //if we're not finished
 
           _diskManager.computePriorityIndicator();
 
           checkRequests(); //check the requests
 
-          checkDLPossible(); //look for downloadable pieces
+          	// if we have no downloadable pieces (due to "do not download")
+          	// then we disconnect seeds and avoid calling checkDLPossible
+          	// to save CPU
+          
+          if (_diskManager.hasDownloadablePiece()) {
+          	
+              checkDLPossible(); //look for downloadable pieces
+              
+              forcenoseeds = false;
+          }
         }
 
-        checkSeeds( false );
+        checkSeeds( forcenoseeds );
 
         updatePeersInSuperSeedMode();
 
