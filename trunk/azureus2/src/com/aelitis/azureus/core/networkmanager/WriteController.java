@@ -57,6 +57,7 @@ public class WriteController {
       }
     };
     write_processor_thread.setDaemon( true );
+    write_processor_thread.setPriority( Thread.MAX_PRIORITY - 1 );
     write_processor_thread.start();
   }
   
@@ -72,51 +73,37 @@ public class WriteController {
   private void writeProcessorLoop() {
     boolean check_high_first = true;
     
-    while( true ) {
-      RateControlledWriteEntity ready_entity = null;
-      
+    while( true ) {      
       if( check_high_first ) {
-        ready_entity = getNextReadyHighPriorityEntity();
-        if( ready_entity != null ) { //ready high entity found
-          if( !ready_entity.doWrite() ) { //TODO
-            //System.out.println( "doWrite0 failed" );
-          }
-          check_high_first = false; //start with normal next round
-        }
-        else { //none ready in high-priority, so check normal-priority
-          ready_entity = getNextReadyNormalPriorityEntity();
-          if( ready_entity != null ) { //ready normal entity found
-            if( !ready_entity.doWrite() ) { //TODO
-              //System.out.println( "doWrite1 failed" );
-            }
-          }
-          else { //none ready in normal-priority either, so sleep
-            try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
+        check_high_first = false;
+        if( !doHighPriorityWrite() ) {
+          if( !doNormalPriorityWrite() ) {
+            try {  Thread.sleep( 10 );  }catch(Exception e) { Debug.printStackTrace(e); }
           }
         }
       }
-      else { //check normal first
-        check_high_first = true; //start with high next round
-        ready_entity = getNextReadyNormalPriorityEntity();
-        if( ready_entity != null ) { //ready normal entity found
-          if( !ready_entity.doWrite() ) { //TODO
-            //System.out.println( "doWrite2 failed" );
-          }
-        }
-        else { //none ready in normal-priority, so check high-priority
-          ready_entity = getNextReadyHighPriorityEntity();
-          if( ready_entity != null ) { //ready high entity found
-            if( !ready_entity.doWrite() ) {  //TODO
-              //System.out.println( "doWrite3 failed" );
-            }
-            check_high_first = false;  //start with normal again next round
-          }
-          else { //none ready in high-priority either, so sleep
-            try {  Thread.sleep( 10 );   }catch(Exception e) { Debug.printStackTrace(e); }
+      else {
+        check_high_first = true;
+        if( !doNormalPriorityWrite() ) {
+          if( !doHighPriorityWrite() ) {
+            try {  Thread.sleep( 10 );  }catch(Exception e) { Debug.printStackTrace(e); }
           }
         }
       }
     }
+  }
+  
+  
+  private boolean doNormalPriorityWrite() {
+    RateControlledWriteEntity ready_entity = getNextReadyNormalPriorityEntity();
+    if( ready_entity != null && ready_entity.doWrite() )  return true;
+    return false;
+  }
+  
+  private boolean doHighPriorityWrite() {
+    RateControlledWriteEntity ready_entity = getNextReadyHighPriorityEntity();
+    if( ready_entity != null && ready_entity.doWrite() )  return true;
+    return false;
   }
   
   
