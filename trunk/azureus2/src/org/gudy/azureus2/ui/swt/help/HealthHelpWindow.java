@@ -42,7 +42,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
  */
 public class HealthHelpWindow {
   
-  static Image grey,red,blue,yellow,green;
+  static Image grey,red,blue,yellow,green,share;
   
   public static void show(Display display) {    
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -50,20 +50,23 @@ public class HealthHelpWindow {
     window.setText(MessageText.getString("MyTorrentsView.menu.health"));
     
     disposeImages();
-    grey = new Image(display,ImageRepository.getImage("st_stopped_selected"),SWT.IMAGE_COPY);
+    grey = new Image(display,ImageRepository.getImage("st_stopped"),SWT.IMAGE_COPY);
     grey.setBackground(window.getBackground());
     
-    red = new Image(display,ImageRepository.getImage("st_ko_selected"),SWT.IMAGE_COPY);
+    red = new Image(display,ImageRepository.getImage("st_ko"),SWT.IMAGE_COPY);
     red.setBackground(window.getBackground());
     
-    blue = new Image(display,ImageRepository.getImage("st_no_tracker_selected"),SWT.IMAGE_COPY);
+    blue = new Image(display,ImageRepository.getImage("st_no_tracker"),SWT.IMAGE_COPY);
     blue.setBackground(window.getBackground());
     
-    yellow = new Image(display,ImageRepository.getImage("st_no_remote_selected"),SWT.IMAGE_COPY);
+    yellow = new Image(display,ImageRepository.getImage("st_no_remote"),SWT.IMAGE_COPY);
     yellow.setBackground(window.getBackground());
     
-    green = new Image(display,ImageRepository.getImage("st_ok_selected"),SWT.IMAGE_COPY);
+    green = new Image(display,ImageRepository.getImage("st_ok"),SWT.IMAGE_COPY);
     green.setBackground(window.getBackground());
+    
+    share = new Image(display,ImageRepository.getImage("st_shared"),SWT.IMAGE_COPY);
+    share.setBackground(window.getBackground());
     
     FormLayout layout = new FormLayout();
     layout.marginHeight = 3;
@@ -139,7 +142,21 @@ public class HealthHelpWindow {
     formData.left = new FormAttachment(lblGreenImage,5);
     lblGreenExplain.setLayoutData(formData);
     
+    	// shared
+    Label lblShareImage = new Label(window,SWT.NULL);
+    lblShareImage.setImage(share);
+    formData = new FormData();
+    formData.top = new FormAttachment(lblGreenExplain,5);
+    lblShareImage.setLayoutData(formData);
     
+    Label lblShareExplain = new Label(window,SWT.NULL);
+    lblShareExplain.setText(MessageText.getString("health.explain.share"));
+    formData = new FormData();
+    formData.top = new FormAttachment(lblGreenExplain,5);
+    formData.left = new FormAttachment(lblShareImage,5);
+    lblShareExplain.setLayoutData(formData);
+
+    	// buttons
     
     Button btnOk = new Button(window,SWT.PUSH);
     btnOk.setText(MessageText.getString("Button.ok"));

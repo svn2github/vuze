@@ -753,6 +753,13 @@ TRHostImpl
 		return( false );
 	}
 	
+	public TRHostTorrent
+	getHostTorrent(
+		TOTorrent		torrent )
+	{
+		return( lookupHostTorrent( torrent ));
+	}
+	
 	public synchronized void
 	addListener(
 		TRHostListener	l )

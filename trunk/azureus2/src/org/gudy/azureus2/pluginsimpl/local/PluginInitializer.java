@@ -171,7 +171,7 @@ PluginInitializer
     
     UpdateManagerImpl.getSingleton();	// initialise the update manager
     
-    tracker_host	= TRHostFactory.create();
+    tracker_host	= TRHostFactory.getSingleton();
     
     plugin_manager = PluginManagerImpl.getSingleton( this );
     

@@ -633,7 +633,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     addUpdateListener();
     
-    if ( TRHostFactory.create().getTorrents().length > 0 ){     
+    if ( TRHostFactory.getSingleton().getTorrents().length > 0 ){     
       showMyTracker();
     }
     

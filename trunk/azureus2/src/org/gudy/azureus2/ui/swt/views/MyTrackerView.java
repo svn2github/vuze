@@ -97,7 +97,7 @@ MyTrackerView
 	{
     super.initialize(composite0);
 
-		TRHostFactory.create().addListener( this );
+		TRHostFactory.getSingleton().addListener( this );
 		
 		final Table table = getTable();
 		table.addMouseListener(new MouseAdapter() {
@@ -114,12 +114,12 @@ MyTrackerView
     
   public void tableStructureChanged() {
     //1. Unregister for item creation
-		TRHostFactory.create().removeListener( this );
+		TRHostFactory.getSingleton().removeListener( this );
     
     super.tableStructureChanged();
 
     //5. Re-add as a listener
-		TRHostFactory.create().addListener( this );
+		TRHostFactory.getSingleton().addListener( this );
   }
 
   public void fillMenu(final Menu menu) {
@@ -302,7 +302,7 @@ MyTrackerView
 	 delete() 
 	 {
     super.delete();
-		TRHostFactory.create().removeListener( this );
+		TRHostFactory.getSingleton().removeListener( this );
 	 }
 
   

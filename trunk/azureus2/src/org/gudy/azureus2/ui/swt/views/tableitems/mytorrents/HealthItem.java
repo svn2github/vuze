@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -39,6 +40,8 @@ public class HealthItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
+	static TRHost	tracker_host	= TRHostFactory.getSingleton();
+	
   /** Default Constructor */
   public HealthItem(String sTableID) {
     super("health", sTableID);
@@ -61,23 +64,42 @@ public class HealthItem
     }
     
     public void refresh(TableCell cell) {
-      String image_name = "st_stopped";
-      
+       
       DownloadManager dm = (DownloadManager)cell.getDataSource();
       int wealth = (dm == null) ? 0 : dm.getHealthStatus();
       if (!cell.setSortValue(wealth) && cell.isValid())
         return;
 
-      if(wealth == DownloadManager.WEALTH_KO) {
-      	image_name = "st_ko";   
-      } else if (wealth == DownloadManager.WEALTH_OK) {
-      	image_name = "st_ok";   
-      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
-      	image_name = "st_no_tracker";   
-      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
-      	image_name = "st_no_remote";   
+      TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
+      
+      String image_name;
+
+      if ( ht == null ){
+	      if(wealth == DownloadManager.WEALTH_KO) {
+	      	image_name = "st_ko";   
+	      } else if (wealth == DownloadManager.WEALTH_OK) {
+	      	image_name = "st_ok";   
+	      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
+	      	image_name = "st_no_tracker";   
+	      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
+	      	image_name = "st_no_remote";   
+	      }else{
+	      	image_name = "st_stopped";
+	      }
+      }else{
+      	
+        if(wealth == DownloadManager.WEALTH_KO) {
+	      	image_name = "st_ko_shared";   
+	      } else if (wealth == DownloadManager.WEALTH_OK) {
+	      	image_name = "st_ok_shared";   
+	      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
+	      	image_name = "st_no_tracker_shared";   
+	      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
+	      	image_name = "st_no_remote_shared";   
+	      }else{
+	      	image_name = "st_stopped_shared";
+	      }
       }
-      image_name += "_selected";
       
       if (!sLastImageName.equals(image_name) || !cell.isValid()) {
         ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name));

@@ -70,6 +70,16 @@ TRHost
 	public TRHostTorrent[]
 	getTorrents();
 	
+		/**
+		 * returns the host torrent for the torrent if it exists, null otherwise
+		 * @param torrent
+		 * @return
+		 */
+	
+	public TRHostTorrent
+	getHostTorrent(
+		TOTorrent		torrent );
+	
 	public void
 	addListener(
 		TRHostListener	l );

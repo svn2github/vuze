@@ -71,48 +71,53 @@ TRTrackerUtilsImpl
 		bind_ip 		= COConfigurationManager.getStringParameter("Bind IP", "");
 	}
 	
+	public static boolean
+	isHosting(
+		URL		url_in )
+	{
+		return( tracker_ip.length() > 0  &&
+				url_in.getHost().equalsIgnoreCase( tracker_ip ));
+	}
+	
 	public static URL
 	adjustURLForHosting(
 		URL		url_in )
 	{
-		if ( tracker_ip.length() > 0 ){
+		if ( isHosting( url_in )){
+					
+			String	url = url_in.getProtocol() + "://";
+	
+			if ( bind_ip.length() < 7 ){
+					
+				url += "127.0.0.1";
+					
+			}else{
+					
+				url += bind_ip;
+			}		
 			
-			if ( url_in.getHost().equalsIgnoreCase( tracker_ip )){
-		
-				String	url = url_in.getProtocol() + "://";
-		
-				if ( bind_ip.length() < 7 ){
-						
-					url += "127.0.0.1";
-						
-				}else{
-						
-					url += bind_ip;
-				}		
+			int	port = url_in.getPort();
+			
+			if ( port != -1 ){
 				
-				int	port = url_in.getPort();
+				url += ":" + url_in.getPort();
+			}
+			
+			url += url_in.getPath();
+			
+			String query = url_in.getQuery();
+			
+			if ( query != null ){
 				
-				if ( port != -1 ){
-					
-					url += ":" + url_in.getPort();
-				}
+				url += "?" + query;
+			}
+							
+			try{
+				return( new URL( url ));
 				
-				url += url_in.getPath();
+			}catch( MalformedURLException e ){
 				
-				String query = url_in.getQuery();
-				
-				if ( query != null ){
-					
-					url += "?" + query;
-				}
-								
-				try{
-					return( new URL( url ));
-					
-				}catch( MalformedURLException e ){
-					
-					e.printStackTrace();
-				}
+				e.printStackTrace();
 			}
 		}
 		

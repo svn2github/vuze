@@ -87,7 +87,7 @@ public class ManagerUtils {
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
-        TRHostFactory.create().hostTorrent(torrent);
+        TRHostFactory.getSingleton().hostTorrent(torrent);
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
@@ -103,7 +103,7 @@ public class ManagerUtils {
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
-        TRHostFactory.create().publishTorrent(torrent);
+        TRHostFactory.getSingleton().publishTorrent(torrent);
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));

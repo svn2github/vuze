@@ -254,7 +254,7 @@ public class GlobalManagerImpl
     		}
     	});
     
-    tracker_host = TRHostFactory.create();
+    tracker_host = TRHostFactory.getSingleton();
     
     tracker_host.initialise( 
     	new TRHostTorrentFinder()

@@ -90,14 +90,15 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
-    
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ok_selected.gif", "st_ok_selected");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ko_selected.gif", "st_ko_selected");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_selected.gif", "st_stopped_selected");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker_selected.gif", "st_no_tracker_selected");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote_selected.gif", "st_no_remote_selected");
-    
+        
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_shared.gif", "st_stopped_shared");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif", "st_no_tracker_shared");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote_shared.gif", "st_no_remote_shared");
+
     loadImage(display, "org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/shared.gif", "st_shared");
     
     loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
     loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");

@@ -31,7 +31,7 @@ public class
 TRHostFactory 
 {
 	public static TRHost
-	create()
+	getSingleton()
 	{
 		return( TRHostImpl.create());
 	}
