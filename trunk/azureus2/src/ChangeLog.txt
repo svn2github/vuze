@@ -47,6 +47,10 @@ BUGFIX: Plug | azplugins - web tracker pages wasn't picking up "show details" op
 BUGFIX: Plug | Webui - fixed bug with re-ordering of columns [Parg]
 BUGFIX: UI   | Labels with '&' displaying incorrectly [Parg]
 BUGFIX: Core | Random shuffling of multi-tracker torrent URLs fixed [Parg]
+BUGFIX: Core | Fix for kernel panics under OSX [Nolar]
+
+
+
 
 
 2004.07.08 | Azureus 2.1.0.4
