@@ -2883,6 +2883,7 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
           if( peer_info == null )  break;
+          if( !_bContinue )  break;
           if( makeNewOutgoingConnection( peer_info.getPeerSource(), peer_info.getAddress(), peer_info.getPort() ) ) {
             num_waiting_establishments++;
           }
