@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.config.*;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
-import com.sun.rsasign.c;
 
 
 
