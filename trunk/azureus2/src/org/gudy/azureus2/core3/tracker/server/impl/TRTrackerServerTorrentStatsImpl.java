@@ -33,6 +33,7 @@ TRTrackerServerTorrentStatsImpl
 {
 	protected TRTrackerServerTorrent	torrent;
 	protected int						announce_count;
+	protected int						completed_count;
 	
 	protected
 	TRTrackerServerTorrentStatsImpl(
@@ -51,6 +52,18 @@ TRTrackerServerTorrentStatsImpl
 	getAnnounceCount()
 	{
 		return( announce_count );
+	}
+	
+	protected void
+	addCompleted()
+	{
+		completed_count++;
+	}
+
+	public int
+	getCompletedCount()
+	{
+		return( completed_count );
 	}
 	
 	public long

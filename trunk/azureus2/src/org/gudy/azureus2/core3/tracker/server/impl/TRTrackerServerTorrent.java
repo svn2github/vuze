@@ -66,7 +66,8 @@ TRTrackerServerTorrent
 		int			num_peers,
 		long		interval_requested )
 	{
-		boolean	stopped = event != null && event.equalsIgnoreCase("stopped");
+		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
+		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
 		
 		TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
 		
@@ -126,6 +127,11 @@ TRTrackerServerTorrent
 		}
 		
 		stats.addAnnounce();
+		
+		if ( completed ){
+			
+			stats.addCompleted();
+		}
 	}
 	
 	protected synchronized void

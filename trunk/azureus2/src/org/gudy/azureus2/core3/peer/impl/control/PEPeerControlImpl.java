@@ -71,6 +71,7 @@ PEPeerControlImpl
   private int _trackerState;
   private static final int TRACKER_START = 1;
   private static final int TRACKER_UPDATE = 2;
+  private static final int TRACKER_COMPLETE = 3;
   private int _seeds, _peers;
   private long _timeStarted;
   private long _timeFinished;
@@ -520,8 +521,13 @@ PEPeerControlImpl
       }
       
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
+      
+      long	run_time = _timeFinished - _timeStarted;	// secs
+      
+      boolean	looks_like_restart = run_time < 10;
+      
       //re-check all pieces to make sure they are not corrupt
-      if (checkPieces && (_timeFinished - _timeStarted) > 10) {
+      if (checkPieces && !looks_like_restart) {
         for(int i=0; i < _downloaded.length; i++) {
           _diskManager.aSyncCheckPiece(i);
         }
@@ -535,6 +541,14 @@ PEPeerControlImpl
       
       _manager.setState(DownloadManager.STATE_SEEDING);
       
+      if ( !looks_like_restart ){
+      	
+      		// send "complete" event to tracker
+      		
+      	_trackerState = TRACKER_COMPLETE;
+      	
+      	checkTracker(true);
+      }
     }
   }
 
@@ -630,12 +644,20 @@ PEPeerControlImpl
 		    	    if ( _trackerState == TRACKER_UPDATE){
 		        
 		        	    result = _tracker.update();
-		        	}else{
+		        	    
+		        	}else if ( _trackerState == TRACKER_START ){
 		        
 		            	result = _tracker.start();
+		            	
+		        	}else{
+		        		
+		        		result = _tracker.complete();
 		        	}
 		        
-		        	analyseTrackerResponse(result);
+		        	if ( _trackerState != TRACKER_COMPLETE ){
+		        	
+		        		analyseTrackerResponse(result);
+		        	}
 		       
 		  		}catch (Throwable e){
 		        

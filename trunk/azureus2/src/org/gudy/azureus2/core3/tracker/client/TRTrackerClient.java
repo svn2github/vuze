@@ -65,6 +65,9 @@ TRTrackerClient
 	update();
 	
 	public TRTrackerResponse
+	complete();
+	
+	public TRTrackerResponse
 	stop();
 	
 	public void

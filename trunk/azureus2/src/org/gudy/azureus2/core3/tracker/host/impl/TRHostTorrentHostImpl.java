@@ -172,6 +172,25 @@ TRHostTorrentHostImpl
 		return( 0 );
 	}
 	
+	public int
+	getCompletedCount()
+	{
+		try{
+		
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+		
+			if ( stats != null ){
+			
+				return( stats.getCompletedCount());
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( 0 );	
+	}
+
 	protected void
 	updateStats()
 	{
@@ -227,6 +246,12 @@ TRHostTorrentHostImpl
 			
 			e.printStackTrace();
 		}	
+	}
+	
+	protected TRTrackerServer
+	getServer()
+	{
+		return( server );
 	}
 	
 	public long

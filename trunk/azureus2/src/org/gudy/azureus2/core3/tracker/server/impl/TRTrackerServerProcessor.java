@@ -51,11 +51,11 @@ TRTrackerServerProcessor
 	{
 		server	= _server;
 		
+		String	header = "";
+			
 		try{
 									
 			InputStream	is = _socket.getInputStream();
-			
-			String	header = "";
 			
 			byte[]	buffer = new byte[1024];
 			
@@ -111,6 +111,11 @@ TRTrackerServerProcessor
 			processRequest( header, 
 							_socket.getInetAddress().getHostAddress(),
 							_socket.getOutputStream());
+			
+		}catch( SocketTimeoutException e ){
+			
+			System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
+			// ignore it
 						
 		}catch( Throwable e ){
 			

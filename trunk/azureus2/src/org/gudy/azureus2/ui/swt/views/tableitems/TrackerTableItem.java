@@ -192,11 +192,13 @@ TrackerTableItem
 		
 		ViewUtils.setText( item, 5, "" + torrent.getAnnounceCount());
 		
-		ViewUtils.setText( item, 6, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
+		ViewUtils.setText( item, 6, "" + torrent.getCompletedCount());
 		
-		ViewUtils.setText( item, 7, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
+		ViewUtils.setText( item, 7, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
 		
-		ViewUtils.setText( item, 8, "" + DisplayFormatters.formatByteCountToKBEtc(left));
+		ViewUtils.setText( item, 8, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
+		
+		ViewUtils.setText( item, 9, "" + DisplayFormatters.formatByteCountToKBEtc(left));
 		
 		if ( seed_count != 0 ){
 			

@@ -57,6 +57,9 @@ TRHostTorrent
 	public int
 	getAnnounceCount();
 	
+	public int
+	getCompletedCount();
+	
 	public long
 	getTotalUploaded();
 	

@@ -64,6 +64,8 @@ TRTrackerClientClassicImpl
   
   private PEPeerManager manager;
 
+  private boolean completed_event_sent = false;
+  
   public final static int componentID = 2;
   public final static int evtLifeCycle = 0;
   public final static int evtFullTrace = 1;
@@ -123,9 +125,18 @@ TRTrackerClientClassicImpl
 	return update("started");
   }
 
-  public TRTrackerResponse completed() {
+  public TRTrackerResponse complete() {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
-	return update("completed");
+	
+	if ( !completed_event_sent ){
+	
+		completed_event_sent = true;
+		
+		return update("completed");
+	}else{
+		
+		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, 120, "invalid state change complete -> complete"));
+	}
   }
 
   public TRTrackerResponse stop() {

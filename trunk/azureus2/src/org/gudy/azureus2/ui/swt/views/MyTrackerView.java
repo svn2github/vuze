@@ -115,10 +115,10 @@ MyTrackerView
 	  table.setLayoutData(gridData);
 	  
 	  String[] columnsHeader = 	{ 	"name", 	"tracker", 		"status", 	"seeds", 	"peers",	"announces",
-	  								"uploaded", "downloaded", 	"left" };
+	  								"completed","uploaded", "downloaded", 	"left" };
 	  
 	  int[] columnsSize = 		{ 	250, 		250,			60,			60,			60,			70,
-	  								70,			70,				50 };
+	  								70,			70,				70,				50 };
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	

@@ -89,7 +89,12 @@ TRHostTorrentPublishImpl
 	{
 		return( 0 );
 	}
-
+	public int
+	getCompletedCount()
+	{
+		return( 0 );
+	}
+	
 	protected void
 	updateStats()
 	{		
