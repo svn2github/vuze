@@ -45,6 +45,9 @@ public abstract class
 PEPeerTransportProtocol
 	implements PEPeerTransport
 {
+		// these appear in the plugin interface as well so don't renumber without
+		// fixing things up
+	
 	public final static byte BT_CHOKED 			= 0;
 	public final static byte BT_UNCHOKED 		= 1;
 	public final static byte BT_INTERESTED 		= 2;
@@ -101,8 +104,8 @@ PEPeerTransportProtocol
 	private boolean writeData;
 	private int allowed;
 	private int used;
-  private int limit = 0;
-  private int loopFactor;
+    private int limit = 0;
+    private int loopFactor;
 
 		//The keepAlive counter
 		
@@ -179,6 +182,7 @@ PEPeerTransportProtocol
 	
 		// PeerConnection Life Cycle
 		
+    private List		listeners;
  
   /*
 	 * This object constructors will let the PeerConnection partially created,
@@ -404,6 +408,18 @@ PEPeerTransportProtocol
   
   protected void queueProtocolMessage( BTMessage message ) {
     if ( closing ) return;
+    
+    try{
+    	if ( listeners != null ){
+	    	for (int i=0;i<listeners.size();i++){
+	    		
+	    		((PEPeerListener)listeners.get(i)).messageQueued( this, message.getType());
+	    	}
+    	}
+    }catch( Throwable e ){
+    	// ignore an errors, in particular we aren't synchronized on listeners so there
+    	// is a remote chance that the loop will fail due to listener removal
+    }
     
   	synchronized( protocolQueue ) { 
   		for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
@@ -1831,5 +1847,35 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
 	public String toString() {
     return ip + ":" + port + " [" + client+ "]";
+	}
+	
+	public void
+	addListener(
+		PEPeerListener	l )
+	{
+		synchronized( this ){
+			
+			if ( listeners == null ){
+				
+				listeners = new ArrayList(1);
+			}
+			
+			listeners.add(l);
+		}
+	}
+	
+	public void
+	removeListener(
+		PEPeerListener	l )
+	{
+		synchronized( this ){
+			
+			if ( listeners == null ){
+				
+				listeners = new ArrayList(1);
+			}
+			
+			listeners.remove(l);
+		}
 	}
 }

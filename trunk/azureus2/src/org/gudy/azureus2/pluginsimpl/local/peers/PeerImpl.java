@@ -26,19 +26,23 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
  *
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.peer.*;
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.plugins.disk.*;
 
 public class 
 PeerImpl 
-	implements Peer
+	implements Peer, PEPeerListener
 {
 	protected PeerManager	manager;
 	protected PEPeer		delegate;
+	
+	protected List			listeners;
 	
 	public
 	PeerImpl(
@@ -230,5 +234,82 @@ PeerImpl
 		boolean 	attemptReconnect )
 	{
 		throw( new RuntimeException( "not supported"));
+	}
+	
+	public void
+	messageQueued(
+		PEPeer		peer,
+		final int	message_type )
+	{
+		final PeerProtocolBT	event_content = 
+			new PeerProtocolBT()
+			{
+				public int
+				getType()
+				{
+					return( message_type );
+				}
+			};
+			
+		PeerEvent	event =
+			new PeerEvent()
+			{
+				public Peer
+				getPeer()
+				{
+					return( PeerImpl.this );
+				}
+				
+				public int
+				getEventType()
+				{
+					return( PeerEvent.ET_PEER_PROTOCOL_BT ); 
+				}
+				
+				public Object
+				getEventContent()
+				{
+					return( event_content );
+				}
+			};
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((PeerListener)listeners.get(i)).eventOccurred( event );
+		}
+	}
+	
+	public void
+	addListener(
+		PeerListener	l )
+	{
+		synchronized( this ){
+			
+			if (listeners == null ){
+				
+				listeners	= new ArrayList(1);
+			}
+		
+			listeners.add( l );
+		}
+		
+		delegate.addListener(this);
+	}
+	
+	public void
+	removeListener(
+		PeerListener	l )
+	{
+		synchronized( this ){
+			
+			if (listeners == null ){
+				
+				listeners	= new ArrayList(1);
+			}
+		
+			listeners.add( l );
+		}
+		
+		delegate.removeListener(this);	
 	}
 }

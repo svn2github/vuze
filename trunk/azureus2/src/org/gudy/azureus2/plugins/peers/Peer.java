@@ -109,4 +109,12 @@ Peer
 		String 		reason,
 		boolean 	closedOnError,
 		boolean 	attemptReconnect );
+	
+	public void
+	addListener(
+		PeerListener	l );
+	
+	public void
+	removeListener(
+		PeerListener	l );
 }
