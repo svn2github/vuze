@@ -102,8 +102,9 @@ public class GlobalManager extends Component {
     synchronized (managers) {
       managers.add(manager);
     }
-
+    
     this.objectAdded(manager);
+    saveDownloads();
   }
 
   public List getDownloadManagers() {
@@ -115,6 +116,7 @@ public class GlobalManager extends Component {
       managers.remove(manager);
     }
     this.objectRemoved(manager);
+    saveDownloads();
   }
 
   public void stopAll() {
