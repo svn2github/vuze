@@ -1376,18 +1376,30 @@ DiskManagerImpl
 			for (int k = 0; k < pieceList.size(); k++) {
 				//get the piece and the file 
 				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
+				
 				//If the file isn't skipped
-				if(fileInfo.isSkipped())
+				if(fileInfo.isSkipped()) {
 					continue;
-                                   
+				}
+                          
+				//if this is the first piece of the file
+				if (k == fileInfo.getFirstPieceNumber()) {
+				  completion = 99;   
+				}
+        
+            //if the file is high-priority
+				else if (fileInfo.isPriority()) {
+				  completion = 98;
+				}
+				
 				//If the file is started but not completed
-				if (fileInfo.isPriority())
-					completion = 9;
 				int percent = 0;
-				if (fileInfo.getLength() != 0)
-					percent = (int) ((fileInfo.getDownloaded() * 10) / fileInfo.getLength());
-				if (percent > completion && percent < 10)
-					completion = percent;
+				if (fileInfo.getLength() != 0) {
+				  percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
+				}
+				if (percent > completion && percent < 100) {
+				  completion = percent;
+				}
 			}
 			pieceCompletion[i] = completion;
 		}
@@ -1440,8 +1452,10 @@ DiskManagerImpl
 		return errorMessage;
 	}
 
+  
+  /*
 	// searches from 0 to searchLength-1
-	public static int binarySearch(int[] a, int key, int searchLength) {
+    public static int binarySearch(int[] a, int key, int searchLength) {
 		int low = 0;
 		int high = searchLength - 1;
 
@@ -1458,24 +1472,27 @@ DiskManagerImpl
 		}
 		return - (low + 1); // key not found.
 	}
+  */
 
 	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
 		//Added patch so that we try to complete most advanced files first.
 		List _pieces = new ArrayList();
 		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
-      int k = 0;
-      //Switch comments to enable sequential piece picking.
-			//for (int j = 0; j < nbPieces && k < 50; j++) {
-      for (int j = 0; j < nbPieces ; j++) {
-				if (_piecesRarest[j] && priorityLists[i].get(j)) {
-					pieceInteger = FlyWeightInteger.getInteger(j);
-					_pieces.add(pieceInteger);
-          k++;
-				}
-			}
-			if (_pieces.size() != 0)
+		  int k = 0;
+		  //Switch comments to enable sequential piece picking.
+		  //for (int j = 0; j < nbPieces && k < 50; j++) {
+		  for (int j = 0; j < nbPieces ; j++) {
+		    if (_piecesRarest[j] && priorityLists[i].get(j)) {
+		      pieceInteger = FlyWeightInteger.getInteger(j);
+		      _pieces.add(pieceInteger);
+		      k++;
+		    }
+		  }
+		  
+		  if (_pieces.size() != 0) {
 				break;
+		  }
 		}
 
 		if (_pieces.size() == 0) {
