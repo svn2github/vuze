@@ -72,11 +72,16 @@ TrackerWebPageRequestImpl
 	{
 		return( client_address );
 	}
-	
 
 	public InputStream
 	getInputStream()
 	{
 		return( is );
+	}
+	
+	public String
+	getHeader()
+	{
+		return( header );
 	}
 }	

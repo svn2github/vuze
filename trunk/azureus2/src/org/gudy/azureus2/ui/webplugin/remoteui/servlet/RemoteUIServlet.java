@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.webplugin.*;
 import java.io.*;
 import java.util.zip.*;
 import java.util.jar.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.*;
@@ -288,8 +289,7 @@ RemoteUIServlet
 			//
 			// <data>
 			// -----------------------------7d4f2a310bca
-			
-		
+						
 			InputStream	is = request.getInputStream();
 			
 			try{
@@ -310,22 +310,58 @@ RemoteUIServlet
 					content += new String(buffer, 0,len, "ISO-8859-1" );
 				}
 				
-				int	sep1 = content.indexOf( "\r\n" );
-				
-				String	tag = content.substring(0,sep1);
-				
-				int	sep2 = content.indexOf( "\r\n\r\n");
-				
-				int	data_start 	= sep2 + 4;
-				int data_end	= content.indexOf(tag, data_start );
-				
-				byte[]	data = content.substring(data_start, data_end).getBytes("ISO-8859-1");
-				
 				PrintWriter pw = new PrintWriter( new OutputStreamWriter( response.getOutputStream()));
-		
-				try{
-					Torrent torrent = plugin_interface.getTorrentManager().createFromBEncodedData( data );
 				
+				try{
+
+					int	sep1 = content.indexOf( "\r\n" );
+					
+					String	tag = content.substring(0,sep1);
+					
+					int	sep2 = content.indexOf( "\r\n\r\n");
+					
+					int	data_start 	= sep2 + 4;
+					int data_end	= content.indexOf(tag, data_start );
+					
+					String	str_data = content.substring(data_start, data_end);
+					
+					// System.out.println("ds = "+ data_start + ", de = " + data_end + ", content = " + content);
+					
+					Torrent	torrent	= null;
+					
+					if ( data_end - data_start <= 2 ){
+						
+						int	fn_start = content.indexOf( "filename=\"");
+						
+						if ( fn_start != -1 ){
+							
+							fn_start += 10;
+							
+							int	fn_end	= content.indexOf( "\"", fn_start );
+							
+							if ( fn_end != -1 ){
+								
+								String	file_name = content.substring( fn_start, fn_end );
+																							
+								if ( file_name.toLowerCase().startsWith("http")){
+									
+									file_name = file_name.replaceAll( " ", "%20");
+									
+									TorrentDownloader dl = plugin_interface.getTorrentManager().getURLDownloader( new URL( file_name ));
+									
+									torrent = dl.download();									
+								}
+							}
+						}
+					}
+					
+					if ( torrent == null ){
+						
+						byte[]	data = str_data.getBytes("ISO-8859-1");
+			
+						torrent = plugin_interface.getTorrentManager().createFromBEncodedData( data );
+					}
+					
 					plugin_interface.getDownloadManager().addDownload( torrent );
 				
 					pw.println("<HTML><BODY><P><FONT COLOR=#00CC44>Upload OK</FONT></P></BODY></HTML>");

@@ -42,6 +42,9 @@ TrackerWebPageRequest
 	public String
 	getURL();
 	
+	public String
+	getHeader();
+	
 	public InputStream
 	getInputStream();
 }
