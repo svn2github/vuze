@@ -37,6 +37,7 @@ public class PluginConfigImpl
 	private String key;
   
 	public PluginConfigImpl(String key) {
+    this.key = key + ".";
 		config = ConfigurationManager.getInstance();
 	}
 
