@@ -35,6 +35,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
 
@@ -103,6 +104,7 @@ public class Main {
       Appender app;
       app = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
       app.setName("ConsoleAppender");
+      app.addFilter( new DenyAllFilter() );  //'log off' by default
       Logger.getRootLogger().addAppender(app);
     }
   }
