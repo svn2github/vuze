@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderList
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Application;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 /**
@@ -76,6 +77,9 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
   
   boolean askingForShow;
+  
+  boolean restartRequired;
+  
   private long totalDownloadSize;
   private List downloaders;
   private Iterator iterDownloaders;
@@ -133,6 +137,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     table.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         checkMandatory();
+        checkRestartNeeded();
         TableItem[] items = table.getSelection();
         if(items.length == 0) return;
         Update update = (Update) items[0].getData();        
@@ -234,6 +239,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
         
         item.setChecked(true);
         
+        checkRestartNeeded();
+        
         updateWindow.open();
       }
     });
@@ -257,6 +264,21 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     for(int i = 0 ; i < items.length ; i++) {
       Update update = (Update) items[i].getData();
       if(update.isMandatory()) items[i].setChecked(true);
+    }
+  }
+  
+  private void checkRestartNeeded() {    
+    TableItem[] items = table.getItems();
+    for(int i = 0 ; i < items.length ; i++) {
+      Update update = (Update) items[i].getData();
+      int required = update.getRestartRequired();
+      if((required == Update.RESTART_REQUIRED_MAYBE) ||
+         (required == Update.RESTART_REQUIRED_YES)     ) restartRequired = true;
+    }
+    if(restartRequired) {
+      status.setText(MessageText.getString("swt.update.window.status.restartNeeded"));
+    } else {
+      status.setText("");
     }
   }
   
@@ -314,7 +336,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
             finishUpdate();
           }
         });
-        Messages.setLanguageText(btnOk,"swt.update.window.restart");
+        if(restartRequired)
+          Messages.setLanguageText(btnOk,"swt.update.window.restart");
         btnCancel.setEnabled(false);
           }
     });
@@ -384,7 +407,14 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   }
   
   
-  private void finishUpdate() {    
-    updateWindow.setVisible(false);
+  private void finishUpdate() {
+    //If restart is required, then restart
+    if(restartRequired) {
+      Restarter.restartForUpgrade();
+      MainWindow.getWindow().dispose();
+    } else {
+      updateWindow.setVisible(false);
+      table.setEnabled(true);
+    }
   }
 }
