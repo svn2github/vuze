@@ -22,18 +22,19 @@
 
 package org.gudy.azureus2.core3.proxy.impl;
 
+import java.util.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.proxy.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
@@ -49,32 +50,28 @@ AEProxyImpl
 	public static final int		THREAD_POOL_SIZE	= 16;
 		
 	protected int				port;
-	protected long				timeout;
+	protected long				connect_timeout;
+	protected long				read_timeout;
 	
 	protected VirtualChannelSelector	read_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
 	protected VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
 	protected VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
 	
-	public 
-	AEProxyImpl(
-		long		_timeout )
+	protected Map				processors = new WeakHashMap();
 	
-		throws AEProxyException
-	{		
-		this(0, _timeout);
-	}
+	protected AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
 	public 
 	AEProxyImpl(
 		int		_port,
-		long	_timeout )
+		long	_connect_timeout,
+		long	_read_timeout )
 	
 		throws AEProxyException
 	{
-		port	= _port;
-		timeout	= _timeout;
-		
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+		port				= _port;
+		connect_timeout		= _connect_timeout;
+		read_timeout		= _read_timeout;
 		
 		try{
 			
@@ -84,14 +81,7 @@ AEProxyImpl
 			
 			ss.setReuseAddress(true);
 
-			if ( bind_ip.length() < 7 ){
-				
-				ss.bind( new InetSocketAddress(port), 128 );
-				
-			}else{
-				
-				ss.bind(  new InetSocketAddress( InetAddress.getByName(bind_ip), port), 128 );
-			}
+			ss.bind(  new InetSocketAddress( InetAddress.getByName("127.0.0.1"), port), 128 );
 			
 			if ( port == 0 ){
 				
@@ -170,22 +160,6 @@ AEProxyImpl
 	}	
 	
 	protected void
-	selectLoop(
-		VirtualChannelSelector	selector )
-	{
-		while( true ){
-			
-			try{
-				selector.select(100);
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
-	}
-	
-	protected void
 	acceptLoop(
 		ServerSocketChannel	ssc )
 	{		
@@ -203,12 +177,123 @@ AEProxyImpl
 						
 				socket_channel.configureBlocking(false);
 
-				read_selector.register( socket_channel, this, new AEProxyProcessor(this, socket_channel));
+				AEProxyProcessor processor = new AEProxyProcessor(this, socket_channel);
+				
+				try{
+					this_mon.enter();
+				
+					processors.put( processor, "" );
+	
+					System.out.println( "AEProxy: num processors = " + processors.size());
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+				
+				read_selector.register( socket_channel, this, processor );
 				
 			}catch( Throwable e ){
 				
 				// e.printStackTrace();		
 			}
+		}
+	}
+	
+	protected void
+	close(
+		AEProxyProcessor	processor )
+	{
+		try{
+			this_mon.enter();
+			
+			processors.remove( processor );
+			
+		}finally{
+		
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	selectLoop(
+		VirtualChannelSelector	selector )
+	{
+		long	last_time	= 0;
+		
+		while( true ){
+			
+			try{
+				selector.select(100);
+				
+					// only use one selector to trigger the timeouts!
+				
+				if ( selector == read_selector ){
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					if ( now < last_time ){
+						
+						last_time	= now;
+						
+					}else if ( now - last_time >= 5000 ){
+						
+						last_time	= now;
+						
+						checkTimeouts();
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
+	protected void
+	checkTimeouts()
+	{
+		if ( connect_timeout <= 0 && read_timeout <= 0 ){
+			
+			return;
+		}
+		
+		List	closes = new ArrayList();
+		
+		try{
+			this_mon.enter();
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			Iterator	it = processors.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				AEProxyProcessor	processor = (AEProxyProcessor)it.next();
+				
+				long diff = now - processor.getTimeStamp();
+				
+				if ( 	connect_timeout > 0 &&
+						diff >= connect_timeout && 
+						!processor.isConnected()){
+					
+					closes.add( processor );
+				
+				}else if (	read_timeout > 0 &&
+							diff >= read_timeout &&
+							processor.isConnected()){
+					
+					closes.add( processor );
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<closes.size();i++){
+			
+			((AEProxyProcessor)closes.get(i)).failed( new Throwable( "timeout" ));
 		}
 	}
 	
@@ -275,18 +360,12 @@ AEProxyImpl
     {
     	AEProxyProcessor	processor = (AEProxyProcessor)attachment;
     	
-    	processor.failed( sc, msg );
+    	processor.failed( msg );
     }
     
 	public int
 	getPort()
 	{
 		return( port );
-	}
-	
-	protected long
-	getSocketTimeout()
-	{
-		return( timeout );
 	}
 }

@@ -50,6 +50,9 @@ AEProxyProcessor
 	protected volatile proxyState	proxy_write_state 		= null;
 	protected volatile proxyState	proxy_connect_state 	= null;
 	
+	protected long		time_stamp;
+	protected boolean	is_connected;
+	
 	protected
 	AEProxyProcessor(
 		AEProxyImpl			_server,
@@ -62,6 +65,8 @@ AEProxyProcessor
 			
 			LGLogger.log( "ProxyProcessor: " + getName());
 		}
+		
+		setTimeStamp();
 		
 		proxy_read_state = new proxyStateVersion();
 	}
@@ -88,7 +93,7 @@ AEProxyProcessor
 			
 		}catch( Throwable e ){
 			
-			failed(sc,e);
+			failed(e);
 		}
 	}
 	
@@ -101,7 +106,7 @@ AEProxyProcessor
 			
 		}catch( Throwable e ){
 			
-			failed(sc,e);
+			failed(e);
 		}
 	}
 	
@@ -114,7 +119,7 @@ AEProxyProcessor
 			
 		}catch( Throwable e ){
 			
-			failed(sc,e);
+			failed(e);
 		}
 	}
 		
@@ -149,17 +154,17 @@ AEProxyProcessor
 	
 	protected void
 	failed(
-		SocketChannel 		sc,
 		Throwable			reason )
 	{
 		try{
-			LGLogger.log( reason );
+			LGLogger.log( "AEProxyProcessor: " + getName() + " failed", reason );
 			
-			sc.close();
+			close();
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+			
 		}
 	}
 	
@@ -167,27 +172,58 @@ AEProxyProcessor
 	close()
 	{
 		try{
-			cancelReadSelect( source_channel );
-			
-			source_channel.close();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-		
-		if ( target_channel != null ){
-			
 			try{
-				cancelReadSelect( target_channel );
+				cancelReadSelect( source_channel );
 				
-				target_channel.close();
+				source_channel.close();
 				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
 			}
-		}	
+			
+			if ( target_channel != null ){
+				
+				try{
+					cancelReadSelect( target_channel );
+					
+					target_channel.close();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}	
+		}finally{
+			
+			server.close( this );
+		}
+	}
+	
+	protected void
+	setConnected()
+	{
+		setTimeStamp();
+		
+		is_connected	= true;
+	}
+	
+	protected boolean
+	isConnected()
+	{
+		return( is_connected );
+	}
+	
+	protected void
+	setTimeStamp()
+	{
+		time_stamp = SystemTime.getCurrentTime();
+	}
+	
+	protected long
+	getTimeStamp()
+	{
+		return( time_stamp );
 	}
 	
 	protected class
@@ -632,7 +668,7 @@ AEProxyProcessor
 						{
 							if ( address == null ){
 								
-								failed( source_channel, new Exception( "DNS lookup of '" + f_dns_address + "' fails" ));
+								failed( new Exception( "DNS lookup of '" + f_dns_address + "' fails" ));
 								
 							}else{
 								
@@ -827,9 +863,7 @@ AEProxyProcessor
 		proxyStateRelayData()
 		
 			throws IOException
-		{
-			super();
-						
+		{				
 			source_buffer	= ByteBuffer.allocate( 1024 );
 			target_buffer	= ByteBuffer.allocate( 1024 );
 			
@@ -838,7 +872,9 @@ AEProxyProcessor
 			
 			requestReadSelect( source_channel );
 			
-			requestReadSelect( target_channel );	
+			requestReadSelect( target_channel );
+			
+			setConnected();
 		}
 		
 		protected void
@@ -847,6 +883,8 @@ AEProxyProcessor
 		
 			throws IOException
 		{
+			setTimeStamp();
+			
 			SocketChannel	chan1 = sc;
 			SocketChannel	chan2 = sc==source_channel?target_channel:source_channel;
 			

@@ -32,12 +32,32 @@ import org.gudy.azureus2.core3.proxy.impl.AEProxyImpl;
 public class 
 AEProxyFactory 
 {
+		/**
+		 * create a proxy on free port
+		 * @param connect_timeout	0 = no timeout
+		 * @param read_timeout		0 = no timeout
+		 * @return
+		 * @throws AEProxyException
+		 */
+	
 	public static AEProxy
 	create(
-		long		timeout )
+		long		connect_timeout,
+		long		read_timeout )
 	
 		throws AEProxyException
 	{
-		return( new AEProxyImpl(timeout));
+		return( create(0,connect_timeout,read_timeout));
+	}
+	
+	public static AEProxy
+	create(
+		int			port,
+		long		connect_timeout,
+		long		read_timeout )	
+	
+		throws AEProxyException
+	{
+		return( new AEProxyImpl(port,connect_timeout,read_timeout));
 	}
 }

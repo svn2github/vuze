@@ -160,7 +160,8 @@ ConfigurationChecker
 	    		// no explicit proxy, install our own baby for testing purposes at the moment
 	    	
 	    	try{
-	    		AEProxy	proxy = AEProxyFactory.create( (read_timeout + connect_timeout )*1000);
+	    		AEProxy	proxy = 
+	    			AEProxyFactory.create( 14890, 0, 0 );
 	    		
 		        System.setProperty("socksProxyHost", "127.0.0.1");
 		        System.setProperty("socksProxyPort", "" + proxy.getPort());
