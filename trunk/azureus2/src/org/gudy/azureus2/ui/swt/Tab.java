@@ -162,11 +162,11 @@ public class Tab {
             }
           }
           else if (item instanceof TabItem) {
-            String lastToolTip = ((CTabItem) item).getToolTipText();
+            String lastToolTip = ((TabItem) item).getToolTipText();
             String newToolTip = view.getFullTitle() + " " +
 						 MessageText.getString("Tab.closeHint");
             if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
-              ((CTabItem) item).setToolTipText(newToolTip);
+              ((TabItem) item).setToolTipText(newToolTip);
             }
           }
         }
@@ -181,7 +181,7 @@ public class Tab {
       while (iter.hasNext()) {
         //TabItem item = (TabItem) iter.next();
         //CTabItem item = (CTabItem) iter.next();
-        Item item = (CTabItem) iter.next();
+        Item item = (Item) iter.next();
         IView view = (IView) tabs.get(item);
         try {
           view.updateLanguage();
