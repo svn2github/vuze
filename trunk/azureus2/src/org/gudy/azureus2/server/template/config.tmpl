@@ -309,6 +309,13 @@
                                 <input type=text style="width:100%" name=Options_Server_sProxyUserAgent value="<TMPL_VAR Options_Server_sProxyUserAgent>">
                             </td>
                         </tr>
+                        <tr>
+                            <td>Intercept requests to .torrent files and start to download them.</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bProxyGrabTorrents value="0">
+                                <input type=checkbox name=Options_Server_bProxyGrabTorrents <TMPL_IF Options_Server_bProxyGrabTorrents>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
                     </table></td>
                 </tr>
                 <tr>

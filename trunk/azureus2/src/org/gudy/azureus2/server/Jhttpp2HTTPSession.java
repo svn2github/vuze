@@ -57,7 +57,7 @@ public class Jhttpp2HTTPSession extends Thread {
   public static final int SC_HTTP_OPTIONS_THIS=9;
   public static final int SC_FILE_REQUEST=10;
   public static final int SC_MOVED_PERMANENTLY=11;
-  //public static final int SC_CONFIG_RQ = 12;
+  public static final int SC_GRABBED_TORRENT = 12;
   
   private static Jhttpp2Server server;
   
@@ -280,6 +280,7 @@ public class Jhttpp2HTTPSession extends Thread {
             //case SC_REMOTE_DEBUG_MODE: remoteDebug(); break;
             case SC_HTTP_OPTIONS_THIS: sendHeader(200); endHeader(); break;
             case SC_FILE_REQUEST: file_handler(); break;
+            case SC_GRABBED_TORRENT: torrent_handler(); break;
             //case SC_CONFIG_RQ: admin_handler(b); break;
             //case SC_HTTP_TRACE:
             case SC_MOVED_PERMANENTLY:
@@ -418,6 +419,7 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigBool(tmpl,"Server_bProxyBlockURLs");
     handleConfigBool(tmpl,"Server_bProxyFilterHTTP");
     handleConfigStr(tmpl, "Server_sProxyUserAgent");
+    handleConfigBool(tmpl,"Server_bProxyGrabTorrents");
     handleConfigBool(tmpl,"Server_bUseDownstreamProxy");
     handleConfigStr(tmpl, "Server_sDownstreamProxyHost");
     handleConfigInt(tmpl, "Server_iDownstreamProxyPort");
@@ -762,6 +764,24 @@ public class Jhttpp2HTTPSession extends Thread {
       if (turnserveroff)
         server.shutdownServer();
     }
+  }
+  
+  public void torrent_handler() throws IOException {
+      String fwd;
+      try {
+        HTTPDownloader dl = new HTTPDownloader("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultTorrent_Directory"));
+        String file = dl.download();
+        server.gm.addDownloadManager(file, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultSave_Directory"));
+        server.loggerWeb.info("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" succeeded");
+        fwd="torrents";
+      } catch (Exception e) {
+        server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
+        fwd="dl_fail";
+      }
+      sendHeader(301);
+      write(out,"Location: http://" + ConfigurationManager.getInstance().getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
+      endHeader();
+      out.flush();
   }
   /**
    * @since 0.4.10b

@@ -124,7 +124,9 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
         } // end switch
       }// end if(startline)
       else {
-                                /*-----------------------------------------------
+        if(buf.toString().startsWith("User-Agent"))
+          this.useragent = new String(buf.toString());
+                          /*-----------------------------------------------
                                  * Content-Length parsing
                                  *-----------------------------------------------*/
         if(server.startsWith(buf.toUpperCase(),"CONTENT-LENGTH")) {
@@ -176,8 +178,6 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
           }
         }
         
-        if(server.startsWith(buf,"User-Agent"))
-          this.useragent = buf;
       }
       if (buf!=null) {
         rq+=buf;
@@ -316,6 +316,8 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     catch (UnknownHostException e_u_host) {
       if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) statuscode = connection.SC_HOST_NOT_FOUND;
     }
+    if ((cm.getBooleanParameter("Server_bProxyGrabTorrents")) && (url.toUpperCase().endsWith(".TORRENT")))
+      statuscode = connection.SC_GRABBED_TORRENT;
     return address;
   }
   /**

@@ -134,6 +134,9 @@ public class ConfigurationDefaults {
     def.put("Server_sDownstreamProxyHost", "127.0.0.1");
     // Port of a downstream proxy
     def.put("Server_iDownstreamProxyPort", new Long(0));
+    // Grab Torrents in Proxy mode
+    def.put("Server_bProxyGrabTorrents", new Long(1));
+    
     
     // Logging relevant Stuff
     //  Log levels:
