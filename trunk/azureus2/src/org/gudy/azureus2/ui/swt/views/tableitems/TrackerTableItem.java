@@ -208,13 +208,15 @@ implements SortableItem
 		
 		item.setText( 5, "" + torrent.getAnnounceCount());
 		
-		item.setText( 6, "" + torrent.getCompletedCount());
+		item.setText( 6, "" + torrent.getScrapeCount());
 		
-		item.setText( 7, "" + DisplayFormatters.formatByteCountToKiBEtc(uploaded));
+		item.setText( 7, "" + torrent.getCompletedCount());
 		
-		item.setText( 8, "" + DisplayFormatters.formatByteCountToKiBEtc(downloaded));
+		item.setText( 8, "" + DisplayFormatters.formatByteCountToKiBEtc(uploaded));
 		
-		item.setText( 9, "" + DisplayFormatters.formatByteCountToKiBEtc(left));
+		item.setText( 9, "" + DisplayFormatters.formatByteCountToKiBEtc(downloaded));
+		
+		item.setText( 10, "" + DisplayFormatters.formatByteCountToKiBEtc(left));
 		
 		if ( seed_count != 0 ){
 			

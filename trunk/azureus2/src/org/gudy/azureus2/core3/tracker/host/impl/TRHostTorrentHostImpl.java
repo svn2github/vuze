@@ -236,6 +236,43 @@ TRHostTorrentHostImpl
 	}
 	
 	public int
+	getScrapeCount()
+	{
+		try{
+			
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+			
+			if ( stats != null ){
+				
+				return( stats.getScrapeCount());
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( 0 );
+	}
+	
+	protected void
+	setScrapeCount(
+		int		count )
+	{
+		try{
+			
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+			
+			if ( stats != null ){
+				
+				stats.setScrapeCount(count);
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public int
 	getCompletedCount()
 	{
 		try{

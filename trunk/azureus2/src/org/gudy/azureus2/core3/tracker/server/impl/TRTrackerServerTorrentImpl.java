@@ -489,6 +489,12 @@ TRTrackerServerTorrentImpl
 		return( hash );
 	}
 	
+	protected void
+	addScrape()
+	{
+		stats.addScrape();
+	}
+	
 	static class
 	announceCacheEntry
 	{

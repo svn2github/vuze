@@ -94,6 +94,7 @@ TRHostConfigImpl
 			 	
 			 	long	completed	= 0;
 			 	long	announces	= 0;
+			 	long	scrapes		= 0;
 			 	long	total_up	= 0;
 			 	long	total_down	= 0;
 			 	
@@ -105,6 +106,13 @@ TRHostConfigImpl
 			 		announces	= ((Long)s_map.get( "announces")).longValue();
 			 		total_up	= ((Long)s_map.get( "uploaded")).longValue();
 			 		total_down	= ((Long)s_map.get( "downloaded")).longValue();
+			 		
+			 		Long	scrapes_l = (Long)s_map.get( "scrapes" );
+			 		
+			 		if ( scrapes_l != null ){
+			 			
+			 			scrapes	= scrapes_l.longValue();
+			 		}
 			 	}
 			 	
 			 	if ( state == TRHostTorrent.TS_FAILED ){
@@ -124,6 +132,7 @@ TRHostConfigImpl
 			 			
 			 			hth.setCompletedCount( (int)completed );
 			 			hth.setAnnounceCount( (int)announces );
+			 			hth.setScrapeCount( (int)scrapes );
 			 			hth.setTotalUploaded( total_up );
 			 			hth.setTotalDownloaded( total_down );
 			 		}
@@ -190,6 +199,7 @@ TRHostConfigImpl
 						int		status 		= torrent.getStatus();
 						long	completed	= torrent.getCompletedCount();
 						long	announces	= torrent.getAnnounceCount();
+						long	scrapes		= torrent.getScrapeCount();
 						long	uploaded	= torrent.getTotalUploaded();
 						long	downloaded	= torrent.getTotalDownloaded();
 	
@@ -223,6 +233,7 @@ TRHostConfigImpl
 						
 						s_map.put( "completed", new Long(completed));
 						s_map.put( "announces", new Long(announces));
+						s_map.put( "scrapes", new Long(scrapes));
 						s_map.put( "uploaded", new Long(uploaded));
 						s_map.put( "downloaded", new Long(downloaded));
 						
@@ -240,6 +251,8 @@ TRHostConfigImpl
 						stats_entry.append(completed);
 						stats_entry.append(",");
 						stats_entry.append(announces);
+						stats_entry.append(",");
+						stats_entry.append(scrapes);
 						stats_entry.append(",");
 						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc(uploaded));
 						stats_entry.append(",");

@@ -130,6 +130,12 @@ TRHostTorrentPublishImpl
 	{
 		return( 0 );
 	}
+	
+	public int
+	getScrapeCount()
+	{
+		return( 0 );
+	}
 	public int
 	getCompletedCount()
 	{

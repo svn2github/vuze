@@ -32,8 +32,9 @@ TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
 	protected TRTrackerServerTorrentImpl	torrent;
-	protected int						announce_count;
-	protected int						completed_count;
+	protected int							announce_count;
+	protected int							scrape_count;
+	protected int							completed_count;
 	
 	protected
 	TRTrackerServerTorrentStatsImpl(
@@ -61,6 +62,24 @@ TRTrackerServerTorrentStatsImpl
 		announce_count	= count;
 	}
 	
+	protected void
+	addScrape()
+	{
+		scrape_count++;
+	}
+	
+	public int
+	getScrapeCount()
+	{
+		return( scrape_count );
+	}
+	
+	public void
+	setScrapeCount(
+		int		count )
+	{
+		scrape_count	= count;
+	}
 	protected void
 	addCompleted()
 	{

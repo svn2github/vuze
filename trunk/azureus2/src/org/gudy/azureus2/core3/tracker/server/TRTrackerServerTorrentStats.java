@@ -28,6 +28,13 @@ public interface
 TRTrackerServerTorrentStats 
 {
 	public int
+	getScrapeCount();
+	
+	public void
+	setScrapeCount(
+		int		count );
+	
+	public int
 	getAnnounceCount();
 
 	public void
