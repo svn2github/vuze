@@ -182,7 +182,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
             //If the Shell has been disposed, then don't process the torrent.
             if(shell != null && ! shell.isDisposed()) {
               shell.dispose();
-              MainWindow.getWindow().openTorrent(downloader.getFile().getAbsolutePath());
+              TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
             }
           }
    

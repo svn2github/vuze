@@ -126,7 +126,7 @@ public class Main implements ILocaleUtilChooser {
       
       if (args.length != 0) {
 
-        MainWindow.getWindow().openTorrent( args[0]);
+        TorrentOpener.openTorrent( args[0]);
       }
       
 
@@ -154,7 +154,7 @@ public class Main implements ILocaleUtilChooser {
         {
           LGLogger.log( "Main::useParam: open '" + args[1] + "'");
 
-          MainWindow.getWindow().openTorrent(args[1]);
+          TorrentOpener.openTorrent(args[1]);
         }
       }
     }
