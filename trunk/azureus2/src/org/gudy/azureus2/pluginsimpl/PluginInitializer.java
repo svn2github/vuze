@@ -253,7 +253,7 @@ PluginInitializer
     		
     		if( classLoader == null ){
     			
-    			classLoader = new URLClassLoader(urls);
+    			classLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
     			
     		}else{
     			
