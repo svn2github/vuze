@@ -100,6 +100,10 @@ public class ByteBucket {
    * @param burst_rate
    */
   protected void setRate( int rate_bytes_per_sec, int burst_rate ) {
+    if( rate_bytes_per_sec < 0 ) {
+      Debug.out("rate_bytes_per_sec [" +rate_bytes_per_sec+ "] < 0");
+      rate_bytes_per_sec = 0;
+    }
     if( burst_rate < rate_bytes_per_sec ) {
       Debug.out("burst_rate [" +burst_rate+ "] < rate_bytes_per_sec [" +rate_bytes_per_sec+ "]");
       burst_rate = rate_bytes_per_sec;
