@@ -1091,8 +1091,8 @@ StartStopRulesDefaultPlugin
           if (!bLastMatched) {
             long timeSeeding = (System.currentTimeMillis() - getStartedSeedingOn()) / 1000 / 60;
             bLastMatched = (timeSeeding < iFirstPrioritySeedingMinutes);
+            bAnyMatched |= bLastMatched;
           }
-          bAnyMatched |= bLastMatched;
         }
   
         if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
@@ -1101,8 +1101,8 @@ StartStopRulesDefaultPlugin
           if (!bLastMatched) {
             long timeDLing = (System.currentTimeMillis() - dl.getStats().getTimeStarted())  / 1000 / 60;
             bLastMatched = (timeDLing < iFirstPriorityDLMinutes);
+            bAnyMatched |= bLastMatched;
           }
-          bAnyMatched |= bLastMatched;
         }
       }
       
