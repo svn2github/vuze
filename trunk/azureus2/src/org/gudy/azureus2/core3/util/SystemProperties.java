@@ -18,6 +18,9 @@ import org.gudy.azureus2.platform.*;
  */
 public class SystemProperties {
   
+		// note this is also used in the restart code....
+	
+	public static final String SYS_PROP_CONFIG_OVERRIDE = "azureus.config.path";
   /**
    * Path separator charactor.
    */
@@ -44,7 +47,7 @@ public class SystemProperties {
     
     // Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
     user_path = System.getProperty("azureus.user.fullpath"); //TODO <--- remove
-    if ( user_path == null ) user_path = System.getProperty("azureus.config.path");
+    if ( user_path == null ) user_path = System.getProperty( SYS_PROP_CONFIG_OVERRIDE );
     if (user_path != null) {
       if (!user_path.endsWith(SEP))
         user_path += SEP;

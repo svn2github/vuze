@@ -21,53 +21,215 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-public class Restarter {
-  
-  private static final String classpath = "Updater.jar";
+public class 
+Restarter 
+{  
   private static final String mainClass = "org.gudy.azureus2.update.Updater";
   
   
-  private static final String restartScriptName = "restartScript";
-  
-  public static void restartForUpgrade() {
-    String osName = System.getProperty("os.name");
-    if(osName.equalsIgnoreCase("Mac OS X")) {
-      restartForUpgrade_OSX();
-    } else if(osName.equalsIgnoreCase("Linux")) {
-      restartForUpgrade_Linux();
-    } else {
-      restartForUpgrade_win32();
-    }   
+  public static void 
+  restartForUpgrade() 
+  {
+ 	 	String	app_path = SystemProperties.getApplicationPath();
+	  	
+	  	if ( app_path.endsWith(File.separator)){
+	  		
+	  		app_path = app_path.substring(0,app_path.length()-1);
+	  	}
+	  	
+	 	String	user_path = SystemProperties.getUserPath();
+	  	
+	  	if ( user_path.endsWith(File.separator)){
+	  		
+	  		user_path = user_path.substring(0,user_path.length()-1);
+	  	}
+	  	
+	  	String[]	parameters = {
+	  			"restart",
+	  			app_path,
+	  			user_path,
+				System.getProperty( SystemProperties.SYS_PROP_CONFIG_OVERRIDE ),
+	  	};
+	  	
+	  	restartAzureus(
+	  		new PrintWriter(new ByteArrayOutputStream())
+			{
+	  			public void
+				println(
+					String	str )
+				{
+	  				LGLogger.log( str );
+	  			}
+					
+	  		},
+			mainClass,
+			new String[0],
+			parameters );
   }
   
+  
+  
+  // ******************************** This code is copied into Updater so make changes there too !!!
   
   //Beware that for OSX no SPECIAL Java will be used with
   //This method.
-  public static void exec(String command) {
+  
+  private static final String restartScriptName = "restartScript";
+  
+  public static void 
+  restartAzureus(
+  		PrintWriter log, 
+		String 		mainClass,
+		String[]	properties,
+		String[] 	parameters ) 
+  {
     String osName = System.getProperty("os.name");
     if(osName.equalsIgnoreCase("Mac OS X")) {
-      exec_OSX(command);
+      restartAzureus_OSX(log,mainClass,properties,parameters);
     } else if(osName.equalsIgnoreCase("Linux")) {
-      exec_Linux(command);
+      restartAzureus_Linux(log,mainClass,properties,parameters);
     } else {
-      exec_win32(command);
+      restartAzureus_win32(log,mainClass,properties,parameters);
     }
   }
   
-  private static void restartForUpgrade_win32() {
+  private static void 
+  restartAzureus_win32(
+  		PrintWriter log,
+		String 		mainClass,
+		String[]	properties,
+		String[] 	parameters) 
+  {
     //Classic restart way using Runtime.exec directly on java(w)
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String classPath = System.getProperty("java.class.path");
+        
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
                     + System.getProperty("file.separator");
     
+    String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
+						+ "\" " + getLibraryPath();
+    
+    for (int i=0;i<properties.length;i++){
+    	exec += properties[i] + " ";
+    }
+    
+    exec += mainClass;
+    
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    if ( log != null ){
+    	log.println( "  " + exec );
+    }
+    try {                
+      Runtime.getRuntime().exec(exec);
+    } catch(Exception e) {
+        e.printStackTrace(log);
+   }
+  }
+  
+  private static void 
+  restartAzureus_OSX(
+  		PrintWriter log,
+		String mainClass,
+		String[]	properties,
+		String[] parameters) 
+  {
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "#!/bin/bash\n\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
+    + "\" -Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    
+    for (int i=0;i<properties.length;i++){
+    	exec += properties[i] + " ";
+    }
+    
+    exec += mainClass ;
+    
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    if ( log != null ){
+    	log.println( "  " + exec );
+    }
+    String fileName = userPath + "/" + restartScriptName;
+    
+    File fUpdate = new File(fileName);
+    try {
+	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+	    fosUpdate.write(exec.getBytes());
+	    fosUpdate.close();
+	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
+	    pChMod.waitFor();
+	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+    } catch(Exception e) {
+      e.printStackTrace(log);
+    }
+  }
+  
+  private static void 
+  restartAzureus_Linux(
+  	PrintWriter log,
+	String 		mainClass,
+	String[]	properties,
+	String[] 	parameters) 
+  {
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
+    + "\" -Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    
+    for (int i=0;i<properties.length;i++){
+    	exec += properties[i] + " ";
+    }
+    
+    exec += mainClass ;
+    
+    for(int i = 0 ; i < parameters.length ; i++) {
+      exec += " \"" + parameters[i] + "\"";
+    }
+    
+    if ( log != null ){
+    	log.println( "  " + exec );
+    }
+    
+    String fileName = userPath + "/" + restartScriptName;
+    
+    File fUpdate = new File(fileName);
+    try {
+	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+	    fosUpdate.write(exec.getBytes());
+	    fosUpdate.close();
+	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
+	    pChMod.waitFor();
+	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+    } catch(Exception e) {
+        e.printStackTrace(log);
+    }
+  }
+  
+  private static String
+  getLibraryPath()
+  {
     String libraryPath = System.getProperty("java.library.path");
     
     if ( libraryPath == null ){
@@ -76,145 +238,7 @@ public class Restarter {
     	libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
     }
     
-    String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
-    + "\" " + libraryPath + mainClass;
-    
-    exec = addParameters( exec );
-    
-    exec_win32(exec);
-  }
-  
-  /**
-   * @param command
-   */
-  private static void exec_win32(String command) {
-    LGLogger.log("RestartUtil is about to execute (win32) : " + command);
-    try {                
-      Runtime.getRuntime().exec(command);
-    } catch(Exception e) {
-      LGLogger.log("Exception while restarting : " + e);
-      e.printStackTrace();
-    }
-  }
-
-
-  private static void restartForUpgrade_OSX() {
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
-    String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
-    
-    String exec = "\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
-    + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
-    
-    exec = addParameters( exec );
-    
-    exec_OSX(exec);
-  }
-  
-  /**
-   * @param command
-   */
-  private static void exec_OSX(String command) {
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-    LGLogger.log("RestartUtil is about to execute (osx) : " + command);
-    String fileName = userPath + "/" + restartScriptName;
-    LGLogger.log("RestartUtil is about to create the file : " + fileName);
-    
-    File fUpdate = new File(fileName);
-    try {
-	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-	    fosUpdate.write(("#!/bin/bash\n" + command).getBytes());
-	    fosUpdate.close();
-	    LGLogger.log("RestartUtil has closed the file : " + fileName);
-	    LGLogger.log("RestartUtil is changing the rights of file : " + fileName);
-	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
-	    pChMod.waitFor();
-	    LGLogger.log("RestartUtil is running file : ./" + restartScriptName);
-	    Process p = Runtime.getRuntime().exec(fileName);
-    } catch(Exception e) {
-      LGLogger.log("RestartUtil has encountered an exception : " + e);
-      e.printStackTrace();
-    }
-  }
-
-
-  private static void restartForUpgrade_Linux() {
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
-    String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
-    
-    String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
-    + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" " + mainClass ;
-    
-    exec = addParameters( exec );
-    
-    exec_Linux(exec);
-  }
-
-
-  /**
-   * @param command
-   */
-  private static void exec_Linux(String command) {
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-    LGLogger.log("RestartUtil is about to execute (linux) : " + command);
-    String fileName = userPath + "/" + restartScriptName;
-    LGLogger.log("RestartUtil is about to create the file : " + fileName);
-    
-    File fUpdate = new File(fileName);
-    try {
-	    FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-	    fosUpdate.write(("#!/bin/bash\n" + command).getBytes());
-	    fosUpdate.close();
-	    LGLogger.log("RestartUtil has closed the file : " + fileName);
-	    LGLogger.log("RestartUtil is changing the rights of file : " + fileName);
-	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
-	    pChMod.waitFor();
-	    LGLogger.log("RestartUtil is running file : ./" + restartScriptName);
-	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
-    } catch(Exception e) {
-      LGLogger.log("RestartUtil has encountered an exception : " + e);
-      e.printStackTrace();
-    }
-  }
-  
-  private static String
-  addParameters(
-  	String	exec )
-  {
- 	String	app_path = SystemProperties.getApplicationPath();
-  	
-  	if ( app_path.endsWith(File.separator)){
-  		
-  		app_path = app_path.substring(0,app_path.length()-1);
-  	}
-  	
- 	String	user_path = SystemProperties.getUserPath();
-  	
-  	if ( user_path.endsWith(File.separator)){
-  		
-  		user_path = user_path.substring(0,user_path.length()-1);
-  	}
-  	
-  	String[]	parameters = {
-  			"restart",
-  			app_path,
-  			user_path,
-  	};
-  	
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
-    
-    return( exec );
+    return( libraryPath );
   }
 }
 

@@ -19,8 +19,8 @@ import org.gudy.azureus2.core3.logging.*;
  * @author Olivier
  * 
  */
-public class StartServer extends Thread {
-
+public class StartServer
+{
   public static final String ACCESS_STRING = "Azureus Start Server Access";
   private ServerSocket socket;
   private int state;
@@ -30,21 +30,46 @@ public class StartServer extends Thread {
   public static final int STATE_FAULTY = 0;
   public static final int STATE_LISTENING = 1;
 
-  public StartServer(Main main) {
-    super("Start Server");
+  public 
+  StartServer(
+  	Main main ) 
+  {
     try {
-      this.main = main;
-      socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
-      state = STATE_LISTENING;
-      LGLogger.log( "StartServer: listening on 127.0.0.1:6880 for passed torrent info");
-    }
-    catch (Exception e) {
-      state = STATE_FAULTY;
-      LGLogger.log( "StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
+        this.main = main;
+        
+        socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+        
+        state = STATE_LISTENING;
+        
+        LGLogger.log( "StartServer: listening on 127.0.0.1:6880 for passed torrent info");
+    
+    }catch (Exception e) {
+        state = STATE_FAULTY;
+        LGLogger.log( "StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
     }
   }
 
-  public void run() {
+    public void
+    pollForConnections()
+	{
+	    Thread t = 
+	    	new Thread("Start Server")
+			{
+	    		public void 
+				run()
+				{
+	    			pollForConnectionsSupport();
+	    		}
+			};
+	    
+		t.setDaemon(true);
+			
+		t.start();     
+	}
+    
+  private void 
+  pollForConnectionsSupport() 
+  {
     bContinue = true;
     while (bContinue) {
       BufferedReader br = null;

@@ -414,8 +414,10 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   private void finishUpdate() {
     //If restart is required, then restart
     if(restartRequired) {
-      Restarter.restartForUpgrade();
+    	// this HAS to be done this way around else the restart inherits
+    	// the 6880 port listen. However, this is a general problem....
       MainWindow.getWindow().dispose();
+      Restarter.restartForUpgrade();
     } else {
       updateWindow.dispose();      
     }

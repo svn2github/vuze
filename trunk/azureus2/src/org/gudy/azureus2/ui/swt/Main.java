@@ -120,7 +120,7 @@ public class Main implements ILocaleUtilChooser {
         startServer = new StartServer(this);
       }
 
-      startServer.start();
+      startServer.pollForConnections();
 
       new Initializer(startServer);
       

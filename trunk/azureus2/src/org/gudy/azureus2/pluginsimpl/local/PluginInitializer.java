@@ -272,7 +272,20 @@ PluginInitializer
       	
       	if ( properties_file.exists()){
       	
-      		props.load(new FileInputStream( properties_file ));
+      		FileInputStream	fis = null;
+      		
+      		try{
+      			fis = new FileInputStream( properties_file );
+      		
+      			props.load( fis );
+      			
+      		}finally{
+      			
+      			if ( fis != null ){
+      				
+      				fis.close();
+      			}
+      		}
       		
       	}else{
       		URL url = ((URLClassLoader)classLoader).findResource("plugin.properties");
