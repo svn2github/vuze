@@ -569,7 +569,7 @@ TRTrackerServerTorrentImpl
 			
 						if ( send_peer_ids ){
 							
-							rep_peer.put( "peer id", peer.getPeerId() );
+							rep_peer.put( "peer id", peer.getPeerId().getHash());
 						}
 						
 						if ( compact ){
@@ -625,7 +625,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( send_peer_ids ){
 								
-								rep_peer.put( "peer id", peer.getPeerId() );
+								rep_peer.put( "peer id", peer.getPeerId().getHash());
 							}
 							
 							if ( compact ){
@@ -675,7 +675,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( send_peer_ids ){
 								
-								rep_peer.put( "peer id", peer.getPeerId() );
+								rep_peer.put( "peer id", peer.getPeerId().getHash());
 							}
 							
 							if ( compact ){
