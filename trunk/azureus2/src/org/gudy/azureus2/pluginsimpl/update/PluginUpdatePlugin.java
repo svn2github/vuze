@@ -1052,7 +1052,12 @@ PluginUpdatePlugin
 			
 			if ( unloadable ){
 				
+				log.log( "Plugin initialising, please wait... " );
+				
 				plugin.reload();	// this will reload all if > 1 defined
+				
+				log.log( "... initialisation complete." );
+
 			}	
 			
 			String msg =   "Version " + version + " of plugin '" + 
