@@ -31,12 +31,13 @@ public class Identification {
       if (shadow.equals("S")) {
         
         if (peerID[8] == (byte)45) {
-          String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
           String name = "Shad0w ";
-          for (int i = 0; i < 2; i++) {
-            name = name.concat(version.charAt(i) + ".");
+          for (int i = 1; i < 3; i++) {
+            String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
+            name = name.concat( Integer.parseInt(v, 16) + "." );
           }
-          name = name + version.charAt(2);
+          String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+          name = name.concat( "" + Integer.parseInt(v, 16) );
           return name;
         }
         
