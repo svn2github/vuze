@@ -260,7 +260,7 @@ PluginInitializer
   	throws PluginException
   {
   	
-  	ClassLoader classLoader = null;
+  	ClassLoader classLoader = getClass().getClassLoader();
   	
     if(!directory.isDirectory()) return;
     String pluginName = directory.getName();
@@ -274,15 +274,31 @@ PluginInitializer
     
     pluginContents	= getHighestJarVersions( pluginContents, plugin_version, plugin_id );
     
-    for(int i = 0 ; i < pluginContents.length ; i++) {
-      classLoader = addFileToClassPath((URLClassLoader)classLoader, pluginContents[i]);
-    }
-    
-    if ( classLoader == null ){
+    for( int i = 0 ; i < pluginContents.length ; i++){
     	
-    	classLoader = this.getClass().getClassLoader();
+    	File	jar_file = pluginContents[i];
+    	
+    		// migration hack for i18nAZ_1.0.jar
+    	
+    	if ( pluginContents.length > 1 ){
+    		
+    		String	name = jar_file.getName();
+    		
+    		if ( name.startsWith( "i18nPlugin_" )){
+    			
+    				// non-versioned version still there, rename it
+    			
+    			LGLogger.log( "renaming '" + name + "' to conform with versioning system" );
+    			
+    			jar_file.renameTo( new File( jar_file.getParent(), "i18nAZ_0.1.jar  " ));
+    			
+    			continue;
+    		}
+    	}
+    	
+        classLoader = addFileToClassPath(classLoader, jar_file);
     }
-    
+        
     String plugin_class_string = null;
     
     try {
@@ -315,12 +331,30 @@ PluginInitializer
       		}
       		
       	}else{
-      		URL url = ((URLClassLoader)classLoader).findResource("plugin.properties");
       		
-      		props.load(url.openStream());
+      		if ( classLoader instanceof URLClassLoader ){
+      			
+      			URLClassLoader	current = (URLClassLoader)classLoader;
+      		    			
+      			URL url = current.findResource("plugin.properties");
+      		
+      			if ( url != null ){
+      				
+      				props.load(url.openStream());
+      				
+      			}else{
+      				
+      				throw( new Exception( "failed to load plugin.properties from jars"));
+      			}
+      		}else{
+      			
+ 				throw( new Exception( "failed to load plugin.properties from dir or jars"));
+ 				      			
+      		}
       	}
-      }catch (Exception e) {
+      }catch( Throwable e ){
       	
+      	e.printStackTrace();
       	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
       	
       	LGLogger.logAlert( LGLogger.AT_ERROR, msg );
@@ -524,9 +558,9 @@ PluginInitializer
     }
   }
   
-  private URLClassLoader 
+  private ClassLoader 
   addFileToClassPath(
-  	URLClassLoader	classLoader,
+  	ClassLoader		classLoader,
 	File 			f) 
   {
     if ( 	f.exists() &&
@@ -534,17 +568,33 @@ PluginInitializer
     		f.getName().endsWith(".jar")){
     
     	try {
-    		URL[] urls = {f.toURL()};
+    			
+    			// URL classloader doesn't seem to delegate to parent classloader properly
+    			// so if you get a chain of them then it fails to find things. Here we
+    			// make sure that all of our added URLs end up within a single URLClassloader
+    			// with its parent being the one that loaded this class itself
     		
-    		if( classLoader == null ){
+    		if ( classLoader instanceof URLClassLoader ){
     			
-    			classLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
+    			URL[]	old = ((URLClassLoader)classLoader).getURLs();
+  
+    			URL[]	new_urls = new URL[old.length+1];
     			
+    			System.arraycopy( old, 0, new_urls, 0, old.length );
+    			
+    			new_urls[new_urls.length-1]= f.toURL();
+    			
+    			classLoader = new URLClassLoader(
+    								new_urls,
+									classLoader==getClass().getClassLoader()?
+											classLoader:
+											classLoader.getParent());
     		}else{
-    			
-    			classLoader = new URLClassLoader(urls,classLoader);
+    			  		
+    			classLoader = new URLClassLoader(new URL[]{f.toURL()},classLoader);
     		}
-    	}catch(Exception e) {
+    	}catch(Exception e){
+    		
     		e.printStackTrace();
     	}
    	}
@@ -805,9 +855,10 @@ PluginInitializer
   			
   			if ( name.endsWith(".jar")){
   				
-  				
   				int cvs_pos = name.lastIndexOf("_cvs");
-          int sep_pos;
+  				
+  				int sep_pos;
+  				
   				if (cvs_pos <= 0)
   					sep_pos = name.lastIndexOf("_");
   				else
@@ -841,10 +892,7 @@ PluginInitializer
 						}							
 					}
   				}
-  			}else{
-  				
-  				res.add( f );
-  			}
+   			}
   		}
   		
   			// If any of the jars are versioned then the assumption is that all of them are

@@ -784,7 +784,7 @@ PluginUpdatePlugin
 								
 								bak_file.delete();
 								
-							}else if ( final_target.getName().equalsIgnoreCase( "update.txt" )){
+							}else if ( final_target != null && final_target.getName().equalsIgnoreCase( "update.txt" )){
 								
 								update_txt_found	= true;
 								
