@@ -58,6 +58,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   private final MessageStreamDecoder.DecodeListener decode_listener;
   
   private boolean last_received_was_keepalive = false;
+  private boolean destroyed = false;
   
   
   
@@ -73,6 +74,8 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
+      if( destroyed )  break;
+      
       int bytes_possible = preReadProcess( bytes_remaining );
       
       if( bytes_possible < 1 ) {
@@ -116,6 +119,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   
   
   public void destroy() {
+    destroyed = true;
     payload_buffer = null;
     
     if( direct_payload_buffer != null ) {
@@ -146,7 +150,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       ByteBuffer bb = decode_array[ i ];
       
       if( bb == null ) {
-        System.out.println( "preReadProcess:: bb["+i+"] == null, start_buff=" +start_buff+ ", type=" +decode_array[0].get(0) );
+        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
       }
       
       
