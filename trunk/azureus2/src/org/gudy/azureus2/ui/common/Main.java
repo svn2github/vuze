@@ -183,6 +183,9 @@ public class Main {
       while (uis.hasNext())
         ((IUserInterface) uis.next()).startUI();
       
+      if (UIConst.GM != null)
+      	UIConst.GM.startChecker();
+      
       if (commands.hasOption('e')) {
         try {
           new ConsoleInput(commands.getOptionValue('e'), UIConst.GM, new FileReader(commands.getOptionValue('e')), System.out, false);
