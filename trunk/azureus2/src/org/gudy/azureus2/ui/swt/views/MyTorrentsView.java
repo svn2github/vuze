@@ -360,6 +360,9 @@ public class MyTorrentsView
     Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
     itemOpen.setImage(ImageRepository.getImage("run"));
 
+    final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore"); //$NON-NLS-1$
+    
     	// export menu
     
     final MenuItem itemExport = new MenuItem(menu, SWT.CASCADE);
@@ -528,6 +531,7 @@ public class MyTorrentsView
         itemDetails.setEnabled(hasSelection);
 
         itemOpen.setEnabled(hasSelection);
+        itemExplore.setEnabled(hasSelection);
         itemExport.setEnabled(hasSelection);
         itemHost.setEnabled(hasSelection);
         itemPublish.setEnabled(hasSelection);
@@ -796,6 +800,12 @@ public class MyTorrentsView
     itemOpen.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         runSelectedTorrents();
+      }
+    });
+    
+    itemExplore.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        openSelectedTorrents();
       }
     });
 
@@ -1395,9 +1405,24 @@ public class MyTorrentsView
 
   // Note: This only runs the first selected torrent!
   private void runSelectedTorrents() {
-    DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
-    if (dm != null)
-      ManagerUtils.run(dm);
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = dataSources.length - 1; i >= 0; i--) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
+      if (dm != null) {
+        ManagerUtils.run(dm);
+      }
+    }
+  }
+  
+  //Note: This only opens the first selected torrent!
+  private void openSelectedTorrents() {
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = dataSources.length - 1; i >= 0; i--) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
+      if (dm != null) {
+        ManagerUtils.open(dm);
+      }
+    }
   }
 
   private void moveSelectedTorrentsDown() {

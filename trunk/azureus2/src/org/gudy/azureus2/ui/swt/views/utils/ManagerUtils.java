@@ -47,6 +47,12 @@ public class ManagerUtils {
     }
   }
   
+  public static void open(DownloadManager dm) {
+    if(dm != null) {
+      Program.launch(dm.getTorrentSaveDir());
+    }
+  }
+  
   public static boolean isStartable(DownloadManager dm) {
     if(dm == null)
       return false;
