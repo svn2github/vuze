@@ -106,6 +106,8 @@ RPDownloadManager
 				
 				throw( new RPException("DownloadManager::addDownload failed", e ));
 			}
+			
+			return( new RPReply( null ));
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
