@@ -20,42 +20,56 @@
  *
  */
 
-package com.aelitis.azureus.core;
+package org.gudy.azureus2.pluginsimpl.local;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.global.GlobalManager;
+import java.util.*;
+
 import org.gudy.azureus2.plugins.*;
 
-public interface 
-AzureusCore 
+public class 
+PluginManagerDefaultsImpl
+	implements PluginManagerDefaults
 {
+	protected static  PluginManagerDefaultsImpl		singleton = new PluginManagerDefaultsImpl();
+	
+	public static PluginManagerDefaults
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
+	protected List	disabled	= new ArrayList();
+	
+	public String[]
+	getDefaultPlugins()
+	{
+		return( PLUGIN_IDS );
+	}
+	
 	public void
-	start()
+	setDefaultPluginEnabled(
+		String	plugin_id,
+		boolean	enabled )
+	{
+		if ( enabled ){
+			
+			disabled.remove( plugin_id );
+			
+		}else if ( !disabled.contains( plugin_id )){
+			
+			disabled.add( plugin_id );
+		}
+	}
 	
-		throws AzureusCoreException;
-	
-	public void
-	stop()
-	
-		throws AzureusCoreException;
-	
-	
-	public GlobalManager
-	getGlobalManager()
-	
-		throws AzureusCoreException;
-	
-	public PluginManagerDefaults
-	getPluginManagerDefaults()
-	
-		throws AzureusCoreException;
-	
-	public PluginManager
-	getPluginManager()
-	
-		throws AzureusCoreException;
+	public boolean
+	isDefaultPluginEnabled(
+		String		plugin_id )
+	{
+		return( !disabled.contains( plugin_id));
+	}
 }

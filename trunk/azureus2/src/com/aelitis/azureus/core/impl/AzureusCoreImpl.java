@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
@@ -71,6 +71,10 @@ AzureusCoreImpl
 	AzureusCoreImpl()
 	{
 		COConfigurationManager.setSystemProperties();
+		
+		COConfigurationManager.checkConfiguration();
+		
+		LocaleUtil.setLocaleUtilChooser(this);
 	}
 	
 	public synchronized void
@@ -85,30 +89,35 @@ AzureusCoreImpl
 		
 		running	= true;
 		
-		LocaleUtil.setLocaleUtilChooser(this);
-		
 		global_manager = GlobalManagerFactory.create();
 			
-		COConfigurationManager.checkConfiguration();
-		
 	    PluginInitializer.getSingleton(global_manager,null).initializePlugins( PluginManager.UI_NONE );
 	        
-	     new AEThread("Plugin Init Complete")
+	    new AEThread("Plugin Init Complete")
 	        {
 	        	public void
 	        	run()
 	        	{
 	        		PluginInitializer.initialisationComplete();
 	        	}
-	        }.start();    
+	        }.start();   
+	        
+	    global_manager.startChecker();
 	}
 	
-	public void
+	public synchronized void
 	stop()
 	
 		throws AzureusCoreException
 	{
+		if ( !running ){
+			
+			throw( new AzureusCoreException( "core not running" ));
+		}		
 		
+		running	= false;
+		
+		global_manager.stopAll();
 	}
 	
 	public GlobalManager
@@ -124,6 +133,26 @@ AzureusCoreImpl
 		return( global_manager );
 	}
 	
+	public PluginManagerDefaults
+	getPluginManagerDefaults()
+	
+		throws AzureusCoreException
+	{
+		return( PluginManager.getDefaults());
+	}
+	
+	public PluginManager
+	getPluginManager()
+	
+		throws AzureusCoreException
+	{
+		if ( !running ){
+			
+			throw( new AzureusCoreException( "core not running" ));
+		}
+
+		return( PluginInitializer.getDefaultInterface().getPluginManager());
+	}
 	
 	public LocaleUtil getProperLocaleUtil() {
 		return this;

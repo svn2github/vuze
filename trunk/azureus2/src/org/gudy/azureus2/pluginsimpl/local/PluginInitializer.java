@@ -59,17 +59,29 @@ PluginInitializer
 	// it you'll need to migrate the config)
 	// "id" is used when checking for updates
 	
+	// IF YOU ADD TO THE BUILTIN PLUGINS, AMEND PluginManagerDefault appropriately!!!!
+
   private String[][]	builtin_plugins = { 
-   			{	 "org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
-   			{	 "org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
-    		{	 "org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
-    		{    "org.gudy.azureus2.ui.tracker.TrackerDefaultWeb", "<internal>", "TrackerDefault", },
-    		{    "org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin", "<internal>", "UpdateLanguagePlugin" },
-    		{	 "org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", "<internal>", "PluginUpdate" },
-	   		{	 "org.gudy.azureus2.update.CoreUpdateChecker", "<internal>", "CoreUpdater" },
-			{	 "org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
-	   		{	 "org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform", "azplatform" },
-			{	 "com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
+   			{	 PluginManagerDefaults.PID_START_STOP_RULES, 
+   					"org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
+   			{	 PluginManagerDefaults.PID_REMOVE_RULES, 
+   					"org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
+    		{	 PluginManagerDefaults.PID_SHARE_HOSTER, 
+   					"org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
+    		{    PluginManagerDefaults.PID_DEFAULT_TRACKER_WEB, 
+   					"org.gudy.azureus2.ui.tracker.TrackerDefaultWeb", "<internal>", "TrackerDefault", },
+    		{    PluginManagerDefaults.PID_UPDATE_LANGUAGE, 
+   					"org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin", "<internal>", "UpdateLanguagePlugin" },
+    		{	 PluginManagerDefaults.PID_PLUGIN_UPDATE_CHECKER, 
+   					"org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", "<internal>", "PluginUpdate" },
+	   		{	 PluginManagerDefaults.PID_CORE_UPDATE_CHECKER, 
+   					"org.gudy.azureus2.update.CoreUpdateChecker", "<internal>", "CoreUpdater" },
+			{	 PluginManagerDefaults.PID_CORE_PATCH_CHECKER, 
+   					"org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
+	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
+   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform", "azplatform" },
+			{	 PluginManagerDefaults.PID_UPNP, 
+   					"com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
         };
  
   
@@ -220,23 +232,31 @@ PluginInitializer
     
     LGLogger.log("Initializing built-in plugins");
     
+    PluginManagerDefaults	def = PluginManager.getDefaults();
+    
     for (int i=0;i<builtin_plugins.length;i++){
-    	
-    	String	id 	= builtin_plugins[i][1];
-    	String	key	= builtin_plugins[i][2];
-    	
-    	try{
-    		Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][0]);
-			
-     		initializePluginFromClass( cla, id, key );
-	 		 				
-  		}catch( Throwable e ){
-  			
-  			e.printStackTrace();
-  			
-  	    	LGLogger.logAlert( "Initialisation of built in plugin '" + key + "' fails", e );
-  	      
-  		}
+    		
+    	if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
+    		
+	    	String	id 	= builtin_plugins[i][2];
+	    	String	key	= builtin_plugins[i][3];
+	    	
+	    	try{
+	    		Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
+				
+	     		initializePluginFromClass( cla, id, key );
+		 		 				
+	  		}catch( Throwable e ){
+	  			
+	  			e.printStackTrace();
+	  			
+	  	    	LGLogger.logAlert( "Initialisation of built in plugin '" + key + "' fails", e );
+	  	      
+	  		}
+    	}else{
+    		
+    		LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
+    	}
      }
   }
  

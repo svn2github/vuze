@@ -23,7 +23,7 @@ package org.gudy.azureus2.plugins;
 
 import java.util.Properties;
 
-import org.gudy.azureus2.pluginsimpl.local.PluginManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.*;
 
 /**
  * This class allows Azureus to be started as an embedded component and also allows plugins to
@@ -57,6 +57,12 @@ PluginManager
    * @since 2.0.7.0
    */  
 	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";
+	
+	public static PluginManagerDefaults
+	getDefaults()
+	{
+		return( PluginManagerDefaultsImpl.getSingleton());
+	}
 	
   /**
    * Runs Azureus
