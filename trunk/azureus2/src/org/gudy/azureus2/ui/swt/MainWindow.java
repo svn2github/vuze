@@ -85,6 +85,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.BlockedIp;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -219,7 +220,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         try {
           Thread.sleep(waitTime);
         }
-        catch (Exception ignore) {}
+        catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -237,45 +240,51 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       if (display != null && !display.isDisposed())
         display.asyncExec(new Runnable() {
         public void run() {
-          IView view = null;
-          if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
-
-            view = getCurrentView();
+          try {
+            IView view = null;
+            if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
+  
+              view = getCurrentView();
+              
+              if (view != null) {
+                view.refresh();
+                Tab.refresh();
+              }
+  
+              ipBlocked.setText("IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
+              statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
+              statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
+  					}
+  
+            if (!mainWindow.isDisposed() && alwaysRefreshMyTorrents) {            
+              if (mytorrents != null) {
+                try {
+                  viewMyTorrents = Tab.getView(mytorrents.getTabItem());
+                } catch (Exception e) {
+                  viewMyTorrents = null;
+                }
+                if (viewMyTorrents != null && viewMyTorrents != view) {
+                  viewMyTorrents.refresh();
+                }
+              }
+            }
             
-            if (view != null) {
-              view.refresh();
-              Tab.refresh();
-            }
-
-            ipBlocked.setText("IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
-            statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
-            statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
-					}
-
-          if (!mainWindow.isDisposed() && alwaysRefreshMyTorrents) {            
-            if (mytorrents != null) {
-              try {
-                viewMyTorrents = Tab.getView(mytorrents.getTabItem());
-              } catch (Exception e) {
-                viewMyTorrents = null;
-              }
-              if (viewMyTorrents != null && viewMyTorrents != view) {
-                viewMyTorrents.refresh();
+            if (trayIcon != null)
+              trayIcon.refresh();
+            
+            synchronized (downloadBars) {
+              Iterator iter = downloadBars.values().iterator();
+              while (iter.hasNext()) {
+                MinimizedWindow mw = (MinimizedWindow) iter.next();
+                mw.refresh();
               }
             }
+          } catch (Exception e) {
+            LGLogger.log(LGLogger.ERROR, "Error while trying to update GUI");
+            e.printStackTrace();
+          } finally {
+            refreshed = true;
           }
-          
-          if (trayIcon != null)
-            trayIcon.refresh();
-          
-          synchronized (downloadBars) {
-            Iterator iter = downloadBars.values().iterator();
-            while (iter.hasNext()) {
-              MinimizedWindow mw = (MinimizedWindow) iter.next();
-              mw.refresh();
-            }
-          }
-          refreshed = true;
         }        
       });
     }
