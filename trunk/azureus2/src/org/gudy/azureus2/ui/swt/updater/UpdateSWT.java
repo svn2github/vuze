@@ -45,7 +45,7 @@ public class UpdateSWT {
     }
     UpdateLogger.log("-----------------");
     
-    if(args.length < 2)
+    if(args.length < 1)
       return;
     try {
       
@@ -58,10 +58,12 @@ public class UpdateSWT {
       
       UpdateLogger.log("SWT Updater has detected platform : " + platform );
       
+      String file = "updateSWT.zip";
+      
       if(platform.equals("carbon"))
-        updateSWT_carbon(args[1]);
+        updateSWT_carbon(file);
       else {
-        updateSWT_generic(args[1]);
+        updateSWT_generic(file);
       }     
       
       restart();
@@ -215,7 +217,7 @@ public class UpdateSWT {
     UpdateLogger.log("Restarting with command line (win32): " + exec);
     
     File userDir = new File(userPath);
-    String[] env = {"user.dir=" + userPath };
+    String[] env = {"user.dir=" + userPath , "java.library.path=" + userPath};
     Runtime.getRuntime().exec(exec,env,userDir);
   }
   
