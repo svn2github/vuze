@@ -82,7 +82,7 @@ public class SHA1Verification {
     catch (Exception e) { e.printStackTrace(); }
   }
   
-  
+  /*
 	public static void runTests() {
     
     SHA1 sha1Jmule = new SHA1();
@@ -152,7 +152,7 @@ public class SHA1Verification {
     
     System.out.println("DONE");
     
-    
-	}
+    */
+	
 
 }
