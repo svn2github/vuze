@@ -1352,6 +1352,9 @@ DiskManagerImpl
 	}
 
 	public void stopIt() {
+		
+		COConfigurationManager.removeParameterListener("Use Resume", this);
+		
 		if (writeThread != null)
 			writeThread.stopIt();
 		if (readThread != null)

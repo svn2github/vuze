@@ -222,6 +222,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
      */
     public void parameterChanged(String parameterName) {
       waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
+      alwaysRefreshMyTorrents = COConfigurationManager.getBooleanParameter("config.style.refreshMT");
     }
 
     private void update() {
@@ -275,6 +276,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     public void stopIt() {
       finished = true;
       COConfigurationManager.removeParameterListener("GUI Refresh", this);
+      COConfigurationManager.removeParameterListener("config.style.refreshMT", this);
     }
   }
 

@@ -51,6 +51,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
    */
   public void delete() {
     MainWindow.getWindow().removeManagerView(manager);
+    manager.removeListener(this);
+    
     if (viewGeneral != null)
       viewGeneral.delete();
     if (viewDetails != null)

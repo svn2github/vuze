@@ -188,8 +188,10 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   public void dispose() {
     super.dispose();
-    if(bufferImage != null && ! bufferImage.isDisposed())
+    if(bufferImage != null && ! bufferImage.isDisposed()) {
       bufferImage.dispose();
+    }
+    COConfigurationManager.removeParameterListener("Graphics Update",this);
   }
 
 }

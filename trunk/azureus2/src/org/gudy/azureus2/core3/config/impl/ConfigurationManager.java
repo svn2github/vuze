@@ -115,8 +115,12 @@ public class ConfigurationManager {
     synchronized( this  ){
     	
     	for (int i=0;i<listeners.size();i++){
+    		COConfigurationListener l = (COConfigurationListener)listeners.elementAt(i);
     		
-    		((COConfigurationListener)listeners.elementAt(i)).configurationSaved();
+    		if (l != null) {
+    			l.configurationSaved();
+    		}
+    		else Debug.out("COConfigurationListener is null");
     	}
     }
   }
@@ -260,10 +264,14 @@ public class ConfigurationManager {
     if(parameterListener != null) {
       for (Iterator iter = parameterListener.iterator(); iter.hasNext();) {
         ParameterListener listener = (ParameterListener) iter.next();
-        if(listener != null)
+        
+        if(listener != null) {
           listener.parameterChanged(parameter);
+        }
+        else Debug.out("ParameterListener is null");
       }
     }
+    //else Debug.out("parameterListener Vector is null for: " + parameter);
   }
 
   public synchronized void addParameterListener(String parameter, ParameterListener listener){

@@ -111,7 +111,7 @@ PEPeerControlImpl
     this._manager = manager;
 	_tracker = tracker;
 	this._diskManager = diskManager;
-  COConfigurationManager.addParameterListener("Max Clients", this);
+    COConfigurationManager.addParameterListener("Max Clients", this);
  }
   
   public void
@@ -399,13 +399,17 @@ PEPeerControlImpl
     t.start();
 
     //  4. Close all clients
-    if (_peer_transports != null)
+    if (_peer_transports != null) {
       synchronized (_peer_transports) {
         while (_peer_transports.size() != 0) {
           PEPeerTransport pc = (PEPeerTransport) removeFromPeerTransports(0);
           pc.closeAll("Closing all Connections",false, false);
         }
       }
+    }
+    
+    // 5. Remove listeners
+    COConfigurationManager.removeParameterListener("Max Clients", this);
   }
 
   /**
