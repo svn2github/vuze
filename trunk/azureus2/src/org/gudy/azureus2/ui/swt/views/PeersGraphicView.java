@@ -42,6 +42,11 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -60,6 +65,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   
   
   //UI Stuff
+  private Display display;
   private Composite panel;
   private static final int PEER_SIZE = 15;
   private static final int PACKET_SIZE = 10;
@@ -78,7 +84,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       interesting0 = peer0.isInterestedInMe();
       interesting1 = peer1.isInterestedInMe();
       
-      result =  (interesting0 ? 1 : -1) - (interesting1 ? 1 : -1);
+      result =  (interesting0 ? -1 : 1) - (interesting1 ? -1 : 1);
       if(result != 0) return result;
       
       //Order is : Non Interested < Interested
@@ -118,11 +124,15 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   }
 
   public void initialize(Composite composite) {
-    panel = new Canvas(composite,SWT.NULL);
+    display = composite.getDisplay();
+    panel = new Canvas(composite,SWT.NULL);    
   }
 
   public void refresh() {
-    
+    doRefresh();
+  }
+  
+  private void doRefresh() {
     //Comment the following line to enable the view
     //if(true) return;
     
@@ -149,7 +159,8 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   }
   
   private void render(PEPeer[] sortedPeers) {
-    Display display = panel.getDisplay();
+    if(panel == null || panel.isDisposed())
+      return;
     Point panelSize = panel.getSize();
     Image buffer = new Image(display,panelSize.x,panelSize.y);
     GC gcBuffer = new GC(buffer);    
@@ -167,50 +178,80 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     int r = x0 > y0 ? y0 - 20 : x0 - 20 ;
     if( r < 10) return;
     
+
     
     for(int i = 0 ; i < nbPeers ; i++) {
       PEPeer peer = sortedPeers[i];
-      angle = (2 * Math.PI *i) / nbPeers - Math.PI / 2;
-      int x = x0 + (int) (r * Math.cos(angle));
-      int y = y0 + (int) (r * Math.sin(angle));
-      int[] triangle = new int[6];
-      triangle[0] = x;
-      triangle[1] = y;      
-      if(! peer.isChokedByMe()) {
-        gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
-        int x1 = (int) (5 * Math.cos(angle+Math.PI / 2));
-        int y1 = (int) (5 * Math.sin(angle+Math.PI / 2));
-        triangle[0] = x;
-        triangle[1] = y;
-        triangle[2] = x0 ;
-        triangle[3] = y0 ;
-        triangle[4] = x0 + x1;
-        triangle[5] = y0 + y1;        
-        gcBuffer.fillPolygon(triangle);        
-      }
+      angle = (4 * i - nbPeers) * Math.PI  / (2 * nbPeers) - Math.PI / 2;
+      double deltaXX = Math.cos(angle);
+      double deltaXY = Math.sin(angle);
+      double deltaYX = Math.cos(angle+Math.PI / 2);
+      double deltaYY = Math.sin(angle+Math.PI / 2);
       
-      if(! peer.isChokingMe()) {
-        gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
-        int x1 = (int) (5 * Math.cos(angle+Math.PI / 2));
-        int y1 = (int) (5 * Math.sin(angle+Math.PI / 2));
-        triangle[0] = x - x1;
-        triangle[1] = y - y1;
-        triangle[2] = x ;
-        triangle[3] = y ;
-        triangle[4] = x0;
-        triangle[5] = y0;        
-        gcBuffer.fillPolygon(triangle);        
-      }
+      int[] rectangle = new int[8];
+      
+      
+      
+      if(! peer.isChokedByMe() || ! peer.isChokingMe()) {
+        gcBuffer.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+        rectangle[0] = x0 + (int) (deltaXX * 3 + 0.5);
+        rectangle[1] = y0 + (int) (deltaXY * 3 + 0.5);
+        rectangle[2] = x0 - (int) (deltaXX * 3 + 0.5);
+        rectangle[3] = y0 - (int) (deltaXY * 3 + 0.5);
+        
+        
+        rectangle[4] = x0 - (int) (deltaXX * 3 - r * deltaYX + 0.5);
+        rectangle[5] = y0 - (int) (deltaXY * 3 - r * deltaYY + 0.5);
+        rectangle[6] = x0 + (int) (deltaXX * 3 + r * deltaYX + 0.5);
+        rectangle[7] = y0 + (int) (deltaXY * 3 + r * deltaYY + 0.5);
+        gcBuffer.drawPolygon(rectangle);        
+      }    
+      
       
       int percentSent = peer.getConnection().getIncomingMessageQueue().getPercentDoneOfCurrentMessage();
-      int r1 = r * percentSent / 100;
-      int x1 = x0 + (int) (r1 * Math.cos(angle));
-      int y1 = y0 + (int) (r1 * Math.sin(angle));
-      PieUtils.drawPie(gcBuffer,x1 - PACKET_SIZE / 2,y1 - PACKET_SIZE / 2,PACKET_SIZE,PACKET_SIZE,100);
+      if(percentSent >= 0) {
+        gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
+        int r1 = r - r * percentSent / 100;
+        rectangle[0] = x0 + (int) (deltaXX * 3 + r1 * deltaYX + 0.5);
+        rectangle[1] = y0 + (int) (deltaXY * 3 + r1 * deltaYY + 0.5);
+        rectangle[2] = x0 - (int) (deltaXX * 3 - r1 * deltaYX + 0.5);
+        rectangle[3] = y0 - (int) (deltaXY * 3 - r1 * deltaYY + 0.5);
+        
+        
+        rectangle[4] = x0 - (int) (deltaXX * 3 - (r1-10) * deltaYX + 0.5);
+        rectangle[5] = y0 - (int) (deltaXY * 3 - (r1-10) * deltaYY + 0.5);
+        rectangle[6] = x0 + (int) (deltaXX * 3 + (r1-10) * deltaYX + 0.5);
+        rectangle[7] = y0 + (int) (deltaXY * 3 + (r1-10) * deltaYY + 0.5);
+        gcBuffer.fillPolygon(rectangle); 
+      }
       
-      PieUtils.drawPie(gcBuffer,x - PEER_SIZE / 2,y - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       
-      //gcBuffer.drawText(peer.getIp() , x , y , true);
+      
+      percentSent = peer.getConnection().getOutgoingMessageQueue().getPercentDoneOfCurrentMessage();
+      if(percentSent >= 0) {
+        gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+        int r1 = r * percentSent / 100;
+        rectangle[0] = x0 + (int) (deltaXX * 3 + r1 * deltaYX + 0.5);
+        rectangle[1] = y0 + (int) (deltaXY * 3 + r1 * deltaYY + 0.5);
+        rectangle[2] = x0 - (int) (deltaXX * 3 - r1 * deltaYX + 0.5);
+        rectangle[3] = y0 - (int) (deltaXY * 3 - r1 * deltaYY + 0.5);
+        
+        
+        rectangle[4] = x0 - (int) (deltaXX * 3 - (r1-10) * deltaYX + 0.5);
+        rectangle[5] = y0 - (int) (deltaXY * 3 - (r1-10) * deltaYY + 0.5);
+        rectangle[6] = x0 + (int) (deltaXX * 3 + (r1-10) * deltaYX + 0.5);
+        rectangle[7] = y0 + (int) (deltaXY * 3 + (r1-10) * deltaYY + 0.5);
+        gcBuffer.fillPolygon(rectangle); 
+      }
+      
+      
+      
+      int x1 = x0 + (int) (r * deltaYX);
+      int y1 = y0 + (int) (r * deltaYY);
+      gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
+      PieUtils.drawPie(gcBuffer,x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+      
+      //gcBuffer.drawText(peer.getIp() , x1 + 8 , y1 , true);
     }
     
     
