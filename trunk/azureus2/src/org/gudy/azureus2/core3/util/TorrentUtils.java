@@ -69,7 +69,7 @@ TorrentUtils
       }
 
       File torrent_file = new File(str);
-      if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", true) && torrent_file.exists()) {
+      if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", false) && torrent_file.exists()) {
         File torrent_file_bak = new File(str + ".bak");
         try {
           if (torrent_file_bak.exists())
