@@ -459,8 +459,7 @@ public class TrackerStatus {
     	      response.seeds = seeds;
     	      response.peers = peers;
             response.setStatus(TRTrackerScraperResponse.ST_ONLINE, 
-                               MessageText.getString("Scrape.status.ok") +
-                               ((bSingleHashScrapes) ? " " + MessageText.getString("Scrape.status.NoMultiSupport") : ""));
+                               MessageText.getString("Scrape.status.ok") );
 
             //notifiy listeners
             scraper.scrapeReceived( response );
