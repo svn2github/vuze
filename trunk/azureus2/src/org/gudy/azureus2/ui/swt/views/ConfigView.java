@@ -514,7 +514,7 @@ public class ConfigView extends AbstractIView {
     gridData.verticalSpan = 2;
     new IntListParameter(gDownloads, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues).setLayoutData(gridData);
     label = new Label(gDownloads,SWT.NULL);
-    Messages.setLanguageText(label,"ConfigView.label.onlyafter50");
+    //Messages.setLanguageText(label,"ConfigView.label.onlyafter50");
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
@@ -543,7 +543,7 @@ public class ConfigView extends AbstractIView {
     gridData.verticalSpan = 2;
     new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues).setLayoutData(gridData);    
     label = new Label(gDownloads,SWT.NULL);
-    Messages.setLanguageText(label,"ConfigView.label.override");
+    //Messages.setLanguageText(label,"ConfigView.label.override");
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
@@ -610,12 +610,10 @@ public class ConfigView extends AbstractIView {
     gFile.setLayout(layout);
     Label label;
     
-    /*
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
-    */
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
