@@ -67,7 +67,10 @@ public class SocketManager {
         try {
           channel = SocketChannel.open();
           
-          channel.socket().setReceiveBufferSize( 256*1024 );
+          String sz = System.getProperty("set.SO_RCVBUF");
+          int size = sz == null ? PEPeerTransport.RECEIVE_BUFF_SIZE : Integer.parseInt( sz );
+          
+          channel.socket().setReceiveBufferSize( size );
           
           String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
           if ( bindIP.length() > 6 ) {

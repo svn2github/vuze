@@ -75,7 +75,10 @@ PEPeerServerImpl
 
     	sck.socket().setReuseAddress(true);
       
-      sck.socket().setReceiveBufferSize( 256*1024 );
+      String sz = System.getProperty("set.SO_RCVBUF");
+      int size = sz == null ? PEPeerTransport.RECEIVE_BUFF_SIZE : Integer.parseInt( sz );
+      
+      sck.socket().setReceiveBufferSize( size );
 
     	if (bindIP.length() < 7) {
     		sck.socket().bind(new InetSocketAddress(TCPListenPort));

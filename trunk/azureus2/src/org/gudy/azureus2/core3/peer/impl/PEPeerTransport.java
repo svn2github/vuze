@@ -37,7 +37,7 @@ PEPeerTransport
 {
 	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
   
-    public static final int RECEIVE_BUFF_SIZE = 32*1024;
+    public static final int RECEIVE_BUFF_SIZE = 255*1024;
 		
 	/**
 	 * Fake transports are created to permit equivalence testing prior to adding to 
