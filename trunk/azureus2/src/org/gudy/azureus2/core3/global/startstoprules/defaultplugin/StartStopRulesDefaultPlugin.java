@@ -298,7 +298,7 @@ StartStopRulesDefaultPlugin
       }
 
       // All of these are either seeding or about to be seeding
-      if (download.getStats().getDownloadCompleted() == 1000) {
+      if (download.getStats().getDownloadCompleted(false) == 1000) {
         if (state == Download.ST_READY ||
             state == Download.ST_WAITING ||
             state == Download.ST_PREPARING)
@@ -372,7 +372,7 @@ StartStopRulesDefaultPlugin
       downloadData dl_data = dlDataArray[i];
       Download download = dl_data.getDownloadObject();
 
-      //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getDownloadCompleted());
+      //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getDownloadCompleted(false));
       // Initialize STATE_WAITING torrents
       if ((download.getState() == Download.ST_WAITING) &&
           !getAlreadyAllocatingOrChecking()) {
@@ -382,7 +382,7 @@ StartStopRulesDefaultPlugin
       }
 
       if ((iRankType != RANK_NONE) &&
-          download.getStats().getDownloadCompleted() == 1000 &&
+          download.getStats().getDownloadCompleted(false) == 1000 &&
           okToProcessComplete)
         download.setPosition(++posComplete);
 
@@ -394,7 +394,7 @@ StartStopRulesDefaultPlugin
       }
 
       // Handle incomplete DLs
-      if (download.getStats().getDownloadCompleted() != 1000) {
+      if (download.getStats().getDownloadCompleted(false) != 1000) {
         // Stop torrent if over limit
         if ((download.getState() == Download.ST_READY ||
              download.getState() == Download.ST_DOWNLOADING ||
@@ -701,7 +701,7 @@ StartStopRulesDefaultPlugin
 
     public int recalcQR() {
       DownloadStats stats = dl.getStats();
-      int numCompleted = stats.getDownloadCompleted();
+      int numCompleted = stats.getDownloadCompleted(false);
 
       // make undownloaded sort to top so they start can first.
       if (numCompleted < 1000) {

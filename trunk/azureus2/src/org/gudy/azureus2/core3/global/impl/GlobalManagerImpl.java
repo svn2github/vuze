@@ -418,12 +418,12 @@ public class GlobalManagerImpl
         	return( existing );
         }
         
-        boolean isCompleted = manager.getStats().getDownloadCompleted() == 1000;
+        boolean isCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
 	      if (manager.getPosition() == -1) {
 	        int endPosition = 0;
 	        for (int i = 0; i < managers.size(); i++) {
 	          DownloadManager dm = (DownloadManager) managers.get(i);
-	          boolean dmIsCompleted = dm.getStats().getDownloadCompleted() == 1000;
+	          boolean dmIsCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
 	          if (dmIsCompleted == isCompleted)
 	            endPosition++;
 	        }
@@ -687,7 +687,7 @@ public class GlobalManagerImpl
           
           if (lPosition != null)
             dm.setPosition(lPosition.intValue());
-          else if (dm.getStats().getDownloadCompleted() < 1000)
+          else if (dm.getStats().getDownloadCompleted(false) < 1000)
             dm.setPosition(numDownloading);
             
           if (sCategory != null) {
@@ -762,7 +762,7 @@ public class GlobalManagerImpl
 		      dmMap.put("position", new Long(dm.getPosition()));
 		      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
 		      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
-		      dmMap.put("completed", new Long(dm.getStats().getDownloadCompleted()));
+		      dmMap.put("completed", new Long(dm.getStats().getDownloadCompleted(true)));
 		      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
 		      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
 		      dmMap.put("forceStart", new Long(dm.isForceStart() ? 1 : 0));
@@ -841,7 +841,7 @@ public class GlobalManagerImpl
     if (managers == null)
       return false;
 
-    if ((manager.getStats().getDownloadCompleted() == 1000) &&
+    if ((manager.getStats().getDownloadCompleted(false) == 1000) &&
         (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0))
       return false;
 
@@ -852,7 +852,7 @@ public class GlobalManagerImpl
     if (managers == null)
       return false;
 
-    boolean isCompleted = manager.getStats().getDownloadCompleted() == 1000;
+    boolean isCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
 
     if (isCompleted &&
         (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0))
@@ -861,7 +861,7 @@ public class GlobalManagerImpl
     int numInGroup = 0;
     for (int i = 0; i < managers.size(); i++) {
       DownloadManager dm = (DownloadManager) managers.get(i);
-      if ((dm.getStats().getDownloadCompleted() == 1000) == isCompleted)
+      if ((dm.getStats().getDownloadCompleted(false) == 1000) == isCompleted)
         numInGroup++;
     }
     return manager.getPosition() < numInGroup;
@@ -891,13 +891,13 @@ public class GlobalManagerImpl
         int endPosIncomplete = 0;
         for (int j = 0; j < managers.size(); j++) {
 			DownloadManager dm = (DownloadManager) managers.get(j);
-			if (dm.getStats().getDownloadCompleted() == 1000)
+			if (dm.getStats().getDownloadCompleted(false) == 1000)
 				endPosComplete++;
 			else
 				endPosIncomplete++;
         }
 		  for (int i = manager.length - 1; i >= 0; i--)
-				if (manager[i].getStats().getDownloadCompleted() == 1000 && endPosComplete > 0)
+				if (manager[i].getStats().getDownloadCompleted(false) == 1000 && endPosComplete > 0)
 	        		moveTo(manager[i], endPosComplete--);
 	        	else if (endPosIncomplete > 0)
 	        		moveTo(manager[i], endPosIncomplete--);
@@ -915,11 +915,11 @@ public class GlobalManagerImpl
         if (newPosition > curPosition) {
           // move [manager] down
           // move everything between [curPosition+1] and [newPosition] up(-) 1
-          boolean curCompleted = (manager.getStats().getDownloadCompleted() == 1000);
+          boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
           int numToMove = newPosition - curPosition;
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager dm = (DownloadManager) managers.get(i);
-            boolean dmCompleted = (dm.getStats().getDownloadCompleted() == 1000);
+            boolean dmCompleted = (dm.getStats().getDownloadCompleted(false) == 1000);
             if (dmCompleted == curCompleted) {
               endPosition++;
               int dmPosition = dm.getPosition();
@@ -939,12 +939,12 @@ public class GlobalManagerImpl
         else if (newPosition < curPosition && curPosition > 1) {
           // move [manager] up
           // move everything between [newPosition] and [curPosition-1] down(+) 1
-          boolean curCompleted = (manager.getStats().getDownloadCompleted() == 1000);
+          boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
           int numToMove = curPosition - newPosition;
   
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager dm = (DownloadManager) managers.get(i);
-            boolean dmCompleted = (dm.getStats().getDownloadCompleted() == 1000);
+            boolean dmCompleted = (dm.getStats().getDownloadCompleted(false) == 1000);
             int dmPosition = dm.getPosition();
             if ((dmCompleted == curCompleted) &&
                 (dmPosition >= newPosition) &&
@@ -973,7 +973,7 @@ public class GlobalManagerImpl
 	        } );
         for (int i = 0; i < managers.size(); i++) {
           DownloadManager dm = (DownloadManager) managers.get(i);
-          if (dm.getStats().getDownloadCompleted() == 1000)
+          if (dm.getStats().getDownloadCompleted(false) == 1000)
           	dm.setPosition(posComplete++);
          	else
           	dm.setPosition(posIncomplete++);

@@ -158,13 +158,23 @@ DownloadManagerStatsImpl
 	  this.completed = completed;
 	}
 
-	public int getDownloadCompleted() {
+	public int getDownloadCompleted(boolean bLive) {
+	  if (!bLive)
+	    return downloadCompleted;
+
     DiskManager	dm = download_manager.getDiskManager();
     if (dm == null)
       return downloadCompleted;
 
     long total = dm.getTotalLength();
-    return (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
+    int newValue = (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
+    int state = dm.getState();
+    if (state != DiskManager.INITIALIZING &&
+        state != DiskManager.ALLOCATING   &&
+        state != DiskManager.CHECKING)
+      downloadCompleted = newValue;
+        
+    return newValue;
   }
   
   public void setDownloadCompleted(int completed) {

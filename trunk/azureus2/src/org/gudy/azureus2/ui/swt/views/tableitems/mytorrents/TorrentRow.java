@@ -206,7 +206,7 @@ public class TorrentRow implements SortableItem {
       return manager.getStats().getCompleted();
     
     if (field.equals("completion")) //$NON-NLS-1$
-      return manager.getStats().getDownloadCompleted();
+      return manager.getStats().getDownloadCompleted(true);
     
     if (field.equals("downspeed")) //$NON-NLS-1$
       return manager.getStats().getDownloadAverage();

@@ -86,9 +86,9 @@ DownloadStatsImpl
 	}
 
 	public int
-	getDownloadCompleted()
+	getDownloadCompleted(boolean bLive)
 	{
-		return( dm_stats.getDownloadCompleted());
+		return( dm_stats.getDownloadCompleted(bLive) );
 	}
 	
 	public long

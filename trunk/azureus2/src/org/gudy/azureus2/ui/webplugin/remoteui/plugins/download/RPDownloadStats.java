@@ -40,7 +40,8 @@ RPDownloadStats
 	protected long				downloaded;
 	protected long				uploaded;
 	protected int				completed;
-	protected int				downloadCompleted;
+	protected int				downloadCompletedLive;
+	protected int				downloadCompletedStored;
 	protected String			status;
 	protected long				upload_average;
 	protected long				download_average;
@@ -77,7 +78,8 @@ RPDownloadStats
 		downloaded			= delegate.getDownloaded();
 		uploaded			= delegate.getUploaded();
 		completed			= delegate.getCompleted();
-		downloadCompleted			= delegate.getDownloadCompleted();
+		downloadCompletedLive			= delegate.getDownloadCompleted(true);
+		downloadCompletedStored			= delegate.getDownloadCompleted(false);
 		status				= delegate.getStatus();
 		upload_average		= delegate.getUploadAverage();
 		download_average	= delegate.getDownloadAverage();
@@ -142,9 +144,9 @@ RPDownloadStats
 	}
 	
 	public int
-	getDownloadCompleted()
+	getDownloadCompleted(boolean bLive)
 	{
-		return( downloadCompleted );
+		return( bLive ? downloadCompletedLive : downloadCompletedStored );
 	}
 
 	public long

@@ -42,11 +42,30 @@ DownloadManagerStats
 	public int
 	getCompleted();
 
-  /** Retrieve the level of download completion
+  /** Retrieve the level of download completion.
+   * 
+   * To understand the bLive parameter, you must know a bit about the
+   * Torrent activation process:
+   * 1) Torrent goes into ST_WAITING
+   * 2) Torrent moves to ST_PREPARING
+   * 3) Torrent moves to ST_DOWNLOADING or ST_SEEDING
+   *
+   * While in ST_PREPARING, Completion Level is rebuilt (either via Fast Resume
+   * or via piece checking). Quite often, the download completion level before
+   * ST_PREPARING and after ST_PREPARING are identical.
+   *
+   * Before going into ST_PREPARING, we store the download completion level.
+   * If you wish to retrieve this value instead of the live "building" one,
+   * pass false for the parameter.
+   *
+   * @param bLive true - Always returns the known completion level of the torrent
+   *               false - In the case of ST_PREPARING, return completion level 
+   *                       before of the torrent ST_PREPARING started.  
+   *                       Otherwise, same as true.
    * @return 0 - 1000
    */
 	public int
-	getDownloadCompleted();
+	getDownloadCompleted(boolean bLive);
 	
 	public void 
 	setDownloadCompleted(int completed);

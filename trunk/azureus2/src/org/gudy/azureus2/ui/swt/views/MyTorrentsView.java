@@ -1637,8 +1637,8 @@ public class MyTorrentsView extends AbstractIView
 	// categorymanagerlistener Functions
   public void downloadManagerAdded(Category category, DownloadManager manager)
   {
-    if ((manager.getStats().getDownloadCompleted() == 1000 && isSeedingView) ||
-        (manager.getStats().getDownloadCompleted() != 1000 && !isSeedingView)) {
+    if ((manager.getStats().getDownloadCompleted(false) == 1000 && isSeedingView) ||
+        (manager.getStats().getDownloadCompleted(false) != 1000 && !isSeedingView)) {
       synchronized (objectToSortableItem) {
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
           if (item == null) {

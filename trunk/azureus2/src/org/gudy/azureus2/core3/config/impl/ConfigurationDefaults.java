@@ -241,6 +241,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iMinPeersToBoostNoSeeds", new Long(1));
     def.put("StartStopManager_iMinSpeedForActiveDL", new Long(512));
     def.put("StartStopManager_iRankType", new Long(1));
+    def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

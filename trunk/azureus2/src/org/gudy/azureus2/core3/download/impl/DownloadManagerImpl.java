@@ -612,7 +612,7 @@ DownloadManagerImpl
 			
 			if (diskManager != null){
 				stats.setCompleted(stats.getCompleted());
-				stats.setDownloadCompleted(stats.getDownloadCompleted());
+				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 	      
 			  if (diskManager.getState() == DiskManager.READY){
 			    diskManager.dumpResumeDataToDisk(true, false);
@@ -1155,12 +1155,12 @@ DownloadManagerImpl
 						e.printStackTrace();
 					}
 				}
+				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				if (diskManager == null) {
 				  LGLogger.log(LGLogger.ERROR, "diskManager destroyed while trying to recheck!");
 				  setState(STATE_STOPPED);
 				  return;
 				}
-				stats.setDownloadCompleted(stats.getDownloadCompleted());
 			  if (diskManager.getState() == DiskManager.READY) {
 			    diskManager.dumpResumeDataToDisk(true, false);
 					diskManager.stopIt();
