@@ -803,8 +803,18 @@ DiskManagerImpl
 				}
 			}
 		}
+			// obviously this doesn't work very well if people fiddle with DND as some of the
+			// stuff already downloaded may belong to a skipped file
+			// better than nothing though
 		
-		return remaining - skipped_file_set_size;
+		long rem = ( remaining - skipped_file_set_size );
+		
+		if ( rem < 0 ){
+			
+			rem	= 0;
+		}
+		
+		return( rem );
 	}
 	
 	public void
