@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.stats.*;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
@@ -234,6 +235,8 @@ public class GlobalManagerImpl
   	LGLogger.initialise();
   	
     stats = new GlobalManagerStatsImpl();
+    
+    StatsFactory.initialize(this);
         
     trackerScraper = TRTrackerScraperFactory.getSingleton();
     

@@ -1,8 +1,8 @@
 /*
- * File    : GlobalManagerStats.java
- * Created : 23-Oct-2003
- * By      : stuff
- * 
+ * File    : GlobalManagerAdpater.java
+ * Created : 2 mars 2004
+ * By      : Olivier
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,39 +18,28 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+package org.gudy.azureus2.core3.global.impl;
 
-package org.gudy.azureus2.core3.global;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 
 /**
- * @author parg
- *
+ * @author Olivier
+ * 
  */
-public interface 
-GlobalManagerStats 
-{
-	public int 
-	getDownloadAverage();
-	
-	public int 
-	getUploadAverage();
+public class GlobalManagerAdpater implements GlobalManagerListener{
   
-  public long
-  getTotalReceivedRaw();
-	
-  public long
-  getTotalSentRaw();
-  
-		// set methods
-		
-	public void
-	sent(
-		int		bytes );
-		
-	public void
-	received(
-		int		bytes );
-		
-	public void
-	discarded(
-		int		bytes );
+
+	public void destroyed() {
+	}
+
+	public void destroyInitiated() {
+	}
+
+	public void downloadManagerAdded(DownloadManager dm) {
+	}
+
+	public void downloadManagerRemoved(DownloadManager dm) {
+	}
+
 }

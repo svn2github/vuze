@@ -39,7 +39,7 @@ public interface GeneralStats {
   /**
    * @return the 'up time' in seconds
    */
-  public int getUpTime();
+  public long getUpTime();
   
   /**
    * @return the average download speed in bytes per second

@@ -1,8 +1,8 @@
 /*
- * File    : GlobalManagerStats.java
- * Created : 23-Oct-2003
- * By      : stuff
- * 
+ * File    : Factory.java
+ * Created : 2 mars 2004
+ * By      : Olivier
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,39 +18,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+package org.gudy.azureus2.core3.stats.transfer;
 
-package org.gudy.azureus2.core3.global;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.stats.transfer.impl.OverallStatsImpl;
 
 /**
- * @author parg
- *
+ * @author Olivier
+ * 
  */
-public interface 
-GlobalManagerStats 
-{
-	public int 
-	getDownloadAverage();
-	
-	public int 
-	getUploadAverage();
+public class StatsFactory {
+  public static OverallStats stats;
   
-  public long
-  getTotalReceivedRaw();
-	
-  public long
-  getTotalSentRaw();
+  public static OverallStats getStats() {
+   return stats;
+  }
   
-		// set methods
-		
-	public void
-	sent(
-		int		bytes );
-		
-	public void
-	received(
-		int		bytes );
-		
-	public void
-	discarded(
-		int		bytes );
+  public static void initialize(GlobalManager manager) {
+   stats = new OverallStatsImpl(manager); 
+  }
 }
