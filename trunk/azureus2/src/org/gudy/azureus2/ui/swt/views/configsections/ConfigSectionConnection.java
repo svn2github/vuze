@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
@@ -84,43 +85,13 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(tcplisten.getControl());
     label.setLayoutData(formData);
      
- ///////////////////////
     
-    StringParameter overrideip = new StringParameter(cServer, "Override Ip", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    overrideip.setLayoutData(formData);
     
-    label = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.overrideip");
-    formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(),5);
-    formData.left = new FormAttachment(overrideip.getControl());
-    label.setLayoutData(formData);
-    
- //////////////////////
-    
-    StringParameter tcpAnnounce = new StringParameter(cServer, "TCP.Announce.Port", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(overrideip.getControl()); 
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 40;
-    tcpAnnounce.setLayoutData(formData);
-    
-    label = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.announceport");
-    formData = new FormData();
-    formData.top = new FormAttachment(overrideip.getControl(),5);
-    formData.left = new FormAttachment(tcpAnnounce.getControl());
-    label.setLayoutData(formData);
-     
  ///////////////////////
     
     StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
     formData = new FormData();
-    formData.top = new FormAttachment(tcpAnnounce.getControl());
+    formData.top = new FormAttachment(tcplisten.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     bindip.setLayoutData(formData);
@@ -128,7 +99,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip");
     formData = new FormData();
-    formData.top = new FormAttachment(tcpAnnounce.getControl(),5);
+    formData.top = new FormAttachment(tcplisten.getControl(),5);
     formData.left = new FormAttachment(bindip.getControl());
     label.setLayoutData(formData);
     
@@ -427,6 +398,36 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
  //////////////////////
     
 
+    Group overrideGroup = new Group(cServer,SWT.NULL);
+    Messages.setLanguageText(overrideGroup,"ConfigView.group.override");
+    GridLayout gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    overrideGroup.setLayout(gridLayout);
+    
+    formData = new FormData();
+    formData.top = new FormAttachment(pDataPass.getControl(),0);
+    overrideGroup.setLayoutData(formData);
+    
+    StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
+    GridData data = new GridData();
+    data.widthHint = 100;
+    overrideip.setLayoutData(data);
+    
+    label = new Label(overrideGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.overrideip");
+    
+ //////////////////////
+    
+    StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
+    data = new GridData();
+    data.widthHint = 100;
+    tcpAnnounce.setLayoutData(data);
+    
+    label = new Label(overrideGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.announceport");
+     
+ ///////////////////////
+    
     return cServer;
 
   }
