@@ -165,13 +165,36 @@ PlatformManagerUpdateChecker
 
 				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				
-				ResourceDownloader update_rd = rdf.create( new URL( target_download ));
+				ResourceDownloader direct_rdl = rdf.create( new URL( target_download ));
 			
+				String	torrent_download = Constants.AELITIS_TORRENTS;
+				
+				int	slash_pos = target_download.lastIndexOf("/");
+				
+				if ( slash_pos == -1 ){
+					
+					torrent_download += target_download;
+					
+				}else{
+					
+					torrent_download += target_download.substring( slash_pos + 1 );
+				}
+				
+				torrent_download	+= ".torrent";
+				
+				ResourceDownloader torrent_rdl = rdf.create( new URL( torrent_download ));
+
+				torrent_rdl	= rdf.getSuffixBasedDownloader( torrent_rdl );
+				
+					// create an alternate downloader with torrent attempt first
+				
+				ResourceDownloader alternate_rdl = rdf.getAlternateDownloader( new ResourceDownloader[]{ torrent_rdl, direct_rdl });
+
 					// get size here so it is cached
 				
-				rdf.getTimeoutDownloader(rdf.getRetryDownloader(update_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
+				rdf.getTimeoutDownloader(rdf.getRetryDownloader(alternate_rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 				
-				update_rd.addListener( 
+				alternate_rdl.addListener( 
 						new ResourceDownloaderAdapter()
 						{
 							public boolean
@@ -204,7 +227,7 @@ PlatformManagerUpdateChecker
 						UPDATE_NAME,
 						update_d,
 						target_version,
-						update_rd,
+						alternate_rdl,
 						Update.RESTART_REQUIRED_YES );
 			}
 		}catch( Throwable e ){
