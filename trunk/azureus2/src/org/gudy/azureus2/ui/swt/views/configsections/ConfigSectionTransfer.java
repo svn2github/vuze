@@ -63,28 +63,44 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cTransfer.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 3;
     cTransfer.setLayout(layout);
 
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 30;
+    gridData.horizontalSpan = 2;
     new IntParameter(cTransfer, "Max Clients", 100).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.slowconnect"); //$NON-NLS-1$
     new BooleanParameter(cTransfer, "Slow Connect", false); //$NON-NLS-1$
-
+    new Label(cTransfer, SWT.NULL);
+    
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 30;
+    gridData.horizontalSpan = 2;
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads"); 
     paramMaxUploads.setLayoutData(gridData);
-    paramMaxUploads.setMinValue(3);
+    paramMaxUploads.setMinValue(2);
+    
+    
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    gridData.horizontalSpan = 1;
+    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs");
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed.kbs");
+    paramMaxUploadSpeed.setLayoutData(gridData);
+    paramMaxUploadSpeed.allowZeroValue(true);
+    paramMaxUploadSpeed.setMinValue(5);
 
-
+    /*
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
     final String upsLabels[] = new String[ConfigView.upRates.length];
@@ -96,16 +112,17 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
       upsValues[i] = 1024 * ConfigView.upRates[i];
     }
     new IntListParameter(cTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
+    */
     
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$
     new BooleanParameter(cTransfer, "Allow Same IP Peers", false); //$NON-NLS-1$
-
+    new Label(cTransfer, SWT.NULL);
 
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.prioritizefirstpiece"); //$NON-NLS-1$
     new BooleanParameter(cTransfer, "Prioritize First Piece", false); //$NON-NLS-1$
-
+    new Label(cTransfer, SWT.NULL);
 
     if(!System.getProperty("os.name").equals("Mac OS X")) {
       label = new Label(cTransfer, SWT.NULL);
