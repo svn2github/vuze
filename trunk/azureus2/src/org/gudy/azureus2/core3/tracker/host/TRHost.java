@@ -36,6 +36,7 @@ TRHost
 	public static final int DEFAULT_INC_BY				= TRTrackerServer.DEFAULT_INC_BY;
 	public static final int DEFAULT_INC_PER			 	= TRTrackerServer.DEFAULT_INC_PER;
 	public static final int DEFAULT_PORT 				= TRTrackerServer.DEFAULT_TRACKER_PORT;
+	public static final int DEFAULT_PORT_SSL			= TRTrackerServer.DEFAULT_TRACKER_PORT_SSL;
 
 	public void
 	initialise(

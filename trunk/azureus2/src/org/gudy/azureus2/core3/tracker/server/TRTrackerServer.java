@@ -30,8 +30,9 @@ TRTrackerServer
 	public static final int DEFAULT_INC_BY				= 60;
 	public static final int DEFAULT_INC_PER			 	= 10;
 	
-	public static final int DEFAULT_TRACKER_PORT 	= 6969;
-
+	public static final int DEFAULT_TRACKER_PORT 		= 6969;
+	public static final int DEFAULT_TRACKER_PORT_SSL	= 7000;
+	
 	public int
 	getRetryInterval();
 	

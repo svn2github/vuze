@@ -102,17 +102,34 @@ TRHostImpl
 									try{
 	
 										if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+											
+											if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
 										
-											try{
-											
-												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-											
-												startServer( port, false );
+												try{
+													
+													int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 												
-											}catch( Throwable e ){
+													startServer( port, false );
+													
+												}catch( Throwable e ){
 												
-												e.printStackTrace();
+													e.printStackTrace();
+												}
 											}
+											
+											if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
+										
+													try{
+													
+														int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+												
+														startServer( port, true );
+														
+													}catch( Throwable e ){
+												
+														e.printStackTrace();
+													}
+												}
 										}
 										
 										Thread.sleep( STATS_PERIOD_SECS*1000 );

@@ -32,6 +32,7 @@ import java.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
@@ -175,7 +176,11 @@ TRTrackerServerImpl
 			
 				accept_thread.start();									
 			
+				LGLogger.log( "TRTrackerServer: SSL listener established on port " + port ); 
+				
 			}catch( Throwable e){
+			
+				LGLogger.log( "TRTrackerServer: SSL listener failed on port " + port, e ); 
 				  
 				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
    
@@ -209,8 +214,12 @@ TRTrackerServerImpl
 				accept_thread.setDaemon( true );
 			
 				accept_thread.start();									
-		
-			}catch( Throwable e ){
+			
+				LGLogger.log( "TRTrackerServer: listener established on port " + port ); 
+				
+			}catch( Throwable e){
+			
+				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
 							
 				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
 			}			
