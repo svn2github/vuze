@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
@@ -451,6 +452,8 @@ UtilitiesImpl
 		return( 
 			new AggregatedList()
 			{
+				AEMonitor	timer_mon	= new AEMonitor( "aggregatedList" );
+				
 				Timer		timer = new Timer( "AggregatedList" );
 				TimerEvent	event;
 				
@@ -463,7 +466,8 @@ UtilitiesImpl
 					
 					List	dispatch_now = null;
 					
-					synchronized( timer ){
+					try{
+						timer_mon.enter();
 						
 							// if the list is full kick off a dispatch and reset the list
 						
@@ -499,6 +503,9 @@ UtilitiesImpl
 											dispatch();
 										}
 									});
+					}finally{
+						
+						timer_mon.exit();
 					}
 					
 					if ( dispatch_now != null ){
@@ -513,7 +520,8 @@ UtilitiesImpl
 				{
 					Object	res = null;
 					
-					synchronized( timer ){
+					try{
+						timer_mon.enter();
 					
 						res = list.remove( obj )?obj:null;
 							
@@ -546,6 +554,9 @@ UtilitiesImpl
 											});
 							}
 						}
+					}finally{
+						
+						timer_mon.exit();
 					}
 					
 					return( res );
@@ -556,11 +567,16 @@ UtilitiesImpl
 				{
 					List	dispatch_list;
 					
-					synchronized( timer ){
+					try{
+						timer_mon.enter();
 					
 						dispatch_list	= list;
 						
-						list	= new ArrayList();					
+						list	= new ArrayList();
+						
+					}finally{
+						
+						timer_mon.exit();
 					}
 					
 					dispatch( dispatch_list );

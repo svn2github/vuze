@@ -41,7 +41,7 @@ public class MessageManager {
   
   private final HashMap message_registrations = new HashMap();
 
-  
+  protected AEMonitor	this_mon = new AEMonitor( "MessageManager" );
   
   private MessageManager() {
     /*nothing*/
@@ -67,14 +67,22 @@ public class MessageManager {
    * @param message instance to use for decoding
    * @throws MessageException if this message type has already been registered
    */
-  public synchronized void registerMessageType( Message message ) throws MessageException {
-    Object key = new String( message.getID() + message.getVersion() );
-    
-    if( message_registrations.containsKey( key ) ) {
-      throw new MessageException( "message type [" +message.getID()+ ":" +message.getVersion()+ "] already registered!" );
-    }
-    
-    message_registrations.put( key, message );
+  public void registerMessageType( Message message ) throws MessageException {
+  	try{
+  		this_mon.enter();
+  		
+	    Object key = new String( message.getID() + message.getVersion() );
+	    
+	    if( message_registrations.containsKey( key ) ) {
+	      throw new MessageException( "message type [" +message.getID()+ ":" +message.getVersion()+ "] already registered!" );
+	    }
+	    
+	    message_registrations.put( key, message );
+	    
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   

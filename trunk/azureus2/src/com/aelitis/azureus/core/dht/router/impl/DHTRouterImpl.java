@@ -874,7 +874,7 @@ DHTRouterImpl
 	requestNodeAdd(
 		DHTRouterContactImpl	contact )
 	{
-			// make sure we don't do the addition when synchronized
+			// make sure we don't do the addition when synchronised
 		
 		DHTLog.log( "DHTRouter: requestNodeAdd:" + DHTLog.getString( contact.getID()));
 		

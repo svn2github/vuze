@@ -39,8 +39,8 @@ PRUDPPacket
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 30000;
 
-	protected static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
-	protected static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
+	private static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
+	private static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
 
 	private	InetSocketAddress	address;
 	
@@ -86,6 +86,12 @@ PRUDPPacket
 		PRUDPPacket	p )
 	{
 		previous_packet = p;
+	}
+	
+	public PRUDPPacket
+	getPreviousPacket()
+	{
+		return( previous_packet );
 	}
 	
 	public void

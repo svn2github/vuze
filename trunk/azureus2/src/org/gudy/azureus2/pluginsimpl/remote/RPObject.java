@@ -53,6 +53,8 @@ RPObject
 	protected transient Object				__delegate;
 	protected transient	RPRequestDispatcher	_dispatcher;
 	
+	// **** Don't try using AEMOnitor for synchronisations here as this object is serialised
+
 	protected static RPObject
 	_lookupLocal(
 		Object		key )

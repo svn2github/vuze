@@ -54,6 +54,8 @@ public class IncomingSocketChannelManager {
   
   private VirtualServerChannelSelector server_selector = null;
   
+  protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
+
   
   /**
    * Create manager and begin accepting and routing new connections.
@@ -155,125 +157,139 @@ public class IncomingSocketChannelManager {
     
   
   
-  private synchronized void start() {
-    if( server_selector == null ) {
-      InetSocketAddress address;
-      try{
-        if( bind_address.length() > 0 ) {
-          address = new InetSocketAddress( InetAddress.getByName( bind_address ), listen_port );
-        }
-        else {
-          address = new InetSocketAddress( listen_port );
-        }
-      }
-      catch( UnknownHostException e ) {
-        Debug.out( e );
-        address = new InetSocketAddress( listen_port );
-      }
-      
-      server_selector = new VirtualServerChannelSelector( address, so_rcvbuf_size, new VirtualServerChannelSelector.SelectListener() {
-        public void newConnectionAccepted( SocketChannel channel ) {
-          //do timeout check if necessary
-          long now = SystemTime.getCurrentTime();
-          if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
-            doTimeoutChecks();
-            last_timeout_check_time = now;
-          }
-          
-          if( match_buffers.isEmpty() ) {  //no match registrations, just close
-            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
-            NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
-            return;
-          }
-          
-          //set advanced socket options
-          try {
-            int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-            if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
-            
-            String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-            if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
-          }
-          catch( Throwable t ) {
-            t.printStackTrace();
-          }
-          
-          final IncomingConnection ic = new IncomingConnection( channel, max_match_buffer_size );
-          
-          try{  connections_mon.enter();
-
-            connections.add( ic );
-            
-            NetworkManager.getSingleton().getReadController().getReadSelector().register( channel, new VirtualChannelSelector.VirtualSelectorListener() {
-              //SUCCESS
-              public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
-                try {                 
-                  int bytes_read = sc.read( ic.buffer );
-                  
-                  if( bytes_read < 0 ) {
-                    throw new IOException( "end of stream on socket read" );
-                  }
-                  
-                  if( bytes_read == 0 ) {
-                    return false;
-                  }
-                  
-                  ic.last_read_time = SystemTime.getCurrentTime();
-                  
-                  MatchListener listener = checkForMatch( ic.buffer );
-                  
-                  if( listener == null ) {  //no match found
-                    if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
-                      ic.buffer.flip();
-                      LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
-                      removeConnection( ic, true );
-                    }
-                  }
-                  else {  //match found!
-                    ic.buffer.flip();
-                    LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] recognized as known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
-                    removeConnection( ic, false );
-                    listener.connectionMatched( sc, ic.buffer );
-                  }
-                }
-                catch( Throwable t ) {
-                  try {
-                    LGLogger.log( "Incoming TCP connection [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] socket read exception: " +t.getMessage() );
-                  }
-                  catch( Throwable x ) {
-                    Debug.out( "Caught exception on incoming exception log:" );
-                    x.printStackTrace();
-                    System.out.println( "CAUSED BY:" );
-                    t.printStackTrace();
-                  }
-                  
-                  removeConnection( ic, true );
-                }
-                
-                return true;
-              }
-              
-              //FAILURE
-              public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-                LGLogger.log( "Incoming TCP connection [" +sc+ "] socket select op failure: " +msg.getMessage() );
-                removeConnection( ic, true );
-              }
-            }, null );
-            
-          } finally {  connections_mon.exit();  }
-        }
-      });
-      
-      server_selector.start();
-    }
+  private void start() {
+  	try{
+  		this_mon.enter();
+  	
+	    if( server_selector == null ) {
+	      InetSocketAddress address;
+	      try{
+	        if( bind_address.length() > 0 ) {
+	          address = new InetSocketAddress( InetAddress.getByName( bind_address ), listen_port );
+	        }
+	        else {
+	          address = new InetSocketAddress( listen_port );
+	        }
+	      }
+	      catch( UnknownHostException e ) {
+	        Debug.out( e );
+	        address = new InetSocketAddress( listen_port );
+	      }
+	      
+	      server_selector = new VirtualServerChannelSelector( address, so_rcvbuf_size, new VirtualServerChannelSelector.SelectListener() {
+	        public void newConnectionAccepted( SocketChannel channel ) {
+	          //do timeout check if necessary
+	          long now = SystemTime.getCurrentTime();
+	          if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
+	            doTimeoutChecks();
+	            last_timeout_check_time = now;
+	          }
+	          
+	          if( match_buffers.isEmpty() ) {  //no match registrations, just close
+	            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
+	            NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+	            return;
+	          }
+	          
+	          //set advanced socket options
+	          try {
+	            int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+	            if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
+	            
+	            String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+	            if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+	          }
+	          catch( Throwable t ) {
+	            t.printStackTrace();
+	          }
+	          
+	          final IncomingConnection ic = new IncomingConnection( channel, max_match_buffer_size );
+	          
+	          try{  connections_mon.enter();
+	
+	            connections.add( ic );
+	            
+	            NetworkManager.getSingleton().getReadController().getReadSelector().register( channel, new VirtualChannelSelector.VirtualSelectorListener() {
+	              //SUCCESS
+	              public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
+	                try {                 
+	                  int bytes_read = sc.read( ic.buffer );
+	                  
+	                  if( bytes_read < 0 ) {
+	                    throw new IOException( "end of stream on socket read" );
+	                  }
+	                  
+	                  if( bytes_read == 0 ) {
+	                    return false;
+	                  }
+	                  
+	                  ic.last_read_time = SystemTime.getCurrentTime();
+	                  
+	                  MatchListener listener = checkForMatch( ic.buffer );
+	                  
+	                  if( listener == null ) {  //no match found
+	                    if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
+	                      ic.buffer.flip();
+	                      LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
+	                      removeConnection( ic, true );
+	                    }
+	                  }
+	                  else {  //match found!
+	                    ic.buffer.flip();
+	                    LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] recognized as known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
+	                    removeConnection( ic, false );
+	                    listener.connectionMatched( sc, ic.buffer );
+	                  }
+	                }
+	                catch( Throwable t ) {
+	                  try {
+	                    LGLogger.log( "Incoming TCP connection [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] socket read exception: " +t.getMessage() );
+	                  }
+	                  catch( Throwable x ) {
+	                    Debug.out( "Caught exception on incoming exception log:" );
+	                    x.printStackTrace();
+	                    System.out.println( "CAUSED BY:" );
+	                    t.printStackTrace();
+	                  }
+	                  
+	                  removeConnection( ic, true );
+	                }
+	                
+	                return true;
+	              }
+	              
+	              //FAILURE
+	              public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
+	                LGLogger.log( "Incoming TCP connection [" +sc+ "] socket select op failure: " +msg.getMessage() );
+	                removeConnection( ic, true );
+	              }
+	            }, null );
+	            
+	          } finally {  connections_mon.exit();  }
+	        }
+	      });
+	      
+	      server_selector.start();
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   
-  private synchronized void stop() {
-    if( server_selector != null ) {
-      server_selector.stop();
-      server_selector = null;
-    }
+  private void stop() {
+  	try{
+  		this_mon.enter();
+  	
+  		if( server_selector != null ) {
+  			server_selector.stop();
+  			server_selector = null;
+  		}
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   

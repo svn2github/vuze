@@ -73,6 +73,8 @@ RPPluginInterface
 	public String			azureus_name		= Constants.AZUREUS_NAME;
 	public String			azureus_version		= Constants.AZUREUS_VERSION;
 
+	// **** Don't try using AEMOnitor for synchronisations here as this object is serialised
+	
 	public static RPPluginInterface
 	create(
 		PluginInterface		_delegate )

@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -59,7 +60,8 @@ AEProxyAddressMapperImpl
 	protected Map		map			= new HashMap();
 	protected Map		reverse_map	= new HashMap();
 	
-	
+	protected AEMonitor	this_mon	= new AEMonitor( "AEProxyAddressMapper" );
+			
 	protected
 	AEProxyAddressMapperImpl()
 	{
@@ -106,7 +108,8 @@ AEProxyAddressMapperImpl
 		
 		String	target;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			target = (String)reverse_map.get( address );
 			
@@ -123,6 +126,9 @@ AEProxyAddressMapperImpl
 				
 				reverse_map.put( address, target );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		// System.out.println( "AEProxyAddressMapper: internalise " + address + " -> " + target );

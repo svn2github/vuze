@@ -29,25 +29,34 @@ package com.aelitis.net.udp;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 public abstract class 
 PRUDPPacketReply
 	extends PRUDPPacket
 {		
 	public static final int	PR_HEADER_SIZE	= 8;
 	
+	private static AEMonitor				class_mon = new AEMonitor( "PRUDPPacketReply:class" );
+
 	private static Map	packet_decoders	= new HashMap();
 	
 	public static void
 	registerDecoders(
 		Map		_decoders )
 	{
-		synchronized( PRUDPPacketReply.class ){
+		try{
+			class_mon.enter();
 		
 			Map	new_decoders = new HashMap( packet_decoders );
 			
 			new_decoders.putAll( _decoders );
 			
 			packet_decoders	= new_decoders;
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

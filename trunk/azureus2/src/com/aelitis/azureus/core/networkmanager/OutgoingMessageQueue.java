@@ -121,7 +121,7 @@ public class OutgoingMessageQueue {
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
-   * listeners outside of some greater synchronized block to avoid
+   * listeners outside of some greater synchronised block to avoid
    * deadlock.
    * @param message message to add
    * @param manual_listener_notify true for manual notification, false for automatic
@@ -205,7 +205,7 @@ public class OutgoingMessageQueue {
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
-   * listeners outside of some greater synchronized block to avoid
+   * listeners outside of some greater synchronised block to avoid
    * deadlock.
    * @param message_types type to remove
    * @param manual_listener_notify true for manual notification, false for automatic
@@ -285,7 +285,7 @@ public class OutgoingMessageQueue {
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
-   * listeners outside of some greater synchronized block to avoid
+   * listeners outside of some greater synchronised block to avoid
    * deadlock.
    * @param message to remove
    * @param manual_listener_notify true for manual notification, false for automatic
@@ -352,7 +352,7 @@ public class OutgoingMessageQueue {
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
-   * listeners outside of some greater synchronized block to avoid
+   * listeners outside of some greater synchronised block to avoid
    * deadlock.
    * @param max_bytes maximum number of bytes to deliver
    * @param manual_listener_notify true for manual notification, false for automatic

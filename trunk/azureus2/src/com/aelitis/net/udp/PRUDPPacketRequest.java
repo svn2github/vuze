@@ -30,13 +30,16 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 public abstract class 
 PRUDPPacketRequest
 	extends PRUDPPacket
 {	
 	public static final int	PR_HEADER_SIZE	= 16;
 	
-	
+	private static AEMonitor				class_mon = new AEMonitor( "PRUDPPacketRequest:class" );
+
 	private static Map	packet_decoders	= new HashMap();
 
 	protected long		connection_id;
@@ -45,13 +48,18 @@ PRUDPPacketRequest
 	registerDecoders(
 		Map		_decoders )
 	{
-		synchronized( PRUDPPacketReply.class ){
+		try{
+			class_mon.enter();
 		
 			Map	new_decoders = new HashMap( packet_decoders );
 			
 			new_decoders.putAll( _decoders );
 			
 			packet_decoders	= new_decoders;
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

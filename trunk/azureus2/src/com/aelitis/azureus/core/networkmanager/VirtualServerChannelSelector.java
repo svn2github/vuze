@@ -26,6 +26,7 @@ import java.net.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -41,6 +42,8 @@ public class VirtualServerChannelSelector {
   private final SelectListener listener;
   private boolean running = false;
   
+  protected AEMonitor	this_mon	= new AEMonitor( "VirtualServerChannelSelector" );
+
   
   /**
    * Create a new server listening on the given address and reporting to the given listener.
@@ -59,44 +62,58 @@ public class VirtualServerChannelSelector {
    * Start the server and begin accepting incoming connections.
    * 
    */
-  public synchronized void start() {
-    if( !running ) {
-      try {
-        server_channel = ServerSocketChannel.open();
-        
-        server_channel.socket().setReuseAddress( true );
-        if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
-        
-        server_channel.socket().bind( bind_address, 1024 );
-        
-        LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
-        
-        AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
-          public void runSupport() {
-            running = true;
-            accept_loop();
-          }
-        };
-        accept_thread.setDaemon( true );
-        accept_thread.start();  
-      }
-      catch( Throwable t ) {  Debug.out( t );  }
-    }
+  public void start() {
+  	try{
+  		this_mon.enter();
+  	
+	    if( !running ) {
+	      try {
+	        server_channel = ServerSocketChannel.open();
+	        
+	        server_channel.socket().setReuseAddress( true );
+	        if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
+	        
+	        server_channel.socket().bind( bind_address, 1024 );
+	        
+	        LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
+	        
+	        AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
+	          public void runSupport() {
+	            running = true;
+	            accept_loop();
+	          }
+	        };
+	        accept_thread.setDaemon( true );
+	        accept_thread.start();  
+	      }
+	      catch( Throwable t ) {  Debug.out( t );  }
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   
   /**
    * Stop the server.
    */
-  public synchronized void stop() {
-    running = false;
-    if( server_channel != null ) {
-      try {
-        server_channel.close();
-        server_channel = null;
-      }
-      catch( Throwable t ) {  Debug.out( t );  }
-    }
+  public void stop() {
+  	try{
+  		this_mon.enter();
+  	
+	    running = false;
+	    if( server_channel != null ) {
+	      try {
+	        server_channel.close();
+	        server_channel = null;
+	      }
+	      catch( Throwable t ) {  Debug.out( t );  }
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   

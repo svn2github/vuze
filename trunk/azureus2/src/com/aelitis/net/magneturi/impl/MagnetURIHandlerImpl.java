@@ -55,19 +55,29 @@ MagnetURIHandlerImpl
 	
 	private static MagnetURIHandlerImpl		singleton;
 	
+	private static AEMonitor				class_mon = new AEMonitor( "MagnetURLHandler:class" );
+	
 	private static final int				DOWNLOAD_TIMEOUT	= 120000;
 	
 	protected static final String	NL			= "\015\012";
 
-	public static synchronized MagnetURIHandler
+	public static MagnetURIHandler
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton	= new MagnetURIHandlerImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+			
+				singleton	= new MagnetURIHandlerImpl();
+			}
+		
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	private int		port;
