@@ -47,11 +47,13 @@ public class IrcView extends AbstractIView implements IrcListener {
   boolean newMessage;
   
   private String lastPrivate;
+  private boolean focusSet;
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
+    focusSet = false;
     display = composite.getDisplay();
     cIrc = new Composite(composite,SWT.NULL);
     GridLayout layout = new GridLayout();
@@ -83,7 +85,7 @@ public class IrcView extends AbstractIView implements IrcListener {
         }
       }
     });
-    inputField.setFocus();
+    
     userSumUp = new Label(cIrc, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 120;
@@ -93,7 +95,7 @@ public class IrcView extends AbstractIView implements IrcListener {
     colors[1] = MainWindow.blues[2];
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
-    client = new IrcClient(this);
+    client = new IrcClient(this);   
   }
 
   /* (non-Javadoc)
@@ -108,6 +110,11 @@ public class IrcView extends AbstractIView implements IrcListener {
    */
   public void refresh() {
     newMessage = false;
+    if(!focusSet) {
+      inputField.setFocus();
+      focusSet = true;
+    }
+    
   }
 
   /* (non-Javadoc)
