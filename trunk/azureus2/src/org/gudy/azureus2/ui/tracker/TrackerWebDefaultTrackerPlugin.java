@@ -38,7 +38,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
 public class 
-TrackerWebDefaultPlugin
+TrackerWebDefaultTrackerPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
 	protected static final String	NL			= "\r\n";
