@@ -280,7 +280,7 @@ TOTorrentDeserialiseImpl
 												TOTorrentException.RT_DECODE_FAILS ));
 			}
 		
-			setName( readStringFromMetaData( info, TK_NAME ));
+			setName((byte[])info.get( TK_NAME ));
 						
 			setHashFromInfo( info );
 			
@@ -290,7 +290,7 @@ TOTorrentDeserialiseImpl
 			
 				setSimpleTorrent( true );
 				
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( simple_file_length.longValue(), new String[]{getName()})});
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( simple_file_length.longValue(), new byte[][]{getName()})});
 				
 			}else{
 				
@@ -308,11 +308,11 @@ TOTorrentDeserialiseImpl
 					
 					List	paths = (List)file_map.get( TK_PATH );
 						
-					String[]	path_comps = new String[paths.size()];
+					byte[][]	path_comps = new byte[paths.size()][];
 					
 					for (int j=0;j<paths.size();j++){
 					
-						path_comps[j] = new String(readStringFromMetaData((byte[])paths.get(j)));
+						path_comps[j] = (byte[])paths.get(j);
 					}
 					
 					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( len, path_comps );

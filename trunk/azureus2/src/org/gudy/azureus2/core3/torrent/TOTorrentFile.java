@@ -26,10 +26,7 @@ TOTorrentFile
 {
 	public long
 	getLength();
-	
-	public String
-	getPath();
-	
-	public String[]
+		
+	public byte[][]
 	getPathComponents();
 }

@@ -22,17 +22,18 @@
 package org.gudy.azureus2.core3.torrent.impl;
 
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 TOTorrentFileImpl
 	implements TOTorrentFile
 {
 	protected long		file_length;
-	protected String[]	path_components;
+	protected byte[][]	path_components;
 	
 	protected Map		additional_properties = new HashMap();
 	
@@ -40,37 +41,48 @@ TOTorrentFileImpl
 	TOTorrentFileImpl(
 		long			_len,
 		String			_path )
+		
+		throws TOTorrentException
 	{
-		file_length			= _len;
-		
-		Vector	temp = new Vector();
-		
-		int	pos = 0;
-		
-		while(true){
+		try{
 			
-			int	p1 = _path.indexOf( File.separator, pos );
+			file_length			= _len;
 			
-			if ( p1 == -1 ){
+			Vector	temp = new Vector();
+			
+			int	pos = 0;
+			
+			while(true){
 				
-				temp.add( _path.substring( pos ));
+				int	p1 = _path.indexOf( File.separator, pos );
 				
-				break;
+				if ( p1 == -1 ){
+					
+					temp.add( _path.substring( pos ).getBytes( Constants.DEFAULT_ENCODING ));
+					
+					break;
+				}
+				
+				temp.add( _path.substring( pos, p1 ).getBytes( Constants.DEFAULT_ENCODING ));
+				
+				pos = p1+1;
 			}
 			
-			temp.add( _path.substring( pos, p1 ));
+			path_components		= new byte[temp.size()][];
 			
-			pos = p1+1;
+			temp.copyInto( path_components );
+			
+		}catch( UnsupportedEncodingException e ){
+	
+			throw( new TOTorrentException( 	"TOTorrentFile: unsupported encoding for '" + new String(_path) + "'",
+											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
-		path_components		= new String[temp.size()];
-		
-		temp.copyInto( path_components );
 	}
 	
 	protected
 	TOTorrentFileImpl(
 		long			_len,
-		String[]		_path_components )
+		byte[][]		_path_components )
 	{
 		file_length			= _len;
 		path_components		= _path_components;
@@ -82,20 +94,7 @@ TOTorrentFileImpl
 		return( file_length );
 	}
 	
-	public String
-	getPath()
-	{
-		String	res = "";
-		
-		for (int i=0;i<path_components.length;i++){
-			
-			res += (i==0?"":File.separator) + path_components[i];
-		}
-		
-		return( res );
-	}
-	
-	public String[]
+	public byte[][]
 	getPathComponents()
 	{
 		return( path_components );

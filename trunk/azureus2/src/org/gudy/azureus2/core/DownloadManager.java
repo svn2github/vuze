@@ -160,7 +160,7 @@ public class DownloadManager extends Component {
 		
 			// torrent.print();
 			
-			name = LocaleUtil.getCharsetString( torrent.getName().getBytes( Constants.DEFAULT_ENCODING));
+			name = LocaleUtil.getCharsetString( torrent.getName());
 			
 			/*
 			if( nameFromUser != null ){
@@ -560,16 +560,19 @@ public class DownloadManager extends Component {
   /** @retun true, if the other DownloadManager has the same size and hash 
    * @see java.lang.Object#equals(java.lang.Object)
    */
-  public boolean equals(Object obj) {
+  public boolean equals(Object obj)
+  {
+  		// check for object equivalence first!
+  		
+  	if ( this == obj ){
+  		
+  		return( true );
+  	}
+  	
     if(null != obj && obj instanceof DownloadManager) {
     	
       DownloadManager other = (DownloadManager) obj;
-      
-      if ( getSize() != other.getSize()){
-      	
-      	return( false );
-      }
-      
+          
       TOTorrent t1 = getTorrent();
       TOTorrent t2 = other.getTorrent();
       

@@ -89,7 +89,7 @@ Main
 			
 			}else if ( test_type == TT_DECODE ){
 							 
-				File f = new File("c:\\temp\\test.torrent" );
+				File f = new File("c:\\temp\\tunnel_server.poo.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			

@@ -138,7 +138,7 @@ TOTorrentCreateImpl
 							
 			long length = hasher.add( _torrent_base );
 		
-			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( length, new String[]{ getName()})});
+			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( length, new byte[][]{ getName()})});
 			
 		
 			setPieces( hasher.getPieces());

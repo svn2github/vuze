@@ -33,17 +33,8 @@ TOTorrent
 	 * @return
 	 */
 	
-	public String
+	public byte[]
 	getName();
-
-	/**
-	 * Note: setting the torrent name alters it's hash
-	 * @param name	new torrent name
-	 */
-	
-	public void
-	setName(
-		String		name );
 	
 	/**
 	 * A "simple torrent" is one that consists of a single file on its own (i.e. not in a

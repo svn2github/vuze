@@ -1529,7 +1529,7 @@ public class MainWindow implements IComponentListener {
       try {
         TOTorrent torrent = TOTorrentFactory.deserialiseFromFile(new File(fileName));
         singleFile = torrent.isSimpleTorrent();
-        singleFileName = torrent.getName();       
+		singleFileName = LocaleUtil.getCharsetString(torrent.getName());
       }
       catch (Exception e) {
         e.printStackTrace();

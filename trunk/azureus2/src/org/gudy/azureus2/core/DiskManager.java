@@ -25,7 +25,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
-import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * 
@@ -138,7 +137,7 @@ public class DiskManager {
         try {
             File f = new File(path);
             if (f.isDirectory()) {
-                fileName = localeUtil.getChoosableCharsetString( torrent.getName().getBytes(Constants.DEFAULT_ENCODING));
+                fileName = localeUtil.getChoosableCharsetString( torrent.getName());
             } else {
                 fileName = f.getName();
                 path = f.getParent();
@@ -340,7 +339,7 @@ public class DiskManager {
 
         //build the path
         
-		String[]	path_components = torrent_file.getPathComponents();
+		byte[][]	path_components = torrent_file.getPathComponents();
 
         /* replaced the following two calls:
         StringBuffer pathBuffer = new StringBuffer(256);
@@ -351,7 +350,7 @@ public class DiskManager {
             int lastIndex = path_components.length - 1;
             for (int j = 0; j < lastIndex; j++) {
                 //attach every element        
-                pathBuffer.append(localeUtil.getChoosableCharsetString( path_components[j].getBytes( Constants.DEFAULT_ENCODING )));
+                pathBuffer.append(localeUtil.getChoosableCharsetString( path_components[j]));
                 pathBuffer.append(separator);
             }
 
@@ -360,7 +359,7 @@ public class DiskManager {
             btFileList.add(
                 new BtFile(
                     pathBuffer.toString(),
-                    localeUtil.getChoosableCharsetString(path_components[lastIndex].getBytes( Constants.DEFAULT_ENCODING )),
+                    localeUtil.getChoosableCharsetString(path_components[lastIndex]),
                     fileLength));
 
         } catch (UnsupportedEncodingException e) {

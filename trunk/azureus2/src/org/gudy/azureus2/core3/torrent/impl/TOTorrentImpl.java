@@ -47,7 +47,7 @@ TOTorrentImpl
 	protected static final String TK_PIECE_LENGTH		= "piece length";
 	protected static final String TK_PIECES				= "pieces";
 		
-	private String							torrent_name;
+	private byte[]							torrent_name;
 	private String							comment;
 	private URL								announce_url;
 	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl();
@@ -84,10 +84,20 @@ TOTorrentImpl
 		String		_torrent_name,
 		URL			_announce_url,
 		boolean		_simple_torrent )
+		
+		throws TOTorrentException
 	{
-		torrent_name		= _torrent_name;
-		announce_url		= _announce_url;
-		simple_torrent		= _simple_torrent;
+		try{
+		
+			torrent_name		= _torrent_name.getBytes( Constants.DEFAULT_ENCODING );
+			announce_url		= _announce_url;
+			simple_torrent		= _simple_torrent;
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			throw( new TOTorrentException( 	"TOTorrent: unsupported encoding for '" + _torrent_name + "'",
+											TOTorrentException.RT_UNSUPPORTED_ENCODING));
+		}
 	}
 	
 	public void
@@ -209,7 +219,7 @@ TOTorrentImpl
 		
 		info.put( TK_PIECES, flat_pieces );
 		
-		writeStringToMetaData( info, TK_NAME, torrent_name );
+		info.put( TK_NAME, torrent_name );
 		
 		if ( simple_torrent ){
 		
@@ -237,11 +247,11 @@ TOTorrentImpl
 				
 				file_map.put( TK_PATH, path );
 				
-				String[]	path_comps = file.getPathComponents();
+				byte[][]	path_comps = file.getPathComponents();
 				
 				for (int j=0;j<path_comps.length;j++){
 					
-					path.add( writeStringToMetaData( path_comps[j]));
+					path.add( path_comps[j]);
 				}
 				
 				Map additional_properties = file.getAdditionalProperties();
@@ -283,10 +293,17 @@ TOTorrentImpl
 		return( root );
 	}
 	
-	public String
+	public byte[]
 	getName()
 	{
 		return( torrent_name );
+	}
+	
+	protected void
+	setName(
+		byte[]	_name )
+	{
+		torrent_name	= _name;
 	}
 	
 	public boolean
@@ -307,16 +324,7 @@ TOTorrentImpl
 	{
 		comment = _comment;
 	}
-	
-	public void
-	setName(
-		String	_name )
-	{
-		torrent_hash		= null;
 		
-		torrent_name		= _name;
-	}
-	
 	public URL
 	getAnnounceURL()
 	{
@@ -669,7 +677,23 @@ TOTorrentImpl
 											 
 			for (int i=0;i<files.length;i++){
 				
-				System.out.println( "\t" + files[i].getPath() + " (" + files[i].getLength() + ")" );
+				byte[][]path_comps = files[i].getPathComponents();
+				
+				String	path_str = "";
+				
+				for (int j=0;j<path_comps.length;j++){
+					
+					try{
+					
+						path_str += (j==0?"":File.separator) + new String( path_comps[j], Constants.DEFAULT_ENCODING );
+
+					}catch( UnsupportedEncodingException e ){
+	
+						System.out.println( "file - unsupported encoding!!!!");	
+					}
+				}
+				
+				System.out.println( "\t" + path_str + " (" + files[i].getLength() + ")" );
 			}
 		}catch( TOTorrentException e ){
 			
