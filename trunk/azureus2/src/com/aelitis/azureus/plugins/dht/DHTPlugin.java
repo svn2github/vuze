@@ -26,12 +26,17 @@ import java.io.*;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
@@ -56,6 +61,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
@@ -94,6 +100,8 @@ DHTPlugin
 	
 	private boolean				enabled;
 	private int					dht_data_port;
+	
+	private Map					recent_addresses	= new HashMap();
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
@@ -315,6 +323,8 @@ DHTPlugin
 								model.getStatus().setText( "Initialising" );
 								
 								try{
+									readRecentAddresses();
+									
 									transport = 
 										DHTTransportFactory.createUDP( 
 												f_dht_data_port, 
@@ -324,6 +334,23 @@ DHTPlugin
 														// premature timeouts occurred
 												log );
 									
+									transport.addListener(
+										new DHTTransportListener()
+										{
+											public void
+											localContactChanged(
+												DHTTransportContact	local_contact )
+											{
+											}
+											
+											public void
+											currentAddress(
+												String		address )
+											{
+												recordCurrentAddress( address );
+											}
+										});
+										
 									final int sample_frequency	= 60000;
 									final int sample_duration	= 10*60;
 									
@@ -609,6 +636,106 @@ DHTPlugin
 			
 			Debug.printStackTrace( e );
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	readRecentAddresses()
+	{
+		try{
+			this_mon.enter();
+			
+			File f = new File( getDataDir(), "addresses.dat" );
+			
+			if ( f.exists()){
+				
+				BufferedInputStream	is = new BufferedInputStream( new FileInputStream( f ));
+				
+				recent_addresses = BDecoder.decode( is );
+				
+				is.close();
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	writeRecentAddresses()
+	{
+		try{
+			this_mon.enter();
+		
+			File f = new File( getDataDir(), "addresses.dat" );
+
+				// remove any old crud
+			
+			Iterator	it = recent_addresses.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				String	key = (String)it.next();
+				
+				Long	time = (Long)recent_addresses.get(key);
+				
+				if ( SystemTime.getCurrentTime() - time.longValue() > 7*24*60*60*1000 ){
+					
+					it.remove();
+				}
+			}
+			
+			byte[]	data = BEncoder.encode( recent_addresses );
+			
+			FileOutputStream os = new FileOutputStream( f );
+			
+			os.write( data );
+			
+			os.close();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	recordCurrentAddress(
+		String		address )
+	{
+		try{
+			this_mon.enter();
+
+			recent_addresses.put( address, new Long( SystemTime.getCurrentTime()));
+		
+			writeRecentAddresses();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected boolean
+	isRecentAddress(
+		String		address )
+	{
+		try{
+			this_mon.enter();
+
+			return( recent_addresses.containsKey( address ));
+					
 		}finally{
 			
 			this_mon.exit();
@@ -998,6 +1125,12 @@ DHTPlugin
 			long		timeout )
 		{
 			return( contact.isAlive( timeout ));
+		}
+		
+		public boolean
+		isOrHasBeenLocal()
+		{
+			return( isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
 		}
 	}
 }

@@ -68,6 +68,11 @@ DDBaseContactImpl
 		return( contact.isAlive( timeout ));
 	}
 	
+	public boolean
+	isOrHasBeenLocal()
+	{
+		return( contact.isOrHasBeenLocal());
+	}
 
 	public void
 	write(

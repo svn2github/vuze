@@ -37,6 +37,9 @@ DistributedDatabaseContact
 	isAlive(
 		long		timeout );
 	
+	public boolean
+	isOrHasBeenLocal();
+	
 	public void
 	write(
 		DistributedDatabaseTransferType		type,

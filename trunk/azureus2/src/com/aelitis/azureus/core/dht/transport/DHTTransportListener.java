@@ -33,4 +33,8 @@ DHTTransportListener
 	public void
 	localContactChanged(
 		DHTTransportContact	local_contact );
+	
+	public void
+	currentAddress(
+		String		address );
 }

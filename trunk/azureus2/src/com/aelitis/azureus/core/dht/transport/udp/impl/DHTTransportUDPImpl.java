@@ -321,6 +321,11 @@ DHTTransportUDPImpl
 					log.log( "    External IP address defaulted:  " + new_external_address );
 				}
 				
+				if ( external_address == null || !external_address.equals( new_external_address )){
+					
+					informLocalAddress( new_external_address );
+				}
+				
 				external_address = new_external_address;
 			}
 			
@@ -332,6 +337,22 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	protected void
+	informLocalAddress(
+		String	address )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((DHTTransportListener)listeners.get(i)).currentAddress( address );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}		
+	}
+		
 	protected boolean
 	externalAddressChange(
 		DHTTransportUDPContactImpl	reporter,
@@ -1967,6 +1988,11 @@ DHTTransportUDPImpl
 		DHTTransportListener	l )
 	{
 		listeners.add(l);
+		
+		if ( external_address != null ){
+			
+			l.currentAddress( external_address );
+		}
 	}
 	
 	public void

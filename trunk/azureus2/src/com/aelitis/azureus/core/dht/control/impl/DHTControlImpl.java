@@ -163,6 +163,12 @@ DHTControlImpl
 					
 					seed();
 				}
+				
+				public void
+				currentAddress(
+					String		address )
+				{
+				}
 			});
 		
 

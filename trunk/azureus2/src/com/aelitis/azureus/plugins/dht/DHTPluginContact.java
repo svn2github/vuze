@@ -38,4 +38,7 @@ DHTPluginContact
 	public boolean
 	isAlive(
 		long		timeout );
+	
+	public boolean
+	isOrHasBeenLocal();
 }
