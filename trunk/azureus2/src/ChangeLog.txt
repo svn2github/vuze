@@ -44,6 +44,7 @@ CHANGE: IRC and Tracker Web Pages moved to separate plugin [Parg]
 CHANGE: Auto-imported .torrent files are renamed *.imported if default .torrent save dir is not enabled [Nolar]
 CHANGE: Auto-imported .torrent files are moved (not copied) to default .torrent save dir if enabled [Nolar]
 CHANGE: Socket writes now done in full MSS-sized chunks [Nolar]
+CHANGE: User config/pref/plugins dir culled from Windows' Registry (needs aereg.dll) [Parg]
 
 BUGFIX: Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
