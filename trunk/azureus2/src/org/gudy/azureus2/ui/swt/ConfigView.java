@@ -118,9 +118,6 @@ public class ConfigView extends AbstractIView {
     Label label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
 
-    new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
-    new Label(gFile, SWT.NULL);
-
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
@@ -130,6 +127,19 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
+
+    new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
+    new Label(gFile, SWT.NULL);
+
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
+    final String saveResumeLabels[] = new String[19];
+    final int saveResumeValues[] = new int[19];
+    for (int i = 2; i < 21; i++) {
+      saveResumeLabels[i - 2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
+      saveResumeValues[i - 2] = i;
+    }
+    new IntListParameter(gFile, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$    
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
@@ -335,17 +345,7 @@ public class ConfigView extends AbstractIView {
       upsLabels[i] = " " + upRates[i] + "kB/s"; //$NON-NLS-1$ //$NON-NLS-2$
       upsValues[i] = 1024 * upRates[i];
     }
-    new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
-
-    label = new Label(gTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
-    final String saveResumeLabels[] = new String[19];
-    final int saveResumeValues[] = new int[19];
-    for (int i = 2; i < 21; i++) {
-      saveResumeLabels[i - 2] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
-      saveResumeValues[i - 2] = i;
-    }
-    new IntListParameter(gTransfer, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
+    new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$  
 
     itemTransfer.setControl(gTransfer);
 
