@@ -136,16 +136,22 @@ public class OutgoingBTPieceMessageHandler {
       }
     }
     if( removed ) return;
+    
+    Object[] entries;
     synchronized( queued_messages ) {
-      for( Iterator i = queued_messages.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
-        if( entry.getValue().equals( dmr ) ) {
-          if( outgoing_message_queue.removeMessage( (BTPiece)entry.getKey() ) ) {
-            num_messages_in_queue--;
-            i.remove();
+      entries = queued_messages.entrySet().toArray();
+    }
+    for( int i=0; i < entries.length; i++ ) {
+      Map.Entry entry = (Map.Entry)entries[ i ];
+      if( entry.getValue().equals( dmr ) ) {
+        BTPiece msg = (BTPiece)entry.getKey();
+        if( outgoing_message_queue.removeMessage( msg ) ) {
+          synchronized( queued_messages ) {
+            queued_messages.remove( msg );
           }
-          break;
+          num_messages_in_queue--;
         }
+        break;
       }
     }
   }
@@ -162,13 +168,18 @@ public class OutgoingBTPieceMessageHandler {
       loading_messages.clear();
       num_messages_loading = 0;
     }
+
+    Object[] messages;
     synchronized( queued_messages ) {
-      for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
-        BTPiece msg = (BTPiece)i.next();
-        if( outgoing_message_queue.removeMessage( msg ) ) {
-          num_messages_in_queue--;
-          i.remove();
+      messages = queued_messages.keySet().toArray();
+    }
+    for( int i=0; i < messages.length; i++ ) {
+      BTPiece msg = (BTPiece)messages[ i ];
+      if( outgoing_message_queue.removeMessage( msg ) ) { //needs to be outside a synchronized(queued_messages) block due to deadlock
+        synchronized( queued_messages ) {
+          queued_messages.remove( msg );
         }
+        num_messages_in_queue--;
       }
     }
   }
