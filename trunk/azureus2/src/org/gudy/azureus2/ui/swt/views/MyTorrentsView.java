@@ -25,6 +25,9 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -363,7 +366,6 @@ public class MyTorrentsView extends AbstractIView
         Control[] controls = cCategories.getChildren();
         for (int i = 0; i < controls.length; i++)
           controls[i].dispose();
-        cCategories.layout();
       }
 
 
@@ -382,7 +384,7 @@ public class MyTorrentsView extends AbstractIView
         catButton.pack(true);
         if (catButton.getSize().y > 0) {
           RowData rd = new RowData();
-          rd.height = catButton.getSize().y - 5;
+          rd.height = catButton.getSize().y - 5 + catButton.getBorderWidth() * 2;
           catButton.setLayoutData(rd);
         }
         
@@ -464,6 +466,7 @@ public class MyTorrentsView extends AbstractIView
           catButton.setMenu(menu);
         }
       }
+      cCategories.layout();
       composite.layout();
     }
   }
@@ -474,6 +477,13 @@ public class MyTorrentsView extends AbstractIView
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
     sorter = new TableSorter(this, configTableName, "#", true);
+
+    ControlListener resizeListener = new ControlAdapter() {
+      public void controlResized(ControlEvent e) {
+        int columnNumber = table.indexOf((TableColumn) e.widget);
+    		locationChanged(columnNumber);
+      }
+    };
 
     // Setup table
     // -----------
@@ -512,6 +522,7 @@ public class MyTorrentsView extends AbstractIView
         }
         column.setData("configName", "Table." + configTableName + "." + items[i].getName());
         column.setData("Name", items[i].getName());
+        column.addControlListener(resizeListener);
       }
     }
 
@@ -530,15 +541,16 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
+    // Deselect rows if user clicks on a black spot (a spot with no row)
     table.addMouseListener(new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
         iMouseX = e.x;
-        TableItem ti = table.getItem(new Point(e.x, e.y));
+        Point pMousePosition = new Point(e.x, e.y);
+        TableItem ti = table.getItem(pMousePosition);
         if (ti == null) {
-          //Gudy - No idea why you're using this but it 
-          //makes items to be deselected while scrolling on OSX
-          //Testing if the platform isn't OSX before deselecting.
-          if(! Constants.isOSX) {
+          // skip if outside client area (ie. scrollbars)
+          Rectangle rTableArea = table.getClientArea();
+          if (rTableArea.contains(pMousePosition)) {
             table.deselectAll();
           }
         }
@@ -1482,6 +1494,19 @@ public class MyTorrentsView extends AbstractIView
     loopFactor++;
   }
 
+
+  public void locationChanged(int iStartColumn) {
+  	if (getComposite() == null || getComposite().isDisposed())
+  		return;    
+    
+  	synchronized(objectToSortableItem) {
+  		Iterator iter = objectToSortableItem.values().iterator();
+  		while (iter.hasNext()) {
+  			TorrentRow pr = (TorrentRow) iter.next();  		  			
+  			pr.locationChanged(iStartColumn);
+  		}
+  	}
+  }
 
   private void doPaint(GC gc) {
     if (getComposite() == null || getComposite().isDisposed())
