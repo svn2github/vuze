@@ -316,7 +316,7 @@ ShareManagerImpl
 			}
 		}
 		
-		throw( new ShareException( "ShareManager: failed to allocate cache file"));
+		throw( new ShareException( "ShareManager: Failed to allocate cache file"));
 	}
 	
 	protected void
@@ -330,7 +330,7 @@ ShareManagerImpl
 			
 		}catch( TorrentException e ){
 			
-			throw( new ShareException( "ShareManager: torrent write fails", e ));
+			throw( new ShareException( "ShareManager: Torrent write fails", e ));
 		}
 	}
 	
@@ -347,7 +347,7 @@ ShareManagerImpl
 			
 		}catch( TOTorrentException e ){
 			
-			throw( new ShareException( "ShareManager: torrent read fails", e ));
+			throw( new ShareException( "ShareManager: Torrent read fails", e ));
 		}
 	}
 	
@@ -356,9 +356,7 @@ ShareManagerImpl
 		ShareItemImpl		item )
 	{
 		File	torrent_file = getTorrentFile(item);
-		
-		System.out.println( "deleting torrent '".concat(torrent_file.toString()).concat("'"));
-		
+				
 		torrent_file.delete();
 	}
 	
@@ -387,7 +385,7 @@ ShareManagerImpl
 			
 			if ( tracker_ip.length() == 0 ){
 				
-				throw( new ShareException( "ShareManager: tracker must be configured"));
+				throw( new ShareException( "ShareManager: Tracker must be configured"));
 			}
 			
 			boolean	use_ssl = COConfigurationManager.getBooleanParameter( "Sharing Use SSL", false );
@@ -408,7 +406,7 @@ ShareManagerImpl
 				
 			}catch( MalformedURLException e ){
 				
-				throw( new ShareException( "Announce URL invalid", e ));
+				throw( new ShareException( "ShareManager: Announce URL invalid", e ));
 			}
 			
 		}
@@ -738,7 +736,7 @@ ShareManagerImpl
 		
 		if ( message != null ){
 			
-			reportCurrentTask( message );
+			reportCurrentTask( Debug.getNestedExceptionMessage(e));
 			
 		}else{
 			
