@@ -295,6 +295,16 @@ TRTrackerServerImpl
 		return((TRTrackerServerTorrent)torrent_map.get(new HashWrapper(hash)));
 	}
 	
+	protected synchronized TRTrackerServerTorrent[]
+	getTorrents()
+	{
+		TRTrackerServerTorrent[]	res = new TRTrackerServerTorrent[torrent_map.size()];
+		
+		torrent_map.values().toArray( res );
+		
+		return( res );	
+	}
+	
 	public TRTrackerServerTorrentStats
 	getStats(
 		byte[]		hash )

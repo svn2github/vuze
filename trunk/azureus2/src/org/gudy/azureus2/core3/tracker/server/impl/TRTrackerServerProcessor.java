@@ -37,11 +37,10 @@ TRTrackerServerProcessor
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 
-	protected static final int		RT_ANNOUNCE	= 1;
-	protected static final int		RT_SCRAPE	= 2;
-	
-	protected static Map	hash_map = new HashMap();
-						
+	protected static final int		RT_ANNOUNCE		= 1;
+	protected static final int		RT_SCRAPE		= 2;
+	protected static final int		RT_FULL_SCRAPE	= 3;
+							
 	protected TRTrackerServerImpl		server;
 	
 	protected
@@ -149,6 +148,12 @@ TRTrackerServerProcessor
 					
 					str = str.substring(8);
 				
+				}else if ( str.equals( "/scrape" )){
+					
+					request_type	= RT_FULL_SCRAPE;
+					
+					str = "";
+				
 				}else{
 					
 					if ( handleExternalRequest( str, os )){
@@ -171,7 +176,7 @@ TRTrackerServerProcessor
 				long		left			= 0;
 				int			num_peers		= 0;
 					
-				while(true){
+				while(pos < str.length()){
 						
 					int	p1 = str.indexOf( '&', pos );
 						
@@ -243,74 +248,118 @@ TRTrackerServerProcessor
 					}
 				}
 
-				if ( hash_str == null ){
+				if ( request_type != RT_FULL_SCRAPE ){
+				
+					if ( hash_str == null ){
+						
+						throw( new Exception( "Hash missing from request "));
+					}
+											
+					byte[]	hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
 					
-					throw( new Exception( "Hash missing from request "));
-				}
+					// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
 										
-				byte[]	hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
-				
-				// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
-									
-				// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
-													
-				TRTrackerServerTorrent	torrent = server.getTorrent( hash_bytes );
-					
-				if ( torrent == null ){
-							
-					throw( new Exception( "Torrent unauthorised "));
-				}
-			
-				if ( request_type == RT_ANNOUNCE ){
-				
-					if ( peer_id == null ){
+					// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
+														
+					TRTrackerServerTorrent	torrent = server.getTorrent( hash_bytes );
 						
-						throw( new Exception( "peer_id missing from request"));
+					if ( torrent == null ){
+								
+						throw( new Exception( "Torrent unauthorised "));
 					}
-					
-					long	interval = server.getRetryInterval();
-					
-					torrent.peerContact( 	event, 
-											peer_id, port, client_ip_address,
-											uploaded, downloaded, left, num_peers,
-											interval );
-					
-					torrent.exportPeersToMap( root );
-	
-					root.put( "interval", new Long( interval ));
-					
-				}else{
-					
-					Map	files = new ByteEncodedKeyHashMap();
-					
-					Map	hash_entry = new HashMap();
-					
-					byte[]	torrent_hash = torrent.getHash().getHash();
-									
-					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
 				
-					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-	
-					files.put( str_hash, hash_entry );
+					if ( request_type == RT_ANNOUNCE ){
 					
-					TRTrackerServerPeer[]	peers = torrent.getPeers();
-					
-					long	seeds 		= 0;
-					long	non_seeds	= 0;
-					
-					for (int i=0;i<peers.length;i++){
-						
-						if ( peers[i].getAmountLeft() == 0 ){
+						if ( peer_id == null ){
 							
-							seeds++;
-						}else{
-							non_seeds++;
+							throw( new Exception( "peer_id missing from request"));
 						}
+						
+						long	interval = server.getRetryInterval();
+						
+						torrent.peerContact( 	event, 
+												peer_id, port, client_ip_address,
+												uploaded, downloaded, left, num_peers,
+												interval );
+						
+						torrent.exportPeersToMap( root );
+		
+						root.put( "interval", new Long( interval ));
+						
+					}else{
+						
+						
+						Map	files = new ByteEncodedKeyHashMap();
+					
+						Map	hash_entry = new HashMap();
+					
+						byte[]	torrent_hash = torrent.getHash().getHash();
+									
+						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+				
+						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+	
+						files.put( str_hash, hash_entry );
+					
+						TRTrackerServerPeer[]	peers = torrent.getPeers();
+					
+						long	seeds 		= 0;
+						long	non_seeds	= 0;
+					
+						for (int i=0;i<peers.length;i++){
+						
+							if ( peers[i].getAmountLeft() == 0 ){
+							
+								seeds++;
+							}else{
+								non_seeds++;
+							}
+						}
+					
+						hash_entry.put( "complete", new Long( seeds ));
+						hash_entry.put( "incomplete", new Long( non_seeds ));
+					
+						root.put( "files", files );
 					}
-					
-					hash_entry.put( "complete", new Long( seeds ));
-					hash_entry.put( "incomplete", new Long( non_seeds ));
-					
+				}else{
+							
+					Map	files = new ByteEncodedKeyHashMap();
+						
+					Map	hash_entry = new HashMap();
+						
+					TRTrackerServerTorrent[] torrents = server.getTorrents();
+						
+					for (int i=0;i<torrents.length;i++){
+						
+						TRTrackerServerTorrent	torrent = torrents[i];
+						
+						byte[]	torrent_hash = torrent.getHash().getHash();
+											
+						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+						
+						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+			
+						files.put( str_hash, hash_entry );
+							
+						TRTrackerServerPeer[]	peers = torrent.getPeers();
+							
+						long	seeds 		= 0;
+						long	non_seeds	= 0;
+							
+						for (int j=0;j<peers.length;j++){
+								
+							if ( peers[j].getAmountLeft() == 0 ){
+									
+								seeds++;
+							}else{
+								non_seeds++;
+							}
+						}
+							
+						hash_entry.put( "complete", new Long( seeds ));
+						hash_entry.put( "incomplete", new Long( non_seeds ));
+					}
+						
 					root.put( "files", files );
 				}
 				
