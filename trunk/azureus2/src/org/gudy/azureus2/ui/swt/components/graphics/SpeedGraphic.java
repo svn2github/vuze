@@ -20,8 +20,10 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -102,16 +104,31 @@ public class SpeedGraphic extends ScaledGraphic {
       
       
       int oldAverage = 0;
+      Display display = drawCanvas.getDisplay();
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x;
         if(position < 0)
           position+= 2000;
         int value = values[position];
         int xDraw = bounds.width - 71 - x;
-        int height = bounds.height - scale.getScaledValue(value) - 2;
-        
-        gcImage.setForeground(MainWindow.blues[3]);
-        gcImage.drawLine(xDraw,bounds.height - 2,xDraw, height);
+        int height = scale.getScaledValue(value);
+        int percent = value * 255 / max;
+        Color background = MainWindow.blues[4];
+        Color foreground = MainWindow.blues[1];
+        int r1 = background.getRed();
+        int g1 = background.getGreen();
+        int b1 = background.getBlue();
+        int r2 = foreground.getRed();
+        int g2 = foreground.getGreen();
+        int b2 = foreground.getBlue();
+        int r = (percent * r1) / 255 + ((255-percent) * r2) / 255;
+        int g = (percent * g1) / 255 + ((255-percent) * g2) / 255;
+        int b = (percent * b1) / 255 + ((255-percent) * b2) / 255;
+        Color tempcolor = new Color(display,r,g,b);
+        gcImage.setForeground(tempcolor);
+        gcImage.setBackground(foreground);        
+        gcImage.fillGradientRectangle(xDraw,bounds.height - 2 - height,1, height,true);
+        tempcolor.dispose();
         
         int average = computeAverage(position);
         if(x > 6) {
