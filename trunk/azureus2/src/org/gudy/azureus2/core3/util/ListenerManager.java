@@ -133,6 +133,8 @@ ListenerManager
 				
 				async_thread = null;
 				
+					// try and wake up the thread so it kills itself
+				
 				dispatch_sem.release();
 			}
 		}
@@ -154,7 +156,16 @@ ListenerManager
 					return;
 				}
 				
-				dispatch_queue.add(new Object[]{new Integer(type), value});
+					// gotta copy the listeners here to ensure that the message is dispatched
+					// relative to the listeners in existence *now*, not at the point the 
+					// dispatch occurs (otherwise could get the same message delivered > once
+					// to the same listener...
+				
+				Object[]	listeners_copy = new Object[ listeners.size() ];
+					
+				listeners.toArray( listeners_copy );
+				
+				dispatch_queue.add(new Object[]{listeners_copy, new Integer(type), value});
 				
 				dispatch_sem.release();
 			}
@@ -165,8 +176,18 @@ ListenerManager
 				throw( new RuntimeException( "call dispatchWithException, not dispatch"));
 			}
 			
+			Object[]	listeners_copy;
+			
+			synchronized( listeners ){
+				
+				listeners_copy = new Object[ listeners.size() ];
+				
+				listeners.toArray( listeners_copy );
+				
+			}	
+			
 			try{
-				dispatchInternal( type, value );
+				dispatchInternal( listeners_copy, type, value );
 				
 			}catch( Throwable e ){
 				
@@ -182,7 +203,17 @@ ListenerManager
 	
 		throws Throwable
 	{
-		dispatchInternal( type, value );
+		Object[]	listeners_copy;
+		
+		synchronized( listeners ){
+			
+			listeners_copy = new Object[ listeners.size() ];
+			
+			listeners.toArray( listeners_copy );
+			
+		}
+		
+		dispatchInternal( listeners_copy, type, value );
 	}
 	
 	public void
@@ -202,7 +233,7 @@ ListenerManager
 					return;
 				}
 				
-				dispatch_queue.add(new Object[]{ listener, new Integer(type), value});
+				dispatch_queue.add(new Object[]{ new Object[]{listener}, new Integer(type), value});
 				
 				dispatch_sem.release();
 			}
@@ -219,22 +250,15 @@ ListenerManager
 
 	protected void
 	dispatchInternal(
-		int		type,
-		Object	value )
+		Object[]	listeners_copy,
+		int			type,
+		Object		value )
 	
 		throws Throwable
 	{
 			// take a copy of the listeners as concurrent modification is possible as
 			// we're not synchronized on them
 		
-		Object[]	listeners_copy;
-		
-		synchronized( listeners ){
-		
-			listeners_copy = new Object[ listeners.size() ];
-			
-			listeners.toArray( listeners_copy );
-		}
 		
 		for (int i=0;i<listeners_copy.length;i++){
 			
@@ -274,6 +298,10 @@ ListenerManager
 				
 				if ( async_thread != Thread.currentThread()){
 					
+						// we've been asked to close. this sem reservation must be
+						// "returned" to the pool in case it represents a valid  entry
+						// to be picked up by another thread
+					
 					dispatch_sem.release();
 					
 					break;
@@ -287,15 +315,8 @@ ListenerManager
 			
 			if ( data != null ){
 			
-				try{
-					if ( data.length == 3 ){
-						
-						target.dispatch(data[0], ((Integer)data[1]).intValue(), data[2] );
-						
-					}else{
-						
-						dispatchInternal(((Integer)data[0]).intValue(), data[1] );
-					}
+				try{						
+					dispatchInternal((Object[])data[0], ((Integer)data[1]).intValue(), data[2] );
 					
 				}catch( Throwable e ){
 					
