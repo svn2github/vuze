@@ -207,7 +207,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
-      setPriority(Thread.MIN_PRIORITY);
+      setPriority(Thread.MAX_PRIORITY);
       COConfigurationManager.addParameterListener("GUI Refresh", this);
       COConfigurationManager.addParameterListener("config.style.refreshMT", this);
     }
