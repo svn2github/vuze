@@ -243,7 +243,7 @@ GMSRDefaultPlugin
 										
 										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (ratio)" );
 										
-										download.start();
+										download.restart();
 										
 										download_started = true;
 										
@@ -253,7 +253,7 @@ GMSRDefaultPlugin
 									
 									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (no seeds, >=1 peer)" );
 									
-									download.start();
+									download.restart();
 									
 									download_started	= true;
 								}
@@ -280,7 +280,7 @@ GMSRDefaultPlugin
 								try{
 									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
 									
-									download.start();
+									download.restart();
 									
 								}catch( DownloadException e ){
 									

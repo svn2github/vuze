@@ -202,13 +202,24 @@ DownloadImpl
 			download_manager.getStats().setSavedDiscarded();
 			download_manager.getStats().setSavedHashFails();
 			
-		}else if ( download_manager.getState() == DownloadManager.STATE_STOPPED ){
-				
+		}else{
+			
+			throw( new DownloadException( "Download::start: download not ready" ));
+		}
+	}
+	
+	public void
+	restart()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() == DownloadManager.STATE_STOPPED ){
+			
 			download_manager.setState( DownloadManager.STATE_WAITING );
 			
 		}else{
 			
-			throw( new DownloadException( "Download::start: download not ready or stopped" ));
+			throw( new DownloadException( "Download::restart: download stopped" ));
 		}
 	}
 	

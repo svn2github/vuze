@@ -40,6 +40,20 @@ Download
 	public static final int ST_STOPPED			= 7;	// stopped
 	public static final int ST_ERROR			= 8;	// failed
 	
+		/* A download's lifecycle:
+		 * initial state = WAITING
+		 *   execute "initialise" method
+		 * state moves through PREPARING to READY
+		 *   execute "start" method
+		 * state moves to SEEDING or DOWNLOADING
+		 *   execute "stop" method
+		 * state moves to STOPPING to STOPPED
+		 *   execute "restart" method -> WAITING
+		 *   execute "remove" method -> deletes the download
+		 * 
+		 * a "stop" method call can be made when the download is in all states except STOPPED
+		 */
+	
 	public static final int	PR_HIGH_PRIORITY	= 1;
 	public static final int	PR_LOW_PRIORITY		= 2;
 	
@@ -70,6 +84,11 @@ Download
 	
 	public void
 	stop()
+	
+		throws DownloadException;
+	
+	public void
+	restart()
 	
 		throws DownloadException;
 	
