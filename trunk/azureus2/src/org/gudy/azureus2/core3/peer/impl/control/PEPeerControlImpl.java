@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.peer.impl.control;
+ package org.gudy.azureus2.core3.peer.impl.control;
 
 
 import java.nio.ByteBuffer;
@@ -1503,7 +1503,7 @@ PEPeerControlImpl
           }
         }
       }
-    }    
+    }
   }
 
   public int getPieceLength(int pieceNumber) {
@@ -1565,7 +1565,7 @@ PEPeerControlImpl
     _manager.addPeer(pc);
   }
 
-  public void peerRemoved(PEPeer pc) {    
+  public void peerRemoved(PEPeer pc) {
     int piece = pc.getUniqueAnnounce();
     if(piece != -1) {
       superSeedModeNumberOfAnnounces--;
@@ -1698,7 +1698,7 @@ PEPeerControlImpl
 
   private void badPeerDetected(PEPeer peer) {
     String ip = peer.getIp();
-    System.out.println("Bar Peer Found : " + peer.getIp());                 
+    Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
     int nbBadChunks = peer.getNbBadChunks();
     if(nbBadChunks > BAD_CHUNKS_LIMIT) {
       //Ban fist to avoid a fast reco of the bad peer
@@ -1916,8 +1916,7 @@ PEPeerControlImpl
 
   public boolean isSuperSeedMode() {
     return superSeedMode;
-  }
-
+ }
   public void setSuperSeedMode(boolean superSeedMode) {
     this.superSeedMode = superSeedMode;
   }    
