@@ -27,7 +27,6 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PluginItem;
-import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
