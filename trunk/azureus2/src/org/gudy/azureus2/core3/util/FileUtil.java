@@ -103,16 +103,12 @@ public class FileUtil {
    * Example: smartFullName("c:\windows\thedir", "thedir") -> "c:\windows\thedir"
    * Example: smartFullName("c:\windows", "thedir") -> "c:\windows\thedir"
    * Example: smartFullName("c:\windows", "filename.txt") -> "c:\windows\filename.txt"
+   * Example: smartFullName("c:\windows\filename.txt", "filename.txt") -> "c:\windows\filename.txt"
    */
   public static String smartFullName(String path, String name) {
-    String fullPath = path + System.getProperty("file.separator") + name;
     //if 'name' is already represented by 'path'
-    if (path.endsWith(name)) {
-      File dirTest = new File(path);
-      if (dirTest.isDirectory()) return path;
-      else return fullPath;
-    }
-    else return fullPath;
+    if (path.endsWith(name)) return path;
+    else return path + System.getProperty("file.separator") + name;
   }
   
   
@@ -129,12 +125,8 @@ public class FileUtil {
     //if 'name' is already represented by 'path'
     if (path.endsWith(name)) {
       File dirTest = new File(path);
-      if (dirTest.isDirectory()) {
-        return path;
-      }
-      else {
-        return dirTest.getParent();
-      }
+      if (dirTest.isDirectory()) return path;
+      else return dirTest.getParent();
     }
     //otherwise use path + name
     else {
