@@ -57,6 +57,8 @@ PlatformManagerUpdateChecker
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Native Support Updater" );
+
 		String	version = "1.0";
 		
 		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){

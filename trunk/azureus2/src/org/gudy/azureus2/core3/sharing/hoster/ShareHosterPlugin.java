@@ -61,6 +61,8 @@ ShareHosterPlugin
 	{
 		plugin_interface = _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Share Hoster" );
+
 		log	= plugin_interface.getLogger().getChannel("ShareHosterPlugin");
 		
 		log.log( LoggerChannel.LT_INFORMATION, "ShareHosterPlugin: initialisation starts");

@@ -48,6 +48,8 @@ TrackerDefaultWeb
 	{	
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Tracker Migration" );
+		
 		// this is a built in one and hence initialised after the "normal" ones. Check to see if
 		// there's a tracker web one already installed. If so we just do nothing
 		

@@ -60,6 +60,8 @@ PluginUpdatePlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Plugin Updater" );
+
 		log = plugin_interface.getLogger().getChannel("Plugin Update");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();

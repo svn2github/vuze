@@ -65,6 +65,8 @@ UPnPPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "UPnP" );
+		
 		plugin_interface.addListener(
 			new PluginListener()
 			{

@@ -140,6 +140,8 @@ public class StartStopRulesDefaultPlugin
 
     plugin_interface  = _plugin_interface;
 
+	plugin_interface.getPluginProperties().setProperty( "plugin.name", "Start/Stop Rules" );
+
     plugin_interface.addListener(new PluginListener() {
       public void initializationComplete() { /* not implemented */ }
 

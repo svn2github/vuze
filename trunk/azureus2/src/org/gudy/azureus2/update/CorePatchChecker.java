@@ -45,10 +45,12 @@ CorePatchChecker
 	
 	public void 
 	initialize(
-		PluginInterface pi )
+		PluginInterface plugin_interface )
 	  
 	  	throws PluginException
 	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Core Patcher" );
+
 		if ( TESTING || !Constants.isCVSVersion()){
 		
 			if ( TESTING ){
@@ -56,7 +58,7 @@ CorePatchChecker
 				System.out.println( "CorePatchChecker: TESTING !!!!" );
 			}
 			
-			pi.getUpdateManager().registerUpdatableComponent( this, false );
+			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
 		}
 	}
 	

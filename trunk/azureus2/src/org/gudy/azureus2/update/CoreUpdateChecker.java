@@ -117,6 +117,8 @@ CoreUpdateChecker
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Core Updater" );
+		
 		log	= plugin_interface.getLogger().getChannel("CoreUpdater");
 		
 		rd_logger =

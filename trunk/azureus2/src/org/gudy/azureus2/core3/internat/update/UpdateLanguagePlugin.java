@@ -93,6 +93,8 @@ UpdateLanguagePlugin
   public void initialize(PluginInterface _plugin_interface) {
     plugin_interface  = _plugin_interface;
 
+	plugin_interface.getPluginProperties().setProperty( "plugin.name", "Localised Language Updater" );
+
     log = plugin_interface.getLogger().getChannel("UpdateLanguage");
     log.log(LoggerChannel.LT_INFORMATION, "UpdateLanguage Plugin Initialisation");
 

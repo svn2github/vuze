@@ -569,7 +569,9 @@ public class ConfigView extends AbstractIView {
       }
       
       // Blank means it's internal
-      if (sDirName != ""){
+      
+      if (!sDirName.equals("")){
+      	
         label = new Label(infoGroup, SWT.NULL);
 
       	String	broken_str = pluginIF.isOperational()?"":(" - " + MessageText.getString("ConfigView.pluginlist.broken"));
@@ -583,6 +585,28 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(labelInfo, (numPlugins == 0) ? "ConfigView.pluginlist.noplugins"
                                                           : "ConfigView.pluginlist.info");
 
+    	// lastly the built-in plugins
+    
+    label = new Label(infoGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.pluginlist.coreplugins");
+
+    for (int i = 0; i < pluginIFs.size(); i++) {
+        PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
+   
+        Properties p = pluginIF.getPluginProperties();
+        
+        String plugin_name = pluginIF.getPluginName();
+
+        String sDirName = pluginIF.getPluginDirectoryName();
+        
+        if ( sDirName.equals( "" )){
+        	
+            label = new Label(infoGroup, SWT.NULL);
+
+            label.setText(" - " + plugin_name );
+        }
+    }
+    
     ParameterRepository repository = ParameterRepository.getInstance();
 
     String[] names = repository.getNames();
