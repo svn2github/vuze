@@ -7,6 +7,8 @@ FEATURE: Disable (per torrent) the auto priority setting when seeding [Gudy]
 FEATURE: Disable (per torrent) the rules to start / stop a seeding torrent [Gudy]
 FEATURE: Move files to a directory upon completion [Nolar]
 FEATURE: Slowly establish new connections to peers (for those with internet disconnection issues) [Nolar]
+FEATURE: Re-check file(s) integrity after completion [Gudy]
+FEATURE: Bind to local IP address [Nolar]
 
 CHANGE: Some GUI Changes, so that winXP theme is widely supported [Gudy]
 CHANGE: Saving of torrent files to central dir now optional [Nolar]
