@@ -19,6 +19,7 @@ CHANGE: Core | Retuned tracker connect failure retry interval [Nolar]
 
 BUGFIX: Core | 99.X% / continuous hash fails fix [Parg]
 BUGFIX: Core | Basic plugin config model parameters not working in non-swt (e.g. console) mode [Parg]
+BUGFIX: Core | Fix for 'completed' announce event not being sent on occasion [Nolar]
 BUGFIX: UI   | Fix bug where failed-hashcheck pieces never reappeared in Pieces view [Nolar]
 
 
