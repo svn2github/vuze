@@ -43,6 +43,8 @@ TOTorrentImpl
 	private long		piece_length;
 	private byte[][]	pieces;
 	
+	private byte[]		torrent_hash;
+	
 	private boolean				simple_torrent;
 	private TOTorrentFile[]		files;
 
@@ -77,6 +79,36 @@ TOTorrentImpl
 	public void
 	serialiseToFile(
 		File		output_file )
+	
+		throws TOTorrentException
+	{				
+		byte[]	res = serialiseToByteArray();
+		
+		try{
+			FileOutputStream os = new FileOutputStream( output_file );
+			
+			os.write( res );
+		
+			os.close();
+			
+		}catch( Throwable e){
+			
+			throw( new TOTorrentException( "TOTorrent::serialise: fails '" + e.toString() + "'" ));
+		}
+	}
+	
+	protected byte[]
+	serialiseToByteArray()
+	
+		throws TOTorrentException
+	{
+		Map	root = serialiseToMap();
+				
+		return( BEncoder.encode( root ));
+	}		
+
+	protected Map
+	serialiseToMap()
 	
 		throws TOTorrentException
 	{		
@@ -201,19 +233,7 @@ TOTorrentImpl
 			}
 		}
 		
-		byte[]	res = BEncoder.encode( root );
-		
-		try{
-			FileOutputStream os = new FileOutputStream( output_file );
-			
-			os.write( res );
-		
-			os.close();
-			
-		}catch( Throwable e){
-			
-			throw( new TOTorrentException( "TOTorrent::serialise: fails '" + e.toString() + "'" ));
-		}
+		return( root );
 	}
 	
 	public String
@@ -239,6 +259,40 @@ TOTorrentImpl
 	getAnnounceURL()
 	{
 		return( announce_url );
+	}
+	
+	public byte[]
+	getHash()
+	
+		throws TOTorrentException
+	{
+		if ( torrent_hash == null ){
+			
+			Map	root = serialiseToMap();
+				
+			Map info = (Map)root.get( TK_INFO );
+				
+			setHashFromInfo( info );		
+		}
+		
+		return( torrent_hash );
+	}
+	
+	protected void
+	setHashFromInfo(
+		Map		info )
+		
+		throws TOTorrentException
+	{	
+		try{
+			SHA1Hasher s = new SHA1Hasher();
+				
+			torrent_hash = s.calculateHash(BEncoder.encode(info));
+	
+		}catch( Throwable e ){
+				
+			throw( new TOTorrentException( "TOTorrent::setHashFromInfo: fails '" + e.toString() + "'"));
+		}
 	}
 	
 	protected void
@@ -407,19 +461,28 @@ TOTorrentImpl
 	public void
 	print()
 	{
-		System.out.println( "name = " + torrent_name );
-		System.out.println( "announce url = " + announce_url );
-		System.out.println( "piece length = " + piece_length );
-		System.out.println( "pieces = " + pieces.length );
-		
-		for (int i=0;i<pieces.length;i++){
+		try{
+			byte[]	hash = getHash();
 			
-			System.out.println( "\t" + pieces[i][0] + pieces[i][1] + pieces[i][2] + pieces[i][3] + "..." );
-		}
-										 
-		for (int i=0;i<files.length;i++){
+			System.out.println( "name = " + torrent_name );
+			System.out.println( "announce url = " + announce_url );
+			System.out.println( "announce group = " + announce_group.getAnnounceURLSets().length );
+			System.out.println( "hash = " + ByteFormatter.nicePrint( hash ));
+			System.out.println( "piece length = " + getPieceLength() );
+			System.out.println( "pieces = " + getPieces().length );
 			
-			System.out.println( "\t" + files[i].getPath() + " (" + files[i].getLength() + ")" );
+			for (int i=0;i<pieces.length;i++){
+				
+				System.out.println( "\t" + ByteFormatter.nicePrint(pieces[i]));
+			}
+											 
+			for (int i=0;i<files.length;i++){
+				
+				System.out.println( "\t" + files[i].getPath() + " (" + files[i].getLength() + ")" );
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
 		}
 	}
 }

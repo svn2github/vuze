@@ -45,6 +45,11 @@ TOTorrent
 	public TOTorrentFile[]
 	getFiles();
 	
+	public byte[]
+	getHash()
+	
+		throws TOTorrentException;
+
 	/**
 	 * The additional properties are used for holding non-core data for Azureus' own user
 	 * @param name		name of the property (e.g. "encoding")

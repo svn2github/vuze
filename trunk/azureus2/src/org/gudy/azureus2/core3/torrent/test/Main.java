@@ -67,7 +67,7 @@ Main
 						
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
-				TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://poo/"), new URL("http://pee/")});
+				TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://localhost:6970/announce"), new URL("http://localhost:6969/announce")});
 				
 				torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[]{ set });
 				
@@ -105,11 +105,11 @@ Main
 				
 				if ( do_file ){
 					
-					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\test.wmf"), 1024*10, new URL( "http://beaver:6969/announce" ), list );			
+					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\test.wmf"), 1024*10, new URL( "http://localhost:6969/announce" ), list );			
 					
 				}else{
 	
-					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\scans"), 1024*256, new URL("http://beaver:6969/announce" ), list);
+					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\scans"), 1024*256, new URL("http://localhost:6969/announce" ), list);
 				}
 				
 				t.print();

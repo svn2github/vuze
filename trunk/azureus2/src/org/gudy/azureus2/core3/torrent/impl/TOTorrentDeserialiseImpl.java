@@ -24,8 +24,6 @@ public class
 TOTorrentDeserialiseImpl
 	extends TOTorrentImpl
 {
-	protected Map	meta_data;
-	
 	public
 	TOTorrentDeserialiseImpl(
 		File		file )
@@ -54,14 +52,12 @@ TOTorrentDeserialiseImpl
 				metaInfo.write(buf, 0, nbRead);
 			}
 			
-			meta_data = BDecoder.decode(metaInfo.toByteArray());
+			Map meta_data = BDecoder.decode(metaInfo.toByteArray());
 			
 			if ( meta_data == null) {
 				
 				throw( new TOTorrentException( "Torrent decode fails" ));
 			}
-			
-			printMap();
 			
 				// decode the stuff
 			
@@ -85,7 +81,10 @@ TOTorrentDeserialiseImpl
 					addTorrentAnnounceURLSet( urls );
 				}
 			}
+			
 			Map	info = (Map)meta_data.get( TK_INFO );
+			
+			setHashFromInfo( info );
 			
 			setName( readStringFromMetaData( info, TK_NAME ));
 			
@@ -155,7 +154,14 @@ TOTorrentDeserialiseImpl
 	public void
 	printMap()
 	{
-		print( "", "root", meta_data );
+		try{
+		
+			print( "", "root", serialiseToMap());
+			
+		}catch( TOTorrentException e ){
+		
+			e.printStackTrace();
+		}
 	}
 	
 	protected void
