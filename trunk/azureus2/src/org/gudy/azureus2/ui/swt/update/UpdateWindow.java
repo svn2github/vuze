@@ -168,19 +168,12 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     
     status = new Label(updateWindow,SWT.NULL);
     
-    btnCancel = new Button(updateWindow,SWT.PUSH);
-    Messages.setLanguageText(btnCancel,"swt.update.window.quit");
-    btnCancel.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        dispose();
-       	check_instance.cancel();
-      }
-    });
-    
+ 
     
     btnOk = new Button(updateWindow,SWT.PUSH);
     Messages.setLanguageText(btnOk,"swt.update.window.ok");
     
+    updateWindow.setDefaultButton( btnOk );
     lOk = new Listener() {
       public void handleEvent(Event e) {
         update();
@@ -188,6 +181,24 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     };
     
     btnOk.addListener(SWT.Selection, lOk);
+    
+    btnCancel = new Button(updateWindow,SWT.PUSH);
+    
+    Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    btnCancel.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        dispose();
+       	check_instance.cancel();
+      }
+    });
+    updateWindow.addListener(SWT.Traverse, new Listener() {	
+		public void handleEvent(Event e) {
+			if ( e.character == SWT.ESC){
+			      dispose();
+			      check_instance.cancel();			
+			 }
+		}
+    });
     
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
@@ -205,20 +216,20 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
-    formData.bottom = new FormAttachment(btnOk);
+    formData.bottom = new FormAttachment(btnCancel);
     status.setLayoutData(formData);
     
     formData = new FormData();
     formData.width = 100;
     formData.right = new FormAttachment(100,0);
     formData.bottom = new FormAttachment(100,0);
-    btnOk.setLayoutData(formData);
+    btnCancel.setLayoutData(formData);
     
     formData = new FormData();
     formData.width = 100;
-    formData.right = new FormAttachment(btnOk);
+    formData.right = new FormAttachment(btnCancel);
     formData.bottom = new FormAttachment(100,0);
-    btnCancel.setLayoutData(formData);
+    btnOk.setLayoutData(formData);
     
     updateWindow.setSize(400,400);
     //updateWindow.open();
