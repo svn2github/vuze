@@ -641,12 +641,12 @@ DownloadManagerImpl
 		return onlySeeding;
 	}
 	
-  public void setOnlySeeding(boolean onlySeeding) {
-     //LGLogger.log(getName()+"] setOnlySeeding("+onlySeeding+") was " + this.onlySeeding);
-    if (this.onlySeeding != onlySeeding) {
-      this.onlySeeding = onlySeeding;
+  public void setOnlySeeding(boolean _onlySeeding) {
+     //LGLogger.log(getName()+"] setOnlySeeding("+onlySeeding+") was " + onlySeeding);
+    if (onlySeeding != _onlySeeding) {
+      onlySeeding = _onlySeeding;
 
-      if (onlySeeding && filesExist()) {
+      if (_onlySeeding && filesExist()) {
         // make sure stats always knows we are completed
 			  stats.setDownloadCompleted(1000);
       }
@@ -663,7 +663,7 @@ DownloadManagerImpl
   		  // we left a gap in incomplete list, fixup
         globalManager.fixUpDownloadManagerPositions();
       }
-      listeners.dispatch( LDT_COMPLETIONCHANGED, new Boolean( onlySeeding ));
+      listeners.dispatch( LDT_COMPLETIONCHANGED, new Boolean( _onlySeeding ));
     }
   }
 	
@@ -711,8 +711,8 @@ DownloadManagerImpl
   /**
    * Sets the 'previous' state.
    */
-  public void setPrevState(int state) {
-    this.prevState = state;
+  public void setPrevState(int prev_state) {
+    prevState = prev_state;
   }
   
 
@@ -863,7 +863,7 @@ DownloadManagerImpl
   public void
   saveDownload()
   {
-    DiskManager disk_manager = this.diskManager;
+    DiskManager disk_manager = diskManager;
     
     if ( disk_manager != null ){
     	
@@ -1511,7 +1511,7 @@ DownloadManagerImpl
     	new AEThread("forceRecheck") 
 		{
 			public void runSupport() {
-				int prevState = DownloadManagerImpl.this.getState();
+				int start_state = DownloadManagerImpl.this.getState();
 				
 				setState(STATE_CHECKING);
 				
@@ -1562,13 +1562,13 @@ DownloadManagerImpl
 						
 						diskManager = null;
 						
-						if (prevState == STATE_ERROR){
+						if (start_state == STATE_ERROR){
 							
 							setState(STATE_STOPPED);
 							
 						}else{
 							
-							setState(prevState);
+							setState(start_state);
 						}
 				  	}catch( Exception e ){
 				  		
