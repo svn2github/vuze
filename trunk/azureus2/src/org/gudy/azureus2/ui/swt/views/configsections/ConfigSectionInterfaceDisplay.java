@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Constants;
 
@@ -116,7 +117,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
             valid = true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
         valid = false;
       }
       enableXPStyle.setEnabled(valid);
@@ -135,7 +136,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
                 FileUtil.copyFile(fOrigin, fDest);
               }
             } catch (Exception e) {
-              e.printStackTrace();
+            	Debug.printStackTrace( e );
             }
           } else {
             try {
@@ -145,7 +146,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
                     + "\\bin\\javaw.exe.manifest");
               fDest.delete();
             } catch (Exception e) {
-              e.printStackTrace();
+            	Debug.printStackTrace( e );
             }
           }
         }

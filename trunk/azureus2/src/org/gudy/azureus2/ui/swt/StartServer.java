@@ -119,7 +119,7 @@ StartServer
       }
       catch (Exception e) {
         if(!(e instanceof SocketException))
-          e.printStackTrace();        
+        	Debug.printStackTrace( e );      
         //bContinue = false;
       } finally {
         try {

@@ -292,7 +292,7 @@ CacheFileManagerImpl
 				
 			}catch( InterruptedException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 				break;
 			}
@@ -345,7 +345,7 @@ CacheFileManagerImpl
 							// if this fails then the error should reoccur on a "proper"
 							// flush later and be reported
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}

@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
@@ -75,7 +76,7 @@ public class GUIUpdater extends Thread implements ParameterListener {
         Thread.sleep(waitTime);
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   }
@@ -150,7 +151,7 @@ public class GUIUpdater extends Thread implements ParameterListener {
           }
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "Error while trying to update GUI");
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         } finally {
           refreshed = true;
         }

@@ -108,14 +108,14 @@ PESharedPortSelector
 								
 							}catch( Exception e ){
 								
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 								
 								outstanding_sockets.remove( socket );
 								
 								try{
 									socket.close();
 								}
-								catch( IOException f ){ f.printStackTrace(); }
+								catch( IOException f ){ Debug.printStackTrace( f ); }
 							}								
 						}
 						
@@ -285,7 +285,7 @@ PESharedPortSelector
 
 				}
 				
-			  	e.printStackTrace();
+				Debug.printStackTrace( e );
 			  	
 				LGLogger.log(0, 0, "PESharedPortSelector: error occurred during processing: " + e.toString(), e);
 				
@@ -294,7 +294,7 @@ PESharedPortSelector
 						
 					Thread.sleep(1000);
 				}
-				catch( InterruptedException f ){ f.printStackTrace(); }
+				catch( InterruptedException f ){ Debug.printStackTrace( f ); }
 				
 					// recreate the selector
 										

@@ -76,7 +76,19 @@ AEDiagnosticsLogger
 	logAndOut(
 		String		str )
 	{
-		System.out.println( str );
+		logAndOut( str, false );
+	}
+	
+	public void
+	logAndOut(
+		String		str,
+		boolean		stderr )
+	{
+		if ( stderr ){
+			System.err.println( str );
+		}else{
+			System.out.println( str );
+		}
 		
 		log( str );
 	}

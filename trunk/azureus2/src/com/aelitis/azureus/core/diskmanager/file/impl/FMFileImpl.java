@@ -139,7 +139,7 @@ FMFileImpl
 					
 				}catch( FMFileManagerException e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 				
 				if ( was_open ){
@@ -149,7 +149,7 @@ FMFileImpl
 						
 					}catch( FMFileManagerException e){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 				
@@ -175,7 +175,7 @@ FMFileImpl
 			if (lTimeToWait > 0) {
 	      try {
 	        Thread.sleep(lTimeToWait);
-	      } catch (Exception ignore) { ignore.printStackTrace(); }
+	      } catch (Exception ignore) { Debug.printStackTrace( ignore ); }
 	    }
 	
 			if (raf == null)
@@ -259,7 +259,7 @@ FMFileImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new FMFileManagerException( "open fails", e ));
 		}
@@ -336,7 +336,7 @@ FMFileImpl
 			
 		}catch ( Exception e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new FMFileManagerException( "read fails", e ));
 		}
@@ -486,7 +486,7 @@ FMFileImpl
 			
 		}catch (Exception e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new FMFileManagerException( "write fails", e ));
 		}		

@@ -260,7 +260,7 @@ DMReaderImpl
 					}
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 					Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());
 				}

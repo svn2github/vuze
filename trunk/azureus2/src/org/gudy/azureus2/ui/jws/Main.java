@@ -109,7 +109,7 @@ Main
 				{
 					System.out.println( str );
 					
-					error.printStackTrace();
+					Debug.printStackTrace( error );
 				}
 			});
 		

@@ -172,7 +172,7 @@ LocaleUtilDecoderReal
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( new String( bytes ));
 		}

@@ -28,6 +28,7 @@ import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -213,7 +214,7 @@ public class MessageText {
 		        }
 		        bundles = (String[]) list.toArray(new String[list.size()]);
         	} catch (Exception e) {
-        		e.printStackTrace();
+        		Debug.printStackTrace( e );
         	}
         }
     } else {
@@ -299,7 +300,7 @@ public class MessageText {
     	// user has a problem whereby a null-pointer exception occurs when sorting the
     	// list - I've done some fixes to the locale list construction but am
     	// putting this in here just in case
-    	e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     return foundLocales;
   }
@@ -387,10 +388,10 @@ public class MessageText {
         }
       } catch (MissingResourceException e) {
         System.out.println("changeLocale: no resource bundle for " + newLocale);
-        e.printStackTrace();
+        Debug.printStackTrace( e );
         return false;
       } catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
 
       if (newResourceBundle != null) {

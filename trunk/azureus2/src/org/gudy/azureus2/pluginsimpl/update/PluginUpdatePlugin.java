@@ -774,7 +774,7 @@ PluginUpdatePlugin
 									
 								}catch( Throwable e ){
 									
-									e.printStackTrace();
+									Debug.printStackTrace( e );
 								}
 								
 								new_props.put( "plugin.version", target_version );
@@ -932,7 +932,7 @@ PluginUpdatePlugin
 									
 								}catch( Throwable e ){
 									
-									e.printStackTrace();
+									Debug.printStackTrace( e );
 									
 								}finally{
 									

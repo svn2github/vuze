@@ -134,7 +134,7 @@ ShareManagerImpl
 									
 								}catch( Throwable e ){
 									
-									e.printStackTrace();
+									Debug.printStackTrace( e );
 								}
 							}
 						}
@@ -209,14 +209,14 @@ ShareManagerImpl
 							
 						}catch( Throwable e ){
 						
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				}
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -490,7 +490,7 @@ ShareManagerImpl
 					}
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			
@@ -539,7 +539,7 @@ ShareManagerImpl
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			
@@ -581,7 +581,7 @@ ShareManagerImpl
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}finally{
@@ -602,7 +602,7 @@ ShareManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}		
 	}
@@ -619,7 +619,7 @@ ShareManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}			
 	}

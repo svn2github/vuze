@@ -119,7 +119,7 @@ SFPluginDetailsLoaderImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new SFPluginDetailsException( "Plugin list load failed", e ));
 		}
@@ -151,7 +151,7 @@ SFPluginDetailsLoaderImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new SFPluginDetailsException( "Plugin details load fails", e ));
 		}

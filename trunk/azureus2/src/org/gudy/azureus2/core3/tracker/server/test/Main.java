@@ -129,7 +129,7 @@ Main
 					}
 					torrent.peerContact("started", new HashWrapper( ("xxxxxxxxxxxxxxxx" + i).getBytes()), 1234, "xxxxxxx" + i, false,  "kkkkkkkk", 0, 0, 0, 100000 );
 				}catch( Throwable e ){
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			
@@ -268,7 +268,7 @@ Main
 		
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		final String	info_hash	= t_info_hash;
@@ -407,7 +407,7 @@ Main
 							
 						}catch( Throwable e ){
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				}

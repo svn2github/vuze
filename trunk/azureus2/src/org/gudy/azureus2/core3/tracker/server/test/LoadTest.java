@@ -103,7 +103,7 @@ LoadTest
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		clients = new loadTestClient[num_clients];
@@ -215,7 +215,7 @@ LoadTest
 				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
 				
 			}catch( Throwable e ){
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 			key		= TRTrackerClientClassicImpl.createKeyID();
@@ -264,7 +264,7 @@ LoadTest
 				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
 				
 			}catch( Throwable e ){
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}		
 		}
 		
@@ -287,7 +287,7 @@ LoadTest
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -301,7 +301,7 @@ LoadTest
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}		
 		}
 	
@@ -321,7 +321,7 @@ LoadTest
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}			
 		}
 		void
@@ -338,7 +338,7 @@ LoadTest
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}			
 		}
 	}

@@ -26,6 +26,7 @@ import java.io.*;
 import java.nio.channels.*;
 import java.util.Random;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
@@ -89,7 +90,7 @@ public class MemoryMappedFileTester {
       
     
     }
-    catch (Throwable t) { t.printStackTrace(); }
+    catch (Throwable t) { Debug.printStackTrace( t ); }
 	}
   
 

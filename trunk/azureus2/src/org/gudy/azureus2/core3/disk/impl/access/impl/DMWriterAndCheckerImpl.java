@@ -239,7 +239,7 @@ DMWriterAndCheckerImpl
 				   
 				return false;
 			}
-		} catch (Exception e) {  e.printStackTrace();  }
+		} catch (Exception e) {  Debug.printStackTrace( e );  }
 			
 		return true;
 	}
@@ -290,7 +290,7 @@ DMWriterAndCheckerImpl
 			try{
 			    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
 			    	
-			    	try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
+			    	try{  Thread.sleep( 100 );  }catch(Exception e) { Debug.printStackTrace( e ); }
 			    }
 			       
 			    boolean[]	pieceDone	= disk_manager.getPiecesDone();
@@ -338,7 +338,7 @@ DMWriterAndCheckerImpl
 						}
 					}catch (Exception e){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 	
@@ -418,7 +418,7 @@ DMWriterAndCheckerImpl
 					
 				} catch (Exception e) {
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 				
 				return false;
@@ -579,7 +579,7 @@ DMWriterAndCheckerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getName();
 						
@@ -815,7 +815,7 @@ DMWriterAndCheckerImpl
 					}
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 					Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());
 				}

@@ -10,6 +10,7 @@ import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -77,7 +78,7 @@ public class testOSX extends  Object{
   				display.sleep();
   		}
   		catch (Exception e) {
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   	}
   	display.dispose();

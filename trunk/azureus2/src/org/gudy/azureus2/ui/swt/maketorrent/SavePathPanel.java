@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -70,7 +71,7 @@ public class SavePathPanel extends AbstractWizardPanel {
   		
   		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
   	}catch( Throwable e ){
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   	}
     wizard.setTitle(MessageText.getString("wizard.torrentFile"));
     wizard.setCurrentInfo(MessageText.getString("wizard.choosetorrent"));

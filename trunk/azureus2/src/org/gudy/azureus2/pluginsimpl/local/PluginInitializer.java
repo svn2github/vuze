@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
@@ -264,7 +265,7 @@ PluginInitializer
 		 		 				
 	  		}catch( Throwable e ){
 	  			
-	  			e.printStackTrace();
+	  			Debug.printStackTrace( e );
 	  			
 	  	    	LGLogger.logAlert( "Initialisation of built in plugin '" + key + "' fails", e );
 	  	      
@@ -422,7 +423,7 @@ PluginInitializer
       	}
       }catch( Throwable e ){
       	
-      	e.printStackTrace();
+      	Debug.printStackTrace( e );
       	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
       	
       	LGLogger.logAlert( LGLogger.AT_ERROR, msg );
@@ -592,7 +593,7 @@ PluginInitializer
 		      
 		      if ( load_failure != null ){
 		      	
-		      	load_failure.printStackTrace();
+		      	Debug.printStackTrace( load_failure );
 		        
 		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
 		   	 
@@ -621,7 +622,7 @@ PluginInitializer
     		throw((PluginException)e);
     	}
    
-    	e.printStackTrace();
+    	Debug.printStackTrace( e );
       
     	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
  	 
@@ -670,7 +671,7 @@ PluginInitializer
     		}
     	}catch(Exception e){
     		
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
     	}
    	}
     
@@ -731,7 +732,7 @@ PluginInitializer
    		
   	}catch(Throwable e){
   		
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   		
   		String	msg = "Error loading internal plugin '" + plugin_class.getName() + "'";
   		

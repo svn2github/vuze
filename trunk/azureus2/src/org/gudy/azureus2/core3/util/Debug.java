@@ -38,9 +38,17 @@ public class Debug {
   outNoStack(
   	String		str )
   {
-    diag_logger.logAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString());
+  	outNoStack( str, false );
+  }
+  
+  public static void
+  outNoStack(
+  	String		str,
+	boolean		stderr)
+  {
+    diag_logger.logAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString(), stderr );
     
-    diag_logger.logAndOut("  " + str );
+    diag_logger.logAndOut("  " + str, stderr );
   }
   
   /**
@@ -251,7 +259,7 @@ public class Debug {
 				   try{
 				   	Thread.sleep(5000);
 				   }catch( Throwable e ){
-				   	e.printStackTrace();
+				   	Debug.printStackTrace( e );
 				   }
 			   }
 		   }
@@ -316,7 +324,7 @@ public class Debug {
 			
 			pw.close();
 			
-			outNoStack( baos.toString());
+			outNoStack( baos.toString(), true);
 			
 		}catch( Throwable ignore ){
 			

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl;
  *
  */
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
@@ -49,7 +50,7 @@ Test
 			System.out.println( "parp = " + dl.getPluginDetails( keys[0] ).getDownloadURL());
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

@@ -236,7 +236,7 @@ Test
 							}
 						}catch( Throwable e ){
 						
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				});
@@ -247,7 +247,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	public static void

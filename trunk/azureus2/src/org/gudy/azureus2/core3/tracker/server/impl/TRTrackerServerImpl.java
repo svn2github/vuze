@@ -244,7 +244,7 @@ TRTrackerServerImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -268,7 +268,7 @@ TRTrackerServerImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -494,7 +494,7 @@ TRTrackerServerImpl
 				
 			}catch( InterruptedException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 		}

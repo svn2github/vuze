@@ -112,7 +112,7 @@ TRHostTorrentHostImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 		}finally{
 			
@@ -155,7 +155,7 @@ TRHostTorrentHostImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 		}finally{
 			
@@ -247,7 +247,7 @@ TRHostTorrentHostImpl
 			}
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		return( new TRHostPeer[0] );

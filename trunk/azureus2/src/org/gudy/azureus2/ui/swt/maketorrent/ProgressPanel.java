@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.logging.*;
@@ -161,7 +162,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 	  wizard.switchToClose();
 	}
     catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       reportCurrentTask(MessageText.getString("wizard.operationfailed"));
       reportCurrentTask(LGLogger.exceptionToString(e));
 	  wizard.switchToClose();

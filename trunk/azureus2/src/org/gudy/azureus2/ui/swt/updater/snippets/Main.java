@@ -24,6 +24,8 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 /**
  * @author Olivier Chalouhi
  *
@@ -38,7 +40,7 @@ public class Main {
           spawnStarted();
           server.close();
         } catch(Exception e) {
-         e.printStackTrace();   
+        	Debug.printStackTrace( e );
         }
     }
     

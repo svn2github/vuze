@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.Plugin;
@@ -186,7 +187,7 @@ public class StartStopRulesDefaultPlugin
               "SWT UI Config not loaded for StartStopRulesDefaulPlugin. " +
               e.getMessage() + " not found.");
     } catch( Throwable e ){
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     reloadConfigParams();
 
@@ -241,7 +242,7 @@ public class StartStopRulesDefaultPlugin
         try {
           process();
         } catch( Exception e ) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     }
@@ -495,7 +496,7 @@ public class StartStopRulesDefaultPlugin
 	            }
 	          });
 	        }
-	      } catch (Throwable t) { t.printStackTrace(); }
+	      } catch (Throwable t) { Debug.printStackTrace( t ); }
 	    } else if (debugMenuItem != null && seedingRankColumn != null) {
 	      ((TableColumnCore)seedingRankColumn).removeContextMenuItem(debugMenuItem);
 	      debugMenuItem = null;

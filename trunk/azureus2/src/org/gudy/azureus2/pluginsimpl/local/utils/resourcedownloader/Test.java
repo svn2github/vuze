@@ -31,6 +31,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -63,12 +64,12 @@ Test
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 						
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -105,7 +106,7 @@ Test
 	{
 		System.out.println( "Failed");
 		
-		e.printStackTrace();
+		Debug.printStackTrace( e );
 	}
 	
 	public static void
@@ -119,7 +120,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

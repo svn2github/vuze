@@ -69,7 +69,7 @@ ShareConfigImpl
 			
 		}catch (Exception e) {
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 

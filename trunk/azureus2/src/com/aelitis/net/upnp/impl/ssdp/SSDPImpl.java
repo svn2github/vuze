@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
@@ -124,7 +125,7 @@ SSDPImpl
 							
 						}catch( Throwable e ){
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 						
 						mc_sock.bind( bind_address );
@@ -148,7 +149,7 @@ SSDPImpl
 											
 										}catch( Throwable e ){
 											
-											e.printStackTrace();
+											Debug.printStackTrace( e );
 										}
 									}
 								});
@@ -188,7 +189,7 @@ SSDPImpl
 													
 					}catch( Throwable e ){
 					
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}
@@ -206,7 +207,7 @@ SSDPImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new UPnPException( "Failed to initialise SSDP", e ));
 		}
@@ -239,7 +240,7 @@ SSDPImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 		}
@@ -281,7 +282,7 @@ SSDPImpl
 			
 			}catch( Throwable e ){
 			
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -304,7 +305,7 @@ SSDPImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}

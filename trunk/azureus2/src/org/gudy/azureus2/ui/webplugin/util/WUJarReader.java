@@ -30,6 +30,8 @@ import java.util.*;
 import java.io.*;
 import java.util.jar.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 public class 
 WUJarReader 
 {
@@ -82,7 +84,7 @@ WUJarReader
 		
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 						
 		}finally{
 			

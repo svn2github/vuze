@@ -7,6 +7,7 @@ package org.gudy.azureus2.ui.swt;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
@@ -83,7 +84,7 @@ Main
    		
   		LGLogger.log( LGLogger.ERROR, "Start failed" );
 	
-  		e.printStackTrace(); 		
+  		Debug.printStackTrace( e );	
   	}
   }
   

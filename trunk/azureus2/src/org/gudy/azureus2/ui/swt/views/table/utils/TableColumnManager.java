@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -106,7 +107,7 @@ public class TableColumnManager {
       }
     } catch (Exception e) {
       System.out.println("Error while adding Table Column Extension");
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
   }
 

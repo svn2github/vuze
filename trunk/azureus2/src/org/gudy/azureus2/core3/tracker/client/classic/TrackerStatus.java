@@ -84,7 +84,7 @@ public class TrackerStatus {
                      "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
        }
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     } 
   }
 

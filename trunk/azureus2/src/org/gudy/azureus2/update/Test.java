@@ -29,6 +29,8 @@ package org.gudy.azureus2.update;
 
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 public class 
 Test 
 {
@@ -52,7 +54,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 	}

@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -97,7 +98,7 @@ public class UpSpeedItem
         }
         changeColor(cell, dm.getStats().getDownloadAverage(), dm.getState());
       } catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   
@@ -109,7 +110,7 @@ public class UpSpeedItem
         ((TableCellCore)cell).setForeground(newFG);
         iLastState = iState;
       } catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   }

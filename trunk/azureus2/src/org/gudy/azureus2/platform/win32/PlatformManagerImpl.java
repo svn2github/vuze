@@ -313,7 +313,7 @@ PlatformManagerImpl
 			if ( 	e.getMessage() == null || 
 					e.getMessage().indexOf("RegOpenKey failed") == -1 ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 
 			return( false );
@@ -355,7 +355,7 @@ PlatformManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 			try{
@@ -366,7 +366,7 @@ PlatformManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 
 			access.writeStringValue( 	

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
 import java.io.UnsupportedEncodingException;
 
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.utils.*;
 
@@ -60,7 +61,7 @@ LocaleDecoderImpl
 			
 		}catch( UnsupportedEncodingException	e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}

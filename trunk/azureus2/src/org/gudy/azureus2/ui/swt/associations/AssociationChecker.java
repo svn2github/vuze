@@ -30,6 +30,7 @@ package org.gudy.azureus2.ui.swt.associations;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
@@ -60,7 +61,7 @@ AssociationChecker
 		    }
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -201,7 +202,7 @@ AssociationChecker
  				
  			}catch( PlatformManagerException e ){
  				
- 				e.printStackTrace();
+ 				Debug.printStackTrace( e );
  			}
  		}
  		

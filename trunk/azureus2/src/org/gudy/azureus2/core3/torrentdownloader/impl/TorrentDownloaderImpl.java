@@ -272,14 +272,14 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
           	}
           }catch( Throwable e ){
           		
-          	e.printStackTrace();
+          	Debug.printStackTrace( e );
           }
           
           this.state = STATE_FINISHED;
         }
         this.notifyListener();
       } catch (Exception e) {
-      	e.printStackTrace();
+      	Debug.printStackTrace( e );
         this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
     }

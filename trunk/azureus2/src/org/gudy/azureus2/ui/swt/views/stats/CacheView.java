@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -66,7 +67,7 @@ public class CacheView extends AbstractIView {
     try {
       this.stats = CacheFileManagerFactory.getSingleton().getStats();
     } catch(Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }
   

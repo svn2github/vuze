@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -61,7 +62,7 @@ public class AboutWindow {
       properties.load(AboutWindow.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
     }
     catch (Exception e1) {
-      e1.printStackTrace();
+    	Debug.printStackTrace( e1 );
       return;
     }
         
@@ -186,7 +187,7 @@ public class AboutWindow {
           try {
             Thread.sleep(30);
           }catch(Exception e) {
-            e.printStackTrace();
+          	Debug.printStackTrace( e );
           }
       }
     }};

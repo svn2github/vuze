@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -71,7 +72,7 @@ public class StatsView extends AbstractIView {
           Thread.sleep(1000);
         }
       } catch(Exception e) {
-        e.printStackTrace();        
+      	Debug.printStackTrace( e );  
       }
     }
     
@@ -143,7 +144,7 @@ public class StatsView extends AbstractIView {
           break;        
       }
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }
   

@@ -442,7 +442,7 @@ PluginInterfaceImpl
   			
   		}catch( Throwable e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   	}
   }
@@ -457,7 +457,7 @@ PluginInterfaceImpl
   			
   		}catch( Throwable e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   	}
   }
@@ -472,7 +472,7 @@ PluginInterfaceImpl
   			
   		}catch( Throwable e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   	}
   }
@@ -488,7 +488,7 @@ PluginInterfaceImpl
   			
   		}catch( Throwable e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   	} 	
   }

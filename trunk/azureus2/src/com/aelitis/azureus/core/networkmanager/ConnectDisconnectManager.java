@@ -194,7 +194,7 @@ public class ConnectDisconnectManager {
       pending_attempts.put( request, null );
     }
     catch( Throwable t ) {
-      t.printStackTrace();
+      Debug.printStackTrace(t);
       if( request.channel != null ) {
         try{
         	pending_closes_mon.enter();
@@ -307,7 +307,7 @@ public class ConnectDisconnectManager {
           try{ 
             channel.close();
           }
-          catch( Throwable t ) {  t.printStackTrace();  }
+          catch( Throwable t ) {  Debug.printStackTrace(t);  }
         }
       }
     }finally{

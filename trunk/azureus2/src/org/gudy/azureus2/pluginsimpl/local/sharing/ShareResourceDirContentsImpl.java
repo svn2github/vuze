@@ -161,7 +161,7 @@ ShareResourceDirContentsImpl
 							
 						}catch( Throwable e ){
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				}else{
@@ -178,7 +178,7 @@ ShareResourceDirContentsImpl
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}
@@ -216,7 +216,7 @@ ShareResourceDirContentsImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -234,7 +234,7 @@ ShareResourceDirContentsImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

@@ -322,7 +322,7 @@ ResourceDownloaderTorrentImpl
 								
 							}catch( Throwable e ){
 								
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 							}
 						}
 					}
@@ -386,7 +386,7 @@ ResourceDownloaderTorrentImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			failed( this, new ResourceDownloaderException( "Failed to read downloaded torrent data: " + e.getMessage(), e ));
 		}

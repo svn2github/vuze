@@ -173,7 +173,7 @@ ImportTorrentWizard
 
 			error_title 	= MessageText.getString("importTorrentWizard.process.unknownfail.title");
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			error_detail 	= e.toString();
 		}

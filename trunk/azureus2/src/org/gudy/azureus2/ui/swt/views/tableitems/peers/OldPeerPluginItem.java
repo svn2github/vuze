@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -97,7 +98,7 @@ public class OldPeerPluginItem
         }
       } catch(Throwable e) {
         LGLogger.log(LGLogger.ERROR,"Plugin in PeersView generated an exception : " + e );
-        e.printStackTrace();
+        Debug.printStackTrace( e );
       }
     }
     

@@ -72,7 +72,7 @@ public class SystemTime {
             }
           }
           
-          try{  Thread.sleep( TIME_GRANULARITY_MILLIS );  }catch(Exception e) {e.printStackTrace();}
+          try{  Thread.sleep( TIME_GRANULARITY_MILLIS );  }catch(Exception e) {Debug.printStackTrace( e );}
         }
       }
     };

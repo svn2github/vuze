@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -83,7 +84,7 @@ UserAlerts
 	    	}
   		}catch( Throwable e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   			
   		}finally{
   			
@@ -118,7 +119,7 @@ UserAlerts
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
   	}
 }

@@ -124,7 +124,7 @@ TRHostImpl
 													
 											}catch( Throwable e ){
 												
-												e.printStackTrace();
+												Debug.printStackTrace( e );
 											}
 										}
 										
@@ -138,7 +138,7 @@ TRHostImpl
 														
 											}catch( Throwable e ){
 													
-												e.printStackTrace();
+												Debug.printStackTrace( e );
 											}
 										}
 											
@@ -152,7 +152,7 @@ TRHostImpl
 														
 											}catch( Throwable e ){
 												
-												e.printStackTrace();
+												Debug.printStackTrace( e );
 											}
 										}						
 										
@@ -184,7 +184,7 @@ TRHostImpl
 										
 									}catch( InterruptedException e ){
 										
-										e.printStackTrace();
+										Debug.printStackTrace( e );
 										
 										break;
 									}
@@ -301,7 +301,7 @@ TRHostImpl
 					}
 				}catch( TOTorrentException e ){
 					
-					e.printStackTrace();	
+					Debug.printStackTrace( e );	
 				}
 				
 				return( ht );
@@ -380,7 +380,7 @@ TRHostImpl
 				
 			}catch( TOTorrentException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 					
 			host_torrent_map.put( torrent, host_torrent );
@@ -475,7 +475,7 @@ TRHostImpl
 			
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		return( null );
@@ -577,7 +577,7 @@ TRHostImpl
 				
 			}catch( TOTorrentException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 			host_torrent_map.remove( torrent );
@@ -842,7 +842,7 @@ TRHostImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 		}finally{
@@ -1022,7 +1022,7 @@ TRHostImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -1045,7 +1045,7 @@ TRHostImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		

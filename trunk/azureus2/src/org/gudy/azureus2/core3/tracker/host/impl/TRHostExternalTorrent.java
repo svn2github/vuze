@@ -60,7 +60,7 @@ TRHostExternalTorrent
 			
 		}catch( LocaleUtilEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -188,7 +188,7 @@ TRHostExternalTorrent
 			
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( false );
 		}
@@ -205,7 +205,7 @@ TRHostExternalTorrent
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 		
@@ -219,7 +219,7 @@ TRHostExternalTorrent
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}

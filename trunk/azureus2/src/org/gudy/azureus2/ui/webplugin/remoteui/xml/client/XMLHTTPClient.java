@@ -399,7 +399,7 @@ XMLHTTPClient
 
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 
@@ -529,7 +529,7 @@ XMLHTTPClient
 						
 					}catch (Exception e){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 						
 						break;
 					}

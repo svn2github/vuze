@@ -163,7 +163,7 @@ LGLoggerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -270,7 +270,7 @@ LGLoggerImpl
 				
 			}catch( Throwable f ){
 				
-				f.printStackTrace();
+				Debug.printStackTrace( f );
 			}
 		}
 	}
@@ -297,7 +297,7 @@ LGLoggerImpl
 				
 			}catch( Throwable f ){
 				
-				f.printStackTrace();
+				Debug.printStackTrace( f );
 			}
 		}
 	}

@@ -38,6 +38,7 @@ import org.eclipse.swt.graphics.Point;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
@@ -139,7 +140,7 @@ public class TableCellImpl
     LGLogger.log(LGLogger.ERROR, 
                  "Table Cell Plugin for Column #" + sPosition + 
                  " generated an exception: " + e);
-    e.printStackTrace();
+    Debug.printStackTrace( e );
   }
   
   /* Public API */
@@ -517,7 +518,7 @@ public class TableCellImpl
       }
     } catch (Exception e) {
       System.out.println("Could not compare cells");
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
     return 0;
   }

@@ -34,6 +34,7 @@ import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -334,7 +335,7 @@ ResourceDownloaderURLImpl
 												
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 				

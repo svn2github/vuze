@@ -31,6 +31,7 @@ package com.aelitis.net.upnp.impl.device;
 import java.util.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
@@ -78,7 +79,7 @@ UPnPRootDeviceImpl
 			
 			upnp.log( e );
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));

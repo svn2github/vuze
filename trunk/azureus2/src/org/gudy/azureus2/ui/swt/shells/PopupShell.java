@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
 /**
@@ -67,7 +68,7 @@ public class PopupShell {
     } catch (NoSuchFieldError e) {
       /* Ignore for Pre 3.0 SWT.. */
     } catch (Throwable e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     
     shell.setLayout(layout);

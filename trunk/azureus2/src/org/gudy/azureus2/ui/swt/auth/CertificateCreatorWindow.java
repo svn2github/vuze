@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.swt.auth;
  */
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.logging.*;
 
 import org.eclipse.swt.*;
@@ -71,7 +72,7 @@ CertificateCreatorWindow
 					});
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

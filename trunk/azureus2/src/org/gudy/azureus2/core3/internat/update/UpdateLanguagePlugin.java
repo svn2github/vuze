@@ -102,14 +102,14 @@ UpdateLanguagePlugin
               "SWT UI Config not loaded for UpdateLanguagePlugin. " +
               e.getMessage() + " not found.");
     } catch( Throwable e ){
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     
     if (plugin_config.getBooleanParameter("General_bEnableLanguageUpdate")) {
       try {
         updateLanguage();
       } catch( Exception e ) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   }
@@ -129,7 +129,7 @@ UpdateLanguagePlugin
       //Do nothing
 
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
 
     } finally {
       try {
@@ -181,7 +181,7 @@ UpdateLanguagePlugin
         log.log(LoggerChannel.LT_ERROR, "Error:" + e);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }
 
@@ -208,7 +208,7 @@ UpdateLanguagePlugin
       //Do nothing
 
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
 
     } finally {
       try {
@@ -233,7 +233,7 @@ UpdateLanguagePlugin
           moveInNewRevision(rd.download(), fNewestRevision);
         } catch (Exception e) {
           log.log("DLing Lang Update", e);
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         }
       }
     } else {
@@ -272,7 +272,7 @@ UpdateLanguagePlugin
 
     } catch (Exception e) {
       log.log("Writing new language File", e);
-      e.printStackTrace();
+      Debug.printStackTrace( e );
 
 		} finally {
 			if (is != null) {

@@ -644,7 +644,7 @@ TRTrackerClientClassicImpl
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( getErrorRetryInterval() );
 			
@@ -750,7 +750,7 @@ TRTrackerClientClassicImpl
 			  }
 		  }catch( MalformedURLException e ){
 		  	
-		  	e.printStackTrace();
+		  	Debug.printStackTrace( e );
 		  	
 		  	last_failure_resp = 
 		  		new TRTrackerResponseImpl( 
@@ -1553,7 +1553,7 @@ TRTrackerClientClassicImpl
 			}      
 		}catch(Exception e){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	
 		trackerUrlListString = "[";
@@ -1623,7 +1623,7 @@ TRTrackerClientClassicImpl
 	 					}
 	 				}catch( Throwable e ){
 	 					
-	 					e.printStackTrace();
+	 					Debug.printStackTrace( e );
 	 				}
 	 				
 					long	time_to_wait;
@@ -1822,7 +1822,7 @@ TRTrackerClientClassicImpl
 	 			}	 				
 	 		}catch( Throwable e ){
 				
-				e.printStackTrace();
+	 			Debug.printStackTrace( e );
 				
 				failure_reason = "error: " + e.getMessage();
 			}
@@ -1979,7 +1979,7 @@ TRTrackerClientClassicImpl
 	  		}
   		}catch( UnsupportedEncodingException e ){
   			
-  			e.printStackTrace();
+  			Debug.printStackTrace( e );
   		}
   		
   		return( anon_peer_id );
@@ -2084,7 +2084,7 @@ TRTrackerClientClassicImpl
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( tracker_peer_cache.size());
 		}

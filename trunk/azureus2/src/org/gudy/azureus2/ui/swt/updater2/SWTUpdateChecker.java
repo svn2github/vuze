@@ -33,6 +33,7 @@ import java.util.zip.ZipInputStream;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
@@ -99,7 +100,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      	
 	      }catch( ResourceDownloaderException e ){
 	      
-	      	e.printStackTrace();
+	      	Debug.printStackTrace( e );
 	      }
 	      
 	      checker.addUpdate("SWT Library for " + versionGetter.getPlatform(),
@@ -193,7 +194,7 @@ public class SWTUpdateChecker implements UpdatableComponent
       }
       zip.close();      
     } catch(Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       return false;
     }
         

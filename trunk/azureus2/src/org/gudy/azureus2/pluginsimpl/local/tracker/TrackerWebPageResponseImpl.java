@@ -324,7 +324,7 @@ TrackerWebPageResponseImpl
 			
 		}catch( TOTorrentException e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		
 			throw( new IOException( e.toString()));
 		}

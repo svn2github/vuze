@@ -20,6 +20,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
@@ -103,7 +104,7 @@ public class PasswordWindow {
                      close();
                    }                   
                } catch(Exception e) {
-                 e.printStackTrace();
+               	Debug.printStackTrace( e );
                }
       }
     });    

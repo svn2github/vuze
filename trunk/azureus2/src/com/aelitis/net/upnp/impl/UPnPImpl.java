@@ -32,6 +32,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
@@ -313,7 +314,7 @@ UPnPImpl
 				
 			}catch( Throwable f ){
 				
-				f.printStackTrace();
+				Debug.printStackTrace( f );
 			}
 			
 			if ( e instanceof SimpleXMLParserDocumentException ){
@@ -641,7 +642,7 @@ UPnPImpl
 								
 							}catch( Throwable e ){
 								
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 							}
 						}						
 					});
@@ -661,7 +662,7 @@ UPnPImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

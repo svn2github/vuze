@@ -251,7 +251,7 @@ WebPlugin
 			
 				}catch( Throwable  e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 					log.logAlert( 	LoggerChannel.LT_ERROR, 
 									plugin_interface.getPluginName() + " - plugin.properties settings migration failed." );
@@ -594,7 +594,7 @@ WebPlugin
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 				return( false );
 			}

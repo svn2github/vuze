@@ -32,6 +32,7 @@ import java.util.jar.*;
 import java.security.*;
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 Test 
@@ -57,7 +58,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 public class TextViewerWindow {
@@ -51,7 +52,7 @@ public class TextViewerWindow {
         	shell.dispose();
         }
         catch (Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     });

@@ -155,7 +155,7 @@ TOTorrentImpl
 									
 								}catch( IOException e ){
 								
-									e.printStackTrace();
+									Debug.printStackTrace( e );
 								}
 							}
 						}
@@ -391,7 +391,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			comment = null;
 		}
@@ -440,7 +440,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			created_by = null;
 		}	
@@ -492,7 +492,7 @@ TOTorrentImpl
 				
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( false );
 		}
@@ -615,7 +615,7 @@ TOTorrentImpl
 			
 				// hide encoding exceptions as default encoding must be available
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 		
@@ -631,7 +631,7 @@ TOTorrentImpl
 			
 				// hide encoding exceptions as default encoding must be available
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}
@@ -875,7 +875,7 @@ TOTorrentImpl
 			}
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

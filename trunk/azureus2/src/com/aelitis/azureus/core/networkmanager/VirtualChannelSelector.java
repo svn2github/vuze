@@ -155,7 +155,7 @@ public class VirtualChannelSelector {
       try {
         count = selector.select( timeout );
       }
-      catch (Throwable t) {  t.printStackTrace();  }
+      catch (Throwable t) {  Debug.printStackTrace(t);  }
       
       if( !selector_guard.isSelectorOK( count, timeout / 2 ) ) {
         selector = selector_guard.repairSelector( selector );
@@ -196,7 +196,7 @@ public class VirtualChannelSelector {
       	  }
       	  catch (Throwable t) {
       	    data.listener.selectFailure( t );
-      	    t.printStackTrace();
+      	  Debug.printStackTrace(t);
       	  }
       	}
       	register_list.clear();

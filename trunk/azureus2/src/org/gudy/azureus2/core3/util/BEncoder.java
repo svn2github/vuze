@@ -231,7 +231,7 @@ public class BEncoder {
     		
     	}catch( IOException e ){
     		
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
     		
     		return( false );
     	}

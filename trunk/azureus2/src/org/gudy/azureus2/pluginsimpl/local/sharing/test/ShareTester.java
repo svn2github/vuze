@@ -218,10 +218,10 @@ ShareTester
 			
 		}catch( ShareException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	
 	}

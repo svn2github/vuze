@@ -102,7 +102,7 @@ public class ConfigurationManager {
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}else{
 			
@@ -140,7 +140,7 @@ public class ConfigurationManager {
     try {
       return (Long) propertiesMap.get(parameter);
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       return null;
     }
   }
@@ -222,7 +222,7 @@ public class ConfigurationManager {
       if (!s.equals(def.def_String))
         return Float.parseFloat(s);
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     
     try {
@@ -305,7 +305,7 @@ public class ConfigurationManager {
     		
     			// we're not synchronized so possible but unlikely error here
     		
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
       }
     }
    }

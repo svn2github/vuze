@@ -9,6 +9,7 @@ package org.gudy.azureus2.core3.torrentdownloader;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderImpl;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  *
@@ -20,7 +21,7 @@ public class TorrentDownloaderFactory {
     try {
       return (TorrentDownloaderImpl) Class.forName("org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloader"+(logged?"Logged":"")+"Impl").newInstance();
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       return null;
     }
   }

@@ -32,6 +32,7 @@ import java.net.*;
 import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
@@ -72,7 +73,7 @@ XMLRequestProcessor
 			
 		}catch( Throwable e ){
 					
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			if ( e instanceof SimpleXMLParserDocumentException ){
 				
@@ -135,7 +136,7 @@ XMLRequestProcessor
 				
 			}catch( RPException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 				writeTag("ERROR", e );
 				
@@ -405,7 +406,7 @@ XMLRequestProcessor
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new RuntimeException( e.toString()));
 		}
@@ -561,7 +562,7 @@ XMLRequestProcessor
 									
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 					throw( new RuntimeException( e.toString()));
 				}

@@ -286,7 +286,7 @@ LocaleUtil
 				}
 			}catch( IllegalCharsetNameException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 				

@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.TableItem;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -118,7 +119,7 @@ public class MySharesView
 				 		}
 			 		}catch( Throwable e ){
 			 			
-			 			e.printStackTrace();
+			 			Debug.printStackTrace( e );
 			 		}
 			 	}
 			 }
@@ -143,7 +144,7 @@ public class MySharesView
 			
 		}catch( ShareException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 
@@ -218,7 +219,7 @@ public class MySharesView
 	 	try {
 	 		azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().removeListener(this);
 	 	}catch( ShareException e ){
-	 		e.printStackTrace();
+	 		Debug.printStackTrace( e );
 	 	}
 	 	
     MainWindow.getWindow().setMyShares(null);

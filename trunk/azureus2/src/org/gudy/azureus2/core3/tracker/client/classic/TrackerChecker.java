@@ -78,7 +78,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
                          tracker_client.getTorrent().getHashWrapper());
 
     } catch (TOTorrentException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       return null;
     }
   } 
@@ -94,7 +94,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
                          torrent.getHashWrapper());
       
     } catch(TOTorrentException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       return null;
     }
   }  
@@ -149,7 +149,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
                  tracker_client.getTorrent().getHashWrapper());
       
     } catch (TOTorrentException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   } 
   
@@ -161,7 +161,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
       removeHash(torrent.getAnnounceURL().toString(), torrent.getHashWrapper());
       
     } catch (TOTorrentException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   } 
 
@@ -206,7 +206,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
       	trackers_mon.exit();
       }
     } catch (TOTorrentException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }
     

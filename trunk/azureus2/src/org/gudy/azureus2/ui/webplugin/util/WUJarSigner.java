@@ -32,6 +32,9 @@ import java.security.*;
 import java.security.cert.*;
 import java.util.*;
 import java.util.jar.*;
+
+import org.gudy.azureus2.core3.util.Debug;
+
 import sun.misc.BASE64Encoder;
 import sun.security.util.ManifestDigester;
 import sun.security.util.SignatureFile;
@@ -396,7 +399,7 @@ WUJarSigner
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 			if ( fos != null ){
@@ -406,7 +409,7 @@ WUJarSigner
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			temp_file.delete();

@@ -172,7 +172,7 @@ WUJarBuilder
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 				throw( new IOException( e.getMessage()));
 			}
@@ -249,7 +249,7 @@ WUJarBuilder
 						}
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 					
 					JarEntry entry = new JarEntry(resource_name);

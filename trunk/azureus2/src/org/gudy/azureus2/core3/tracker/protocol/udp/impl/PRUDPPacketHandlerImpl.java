@@ -119,7 +119,7 @@ PRUDPPacketHandlerImpl
 										
 				}catch( Throwable e ){
 										
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 				}finally{
 					

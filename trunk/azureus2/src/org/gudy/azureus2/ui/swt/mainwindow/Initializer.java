@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -178,7 +179,7 @@ Initializer
     try {
       SWTThread.createInstance(this);
     } catch(SWTThreadAlreadyInstanciatedException e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }  
     
@@ -284,7 +285,7 @@ Initializer
   	
   		LGLogger.log( "Initialization fails:", e );
   		
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   	} 
   }
   
@@ -367,7 +368,7 @@ Initializer
     		
     	}catch( AzureusCoreException e ){
     		
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
     	}
     }
     

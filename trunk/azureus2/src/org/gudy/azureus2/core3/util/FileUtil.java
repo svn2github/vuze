@@ -267,7 +267,7 @@ public class FileUtil {
 	  				// just in case something went wrong, make sure we just return a blank
 	  				// map
 	  			
-	  			e.printStackTrace();
+	  			Debug.printStackTrace( e );
 	  			
 	  			return( new HashMap());
 	  			
@@ -357,13 +357,13 @@ public class FileUtil {
 	    	return( res );
 	    	
 	    }catch( Throwable e ){
-        e.printStackTrace();
+	    	Debug.printStackTrace( e );
 	    	// Occurs when file is there but b0rked
         
         //rename it in case it actually contains useful data, so it won't be overwritten next save
         LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );      
         File bad = new File( file.getParentFile(), file.getName() + ".bad" );
-        try {  if (bin != null) bin.close();  } catch (Exception x) { x.printStackTrace(); }
+        try {  if (bin != null) bin.close();  } catch (Exception x) { Debug.printStackTrace( x ); }
         file.renameTo( bad );
 	    	
 	    	if ( using_backup ){
@@ -386,7 +386,7 @@ public class FileUtil {
 	    		}
 	    	}catch (Exception e) {
 	    		
-	    		e.printStackTrace();
+	    		Debug.printStackTrace( e );
 	    	}
 	    }
 	}
@@ -409,7 +409,7 @@ public class FileUtil {
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}finally{
@@ -439,7 +439,7 @@ public class FileUtil {
 			}
 		}catch( Throwable e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 		}finally{
 			
@@ -529,8 +529,8 @@ public class FileUtil {
         copyFile( new FileInputStream( _source ), new FileOutputStream( _dest ) );
         return true;
       }
-      catch( Throwable t ) {
-        t.printStackTrace();
+      catch( Throwable e ) {
+      	Debug.printStackTrace( e );
         return false;
       }
     }
@@ -652,7 +652,7 @@ public class FileUtil {
         		
         	}catch( Throwable e ){
         	
-        		e.printStackTrace();
+        		Debug.printStackTrace( e );
         	}
     	}
     	

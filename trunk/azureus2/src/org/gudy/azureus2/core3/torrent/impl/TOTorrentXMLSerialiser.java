@@ -479,7 +479,7 @@ TOTorrentXMLSerialiser
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( "" );
 		}

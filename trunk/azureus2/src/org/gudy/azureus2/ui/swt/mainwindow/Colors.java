@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 /**
  * @author Olivier Chalouhi
  *  
@@ -121,7 +122,7 @@ public class Colors implements ParameterListener {
       }
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
   }
   

@@ -73,7 +73,7 @@ PlatformManagerUpdateChecker
 				
 			}catch( Throwable e ){
 			
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 
 			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
@@ -193,7 +193,7 @@ PlatformManagerUpdateChecker
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			checker.failed();
 			

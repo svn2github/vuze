@@ -188,7 +188,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 	    
   	}catch( AzureusCoreException e ){
   		
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   	}
   }
   
@@ -288,7 +288,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
                     control.setFocus();
                   }
                   } catch(Throwable e) {
-                    e.printStackTrace();
+                  	Debug.printStackTrace( e );
                     //Do nothing
                   }
                 }
@@ -307,7 +307,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         ((CTabFolder)folder).MIN_TAB_WIDTH = 75;
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
-        e.printStackTrace();
+        Debug.printStackTrace( e );
       }      
       //try {
       ///  TabFolder2ListenerAdder.add((CTabFolder)folder);
@@ -666,7 +666,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
        
   }catch( Throwable e ){
     System.out.println("Initialize Error");
-		e.printStackTrace();
+    Debug.printStackTrace( e );
 	}
 }
 
@@ -1072,7 +1072,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 					
 					System.exit(1);

@@ -127,7 +127,7 @@ UpdateCheckerImpl
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 				
@@ -158,7 +158,7 @@ UpdateCheckerImpl
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 	

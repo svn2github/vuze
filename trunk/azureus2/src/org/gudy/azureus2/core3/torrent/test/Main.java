@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 Main
@@ -164,7 +165,7 @@ Main
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 		}
 	}

@@ -161,7 +161,7 @@ ResourceDownloaderTimeoutImpl
 								
 							}catch( Throwable e ){
 								
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 							}
 						}
 					};
@@ -238,7 +238,7 @@ ResourceDownloaderTimeoutImpl
 								
 							}catch( Throwable e ){
 								
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 							}
 						}
 					};

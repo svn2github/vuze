@@ -165,7 +165,7 @@ AuthenticatorWindow
 						
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}	
 			}
 			
@@ -232,7 +232,7 @@ AuthenticatorWindow
 				});
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}

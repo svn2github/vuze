@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 ShareHosterPlugin
@@ -97,7 +98,7 @@ ShareHosterPlugin
 			
 		}catch( ShareException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			log.log( e );
 		}
@@ -220,7 +221,7 @@ ShareHosterPlugin
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -303,7 +304,7 @@ ShareHosterPlugin
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 				}finally{
 					
@@ -324,7 +325,7 @@ ShareHosterPlugin
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 				}finally{
 					

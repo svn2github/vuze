@@ -73,7 +73,7 @@ DiskManagerFileInfoImpl
     }
     catch (Exception e) {
       Debug.out("Unable to resolve canonical path for " + _file.getName());
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
   	
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );

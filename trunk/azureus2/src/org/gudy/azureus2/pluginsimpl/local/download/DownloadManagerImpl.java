@@ -224,7 +224,7 @@ DownloadManagerImpl
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}
@@ -451,7 +451,7 @@ DownloadManagerImpl
 					
 				}catch( TOTorrentException e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -527,7 +527,7 @@ DownloadManagerImpl
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}finally{

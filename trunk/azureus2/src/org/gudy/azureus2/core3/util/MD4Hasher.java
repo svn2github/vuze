@@ -45,7 +45,7 @@ MD4Hasher
     		
     			// should never get here
     		
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
     	}
     }
     

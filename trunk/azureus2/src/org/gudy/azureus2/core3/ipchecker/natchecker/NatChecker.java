@@ -29,6 +29,7 @@ import java.util.Map;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.*;
 
@@ -79,7 +80,7 @@ public class NatChecker {
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}

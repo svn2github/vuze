@@ -177,7 +177,7 @@ LocaleUtilSWT
         	
       	}catch( Throwable e ){
       		
-      		e.printStackTrace();
+      		Debug.printStackTrace( e );
       		
       		lock[0].release();
         }

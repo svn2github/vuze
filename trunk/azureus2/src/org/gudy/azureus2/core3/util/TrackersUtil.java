@@ -135,7 +135,7 @@ public class TrackersUtil {
         bin.close();                
         fin.close();
       } catch(Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   }
@@ -151,7 +151,7 @@ public class TrackersUtil {
       fos.write(BEncoder.encode(map));
       fos.close();     
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       // TODO: handle exception
     }    
   }

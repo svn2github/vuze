@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -75,14 +76,14 @@ public class MakeTorrent implements TOTorrentProgressListener {
         long pieceSize = 1l << Integer.parseInt(pieceSizeStr);
         torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(fSrc,url,pieceSize,this);        
       }catch(Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
         return;
       }
     } else {
       try {
         torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(fSrc,url,this);
       } catch(Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
         return;
       }
     }
@@ -108,7 +109,7 @@ public class MakeTorrent implements TOTorrentProgressListener {
     try {
       torrent.serialiseToBEncodedFile(fDst);
     } catch(Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     
   }

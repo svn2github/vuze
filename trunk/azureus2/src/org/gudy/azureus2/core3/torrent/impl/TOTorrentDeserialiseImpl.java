@@ -78,7 +78,7 @@ TOTorrentDeserialiseImpl
 					
 				}catch( IOException e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -309,7 +309,7 @@ TOTorrentDeserialiseImpl
 						       
 									}catch( MalformedURLException f ){
 				
-										f.printStackTrace();
+										Debug.printStackTrace( f );
 									} 
 								}
 							}
@@ -335,7 +335,7 @@ TOTorrentDeserialiseImpl
 			              	urls.copyInto( url_array );
 			              	addTorrentAnnounceURLSet( url_array );
 			              }
-			              catch (Exception e) { e.printStackTrace(); }
+			              catch (Exception e) { Debug.printStackTrace( e ); }
 			            }
             
 					}
@@ -538,7 +538,7 @@ TOTorrentDeserialiseImpl
 			
 		}catch( TOTorrentException e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

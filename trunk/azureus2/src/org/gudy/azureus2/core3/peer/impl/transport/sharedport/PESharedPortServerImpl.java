@@ -102,7 +102,7 @@ PESharedPortServerImpl
 					
 					LGLogger.logAlertUsingResource(	LGLogger.AT_ERROR, "SharedPortServer.alert.selectorfailed" ); 
 										
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}finally{

@@ -27,6 +27,7 @@ import java.nio.channels.SocketChannel;
 
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -170,7 +171,7 @@ public class NetworkManager {
         //}
       }
       catch( Throwable t ) {
-        t.printStackTrace();
+      	Debug.printStackTrace(t);
         try{ Thread.sleep( 1000 );  }catch( Exception e) {}
       }
     }

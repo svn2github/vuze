@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 /**
@@ -73,7 +74,7 @@ public class TorrentFolderWatcher {
         try {
           Thread.sleep( COConfigurationManager.getIntParameter("Watch Torrent Folder Interval") * 60000 );
         }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { Debug.printStackTrace( e ); }
         
         importAddedFiles();
       }
@@ -164,7 +165,7 @@ public class TorrentFolderWatcher {
 	          save_torrents = false;
 	          LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );
 	        }
-	      } catch( Throwable t) {  t.printStackTrace();  }
+	      } catch( Throwable t) {  Debug.printStackTrace( t );  }
 	      
 	      if( torrent_save_path.equals( folder ) ) save_torrents = false;
 	      

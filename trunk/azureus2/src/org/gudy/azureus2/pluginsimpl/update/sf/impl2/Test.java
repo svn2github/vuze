@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl2;
  *
  */
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
@@ -52,7 +53,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

@@ -358,7 +358,7 @@ public class TableView
           }
         } catch (Exception ex) {
           System.out.println("MouseDownError");
-          ex.printStackTrace();
+          Debug.printStackTrace( ex );
         }
       }
     });
@@ -857,7 +857,7 @@ public class TableView
 	      });
 	    } catch (Exception e) {
 	      System.out.println("Error adding row to " + sTableID + " table");
-	      e.printStackTrace();
+	      Debug.printStackTrace( e );
 	    }
   	}finally{
   		

@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.table.utils;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
@@ -85,7 +86,7 @@ public class TableContextMenuManager {
       }
     } catch (Exception e) {
       System.out.println("Error while adding Context Table Menu Item");
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
   }
 

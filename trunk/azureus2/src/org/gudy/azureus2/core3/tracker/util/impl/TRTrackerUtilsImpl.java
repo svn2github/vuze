@@ -32,6 +32,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.classic.TRTrackerClientClassicImpl;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TRTrackerUtilsImpl 
@@ -123,7 +124,7 @@ TRTrackerUtilsImpl
 				
 			}catch( MalformedURLException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		

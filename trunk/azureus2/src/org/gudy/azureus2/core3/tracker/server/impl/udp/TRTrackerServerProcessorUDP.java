@@ -146,7 +146,7 @@ TRTrackerServerProcessorUDP
 						
 					}catch( MalformedURLException e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 						
 					}
 					
@@ -242,7 +242,7 @@ TRTrackerServerProcessorUDP
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

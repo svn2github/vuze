@@ -126,7 +126,7 @@ TRTrackerServerUDP
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();		
+				Debug.printStackTrace( e );	
 			}
 		}
 	}

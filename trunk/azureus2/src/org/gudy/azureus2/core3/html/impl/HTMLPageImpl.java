@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.html.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 HTMLPageImpl
@@ -81,7 +82,7 @@ HTMLPageImpl
 					
 				}catch( IOException e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -120,7 +121,7 @@ HTMLPageImpl
 						
 					}catch( MalformedURLException e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}

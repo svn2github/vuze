@@ -248,7 +248,7 @@ ShareResourceFileOrDirImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		item.serialiseItem( map );

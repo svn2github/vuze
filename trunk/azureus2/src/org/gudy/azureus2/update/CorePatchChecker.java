@@ -185,7 +185,7 @@ CorePatchChecker
 						}
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}
@@ -255,7 +255,7 @@ CorePatchChecker
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			LGLogger.logAlert( 	"Core Patcher failed", e );
 		}

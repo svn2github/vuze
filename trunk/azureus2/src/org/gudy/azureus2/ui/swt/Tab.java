@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.plugins.PluginView;
@@ -142,7 +143,7 @@ public class Tab {
         tabs.put(tabItem, view);
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
     else {
@@ -165,7 +166,7 @@ public class Tab {
         tabs.put(tabItem, view);
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
     MainWindow.getWindow().refreshIconBar();
@@ -342,7 +343,7 @@ public class Tab {
 	          }
 	          view.delete();
 	        } catch (Exception e) {
-	          e.printStackTrace();
+	        	Debug.printStackTrace( e );
 	        }
 	
 	        if (view instanceof MyTorrentsSuperView) {
@@ -387,8 +388,8 @@ public class Tab {
 	        */
 	        item.dispose();
 	      }
-	      catch (Exception ignore) {
-	        ignore.printStackTrace();
+	      catch (Exception e) {
+	      	Debug.printStackTrace( e );
 	      }
 	      tabs.remove(item);
 	    }finally{

@@ -12,6 +12,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1;
 import java.security.MessageDigest;
 
@@ -60,7 +61,7 @@ public class SHA1Verification {
       }
       System.out.println("DONE\n");
     }
-    catch (Exception e) { e.printStackTrace(); }
+    catch (Exception e) { Debug.printStackTrace( e ); }
   }
   
   
@@ -119,7 +120,7 @@ public class SHA1Verification {
       }
     
     }
-    catch (Throwable e) { e.printStackTrace(); }
+    catch (Throwable e) { Debug.printStackTrace( e );}
   }
 	
 

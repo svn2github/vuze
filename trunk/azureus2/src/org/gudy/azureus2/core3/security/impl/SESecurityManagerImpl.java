@@ -86,7 +86,7 @@ SESecurityManagerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		try{
@@ -154,7 +154,7 @@ SESecurityManagerImpl
 			
 		}catch( MalformedURLException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 			
@@ -431,7 +431,7 @@ SESecurityManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 				return( false );
 				
@@ -444,7 +444,7 @@ SESecurityManagerImpl
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}
@@ -483,7 +483,7 @@ SESecurityManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 			}finally{
 				
@@ -707,7 +707,7 @@ SESecurityManagerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

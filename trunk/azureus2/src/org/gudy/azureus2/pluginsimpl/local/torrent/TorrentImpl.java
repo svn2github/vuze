@@ -104,7 +104,7 @@ TorrentImpl
 			
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}

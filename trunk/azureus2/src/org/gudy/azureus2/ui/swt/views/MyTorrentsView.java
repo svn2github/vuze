@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -531,7 +532,7 @@ public class MyTorrentsView
               changeSpeed  = false;
               //ex.printStackTrace();
             } catch (Exception ex) {
-              ex.printStackTrace();
+            	Debug.printStackTrace( ex );
             }
             
             if (dm.getTrackerClient() == null)
@@ -689,7 +690,7 @@ public class MyTorrentsView
               try {
                 TorrentUtils.writeToFile(torrent);
               } catch(Throwable e) {
-                e.printStackTrace();
+              	Debug.printStackTrace( e );
               }
 
               if (dm.getTrackerClient() != null)
@@ -1195,7 +1196,7 @@ public class MyTorrentsView
         } catch (GlobalManagerDownloadRemovalVetoException f) {
           Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
         } catch (Exception ex) {
-          ex.printStackTrace();
+        	Debug.printStackTrace( ex );
         }
       } // if choice
     } // if state
@@ -1560,7 +1561,7 @@ public class MyTorrentsView
           DownloadManager dm = (DownloadManager)dms[i];        
           dm.getPeerManager().getConnectionPool().setWritePercentOfMax(realSpeedPerTorrent);
         } catch (Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     }

@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
 /**
@@ -71,7 +72,7 @@ public class SWTThread {
             display.sleep();
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
     

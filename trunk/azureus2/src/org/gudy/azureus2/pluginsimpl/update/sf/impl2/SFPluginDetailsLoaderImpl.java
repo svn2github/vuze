@@ -37,6 +37,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 SFPluginDetailsLoaderImpl 
@@ -118,7 +119,7 @@ SFPluginDetailsLoaderImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new SFPluginDetailsException( "Plugin list load failed", e ));
 		}
@@ -146,7 +147,7 @@ SFPluginDetailsLoaderImpl
 					
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new SFPluginDetailsException( "Plugin details load fails", e ));
 		}

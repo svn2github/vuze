@@ -721,7 +721,7 @@ TRTrackerServerProcessorTCP
 						}
 					}catch( MalformedURLException e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}else{
@@ -759,7 +759,7 @@ TRTrackerServerProcessorTCP
 						}
 					}catch( MalformedURLException e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 					
 					auth_failed	= true;
@@ -799,7 +799,7 @@ TRTrackerServerProcessorTCP
 						}
 					}catch( Exception e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 			}

@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -91,7 +92,7 @@ public class OldMyTorrentsPluginItem
         }
       } catch(Throwable e) {
         LGLogger.log(LGLogger.ERROR,"Plugin in MyTorrentsView generated an exception : " + e );
-        e.printStackTrace();
+        Debug.printStackTrace( e );
       }
     }
     

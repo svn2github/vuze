@@ -464,7 +464,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	    							TorrentUtils.writeToFile( torrent );
 	    						}catch( Throwable e2 ){
 	    							
-	    							e2.printStackTrace();
+	    							Debug.printStackTrace( e2 );
 	    						}
 	    						
 	    						TRTrackerClient	tc = manager.getTrackerClient();
@@ -497,7 +497,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
           	
           }catch( TOTorrentException f){
           		
-          	f.printStackTrace();
+          	Debug.printStackTrace( f );
           }
           	
           TRTrackerClient	tc = manager.getTrackerClient();
@@ -897,7 +897,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	      try {
 	        pieces = (boolean[])manager.getPiecesStatus().clone();
 	      } catch (Exception e) {
-	        e.printStackTrace();
+	      	Debug.printStackTrace( e );
 	        pieces = null;
 	      }
 	    }

@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -57,7 +58,7 @@ PasswordParameter
             encoded = password;
           COConfigurationManager.setParameter(name, encoded);
         } catch(Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     });

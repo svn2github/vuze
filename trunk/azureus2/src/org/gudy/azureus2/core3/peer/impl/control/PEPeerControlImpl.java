@@ -153,7 +153,7 @@ PEPeerControlImpl
     }catch( TOTorrentException e ){
     	
     		// this should never happen
-    	e.printStackTrace();
+    	Debug.printStackTrace( e );
     	
     	_hash = new byte[20]; 
     }
@@ -325,7 +325,7 @@ PEPeerControlImpl
 
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
     }
   }
@@ -645,7 +645,7 @@ PEPeerControlImpl
           pc = (PEPeerTransport) _peer_transports.get(i);
         }
         catch (Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
           break;
         }
         if (pc.transferAvailable()) {

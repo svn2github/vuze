@@ -27,6 +27,7 @@ import java.net.Socket;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 public class StartSocket {
@@ -57,7 +58,7 @@ public class StartSocket {
         pw.println(buffer.toString());
         pw.flush();
       } catch(Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       } finally {
         try {
           if (pw != null)

@@ -146,8 +146,7 @@ TRHostConfigImpl
 		 	
 	   	}catch (Exception e) {
 		 
-			e.printStackTrace();
-			  
+	   		Debug.printStackTrace( e );
 	   	}finally{
 		 	
 	   		loading	= false;
@@ -258,7 +257,7 @@ TRHostConfigImpl
 				 	
 		  	 	}catch( TOTorrentException e ){
 		  	 		
-		  	 		e.printStackTrace();
+		  	 		Debug.printStackTrace( e );
 		  	 	}
 		   	}
 		   	
@@ -294,7 +293,7 @@ TRHostConfigImpl
 				   			
 				   		}catch( Throwable e ){
 				   			
-				   			e.printStackTrace();
+				   			Debug.printStackTrace( e );
 				   			
 				   		}finally{
 				   			
@@ -309,7 +308,7 @@ TRHostConfigImpl
 				   			}
 				   		}
 				   	}catch( Throwable e ){
-				   		e.printStackTrace();
+				   		Debug.printStackTrace( e );
 				   	}
 			   	}
 		   	}finally{
@@ -318,7 +317,7 @@ TRHostConfigImpl
 		   	}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	

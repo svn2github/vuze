@@ -197,7 +197,7 @@ public class ConfigView extends AbstractIView {
       });
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView");
-      e.printStackTrace();
+      Debug.printStackTrace( e );
     }
 
 
@@ -243,7 +243,7 @@ public class ConfigView extends AbstractIView {
           initGroupPlugins();
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView.Plugins");
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         }   	
       }
       
@@ -255,7 +255,7 @@ public class ConfigView extends AbstractIView {
          } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "A ConfigSection plugin caused an error while trying to call its configSectionGetName function");
           name = "Bad Plugin";
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         }
         try {
           TreeItem treeItem = null;
@@ -303,7 +303,7 @@ public class ConfigView extends AbstractIView {
           //sc.setContent(c);
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         }
       }
     }

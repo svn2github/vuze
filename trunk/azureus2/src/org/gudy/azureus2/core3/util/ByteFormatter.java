@@ -32,7 +32,7 @@ public class ByteFormatter
 			
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			hash = new byte[20];
 		}

@@ -62,7 +62,7 @@ TimerEventPeriodic
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		
 			synchronized( this ){

@@ -60,7 +60,7 @@ TorrentUtils
 			
 		}catch (TOTorrentException e){
       
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			File torrentBackup = new File(file.getParent(), file.getName() + ".bak");
 			
@@ -115,7 +115,7 @@ TorrentUtils
 	    			
 	    		}catch( SecurityException e){
 	    			
-	    			e.printStackTrace();
+	    			Debug.printStackTrace( e );
 	    		}
 	    	}
 	      
@@ -323,7 +323,7 @@ TorrentUtils
 			
 		}catch( MalformedURLException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -338,7 +338,7 @@ TorrentUtils
 			
 		}catch( MalformedURLException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -549,7 +549,7 @@ TorrentUtils
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( new String( torrent.getName()));
 		}

@@ -363,7 +363,7 @@ DownloadManagerImpl
       }
 
     }catch( TRTrackerClientException e ){
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
       setState( STATE_ERROR );
     }
   }
@@ -571,7 +571,7 @@ DownloadManagerImpl
 			
 		}catch( TOTorrentException e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
         		
@@ -581,7 +581,7 @@ DownloadManagerImpl
  			
 		}catch( UnsupportedEncodingException e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
         		
@@ -591,7 +591,7 @@ DownloadManagerImpl
 			
 		}catch( Exception e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			nbPieces = 0;
     		
@@ -847,7 +847,7 @@ DownloadManagerImpl
 			  });	
   	}catch( Throwable e ){
   		
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   	}
   }
 
@@ -891,7 +891,7 @@ DownloadManagerImpl
 	  		
 	  		}catch( Throwable e ){
 	  		
-	  			e.printStackTrace();
+	  			Debug.printStackTrace( e );
 	  		}
 	  	}else{
 	  		// System.out.println( "maps identical" );
@@ -1157,7 +1157,7 @@ DownloadManagerImpl
       	
 			// only get here is serious problem with hashing process
       		
-		e.printStackTrace();
+	  	Debug.printStackTrace( e );
 	  }
 	}
     
@@ -1561,7 +1561,7 @@ DownloadManagerImpl
 						
 					} catch (Exception e) {
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				}
 				
@@ -1745,7 +1745,7 @@ DownloadManagerImpl
 		}
 	}catch( Throwable e ){
 			
-		e.printStackTrace();
+		Debug.printStackTrace( e );
 	}
   }
   

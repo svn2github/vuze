@@ -553,7 +553,7 @@ AEMonSem
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 			
 			line_number		= _line_number;

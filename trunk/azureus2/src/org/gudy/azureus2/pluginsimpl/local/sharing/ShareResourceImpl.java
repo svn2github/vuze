@@ -188,7 +188,7 @@ ShareResourceImpl
 				throw((ShareException)e);
 			}
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			throw( new ShareException( "ShareResource::getFingerPrint: fails", e ));
 		}

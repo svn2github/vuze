@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.local.*;
@@ -73,7 +74,7 @@ ProgressWindow
 			
 		}catch( ShareException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 	}

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 
 import com.aelitis.azureus.core.*;
@@ -116,7 +117,7 @@ PluginManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 				
 					// some idiot (me) forgot to add the exception to the i/f and now we
 					// can't add it as is stuffs existing plugins...

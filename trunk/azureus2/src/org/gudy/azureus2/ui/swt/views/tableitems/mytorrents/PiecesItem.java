@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -218,7 +219,7 @@ public class PiecesItem
                               limit, completionHeight);
       } catch (Exception e) {
         System.out.println("Error Drawing PiecesItem");
-        e.printStackTrace();
+        Debug.printStackTrace( e );
       } }
       gcImage.dispose();
   

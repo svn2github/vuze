@@ -207,14 +207,14 @@ public class GlobalManagerImpl
 	        }
       	}catch( Throwable e ){
       		
-      		e.printStackTrace();
+      		Debug.printStackTrace( e );
       	}
       	
         try {
           Thread.sleep(waitTime);
         }
         catch (Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     }
@@ -389,7 +389,7 @@ public class GlobalManagerImpl
     }
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
-      e.printStackTrace();
+      Debug.printStackTrace( e );
       DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
@@ -448,7 +448,7 @@ public class GlobalManagerImpl
         		
         	}catch( TOTorrentException e ){
         		
-        		e.printStackTrace();
+        		Debug.printStackTrace( e );
         	}
         }
 
@@ -535,7 +535,7 @@ public class GlobalManagerImpl
       		
       	}catch( TOTorrentException e ){
       		
-      		e.printStackTrace();
+      		Debug.printStackTrace( e );
       	}
       }
     }finally{
@@ -592,7 +592,7 @@ public class GlobalManagerImpl
 	    				}
 	    			});
     	}catch( Throwable e ){
-    		e.printStackTrace();
+    		Debug.printStackTrace( e );
     	}
     	
       checker.stopIt();
@@ -673,7 +673,7 @@ public class GlobalManagerImpl
   					
   				}catch( TOTorrentException e ){
   					
-  					e.printStackTrace();
+  					Debug.printStackTrace( e );
   				}
   			}
   		}
@@ -919,7 +919,7 @@ public class GlobalManagerImpl
           	List file_priorities = (List) mDownload.get("file_priorities");
           	if ( file_priorities != null ) dm.setData( "file_priorities", file_priorities );
           }
-          catch (Throwable t) { t.printStackTrace(); }
+          catch (Throwable t) { Debug.printStackTrace( t ); }
 
           
           this.addDownloadManager(dm, false);
@@ -935,7 +935,7 @@ public class GlobalManagerImpl
         }
         catch (Throwable e) {
           LGLogger.log("Error while loading downloads.  One download may not have been added to the list.");
-          e.printStackTrace();
+          Debug.printStackTrace( e );
         }
       }
       // Someone could have mucked with the config file and set weird positions,
@@ -946,7 +946,7 @@ public class GlobalManagerImpl
   			// there's been problems with corrupted download files stopping AZ from starting
   			// added this to try and prevent such foolishness
   		
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   	}
   }
 

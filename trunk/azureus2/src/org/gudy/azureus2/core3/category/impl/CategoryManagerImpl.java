@@ -125,7 +125,7 @@ public class CategoryManagerImpl  {
       //Do nothing
     }
     catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
     finally {
       try {
@@ -206,7 +206,7 @@ public class CategoryManagerImpl  {
 
       }
       catch (Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
       finally {
         try {

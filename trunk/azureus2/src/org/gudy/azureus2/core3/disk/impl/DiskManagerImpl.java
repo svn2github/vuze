@@ -154,7 +154,7 @@ DiskManagerImpl
 			
 		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Constructor)";
 			
@@ -164,7 +164,7 @@ DiskManagerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			this.errorMessage = e.getMessage() + " (Constructor)";
 			
@@ -585,7 +585,7 @@ DiskManagerImpl
           try {  
           	fileInfo.getCacheFile().close();  
           }catch ( CacheFileManagerException ex) {  
-          	ex.printStackTrace();  
+          	Debug.printStackTrace( ex );
           }
           
           this.errorMessage = (e.getCause() != null
@@ -726,7 +726,7 @@ DiskManagerImpl
 						files[i].getCacheFile().close();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -763,7 +763,7 @@ DiskManagerImpl
 							
 						}catch (Exception e) {
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				}
@@ -1062,7 +1062,7 @@ DiskManagerImpl
 	            returnName = newTorrentFile.getCanonicalPath();
 	          }
 	      }
-	    } catch (Exception e) { e.printStackTrace(); }
+	    } catch (Exception e) { Debug.printStackTrace( e ); }
 	
 	    return returnName;
 	    
@@ -1177,7 +1177,7 @@ DiskManagerImpl
 			}
 		}catch( Throwable e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
   
@@ -1198,7 +1198,7 @@ DiskManagerImpl
     		else if (priority == 1) file.setPriority( true );
     	}
     }
-    catch (Throwable t) {t.printStackTrace();}
+    catch (Throwable t) {Debug.printStackTrace( t );}
   }
   
   

@@ -6,6 +6,8 @@
  */
 package org.gudy.azureus2.core3.util.test;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 public class SystemClockSpeedup {
 	public static void main(String[] args) {
@@ -29,7 +31,7 @@ public class SystemClockSpeedup {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
     }
   }

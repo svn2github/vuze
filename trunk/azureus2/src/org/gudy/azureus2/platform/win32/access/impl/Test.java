@@ -29,6 +29,7 @@ package org.gudy.azureus2.platform.win32.access.impl;
 
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.win32.access.*;
 
 public class 
@@ -113,7 +114,7 @@ Test
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 }

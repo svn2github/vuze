@@ -74,7 +74,7 @@ public class TrackerChangerWindow {
         	shell.dispose();
         }
         catch (Exception e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     });

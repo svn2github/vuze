@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TrackerWebContextImpl 
@@ -92,7 +93,7 @@ TrackerWebContextImpl
 			
 		}catch( MalformedURLException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}
@@ -149,7 +150,7 @@ TrackerWebContextImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -172,7 +173,7 @@ TrackerWebContextImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		

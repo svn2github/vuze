@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.TabItem;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -183,7 +184,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
           break;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+    	Debug.printStackTrace( e );
     }
   }
   

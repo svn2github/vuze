@@ -485,7 +485,7 @@ DownloadImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -523,7 +523,7 @@ DownloadImpl
 				
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -551,7 +551,7 @@ DownloadImpl
 		try {
 			((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
 		} catch (Throwable e) {
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
   }
@@ -622,7 +622,7 @@ DownloadImpl
 
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -640,7 +640,7 @@ DownloadImpl
 
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}

@@ -127,7 +127,7 @@ ExternalIPCheckerServiceImpl
 							}
 						}catch( InterruptedException e ){
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				};
@@ -207,7 +207,7 @@ ExternalIPCheckerServiceImpl
 					}
 				}catch( Throwable e){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}catch( Throwable e ){

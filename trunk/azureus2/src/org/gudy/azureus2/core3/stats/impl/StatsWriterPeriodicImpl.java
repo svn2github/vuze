@@ -26,6 +26,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
@@ -125,7 +126,7 @@ StatsWriterPeriodicImpl
 				
 			}catch( InterruptedException e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 	}
@@ -193,7 +194,7 @@ StatsWriterPeriodicImpl
 			
 		}catch( Throwable e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			LGLogger.log(0, 0, "Stats Logging fails", e );
 		}			

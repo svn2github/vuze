@@ -31,6 +31,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.imageio.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.*;
 
 public class 
@@ -48,7 +49,7 @@ UISwingImageRepository
 				// some versions of Opera don't have the imageio stuff available it seems
 				// so catch all errors and return null
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}
@@ -70,7 +71,7 @@ UISwingImageRepository
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 		}	

@@ -158,7 +158,7 @@ RDResumeHandler
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 					
 					resume_keys[2]	= getCanonicalResumeKey( resume_key );
@@ -170,7 +170,7 @@ RDResumeHandler
 						
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Debug.printStackTrace( e );
 					}
 				
 					Map resumeDirectory = null;
@@ -544,7 +544,7 @@ RDResumeHandler
 									
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 					
 					mangled_path = resume_key;
 				}
@@ -590,7 +590,7 @@ RDResumeHandler
 			}
 		}catch( Throwable e ){
 		
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}	
 		
 		return( false );
@@ -604,7 +604,7 @@ RDResumeHandler
 						
 		} catch (TOTorrentException e) {
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 	}
 
@@ -617,7 +617,7 @@ RDResumeHandler
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		return( resume_key );

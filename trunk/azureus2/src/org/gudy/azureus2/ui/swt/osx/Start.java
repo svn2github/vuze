@@ -25,6 +25,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 public class Start {
     public Start(String args[]) {
@@ -51,7 +53,7 @@ public class Start {
         pw.println(buffer.toString());
         pw.flush();
       } catch(Exception e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       } finally {
         try {
           if (pw != null)

@@ -79,7 +79,7 @@ CertificateTrustWindow
 					});
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( false );
 		}

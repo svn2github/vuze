@@ -274,7 +274,7 @@ CoreUpdateChecker
 			
 			log.log( e );
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			checker.failed();
 			
@@ -328,7 +328,7 @@ CoreUpdateChecker
 			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 		}
 		
 		return( decoded );
@@ -515,7 +515,7 @@ CoreUpdateChecker
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( new ResourceDownloader[0]);
 		}

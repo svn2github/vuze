@@ -163,7 +163,7 @@ ThreadPool
 							}
 						}catch( Throwable e ){
 							
-							e.printStackTrace();
+							Debug.printStackTrace( e );
 						}
 					}
 				}
@@ -285,7 +285,7 @@ outer:
 								}
 							}catch( Throwable e ){
 									
-								e.printStackTrace();
+								Debug.printStackTrace( e );
 											
 							}finally{
 										

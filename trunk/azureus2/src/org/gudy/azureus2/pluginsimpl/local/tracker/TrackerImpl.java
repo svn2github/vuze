@@ -37,6 +37,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TrackerImpl
@@ -107,7 +108,7 @@ TrackerImpl
 					
 				}catch( MalformedURLException e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			
@@ -120,7 +121,7 @@ TrackerImpl
 				
 				}catch( MalformedURLException e ){
 				
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 			
@@ -136,7 +137,7 @@ TrackerImpl
 				
 				}catch( MalformedURLException e ){
 				
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}
 		}
@@ -301,7 +302,7 @@ TrackerImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -324,7 +325,7 @@ TrackerImpl
 				}
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		

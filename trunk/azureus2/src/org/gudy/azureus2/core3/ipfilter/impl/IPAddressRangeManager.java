@@ -71,7 +71,7 @@ IPAddressRangeManager
 				
 		}catch( UnknownHostException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 		}finally{
 			
@@ -136,7 +136,7 @@ IPAddressRangeManager
 			
 		}catch( UnknownHostException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			return( null );
 			

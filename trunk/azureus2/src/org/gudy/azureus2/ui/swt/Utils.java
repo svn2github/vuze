@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
@@ -75,7 +76,7 @@ public class Utils {
         try {
           control.dispose();
         } catch (SWTException e) {
-          e.printStackTrace();
+        	Debug.printStackTrace( e );
         }
       }
     }
@@ -84,7 +85,7 @@ public class Utils {
       try {
         composite.dispose();
       } catch (SWTException e) {
-        e.printStackTrace();
+      	Debug.printStackTrace( e );
       }
   }
   

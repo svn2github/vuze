@@ -30,6 +30,7 @@ import java.security.*;
 import java.lang.reflect.Method;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
@@ -71,7 +72,7 @@ public class MemoryMappedFile {
   public int getAccessMode() {  return access_mode;  }
   public void setAccessMode( int mode ) {
   	if ( mode == MODE_READ_ONLY && access_mode == MODE_READ_WRITE && channel != null ) {
-  		try { channel.close(); } catch( Exception e ) { e.printStackTrace(); }
+  		try { channel.close(); } catch( Exception e ) { Debug.printStackTrace( e ); }
       channel = null;
   	}
     access_mode = mode;
@@ -222,7 +223,7 @@ public class MemoryMappedFile {
   					sun.misc.Cleaner cleaner = (sun.misc.Cleaner)getCleanerMethod.invoke( buffer, new Object[0] );
   					cleaner.clean();
   				}
-          catch (Exception e) {  e.printStackTrace();  }
+          catch (Exception e) { Debug.printStackTrace( e ); }
   				return null;
   			}
   		});

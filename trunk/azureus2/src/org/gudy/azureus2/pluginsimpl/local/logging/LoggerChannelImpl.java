@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 LoggerChannelImpl 
@@ -63,7 +64,7 @@ LoggerChannelImpl
 	
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -101,7 +102,7 @@ LoggerChannelImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		
@@ -120,7 +121,7 @@ LoggerChannelImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				Debug.printStackTrace( e );
 			}
 		}
 		

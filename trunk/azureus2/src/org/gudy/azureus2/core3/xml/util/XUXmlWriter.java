@@ -63,7 +63,7 @@ XUXmlWriter
 
 		}catch( UnsupportedEncodingException e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			writer = new PrintWriter( _output_stream );
 		}
