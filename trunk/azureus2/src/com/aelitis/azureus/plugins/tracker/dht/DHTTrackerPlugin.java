@@ -200,13 +200,16 @@ DHTTrackerPlugin
 					{
 						String[]	networks = download.getListAttribute( ta );
 						
-						for (int i=0;i<networks.length;i++){
+						if ( networks != null ){
 							
-							if ( networks[i].equalsIgnoreCase( "Public" )){
-						
-								if ( download.getTorrent() != null ){
+							for (int i=0;i<networks.length;i++){
 								
-									registerDownload( download );
+								if ( networks[i].equalsIgnoreCase( "Public" )){
+							
+									if ( download.getTorrent() != null ){
+									
+										registerDownload( download );
+									}
 								}
 							}
 						}

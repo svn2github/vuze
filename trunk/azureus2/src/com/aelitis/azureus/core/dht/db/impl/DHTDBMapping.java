@@ -38,7 +38,11 @@ public class
 DHTDBMapping 
 {
 	private HashWrapper		key;
-	private Map				sender_map				= new HashMap();
+	
+		// sender map is access order, most recently used at tail, so we cycle values
+	
+	private Map				sender_map				= new LinkedHashMap(16, 0.75f, true );
+	
 	private Map				originator_value_map	= new HashMap();
 	
 	protected
@@ -217,17 +221,22 @@ DHTDBMapping
 		int			max,
 		boolean		remove_secondary_caches )
 	{
-		List	res = new ArrayList();
+		List	res 		= new ArrayList();
+		List	keys_used 	= new ArrayList();
 		
 		Set		duplicate_check = new HashSet();
 		
-		Iterator	it = sender_map.values().iterator();
+		Iterator	it = sender_map.entrySet().iterator();
 		
 		while( it.hasNext() && ( max==0 || res.size()< max )){
 		
-			DHTDBValueImpl	value = (DHTDBValueImpl)it.next();
+			Map.Entry	entry = (Map.Entry)it.next();
+			
+			HashWrapper		entry_key		= (HashWrapper)entry.getKey();
+			
+			DHTDBValueImpl	entry_value = (DHTDBValueImpl)entry.getValue();
 					
-			HashWrapper	x = new HashWrapper( value.getValue());
+			HashWrapper	x = new HashWrapper( entry_value.getValue());
 			
 			if ( duplicate_check.contains( x )){
 				
@@ -241,12 +250,21 @@ DHTDBMapping
 			// current approach is to only allow usage of a secondary cache entry ONCE before
 			// we delete it :P
 		
-			if ( remove_secondary_caches && value.getCacheDistance() > 1 ){
+			if ( remove_secondary_caches && entry_value.getCacheDistance() > 1 ){
 				
-				removeValue( it, null, value );
+				removeValue( it, null, entry_value );
 			}
 						
-			res.add( value );
+			res.add( entry_value );
+			
+			keys_used.add( entry_key );
+		}
+		
+			// now update the access order so values get cycled
+		
+		for (int i=0;i<keys_used.size();i++){
+			
+			sender_map.get( keys_used.get(i));
 		}
 		
 		DHTDBValueImpl[]	v = new DHTDBValueImpl[res.size()];
@@ -324,8 +342,8 @@ DHTDBMapping
 	}
 	
 	protected Iterator
-	getKeys()
+	getValues()
 	{
-		return( sender_map.keySet().iterator());
+		return( sender_map.values()).iterator();
 	}
 }

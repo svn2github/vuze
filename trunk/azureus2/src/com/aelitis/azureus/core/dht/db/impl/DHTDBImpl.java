@@ -187,11 +187,11 @@ DHTDBImpl
 		}
 	}
 	
-	public DHTDBValue
+	public void
 	store(
 		DHTTransportContact 	sender, 
 		HashWrapper				key,
-		DHTTransportValue		value )
+		DHTTransportValue[]		values )
 	{
 			// remote store for cache values
 		
@@ -219,7 +219,7 @@ DHTDBImpl
 			
 			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " -> " + value.getString() + " as too far away" );
 			
-			return( null );
+			return;
 		}
 		
 		try{
@@ -231,8 +231,7 @@ DHTDBImpl
 				
 				logger.log( "Max entries exceeded" );
 				
-				return( null );
-				
+				return;
 			}else{
 				
 				checkCacheExpiration( false );
@@ -246,11 +245,12 @@ DHTDBImpl
 					stored_values.put( key, existing_mapping );
 				}
 				
-				DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, 1 );
+				for (int i=0;i<values.length;i++){
 					
-				existing_mapping.add( mapping_value );
-				
-				return( mapping_value );
+					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
+					
+					existing_mapping.add( mapping_value );
+				}
 			}
 		}finally{
 			
@@ -369,13 +369,13 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping	= (DHTDBMapping)entry.getValue();
 				
-				Iterator	it2 = mapping.getKeys();
+				Iterator	it2 = mapping.getValues();
 				
 				List	values = new ArrayList();
 				
 				while( it2.hasNext()){
 					
-					DHTDBValueImpl	value = (DHTDBValueImpl)mapping.get((HashWrapper)it2.next());
+					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 				
 					if ( value != null && value.getCacheDistance() == 0 ){
 						
@@ -445,13 +445,13 @@ DHTDBImpl
 				
 				DHTDBMapping		mapping	= (DHTDBMapping)entry.getValue();
 				
-				Iterator	it2 = mapping.getKeys();
+				Iterator	it2 = mapping.getValues();
 				
 				List	values = new ArrayList();
 				
 				while( it2.hasNext()){
 					
-					DHTDBValueImpl	value = (DHTDBValueImpl)mapping.get((HashWrapper)it2.next());
+					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 				
 					if ( value.getCacheDistance() == 1 ){
 						
@@ -637,56 +637,63 @@ DHTDBImpl
 				return;
 			}
 		}
-				
-		last_cache_expiry_check	= now;
-		
-		Iterator	it = stored_values.values().iterator();
-		
-		while( it.hasNext()){
 			
-			DHTDBMapping	mapping = (DHTDBMapping)it.next();
-
-			Iterator	it2 = mapping.getKeys();
+		try{
+			this_mon.enter();
 			
-			while( it2.hasNext()){
+			last_cache_expiry_check	= now;
+			
+			Iterator	it = stored_values.values().iterator();
+			
+			while( it.hasNext()){
 				
-				DHTDBValueImpl	value = mapping.get((HashWrapper)it2.next());
+				DHTDBMapping	mapping = (DHTDBMapping)it.next();
+	
+				Iterator	it2 = mapping.getValues();
 				
-				int	distance = value.getCacheDistance();
-				
-					// distance = 0 are explicitly published and need to be explicitly removed
-				
-				if ( distance == 1 ){
+				while( it2.hasNext()){
 					
-						// distance 1 = initial store location. We use the initial creation date
-						// when deciding whether or not to remove this, plus a bit, as the 
-						// original publisher is supposed to republish these
+					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 					
-					if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+					int	distance = value.getCacheDistance();
+					
+						// distance = 0 are explicitly published and need to be explicitly removed
+					
+					if ( distance == 1 ){
 						
-						DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+							// distance 1 = initial store location. We use the initial creation date
+							// when deciding whether or not to remove this, plus a bit, as the 
+							// original publisher is supposed to republish these
 						
-						it2.remove();
-					}
-					
-				}else if ( distance > 1 ){
-					
-						// distance 2 get 1/2 time, 3 get 1/4 etc.
-						// these are indirectly cached at the nearest location traversed
-						// when performing a lookup. the store time is used when deciding
-						// whether or not to remove these in an ever reducing amount the
-						// further away from the correct cache position that the value is
-					
-					long	permitted = cache_republish_interval >> (distance-1);
-					
-					if ( now - value.getStoreTime() >= permitted ){
+						if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+							
+							DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+							
+							it2.remove();
+						}
 						
-						DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+					}else if ( distance > 1 ){
 						
-						it2.remove();
+							// distance 2 get 1/2 time, 3 get 1/4 etc.
+							// these are indirectly cached at the nearest location traversed
+							// when performing a lookup. the store time is used when deciding
+							// whether or not to remove these in an ever reducing amount the
+							// further away from the correct cache position that the value is
+						
+						long	permitted = cache_republish_interval >> (distance-1);
+						
+						if ( now - value.getStoreTime() >= permitted ){
+							
+							DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+							
+							it2.remove();
+						}
 					}
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	

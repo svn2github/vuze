@@ -47,11 +47,11 @@ DHTDB
 		HashWrapper		key,
 		byte[]			value );
 	
-	public DHTDBValue
+	public void
 	store(
 		DHTTransportContact 	sender, 
 		HashWrapper				key,
-		DHTTransportValue		value );
+		DHTTransportValue[]		values );
 	
 	public DHTDBValue[]
 	get(

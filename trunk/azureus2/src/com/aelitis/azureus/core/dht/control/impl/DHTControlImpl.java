@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.dht.control.impl;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -1343,6 +1342,8 @@ DHTControlImpl
 		DHTTransportValue[][]	value_sets )
 	{
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
+		
+		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ", keys = " + keys.length );
 
 		for (int i=0;i<keys.length;i++){
 			
@@ -1350,12 +1351,9 @@ DHTControlImpl
 			
 			DHTTransportValue[]	values 	= value_sets[i];
 		
-			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
-
-			for (int j=0;j<values.length;j++){
+			DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
 			
-				database.store( originating_contact, key, values[j] );
-			}
+			database.store( originating_contact, key, values );
 		}
 	}
 	
