@@ -239,7 +239,8 @@ DMWriterAndCheckerImpl
 	public void 
 	aSyncCheckPiece(
 		int 							pieceNumber,
-		DiskManagerCheckRequestListener listener ) 
+		DiskManagerCheckRequestListener listener,
+		Object							user_data ) 
 	{  	
 			// recursion here will deadlock the write thread
 		
@@ -262,7 +263,7 @@ DMWriterAndCheckerImpl
 	  	try{
 	  		writeCheckQueueLock_mon.enter();
 	 		
-	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null, listener ));
+	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, user_data, listener ));
 	   		
 	    }finally{
 	    	
@@ -275,7 +276,8 @@ DMWriterAndCheckerImpl
 	public void
 	checkPiece(
 		final int 						pieceNumber,
-		final CheckPieceResultHandler	_result_handler )
+		final CheckPieceResultHandler	_result_handler,
+		final Object					user_data )
 	{
 		final int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
@@ -285,7 +287,8 @@ DMWriterAndCheckerImpl
 				public void
 				processResult(
 					int		piece_number,
-					int		result )
+					int		result,
+					Object	_user_data )
 				{
 					try{						
 
@@ -295,7 +298,7 @@ DMWriterAndCheckerImpl
 												
 						if ( _result_handler != null ){
 							
-							_result_handler.processResult( pieceNumber, result );
+							_result_handler.processResult( pieceNumber, result, _user_data );
 						}
 					}
 				}
@@ -431,7 +434,8 @@ DMWriterAndCheckerImpl
 
 	    		    						result_handler.processResult( 
 	    		    								pieceNumber, 
-													async_result );
+													async_result,
+													user_data );
 	    		    					}
 	    		    				}
 	    		    				
@@ -480,7 +484,7 @@ DMWriterAndCheckerImpl
 					buffer.returnToPool();
 				}
 
-				result_handler.processResult( pieceNumber, check_result );
+				result_handler.processResult( pieceNumber, check_result, user_data );
 			}
 		}
 	}
@@ -804,7 +808,8 @@ DMWriterAndCheckerImpl
 						  			public void
 									processResult(
 										int			pieceNumber,
-										int			result )
+										int			result,
+										Object		user_data )
 						  			{
 						  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
 									  								  	
@@ -824,10 +829,11 @@ DMWriterAndCheckerImpl
 									  	
 									  	if ( listener != null ){
 
-									  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS);
+									  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS, user_data );
 									  	}
 						  			}
-								});
+								},
+								elt.getUserData());
 					  }
 					}
 				}catch( Throwable e ){

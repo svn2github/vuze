@@ -99,12 +99,13 @@ DiskManager
 	public void
 	enqueueCheckRequest(
 		int								pieceNumber,
-		DiskManagerCheckRequestListener	listener );
+		DiskManagerCheckRequestListener	listener,
+		Object							user_data );
   
 	public void
     dumpResumeDataToDisk(
     	boolean savePartialPieces, 
-		boolean invalidate )
+		boolean force_recheck )
 		
 		throws Exception;
 

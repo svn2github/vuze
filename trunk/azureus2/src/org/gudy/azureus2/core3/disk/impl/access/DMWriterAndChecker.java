@@ -47,12 +47,14 @@ DMWriterAndChecker
 	public void 
 	checkPiece(
 		int 					pieceNumber,
-		CheckPieceResultHandler	result_handler );
+		CheckPieceResultHandler	result_handler,
+		Object					user_data );
 	
 	public void 
 	aSyncCheckPiece(
 		int 							pieceNumber,
-		DiskManagerCheckRequestListener	listener ); 
+		DiskManagerCheckRequestListener	listener,
+		Object							user_data ); 
 	  
 	public boolean 
 	isChecking();

@@ -103,12 +103,9 @@ PEPeerControlImpl
   private List	peer_manager_listeners 		= new ArrayList();
   private List	peer_transport_listeners 	= new ArrayList();
   
-  private List 		failedPieceChecks 		= new ArrayList();
-  private AEMonitor	failedPieceChecks_mon	= new AEMonitor( "PEPeerControl:FPC");
+  private List 		piece_check_result_list 	= new ArrayList();
+  private AEMonitor	piece_check_result_list_mon	= new AEMonitor( "PEPeerControl:PCRL");
 
-  private List		successPieceChecks = new ArrayList();
-  private AEMonitor	successPieceChecks_mon	= new AEMonitor( "PEPeerControl:SPC");
- 
   private boolean superSeedMode;
   private int superSeedModeCurrentPiece;
   private int superSeedModeNumberOfAnnounces;
@@ -120,12 +117,14 @@ PEPeerControlImpl
   private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
 
   
-  public PEPeerControlImpl(
+  public 
+  PEPeerControlImpl
+  (
     DownloadManager 	manager,
     PEPeerServerHelper 	server,
-		TRTrackerClient 	tracker,
-    DiskManager 		diskManager) {
-    	
+	TRTrackerClient 	tracker,
+    DiskManager 		diskManager) 
+  {
   	  _server = server;
   	  this._downloadManager = manager;
   	  _tracker = tracker;
@@ -149,7 +148,6 @@ PEPeerControlImpl
   public void
   start()
   {  
-    
     endGameMode = false;
     //This torrent Hash
     
@@ -294,40 +292,59 @@ PEPeerControlImpl
   
 
 
-  //main method
-  public void mainLoop() {
+  	//main method
+  
+  public void 
+  mainLoop() 
+  {
     _bContinue = true;
+    
     _downloadManager.setState(DownloadManager.STATE_DOWNLOADING);
+    
     _timeStarted = SystemTime.getCurrentTime();
-    while (_bContinue) //loop until stopAll() kills us
-      {
+  
+    	// initial check on finished state - future checks are driven by piece check results 
+    
+    checkFinished( true );
+    
+    while (_bContinue){ //loop until stopAll() kills us
+      
       try {
         long timeStart = SystemTime.getCurrentTime();
         
         checkTracker(); //check the tracker status, update peers
+        
         processPieceChecks();
+        
         checkCompletedPieces();  //check to see if we've completed anything else
-        computeAvailability(); //compute the availablity                   
+        
+        computeAvailability(); //compute the availablity
+        
         updateStats();
+        
         checkFastPieces();
         
         if (!_finished) { //if we're not finished
-          checkFinished(); //see if we've finished
-          if(!_finished) {
-            _diskManager.computePriorityIndicator();
-            checkRequests(); //check the requests               
-            checkDLPossible(); //look for downloadable pieces
-          }
+        	
+           _diskManager.computePriorityIndicator();
+           
+           checkRequests(); //check the requests
+           
+           checkDLPossible(); //look for downloadable pieces
         }
         
         checkSeeds(false);
+        
         updatePeersInSuperSeedMode();
+        
         unChoke();
 
         _loopFactor++; //increment the loopFactor
         
         long timeWait = MAINLOOP_WAIT_TIME - (SystemTime.getCurrentTime() - timeStart);
+        
         if (!SystemTime.isErrorLast5sec() && timeWait > 10) {
+        	
         	Thread.sleep(timeWait); //sleep
         }
 
@@ -586,7 +603,7 @@ PEPeerControlImpl
       	
         currentPiece.setBeingChecked();
         
-       _diskManager.enqueueCheckRequest(i,this);	
+       _diskManager.enqueueCheckRequest(i,this, new Boolean(false));	
       }
     }
   }
@@ -618,56 +635,33 @@ PEPeerControlImpl
   	private void 
 	processPieceChecks() 
   	{
-  		List	ok_pieces;
+  		List	pieces;
   		
   			// process complete piece results
   		
   		try{
-  			successPieceChecks_mon.enter();
+  			piece_check_result_list_mon.enter();
     
-  			ok_pieces = new ArrayList( successPieceChecks );
+  			pieces = new ArrayList( piece_check_result_list );
   			
-  			successPieceChecks.clear();
+  			piece_check_result_list.clear();
   			
   		}finally{
   			
-  			successPieceChecks_mon.exit();
+  			piece_check_result_list_mon.exit();
   		}
   		
-    	Iterator it = ok_pieces.iterator();
+    	Iterator it = pieces.iterator();
     	
     	while (it.hasNext()) {
     		
-    		Integer pieceNum = (Integer)it.next();
-    		
-    		processPieceCheckResult(pieceNum.intValue(), true);
+    		Object[]	data = (Object[])it.next();
+    		   		
+    		processPieceCheckResult(
+    			((Integer)data[0]).intValue(), 
+    			((Boolean)data[1]).booleanValue(), 
+				data[2]);
     	}
-  
-    
-    	// 	process incomplete piece results
-    
-    	List	failed_pieces;
-    
-	    try{
-	    	failedPieceChecks_mon.enter();
-	    
-	    	failed_pieces = new ArrayList(failedPieceChecks);
-	    	
-	    	failedPieceChecks.clear();
-	    	
-	    }finally{
-	    	
-	    	failedPieceChecks_mon.exit();
-	    }
-    
-	    it = failed_pieces.iterator();
-      
-	    while (it.hasNext()) {
-      	
-	    	Integer pieceNum = (Integer)it.next();
-  
-	    	processPieceCheckResult(pieceNum.intValue(), false);
-	    }
   	}
   
   
@@ -746,17 +740,20 @@ PEPeerControlImpl
    * This method checks if the downloading process is finished.
    *
    */
-  private void checkFinished() {
+  
+  private void 
+  checkFinished(
+  	boolean	start_of_day ) 
+  {
     boolean temp = true;
-    //for every piece
+   
     for (int i = 0; i < _nbPieces; i++) {
-      //:: we should be able to do this better than keeping a bunch of arrays
-      //:: possibly adding a status field to the piece object? -Tyler 
-      temp = temp && dm_pieces[i].getDone();
+ 
+    	temp = temp && dm_pieces[i].getDone();
 
-      //::pre-emptive break should save some cycles -Tyler
-      if (!temp) {
-        break;
+    	if (!temp){
+    		
+    		break;
       }
     }
 
@@ -780,6 +777,7 @@ PEPeerControlImpl
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
       
       _downloadManager.setState(DownloadManager.STATE_FINISHING);
+      
       _timeFinished = SystemTime.getCurrentTime();
             
       //remove previous snubbing
@@ -800,22 +798,27 @@ PEPeerControlImpl
       checkSeeds(true);
       
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
+                  
+      	//re-check all pieces to make sure they are not corrupt, but only if we weren't already complete
       
-      long	run_time = (_timeFinished - _timeStarted)/1000;	// secs
-      
-      boolean	looks_like_restart = run_time < 10;
-      
-      //re-check all pieces to make sure they are not corrupt
-      if (checkPieces && !looks_like_restart) {
-        for(int i=0; i < dm_pieces.length; i++) {
-          _diskManager.enqueueCheckRequest( i, this );
+      if (checkPieces && !start_of_day) {
+      	
+        for(int i=0; i < dm_pieces.length; i++){
+        	
+          _diskManager.enqueueCheckRequest( i, this, new Boolean(true) );
         }
       }
       
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+      
       if (moveWhenDone) {
+      	
         String newName = _diskManager.moveCompletedFiles();
-        if (newName.length() > 0) _downloadManager.setTorrentFileName(newName);
+        
+        if (newName.length() > 0){
+        	
+        	_downloadManager.setTorrentFileName(newName);
+        }
       }
       
       //update resume data
@@ -839,12 +842,12 @@ PEPeerControlImpl
       _timeStartedSeeding = SystemTime.getCurrentTime();
       _downloadManager.setState(DownloadManager.STATE_SEEDING);
       
-      if ( !looks_like_restart ){
+      if ( !start_of_day ){
       
       	_downloadManager.downloadEnded();
       }
             		
-      _tracker.complete( looks_like_restart );
+      _tracker.complete( start_of_day );
     }
   }
 
@@ -2089,18 +2092,18 @@ PEPeerControlImpl
 	    return result;    
 	  }
 	  
-	  private void MD5CheckPiece(int pieceNumber,boolean correct) {
-	    PEPiece piece = getPieces()[pieceNumber];
-	    if(piece == null) {
-	      return;
-	    }
+	  private void 
+	  MD5CheckPiece(
+	  	PEPiece piece,
+		boolean correct) 
+	  {
 	    PEPeer[] writers = piece.getWriters();
 	    int offset = 0;
 	    for(int i = 0 ; i < writers.length ; i++) {
 	      int length = piece.getBlockSize(i);
 	      PEPeer peer = writers[i];
 	      if(peer != null) {
-	        DirectByteBuffer buffer = _diskManager.readBlock(pieceNumber,offset,length);
+	        DirectByteBuffer buffer = _diskManager.readBlock(piece.getPieceNumber(),offset,length);
 	        byte[] hash = computeMd5Hash(buffer);
 	        buffer.returnToPool();
 	        buffer = null;
@@ -2114,180 +2117,186 @@ PEPeerControlImpl
   	public void
 	pieceChecked( 
 		int 		pieceNumber, 
-		boolean 	result )
+		boolean 	result,
+		Object		user_data )
   	{
-  		if (result){
-			
-  			if( needsMD5CheckOnCompletion(pieceNumber)){
-			    	
-  				MD5CheckPiece(pieceNumber,true);
-  			}
-	     	
-  	     	try{
-  	        	successPieceChecks_mon.enter();
-  	        
-  	            successPieceChecks.add(new Integer(pieceNumber));
-  	        }finally{
-  	        	
-  	        	successPieceChecks_mon.exit();
-  	        }
-  	    }else{
-  	    	
-			MD5CheckPiece(pieceNumber,false);			    
-
-  	        try{
-  	        	failedPieceChecks_mon.enter();
-  	        
-  	            failedPieceChecks.add(new Integer(pieceNumber));
-  	        }finally{
-  	        	
-  	        	failedPieceChecks_mon.exit();
-  	        }
-  	    }
+        try{
+	       	piece_check_result_list_mon.enter();
+	        
+	       	piece_check_result_list.add(new Object[]{new Integer(pieceNumber), new Boolean(result), user_data });
+	    }finally{
+	        	
+	    	piece_check_result_list_mon.exit();
+	    }
   	}
   	
   private void 
   processPieceCheckResult(
   	int 		pieceNumber, 
-	boolean 	result) 
+	boolean 	result,
+	Object		user_data ) 
   {
-  		// tidy up - don't know if piece really can be null here but assuming it can be coz
-  		// the existing code did...
+  	boolean	recheck_on_completion = ((Boolean)user_data).booleanValue();
   	
-    PEPieceImpl piece = _pieces[pieceNumber];
+  	try{  		
+  		
+  			// piece can be null when running a recheck on completion
+  		
+	    PEPieceImpl piece = _pieces[pieceNumber];
+	
+	    // System.out.println( "processPieceCheckResult(" + _finished + "/" + recheck_on_completion + "):" + pieceNumber + "/" + piece + " - " + result );
+	    
+	    if( result && piece != null ){
+	    	
+	    	pieceRemoved(piece);
+	    }
+	    
+	    if( recheck_on_completion ) {  //this is a recheck, so don't send HAVE msgs
+	    	
+	      if( result) { //piece ok
+	        
+	      }else{  	//piece failed
+	      			//restart the download afresh
+	      	
+	        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
+	        
+	        if ( !restart_initiated ){
+	        	
+	        	restart_initiated	= true;
+	        	
+	        	_downloadManager.restartDownload( false );
+	        }
+	      }
+	      
+	      return;
+	    }
+	
+	    
+	    	//  the piece has been written correctly
+	    
+	    if ( result ){
+	      
+			
+	      if(piece != null) {
 
-    if( result && piece != null ) pieceRemoved(piece);
-    
-    if( _finished ) {  //this is a recheck, so don't send HAVE msgs
-    	
-      if( result) { //piece ok
-        
-      }else{  	//piece failed
-      			//restart the download afresh
-      	
-        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
-        
-        if ( !restart_initiated ){
-        	
-        	restart_initiated	= true;
-        	
-        	_downloadManager.restartDownload( false );
-        }
-      }
-      
-      return;
-    }
-    
-    	//  the piece has been written correctly
-    
-    if (result) {
-      
-      if(piece != null) {
-        
-        List list = piece.getPieceWrites();
-        if(list.size() > 0) {                  
-          //For each Block
-          for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
-            //System.out.println("Processing block " + i);
-            //Find out the correct hash
-            List listPerBlock = piece.getPieceWrites(i);
-            byte[] correctHash = null;
-            //PEPeer correctSender = null;
-            Iterator iterPerBlock = listPerBlock.iterator();
-            while(iterPerBlock.hasNext()) {
-              PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
-              if(write.isCorrect()) {
-                correctHash = write.getHash();
-                //correctSender = write.getSender();
-              }
-            }
-            //System.out.println("Correct Hash " + correctHash);
-            //If it's found                       
-            if(correctHash != null) {
-              List peersToDisconnect = new ArrayList();
-              iterPerBlock = listPerBlock.iterator();
-              while(iterPerBlock.hasNext()) {
-              	PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
-                if(! Arrays.equals(write.getHash(),correctHash)) {
-                  //Bad peer found here
-                  PEPeer peer = write.getSender();
-                  peer.hasSentABadChunk();
-                  if(!peersToDisconnect.contains(peer))
-                    peersToDisconnect.add(peer);                  
-              }
-                
-              Iterator iterPeers = peersToDisconnect.iterator();
-              while(iterPeers.hasNext()) {
-                PEPeer peer = (PEPeer) iterPeers.next();
-                badPeerDetected(peer);
-               }
-              }              
-            }            
-          }
-        }
-      }
-           
-      _pieces[pieceNumber] = null;
+	      	if( needsMD5CheckOnCompletion(pieceNumber)){
+		    	
+	      		MD5CheckPiece(piece,true);
+	      	}
+ 
+	        List list = piece.getPieceWrites();
+	        if(list.size() > 0) {                  
+	          //For each Block
+	          for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
+	            //System.out.println("Processing block " + i);
+	            //Find out the correct hash
+	            List listPerBlock = piece.getPieceWrites(i);
+	            byte[] correctHash = null;
+	            //PEPeer correctSender = null;
+	            Iterator iterPerBlock = listPerBlock.iterator();
+	            while(iterPerBlock.hasNext()) {
+	              PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
+	              if(write.isCorrect()) {
+	                correctHash = write.getHash();
+	                //correctSender = write.getSender();
+	              }
+	            }
+	            //System.out.println("Correct Hash " + correctHash);
+	            //If it's found                       
+	            if(correctHash != null) {
+	              List peersToDisconnect = new ArrayList();
+	              iterPerBlock = listPerBlock.iterator();
+	              while(iterPerBlock.hasNext()) {
+	              	PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
+	                if(! Arrays.equals(write.getHash(),correctHash)) {
+	                  //Bad peer found here
+	                  PEPeer peer = write.getSender();
+	                  peer.hasSentABadChunk();
+	                  if(!peersToDisconnect.contains(peer))
+	                    peersToDisconnect.add(peer);                  
+	              }
+	                
+	              Iterator iterPeers = peersToDisconnect.iterator();
+	              while(iterPeers.hasNext()) {
+	                PEPeer peer = (PEPeer) iterPeers.next();
+	                badPeerDetected(peer);
+	               }
+	              }              
+	            }            
+	          }
+	        }
+	      }
+	           
+	      _pieces[pieceNumber] = null;
+	
+	      	//send all clients a have message
+	      
+	      sendHave(pieceNumber);
+	      
+	    }else{
+	    	
+	    		//    the piece is corrupt
 
-      	//send all clients a have message
-      
-      sendHave(pieceNumber);
-      
-    }else{
-    	
-    		//    the piece is corrupt
-    	
-       if (piece != null) {            
-        PEPeer[] writers = piece.getWriters();
-        if((writers.length > 0) && writers[0] != null) {
-          PEPeer writer = writers[0];
-          boolean uniqueWriter = true;
-          for(int i = 1 ; i < writers.length ; i++) {
-            uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
-          }
-          if(uniqueWriter) {
-          	
-          		// we don't know how many chunks are invalid, assume all were invalid
-          	
-          	for (int i=0;i<writers.length;i++){
-          		
-          		writer.hasSentABadChunk();
-          	}
-          	
-            badPeerDetected(writer);
-          }
-        }
-        
-        piece.reset();
-      }
-       //Mark this piece as non downloading
-       
-      _downloading[pieceNumber] = false;
-            
-      	//if we are in end-game mode, we need to re-add all the piece chunks
-      	//to the list of chunks needing to be downloaded
-      
-      if(endGameMode && piece != null ) {
-        try{
-        	endGameModeChunks_mon.enter();
-        
-        	int nbChunks = piece.getNbBlocs();
-        	
-        	for(int i = 0 ; i < nbChunks ; i++) {
-        		endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
-        	}
-        }finally{
-        	
-        	endGameModeChunks_mon.exit();
-        }
-      }
-      
-      	//We haven't finished (to recover from a wrong finish state)
-      
-      _finished = false;
-         
-      nbHashFails++;
-    }
+	       if (piece != null) {
+	       	
+		    MD5CheckPiece(piece,false);
+
+	        PEPeer[] writers = piece.getWriters();
+	        if((writers.length > 0) && writers[0] != null) {
+	          PEPeer writer = writers[0];
+	          boolean uniqueWriter = true;
+	          for(int i = 1 ; i < writers.length ; i++) {
+	            uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
+	          }
+	          if(uniqueWriter) {
+	          	
+	          		// we don't know how many chunks are invalid, assume all were invalid
+	          	
+	          	for (int i=0;i<writers.length;i++){
+	          		
+	          		writer.hasSentABadChunk();
+	          	}
+	          	
+	            badPeerDetected(writer);
+	          }
+	        }
+	        
+	        piece.reset();
+	      }
+	       
+	       		//Mark this piece as non downloading
+	       
+	      _downloading[pieceNumber] = false;
+	            
+	      	//if we are in end-game mode, we need to re-add all the piece chunks
+	      	//to the list of chunks needing to be downloaded
+	      
+	      if ( endGameMode && piece != null ){
+	      	
+	        try{
+	        	endGameModeChunks_mon.enter();
+	        
+	        	int nbChunks = piece.getNbBlocs();
+	        	
+	        	for( int i = 0 ; i < nbChunks ; i++) {
+	        		
+	        		endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
+	        	}
+	        }finally{
+	        	
+	        	endGameModeChunks_mon.exit();
+	        }
+	      }
+	      	         
+	      nbHashFails++;
+	    }
+  	}finally{
+  		
+  		if ( !_finished ){
+  			
+           checkFinished( false );	 
+  		}
+  	}
   }
 
   private void badPeerDetected(PEPeer peer) {

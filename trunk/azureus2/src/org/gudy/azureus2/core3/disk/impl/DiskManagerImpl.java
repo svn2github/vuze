@@ -888,9 +888,10 @@ DiskManagerImpl
 	public void 
 	enqueueCheckRequest(
 		int 							pieceNumber,
-		DiskManagerCheckRequestListener listener ) 
+		DiskManagerCheckRequestListener listener,
+		Object							user_data ) 
 	{
-	  	writer_and_checker.aSyncCheckPiece( pieceNumber, listener );
+	  	writer_and_checker.aSyncCheckPiece( pieceNumber, listener, user_data );
 	}
 	  
 	public boolean isChecking() 
@@ -939,11 +940,11 @@ DiskManagerImpl
 	public void 
 	dumpResumeDataToDisk(
 		boolean savePartialPieces, 
-		boolean invalidate )
+		boolean force_recheck )
 	
 		throws Exception
 	{			
-		resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
+		resume_handler.dumpResumeDataToDisk( savePartialPieces, force_recheck );
 	}
 		
   /**

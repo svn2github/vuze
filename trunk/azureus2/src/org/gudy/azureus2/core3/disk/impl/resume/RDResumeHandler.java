@@ -244,25 +244,24 @@ RDResumeHandler
 					
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 					
-					if ( resumeArray == null || resumeArray[i] == 0 ){
+					if ( (!resumeValid) || resumeArray == null || resumeArray[i] == 0 ){
+													
+						pending_check_num++;
 						
-						if ( !resumeValid ){
-							
-							pending_check_num++;
-							
-							writer_and_checker.checkPiece(
-								i,
-								new CheckPieceResultHandler()
+						writer_and_checker.checkPiece(
+							i,
+							new CheckPieceResultHandler()
+							{
+								public void
+								processResult(
+									int		p,
+									int		r,
+									Object	user_data )
 								{
-									public void
-									processResult(
-										int		p,
-										int		r )
-									{
-										pending_checks_sem.release();
-									}
-								});
-						}
+									pending_checks_sem.release();
+								}
+							},
+							null );
 					}else{
 										
 						dm_piece.setDone(true);
@@ -318,7 +317,7 @@ RDResumeHandler
 	public void 
 	dumpResumeDataToDisk(
 		boolean savePartialPieces, 
-		boolean invalidate )
+		boolean force_recheck )
 	
 		throws Exception
 	{
@@ -355,28 +354,17 @@ RDResumeHandler
 		
 		byte[] resumeData = new byte[pieces.length];
 		
-		int	pieces_not_done	= 0;
-		
+				
 		for (int i = 0; i < resumeData.length; i++) {
-			
-		  if (invalidate){
-		  	
-		  	resumeData[i] = (byte)0;
-		  	
-		  	pieces_not_done++;
-		  	
-		  }else{
-		  	
+	  	
 		  	if ( pieces[i].getDone()){
 		  		
 				resumeData[i] = (byte)1;
 		  		
 		  	}else{
-		  		pieces_not_done++;
 		  	
 				resumeData[i] = (byte)0;
 		  	}
-		  }
 		}
 		
 		Map resumeMap = new HashMap();
@@ -401,7 +389,7 @@ RDResumeHandler
 	  
 		Map partialPieces = new HashMap();
 	
-		if ( savePartialPieces  && !invalidate ){
+		if ( savePartialPieces  ){
 	  		  		      
 			for (int i = 0; i < pieces.length; i++) {
 				
@@ -428,7 +416,7 @@ RDResumeHandler
 			resumeDirectory.put("blocks", partialPieces);
 		}
 		
-		resumeDirectory.put("valid", new Long(1));
+		resumeDirectory.put("valid", new Long( force_recheck?0:1));
 		
 		for (int i=0;i<files.length;i++){
 			

@@ -36,5 +36,6 @@ CheckPieceResultHandler
 	public void
 	processResult(
 		int			piece_number,
-		int			result );
+		int			result,
+		Object		user_data );
 }

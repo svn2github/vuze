@@ -879,7 +879,7 @@ Test
 					
 					if ( offset == 0 ){
 						
-						dm.enqueueCheckRequest( pieceNumber, null );
+						dm.enqueueCheckRequest( pieceNumber, null, null );
 					}
 				}
 			}
@@ -1242,7 +1242,7 @@ Test
 		public void
 	    dumpResumeDataToDisk(
 	    	boolean savePartialPieces, 
-			boolean invalidate )
+			boolean force_recheck )
 			
 			throws Exception;
 

@@ -33,5 +33,6 @@ DiskManagerCheckRequestListener
 	public void
 	pieceChecked( 
 		int 		pieceNumber, 
-		boolean 	result );
+		boolean 	result,
+		Object		user_data );
 }
