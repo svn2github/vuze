@@ -359,6 +359,8 @@ public class MainWindow implements GlobalManagerListener {
       display = new Display();
     }
 
+    ImageRepository.loadImages(display);
+    
     if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
       showSplashWindow();
     }
@@ -372,7 +374,7 @@ public class MainWindow implements GlobalManagerListener {
     config = null;
     downloadViews = new HashMap();
     downloadBars = new HashMap();
-    ImageRepository.loadImages(display);
+    
 
     if (instanceCount == 0) {
       blues[4] = new Color(display, new RGB(0, 128, 255));
@@ -903,11 +905,12 @@ public class MainWindow implements GlobalManagerListener {
 
   private void showSplashWindow() {
     if (splash == null) {
+      ImageRepository.loadImages(display);
       splash = new Shell(display, SWT.ON_TOP);
       splash.setText("Azureus");
-      splash.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus")); //$NON-NLS-1$
+      splash.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
       Label label = new Label(splash, SWT.NONE);
-      label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
+      label.setImage(ImageRepository.getImage("azureus_splash"));
       splash.setLayout(new FormLayout());
       splash.pack();
       Rectangle splashRect = splash.getBounds();

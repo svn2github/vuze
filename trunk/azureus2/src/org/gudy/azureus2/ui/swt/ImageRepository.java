@@ -41,23 +41,24 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
     loadImage(display, "org/gudy/azureus2/ui/icons/start2.png", "start");
     loadImage(display, "org/gudy/azureus2/ui/icons/stop2.png", "stop");
+    loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash",64);
   }
 
   
-  public static Image loadImage(Display display, String res, String name) {
-    return loadImage(display,res,name,-1,-1,-1);
+  public static Image loadImage(Display display, String res, String name){
+    return loadImage(display,res,name,255);
   }
   
-  public static Image loadImage(Display display, String res, String name,int r,int g,int b) {
+  public static Image loadImage(Display display, String res, String name,int alpha) {
     Image im = getImage(name);
     if(null == im) {
       InputStream is = ClassLoader.getSystemResourceAsStream(res);
       if(null != is) {
-        if(r == -1) {
+        if(alpha == 255) {
           im = new Image(display, is);          
         } else {
           ImageData icone = new ImageData(is);
-          icone.transparentPixel = icone.palette.getPixel(new RGB(r,g,b));
+          icone.alpha = alpha;
           im = new Image(display,icone);
         }
         images.put(name, im);
