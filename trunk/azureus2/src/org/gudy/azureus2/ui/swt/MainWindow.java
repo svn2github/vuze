@@ -204,7 +204,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   private Tab console;
   private Tab config;
-  private Tab irc;
 
   private MenuItem selectedLanguageItem;
 
@@ -1185,10 +1184,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
       view_irc.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
+        	showAlert( LGLogger.AT_COMMENT, "Irc is now available as a plugin, see http://azureus.sourceforge.net/plugin_list.php");
+        	/*
           if (irc == null)
-            irc = new Tab(new IrcView());
+          	try{
+          		Class cla = Class.forName( "org.gudy.azureus2.ui.swt.views.IrcView" );
+          
+          		AbstractIView irc_view = (AbstractIView)cla.newInstance();
+          		
+          		irc = new Tab( irc_view );
+          	}catch( Throwable f ){
+          		f.printStackTrace();
+          	}
           else
             irc.setFocus();
+            */
         }
       });
 
@@ -2227,8 +2237,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     if (tray != null)
       tray.dispose();
-    if (irc != null)
-      irc.dispose();
 
     display.dispose();
     disposeColors();
@@ -2786,20 +2794,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    */
   public void setStats(Tab tab) {
     stats_tab = tab;
-  }
-
-  /**
-	 * @return
-	 */
-  public Tab getIrc() {
-    return irc;
-  }
-
-  /**
-	 * @param tab
-	 */
-  public void setIrc(Tab tab) {
-    irc = tab;
   }
 
   /**
@@ -3370,7 +3364,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			mb.open();
       */
       
-      MessagePopupShell eps = new MessagePopupShell(display,MessagePopupShell.ICON_ERROR,title,message,details);
+			String icon_str;
+			
+			if ( type == SWT.ICON_INFORMATION ){
+				
+				icon_str = MessagePopupShell.ICON_INFO;
+				
+			}else if ( type == SWT.ICON_WARNING ){
+				
+				icon_str = MessagePopupShell.ICON_WARNING;
+				
+			}else{
+				
+				icon_str = MessagePopupShell.ICON_ERROR;
+			}
+	 
+			MessagePopupShell eps = new MessagePopupShell(display,icon_str,title,message,details);
 		}
  	});
    }

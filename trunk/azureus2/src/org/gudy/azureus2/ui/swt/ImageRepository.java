@@ -102,6 +102,8 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
     loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
     loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
+    loadImage(display, "org/gudy/azureus2/ui/icons/info.gif","info");
+    loadImage(display, "org/gudy/azureus2/ui/icons/warning.gif","warning");
 
     loadImage(display, "org/gudy/azureus2/ui/icons/subitem.gif","subitem");
     }

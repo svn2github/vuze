@@ -56,7 +56,9 @@ public class MessagePopupShell implements AnimableShell {
   Image shellImg;
   private Display display;  
   
-  public static final String ICON_ERROR = "error";
+  public static final String ICON_ERROR 	= "error";
+  public static final String ICON_WARNING 	= "warning";
+  public static final String ICON_INFO	 	= "info";
   
   public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {    
     this.display = display;    
