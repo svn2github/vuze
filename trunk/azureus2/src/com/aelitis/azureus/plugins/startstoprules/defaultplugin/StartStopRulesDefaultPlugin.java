@@ -979,7 +979,7 @@ public class StartStopRulesDefaultPlugin
 								(!download.isForceStart());
 	        // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
 	        // skip check
-			// we want changes to take effect immediately - Gouss 2203
+			// XXX we want changes to take effect immediately - Gouss 2203
 /*	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
 	          long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
 	          okToQueue = (timeAlive >= minTimeAlive);
@@ -1495,7 +1495,8 @@ public class StartStopRulesDefaultPlugin
 			     return sr;
 			}
 							
-			if (num_peers_excluding_us == 0 && bScrapeResultsOk &&
+/* XXX no ignore rules for ignore FP
+ * 			if (num_peers_excluding_us == 0 && bScrapeResultsOk &&
 					( (bFirstPriorityIgnore0Peer && shareRatio <= minQueueingShareRatio) || 
 							bIgnore0Peers )) 
 			{
@@ -1520,7 +1521,7 @@ public class StartStopRulesDefaultPlugin
 					return SR_RATIOMET;
 				}
 			}
-		    
+		    */
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
