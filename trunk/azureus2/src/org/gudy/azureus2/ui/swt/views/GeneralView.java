@@ -361,7 +361,7 @@ public class GeneralView extends AbstractIView {
     updateAvailability();
     updatePiecesInfo();
     updateOverall();
-    setTime(manager.getStats().getElapsedTime(), manager.getStats().getETA());
+    setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = "" + manager.getNbSeeds();
     String peers = "" + manager.getNbPeers();

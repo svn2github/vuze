@@ -133,6 +133,7 @@ public class ManagerItem {
       status = tmp;
       item.setText(4, tmp);
       if (state == DownloadManager.STATE_SEEDING)
+        
         item.setForeground(MainWindow.blues[3]);
       else if (state == DownloadManager.STATE_ERROR)
         item.setForeground(MainWindow.red_ManagerItem);
@@ -175,7 +176,7 @@ public class ManagerItem {
       item.setText(8, tmp);
     }
 
-    tmp = "" + manager.getStats().getETA(); //$NON-NLS-1$
+    tmp = "" + DisplayFormatters.formatETA(manager.getStats().getETA());
     if (!(tmp.equals(this.eta))) {
       eta = tmp;
       item.setText(9, tmp);
