@@ -313,6 +313,9 @@ DownloadManagerImpl
 		  stats.setSavedDownloadedUploaded( 
 				  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
 			 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
+      
+		  stats.saveDiscarded(stats.getDiscarded());
+		  stats.saveHashFails(stats.getHashFails());
 			 	  
 		  peerManager.stopAll(); 
 		  

@@ -46,6 +46,10 @@ DownloadManagerStatsImpl
 		
 	protected long saved_downloaded;
 	protected long saved_uploaded;
+  
+	protected long saved_discarded = 0;
+	protected long saved_hashfails = 0;
+  
 
 	protected
 	DownloadManagerStatsImpl(
@@ -186,15 +190,36 @@ DownloadManagerStatsImpl
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null)
 		return pm.getStats().getTotalDiscarded();
-	  return( 0 );
+	  return( saved_discarded );
 	}
+  
+   public void setSavedDiscarded() {
+     PEPeerManager  pm = download_manager.getPeerManager();
+     if (pm == null) System.out.println("setDiscarded:: PeerManager null");
+     else pm.getStats().setTotalDiscarded(saved_discarded);
+   }
+   
+   public void saveDiscarded(long discarded) {
+     this.saved_discarded = discarded;
+   }
 
 	public long getHashFails(){
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null)
 		return pm.getNbHashFails();
-	  return( 0 );
+	  return( saved_hashfails );
 	}
+  
+	public void setSavedHashFails() {
+	  PEPeerManager  pm = download_manager.getPeerManager();
+	  if (pm == null) System.out.println("setSavedHashFails:: PeerManager null");
+	  else pm.setNbHashFails((int)saved_hashfails);
+	}
+  
+  public void saveHashFails(long fails) {
+    this.saved_hashfails = fails;
+  }
+  
 
 	public int getTotalAverage() {
 		PEPeerManager	pm = download_manager.getPeerManager();

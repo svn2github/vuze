@@ -35,6 +35,8 @@ PEPeerManagerStats
 	public int getTotalAverage();
    
 	public long getTotalDiscarded();
+  
+   public void setTotalDiscarded(long total);
  
 	public long getTotalSent();
   

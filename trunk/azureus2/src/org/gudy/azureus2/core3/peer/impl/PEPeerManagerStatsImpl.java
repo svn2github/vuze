@@ -91,7 +91,11 @@ PEPeerManagerStatsImpl
   
 	public long getTotalDiscarded() {
 	  return( totalDiscarded );
-	}  
+	}
+  
+	public void setTotalDiscarded(long total) {
+	  this.totalDiscarded = total;
+	}
 
 	public long getTotalSent() {
 	  return totalSent;

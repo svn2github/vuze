@@ -73,6 +73,8 @@ PEPeerManager
 	public int getNbSeeds();
 	
 	public int getNbHashFails();
+  
+	public void setNbHashFails(int fails);
 
 	public int getPiecesNumber();
 

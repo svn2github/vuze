@@ -1639,6 +1639,10 @@ PEPeerControlImpl
     return nbHashFails;
   }
   
+  public void setNbHashFails(int fails) {
+    this.nbHashFails = fails;
+  }
+  
   public PEPeerStatsImpl
   createPeerStats()
   {

@@ -42,9 +42,17 @@ DownloadManagerStats
 	
 	public long
 	getDiscarded();
+  
+   public void saveDiscarded(long discarded);
+   
+   public void setSavedDiscarded();
 	
 	public long
 	getHashFails();
+  
+	public void saveHashFails(long fails);
+  
+	public void setSavedHashFails();
 	
 	public int
 	getShareRatio();

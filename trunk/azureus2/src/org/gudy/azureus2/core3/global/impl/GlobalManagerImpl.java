@@ -67,12 +67,14 @@ public class GlobalManagerImpl
   private StatsWriterPeriodic				stats_writer;
   private boolean 					isStopped = false;
 
+  
   public class Checker extends Thread {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 300000 / waitTime;
+    
 
     public Checker() {
       super("Global Status Checker");
@@ -223,6 +225,11 @@ public class GlobalManagerImpl
               && ((nbMax == 0) || (nbStarted < nbMax))
               && (manager.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
               manager.startDownload();
+              
+              //set previous hash fails and discarded values
+              manager.getStats().setSavedDiscarded();
+              manager.getStats().setSavedHashFails();
+              
               nbStarted++;
               if (manager.getStats().getCompleted() != 1000)
                 nbDownloading++;
@@ -266,6 +273,7 @@ public class GlobalManagerImpl
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
+
     
     TRHostFactory.create().initialise( 
     	new TRHostTorrentFinder()
@@ -466,6 +474,8 @@ public class GlobalManagerImpl
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
+          Long lDiscarded = (Long) mDownload.get("discarded");
+          Long lHashFails = (Long) mDownload.get("hashfails");
           Long lPriorityLocked = (Long) mDownload.get("priorityLocked");
           Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1);
@@ -479,6 +489,14 @@ public class GlobalManagerImpl
           if (lCompleted != null) {
             dm.getStats().setCompleted(lCompleted.intValue());
           }
+          
+          if (lDiscarded != null) {
+            dm.getStats().saveDiscarded(lDiscarded.intValue());
+          }
+          if (lHashFails != null) {
+            dm.getStats().saveHashFails(lHashFails.intValue());
+          }
+          
           if(lPriorityLocked != null) {
             if(lPriorityLocked.intValue() == 1) {
               dm.setPriorityLocked(true);
@@ -537,6 +555,8 @@ public class GlobalManagerImpl
       dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
       dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
       dmMap.put("completed", new Long(dm.getStats().getCompleted()));
+      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
+      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
       dmMap.put("priorityLocked", new Long(dm.isPriorityLocked() ? 1 : 0));
       dmMap.put("startStopLocked", new Long(dm.isStartStopLocked() ? 1 : 0));
       list.add(dmMap);
@@ -640,5 +660,6 @@ public class GlobalManagerImpl
 			listeners.removeElement(listener);
 		}
 	}
+  
 
 }
