@@ -250,6 +250,22 @@ TorrentImpl
 		}
 	}
 	
+	public byte[]
+	writeToBEncodedData()
+	
+		throws TorrentException
+	{
+		try{
+			Map	map = torrent.serialiseToMap();
+			
+			return( BEncoder.encode( map ));
+			
+		}catch( Throwable e ){
+			
+			throw( new TorrentException( "Torrent::writeToBEncodedData: fails", e ));
+		}
+	}	
+	
 	public void
 	writeToFile(
 		File		file )

@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 03-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,15 +20,17 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ddb;
+package org.gudy.azureus2.pluginsimpl.local.ddb;
+
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DistributedDatabaseTransferType 
+public class 
+DDBaseTTTorrent
+	implements DistributedDatabaseTransferType
 {
-	public static final int	ST_TORRENT	= 1;
 }

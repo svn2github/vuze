@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 03-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,15 +20,22 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ddb;
+package com.aelitis.net.magneturi;
+
+import com.aelitis.net.magneturi.impl.MagnetURIHandlerImpl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DistributedDatabaseTransferType 
+public class 
+MagnetURIHandler 
 {
-	public static final int	ST_TORRENT	= 1;
+	public static void
+	addListener(
+		MagnetURIHandlerListener l )
+	{
+		MagnetURIHandlerImpl.addListener( l );
+	}
 }

@@ -74,4 +74,10 @@ DistributedDatabase
 		DistributedDatabaseTransferHandler	handler )
 	
 		throws DistributedDatabaseException;
+	
+	public DistributedDatabaseTransferType
+	getStandardTransferType(
+		int		standard_type )
+	
+		throws DistributedDatabaseException;
 }

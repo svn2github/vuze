@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 03-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,15 +20,38 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ddb;
+package com.aelitis.azureus.plugins.magnet;
+
+import org.gudy.azureus2.plugins.*;
+
+import com.aelitis.net.magneturi.*;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DistributedDatabaseTransferType 
+public class 
+MagnetPlugin
+	implements Plugin, MagnetURIHandlerListener
 {
-	public static final int	ST_TORRENT	= 1;
+	private PluginInterface		plugin_interface;
+	
+	
+	public void
+	initialize(
+		PluginInterface	_plugin_interface )
+	{
+		plugin_interface	= _plugin_interface;
+		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Magnet URI Handler" );
+		
+		MagnetURIHandler.addListener( this );
+	}
+	
+	public byte[]
+	badge()
+	{
+		return( null );
+	}
 }

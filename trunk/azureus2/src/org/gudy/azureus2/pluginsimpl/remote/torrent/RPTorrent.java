@@ -246,6 +246,16 @@ RPTorrent
 		return( null );
 	}
 	
+	public byte[]
+	writeToBEncodedData()
+				
+		throws TorrentException
+	{
+		notSupported();
+
+		return( null );
+	}
+	
 	public void
 	writeToFile(
 		File		file )

@@ -24,13 +24,13 @@ package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 import java.util.*;
 
-import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
+import org.gudy.azureus2.plugins.download.Download;
 
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -53,6 +53,8 @@ DDBaseImpl
 	protected static AEMonitor		class_mon	= new AEMonitor( "DDBaseImpl:class");
 
 	protected static Map			transfer_map = new HashMap();
+	
+	private static final DistributedDatabaseTransferType	torrent_transfer = new DDBaseTTTorrent();
 	
 	public static DistributedDatabase
 	getSingleton(
@@ -79,7 +81,7 @@ DDBaseImpl
 	
 	protected
 	DDBaseImpl(
-		AzureusCore	azureus_core )
+		final AzureusCore	azureus_core )
 	{
 		PluginInterface dht_pi = 
 			azureus_core.getPluginManager().getPluginInterfaceByClass(
@@ -88,6 +90,49 @@ DDBaseImpl
 		if ( dht_pi != null ){
 			
 			dht = (DHTPlugin)dht_pi.getPlugin();
+			
+			try{
+				addTransferHandler(
+						torrent_transfer,
+						new DistributedDatabaseTransferHandler()
+						{
+							public DistributedDatabaseValue
+							read(
+								DistributedDatabaseContact			contact,
+								DistributedDatabaseTransferType		type,
+								DistributedDatabaseKey				key )
+							
+								throws DistributedDatabaseException
+							{
+								try{
+									byte[]	hash = ((DDBaseKeyImpl)key).getBytes();
+									
+									Download dl = azureus_core.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( hash );
+									
+									return( createValue( dl.getTorrent().writeToBEncodedData()));
+									
+								}catch( Throwable e ){
+									
+									throw( new DistributedDatabaseException("Torrent write fails", e ));
+								}
+							}
+							
+							public void
+							write(
+								DistributedDatabaseContact			contact,
+								DistributedDatabaseTransferType		type,
+								DistributedDatabaseKey				key,
+								DistributedDatabaseValue			value )
+							
+								throws DistributedDatabaseException
+							{
+								throw( new DistributedDatabaseException( "not supported" ));
+							}
+						});
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -247,6 +292,20 @@ DDBaseImpl
 					}
 				}
 			});
+	}
+	
+	public DistributedDatabaseTransferType
+	getStandardTransferType(
+		int		standard_type )
+	
+		throws DistributedDatabaseException
+	{
+		if ( standard_type == DistributedDatabaseTransferType.ST_TORRENT ){
+			
+			return( torrent_transfer );
+		}
+		
+		throw( new DistributedDatabaseException( "unknown type" ));
 	}
 	
 	protected class

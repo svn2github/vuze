@@ -110,6 +110,11 @@ Torrent
 	
 		throws TorrentException;
   
+	public byte[]
+	writeToBEncodedData()
+	
+		throws TorrentException;
+	
 		/**
 		 * Saves the torrent to its persistent location
 		 * @throws TorrentException
