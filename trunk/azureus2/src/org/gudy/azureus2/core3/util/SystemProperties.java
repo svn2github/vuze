@@ -111,7 +111,7 @@ public class SystemProperties {
    * and running from.
    */
   public static String getApplicationPath() {
-    String sDir = System.getProperty("user.dir");
+    String sDir = System.getProperty("azureus.install.path", System.getProperty("user.dir"));
     if (sDir.endsWith(SEP))
       return sDir;
 
