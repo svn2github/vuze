@@ -234,6 +234,14 @@ UpdateCheckInstanceImpl
 		return( checkers );
 	}
 	
+	public UpdateInstaller
+	createInstaller()
+	
+		throws UpdateException
+	{
+		return( new UpdateInstallerImpl());
+	}
+	
 	public void
 	cancel()
 	{

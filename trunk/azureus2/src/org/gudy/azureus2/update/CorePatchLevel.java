@@ -1,5 +1,5 @@
 /*
- * Created on 11-May-2004
+ * Created on 26-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,38 +20,28 @@
  *
  */
 
-package org.gudy.azureus2.plugins.update;
+package org.gudy.azureus2.update;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-UpdateCheckInstance 
+public class 
+CorePatchLevel 
 {
-	public void
-	start();
+		// everytime a patch is issued this number must go up by one
+		// The resulting patch file must include this file and be names
+		// Azureus2_<mainline_build>_P<patch_level>.pat
+		//  e.g. Azureus2_2.0.8.5_P1.pat
+		// dont' reset to 1 on a new mainline, keep going up!
 	
-	public void
-	cancel();
 	
-	public UpdateChecker[]
-	getCheckers();
+	public static final int	PATCH_LEVEL	= 0;
 	
-	public Update[]
-	getUpdates();
-	
-	public UpdateInstaller
-	createInstaller()
-		
-		throws UpdateException;
-	
-	public void
-	addListener(
-		UpdateCheckInstanceListener	l );
-	
-	public void
-	removeListener(
-		UpdateCheckInstanceListener	l );
+	public static int
+	getCurrentPatchLevel()
+	{
+		return( PATCH_LEVEL );
+	}
 }

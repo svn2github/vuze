@@ -278,17 +278,23 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
   private void checkRestartNeeded() {  
     restartRequired = false;
+    boolean	restartMaybeRequired = false;
     TableItem[] items = table.getItems();
     for(int i = 0 ; i < items.length ; i++) {
       if(! items[i].getChecked()) continue;
       Update update = (Update) items[i].getData();
       int required = update.getRestartRequired();
-      if((required == Update.RESTART_REQUIRED_MAYBE) ||
-         (required == Update.RESTART_REQUIRED_YES)     ) restartRequired = true;
+      if((required == Update.RESTART_REQUIRED_MAYBE)){
+      	restartMaybeRequired = true;
+      }else if ( required == Update.RESTART_REQUIRED_YES ){
+      	restartRequired = true;
+      }
     }
     if(restartRequired) {
-      status.setText(MessageText.getString("swt.update.window.status.restartNeeded"));
-    } else {
+        status.setText(MessageText.getString("swt.update.window.status.restartNeeded"));
+    }else if(restartMaybeRequired) {
+        status.setText(MessageText.getString("swt.update.window.status.restartMaybeNeeded"));
+    }else{
       status.setText("");
     }
   }
@@ -338,6 +344,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     
     display.asyncExec(new Runnable() {
       public void run() {
+      	checkRestartNeeded();	// gotta recheck coz a maybe might have got to yes
         progress.setSelection(100);
         status.setText(MessageText.getString("swt.update.window.status.done"));
         btnOk.removeListener(SWT.Selection,lOk);

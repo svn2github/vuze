@@ -28,7 +28,6 @@ package org.gudy.azureus2.update;
  */
 
 import java.io.*;
-import java.util.jar.*;
 
 public class 
 Test 

@@ -100,7 +100,7 @@ UpdateCheckerImpl
 	
 		throws UpdateException
 	{
-		return( new UpdateInstallerImpl());
+		return( check_instance.createInstaller());
 	}
 
 	public UpdatableComponent
