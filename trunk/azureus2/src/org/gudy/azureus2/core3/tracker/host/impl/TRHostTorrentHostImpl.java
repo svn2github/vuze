@@ -53,6 +53,9 @@ TRHostTorrentHostImpl
 	protected long				sos_downloaded;
 	protected long				sos_bytes_in;
 	protected long				sos_bytes_out;
+	protected long				sos_announce;
+	protected long				sos_scrape;
+	protected long				sos_complete;
 	
 	protected long				last_uploaded;
 	protected long				last_downloaded;
@@ -165,6 +168,9 @@ TRHostTorrentHostImpl
 				sos_downloaded	= sos_downloaded 	+ torrent_stats.getDownloaded();
 				sos_bytes_in	= sos_bytes_in 		+ torrent_stats.getBytesIn();
 				sos_bytes_out	= sos_bytes_out 	+ torrent_stats.getBytesOut();
+				sos_announce	= sos_announce		+ torrent_stats.getAnnounceCount();
+				sos_scrape		= sos_scrape		+ torrent_stats.getScrapeCount();
+				sos_complete	= sos_complete		+ torrent_stats.getCompletedCount();
 				
 				torrent_stats	= null;
 			}
@@ -173,6 +179,8 @@ TRHostTorrentHostImpl
 			last_downloaded		= 0;
 			last_bytes_in		= 0;
 			last_bytes_out		= 0;
+			last_announce		= 0;
+			last_scrape			= 0;
 			
 		}catch( Throwable e ){
 			
@@ -304,15 +312,10 @@ TRHostTorrentHostImpl
 		long		bytes_in,
 		long		bytes_out )
 	{
-		TRTrackerServerTorrentStats	stats = getStats();
-		
-		if ( stats != null ){
-			
-			stats.setCompletedCount(completed);
-			stats.setAnnounceCount(announces);
-			stats.setScrapeCount(scrapes);
-		}
-		
+
+		sos_complete		= completed;
+		sos_announce		= announces;
+		sos_scrape			= scrapes;
 		sos_uploaded		= uploaded;
 		sos_downloaded		= downloaded;
 		sos_bytes_in		= bytes_in;
@@ -355,56 +358,6 @@ TRHostTorrentHostImpl
 			return( stats.getBadNATPeerCount());
 		}
 			
-		return( 0 );
-	}
-	public long
-	getAnnounceCount()
-	{
-		TRTrackerServerTorrentStats	stats = getStats();
-	
-		if ( stats != null ){
-		
-			return( stats.getAnnounceCount());
-		}
-		
-		return( 0 );
-	}
-	
-	public long
-	getAverageAnnounceCount()
-	{
-		return( average_announce.getAverage());
-	}
-	
-	public long
-	getScrapeCount()
-	{
-		TRTrackerServerTorrentStats	stats = getStats();
-		
-		if ( stats != null ){
-			
-			return( stats.getScrapeCount());
-		}
-		
-		return( 0 );
-	}
-	
-	public long
-	getAverageScrapeCount()
-	{
-		return( average_scrape.getAverage());
-	}
-	
-	public long
-	getCompletedCount()
-	{
-		TRTrackerServerTorrentStats	stats = getStats();
-		
-		if ( stats != null ){
-			
-			return( stats.getCompletedCount());
-		}
-		
 		return( 0 );
 	}
 
@@ -576,6 +529,45 @@ TRHostTorrentHostImpl
 		return( sos_bytes_out );	
 	}
 	
+	public long
+	getAnnounceCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+	
+		if ( stats != null ){
+		
+			return( sos_announce + stats.getAnnounceCount());
+		}
+		
+		return( sos_announce );
+	}
+	
+	public long
+	getScrapeCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_scrape + stats.getScrapeCount());
+		}
+		
+		return( sos_scrape );
+	}
+	
+	public long
+	getCompletedCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_complete + stats.getCompletedCount());
+		}
+		
+		return( sos_complete );
+	}
+
 		// averages
 	
 	public long
@@ -602,6 +594,19 @@ TRHostTorrentHostImpl
 		return( average_downloaded.getAverage() );
 	}
 	
+	public long
+	getAverageAnnounceCount()
+	{
+		return( average_announce.getAverage());
+	}
+	
+	public long
+	getAverageScrapeCount()
+	{
+		return( average_scrape.getAverage());
+	}
+	
+
 	public void
 	disableReplyCaching()
 	{

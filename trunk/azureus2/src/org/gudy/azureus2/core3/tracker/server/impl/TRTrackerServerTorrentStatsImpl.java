@@ -86,13 +86,6 @@ TRTrackerServerTorrentStatsImpl
 		return( announce_count );
 	}
 	
-	public void
-	setAnnounceCount(
-		long		count )
-	{
-		announce_count	= count;
-	}
-	
 	protected void
 	addScrape()
 	{
@@ -105,12 +98,6 @@ TRTrackerServerTorrentStatsImpl
 		return( scrape_count );
 	}
 	
-	public void
-	setScrapeCount(
-		long		count )
-	{
-		scrape_count	= count;
-	}
 	protected void
 	addCompleted()
 	{
@@ -121,13 +108,6 @@ TRTrackerServerTorrentStatsImpl
 	getCompletedCount()
 	{
 		return( completed_count );
-	}
-
-	public void
-	setCompletedCount(
-		long		count )
-	{
-		completed_count	= count;
 	}
 	
 	public long

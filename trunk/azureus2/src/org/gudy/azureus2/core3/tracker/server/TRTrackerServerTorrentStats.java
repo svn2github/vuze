@@ -35,25 +35,13 @@ TRTrackerServerTorrentStats
 	
 	public long
 	getScrapeCount();
-	
-	public void
-	setScrapeCount(
-		long		count );
-	
+		
 	public long
 	getAnnounceCount();
-
-	public void
-	setAnnounceCount(
-		long		count );
 	
 	public long
 	getCompletedCount();
 	
-	public void
-	setCompletedCount(
-		long		count );
-
 	public long
 	getUploaded();
 	
