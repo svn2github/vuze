@@ -108,6 +108,7 @@ public class ConfigurationDefaults {
     def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
     def.put("General_bEnableLanguageUpdate", new Long(0));
     def.put("Use default data dir", new Long(1));
+    def.put("Default save path", "");
     def.put("GUI_SWT_bFancyTab", new Long(1));
     
     boolean bGTKTableBug = false;
