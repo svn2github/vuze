@@ -100,11 +100,20 @@ UPnPImpl
 		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
 			
 		if ( root_device != null ){
+	
+				// device is still there with same IP, however 
+				// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
+				// 2) our local IP might have changed (DHCP reassignment)
 			
-			if ( root_device.getLocation().equals( location )){
+			if ( 	root_device.getLocation().equals( location ) &&
+					root_device.getLocalAddress().equals( local_address )){
+				
+					// everythings the same, nothing to do
 				
 				return;
 			}
+			
+				// something changed, resetablish everything
 			
 			root_locations.remove( location.getHost());
 			
