@@ -34,10 +34,16 @@ import org.gudy.azureus2.core3.internat.*;
 public class 
 UPnPMapping 
 {
+	public static final int	PT_DEFAULT			= 1;
+	public static final int	PT_PERSISTENT		= 2;
+	public static final int	PT_TRANSIENT		= 3;
+
 	protected String		resource_name;
 	protected boolean		tcp;
 	protected int			port;
 	protected boolean		enabled;
+	
+	protected int			persistent	= PT_DEFAULT;
 	
 	protected List			listeners	= new ArrayList();
 	
@@ -52,6 +58,19 @@ UPnPMapping
 		tcp				= _tcp;
 		port			= _port;
 		enabled			= _enabled;
+	}
+	
+	public void
+	setPersistent(
+		int	_persistent )
+	{
+		persistent		= _persistent;
+	}
+	
+	public int
+	getPersistent()
+	{
+		return( persistent );
 	}
 	
 	public boolean

@@ -283,24 +283,38 @@ UPnPPluginService
 		
 			log.log( "Mapping " + mapping.getString() + " not removed as not created by Azureus" );
 			
-		}else if ( end_of_day && !release_mappings.getValue()){
-
-			log.log( "Mapping " + mapping.getString() + " not removed as 'release on closedown' not selected" );
-
 		}else{
+			int	persistent = mapping.getMapping().getPersistent(); 
 			
-			try{
-				connection.deletePortMapping( 
-					mapping.isTCP(), mapping.getPort());
-		
-				log.log( "Mapping " + mapping.getString() + " removed" );
+				// set effective persistency
+			
+			if ( persistent == UPnPMapping.PT_DEFAULT ){
 				
-			}catch( Throwable e ){
-				
-				log.log( "Mapping " + mapping.getString() + " failed to delete", e );
+				persistent = release_mappings.getValue()?UPnPMapping.PT_TRANSIENT:UPnPMapping.PT_PERSISTENT;
 			}
 			
-			service_mappings.remove(mapping);
+				// only time we take note of whether or not to release the mapping is
+				// at closedown
+			
+			if ( end_of_day && persistent == UPnPMapping.PT_PERSISTENT ){
+
+				log.log( "Mapping " + mapping.getString() + " not removed as mapping is persistent" );
+	
+			}else{
+				
+				try{
+					connection.deletePortMapping( 
+						mapping.isTCP(), mapping.getPort());
+			
+					log.log( "Mapping " + mapping.getString() + " removed" );
+					
+				}catch( Throwable e ){
+					
+					log.log( "Mapping " + mapping.getString() + " failed to delete", e );
+				}
+				
+				service_mappings.remove(mapping);
+			}
 		}
 	}
 	
