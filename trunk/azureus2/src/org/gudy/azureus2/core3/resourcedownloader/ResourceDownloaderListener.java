@@ -32,14 +32,22 @@ public interface
 ResourceDownloaderListener 
 {
 	public void
-	percentComplete(
-		int		percentage );
+	reportPercentComplete(
+		ResourceDownloader	downloader,
+		int					percentage );
+	
+	public void
+	reportActivity(
+		ResourceDownloader	downloader,
+		String				activity );
 	
 	public void
 	completed(
-		InputStream		data );
+		ResourceDownloader	downloader,
+		InputStream			data );
 	
 	public void
 	failed(
+		ResourceDownloader			downloader,
 		ResourceDownloaderException e );
 }

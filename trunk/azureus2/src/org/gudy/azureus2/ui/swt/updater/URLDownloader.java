@@ -63,18 +63,25 @@ public class URLDownloader implements ResourceDownloaderListener{
     t.start();
   }
   
-  public void percentComplete(int percentage) {
-    this.listener.reportPercent(percentage);
-  }
+    public void 
+	reportPercentComplete(ResourceDownloader dl, int percentage) {
+    	this.listener.reportPercent(percentage);
+    }
   
+    public void 
+	reportActivity(ResourceDownloader dl, String act) {
+    }
+    
 	public void
 	completed(
-		InputStream		data )
+		ResourceDownloader 	dl, 
+		InputStream			data )
 	{
 	}
 	
 	public void
 	failed(
+		ResourceDownloader 			dl, 
 		ResourceDownloaderException e )
 	{
 	}

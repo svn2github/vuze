@@ -37,4 +37,12 @@ ResourceDownloaderFactory
 	{
 		return( new ResourceDownloaderImpl( url ));
 	}
+	
+	public static ResourceDownloader
+	getRetryDownloader(
+		ResourceDownloader		downloader,
+		int						retry_count )
+	{
+		return( new ResourceDownloaderRetryImpl( downloader, retry_count ));
+	}
 }

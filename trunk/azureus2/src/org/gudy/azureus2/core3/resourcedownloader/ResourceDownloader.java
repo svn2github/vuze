@@ -42,6 +42,9 @@ ResourceDownloader
 	public void
 	cancel();
 	
+	public ResourceDownloader
+	getClone();
+	
 	public void
 	addListener(
 		ResourceDownloaderListener	l );

@@ -26,7 +26,6 @@ package org.gudy.azureus2.core3.resourcedownloader.impl;
  *
  */
 
-import java.util.*;
 import java.io.*;
 import java.net.*;
 
@@ -38,13 +37,12 @@ import org.gudy.azureus2.core3.util.Constants;
 
 public class 
 ResourceDownloaderImpl
-	implements ResourceDownloader
+	extends ResourceDownloaderBaseImpl
 {
 	protected String		url_str;
 	
 	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
-	protected List			listeners		= new ArrayList();
 	
 	public 
 	ResourceDownloaderImpl(
@@ -53,6 +51,12 @@ ResourceDownloaderImpl
 		url_str = _url_str.replaceAll( " ", "%20" );	   
 	}
 	
+	public ResourceDownloader
+	getClone()
+	{
+		return( new ResourceDownloaderImpl( url_str ));
+	}
+
 	public void
 	asyncDownload()
 	{
@@ -183,11 +187,22 @@ ResourceDownloaderImpl
 				
 				throw( new ResourceDownloaderException("I/O Exception while downloading '" + url_str + "':" + e.toString(), e ));
 			}
-		}catch( ResourceDownloaderException e ){
+		}catch( Throwable e ){
 			
-			informFailed(e);
+			ResourceDownloaderException	rde;
 			
-			throw( e );
+			if ( e instanceof ResourceDownloaderException ){
+				
+				rde = (ResourceDownloaderException)e;
+				
+			}else{
+				
+				rde = new ResourceDownloaderException( "Unexpected error", e );
+			}
+			
+			informFailed(rde);
+			
+			throw( rde );
 		}
 	}
 	
@@ -208,51 +223,7 @@ ResourceDownloaderImpl
 				}
 			}
 		}
+		
 		informFailed( new ResourceDownloaderException( "Download cancelled" ));
-
-	}
-	
-	protected void
-	informPercentDone(
-		int	percentage )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((ResourceDownloaderListener)listeners.get(i)).percentComplete(percentage);
-		}
-	}
-	
-	protected void
-	informComplete(
-		InputStream	is )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((ResourceDownloaderListener)listeners.get(i)).completed(is);
-		}
-	}
-	
-	protected void
-	informFailed(
-		ResourceDownloaderException	e )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((ResourceDownloaderListener)listeners.get(i)).failed(e);
-		}
-	}
-	
-	public void
-	addListener(
-		ResourceDownloaderListener		l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeListener(
-		ResourceDownloaderListener		l )
-	{
-		listeners.remove(l);
 	}
 }
