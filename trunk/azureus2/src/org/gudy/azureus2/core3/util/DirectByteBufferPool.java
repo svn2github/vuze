@@ -58,8 +58,8 @@ DirectByteBufferPool
   private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents
   															// hence IdentityHashMap)
   
-  private static final long COMPACTION_CHECK_PERIOD = 5*60*1000; //5 min
-  private static final long MAX_FREE_BYTES = 5*1024*1024; //5 MB
+  private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
+  private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
   private long bytesIn = 0;
   private long bytesOut = 0;
