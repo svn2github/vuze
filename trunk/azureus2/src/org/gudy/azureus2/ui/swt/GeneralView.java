@@ -325,7 +325,7 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite().isDisposed())
+    if(getComposite() == null || getComposite().isDisposed())
       return;
 
     loopFactor++;
@@ -390,21 +390,21 @@ public class GeneralView extends AbstractIView {
     if (manager.peerManager == null)
       return;
     final int[] available = manager.peerManager.getAvailability();
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
 
-    if (availabilityImage.isDisposed())
+    if (availabilityImage == null || availabilityImage.isDisposed())
       return;
     Rectangle bounds = availabilityImage.getClientArea();
     int width = bounds.width - 5;
     int x0 = bounds.x + 1;
     int y0 = bounds.y + 1;
     int height = bounds.height - 2;
+    if (width < 10 || height < 5)
+      return;
     GC gc = new GC(availabilityImage);
     if (aImage != null && !aImage.isDisposed())
       aImage.dispose();
-    if (width < 10 || height < 5)
-      return;
     aImage = new Image(display, width, height);
     GC gcImage = new GC(aImage);
     int allMin = 0;
@@ -475,8 +475,9 @@ public class GeneralView extends AbstractIView {
       }
     }
     gcImage.dispose();
-    if (!availabilityPercent.isDisposed())
-      availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
+    if (availabilityPercent == null || availabilityPercent.isDisposed())
+      return;
+    availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
     gc.setForeground(colorGrey);
     gc.drawImage(aImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
@@ -486,10 +487,10 @@ public class GeneralView extends AbstractIView {
   public synchronized void updatePiecesInfo() {
 
     final boolean[] available = pieces;
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
 
-    if (piecesImage.isDisposed())
+    if (piecesImage == null || piecesImage.isDisposed())
       return;
     Rectangle bounds = piecesImage.getClientArea();
     int width = bounds.width - 5;
@@ -541,11 +542,11 @@ public class GeneralView extends AbstractIView {
         }
         gcImage.dispose();
         total = (total * 1000) / nbPieces;
-        if (!piecesPercent.isDisposed())
+        if (piecesPercent != null && !piecesPercent.isDisposed())
           piecesPercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
       }
     }
-    if (pImage == null)
+    if (pImage == null || pImage.isDisposed())
       return;
     gc.setForeground(colorGrey);
     gc.drawImage(pImage, x0, y0);
@@ -554,12 +555,12 @@ public class GeneralView extends AbstractIView {
   }
 
   public synchronized void updateOverall() {
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
     final int total = manager.getCompleted();
     //    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
 
-    if (fileImage.isDisposed())
+    if (fileImage == null || fileImage.isDisposed())
       return;
     GC gc = new GC(fileImage);
     Rectangle bounds = fileImage.getClientArea();
@@ -582,11 +583,11 @@ public class GeneralView extends AbstractIView {
       rect = new Rectangle(limit, 1, width, height);
       gcImage.fillRectangle(rect);
       gcImage.dispose();
-      if (!filePercent.isDisposed())
+      if (filePercent != null && !filePercent.isDisposed())
         filePercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
     }
     overall = total;
-    if (fImage == null)
+    if (fImage == null || fImage.isDisposed())
       return;
     gc.setForeground(colorGrey);
     gc.drawImage(fImage, x0, y0);
@@ -594,16 +595,16 @@ public class GeneralView extends AbstractIView {
     gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {
-    if (timeElapsed.isDisposed())
+    if (timeElapsed == null || timeElapsed.isDisposed())
       return;
     timeElapsed.setText(elapsed);
-    if (timeRemaining.isDisposed())
+    if (timeRemaining == null || timeRemaining.isDisposed())
       return;
     timeRemaining.setText(remaining);
   }
 
   public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p) {
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
 
     final String dls = _dls;
@@ -613,42 +614,37 @@ public class GeneralView extends AbstractIView {
     final String ts = _ts;
     final String s = _s;
     final String p = _p;
-    if (download.isDisposed())
+    if (download == null || download.isDisposed())
       return;
     download.setText(dl);
-    if (downloadSpeed.isDisposed())
+    if (downloadSpeed == null || downloadSpeed.isDisposed())
       return;
     downloadSpeed.setText(dls);
-    if (upload.isDisposed())
+    if (upload == null || upload.isDisposed())
       return;
     upload.setText(ul);
-    if (uploadSpeed.isDisposed())
+    if (uploadSpeed == null || uploadSpeed.isDisposed())
       return;
     uploadSpeed.setText(uls);
-    if (totalSpeed.isDisposed())
+    if (totalSpeed == null || totalSpeed.isDisposed())
       return;
     totalSpeed.setText(ts);
-    if (seeds.isDisposed())
+    if (seeds == null || seeds.isDisposed())
       return;
     seeds.setText(s); //$NON-NLS-1$
-    if (peers.isDisposed())
+    if (peers == null || peers.isDisposed())
       return;
     peers.setText(p); //$NON-NLS-1$
-    if (gTransfer.isDisposed())
-      return;
+//    if (gTransfer.isDisposed()) return;
   }
 
-  public void setTracker(String _status, int _time,String _trackerUrl) {
-
-    if (display.isDisposed())
+  public void setTracker(final String status, final int time, String trackerUrl) {
+    if (display == null || display.isDisposed())
       return;
-    final String status = _status;
-    final int time = _time;
-    final String trackerUrl = _trackerUrl;    
-    if (tracker.isDisposed())
+    if (tracker == null || tracker.isDisposed())
       return;
     tracker.setText(status);
-    if (trackerUpdateIn.isDisposed())
+    if (trackerUpdateIn == null || trackerUpdateIn.isDisposed())
       return;
     int minutes = time / 60;
     int seconds = time % 60;
@@ -657,49 +653,42 @@ public class GeneralView extends AbstractIView {
       strSeconds = "0" + seconds; //$NON-NLS-1$
     trackerUpdateIn.setText(minutes + ":" + strSeconds); //$NON-NLS-1$
     
-    if(trackerUrlValue.isDisposed())
+    if(trackerUrlValue == null || trackerUrlValue.isDisposed())
       return;
     if(trackerUrl != null)
       trackerUrlValue.setText(trackerUrl);
   }
 
   public void setInfos(
-    String ifileName,
-    String ifileSize,
-    String ipath,
-    String ihash,
-    int ipieceNumber,
-    String ipieceLength) {
-    if (display.isDisposed())
+    final String _fileName,
+    final String _fileSize,
+    final String _path,
+    final String _hash,
+    final int _pieceNumber,
+    final String _pieceLength) {
+    if (display == null || display.isDisposed())
       return;
-    final String _fileName = ifileName;
-    final String _fileSize = ifileSize;
-    final String _path = ipath;
-    final String _hash = ihash;
-    final int _pieceNumber = ipieceNumber;
-    final String _pieceLength = ipieceLength;
     display.asyncExec(new Runnable() {
       public void run() {
-        if (fileName.isDisposed())
+        if (fileName == null || fileName.isDisposed())
           return;
         fileName.setText(_fileName);
-        if (fileSize.isDisposed())
+        if (fileSize == null || fileSize.isDisposed())
           return;
         fileSize.setText(_fileSize);
-        if (saveIn.isDisposed())
+        if (saveIn == null || saveIn.isDisposed())
           return;
         saveIn.setText(_path);
-        if (hash.isDisposed())
+        if (hash == null || hash.isDisposed())
           return;
         hash.setText(_hash);
-        if (pieceNumber.isDisposed())
+        if (pieceNumber == null || pieceNumber.isDisposed())
           return;
         pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
-        if (pieceSize.isDisposed())
+        if (pieceSize == null || pieceSize.isDisposed())
           return;
         pieceSize.setText(_pieceLength);
-        if (gInfo.isDisposed())
-          return;
+//        if (gInfo.isDisposed()) return;
       }
     });
   }
