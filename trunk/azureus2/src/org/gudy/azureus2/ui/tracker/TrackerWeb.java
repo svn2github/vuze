@@ -236,7 +236,7 @@ TrackerWeb
 					tracker_page = 0;
 					tracker_start = (tracker_page * tracker_skip);
 				}
-				if ((tracker_page+1) <= tracker_last_page)
+				if ((tracker_page+1) * tracker_skip <= tracker_end)
 				{
 					//where to end..
 					tracker_end = ((tracker_page+1) * tracker_skip);
