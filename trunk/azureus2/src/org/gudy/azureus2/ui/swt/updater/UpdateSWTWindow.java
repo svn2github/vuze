@@ -71,7 +71,7 @@ public class UpdateSWTWindow implements GeneralListener{
     
     status = new Label(shell,SWT.WRAP);
     statusBase = MessageText.getString("window.updateswt.status") + " : ";
-    status.setText(statusBase); 
+    status.setText(statusBase + "\n -"); 
     gridData = new GridData(GridData.FILL_HORIZONTAL);    
     status.setLayoutData(gridData);
         
@@ -167,20 +167,20 @@ public class UpdateSWTWindow implements GeneralListener{
       display.asyncExec(new Runnable() {
         public void run() {
          status.setText(statusBase + name);
-         shell.pack();
+         //shell.pack();
         }
       });
     }
   }
   
   public void processSucceeded() {
+    mainUpdater.launchSWTUpdate();
     if(display != null && ! display.isDisposed()) {
       display.syncExec(new Runnable() {
         public void run() {
           shell.dispose();
         }
       });
-    }    
-    mainUpdater.launchSWTUpdate();
+    }
   }
 }

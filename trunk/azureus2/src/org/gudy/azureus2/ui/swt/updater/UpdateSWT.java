@@ -207,68 +207,10 @@ public class UpdateSWT {
   }
   
   public static void restart() throws IOException{
-    String osName = System.getProperty("os.name");
-    if(osName.equalsIgnoreCase("Linux")) {
-      restartLinux();
-    } else if(osName.equalsIgnoreCase("Mac OS X")) {
-      restartOSX();
-    } else {
-      restartWindows();
-    }
-  }
-  
-  public static void restartLinux() throws IOException{
-    Main.main(new String[0]);
-  }
-  
-  public static void restartOSX() throws IOException{
-    Main.main(new String[0]);
-  }
-  
-  public static void restartWindows() throws IOException{
     try {
     	Main.main(new String[0]);
     } catch(Throwable t) {
      UpdateLogger.log("Exception while running Main : " + t);   
     }
-    /*
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$    
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-    String libraryPath = System.getProperty("java.library.path");
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
-    
-    //String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
-    //String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
-    
-    String exec = javaPath + "java -classpath \"" + classPath
-    + "\" -Djava.library.path=\"" + libraryPath
-    + "\" -Duser.dir=\"" + userPath
-    + "\" org.gudy.azureus2.ui.swt.Main";
-    
-    UpdateLogger.log("Restarting with command line (win32): " + exec);
-
-    Process p = Runtime.getRuntime().exec(exec);
-    try {
-      p.waitFor();
-      BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      String line = null;
-      UpdateLogger.log("output:");
-      while((line = br.readLine()) != null ) {
-        UpdateLogger.log(line);
-      }
-      UpdateLogger.log("errors:");
-      br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-      line = null;
-      while((line = br.readLine()) != null ) {
-        UpdateLogger.log(line);
-      }
-    } catch(Exception e) {
-      UpdateLogger.log("Exception while waiting for process : " + e);
-    }*/
   }
-  
-  
 }

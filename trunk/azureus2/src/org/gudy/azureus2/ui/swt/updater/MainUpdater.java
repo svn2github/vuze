@@ -110,7 +110,6 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
         pChMod.waitFor();
         Process p = Runtime.getRuntime().exec("./updateSWT");
-        
       } else {
         
         String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
