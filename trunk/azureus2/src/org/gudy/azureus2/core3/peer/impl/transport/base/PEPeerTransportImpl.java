@@ -123,11 +123,9 @@ PEPeerTransportImpl
 	    Socket sck = socket.socket();
 
 	    if (socket.isOpen()) {
-         if (socket.isConnected()) {
-	        if (!sck.isOutputShutdown()) sck.shutdownOutput();
-	        if (!sck.isInputShutdown()) sck.shutdownInput();
-         }
-         socket.close();  
+	      socket.close();
+         if (!sck.isOutputShutdown()) sck.shutdownOutput();
+         if (!sck.isInputShutdown()) sck.shutdownInput();  
 	    }
       
 	    if (!sck.isClosed()){
