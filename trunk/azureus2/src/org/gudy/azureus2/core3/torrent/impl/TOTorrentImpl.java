@@ -116,20 +116,11 @@ TOTorrentImpl
 	
 		throws TOTorrentException
 	{		
+		byte[]	res = serialiseToByteArray();
+						
+        BufferedOutputStream bos = null;
+						
 		try{
-			NonDaemonTaskRunner.run(
-				new NonDaemonTask()
-				{
-					public Object
-					run()
-					
-						throws Throwable
-					{
-						byte[]	res = serialiseToByteArray();
-						
-            BufferedOutputStream bos = null;
-						
-						try{
               File temp = new File( output_file.getParentFile(), output_file.getName() + ".saving");
               
               bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
@@ -145,37 +136,24 @@ TOTorrentImpl
                 }
                 temp.renameTo( output_file );
               }
-              
-              return null;
+             							
+		}catch( Throwable e){
 							
-						}catch( Throwable e){
-							
-							throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
+			throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
 															TOTorrentException.RT_WRITE_FAILS ));
 							
-						}finally{
+		}finally{
 							
-							if ( bos != null ){
-								
-								try{
-									bos.close();
-									
-								}catch( IOException e ){
-								
-									Debug.printStackTrace( e );
-								}
-							}
-						}
-					}
-				});
-		}catch( Throwable e ){
-			
-			if ( e instanceof RuntimeException ){
+			if ( bos != null ){
 				
-				throw((RuntimeException)e);
+				try{
+					bos.close();
+					
+				}catch( IOException e ){
+				
+					Debug.printStackTrace( e );
+				}
 			}
-			
-			throw((TOTorrentException)e);
 		}
 	}
 	
