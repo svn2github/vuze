@@ -150,19 +150,19 @@ ImportTorrentWizard
 								
 				}catch( TOTorrentException e ){
 				
-					e.printStackTrace();
+					//e.printStackTrace();
 					
-					error_title 	= MessageText.getString("importTorrentWizard.process.importfail.title");
+					error_title 	= MessageText.getString("importTorrentWizard.process.torrentfail.title");
 				
-					error_detail	= TorrentUtils.exceptionToText( e ); 
+					error_detail	= TorrentUtils.exceptionToText( e, true ); 
 				}
 			}catch( TOTorrentException e ){
 				
-				e.printStackTrace();
+				// e.printStackTrace();
 				
-				error_title 	= MessageText.getString("importTorrentWizard.process.torrentfail.title");
+				error_title 	= MessageText.getString("importTorrentWizard.process.importfail.title");
 				
-				error_detail	= TorrentUtils.exceptionToText( e ); 
+				error_detail	= TorrentUtils.exceptionToText( e, true ); 
 			}
 			
 		}catch( Throwable e ){

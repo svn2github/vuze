@@ -33,7 +33,6 @@ import java.net.*;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.*;
 
 public class 
 TOTorrentXMLDeserialiser 
@@ -59,7 +58,7 @@ TOTorrentXMLDeserialiser
 						
 		}catch( SimpleXMLParserDocumentException e ){
 					
-			throw( new TOTorrentException( e.toString(), TOTorrentException.RT_DECODE_FAILS ));
+			throw( new TOTorrentException( "XML Parse Fails: " + e.getMessage(), TOTorrentException.RT_DECODE_FAILS ));
 		}
 	}
 	
@@ -102,8 +101,35 @@ TOTorrentXMLDeserialiser
 					
 				}else if ( name.equalsIgnoreCase( "ANNOUNCE_LIST")){
 					
-					// todo
+					SimpleXMLParserDocumentNode[]	set_nodes = kid.getChildren();
 					
+					TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+					
+					TOTorrentAnnounceURLSet[]	sets = new TOTorrentAnnounceURLSet[set_nodes.length];
+					
+					for (int j=0;j<sets.length;j++){
+						
+						SimpleXMLParserDocumentNode[]	url_nodes = set_nodes[j].getChildren();
+						
+						URL[] urls = new URL[url_nodes.length];
+						
+						for (int k=0;k<urls.length;k++){
+							
+							try{
+					
+								urls[k] = new URL(url_nodes[k].getValue());
+						
+							}catch( MalformedURLException e ){
+				
+								throw( new TOTorrentException( "ANNOUNCE_LIST malformed", TOTorrentException.RT_DECODE_FAILS));
+							}	
+						}
+						
+						sets[j] = group.createAnnounceURLSet( urls );
+					}
+					
+					group.setAnnounceURLSets( sets );
+				
 				}else if ( name.equalsIgnoreCase( "COMMENT")){
 					
 					torrent.setComment( kid.getValue());
@@ -231,6 +257,11 @@ TOTorrentXMLDeserialiser
 						}
 					}
 					
+					if ( file_length == 0 || path_comps == null ){
+
+						throw( new TOTorrentException( "FILE element invalid", TOTorrentException.RT_DECODE_FAILS));
+					
+					}
 					files[j] = new TOTorrentFileImpl( file_length, path_comps );
 					
 					for (int k=0;k<additional_props.size();k++){
@@ -281,7 +312,7 @@ TOTorrentXMLDeserialiser
 	{
 		if ( !node.getName().equalsIgnoreCase("KEY")){
 			
-			throw( new TOTorrentException( "Additional property invalid, must be KEY nodeb", TOTorrentException.RT_DECODE_FAILS));				
+			throw( new TOTorrentException( "Additional property invalid, must be KEY node", TOTorrentException.RT_DECODE_FAILS));				
 		}
 		
 		String 	name = node.getAttribute("name").getValue();
@@ -290,7 +321,7 @@ TOTorrentXMLDeserialiser
 		
 		if ( kids.length != 1 ){
 		
-			throw( new TOTorrentException( "Additional property invalid, must have one child", TOTorrentException.RT_DECODE_FAILS));				
+			throw( new TOTorrentException( "Additional property invalid, KEY must have one child", TOTorrentException.RT_DECODE_FAILS));				
 		}
 		
 		String	type = kids[0].getName();
@@ -373,7 +404,7 @@ TOTorrentXMLDeserialiser
 			
 		}catch( Throwable e ){
 		
-			throw( new TOTorrentException( "long value invalid", TOTorrentException.RT_DECODE_FAILS));				
+			throw( new TOTorrentException( "long value invalid for '" + node.getName() + "'", TOTorrentException.RT_DECODE_FAILS));				
 		}
 	}
 	

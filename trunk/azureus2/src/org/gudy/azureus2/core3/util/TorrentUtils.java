@@ -36,6 +36,14 @@ TorrentUtils
 	exceptionToText(
 		TOTorrentException	e )
 	{
+		return( exceptionToText( e, false ));
+	}
+	
+	public static String
+	exceptionToText(
+		TOTorrentException	e,
+		boolean				verbose )
+	{
 		String	errorDetail;
 		
 		int	reason = e.getReason();
@@ -70,6 +78,11 @@ TorrentUtils
 		}else{
 	 	     
 			errorDetail = e.getMessage();
+		}
+		
+		if ( verbose ){
+			
+			errorDetail += "(" + e.getMessage() + ")";
 		}
 		
 		return( errorDetail );

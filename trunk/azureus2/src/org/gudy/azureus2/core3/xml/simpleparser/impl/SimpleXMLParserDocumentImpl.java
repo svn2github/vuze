@@ -135,7 +135,7 @@ SimpleXMLParserDocumentImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			// e.printStackTrace();
 			
 			throw( new SimpleXMLParserDocumentException( e ));
 		}
