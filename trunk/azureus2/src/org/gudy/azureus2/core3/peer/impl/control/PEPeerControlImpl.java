@@ -103,11 +103,15 @@ PEPeerControlImpl
    * 500ms = 400kbs, 100ms = 600kbs, 50ms = 625kbs in testing.
    * The bottleneck method(s) should be moved away from a timed loop someday.
    */
+  private static final int PEER_UPDATER_WAIT_TIME = 50;
   private static final int MAINLOOP_WAIT_TIME   = 100;
   
   private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; //every 10s
   private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; //every 30s
 
+  
+  
+  
   private List	peer_manager_listeners 		= new ArrayList();
   private List	peer_transport_listeners 	= new ArrayList();
   
@@ -268,20 +272,14 @@ PEPeerControlImpl
        	
           for (int i=0; i < _peer_transports.size(); i++) {
             PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
-            
-            if (ps.getState() == PEPeer.DISCONNECTED) {
-              //TODO
-              System.out.println( "PEPeer.DISCONNECTED" );
-              removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
-            }
-            else {
-              ps.doKeepAliveCheck();
+
+            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
+              ps.setReadSleepTime( ps.processRead() );
+              if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
               
-              if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
-                ps.setReadSleepTime( ps.processRead() );
-                if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
-              }
+              ps.doKeepAliveCheck();
             }
+            
           }
         }finally{
         	
@@ -292,8 +290,8 @@ PEPeerControlImpl
         
         //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
         
-        if( loop_time < 50 ) {
-          try {  Thread.sleep( 50 - loop_time );  } catch(Exception e) {}
+        if( loop_time < PEER_UPDATER_WAIT_TIME ) {
+          try {  Thread.sleep( PEER_UPDATER_WAIT_TIME - loop_time );  } catch(Exception e) {}
         }
 
       }
