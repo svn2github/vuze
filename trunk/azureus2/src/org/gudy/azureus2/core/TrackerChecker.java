@@ -40,6 +40,8 @@ public class TrackerChecker {
         ts.update();
       }
     };
+    t.setDaemon(true);
+    t.setPriority(Thread.MIN_PRIORITY);
     t.start();
     return null;
   }
@@ -57,6 +59,8 @@ public class TrackerChecker {
             ts.update();            
             }
         };
+        t.setDaemon(true);
+        t.setPriority(Thread.MIN_PRIORITY);
         t.start();
       }
     }
