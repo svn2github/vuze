@@ -59,7 +59,6 @@ PEPeerControlImpl
   private boolean _bContinue;    
   
   private volatile ArrayList peer_transports_cow = new ArrayList();	// Copy on write!
-  
   private AEMonitor	peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
   
   private DiskManager 			_diskManager;
@@ -352,33 +351,37 @@ PEPeerControlImpl
   public void 
   stopAll() 
   {
-  		// send stopped event
-  	
+    // send stopped event
     _tracker.stop();
-    
     
     //remove legacy controller registration
     PeerManager.getSingleton().deregisterLegacyManager( this );
     
-    	// Close all clients
+    // Close all clients
+    
+    ArrayList peer_transports;
     
     try{
     	peer_transports_mon.enter();
       
         	//  Stop itself
-    	
         _bContinue = false;
-
-        while (peer_transports_cow.size() != 0) {
-        	
-          removeFromPeerTransports((PEPeerTransport)peer_transports_cow.get(0), "Closing all Connections");
-        }
-    }finally{
-      	
+        
+        peer_transports = peer_transports_cow;
+        
+        peer_transports_cow = new ArrayList( 0 );  
+    }
+    finally{
       	peer_transports_mon.exit();
     }
   
-
+    for( int i=0; i < peer_transports.size(); i++ ) {
+      PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+      
+      peerRemoved( peer );
+      
+      peer.closeAll( peer.getIp() + ": " + "Closing all Connections" ,false, false);
+    }
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
@@ -386,11 +389,11 @@ PEPeerControlImpl
         pieceRemoved(_pieces[i]);
     }
 
-	
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
     COConfigurationManager.removeParameterListener( "Disconnect Seed", this );
   }
+  
 
   /**
    * A private method that does analysis of the result sent by the tracker.
@@ -465,6 +468,7 @@ PEPeerControlImpl
 		return( new ArrayList( peer_transports_cow ));
 	}
 	
+  
 	public void
 	addPeer(
 		PEPeer		_transport )
@@ -476,23 +480,19 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
-		try{
-			peer_transports_mon.enter();
+    ArrayList peer_transports = peer_transports_cow;
 				
-			if ( !peer_transports_cow.contains(transport)){
+    if ( !peer_transports.contains(transport)){
 				
-				addToPeerTransports( transport );
+      addToPeerTransports( transport );
 								
-			}else{
+    }else{
 			  
-				transport.closeAll(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected",false,false);
-			}
-		}finally{
-			
-			peer_transports_mon.exit();
-		}
+      transport.closeAll(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected",false,false);
+    }
 	}
 
+  
 	public void
 	removePeer(
 		PEPeer	_transport )
@@ -503,8 +503,32 @@ PEPeerControlImpl
 		}
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
-		
-		removeFromPeerTransports( transport, "Peer Removed" );			
+    
+    boolean removed = false;
+    
+    // copy-on-write semantics
+    try{
+      peer_transports_mon.enter();
+          
+        if ( peer_transports_cow.contains( transport )){
+
+          ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
+          
+          new_peer_transports.remove(transport);
+           
+          peer_transports_cow = new_peer_transports;
+          
+          removed = true;
+        }
+    }
+    finally{ 
+      peer_transports_mon.exit();
+    }
+    
+    if( removed ) {
+      peerRemoved( transport );
+      transport.closeAll( transport.getIp() + ": " + "Peer Removed" ,false, false);
+    }
 	}
 	
   
@@ -1201,40 +1225,30 @@ PEPeerControlImpl
   
   
   public void addPeerTransport( PEPeerTransport transport ) {
-    try{
-      this_mon.enter();
-    
-      boolean addFailed = false;
-      String reason = "";
-      if (!ip_filter.isInRange(transport.getIp(), _downloadManager.getDisplayName())) {
-        try{
-          peer_transports_mon.enter();
-           
-          if (!peer_transports_cow.contains( transport )) {
-            
-            addToPeerTransports(transport);
-                
-          }else{
-                
-            addFailed = true;
-                
-            reason=transport.getIp() + " : Already Connected";
-          }
-        }finally{
-            
-          peer_transports_mon.exit();
-        }
-      }
-      else {
-        addFailed = true;
-        reason=transport.getIp() + " : Blocked IP";
-      }
+    boolean addFailed = false;
+    String reason = "";
+      
+    if (!ip_filter.isInRange(transport.getIp(), _downloadManager.getDisplayName())) {
+      ArrayList peer_transports = peer_transports_cow;
         
-      if (addFailed) {
-        transport.closeAll(reason,false, false);
+      if (!peer_transports.contains( transport )) {
+            
+        addToPeerTransports(transport);
+                
+      }else{
+                
+        addFailed = true;
+                
+        reason=transport.getIp() + " : Already Connected";
       }
-    }finally{
-      this_mon.exit();
+    }
+    else {
+      addFailed = true;
+      reason=transport.getIp() + " : Blocked IP";
+    }
+        
+    if (addFailed) {
+      transport.closeAll(reason,false, false);
     }
   }
   
@@ -1854,11 +1868,13 @@ PEPeerControlImpl
   	// the following three methods must be used when adding to/removing from peer transports
   	// they are also synchronised on peer_transports
   
+  
   private void
   addToPeerTransports(
   	PEPeerTransport		peer )
   {
-  	// System.out.println( "PEPeerControl::addToPeerTransports:" + peer );
+    boolean added = false;
+    
     try{
       peer_transports_mon.enter();
     
@@ -1873,10 +1889,8 @@ PEPeerControlImpl
       	
       	Debug.out( "Transport added twice" );
       	
-      }else{
-      	
-	      	// copy-on-write semantics
-	      
+      }
+      else{    	// copy-on-write semantics
 	      ArrayList	new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
 	      
 	      new_peer_transports.addAll( peer_transports_cow );
@@ -1885,100 +1899,48 @@ PEPeerControlImpl
 	      
 	      peer_transports_cow	= new_peer_transports;
 	      
-	      peerAdded( peer );
+        added = true;
       }
-      
-    }finally{
-    	
+    }
+    finally{
       peer_transports_mon.exit();
     }
-      
-  	//for (int i=0;i<peer_transport_listeners.size();i++){
-  	//	((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
-  	//}
+    
+    if( added ) {
+      peerAdded( peer ); 
+    }
   }
   
-  	/**
-  	 * Monitor *must* be held when calling this
-  	 * @param peer
-  	 * @param reason
-  	 */
-  
-  private void
-  removeFromPeerTransports(
-  	PEPeerTransport		peer,
-	String				reason )
-  {
-  	//boolean	connection_found = false;
-
-  		// copy-on-write semantics
-	try{
-		peer_transports_mon.enter();
-		  	
-	  	if ( peer_transports_cow.contains( peer )){
-	 
-			//connection_found	= true;
-			
-	  	  ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
-		  	
-		  	new_peer_transports.remove(peer);
-		  	 
-		  	peer_transports_cow = new_peer_transports;
-	  		 	
-		  	peerRemoved( peer );
-
-		  	//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
-	 	 
-		  	peer.closeAll( peer.getIp() + ": " + reason ,false, false);
-	  	}
-	}finally{
-		
-		peer_transports_mon.exit();
-	}
-	
-	//if ( connection_found ){
-	//	
-	//  	 for (int i=0;i<peer_transport_listeners.size();i++){
-	//  	 	
-	//  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-	// 	 }
-  //	}
-  }
   
   
   public void 
-  peerConnectionClosed( 
-  	PEPeerTransport peer, 
+  peerConnectionClosed(
+  	PEPeerTransport peer,   //the peer calls this method itself, in closeAll()
 	boolean reconnect ) 
   {
   	boolean	connection_found = false;
   
     try{
-    		// may have already been removed
-    	
     	peer_transports_mon.enter();
   	
-     	if ( peer_transports_cow.contains( peer )){
-     		 
-     		connection_found	= true;
-     		
+     	if ( peer_transports_cow.contains( peer )){  // may have already been removed
+
 	     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 	      	
-	      	new_peer_transports.remove(peer);
+	     	new_peer_transports.remove(peer);
 	      	 
-	      	peer_transports_cow = new_peer_transports;
-	      	
-	      	peerRemoved( peer );
+	     	peer_transports_cow = new_peer_transports;
+        
+        connection_found  = true;
      	}
-    }finally{
+    }
+    finally{
     	peer_transports_mon.exit();
     }
-    
+
     if ( connection_found ){
     	
-	    //for( int i=0; i < peer_transport_listeners.size(); i++ ){
-	    //  ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-	    //}
+      peerRemoved( peer );
 	    
 	    String key = peer.getIp() + ":" + peer.getPort();
 	    if( reconnect ) {
