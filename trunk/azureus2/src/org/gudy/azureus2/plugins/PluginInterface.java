@@ -109,13 +109,15 @@ public interface PluginInterface {
   /**
    * opens a torrent file given its name
    * @param fileName The Name of the file that azureus must open
+   * @deprecated Use getDownloadManager().addDownload()
    */
   public void openTorrentFile(String fileName);
   
   /**
    * opens a torrent file given the url it's at
    * @param url The String representation of the url pointing to a torrent file
-   */
+    *@deprecated Use getDownloadManager().addDownload()
+  */
   public void openTorrentURL(String url);
   
   /**

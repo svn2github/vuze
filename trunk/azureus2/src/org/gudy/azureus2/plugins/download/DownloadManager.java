@@ -27,18 +27,55 @@ package org.gudy.azureus2.plugins.download;
  */
 
 import java.io.File;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 DownloadManager 
 {
+	/**
+	 * add a torrent from a file. This will prompt the user for download location etc. if required
+	 * This is an async operation so no Download returned
+	 * @param torrent_file
+	 * @throws DownloadException
+	 */
+	
+	public void 
+	addDownload(
+		File 	torrent_file )
+	
+		throws DownloadException;
+	
+	/**
+	 * add a torrent from a URL. This will prompt the user for download location etc. if required
+	 * This is an async operation so no Download returned
+	 * @param url
+	 * @throws DownloadException
+	 */
+	
+	public void 
+	addDownload(
+		URL		url )
+	
+		throws DownloadException;
+	
+	/**
+	 * add a torrent from a "Torrent" object and point it at the data location 
+	 * @param torrent
+	 * @param torrent_location
+	 * @param data_location
+	 * @return
+	 */
+	
 	public Download
 	addDownload(
 		Torrent		torrent,
 		File		torrent_location,
-		File		data_location );
+		File		data_location )
 	
+		throws DownloadException;
+		
 	public Download
 	getDownload(
 		Torrent		torrent );

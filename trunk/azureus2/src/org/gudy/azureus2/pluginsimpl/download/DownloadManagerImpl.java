@@ -28,12 +28,18 @@ package org.gudy.azureus2.pluginsimpl.download;
 
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.Download;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.download.*;
+
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 public class 
 DownloadManagerImpl
@@ -62,23 +68,39 @@ DownloadManagerImpl
 		global_manager	= _global_manager;
 	}
 	
-	public org.gudy.azureus2.plugins.download.Download
+	public void 
+	addDownload(
+		File fileName ) 
+	{
+		MainWindow.getWindow().openTorrent(fileName.toString());
+	}
+
+	public void 
+	addDownload(
+		URL	url) 
+	{
+		new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url.toString());
+	}
+	
+	public Download
 	addDownload(
 		Torrent		torrent,
 		File		torrent_file,
 		File		data_location )
+	
+		throws DownloadException
 	{
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString());
 		
 		if ( dm == null ){
 			
-			// TODO: throw
+			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
 		
 		return( new DownloadImpl(dm));
 	}
 	
-	public org.gudy.azureus2.plugins.download.Download
+	public Download
 	getDownload(
 		Torrent		_torrent )
 	{

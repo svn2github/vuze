@@ -1,6 +1,6 @@
 /*
- * File    : DownloadImpl.java
- * Created : 06-Jan-2004
+ * File    : DownloadException.java
+ * Created : 08-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,24 +19,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsimpl.download;
+package org.gudy.azureus2.plugins.download;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.plugins.download.Download;
-
 public class 
-DownloadImpl
-	implements Download
+DownloadException 
+	extends Exception
 {
-	protected
-	DownloadImpl(
-		DownloadManager		dm )
+	public
+	DownloadException(
+			String	str )
 	{
-		
+		super(str);
+	}
+	
+	public
+	DownloadException(
+		String		str,
+		Throwable 	cause )
+	{
+		super(str,cause);
 	}
 }
