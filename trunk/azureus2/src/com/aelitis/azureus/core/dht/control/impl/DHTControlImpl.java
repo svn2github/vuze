@@ -503,7 +503,8 @@ DHTControlImpl
 											
 											router.addContact( contact.getID(), contact );
 											
-											if ( contacts_queried.get( new HashWrapper( contact.getID())) == null ){
+											if (	contacts_queried.get( new HashWrapper( contact.getID())) == null &&
+													!contacts_to_query.contains( contact )){
 												
 												DHTLog.log( "    new contact for query: " + DHTLog.getString( contact ));
 												
