@@ -76,6 +76,19 @@ public class SystemProperties {
     
     if ( OS.indexOf("windows") >= 0 ) {
     	
+       	String	reg_app_dataz = null;
+    	
+    	try{
+    		reg_app_dataz = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
+    		
+    	}catch( Throwable e ){
+    		
+    		//e.printStackTrace();
+    	}
+    	
+   
+      LGLogger.log( "reg_app_data = " + reg_app_dataz  );
+
       String user_dir_win = null;
       
       if ( !home_overridden && 
