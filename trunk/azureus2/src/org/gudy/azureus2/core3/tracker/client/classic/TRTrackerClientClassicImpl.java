@@ -1684,7 +1684,9 @@ TRTrackerClientClassicImpl
 	setTrackerResponseCache(
 		Map		map )
 	{
-		importTrackerCache( map );
+		int	num = importTrackerCache( map );
+		
+		LGLogger.log( "TRTrackerClient: imported " + num + " cached peers" );
 	}
 	
 	protected Map
@@ -1711,26 +1713,28 @@ TRTrackerClientClassicImpl
 				
 				peers.add( entry );
 			}
+		
+			LGLogger.log( "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
 		}
 		
 		return( res );
 	}
 	
-	protected void
+	protected int
 	importTrackerCache(
 		Map		map )
 	{
 		try{
 			if ( map == null ){
 				
-				return;
+				return( 0 );
 			}
 			
 			List	peers = (List)map.get( "tracker_peers" );
 	
 			if ( peers == null ){
 				
-				return;
+				return( 0 );
 			}
 			
 			synchronized( tracker_peer_cache ){
@@ -1749,10 +1753,14 @@ TRTrackerClientClassicImpl
 							ip_address, 
 							new TRTrackerResponsePeerImpl(peer_id, ip_address, port ));
 				}
+				
+				return( tracker_peer_cache.size());
 			}	
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+			
+			return( tracker_peer_cache.size());
 		}
 	}
 	
@@ -1795,6 +1803,8 @@ TRTrackerClientClassicImpl
 				
 				tracker_peer_cache.values().toArray( res );
 				
+				LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
+
 				return( res );
 			}
 			
@@ -1815,6 +1825,8 @@ TRTrackerClientClassicImpl
 				
 				tracker_peer_cache.put( res[i].getIPAddress(), res[i] );
 			}
+			
+			LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
 			
 			return( res );
 		}
