@@ -136,7 +136,8 @@ MainWindow
   
   private CLabel statusText;
   private String statusTextKey = "";
-    
+  private String statusImageKey = null;
+
   private Composite statusUpdate;
   private Label statusUpdateLabel;
   private ProgressBar statusUpdateProgressBar;
@@ -167,8 +168,13 @@ MainWindow
   
   protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
 
-  
-  public 
+  /**
+   * Warning status icon identifier
+    */
+  public static final String STATUS_ICON_WARN = "sb_warning";
+
+
+  public
   MainWindow(
   	AzureusCore		_azureus_core,
 	Initializer 	_initializer) 
@@ -277,6 +283,7 @@ MainWindow
       final Color fg = ColorUtils.getShade(folder.getForeground(), 25);
       folder.setBackground(bg);
       folder.setForeground(fg);
+      ((CTabFolder)folder).setBorderVisible(false);
       folder.addDisposeListener(new DisposeListener() {
           public void widgetDisposed(DisposeEvent event) {
               bg.dispose();
@@ -840,7 +847,7 @@ MainWindow
   }
 	
   private void minimizeToTray(ShellEvent event) {
-    //Added this test so that we can call this method will null parameter.
+    //Added this test so that we can call this method with null parameter.
     if (event != null)
       event.doit = false;
     if(Constants.isOSX) {
@@ -863,7 +870,17 @@ MainWindow
   }
   
   public void setStatusText(String keyedSentence) {
-    this.statusTextKey = keyedSentence==null?"":keyedSentence;        
+    this.statusTextKey = keyedSentence==null?"":keyedSentence;
+    statusImageKey = null;
+    if(statusTextKey.length() == 0) { // reset
+        final int index = Constants.AZUREUS_VERSION.indexOf('_');
+
+        if(index > -1 && index < Constants.AZUREUS_VERSION.length()) {
+            statusTextKey =  "MainWindow.status.unofficialversion (" + Constants.AZUREUS_VERSION.substring(index + 1) + ")";
+            statusImageKey = STATUS_ICON_WARN;
+        }
+    }
+
     updateStatusText();
   }
   
@@ -872,7 +889,7 @@ MainWindow
       return;
     final String text;
     if(updateWindow != null) {
-      text = this.statusTextKey + " MainWindow.updateavail";
+      text = "MainWindow.updateavail";
     } else {
       text = this.statusTextKey;
     }
@@ -880,6 +897,7 @@ MainWindow
       public void runSupport() {
         if (statusText != null && !statusText.isDisposed()) {      
           statusText.setText(MessageText.getStringForSentence(text));
+          statusText.setImage((statusImageKey == null) ? null : ImageRepository.getImage(statusImageKey));
         }
       }
     });

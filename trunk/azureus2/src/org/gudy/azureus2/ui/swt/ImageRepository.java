@@ -4,14 +4,14 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
+
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * @author Olivier
@@ -101,7 +101,9 @@ public class ImageRepository {
 
     loadImage(display, "org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/shared.gif", "st_shared");
-    
+
+    loadImage(display, "org/gudy/azureus2/ui/icons/statusbar/status_warning.gif", "sb_warning");
+
     loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
     loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
     loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
