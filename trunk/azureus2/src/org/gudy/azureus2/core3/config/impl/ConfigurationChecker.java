@@ -23,9 +23,12 @@ package org.gudy.azureus2.core3.config.impl;
 
 
 import java.util.HashMap;
+import java.io.File;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.util.*;
+
 
 /**
  * 
@@ -52,6 +55,8 @@ public class ConfigurationChecker {
   	}
   	
   	system_properties_set	= true;
+    
+    migrateOldConfigFiles();
   	
   	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
   	
@@ -234,4 +239,32 @@ public class ConfigurationChecker {
     }
     System.out.println("\n" + collisions);
   }
+  
+  
+  /**
+   * Migrates old user files/dirs from application dir to user dir
+   */
+  private static void migrateOldConfigFiles() {
+    String[] fileNames = { "categories.config", "azureus.config",
+        "downloads.config", "filters.config", ".certs", ".keystore",
+        "azureus.statistics", "tracker.log", "tracker.config",
+        "trackers.config", "sharing.config" };
+    //String[] dirNames = { "plugins", "shares", "web" };
+    
+    //migrate files
+    for (int i=0; i < fileNames.length; i++) {
+      File oldFile = FileUtil.getApplicationFile( fileNames[i] );
+      if ( oldFile.exists() ) {
+        File newFile = FileUtil.getUserFile( fileNames[i] );
+        System.out.print("Migrating " + oldFile.getAbsolutePath() + " to " + newFile.getAbsolutePath());
+        boolean result = oldFile.renameTo(newFile);
+        if (result) System.out.println(" ...SUCCESS");
+        else System.out.println(" ...FAILED");
+      }
+    }
+    
+  }
+  
+  
+  
 }

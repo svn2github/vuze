@@ -40,29 +40,16 @@ public class FileUtil {
     return canonicalFileName;
   }
 
-  public static String getApplicationPath() {
-    
-  	// for java web start we use user.home/.azureus as user.dir is no use
-    if (System.getProperty("os.name").equals("Linux") || isJavaWebStart()) {
-      String path = System.getProperty("user.home") + DIR_SEP + ".azureus" + DIR_SEP;
-      
-      File homedir = new File(path);
-      
-      if ( !homedir.exists() ){
-        homedir.mkdirs();		
-      }
-      
-      if (homedir.isDirectory()) {
-        return path;
-      }
-    }
-    
-    return System.getProperty("user.dir") + DIR_SEP;
+  
+  public static File getUserFile(String filename) {
+    return new File(SystemProperties.getUserPath(), filename);
   }
   
   public static File getApplicationFile(String filename) {
-    return new File(FileUtil.getApplicationPath(), filename);
+    return new File(SystemProperties.getApplicationPath(), filename);
   }
+  
+  
   
   public static boolean isTorrentFile(String filename) throws FileNotFoundException, IOException {
     File check = new File(filename);
@@ -202,19 +189,4 @@ public class FileUtil {
     }
   }
 
-	public static boolean
-	isJavaWebStart()
-	{
-		try{
-			String	java_ws_prop = System.getProperty("azureus.javaws");
-    
-			return( java_ws_prop != null && java_ws_prop.equals( "true"));
-			
-		}catch( Throwable e ){
-			
-				// we can get here if running in an applet as we have no access to system props
-			
-			return( false );
-		}
-	}
 }

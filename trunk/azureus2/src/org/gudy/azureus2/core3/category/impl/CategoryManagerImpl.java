@@ -96,7 +96,7 @@ public class CategoryManagerImpl  {
     ArrayList catNames = new ArrayList();
     try {
       //open the file
-      File configFile = FileUtil.getApplicationFile("categories.config");
+      File configFile = FileUtil.getUserFile("categories.config");
       fin = new FileInputStream(configFile);
       bin = new BufferedInputStream(fin, 8192);
       map = BDecoder.decode(bin);
@@ -170,8 +170,8 @@ public class CategoryManagerImpl  {
         //encode the data
         byte[] torrentData = BEncoder.encode(map);
 
-         File oldFile = FileUtil.getApplicationFile("categories.config");
-         File newFile = FileUtil.getApplicationFile("categories.config.new");
+         File oldFile = FileUtil.getUserFile("categories.config");
+         File newFile = FileUtil.getUserFile("categories.config.new");
 
          //write the data out
         fos = new FileOutputStream(newFile);

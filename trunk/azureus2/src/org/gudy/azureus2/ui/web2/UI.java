@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.LGLogger2Log4j;
@@ -128,7 +128,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       // Fake pass through URL
       "fake_local_server=" + COConfigurationManager.getStringParameter("Server_sAccessHost"),
       // Html root dir
-      "rootDir=" + FileUtil.getApplicationPath() + "template" };
+      "rootDir=" + SystemProperties.getUserPath() + "template" };
     this.cfg = new SandstormConfig();
     cfg.putInt("global.threadPool.initialThreads", 1);
     cfg.putInt("global.threadPool.minThreads", 1);

@@ -87,7 +87,7 @@ IpFilterImpl
 	public File
 	getFile()
 	{
-		return( FileUtil.getApplicationFile("filters.config"));
+		return( FileUtil.getUserFile("filters.config"));
 	}
 	
 	public void
@@ -118,7 +118,7 @@ IpFilterImpl
 		}
     try {
 		//  Open the file
-    File filtersFile = FileUtil.getApplicationFile("filters.config");
+    File filtersFile = FileUtil.getUserFile("filters.config");
     FileOutputStream fos = new FileOutputStream(filtersFile);
 		fos.write(BEncoder.encode(map));
 		fos.close();     
@@ -138,7 +138,7 @@ IpFilterImpl
 	  BufferedInputStream bin = null;
 	  try {
 		//open the file
-		File filtersFile = FileUtil.getApplicationFile("filters.config");
+		File filtersFile = FileUtil.getUserFile("filters.config");
 		if (filtersFile.exists()) {
 			fin = new FileInputStream(filtersFile);
 			bin = new BufferedInputStream(fin, 8192);

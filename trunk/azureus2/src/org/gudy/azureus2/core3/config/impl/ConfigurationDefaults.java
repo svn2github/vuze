@@ -13,7 +13,7 @@ package org.gudy.azureus2.core3.config.impl;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;;
 
 /**
  *
@@ -60,9 +60,9 @@ public class ConfigurationDefaults {
     
     /** General settings **/
     // Default save directory
-    def.put("General_sDefaultSave_Directory", FileUtil.getApplicationPath()+"download");
+    def.put("General_sDefaultSave_Directory", SystemProperties.getUserPath()+"download");
     // Default torrent directory
-    def.put("General_sDefaultTorrent_Directory", FileUtil.getApplicationPath()+"torrents");
+    def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
     
     /** Core settings **/
     // (currently only a reference list for me)
@@ -167,7 +167,7 @@ public class ConfigurationDefaults {
     // Connection Timeout in seconds.
     def.put("Server_iTimeout", new Long(10));
     // Path to the html templates.
-    def.put("Server_sTemplate_Directory", FileUtil.getApplicationPath()+"template");
+    def.put("Server_sTemplate_Directory", SystemProperties.getUserPath()+"template");
     // Maximal simultaneous connections
     def.put("Server_iMaxHTTPConnections", new Long(5));
     // Auto-refresh torrents every (seconds, 0 = off);
@@ -218,7 +218,7 @@ public class ConfigurationDefaults {
     // Log to file
     def.put("Server_bLogFile", new Long(0));
     // Logfile
-    def.put("Server_sLogFile", FileUtil.getApplicationPath()+"webinterface.log");
+    def.put("Server_sLogFile", SystemProperties.getUserPath()+"webinterface.log");
     // Log Level for web interface
     def.put("Server_iLogLevelWebinterface", new Long(20000));
     // Log Level for core

@@ -115,7 +115,7 @@ WebPlugin
 			
 			if ( file_root == null ){
 				
-				file_root = FileUtil.getApplicationPath() + "web";
+				file_root = SystemProperties.getUserPath() + "web";
 			}
 		}else{
 			
@@ -127,7 +127,7 @@ WebPlugin
 				
 			}else{
 				
-				file_root = FileUtil.getApplicationPath() + "web" + File.separator + root_dir;
+				file_root = SystemProperties.getUserPath() + "web" + File.separator + root_dir;
 				
 			}
 		}

@@ -58,12 +58,12 @@ public class ConfigurationManager {
     
     try {
       //open the file
-      File file = new File( FileUtil.getApplicationPath() + filename );
+      File file = new File( SystemProperties.getUserPath() + filename );
       
       //make sure the file exists and isn't zero-length
       if ( file.length() <= 1L ) {
         //if so, try using the backup file
-        file = new File( FileUtil.getApplicationPath() + filename + ".bak" );
+        file = new File( SystemProperties.getUserPath() + filename + ".bak" );
         if ( file.length() <= 1L ) {
           throw new FileNotFoundException();
         }
@@ -104,7 +104,7 @@ public class ConfigurationManager {
     	
     	byte[] torrentData = BEncoder.encode(propertiesMap);
       
-      File file = new File( FileUtil.getApplicationPath() + filename );
+      File file = new File( SystemProperties.getUserPath() + filename );
       
     	//backup
       if ( file.length() > 1L ) {

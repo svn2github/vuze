@@ -37,7 +37,7 @@ import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.YearStatsList;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -67,12 +67,12 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	  
 	  try {
 	    //open the file
-	    File file = new File( FileUtil.getApplicationPath() + filename );
+	    File file = new File( SystemProperties.getUserPath() + filename );
 	    
 	    //make sure the file exists and isn't zero-length
 	    if ( file.length() <= 1L ) {
 	      //if so, try using the backup file
-	      file = new File( FileUtil.getApplicationPath() + filename + ".bak" );
+	      file = new File( SystemProperties.getUserPath() + filename + ".bak" );
 	      if ( file.length() <= 1L ) {
 	        throw new FileNotFoundException();
 	      }
@@ -113,7 +113,7 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	  	
 	  	byte[] torrentData = BEncoder.encode(statisticsMap);
 	    
-	    File file = new File( FileUtil.getApplicationPath() + filename );
+	    File file = new File( SystemProperties.getUserPath() + filename );
 	    
 	  	//backup
 	    if ( file.length() > 1L ) {

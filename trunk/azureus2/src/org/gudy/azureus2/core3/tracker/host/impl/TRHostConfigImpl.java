@@ -54,7 +54,7 @@ TRHostConfigImpl
 	{
 		host	= _host;
 		
-		log_dir = FileUtil.getApplicationPath();
+		log_dir = SystemProperties.getUserPath();
 	}
 	
 	protected synchronized void
@@ -68,7 +68,7 @@ TRHostConfigImpl
 	   	try{
 	   		loading	= true;
 	   		
-			File configFile = FileUtil.getApplicationFile("tracker.config");
+			File configFile = FileUtil.getUserFile("tracker.config");
 		 
 			fin = new FileInputStream(configFile);
 		 
@@ -312,7 +312,7 @@ TRHostConfigImpl
 			   		
 			   		byte[] torrentData = BEncoder.encode(map);
 			   		
-			   		fos = new FileOutputStream(FileUtil.getApplicationFile("tracker.config"));
+			   		fos = new FileOutputStream(FileUtil.getUserFile("tracker.config"));
 				 	
 				 		//write the data out
 				 		

@@ -722,7 +722,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           }
         });
     
-    if ( !FileUtil.isJavaWebStart()){
+    if ( !SystemProperties.isJavaWebStartInstance()){
     	
     MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
     Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
@@ -2064,7 +2064,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     	// problem with closing down web start as AWT threads don't close properly
 
-	if ( FileUtil.isJavaWebStart()){    	
+	if ( SystemProperties.isJavaWebStartInstance()){    	
  	
     	System.exit(1);
     }
@@ -2686,7 +2686,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   				public void run() {
   					if (statusText.isDisposed())
   						return;
-  					if (!FileUtil.isJavaWebStart() &&  VERSION.compareTo(latestVersion) < 0) {
+  					if (!SystemProperties.isJavaWebStartInstance() &&  VERSION.compareTo(latestVersion) < 0) {
   						latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
   						setStatusVersion();
   						statusText.setForeground(red);

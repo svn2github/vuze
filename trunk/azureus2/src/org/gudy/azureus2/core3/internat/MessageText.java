@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 
 /**
  * @author Arbeiten
@@ -175,7 +175,7 @@ public class MessageText {
     HashSet bundleSet = new HashSet();
     
     // Add local first
-    File localDir = new File(FileUtil.getApplicationPath());
+    File localDir = new File(SystemProperties.getUserPath());
     String localBundles[] = localDir.list(new FilenameFilter() {
       public boolean accept(File dir, String name) {
         return name.startsWith(prefix) && name.endsWith(extension);
@@ -226,7 +226,7 @@ public class MessageText {
 
       // First, try Application path
       try {
-        File bundleFile = new File(FileUtil.getApplicationPath());
+        File bundleFile = new File(SystemProperties.getUserPath());
         
         // Get the jarURL
         // XXX Is there a better way to get the JAR name?

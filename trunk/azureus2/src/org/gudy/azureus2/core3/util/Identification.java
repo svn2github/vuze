@@ -24,7 +24,7 @@ public class Identification {
   public static String decode(byte[] peerID) {
     final boolean LOG_UNKNOWN = false;
     FileWriter log = null;
-    File logFile = FileUtil.getApplicationFile("identification.log");
+    File logFile = FileUtil.getUserFile("identification.log");
     
     try {
 

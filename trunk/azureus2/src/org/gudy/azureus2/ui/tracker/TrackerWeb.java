@@ -61,7 +61,7 @@ TrackerWeb
 		
 		tracker = plugin_interface.getTracker();
 		
-		file_root = FileUtil.getApplicationPath() + "web";
+		file_root = SystemProperties.getUserPath() + "web";
 
 		welcome_files = new File[welcome_pages.length];
 		

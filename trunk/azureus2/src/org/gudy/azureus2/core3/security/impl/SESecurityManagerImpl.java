@@ -55,8 +55,8 @@ SESecurityManagerImpl
 	
 		// debug SSL with -Djavax.net.debug=ssl
 	
-		keystore 	= FileUtil.getApplicationFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
-		truststore 	= FileUtil.getApplicationFile(SESecurityManager.SSL_CERTS).getAbsolutePath();
+		keystore 	= FileUtil.getUserFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
+		truststore 	= FileUtil.getUserFile(SESecurityManager.SSL_CERTS).getAbsolutePath();
 		
 		System.setProperty( "javax.net.ssl.trustStore", truststore );
 	

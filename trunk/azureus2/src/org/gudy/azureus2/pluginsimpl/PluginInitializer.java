@@ -125,7 +125,7 @@ PluginInitializer
   	
   		// first do explicit plugins
   	  	
-    File pluginDirectory = FileUtil.getApplicationFile(System.getProperty("file.separator") + "plugins");
+    File pluginDirectory = FileUtil.getUserFile("plugins");
         
     LGLogger.log("Plugin Directory is " + pluginDirectory);
     

@@ -86,7 +86,7 @@ public class TrackersUtil {
   }
   
   private void loadList() {    
-    File fTrackers = FileUtil.getApplicationFile("trackers.config");
+    File fTrackers = FileUtil.getUserFile("trackers.config");
     if(fTrackers.exists() && fTrackers.isFile()) {
       FileInputStream fin = null;
       BufferedInputStream bin = null;
@@ -137,7 +137,7 @@ public class TrackersUtil {
     map.put("multi-trackers",multiTrackers);
     try {
       //  Open the file
-      File fTrackers = FileUtil.getApplicationFile("trackers.config");
+      File fTrackers = FileUtil.getUserFile("trackers.config");
       FileOutputStream fos = new FileOutputStream(fTrackers);
       fos.write(BEncoder.encode(map));
       fos.close();     

@@ -602,7 +602,7 @@ public class GlobalManagerImpl
     BufferedInputStream bin = null;
     try {
       //open the file
-      File configFile = FileUtil.getApplicationFile("downloads.config");
+      File configFile = FileUtil.getUserFile("downloads.config");
       
       if ( configFile.length() <= 1L ) {
         throw new FileNotFoundException();
@@ -791,7 +791,7 @@ public class GlobalManagerImpl
 	    	//encode the data
 	    	byte[] torrentData = BEncoder.encode(map);
             
-	    	File file = FileUtil.getApplicationFile("downloads.config");
+	    	File file = FileUtil.getUserFile("downloads.config");
          
 	    	bos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
 	    	bos.write( torrentData );
