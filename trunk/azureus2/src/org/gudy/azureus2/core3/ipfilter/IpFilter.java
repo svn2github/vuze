@@ -54,6 +54,7 @@ IpFilter
 	/**
 	 * deprecated and to be removed after 2.0.8.0. Left in to support old SafePeer plugin
 	 * version that uses this stuff directly... 
+	 * @deprecated
 	 * @return
 	 */
 	public abstract List

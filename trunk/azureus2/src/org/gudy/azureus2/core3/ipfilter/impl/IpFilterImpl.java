@@ -224,11 +224,14 @@ IpFilterImpl
   
 	/**
 	 * @return
+	 * @deprecated
 	 */
 	
-	public List getIpRanges() {
-		  return ipRanges;
-		}
+	public List 
+	getIpRanges() 
+	{
+	  return ipRanges;
+	}
 	
 	public IpRange[]
 	getRanges()
