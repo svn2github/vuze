@@ -10,7 +10,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.ui.swt.IComponentListener;
+import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 

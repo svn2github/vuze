@@ -6,8 +6,6 @@ package org.gudy.azureus2.core;
 
 import java.util.Vector;
 
-import org.gudy.azureus2.ui.swt.IComponent;
-import org.gudy.azureus2.ui.swt.IComponentListener;
 
 /**
  * @author Olivier

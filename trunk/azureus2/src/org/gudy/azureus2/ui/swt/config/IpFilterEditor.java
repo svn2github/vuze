@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.swt.views.config;
+package org.gudy.azureus2.ui.swt.config;
 
 import java.util.List;
 

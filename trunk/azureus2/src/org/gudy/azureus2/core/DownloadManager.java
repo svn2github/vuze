@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.gudy.azureus2.core2.PeerSocket;
-import org.gudy.azureus2.ui.swt.IComponentListener;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;

@@ -1,6 +1,6 @@
 /*
- * File    : AdditionalActionPerformer.java
- * Created : 10 oct. 2003 15:36:00
+ * File    : IParameter.java
+ * Created : 10 oct. 2003 16:07:53
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -18,20 +18,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.ui.swt.views.config;
+
+package org.gudy.azureus2.ui.swt.config;
+
+import org.eclipse.swt.widgets.Control;
 
 /**
  * @author Olivier
  * 
  */
-public interface IAdditionalActionPerformer {
-
-  //The action to be performed
-  public void performAction();  
-  
-  //Used by the calling class to set some values.
-  public void setSelected(boolean selected);  
-  public void setIntValue(int value);
-  public void setStringValue(String value);
+public interface IParameter {
+  public void setLayoutData(Object layoutData);
+  public Control getControl();
 }

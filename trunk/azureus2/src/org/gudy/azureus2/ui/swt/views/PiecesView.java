@@ -17,9 +17,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Piece;
-import org.gudy.azureus2.ui.swt.IComponentListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
 

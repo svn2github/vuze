@@ -2,7 +2,7 @@
  * Created on 30 juin 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.core;
 
 /**
  * @author Olivier

@@ -19,7 +19,6 @@ import java.util.Map;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.IComponentListener;
 
 /**
  * @author Olivier

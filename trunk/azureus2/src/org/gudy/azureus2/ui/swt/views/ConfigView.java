@@ -36,7 +36,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.config.*;
+import org.gudy.azureus2.ui.swt.config.*;
 
 /**
  * @author Olivier

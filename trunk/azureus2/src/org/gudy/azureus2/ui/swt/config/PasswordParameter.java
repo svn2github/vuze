@@ -2,7 +2,7 @@
  * Created on 8 september 2003
  *
  */
-package org.gudy.azureus2.ui.swt.views.config;
+package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
