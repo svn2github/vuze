@@ -54,6 +54,7 @@ public class CompletionItem
   }
 
   public void cellAdded(TableCell cell) {
+    cell.setMarginHeight(2);
     new Cell(cell);
   }
 
