@@ -185,10 +185,8 @@ public class GlobalManagerImpl
 	              manager.setPrevState(manager.getState());
 	            }
 	            
-	            if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
-	             	if (loopFactor % saveResumeLoopCount == 0) {
-	            		manager.getDiskManager().dumpResumeDataToDisk(false, false);
-	            	}
+             	if (loopFactor % saveResumeLoopCount == 0) {
+            		manager.saveResumeData();
 	            }
 	            /*
 	             * seeding rules have been moved to StartStopRulesDefaultPlugin

@@ -139,4 +139,34 @@ public class BEncoder {
             baos.write(tempByteArray);
         }      
     }
+    
+    public static boolean
+	mapsAreIdentical(
+		Map	map1,
+		Map	map2 )
+	{
+    	if ( map1 == null && map2 == null ){
+    		
+    		return( true );
+    		
+    	}else if ( map1 == null || map2 == null ){
+    		
+    		return( false );
+    	}
+    	
+    	if ( map1.size() != map2.size()){
+    		
+    		return( false );
+    	}
+    	
+    	try{
+    		return(  Arrays.equals( encode(map1), encode(map2)));
+    		
+    	}catch( IOException e ){
+    		
+    		e.printStackTrace();
+    		
+    		return( false );
+    	}
+    }		
 }

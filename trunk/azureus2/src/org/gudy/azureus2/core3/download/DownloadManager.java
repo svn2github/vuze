@@ -77,8 +77,8 @@ DownloadManager
 	public void
 	stopIt();
 	
-  public void 
-  stopIt(final int stateAfterStopping);
+    public void 
+    stopIt(final int stateAfterStopping);
 
 	public GlobalManager
 	getGlobalManager();
@@ -156,7 +156,8 @@ DownloadManager
 	public String
 	getTorrentFileName();
   
-    public void setTorrentFileName(String string);
+    public void 
+	setTorrentFileName(String string);
 	
 	public String
 	getSavePath();
@@ -262,13 +263,13 @@ DownloadManager
    *
    * @author Rene Leonhardt
    */
-  public void downloadEnded();
+    public void downloadEnded();
 
-  public void initializeDiskManager();
+    public void initializeDiskManager();
   
-  public boolean canForceRecheck();
+    public boolean canForceRecheck();
 
-  public void forceRecheck();
+    public void forceRecheck();
 
 	/**
 	 * @return the wealthy status of this download
@@ -280,4 +281,12 @@ DownloadManager
 	public void setCategory(Category cat);
 	
 	public void deleteDataFiles();
+	
+		/**
+		 * persist resume data
+		 *
+		 */
+	
+	public void
+	saveResumeData();
 }

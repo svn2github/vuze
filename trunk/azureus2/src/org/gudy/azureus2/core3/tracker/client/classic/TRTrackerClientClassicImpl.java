@@ -1650,6 +1650,10 @@ TRTrackerClientClassicImpl
 	public Map
 	getTrackerResponseCache()
 	{
+		//System.out.println( "TRTrackerClient::getTrackerResponseCache");
+		
+		// make sure we return a copy of the data, not the data itself!!!!
+		
 		return( new HashMap());
 	}
 	
@@ -1658,5 +1662,8 @@ TRTrackerClientClassicImpl
 	setTrackerResponseCache(
 		Map		map )
 	{
+		//System.out.println( "TRTrackerClient::setTrackerResponseCache");
+		
+		// !! COPY iT!
 	}
 }

@@ -200,6 +200,8 @@ DownloadManagerImpl
 	private TOTorrent			torrent;
 	private String torrent_comment;
 	private String torrent_created_by;
+	
+	private Map							tracker_response_cache; 
   
 	private TRTrackerClient 			tracker_client;
 	private TRTrackerClientListener	tracker_client_listener;
@@ -284,6 +286,8 @@ DownloadManagerImpl
 		
 		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
+		tracker_client.setTrackerResponseCache( tracker_response_cache );
+		
     	tracker_client_listener = 
 			new TRTrackerClientListener()
 			{
@@ -400,6 +404,13 @@ DownloadManagerImpl
 			}
 			 
 			 nbPieces = torrent.getPieces().length;
+			 
+			 tracker_response_cache	= torrent.getAdditionalMapProperty("tracker_cache");
+			 
+			 if ( tracker_response_cache == null ){
+			 	
+			 	tracker_response_cache	= new HashMap();
+			 }
 			 
 			// Fixup the SavePath (again!)
 			String path = FileUtil.smartFullName(savePath, name);
@@ -596,6 +607,8 @@ DownloadManagerImpl
 			
 				tracker_client.removeListener( tracker_client_listener );
 		
+				tracker_response_cache = tracker_client.getTrackerResponseCache();
+				
 				tracker_client.destroy();
 				
 				tracker_client = null;
@@ -626,6 +639,8 @@ DownloadManagerImpl
 			    diskManager.dumpResumeDataToDisk(true, false);
 			  }
 	      
+			  saveTrackerResponseCache();
+			  
 			  //update path+name info before termination
 			  savePath = diskManager.getPath();
 			  name = diskManager.getFileName();
@@ -647,6 +662,40 @@ DownloadManagerImpl
 	stopThread.start();
   }
 
+  public void
+  saveResumeData()
+  {
+    if ( getState() == STATE_DOWNLOADING) {
+
+    	getDiskManager().dumpResumeDataToDisk(false, false);
+    }
+    
+    saveTrackerResponseCache();
+  }
+  
+  protected void
+  saveTrackerResponseCache()
+  {
+  	if ( !BEncoder.mapsAreIdentical(
+  				tracker_response_cache,
+				torrent.getAdditionalMapProperty( "tracker_cache" ))){
+  		
+  		torrent.setAdditionalMapProperty("tracker_cache", tracker_response_cache );
+  	
+  		try{
+  			//System.out.println( "writing tracker_cache");
+  		
+  			TorrentUtils.writeToFile( torrent );
+  		
+  		}catch( Throwable e ){
+  		
+  			e.printStackTrace();
+  		}
+  	}else{
+  		//System.out.println( "maps identical" );
+  	}
+  }
+  
   public void setState(int _state){
     // note: there is a DIFFERENCE between the state held on the DownloadManager and
     // that reported via getState as getState incorporated DiskManager states when
