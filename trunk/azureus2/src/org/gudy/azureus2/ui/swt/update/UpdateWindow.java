@@ -432,4 +432,10 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       updateWindow.dispose();      
     }
   }
+  
+  protected boolean
+  isDisposed()
+  {
+  	return( display == null || display.isDisposed());
+  }
 }

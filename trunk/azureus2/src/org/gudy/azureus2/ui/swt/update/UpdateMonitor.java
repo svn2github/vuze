@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.update;
 
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 
 import org.gudy.azureus2.plugins.update.*;
@@ -36,7 +37,7 @@ public class
 UpdateMonitor 
 	implements UpdateCheckInstanceListener 
 {
-	UpdateWindow window;
+	UpdateWindow 			current_window;
   
 	UpdateCheckInstance		current_instance;
 	
@@ -114,12 +115,27 @@ UpdateMonitor
 	    
 	    if ( us.length > 0 ){
 	    	
-			window = new UpdateWindow( instance );
-				
-			for(int i = 0 ;  i < us.length ; i++){
-				
-				window.addUpdate(us[i]);
-			}	
+	    		// this controls whether or not the update window is displayed
+	    		// note that we just don't show the window if this is set, we still do the
+	    		// update check (as amongst other things we want ot know the latest
+	    		// version of the core anyway
+	    	
+	    	boolean	show_window = COConfigurationManager.getBooleanParameter( "Auto Update", true );
+	    	
+	    	if ( show_window ){
+	    		
+	    			// don't show another if one's already there!
+	    		
+	    		if ( current_window == null || current_window.isDisposed()){
+	    			
+		    		current_window = new UpdateWindow( instance );
+					
+		    		for(int i = 0 ;  i < us.length ; i++){
+					
+		    			current_window.addUpdate(us[i]);
+		    		}
+	    		}
+	    	}
 	    }
 	} 
 	
