@@ -241,10 +241,11 @@ PEPeerControlImpl
     setDiskManager(_diskManager);
     
     superSeedMode = (COConfigurationManager.getBooleanParameter("Use Super Seeding") && this.getRemaining() == 0);
+    
     superSeedModeCurrentPiece = 0;
-    superSeedPieces = new SuperSeedPiece[_nbPieces];
-    for(int i = 0 ; i < _nbPieces ; i++) {
-      superSeedPieces[i] = new SuperSeedPiece(this,i);
+    
+    if ( superSeedMode ){
+    	initialiseSuperSeedMode();
     }
     
     peerUpdater = new PeerUpdater();
@@ -2109,7 +2110,7 @@ PEPeerControlImpl
 
   public void peerRemoved(PEPeer pc) {
     int piece = pc.getUniqueAnnounce();
-    if(piece != -1) {
+    if(piece != -1 && superSeedMode ) {
       superSeedModeNumberOfAnnounces--;
       superSeedPieces[piece].peerLeft();
     }
@@ -2658,9 +2659,25 @@ PEPeerControlImpl
     return endGameMode;
   }
   
-  public void setSuperSeedMode(boolean _superSeedMode) {
+  public void 
+  setSuperSeedMode(
+  		boolean _superSeedMode) 
+  {
+  	if (_superSeedMode && superSeedPieces == null ){
+  		initialiseSuperSeedMode();
+  	}
+  	
     superSeedMode = _superSeedMode;
   }    
+  
+  private void
+  initialiseSuperSeedMode()
+  {
+    superSeedPieces = new SuperSeedPiece[_nbPieces];
+    for(int i = 0 ; i < _nbPieces ; i++) {
+      superSeedPieces[i] = new SuperSeedPiece(this,i);
+    }
+  }
   
   private void updatePeersInSuperSeedMode() {
     if(!superSeedMode) {
