@@ -1,6 +1,6 @@
 /*
- * File    : RemoteUIMainPanel.java
- * Created : 28-Jan-2004
+ * File    : VWDownloadView.java
+ * Created : 29-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,39 +19,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.applet;
+package org.gudy.azureus2.ui.webplugin.remoteui.applet.view;
 
 /**
  * @author parg
  *
  */
 
-import java.awt.*;
-
 import javax.swing.*;
 
-import org.gudy.azureus2.plugins.*;
-
-
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
-import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;
 
 public class 
-RemoteUIMainPanel
-	extends JPanel
+VWDownloadView 
 {
-	protected PluginInterface		pi;
+	protected JComponent	component;
 	
 	public
-	RemoteUIMainPanel(
-		PluginInterface	_pi )
+	VWDownloadView(
+		MDDownloadModel		model )
 	{
-		pi		= _pi;
+		TableSorter  sorter = new TableSorter(model);
+		
+		JTable    tableView = new JTable(sorter);
+		
+		sorter.addMouseListenerToHeaderInTable(tableView);
+
+		JScrollPane scrollpane = new JScrollPane(tableView);
+		
+		component	= scrollpane;
+	}
 	
-		setLayout( new BorderLayout());
-		
-		VWDownloadView view = new VWDownloadView(new MDDownloadModel( pi.getDownloadManager()));
-		
-		add( view.getComponent(), BorderLayout.CENTER );
+	public JComponent
+	getComponent()
+	{
+		return( component );
 	}
 }
