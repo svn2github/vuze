@@ -236,6 +236,10 @@ public class ConfigView extends AbstractIView {
     }
     new IntListParameter(gDownloads, "Start Peers Ratio", 0, startRatioPeersLabels, startRatioPeersValues);
     
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Check Pieces on Completion",false);    
+    
     
     Group gTransfer = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$

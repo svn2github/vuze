@@ -119,7 +119,7 @@ public class PeerSocket extends PeerConnection {
       bufferHandshakeS.position(0);
       bufferHandshakeS.limit(68);
       sendProtocol(bufferHandshakeS);
-      readBuffer = ByteBufferPool.getInstance().getFreeBuffer();
+      readBuffer = ByteBufferPool.getInstance().getFreeBuffer(68);
       if (readBuffer == null) {
          System.out.println("PeerSocket::handShake:: readBuffer null");
          closeAll(true);
@@ -209,7 +209,8 @@ public class PeerSocket extends PeerConnection {
 
   protected void readMessage(ByteBuffer buffer) {
     lengthBuffer.position(0);
-    buffer.position(0);
+    if(buffer != null)
+      buffer.position(0);
     readBuffer = buffer;
     readingLength = true;
   }
@@ -365,9 +366,23 @@ public class PeerSocket extends PeerConnection {
           int length = lengthBuffer.getInt(0);
           if(length < 0) {
             closeAll(true);
-          } else if(length >= readBuffer.capacity()) {
+          } else if(length >= ByteBufferPool.MAX_SIZE) {
             closeAll(true);
           } else if (length > 0) {
+            if(readBuffer != null && readBuffer.capacity() < length) {
+              ByteBufferPool.getInstance().freeBuffer(readBuffer);
+              readBuffer = null;
+            }
+            if(readBuffer == null) {
+              ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer(length);
+              if (newbuff == null) {
+                System.out.println("PeerSocket::analyseBuffer:: newbuff null");
+                closeAll(true);
+                return;
+              }
+              readBuffer = newbuff;
+              readBuffer.position(0);
+            }
             readBuffer.limit(length);
             readingLength = false;
           }
@@ -427,6 +442,7 @@ public class PeerSocket extends PeerConnection {
         write();
     }
     catch (Exception e) {
+      e.printStackTrace();
       closeAll(true);
     }
   }
@@ -590,14 +606,8 @@ public class PeerSocket extends PeerConnection {
           manager.received(pieceLength);
           setSnubbed(false);
           reSetRequestsTime();
-          manager.writeBlock(pieceNumber, pieceOffset, buffer);
-          ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer();
-          if (newbuff == null) {
-             System.out.println("PeerSocket::analyseBuffer:: newbuff null");
-             closeAll(true);
-             break;
-          }
-          readMessage(newbuff);      
+          manager.writeBlock(pieceNumber, pieceOffset, buffer);                
+          readMessage(null);      
         }
         else {
           logger.log(

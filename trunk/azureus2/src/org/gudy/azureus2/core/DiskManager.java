@@ -594,7 +594,14 @@ public class DiskManager {
             while (bContinue) {
                 while (writeQueue.size() != 0) {
                     WriteElement elt = (WriteElement)writeQueue.remove(0);
-                    dumpBlockToDisk(elt);
+                    //FIX for bug 814062
+                    //Do not allow to write in a piece marked as done.
+                    int pieceNumber = elt.getPieceNumber();
+                    if(!pieceDone[pieceNumber]) {
+                      dumpBlockToDisk(elt);
+                    } else {
+                      ByteBufferPool.getInstance().freeBuffer(elt.getData());
+                    }
                     manager.blockWritten(elt.getPieceNumber(), elt.getOffset());
                 }
                 if (checkQueue.size() != 0) {
@@ -677,16 +684,16 @@ public class DiskManager {
                 		raf.setLength(length);
                 	}
                 	catch (Exception e) {
-						try {
-							 raf.close();
-						 } catch (IOException ex) {
-							 ex.printStackTrace();
-						 }
-						 this.state = FAULTY;
-						 this.errorMessage = e.getMessage();
-						 return false;
-                	}
-                    clearFile(raf);
+                    try {
+                    	 raf.close();
+                     } catch (IOException ex) {
+                    	 ex.printStackTrace();
+                     }
+                     this.state = FAULTY;
+                     this.errorMessage = e.getMessage();
+                     return false;
+                  }
+                  clearFile(raf);
                 }
                 newFiles = true;
             } else {
@@ -833,6 +840,10 @@ public class DiskManager {
                 }
                 return true;
             }
+            if(pieceDone[pieceNumber]) {
+              pieceDone[pieceNumber] = false;
+              remaining += length;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -945,7 +956,7 @@ public class DiskManager {
 
     public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
-        ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer();
+        ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer(length+13);
 
         if (buffer == null) { // Fix for bug #804874 - why no free buffers?
             System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");

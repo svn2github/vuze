@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Widget;
@@ -101,6 +102,8 @@ public class Messages {
          ((Button) widget).setText(MessageText.getString((String) widget.getData()));
       else if (widget instanceof CTabItem)
          ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
+      else if(widget instanceof Shell) 
+        ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
       else
         System.out.println("No cast for " + widget.getClass().getName());
     }

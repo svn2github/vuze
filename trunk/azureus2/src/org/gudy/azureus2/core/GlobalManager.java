@@ -80,7 +80,7 @@ public class GlobalManager extends Component {
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
               //Checks if any condition to stop seeding is met
-              int minShareRatio = 1000 * ConfigurationManager.getInstance().getIntParameter("Share Ratio",0);
+              int minShareRatio = 1000 * ConfigurationManager.getInstance().getIntParameter("Stop Ratio",0);
               //0 means unlimited
               if(minShareRatio != 0) {
                 int shareRatio = manager.getShareRatio();

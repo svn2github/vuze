@@ -15,7 +15,7 @@ import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
 
 public class PeerManager extends Thread {
-  public static final int BLOCK_SIZE = 8192;
+  public static final int BLOCK_SIZE = 16384;
   private static final int MAX_REQUESTS = 10;
   private static final boolean DEBUG = false;
 
@@ -435,8 +435,12 @@ public class PeerManager extends Thread {
           }
         }
       }
-      if (DEBUG) {
-        System.out.println("!!! FINISHED !!!");
+      boolean checkPieces = ConfigurationManager.getInstance().getBooleanParameter("Check Pieces on Completion",false);
+      if(checkPieces && (_timeFinished - _timeStarted) > 10) {
+        for(int i = 0 ; i < _downloaded.length ;i++) {
+          //check the piece from the disk
+          _diskManager.aSyncCheckPiece(i);
+        }
       }
     }
   }
@@ -1371,7 +1375,9 @@ public class PeerManager extends Thread {
     //  the piece has been written correctly
     if (result) {
 
-      _pieces[pieceNumber].free();
+      Piece piece = _pieces[pieceNumber];
+      if(piece != null)
+        piece.free();
       _pieces[pieceNumber] = null;
 
       //mark this piece as downloaded
@@ -1389,6 +1395,12 @@ public class PeerManager extends Thread {
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
       
+      //Mark this piece as not downloaded (shouldn't change anything)
+      _downloaded[pieceNumber] = false;
+      
+      //We haven't finished (to recover from a wrong finish state)
+      _finished = false;
+            
       nbHashFails++;
     }
   }
