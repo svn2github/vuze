@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.update;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -41,39 +42,49 @@ UpdateCheckInstanceImpl
 	protected List	listeners	= new ArrayList();
 	protected List	updates 	= new ArrayList();
 	
+	protected Semaphore	sem 	= new Semaphore();
+
 	protected UpdatableComponentImpl[]		components;
+	protected UpdateCheckerImpl[]			checkers;
+	
+	protected boolean		completed;
+	protected boolean		cancelled;
 	
 	protected
 	UpdateCheckInstanceImpl(
 		UpdatableComponentImpl[]	_components )
 	{
 		components	= _components;
+		
+		checkers	= new UpdateCheckerImpl[components.length];
+		
+ 		for (int i=0;i<components.length;i++){
+			
+			UpdatableComponentImpl	comp = components[i];
+			
+			UpdateCheckerImpl checker = checkers[i] = 
+				new UpdateCheckerImpl( 
+						this,
+						comp,
+						sem );
+		}
 	}
 
 	public void
 	start()
 	{
-		final	Semaphore	sem = new Semaphore();
-		
 		for (int i=0;i<components.length;i++){
 			
-			final UpdatableComponentImpl	comp = components[i];
+			final UpdateCheckerImpl			checker = checkers[i];
 			
 			Thread	t = 
-				new Thread()
+				new Thread( "UpdatableComponent Checker:" + i )
 				{
 					public void
 					run()
-					{
-						UpdateCheckerImpl	checker = 
-							new UpdateCheckerImpl( 
-									UpdateCheckInstanceImpl.this,
-									comp,
-									sem );
-						
-						try{
-							
-							comp.getComponent().checkForUpdate( checker );
+					{					
+						try{		
+							checker.getComponent().checkForUpdate( checker );
 							
 						}catch( Throwable e ){
 							
@@ -87,18 +98,74 @@ UpdateCheckInstanceImpl
 			t.start();
 		}
 		
-		for (int i=0;i<components.length;i++){
-
-			sem.reserve();
-		}
-		
-		for (int i=0;i<listeners.size();i++){
+		Thread	t = 
+			new Thread( "UpdatableComponent Completion Waiter" )
+			{
+				public void
+				run()
+				{
+					for (int i=0;i<components.length;i++){
 			
-			((UpdateCheckInstanceListener)listeners.get(i)).complete( this );
-		}
+						sem.reserve();
+					}
+					
+					synchronized( UpdateCheckInstanceImpl.this ){
+						
+						if ( cancelled ){
+							
+							return;
+						}
+					
+						completed	= true;
+					}	
+					
+						// If there are any manadatory updates then we just go ahead with them and drop the rest
+					
+					List	target_updates = new ArrayList();
+					
+					boolean	mandatory_only	= false;
+					
+					for (int i=0;i<updates.size();i++){
+						
+						UpdateImpl	update = (UpdateImpl)updates.get(i);
+						
+						if ( update.isMandatory()){
+							
+							mandatory_only	= true;
+							
+							break;
+						}
+					}
+					
+					for (int i=0;i<updates.size();i++){
+						
+						UpdateImpl	update = (UpdateImpl)updates.get(i);
+													
+						if ( update.isMandatory() || !mandatory_only ){
+							
+							target_updates.add( update );
+							
+						}else{
+							
+							LGLogger.log("Dropping update '" + update.getName() + "' as non-mandatory and mandatory updates found" );
+						}
+					}
+
+					updates	= target_updates;
+					
+					for (int i=0;i<listeners.size();i++){
+					
+						((UpdateCheckInstanceListener)listeners.get(i)).complete( UpdateCheckInstanceImpl.this );
+					}
+				}
+			};
+			
+		t.setDaemon(true);
+		
+		t.start();
 	}
 		
-	protected synchronized Update
+	protected synchronized UpdateImpl
 	addUpdate(
 		UpdatableComponentImpl	comp,
 		String					name,
@@ -113,6 +180,21 @@ UpdateCheckInstanceImpl
 		
 		updates.add( update );
 		
+		boolean	cancel_it = false;
+		
+		synchronized( this ){
+			
+			if ( cancelled ){
+				
+				cancel_it	= true;
+			}
+		}
+		
+		if ( cancel_it ){
+			
+			update.cancel();
+		}
+		
 		return( update );
 	}
 	
@@ -124,6 +206,50 @@ UpdateCheckInstanceImpl
 		updates.toArray( res );
 		
 		return( res );
+	}
+	
+	public UpdateChecker[]
+	getCheckers()
+	{
+		return( checkers );
+	}
+	
+	public void
+	cancel()
+	{
+		boolean	just_do_updates = false;
+		
+		synchronized( this ){
+			
+			if ( completed ){
+				
+				just_do_updates = true;
+			}
+		
+			cancelled	= true;
+		}
+			
+		
+		for (int i=0;i<updates.size();i++){
+			
+			((UpdateImpl)updates.get(i)).cancel();
+		}
+
+		if ( !just_do_updates ){
+			
+			for (int i=0;i<checkers.length;i++){
+				
+				if ( checkers[i] != null ){
+					
+					checkers[i].cancel();
+				}
+			}
+			
+			for (int i=0;i<listeners.size();i++){
+					
+				((UpdateCheckInstanceListener)listeners.get(i)).cancelled( this );
+			}
+		}
 	}
 	
 	public void

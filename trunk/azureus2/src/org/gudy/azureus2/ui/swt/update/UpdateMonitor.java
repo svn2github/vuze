@@ -64,6 +64,40 @@ UpdateMonitor
 		  	
 	  	current_instance.addListener( this );
 		  	
+	  	UpdateChecker[]	checkers = current_instance.getCheckers();
+	  	
+	  	for (int i=0;i<checkers.length;i++){
+	  		
+	  		UpdateChecker	checker = checkers[i];
+	  		
+	  		System.out.println( "Checker:" + checker.getComponent().getName() + "/" + checker.getComponent().getMaximumCheckTime());
+	  		
+	  		checker.addListener(
+	  			new UpdateCheckerListener()
+				{
+	  				public void
+					completed(
+						UpdateChecker	checker )
+					{
+	  					System.out.println( "    " + checker.getComponent().getName() + " completed" );
+	  				}
+										
+					public void
+					failed(
+						UpdateChecker	checker )
+					{
+						System.out.println( "    " + checker.getComponent().getName() + " failed" );
+					}
+					
+					public void
+					cancelled(
+						UpdateChecker	checker )
+					{
+	  					System.out.println( "    " + checker.getComponent().getName() + " cancelled" );
+					}
+	  			});
+	  	}
+	  	
 	  	current_instance.start();		
 	}
 	
@@ -80,7 +114,7 @@ UpdateMonitor
 	    
 	    if ( us.length > 0 ){
 	    	
-			window = new UpdateWindow();
+			window = new UpdateWindow( instance );
 				
 			for(int i = 0 ;  i < us.length ; i++){
 				
@@ -88,4 +122,10 @@ UpdateMonitor
 			}	
 	    }
 	} 
+	
+	public void
+	cancelled(
+		UpdateCheckInstance		instance )
+	{
+	}
 }

@@ -48,6 +48,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
@@ -63,6 +64,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  */
 public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
+  private UpdateCheckInstance	check_instance;
+	
   Display display;  
   
   Shell updateWindow;
@@ -89,7 +92,11 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   private static final int COL_SIZE = 2;
   
   
-  public UpdateWindow() {
+  public UpdateWindow(
+  		UpdateCheckInstance	_check_instance ) 
+  {
+  	check_instance = _check_instance;
+  	
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
     this.askingForShow =false;
@@ -163,6 +170,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     btnCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         updateWindow.dispose();
+        
+       	check_instance.cancel();
       }
     });
     
@@ -249,7 +258,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   public static void main(String args[]) throws Exception{
     Application app = new Application() {
       public void run() {
-       new UpdateWindow();
+       new UpdateWindow(null);
       }
       
       public void stopIt() {

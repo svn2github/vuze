@@ -31,6 +31,10 @@ public interface
 UpdateCheckInstanceListener 
 {
 	public void
+	cancelled(
+		UpdateCheckInstance		instance );
+	
+	public void
 	complete(
 		UpdateCheckInstance		instance );
 }

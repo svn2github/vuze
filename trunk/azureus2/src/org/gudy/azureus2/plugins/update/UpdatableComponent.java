@@ -29,6 +29,22 @@ package org.gudy.azureus2.plugins.update;
 public interface 
 UpdatableComponent 
 {
+		/**
+		 * Name of the updatable component
+		 * @return
+		 */
+	
+	public String
+	getName();
+	
+		/**
+		 * estimated maximum time to check whether an update is required or not in SECONDS
+		 * @return
+		 */
+	
+	public int
+	getMaximumCheckTime();
+	
 	public void
 	checkForUpdate(
 		UpdateChecker	checker );

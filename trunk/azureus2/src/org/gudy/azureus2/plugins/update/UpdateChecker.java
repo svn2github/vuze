@@ -32,6 +32,9 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 public interface 
 UpdateChecker 
 {
+	public UpdatableComponent
+	getComponent();
+	
 		/**
 		 * Add an update with a single downloader
 		 * @param mandatory indicates that in a group of updates this one must succeed
@@ -84,4 +87,13 @@ UpdateChecker
 	
 	public void
 	failed();
+	
+	public void
+	addListener(
+		UpdateCheckerListener	l );
+	
+	public void
+	removeListener(
+		UpdateCheckerListener	l );
+	
 }

@@ -130,9 +130,53 @@ PluginUpdatePlugin
 				
 			});
 		
+		PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
+			
+		int mandatory_count 	= 0;
+		int non_mandatory_count	= 0;
+		
+		for (int i=0;i<plugins.length;i++){
+			
+			PluginInterface	pi = plugins[i];
+			
+			String	mand = pi.getPluginProperties().getProperty( "plugin.mandatory");
+			
+			boolean	pi_mandatory = mand != null && mand.trim().toLowerCase().equals("true");
+						
+			String	id 		= pi.getPluginID();
+			String	version = pi.getPluginVersion();
+			
+			if ( version != null && !id.startsWith("<")){
+
+				if ( pi_mandatory ){
+					
+					mandatory_count++;
+					
+				}else{
+					
+					non_mandatory_count++;
+				}
+			}
+		}
+		
+		final int f_non_mandatory_count	= non_mandatory_count;
+		final int f_mandatory_count		= mandatory_count;
+		
 		update_manager.registerUpdatableComponent( 
 			new UpdatableComponent()
 			{
+				public String
+				getName()
+				{
+					return( "Non-mandatory plugins" );
+				}
+				
+				public int
+				getMaximumCheckTime()
+				{
+					return( f_non_mandatory_count * (( RD_SIZE_RETRIES * RD_SIZE_TIMEOUT )/1000));
+				}	
+				
 				public void
 				checkForUpdate(
 					UpdateChecker	checker )
@@ -145,6 +189,18 @@ PluginUpdatePlugin
 		update_manager.registerUpdatableComponent( 
 				new UpdatableComponent()
 				{
+					public String
+					getName()
+					{
+						return( "Mandatory plugins" );
+					}
+					
+					public int
+					getMaximumCheckTime()
+					{
+						return( f_mandatory_count * (( RD_SIZE_RETRIES * RD_SIZE_TIMEOUT )/1000));
+					}
+					
 					public void
 					checkForUpdate(
 						UpdateChecker	checker )

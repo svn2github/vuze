@@ -1,5 +1,5 @@
 /*
- * Created on 11-May-2004
+ * Created on 23-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,25 +28,32 @@ package org.gudy.azureus2.plugins.update;
  */
 
 public interface 
-UpdateCheckInstance 
+UpdateCheckerListener 
 {
-	public void
-	start();
+		/**
+		 * Called when the checking process has completed successfully
+		 * @param checker
+		 */
 	
 	public void
-	cancel();
+	completed(
+		UpdateChecker	checker );
 	
-	public UpdateChecker[]
-	getCheckers();
-	
-	public Update[]
-	getUpdates();
-	
-	public void
-	addListener(
-		UpdateCheckInstanceListener	l );
+		/**
+		 * Called when the checking process failed
+		 * @param checker
+		 */
 	
 	public void
-	removeListener(
-		UpdateCheckInstanceListener	l );
+	failed(
+		UpdateChecker	checker );
+	
+		/**
+		 * Called when the checking process has been cancelled
+		 * @param checker
+		 */
+	
+	public void
+	cancelled(
+		UpdateChecker	checker );
 }

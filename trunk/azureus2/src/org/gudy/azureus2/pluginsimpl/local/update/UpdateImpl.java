@@ -130,7 +130,13 @@ UpdateImpl
 	{
 		for (int i=0;i<downloaders.length;i++){
 			
-			downloaders[i].cancel();
+			try{
+				downloaders[i].cancel();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
 		}
 	}
 }

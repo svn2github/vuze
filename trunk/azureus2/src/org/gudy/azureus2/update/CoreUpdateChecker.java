@@ -84,6 +84,18 @@ CoreUpdateChecker
 		plugin_interface.getUpdateManager().registerUpdatableComponent( this, true );
 	}
 	
+	public String
+	getName()
+	{
+		return( "Azureus Core" );
+	}
+	
+	public int
+	getMaximumCheckTime()
+	{
+		return( ( RD_SIZE_RETRIES * RD_SIZE_TIMEOUT )/1000);
+	}	
+
 	public void
 	checkForUpdate(
 		final UpdateChecker	checker )

@@ -27,6 +27,8 @@ package org.gudy.azureus2.pluginsimpl.local.update;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.update.*;
@@ -43,6 +45,11 @@ UpdateCheckerImpl
 	protected boolean						completed;
 	protected boolean						failed;
 	protected boolean						sem_released;
+	
+	protected boolean						cancelled;
+
+	protected List	listeners	= new ArrayList();
+	
 	
 	protected
 	UpdateCheckerImpl(
@@ -63,7 +70,7 @@ UpdateCheckerImpl
 		ResourceDownloader	downloader,
 		int					restart_required )
 	{
-		return( addUpdate(
+		return(	addUpdate(
 					name, description, new_version,
 					new ResourceDownloader[]{ downloader },
 					restart_required ));
@@ -90,12 +97,29 @@ UpdateCheckerImpl
 		return( new UpdateInstallerImpl());
 	}
 
+	public UpdatableComponent
+	getComponent()
+	{
+		return( component.getComponent());
+	}
+	
 	public synchronized void
 	completed()
 	{
 		if ( !sem_released ){
 			
 			completed	= true;
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((UpdateCheckerListener)listeners.get(i)).completed( this );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
 			
 			semaphore.release();
 		}
@@ -107,7 +131,18 @@ UpdateCheckerImpl
 		if ( !sem_released ){
 			
 			failed	= true;
-			
+
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((UpdateCheckerListener)listeners.get(i)).failed( this );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+
 			semaphore.release();
 		}		
 	}
@@ -116,5 +151,35 @@ UpdateCheckerImpl
 	getFailed()
 	{
 		return( failed );
+	}
+	
+	protected void
+	cancel()
+	{
+		cancelled	= true;
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((UpdateCheckerListener)listeners.get(i)).cancelled( this );
+		}
+	}
+	
+	public void
+	addListener(
+		UpdateCheckerListener	l )
+	{
+		listeners.add( l );
+		
+		if ( cancelled ){
+			
+			l.cancelled( this );
+		}
+	}
+	
+	public void
+	removeListener(
+		UpdateCheckerListener	l )
+	{
+		listeners.remove(l);
 	}
 }

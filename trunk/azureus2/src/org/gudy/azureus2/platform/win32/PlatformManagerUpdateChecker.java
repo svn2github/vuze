@@ -44,6 +44,8 @@ public class
 PlatformManagerUpdateChecker
 	implements Plugin, UpdatableComponent
 {
+	public static final String UPDATE_NAME	= "Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll";
+	
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 	
@@ -73,6 +75,18 @@ PlatformManagerUpdateChecker
 		}
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", version );
+	}
+	
+	public String
+	getName()
+	{
+		return( UPDATE_NAME );
+	}
+	
+	public int
+	getMaximumCheckTime()
+	{
+		return(( RD_SIZE_RETRIES * RD_SIZE_TIMEOUT )/1000);
 	}
 	
 	public void
@@ -148,7 +162,7 @@ PlatformManagerUpdateChecker
 						});
 
 				checker.addUpdate(
-						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
+						UPDATE_NAME,
 						new String[]{"This DLL supports native operations such as file-associations" },
 						target_dll_version,
 						dll_rd,
