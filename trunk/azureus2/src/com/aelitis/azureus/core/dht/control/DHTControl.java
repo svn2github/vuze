@@ -37,6 +37,10 @@ DHTControl
 		byte[]		key,
 		byte[]		value );
 	
+	public byte[]
+	get(
+		byte[]		key );
+	
 	public void
 	addTransport(
 		DHTTransport	transport );

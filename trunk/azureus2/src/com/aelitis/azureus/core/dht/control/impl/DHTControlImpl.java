@@ -44,6 +44,9 @@ DHTControlImpl
 	private DHTRouter	router;
 	private	int			node_id_byte_count	= 0;
 	private int			search_concurrency	= 3;	// TODO: fix
+	private int			CACHE_AT_CLOSEST_N	= 1;	// TODO: parameterise
+	
+	private Map			stored_values = new HashMap();
 	
 	public
 	DHTControlImpl(
@@ -86,8 +89,86 @@ DHTControlImpl
 		byte[]		unencoded_key,
 		byte[]		value )
 	{
-		byte[]	encoded_key = encodeKey( unencoded_key );
-								
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+	
+		List	closest = lookup( encoded_key, false );
+		
+		for (int i=0;i<closest.size();i++){
+		
+			((DHTTransportContact)closest.get(i)).sendStore( 
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						storeReply(
+							DHTTransportContact contact )
+						{
+							System.out.println( "store ok" );
+						}	
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							System.out.println( "store failed" );
+						}
+					},
+					encoded_key, 
+					value );
+		}
+	}
+	
+	public byte[]
+	get(
+		byte[]		unencoded_key )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+		
+		List	result_and_closest = lookup( encoded_key, true );
+
+		byte[]	value = (byte[])result_and_closest.get(0);
+		
+		if ( value != null ){
+			
+				// cache the value at the 'n' closest seen locations
+			
+			for (int i=1;i<Math.min(1+CACHE_AT_CLOSEST_N,result_and_closest.size());i++){
+				
+				((DHTTransportContact)result_and_closest.get(i)).sendStore( 
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							storeReply(
+								DHTTransportContact contact )
+							{
+								System.out.println( "cache store ok" );
+							}	
+							
+							public void
+							failed(
+								DHTTransportContact 	contact )
+							{
+								System.out.println( "cache store failed" );
+							}
+						},
+						encoded_key, 
+						value );
+			}
+		}
+		
+		return( value );
+	}
+	
+		/**
+		 * The lookup method returns up to K closest nodes to the target
+		 * @param lookup_id
+		 * @return
+		 */
+	
+	protected List
+	lookup(
+		final byte[]	lookup_id,
+		boolean			value_search )
+	{
 			// keep querying successively closer nodes until we have got responses from the K
 			// closest nodes that we've seen. We might get a bunch of closer nodes that then
 			// fail to respond, which means we have reconsider further away nodes
@@ -106,9 +187,30 @@ DHTControlImpl
 			// Note that we never widen the root of our search beyond the initial K closest
 			// that we know about - this could be relaxed
 		
-		List	router_contacts	= router.findClosestContacts( encoded_key );
 		
-		final List	contacts_to_query	= new ArrayList();
+		List	router_contacts	= router.findClosestContacts( lookup_id );
+		
+		final Set	contacts_to_query	= 
+			new TreeSet(
+					new Comparator()
+					{
+						public int
+						compare(
+							Object	o1,
+							Object	o2 )
+						{
+								// this comparator ensures that the closest to the key
+								// is first in the iterator traversal
+						
+							DHTTransportContact	t1 = (DHTTransportContact)o1;
+							DHTTransportContact t2 = (DHTTransportContact)o2;
+							
+							byte[] d1 = computeDistance( t1.getID(), lookup_id );
+							byte[] d2 = computeDistance( t2.getID(), lookup_id );
+							
+							return( compareDistances( d1, d2 ));
+						}
+					});
 		
 		for (int i=0;i<router_contacts.size();i++){
 			
@@ -116,12 +218,42 @@ DHTControlImpl
 				((DHTRouterContact)router_contacts.get(i)).getAttachment());
 		}
 		
+			// record the set of contacts we've queried to avoid re-queries
+		
 		final Map			contacts_queried = new HashMap();
+		
+			// record the set of contacts that we've had a reply from
+		
+		final Set			ok_contacts = 
+			new TreeSet(
+				new Comparator()
+				{
+					public int
+					compare(
+						Object	o1,
+						Object	o2 )
+					{
+							// this comparator ensures that the furthest away from the key
+							// is first in the iterator traversal
+					
+						DHTTransportContact	t1 = (DHTTransportContact)o1;
+						DHTTransportContact t2 = (DHTTransportContact)o2;
+						
+						byte[] d1 = computeDistance( t1.getID(), lookup_id );
+						byte[] d2 = computeDistance( t2.getID(), lookup_id );
+						
+						return( -compareDistances( d1, d2 ));
+					}
+				});
+		
+			// this handles the search concurrency
 		
 		final AESemaphore	search_sem = new AESemaphore( "DHTControl:search", search_concurrency );
 			
 		final int[]	idle_searches	= { 0 };
 		final int[]	active_searches	= { 0 };
+		
+		final byte[][]	value_search_result = {null};
 		
 		while( true ){
 			
@@ -129,6 +261,11 @@ DHTControlImpl
 			
 			search_sem.reserve();
 					
+			if ( value_search_result[0] != null ){
+				
+				break;
+			}
+			
 			synchronized( contacts_to_query ){
 		
 					// if nothing pending then we need to wait for the results of a previous
@@ -149,40 +286,28 @@ DHTControlImpl
 			
 					// select the next contact to search
 				
-				DHTTransportContact	closest	= null;
-				
-				byte[]	closest_distance	= null;
-				
-				for (int i=0;i<contacts_to_query.size();i++){
-					
-					DHTTransportContact	contact = (DHTTransportContact)contacts_to_query.get(i);
-					
-					byte[]	new_distance = computeDistance( contact.getID(), encoded_key );
-	
-					if ( closest == null ){
-						
-						closest 			= contact;
-						
-						closest_distance	= new_distance;
-						
-					}else{
-											
-						if ( compareDistances( new_distance, closest_distance ) < 0 ){
-						
-							closest 			= contact;
-							
-							closest_distance	= new_distance;
-						}
-					}
-				}			
+				DHTTransportContact	closest	= (DHTTransportContact)contacts_to_query.iterator().next();			
 			
+					// if the next closest is further away than the furthest successful hit so 
+					// far and we have K hits, we're done
+				
+				if ( ok_contacts.size() == router.getK()){
+					
+					DHTTransportContact	furthest_ok = (DHTTransportContact)ok_contacts.iterator().next();
+					
+					if ( compareDistances( furthest_ok.getID(), closest.getID()) <= 0 ){
+						
+						break;
+					}
+				}
+				
 				contacts_to_query.remove( closest );
 				
 				contacts_queried.put( new HashWrapper( closest.getID()), "" );
 				
 				active_searches[0]++;
 				
-				closest.sendFindNode(
+				DHTTransportReplyHandlerAdapter	handler = 
 					new DHTTransportReplyHandlerAdapter()
 					{
 						public void
@@ -196,9 +321,20 @@ DHTControlImpl
 								router.contactAlive( target_contact.getID(), target_contact );
 								
 								synchronized( contacts_to_query ){
-	
-										//TODO: adjust idle searches + release sem
-																	
+											
+									ok_contacts.add( target_contact );
+									
+									if ( ok_contacts.size() > router.getK()){
+										
+											// delete the furthest away
+										
+										Iterator it = ok_contacts.iterator();
+										
+										it.next();
+										
+										it.remove();
+									}
+									
 									for (int i=0;i<reply_contacts.length;i++){
 										
 										DHTTransportContact	contact = reply_contacts[i];
@@ -221,9 +357,35 @@ DHTControlImpl
 							}finally{
 								
 								active_searches[0]--;								
-
+	
 								search_sem.release();
 							}
+						}
+						
+						public void
+						findValueReply(
+							DHTTransportContact 	contact,
+							byte[]					value )
+						{
+							try{
+								System.out.println( "Reply: findValue -> succeeded" );
+								
+								value_search_result[0]	= value;
+	
+							}finally{
+													
+								active_searches[0]--;
+								
+								search_sem.release();
+							}						
+						}
+						
+						public void
+						findValueReply(
+							DHTTransportContact 	contact,
+							DHTTransportContact[]	contacts )
+						{
+							findNodeReply( contact, contacts );
 						}
 						
 						public void
@@ -231,10 +393,10 @@ DHTControlImpl
 							DHTTransportContact 	target_contact )
 						{
 							try{
-								System.out.println( "Reply: findNode -> failed" );
+								System.out.println( "Reply: findNode/findValue -> failed" );
 								
 								router.contactDead( target_contact.getID(), target_contact );
-
+	
 							}finally{
 								
 								
@@ -243,10 +405,36 @@ DHTControlImpl
 								search_sem.release();
 							}
 						}
-					},
-					encoded_key );
+					};
+					
+				if ( value_search ){
+					
+					closest.sendFindValue( handler, lookup_id );
+					
+				}else{
+					
+					closest.sendFindNode( handler, lookup_id );
+				}
 			}
 		}
+		
+		System.out.println( "lookup complete");
+		
+		ArrayList	res;
+		
+		if ( value_search ){
+			
+			res = new ArrayList( ok_contacts.size() + 1 );
+			
+			res.add( value_search_result[0]);
+			
+			res.addAll( ok_contacts );
+		}else{
+			
+			res = new ArrayList( ok_contacts );
+		}
+		
+		return( res );
 	}
 	
 	
@@ -267,7 +455,7 @@ DHTControlImpl
 	{
 		router.contactAlive( originating_contact.getID(), originating_contact );
 
-		throw( new RuntimeException(""));
+		stored_values.put( new HashWrapper( key ), value );
 	}
 	
 	public DHTTransportContact[]
@@ -294,9 +482,18 @@ DHTControlImpl
 		DHTTransportContact originating_contact, 
 		byte[]				key )
 	{
-		router.contactAlive( originating_contact.getID(), originating_contact );
+		byte[]	value = (byte[])stored_values.get( new HashWrapper( key ));
+		
+		if ( value != null ){
+			
+			router.contactAlive( originating_contact.getID(), originating_contact );
 
-		throw( new RuntimeException(""));
+			return( value );
+			
+		}else{
+			
+			return( findNodeRequest( originating_contact, key ));
+		}
 	}
 	
 	protected byte[]
@@ -312,7 +509,7 @@ DHTControlImpl
 		return( result );
 	}
 	
-	protected byte[]
+	protected static byte[]
 	computeDistance(
 		byte[]		n1,
 		byte[]		n2 )
@@ -333,7 +530,8 @@ DHTControlImpl
 		 * @param n2
 		 * @return
 		 */
-	protected int
+	
+	protected static int
 	compareDistances(
 		byte[]		n1,
 		byte[]		n2 )

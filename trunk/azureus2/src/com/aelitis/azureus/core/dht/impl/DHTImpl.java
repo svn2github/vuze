@@ -65,7 +65,7 @@ DHTImpl
 	get(
 		byte[]		key )
 	{
-		throw( new RuntimeException(""));
+		return( control.get( key ));
 	}
 	
 	public void

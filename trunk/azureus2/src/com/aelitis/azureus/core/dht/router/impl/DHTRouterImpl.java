@@ -68,6 +68,12 @@ DHTRouterImpl
 		SMALLEST_SUBTREE_MAX	+= SMALLEST_SUBTREE_MAX_EXCESS;
 	}
 	
+	public int
+	getK()
+	{
+		return( K );
+	}
+	
 	public void
 	setNodeID(
 		byte[]	_router_node_id,
@@ -491,6 +497,8 @@ DHTRouterImpl
 		DHTRouterContactImpl	contact )
 	{
 		System.out.println( "DHTRouter: requestPing:" + ByteFormatter.nicePrint( contact.getID(), true ));
+		
+		// TODO:!
 	}
 	
 	public void

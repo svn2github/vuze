@@ -152,6 +152,20 @@ DHTTransportLoopbackImpl
 		byte[]						key,
 		byte[]						value )
 	{
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		if ( target == null ){
+			
+			handler.failed(contact);
+			
+		}else{
+			
+			target.getRequestHandler().storeRequest( 
+					new DHTTransportLoopbackContactImpl( target, node_id ),
+					key, value );
+			
+			handler.storeReply( contact );
+		}
 	}
 	
 	public void
@@ -183,5 +197,27 @@ DHTTransportLoopbackImpl
 		DHTTransportReplyHandler	handler,
 		byte[]						key )
 	{
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		if ( target == null ){
+			
+			handler.failed(contact);
+			
+		}else{
+			
+			Object res =
+				target.getRequestHandler().findValueRequest( 
+					new DHTTransportLoopbackContactImpl( target, node_id ),
+					key );
+			
+			if ( res instanceof DHTTransportContact[]){
+				
+				handler.findValueReply( contact, (DHTTransportContact[])res );
+				
+			}else{
+				
+				handler.findValueReply( contact, (byte[])res );
+			}
+		}
 	}
 }

@@ -44,24 +44,34 @@ Test
 			int		B			= 1;
 			int		ID_BYTES	= 4;
 			
-			DHT	dht1 = DHTFactory.create( K, B );
+			DHT[]			dhts 		= new DHT[100];
+			DHTTransport[]	transports 	= new DHTTransport[dhts.length];
 			
-			DHTTransport	transport1 = DHTTransportFactory.createLoopback(ID_BYTES);
+			for (int i=0;i<dhts.length;i++){
+				
+				DHT	dht = DHTFactory.create( K, B );
 			
-			dht1.addTransport( transport1 );
+				dhts[i]	= dht;
+				
+				DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
 			
-			DHT	dht2 = DHTFactory.create( K, B );
+				transports[i] = transport;
+				
+				dht.addTransport( transport );
+			}
 			
-			DHTTransport	transport2 = DHTTransportFactory.createLoopback(ID_BYTES);
+			for (int i=0;i<dhts.length-1;i++){
 			
-			dht2.addTransport( transport2 );			
+				transports[i].importContact( new ByteArrayInputStream( transports[i+1].getLocalContact().getID()));
+			}
 			
-			transport1.importContact( new ByteArrayInputStream( transport2.getLocalContact().getID()));
+			transports[transports.length-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
+
+			//dht1.print();
 			
-			dht1.print();
+			dhts[99].put( "fred".getBytes(), new byte[2]);
 			
-			dht2.put( "fred".getBytes(), new byte[2]);
-			
+			System.out.println( "get:"  + dhts[0].get( "fred".getBytes()));
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

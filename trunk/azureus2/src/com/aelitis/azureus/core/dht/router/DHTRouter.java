@@ -32,6 +32,9 @@ import java.util.*;
 public interface 
 DHTRouter 
 {
+	public int
+	getK();
+	
 	public void
 	setNodeID(
 		byte[]	node_id,
