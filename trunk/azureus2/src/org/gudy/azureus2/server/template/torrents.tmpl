@@ -44,7 +44,7 @@
                         <td align=left nowrap>
                             <table width="100%">
                                 <tr>
-                                    <td<TMPL_IF Torrents_Torrent_Seedless> class="seedless"</TMPL_IF>><TMPL_VAR Torrents_Torrent_FileName></td>
+                                    <td class="<TMPL_IF Torrents_Torrent_Seedless>seedless<TMPL_ELSE>seedy</TMPL_IF>"><TMPL_VAR Torrents_Torrent_FileName></td>
                                 </tr>
                                 <tr>
                                     <td>

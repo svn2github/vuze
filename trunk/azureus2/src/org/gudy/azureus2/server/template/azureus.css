@@ -95,6 +95,9 @@ table.torrent {
     font-size: 10px;
     border: #000 solid 1px;
 }
+table.torrent.td {
+    font-size: 10px;
+}
 .torrentheader {
     background: RGB(0,128,255);
     color: RGB(192,224,255);
@@ -106,6 +109,9 @@ table.torrent {
 }
 .torrentrow {
     background: RGB(192,224,255); 
+}
+.seedy {
+    font-size: 10px;
 }
 .seedless {
     font-size: 10px;
