@@ -62,10 +62,12 @@ TRTrackerServerProcessor
 		throws Exception
 	{
 		server	= _server;
-		
+				
 			// translate any 127.0.0.1 local addresses back to the tracker address
 		
 		client_ip_address = TRTrackerUtils.adjustHostFromHosting( client_ip_address );
+		
+		boolean	loopback	= client_ip_address.equals( TRTrackerUtils.getTrackerIP());
 		
 		TRTrackerServerTorrentImpl	torrent = null;
 		
@@ -114,7 +116,7 @@ TRTrackerServerProcessor
 				
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
-						event, peer_id, port, client_ip_address, key,
+						event, peer_id, port, client_ip_address, loopback, key,
 						uploaded, downloaded, left, num_peers,
 						interval );
 				

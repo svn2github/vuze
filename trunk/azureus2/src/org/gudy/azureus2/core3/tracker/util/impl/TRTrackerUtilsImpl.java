@@ -79,6 +79,12 @@ TRTrackerUtilsImpl
 				url_in.getHost().equalsIgnoreCase( tracker_ip ));
 	}
 	
+	public static String
+	getTrackerIP()
+	{
+		return( tracker_ip );
+	}
+	
 	public static URL
 	adjustURLForHosting(
 		URL		url_in )

@@ -74,6 +74,12 @@ TRTrackerServerNATChecker
 		checkConfig( enable_param );
 	}
 	
+	protected boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
 	protected synchronized void
 	checkConfig(
 		String	enable_param )
@@ -157,7 +163,7 @@ TRTrackerServerNATChecker
 								InetSocketAddress address = new InetSocketAddress( host, port );
 								
 								socket = new Socket();
-								
+																
 								socket.connect( address, CHECK_TIME_LIMIT );
 							
 								ok	= true;

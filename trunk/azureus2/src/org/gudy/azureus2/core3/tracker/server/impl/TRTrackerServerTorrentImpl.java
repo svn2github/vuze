@@ -77,6 +77,9 @@ TRTrackerServerTorrentImpl
 	
 	protected boolean			map_size_diff_reported;
 	
+	protected byte				duplicate_peer_checker_index	= 0;
+	protected byte[]			duplicate_peer_checker			= new byte[0];
+	
 	protected boolean			caching_enabled	= true;
 	
 	public
@@ -95,6 +98,7 @@ TRTrackerServerTorrentImpl
 		HashWrapper	peer_id,
 		int			port,
 		String		ip_address,
+		boolean		loopback,
 		String		tracker_key,
 		long		uploaded,
 		long		downloaded,
@@ -130,7 +134,7 @@ TRTrackerServerTorrentImpl
 			
 			String	reuse_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
 			
-			byte	last_NAT_status	= TRTrackerServerPeer.NAT_CHECK_UNKNOWN;
+			byte	last_NAT_status	= loopback?TRTrackerServerPeer.NAT_CHECK_OK:TRTrackerServerPeer.NAT_CHECK_UNKNOWN;
 			
 			new_peer	= true;
 			
@@ -343,29 +347,45 @@ TRTrackerServerTorrentImpl
 				try{
 					peer_list_compaction_suspended	= true;
 				
-					for (int i=0;i<peer_list.size();i++){
-						
-						TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)peer_list.get(i);
-						
-						if ( this_peer != null && this_peer.isSeed()){
+						// remove bad NAT ones in preference to others
 					
-							if ( USE_LIGHTWEIGHT_SEEDS ){
-																
-								lightweight_seed_map.put( 
-										this_peer.getPeerId(), 
-										new lightweightSeed( 
-												now, 
-												new_timeout, 
-												this_peer.getUploaded(),
-												this_peer.getNATStatus()));
-							}
+					for (int bad_nat_loop=TRTrackerServerNATChecker.getSingleton().isEnabled()?0:1;bad_nat_loop<2;bad_nat_loop++){
+						
+						for (int i=0;i<peer_list.size();i++){
 							
-							removePeer( this_peer, i );
-
-							if ( --to_remove == 0 ){
+							TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)peer_list.get(i);
+							
+							if ( this_peer != null && this_peer.isSeed()){
+						
+								boolean	bad_nat = this_peer.isNATStatusBad();
 								
-								break;
+								if ( 	( bad_nat_loop == 0 && bad_nat ) ||
+										( bad_nat_loop == 1 )){
+									
+									if ( USE_LIGHTWEIGHT_SEEDS ){
+																		
+										lightweight_seed_map.put( 
+												this_peer.getPeerId(), 
+												new lightweightSeed( 
+														now, 
+														new_timeout, 
+														this_peer.getUploaded(),
+														this_peer.getNATStatus()));
+									}
+									
+									removePeer( this_peer, i );
+		
+									if ( --to_remove == 0 ){
+										
+										break;
+									}
+								}
 							}
+						}
+						
+						if ( to_remove == 0 ){
+							
+							break;
 						}
 					}
 				}finally{
@@ -621,56 +641,132 @@ TRTrackerServerTorrentImpl
 				
 				if ( num_want < total_peers*3 ){
 					
-						// too costly to randomise as below. use more efficient but slightly less accurate
-						// approach
+					int	peer_list_size	= peer_list.size();
+			
+						// to avoid returning duplicates when doing the two-loop check
+						// for nat selection we maintain an array of markers
 					
-					int	limit 	= num_want*2;	// some entries we find might not be usable
-												// so in the limit search for more
-					int	added	= 0;
-					
-					for (int i=0;i<limit && added < num_want;i++){
+					if ( duplicate_peer_checker.length < peer_list_size ){
 						
-						int	index = random.nextInt(peer_list.size());
+						duplicate_peer_checker	= new byte[peer_list_size*2];
 						
-						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
-		
-						if ( peer == null ){
+						duplicate_peer_checker_index	= 1;
+						
+					}else if ( duplicate_peer_checker.length > (peer_list_size*2)){
+						
+						duplicate_peer_checker	= new byte[(3*peer_list_size)/2];
+						
+						duplicate_peer_checker_index	= 1;
+						
+					}else{
+						
+						duplicate_peer_checker_index++;
+						
+						if ( duplicate_peer_checker_index == 0 ){
 							
-							continue;
+							Arrays.fill( duplicate_peer_checker, (byte)0);
+							
+							duplicate_peer_checker_index	= 1;
 						}
-						
-						if ( now > peer.getTimeout()){
-							
-							removePeer( peer );
-							
-						}else if ( include_seeds || !peer.isSeed()){
+					}
 					
-							added++;
+					boolean	peer_removed	= false;
 							
-							Map rep_peer = new HashMap(3);
+					try{
+							// got to suspend peer list compaction as we rely on the
+							// list staying the same size during processing below
+						
+						peer_list_compaction_suspended	= true;
+			
+							// too costly to randomise as below. use more efficient but slightly less accurate
+							// approach
+						
+							// two pass process if bad nat detection enabled
+					
+						int	added			= 0;
+						//int	bad_nat_added	= 0;
+
+						for (int bad_nat_loop=TRTrackerServerNATChecker.getSingleton().isEnabled()?0:1;bad_nat_loop<2;bad_nat_loop++){
+	
+							int	limit 	= num_want*2;	// some entries we find might not be usable
+														// so in the limit search for more
 							
-							if ( send_peer_ids ){
+							for (int i=0;i<limit && added < num_want;i++){
 								
-								rep_peer.put( "peer id", peer.getPeerId().getHash());
-							}
-							
-							if ( compact ){
+								int	index = random.nextInt(peer_list_size);
 								
-								byte[]	peer_bytes = peer.getIPBytes();
-								
-								if ( peer_bytes == null ){
-																		
+								TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
+				
+								if ( peer == null ){
+									
 									continue;
 								}
 								
-								rep_peer.put( "ip", peer_bytes );
-							}else{
-								rep_peer.put( "ip", peer.getIPAsRead() );
+								if ( now > peer.getTimeout()){
+									
+									removePeer( peer );
+									
+									peer_removed	= true;
+									
+								}else if ( include_seeds || !peer.isSeed()){
+							
+									boolean	bad_nat = peer.isNATStatusBad();
+									
+									if ( 	( bad_nat_loop == 0 && !bad_nat ) ||
+											( bad_nat_loop == 1 )){
+										
+										if ( duplicate_peer_checker[index] != duplicate_peer_checker_index ){
+											
+											duplicate_peer_checker[index] = duplicate_peer_checker_index;
+									
+											//if ( bad_nat ){
+											//	
+											//	bad_nat_added++;
+											//}
+											
+											added++;
+											
+											Map rep_peer = new HashMap(3);
+											
+											if ( send_peer_ids ){
+												
+												rep_peer.put( "peer id", peer.getPeerId().getHash());
+											}
+											
+											if ( compact ){
+												
+												byte[]	peer_bytes = peer.getIPBytes();
+												
+												if ( peer_bytes == null ){
+																						
+													continue;
+												}
+												
+												rep_peer.put( "ip", peer_bytes );
+												
+											}else{
+												
+												rep_peer.put( "ip", peer.getIPAsRead() );
+											}
+											
+											rep_peer.put( "port", new Long( peer.getPort()));	
+											
+											rep_peers.add( rep_peer );
+										}
+									}
+								}
 							}
+						}
+						
+						// System.out.println( "num_want = " + num_want + ", added = " + added + ", bad_nat = " + bad_nat_added );
+						
+					}finally{
 							
-							rep_peer.put( "port", new Long( peer.getPort()));	
+						peer_list_compaction_suspended	= false;
 							
-							rep_peers.add( rep_peer );
+						if ( peer_removed ){
+								
+							checkForPeerListCompaction( false );
 						}
 					}
 					
@@ -767,7 +863,7 @@ TRTrackerServerTorrentImpl
 			
 			root.put( 
 					"warning message", 
-					("Unable to connect to your incoming data port (" + requesting_peer.getPort() +"). " +
+					("Unable to connect to your incoming data port (" + requesting_peer.getIP() + ":" + requesting_peer.getPort() +"). " +
 					 "This will result in slow downloads. Please check your firewall/router settings").getBytes());
 		}
 		

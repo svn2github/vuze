@@ -44,6 +44,12 @@ TRTrackerUtils
 		TRTrackerUtilsImpl.checkForBlacklistedURLs( url );
 	}
 
+	public static String
+	getTrackerIP()
+	{
+		return( TRTrackerUtilsImpl.getTrackerIP());
+	}
+	
 	public static URL
 	adjustURLForHosting(
 		URL		url_in )
