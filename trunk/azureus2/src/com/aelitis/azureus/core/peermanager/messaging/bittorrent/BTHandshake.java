@@ -109,8 +109,8 @@ public class BTHandshake implements BTMessage, RawMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
-    if( data.remaining( DirectByteBuffer.SS_MSG ) < 68 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 68" );
+    if( data.remaining( DirectByteBuffer.SS_MSG ) != 68 ) {
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 68" );
     }
     
     if( data.get( DirectByteBuffer.SS_MSG ) != (byte)PROTOCOL.length() ) {

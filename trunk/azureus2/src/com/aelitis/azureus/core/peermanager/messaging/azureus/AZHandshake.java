@@ -132,8 +132,8 @@ public class AZHandshake implements AZMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
-    if( data.remaining( bss ) < 42 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 42" );
+    if( data.remaining( bss ) < 100 ) {
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 100" );
     }
 
     try {
