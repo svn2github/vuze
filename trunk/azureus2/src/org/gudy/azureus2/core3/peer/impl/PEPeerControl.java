@@ -39,6 +39,12 @@ PEPeerControl
 	public PEPeerStatsImpl
 	createPeerStats();
 	
+	public void 
+	peerAdded(PEPeer pc);
+
+	public void 
+	peerRemoved(PEPeer pc);
+
 	public void
 	addPeerTransport(
 		PEPeerTransport	transport );

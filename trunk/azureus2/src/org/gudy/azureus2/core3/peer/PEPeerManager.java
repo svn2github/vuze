@@ -30,11 +30,7 @@ public interface
 PEPeerManager 
 {
 	public static final int BLOCK_SIZE = 16384;
- 		
-	public void peerAdded(PEPeer pc);
-
-	public void peerRemoved(PEPeer pc);
-	
+ 			
 	public void
 	stopAll();
 		
@@ -44,9 +40,15 @@ PEPeerManager
 	public byte[]
 	getPeerId();
 	
-	public void blockWritten(int pieceNumber, int offset);
+	public void 
+	blockWritten(
+		int pieceNumber, 
+		int offset );
 	
-	public void pieceChecked(int pieceNumber, boolean result);
+	public void 
+	pieceChecked(
+		int pieceNumber, 
+		boolean result );
 
 	public int[] getAvailability();
 	
