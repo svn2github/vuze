@@ -41,6 +41,8 @@ CacheEntry
 	
 	protected boolean			dirty;
 	
+	protected long				last_used;
+	
 	protected
 	CacheEntry(
 		CacheFileImpl		_file,
@@ -62,6 +64,7 @@ CacheEntry
 		}
 		
 		dirty		= true;
+		last_used	= SystemTime.getCurrentTime();
 	}
 	
 	public CacheFileImpl
@@ -104,6 +107,18 @@ CacheEntry
 	resetBufferPosition()
 	{
 		buffer.position( DirectByteBuffer.SS_CACHE, buffer_pos );
+	}
+	
+	protected void
+	used()
+	{
+		last_used = SystemTime.getCurrentTime();
+	}
+	
+	protected long
+	getLastUsed()
+	{
+		return( last_used );
 	}
 	
 	protected String

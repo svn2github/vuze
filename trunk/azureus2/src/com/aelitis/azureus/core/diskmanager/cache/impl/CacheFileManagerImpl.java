@@ -43,6 +43,8 @@ CacheFileManagerImpl
 {
 	public static final boolean	DEBUG	= true;
 	
+	public static final long	CACHE_CLEANER_PERIOD	= 10*1000;
+	
 	static{
 		if ( DEBUG ){
 			
@@ -114,6 +116,22 @@ CacheFileManagerImpl
 		
 		stats = new CacheFileManagerStatsImpl( this );
 		
+		if ( enabled ){
+			
+			AEThread	t = new AEThread( "CacheCleaner")
+				{
+					public void
+					run()
+					{
+						cacheCleaner();
+					}
+				};
+				
+			t.setDaemon(true);
+			
+			t.start();
+			
+		}
 		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", size = " + cache_size + " MB" );
 	}
 	
@@ -192,7 +210,7 @@ CacheFileManagerImpl
 				// musn't invoke synchronized CacheFile methods while holding manager lock as this
 				// can cause deadlocks (as CacheFile calls manager methods with locks)
 			
-			CacheFileImpl	oldest_file	= null;
+			CacheEntry	oldest_entry	= null;
 			
 			synchronized( this ){
 			
@@ -202,7 +220,7 @@ CacheFileManagerImpl
 					
 				}else{
 					
-					oldest_file = ((CacheEntry)cache_entries.keySet().iterator().next()).getFile();
+					oldest_entry = (CacheEntry)cache_entries.keySet().iterator().next();
 				}
 			}
 			
@@ -212,9 +230,28 @@ CacheFileManagerImpl
 				
 				long	old_free	= cache_space_free;
 			
+				CacheFileImpl	oldest_file = oldest_entry.getFile();
+				
 				oldest_file.flushCache( true, cache_minimum_free_size );
 				
-				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_space_free - old_free ) + " from " + oldest_file.getName());
+				long	flushed = cache_space_free - old_free;
+				
+				LGLogger.log( "DiskCache: cache full, flushed " + ( flushed ) + " from " + oldest_file.getName());
+				
+				if ( flushed == 0 ){
+				
+					synchronized( this ){
+									
+						if (	cache_entries.size() > 0 &&
+								(CacheEntry)cache_entries.keySet().iterator().next() == oldest_entry ){
+							
+								// hmm, something wrong with cache as the flush should have got rid
+								// of at least the oldest entry
+							
+							throw( new CacheFileManagerException( "Cache inconsistent: 0 flushed"));
+						}
+					}
+				}
 			}
 		}
 					
@@ -231,16 +268,59 @@ CacheFileManagerImpl
 	}
 	
 	protected void
+	cacheCleaner()
+	{
+		long	cleaner_period	= CACHE_CLEANER_PERIOD;
+		
+		while( true ){
+			
+			try{
+			
+				Thread.sleep( cleaner_period );
+				
+			}catch( InterruptedException e ){
+				
+				e.printStackTrace();
+				
+				break;
+			}
+			
+			synchronized( this ){
+				
+				if ( cache_entries.size() > 0 ){
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					Iterator it = cache_entries.keySet().iterator();
+					
+					while( it.hasNext()){
+						
+						CacheEntry	entry = (CacheEntry)it.next();
+
+						// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
+						
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+		// must be called when the cachefileimpl is synchronized to ensure that the file's
+		// cache view and our cache view are consistent
+	
+	protected void
 	addCacheSpace(
 		CacheEntry		new_entry )
+	
+		throws CacheFileManagerException
 	{
 		synchronized( this ){
 	
 			cache_space_free	-= new_entry.getLength();
 			
-			// System.out.println( "Total cache space = " + cache_space_free );
-			
-
+				// 	System.out.println( "Total cache space = " + cache_space_free );
+		
 			cache_entries.put( new_entry, new_entry );
 			
 			if ( DEBUG ){
@@ -267,7 +347,9 @@ CacheFileManagerImpl
 			
 				if ( my_count != file.cache.size()){
 					
-					System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
+					Debug.out( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
+					
+					throw( new CacheFileManagerException( "Cache inconsistency: counts differ"));
 					
 				}else{
 					
@@ -276,7 +358,9 @@ CacheFileManagerImpl
 				
 				if ( total_cache_size != cache_size - cache_space_free ){
 					
-					System.out.println( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
+					Debug.out( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
+					
+					throw( new CacheFileManagerException( "Cache inconsistency: sizes differ"));
 					
 				}else{
 					
@@ -289,16 +373,31 @@ CacheFileManagerImpl
 	protected void
 	cacheEntryUsed(
 		CacheEntry		entry )
+	
+		throws CacheFileManagerException
 	{
 		synchronized( this ){
 		
-			cache_entries.get( entry );
+				// note that the "get" operation update the MRU in cache_entries
+			
+			if ( cache_entries.get( entry ) == null ){
+				
+				Debug.out( "Cache inconsistency: entry missing on usage" );
+				
+				throw( new CacheFileManagerException( "Cache inconsistency: entry missing on usage"));
+				
+			}else{
+				
+				entry.used();
+			}
 		}
 	}
 	
 	protected void
 	releaseCacheSpace(
 		CacheEntry		entry )
+	
+		throws CacheFileManagerException
 	{
 		entry.getBuffer().returnToPool();
 		
@@ -306,7 +405,12 @@ CacheFileManagerImpl
 
 			cache_space_free	+= entry.getLength();
 			
-			cache_entries.remove( entry );
+			if ( cache_entries.remove( entry ) == null ){
+				
+				Debug.out( "Cache inconsistency: entry missing on removal" );
+
+				throw( new CacheFileManagerException( "Cache inconsistency: entry missing on removal"));
+			}
 
 			// System.out.println( "Total cache space = " + cache_space_free );
 		}

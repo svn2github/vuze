@@ -393,7 +393,7 @@ CacheFileImpl
 			
 				if ( buffer_handed_over ){
 					
-						// cache this write
+						// cache this write, allocate outside sync block (see manager for details)
 	
 					CacheEntry	entry = manager.allocateCacheSpace( this, file_buffer, file_position, write_length );
 					
@@ -409,12 +409,7 @@ CacheFileImpl
 					
 						manager.addCacheSpace( entry );
 					}
-					
-					if ( TRACE_CACHE_CONTENTS ){
-						
-						printCache();
-					}
-											
+																
 					manager.cacheBytesWritten( write_length );
 					
 					buffer_cached	= true;
