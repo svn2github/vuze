@@ -1466,6 +1466,9 @@ TRTrackerClientClassicImpl
   		request.append('?');
   	}
   	
+  		// the client-id stuff RELIES on info_hash being the FIRST parameter added by
+  		// us to the URL, so don't change it!
+  	
   	request.append(info_hash);
   	request.append(tracker_peer_id_str);
   	request.append(port);

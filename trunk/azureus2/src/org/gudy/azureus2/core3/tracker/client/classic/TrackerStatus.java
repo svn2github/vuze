@@ -275,6 +275,9 @@ public class TrackerStatus {
 	          
 	          one_of_the_hashes	= hash;
 	          
+	          	// the client-id stuff RELIES on info_hash being the FIRST parameter added by
+	    		// us to the URL, so don't change it!
+
 	          info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
 	          
 	          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
