@@ -31,6 +31,7 @@ import java.util.*;
 
 import java.net.UnknownHostException;
 
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 
@@ -40,6 +41,7 @@ IPAddressRangeManager
 	protected Map		entries = new HashMap();
 	
 	protected boolean	rebuild_required;
+	protected long		last_rebuild_time;
 	
 	protected entry[]	merged_entries	= new entry[0];
 	
@@ -195,9 +197,24 @@ IPAddressRangeManager
 			
 			if ( rebuild_required ){
 				
-				rebuild_required	= false;
+					// with substantial numbers of filters (e.g. 80,000) rebuilding
+					// is a slow process. Therefore prevent frequent rebuilds at the 
+					// cost of delaying the effect of the change 
 				
-				rebuild();
+				long	now = SystemTime.getCurrentTime();
+				
+				long	secs_since_last_build = (now - last_rebuild_time)/1000;
+				
+					// allow one second per 2000 entries
+				
+				if ( secs_since_last_build > entries.size()/2000 ){
+					
+					last_rebuild_time	= now;
+					
+					rebuild_required	= false;
+				
+					rebuild();
+				}
 			}	
 					
 			if ( merged_entries.length == 0 ){
@@ -307,8 +324,8 @@ IPAddressRangeManager
 	protected void
 	rebuild()
 	{
-		System.out.println( "IPAddressManager: rebuilding " + entries.size() + " entries" );
-		
+		LGLogger.log( "IPAddressRangeManager: rebuilding " + entries.size() + " entries starts" );
+
 		Collection col = entries.values();
 		
 		entry[]	ents = new entry[col.size()];
@@ -419,6 +436,9 @@ IPAddressRangeManager
 		me.toArray( merged_entries );
 		
 			//	System.out.println( "non_merged = " + merged_entries.length );
+		
+		LGLogger.log( "IPAddressRangeManager: rebuilding " + entries.size() + " entries ends" );
+
 	}
 	
 	protected class
