@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.ipfilter.impl;
 
 /**
  * @author Olivier
@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 

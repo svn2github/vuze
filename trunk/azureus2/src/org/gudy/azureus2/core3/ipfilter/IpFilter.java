@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.peer;
+package org.gudy.azureus2.core3.ipfilter;
 
 
 
@@ -30,7 +30,7 @@ package org.gudy.azureus2.core3.peer;
 
 import java.util.List;
 
-import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.ipfilter.impl.*;
 
 public abstract class 
 IpFilter 

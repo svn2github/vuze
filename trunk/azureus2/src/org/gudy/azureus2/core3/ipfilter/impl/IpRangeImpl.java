@@ -19,11 +19,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.ipfilter.impl;
 
 import java.util.StringTokenizer;
 
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.ipfilter.*;
 
 /**
  * @author Olivier
