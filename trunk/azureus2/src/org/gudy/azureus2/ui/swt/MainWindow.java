@@ -81,7 +81,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.2.1"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.2.2"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -219,7 +219,7 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            if(!VERSION.equals(latestVersion)) {
+            if(VERSION.compareTo(latestVersion) < 0) {
               latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
               setStatusVersion();
               statusText.setForeground(red);
