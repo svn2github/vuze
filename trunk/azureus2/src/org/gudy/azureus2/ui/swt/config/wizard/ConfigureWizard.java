@@ -42,9 +42,9 @@ public class ConfigureWizard extends Wizard {
   int nbUploadsPerTorrent = 3;
   
   //Server / NAT Settings
-  int serverMinPort = 6881;
-  int serverMaxPort = 6889;
-  
+  int	  serverMinPort = 6881;
+  int 	  serverMaxPort = 6889;
+  boolean serverSharePort = true;
   //Files / Torrents
   String torrentPath;
   boolean fastResume = true;

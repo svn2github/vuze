@@ -565,13 +565,20 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.serverporthigh"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData); //$NON-NLS-1$
+	IntParameter high_port = new IntParameter(gServer, "High Port", 6889);
+	high_port.setLayoutData(gridData); //$NON-NLS-1$
 
 	label = new Label(gServer, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.label.serverportshared"); //$NON-NLS-1$
 	gridData = new GridData();
 	gridData.widthHint = 40;
-	new BooleanParameter(gServer, "Server.shared.port", true).setLayoutData(gridData); //$NON-NLS-1$
+	BooleanParameter ssp = new BooleanParameter(gServer, "Server.shared.port", true);
+	ssp.setLayoutData(gridData); //$NON-NLS-1$
+
+	Control[] controls = new Control[1];
+	controls[0] = high_port.getControl();
+	IAdditionalActionPerformer grayHighPort = new ChangeSelectionActionPerformer(controls, true);
+	ssp.setAdditionalActionPerformer(grayHighPort);
 
 	
     itemServer.setControl(gServer);

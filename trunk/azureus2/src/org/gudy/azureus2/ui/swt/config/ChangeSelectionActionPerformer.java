@@ -30,11 +30,17 @@ import org.eclipse.swt.widgets.Control;
 public class ChangeSelectionActionPerformer implements IAdditionalActionPerformer{
 
   boolean selected = false;
-
+  boolean reverse_sense = false;
+  
   Control[] controls;
   
   public ChangeSelectionActionPerformer(Control[] controls) {
-    this.controls = controls;
+	this.controls = controls;
+  } 
+  
+  public ChangeSelectionActionPerformer(Control[] controls, boolean _reverse_sense) {
+  	this.controls = controls;
+	reverse_sense = _reverse_sense;
   }
 
   /* (non-Javadoc)
@@ -44,7 +50,7 @@ public class ChangeSelectionActionPerformer implements IAdditionalActionPerforme
     if(controls == null)
       return;
     for(int i = 0 ; i < controls.length ; i++) {
-      controls[i].setEnabled(selected);
+      controls[i].setEnabled(reverse_sense?!selected:selected);
     }
   }
 

@@ -5,6 +5,7 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -51,5 +52,11 @@ public class IntParameter {
 
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
+  }
+  
+  public Control
+  getControl()
+  {
+  	return( inputField );
   }
 }

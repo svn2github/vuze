@@ -65,7 +65,7 @@ public class NatPanel extends AbstractWizardPanel {
     }
 
     public void run() {
-      if (lowPort < highPort && (highPort-lowPort < 10)) {
+      if (lowPort <= highPort && (highPort-lowPort < 10)) {
         for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + port + " ... ");
           int portResult = NatChecker.test(port);
@@ -178,6 +178,22 @@ public class NatPanel extends AbstractWizardPanel {
       }
     });
 
+
+	label = new Label(panel,SWT.NULL);
+	Messages.setLanguageText(label, "configureWizard.nat.sharePort");
+
+	final Button sharePort = new Button(panel,SWT.CHECK);
+	sharePort.setSelection(((ConfigureWizard)wizard).serverSharePort);
+	sharePort.addListener(SWT.Selection,new Listener() {
+	   public void handleEvent(Event arg0) {
+		 ((ConfigureWizard)wizard).serverSharePort = sharePort.getSelection();
+		  textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
+	   }
+	 });
+	 
+    textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
+
+
     bTest = new Button(panel, SWT.PUSH);
     Messages.setLanguageText(bTest, "configureWizard.nat.test");
     gridData = new GridData();
@@ -205,8 +221,10 @@ public class NatPanel extends AbstractWizardPanel {
         bTest.setEnabled(false);
         bCancel.setEnabled(true);
         textResults.setText("");
-        int lowPort = ((ConfigureWizard) wizard).serverMinPort;
-        int highPort = ((ConfigureWizard) wizard).serverMaxPort;
+        ConfigureWizard cw = (ConfigureWizard) wizard;
+        
+        int lowPort = cw.serverMinPort;
+        int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
         checker = new Checker(lowPort, highPort);
         checker.start();
       }
