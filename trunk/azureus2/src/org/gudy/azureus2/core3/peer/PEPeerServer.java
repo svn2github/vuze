@@ -1,7 +1,7 @@
 /*
- * File    : State
- * Created : 15-Oct-2003
- * By      : Olivier
+ * File    : PEServer.java
+ * Created : 21-Oct-2003
+ * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,21 +18,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
- /*
- * Created on 4 juil. 2003
- *
- */
-package org.gudy.azureus2.core3.peer.impl;
 
-/**
- * @author Olivier
- * 
- */
-public interface State {
-  
-  public void process();
-  
-  public int getState();
+package org.gudy.azureus2.core3.peer;
 
+public interface
+PEPeerServer
+{
+	public int
+	getPort();
+	
+	public void
+	startServer();
+	
+	public void
+	stopServer();
 }

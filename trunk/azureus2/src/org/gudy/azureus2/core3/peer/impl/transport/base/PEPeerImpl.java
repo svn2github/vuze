@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 /**
  * @author parg
@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.peer.impl;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
 
 public class 
 PEPeerImpl

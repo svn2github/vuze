@@ -1,6 +1,6 @@
 /*
- * File    : PEPeerManagerFactory.java
- * Created : 15-Oct-2003
+ * File    : PEPeerTransportFactory.java
+ * Created : 21-Oct-2003
  * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
@@ -19,28 +19,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer;
+package org.gudy.azureus2.core3.peer.impl;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.transport.base.*;
 
 public class 
-PEPeerManagerFactory 
+PEPeerTransportFactory 
 {
-	public static PEPeerManager
-	create(
-		DownloadManager 	manager,
-		PEPeerServer 				server,
-		TRTrackerClient 	tracker,
-	  	DiskManager 		diskManager )
+	public static PEPeerTransport
+	createTransport(
+		PEPeerManagerImpl 	manager, 
+		byte[] 				peerId, 
+		String 				ip, 
+		int 				port, 
+		boolean 			fake )
 	{
-  		return( new PEPeerManagerImpl( manager, server, tracker, diskManager ));
+		return( new PEPeerTransportImpl( manager, peerId, ip, port, fake ));
+	}
+
+	public static PEPeerServer
+	createServer()
+	{
+		return( new PEPeerServerImpl());
 	}
 }

@@ -75,7 +75,7 @@ DownloadManagerImpl
   //The comment field in the metaData
   private String comment;
 
-  private PEServer server;
+  private PEPeerServer server;
   private TOTorrent			torrent;
   private TRTrackerClient 	tracker_client;
   public DiskManager diskManager;
@@ -221,7 +221,7 @@ DownloadManagerImpl
 
   private void startServer() 
   {
-  	server = PEServerFactory.create();
+  	server = PEPeerServerFactory.create();
   	
 	if( server != null ) {
 		

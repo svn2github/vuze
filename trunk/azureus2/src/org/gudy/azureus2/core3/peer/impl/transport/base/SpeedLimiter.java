@@ -2,7 +2,7 @@
  * Created on 9 juin 2003
  *
  */
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.util.List;
 import java.util.Vector;

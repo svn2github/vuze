@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
@@ -28,6 +28,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
 
 /**
  * The Bittorrent server to accept incoming connections.
@@ -36,9 +37,9 @@ import org.gudy.azureus2.core3.peer.*;
  *
  */
 public class 
-PEServerImpl
+PEPeerServerImpl
 	extends 	Thread 
-	implements  PEServer
+	implements  PEPeerServer
 {
   public static final int componentID = 4;
   public static final int evtLyfeCycle = 0;
@@ -61,14 +62,14 @@ PEServerImpl
 	   > instanceCount;
    }
 
-	 public static PEServer
+	 public static PEPeerServer
 	 create()
 	 {
-		 synchronized( PEServerImpl.class ){
+		 synchronized( PEPeerServerImpl.class ){
 			
 			 if ( portsFree()){
 				
-				 return( new PEServerImpl());
+				 return( new PEPeerServerImpl());
 				
 			 }else{
 				
@@ -77,7 +78,7 @@ PEServerImpl
 		 }
 	 }
 	
-  public PEServerImpl() {
+  public PEPeerServerImpl() {
     super("Bt Server");
     //Will create a Server on any socket from 6881 to 6889
     int lowPort = COConfigurationManager.getIntParameter("Low Port", 6881);
@@ -137,7 +138,7 @@ PEServerImpl
             "BT Server has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
-          manager.addPeer(sckClient);
+          manager.addPeerTransport(new PEPeerTransportImpl(manager,sckClient));
         }
         else {
           Thread.sleep(50);

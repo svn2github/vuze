@@ -1,5 +1,5 @@
 /*
- * File    : PEServer.java
+ * File    : PEServerFactory.java
  * Created : 21-Oct-2003
  * By      : stuff
  * 
@@ -21,15 +21,19 @@
 
 package org.gudy.azureus2.core3.peer;
 
-public interface
-PEServer
+/**
+ * @author parg
+ *
+ */
+
+import org.gudy.azureus2.core3.peer.impl.*;
+
+public class 
+PEPeerServerFactory 
 {
-	public int
-	getPort();
-	
-	public void
-	startServer();
-	
-	public void
-	stopServer();
+	public static PEPeerServer
+	create()
+	{
+		return( PEPeerTransportFactory.createServer());
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * File    : PEPeerSocketImpl
+ * File    : PEPeerTransportImpl
  * Created : 15-Oct-2003
  * By      : Olivier
  * 
@@ -23,7 +23,7 @@
  * Created on 4 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.peer.impl;
+package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -41,16 +41,28 @@ import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.*;
 
 /**
  * @author Olivier
  *
  */
 public class 
-PEPeerSocketImpl 
+PEPeerTransportImpl 
 	extends PEPeerConnectionImpl
-	implements PEPeer
+	implements PEPeer, PEPeerTransport
 {
+	public final static byte BT_CHOKED 			= 0;
+	public final static byte BT_UNCHOKED 		= 1;
+	public final static byte BT_INTERESTED 		= 2;
+	public final static byte BT_UNINTERESTED 	= 3;
+	public final static byte BT_HAVE 			= 4;
+	public final static byte BT_BITFIELD 		= 5;
+	public final static byte BT_REQUEST 		= 6;
+	public final static byte BT_PIECE 			= 7;
+	public final static byte BT_CANCEL 			= 8;
+
+
 	//The SocketChannel associated with this peer
 	private SocketChannel socket;
 	//The reference to the current ByteBuffer used for reading on the socket.
@@ -106,15 +118,6 @@ PEPeerSocketImpl
 	public final static int evtErrors = 2;
 	// PeerConnection Life Cycle
 	private final static String PROTOCOL = "BitTorrent protocol";
-	private final static byte BT_CHOKED = 0;
-	private final static byte BT_UNCHOKED = 1;
-	private final static byte BT_INTERESTED = 2;
-	private final static byte BT_UNINTERESTED = 3;
-	private final static byte BT_HAVE = 4;
-	private final static byte BT_BITFIELD = 5;
-	private final static byte BT_REQUEST = 6;
-	private final static byte BT_PIECE = 7;
-	private final static byte BT_CANCEL = 8;
 
  
   /*
@@ -131,7 +134,7 @@ PEPeerSocketImpl
    * @param ip the peer Ip Address
    * @param port the peer port
    */
-  public PEPeerSocketImpl(PEPeerManagerImpl manager, byte[] peerId, String ip, int port, boolean fake) {
+  public PEPeerTransportImpl(PEPeerManagerImpl manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake)
       return;
@@ -168,7 +171,7 @@ PEPeerSocketImpl
    * @param table the graphical table in which this PeerConnection should display its info
    * @param sck the SocketChannel that handles the connection
    */
-  public PEPeerSocketImpl(PEPeerManagerImpl manager, SocketChannel sck) {
+  public PEPeerTransportImpl(PEPeerManagerImpl manager, SocketChannel sck) {
     super(manager, sck.socket().getInetAddress().getHostAddress(), sck.socket().getPort());
     this.socket = sck;
     this.incoming = true;
@@ -587,7 +590,7 @@ PEPeerSocketImpl
     return sum;
   }
 
-  public boolean transfertAvailable() {
+  public boolean transferAvailable() {
     return (!choked && interested);
   }
 
