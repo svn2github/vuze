@@ -908,7 +908,7 @@ DiskManagerImpl
 						fileInfo.getFMFile().close();
 	
 					} catch (FMFileManagerException ex) { ex.printStackTrace(); }
-					this.errorMessage = e.getMessage() + " (allocateFiles)";
+					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles)";
 					setState( FAULTY );
 					return -1;
 				}
@@ -918,7 +918,7 @@ DiskManagerImpl
 				try {
 					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 				} catch (FMFileManagerException e) {
-					this.errorMessage = e.getMessage() + " (allocateFiles:2)";
+					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles:2)";
 					setState( FAULTY );
 					return -1;
 				}
@@ -948,7 +948,7 @@ DiskManagerImpl
 			length = fm_file.getLength();
 			
 		} catch (FMFileManagerException e) {
-			this.errorMessage = e.getMessage() + " (zeroFile)";
+			this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (zeroFile)";
 			setState( FAULTY );
 			return false;
 		}
@@ -1499,7 +1499,7 @@ DiskManagerImpl
 			
 		}catch( FMFileManagerException e ){
 			
-			this.errorMessage	= e.getMessage();
+			this.errorMessage	= (e.getCause()!=null?e.getCause().getMessage():e.getMessage());
 			
 			return( false );
 		}
@@ -1606,7 +1606,7 @@ DiskManagerImpl
 					
 				} catch (Exception ex) {
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write. ERR: "+ex.getMessage());
-					this.errorMessage = ex.getMessage() + " (dumpBlockToDisk)";
+					this.errorMessage = (ex.getCause()!=null?ex.getCause().getMessage():ex.getMessage()) + " (dumpBlockToDisk)";
 					stopIt();
 					setState( FAULTY );
 					return;
