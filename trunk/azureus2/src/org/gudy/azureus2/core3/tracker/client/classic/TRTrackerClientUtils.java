@@ -26,14 +26,23 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  *
  */
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 
 public class 
 TRTrackerClientUtils 
 {
+	// author of MakeTorrent has requested we blacklist his site
+	// as people keep embedding it as a tracker in torrents
+
+	private static String[]	BLACKLISTED_HOSTS	=  
+		{ "krypt.dyndns.org" };
+
+	private static int[]		BLACKLISTED_PORTS	= 
+		{ 81 };
+
 	protected static URL
 	adjustURLForHosting(
 		URL		url_in )
@@ -84,5 +93,22 @@ TRTrackerClientUtils
 		}
 		
 		return( url_in );
+	}
+	
+	public static void
+	checkForBlacklistedURLs(
+		URL		url )
+	
+		throws IOException
+	{
+		for (int i=0;i<BLACKLISTED_HOSTS.length;i++){
+ 			
+ 			if ( 	url.getHost().equalsIgnoreCase( BLACKLISTED_HOSTS[i] ) &&
+ 					url.getPort() == BLACKLISTED_PORTS[i] ){
+ 		
+ 				throw( new IOException( "http://" + BLACKLISTED_HOSTS[i] +
+ 						":" + BLACKLISTED_PORTS[i] + " is not a tracker" ));
+ 			}
+ 		}
 	}
 }

@@ -169,6 +169,8 @@ public class TrackerStatus {
   
   	throws IOException
   {
+  	TRTrackerClientUtils.checkForBlacklistedURLs( reqUrl );
+  	
 	reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
 
   	//System.out.println( "trying " + scrape.toString());

@@ -54,7 +54,8 @@ public class
 TRTrackerClientClassicImpl
 	implements TRTrackerClient, ParameterListener
 {
-
+	
+		
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
@@ -755,6 +756,8 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
+ 		TRTrackerClientUtils.checkForBlacklistedURLs( reqUrl );
+ 		
  		reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
  		
  		String	failure_reason = null;
