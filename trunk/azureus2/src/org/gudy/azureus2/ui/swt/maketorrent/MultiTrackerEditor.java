@@ -408,8 +408,8 @@ public class MultiTrackerEditor {
       public void handleEvent (Event e) {
       	String url = text.getText();
       	if ( validURL(url)){
-      		text.setForeground( MainWindow.black );
-      		item.setForeground( MainWindow.black );
+      		text.setForeground( null );
+      		item.setForeground( null );
       	}else{
       		text.setForeground( MainWindow.red );
       		item.setForeground( MainWindow.red );
@@ -424,8 +424,8 @@ public class MultiTrackerEditor {
     	public void handleEvent (Event e) {
     		String url = text.getText();
     		if ( validURL(url)){
-    			text.setForeground( MainWindow.black );
-    			item.setForeground( MainWindow.black );
+    			text.setForeground( null );
+    			item.setForeground( null );
     		}else{
     			text.setForeground( MainWindow.red );
     			item.setForeground( MainWindow.red );
