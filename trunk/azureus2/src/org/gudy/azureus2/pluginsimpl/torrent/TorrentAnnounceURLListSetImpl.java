@@ -35,12 +35,15 @@ public class
 TorrentAnnounceURLListSetImpl 
 	implements TorrentAnnounceURLListSet
 {
+	protected TorrentAnnounceURLListImpl	list;
 	protected TOTorrentAnnounceURLSet		set;
 	
 	protected
 	TorrentAnnounceURLListSetImpl(
+		TorrentAnnounceURLListImpl	_list,
 		TOTorrentAnnounceURLSet		_set )
 	{
+		list	= _list;
 		set		= _set;
 	}
 	
@@ -61,5 +64,7 @@ TorrentAnnounceURLListSetImpl
 		URL[]	urls )
 	{
 		set.setAnnounceURLs( urls );
+		
+		list.updated();
 	}
 }

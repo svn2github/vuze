@@ -530,6 +530,17 @@ DownloadImpl
 	}
 	
 	public void
+	torrentChanged()
+	{
+		TRTrackerClient	client = download_manager.getTrackerClient();
+		
+		if ( client != null ){
+			
+			client.resetTrackerUrl(true);
+		}
+	}
+	
+	public void
 	addTrackerListener(
 		DownloadTrackerListener	l )
 	{

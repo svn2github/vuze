@@ -29,8 +29,11 @@ package org.gudy.azureus2.pluginsimpl.torrent;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.pluginsimpl.download.*;
 
 public class 
 TorrentAnnounceURLListImpl
@@ -56,7 +59,7 @@ TorrentAnnounceURLListImpl
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i] = new TorrentAnnounceURLListSetImpl(sets[i]);
+			res[i] = new TorrentAnnounceURLListSetImpl( this, sets[i]);
 		}
 		
 		return( res );
@@ -76,13 +79,15 @@ TorrentAnnounceURLListImpl
 		}
 		
 		group.setAnnounceURLSets( res );
+		
+		updated();
 	}
 	
 	public TorrentAnnounceURLListSet
 	create(
 		URL[]		urls )
 	{
-		return( new TorrentAnnounceURLListSetImpl( torrent.getAnnounceURLGroup().createAnnounceURLSet(urls)));
+		return( new TorrentAnnounceURLListSetImpl( this, torrent.getAnnounceURLGroup().createAnnounceURLSet(urls)));
 	}
 	
 	public void
@@ -90,6 +95,8 @@ TorrentAnnounceURLListImpl
 		URL[]		urls )
 	{
 		TorrentUtils.announceGroupsInsertLast( torrent, urls );
+		
+		updated();
 	}
 	
 	public void
@@ -97,5 +104,23 @@ TorrentAnnounceURLListImpl
 		URL[]		urls )
 	{
 		TorrentUtils.announceGroupsInsertFirst( torrent, urls );
+		
+		updated();
+	}
+	
+	protected void
+	updated()
+	{
+		try{
+			DownloadImpl dm = (DownloadImpl)DownloadManagerImpl.getDownloadStatic( torrent );
+		
+			if ( dm != null ){
+			
+				dm.torrentChanged();
+			}
+		}catch( DownloadException e ){
+			
+			// torrent may not be running
+		}
 	}
 }

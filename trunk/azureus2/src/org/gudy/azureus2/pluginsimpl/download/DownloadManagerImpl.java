@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
@@ -315,6 +316,39 @@ DownloadManagerImpl
 		if ( singleton != null ){
 			
 			return( singleton.getDownload( dm ));
+		}
+		
+		throw( new DownloadException( "DownloadManager not initialised"));
+	}
+	
+	protected Download
+	getDownload(
+		TOTorrent	torrent )
+	
+		throws DownloadException
+	{
+		for (int i=0;i<downloads.size();i++){
+			
+			Download	dl = (Download)downloads.get(i);
+			
+			if ( ((TorrentImpl)dl.getTorrent()).getTorrent() == torrent ){
+				
+				return( dl );
+			}
+		}
+		
+		throw( new DownloadException("DownloadManager::getDownload: download not found"));
+	}
+	
+	public static Download
+	getDownloadStatic(
+		TOTorrent	torrent )
+	
+		throws DownloadException
+	{
+		if ( singleton != null ){
+			
+			return( singleton.getDownload( torrent ));
 		}
 		
 		throw( new DownloadException( "DownloadManager not initialised"));
