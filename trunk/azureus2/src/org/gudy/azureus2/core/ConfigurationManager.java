@@ -107,7 +107,13 @@ public class ConfigurationManager {
   
   public boolean getBooleanParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    int result = getIntParameter(parameter, def.def.containsKey(parameter) ? ((Long) def.def.get(parameter)).intValue() : (def.def_boolean ? 1 : 0));
+    int result;
+    try {
+      result = getIntParameter(parameter, def.getIntParameter(parameter));
+    } catch (ConfigurationParameterNotFoundException e) {
+      e.printStackTrace();
+      result = def.def_boolean;
+    }
     return result == 0 ? false : true;
   }
   
@@ -132,7 +138,14 @@ public class ConfigurationManager {
   
   public int getIntParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    return getIntParameter(parameter, def.def.containsKey(parameter) ? ((Long) def.def.get(parameter)).intValue() : def.def_int);
+    int result;
+    try {
+      result = getIntParameter(parameter, def.getIntParameter(parameter));
+    } catch (ConfigurationParameterNotFoundException e) {
+      e.printStackTrace();
+      result = def.def_int;
+    }
+    return result;
   }
   
   private byte[] getByteParameterRaw(String parameter) {
@@ -160,13 +173,19 @@ public class ConfigurationManager {
   
   public String getStringParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    return getStringParameter(parameter, (String) (def.def.containsKey(parameter) ? def.def.get(parameter) : def.def_String));
+    String result;
+    try {
+      result = getStringParameter(parameter, def.getStringParameter(parameter));
+    } catch (ConfigurationParameterNotFoundException e) {
+      e.printStackTrace();
+      result = def.def_String;
+    }
+    return result;
   }
   
   public String getDirectoryParameter(String parameter) throws IOException {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    String dir =
-    getStringParameter(parameter, (String) (def.def.containsKey(parameter) ? def.def.get(parameter) : def.def_String));
+    String dir = getStringParameter(parameter);
     File temp = new File(dir);
     if (!temp.exists())
       temp.mkdirs();

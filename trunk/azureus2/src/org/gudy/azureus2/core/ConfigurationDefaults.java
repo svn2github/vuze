@@ -35,10 +35,10 @@ public class ConfigurationDefaults {
   
   private static ConfigurationDefaults configdefaults;
   
-  public HashMap def = null;
+  private HashMap def = null;
   
   public int def_int = 0;
-  public boolean def_boolean = false;
+  public int def_boolean = 0;
   public String def_String = "";
   public byte[] def_bytes = null;
   
@@ -66,10 +66,14 @@ public class ConfigurationDefaults {
     def.put("Server_sSignature", "on");
     // Server Name
     def.put("Server_sName", "Azureus2 WebInterface");
+    // Server Host Name
+    def.put("Server_sHostName", "127.0.0.1");
     // Server Admin email address (Currently only used in signature, does therefore nothing)
     def.put("Server_sAdmin", "postmaster@localhost");
     // Port the server runs on
-    def.put("Server_iPort", new Long(5080));
+    def.put("Server_iPort", new Long(8088));
+    // Port the proxy runs off
+    def.put("Server_iProxyPort", new Long(0));
     // Maximal simultaneous connections
     def.put("Server_iMaxHTTPConnections", new Long(5));
     // Verbosity
@@ -84,6 +88,22 @@ public class ConfigurationDefaults {
     def.put("Server_iLogCount", new Long(200));
     // Auto-refresh torrents every (seconds)
     def.put("Server_iRefresh", new Long(20));
+    // Fake hostname to access the webinterface when used in proxy mode
+    def.put("Server_sAccessHost", "torrent");
+  }
+  
+  public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
+    if (def.containsKey(p))
+      return (String) def.get(p);
+    else
+      throw new ConfigurationParameterNotFoundException(p);
+  }
+  
+  public int getIntParameter(String p) throws ConfigurationParameterNotFoundException {
+    if (def.containsKey(p))
+      return ((Long) def.get(p)).intValue();
+    else
+      throw new ConfigurationParameterNotFoundException(p);
   }
   
   //TODO:: Move this to a FileManager class?
