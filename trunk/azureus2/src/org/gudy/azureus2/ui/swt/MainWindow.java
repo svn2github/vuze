@@ -71,7 +71,8 @@ import org.gudy.azureus2.core.*;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
@@ -348,6 +349,8 @@ public class MainWindow implements IComponentListener {
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
     MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
+    MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
+    Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
     new MenuItem(fileMenu, SWT.SEPARATOR);
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
@@ -387,9 +390,15 @@ public class MainWindow implements IComponentListener {
 
     file_create.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new Wizard(display);
+        new NewTorrentWizard(display);
       }
     });
+    
+    file_configure.addListener(SWT.Selection, new Listener() {
+    public void handleEvent(Event e) {
+      new ConfigureWizard(display);
+    }
+  });
 
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {

@@ -356,17 +356,18 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
+            String path = getFilePath(dm);
             MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
             mb.setText(MessageText.getString("deletedata.title"));
             mb.setMessage(
               MessageText.getString("deletedata.message1")
-                + dm.getName()
+                + dm.getName() + " :\n"
+                + path 
                 + MessageText.getString("deletedata.message2"));
             int choice = mb.open();
             if (choice == SWT.YES) {
               try {
-                globalManager.removeDownloadManager(dm);
-                String path = getFilePath(dm);
+                globalManager.removeDownloadManager(dm);                
                 File f = new File(path);
                 recursiveDelete(f);
               }

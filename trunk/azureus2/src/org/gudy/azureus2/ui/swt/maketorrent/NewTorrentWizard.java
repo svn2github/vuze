@@ -1,6 +1,6 @@
 /*
- * File    : AbstractWizardPanel.java
- * Created : 30 sept. 2003 00:12:11
+ * File    : Wizard.java
+ * Created : 12 oct. 2003 14:30:57
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -21,25 +21,25 @@
  
 package org.gudy.azureus2.ui.swt.maketorrent;
 
+import org.eclipse.swt.widgets.Display;
+
 /**
  * @author Olivier
  * 
  */
-public abstract class AbstractWizardPanel implements IWizardPanel {
-  protected IWizardPanel previousPanel;
-  protected Wizard wizard;
+public class NewTorrentWizard extends org.gudy.azureus2.ui.swt.wizard.Wizard {
+
+  //false : singleMode, true:  directory
+  boolean mode;
+  String singlePath = "";
+  String directoryPath = "";
+  String savePath = "";
+  String trackerURL = "http://";
   
-  public AbstractWizardPanel(Wizard wizard,IWizardPanel previousPanel) {
-    this.previousPanel = previousPanel;
-    this.wizard = wizard;
+  public NewTorrentWizard(Display display) {
+    super(display,"wizard.title");
+    ModePanel panel = new ModePanel(this,null);
+    this.setFirstPanel(panel);
   }
-  
-  public boolean isPreviousEnabled() {
-    return !(this.previousPanel == null);
-  }
-  
-  public IWizardPanel getPreviousPanel() {
-    return previousPanel;
-  }
-    
+
 }

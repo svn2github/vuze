@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
  * @author Olivier
@@ -44,7 +45,7 @@ import org.gudy.azureus2.ui.swt.Messages;
  */
 public class ModePanel extends AbstractWizardPanel {
 
-  public ModePanel(Wizard wizard, AbstractWizardPanel previous) {
+  public ModePanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
     super(wizard, previous);
   }
   /* (non-Javadoc)
@@ -76,7 +77,7 @@ public class ModePanel extends AbstractWizardPanel {
        */
       public void modifyText(ModifyEvent arg0) {
        String text = tracker.getText();
-       wizard.trackerURL = text;
+       ((NewTorrentWizard)wizard).trackerURL = text;
        boolean valid = true;
        String errorMessage = "";
        try{
@@ -86,22 +87,22 @@ public class ModePanel extends AbstractWizardPanel {
          errorMessage = MessageText.getString("wizard.invalidurl");
        }
        wizard.setErrorMessage(errorMessage);
-       wizard.next.setEnabled(valid);
+       wizard.setNextEnabled(valid);
 
       }
     });
-    tracker.setText(wizard.trackerURL);
+    tracker.setText(((NewTorrentWizard)wizard).trackerURL);
     
 
     Button bSingle = new Button(panel, SWT.RADIO);
-    bSingle.setSelection(!wizard.mode);
+    bSingle.setSelection(!((NewTorrentWizard)wizard).mode);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     bSingle.setLayoutData(gridData);
     Messages.setLanguageText(bSingle, "wizard.singlefile");
 
     Button bDirectory = new Button(panel, SWT.RADIO);
-    bDirectory.setSelection(wizard.mode);
+    bDirectory.setSelection(((NewTorrentWizard)wizard).mode);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     bDirectory.setLayoutData(gridData);
@@ -113,7 +114,7 @@ public class ModePanel extends AbstractWizardPanel {
        */
       public void handleEvent(Event arg0) {
         wizard.setCurrentInfo(MessageText.getString("wizard.singlefile.help"));
-        wizard.mode = false;
+        ((NewTorrentWizard)wizard).mode = false;
       }
     });
 
@@ -123,7 +124,7 @@ public class ModePanel extends AbstractWizardPanel {
        */
       public void handleEvent(Event arg0) {
         wizard.setCurrentInfo(MessageText.getString("wizard.directory.help"));
-        wizard.mode = true;
+        ((NewTorrentWizard)wizard).mode = true;
       }
     });
   }
@@ -132,10 +133,10 @@ public class ModePanel extends AbstractWizardPanel {
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
    */
   public IWizardPanel getNextPanel() {
-    if(wizard.mode) {
-      return new DirectoryPanel(wizard,this);
+    if(((NewTorrentWizard)wizard).mode) {
+      return new DirectoryPanel(((NewTorrentWizard)wizard),this);
     } else {
-      return new SingleFilePanel(wizard,this);
+      return new SingleFilePanel(((NewTorrentWizard)wizard),this);
     }
   }
 
@@ -145,22 +146,6 @@ public class ModePanel extends AbstractWizardPanel {
   public boolean isNextEnabled() {
     // TODO Auto-generated method stub
     return true;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isFinishEnabled()
-   */
-  public boolean isFinishEnabled() {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#finish()
-   */
-  public void finish() {
-    // TODO Auto-generated method stub
-
   }
 
 }

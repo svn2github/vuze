@@ -36,6 +36,7 @@ import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
  * @author Olivier
@@ -47,14 +48,14 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   ProgressBar progress;
   Display display;
 
-  public ProgressPanel(Wizard wizard, IWizardPanel previousPanel) {
+  public ProgressPanel(NewTorrentWizard wizard, IWizardPanel previousPanel) {
     super(wizard, previousPanel);
   }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
    */
   public void show() {
-    display = wizard.display;
+    display = wizard.getDisplay();
     wizard.setTitle(MessageText.getString("wizard.progresstitle"));
     wizard.setCurrentInfo("");
     Composite rootPanel = wizard.getPanel();
@@ -70,7 +71,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     panel.setLayout(layout);
 
     tasks = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-    tasks.setBackground(new Color(wizard.display, 255, 255, 255));
+    tasks.setBackground(new Color(wizard.getDisplay(), 255, 255, 255));
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 120;
     tasks.setLayoutData(gridData);
@@ -80,31 +81,6 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     progress.setMaximum(0);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     progress.setLayoutData(gridData);
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
-   */
-  public IWizardPanel getNextPanel() {
-    return null;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isNextEnabled()
-   */
-  public boolean isNextEnabled() {
-    return false;
-  }
-
-  public boolean isPreviousEnabled() {
-    return false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isFinishEnabled()
-   */
-  public boolean isFinishEnabled() {
-    return false;
   }
 
   /* (non-Javadoc)
@@ -122,37 +98,24 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 
   public void makeTorrent() {    
     File f;
-    if (wizard.mode) {
-      f = new File(wizard.directoryPath);
+    if (((NewTorrentWizard)wizard).mode) {
+      f = new File(((NewTorrentWizard)wizard).directoryPath);
     }
     else {
-      f = new File(wizard.singlePath);
+      f = new File(((NewTorrentWizard)wizard).singlePath);
     }
 
     try {
-      URL url = new URL(wizard.trackerURL);
+      URL url = new URL(((NewTorrentWizard)wizard).trackerURL);
       TOTorrent torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
-      torrent.serialiseToFile(new File(wizard.savePath));
+      torrent.serialiseToFile(new File(((NewTorrentWizard)wizard).savePath));
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
     }
     catch (Exception e) {
       e.printStackTrace();
     }
-    if(display != null && ! display.isDisposed()) {
-      display.asyncExec(new Runnable() {
-        /* (non-Javadoc)
-         * @see java.lang.Runnable#run()
-         */
-        public void run() {         
-          if(wizard.closeCatcher != null && wizard.wizardWindow != null && ! wizard.wizardWindow.isDisposed()) {
-            wizard.wizardWindow.removeListener(SWT.Close,wizard.closeCatcher);
-            wizard.cancel.setText(MessageText.getString("wizard.close"));
-            wizard.cancel.setEnabled(true);            
-          }
-        }
-      });
-    }
+    wizard.switchToClose();
   }
 
   /* (non-Javadoc)

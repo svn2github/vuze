@@ -37,15 +37,16 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
  * @author Olivier
  * 
  */
 public class DirectoryPanel extends AbstractWizardPanel {
+ 
 
-
-  public DirectoryPanel(Wizard wizard, IWizardPanel previous) {
+  public DirectoryPanel(NewTorrentWizard wizard, IWizardPanel previous) {
     super(wizard, previous);
   }
     
@@ -68,7 +69,7 @@ public class DirectoryPanel extends AbstractWizardPanel {
        */
       public void modifyText(ModifyEvent arg0) {       
         String fName = file.getText();
-        wizard.directoryPath = fName;
+        ((NewTorrentWizard)wizard).directoryPath = fName;
         String error = "";
         if(! fName.equals("")) {          
           File f = new File(file.getText());
@@ -77,10 +78,10 @@ public class DirectoryPanel extends AbstractWizardPanel {
           }
         }
         wizard.setErrorMessage(error);
-        wizard.next.setEnabled(! wizard.directoryPath.equals("") && error.equals(""));
+        wizard.setNextEnabled(! ((NewTorrentWizard)wizard).directoryPath.equals("") && error.equals(""));
       }
     });
-    file.setText(wizard.directoryPath);
+    file.setText(((NewTorrentWizard)wizard).directoryPath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     file.setLayoutData(gridData);
     Button browse = new Button(panel,SWT.PUSH);
@@ -89,9 +90,9 @@ public class DirectoryPanel extends AbstractWizardPanel {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
-        DirectoryDialog fd = new DirectoryDialog(wizard.wizardWindow);
-        if(wizard.errorMessage.getText().equals("") && !wizard.directoryPath.equals("")) {
-          fd.setFilterPath(wizard.directoryPath);
+        DirectoryDialog fd = new DirectoryDialog(wizard.getWizardWindow());
+        if(wizard.getErrorMessage().equals("") && !((NewTorrentWizard)wizard).directoryPath.equals("")) {
+          fd.setFilterPath(((NewTorrentWizard)wizard).directoryPath);
         }
         String f = fd.open();
         if(f != null)
@@ -107,31 +108,9 @@ public class DirectoryPanel extends AbstractWizardPanel {
    */
   public IWizardPanel getNextPanel() {
     // TODO Auto-generated method stub
-    return new SavePathPanel(wizard,this);
+    return new SavePathPanel(((NewTorrentWizard)wizard),this);
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isNextEnabled()
-   */
-  public boolean isNextEnabled() {
-    // TODO Auto-generated method stub
-    return false;
-  }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isFinishEnabled()
-   */
-  public boolean isFinishEnabled() {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#finish()
-   */
-  public void finish() {
-    // TODO Auto-generated method stub
-
-  }
 
 }

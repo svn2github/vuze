@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
  * @author Olivier
@@ -45,7 +46,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class SavePathPanel extends AbstractWizardPanel {
 
 
-  public SavePathPanel(Wizard wizard,AbstractWizardPanel previousPanel) {
+  public SavePathPanel(NewTorrentWizard wizard,AbstractWizardPanel previousPanel) {
     super(wizard,previousPanel);
   }
   
@@ -69,7 +70,7 @@ public class SavePathPanel extends AbstractWizardPanel {
        */
       public void modifyText(ModifyEvent arg0) {       
         String fName = file.getText();
-        wizard.savePath = fName;
+        ((NewTorrentWizard)wizard).savePath = fName;
         String error = "";
         if(! fName.equals("")) {          
           File f = new File(file.getText());
@@ -78,15 +79,15 @@ public class SavePathPanel extends AbstractWizardPanel {
           }
         }
         wizard.setErrorMessage(error);
-        wizard.finish.setEnabled(!wizard.savePath.equals("") && error.equals(""));
+        wizard.setFinishEnabled(!((NewTorrentWizard)wizard).savePath.equals("") && error.equals(""));
       }
     });
-    if(wizard.mode) {
-      wizard.savePath = wizard.directoryPath + ".torrent";
+    if(((NewTorrentWizard)wizard).mode) {
+      ((NewTorrentWizard)wizard).savePath = ((NewTorrentWizard)wizard).directoryPath + ".torrent";
     } else {      
-      wizard.savePath = wizard.singlePath + ".torrent";
+      ((NewTorrentWizard)wizard).savePath = ((NewTorrentWizard)wizard).singlePath + ".torrent";
     }
-    file.setText(wizard.savePath);
+    file.setText(((NewTorrentWizard)wizard).savePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     file.setLayoutData(gridData);
     Button browse = new Button(panel,SWT.PUSH);
@@ -95,9 +96,9 @@ public class SavePathPanel extends AbstractWizardPanel {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
-        FileDialog fd = new FileDialog(wizard.wizardWindow,SWT.SAVE);
-        if(wizard.errorMessage.getText().equals("") && !wizard.savePath.equals("")) {
-          fd.setFileName(wizard.savePath);
+        FileDialog fd = new FileDialog(wizard.getWizardWindow(),SWT.SAVE);
+        if(wizard.getErrorMessage().equals("") && !((NewTorrentWizard)wizard).savePath.equals("")) {
+          fd.setFileName(((NewTorrentWizard)wizard).savePath);
         }
         String f = fd.open();
         if(f != null)
@@ -106,39 +107,10 @@ public class SavePathPanel extends AbstractWizardPanel {
       }
     });   
     Messages.setLanguageText(browse,"wizard.browse");
-
   }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
-   */
-  public IWizardPanel getNextPanel() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isNextEnabled()
-   */
-  public boolean isNextEnabled() {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isFinishEnabled()
-   */
-  public boolean isFinishEnabled() {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#finish()
-   */
-  public void finish() {
-    // TODO Auto-generated method stub
-
+  
+  public IWizardPanel getFinishPanel() {
+    return new ProgressPanel((NewTorrentWizard)wizard,this);
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * File    : IWizardPanel.java
- * Created : 30 sept. 2003 00:20:26
+ * File    : ConfigureWizard.java
+ * Created : 12 oct. 2003 16:06:44
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -19,22 +19,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.ui.swt.maketorrent;
+package org.gudy.azureus2.ui.swt.config.wizard;
+
+import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
  * @author Olivier
  * 
  */
-public interface IWizardPanel {
-  
-  public void show();
-  
-  public IWizardPanel getNextPanel();
-  public IWizardPanel getPreviousPanel();
-  
-  public boolean isPreviousEnabled();
-  public boolean isNextEnabled();
-  public boolean isFinishEnabled();
-  
-  public void finish();
+public class ConfigureWizard extends Wizard {
+
+  public ConfigureWizard(Display display) {
+    super(display,"configureWizard.title");
+    WelcomePanel panel = new WelcomePanel(this,null);
+    this.setFirstPanel(panel);
+  }
 }

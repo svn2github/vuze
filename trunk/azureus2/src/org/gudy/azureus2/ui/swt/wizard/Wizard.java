@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.swt.maketorrent;
+package org.gudy.azureus2.ui.swt.wizard;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -47,24 +48,21 @@ public class Wizard {
   Label title;
   Label currentInfo;
   Label errorMessage;
+  IWizardPanel currentPanel;
+  Composite panel;
 
   Button previous, next, finish, cancel;
 
   Listener closeCatcher;
-
-  //false : singleMode, true:  directory
-  boolean mode;
-  String singlePath = "";
-  String directoryPath = "";
-  String savePath = "";
-  String trackerURL = "http://";
-
-  IWizardPanel currentPanel;
-  Composite panel;
+  
+  public Wizard(Display display,String keyTitle) {
+    this(display);
+    setTitleKey(keyTitle);
+  }
 
   public Wizard(Display display) {
     this.display = display;
-    wizardWindow = new Shell(display, SWT.DIALOG_TRIM);
+    wizardWindow = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -73,7 +71,6 @@ public class Wizard {
     layout.marginWidth = 0;
     wizardWindow.setLayout(layout);
     wizardWindow.setImage(ImageRepository.getImage("azureus"));
-    Messages.setLanguageText(wizardWindow, "wizard.title");
     Composite cTitle = new Composite(wizardWindow, SWT.NULL);
     Color white = new Color(display, 255, 255, 255);
     cTitle.setBackground(white);
@@ -144,7 +141,6 @@ public class Wizard {
     cancel.setLayoutData(gridData);
     Messages.setLanguageText(cancel, "wizard.cancel");
 
-    currentPanel = new ModePanel(this, null);
     refresh();
 
     previous.addListener(SWT.Selection, new Listener() {
@@ -185,14 +181,10 @@ public class Wizard {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
-        /*MessageBox mb = new MessageBox(wizardWindow);
-        mb.setMessage(MessageText.getString("wizard.notimplemented"));
-        mb.setText(MessageText.getString("wizard.information"));
-        mb.open();*/
         cancel.setEnabled(false);
         wizardWindow.addListener(SWT.Close, closeCatcher);
         clearPanel();
-        currentPanel = new ProgressPanel(wizard, currentPanel);
+        currentPanel = currentPanel.getFinishPanel();
         refresh();
         currentPanel.finish();
       }
@@ -247,5 +239,54 @@ public class Wizard {
 
   public void setErrorMessage(String errorMessage) {
     this.errorMessage.setText(errorMessage);
+  }
+
+  public void setTitleKey(String key) {
+    Messages.setLanguageText(wizardWindow, key);
+  }
+
+  public void setNextEnabled(boolean enabled) {
+    this.next.setEnabled(enabled);
+  }
+
+  public void setPreviousEnabled(boolean enabled) {
+    this.previous.setEnabled(enabled);
+  }
+
+  public void setFinishEnabled(boolean enabled) {
+    this.finish.setEnabled(enabled);
+  }
+
+  public void setFirstPanel(IWizardPanel panel) {
+    this.currentPanel = panel;
+    refresh();
+  }
+
+  public Shell getWizardWindow() {
+    return wizardWindow;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage.getText();
+  }
+
+  public Display getDisplay() {
+    return display;
+  }
+
+  public void switchToClose() {
+    if (display != null && !display.isDisposed()) {}
+    display.asyncExec(new Runnable() {
+      /* (non-Javadoc)
+       * @see java.lang.Runnable#run()
+       */
+      public void run() {
+        if (closeCatcher != null && wizardWindow != null && !wizardWindow.isDisposed()) {
+          wizardWindow.removeListener(SWT.Close, closeCatcher);
+          cancel.setText(MessageText.getString("wizard.close"));
+          cancel.setEnabled(true);
+        }
+      }
+    });
   }
 }
