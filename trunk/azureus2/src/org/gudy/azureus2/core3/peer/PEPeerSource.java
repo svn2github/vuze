@@ -22,12 +22,16 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 /**
  * @author parg
  *
  */
 
-public interface 
+public class 
 PEPeerSource 
 {
 		/**
@@ -60,4 +64,23 @@ PEPeerSource
 			PS_INCOMING,
 	};
 
+	public static String[]
+	getPeerSources()
+	{
+		List	res = new ArrayList();
+		
+		for (int i=0;i<PS_SOURCES.length;i++){
+			
+			if ( COConfigurationManager.getBooleanParameter( "Peer Source Selection Default." + PS_SOURCES[i])){
+		
+				res.add( PS_SOURCES[i]);
+			}
+		}
+	
+		String[]	x = new String[res.size()];
+	
+		res.toArray( x );
+	
+		return( x );
+	}
 }

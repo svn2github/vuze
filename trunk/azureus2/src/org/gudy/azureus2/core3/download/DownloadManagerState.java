@@ -36,7 +36,8 @@ DownloadManagerState
 {
 	public static final String AT_CATEGORY		= "category";
 	public static final String AT_NETWORKS		= "networks";
-	public static final String AT_USER		= "user";
+	public static final String AT_USER			= "user";
+	public static final String AT_PEER_SOURCES	= "peersources";
 	
 	public TOTorrent
 	getTorrent();
@@ -77,6 +78,14 @@ DownloadManagerState
 	public void
 	setNetworks(
 		String[]		networks );	// from AENetworkClassifier constants
+	
+	public String[]		// from PEPeerSource constants
+	getPeerSources();
+	
+	public void
+	setPeerSources(
+		String[]		sources );	// from PEPeerSource constants
+
 	
 	public void
 	setAttribute(

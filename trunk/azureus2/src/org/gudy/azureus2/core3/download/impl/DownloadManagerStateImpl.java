@@ -27,6 +27,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -650,6 +651,62 @@ DownloadManagerStateImpl
 		setListAttribute( AT_NETWORKS, l );
 	}
 	
+		// peer sources
+	
+	public String[]
+	getPeerSources()
+	{
+		List	values = getListAttributeSupport( AT_PEER_SOURCES );
+		
+		List	res = new ArrayList();
+		
+			// map back to the constants to allow == comparisons
+		
+		for (int i=0;i<values.size();i++){
+			
+			String	ps = (String)values.get(i);
+			
+			for (int j=0;j<PEPeerSource.PS_SOURCES.length;j++){
+			
+				String	x = PEPeerSource.PS_SOURCES[j];
+		
+				if ( x.equals( ps )){
+					
+					res.add( x );
+				}
+			}
+		}
+		
+		String[]	x = new String[res.size()];
+		
+		res.toArray(x);
+		
+		return( x );
+	}
+					
+	public void
+	setPeerSources(
+		String[]		ps )
+	{
+		if ( ps == null ){
+			
+			ps = new String[0];
+		}
+		
+		List	l = new ArrayList();
+		
+		for (int i=0;i<ps.length;i++){
+			
+			l.add( ps[i]);
+		}
+		
+		setListAttribute( AT_PEER_SOURCES, l );
+	}
+					
+	
+		// general stuff
+	
+	
 	protected String
 	getStringAttribute(
 		String	attribute_name )
@@ -770,8 +827,12 @@ DownloadManagerStateImpl
 		if ( attribute_name == AT_NETWORKS ){
 			
 			return( getNetworks());
-		}
+			
+		}else if ( attribute_name == AT_PEER_SOURCES ){
 		
+			return( getPeerSources());
+		}
+	
 		return( null );
 	}
 	
@@ -1020,6 +1081,18 @@ DownloadManagerStateImpl
 						
 		public void
 		setNetworks(
+			String[]		networks )
+		{
+		}
+		
+		public String[]		
+		getPeerSources()
+		{
+			return( new String[0] );
+		}
+						
+		public void
+		setPeerSources(
 			String[]		networks )
 		{
 		}
