@@ -63,22 +63,15 @@ public class ManagerUtils {
             // Highlights the given file/directory
             try {
                 if(Constants.isOSX) {
-                    // Path Finder is a popular Finder replacement, and apps tend to keep it in mind
+                    // todo: Path Finder is a popular Finder replacement, and apps tend to keep it in mind
                     Runtime.getRuntime().exec(new String[] {
                         "osascript",
                         "-e", "set hfsname to (POSIX file \""+ dm.getTorrentSaveDirAndFile() + "\") as file",
                         "-e", "tell application \"System Events\"",
-                        "-e",     "if name of application processes contains \"Path Finder\" then",
-                        "-e",         "tell application \"Path Finder\"",
-                        "-e",             "activate",
-                        "-e",             "reveal hfsname as alias",
-                        "-e",         "end tell",
-                        "-e",     "else",
-                        "-e",         "tell application \"Finder\"",
-                        "-e",             "activate",
-                        "-e",             "reveal hfsname as alias",
-                        "-e",         "end tell",
-                        "-e",     "end if",
+                        "-e",     "tell application \"Finder\"",
+                        "-e",         "activate",
+                        "-e",         "reveal hfsname as alias",
+                        "-e",     "end tell",
                         "-e", "end tell"
                     });
                 }
