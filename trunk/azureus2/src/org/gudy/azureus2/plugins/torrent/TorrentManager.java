@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.torrent;
 
 import java.net.URL;
 import java.io.File;
+import java.io.InputStream;
 
 public interface 
 TorrentManager 
@@ -56,6 +57,19 @@ TorrentManager
 	public Torrent
 	createFromBEncodedFile(
 		File		file )
+	
+		throws TorrentException;
+	
+		/**
+		 * decodes a torrent encoded using the normal "bencoding" rules from an InputStream
+		 * @param file
+		 * @return
+		 * @throws TorrentException
+		 */
+	
+	public Torrent
+	createFromBEncodedInputStream(
+		InputStream		data )
 	
 		throws TorrentException;
 	

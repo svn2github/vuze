@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.remote.torrent;
 
 import java.net.URL;
 import java.io.File;
+import java.io.InputStream;
 
 import org.gudy.azureus2.plugins.torrent.*;
 
@@ -179,6 +180,17 @@ RPTorrentManager
 	public Torrent
 	createFromBEncodedFile(
 		File		file )
+	
+		throws TorrentException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public Torrent
+	createFromBEncodedInputStream(
+		InputStream		data )
 	
 		throws TorrentException
 	{
