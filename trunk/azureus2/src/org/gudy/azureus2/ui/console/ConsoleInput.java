@@ -173,7 +173,16 @@ public class ConsoleInput extends Thread {
             }
           } else {
             try {
-              sws.write(new FileOutputStream(subcommand));
+			  FileOutputStream os =	new FileOutputStream(subcommand);
+				
+			  try{
+			  
+                sws.write( os );
+                
+			  }finally{
+			  	
+			  	os.close();
+			  }
               out.println("> XML stats successfully written to "+subcommand);
             } catch (Exception e) {
               out.println("> Exception while trying to write xml stats:"+e.getMessage());
