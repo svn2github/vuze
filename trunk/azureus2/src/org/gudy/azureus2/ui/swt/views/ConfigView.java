@@ -601,16 +601,12 @@ public class ConfigView extends AbstractIView {
 
     for (int i = 0; i < pluginIFs.size(); i++) {
         PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
-   
-        Properties p = pluginIF.getPluginProperties();
-        
+          
         String plugin_name = pluginIF.getPluginName();
-
-        String sDirName = pluginIF.getPluginDirectoryName();
-        
+       
         String	version = pluginIF.getPluginVersion();
         
-        if ( sDirName.equals( "" )){
+        if ( pluginIF.isBuiltIn()){
         	
             label = new Label(infoGroup, SWT.NULL);
 

@@ -254,6 +254,12 @@ PluginInterfaceImpl
 	return( mand != null && mand.trim().toLowerCase().equals("true"));
   }
   
+  public boolean
+  isBuiltIn()
+  {
+  	return( getPluginDirectoryName().length() == 0 );
+  }
+  
   public Properties getPluginProperties() 
   {
     return(props);

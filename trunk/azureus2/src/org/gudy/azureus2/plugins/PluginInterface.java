@@ -297,9 +297,21 @@ public interface PluginInterface {
   public String
   getPluginID();
   
+  	/**
+  	 * Whether or not this is a mandatory plugin. Mandatory plugins take priority over update checks, for example,
+  	 * over optional ones.
+  	 */
   
   public boolean
   isMandatory();
+  
+  	/**
+  	 * Built-in plugins are those used internally by Azureus, for example the UPnP plugin
+  	 * @return
+  	 */
+  
+  public boolean
+  isBuiltIn();
   
   /**
    * gives access to the plugin config interface

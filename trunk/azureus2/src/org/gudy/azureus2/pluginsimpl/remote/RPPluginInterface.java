@@ -387,6 +387,14 @@ RPPluginInterface
 		return( false );
 	}
     
+    public boolean
+	isBuiltIn()
+	{
+		notSupported();
+		
+		return( false );
+	}
+    
     public boolean isOperational()
 	{
 		notSupported();

@@ -69,11 +69,14 @@ public class BooleanParameter extends Parameter{
     		performer.setSelected(selected);
     		performer.performAction();
     	}
-    	}
-   	for (int i=0;i<change_listeners.size();i++){
-		
-		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(BooleanParameter.this,false);
-	}
+    }
+    
+    if ( change_listeners != null ){
+	   	for (int i=0;i<change_listeners.size();i++){
+			
+			((ParameterChangeListener)change_listeners.get(i)).parameterChanged(BooleanParameter.this,false);
+		}
+    }
     }
   });
   }

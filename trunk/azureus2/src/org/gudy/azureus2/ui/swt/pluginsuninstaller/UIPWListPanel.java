@@ -23,6 +23,11 @@
 package org.gudy.azureus2.ui.swt.pluginsuninstaller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.HashMap;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -36,6 +41,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -99,21 +105,100 @@ public class UIPWListPanel extends AbstractWizardPanel {
     try {
       plugins = wizard.getAzureusCore().getPluginManager().getPluginInterfaces();
       
+      Arrays.sort( 
+	      	plugins,
+		  	new Comparator()
+			{
+	      		public int 
+				compare(
+					Object o1, 
+					Object o2)
+	      		{
+	      			return(((PluginInterface)o1).getPluginName().compareTo(((PluginInterface)o2).getPluginName()));
+	      		}
+			});
     } catch(final Exception e) {
     	
     	Debug.printStackTrace(e);
     }
      
-    for(int i = 0 ; i < plugins.length ; i++) {
-      PluginInterface plugin = plugins[i];
-      if(! plugin.isMandatory()) {
-        TableItem item = new TableItem(pluginList,SWT.NULL);
-        item.setData(plugin);
-        item.setText(0,plugin.getPluginID() + "/" + plugin.getPluginName());
-        String version = plugin.getPluginVersion();
-        if(version == null) version = MessageText.getString("installPluginsWizard.list.nullversion");
-        item.setText(1,version);
+    	// one "plugin" can have multiple interfaces. We need to group by their id
+    
+    Map	pid_map = new HashMap();
+    
+    for(int i = 0 ; i < plugins.length ; i++){
+    	
+        PluginInterface plugin = plugins[i];
+                
+        String	pid   = plugin.getPluginID();
+        
+        ArrayList	pis = (ArrayList)pid_map.get( pid );
+        
+        if ( pis == null ){
+        	
+        	pis = new ArrayList();
+        	
+        	pid_map.put( pid, pis );
+        }
+        
+        pis.add( plugin );
+    }
+    
+    ArrayList[]	pid_list = new ArrayList[pid_map.size()];
+    
+    pid_map.values().toArray( pid_list );
+	
+    Arrays.sort( 
+    		pid_list,
+		  	new Comparator()
+			{
+	      		public int 
+				compare(
+					Object o1, 
+					Object o2)
+	      		{
+	      			ArrayList	l1 = (ArrayList)o1;
+	      			ArrayList	l2 = (ArrayList)o2;
+	      			
+	      			return(((PluginInterface)l1.get(0)).getPluginName().compareTo(((PluginInterface)l2.get(0)).getPluginName()));
+	      		}
+			});
+    
+    for(int i = 0 ; i < pid_list.length ; i++){
+    	
+      ArrayList	pis = pid_list[i];
+      
+      boolean	skip = false;
+      
+      String	display_name = "";
+      	
+      for (int j=0;j<pis.size();j++){
+      	
+      	PluginInterface	pi = (PluginInterface)pis.get(j);
+      	
+      	if ( pi.isMandatory() || pi.isBuiltIn()){
+      		
+      		skip = true;
+      		
+      		break;
+      	}
+      	
+      	display_name += (j==0?"":",") + pi.getPluginName();
       }
+      
+      if ( skip ){
+      	
+      	continue;
+      }
+      
+      PluginInterface plugin = (PluginInterface)pis.get(0);
+      
+      TableItem item = new TableItem(pluginList,SWT.NULL);
+      item.setData(plugin);
+      item.setText(0, display_name);
+      String version = plugin.getPluginVersion();
+      if(version == null) version = MessageText.getString("installPluginsWizard.list.nullversion");
+      item.setText(1,version);
     }
 	
 	pluginList.addListener(SWT.Selection,new Listener() {
