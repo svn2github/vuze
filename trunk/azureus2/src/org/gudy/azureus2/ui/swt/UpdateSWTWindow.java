@@ -38,7 +38,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
  *
  */
 public class UpdateSWTWindow {
-  
+  public boolean bIgnored = false;
+
   Shell shell;
   Label status;
   String statusBase;
@@ -70,19 +71,32 @@ public class UpdateSWTWindow {
     Composite composite = new Composite(shell,SWT.NULL);
     composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     layout = new GridLayout();   
-    layout.numColumns = 2;
+    layout.numColumns = 3;
     composite.setLayout(layout);
     
     Button btnOk = new Button(composite,SWT.PUSH);
     btnOk.setText(MessageText.getString("window.updateswt.ok"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_HORIZONTAL);
-    gridData.widthHint = 100;
+    gridData.widthHint = 70;
     btnOk.setLayoutData(gridData);
+
+    Button btnIgnore = new Button(composite,SWT.PUSH);
+    btnIgnore.setText(MessageText.getString("window.updateswt.ignore"));
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    gridData.widthHint = 70;
+    btnIgnore.setLayoutData(gridData);
+    btnIgnore.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        bIgnored = true;
+        shell.dispose();
+      }
+    });
+
     
     Button btnCancel = new Button(composite,SWT.PUSH);
     btnCancel.setText(MessageText.getString("window.updateswt.cancel"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.widthHint = 100;
+    gridData.widthHint = 70;
     btnCancel.setLayoutData(gridData);
     btnCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {

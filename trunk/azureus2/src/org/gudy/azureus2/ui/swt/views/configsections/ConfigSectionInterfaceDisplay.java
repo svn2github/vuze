@@ -26,6 +26,7 @@ import java.io.File;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -80,7 +81,16 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     layout.numColumns = 1;
     cLook.setLayout(layout);
     
-    new BooleanParameter(cLook, "useCustomTab",true, "ConfigView.section.style.useCustomTabs");
+    BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab",
+                                                        true, 
+                                                        "ConfigView.section.style.useCustomTabs");
+    Control cFancyTab = (Control)new BooleanParameter(cLook, 
+                                                      "GUI_SWT_bFancyTab", true,
+                                                      "ConfigView.section.style.useFancyTabs").getControl();
+
+    Control[] controls = { cFancyTab };
+    bpCustomTab.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+
     new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
     new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
     

@@ -27,7 +27,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderAdapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.DND;
@@ -336,6 +336,72 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     
     LGLogger.log("MainWindow start");
+    
+    // Get the display initialized ASAP so we can show the splash
+
+    // set to true to enable SWT leak checking
+    if (false) {
+      DeviceData data = new DeviceData();
+      data.tracking = true;
+      display = new Display(data);
+      Sleak sleak = new Sleak();
+      sleak.open();
+    }
+    else {
+      display = new Display();
+    }
+
+    ImageRepository.loadImagesForSplashWindow(display);
+    
+    Display.setAppName("Azureus");
+    
+    // show the splash right away!
+
+    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
+      showSplashWindow();
+    }
+    
+  	if ( splash_maybe_null != null ){
+  		splash_maybe_null.setNumTasks(6);
+  	}
+
+    setSplashTask("splash.firstMessageNoI18N");
+    splashNextTask();
+
+    // Setup Locales
+    Locale[] locales = MessageText.getLocales();
+    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
+    Locale savedLocale;
+    String[] savedLocaleStrings = savedLocaleString.split("_", 3);
+    if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {
+      if (savedLocaleStrings.length == 3) {
+        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1], savedLocaleStrings[2]);
+      } else if (savedLocaleStrings.length == 2 && savedLocaleStrings[1].length() == 2) {
+        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1]);
+      } else {
+        savedLocale = new Locale(savedLocaleStrings[0]);
+      }
+    } else {
+      if (savedLocaleStrings.length == 3 && 
+          savedLocaleStrings[0].length() == 0 && 
+          savedLocaleStrings[2].length() > 0) {
+        savedLocale = new Locale(savedLocaleStrings[0], 
+                                 savedLocaleStrings[1], 
+                                 savedLocaleStrings[2]);
+      } else {
+        savedLocale = Locale.getDefault();
+      }
+    }
+    MessageText.changeLocale(savedLocale);
+
+    ////////////////////////////////////////////////////
+    
+    splashNextTask();
+    if (gm == null) {
+      setSplashTask( "splash.initializeGM");
+      gm = GlobalManagerFactory.create(false);
+    }
+
 
     window = this;
 
@@ -402,57 +468,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     			}
     	});
     
-    // set to true to enable SWT leak checking
-    if (false) {
-      DeviceData data = new DeviceData();
-      data.tracking = true;
-      display = new Display(data);
-      Sleak sleak = new Sleak();
-      sleak.open();
-    }
-    else {
-      display = new Display();
-    }
 
-    ImageRepository.loadImagesForSplashWindow(display);
-    
-    Display.setAppName("Azureus");
-    
-    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
-    	
-      showSplashWindow();
-    }
-    
-  	if ( splash_maybe_null != null ){
-  		splash_maybe_null.setNumTasks(4);
-  	}
     splashNextTask();
-
-    Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale;
-    String[] savedLocaleStrings = savedLocaleString.split("_", 3);
-    if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {
-      if (savedLocaleStrings.length == 3) {
-        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1], savedLocaleStrings[2]);
-      } else if (savedLocaleStrings.length == 2 && savedLocaleStrings[1].length() == 2) {
-        savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1]);
-      } else {
-        savedLocale = new Locale(savedLocaleStrings[0]);
-      }
-    } else {
-      if (savedLocaleStrings.length == 3 && 
-          savedLocaleStrings[0].length() == 0 && 
-          savedLocaleStrings[2].length() > 0) {
-        savedLocale = new Locale(savedLocaleStrings[0], 
-                                 savedLocaleStrings[1], 
-                                 savedLocaleStrings[2]);
-      } else {
-        savedLocale = Locale.getDefault();
-      }
-    }
-    MessageText.changeLocale(savedLocale);
-
     setSplashTask("splash.loadingImages");
         
     ImageRepository.loadImages(display);
@@ -498,14 +515,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     mainLayout.marginHeight = 0;
     mainLayout.marginWidth = 0;
-    mainLayout.spacing = 0;
+    try {
+      mainLayout.spacing = 0;
+    } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
     mainWindow.setLayout(mainLayout);
     
     Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
     formData = new FormData();
     formData.top = new FormAttachment(mainWindow);
-    formData.left = new FormAttachment(10);
-    formData.right = new FormAttachment(90);    
+    formData.left = new FormAttachment(10, 0); // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(90, 0); // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
     
     this.iconBar = new IconBar(mainWindow);
@@ -513,21 +532,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     formData = new FormData();
     formData.top = new FormAttachment(separator);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);    
+    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     this.iconBar.setLayoutData(formData);
     
     separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
     formData = new FormData();
     formData.top = new FormAttachment(iconBar.coolBar);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);    
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
         
     if(!useCustomTab) {
       folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     } else {
-      folder = new CTabFolder(mainWindow, SWT.CLOSE);
+      folder = new CTabFolder(mainWindow, SWT.CLOSE | SWT.FLAT);
     }    
     
     Tab.setFolder(folder);   
@@ -552,34 +571,56 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
         e.printStackTrace();
       }      
-      ((CTabFolder)folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
-        public void itemClosed(CTabFolderEvent event) {
-          Tab.closed((CTabItem) event.item);
-          event.doit = true;
-        }
-      });
-      ((CTabFolder)folder).setUnselectedCloseVisible(false);
+      try {
+        TabFolder2ListenerAdder.add((CTabFolder)folder);
+      } catch (NoClassDefFoundError e) {
+        ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
+          public void itemClosed(CTabFolderEvent event) {
+            Tab.closed((CTabItem) event.item);
+            event.doit = true;
+          }
+        });
+      }
+
+      try {
+        ((CTabFolder)folder).setUnselectedCloseVisible(false);
+      } catch (NoSuchMethodError e) { /** < SWT 3.0M8 **/ }
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
 
       Display display = folder.getDisplay();
-      ((CTabFolder)folder).setSelectionBackground(new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND) },
-                                                  new int[0]);
+      try {
+        ((CTabFolder)folder).setSelectionBackground(
+                new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
+                             display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
+                             folder.getBackground() },
+                new int[] {10, 90}, true);
+      } catch (NoSuchMethodError e) { 
+        /** < SWT 3.0M8 **/ 
+        ((CTabFolder)folder).setSelectionBackground(new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND) },
+                                                    new int[0]);
+      }
       ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+
+      try {
+        ((CTabFolder)folder).setSimpleTab(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+      } catch (NoSuchMethodError e) { 
+        /** < SWT 3.0M8 **/ 
+      }
     }
     
     
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
     formData = new FormData();
-    formData.bottom = new FormAttachment(100);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);
+    formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     statusBar.setLayoutData(formData);
     
     formData = new FormData();
     formData.top = new FormAttachment(separator);
     formData.bottom = new FormAttachment(statusBar);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     folder.setLayoutData(formData);
     
     
@@ -752,29 +793,33 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     updater = new GUIUpdater();
     updater.start();
 
-    /*boolean available = false;
     try {
-      available = SysTrayMenu.isAvailable();
-    }
-    catch (NoClassDefFoundError e) {}
+      systemTraySWT = new SystemTraySWT(this);
+    } catch (Throwable e) { 
+      /** < SWT 3.0M8 **/ 
+      LGLogger.log(LGLogger.ERROR, 
+                   "Warning: Using non-native SysTray object.  " +
+                   "Upgrade to SWT3.0M8 or greater for more reliable SysTray");
+      boolean available = false;
+      try {
+        available = SysTrayMenu.isAvailable();
 
-    if (available){
-    	
-      try{
-      	trayIcon = new SystemTray(this);
-      	
-      }catch( Throwable e ){
-      	
-      	LGLogger.logAlert( "System tray initialisation fails", e );
-      	
-      	tray = new TrayWindow(this);
+      } catch (NoClassDefFoundError e2) {}
+
+      if (available) {
+        try {
+          trayIcon = new SystemTray(this);
+
+        } catch( Throwable e3 ) {
+          LGLogger.logAlert( "System tray initialisation fails", e );
+          tray = new TrayWindow(this);
+        }
+
+      } else {
+        tray = new TrayWindow(this);
       }
-    }else{
-    	
-      tray = new TrayWindow(this);
-    }*/
+    }
     
-    systemTraySWT = new SystemTraySWT(this);
     
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
@@ -837,6 +882,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     COConfigurationManager.addParameterListener("Colors.warning", this);
     COConfigurationManager.addParameterListener("Colors.altRow.override", this);
     COConfigurationManager.addParameterListener("Colors.altRow", this);
+    COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
@@ -880,8 +926,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     checkForDonationPopup();      
     
   }catch( Throwable e ){
+    System.out.println("Initialize Error");
 		e.printStackTrace();
-	} }
+	}
+}
 
   /**
    * @param locales
@@ -2818,6 +2866,18 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if(parameterName.startsWith("Colors.altRow")) {
       allocateColorAltRow();
     }
+    
+    if (parameterName.equals("GUI_SWT_bFancyTab") && 
+        folder instanceof CTabFolder && 
+        folder != null && !folder.isDisposed()) {
+      try {
+        ((CTabFolder)folder).setSimpleTab(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+        
+      } catch (NoSuchMethodError e) { 
+        /** < SWT 3.0M8 **/ 
+      }
+    }
+      
   }
   
   private void allocateDynamicColors() {

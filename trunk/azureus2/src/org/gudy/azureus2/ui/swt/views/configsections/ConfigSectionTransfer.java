@@ -61,14 +61,18 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cTransfer.setLayoutData(gridData);
     layout = new FormLayout();   
-    layout.spacing = 5;
+    try {
+      layout.spacing = 5;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     cTransfer.setLayout(layout);
 
     
     IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 5, -1, true);    
     formData = new FormData();
-    formData.top = new FormAttachment(0);
-    formData.left = new FormAttachment(0);
+    formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,50);
     paramMaxUploadSpeed.setLayoutData(formData);
     
@@ -77,7 +81,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(0,5);
     formData.left = new FormAttachment(paramMaxUploadSpeed.getControl());
-    formData.right = new FormAttachment(100);
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
     
     
@@ -85,7 +89,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,50);
     paramMaxUploads.setLayoutData(formData);
 
@@ -94,7 +98,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl(),5);
     formData.left = new FormAttachment(paramMaxUploads.getControl());
-    formData.right = new FormAttachment(100);
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
     
     
@@ -103,7 +107,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     IntParameter paramMaxClients = new IntParameter(cTransfer, "Max.Peer.Connections.Per.Torrent", 100);
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploads.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,70);
     paramMaxClients.setLayoutData(formData);
     
@@ -112,14 +116,14 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploads.getControl(),5);
     formData.left = new FormAttachment(paramMaxClients.getControl());
-    formData.right = new FormAttachment(100);
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
     
     
     IntParameter paramMaxClientsTotal = new IntParameter(cTransfer, "Max.Peer.Connections.Total", 0);
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxClients.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,70);
     paramMaxClientsTotal.setLayoutData(formData);
     
@@ -128,7 +132,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxClients.getControl(),5);
     formData.left = new FormAttachment(paramMaxClientsTotal.getControl());
-    formData.right = new FormAttachment(100);
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
 
      

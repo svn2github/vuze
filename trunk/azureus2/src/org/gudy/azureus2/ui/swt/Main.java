@@ -26,7 +26,6 @@ public class Main implements ILocaleUtilChooser {
 	
   StartServer startServer;
   MainWindow mainWindow;
-  GlobalManager gm;
   
   public static class StartSocket {
     public StartSocket(String args[]) {
@@ -88,9 +87,7 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
-      gm = GlobalManagerFactory.create(false);  
-      
-      mainWindow = new MainWindow(gm, startServer);
+      mainWindow = new MainWindow(null, startServer);
       mainWindow.waitForClose();
       return;
       
@@ -112,35 +109,27 @@ public class Main implements ILocaleUtilChooser {
     
     if (startServer.getState() == StartServer.STATE_LISTENING) {
     	
-      if(checkForSWT()) {      
-        startServer.start();
-        
-        gm = GlobalManagerFactory.create(false);
-        
-        mainWindow = new MainWindow(gm, startServer);
-        
-        if (args.length != 0) {
-
-          mainWindow.openTorrent( args[0]);
-        }
-        
-        
-        mainWindow.waitForClose();
-        
-        return;
-      }
-      
-      else {
+      if(!checkForSWT()) {      
         
         startServer.stopIt();
         
-        new UpdateSWTWindow();  
+        UpdateSWTWindow usWindow = new UpdateSWTWindow();  
         
-        return;
+        if (!usWindow.bIgnored)
+          return;
+        startServer = new StartServer(this);
       }
+
+      startServer.start();
+
+      mainWindow = new MainWindow(null, startServer);
       
-      
-      
+      if (args.length != 0) {
+
+        mainWindow.openTorrent( args[0]);
+      }
+      mainWindow.waitForClose();
+
     }else{
     	
       new StartSocket(args);
@@ -197,6 +186,7 @@ public class Main implements ILocaleUtilChooser {
 
   
   public boolean checkForSWT() {    
-    return (SWT.getVersion() >= Constants.MINIMAL_SWT_VERSION);
+    return (SWT.getVersion() >= Constants.MINIMAL_SWT_VERSION) ||
+           System.getProperty("azureus.skipSWTcheck") != null;
   }
 }

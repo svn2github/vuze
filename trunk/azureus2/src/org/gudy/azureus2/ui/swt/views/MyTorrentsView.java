@@ -516,8 +516,8 @@ public class MyTorrentsView extends AbstractIView
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
 
-    table.addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent mEvent) {
+    table.addSelectionListener(new SelectionAdapter() {
+      public void widgetDefaultSelected(SelectionEvent e) {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           return;
@@ -526,7 +526,9 @@ public class MyTorrentsView extends AbstractIView
         DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
         MainWindow.getWindow().openManagerView(dm);
       }
+    });
 
+    table.addMouseListener(new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
         iMouseX = e.x;
         TableItem ti = table.getItem(new Point(e.x, e.y));
@@ -535,6 +537,8 @@ public class MyTorrentsView extends AbstractIView
         }
       }
     });
+    // XXX this may not be needed if all platforms process mouseDown
+    //     before the menu
     table.addMouseMoveListener(new MouseMoveListener() {
       public void mouseMove(MouseEvent e) {
         iMouseX = e.x;

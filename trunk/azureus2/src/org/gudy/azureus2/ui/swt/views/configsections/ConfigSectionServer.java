@@ -58,15 +58,19 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cServer.setLayoutData(gridData);
     layout = new FormLayout();   
-    layout.spacing = 5;
+    try {
+      layout.spacing = 5;
+    } catch (NoSuchFieldError e) {
+      /* Ignore for Pre 3.0 SWT.. */
+    }
     cServer.setLayout(layout);
 
  ///////////////////////
     
     IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 6881);
     formData = new FormData();
-    formData.top = new FormAttachment(0);
-    formData.left = new FormAttachment(0);
+    formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 40;
     tcplisten.setLayoutData(formData);
     
@@ -82,7 +86,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     StringParameter overrideip = new StringParameter(cServer, "Override Ip", "");
     formData = new FormData();
     formData.top = new FormAttachment(tcplisten.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     overrideip.setLayoutData(formData);
     
@@ -98,7 +102,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
     formData = new FormData();
     formData.top = new FormAttachment(overrideip.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     bindip.setLayoutData(formData);
     
@@ -129,7 +133,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     BooleanParameter enableSocks = new BooleanParameter(cServer, "Enable.SOCKS", false, "ConfigView.section.proxy.enable_socks");
     formData = new FormData();
     formData.top = new FormAttachment( enableProxy.getControl() );
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     enableSocks.setLayoutData(formData); 
     
  //////////////////////
@@ -137,7 +141,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     StringParameter pHost = new StringParameter(cServer, "Proxy.Host", "");
     formData = new FormData();
     formData.top = new FormAttachment(enableSocks.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     pHost.setLayoutData(formData);
     
@@ -169,7 +173,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     StringParameter pUser = new StringParameter(cServer, "Proxy.Username", "");
     formData = new FormData();
     formData.top = new FormAttachment(pPort.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     pUser.setLayoutData(formData);
     
@@ -185,7 +189,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     StringParameter pPass = new StringParameter(cServer, "Proxy.Password", "");
     formData = new FormData();
     formData.top = new FormAttachment(pUser.getControl());
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     pPass.setLayoutData(formData);
     
