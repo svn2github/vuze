@@ -31,8 +31,10 @@ import java.util.Vector;
 import org.apache.log4j.spi.LoggingEvent;
 
 import HTML.Template;
+import org.gudy.azureus2.core.ByteFormater;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
 
@@ -396,11 +398,20 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
         h.put("Torrents_Torrent_FileName", dm.getName());
         h.put("Torrents_Torrent_Status", this.status.get(new Integer(dmstate)));
-        h.put("Torrents_Torrent_Seeds", Integer.toString(dm.getNbSeeds()));
-        h.put("Torrents_Torrent_Peers", Integer.toString(dm.getNbPeers()));
+        HashData hd = dm.getHashData();
+        if (hd == null) {
+          h.put("Torrents_Torrent_Seeds", "?");
+          h.put("Torrents_Torrent_Peers", "?");
+        } else {
+          h.put("Torrents_Torrent_Seeds", Integer.toString(hd.seeds));
+          h.put("Torrents_Torrent_Peers", Integer.toString(hd.peers));
+        }
+        h.put("Torrents_Torrent_SeedsConnected", Integer.toString(dm.getNbSeeds()));
+        h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));
         h.put("Torrents_Torrent_ETA", (dm.getETA()=="")?"&nbsp;":dm.getETA());
         h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
         h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
+        h.put("Torrents_Torrent_Hash", ByteFormater.nicePrint(dm.getHash(), true));
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
@@ -470,6 +481,45 @@ public class Jhttpp2HTTPSession extends Thread {
     }
   }
   
+  private void ProcessTorrent(HashMap URIvars) {
+    if (URIvars.containsKey("subcommand")) {
+      String subcommand = (String) URIvars.get("subcommand");
+      String pausecommand = (URIvars.containsKey("pausecommand"))?((String)URIvars.get("pausecommand")):"Pause";
+      String unpausecommand = (URIvars.containsKey("unpausecommand"))?((String)URIvars.get("unpausecommand")):"Download";
+      String cancelcommand = (URIvars.containsKey("cancelcommand"))?((String)URIvars.get("cancelcommand")):"Cancel";
+      HashMap dls = new HashMap();
+      List torrents = server.gm.getDownloadManagers();
+      if (!torrents.isEmpty()) {
+        Iterator torrent = torrents.iterator();
+        while (torrent.hasNext()) {
+          DownloadManager dm = (DownloadManager) torrent.next();
+          dls.put(ByteFormater.nicePrint(dm.getHash(), true), dm);
+        }
+      
+        Set keys = URIvars.keySet();
+        Iterator ikeys = keys.iterator();
+        while (ikeys.hasNext()) {
+          String key = (String) ikeys.next();
+          String value = (String) URIvars.get(key);
+          if (value.equals("1") && key.startsWith("Torrent_Hash_")) {
+            String hash = key.substring(key.lastIndexOf('_')+1);
+            if (dls.containsKey(hash)) {
+              DownloadManager dm = (DownloadManager) dls.get(hash);
+              if (subcommand.equals(pausecommand) && ((dm.getState()!=DownloadManager.STATE_STOPPED) || (dm.getState()!=DownloadManager.STATE_STOPPING)))
+                dm.stopIt();
+              else if (subcommand.equals(unpausecommand) && ((dm.getState()==DownloadManager.STATE_READY) || (dm.getState()==DownloadManager.STATE_WAITING) || (dm.getState()==DownloadManager.STATE_STOPPED)))
+                dm.startDownloadInitialized(true);
+              else if (subcommand.equals(cancelcommand)) {
+                dm.stopIt();
+                server.gm.removeDownloadManager(dm);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
   public void Process(HashMap URIvars) {
     if (URIvars.containsKey("command")) {
       String command = (String) URIvars.get("command");
@@ -479,9 +529,11 @@ public class Jhttpp2HTTPSession extends Thread {
         this.ProcessAdd(URIvars);
       else if (command.equals("Exit"))
         server.shutdownServer();
+      else if (command.equals("Torrent"))
+        this.ProcessTorrent(URIvars);
     }
   }
-
+  
   public void file_handler() throws IOException {
     String filename;
     if (in.url.indexOf('?')!=-1)
@@ -553,7 +605,7 @@ public class Jhttpp2HTTPSession extends Thread {
     } else if (filename.equals("favicon.ico")) {
       useres = true;
       fileres = "org/gudy/azureus2/ui/icons/azureus.ico";
-    } 
+    }
     if ((file == null) && !useres) {
       sendErrorMSG(404,"The requested file /" + filename + " was not found or the path is invalid.");
       return;

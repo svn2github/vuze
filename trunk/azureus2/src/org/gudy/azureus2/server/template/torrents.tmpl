@@ -7,6 +7,11 @@
         <TMPL_UNLESS Torrents_Torrents>
             <p> No Torrents
         <TMPL_ELSE>
+          <form method=post action='torrents' target='body'>
+            <input type=hidden name=command value='Torrent'>
+            <input type=submit name=subcommand value='Pause'><input type=hidden name=pausecommand value='Pause'>
+            <input type=submit name=subcommand value='Download'><input type=hidden name=unpausecommand value='Download'>
+            <input type=submit name=subcommand value='Cancel'><input type=hidden name=cancelcommand value='Cancel'>
             <table border=1 width="100%" cellpadding=3>
                 <tr bgcolor="#DDDDDD">
                     <th colspan=2>Incomplete</th>
@@ -19,17 +24,13 @@
                     <th>ETA</th>
                 </tr>
                 <TMPL_LOOP Torrents_Torrents>
-                    <form method=POST action="torrents">
-                        <input type=hidden name=nr value="<TMPL_VAR __PASS__>">
-                        <input type=hidden name=seed value=0>
                         <TMPL_IF Auto>
                             <tr bgcolor="#CCFFCC">
                         <TMPL_ELSE>	
                             <tr bgcolor="#BFD8BC">
                         </TMPL_IF>
                         <td>
-                            <input type=submit name=command value="<TMPL_VAR Torrents_Torrent_Command>">
-                            <INPUT type=option name='Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>'>
+                            <INPUT type=checkbox name='Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>' value=1>
                         </td>
                         <td>
                             <table>
@@ -92,6 +93,7 @@
                     </form>
                 </TMPL_LOOP>
             </table>
+          </form>
         </TMPL_UNLESS>
 		<TMPL_IF Seeds>
             <p>
