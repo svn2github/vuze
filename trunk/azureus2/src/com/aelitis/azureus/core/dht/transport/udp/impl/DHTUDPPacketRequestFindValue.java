@@ -58,7 +58,7 @@ DHTUDPPacketRequestFindValue
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_VALUE, con_id, trans_id );
 		
-		id = DHTUDPUtils.deserialiseID( is );
+		id = DHTUDPUtils.deserialiseByteArray( is );
 	}
 	
 	public void
@@ -69,7 +69,7 @@ DHTUDPPacketRequestFindValue
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseID( os, id );
+		DHTUDPUtils.serialiseByteArray( os, id );
 	}
 	
 	protected void

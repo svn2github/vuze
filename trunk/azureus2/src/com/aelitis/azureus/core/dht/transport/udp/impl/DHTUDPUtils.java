@@ -54,35 +54,35 @@ DHTUDPUtils
 	}
 	
 	protected static byte[]
-	deserialiseID(
+	deserialiseByteArray(
 		DataInputStream	is )
 	
 		throws IOException
 	{
-		int	key_len	= is.readInt();
+		int	len	= is.readInt();
 		
-		if ( key_len > 1024 ){
+		if ( len > 1024 ){
 			
-			throw( new IOException( "Invalid key length" ));
+			throw( new IOException( "Invalid data length" ));
 		}
 		
-		byte[] key	= new byte[key_len];
+		byte[] data	= new byte[len];
 		
-		is.read(key);
+		is.read(data);
 		
-		return( key );
+		return( data );
 	}
 	
 	protected static void
-	serialiseID(
+	serialiseByteArray(
 		DataOutputStream	os,
-		byte[]				key )
+		byte[]				data )
 	
 		throws IOException
 	{
-		os.writeInt( key.length );
+		os.writeInt( data.length );
 		
-		os.write( key );
+		os.write( data );
 	}
 	
 	protected static DHTTransportValue
@@ -92,18 +92,10 @@ DHTUDPUtils
 		throws IOException
 	{
 		final int	distance	= is.readInt();
+		
 		final long 	created		= is.readLong();
 		
-		int	value_len	= is.readInt();
-		
-		if ( value_len > 1024 ){
-			
-			throw( new IOException( "Invalid value length" ));
-		}
-		
-		final byte[]	value_bytes	= new byte[value_len];
-		
-		is.read(value_bytes);
+		final byte[]	value_bytes = deserialiseByteArray( is );
 		
 		DHTTransportValue value = 
 			new DHTTransportValue()
@@ -141,9 +133,7 @@ DHTUDPUtils
 		
 		os.writeLong( value.getCreationTime());
 		
-		os.writeInt( value.getValue().length);
-		
-		os.write( value.getValue());
+		serialiseByteArray( os, value.getValue());
 	}
 	
 	protected static void
@@ -244,9 +234,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		os.writeInt( address.getHostName().length());
-		
-		os.write( address.getHostName().getBytes());
+		serialiseByteArray( os, address.getHostName().getBytes());
 		
 		os.writeShort( address.getPort());
 	}
@@ -257,19 +245,10 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		int	name_len = is.readInt();
-		
-		if ( name_len > 1024 ){
-			
-			throw( new IOException( "host name too long:" + name_len ));
-		}
-		
-		byte[]	host_name = new byte[ name_len ];
-		
-		is.read( host_name );
-		
+		byte[]	bytes = deserialiseByteArray( is );
+				
 		int	port = is.readShort()&0xffff;
 		
-		return( new InetSocketAddress(new String(host_name), port ));
+		return( new InetSocketAddress(new String(bytes), port ));
 	}
 }

@@ -60,7 +60,7 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		key		= DHTUDPUtils.deserialiseID( is );
+		key		= DHTUDPUtils.deserialiseByteArray( is );
 		
 		value 	= DHTUDPUtils.deserialiseTransportValue( is );
 	}
@@ -73,7 +73,7 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseID( os, key );
+		DHTUDPUtils.serialiseByteArray( os, key );
 		
 		DHTUDPUtils.serialiseTransportValue( os, value );
 	}

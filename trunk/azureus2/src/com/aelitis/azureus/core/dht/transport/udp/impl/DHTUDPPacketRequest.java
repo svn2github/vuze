@@ -69,7 +69,7 @@ DHTUDPPacketRequest
 		
 		version	= is.readShort();
 		
-		originator_id = DHTUDPUtils.deserialiseID( is );
+		originator_id = DHTUDPUtils.deserialiseByteArray( is );
 		
 		originator_instance_id	= is.readInt();
 	}
@@ -109,7 +109,7 @@ DHTUDPPacketRequest
 		
 		os.writeShort( version );
 		
-		DHTUDPUtils.serialiseID( os, originator_id );
+		DHTUDPUtils.serialiseByteArray( os, originator_id );
 		
 		os.writeInt( originator_instance_id );
 	}
