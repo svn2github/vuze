@@ -51,6 +51,10 @@ LoggerChannel
 	
 	/**
 	 * raise an alert to the user, if UI present
+	 * Note that messages shown to the user are filtered on unique message content
+	 * So if you raise an identical alert the second + subsequent messages will not be
+	 * shown. Thus, if you want "identical" messages to be shown, prefix them with something
+	 * unique like a timestamp.
 	 * @param alert_type
 	 * @param message
 	 */
