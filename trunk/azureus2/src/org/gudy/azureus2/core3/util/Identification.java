@@ -19,12 +19,14 @@ public class Identification {
    * Decodes the given peerID, returning an identification string.
    */  
   public static String decode(byte[] peerID) {
-    final boolean DEBUG = false;
+    final boolean DEBUG_ALL = false;
+    final boolean DEBUG_UNKNOWN = false;
+    
     String generic = MessageText.getString("PeerSocket.generic");
     
     try {
 
-      if (DEBUG) System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
+      if (DEBUG_ALL) System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
       
       String azureus     = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
@@ -61,6 +63,12 @@ public class Identification {
       
     }
     catch (Exception ignore) {/*ignore*/}
+    
+    if (DEBUG_UNKNOWN && !DEBUG_ALL) {
+      try {
+        System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
+      } catch (Exception ignore) {/*ignore*/} 
+    }
     
     return generic;  
   }
