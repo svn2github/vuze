@@ -624,7 +624,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: unsupported encoding for '" + new String(value) + "'",
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: unsupported encoding for '" + value + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
@@ -652,7 +652,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrent::writeStringToMetaData: unsupported encoding for '" + new String(value) + "'",
+			throw( new TOTorrentException( 	"TOTorrent::writeStringToMetaData: unsupported encoding for '" + value + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}

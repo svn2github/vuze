@@ -57,10 +57,13 @@ TOTorrentFileHasher
 		
 		throws TOTorrentException
 	{
+		long		file_length = 0;
+		
+		InputStream is = null;
+		
 		try{
-			long		file_length = 0;
 			
-			FileInputStream is = new FileInputStream( _file );
+			is = new BufferedInputStream(new FileInputStream( _file ));
 
 			while(true){
 				
@@ -93,13 +96,21 @@ TOTorrentFileHasher
 				}		
 			}
 			
-			return( file_length );
-			
 		}catch( Throwable e ){
 			
 			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",
 											TOTorrentException.RT_READ_FAILS ));
+		}finally {
+			if (is != null) {
+				try {
+					is.close();
+				}
+				catch (Exception e) {
+				}
+			}
 		}
+		
+		return( file_length );
 	}
 	
 	protected byte[][]
