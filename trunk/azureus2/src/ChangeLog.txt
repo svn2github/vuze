@@ -10,6 +10,7 @@ FEATURE: Core | Ability to cancel torrent creation processes added [Parg, Gudy]
 FEATURE: Core | Ability to cancel sharing process added [Parg]
 FEATURE: Core | Ability to pass multiple torrents to Azureus.exe [Parg]
 FEATURE: Core | Added configuration items for tracker processing limits [Parg]
+FEATURE: Core | Option to open torrent for seeding in create-torrent Wizard [Parg,Gudy]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -27,6 +28,7 @@ BUGFIX: UI   | Fix create-torrent wizard to remember paths properly [Parg]
 BUGFIX: Core | default save dir was defaulting to ON, changed to OFF [Parg]
 BUGFIX: Core | Tidied up UPnP error handing if action missing [Parg]
 BUGFIX: UI   | Fixed up opening of torrent files not ending in ".tor" or ".torrent" [Parg]
+BUGFIX: Core | Scrape mult-tracker torrents correctly when download not running [Parg]
 
 
 2004.10.31 | Azureus 2.2.0.0
