@@ -258,7 +258,7 @@ ShareResourceImpl
 		
 		for ( int i=0;i<attrs.length;i++ ){
 			
-			attributes.put( attrs[i], source.getAttribute( attrs[i] ));
+			setAttribute( attrs[i], source.getAttribute( attrs[i] ));
 		}
 	}
 	

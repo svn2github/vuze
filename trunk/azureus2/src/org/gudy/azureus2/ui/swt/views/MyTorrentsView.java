@@ -1591,13 +1591,29 @@ public class MyTorrentsView
 
   // CategoryManagerListener Functions
   public void categoryAdded(Category category) {
-    createTabs();
-    addCategorySubMenu();
+  	MainWindow.getWindow().getDisplay().asyncExec(
+	  		new AERunnable() 
+			{
+	  			public void 
+				runSupport() 
+	  			{
+	  				createTabs();
+	  				addCategorySubMenu();
+	  			}
+			});
   }
 
   public void categoryRemoved(Category category) {
-    createTabs();
-    addCategorySubMenu();
+	MainWindow.getWindow().getDisplay().asyncExec(
+	  		new AERunnable() 
+			{
+	  			public void 
+				runSupport() 
+	  			{
+	  				createTabs();
+	  				addCategorySubMenu();
+	  			}
+			});
   }
 
   // globalmanagerlistener Functions

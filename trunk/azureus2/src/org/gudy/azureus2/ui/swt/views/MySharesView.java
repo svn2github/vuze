@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -246,7 +247,7 @@ MySharesView
 		computePossibleActions();
 		MainWindow.getWindow().refreshIconBar();
 		
-    super.refresh();
+		super.refresh();
 	}	 
 
 	 private void addCategorySubMenu() {
@@ -305,12 +306,33 @@ MySharesView
 
 	  }
 	
-	  public void categoryAdded(Category category) {
-	    addCategorySubMenu();
+	  public void 
+	  categoryAdded(Category category) 
+	  {
+	  	MainWindow.getWindow().getDisplay().asyncExec(
+		  		new AERunnable() 
+				{
+		  			public void 
+					runSupport() 
+		  			{
+		  				addCategorySubMenu();
+		  			}
+				});
 	  }
 
-	  public void categoryRemoved(Category category) {
-	    addCategorySubMenu();
+	  public void 
+	  categoryRemoved(
+	  	Category category) 
+	  {
+	  	MainWindow.getWindow().getDisplay().asyncExec(
+	  		new AERunnable() 
+			{
+	  			public void 
+				runSupport() 
+	  			{
+	  				addCategorySubMenu();
+	  			}
+			});
 	  }
 	
 	  
