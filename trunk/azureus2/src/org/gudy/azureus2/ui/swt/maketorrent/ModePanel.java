@@ -75,35 +75,35 @@ public class ModePanel extends AbstractWizardPanel {
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 4;
     panel.setLayout(layout);
 
     final Button btnLocalTracker = new Button(panel, SWT.RADIO);
     Label labelLocalTracker = new Label(panel, SWT.NULL);
     Messages.setLanguageText(labelLocalTracker, "wizard.tracker.local");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     labelLocalTracker.setLayoutData(gridData);
 
-	Label label = new Label(panel, SWT.NULL);
-	label = new Label(panel, SWT.NULL);
-	Messages.setLanguageText(label, "wizard.tracker.ssl"); 
+    Label label = new Label(panel, SWT.NULL);
+    label = new Label(panel, SWT.NULL);
+    Messages.setLanguageText(label, "wizard.tracker.ssl"); 
+      
+    final Button btnSSL = new Button(panel, SWT.CHECK);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+    gridData.horizontalSpan = 2;
+    btnSSL.setLayoutData( gridData );
     
-	final Button btnSSL = new Button(panel, SWT.CHECK);
-	gridData = new GridData();
-	gridData.horizontalSpan = 1;
-	btnSSL.setLayoutData( gridData );
-
     final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
-	final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-	final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-	final boolean SSLEnabled = COConfigurationManager.getBooleanParameter("Tracker Port SSL Enable", false );
+    final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+    final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+    final boolean SSLEnabled = COConfigurationManager.getBooleanParameter("Tracker Port SSL Enable", false );
 	
     final String[] localTrackerUrl = new String[1];
 
     final Label localTrackerValue = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     localTrackerValue.setLayoutData(gridData);
 
     final Button btnExternalTracker = new Button(panel, SWT.RADIO);
@@ -143,6 +143,9 @@ public class ModePanel extends AbstractWizardPanel {
     label.setLayoutData(gridData);
 
     final Combo tracker = new Combo(panel, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    tracker.setLayoutData(gridData);
     List trackers = TrackersUtil.getInstance().getTrackersList();
     Iterator iter = trackers.iterator();
     while (iter.hasNext()) {
