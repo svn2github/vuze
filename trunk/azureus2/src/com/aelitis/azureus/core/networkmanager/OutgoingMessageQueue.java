@@ -337,7 +337,7 @@ public class OutgoingMessageQueue {
     
     try{
       add_listeners_mon.enter();
-      listeners = (ArrayList)add_listeners.clone();
+      listeners = new ArrayList( add_listeners );
     }
     finally{
       add_listeners_mon.exit();
@@ -356,7 +356,7 @@ public class OutgoingMessageQueue {
     
     try{
       sent_listeners_mon.enter();
-      listeners = (ArrayList)sent_listeners.clone();
+      listeners = new ArrayList( sent_listeners );
     }
     finally{
       sent_listeners_mon.exit();
@@ -374,7 +374,7 @@ public class OutgoingMessageQueue {
 
     try{
       byte_listeners_mon.enter();
-      listeners = (ArrayList)byte_listeners.clone();
+      listeners = new ArrayList( byte_listeners );
     }
     finally{
       byte_listeners_mon.exit();
