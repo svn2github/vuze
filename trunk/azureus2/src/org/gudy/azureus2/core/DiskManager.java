@@ -185,7 +185,9 @@ public class DiskManager {
             }
 
             buildFileLookupTables(info, btFileList, localeUtil, separator);
-            return;
+
+            if (this.state == FAULTY)
+                return;
         }
 
         if (localeUtil.canEncodingBeSaved() && !localeUtil.getLastChoosedEncoding().equals(metaData.get("encoding"))) {
@@ -203,6 +205,21 @@ public class DiskManager {
         boolean newFiles = this.allocateFiles(rootPath, btFileList);
         if (this.state == FAULTY)
             return;
+
+        constructPieceMap(btFileList);
+
+        constructFilesPieces();
+
+        //if all files existed, check pieces
+        if (!newFiles)
+            this.checkAllPieces();
+
+        //3.Change State   
+        state = READY;
+    }
+
+	// no changes made here, just refactored the code out from initialize() - Moti
+    private void constructPieceMap(ArrayList btFileList) {
         //for every piece, except the last one
         //add files to the piece list until we have built enough space to hold the piece
         //see how much space is available in the file
@@ -262,17 +279,9 @@ public class DiskManager {
 
         //take care of final piece if there was more than 1 piece in the torrent
         if (nbPieces > 1) {
-            pieceMap[nbPieces - 1] = PieceList.convert(this.buildPieceToFileList(btFileList, currentFile, fileOffset, lastPieceLength));
+            pieceMap[nbPieces - 1] =
+                PieceList.convert(this.buildPieceToFileList(btFileList, currentFile, fileOffset, lastPieceLength));
         }
-
-        constructFilesPieces();
-
-        //if all files existed, check pieces
-        if (!newFiles)
-            this.checkAllPieces();
-
-        //3.Change State   
-        state = READY;
     }
 
     // refactored out of initialize() - Moti
@@ -282,32 +291,31 @@ public class DiskManager {
         //for each file
         for (int i = 0; i < files.size(); i++) {
             long fileLength = buildFileLookupTable((Map)files.get(i), btFileList, localeUtil, separator);
-            
-            if (this.state == FAULTY) {
-            	return;
-            }
+
+            if (this.state == FAULTY)
+                return;
 
             //increment the global length 
             totalLength += fileLength;
         }
     }
 
-	/**
-	 * Builds the path stored in fileDictionay, saving it in btFileList
-	 * @param fileDictionay
-	 * @param btFileList
-	 * @param localeUtil
-	 * @param separator
-	 * @return the length of the file as stored in fileDictionay
-	 */
-	// refactored out of initialize() - Moti
-	// code further refactored for readibility
+    /**
+     * Builds the path stored in fileDictionay, saving it in btFileList
+     * @param fileDictionay
+     * @param btFileList
+     * @param localeUtil
+     * @param separator
+     * @return the length of the file as stored in fileDictionay
+     */
+    // refactored out of initialize() - Moti
+    // code further refactored for readibility
     private long buildFileLookupTable(Map fileDictionay, ArrayList btFileList, LocaleUtil localeUtil, final char separator) {
         long fileLength = ((Long)fileDictionay.get("length")).longValue();
-        
+
         //build the path
         List fileList = (List)fileDictionay.get("path");
-        
+
         /* replaced the following two calls:
         StringBuffer pathBuffer = new StringBuffer(256);
         pathBuffer.setLength(0);
@@ -320,15 +328,18 @@ public class DiskManager {
                 pathBuffer.append(localeUtil.getChoosableCharsetString((byte[])fileList.get(j)));
                 pathBuffer.append(separator);
             }
-            
+
             //no, then we must be a part of the path
             //add the file entry to the file holder list         
             btFileList.add(
-                new BtFile(pathBuffer.toString(), localeUtil.getChoosableCharsetString((byte[])fileList.get(lastIndex)), fileLength));
-        
+                new BtFile(
+                    pathBuffer.toString(),
+                    localeUtil.getChoosableCharsetString((byte[])fileList.get(lastIndex)),
+                    fileLength));
+
         } catch (UnsupportedEncodingException e) {
             this.state = FAULTY;
-            this.errorMessage = e.getMessage();                           
+            this.errorMessage = e.getMessage();
         }
         return fileLength;
     }
@@ -907,75 +918,73 @@ public class DiskManager {
             return buffer;
         }
 
-		long fileOffset = pieceList.get(0).getOffset();
-		while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
-			previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
-			currentFile++;
-			fileOffset = 0;
-		}
+        long fileOffset = pieceList.get(0).getOffset();
+        while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
+            previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
+            currentFile++;
+            fileOffset = 0;
+        }
 
-		// update the offset (we're in the middle of a file)
-		fileOffset += offset - previousFilesLength;
-		// noError is only used for error reporting, it could probably be removed
-		boolean noError = true;		
-		while (buffer.hasRemaining()
-			&& currentFile < pieceList.size()
-			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
+        // update the offset (we're in the middle of a file)
+        fileOffset += offset - previousFilesLength;
+        // noError is only used for error reporting, it could probably be removed
+        boolean noError = true;
+        while (buffer.hasRemaining()
+            && currentFile < pieceList.size()
+            && (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
 
-			currentFile++;
-			fileOffset = 0;
-		}
-		
-		if (!noError) {
-			// continue the error report
-			PieceMapEntry tempPiece = pieceList.get(currentFile);
-			System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
-			System.out.println("BufferLimit: " + buffer.limit());
-			System.out.println("BufferRemaining: " + buffer.remaining());
-			System.out.println("PieceNumber: " + pieceNumber);
-			System.out.println("Offset: " + fileOffset);						
-			System.out.println("Length  " + length);
-			System.out.println("PieceLength: " + tempPiece.getLength());
-			System.out.println("PieceOffset: " + tempPiece.getOffset());
-			System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);						
-		}
-				
+            currentFile++;
+            fileOffset = 0;
+        }
+
+        if (!noError) {
+            // continue the error report
+            PieceMapEntry tempPiece = pieceList.get(currentFile);
+            System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
+            System.out.println("BufferLimit: " + buffer.limit());
+            System.out.println("BufferRemaining: " + buffer.remaining());
+            System.out.println("PieceNumber: " + pieceNumber);
+            System.out.println("Offset: " + fileOffset);
+            System.out.println("Length  " + length);
+            System.out.println("PieceLength: " + tempPiece.getLength());
+            System.out.println("PieceOffset: " + tempPiece.getOffset());
+            System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+        }
 
         buffer.position(0);
         return buffer;
     }
-    
-    // refactored out of readBlock() - Moti
-	// reads a file into a buffer, returns true when no error, otherwise false.
-	private boolean readFileInfoIntoBuffer(FileInfo file, ByteBuffer buffer, long offset) {
-		synchronized (file) {
-			RandomAccessFile raf = file.getRaf();
-			FileChannel fc = raf.getChannel();
 
-			long fcposition = 0;
-			long fcsize = 0;
-			
-			try {
-				fc.position(offset);
-				while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()) {
-					fcposition = fc.position();
-					fcsize = fc.size();
-					fc.read(buffer);
-				}
-				return true;
-			} catch (IOException e) {
-				// TODO Auto-generated catch block			
-				e.printStackTrace();
-				
-				System.out.println("ERROR IN READ FILE INFO INTO BUFFER: *Debug Information*");																
-				System.out.println("fc.position: " + fcposition);
-				System.out.println("fc.size: " + fcsize);
-								
-				return false;
-			}			
-		}
-	}
-    
+    // refactored out of readBlock() - Moti
+    // reads a file into a buffer, returns true when no error, otherwise false.
+    private boolean readFileInfoIntoBuffer(FileInfo file, ByteBuffer buffer, long offset) {
+        synchronized (file) {
+            RandomAccessFile raf = file.getRaf();
+            FileChannel fc = raf.getChannel();
+
+            long fcposition = 0;
+            long fcsize = 0;
+
+            try {
+                fc.position(offset);
+                while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()) {
+                    fcposition = fc.position();
+                    fcsize = fc.size();
+                    fc.read(buffer);
+                }
+                return true;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block			
+                e.printStackTrace();
+
+                System.out.println("ERROR IN READ FILE INFO INTO BUFFER: *Debug Information*");
+                System.out.println("fc.position: " + fcposition);
+                System.out.println("fc.size: " + fcsize);
+
+                return false;
+            }
+        }
+    }
 
     public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
         writeQueue.add(new WriteElement(pieceNumber, offset, data));
