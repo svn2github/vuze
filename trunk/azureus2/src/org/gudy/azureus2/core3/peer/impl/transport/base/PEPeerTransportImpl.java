@@ -106,25 +106,31 @@ PEPeerTransportImpl
 	
   
 	protected void startConnection() {
-    connected = false;
-    connect_error = false;
+    try {
+      connected = false;
+      connect_error = false;
 
-    InetSocketAddress address = new InetSocketAddress( getIp(), getPort() );
+      InetSocketAddress address = new InetSocketAddress( getIp(), getPort() );
     
-    listener = new SocketManager.OutboundConnectionListener() {
-    	public void connectionDone( SocketChannel channel, String error_msg ) {
-    		if ( channel != null ) {
-    			socket = channel;
-    			connected = true;
-    		}
-    		else {
-    			msg = error_msg;
-    			connect_error = true;
-    		}
-    	}
-    };
+      listener = new SocketManager.OutboundConnectionListener() {
+        public void connectionDone( SocketChannel channel, String error_msg ) {
+          if ( channel != null ) {
+            socket = channel;
+            connected = true;
+          }
+          else {
+            msg = error_msg;
+            connect_error = true;
+          }
+        }
+      };
     
-    SocketManager.requestOutboundConnection( address, listener );
+      SocketManager.requestOutboundConnection( address, listener );
+    }
+    catch (Throwable t){
+      msg = t.getMessage();
+      connect_error = true;
+    }
 	}
 
 
