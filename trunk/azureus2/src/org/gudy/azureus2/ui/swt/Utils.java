@@ -21,9 +21,19 @@
  
 package org.gudy.azureus2.ui.swt;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.FontMetrics;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * @author Olivier
@@ -64,5 +74,39 @@ public class Utils {
       }    
       composite.setBackground(color);
     }
+
+  /**
+   * @param shell to set the dialog location if needed
+   * @param gridData to adjust the dialog with
+   * @param url the URL text control
+   *
+   * @author Rene Leonhardt
+   */
+  public static void setTextLinkFromClipboard(final Shell shell, final GridData gridData, final Text url) {
+    Clipboard cb = new Clipboard(shell.getDisplay());
+    TextTransfer transfer = TextTransfer.getInstance();
+    String data = (String) cb.getContents(transfer);
+    if (data != null) {
+      int begin = data.indexOf("http://");
+      if (begin >= 0) {
+        int end = data.indexOf("\n", begin + 7);
+        String stringURL = end >= 0 ? data.substring(begin, end - 1) : data.substring(begin);
+        try {
+          URL parsedURL = new URL(stringURL);
+          url.setText(parsedURL.toExternalForm());
+          GC gc = new GC(url);
+          FontMetrics fm = gc.getFontMetrics();
+          int width = (url.getText().length() + 10) * fm.getAverageCharWidth();
+          if (width > shell.getDisplay().getBounds().width) {
+            gridData.widthHint = shell.getDisplay().getBounds().width - 20;
+            shell.setLocation(0, 0);
+          } else {
+            gridData.widthHint = width;
+          }
+        } catch (MalformedURLException e1) {
+        }
+      }
+    }
+  }
 
 }
