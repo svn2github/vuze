@@ -53,7 +53,7 @@ LGLoggerImpl
 	
 	
 	private static boolean			log_to_file		= false;
-  private static boolean    log_to_stdout = System.getProperty("azureus.log.stdout") != null;
+  	private static boolean    log_to_stdout = System.getProperty("azureus.log.stdout") != null;
   
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
@@ -83,6 +83,18 @@ LGLoggerImpl
  			doRedirects();
 			
 			LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
+			
+			LGLogger.log( "java.home=" + System.getProperty("java.home"));
+			
+			LGLogger.log( "java.version=" + System.getProperty("java.version"));
+			
+			LGLogger.log( "os=" + 	System.getProperty("os.arch") + "/" + 
+									System.getProperty("os.name") + "/" + 
+									System.getProperty("os.version" ));
+			
+			LGLogger.log( "user.dir=" + System.getProperty("user.dir"));
+			
+			LGLogger.log( "user.home=" + System.getProperty("user.home"));
 			
 			if ( log_to_file ){
 				
