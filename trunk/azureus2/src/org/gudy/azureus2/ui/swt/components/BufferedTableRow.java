@@ -119,8 +119,7 @@ BufferedTableRow
 	{
   	if (item == null || item.isDisposed())
   	  return;
-		if (foreground == c ||
-		    (foreground != null && foreground.equals(c)))
+		if (foreground != null && foreground.equals(c))
 		  return;
 		
 		foreground = c;
@@ -286,9 +285,19 @@ BufferedTableRow
 		TableItem newItem = new TableItem( table, SWT.NULL, index );
 		newItem.setText(text_values);
 		newItem.setImage(image_values);
-		newItem.setForeground(foreground);
-		for (int i = 0; i < foreground_colors.length; i++)
-  		newItem.setForeground(i, foreground_colors[i]);
+		Color colorFG = item.getForeground();
+		Color colorBG = item.getBackground();
+		newItem.setForeground(colorFG);
+		newItem.setBackground(colorBG);
+		int numColumns = table.getColumnCount();
+		for (int i = 0; i < numColumns; i++) {
+		  Color colorColumnFG = item.getForeground(i);
+		  Color colorColumnBG = item.getBackground(i);
+		  if (!colorColumnFG.equals(colorFG))
+		    newItem.setForeground(i, colorColumnFG);
+		  if (!colorColumnBG.equals(colorBG))
+		    newItem.setBackground(i, colorColumnBG);
+		}
     if (getSelected())
       table.select(table.indexOf(newItem));
 		
