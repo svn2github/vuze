@@ -119,7 +119,7 @@ DiskManagerImpl
 		this.state = INITIALIZING;
 		this.percentDone = 0;
 		this.torrent = _torrent;
-		this.path = path;
+      this.path = path;
 
 		md5 = new Md5Hasher();
 		md5Result = ByteBuffer.allocate(16);
@@ -166,8 +166,8 @@ DiskManagerImpl
 			if (f.isDirectory()) {
 				fileName = localeUtil.getChoosableCharsetString( torrent.getName());
 			} else {
-				fileName = f.getName();
-				path = f.getParent();
+			  fileName = f.getName();
+			  path = f.getParent();
 			}
       
 			//if the data file is already in the completed files dir, we want to use it
@@ -685,6 +685,7 @@ DiskManagerImpl
 					  dumpBlockToDisk(elt);
 					} else {
 					  ByteBufferPool.getInstance().freeBuffer(elt.getData());
+					  elt.data = null;
 					}
 					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 				}
@@ -718,6 +719,7 @@ DiskManagerImpl
 			while (writeQueue.size() != 0) {
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
 				ByteBufferPool.getInstance().freeBuffer(elt.data);
+				elt.data = null;
 			}
 		}
 	}
@@ -1199,6 +1201,7 @@ DiskManagerImpl
 		}
 
 		ByteBufferPool.getInstance().freeBuffer(buffer);
+		buffer = null;
 	}
 
 	public int getPiecesNumber() {
@@ -1622,6 +1625,7 @@ DiskManagerImpl
         buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
         ByteBufferPool.getInstance().freeBuffer(buffer);
+        buffer = null;
         piece.addWrite(new PEPieceWrite(i,peer,hash));        
       }
       offset += length;

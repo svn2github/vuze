@@ -1617,6 +1617,7 @@ PEPeerControlImpl
           requestsToFree.remove(item);
           i--;
           ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+          item.setBuffer(null);
         }
         if (!item.isLoading()) {
           requestsToFree.remove(item);
