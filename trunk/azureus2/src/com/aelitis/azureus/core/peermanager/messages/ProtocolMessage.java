@@ -32,6 +32,7 @@ public interface ProtocolMessage {
   public static final int PRIORITY_LOW    = 0;
   public static final int PRIORITY_NORMAL = 1;
   public static final int PRIORITY_HIGH   = 2;
+  public static final int PRIORITY_URGENT = 3;
   
   
   /**

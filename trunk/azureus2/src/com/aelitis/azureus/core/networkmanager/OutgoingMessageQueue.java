@@ -24,7 +24,6 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -43,6 +42,8 @@ public class OutgoingMessageQueue {
   private final ArrayList add_listeners = new ArrayList();
   private final ArrayList sent_listeners = new ArrayList();
   private final ArrayList byte_listeners = new ArrayList();
+  private ProtocolMessage urgent_message = null;
+  
   
   /**
    * Create a new message queue transmitting over the given transport.
@@ -74,17 +75,27 @@ public class OutgoingMessageQueue {
   
   
   /**
+   * Whether or not an urgent message (one that needs an immediate send) is queued.
+   * @return true if there's a message tagged for immediate write
+   */
+  public boolean hasUrgentMessage() {  return urgent_message == null ? false : true;  }
+  
+  
+  /**
    * Add a message to the message queue.
    * @param message message to add
    */
   public void addMessage( ProtocolMessage message ) {
     removeMessagesOfType( message.typesToRemove() );
-    synchronized( queue ) {
+    synchronized( queue ) {  
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
         if( message.getPriority() > msg.getPriority() ) break;
         pos++;
+      }
+      if( message.getPriority() == ProtocolMessage.PRIORITY_URGENT ) {
+        urgent_message = message;
       }
       queue.add( pos, message );
       total_size += message.getPayload().remaining();
@@ -104,6 +115,7 @@ public class OutgoingMessageQueue {
         ProtocolMessage msg = (ProtocolMessage)i.next();
         for( int t=0; t < message_types.length; t++ ) {
         	if( msg.getType() == message_types[ t ] && msg.getPayload().position() == 0 ) {   //dont remove a half-sent message
+            if( msg == urgent_message ) urgent_message = null;            
             total_size -= msg.getPayload().remaining();
             msg.destroy();
         		i.remove();
@@ -127,6 +139,7 @@ public class OutgoingMessageQueue {
       if( index != -1 ) {
         ProtocolMessage msg = (ProtocolMessage)queue.get( index );
         if( msg.getPayload().position() == 0 ) {  //dont remove a half-sent message
+          if( msg == urgent_message ) urgent_message = null;  
           total_size -= msg.getPayload().remaining();
           msg.destroy();
           queue.remove( index );  
@@ -173,6 +186,7 @@ public class OutgoingMessageQueue {
           ProtocolMessage msg = (ProtocolMessage)queue.get( 0 );
           ByteBuffer bb = msg.getPayload().getBuffer();
           if( !bb.hasRemaining() ) {
+            if( msg == urgent_message ) urgent_message = null;
             total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
             LGLogger.log( LGLogger.CORE_NETWORK, "Sending " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
@@ -234,7 +248,7 @@ public class OutgoingMessageQueue {
    */
   public void registerAddedListener( AddedMessageListener listener ) {
     synchronized( add_listeners ) {
-      add_listeners.add( new WeakReference( listener ) );
+      add_listeners.add( listener );
     }
   }
   
@@ -245,7 +259,7 @@ public class OutgoingMessageQueue {
    */
   public void registerSentListener( SentMessageListener listener ) {
     synchronized( sent_listeners ) {
-      sent_listeners.add( new WeakReference( listener ) );
+      sent_listeners.add( listener );
     }
   }
   
@@ -256,7 +270,7 @@ public class OutgoingMessageQueue {
    */
   public void registerByteListener( ByteListener listener ) {
     synchronized( byte_listeners ) {
-      byte_listeners.add( new WeakReference( listener ) );
+      byte_listeners.add( listener );
     }
   }
   
@@ -264,14 +278,8 @@ public class OutgoingMessageQueue {
   private void notifyAddListeners( ProtocolMessage msg ) {
     synchronized( add_listeners ) {
       for( int i=0; i < add_listeners.size(); i++ ) {
-        WeakReference wr = (WeakReference)add_listeners.get( i );
-        AddedMessageListener listener = (AddedMessageListener)wr.get();
-        if ( listener == null ) {
-          add_listeners.remove( i );
-        }
-        else {
-          listener.messageAdded( msg );
-        }
+        AddedMessageListener listener = (AddedMessageListener)add_listeners.get( i );
+        listener.messageAdded( msg );
       }
     }
   }
@@ -280,14 +288,8 @@ public class OutgoingMessageQueue {
   private void notifySentListeners( ProtocolMessage msg ) {
     synchronized( sent_listeners ) {
       for( int i=0; i < sent_listeners.size(); i++ ) {
-        WeakReference wr = (WeakReference)sent_listeners.get( i );
-        SentMessageListener listener = (SentMessageListener)wr.get();
-        if ( listener == null ) {
-          sent_listeners.remove( i );
-        }
-        else {
-          listener.messageSent( msg );
-        }
+        SentMessageListener listener = (SentMessageListener)sent_listeners.get( i );
+        listener.messageSent( msg );
       }
     }
   }
@@ -296,14 +298,8 @@ public class OutgoingMessageQueue {
   private void notifyByteListeners( int byte_count ) {
     synchronized( byte_listeners ) {
       for( int i=0; i < byte_listeners.size(); i++ ) {
-        WeakReference wr = (WeakReference)byte_listeners.get( i );
-        ByteListener listener = (ByteListener)wr.get();
-        if ( listener == null ) {
-          byte_listeners.remove( i );
-        }
-        else {
-          listener.bytesSent( byte_count );
-        }
+        ByteListener listener = (ByteListener)byte_listeners.get( i );
+        listener.bytesSent( byte_count );
       }
     }
   }

@@ -32,14 +32,15 @@ import org.gudy.azureus2.core3.util.SystemTime;
  *
  */
 public class ConnectionPool {
+  private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
+  
   private final ConnectionPool parent_pool;
   private final LinkedList children_pools = new LinkedList();
   
   private final LinkedList connections = new LinkedList();
   private final ArrayList added_connections = new ArrayList();
   private final ArrayList removed_connections = new ArrayList();
-  
-  
+
   private final ByteBucket write_bytebucket;
   private float write_percent_of_max;
   
@@ -371,8 +372,8 @@ public class ConnectionPool {
       if( conn.isTransportReadyForWrite() ) {
         OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
         int size = omq.getTotalSize();
-        boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > 1000 ? true : false;
-        if( size >= mss_size || forced_flush ) {
+        boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > FLUSH_WAIT_TIME ? true : false;
+        if( size >= mss_size || forced_flush || omq.hasUrgentMessage() ) {
           if( size > mss_size )  size = mss_size;
           int written = 0;
           try {

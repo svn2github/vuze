@@ -35,20 +35,22 @@ public class Connection {
   private final OutgoingMessageQueue outgoing_message_q;
   private long last_new_write_data_added_time = 0;
   private boolean transport_ready_for_write = true;
+  
+  private final OutgoingMessageQueue.AddedMessageListener added_write_message_listener = new OutgoingMessageQueue.AddedMessageListener() {
+    public void messageAdded( ProtocolMessage message ) {
+      last_new_write_data_added_time = SystemTime.getCurrentTime();
+    }
+  };
     
   
   protected Connection( Transport transport, ConnectionListener listener ) {
     this.transport = transport;
     this.listener = listener;
     outgoing_message_q = new OutgoingMessageQueue( transport );
-    outgoing_message_q.registerAddedListener( new OutgoingMessageQueue.AddedMessageListener() {
-      public void messageAdded( ProtocolMessage message ) {
-        last_new_write_data_added_time = SystemTime.getCurrentTime();
-      }
-    });
+    outgoing_message_q.registerAddedListener( added_write_message_listener );
   }
   
-  
+
   protected Transport getTransport() {  return transport;  }
   
   protected void notifyOfException( Throwable error ) {  listener.notifyOfException( error );  }
