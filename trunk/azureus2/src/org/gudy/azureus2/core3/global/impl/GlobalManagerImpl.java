@@ -128,8 +128,10 @@ public class GlobalManagerImpl
 	private List 	managers			= new ArrayList();
 	private Map		manager_map			= new HashMap();
 	
-  private Checker checker;
-  private GlobalManagerStatsImpl	stats;
+	private TRHost	tracker_host;
+	
+	private Checker checker;
+	private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
   private StatsWriterPeriodic		stats_writer;
   private boolean 					isStopped = false;
@@ -262,9 +264,10 @@ public class GlobalManagerImpl
     	});
     
     loadDownloads();
-
     	
-    TRHostFactory.create().initialise( 
+    tracker_host = TRHostFactory.create();
+    
+    tracker_host.initialise( 
     	new TRHostTorrentFinder()
     	{
     		public TOTorrent
@@ -523,7 +526,7 @@ public class GlobalManagerImpl
     	
     	informDestroyInitiated();
     	
-    		// kick off a 'null' non-daemon task. This will ensure that we hang around
+    		// kick off a non-daemon task. This will ensure that we hang around
     		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
     		// torrent resume data...
     	
@@ -534,6 +537,8 @@ public class GlobalManagerImpl
 	    				public Object
 	    				run()
 	    				{	
+	    					tracker_host.close();
+	    					
 	    					return( null );
 	    				}
 	    			});

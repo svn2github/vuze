@@ -217,6 +217,24 @@ TRHostTorrentHostImpl
 		return( 0 );
 	}
 	
+	protected void
+	setAnnounceCount(
+		int		count )
+	{
+		try{
+			
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+			
+			if ( stats != null ){
+				
+				stats.setAnnounceCount(count);
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
 	public int
 	getCompletedCount()
 	{
@@ -236,6 +254,23 @@ TRHostTorrentHostImpl
 		return( 0 );	
 	}
 
+	protected void
+	setCompletedCount(
+		int		count )
+	{
+		try{
+			
+			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
+			
+			if ( stats != null ){
+				
+				stats.setCompletedCount(count);
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+	}
 	protected void
 	updateStats()
 	{
@@ -305,11 +340,25 @@ TRHostTorrentHostImpl
 		return( total_uploaded );
 	}
 	
+	protected void
+	setTotalUploaded(
+		long	l )
+	{
+		total_uploaded	= l;
+	}
+	
 	public long
 	getTotalDownloaded()
 	{
 		return( total_downloaded );
 	}	
+	
+	protected void
+	setTotalDownloaded(
+		long	l )
+	{
+		total_downloaded	= l;
+	}
 	
 	public long
 	getTotalLeft()

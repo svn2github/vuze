@@ -151,6 +151,8 @@ TRHostImpl
 											}
 										}
 										
+										config.saveConfig();
+										
 									}catch( InterruptedException e ){
 										
 										e.printStackTrace();
@@ -786,5 +788,11 @@ TRHostImpl
 				}
 			}
 		}
+	}
+	
+	public void
+	close()
+	{
+		config.saveConfig();
 	}
 }

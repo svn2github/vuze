@@ -77,4 +77,7 @@ TRHost
 	public void
 	removeListener(
 		TRHostListener	l );
+	
+	public void
+	close();
 }

@@ -29,9 +29,17 @@ TRTrackerServerTorrentStats
 {
 	public int
 	getAnnounceCount();
+
+	public void
+	setAnnounceCount(
+		int		count );
 	
 	public int
 	getCompletedCount();
+	
+	public void
+	setCompletedCount(
+		int		count );
 
 	public long
 	getUploaded();

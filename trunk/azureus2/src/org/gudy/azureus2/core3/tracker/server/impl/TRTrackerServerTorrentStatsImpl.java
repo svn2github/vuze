@@ -54,6 +54,13 @@ TRTrackerServerTorrentStatsImpl
 		return( announce_count );
 	}
 	
+	public void
+	setAnnounceCount(
+		int		count )
+	{
+		announce_count	= count;
+	}
+	
 	protected void
 	addCompleted()
 	{
@@ -64,6 +71,13 @@ TRTrackerServerTorrentStatsImpl
 	getCompletedCount()
 	{
 		return( completed_count );
+	}
+
+	public void
+	setCompletedCount(
+		int		count )
+	{
+		completed_count	= count;
 	}
 	
 	public long
@@ -121,6 +135,24 @@ TRTrackerServerTorrentStatsImpl
 		for(int i=0;i<peers.length;i++){
 			
 			res += peers[i].getNumberOfPeers();
+		}
+		
+		return( res );
+	}
+	
+	public int
+	getNumberOfSeeds()
+	{
+		TRTrackerServerPeer[]	peers = torrent.getPeers();
+		
+		int	res = 0;
+		
+		for(int i=0;i<peers.length;i++){
+			
+			if (peers[i].getAmountLeft() == 0 ){
+
+				res++;
+			}
 		}
 		
 		return( res );
