@@ -29,8 +29,8 @@ public interface IWizardPanel {
   
   public void show();
   
-  public AbstractWizardPanel getNextPanel();
-  public AbstractWizardPanel getPreviousPanel();
+  public IWizardPanel getNextPanel();
+  public IWizardPanel getPreviousPanel();
   
   public boolean isPreviousEnabled();
   public boolean isNextEnabled();

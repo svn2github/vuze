@@ -106,7 +106,7 @@ public class SingleFilePanel extends AbstractWizardPanel {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
    */
-  public AbstractWizardPanel getNextPanel() {
+  public IWizardPanel getNextPanel() {
     // TODO Auto-generated method stub
     return new SavePathPanel(wizard,this);
   }

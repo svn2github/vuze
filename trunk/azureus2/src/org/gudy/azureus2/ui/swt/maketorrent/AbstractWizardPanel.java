@@ -26,10 +26,10 @@ package org.gudy.azureus2.ui.swt.maketorrent;
  * 
  */
 public abstract class AbstractWizardPanel implements IWizardPanel {
-  protected AbstractWizardPanel previousPanel;
+  protected IWizardPanel previousPanel;
   protected Wizard wizard;
   
-  public AbstractWizardPanel(Wizard wizard,AbstractWizardPanel previousPanel) {
+  public AbstractWizardPanel(Wizard wizard,IWizardPanel previousPanel) {
     this.previousPanel = previousPanel;
     this.wizard = wizard;
   }
@@ -38,7 +38,7 @@ public abstract class AbstractWizardPanel implements IWizardPanel {
     return !(this.previousPanel == null);
   }
   
-  public AbstractWizardPanel getPreviousPanel() {
+  public IWizardPanel getPreviousPanel() {
     return previousPanel;
   }
     

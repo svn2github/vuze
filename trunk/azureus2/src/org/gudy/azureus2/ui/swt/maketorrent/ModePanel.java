@@ -131,7 +131,7 @@ public class ModePanel extends AbstractWizardPanel {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
    */
-  public AbstractWizardPanel getNextPanel() {
+  public IWizardPanel getNextPanel() {
     if(wizard.mode) {
       return new DirectoryPanel(wizard,this);
     } else {

@@ -45,7 +45,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class DirectoryPanel extends AbstractWizardPanel {
 
 
-  public DirectoryPanel(Wizard wizard, AbstractWizardPanel previous) {
+  public DirectoryPanel(Wizard wizard, IWizardPanel previous) {
     super(wizard, previous);
   }
     
@@ -105,7 +105,7 @@ public class DirectoryPanel extends AbstractWizardPanel {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
    */
-  public AbstractWizardPanel getNextPanel() {
+  public IWizardPanel getNextPanel() {
     // TODO Auto-generated method stub
     return new SavePathPanel(wizard,this);
   }
