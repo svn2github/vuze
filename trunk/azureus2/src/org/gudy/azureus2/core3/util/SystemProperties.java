@@ -43,7 +43,7 @@ public class SystemProperties {
     }
     
     // Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
-    user_path = System.getProperty("azureus.user.fullpath");
+    user_path = System.getProperty("azureus.user.fullpath"); //TODO <--- remove
     if ( user_path == null ) user_path = System.getProperty("azureus.config.path");
     if (user_path != null) {
       if (!user_path.endsWith(SEP))
@@ -52,119 +52,48 @@ public class SystemProperties {
       if (!dir.exists()) {
         dir.mkdirs();
       }
+      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Custom): user_path = " + user_path );
       return user_path;
     }
     
-    	// override for testing purposes
-    
-    String 	userhome 		= System.getProperty("azureus.user.home");
-    boolean home_overridden = false;
-    
-    if ( userhome != null ){
-    	
-    	LGLogger.log("SystemProperties::getUserPath: user.home overridden to '" + userhome +"'" );
-    	
-    	home_overridden	= true;
-    	
-    }else{
-    	
-    	userhome = System.getProperty("user.home");
-    	
-    	LGLogger.log( "SystemProperties::getUserPath: user.home = " + userhome );
-    }
+    String userhome = System.getProperty("user.home");
     
     String OS = System.getProperty("os.name").toLowerCase();
     
-    if ( OS.indexOf("windows") >= 0 ) {
-    	
-       	String	reg_app_dataz = null;
-    	
-    	try{
-    		reg_app_dataz = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
-    		
-    	}catch( Throwable e ){
-    		
-    		//e.printStackTrace();
-    	}
-    	
-   
-      LGLogger.log( "reg_app_data = " + reg_app_dataz  );
-
-      String user_dir_win = null;
-      
-      if ( !home_overridden && 
-           !new File(userhome + SEP + WIN_DEFAULT).exists() &&
-          (OS.indexOf("windows 9") == -1) && 
-          (OS.indexOf("windows me") == -1) )
-      {
-      		// we'd like to use APPDATA, which is on ascii systems something like
-      		// c:\documents and settings\<user>\application data
-      		// However, on non-ascii systems chars get mangled when getting APPDATA (something
-      		// to do with code pages/java encoding mismatches. SO the scheme is
-      		// 1) if the dir exists, use it
-      		// 2) if it doesn't, try and grab the last component of APPDATA and stick this
-      		//    on user.home. If this exists, use it.
-      		// 3) otherwise use the windows default
-        try {  
-        	
-        	String	reg_app_data = null;
-        	
-        	try{
-        		reg_app_data = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
-        		
-        	}catch( Throwable e ){
-        		
-        		//e.printStackTrace();
-        	}
-        	
-          user_dir_win = getEnvironmentalVariable( "APPDATA" );
+    if ( OS.indexOf("windows") >= 0 ) {   	
+      try { 
+        user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
+        LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from registry: " + user_path  );
+      }
+      catch ( Throwable e ){
+        LGLogger.log( LGLogger.CORE_SYSTEM, "Unable to retrieve user config path from registry. Make sure aereg.dll is present." );
         
-          LGLogger.log( "reg_app_data = " + reg_app_data + ", env_app_data = " + user_dir_win );
-          
-          if ( user_dir_win != null && user_dir_win != "" ){
-
-            if ( !new File( user_dir_win ).exists()){
-
-              int	sp = user_dir_win.lastIndexOf( SEP );
-
-              if ( sp == -1 ){
-
-                user_dir_win = null;
-
-              }else{
-
-                user_dir_win = userhome +  user_dir_win.substring( sp );
-
-                if ( !new File(user_dir_win).exists()){
-
-                  user_dir_win	= null;
-                }
-              }
-            }
-          }
-        } catch (Throwable e) {
-          e.printStackTrace();
+        user_path = getEnvironmentalVariable( "APPDATA" );
+        
+        if ( user_path != null && user_path.length() > 0 ) {
+          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from APPDATA env var instead: " + user_path  );
+        }
+        else {
+          user_path = userhome + SEP + WIN_DEFAULT;
+          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from java user.home var instead: " + user_path  );
         }
       }
+    	
+      user_path = user_path + SEP + AZ_DIR + SEP;
       
-      if ( user_dir_win == null || user_dir_win.length() < 1 ) {  //couldn't find env var, use default
-        user_dir_win = userhome + SEP + WIN_DEFAULT;
-      }
+      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + user_path );
       
-      user_path = user_dir_win + SEP + AZ_DIR + SEP;
-      
-      LGLogger.log( "SystemProperties::getUserPath(Win): user_path = " + user_path );
     }else if ( OS.indexOf("mac os x") >= 0 ) {
     	
       user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
       
-      LGLogger.log( "SystemProperties::getUserPath(Mac): user_path = " + user_path );
+      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Mac): user_path = " + user_path );
     
     }else{
     	
       user_path = userhome + SEP + AZ_DIR + SEP;
       
-      LGLogger.log( "SystemProperties::getUserPath(Unix): user_path = " + user_path );
+      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + user_path );
     }
     
     //if the directory doesn't already exist, create it
@@ -206,7 +135,7 @@ public class SystemProperties {
   /**
    * Will attempt to retrieve an OS-specific environmental var.
    */
-  private static String getEnvironmentalVariable( final String _var) {
+  public static String getEnvironmentalVariable( final String _var ) {
   	Process p = null;
   	Properties envVars = new Properties();
   	Runtime r = Runtime.getRuntime();
@@ -223,7 +152,7 @@ public class SystemProperties {
     
     	String system_encoding = LocaleUtil.getSystemEncoding();
     	
-        LGLogger.log( "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
+    	LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
 
     	br = new BufferedReader( new InputStreamReader( p.getInputStream(), system_encoding), 8192);
     	String line;
@@ -232,8 +161,6 @@ public class SystemProperties {
     		if (idx >= 0) {
       		String key = line.substring( 0, idx );
       		String value = line.substring( idx+1 );
-      		
-      		LGLogger.log( "\t" + key + " = " + value );
       		envVars.setProperty( key, value );
       	}
     	}
