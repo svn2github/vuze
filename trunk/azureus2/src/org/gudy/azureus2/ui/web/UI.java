@@ -14,11 +14,9 @@ import org.apache.log4j.Logger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
-import org.gudy.azureus2.ui.common.LocaleUtilHeadless;
 
 /**
  *

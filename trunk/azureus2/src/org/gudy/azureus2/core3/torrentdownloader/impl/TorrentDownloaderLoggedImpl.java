@@ -26,6 +26,7 @@ public class TorrentDownloaderLoggedImpl extends TorrentDownloaderImpl {
             break;
           case STATE_ERROR:
             org.apache.log4j.Logger.getLogger("azureus2.torrentdownloader").error(this.getError());
+            break;
           case STATE_DUPLICATE:
             org.apache.log4j.Logger.getLogger("azureus2.torrentdownloader").error("Download of '"+this.getFile().getName()+"' cancelled. File is already queued or downloading.");
       }
