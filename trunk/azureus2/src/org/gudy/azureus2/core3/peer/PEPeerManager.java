@@ -115,6 +115,8 @@ PEPeerManager
 	
 	// Time Started in ms
 	public long getTimeStarted();
+
+	public long getTimeStartedSeeding();
 	
 	public void
 	addListener(

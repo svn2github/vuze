@@ -162,4 +162,16 @@ DownloadStatsImpl
 	{
 		return( dm_stats.getAvailability());
 	}
+
+	public long getSecondsOnlySeeding() {
+		return dm_stats.getSecondsOnlySeeding();
+	}
+
+	public long getSecondsDownloading() {
+	  return dm_stats.getSecondsDownloading();
+	}
+
+	public long getTimeStartedSeeding() {
+	  return dm_stats.getTimeStartedSeeding();
+	}
 }

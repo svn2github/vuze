@@ -108,13 +108,24 @@ DownloadManagerStats
 	// in ms
 	public long
 	getTimeStarted();
-		
+
+  /* -1 if not seeding */		
+	public long
+	getTimeStartedSeeding();
+
 	public long
 	getETA();
 	
 	public float
 	getAvailability();
 		
+
+	public long 
+	getSecondsDownloading();
+
+	public long 
+	getSecondsOnlySeeding();
+
 		// set methods
 
 	public void
@@ -143,4 +154,9 @@ DownloadManagerStats
 	sent(
 		int		l );
 
+	public void 
+	setSecondsOnlySeeding(long seconds);
+	
+	public void 
+	setSecondsDownloading(long seconds);
 }

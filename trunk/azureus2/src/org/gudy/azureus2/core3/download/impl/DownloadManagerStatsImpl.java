@@ -50,6 +50,10 @@ DownloadManagerStatsImpl
   
 	protected long saved_discarded = 0;
 	protected long saved_hashfails = 0;
+	
+	protected long saved_SecondsDownloading = 0;
+	protected long saved_SecondsOnlySeeding = 0;
+	
   
 
 	protected
@@ -195,9 +199,8 @@ DownloadManagerStatsImpl
 	public void setMaxUploads(int i) {
 	  maxUploads = i;
 	}
-	public String 
-	getElapsedTime() 
-	{
+
+	public String getElapsedTime() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null)
@@ -205,12 +208,19 @@ DownloadManagerStatsImpl
 	  return ""; //$NON-NLS-1$
 	}
 	
-	public long getTimeStarted()
-	{
+	public long getTimeStarted() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 	  if (pm != null)
 		  return pm.getTimeStarted();
+		return -1;
+	}
+
+	public long getTimeStartedSeeding() {
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+	  if (pm != null)
+		  return pm.getTimeStartedSeeding();
 		return -1;
 	}
 
@@ -315,6 +325,38 @@ DownloadManagerStatsImpl
 	{
 		return( saved_uploaded );
 	}
+	
+	public long getSecondsDownloading() {
+	  long lTimeStartedDL = getTimeStarted();
+	  if (lTimeStartedDL >= 0) {
+  	  long lTimeEndedDL = getTimeStartedSeeding();
+  	  if (lTimeEndedDL == -1) {
+  	    lTimeEndedDL = System.currentTimeMillis() / 1000;
+  	  }
+  	  if (lTimeEndedDL > lTimeStartedDL) {
+    	  return saved_SecondsDownloading + (lTimeEndedDL - lTimeStartedDL);
+    	}
+  	}
+	  return saved_SecondsDownloading;
+	}
+
+	public long getSecondsOnlySeeding() {
+	  long lTimeStarted = getTimeStartedSeeding();
+	  if (lTimeStarted >= 0) {
+	    return saved_SecondsOnlySeeding + 
+	           ((System.currentTimeMillis() - lTimeStarted) / 1000);
+	  }
+	  return saved_SecondsOnlySeeding;
+	}
+	
+	public void setSecondsDownloading(long seconds) {
+	  saved_SecondsDownloading = seconds;
+	}
+
+	public void setSecondsOnlySeeding(long seconds) {
+	  saved_SecondsOnlySeeding = seconds;
+	}
+
 	
 	public float
 	getAvailability()

@@ -152,7 +152,7 @@ DownloadStats
 	getElapsedTime();
 	
 	/**
-	 * Gices the estimated time to completion as a string
+	 * Gives the estimated time to completion as a string
 	 * @return
 	 */
 	
@@ -178,11 +178,37 @@ DownloadStats
 	public long
 	getTimeStarted();
 	
+  /* Time that the torrent started seeding.
+   * @return the difference, measured in milliseconds, between the torrent 
+   *         started seeding and midnight, January 1, 1970 UTC.  see
+   *         System.currentTimeMillis().
+   *         -1 is not seeding
+   */		
+	public long
+	getTimeStartedSeeding();
+
 	/**
-	 * gives the currently seen availability of the torrent
+	 * Gives the currently seen availability of the torrent
 	 * @return
 	 */
-	
 	public float
 	getAvailability();
+
+
+  /* Return the # of seconds that the torrent has been downloading.  This 
+   * number is totalled across sessions.
+   *
+   * @return -1 if it has never downloaded
+   */
+	public long 
+	getSecondsDownloading();
+
+  /* Return the # of seconds that the torrent has been only seeding.  This 
+   * number is totalled across sessions, and does not include the time
+   * seeding during the download phase.
+   *
+   * @return -1 if it has never seeded
+   */
+	public long 
+	getSecondsOnlySeeding();
 }

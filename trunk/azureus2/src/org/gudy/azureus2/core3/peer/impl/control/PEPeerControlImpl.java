@@ -74,6 +74,7 @@ PEPeerControlImpl
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
   private long _timeStarted;
+  private long _timeStartedSeeding = -1;
   private long _timeFinished;
   private Average _averageReceptionSpeed;
   private PEPeerTransport currentOptimisticUnchoke;
@@ -750,6 +751,7 @@ PEPeerControlImpl
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
+      _timeStartedSeeding = System.currentTimeMillis();
       
       if ( !looks_like_restart ){
       
@@ -1799,6 +1801,10 @@ PEPeerControlImpl
   public long getTimeStarted() {
     return _timeStarted;
   }
+
+  public long getTimeStartedSeeding() {
+    return _timeStartedSeeding;
+  }
   
   
   /**
@@ -2199,7 +2205,7 @@ PEPeerControlImpl
 
     if(selectedPeer.getUploadHint() == 0) {
       //Set to infinite
-      selectedPeer.setUploadHint(864001 * 1000);
+      selectedPeer.setUploadHint(Constants.INFINITY_AS_INT);
     }
     
 		//Find a piece
