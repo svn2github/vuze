@@ -3373,8 +3373,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   	final int			type,
     final String		title,
     final String		message,
-    final String details
-   )
+    final String 		details )
   {
   	final Display display = getWindow().getDisplay();
   
@@ -3409,7 +3408,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 				icon_str = MessagePopupShell.ICON_ERROR;
 			}
 	 
-			MessagePopupShell eps = new MessagePopupShell(display,icon_str,title,message,details);
+			MessagePopupShell eps = new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
 		}
  	});
    }

@@ -31,6 +31,7 @@ import java.util.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
@@ -58,7 +59,8 @@ WebPlugin
 	protected String				file_root;
 	protected String				resource_root;
 	
-	protected boolean				local_only;
+	protected boolean				ip_range_all	= false;
+	protected IpRange				ip_range;
 	
 	public void 
 	initialize(
@@ -173,10 +175,50 @@ WebPlugin
 	
 		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str + ", root = " + root_dir );
 		
-		String	access_str = props.getProperty( "access", DEFAULT_ACCESS );
+		String	access_str = props.getProperty( "access", DEFAULT_ACCESS ).trim();
 		
-		local_only = access_str.equalsIgnoreCase( "local" );
+		if ( access_str.length() > 7 && Character.isDigit(access_str.charAt(0))){
+			
+			ip_range	= IpFilter.getInstance().createRange(true);
+			
+			int	sep = access_str.indexOf("-");
+				
+			if ( sep == -1 ){
+				
+				ip_range.setStartIp( access_str );
+				
+				ip_range.setEndIp( access_str );
+				
+			}else{				
+				
+				ip_range.setStartIp( access_str.substring(0,sep).trim());
+				
+				ip_range.setEndIp( access_str.substring( sep+1 ).trim());
+			}
+			
+			ip_range.checkValid();
+			
+			if (!ip_range.isValid()){
+			
+				log.log( LoggerChannel.LT_ERROR, "access parameter '" + access_str + "' is invalid" );
+			
+				ip_range	= null;
+			}
+		}else{
+			
+			if ( access_str.equalsIgnoreCase( "all" )){
+								
+				ip_range_all	= true;				
+			}
+		}
 		
+		log.log( 	LoggerChannel.LT_INFORMATION, 
+					"acceptable IP range = " +
+						( ip_range==null?
+							(ip_range_all?"all":"local"):
+							(ip_range.getStartIp() + " - " + ip_range.getEndIp())));
+				
+							
 		try{
 			TrackerWebContext	context = tracker.createWebContext( port, protocol );
 		
@@ -205,18 +247,31 @@ WebPlugin
 	
 		throws IOException
 	{
-		if ( local_only ){
+		if ( !ip_range_all ){
 		
 			String	client = request.getClientAddress();
 			
 			// System.out.println( "client = " + client );
 			
 			try{
-				if ( !InetAddress.getByName(client).isLoopbackAddress()){
-			
-					System.out.println( "WebPlugin: Client '" + client + "' is not local, rejecting" );
+				InetAddress ia = InetAddress.getByName( client );
+				
+				if ( ip_range == null ){
 					
-					return( false );
+					if ( !ia.isLoopbackAddress()){
+				
+						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' is not local, rejecting" );
+						
+						return( false );
+					}
+				}else{
+					
+					if ( !ip_range.isInRange( ia.getHostAddress())){
+						
+						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + ia.getHostAddress() + ") is not in range, rejecting" );
+						
+						return( false );
+					}
 				}
 			}catch( Throwable e ){
 				
