@@ -283,8 +283,10 @@ PEPeerControlImpl
         
         long loop_time = SystemTime.getCurrentTime() - start_time;
         
-        if( loop_time < 100 ) {
-          try {  Thread.sleep( 100 - loop_time );  } catch(Exception e) {}
+        //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
+        
+        if( loop_time < 50 ) {
+          try {  Thread.sleep( 50 - loop_time );  } catch(Exception e) {}
         }
 
       }
