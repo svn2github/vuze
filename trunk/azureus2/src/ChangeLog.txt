@@ -4,9 +4,12 @@ AZUREUS CHANGELOG
 
 2004.07.xx | Azureus 2.1.0.5
 
+CHANGE: Parg | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
+CHANGE: Parg | Timeout tracker server operations [Parg]
+
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
-
+BUGFIX: Plug | Netgear WGT624 was crashing when processing UPnP requests [Parg]
 
 
 
