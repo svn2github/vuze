@@ -123,7 +123,7 @@ PEPeerTransportImpl
 	    Socket sck = socket.socket();
 
 	    if (socket.isOpen()) {
-         if (sck.isConnected()) {
+         if (socket.isConnected()) {
 	        if (!sck.isInputShutdown()) sck.shutdownInput();
 	        if (!sck.isOutputShutdown()) sck.shutdownOutput();
          }
@@ -136,7 +136,16 @@ PEPeerTransportImpl
 		 } 
 	  }
 	  catch (Exception e){
-	    Debug.out("exception trying to close socket:");
+	    String msg = "exception trying to close socket:\n";
+       msg = msg + " cOpen=" + socket.isOpen();
+       msg = msg + " cConnected=" + socket.isConnected();
+       msg = msg + " cPending=" + socket.isConnectionPending();
+       msg = msg + " sClosed=" + socket.socket().isClosed();
+       msg = msg + " sConnected=" + socket.socket().isConnected();
+       msg = msg + " sInptShtdwn=" + socket.socket().isInputShutdown();
+       msg = msg + " sOutptShtdwn=" + socket.socket().isOutputShutdown();
+       msg = msg + " sBound=" + socket.socket().isBound();
+       Debug.out(msg);
 	    e.printStackTrace();
 	  }
 	}
