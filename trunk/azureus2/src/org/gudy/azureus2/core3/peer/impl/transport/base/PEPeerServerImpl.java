@@ -56,7 +56,17 @@ PEPeerServerImpl
 
   public static boolean portsFree() {
     int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
-    int hp = COConfigurationManager.getIntParameter("High Port", 6889);
+	
+	boolean sp = COConfigurationManager.getBooleanParameter("Server.shared.port", true);
+
+    int hp;
+    
+    if ( sp ){
+    	hp = lp;
+    }else{
+    	hp = COConfigurationManager.getIntParameter("High Port", 6889);
+    }
+    
     int lowPort = Math.min(lp, hp);
     int highPort = Math.max(lp, hp);
 	 return Math.abs(lowPort - highPort) + 1 > instanceCount;
