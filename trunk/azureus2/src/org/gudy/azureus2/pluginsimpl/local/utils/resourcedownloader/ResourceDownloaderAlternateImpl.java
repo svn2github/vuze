@@ -53,14 +53,22 @@ ResourceDownloaderAlternateImpl
 	
 	public
 	ResourceDownloaderAlternateImpl(
-		ResourceDownloader[]	_delegates,
-		int						_max_to_try,
-		boolean					_random )
+		ResourceDownloaderBaseImpl	_parent,
+		ResourceDownloader[]		_delegates,
+		int							_max_to_try,
+		boolean						_random )
 	{
+		super( _parent );
+		
 		delegates		= _delegates;
 		max_to_try		= _max_to_try;
 		random			= _random;
 		
+		for (int i=0;i<delegates.length;i++){
+			
+			((ResourceDownloaderBaseImpl)delegates[i]).setParent( this );
+		}
+
 		if ( max_to_try < 0 ){
 			
 			max_to_try = delegates.length;
@@ -120,7 +128,7 @@ ResourceDownloaderAlternateImpl
 			for (int i=0;i<max_to_try;i++){
 				
 				try{
-					ResourceDownloader c = ((ResourceDownloaderBaseImpl)delegates[i]).getClone();
+					ResourceDownloader c = ((ResourceDownloaderBaseImpl)delegates[i]).getClone( this );
 					
 					addReportListener( c );
 					
@@ -155,16 +163,18 @@ ResourceDownloaderAlternateImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
 	{
 		ResourceDownloader[]	clones = new ResourceDownloader[delegates.length];
 		
 		for (int i=0;i<delegates.length;i++){
 			
-			clones[i] = ((ResourceDownloaderBaseImpl)delegates[i]).getClone();
+			clones[i] = ((ResourceDownloaderBaseImpl)delegates[i]).getClone( this );
 		}
 		
-		ResourceDownloaderAlternateImpl c = new ResourceDownloaderAlternateImpl( clones, max_to_try, random );
+		ResourceDownloaderAlternateImpl c = 
+			new ResourceDownloaderAlternateImpl( parent, clones, max_to_try, random );
 		
 		c.setSize(size);
 		
@@ -208,12 +218,12 @@ ResourceDownloaderAlternateImpl
 			
 		}else{
 		
-			current_index++;
+			current_downloader = ((ResourceDownloaderBaseImpl)delegates[current_index]).getClone( this );
+							
+			informActivity( getLogIndent() + "Downloading: " + getName());
 			
-			current_downloader = ((ResourceDownloaderBaseImpl)delegates[current_index-1]).getClone();
-			
-			informActivity( "download attempt using " + current_downloader.getName());
-			
+			current_index++;			
+
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();

@@ -47,14 +47,14 @@ ResourceDownloaderFactoryImpl
 	create(
 		URL		url )
 	{
-		return( new ResourceDownloaderImpl( url ));
+		return( new ResourceDownloaderImpl( null, url ));
 	}
 	
 	public ResourceDownloader
 	create(
 		ResourceDownloaderDelayedFactory		factory )
 	{
-		return( new ResourceDownloaderDelayedImpl( factory ));
+		return( new ResourceDownloaderDelayedImpl( null, factory ));
 	}
 	
 	public ResourceDownloader
@@ -62,7 +62,9 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader		downloader,
 		int						retry_count )
 	{
-		return( new ResourceDownloaderRetryImpl( downloader, retry_count ));
+		ResourceDownloader res = new ResourceDownloaderRetryImpl( null, downloader, retry_count );
+
+		return( res );
 	}
 	
 	public ResourceDownloader
@@ -70,14 +72,16 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader		downloader,
 		int						timeout_millis )
 	{
-		return( new ResourceDownloaderTimeoutImpl( downloader, timeout_millis ));
+		ResourceDownloader res = new ResourceDownloaderTimeoutImpl( null, downloader, timeout_millis );
+		
+		return( res );
 	}
 	
 	public ResourceDownloader
 	getAlternateDownloader(
 		ResourceDownloader[]		downloaders )
 	{
-		return( new ResourceDownloaderAlternateImpl( downloaders, -1, false ));
+		return( getAlternateDownloader( downloaders, -1, false ));
 	}
 	
 	public ResourceDownloader
@@ -85,14 +89,14 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader[]		downloaders,
 		int							max_to_try )
 	{
-		return( new ResourceDownloaderAlternateImpl( downloaders, max_to_try, false ));
+		return( getAlternateDownloader( downloaders, max_to_try, false ));
 	}
 	
 	public ResourceDownloader
 	getRandomDownloader(
 		ResourceDownloader[]		downloaders )
 	{
-		return( new ResourceDownloaderAlternateImpl( downloaders, -1, true ));
+		return( getAlternateDownloader( downloaders, -1, true ));
 	}
 	
 	public ResourceDownloader
@@ -100,13 +104,26 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader[]		downloaders,
 		int							max_to_try )
 	{
-		return( new ResourceDownloaderAlternateImpl( downloaders, max_to_try, true ));
+		return( getAlternateDownloader( downloaders, max_to_try, true ));
+	}
+	
+	protected ResourceDownloader
+	getAlternateDownloader(
+		ResourceDownloader[]		downloaders,
+		int							max_to_try,
+		boolean						random )
+	{
+		ResourceDownloader res = new ResourceDownloaderAlternateImpl( null, downloaders, max_to_try, random );
+				
+		return( res );
 	}
 	
 	public ResourceDownloader
 	getMetaRefreshDownloader(
 		ResourceDownloader			downloader )
 	{
-		return( new ResourceDownloaderMetaRefreshImpl( downloader ));
+		ResourceDownloader res = new ResourceDownloaderMetaRefreshImpl( null, downloader );
+				
+		return( res );
 	}
 }

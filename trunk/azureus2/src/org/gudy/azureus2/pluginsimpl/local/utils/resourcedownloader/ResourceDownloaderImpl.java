@@ -49,8 +49,11 @@ ResourceDownloaderImpl
 	
 	public 
 	ResourceDownloaderImpl(
-		URL		_url )
+		ResourceDownloaderBaseImpl	_parent,
+		URL							_url )
 	{
+		super( _parent );
+		
 		original_url	= _url;
 	}
 	
@@ -70,7 +73,7 @@ ResourceDownloaderImpl
 		if ( size == -2 ){
 			
 			try{
-				ResourceDownloaderImpl c = (ResourceDownloaderImpl)getClone();
+				ResourceDownloaderImpl c = (ResourceDownloaderImpl)getClone( this );
 				
 				addReportListener( c );
 				
@@ -183,9 +186,10 @@ ResourceDownloaderImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderImpl c = new ResourceDownloaderImpl( original_url );
+		ResourceDownloaderImpl c = new ResourceDownloaderImpl( parent, original_url );
 		
 		c.setSize( size );
 		
@@ -222,7 +226,7 @@ ResourceDownloaderImpl
 		// System.out.println("ResourceDownloader:download - " + getName());
 		
 		try{
-			reportActivity(this, "downloading " + original_url );
+			reportActivity(this, getLogIndent() + "Downloading: " + original_url );
 			
 			synchronized( this ){
 				
@@ -312,6 +316,13 @@ ResourceDownloaderImpl
 							
 							break;
 						}
+					}
+					
+						// if we've got a size, make sure we've read all of it
+					
+					if ( size > 0 && total_read != size ){
+						
+						throw( new IOException( "Premature end of stream" ));
 					}
 				}finally{
 					

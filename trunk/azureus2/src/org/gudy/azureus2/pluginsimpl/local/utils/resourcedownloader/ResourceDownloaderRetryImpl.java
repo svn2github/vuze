@@ -50,10 +50,16 @@ ResourceDownloaderRetryImpl
 	
 	public
 	ResourceDownloaderRetryImpl(
-		ResourceDownloader	_delegate,
-		int					_retry_count )
+		ResourceDownloaderBaseImpl	_parent,
+		ResourceDownloader		_delegate,
+		int						_retry_count )
 	{
+		super( _parent );
+		
 		delegate		= (ResourceDownloaderBaseImpl)_delegate;
+		
+		delegate.setParent( this );
+
 		retry_count		= _retry_count;
 	}
 	
@@ -77,7 +83,7 @@ ResourceDownloaderRetryImpl
 			for (int i=0;i<retry_count;i++){
 				
 				try{
-					ResourceDownloader c =  delegate.getClone();
+					ResourceDownloader c =  delegate.getClone( this );
 					
 					addReportListener( c );
 					
@@ -112,9 +118,10 @@ ResourceDownloaderRetryImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl parent )
 	{
-		ResourceDownloaderRetryImpl c =  new ResourceDownloaderRetryImpl( delegate.getClone(), retry_count );
+		ResourceDownloaderRetryImpl c =  new ResourceDownloaderRetryImpl( parent, delegate.getClone( this ), retry_count );
 		
 		c.setSize(size);
 		
@@ -153,10 +160,10 @@ ResourceDownloaderRetryImpl
 			
 			if ( done_count > 1 ){
 				
-				informActivity( "download attempt " + done_count + " of " + retry_count );
+				informActivity( getLogIndent() + "  attempt " + done_count + " of " + retry_count );
 			}
 			
-			current_downloader = delegate.getClone();
+			current_downloader = delegate.getClone( this );
 			
 			current_downloader.addListener( this );
 			

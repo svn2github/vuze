@@ -42,6 +42,7 @@ public class SWTDownloader extends ResourceDownloaderBaseImpl implements Resourc
   URLDownloader downloader;
   
   public SWTDownloader(String platform) {
+  	super(null);
     this.platform = platform;
     new SWTDownloadURLsGetter(this);
     try {
@@ -111,7 +112,7 @@ public class SWTDownloader extends ResourceDownloaderBaseImpl implements Resourc
   /* (non-Javadoc)
    * @see org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderBaseImpl#getClone()
    */
-  public ResourceDownloader getClone() {
+  public ResourceDownloader getClone(ResourceDownloaderBaseImpl parent) {
     // TODO Auto-generated method stub
     return null;
   }

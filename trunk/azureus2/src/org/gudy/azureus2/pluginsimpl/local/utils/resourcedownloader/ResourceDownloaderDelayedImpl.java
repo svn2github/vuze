@@ -37,12 +37,15 @@ ResourceDownloaderDelayedImpl
 {
 	protected ResourceDownloaderDelayedFactory		factory;
 	
-	protected ResourceDownloader		delegate;
+	protected ResourceDownloaderBaseImpl		delegate;
 		
 	protected
 	ResourceDownloaderDelayedImpl(
+		ResourceDownloaderBaseImpl				_parent,
 		ResourceDownloaderDelayedFactory		_factory )
 	{
+		super( _parent );
+		
 		factory	= _factory;
 	}
 	
@@ -52,11 +55,13 @@ ResourceDownloaderDelayedImpl
 		if ( delegate == null ){
 			
 			try{
-				delegate	= factory.create();
+				delegate	= (ResourceDownloaderBaseImpl)factory.create();
+				
+				delegate.setParent( this );
 				
 			}catch(  ResourceDownloaderException e ){
 				
-				delegate = new ResourceDownloaderErrorImpl( e );
+				delegate = new ResourceDownloaderErrorImpl( this, e );
 			}
 		}
 	}
@@ -64,17 +69,19 @@ ResourceDownloaderDelayedImpl
 	public String
 	getName()
 	{
-		getDelegate();
+		if ( delegate == null ){
+			
+			return( "<...>" );
+		}
 		
 		return( delegate.getName());
 	}
 	
 	public ResourceDownloader
-	getClone()
-	{
-		getDelegate();
-		
-		return(((ResourceDownloaderBaseImpl)delegate).getClone());
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
+	{		
+		return( new ResourceDownloaderDelayedImpl( parent, factory ));
 	}
 	
 	public InputStream

@@ -39,8 +39,11 @@ ResourceDownloaderErrorImpl
 	
 	protected
 	ResourceDownloaderErrorImpl(
+		ResourceDownloaderBaseImpl	_parent,
 		ResourceDownloaderException	_error )
 	{
+		super( _parent );
+		
 		error	= _error;
 	}
 			
@@ -51,7 +54,8 @@ ResourceDownloaderErrorImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
 	{
 		return( this );
 	}

@@ -51,17 +51,23 @@ ResourceDownloaderTimeoutImpl
 	
 	public
 	ResourceDownloaderTimeoutImpl(
-		ResourceDownloader	_delegate,
-		int					_timeout_millis )
+		ResourceDownloaderBaseImpl	_parent,
+		ResourceDownloader			_delegate,
+		int							_timeout_millis )
 	{
+		super( _parent );
+		
 		delegate			= (ResourceDownloaderBaseImpl)_delegate;
+		
+		delegate.setParent( this );
+
 		timeout_millis		= _timeout_millis;
 	}
 	
 	public String
 	getName()
 	{
-		return( delegate.getName() + ", timeout=" + timeout_millis );
+		return( delegate.getName() + ": timeout=" + timeout_millis );
 	}
 	
 	public long
@@ -75,7 +81,7 @@ ResourceDownloaderTimeoutImpl
 		}
 		
 		try{
-			ResourceDownloaderTimeoutImpl x = new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis );
+			ResourceDownloaderTimeoutImpl x = new ResourceDownloaderTimeoutImpl( getParent(), delegate.getClone( this ), timeout_millis );
 		
 			addReportListener( x );
 			
@@ -100,9 +106,10 @@ ResourceDownloaderTimeoutImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderTimeoutImpl c = new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis );
+		ResourceDownloaderTimeoutImpl c = new ResourceDownloaderTimeoutImpl( getParent(), delegate.getClone( parent ), timeout_millis );
 		
 		c.setSize( size );
 		
@@ -131,8 +138,10 @@ ResourceDownloaderTimeoutImpl
 	{		
 		if ( !cancelled ){
 			
-			current_downloader = delegate.getClone();
+			current_downloader = delegate.getClone( this );
 			
+			informActivity( getLogIndent() + "Downloading: " + getName());
+
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();
@@ -182,7 +191,7 @@ ResourceDownloaderTimeoutImpl
 	{		
 		if ( !cancelled ){
 			
-			current_downloader = delegate.getClone();
+			current_downloader = delegate.getClone( this );
 					
 			Thread	size_thread = new Thread( "ResourceDownloader:size getter" )
 				{

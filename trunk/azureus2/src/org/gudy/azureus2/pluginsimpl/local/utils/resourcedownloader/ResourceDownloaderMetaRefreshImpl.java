@@ -54,9 +54,14 @@ ResourceDownloaderMetaRefreshImpl
 			
 	public
 	ResourceDownloaderMetaRefreshImpl(
-		ResourceDownloader	_delegate )
+		ResourceDownloaderBaseImpl	_parent,
+		ResourceDownloader			_delegate )
 	{
+		super( _parent );
+		
 		delegate		= (ResourceDownloaderBaseImpl)_delegate;
+		
+		delegate.setParent( this );
 		
 		current_delegate	= delegate;
 	}
@@ -64,7 +69,7 @@ ResourceDownloaderMetaRefreshImpl
 	public String
 	getName()
 	{
-		return( delegate.getName() + ", meta-refresh follower" );
+		return( delegate.getName() + ": meta-refresh" );
 	}
 	
 	public long
@@ -95,7 +100,7 @@ ResourceDownloaderMetaRefreshImpl
 		throws ResourceDownloaderException
 	{
 		try{
-			ResourceDownloader	x = delegate.getClone();
+			ResourceDownloader	x = delegate.getClone( this );
 			
 			addReportListener( x );
 			
@@ -105,14 +110,14 @@ ResourceDownloaderMetaRefreshImpl
 	
 			if ( redirect == null ){
 				
-				ResourceDownloader c = delegate.getClone();
+				ResourceDownloader c = delegate.getClone( this );
 				
 				addReportListener( c );
 				
 				return( c.getSize());
 			}else{
 				
-				ResourceDownloaderImpl c =  new ResourceDownloaderImpl( redirect );
+				ResourceDownloaderImpl c =  new ResourceDownloaderImpl( getParent(), redirect );
 				
 				addReportListener( c );
 				
@@ -133,9 +138,10 @@ ResourceDownloaderMetaRefreshImpl
 	}
 	
 	public ResourceDownloader
-	getClone()
+	getClone(
+		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderMetaRefreshImpl c = new ResourceDownloaderMetaRefreshImpl( delegate.getClone());
+		ResourceDownloaderMetaRefreshImpl c = new ResourceDownloaderMetaRefreshImpl( parent, delegate.getClone( this ));
 		
 		c.setSize( size );
 		
@@ -172,8 +178,10 @@ ResourceDownloaderMetaRefreshImpl
 		
 			done_count++;
 						
-			current_downloader = current_delegate.getClone();
+			current_downloader = current_delegate.getClone( this );
 			
+			informActivity( getLogIndent() + "Downloading: " + getName());
+
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();
@@ -239,9 +247,9 @@ ResourceDownloaderMetaRefreshImpl
 					
 				}else{
 				
-					current_delegate = new ResourceDownloaderImpl( redirect );
+					current_delegate = new ResourceDownloaderImpl( this, redirect );
 					
-					informActivity( "meta-refresh -> " + current_delegate.getName());
+					// informActivity( "meta-refresh -> " + current_delegate.getName());
 					
 					asyncDownload();
 				}

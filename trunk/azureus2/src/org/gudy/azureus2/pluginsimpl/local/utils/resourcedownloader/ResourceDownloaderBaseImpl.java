@@ -40,9 +40,49 @@ ResourceDownloaderBaseImpl
 	protected boolean		result_informed;
 	protected Object		result_informed_data;
 	
+	protected ResourceDownloaderBaseImpl	parent;
+	
+	protected
+	ResourceDownloaderBaseImpl(
+		ResourceDownloaderBaseImpl	_parent )
+	{
+		parent	= _parent;
+	}
+	
 	public abstract ResourceDownloader
-	getClone();
+	getClone(
+			ResourceDownloaderBaseImpl	_parent );
 
+	protected void
+	setParent(
+		ResourceDownloader		_parent )
+	{
+		parent	= (ResourceDownloaderBaseImpl)_parent;
+	}
+	
+	protected ResourceDownloaderBaseImpl
+	getParent()
+	{
+		return( parent );
+	}
+	
+	protected String
+	getLogIndent()
+	{
+		String	indent = "";
+		
+		ResourceDownloaderBaseImpl	pos = parent;
+		
+		while( pos != null ){
+			
+			indent += "  ";
+			
+			pos = pos.getParent();
+		}
+		
+		return( indent );
+	}
+	
 		// adds a listener that simply logs messages. used during size getting
 	
 	protected void
