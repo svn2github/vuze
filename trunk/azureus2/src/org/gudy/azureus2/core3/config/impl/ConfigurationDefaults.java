@@ -129,6 +129,7 @@ public class ConfigurationDefaults {
     def.put("Graphics Update",new Long(4));
     def.put("ReOrder Delay",new Long(0));
     def.put("Send Version Info",new Long(1));
+    def.put("Show Download Basket",new Long(0));
     
     /** Headless Server settings **/
     // Server Name

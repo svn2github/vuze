@@ -29,7 +29,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.ui.config.impl.ParameterRepository;
+import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.impl.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;

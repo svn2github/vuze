@@ -38,8 +38,8 @@ import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.impl.GenericParameter;
-import org.gudy.azureus2.plugins.ui.config.impl.ParameterRepository;
+import org.gudy.azureus2.plugins.ui.config.impl2.GenericParameter;
+import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -189,9 +189,9 @@ public class ConfigView extends AbstractIView {
 			else
 				tempLabel.setText(String.valueOf(tempParams.length));
 			
-			if(tempParam instanceof org.gudy.azureus2.plugins.ui.config.impl.StringParameter)
+			if(tempParam instanceof org.gudy.azureus2.plugins.ui.config.impl2.StringParameter)
 			{
-				org.gudy.azureus2.plugins.ui.config.impl.StringParameter tpar = (org.gudy.azureus2.plugins.ui.config.impl.StringParameter)(tempParam);
+				org.gudy.azureus2.plugins.ui.config.impl2.StringParameter tpar = (org.gudy.azureus2.plugins.ui.config.impl2.StringParameter)(tempParam);
 //				String defaultVal = tpar.getDefaultValue();
 				String defaultVal = "test";
 				StringParameter uiParam = new StringParameter(tempGroup, tempParam.getKey(), defaultVal);
@@ -1010,7 +1010,7 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.showdownloadbasket"); //$NON-NLS-1$
-   new BooleanParameter(gStyle, "Show Download Basket",true); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "Show Download Basket",false); //$NON-NLS-1$
 
    String osName = System.getProperty("os.name");
    if (osName.equals("Windows XP")) {
