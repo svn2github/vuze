@@ -215,6 +215,18 @@ TorrentUtils
 	    }
 	}
 	
+	public static void
+	delete(
+		File 		torrent_file )
+	{
+    	if ( !torrent_file.delete()){
+    		
+    		Debug.out( "TorrentUtils::delete: failed to delete '" + torrent_file + "'" );
+    	}
+	
+    	new File( torrent_file.toString() + ".bak" ).delete();
+	}
+	
 	public static String
 	exceptionToText(
 		TOTorrentException	e )

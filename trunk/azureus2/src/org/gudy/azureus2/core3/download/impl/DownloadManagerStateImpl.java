@@ -23,19 +23,27 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.util.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 /**
  * @author parg
- *
+ * Overall aim of this is to stop updating the torrent file itself and update something
+ * Azureus owns. To this end a file based on torrent hash is created in user-dir/active
+ * It is actually just a copy of the torrent file
  */
 
 public class 
@@ -44,6 +52,24 @@ DownloadManagerStateImpl
 {
 	private static final String			RESUME_KEY			= "resume";
 	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
+	
+	private static final File			ACTIVE_DIR;
+	
+	static{
+	
+		ACTIVE_DIR = FileUtil.getUserFile( "active" );
+		
+		if ( !ACTIVE_DIR.exists()){
+			
+			ACTIVE_DIR.mkdirs();
+		}
+	}
+	
+	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
+	
+	private static Map					state_map = new WeakHashMap();
+	
+	private DownloadManagerImpl			download_manager;
 	
 	private TOTorrent					torrent;
 	
@@ -54,22 +80,145 @@ DownloadManagerStateImpl
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
-	public static DownloadManagerState
+
+	private static DownloadManagerState
 	getDownloadState(
-		TOTorrent		torrent )
+		DownloadManagerImpl	download_manager,
+		TOTorrent			torrent )
+	
+		throws TOTorrentException
 	{
-		DownloadManagerStateImpl	res = new DownloadManagerStateImpl();
+		byte[]	hash	= torrent.getHash();
 		
-		res.setTorrent( torrent );
+		DownloadManagerStateImpl	res	= null;
 		
+			// we ensure that there's only one state object in existence at any
+			// one time by using a weak hash map to refer to it.
+			// thus state objects no longer in use will be freed up
+		
+		try{
+			class_mon.enter();
+		
+			HashWrapper	hash_wrapper = new HashWrapper( hash );
+			
+			res = (DownloadManagerStateImpl)state_map.get(hash_wrapper); 
+			
+			if ( res == null ){
+			
+				res = new DownloadManagerStateImpl( download_manager, torrent );
+									
+				state_map.put( hash_wrapper, res );
+				
+			}else{
+				
+					// TODO: merge details
+			}
+		}finally{
+			
+			class_mon.exit();
+		}
+				
 		return( res );
 	}
 
-	protected void
-	setTorrent(
-		TOTorrent		_torrent )
+	
+	public static DownloadManagerState
+	getDownloadState(
+		TOTorrent		torrent )
+	
+		throws TOTorrentException
 	{
-		torrent	= _torrent;
+		byte[]	torrent_hash = torrent.getHash();
+		
+		// System.out.println( "getDownloadState: hash = " + ByteFormatter.encodeString(torrent_hash));
+		
+		TOTorrent saved_state	= null;
+		
+			// first, if we already have the hash then see if we can load the saved state
+		
+		File	saved_file = getStateFile( torrent_hash ); 
+		
+		if ( saved_file.exists()){
+			
+			try{
+				saved_state = TorrentUtils.readFromFile( saved_file, true );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to load download state for " + saved_file );
+			}
+		}
+		
+			// if saved state not found then recreate from original torrent 
+		
+		if ( saved_state == null ){
+		
+			saved_state = torrent;
+			
+			TorrentUtils.writeToFile( saved_state, getStateFile( torrent_hash ));
+		}
+
+		return( getDownloadState( null, saved_state ));
+	}
+	
+	protected static DownloadManagerState
+	getDownloadState(
+		DownloadManagerImpl	download_manager,
+		String				torrent_file,
+		byte[]				torrent_hash )
+	
+		throws TOTorrentException
+	{
+		// System.out.println( "getDownloadState: hash = " + (torrent_hash==null?"null":ByteFormatter.encodeString(torrent_hash) + ", file = " + torrent_file ));
+		
+		TOTorrent saved_state	= null;
+		
+			// first, if we already have the hash then see if we can load the saved state
+		
+		if ( torrent_hash != null ){
+			
+			File	saved_file = getStateFile( torrent_hash ); 
+		
+			if ( saved_file.exists()){
+				
+				try{
+					saved_state = TorrentUtils.readFromFile( saved_file, true );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to load download state for " + saved_file );
+				}
+			}
+		}
+		
+			// if saved state not found then recreate from original torrent 
+		
+		if ( saved_state == null ){
+		
+			saved_state = TorrentUtils.readFromFile( new File(torrent_file), true );
+			
+			torrent_hash = saved_state.getHash();
+			
+			TorrentUtils.writeToFile( saved_state, getStateFile( torrent_hash ));
+		}
+
+		return( getDownloadState( download_manager, saved_state ));
+	}
+	
+	protected static File
+	getStateFile(
+		byte[]		torrent_hash )
+	{
+		return( new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent_hash ) + ".dat" ));
+	}
+	
+	protected
+	DownloadManagerStateImpl(
+		DownloadManagerImpl	_download_manager,
+		TOTorrent			_torrent )
+	{
+		download_manager	= _download_manager;
+		torrent				= _torrent;
 		
 		tracker_response_cache	= (Map)torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
 		
@@ -180,14 +329,6 @@ DownloadManagerStateImpl
 	}
 	
 	public void
-	saveNonTorrentData()
-	{
-		// TODO: when we migrate to separate file for resume/cache data then this method
-		// must write that file. can't write the torrent here at the moment as the torrent
-		// may not have its "filename" attribute set up...
-	}
-	
-	public void
 	save()
 	{
 	    if ( torrent == null ){
@@ -228,4 +369,68 @@ DownloadManagerStateImpl
 		  	}
 	  	}
 	}
+	
+	public void
+	delete()
+	{
+	    try{
+	        TorrentUtils.delete( torrent );
+	        
+	    }catch( TOTorrentException e ){
+	    	
+	    	Debug.printStackTrace( e );
+	    }		
+	}
+	
+	/*
+	  protected void
+	  mergeTorrentDetails(
+	  	DownloadManager		other_manager )
+	  {
+		try{
+			TOTorrent	other_torrent = other_manager.getTorrent();
+			
+			if ( other_torrent == null ){
+				
+				return;
+			}
+			
+			boolean	write = TorrentUtils.mergeAnnounceURLs( other_torrent, torrent );
+			
+			DownloadManagerStateImpl	other_state = (DownloadManagerStateImpl)other_manager.getDownloadState();
+			
+				// pick up latest state if available
+			
+			TRTrackerClient	client = tracker_client;
+			
+			if ( client != null ){
+					
+				download_manager_state.setTrackerResponseCache( client.getTrackerResponseCache());
+			}
+			
+			write = write ||
+					download_manager_state.mergeTrackerResponseCache( other_state );
+			
+			
+			if ( write ){
+				
+				download_manager_state.save();
+				
+				if ( client != null ){
+					
+						// update with latest merged state
+					
+					client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
+					
+						// pick up any URL changes
+					
+					client.resetTrackerUrl( false );
+				}
+			}
+		}catch( Throwable e ){
+				
+			Debug.printStackTrace( e );
+		}
+	  }
+	  */
 }

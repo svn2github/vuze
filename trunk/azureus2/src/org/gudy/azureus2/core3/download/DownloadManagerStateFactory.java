@@ -24,7 +24,7 @@ package org.gudy.azureus2.core3.download;
 
 import org.gudy.azureus2.core3.download.impl.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.*;
 
 /**
  * @author parg
@@ -37,8 +37,9 @@ DownloadManagerStateFactory
 	public static DownloadManagerState
 	getDownloadState(
 		TOTorrent		torrent )
+	
+		throws TOTorrentException
 	{
 		return( DownloadManagerStateImpl.getDownloadState( torrent ));
 	}
-
 }

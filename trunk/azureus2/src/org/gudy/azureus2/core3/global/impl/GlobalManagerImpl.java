@@ -356,19 +356,25 @@ public class GlobalManagerImpl
   		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
   		 */
   	
+  	byte[]	torrent_hash	= null;
+  	
   	if (!persistent){
   	
         Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
         
-        if ( save_download_state != null && save_download_state.containsKey( "state" )){
+        if ( save_download_state != null ){
         	
-            int	saved_state = ((Long) save_download_state.get("state")).intValue();
-            
-            if ( saved_state == DownloadManager.STATE_STOPPED ){
-            	
-            	initialState	= saved_state;
-            }
-
+        	torrent_hash	= (byte[])save_download_state.get( "torrent_hash" );
+        	
+        	if ( save_download_state.containsKey( "state" )){
+        	
+	            int	saved_state = ((Long) save_download_state.get("state")).intValue();
+	            
+	            if ( saved_state == DownloadManager.STATE_STOPPED ){
+	            	
+	            	initialState	= saved_state;
+	            }
+        	}
         }
   	}
   	
@@ -415,7 +421,7 @@ public class GlobalManagerImpl
     
       	// now do the creation!
       
-      DownloadManager new_manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, false, for_seeding );
       
       DownloadManager manager = addDownloadManager(new_manager, true);
       
@@ -433,12 +439,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       Debug.printStackTrace( e );
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
   }
@@ -459,9 +465,7 @@ public class GlobalManagerImpl
         if (existing_index != -1) {
         	
         	DownloadManager existing = (DownloadManager)managers_cow.get(existing_index);
-                	
-        	existing.mergeTorrentDetails( download_manager );
-        	
+                	        	
         	return( existing );
         }
         
@@ -742,6 +746,13 @@ public class GlobalManagerImpl
     
     saveDownloads();
 
+    DownloadManagerState dms = manager.getDownloadState();
+    
+    if ( dms != null ){
+    	
+    	dms.delete();
+    }
+    
     if (manager.getTorrent() != null) {
 
       trackerScraper.remove(manager.getTorrent());
@@ -963,6 +974,8 @@ public class GlobalManagerImpl
         currentDownload++;        
         Map mDownload = (Map) iter.next();
         try {
+          byte[]	torrent_hash = (byte[])mDownload.get( "torrent_hash" );
+          
           Long	lPersistent = (Long)mDownload.get( "persistent" );
           
           boolean	persistent = lPersistent==null || lPersistent.longValue()==1;
@@ -1043,7 +1056,7 @@ public class GlobalManagerImpl
           
           if ( persistent ){
           	
-          	DownloadManager dm = DownloadManagerFactory.create(this, fileName, torrent_save_dir, torrent_save_file, state, true, true );
+          	DownloadManager dm = DownloadManagerFactory.create(this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, state, true, true );
           	
             addDownloadManager(dm, false);
           }
@@ -1098,6 +1111,18 @@ public class GlobalManagerImpl
 	      
 	      	DownloadManagerStats dm_stats = dm.getStats();
 		      Map dmMap = new HashMap();
+		      TOTorrent	torrent = dm.getTorrent();
+		      
+		      if ( torrent != null ){
+		      	try{
+		      		dmMap.put( "torrent_hash", torrent.getHash());
+		      		
+		      	}catch( TOTorrentException e ){
+		      		
+		      		Debug.printStackTrace(e);
+		      	}
+		      }
+		      
 		      dmMap.put("persistent", new Long(dm.isPersistent()?1:0));
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("save_dir", dm.getTorrentSaveDir());

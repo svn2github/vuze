@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.tracker.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
@@ -255,7 +254,8 @@ DownloadManagerImpl
 	
 	public 
 	DownloadManagerImpl(
-		GlobalManager 	_gm, 
+		GlobalManager 	_gm,
+		byte[]			_torrent_hash,
 		String 			_torrentFileName, 
 		String 			_torrent_save_dir,
 		String			_torrent_save_file,
@@ -268,8 +268,6 @@ DownloadManagerImpl
   	
 		stats = new DownloadManagerStatsImpl( this );
   	
-		download_manager_state	= new DownloadManagerStateImpl();
-		
 		globalManager = _gm;
 	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
@@ -283,7 +281,7 @@ DownloadManagerImpl
 	
 			// readTorrent adjusts the save dir and file to be sensible values
 			
-		readTorrent( persistent && !_recovered, _open_for_seeding );
+		readTorrent( _torrent_hash, persistent && !_recovered, _open_for_seeding );
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
@@ -410,7 +408,8 @@ DownloadManagerImpl
 
 	private void 
 	readTorrent(
-		boolean		new_torrent,
+		byte[]		torrent_hash,		// can be null for initial torrents
+		boolean		new_torrent,		// probably equivalend to (torrent_hash == null)????
 		boolean		open_for_seeding )
 	{
 		display_name				= torrentFileName;	// default if things go wrong decoding it
@@ -421,12 +420,14 @@ DownloadManagerImpl
 		
 		try {
 
-			 torrent = TorrentUtils.readFromFile( new File(torrentFileName), true );
-		
-			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-		
-			 download_manager_state.setTorrent( torrent );
+			 download_manager_state	= 
+				 	(DownloadManagerStateImpl)DownloadManagerStateImpl.getDownloadState(
+				 			this, torrentFileName, torrent_hash );
 			 
+			 torrent	= download_manager_state.getTorrent();
+			 
+			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+					 
 			 	// if its a simple torrent and an explicit save file wasn't supplied, use
 			 	// the torrent name itself
 			 
@@ -864,7 +865,7 @@ DownloadManagerImpl
 				      
 						  	// we don't want to update the torrent if we're seeding
 						  
-						  if ( !onlySeeding ){
+						  if ((!onlySeeding) && download_manager_state != null ){
 						  	
 						  	download_manager_state.save();
 						  }
@@ -921,7 +922,7 @@ DownloadManagerImpl
     
   	// we don't want to update the torrent if we're seeding
 	  
-	  if ( !onlySeeding ){
+	  if ( (!onlySeeding) && download_manager_state != null  ){
 	  	
 	  	download_manager_state.save();
 	  }
@@ -1194,7 +1195,7 @@ DownloadManagerImpl
 	    	
 	      diskManager.dumpResumeDataToDisk(false, true);
 	      
-	      readTorrent( false, false );
+	      readTorrent( torrent==null?null:torrent.getHash(),false, false );
 	    }
 	    
 	    stopIt( DownloadManager.STATE_STOPPED, false, false );
@@ -1799,20 +1800,12 @@ DownloadManagerImpl
   	DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
   }
   
-  private void deleteTorrentFile() {
-    if( torrent != null ) {
-      try {
-        TorrentUtils.delete( torrent );
-      }
-      catch( TOTorrentException te ) {
-        Debug.printStackTrace( te );
-      }
-    }
-    else {
-      // if torrent is broken, try and delete the file directly
-      if ( torrentFileName != null ){
-        new File( torrentFileName ).delete();
-      }
+  private void 
+  deleteTorrentFile() 
+  {
+  	if ( torrentFileName != null ){
+  		
+        TorrentUtils.delete( new File(torrentFileName));
     }
   }
   
@@ -1822,55 +1815,6 @@ DownloadManagerImpl
   	return( download_manager_state );
   }
   
-  public void
-  mergeTorrentDetails(
-  	DownloadManager		other_manager )
-  {
-	try{
-		TOTorrent	other_torrent = other_manager.getTorrent();
-		
-		if ( other_torrent == null ){
-			
-			return;
-		}
-		
-		boolean	write = TorrentUtils.mergeAnnounceURLs( other_torrent, torrent );
-		
-		DownloadManagerStateImpl	other_state = (DownloadManagerStateImpl)other_manager.getDownloadState();
-		
-			// pick up latest state if available
-		
-		TRTrackerClient	client = tracker_client;
-		
-		if ( client != null ){
-				
-			download_manager_state.setTrackerResponseCache( client.getTrackerResponseCache());
-		}
-		
-		write = write ||
-				download_manager_state.mergeTrackerResponseCache( other_state );
-		
-		
-		if ( write ){
-			
-			download_manager_state.save();
-			
-			if ( client != null ){
-				
-					// update with latest merged state
-				
-				client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
-				
-					// pick up any URL changes
-				
-				client.resetTrackerUrl( false );
-			}
-		}
-	}catch( Throwable e ){
-			
-		Debug.printStackTrace( e );
-	}
-  }
   
   /** To retreive arbitrary objects against a download. */
   public Object getData (String key) {

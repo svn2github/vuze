@@ -291,17 +291,6 @@ DownloadManager
 	
 	public void setCategory(Category cat);
 	
-	
-		/**
-		 * merges the details of the torrent into the current one (e.g. announce url
-		 * and cached peers)
-		 * @param other_torrent
-		 */
-	
-	  public void
-	  mergeTorrentDetails(
-	  	DownloadManager	other_manager );
-	  
 		/**
 		 * persist resume data
 		 *

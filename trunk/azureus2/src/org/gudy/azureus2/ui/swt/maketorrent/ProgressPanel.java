@@ -169,7 +169,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 
 	  TorrentUtils.setResumeDataCompletelyValid( download_manager_state, save_dir.toString());
 
-	  download_manager_state.saveNonTorrentData();
+	  download_manager_state.save();
      
       if(_wizard.useMultiTracker) {
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));

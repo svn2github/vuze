@@ -47,9 +47,9 @@ DownloadManagerState
 	save();
 	
 		/**
-		 * temporary method that currently does nothing but marks the locations where
-		 * we'll need to save non-torrent data when migrated to separate state file
+		 * deletes the saved state
 		 */
+	
 	public void
-	saveNonTorrentData();
+	delete();
 }

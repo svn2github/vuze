@@ -297,9 +297,9 @@ TorrentImpl
 
 			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, data_dir.toString());
 
-			download_manager_state.saveNonTorrentData();
+			download_manager_state.save();
 			
-		}catch( LocaleUtilEncodingException e ){
+		}catch( Throwable e ){
 			
 			throw( new TorrentException("encoding selection fails", e ));
 		}

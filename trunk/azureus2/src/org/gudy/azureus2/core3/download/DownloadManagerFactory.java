@@ -35,6 +35,7 @@ DownloadManagerFactory
  	public static DownloadManager
  	create(
  		GlobalManager 	gm, 
+		byte[]			torrent_hash,
  		String 			torrentFileName, 
  		String 			savePath, 
 		boolean 		stopped,
@@ -43,12 +44,13 @@ DownloadManagerFactory
  	{
  		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
  		
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, null, state, persistent, recovered, false ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, state, persistent, recovered, false ));
  	}	
 
 	public static DownloadManager
  	create(
  		GlobalManager 	gm, 
+		byte[]			torrent_hash,
  		String 			torrentFileName, 
  		String 			torrent_save_dir,
 		String			torrent_save_file, 
@@ -58,12 +60,13 @@ DownloadManagerFactory
  	{
  		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
  		
-		return( new DownloadManagerImpl( gm, torrentFileName, torrent_save_dir, torrent_save_file, state, persistent, recovered, false ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, state, persistent, recovered, false ));
  	}
 	
 	public static DownloadManager
 	create(
 		GlobalManager 	gm, 
+		byte[]			torrent_hash,
 		String 			torrentFileName, 
 		String 			savePath, 
 		int      		initialState,
@@ -71,12 +74,13 @@ DownloadManagerFactory
 		boolean			recovered,
 		boolean			for_seeding )
 	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, null, initialState, persistent, recovered, for_seeding ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, recovered, for_seeding ));
 	}
 	
 	public static DownloadManager
 	create(
 		GlobalManager 	gm, 
+		byte[]			torrent_hash,
 		String 			torrentFileName, 
 		String 			torrent_save_dir,
 		String			torrent_save_file, 
@@ -84,6 +88,6 @@ DownloadManagerFactory
 		boolean			persistent,
 		boolean			recovered )
 	{
-		return( new DownloadManagerImpl( gm, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false ));
 	}
 }
