@@ -85,8 +85,8 @@ public class DonationWindow2 {
   Animator animator;    
   PaintListener listener;
   
-  private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
-  private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR";
+  private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR&lc=US";
+  private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR&lc=US";
   
   private static final int DONATIONS_ASK_AFTER = 168;
   private static final AEMonitor	class_mon	= new AEMonitor( "DonationWindow:class");
