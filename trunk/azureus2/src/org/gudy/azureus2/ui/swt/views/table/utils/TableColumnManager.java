@@ -26,6 +26,7 @@ import java.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -46,13 +47,17 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.OldPeerPluginItem;
 public class TableColumnManager {
 
   private static TableColumnManager instance;
+  private static AEMonitor 			class_mon 	= new AEMonitor( "TableColumnManager" );
+
   /* Holds all the TableColumnCore objects.
    * key   = TABLE_* type (see TableColumnCore)
    * value = Map:
    *           key = column name
    *           value = TableColumnCore object
    */
-  private Map items;
+  private Map 			items;
+  private AEMonitor 	items_mon 	= new AEMonitor( "TableColumnManager:items" );
+
   
   private TableColumnManager() {
    items = new HashMap();
@@ -61,10 +66,17 @@ public class TableColumnManager {
   /** Retrieve the static TableColumnManager instance
    * @return the static TableColumnManager instance
    */
-  public static synchronized TableColumnManager getInstance() {
-    if(instance == null)
-      instance = new TableColumnManager();
-    return instance;
+  public static TableColumnManager getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+  		if(instance == null)
+  			instance = new TableColumnManager();
+  		return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   /** Adds a column definition to the list
@@ -74,7 +86,8 @@ public class TableColumnManager {
     try {
       String name = item.getName();
       String sTableID = item.getTableID();
-      synchronized(items) {
+     try{
+     	items_mon.enter();
         Map mTypes = (Map)items.get(sTableID);
         if (mTypes == null) {
           // LinkedHashMap to preserve order
@@ -85,6 +98,8 @@ public class TableColumnManager {
           mTypes.put(name, item);
           ((TableColumnCore)item).loadSettings();
         }
+      }finally{
+      	items_mon.exit();
       }
       if (!item.getColumnAdded()) {
         item.setColumnAdded(true);
@@ -140,7 +155,8 @@ public class TableColumnManager {
    */
   public Map getTableColumnsAsMap(String sTableID) {
     //System.out.println("getTableColumnsAsMap(" + sTableID + ")");
-    synchronized(items) {
+    try{
+    	items_mon.enter();
       Map mReturn = new LinkedHashMap();
       Map mTypes = (Map)items.get(sTableID);
       if (mTypes != null) {
@@ -148,6 +164,9 @@ public class TableColumnManager {
       }
       //System.out.println("getTableColumnsAsMap(" + sTableID + ") returnsize: " + mReturn.size());
       return mReturn;
+    }finally{
+    	
+    	items_mon.exit();
     }
   }
   

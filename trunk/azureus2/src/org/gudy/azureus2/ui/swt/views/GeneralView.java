@@ -99,13 +99,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
   Button		updateButton;
-
-  AEMonitor	this_mon	= new AEMonitor( "GeneralView" );
   
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
-  public GeneralView(DownloadManager manager) {
-    this.manager = manager;
+  public GeneralView(DownloadManager _manager) {
+    this.manager = _manager;
     pieces = new boolean[manager.getNbPieces()];
   }
   /* (non-Javadoc)
@@ -458,15 +456,15 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	    					trackersChanged(
 	    							String	str,
 									String	str2,
-									List	group )
+									List	_group )
 	    					{
-	    						TorrentUtils.listToAnnounceGroups( group, torrent );
+	    						TorrentUtils.listToAnnounceGroups( _group, torrent );
 	    						
 	    						try{
 	    							TorrentUtils.writeToFile( torrent );
-	    						}catch( Throwable e ){
+	    						}catch( Throwable e2 ){
 	    							
-	    							e.printStackTrace();
+	    							e2.printStackTrace();
 	    						}
 	    						
 	    						TRTrackerClient	tc = manager.getTrackerClient();
@@ -668,11 +666,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
             DisplayFormatters.formatETA(manager.getStats().getETA()) +
             ((dm != null) ? " " + DisplayFormatters.formatByteCountToKiBEtc(dm.getRemaining()) : "")  );
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-    String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
-    String peers = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
+    String seeds_str = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
+    String peers_str = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
     if(hd != null && hd.isValid()) {
-      seeds += " (" + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
-      peers += " (" + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
+      seeds_str += " (" + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
+      peers_str += " (" + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
     } else {
       //seeds += " (?)";
       //peers += " (?)";
@@ -695,8 +693,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getTotalAverage()),
-      	seeds,
-      	peers,
+      	seeds_str,
+      	peers_str,
 		DisplayFormatters.formatHashFails(manager),
       _shareRatio);
       
@@ -1005,14 +1003,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	shareRatio.setText( _shareRatio);     
   }
 
-  public void setTracker( DownloadManager	manager ){
+  public void setTracker( DownloadManager	_manager ){
     if (display == null || display.isDisposed())
       return;
     
-    String	status 	= manager.getTrackerStatus();
-    int		time	= manager.getTrackerTime();
+    String	status 	= _manager.getTrackerStatus();
+    int		time	= _manager.getTrackerTime();
      
-    TRTrackerClient	trackerClient = manager.getTrackerClient();
+    TRTrackerClient	trackerClient = _manager.getTrackerClient();
 	
 	tracker.setText( status);
 		
@@ -1031,7 +1029,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     if ( trackerClient == null ){
     	
-       	TOTorrent	torrent = manager.getTorrent();
+       	TOTorrent	torrent = _manager.getTorrent();
        	
        	if( torrent != null ){
        		

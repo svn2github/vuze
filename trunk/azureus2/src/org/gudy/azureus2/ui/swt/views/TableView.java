@@ -111,7 +111,9 @@ public class TableView
    * key = DataSource
    * value = TableRowCore
    */
-  private Map objectToSortableItem;
+  private Map 		objectToSortableItem;
+  private AEMonitor objectToSortableItem_mon 	= new AEMonitor( "TableView:OTSI" );
+
   /** Sorting functions */
   protected TableSorter sorter;
   private boolean bSortScheduled = false;
@@ -682,53 +684,60 @@ public class TableView
   }
 
   /** IView.refresh(), called when the GUI needs an update */
-  public synchronized void refresh() {
-    if(getComposite() == null || getComposite().isDisposed())
-      return;
-
-    if (checkColumnWidthsEvery != 0 && 
-        (loopFactor % checkColumnWidthsEvery) == 0) {
-      TableColumn[] tableColumnsSWT = table.getColumns();
-      for (int i = 0; i < tableColumnsSWT.length; i++) {
-        TableColumnCore tc = (TableColumnCore)tableColumnsSWT[i].getData("TableColumnCore");
-        if (tc != null && tc.getWidth() != tableColumnsSWT[i].getWidth()) {
-          tc.setWidth(tableColumnsSWT[i].getWidth());
-
-          int columnNumber = table.indexOf(tableColumnsSWT[i]);
-          locationChanged(columnNumber);
-        }
-      }
-    }
-
-    if (bSortScheduled) {
-      bSortScheduled = false;
-      sorter.sortColumn();
-    } else {
-      sorter.reOrder(false);
-    }
-
-    final int topIndex = table.getTopIndex();
-    final int bottomIndex = topIndex + (table.getClientArea().height / table.getItemHeight());
-    
-    //Refresh all items in table...
-    runForAllRows(new GroupTableRowRunner() {
-      public void run(TableRowCore row) {
-        int index = row.getIndex();
-        // If the row is being shown, update it.  Otherwise, just update
-        // the cell being sorted.
-        if (index >= topIndex && index <= bottomIndex) {
-          // Every N GUI updates we refresh graphics
-          row.refresh((loopFactor % graphicsUpdate) == 0);
-        } else {
-          TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-          if (cell != null)
-            cell.refresh();
-        }
-      }
-    });
-
-    Utils.alternateTableBackground(table);
-    loopFactor++;
+  public void refresh() {
+  	try{
+  		this_mon.enter();
+  
+	    if(getComposite() == null || getComposite().isDisposed())
+	      return;
+	
+	    if (checkColumnWidthsEvery != 0 && 
+	        (loopFactor % checkColumnWidthsEvery) == 0) {
+	      TableColumn[] tableColumnsSWT = table.getColumns();
+	      for (int i = 0; i < tableColumnsSWT.length; i++) {
+	        TableColumnCore tc = (TableColumnCore)tableColumnsSWT[i].getData("TableColumnCore");
+	        if (tc != null && tc.getWidth() != tableColumnsSWT[i].getWidth()) {
+	          tc.setWidth(tableColumnsSWT[i].getWidth());
+	
+	          int columnNumber = table.indexOf(tableColumnsSWT[i]);
+	          locationChanged(columnNumber);
+	        }
+	      }
+	    }
+	
+	    if (bSortScheduled) {
+	      bSortScheduled = false;
+	      sorter.sortColumn();
+	    } else {
+	      sorter.reOrder(false);
+	    }
+	
+	    final int topIndex = table.getTopIndex();
+	    final int bottomIndex = topIndex + (table.getClientArea().height / table.getItemHeight());
+	    
+	    //Refresh all items in table...
+	    runForAllRows(new GroupTableRowRunner() {
+	      public void run(TableRowCore row) {
+	        int index = row.getIndex();
+	        // If the row is being shown, update it.  Otherwise, just update
+	        // the cell being sorted.
+	        if (index >= topIndex && index <= bottomIndex) {
+	          // Every N GUI updates we refresh graphics
+	          row.refresh((loopFactor % graphicsUpdate) == 0);
+	        } else {
+	          TableCellCore cell = row.getTableCellCore(sorter.getLastField());
+	          if (cell != null)
+	            cell.refresh();
+	        }
+	      }
+	    });
+	
+	    Utils.alternateTableBackground(table);
+	    loopFactor++;
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
   private void locationChanged(final int iStartColumn) {
@@ -793,50 +802,67 @@ public class TableView
    *
    * @param dataSource data source to add to the table
    */
-  public synchronized void addDataSource(final Object dataSource) {
-    try {
-      if (objectToSortableItem.containsKey(dataSource) || panel.isDisposed())
-        return;
-      synchronized (objectToSortableItem) {
-        // Since adding to objectToSortableItem is async, there's a chance
-        // the item will not be stored in objectToSortableItem before another
-        // call here.  So, add it now and null it
-        objectToSortableItem.put(dataSource, null);
-      }
-      final Display display = panel.getDisplay();
-      // syncExec is evil because we eventually end up in a sync lock.
-      // So, use async, then wait for it to finish
-      display.asyncExec(new Runnable() {
-        public void run() {
-          TableRowImpl row = new TableRowImpl(TableView.this, dataSource, 
-                                              bSkipFirstColumn);
-
-          if (ptIconSize != null) {
-            // set row height by setting image
-            Image image = new Image(display, ptIconSize.x, ptIconSize.y);
-            row.setImage(0, image);
-            row.setImage(0, null);
-            image.dispose();
-          } else if (iCellHeight > 0)
-            row.setHeight(iCellHeight);
-
-          if (objectToSortableItem.containsKey(dataSource)) {
-            synchronized (objectToSortableItem) {
-              objectToSortableItem.put(dataSource, row);
-            }
-            TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-            if (cell != null)
-              cell.refresh();
-          } else {
-            row.delete();
-          }
-          bSortScheduled = true;
-        }
-      });
-    } catch (Exception e) {
-      System.out.println("Error adding row to " + sTableID + " table");
-      e.printStackTrace();
-    }
+  public void addDataSource(final Object dataSource) {
+  	try{
+  		this_mon.enter();
+ 
+	    try {
+	      if (objectToSortableItem.containsKey(dataSource) || panel.isDisposed())
+	        return;
+	      try{
+	      	objectToSortableItem_mon.enter();
+	        // Since adding to objectToSortableItem is async, there's a chance
+	        // the item will not be stored in objectToSortableItem before another
+	        // call here.  So, add it now and null it
+	        objectToSortableItem.put(dataSource, null);
+	      }finally{
+	      	
+	      	objectToSortableItem_mon.exit();
+	      }
+	      
+	      final Display display = panel.getDisplay();
+	      // syncExec is evil because we eventually end up in a sync lock.
+	      // So, use async, then wait for it to finish
+	      display.asyncExec(new Runnable() {
+	        public void run() {
+	          TableRowImpl row = new TableRowImpl(TableView.this, dataSource, 
+	                                              bSkipFirstColumn);
+	
+	          if (ptIconSize != null) {
+	            // set row height by setting image
+	            Image image = new Image(display, ptIconSize.x, ptIconSize.y);
+	            row.setImage(0, image);
+	            row.setImage(0, null);
+	            image.dispose();
+	          } else if (iCellHeight > 0)
+	            row.setHeight(iCellHeight);
+	
+	          if (objectToSortableItem.containsKey(dataSource)) {
+	            try{
+	            	objectToSortableItem_mon.enter();
+	            
+	            	objectToSortableItem.put(dataSource, row);
+	            }finally{
+	            	
+	            	objectToSortableItem_mon.exit();
+	            }
+	            TableCellCore cell = row.getTableCellCore(sorter.getLastField());
+	            if (cell != null)
+	              cell.refresh();
+	          } else {
+	            row.delete();
+	          }
+	          bSortScheduled = true;
+	        }
+	      });
+	    } catch (Exception e) {
+	      System.out.println("Error adding row to " + sTableID + " table");
+	      e.printStackTrace();
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
   /** Remove the specified dataSource from the table.
@@ -845,9 +871,15 @@ public class TableView
    */
   public void removeDataSource(Object dataSource) {
     TableRowCore item;
-    synchronized (objectToSortableItem) {
-      item = (TableRowCore)objectToSortableItem.remove(dataSource);
+    try{
+    	objectToSortableItem_mon.enter();
+    	
+    	item = (TableRowCore)objectToSortableItem.remove(dataSource);
+    }finally{
+    	
+    	objectToSortableItem_mon.exit();
     }
+    
     if (item == null)
       return;
     item.delete();
@@ -1129,7 +1161,7 @@ public class TableView
   }
 
   public void runForAllRows(GroupTableRowRunner runner) {
-    // put to array instead of synchronized iterator, so that runner can remove
+    // put to array instead of synchronised iterator, so that runner can remove
     TableRowCore[] rows = 
       (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
     for (int i = 0; i < rows.length; i++) {

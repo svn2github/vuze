@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -61,6 +62,9 @@ public class TableColumnImpl
 	private ArrayList cellToolTipListeners;
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
+  
+  private AEMonitor 		this_mon 	= new AEMonitor( "TableColumn" );
+
 
   /** Create a column object for the specified table.
    *
@@ -161,19 +165,33 @@ public class TableColumnImpl
     return iAlignment;
   }
   
-  public synchronized void addCellRefreshListener(TableCellRefreshListener listener) {
-    if (cellRefreshListeners == null)
-      cellRefreshListeners = new ArrayList();
+  public void addCellRefreshListener(TableCellRefreshListener listener) {
+  	try{
+  		this_mon.enter();
+  
+  		if (cellRefreshListeners == null)
+  			cellRefreshListeners = new ArrayList();
 
 		cellRefreshListeners.add(listener);
-    //System.out.println(this + " :: addCellRefreshListener " + listener + ". " + cellRefreshListeners.size());
+		//System.out.println(this + " :: addCellRefreshListener " + listener + ". " + cellRefreshListeners.size());
+		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeCellRefreshListener(TableCellRefreshListener listener) {
-    if (cellRefreshListeners == null)
-      return;
+  public void removeCellRefreshListener(TableCellRefreshListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellRefreshListeners == null)
+  			return;
 
 		cellRefreshListeners.remove(listener);
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
   public void setRefreshInterval(int interval) {
@@ -184,46 +202,89 @@ public class TableColumnImpl
     return iInterval;
   }
 
-  public synchronized void addCellAddedListener(TableCellAddedListener listener) {
-    if (cellAddedListeners == null)
-      cellAddedListeners = new ArrayList();
+  public void addCellAddedListener(TableCellAddedListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellAddedListeners == null)
+  			cellAddedListeners = new ArrayList();
 
 		cellAddedListeners.add(listener);
+		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeCellAddedListener(TableCellAddedListener listener) {
-    if (cellAddedListeners == null)
-      return;
+  public void removeCellAddedListener(TableCellAddedListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellAddedListeners == null)
+  			return;
 
 		cellAddedListeners.remove(listener);
+		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void addCellDisposeListener(TableCellDisposeListener listener) {
-    if (cellDisposeListeners == null)
-      cellDisposeListeners = new ArrayList();
+  public void addCellDisposeListener(TableCellDisposeListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellDisposeListeners == null)
+  			cellDisposeListeners = new ArrayList();
 
 		cellDisposeListeners.add(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeCellDisposeListener(TableCellDisposeListener listener) {
-    if (cellDisposeListeners == null)
-      return;
+  public void removeCellDisposeListener(TableCellDisposeListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellDisposeListeners == null)
+  			return;
 
 		cellDisposeListeners.remove(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void addCellToolTipListener(TableCellToolTipListener listener) {
-    if (cellToolTipListeners == null)
-      cellToolTipListeners = new ArrayList();
+  public void addCellToolTipListener(TableCellToolTipListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellToolTipListeners == null)
+  			cellToolTipListeners = new ArrayList();
 
 		cellToolTipListeners.add(listener);
+		
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeCellToolTipListener(TableCellToolTipListener listener) {
-    if (cellToolTipListeners == null)
-      return;
+  public void removeCellToolTipListener(TableCellToolTipListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (cellToolTipListeners == null)
+  			return;
 
 		cellToolTipListeners.remove(listener);
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
   public void invalidateCells() {
@@ -311,20 +372,27 @@ public class TableColumnImpl
                                                                    : SWT.TRAIL;
   }
   
-  public synchronized String getTitleLanguageKey() {
-    if (sTitleLanguageKey == null) {
-      sTitleLanguageKey = sTableID + ".column." + sName;
-      if (!MessageText.keyExists(sTitleLanguageKey)) {
-        // Support "Old Style" language keys, which have a prefix of TableID + "View."
-        // Also, "MySeeders" is actually stored in "MyTorrents"..
-        String sKeyPrefix = (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE) 
-                             ? TableManager.TABLE_MYTORRENTS_INCOMPLETE
-                             : sTableID) + "View.";
-        if (MessageText.keyExists(sKeyPrefix + sName))
-          sTitleLanguageKey = sKeyPrefix + sName;
-      }
-    }
-    return sTitleLanguageKey;
+  public String getTitleLanguageKey() {
+  	try{
+  		this_mon.enter();
+  
+	    if (sTitleLanguageKey == null) {
+	      sTitleLanguageKey = sTableID + ".column." + sName;
+	      if (!MessageText.keyExists(sTitleLanguageKey)) {
+	        // Support "Old Style" language keys, which have a prefix of TableID + "View."
+	        // Also, "MySeeders" is actually stored in "MyTorrents"..
+	        String sKeyPrefix = (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE) 
+	                             ? TableManager.TABLE_MYTORRENTS_INCOMPLETE
+	                             : sTableID) + "View.";
+	        if (MessageText.keyExists(sKeyPrefix + sName))
+	          sTitleLanguageKey = sKeyPrefix + sName;
+	      }
+	    }
+	    return sTitleLanguageKey;
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
   public int getConsecutiveErrCount() {

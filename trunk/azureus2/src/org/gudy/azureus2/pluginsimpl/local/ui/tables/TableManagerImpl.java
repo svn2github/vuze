@@ -21,6 +21,7 @@
 package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -39,11 +40,19 @@ public class TableManagerImpl
        implements TableManager
 {	
 	protected static TableManagerImpl	singleton;
+	protected static AEMonitor 			class_mon 	= new AEMonitor( "TableManager" );
 
-	public synchronized static TableManagerImpl getSingleton() {
-	  if (singleton == null)
-	    singleton = new TableManagerImpl();
-    return singleton;
+	public static TableManagerImpl getSingleton() {
+		try{
+			class_mon.enter();
+		
+			if (singleton == null)
+				singleton = new TableManagerImpl();
+			return singleton;
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 
   public TableColumn createColumn(String tableID, String cellID) {

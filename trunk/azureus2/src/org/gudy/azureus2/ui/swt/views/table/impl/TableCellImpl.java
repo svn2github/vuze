@@ -37,6 +37,7 @@ import org.eclipse.swt.graphics.Point;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
@@ -79,8 +80,10 @@ public class TableCellImpl
   private int loopFactor;
   private Object oToolTip;
   
-  public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn) {
-    this(tableRow, tableColumn, false);
+  private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
+
+  public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn) {
+    this(_tableRow, _tableColumn, false);
   }
 
   /**
@@ -88,10 +91,10 @@ public class TableCellImpl
    *                         0-sized 1st column to fix the 1st column gap 
    *                         problem (Eclipse Bug 43910)
    */
-  public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn,
+  public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn,
                        boolean bSkipFirstColumn) {
-    this.tableColumn = tableColumn;
-    this.tableRow = tableRow;
+    this.tableColumn = _tableColumn;
+    this.tableRow = _tableRow;
     valid = false;
     refreshErrLoopCount = 0;
     loopFactor = 0;
@@ -304,52 +307,95 @@ public class TableCellImpl
 
   /* End TYPE_GRAPHIC Functions */
 
-  public synchronized void addRefreshListener(TableCellRefreshListener listener) {
-    if (refreshListeners == null)
-      refreshListeners = new ArrayList();
+  public void addRefreshListener(TableCellRefreshListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (refreshListeners == null)
+  			refreshListeners = new ArrayList();
 
-    refreshListeners.add(listener);
+  		refreshListeners.add(listener);
+  		
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeRefreshListener(TableCellRefreshListener listener) {
-    if (refreshListeners == null)
-      return;
-
-    refreshListeners.remove(listener);
+  public void removeRefreshListener(TableCellRefreshListener listener) {
+  	try{
+  		this_mon.enter();
+  
+	    if (refreshListeners == null)
+	      return;
+	
+	    refreshListeners.remove(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void addDisposeListener(TableCellDisposeListener listener) {
-    if (disposeListeners == null) {
-      disposeListeners = new ArrayList();
-    }
-    disposeListeners.add(listener);
+  public void addDisposeListener(TableCellDisposeListener listener) {
+  	try{
+  		this_mon.enter();
+  
+	    if (disposeListeners == null) {
+	      disposeListeners = new ArrayList();
+	    }
+	    disposeListeners.add(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeDisposeListener(TableCellDisposeListener listener) {
-    if (disposeListeners == null)
-      return;
+  public void removeDisposeListener(TableCellDisposeListener listener) {
+  	try{
+  		this_mon.enter();
+  
+  		if (disposeListeners == null)
+  			return;
 
-    disposeListeners.remove(listener);
+  		disposeListeners.remove(listener);
+  		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
-  public synchronized void addToolTipListener(TableCellToolTipListener listener) {
-    if (tooltipListeners == null) {
-      tooltipListeners = new ArrayList();
-    }
-    tooltipListeners.add(listener);
+  public void addToolTipListener(TableCellToolTipListener listener) {
+  	try{
+  		this_mon.enter();
+  
+  		if (tooltipListeners == null) {
+  			tooltipListeners = new ArrayList();
+  		}
+  		tooltipListeners.add(listener);
+  		
+  	}finally{
+  		this_mon.exit();
+  	}
   }
 
-  public synchronized void removeToolTipListener(TableCellToolTipListener listener) {
-    if (tooltipListeners == null)
-      return;
+  public void removeToolTipListener(TableCellToolTipListener listener) {
+  	try{
+  		this_mon.enter();
+  	
+  		if (tooltipListeners == null)
+  			return;
 
-    tooltipListeners.remove(listener);
+  		tooltipListeners.remove(listener);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   /* Start of Core-Only function */
   //////////////////////////////////
-  public void setValid(boolean valid) {
-    this.valid = valid;
+  public void setValid(boolean _valid) {
+    this.valid = _valid;
   }
 
   public void refresh() {

@@ -48,6 +48,8 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
   private String filename, directoryname;
   private File file = null;
 
+  private AEMonitor this_mon 	= new AEMonitor( "TorrentDownloader" );
+
   public TorrentDownloaderImpl() {
     super("Torrent Downloader");
     setDaemon(true);
@@ -85,11 +87,18 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       this.file.delete();
   }
 
-  private synchronized void error(String err) {
-    this.state = STATE_ERROR;
-    this.setError(err);
-    this.cleanUpFile();
-    this.notifyListener();
+  private void error(String err) {
+  	try{
+  		this_mon.enter();	// what's the point of this?
+  	
+  		this.state = STATE_ERROR;
+  		this.setError(err);
+  		this.cleanUpFile();
+  		this.notifyListener();
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
   public void run() {

@@ -6,6 +6,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
 
@@ -14,6 +15,8 @@ import org.gudy.azureus2.ui.swt.Tab;
  * 
  */
 public abstract class AbstractIView implements IView {
+
+  protected AEMonitor this_mon 	= new AEMonitor( "AbstractIView" );
 
   public void initialize(Composite composite){    
   }

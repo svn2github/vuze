@@ -24,11 +24,15 @@
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.util.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 public class TableContextMenuManager {
-  private static TableContextMenuManager instance;
+  private static TableContextMenuManager 	instance;
+  private static AEMonitor 					class_mon 	= new AEMonitor( "TableContextMenuManager" );
+
 
   /* Holds all the TableContextMenu objects.
    * key   = TABLE_* type (see TableColumn)
@@ -36,7 +40,9 @@ public class TableContextMenuManager {
    *           key = context menu key
    *           value = TableContextMenu object
    */
-  private Map items;
+  private Map 		items;
+  private AEMonitor items_mon 	= new AEMonitor( "TableContextMenuManager:items" );
+
 
   private TableContextMenuManager() {
    items = new HashMap();
@@ -45,17 +51,26 @@ public class TableContextMenuManager {
   /** Retrieve the static TableContextMenuManager instance
    * @return the static TableContextMenuManager instance
    */
-  public static synchronized TableContextMenuManager getInstance() {
-    if (instance == null)
-      instance = new TableContextMenuManager();
-    return instance;
+  public static TableContextMenuManager getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+  		if (instance == null)
+  			instance = new TableContextMenuManager();
+  		return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
   public void addContextMenuItem(TableContextMenuItem item) {
     try {
       String name = item.getResourceKey();
       String sTableID = item.getTableID();
-      synchronized(items) {
+      try{
+      	items_mon.enter();
+      	
         Map mTypes = (Map)items.get(sTableID);
         if (mTypes == null) {
           // LinkedHashMap to preserve order
@@ -63,6 +78,10 @@ public class TableContextMenuManager {
           items.put(sTableID, mTypes);
         }
         mTypes.put(name, item);
+        
+      }finally{
+      	
+      	items_mon.exit();
       }
     } catch (Exception e) {
       System.out.println("Error while adding Context Table Menu Item");

@@ -41,16 +41,25 @@ TorrentManagerImpl
 	implements TorrentManager, TOTorrentProgressListener
 {
 	protected static TorrentManagerImpl	singleton;
-	
-	public synchronized static TorrentManagerImpl
+	protected static AEMonitor 			class_mon 	= new AEMonitor( "TorrentManager" );
+
+	public static TorrentManagerImpl
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton = new TorrentManagerImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new TorrentManagerImpl();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected List		listeners = new ArrayList();
