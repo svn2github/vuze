@@ -65,6 +65,7 @@ public class ConsoleInput extends Thread {
 	private static final int TORRENTCOMMAND_STOP = 1;
 	private static final int TORRENTCOMMAND_REMOVE = 2;
 	private static final int TORRENTCOMMAND_QUEUE = 3;
+	private static final int TORRENTCOMMAND_STARTNOW = 4;
 	
   GlobalManager gm;
   CommandReader br;
@@ -97,10 +98,10 @@ public class ConsoleInput extends Thread {
     os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
     os.println("queue (#|all|hash <hash>)\t-\tQueue torrent(s).");
     os.println("remove (#|all|hash <hash>)\tr\tRemove torrent(s).");
-    os.println("show (#|torrents)\t\t\tsh t\tShow info (Running torrents or further info on a certain torrent).");
-    os.println("start (#|all|hash <hash>)\ts\tStart torrent(s).");
+    os.println("show (#|torrents)\t\tsh t\tShow info (Running torrents or further info on a certain torrent).");
+    os.println("start (#|all|hash <hash>) [now]\ts\tStart torrent(s).");
     os.println("stop (#|all|hash <hash>)\th\tStop torrent(s).");
-    os.println("ui <interface>\tu\tStart additional user interface.");
+    os.println("ui <interface>\t\tu\tStart additional user interface.");
     os.println("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
     os.println("quit\t\t\t\tq\tShutdown Azureus");
   }
@@ -476,13 +477,24 @@ public class ConsoleInput extends Thread {
   			}
   			return true;
   		}
+  		case TORRENTCOMMAND_STARTNOW: {
+  			//dm.startDownloadInitialized(true);
+  			try {
+  				dm.setState(DownloadManager.STATE_WAITING);
+				dm.startDownloadInitialized(true);
+  			} catch (Exception e) {
+  				e.printStackTrace(out);
+  				return false;
+  			}
+  			return true;
+  		}
   	}
   	return false;
   }
   
   private void commandTorrentCommand(int command, String subcommand) {
-	String[] commands = {"start", "stop", "remove", "queue"};
-	String[] actions = {"Starting", "Stopping", "Removing", "Queueing"};
+	String[] commands = {"start", "stop", "remove", "queue", "start"};
+	String[] actions = {"Starting", "Stopping", "Removing", "Queueing", "Starting"};
   	if (subcommand != null) {
   		if ((torrents != null) && torrents.isEmpty()) {
   			out.println("> Command '"+commands[command]+"': No torrents in list (Maybe you forgot to 'show torrents' first).");
@@ -553,6 +565,14 @@ public class ConsoleInput extends Thread {
   }
   
   private void commandStart(String subcommand) {
+	if (subcommand != null) {
+		if (subcommand.toLowerCase().indexOf("now")!=-1) {
+			String su = subcommand.replaceAll("now", "");
+			commandTorrentCommand(TORRENTCOMMAND_STARTNOW, su);
+			return;
+		}
+	}
+		
 	commandTorrentCommand(TORRENTCOMMAND_START, subcommand);
   	/*if (subcommand != null) {
   		if ((torrents != null) && torrents.isEmpty()) {
