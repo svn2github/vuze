@@ -182,7 +182,7 @@ public class OutgoingMessageQueue {
     
       for( int i=0; i < listeners_ref.size(); i++ ) {
         MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-        listener.messageQueued( rmesg );
+        listener.messageQueued( rmesg.getBaseMessage() );
       }
     }
   }
@@ -255,7 +255,7 @@ public class OutgoingMessageQueue {
         
         for( int i=0; i < listeners_ref.size(); i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-          listener.messageRemoved( msg );
+          listener.messageRemoved( msg.getBaseMessage() );
         }
         msg.destroy();
       }
@@ -324,7 +324,7 @@ public class OutgoingMessageQueue {
       
         for( int i=0; i < listeners_ref.size(); i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-          listener.messageRemoved( msg_removed );
+          listener.messageRemoved( msg_removed.getBaseMessage() );
         }
         msg_removed.destroy();
       }
@@ -433,7 +433,6 @@ public class OutgoingMessageQueue {
               if( manual_listener_notify ) {
                 NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
                 item.message = msg;
-                item.transport = tcp_transport;
                 try {  delayed_notifications_mon.enter();
                   delayed_notifications.add( item );
                 } finally {  delayed_notifications_mon.exit();  }
@@ -502,7 +501,7 @@ public class OutgoingMessageQueue {
 	          for( int x=0; x < messages_sent.size(); x++ ) {
 	            RawMessage msg = (RawMessage)messages_sent.get( x );
 	
-	            listener.messageSent( msg );
+	            listener.messageSent( msg.getBaseMessage() );
 	            
 	            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
 	              msg.destroy();
@@ -542,14 +541,14 @@ public class OutgoingMessageQueue {
         case NotificationItem.MESSAGE_ADDED:
           for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
             MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-            listener.messageQueued( item.message );
+            listener.messageQueued( item.message.getBaseMessage() );
           }
           break;
           
         case NotificationItem.MESSAGE_REMOVED:
           for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
             MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-            listener.messageRemoved( item.message );
+            listener.messageRemoved( item.message.getBaseMessage() );
           }
           item.message.destroy();
           break;
@@ -557,7 +556,7 @@ public class OutgoingMessageQueue {
         case NotificationItem.MESSAGE_SENT:
           for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
             MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-            listener.messageSent( item.message );
+            listener.messageSent( item.message.getBaseMessage() );
           }
           item.message.destroy();
           break;
@@ -707,7 +706,6 @@ public class OutgoingMessageQueue {
     private static final int PROTOCOL_BYTES_SENT  = 4;
     private final int type;
     private RawMessage message;
-    private TCPTransport transport;
     private int byte_count = 0;
     private NotificationItem( int notification_type ) {
       type = notification_type;

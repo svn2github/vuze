@@ -38,4 +38,9 @@ public interface RawMessage extends Message {
    */
   public ByteBuffer[] getRawPayload();
   
+  /**
+   * Get the message this raw message is based upon.
+   * @return original message
+   */
+  public Message getOriginalMessage();
 }

@@ -85,4 +85,6 @@ public class BTKeepAlive implements BTMessage, RawMessage {
 
   public void destroy() {  }
 
+  public Message getBaseMessage() {  return this;  }
+  
 }

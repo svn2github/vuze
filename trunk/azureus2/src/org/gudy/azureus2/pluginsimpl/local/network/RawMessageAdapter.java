@@ -89,4 +89,22 @@ public class RawMessageAdapter extends MessageAdapter implements RawMessage, com
 
   public Message[] messagesToRemove() {  return null;  }
   
+  
+  public org.gudy.azureus2.plugins.messaging.Message getOriginalMessage() {
+    if( plug_msg == null ) {
+      return new MessageAdapter( core_msg.getBaseMessage() );
+    }
+    
+    return plug_msg.getOriginalMessage();
+  }
+  
+  
+  public Message getBaseMessage() {
+    if( core_msg == null ) {
+      return new MessageAdapter( plug_msg.getOriginalMessage() );
+    }
+    
+    return core_msg.getBaseMessage();
+  }
+  
 }

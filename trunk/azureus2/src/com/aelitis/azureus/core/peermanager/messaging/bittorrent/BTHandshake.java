@@ -151,4 +151,5 @@ public class BTHandshake implements BTMessage, RawMessage {
 
   public void destroy() {  }
   
+  public Message getBaseMessage() {  return this;  }
 }

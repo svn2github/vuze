@@ -88,6 +88,9 @@ public class RawMessageImpl implements RawMessage {
   
   public Message[] messagesToRemove() {  return to_remove;  }
   
+  public Message getBaseMessage() {  return message;  }
+  
+  
   public void destroy() {
     //NOTE: Assumes that the raw payload is made up of the original
     //      message data buffers plus some header data, so returning

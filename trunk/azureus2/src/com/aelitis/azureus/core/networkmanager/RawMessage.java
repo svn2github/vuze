@@ -65,4 +65,10 @@ public interface RawMessage extends Message {
    */
   public Message[] messagesToRemove();
   
+  
+  /**
+   * Get the message this raw message is based upon.
+   * @return original message
+   */
+  public Message getBaseMessage();
 }
