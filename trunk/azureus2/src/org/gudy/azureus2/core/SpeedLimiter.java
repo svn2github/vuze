@@ -40,11 +40,12 @@ public class SpeedLimiter {
     static private class Allocation {
         int toBeAllocated;
         int peersToBeAllocated;
+		int numAllowed;
 
-        public int getNumAllowed() {
-        	// TODO what to do when peersToBeAllocated == 0 ?
-            return toBeAllocated / peersToBeAllocated;
-        }
+		public void updateNumAllowed() {
+			// TODO what to do when peersToBeAllocated == 0 ?
+			numAllowed = toBeAllocated / peersToBeAllocated;			
+		}
     }
 
     static private final int MAX_NUM_UPLOADERS = 1000;
@@ -164,9 +165,10 @@ public class SpeedLimiter {
     }
 
 	// refactored out of getLimitPer100ms() - Moti
-	private int getLimit(PeerSocket wt, Allocation allocation) {		
+	private int getLimit(PeerSocket wt, Allocation allocation) {
+		allocation.updateNumAllowed();		
 		maxUpload = wt.getMaxUpload();
-		int result = min(allocation.getNumAllowed(), maxUpload);
+		int result = min(allocation.numAllowed, maxUpload);
 		return result;
 	}
 
