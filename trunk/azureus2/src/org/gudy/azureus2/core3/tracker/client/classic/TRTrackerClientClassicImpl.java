@@ -1095,8 +1095,7 @@ TRTrackerClientClassicImpl
     
     if (evt.equals("stopped")){
     	request.append("&numwant=0");
-    }
-    else {
+    }else {
       //calculate how many peers we should ask for
       int numwant;
       int MAX_PEERS = 100;
@@ -1106,12 +1105,13 @@ TRTrackerClientClassicImpl
         
         if (numwant < 0) numwant = 0;
         if (numwant > MAX_PEERS) numwant = MAX_PEERS;
-      }
-      else {
+        
+      }else {
+      	
         numwant = MAX_PEERS;
       }
 
-    	request.append("&numwant=" + numwant);
+      request.append("&numwant=" + numwant);
       
     	//request the tracker to return a peer list without peerIDs, for bandwidth savings
     	//will be the default in next python core release
@@ -1121,7 +1121,11 @@ TRTrackerClientClassicImpl
       	// latest space saving measure, a compact return type where peers are returned
       	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
       
-      request.append( "&compact=1");
+      if ( COConfigurationManager.getBooleanParameter("ConfigView.section.tracker.enablecompact", true )){
+      	
+     
+      	request.append( "&compact=1");
+      }
     }
 	
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
@@ -1141,7 +1145,7 @@ TRTrackerClientClassicImpl
    		
     		ip2	= ip;
     	}
-    	
+    	    	
     	request.append("&ip=").append(ip2);
     }
 	

@@ -51,6 +51,7 @@ TRTrackerServerTCP
 	protected boolean	tracker_password_enabled;
 	protected String	password_user;
 	protected byte[]	password_pw;
+	protected boolean	compact_enabled;
 	
 	
 	public
@@ -68,11 +69,11 @@ TRTrackerServerTCP
 				public void
 				configurationSaved()
 				{
-					readPasswordSettings();
+					readConfigSettings();
 				}
 			});
 			
-		readPasswordSettings();
+		readConfigSettings();
 				
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
@@ -220,7 +221,7 @@ TRTrackerServerTCP
 		
 
 	protected void
-	readPasswordSettings()
+	readConfigSettings()
 	{		
 		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
 		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
@@ -230,6 +231,8 @@ TRTrackerServerTCP
 			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
 			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
 		}
+		
+		compact_enabled = COConfigurationManager.getBooleanParameter("ConfigView.section.tracker.enablecompact", true );
 	}
 	
 	public boolean
@@ -242,6 +245,12 @@ TRTrackerServerTCP
 	isTrackerPasswordEnabled()
 	{
 		return( tracker_password_enabled );
+	}
+	
+	public boolean
+	isCompactEnabled()
+	{
+		return( compact_enabled );
 	}
 	
 	public String

@@ -365,7 +365,10 @@ TRTrackerServerProcessorTCP
 						
 					}else if ( lhs.equals( "compact" )){
 						
-						compact = rhs.equals("1");
+						if ( server.isCompactEnabled()){
+							
+							compact = rhs.equals("1");
+						}
 						
 					}else if ( lhs.equals( "port" )){
 							
