@@ -1,5 +1,5 @@
 /*
- * File    : StartStopRulesDefaultPlugin.java
+dmindad * File    : StartStopRulesDefaultPlugin.java
  * Created : 12-Jan-2004
  * By      : TuxPaper
  *
@@ -76,10 +76,10 @@ public class StartStopRulesDefaultPlugin
   private static final int SR_TIMED_QUEUED_ENDS_AT    =   10000000;
   private static final int SR_FIRST_PRIORITY_STARTS_AT=   50000000;
   private static final int SR_NOTQUEUED       = -2;
-  private static final int SR_0PEER	    	  = -3;
-  private static final int SR_SPRATIOMET	  = -4;
-  private static final int SR_RATIOMET        = -5;
-  private static final int SR_NUMSEEDSMET     = -6;
+  private static final int SR_SPRATIOMET	  = -3;
+  private static final int SR_RATIOMET        = -4;
+  private static final int SR_NUMSEEDSMET     = -5;
+  private static final int SR_FP0PEERS    	  = -6;
   private static final int SR_0PEERS          = -7;
   private static final int SR_SHARERATIOMET   = -8;
   
@@ -128,6 +128,7 @@ public class StartStopRulesDefaultPlugin
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
+  long minTimeAlive1 = 60 * 1000;
   
   boolean bPreferLargerSwarms;
   boolean bDebugLog;
@@ -869,7 +870,7 @@ public class StartStopRulesDefaultPlugin
 	          }
 	        }
 	
-	        if (state == Download.ST_QUEUED) {
+	        if (state == Download.ST_QUEUED) { 
 	          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads - iExtraFPs)) {
 	            try {
 	              if (bDebugLog) {
@@ -981,7 +982,7 @@ public class StartStopRulesDefaultPlugin
 			// XXX do we want changes to take effect immediately  ?
 	        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
 	          long timeAlive = (SystemTime.getCurrentTime() - download.getStats().getTimeStarted());
-	          okToQueue = (timeAlive >= minTimeAlive);
+	          okToQueue = (timeAlive >= minTimeAlive1);
 	        }
 	        
 	        if (state != Download.ST_QUEUED &&  // Short circuit.
@@ -1474,24 +1475,35 @@ public class StartStopRulesDefaultPlugin
 		      // never apply ignore rules to First Priority Matches
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
-	        if (num_peers_excluding_us == 0 && bScrapeResultsOk) {
-				if ( (iIgnoreShareRatio != 0 && shareRatio > iIgnoreShareRatio) ||
-						( iIgnoreShareRatio == 0 && shareRatio > minQueueingShareRatio) &&
+			if (iIgnoreShareRatio != 0 && 
+				         shareRatio >= iIgnoreShareRatio && 
+				         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
+				         shareRatio != -1) {
+		          setSeedingRank(SR_SHARERATIOMET);
+		          return SR_SHARERATIOMET;
+		        }
+			  
+			if (num_peers_excluding_us == 0 && bScrapeResultsOk) {
+				if ( shareRatio >= minQueueingShareRatio &&
 						shareRatio != -1 &&
 						bIgnore0Peers){
 					setSeedingRank(SR_0PEERS);
 			          return SR_0PEERS;
 				}
-	          
+				
+				if( bFirstPriorityIgnore0Peer && (shareRatio < minQueueingShareRatio) && shareRatio != -1) {
+					setSeedingRank(SR_FP0PEERS);
+					  return SR_FP0PEERS;
+				}
 	        }
-	
-	        if (iIgnoreShareRatio != 0 && 
-			         shareRatio >= iIgnoreShareRatio && 
-			         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
-			         shareRatio != -1) {
-	          setSeedingRank(SR_SHARERATIOMET);
-	          return sr;
-	        }
+			
+			if (num_peers_excluding_us != 0 && 
+					iFirstPriorityIgnoreSPRatio != 0 &&
+					num_seeds_excluding_us / num_peers_excluding_us >= iFirstPriorityIgnoreSPRatio) {
+				setSeedingRank(SR_SPRATIOMET);
+				return SR_SPRATIOMET;
+			}
+			  
 	  
 	        //0 means disabled
 	        if ((iIgnoreSeedCount != 0) && (num_seeds_excluding_us >= iIgnoreSeedCount)) {
@@ -1656,7 +1668,7 @@ public class StartStopRulesDefaultPlugin
       int numPeers = calcPeersNoUs(dl);
       int numSeeds = calcSeedsNoUs(dl);
 	  if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0) {
-      if (bDebugLog) sExplainFP += "Not FP: P:S >= "+iFirstPriorityIgnoreSPRatio+":1\n";
+      if (bDebugLog) sExplainFP += "Not FP: S:P >= "+iFirstPriorityIgnoreSPRatio+":1\n";
         return false;
       }
 
@@ -1775,14 +1787,14 @@ public class StartStopRulesDefaultPlugin
             sText += MessageText.getString("StartStopRules.waiting");
           }
         } else if (sr > 0) {
-          // Add a Star if it's belfore minTimeAlive
-          if (SystemTime.getCurrentTime() - dl.getStats().getTimeStartedSeeding() < minTimeAlive)
+          // Add a Star if it's before minTimeAlive1
+          if (SystemTime.getCurrentTime() - dl.getStats().getTimeStartedSeeding() < minTimeAlive1)
             sText += "* ";
           sText += String.valueOf(sr);
         }
       }
-	  else if (sr == SR_0PEER)
-	        sText = MessageText.getString("StartStopRules.0Peers");
+	  else if (sr == SR_FP0PEERS)
+	        sText = MessageText.getString("StartStopRules.FP0Peers");
 	  else if (sr == SR_SPRATIOMET)
 	        sText = MessageText.getString("StartStopRules.SPratioMet");
       else if (sr == SR_RATIOMET)
