@@ -418,11 +418,15 @@ PEPeerTransportProtocol
   }
 
   protected void sendProtocol(ByteBuffer buffer) {
-	protocolQueue.add(buffer);
+    synchronized( protocolQueue ) {
+    	protocolQueue.add(buffer);
+    }
   }
 
   protected void sendData(DiskManagerRequest request) {
-	dataQueue.add(manager.createDiskManagerDataQueueItem(request));
+    synchronized( dataQueue ) {
+    	dataQueue.add(manager.createDiskManagerDataQueueItem(request));
+    }
   }
 
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
@@ -458,17 +462,19 @@ PEPeerTransportProtocol
 	  }
 	}
 
-	//release all buffers in dataQueue
-	for (int i = dataQueue.size() - 1; i >= 0; i--) {
-	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
-	  if (item.isLoaded()) {
-		DirectByteBufferPool.freeBuffer(item.getBuffer());
-		item.setBuffer(null);
-	  }
-	  else if (item.isLoading()) {
-		manager.freeRequest(item);
-	  }
-	}
+  synchronized( dataQueue ) {
+  	//release all buffers in dataQueue
+  	for (int i = dataQueue.size() - 1; i >= 0; i--) {
+  		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
+  		if (item.isLoaded()) {
+  			DirectByteBufferPool.freeBuffer(item.getBuffer());
+  			item.setBuffer(null);
+  		}
+  		else if (item.isLoading()) {
+  			manager.freeRequest(item);
+  		}
+  	}
+  }
 
   //remove identity
   if ( this.id != null && identityAdded ) {
@@ -1137,20 +1143,22 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void removeRequestFromQueue(DiskManagerRequest request) {
-	for (int i = 0; i < dataQueue.size(); i++) {
-	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
-	  if (item.getRequest().equals(request)) {
-		if (item.isLoaded()) {
-		  DirectByteBufferPool.freeBuffer(item.getBuffer());
-		  item.setBuffer(null);
-		}
-		if (item.isLoading()) {
-		  manager.freeRequest(item);
-		}
-		dataQueue.remove(item);
-		i--;
-	  }
-	}
+    synchronized( dataQueue ) {
+    	for (int i = 0; i < dataQueue.size(); i++) {
+    		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
+    		if (item.getRequest().equals(request)) {
+    			if (item.isLoaded()) {
+    				DirectByteBufferPool.freeBuffer(item.getBuffer());
+    				item.setBuffer(null);
+    			}
+    			if (item.isLoading()) {
+    				manager.freeRequest(item);
+    			}
+    			dataQueue.remove(item);
+    			i--;
+    		}
+    	}
+    }
   }
 
  
@@ -1216,98 +1224,108 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	}
   	
   	if (writeBuffer == null) {
-  		//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
-  		if (protocolQueue.size() != 0) {
-  			//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
-  			waitingChokeToBeSent = false;
-  			//Assign the current buffer ...
-  			keepAlive = 0;
-  			writeBuffer = (ByteBuffer) protocolQueue.remove(0);
+      
+  		synchronized( protocolQueue ) {
+      	//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
+      	if (protocolQueue.size() != 0) {
+      		//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
+      		waitingChokeToBeSent = false;
+      		//Assign the current buffer ...
+      		keepAlive = 0;
+      		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
   			
-  			if (writeBuffer == null){
-  				closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
-          return PEPeerControl.NO_SLEEP;
-  			}
+      		if (writeBuffer == null){
+      			closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
+      			return PEPeerControl.NO_SLEEP;
+      		}
   			
-  			//check to make sure we're sending a proper message length
-  			if (!verifyLength(writeBuffer)) {
-  				closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
-          return PEPeerControl.NO_SLEEP;
-  			}
+      		//check to make sure we're sending a proper message length
+      		if (!verifyLength(writeBuffer)) {
+      			closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
+      			return PEPeerControl.NO_SLEEP;
+      		}
   			
-  			writeBuffer.position(0);
-  			writeData = false;
-  			//and loop
-  			write();
-  			return PEPeerControl.NO_SLEEP;
+      		writeBuffer.position(0);
+  			  writeData = false;
+  			  //and loop
+  			  write();
+  			  return PEPeerControl.NO_SLEEP;
+      	}
   		}
   		
-  		//Check if there's any data to send from the dataQueue
-  		if (dataQueue.size() != 0) {
-  			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
-  			if (!choking) {
-  				if (!item.isLoading() && !choking) {
-  					manager.enqueueReadRequest(item);
-  				}
-  				if (item.isLoaded()) {
-  					dataQueue.remove(0);
-  					if (dataQueue.size() != 0) {
-  						DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
-  						if (!itemNext.isLoading()) {
-  							manager.enqueueReadRequest(itemNext);
-  						}
-  					}
-  					DiskManagerRequest request = item.getRequest();
-  					LGLogger.log(
-  							componentID,
-								evtProtocol,
-								LGLogger.SENT,
-								ip
-								+ " is being sent #"
-								+ request.getPieceNumber()
-								+ ":"
-								+ request.getOffset()
-								+ "->"
-								+ (request.getOffset() + request.getLength()));
-  					// Assign the current buffer ...
-  					keepAlive = 0;
-  					writeBuffer = item.getBuffer();
-  					
-  					//check to make sure we're sending a proper message length
-  					if (!verifyLength(writeBuffer)) {
-  						closeAll("OOPS, we're sending a bad data message length !!!", true, true);
-              return PEPeerControl.NO_SLEEP;
-  					}
-  					
-  					writeBuffer.position(0);
-  					writeData = true;
-  					PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
-  					// and loop
-  					write();
-            return PEPeerControl.NO_SLEEP;
-  				}
-  			}
-  			else {
-  				//We are choking the peer so ...
-  				if (!item.isLoading()) {
-  					dataQueue.remove(item);
-  				}
-  				if (item.isLoaded()) {
-  					dataQueue.remove(item);
-  					DirectByteBufferPool.freeBuffer(item.getBuffer());
-  					item.setBuffer(null);
-  				}
-          return PEPeerControl.NO_SLEEP;
-  			}
-  		}
+      synchronized( dataQueue ) {
+      	//Check if there's any data to send from the dataQueue
+      	if (dataQueue.size() != 0) {
+      		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
+      		if (!choking) {
+      			if (!item.isLoading() && !choking) {
+      				manager.enqueueReadRequest(item);
+      			}
+      			if (item.isLoaded()) {
+      				dataQueue.remove(0);
+      				if (dataQueue.size() != 0) {
+      					DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
+      					if (!itemNext.isLoading()) {
+      						manager.enqueueReadRequest(itemNext);
+      					}
+      				}
+      				DiskManagerRequest request = item.getRequest();
+      				LGLogger.log(
+      						componentID,
+									evtProtocol,
+									LGLogger.SENT,
+									ip
+									+ " is being sent #"
+									+ request.getPieceNumber()
+									+ ":"
+									+ request.getOffset()
+									+ "->"
+									+ (request.getOffset() + request.getLength()));
+      				// Assign the current buffer ...
+      				keepAlive = 0;
+      				writeBuffer = item.getBuffer();
+      				
+      				//check to make sure we're sending a proper message length
+      				if (!verifyLength(writeBuffer)) {
+      					closeAll("OOPS, we're sending a bad data message length !!!", true, true);
+      					return PEPeerControl.NO_SLEEP;
+      				}
+      				
+      				writeBuffer.position(0);
+      				writeData = true;
+      				PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
+      				// and loop
+      				write();
+      				return PEPeerControl.NO_SLEEP;
+      			}
+      		}
+      		else {
+      			//We are choking the peer so ...
+      			if (!item.isLoading()) {
+      				dataQueue.remove(item);
+      			}
+      			if (item.isLoaded()) {
+      				dataQueue.remove(item);
+      				DirectByteBufferPool.freeBuffer(item.getBuffer());
+      				item.setBuffer(null);
+      			}
+      			return PEPeerControl.NO_SLEEP;
+      		}
+      	}
+    }
       
-  		if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
-  			keepAlive++;
-  			if (keepAlive == 50 * 60 * 3) {
-  				keepAlive = 0;
-  				sendKeepAlive();
-  			}
-  		}
+      synchronized( protocolQueue ) {
+        synchronized( dataQueue ) {
+        	if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
+        		keepAlive++;
+        		if (keepAlive == 50 * 60 * 3) {
+        			keepAlive = 0;
+        			sendKeepAlive();
+        		}
+        	}
+        }
+      }
+    
   	}
     
     return PEPeerControl.NO_SLEEP;
@@ -1347,11 +1365,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void sendKeepAlive() {
-	ByteBuffer buffer = ByteBuffer.allocate(4);
-	buffer.putInt(0);
-	buffer.limit(4);
-	buffer.position(0);
-	protocolQueue.add(buffer);
+  	ByteBuffer buffer = ByteBuffer.allocate(4);
+  	buffer.putInt(0);
+  	buffer.limit(4);
+  	buffer.position(0);
+  
+  	synchronized( protocolQueue ) {
+  		protocolQueue.add(buffer);
+  	}
   }
 
   public int getMaxUpload() {
@@ -1359,9 +1380,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   public DiskManagerDataQueueItem getNextRequest() {
-	if (dataQueue.size() != 0)
-	  return (DiskManagerDataQueueItem) dataQueue.get(0);
-	return null;
+    synchronized( dataQueue ) {
+    	if (dataQueue.size() != 0)
+    		return (DiskManagerDataQueueItem) dataQueue.get(0);
+    	return null;
+    }
   }
 
   /**
