@@ -4,6 +4,8 @@ AZUREUS CHANGELOG
 
 2004.07.xx | Azureus 2.1.0.5
 
+FEATURE: Core | Ability to set IP type-of-service (TOS) field for outbound data [Nolar]
+
 CHANGE: Parg | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Parg | Timeout tracker server operations [Parg]
 

@@ -129,11 +129,15 @@ PEPeerServerImpl
             "PEPeerServer has accepted an incoming connection from : "
             + sckClient.socket().getInetAddress().getHostAddress());
           
-          sckClient.configureBlocking(false);
-          
           String size = System.getProperty("socket.SO_SNDBUF");
           if ( size != null ) sckClient.socket().setSendBufferSize( Integer.parseInt( size ) );
 
+          String ip_tos = System.getProperty("socket.IPTOS");
+          if ( ip_tos != null ) sckClient.socket().setTrafficClass( Integer.parseInt( ip_tos ) );
+          //System.out.println( "iTOS=" + sckClient.socket().getTrafficClass() );
+          
+          sckClient.configureBlocking(false);
+          
           adapter.addPeerTransport(sckClient);
           
           sckClient = null;
@@ -150,7 +154,7 @@ PEPeerServerImpl
     }
     catch (Exception e) {
       if (bContinue)
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "PEPeerServer has catched an error : " + e);
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "PEPeerServer has caught an error : " + e);
     }
 
     LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is stopped");
