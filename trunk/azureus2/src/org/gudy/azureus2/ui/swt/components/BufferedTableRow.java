@@ -42,6 +42,8 @@ BufferedTableRow
 	protected String[]	text_values		= new String[0];
 	protected Image[]	image_values	= new Image[0];
 	
+	protected Color		foreground;
+	
 	public
 	BufferedTableRow(
 		Table		_table,
@@ -112,7 +114,15 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-		item.setForeground(c);
+		if ( 	foreground != null &&
+				foreground.equals( c )){
+				
+			return;
+		}
+		
+		foreground = c;
+		
+		item.setForeground(foreground);
 	}
 	
 	public void

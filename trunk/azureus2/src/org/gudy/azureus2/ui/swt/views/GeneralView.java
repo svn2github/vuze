@@ -679,16 +679,26 @@ public class GeneralView extends AbstractIView {
 	shareRatio.setText( _shareRatio);     
   }
 
-  public void setTracker(final String status, final int time, TRTrackerClient trackerClient ){
+  public void setTracker( String status,  int time, TRTrackerClient trackerClient ){
     if (display == null || display.isDisposed())
       return;
 	tracker.setText( status);
+	
+	boolean	negative = false;
+	
+	if ( time < 0 ){
+		
+		negative = true;
+		
+		time = -time;
+	}
+	
     int minutes = time / 60;
     int seconds = time % 60;
     String strSeconds = "" + seconds; //$NON-NLS-1$
     if (seconds < 10)
       strSeconds = "0" + seconds; //$NON-NLS-1$
-	trackerUpdateIn.setText( minutes + ":" + strSeconds); //$NON-NLS-1$
+	trackerUpdateIn.setText( (negative?"-":"") + minutes + ":" + strSeconds); //$NON-NLS-1$
     
     if(trackerClient != null){
     	
