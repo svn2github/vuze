@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.ui.common.util.HSLColor;
 /**
  * @author Olivier Chalouhi
  *  

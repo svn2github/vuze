@@ -1,4 +1,4 @@
-package org.gudy.azureus2.ui.common.util;
+package org.gudy.azureus2.ui.swt.mainwindow;
 
 
 public class HSLColor {

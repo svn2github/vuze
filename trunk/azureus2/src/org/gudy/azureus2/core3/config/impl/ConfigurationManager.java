@@ -14,9 +14,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -233,14 +230,6 @@ public class ConfigurationManager {
 
     return bAnyChanged;
 	}
-
-  public boolean setParameter(String parameter, Color newColor) {
-    return setParameter(parameter, newColor.getRGB());
-  }
-
-  public boolean setParameter(String parameter, RGB newColor) {
-    return setRGBParameter(parameter, newColor.red, newColor.green, newColor.blue);
-  }
   
   // Sets a parameter back to its default
   public boolean setParameter(String parameter) throws ConfigurationParameterNotFoundException {
