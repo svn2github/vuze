@@ -1384,12 +1384,12 @@ DiskManagerImpl
                           
 				//if this is the first piece of the file
 				if (i == fileInfo.getFirstPieceNumber()) {
-				  completion = 99;   
+				  completion = 98;   
 				}
         
             //if the file is high-priority
 				else if (fileInfo.isPriority()) {
-				  completion = 98;
+				  completion = 99;
 				}
 				
 				//If the file is started but not completed
