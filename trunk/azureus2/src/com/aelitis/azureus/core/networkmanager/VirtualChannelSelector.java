@@ -91,7 +91,7 @@ public class VirtualChannelSelector {
       try {
         count = selector.select( timeout );
       }
-      catch (Exception e) {  Debug.out( e.getMessage() );  }
+      catch (Throwable t) {  t.printStackTrace();  }
       
       if( !selector_guard.isSelectorOK( count, timeout / 2 ) ) {
         selector = selector_guard.repairSelector( selector );

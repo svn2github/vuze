@@ -111,16 +111,23 @@ public class NetworkManager {
     try {  Thread.sleep( 1000 );  }catch( Exception e ) {}
     
     while( true ) {
-        //long start_time = SystemTime.getCurrentTime();
+      try {
+        //long start_time = System.currentTimeMillis();
         
-        write_selector.select( 25 );
-        root_connection_pool.doWrites();
+        //write_selector.select( 25 );
+        
+        root_connection_pool.doWrites( write_selector );
       
-        //long processing_time = SystemTime.getCurrentTime() - start_time;
+        //long processing_time = System.currentTimeMillis() - start_time;
         //System.out.println("processing_time="+processing_time);
-        //if( processing_time < 50 ) {
-        //  try{  Thread.sleep( 50 - processing_time );  }catch( Exception e) {e.printStackTrace();}
+        //if( processing_time < 1000 ) {
+        //  try{  Thread.sleep( 1000 - processing_time );  }catch( Exception e) {e.printStackTrace();}
         //}
+      }
+      catch( Throwable t ) {
+        t.printStackTrace();
+        try{ Thread.sleep( 1000 );  }catch( Exception e) {}
+      }
     }
   }
   
