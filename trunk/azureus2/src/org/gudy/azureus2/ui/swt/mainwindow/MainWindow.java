@@ -448,7 +448,10 @@ MainWindow
     
     
     gridData = new GridData();
-    gridData.widthHint = 220;
+
+    if( Constants.isLinux ) gridData.widthHint = 255;
+    else gridData.widthHint = 225;
+    
     ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
     ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
     ipBlocked.setLayoutData(gridData);
