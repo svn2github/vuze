@@ -37,7 +37,7 @@ public class VirtualChannelSelector {
     public static final int OP_WRITE = SelectionKey.OP_WRITE;
   
   
-    private static final int SELECTOR_FAIL_COUNT_MAX = 10000;  // a real selector spin will easily reach this
+    private static final int SELECTOR_FAIL_COUNT_MAX = 50000;  // a real selector spin will easily reach this
     
     private Selector selector;
     private final SelectorGuard selector_guard;
