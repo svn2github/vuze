@@ -962,8 +962,7 @@ DiskManagerImpl
                     
 					if (fc.isOpen()) {
 					   //if the file is large enough
-                  //if (fc.size() >= tempPiece.getOffset()) {
-						if (fc.size() >= (tempPiece.getOffset() + tempPiece.getLength())) {
+            if (fc.size() >= tempPiece.getOffset()) {
 							fc.position(tempPiece.getOffset());
 							fc.read(allocateAndTestBuffer);
 						} else {
@@ -1430,14 +1429,9 @@ DiskManagerImpl
 			  return false;
 			}
 
-			long fcposition = 0;
-			long fcsize = 0;
-
 			try {
 				fc.position(offset);
 				while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()) {
-					fcposition = fc.position();
-					fcsize = fc.size();
 					fc.read(buffer);
 				}
 				return true;
