@@ -38,9 +38,11 @@ Test
 	protected
 	Test()
 	{
-		ResourceDownloader rd = ResourceDownloaderFactory.create( "http://localhost:6969/");
+		ResourceDownloader rd = ResourceDownloaderFactory.create( "http://localhost:6967/");
 		
 		rd = ResourceDownloaderFactory.getRetryDownloader( rd, 5 );
+		
+		rd = ResourceDownloaderFactory.getTimeoutDownloader( rd, 2000 );
 		
 		rd.addListener( this );
 		

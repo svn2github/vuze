@@ -45,4 +45,12 @@ ResourceDownloaderFactory
 	{
 		return( new ResourceDownloaderRetryImpl( downloader, retry_count ));
 	}
+	
+	public static ResourceDownloader
+	getTimeoutDownloader(
+		ResourceDownloader		downloader,
+		int						timeout_millis )
+	{
+		return( new ResourceDownloaderTimeoutImpl( downloader, timeout_millis ));
+	}
 }

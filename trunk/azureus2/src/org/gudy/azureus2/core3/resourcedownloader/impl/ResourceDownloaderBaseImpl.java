@@ -37,6 +37,8 @@ ResourceDownloaderBaseImpl
 {
 	protected List			listeners		= new ArrayList();
 	
+	protected boolean		result_informed;
+	
 	protected void
 	informPercentDone(
 		int	percentage )
@@ -60,9 +62,14 @@ ResourceDownloaderBaseImpl
 	informComplete(
 		InputStream	is )
 	{
-		for (int i=0;i<listeners.size();i++){
+		if ( !result_informed ){
 			
-			((ResourceDownloaderListener)listeners.get(i)).completed(this,is);
+			result_informed	= true;
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((ResourceDownloaderListener)listeners.get(i)).completed(this,is);
+			}
 		}
 	}
 	
@@ -70,10 +77,31 @@ ResourceDownloaderBaseImpl
 	informFailed(
 		ResourceDownloaderException	e )
 	{
-		for (int i=0;i<listeners.size();i++){
+		if ( !result_informed ){
 			
-			((ResourceDownloaderListener)listeners.get(i)).failed(this,e);
+			result_informed	= true;
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((ResourceDownloaderListener)listeners.get(i)).failed(this,e);
+			}
 		}
+	}
+	
+	public void
+	reportActivity(
+		ResourceDownloader	downloader,
+		String				activity )
+	{
+		informActivity( activity );
+	}
+	
+	public void
+	reportPercentComplete(
+		ResourceDownloader	downloader,
+		int					percentage )
+	{
+		informPercentDone( percentage );
 	}
 	
 	public void

@@ -33,32 +33,32 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.resourcedownloader.*;
 
 public class 
-ResourceDownloaderRetryImpl 	
+ResourceDownloaderTimeoutImpl 	
 	extends 	ResourceDownloaderBaseImpl
 	implements	ResourceDownloaderListener
 {
 	protected ResourceDownloader		delegate;
-	protected int						retry_count;
+	protected int						timeout_millis;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
-	protected int						done_count;
+
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
 	public
-	ResourceDownloaderRetryImpl(
+	ResourceDownloaderTimeoutImpl(
 		ResourceDownloader	_delegate,
-		int					_retry_count )
+		int					_timeout_millis )
 	{
-		delegate		= _delegate;
-		retry_count		= _retry_count;
+		delegate			= _delegate;
+		timeout_millis		= _timeout_millis;
 	}
 	
 	public ResourceDownloader
 	getClone()
 	{
-		return( new ResourceDownloaderRetryImpl( delegate.getClone(), retry_count ));
+		return( new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis ));
 	}
 	
 	public InputStream
@@ -80,37 +80,53 @@ ResourceDownloaderRetryImpl
 	
 	public synchronized void
 	asyncDownload()
-	{
-		if ( done_count == retry_count || cancelled ){
-			
-			done_sem.release();
-			
-			informFailed((ResourceDownloaderException)result);
-			
-		}else{
-		
-			done_count++;
-			
-			informActivity( "download attempt " + done_count + " of " + retry_count );
+	{		
+		if ( !cancelled ){
 			
 			current_downloader = delegate.getClone();
 			
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();
+		
+			Thread t = new Thread( "ResourceDownloaderTimeout")
+				{
+					public void
+					run()
+					{
+						try{
+							Thread.sleep( timeout_millis );
+							
+							cancel(new ResourceDownloaderException( "Download timeout"));
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				};
+			
+			t.setDaemon(true);
+	
+			t.start();
 		}
 	}
 	
 	public synchronized void
 	cancel()
 	{
-		result	= new ResourceDownloaderException( "Download cancelled");
+		cancel( new ResourceDownloaderException( "Download cancelled"));
+	}
+	
+	protected synchronized void
+	cancel(
+		ResourceDownloaderException reason )
+	{
+		result	= reason; 
 		
 		cancelled	= true;
-		
+	
 		informFailed((ResourceDownloaderException)result );
-		
-		done_sem.release();
 		
 		if ( current_downloader != null ){
 			
@@ -137,6 +153,8 @@ ResourceDownloaderRetryImpl
 	{
 		result		= e;
 		
-		asyncDownload();
+		done_sem.release();
+		
+		informFailed( e );
 	}
 }
