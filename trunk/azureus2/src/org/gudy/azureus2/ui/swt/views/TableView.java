@@ -437,8 +437,12 @@ public class TableView
             // We don't get mouse down notifications on trim or borders..
 						shell = new Shell (table.getShell(), SWT.ON_TOP);
             FillLayout f = new FillLayout();
-            f.marginWidth = 3;
-            f.marginHeight = 1;
+            try {
+              f.marginWidth = 3;
+              f.marginHeight = 1;
+            } catch (NoSuchFieldError e) {
+              /* Ignore for Pre 3.0 SWT.. */
+            }
 						shell.setLayout(f);
 						shell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 
@@ -461,8 +465,14 @@ public class TableView
 						if (size.x > 600) {
   						size = label.computeSize (600, SWT.DEFAULT, true);
 						}
-						size.x += shell.getBorderWidth() * 2 + (f.marginWidth * 2);
-						size.y += shell.getBorderWidth() * 2 + (f.marginHeight * 2);
+						size.x += shell.getBorderWidth() * 2;
+						size.y += shell.getBorderWidth() * 2;
+            try {
+              size.x += shell.getBorderWidth() * 2 + (f.marginWidth * 2);
+              size.y += shell.getBorderWidth() * 2 + (f.marginHeight * 2);
+            } catch (NoSuchFieldError e) {
+              /* Ignore for Pre 3.0 SWT.. */
+            }
 						Point pt = table.toDisplay (event.x - 1, event.y - size.y + 2);
             Rectangle displayRect;
             try {

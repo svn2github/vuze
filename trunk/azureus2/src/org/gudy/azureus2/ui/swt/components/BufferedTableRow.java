@@ -312,12 +312,16 @@ BufferedTableRow
 		newItem.setBackground(colorBG);
 		int numColumns = table.getColumnCount();
 		for (int i = 0; i < numColumns; i++) {
-		  Color colorColumnFG = item.getForeground(i);
-		  Color colorColumnBG = item.getBackground(i);
-		  if (!colorColumnFG.equals(colorFG))
-		    newItem.setForeground(i, colorColumnFG);
-		  if (!colorColumnBG.equals(colorBG))
-		    newItem.setBackground(i, colorColumnBG);
+      try {
+        Color colorColumnFG = item.getForeground(i);
+        Color colorColumnBG = item.getBackground(i);
+        if (!colorColumnFG.equals(colorFG))
+          newItem.setForeground(i, colorColumnFG);
+        if (!colorColumnBG.equals(colorBG))
+          newItem.setBackground(i, colorColumnBG);
+      } catch (NoSuchMethodError e) {
+        /* Ignore for Pre 3.0 SWT.. */
+      }
 		}
     if (getSelected())
       table.select(table.indexOf(newItem));
@@ -353,8 +357,12 @@ BufferedTableRow
         return;
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
-		    ti.setForeground(i, null);
-		    ti.setBackground(i, null);
+        try {
+  		    ti.setForeground(i, null);
+    	    ti.setBackground(i, null);
+        } catch (NoSuchMethodError e) {
+          /* Ignore for Pre 3.0 SWT.. */
+        }
   		}
  		}
 	  text_values		= new String[0];
