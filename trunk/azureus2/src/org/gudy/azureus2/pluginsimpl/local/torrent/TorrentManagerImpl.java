@@ -183,6 +183,31 @@ TorrentManagerImpl
 	}
 	
 	protected void
+	tryToSetTorrentEncoding(
+		TOTorrent	torrent,
+		String		encoding )
+	
+		throws TorrentEncodingException
+	{
+		try{
+			LocaleUtil.getSingleton().setTorrentEncoding( torrent, encoding );
+			
+		}catch( LocaleUtilEncodingException e ){
+			
+			String[]	charsets = e.getValidCharsets();
+			
+			if ( charsets == null ){
+				
+				throw( new TorrentEncodingException(e));
+				
+			}else{
+				
+				throw( new TorrentEncodingException(charsets,e.getValidTorrentNames()));
+			}
+		}
+	}
+	
+	protected void
 	tryToSetDefaultTorrentEncoding(
 		TOTorrent		torrent )
 	

@@ -29,8 +29,29 @@ package org.gudy.azureus2.plugins.torrent;
 public interface 
 TorrentDownloader 
 {
+		/**
+		 * Downloads and prompts the user/guesses the torrent encoding
+		 * @return
+		 * @throws TorrentException
+		 */
+	
 	public Torrent
 	download()
+	
+		throws TorrentException;
+	
+		/**
+		 * Downloads and tries to use the supplied encoding. If the supplied encoding isn't
+		 * valed then a TorrentEncodingException is thrown detailing the valid ones
+		 * 
+		 * @param encoding		use "System" for system encoding
+		 * @return
+		 * @throws TorrentException
+		 */
+	
+	public Torrent
+	download(
+		String	encoding )
 	
 		throws TorrentException;
 }

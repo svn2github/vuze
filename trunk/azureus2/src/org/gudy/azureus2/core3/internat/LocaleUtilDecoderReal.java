@@ -40,11 +40,14 @@ LocaleUtilDecoderReal
 	implements LocaleUtilDecoder
 {
 	protected CharsetDecoder	decoder;
+	protected int				index;
 	
 	protected
 	LocaleUtilDecoderReal(
+		int				_index,
 		CharsetDecoder	_decoder )
 	{
+		index		= _index;
 		decoder		= _decoder;
 	}
 	
@@ -54,6 +57,12 @@ LocaleUtilDecoderReal
 		return( decoder.charset().name());
 	}
 
+	public int
+	getIndex()
+	{
+		return( index );
+	}
+	
 	public String
 	tryDecode(
 		byte[]		array,

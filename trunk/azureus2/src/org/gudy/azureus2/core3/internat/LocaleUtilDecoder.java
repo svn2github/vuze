@@ -36,6 +36,9 @@ LocaleUtilDecoder
 	public String
 	getName();
 
+	public int
+	getIndex();
+	
 	public String
 	tryDecode(
 		byte[]		array,

@@ -36,12 +36,27 @@ LocaleUtilDecoderFallback
 {
 	protected static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
 	
+	protected int		index;
+	
+	protected
+	LocaleUtilDecoderFallback(
+		int		_index )
+	{
+		index	= _index;
+	}
+	
 	public String
 	getName()
 	{
 		return( "Fallback" );
 	}
 
+	public int
+	getIndex()
+	{
+		return( index );
+	}
+	
 	public String
 	tryDecode(
 		byte[]		bytes,

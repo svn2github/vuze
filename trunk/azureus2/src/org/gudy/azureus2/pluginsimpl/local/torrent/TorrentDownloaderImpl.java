@@ -45,6 +45,8 @@ TorrentDownloaderImpl
 	protected URL						url;
 	protected ResourceDownloader		downloader;
 	
+	protected boolean					encoding_requested;
+	protected String					requested_encoding;
 	protected boolean					set_encoding;
 	
 	protected
@@ -104,12 +106,22 @@ TorrentDownloaderImpl
 			
 			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream(is);
 			
-			if ( set_encoding ){
+			if ( encoding_requested ){
 				
-				manager.tryToSetDefaultTorrentEncoding( torrent );
+				manager.tryToSetTorrentEncoding( torrent, requested_encoding );
+			}else{
+				
+				if ( set_encoding ){
+					
+					manager.tryToSetDefaultTorrentEncoding( torrent );
+				}
 			}
 			
 			return( new TorrentImpl(torrent ));
+			
+		}catch( TorrentException e ){
+			
+			throw( e );
 			
 		}catch( Throwable e ){
 			
@@ -129,5 +141,17 @@ TorrentDownloaderImpl
 				}
 			}
 		}
+	}
+	
+	public Torrent
+	download(
+		String	encoding )
+	
+		throws TorrentException
+	{
+		encoding_requested	= true;
+		requested_encoding	= encoding;
+		
+		return( download());
 	}
 }

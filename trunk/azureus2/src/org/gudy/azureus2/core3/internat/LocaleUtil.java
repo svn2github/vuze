@@ -57,7 +57,7 @@ LocaleUtil
 		 
 		 CharsetDecoder decoder = Charset.forName(name).newDecoder();
 		 
-		 LocaleUtilDecoder	lu_decoder =  new LocaleUtilDecoderReal(decoder);
+		 LocaleUtilDecoder	lu_decoder =  new LocaleUtilDecoderReal(decoders.size(),decoder);
 		 
 		 decoder_names.add( lu_decoder.getName());
 		
@@ -101,7 +101,7 @@ LocaleUtil
 				try {
 				  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
 				 
-				  LocaleUtilDecoder	lu_decoder = new LocaleUtilDecoderReal(decoder);
+				  LocaleUtilDecoder	lu_decoder = new LocaleUtilDecoderReal(decoders.size(),decoder);
 				  
 				  decoders.add( lu_decoder);
 				  
@@ -113,7 +113,7 @@ LocaleUtil
 		}
 	}
     
-	fallback_decoder = new LocaleUtilDecoderFallback();
+	fallback_decoder = new LocaleUtilDecoderFallback(decoders.size());
 	
 	decoders.add( fallback_decoder );
 
@@ -407,6 +407,21 @@ LocaleUtil
 		
 		cand_set.toArray( res );
 		
+		Arrays.sort(res,
+				new Comparator()
+				{
+			   		public int
+					compare(
+						Object o1, 
+						Object o2 )
+			   		{
+			   			LocaleUtilDecoder	lu1 = (LocaleUtilDecoder)o1;
+			   			LocaleUtilDecoder	lu2 = (LocaleUtilDecoder)o2;
+			   			
+			   			return( lu1.getIndex() - lu2.getIndex());
+			   		}
+				});
+		
 		return( res );
   	}
 	
@@ -420,6 +435,13 @@ LocaleUtil
 		try{
 			LocaleUtilDecoder[]	decoders = getTorrentCandidateDecoders( torrent );
 			
+				// "System" means use the system encoding
+			
+			if ( encoding.equalsIgnoreCase("system" )){
+				
+				encoding = getSystemEncoding();
+			}
+				
 			CharsetDecoder requested_decoder = Charset.forName(encoding).newDecoder();
 			
 			boolean	 ok = false;

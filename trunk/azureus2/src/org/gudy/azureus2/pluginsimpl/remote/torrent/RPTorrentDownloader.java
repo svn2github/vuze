@@ -92,6 +92,19 @@ RPTorrentDownloader
 				
 				return(new RPReply(e));
 			}
+		}else if ( method.equals( "download[String]")){
+			
+			try{
+				Torrent to = delegate.download((String)request.getParams()[0]);
+			
+				RPTorrent res = RPTorrent.create( to );
+		
+				return( new RPReply( res ));
+				
+			}catch( TorrentException e ){
+				
+				return(new RPReply(e));
+			}
 		}			
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -106,6 +119,30 @@ RPTorrentDownloader
 	{
 		try{
 			RPTorrent resp = (RPTorrent)_dispatcher.dispatch( new RPRequest( this, "download", null )).getResponse();
+			
+			resp._setRemote( _dispatcher );
+			
+			return( resp );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof TorrentException ){
+				
+				throw((TorrentException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+	
+	public Torrent
+	download(
+		String	encoding )
+	
+		throws TorrentException
+	{
+		try{
+			RPTorrent resp = (RPTorrent)_dispatcher.dispatch( new RPRequest( this, "download[String]", new Object[]{encoding} )).getResponse();
 			
 			resp._setRemote( _dispatcher );
 			
