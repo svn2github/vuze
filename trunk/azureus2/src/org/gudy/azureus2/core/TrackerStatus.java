@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -45,23 +46,24 @@ public class TrackerStatus {
       HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
       con.connect();
       is = con.getInputStream();
-      String message = "";
+      byte[] message = null;
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
       int nbRead = 0;
       while (nbRead >= 0) {
         try {
           nbRead = is.read(data);
           if (nbRead >= 0)
-            message += new String(data, 0, nbRead, "ISO-8859-1");
+            bos.write(data, 0, nbRead);
           Thread.sleep(20);
-        }
-        catch (Exception e) {
-          nbRead = -1;
-          message = null;
+        } catch (Exception e) {
+          // nbRead = -1;
+          // message = null;
+          // e.printStackTrace();
           return;
-          //e.printStackTrace();
         }
       }
-      Map map = BDecoder.decode(message.getBytes("ISO-8859-1"));
+      message = bos.toByteArray();
+      Map map = BDecoder.decode(message);
       map = (Map) map.get("files");
       Iterator iter = map.keySet().iterator();
       while(iter.hasNext()) {
