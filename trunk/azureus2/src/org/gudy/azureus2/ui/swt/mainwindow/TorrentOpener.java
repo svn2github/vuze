@@ -143,13 +143,7 @@ public class TorrentOpener {
       // This *musn't* run on the swt thread as the torrent decoder stuff can need to 
       // show a window...
       
-  final String[] savePath = {""};
-
-    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir");
-    
-    if (useDefDataDir) savePath[0] = COConfigurationManager.getStringParameter("Default save path", "");
-    
-    if (savePath[0].length() == 0 || ! useDefault) {
+    if ( getFilterPathData().length() == 0 || ! useDefault) {
 
       boolean singleFile = false;
       
@@ -183,35 +177,17 @@ public class TorrentOpener {
           try{
             if (f_singleFile) {
               int style = (f_forSeeding) ? SWT.OPEN : SWT.SAVE;
-              FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | style);
-              String path = COConfigurationManager.getStringParameter("Default Path");
-              if( path != null && path.length() > 0 ) {
-                fDialog.setFilterPath( path );
-              }
-              else {
-                fDialog.setFilterPath( COConfigurationManager.getStringParameter("Default save path", "") );
-              }
+              FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | style);             
+              fDialog.setFilterPath( getFilterPathData() );
               fDialog.setFileName(f_singleFileName);
               fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-              savePath[0] = fDialog.open();
+              setFilterPathData( fDialog.open() );
             }
             else {
               DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-              String path = COConfigurationManager.getStringParameter("Default Path");
-              if( path != null && path.length() > 0 ) {
-                dDialog.setFilterPath( path );
-              }
-              else {
-                dDialog.setFilterPath( COConfigurationManager.getStringParameter("Default save path", "") );
-              }
+              dDialog.setFilterPath( getFilterPathData() );
               dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-              savePath[0] = dDialog.open();
-            }
-            if (savePath[0] != null){
-                          
-              COConfigurationManager.setParameter("Default Path", savePath[0]); //$NON-NLS-1$
-              
-              COConfigurationManager.save();
+              setFilterPathData( dDialog.open() );
             }
           }finally{
             sem.release();
@@ -223,9 +199,10 @@ public class TorrentOpener {
       sem.reserve();
     }
     
-    return savePath[0];
+    return getFilterPathData();
   }
 
+  
   public static void openTorrents(final String path, final String fileNames[]) {
     openTorrents(path,fileNames,true);
   }
@@ -294,27 +271,14 @@ public class TorrentOpener {
       return;
 
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    
-    String path = COConfigurationManager.getStringParameter("Default Path");
-    if( path != null && path.length() > 0 ) {
-      dDialog.setFilterPath( path );
-    }
-    else {
-      dDialog.setFilterPath( COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory", "") );
-    }
-
+    dDialog.setFilterPath( getFilterPathTorrent() );
     dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
-    final String savePath = dDialog.open();
-    if (savePath == null)
-      return;
-
-    COConfigurationManager.setParameter("Default Path", savePath);
-    COConfigurationManager.save();
+    setFilterPathTorrent( dDialog.open() );
 
     new Thread() {
       public void run() {
         for (int i = 0; i < files.length; i++)
-          globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath, 
+          globalManager.addDownloadManager(files[i].getAbsolutePath(), getFilterPathTorrent(), 
                                            startInStoppedState ? DownloadManager.STATE_STOPPED 
                                                                : DownloadManager.STATE_QUEUED);
       }
@@ -325,66 +289,32 @@ public class TorrentOpener {
 
   public static void openDirectory() {
     DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    
-    if ( COConfigurationManager.getBooleanParameter( "Save Torrent Files", true )){
-      
-      String	default_path = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
-      
-      if ( default_path.length() > 0 ){
-        
-        fDialog.setFilterPath(default_path);
-      }
-    }
-  
+    fDialog.setFilterPath( getFilterPathTorrent() );
     fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
-    String fileName = fDialog.open();
-    if (fileName == null)
-      return;
-    COConfigurationManager.setParameter("Default Path", fileName);
-    COConfigurationManager.save();
-    TorrentOpener.openTorrentsFromDirectory(fileName);
+    setFilterPathTorrent( fDialog.open() );
+    TorrentOpener.openTorrentsFromDirectory( getFilterPathTorrent() );
   }
 
 
   public static void openTorrent() {
     FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-    String path = COConfigurationManager.getStringParameter("Default Path");
-    if( path != null && path.length() > 0 ) {
-      fDialog.setFilterPath( path );
-    }
-    else {
-      fDialog.setFilterPath( COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory", "") );
-    }
+    fDialog.setFilterPath( getFilterPathTorrent() );
     fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
     fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
     fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
-    String fileName = fDialog.open();
-    if (fileName == null)
-      return;
-    COConfigurationManager.setParameter("Default Path", fileName);
-    COConfigurationManager.save();
-    TorrentOpener.openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
+    setFilterPathTorrent( fDialog.open() );
+    TorrentOpener.openTorrents( getFilterPathTorrent(), fDialog.getFileNames() );
   }
 
 
   public static void openTorrentNoDefaultSave(boolean forSeeding) {
     FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-    String path = COConfigurationManager.getStringParameter("Default Path");
-    if( path != null && path.length() > 0 ) {
-      fDialog.setFilterPath( path );
-    }
-    else {
-      fDialog.setFilterPath( COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory", "") );
-    }
+    fDialog.setFilterPath( getFilterPathTorrent() );
     fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
     fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
     fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
-    String fileName = fDialog.open();
-    if (fileName == null)
-      return;
-    COConfigurationManager.setParameter("Default Path", fileName);
-    COConfigurationManager.save();
-    TorrentOpener.openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false,forSeeding);
+    setFilterPathTorrent( fDialog.open() );
+    TorrentOpener.openTorrents( getFilterPathTorrent(), fDialog.getFileNames(), false, forSeeding );
   }
   
   public static void openTorrentWindow() {
@@ -439,4 +369,42 @@ public class TorrentOpener {
       TorrentOpener.openUrl(((URLTransfer.URLType)event.data).linkURL);
     }
   }
+  
+  
+  public static String getFilterPathData() {
+    String before = COConfigurationManager.getStringParameter("previous.filter.dir.data");
+    if( before != null && before.length() > 0 ) {
+      return before;
+    }
+    return COConfigurationManager.getStringParameter("Default save path");
+  }
+  
+  public static String getFilterPathTorrent() {
+    String before = COConfigurationManager.getStringParameter("previous.filter.dir.torrent");
+    if( before != null && before.length() > 0 ) {
+      return before;
+    }
+    return COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory");
+  }
+  
+  public static void setFilterPathData( String path ) {
+    if( path != null && path.length() > 0 ) {
+      String before = COConfigurationManager.getStringParameter("previous.filter.dir.data");
+      if( before == null || before.length() == 0 || !before.equals( path ) ) {
+        COConfigurationManager.setParameter( "previous.filter.dir.data", path );
+        COConfigurationManager.save();
+      }
+    }
+  }
+  
+  public static void setFilterPathTorrent( String path ) {
+    if( path != null && path.length() > 0 ) {
+      String before = COConfigurationManager.getStringParameter("previous.filter.dir.torrent");
+      if( before == null || before.length() == 0 || !before.equals( path ) ) {
+        COConfigurationManager.setParameter( "previous.filter.dir.torrent", path );
+        COConfigurationManager.save();
+      }
+    }
+  }
+  
 }

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 public class 
 ShareUtils 
@@ -50,9 +51,7 @@ ShareUtils
 			run()
 			{
 				Display display = shell.getDisplay();
-				
-				final String[] file_to_share = {null};
-						
+					
 				final Semaphore	sem = new Semaphore();
 					
 				display.asyncExec(new Runnable() {
@@ -61,18 +60,12 @@ ShareUtils
 						try{
 							FileDialog dialog = new FileDialog(shell, SWT.SYSTEM_MODAL | SWT.OPEN);
 							
-							dialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", ""));
+							dialog.setFilterPath( TorrentOpener.getFilterPathData() );
 													
 							dialog.setText(MessageText.getString("MainWindow.dialog.share.sharefile"));
 							
-							file_to_share[0] = dialog.open();
-				
-							if (file_to_share[0] != null){
-								
-								COConfigurationManager.setParameter("Default Path", file_to_share[0]);
-								
-								COConfigurationManager.save();
-							}
+              TorrentOpener.setFilterPathData( dialog.open() );
+
 						}finally{
 							
 							sem.release();
@@ -82,7 +75,7 @@ ShareUtils
 				
 				sem.reserve();
 				
-				String	target = file_to_share[0];
+				String	target = TorrentOpener.getFilterPathData();
 				
 				if ( target != null ){
 					
@@ -120,8 +113,6 @@ ShareUtils
 			{
 				Display display = shell.getDisplay();
 				
-				final String[] dir_to_share = {null};
-				
 				final Semaphore	sem = new Semaphore();
 				
 				display.asyncExec(new Runnable() {
@@ -130,7 +121,7 @@ ShareUtils
 						try{
 							DirectoryDialog dialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);
 							
-							dialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", ""));
+							dialog.setFilterPath( TorrentOpener.getFilterPathData() );
 							
 							dialog.setText( 
 										contents?
@@ -138,14 +129,8 @@ ShareUtils
 												(recursive?"("+MessageText.getString("MainWindow.dialog.share.sharedircontents.recursive")+")":""):
 										MessageText.getString("MainWindow.dialog.share.sharedir"));
 							
-							dir_to_share[0] = dialog.open();
-							
-							if (dir_to_share[0] != null){
-								
-								COConfigurationManager.setParameter("Default Path", dir_to_share[0]);
-								
-								COConfigurationManager.save();
-							}
+							TorrentOpener.setFilterPathData( dialog.open() );
+
 						}finally{
 							
 							sem.release();
@@ -155,7 +140,7 @@ ShareUtils
 				
 				sem.reserve();
 				
-				String	target = dir_to_share[0];
+				String	target = TorrentOpener.getFilterPathData();
 				
 				if ( target != null ){
 					
