@@ -43,7 +43,7 @@ VersionChecker
 	extends Thread 
 {	
   
-  private static final int RECOMMENDED_SWT_VERSION = 3046; // (M8 = 3044) (M7 = 3038)
+  private static final int RECOMMENDED_SWT_VERSION = 3044; // (M8 = 3044) (M7 = 3038)
   public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
   
   private static Timer version_check_timer;

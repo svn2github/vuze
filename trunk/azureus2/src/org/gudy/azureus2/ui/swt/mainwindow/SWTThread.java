@@ -49,7 +49,6 @@ public class SWTThread {
   
   Display display;
   private boolean terminated;
-  private boolean created;
   private Thread runner;
   
   private SWTThread(Application app) { 
@@ -74,9 +73,13 @@ public class SWTThread {
       catch (Exception e) {
         e.printStackTrace();
       }
-    }    
+    }
     
-    app.stopIt();
+    //if it hasn been terminated, there's no way to stop the application
+    //as the application is the one who has stopped it.
+    if(!terminated) {
+      app.stopIt();
+    }
     
     display.dispose();
   }
