@@ -2192,6 +2192,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public boolean dispose() {
     if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation())
       return false;
+      
+    // close all tabs
+    Tab.closeAllTabs();
+
     isAlreadyDead = true; //NICO try to never die twice...
     if (this.trayIcon != null)
       SysTrayMenu.dispose();

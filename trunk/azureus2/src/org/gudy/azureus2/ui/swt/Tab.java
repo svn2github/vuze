@@ -235,24 +235,22 @@ public class Tab {
     }
   }
 
+  public static void closeAllTabs() {
+    synchronized (tabs) {
+      Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
+      for (int i = 0; i < tab_items.length; i++) {
+        closed(tab_items[i]);
+      }
+    }
+  }
+
   public static void closeAllDetails() {
     synchronized (tabs) {
-      //TabItem[] tab_items = (TabItem[]) tabs.keySet().toArray(new
-			// TabItem[tabs.size()]);
-      //CTabItem[] tab_items = (CTabItem[]) tabs.keySet().toArray(new CTabItem[tabs.size()]);
       Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
       for (int i = 0; i < tab_items.length; i++) {
         IView view = (IView) tabs.get(tab_items[i]);
         if (view instanceof ManagerView) {
-          try {
-            view.delete();
-          }
-          catch (Exception e) {}
-          try {
-            tab_items[i].dispose();
-          }
-          catch (Exception e) {}
-          tabs.remove(tab_items[i]);
+          closed(tab_items[i]);
         }
       }
     }
@@ -314,20 +312,31 @@ public class Tab {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
-      if (view != null && view instanceof MyTorrentsSuperView) {
-        MainWindow.getWindow().setMytorrents(null);
-        item.dispose();
-        return;
-      }
-      if (view != null && view instanceof MyTrackerView) {
-        MainWindow.getWindow().setMyTracker(null);
-        item.dispose();
-        return;
-      }
-      if (view != null && view instanceof MySharesView) {
-      	MainWindow.getWindow().setMyShares(null);
-      	item.dispose();
-      	return;
+      if (view != null) {
+        try {
+          if(view instanceof PluginView) {
+            MainWindow.getWindow().removeActivePluginView((PluginView)view);
+          }
+          view.delete();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+        if (view instanceof MyTorrentsSuperView) {
+          MainWindow.getWindow().setMytorrents(null);
+          item.dispose();
+          return;
+        }
+        if (view instanceof MyTrackerView) {
+          MainWindow.getWindow().setMyTracker(null);
+          item.dispose();
+          return;
+        }
+        if (view instanceof MySharesView) {
+        	MainWindow.getWindow().setMyShares(null);
+        	item.dispose();
+        	return;
+        }
       }
       try {
         Control control;
@@ -344,17 +353,6 @@ public class Tab {
         //ignore.printStackTrace();
       }
       tabs.remove(item);
-    }
-    if (view != null) {
-      try {
-        if(view instanceof PluginView) {
-          MainWindow.getWindow().removeActivePluginView((PluginView)view);
-        }
-        view.delete();
-      }
-      catch (Exception ignore) {
-        //ignore.printStackTrace();
-      }
     }
   }
 

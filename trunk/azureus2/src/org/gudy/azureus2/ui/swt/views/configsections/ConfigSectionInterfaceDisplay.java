@@ -192,9 +192,11 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
       gridData = new GridData();
       gridData.widthHint = 50;
       colorParm.setLayoutData(gridData);
-      new BooleanParameter(cColorOverride, 
-                           "Colors." + sColorsToOverride[i] + ".override",
-                           "ConfigView.section.style.colorOverride");
+      Button btnOverride = (Button)
+        new BooleanParameter(cColorOverride, 
+                             "Colors." + sColorsToOverride[i] + ".override",
+                             "ConfigView.section.style.colorOverride").getControl();
+      colorParm.setButtonToEnableOnChange(btnOverride);
     }
 
     label = new Label(cArea, SWT.NULL);

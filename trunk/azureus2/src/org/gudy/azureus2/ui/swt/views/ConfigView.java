@@ -551,8 +551,6 @@ public class ConfigView extends AbstractIView {
       Utils.disposeComposite(c);
       items[i].setData("Panel", null);
 
-      c = (Composite)items[i].getData("ConfigSectionSWT");
-      Utils.disposeComposite(c);
       items[i].setData("ConfigSectionSWT", null);
     }
     Utils.disposeComposite(cConfig);

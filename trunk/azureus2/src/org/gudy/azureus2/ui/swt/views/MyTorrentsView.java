@@ -490,7 +490,7 @@ public class MyTorrentsView extends AbstractIView
           sorter.addStringColumnListener(column, items[i].getName());
         }
         column.setData("configName", "Table." + configTableName + "." + items[i].getName());
-        column.addControlListener(resizeListener);
+//        column.addControlListener(resizeListener);
       }
     }
 
@@ -1313,6 +1313,9 @@ public class MyTorrentsView extends AbstractIView
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
+    if (table != null && !table.isDisposed()) {
+      Utils.saveTableColumn(table.getColumns());
+    }
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
     COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);

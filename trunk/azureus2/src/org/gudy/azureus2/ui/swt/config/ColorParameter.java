@@ -46,12 +46,11 @@ public class ColorParameter implements IParameter, ParameterListener {
   Button colorChooser;
   String sParamName;
   Image img;
+  Button btnOverride = null;
 
   public ColorParameter(final Composite composite,
                         final String name,
-                        int r,
-                        int g,
-                        int b) {
+                        int r, int g, int b) {
     sParamName = name;
     colorChooser = new Button(composite,SWT.PUSH);
     final int rV = COConfigurationManager.getIntParameter(name+".red",r);
@@ -72,8 +71,9 @@ public class ColorParameter implements IParameter, ParameterListener {
         ColorDialog cd = new ColorDialog(composite.getShell());
         cd.setRGB(new RGB(rV,gV,bV));
         RGB newColor = cd.open();
-        if(newColor == null)
+        if (newColor == null)
           return;
+        newColorChosen();
         COConfigurationManager.setParameter(name, newColor);
       }
     });
@@ -107,5 +107,16 @@ public class ColorParameter implements IParameter, ParameterListener {
     final int gV = COConfigurationManager.getIntParameter(sParamName+".green");
     final int bV = COConfigurationManager.getIntParameter(sParamName+".blue");
     updateButtonColor(colorChooser.getDisplay(), rV, gV, bV);
+  }
+  
+  public void setButtonToEnableOnChange(Button btn) {
+    btnOverride = btn;
+  }
+  
+  public void newColorChosen() {
+    if (btnOverride != null && !btnOverride.isDisposed()) {
+      btnOverride.setSelection(true);
+      btnOverride.notifyListeners(SWT.Selection, new Event());
+    }
   }
 }

@@ -31,6 +31,10 @@ public class MyTorrentsSuperView extends AbstractIView  {
   
   public void delete() {
     MainWindow.getWindow().setMytorrents(null);
+    if (torrentview != null)
+      torrentview.delete();
+    if (seedingview != null)
+      seedingview.delete();
     super.delete();
   }
 

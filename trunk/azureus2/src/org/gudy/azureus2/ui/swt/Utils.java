@@ -176,6 +176,15 @@ public class Utils {
     }
   }
 
+  public static void saveTableColumn(TableColumn[] t) {
+    for (int i = 0; i < t.length; i++) {
+      if(t[i] != null && t[i].getData("configName") != null) {
+        COConfigurationManager.setParameter((String) t[i].getData("configName") + ".width", t[i].getWidth());
+      }
+    }
+    COConfigurationManager.save();
+  }
+
   /**
    * Saves the width from the given column in the configuration if the user has allowed it.
    * The data property "configName" must be set to determine the full table column name.

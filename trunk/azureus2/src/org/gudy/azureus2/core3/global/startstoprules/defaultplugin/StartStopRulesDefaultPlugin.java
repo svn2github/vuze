@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.graphics.Image;
 
 
 import org.gudy.azureus2.plugins.*;
@@ -42,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -100,7 +102,10 @@ StartStopRulesDefaultPlugin
   // Config Settings
   int minPeersToBoostNoSeeds;
   int minSpeedForActiveDL;
+  // count x peers as a full copy, but..
   int numPeersAsFullCopy;
+  // don't count x peers as a full copy if seeds below
+  int iFakeFullCopySeedStart;
   int maxActive;
   int maxDownloads;
 
@@ -110,9 +115,9 @@ StartStopRulesDefaultPlugin
   boolean bIgnore0Peers;
   int     iIgnoreShareRatio;
   int     iIgnoreRatioPeers;
+  int iIgnoreRatioPeers_SeedStart;
 
   int iRankType;
-  int iFakeFullCopySeedStart;
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
@@ -343,6 +348,7 @@ StartStopRulesDefaultPlugin
     bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
     iIgnoreShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
     iIgnoreRatioPeers = plugin_config.getIntParameter("Stop Peers Ratio", 0);
+    iIgnoreRatioPeers_SeedStart = plugin_config.getIntParameter("StartStopManager_iIgnoreRatioPeersSeedStart", 0);
 
     minQueueingShareRatio = plugin_config.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
     iFirstPriorityType = plugin_config.getIntParameter("StartStopManager_iFirstPriority_Type");
@@ -779,7 +785,7 @@ StartStopRulesDefaultPlugin
           if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
               numSeeds += numPeers / numPeersAsFullCopy;
           //If there are no seeds, avoid / by 0
-          if (numSeeds != 0) {
+          if (numSeeds != 0 && numSeeds >= iIgnoreRatioPeers_SeedStart) {
             float ratio = (float) numPeers / numSeeds;
             if (ratio <= iIgnoreRatioPeers) {
               sDebugLine += "\nP:S Met";
@@ -1157,7 +1163,7 @@ StartStopRulesDefaultPlugin
         //0 means never stop
         if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
           float ratio = (float) numPeers / numSeeds;
-          if (ratio <= iIgnoreRatioPeers) {
+          if (ratio <= iIgnoreRatioPeers && numSeeds >= iIgnoreRatioPeers_SeedStart) {
             setQR(QR_RATIOMET);
             return QR_RATIOMET;
           }
@@ -1360,13 +1366,15 @@ StartStopRulesDefaultPlugin
       }
       new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
 
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
-      new BooleanParameter(gMainTab, "Alert on close", true);
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(gMainTab, "Alert on close", true, 
+                           "ConfigView.label.showpopuponclose").setLayoutData(gridData);
 
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.queue.debuglog"); //$NON-NLS-1$
-      new BooleanParameter(gMainTab, "StartStopManager_bDebugLog");
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(gMainTab, "StartStopManager_bDebugLog", 
+                           "ConfigView.label.queue.debuglog").setLayoutData(gridData);
 
       return gMainTab;
     }
@@ -1418,28 +1426,31 @@ StartStopRulesDefaultPlugin
       cSeeding.setLayoutData(gridData);
 
       // General Seeding Options
-
-      label = new Label(cSeeding, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
-      new BooleanParameter(cSeeding, "Disconnect Seed", true); //$NON-NLS-1$
-
-      label = new Label(cSeeding, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
-      new BooleanParameter(cSeeding, "Switch Priority", false); //$NON-NLS-1$
-
-      label = new Label(cSeeding, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.userSuperSeeding"); //$NON-NLS-1$
-      new BooleanParameter(cSeeding, "Use Super Seeding", false);
-
       label = new Label(cSeeding, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.minSeedingTime");
       gridData = new GridData();
       gridData.widthHint = 40;
       new IntParameter(cSeeding, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
 
-      label = new Label(cSeeding, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition");
-      new BooleanParameter(cSeeding, "StartStopManager_bAutoReposition");
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(cSeeding, "Disconnect Seed", true,
+                           "ConfigView.label.disconnetseed").setLayoutData(gridData);
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(cSeeding, "Switch Priority", false,
+                           "ConfigView.label.switchpriority").setLayoutData(gridData);
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(cSeeding, "Use Super Seeding", false,
+                           "ConfigView.label.userSuperSeeding").setLayoutData(gridData);
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(cSeeding, "StartStopManager_bAutoReposition",
+                           "ConfigView.label.seeding.autoReposition").setLayoutData(gridData);
 
       return cSeeding;
     }
@@ -1733,20 +1744,27 @@ StartStopRulesDefaultPlugin
       label = new Label(cArea, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.peers");
 
-      label = new Label(cNoTimeNone, SWT.NULL);
-      gridData = new GridData();
-      gridData.horizontalIndent = 15;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
 
       final Composite cFullCopyOptionsArea = new Composite(cNoTimeNone, SWT.NULL);
       layout = new GridLayout();
-      layout.marginHeight = 0;
+      layout.numColumns = 4;
       layout.marginWidth = 0;
-      layout.numColumns = 2;
+      layout.marginHeight = 0;
       cFullCopyOptionsArea.setLayout(layout);
       gridData = new GridData();
+      gridData.horizontalIndent = 15;
+      gridData.horizontalSpan = 2;
       cFullCopyOptionsArea.setLayoutData(gridData);
+      
+      label = new Label(cFullCopyOptionsArea, SWT.NULL);
+      Image img = ImageRepository.getImage("subitem");
+      img.setBackground(label.getBackground());
+      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+      label.setLayoutData(gridData);
+      label.setImage(img);
+      
+      label = new Label(cFullCopyOptionsArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
 
       gridData = new GridData();
       gridData.widthHint = 20;
@@ -1754,6 +1772,7 @@ StartStopRulesDefaultPlugin
       label = new Label(cFullCopyOptionsArea, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.seeds");
       
+
       final int iNumPeersAsFullCopy = StartStopRulesDefaultPlugin.this.plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
       controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
 
@@ -1864,6 +1883,33 @@ StartStopRulesDefaultPlugin
       new IntParameter(cIgnore, "Stop Peers Ratio").setLayoutData(gridData);
       label = new Label(cIgnore, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.peers");
+
+      Composite cArea = new Composite(cIgnore, SWT.NULL);
+      layout = new GridLayout();
+      layout.numColumns = 4;
+      layout.marginWidth = 0;
+      layout.marginHeight = 0;
+      cArea.setLayout(layout);
+      gridData = new GridData();
+      gridData.horizontalIndent = 15;
+      gridData.horizontalSpan = 3;
+      cArea.setLayoutData(gridData);
+      
+      label = new Label(cArea, SWT.NULL);
+      Image img = ImageRepository.getImage("subitem");
+      img.setBackground(label.getBackground());
+      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+      label.setLayoutData(gridData);
+      label.setImage(img);
+      
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
+
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cArea, "StartStopManager_iIgnoreRatioPeersSeedStart").setLayoutData(gridData);
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeds");
 
       label = new Label(cIgnore, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.seeding.ignore0Peers");
