@@ -256,8 +256,16 @@ public class TorrentRow implements SortableItem {
     if (field.equals("eta")) //$NON-NLS-1$
       return manager.getStats().getETA();
     
-    if (field.equals("shareRatio")) //$NON-NLS-1$
-      return manager.getStats().getShareRatio();
+    if (field.equals("shareRatio")){
+    		// convert infinity into something that will sort as an int :)
+    	
+    	int sr = manager.getStats().getShareRatio();
+    	if ( sr == -1 ){
+    		return( 0x7fffffff );
+    	}else{
+    		return( sr );
+    	}
+    }
     
     if (field.equals("down")) //$NON-NLS-1$
       return manager.getStats().getDownloaded();
