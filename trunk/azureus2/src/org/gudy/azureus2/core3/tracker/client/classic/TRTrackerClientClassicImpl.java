@@ -884,7 +884,7 @@ TRTrackerClientClassicImpl
  					}
  				}
  				
- 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Client has received : " + message);
+ 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Client ["+lastUsedUrl+"] has received : " + message);
  				
  				
  			}catch (Exception e){

@@ -133,10 +133,13 @@ public class SocketManager {
       		}
       	}
       	catch (Throwable t) {
-      		listener.connectionDone( null, t.getMessage() );
-      		synchronized( connectionsToClose ) {
-      			connectionsToClose.add( channel );
-      		}
+          try {
+          	listener.connectionDone( null, t.getMessage() );
+          	synchronized( connectionsToClose ) {
+          		connectionsToClose.add( channel );
+          	}
+          }
+          catch (Throwable x) { x.printStackTrace(); }
       	}
       }
     }
