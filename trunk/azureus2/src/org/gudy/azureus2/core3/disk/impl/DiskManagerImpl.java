@@ -644,6 +644,7 @@ DiskManagerImpl
 
 		public DiskReadThread() {
 			super("Disk Reader");
+			setDaemon(true);
 		}
 
 		public void run() {
@@ -681,6 +682,7 @@ DiskManagerImpl
 
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
+			setDaemon(true);
 		}
 
 		public void run() {
