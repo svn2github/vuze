@@ -69,7 +69,8 @@ public class ConsoleInput extends Thread {
 	private static final int TORRENTCOMMAND_REMOVE = 2;
 	private static final int TORRENTCOMMAND_QUEUE = 3;
 	private static final int TORRENTCOMMAND_STARTNOW = 4;
-
+	private static final int TORRENTCOMMAND_CHECK = 5;
+	
 	GlobalManager gm;
 	CommandReader br;
 	PrintStream out;
@@ -97,6 +98,7 @@ public class ConsoleInput extends Thread {
 		os.println("Available console commands:");
 		os.println("Command\t\t\t\tShort\tDescription");
 		os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
+		os.println("check (<#>|all|hash <hash>)\tc\tForce recheck on torrent(s).");
 		os.println("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
 		os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
 		os.println("move <from #> [<to #>]\tm\tMove torrent from to to. If to is omitted, the torrent is moved to top or to the bottom if given negative.");
@@ -577,13 +579,26 @@ public class ConsoleInput extends Thread {
 					}
 					return true;
 				}
+			case TORRENTCOMMAND_CHECK:
+				{
+					try {
+						if (dm.canForceRecheck()) {
+							dm.forceRecheck();
+							return true;
+						} else
+							return false;
+					} catch (Exception e) {
+						e.printStackTrace(out);
+						return false;
+					}
+				}
 		}
 		return false;
 	}
 
 	private void commandTorrentCommand(int command, String subcommand) {
-		String[] commands = { "start", "stop", "remove", "queue", "start" };
-		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting" };
+		String[] commands = { "start", "stop", "remove", "queue", "start", "check" };
+		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of" };
 		if (subcommand != null) {
 			if ((torrents != null) && torrents.isEmpty()) {
 				out.println("> Command '" + commands[command] + "': No torrents in list (Maybe you forgot to 'show torrents' first).");
