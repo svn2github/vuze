@@ -1463,19 +1463,12 @@ TRTrackerClientClassicImpl
 				    	
 				    	for (int i=0;i<meta_peers.length;i+=6){
 				    		
-				    		int	ip1 = (int)meta_peers[i];
-				    		int	ip2 = (int)meta_peers[i+1];
-				    		int	ip3 = (int)meta_peers[i+2];
-				    		int	ip4 = (int)meta_peers[i+3];
-				    		int	po1 = (int)meta_peers[i+4];
-				    		int	po2 = (int)meta_peers[i+5];
-				    		
-				    		ip1 = ip1<0?ip1+256:ip1;
-				    		ip2 = ip2<0?ip2+256:ip2;
-				    		ip3 = ip3<0?ip3+256:ip3;
-				    		ip4 = ip4<0?ip4+256:ip4;
-				    		po1 = po1<0?po1+256:po1;
-				    		po2 = po2<0?po2+256:po2;
+				    		int	ip1 = 0xFF & meta_peers[i];
+				    		int	ip2 = 0xFF & meta_peers[i+1];
+				    		int	ip3 = 0xFF & meta_peers[i+2];
+				    		int	ip4 = 0xFF & meta_peers[i+3];
+				    		int	po1 = 0xFF & meta_peers[i+4];
+				    		int	po2 = 0xFF & meta_peers[i+5];
 				    		
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 				    		int		port 	= po1*256+po2;
@@ -1484,7 +1477,7 @@ TRTrackerClientClassicImpl
 							
                 LGLogger.log("COMPACT PEER: ip=" +ip+ " port=" +port);
 							
-							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));							
+							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_id, ip, port ));							
 				    	}
 				    }
 				    
