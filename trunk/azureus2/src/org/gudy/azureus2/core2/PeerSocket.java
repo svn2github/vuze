@@ -620,6 +620,18 @@ public class PeerSocket extends PeerConnection {
         readMessage(readBuffer);
         break;
       case BT_PIECE :
+        if (buffer.limit() < 9) {
+           // NOLAR: temp debug output
+           System.out.println("PeerSocket::analyseBuffer::BT_PIECE:: buffer.limit < 9: "+ buffer.limit());
+           
+           logger.log(
+             componentID,
+             evtProtocol,
+             Logger.ERROR,
+             ip + " piece received, but message of wrong size : " + buffer.limit());
+           closeAll(true);
+           break;
+        }
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.limit() - buffer.position();
