@@ -128,11 +128,13 @@ public class TrackerStatus {
 
     long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
     
-    if (!SystemTime.isErrorLast1min() && !force && lMainNextScrapeStartTime >= SystemTime.getCurrentTime()) {
+    if (!SystemTime.isErrorLast1min() && !force && 
+        lMainNextScrapeStartTime >= SystemTime.getCurrentTime()) {
       return;
     }
-    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
-                       MessageText.getString("Scrape.status.scraping"));
+    // Set status id to SCRAPING, but leave status string until we actually
+    // do the scrape
+    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
 
     responsesToUpdate.add(response);
     
@@ -154,8 +156,7 @@ public class TrackerStatus {
 	          
 	          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
 	          	
-	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
-	                        MessageText.getString("Scrape.status.scraping"));
+	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
 	            
 	            responsesToUpdate.add(r);
 	          }
@@ -197,7 +198,10 @@ public class TrackerStatus {
       try {
         String info_hash = "";
         for (int i = 0; i < responses.size(); i++) {
-          byte[] hash = ((TRTrackerScraperResponseImpl)responses.get(i)).getHash();
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+                             MessageText.getString("Scrape.status.scraping"));
+          byte[] hash = response.getHash();
           info_hash += ((i > 0) ? "&" : "?") + "info_hash=";
           info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
                                          Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
@@ -239,6 +243,8 @@ public class TrackerStatus {
 		          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
               response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                                  MessageText.getString("Scrape.status.error.invalid"));
+              //notifiy listeners
+              scraper.scrapeReceived( response );
             }
           } else {
             // 1 was requested, 0 returned.  Therefore, hash not found.
@@ -248,14 +254,22 @@ public class TrackerStatus {
             response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                                MessageText.getString("Scrape.status.error") + 
                                MessageText.getString("Scrape.status.error.nohash"));
+            //notifiy listeners
+            scraper.scrapeReceived( response );
           }
 
           return;
         }
+
+        /* If we requested mutliple hases, but only one was returned, revert to
+           Single Hash Scrapes, but continue on to process the one has that was
+           returned (it may be a random one from the list)
+        */
         if (!bSingleHashScrapes && responses.size() > 1 && mapFiles.size() == 1) {
           bSingleHashScrapes = true;
           LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
-                       scrapeURL + " only returned " + mapFiles.size() + " hash scrape(s), but we asked for " + responses.size());
+                       scrapeURL + " only returned " + mapFiles.size() + 
+                       " hash scrape(s), but we asked for " + responses.size());
         }
         
         for (int i = 0; i < responses.size(); i++) {
@@ -271,6 +285,8 @@ public class TrackerStatus {
               response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                                  MessageText.getString("Scrape.status.error") + 
                                  MessageText.getString("Scrape.status.error.nohash"));
+              //notifiy listeners
+              scraper.scrapeReceived( response );
             } else {
               // This tracker doesn't support multiple hash requests.
               // revert status to what it was
@@ -278,6 +294,8 @@ public class TrackerStatus {
               if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING) {
                 System.out.println("Hash " + ByteFormatter.nicePrint(response.getHash(), true) + " mysteriously reverted to ST_SCRAPING!");
                 response.setStatus(TRTrackerScraperResponse.ST_ONLINE, "");
+                //notifiy listeners
+                scraper.scrapeReceived( response );
               }
               // if this was the first scrape request in the list, TrackerChecker
               // will attempt to scrape again because we didn't reset the 
@@ -300,7 +318,8 @@ public class TrackerStatus {
               // manager will run scrapes for each individual hash.
               if (responses.size() > 1 && bSingleHashScrapes)
                 return;
-            	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + FAULTY_SCRAPE_RETRY_INTERVAL);
+            	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
+            	                                FAULTY_SCRAPE_RETRY_INTERVAL);
             	response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                                  MessageText.getString("Scrape.status.error") +
                                  MessageText.getString("Scrape.status.error.invalid") + " " +
@@ -308,7 +327,7 @@ public class TrackerStatus {
                                  (peers < 0 ? MessageText.getString("MyTorrentsView.peers") + " == " + peers + ". " : "")
                                  );
               scraper.scrapeReceived( response );
-              return;
+              continue;
             }
 
     	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
