@@ -15,6 +15,7 @@ FEATURE: Core | Have message aggregation, for bandwidth savings/efficiency [Nola
 FEATURE: Plug | webui support for torrent encoding choice [Parg]
 FEATURE: UI   | 'Download' menu added with start/stop all + pause/resume options [Parg]
 FEATURE: Plug | tracker torrent stats available via xml/http interface [Parg]
+FEATURE: Core | Torrent HTTP urls now accepted as program command line parameter [Nolar]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
@@ -22,7 +23,7 @@ CHANGE: Core | Torrent opener will now report errors opening torrents better [Pa
 CHANGE: Core | Complete core networking/messaging rewrite [Nolar]
 CHANGE: Core | Stop scrape on UDP V2 torrents when download running [Parg]
 CHANGE: Core | Refactor of DiskManager [Parg]
-CHANGE: Core | Better recovery from timed-out piece data requests, for reduced discard rates [Nolar]
+CHANGE: Core | Protocol tweaking for significantly reduced discard rates [Nolar]
 CHANGE: Plug | UPnP plugin now only uses plugin interfaces [Parg]
 CHANGE: Plug | Differentiate UDP and TCP mappings in UPnP desc as some routers need this [Parg]
 CHANGE: Core | Tracker now treats port value of 0 as 'explicitly firewalled' [Parg]
