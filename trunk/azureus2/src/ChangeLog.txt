@@ -25,6 +25,10 @@ CHANGE: UI   | Create torrent wizard now initially defaults torrent save path fr
 CHANGE: Core | Moved config items for tracker client overrides + UDP to tracker client config [Parg]
 CHANGE: UI   | Obey "start stopped" config item for dropped torrents [Parg]
 CHANGE: UI   | Torrents no longer need to be stopped before removal is allowed [Nolar]
+CHANGE: UI   | Graphical view item refresh optimizations [Nolar]
+CHANGE: Core | Also do dynamic tracker re-announce interval overrides when seeding; uses peer count only [Nolar]
+CHANGE: Core | NAT check url changed to aelitis server [Nolar]
+CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
@@ -44,6 +48,8 @@ BUGFIX: Core | Fixed up bad behaviour on out-of-disk-space falures [Parg]
 BUGFIX: Core | Fixed torrents getting stuck in READY state [Parg]
 BUGFIX: Core | Fix potential connection establishment backlog [Nolar]
 BUGFIX: Core | Fix potential DOS by timing out stalled connections [Nolar]
+BUGFIX: UI   | Fix Health icons sometimes not refreshing [Nolar]
+BUGFIX: Core | Fix bug in re-announce interval override calculation when connection limit has been reached [Nolar]
 
 
 
