@@ -48,10 +48,11 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   Shell shell;
   ProgressBar progressBar;
   Label status;
-  Button cancel;
+  Button retry;
+  Button cancel;  
   TorrentDownloader downloader;
   
-  public FileDownloadWindow(Display display,String url) {
+  public FileDownloadWindow(Display display,final String url) {
     String dirName = null;
     if(COConfigurationManager.getBooleanParameter("Save Torrent Files",true)) {
       try {
@@ -68,16 +69,19 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     this.display = display;
     this.shell = new Shell(display,SWT.CLOSE | SWT.BORDER | SWT.TITLE);
     final GridLayout gridLayout = new GridLayout();
-    gridLayout.numColumns = 3;
+    gridLayout.numColumns = 4;
     shell.setLayout(gridLayout);
     shell.setText(MessageText.getString("fileDownloadWindow.title"));
     shell.setImage(ImageRepository.getImage("azureus"));
     
     Label label = new Label(shell, SWT.NONE);      
     label.setText(MessageText.getString("fileDownloadWindow.downloading"));
+    GridData gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
     
     label = new Label(shell, SWT.NONE);    
-    GridData gridData = new GridData();
+    gridData = new GridData();
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
     String shortUrl = url;
@@ -93,16 +97,37 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     progressBar.setSelection(0);
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     gridData.widthHint = 300;
     progressBar.setLayoutData(gridData);
     
     label = new Label(shell, SWT.NONE);
     label.setText(MessageText.getString("fileDownloadWindow.status"));
     
-    status = new Label(shell, SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    status = new Label(shell, SWT.NONE);    
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
     status.setLayoutData(gridData);
+    
+    new Label(shell,SWT.NONE);
+    new Label(shell,SWT.NONE);
+    
+    retry = new Button(shell,SWT.NONE);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 100;
+    retry.setLayoutData(gridData);
+    retry.setEnabled(false);
+    retry.setText(MessageText.getString("fileDownloadWindow.retry"));
+    final String _dirName = dirName;
+    retry.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        retry.setEnabled(false);
+        status.setText("");
+        downloader.cancel();       
+        downloader = TorrentDownloaderFactory.download(FileDownloadWindow.this,url,_dirName);
+        downloader.start();
+      }
+    });        
     
     cancel = new Button(shell, SWT.NONE);    
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -122,8 +147,10 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   }    
     
   public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {   
-    update();        
+    update();    
   }
+  
+  
   
   private void update() {
     if(display != null && ! display.isDisposed()) {
@@ -157,6 +184,12 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
               MainWindow.getWindow().openTorrent(downloader.getFile().getAbsolutePath());
             }
           }
+          
+          if(state == TorrentDownloader.STATE_ERROR) {
+            retry.setEnabled(true); 
+          }
+          
+          shell.pack();
         }
       });
     }
