@@ -256,7 +256,7 @@ DownloadManagerImpl
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
 		                                                       data_location.toString(), 
 		                                                       DownloadManager.STATE_QUEUED, 
-		                                                       false );
+		                                                       true );
 		
 		if ( dm == null ){
 			
