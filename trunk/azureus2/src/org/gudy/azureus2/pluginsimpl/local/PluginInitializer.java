@@ -510,9 +510,16 @@ PluginInitializer
 								plugin_id[0],
 								plugin_version[0] );
 		      
+		      try{
+		      	
+		      	plugin.initialize(plugin_interface);
+		      	
+		      }catch( Throwable e ){
+		      	
+		      	load_failure	= e;
+		      }
+		
 		      plugin_interface.setOperational( load_failure == null );
-		      
-		      plugin.initialize(plugin_interface);
 		      
 		      plugins.add( plugin );
 		      
