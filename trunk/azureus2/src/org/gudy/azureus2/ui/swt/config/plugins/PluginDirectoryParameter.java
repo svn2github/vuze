@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameterImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -43,7 +43,7 @@ public class PluginDirectoryParameter implements PluginParameterImpl {
   
   Control[] controls;
   
-  public PluginDirectoryParameter(final Composite pluginGroup,DirectoryParameter parameter) {
+  public PluginDirectoryParameter(final Composite pluginGroup,DirectoryParameterImpl parameter) {
     controls = new Control[3];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);

@@ -16,7 +16,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class StringParameter implements IParameter{
+public class StringParameter extends Parameter{
 
   String name;
   Text inputField;

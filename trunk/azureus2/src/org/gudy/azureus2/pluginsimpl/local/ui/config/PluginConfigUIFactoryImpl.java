@@ -101,7 +101,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 	    String key,
 			String label,
 			String defaultValue) {
-	  return new DirectoryParameter(config,pluginKey + "." + key, label, defaultValue);
+	  return new DirectoryParameterImpl(config,pluginKey + "." + key, label, defaultValue);
 	}
 
 	public Parameter createColorParameter(

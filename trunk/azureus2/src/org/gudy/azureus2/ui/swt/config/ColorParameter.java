@@ -41,7 +41,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
  * @author Olivier
  *
  */
-public class ColorParameter implements IParameter, ParameterListener {
+public class ColorParameter extends Parameter implements ParameterListener {
 
   private Button colorChooser;
   protected String sParamName;

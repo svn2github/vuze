@@ -84,4 +84,10 @@ BasicPluginConfigModel
 	public LabelParameter
 	addLabelParameter2(
 		String 		resource_name );
+	
+	public DirectoryParameter
+	addDirectoryParameter2(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue );
 }

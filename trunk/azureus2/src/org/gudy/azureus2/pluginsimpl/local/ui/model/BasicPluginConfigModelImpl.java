@@ -39,7 +39,6 @@ import org.eclipse.swt.layout.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
@@ -164,6 +163,19 @@ BasicPluginConfigModelImpl
 		parameters.add( res );
 		
 		return( res );	
+	}	
+	
+	public org.gudy.azureus2.plugins.ui.config.DirectoryParameter
+	addDirectoryParameter2(
+		String 		key,
+		String 		resource_name,
+		String 		defaultValue )
+	{
+		DirectoryParameterImpl res = new DirectoryParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
+		
+		parameters.add( res );
+		
+		return( res );	
 	}
 	
 	public LabelParameter
@@ -212,7 +224,7 @@ BasicPluginConfigModelImpl
 						
 			//System.out.println( "key = " + key );
 			
-			IParameter	swt_param;
+			Parameter	swt_param;
 			
 			if ( param instanceof BooleanParameterImpl ){
 				
@@ -237,6 +249,24 @@ BasicPluginConfigModelImpl
 				
 				swt_param.setLayoutData( gridData );
 				
+			}else if ( param instanceof DirectoryParameterImpl ){
+				
+				Composite area = new Composite(gMainTab, SWT.NULL);
+
+				GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_HORIZONTAL );
+				
+				area.setLayoutData(gridData);
+				
+				layout = new GridLayout();
+				
+				layout.numColumns 	= 2;
+				layout.marginHeight = 0;
+				layout.marginWidth 	= 0;
+				
+				area.setLayout(layout);				
+				
+				swt_param = new DirectoryParameter(area, key, ((DirectoryParameterImpl)param).getDefaultValue());
+				
 			}else{
 				
 					// label
@@ -250,8 +280,20 @@ BasicPluginConfigModelImpl
 			}
 			
 			if ( swt_param != null ){
-				
-				comp_map.put( param, new Object[]{swt_param, swt_param.getControl(), label });
+									
+				Control[]	c = swt_param.getControls();
+					
+				Object[] moo = new Object[c.length+2];
+					
+				moo[0] = swt_param;
+				moo[1] = label;
+					
+				for (int j=0;j<c.length;j++){
+						
+					moo[j+2] = c[j];
+				}
+					
+				comp_map.put( param, moo );
 			}
 		}
 		

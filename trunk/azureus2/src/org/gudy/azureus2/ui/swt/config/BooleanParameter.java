@@ -19,7 +19,7 @@ import org.gudy.azureus2.ui.swt.Messages;
  * @author Olivier
  * 
  */
-public class BooleanParameter implements IParameter{
+public class BooleanParameter extends Parameter{
 
   String name;
   Button checkBox;

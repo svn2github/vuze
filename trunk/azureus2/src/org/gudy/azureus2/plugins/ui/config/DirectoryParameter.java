@@ -1,5 +1,5 @@
 /*
- * Created on 22-May-2004
+ * Created on 08-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,34 +20,15 @@
  *
  */
 
-package org.gudy.azureus2.ui.swt.config;
+package org.gudy.azureus2.plugins.ui.config;
 
 /**
  * @author parg
  *
  */
-
-import org.eclipse.swt.widgets.Control;
-
-public abstract class 
-Parameter 
-	implements IParameter
+public interface 
+DirectoryParameter 
 {
-	public Control[]
-	getControls()
-	{
-		return( new Control[]{ getControl() });
-	}
-	
-	public void
-	addChangeListener(
-		ParameterChangeListener	l )
-	{	
-	}
-	
-	public void
-	removeChangeListener(
-		ParameterChangeListener	l )
-	{
-	}
+	public String
+	getValue();
 }

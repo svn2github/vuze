@@ -16,7 +16,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class IntListParameter implements IParameter {
+public class IntListParameter extends Parameter {
 
   Combo list;
 

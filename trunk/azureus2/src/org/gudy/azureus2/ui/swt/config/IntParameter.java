@@ -20,7 +20,7 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class 
 IntParameter 
-	implements Parameter
+	extends Parameter
 {
   Text inputField;
   int iMinValue = 0;

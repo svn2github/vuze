@@ -27,7 +27,12 @@ import org.eclipse.swt.widgets.Control;
  * @author Olivier
  * 
  */
-public interface IParameter {
+public interface 
+IParameter 
+{
   public void setLayoutData(Object layoutData);
+  
   public Control getControl();
+  
+  public Control[] getControls();
 }

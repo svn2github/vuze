@@ -18,7 +18,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author TuxPaper
  *
  */
-public class RadioParameter implements IParameter{
+public class RadioParameter extends Parameter{
 
   Button radioButton;
 

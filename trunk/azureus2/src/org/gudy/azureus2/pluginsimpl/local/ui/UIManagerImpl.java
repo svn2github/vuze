@@ -196,8 +196,6 @@ UIManagerImpl
 					{
 						return( pi.getPluginconfig().getPluginStringParameter( key, defaultValue));
 					}
-					public void addEnabledOnSelection(Parameter parameter){}
-					public void addDisabledOnSelection(Parameter parameter){}
 				});	
 	}
 	
@@ -215,8 +213,6 @@ UIManagerImpl
 					{
 						return( pi.getPluginconfig().getPluginIntParameter( key, defaultValue));
 					}
-					public void addEnabledOnSelection(Parameter parameter){}
-					public void addDisabledOnSelection(Parameter parameter){}
 				});		
 	}
 	
@@ -225,6 +221,15 @@ UIManagerImpl
 		String		resource )
 	{
 		return( new LabelParameter(){});
+	}
+	
+	public DirectoryParameter
+	addDirectoryParameter2(
+		String 		key,
+		String 		resource_name,
+		String 		defaultValue )
+	{
+		return( new DirectoryParameterImpl(pi.getPluginconfig(),key, resource_name,defaultValue));
 	}
   }
 }

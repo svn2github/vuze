@@ -74,9 +74,9 @@ public class ParameterRepository
       } else if(parameter instanceof FileParameter) {
         def.addParameter(sKey,
                          ((FileParameter)parameter).getDefaultValue());
-      } else if(parameter instanceof DirectoryParameter) {
+      } else if(parameter instanceof DirectoryParameterImpl) {
         def.addParameter(sKey,
-                         ((DirectoryParameter)parameter).getDefaultValue());
+                         ((DirectoryParameterImpl)parameter).getDefaultValue());
       } else if(parameter instanceof IntsParameter) {
         def.addParameter(sKey,
                          ((IntsParameter)parameter).getDefaultValue());

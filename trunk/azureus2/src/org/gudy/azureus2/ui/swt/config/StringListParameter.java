@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class StringListParameter implements IParameter {
+public class StringListParameter extends Parameter {
 
   Combo list;
 

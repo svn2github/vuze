@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ColorParameter;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntsParameter;
@@ -50,8 +50,8 @@ public class PluginParameter {
       implementation = new PluginBooleanParameter(pluginGroup,(BooleanParameterImpl)parameter);
     } else if(parameter instanceof FileParameter) {
       implementation = new PluginFileParameter(pluginGroup,(FileParameter)parameter);
-    } else if(parameter instanceof DirectoryParameter) {
-      implementation = new PluginDirectoryParameter(pluginGroup,(DirectoryParameter)parameter);
+    } else if(parameter instanceof DirectoryParameterImpl) {
+      implementation = new PluginDirectoryParameter(pluginGroup,(DirectoryParameterImpl)parameter);
     } else if(parameter instanceof IntsParameter) {
       implementation = new PluginIntsParameter(pluginGroup,(IntsParameter)parameter);
     } else if(parameter instanceof StringsParameter) {
