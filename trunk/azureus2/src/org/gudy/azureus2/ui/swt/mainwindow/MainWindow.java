@@ -53,6 +53,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.TorrentFolderWatcher;
@@ -64,8 +65,10 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.*;
+
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
