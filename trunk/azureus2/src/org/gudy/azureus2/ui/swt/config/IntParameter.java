@@ -22,6 +22,7 @@ public class IntParameter {
   int iMinValue = 0;
   int iDefaultValue;
   String sParamName;
+  boolean allowZero = false;
 
   public IntParameter(Composite composite, final String name) {
     iDefaultValue = COConfigurationManager.getIntParameter(name);
@@ -56,10 +57,13 @@ public class IntParameter {
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
         try {
-          int value = Integer.parseInt(inputField.getText());
-          if (value < iMinValue)
-            value = iMinValue;
-		  COConfigurationManager.setParameter(name, value);
+          int val = Integer.parseInt(inputField.getText());
+          if (val < iMinValue) {
+            if (!(allowZero && val == 0)) {
+            	val = iMinValue;
+            }
+          }
+		  COConfigurationManager.setParameter(name, val);
         }
         catch (Exception e) {}
       }
@@ -68,10 +72,12 @@ public class IntParameter {
     inputField.addListener(SWT.FocusOut, new Listener() {
       public void handleEvent(Event event) {
         try {
-          int value = Integer.parseInt(inputField.getText());
-          if (value < iMinValue) {
-            inputField.setText(String.valueOf(iMinValue));
-            COConfigurationManager.setParameter(name, iMinValue);
+          int val = Integer.parseInt(inputField.getText());
+          if (val < iMinValue) {
+            if (!(allowZero && val == 0)) {
+              inputField.setText(String.valueOf(iMinValue));
+              COConfigurationManager.setParameter(name, iMinValue);
+            }
           }
         }
         catch (Exception e) {}
@@ -86,6 +92,12 @@ public class IntParameter {
       inputField.setText(String.valueOf(iMinValue));
     }
   } 
+  
+  
+  public void allowZeroValue(boolean allow) {
+    allowZero = allow;
+  }
+  
 
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
