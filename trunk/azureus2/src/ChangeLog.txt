@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-xx.06.04 | Azureus 2.1.0.1
+2004.06.xx | Azureus 2.1.0.1
 
 FEATURE:
 
