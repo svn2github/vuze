@@ -323,12 +323,12 @@ PEPeerTransportProtocol
 	    if( outgoing_piece_message_handler != null ) {
 	      outgoing_piece_message_handler.removeAllPieceRequests();
 	      outgoing_piece_message_handler.destroy();
-	      outgoing_piece_message_handler = null;
+	      //outgoing_piece_message_handler = null;
 	    }
 	    
 	    if( outgoing_have_message_aggregator != null ) {
 	      outgoing_have_message_aggregator.destroy();
-	      outgoing_have_message_aggregator = null;
+	      //outgoing_have_message_aggregator = null;
 	    }
 	    
 	    closeConnectionX();  //cleanup of download limiter
@@ -338,7 +338,7 @@ PEPeerTransportProtocol
 	    		UploadManager.getSingleton().cancelStandardPeerConnection( connection );
 	    	}
 	    	connection.close();
-	    	connection = null;
+	    	//connection = null;
 	    }
 	    
 	    
