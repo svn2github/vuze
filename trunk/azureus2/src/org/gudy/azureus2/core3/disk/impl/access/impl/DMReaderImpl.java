@@ -292,6 +292,11 @@ DMReaderImpl
 					try{
 						int	entry_count = readQueueSem.reserveSet( 10 );
 						
+						if ( !bReadContinue){
+							
+							break;
+						}
+
 						for (int i=0;i<entry_count;i++){
 							
 							DiskReadRequest drr;
