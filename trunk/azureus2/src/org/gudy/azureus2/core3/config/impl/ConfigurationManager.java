@@ -158,8 +158,7 @@ public class ConfigurationManager {
     try {
       result = getIntParameter(parameter, def.getIntParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      e.printStackTrace();
-      result = def.def_boolean;
+      result = getIntParameter(parameter, def.def_boolean);
     }
     return result == 0 ? false : true;
   }
@@ -188,8 +187,7 @@ public class ConfigurationManager {
     try {
       result = getIntParameter(parameter, def.getIntParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      e.printStackTrace();
-      result = def.def_int;
+      result = getIntParameter(parameter, def.def_int);
     }
     return result;
   }
@@ -207,8 +205,10 @@ public class ConfigurationManager {
     try {
       return new String(getByteParameter(parameter, defaultValue));
     } catch (Exception e) {
-      //e.printStackTrace();
-      return null;
+      byte[] bytesReturn = getByteParameter(parameter, null);
+      if (bytesReturn == null)
+        return null;
+      return new String(bytesReturn);
     }
   }
   
@@ -223,8 +223,7 @@ public class ConfigurationManager {
     try {
       result = getStringParameter(parameter, def.getStringParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      e.printStackTrace();
-      result = def.def_String;
+      result = getStringParameter(parameter, def.def_String);
     }
     return result;
   }
