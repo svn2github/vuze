@@ -55,7 +55,7 @@ Main
 			
 			InetSocketAddress address = new InetSocketAddress("127.0.0.1",their_port);
 			
-			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, their_port );
+			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, their_port, false );
 				
 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( my_port );
 			

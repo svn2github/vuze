@@ -57,11 +57,11 @@ TrackerWebContextImpl
 			
 			if ( protocol == Tracker.PR_HTTP ){
 				
-				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port );
+				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port, false );
 				
 			}else{
 				
-				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port );
+				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, false );
 			}
 			
 			server.addListener( this );

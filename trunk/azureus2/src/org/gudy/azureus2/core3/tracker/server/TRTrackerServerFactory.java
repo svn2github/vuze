@@ -33,43 +33,47 @@ TRTrackerServerFactory
 	public static TRTrackerServer
 	create(
 		int		protocol,
-		int		port )
+		int		port,
+		boolean	apply_ip_filter )
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, false ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, false, apply_ip_filter ));
 	}
 	
 	public static TRTrackerServer
 	createSSL(
 		int		protocol,
-		int		port )
+		int		port,
+		boolean apply_ip_filter )
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, true ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, true, apply_ip_filter ));
 	}
 	
 	public static TRTrackerServer
 	create(
 		String	name,
 		int		protocol,
-		int		port )
+		int		port,
+		boolean	apply_ip_filter )
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( name, protocol, port, false ));
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, false, apply_ip_filter ));
 	}
 	
 	public static TRTrackerServer
 	createSSL(
 		String	name,
 		int		protocol,
-		int		port )
+		int		port,
+		boolean apply_ip_filter)
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( name, protocol, port, true ));
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, true, apply_ip_filter ));
 	}
 	
 	public static void

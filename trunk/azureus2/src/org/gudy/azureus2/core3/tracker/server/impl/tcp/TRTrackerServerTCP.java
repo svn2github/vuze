@@ -44,6 +44,7 @@ TRTrackerServerTCP
 	protected String	name;
 	protected boolean	ssl;
 	protected int		port;
+	protected boolean	apply_ip_filter;
 	
 	protected Vector	request_listeners 	= new Vector();
 	
@@ -53,7 +54,8 @@ TRTrackerServerTCP
 	TRTrackerServerTCP(
 		String		_name,
 		int			_port,
-		boolean		_ssl  )
+		boolean		_ssl,
+		boolean		_apply_ip_filter )
 		
 		throws TRTrackerServerException
 	{
@@ -61,6 +63,7 @@ TRTrackerServerTCP
 		
 		port					= _port;
 		ssl						= _ssl;
+		apply_ip_filter			= _apply_ip_filter;
 
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
@@ -201,7 +204,7 @@ TRTrackerServerTCP
 								
 				String	ip = socket.getInetAddress().getHostAddress();
 								
-				if ( !ip_filter.isInRange( ip, "Tracker" )){
+				if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
 					
 					thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
 					

@@ -43,7 +43,8 @@ TRTrackerServerFactoryImpl
 		String		name,
 		int			protocol,
 		int			port,
-		boolean		ssl)
+		boolean		ssl,
+		boolean		apply_ip_filter )
 	
 		throws TRTrackerServerException
 	{
@@ -51,7 +52,7 @@ TRTrackerServerFactoryImpl
 		
 		if ( protocol == TRTrackerServerFactory.PR_TCP ){
 			
-			server = new TRTrackerServerTCP( name, port, ssl );
+			server = new TRTrackerServerTCP( name, port, ssl, apply_ip_filter );
 			
 		}else{
 			
