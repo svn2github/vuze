@@ -39,20 +39,15 @@ public class FileUtil {
   }
 
   public static String getApplicationPath() {
-  		// for java web start we use user.home/.azureus as user.dir is no use
-  		
+    
+  	// for java web start we use user.home/.azureus as user.dir is no use
     if (System.getProperty("os.name").equals("Linux") || isJavaWebStart()) {
       String path = System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus";
-      //if the ~/.azureus dir exists, we use it, otherwise we use the normal program dir
       
-      File	file = new File(path);
+      File file = new File(path);
       
-      if ( isJavaWebStart()){
-      	
-      	if ( !file.exists()){
-      		
-      		file.mkdirs();		
-      	}
+      if ( !file.exists()){
+      	file.mkdirs();		
       }
       
       if (file.isDirectory()) {
