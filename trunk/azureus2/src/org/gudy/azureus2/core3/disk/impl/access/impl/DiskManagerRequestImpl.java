@@ -69,11 +69,16 @@ DiskManagerRequestImpl
   
   /**
    * Method to determine if a Request has expired
-   * @return true is the request is expired
+   * @return true if the request is expired
    */
   public boolean isExpired()
   {
-    return ((SystemTime.getCurrentTime() - timeCreated) > EXPIRATION_TIME);    
+    long wait_time = SystemTime.getCurrentTime() - timeCreated;
+    if( wait_time < 0 ) {  //time went backwards
+      timeCreated = SystemTime.getCurrentTime();
+      return false;
+    }
+    return wait_time > EXPIRATION_TIME;    
   }
   
   /**

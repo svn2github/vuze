@@ -324,6 +324,9 @@ public class ConnectDisconnectManager {
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
         num_stalled_requests++;
       }
+      else if( waiting_time < 0 ) {  //time went backwards
+        request.connect_start_time = SystemTime.getCurrentTime();
+      }
     }
     
     //check if our connect queue is stalled, and expand if so

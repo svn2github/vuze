@@ -81,7 +81,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           Map.Entry entry = (Map.Entry)i.next();
           PeerData peer_data = (PeerData)entry.getValue();
           
-          if( current_time - peer_data.last_message_added_time > FLUSH_WAIT_TIME ) {  //time to force flush
+          long wait_time = current_time - peer_data.last_message_added_time;
+          
+          if( wait_time > FLUSH_WAIT_TIME || wait_time < 0 ) {  //time to force flush
             Connection conn = (Connection)entry.getKey();
             
             if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
@@ -99,7 +101,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       
       long total_time = SystemTime.getCurrentTime() - start_time;
       
-      if( total_time < FLUSH_CHECK_LOOP_TIME ) {
+      if( total_time < FLUSH_CHECK_LOOP_TIME && total_time >= 0 ) {
         try {  Thread.sleep( FLUSH_CHECK_LOOP_TIME - total_time );  }catch( Exception e ) { Debug.printStackTrace( e ); }
       }
     }
