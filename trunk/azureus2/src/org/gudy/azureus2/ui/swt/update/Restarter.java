@@ -142,7 +142,7 @@ Restarter
 	    }
 	}
   
-//****************** This code is copied into Restarter / Updater so make changes there too !!!
+  // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   //Beware that for OSX no SPECIAL Java will be used with
   //This method.
@@ -250,10 +250,10 @@ Restarter
       FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
-      Process pChMod = Runtime.getRuntime().exec("chmod 755 \"" + fileName + "\"");
-      pChMod.waitFor();
-      Process p = Runtime.getRuntime().exec("./Azureus.app/" + restartScriptName);
+      chMod(fileName,"755",log);      
+      Process p = Runtime.getRuntime().exec("Azureus.app/" + restartScriptName);
     } catch(Exception e) {
+      log.println(e);
       e.printStackTrace(log);
     }
   }
@@ -295,11 +295,11 @@ Restarter
       FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
-      Process pChMod = Runtime.getRuntime().exec("chmod 755 \"" + fileName + "\"");
-      pChMod.waitFor();
+      chMod(fileName,"755",log);
       Process p = Runtime.getRuntime().exec("./" + restartScriptName);
     } catch(Exception e) {
-        e.printStackTrace(log);
+      log.println(e);  
+      e.printStackTrace(log);
     }
   }
   
@@ -316,4 +316,36 @@ Restarter
     
     return( libraryPath );
   }
+  
+  private void logStream(String message,InputStream stream,PrintWriter log) {
+    BufferedReader br = new BufferedReader (new InputStreamReader(stream));
+    String line = null;
+    log.println(message);
+    try {
+      while((line = br.readLine()) != null) {
+        log.println(line);
+      }
+    } catch(Exception e) {
+       log.println(e);
+       e.printStackTrace(log);
+    }
+  }
+  
+  private void chMod(String fileName,String rights,PrintWriter log) {
+    String[] execStr = new String[3];
+    execStr[0] = "chmod";
+    execStr[1] = rights;
+    execStr[2] = fileName;
+    log.println("About to execute : "  + execStr[0] + " " + execStr[1] + " " + execStr[2]);
+    try {
+      Process pChMod = Runtime.getRuntime().exec(execStr);
+      pChMod.waitFor();
+      logStream("Execution Output",pChMod.getInputStream(),log);
+      logStream("Execution Error",pChMod.getErrorStream(),log);
+    } catch(Exception e) {
+      log.println(e);
+      e.printStackTrace(log);
+    }
+  }
+  
 }
