@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -108,7 +109,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     table.getColumn(17).setWidth(105);
     table.getColumn(18).setWidth(60);
 
-    sorter = new TableSorter(this,"done");
+    sorter = new TableSorter(this,"done",true);
     sorter.addStringColumnListener(table.getColumn(0),"ip");
     sorter.addStringColumnListener(table.getColumn(17),"client");
     
@@ -201,6 +202,8 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
   public void refresh() {
     if (getComposite() == null || getComposite().isDisposed())
       return;
+    
+    sorter.reOrder(false);
 
     loopFactor++;
     //Refresh all items in table...
@@ -212,7 +215,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
         pti.updateAll();
         pti.updateStats();
         //Every second, we unvalidate the images.
-        if (loopFactor % 8 == 0)
+        if (loopFactor % COConfigurationManager.getIntParameter("Graphics Update") == 0)
           pti.invalidate();
         pti.updateImage();
       }
@@ -252,7 +255,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       if (objectToSortableItem.containsKey(created))
         return;
       try {
-        PeerTableItem item = new PeerTableItem(table, (PEPeer) created);
+        PeerTableItem item = new PeerTableItem(this,table, (PEPeer) created);
         objectToSortableItem.put(created, item);
       }
       catch (Exception e) {
@@ -289,6 +292,10 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
 	  PEPiece		piece )
  {
  }
+  
+  public void setItem(TableItem item,PEPeer peer) {
+    tableItemToObject.put(item,peer);
+  }
 
   /*
    * SortableTable implementation

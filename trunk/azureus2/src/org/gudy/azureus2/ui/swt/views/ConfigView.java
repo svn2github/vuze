@@ -974,6 +974,32 @@ public class ConfigView extends AbstractIView {
    gridData.widthHint = 50;
    colorScheme.setLayoutData(gridData);
    
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate"); //$NON-NLS-1$
+   int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
+   String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
+   new IntListParameter(gStyle, "GUI Refresh", 250, labels, values);
+   
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
+   int[] gValues = new int[50];
+   String[] gLabels = new String[50];   
+   for(int i = 1 ; i <= 50 ; i++) {
+     gValues[i-1] = i;
+     gLabels[i-1] = "" + i;
+   }
+   new IntListParameter(gStyle, "Graphics Update", 4, gLabels, gValues);
+   
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
+   int[] rValues = new int[50];
+   String[] rLabels = new String[50];   
+   for(int i = 1 ; i <= 50 ; i++) {
+     rValues[i-1] = i;
+     rLabels[i-1] = "" + i;
+   }
+   new IntListParameter(gStyle, "ReOrder Delay", 4, rLabels, rValues);
+   
    itemStyle.setControl(gStyle);
   }
   

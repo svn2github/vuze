@@ -38,8 +38,7 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
   public PiecesView(DownloadManager manager) {
     this.manager = manager;
     pieceToPieceItem = new HashMap();
-    tableItemToObject = new HashMap();
-    sorter = new TableSorter(this,"#");
+    tableItemToObject = new HashMap();    
   }
 
   public void initialize(Composite composite) {
@@ -60,6 +59,8 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
     table.getColumn(3).setWidth(300);
     table.getColumn(4).setWidth(80);
     table.getColumn(5).setWidth(80);
+    
+    sorter = new TableSorter(this,"#",true);
     
     sorter.addIntColumnListener(table.getColumn(0),"#");
     sorter.addIntColumnListener(table.getColumn(1),"size");

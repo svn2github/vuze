@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
@@ -40,7 +41,7 @@ public class PeerTableItem implements SortableItem {
   private Image image;
   private String[] oldTexts;
 
-  public PeerTableItem(final Table table, PEPeer pc) {
+  public PeerTableItem(final PeersView view, final Table table,final PEPeer pc) {
     if (table == null || table.isDisposed()) {
       this.display = null;
       this.table = null;
@@ -61,7 +62,7 @@ public class PeerTableItem implements SortableItem {
           return;
                 
           item = new TableItem(table, SWT.NULL);                
-                
+          view.setItem(item,pc);
           table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
             public void handleEvent(Event e) {
               valid = false;

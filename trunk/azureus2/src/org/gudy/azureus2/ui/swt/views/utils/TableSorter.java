@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 public class TableSorter {
 
   private String lastField;
+  private boolean lastFieldIsInt;
   private boolean ascending;
   private int loopFactor;
   
@@ -50,10 +51,11 @@ public class TableSorter {
   private Map objectToSortableItem;
   private Map tableItemToObject;
 
-  public TableSorter(SortableTable sortableTable, String field) {
+  public TableSorter(SortableTable sortableTable, String defaultField,boolean isDefaultInt) {
     loopFactor = 0;
     ascending = true;
-    this.lastField = field;
+    this.lastField = defaultField;
+    this.lastFieldIsInt = isDefaultInt;
     this.sortableTable = sortableTable;
     this.objectToSortableItem = sortableTable.getObjectToSortableItemMap();
     this.tableItemToObject = sortableTable.getTableItemToObjectMap();
@@ -67,7 +69,10 @@ public class TableSorter {
     loopFactor = 0;
     if(lastField != null) {
       ascending = !ascending;
-      orderInt(lastField);
+      if(lastFieldIsInt)
+        orderInt(lastField);
+      else
+        orderString(lastField);
     }
   }
 
@@ -97,7 +102,8 @@ public class TableSorter {
     }
 
     public void handleEvent(Event e) {
-      orderInt(field);
+      lastFieldIsInt = true;
+      orderInt(field);      
     }
   }
 
@@ -110,7 +116,8 @@ public class TableSorter {
     }
 
     public void handleEvent(Event e) {
-      //orderString(field);
+      lastFieldIsInt = false;
+      orderString(field);      
     }
   }
 
@@ -197,6 +204,7 @@ public class TableSorter {
 
       objectToSortableItem.put(dataSource, items[i]);
       tableItemToObject.put(items[i].getTableItem(), dataSource);
+      items[i].invalidate();
       if (selected.contains(dataSource)) {
         table.select(i);
       } else {

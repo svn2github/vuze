@@ -186,5 +186,7 @@ public class PieceTableItem implements SortableItem{
   public TableItem getTableItem() {
     return item;
   }
+  
+  public void invalidate() {};
 
 }

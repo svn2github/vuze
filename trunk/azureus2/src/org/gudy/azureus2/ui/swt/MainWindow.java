@@ -160,7 +160,6 @@ public class MainWindow implements GlobalManagerListener {
 
   private class GUIUpdater extends Thread {
     boolean finished = false;
-    static final int waitTime = 250;
     IView view;
 
     public GUIUpdater() {
@@ -172,6 +171,7 @@ public class MainWindow implements GlobalManagerListener {
       while (!finished) {
         update();
         try {
+          int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
           Thread.sleep(waitTime);
         }
         catch (Exception ignore) {}

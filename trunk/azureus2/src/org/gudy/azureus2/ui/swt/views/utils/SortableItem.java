@@ -33,6 +33,8 @@ public interface SortableItem {
   public TableItem getTableItem();
   public int getIndex();
   
+  public void invalidate();
+  
   public long getIntField(String field);
   public String getStringField(String field);
 }
