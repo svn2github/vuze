@@ -49,7 +49,7 @@ public class GCStringPrinter {
     while(st.hasMoreElements()) {      
       String word = st.nextToken();
       length += getAdvanceWith(gc,word + " ");
-      System.out.println(outputLine + " : " + word + " : " + length);
+      //System.out.println(outputLine + " : " + word + " : " + length);
       if(length > width) {
         length = getAdvanceWith(gc,word);
         space = "\n";
