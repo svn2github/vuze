@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.update.CoreUpdateChecker;
 
@@ -135,6 +136,13 @@ UpdateMonitor
 	public void
 	performCheck()
 	{
+    if(current_window != null && ! current_window.isDisposed()) {
+      SWTThread.getInstance().getDisplay().syncExec(new Runnable() {
+        public void run() {               
+          current_window.dispose();         
+        }
+      });
+    }
 		MainWindow mainWindow = MainWindow.getWindow();
 		
 	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
@@ -191,8 +199,8 @@ UpdateMonitor
 	    	// update check (as amongst other things we want ot know the latest
 	    	// version of the core anyway
 	   
-	    show_window = 	show_window && 
-						COConfigurationManager.getBooleanParameter( "update.opendialog", true );
+	    //show_window = 	show_window && 
+			//			COConfigurationManager.getBooleanParameter( "update.opendialog", true );
 	    
 	    
     	if ( show_window ){

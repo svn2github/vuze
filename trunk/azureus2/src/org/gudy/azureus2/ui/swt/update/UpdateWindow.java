@@ -110,7 +110,16 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    updateWindow = new Shell(display,(SWT.DIALOG_TRIM) & ~SWT.CLOSE );
+    //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
+    //forces the window to be only 200x200
+    //catch close event instead, and never do it
+    updateWindow = new Shell(display,(SWT.DIALOG_TRIM) );
+    
+    updateWindow.addListener(SWT.Close,new Listener() {
+      public void handleEvent(Event e) {
+        e.doit = false;
+      }
+    });
     
     updateWindow.setImage(ImageRepository.getImage("azureus"));
     Messages.setLanguageText(updateWindow,"swt.update.window.title");
@@ -170,8 +179,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     Messages.setLanguageText(btnCancel,"swt.update.window.quit");
     btnCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
-        updateWindow.dispose();
-        MainWindow.getWindow().setUpdateNeeded(null);
+        dispose();
        	check_instance.cancel();
       }
     });
@@ -221,6 +229,11 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     
     updateWindow.setSize(400,400);
     //updateWindow.open();
+  }
+  
+  public void dispose() {
+    updateWindow.dispose();
+    MainWindow.getWindow().setUpdateNeeded(null);
   }
   
   public void addUpdate(final Update update) {
