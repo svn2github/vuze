@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsuninstaller;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -36,7 +37,7 @@ import com.aelitis.azureus.core.AzureusCore;
  */
 public class UnInstallPluginWizard extends Wizard {
       
-  List plugins = null;
+  List plugins = new ArrayList();
   
   public UnInstallPluginWizard(
       	AzureusCore	azureus_core,	
@@ -60,10 +61,14 @@ public class UnInstallPluginWizard extends Wizard {
   	  plugins = _plugins;
   	}
   	
+ 	public List
+  	getPluginList()
+  	{
+  		return( plugins );
+  	}
+ 	
   	public void performUnInstall() 
   	{
-  	  if(plugins == null) return;
-  	   	  
   	  PluginInterface[]	ps = new PluginInterface[ plugins.size()];
   	  
   	  plugins.toArray( ps );

@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsinstaller;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -38,7 +39,7 @@ public class InstallPluginWizard extends Wizard {
       
   int mode;
   
-  List plugins = null;
+  List plugins = new ArrayList();
   boolean shared = false;
   
   public InstallPluginWizard(
@@ -59,15 +60,20 @@ public class InstallPluginWizard extends Wizard {
 		super.onClose();	
 	}
   	
-  	public void setPluginList(List _plugins) {
+  	public void 
+	setPluginList(List _plugins) {
   	  plugins = _plugins;
+  	}
+  	
+  	public List
+  	getPluginList()
+  	{
+  		return( plugins );
   	}
   	
   	public void performInstall() 
   	{
-  	  if(plugins == null) return;
-  	   	  
-  	  InstallablePlugin[]	ps = new InstallablePlugin[ plugins.size()];
+   	  InstallablePlugin[]	ps = new InstallablePlugin[ plugins.size()];
   	  
   	  plugins.toArray( ps );
   	  

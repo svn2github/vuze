@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsuninstaller;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -41,7 +42,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -193,9 +193,12 @@ public class UIPWListPanel extends AbstractWizardPanel {
       
       PluginInterface plugin = (PluginInterface)pis.get(0);
       
+      List	selected_plugins = ((UnInstallPluginWizard)wizard).getPluginList();
+      
       TableItem item = new TableItem(pluginList,SWT.NULL);
       item.setData(plugin);
       item.setText(0, display_name);
+      item.setChecked( selected_plugins.contains( plugin ));
       String version = plugin.getPluginVersion();
       if(version == null) version = MessageText.getString("installPluginsWizard.list.nullversion");
       item.setText(1,version);
@@ -211,13 +214,13 @@ public class UIPWListPanel extends AbstractWizardPanel {
 	public boolean 
 	isNextEnabled() 
 	{
-	   return false;
+		return( false );
 	}
 	
 	public boolean 
 	isFinishEnabled() 
 	{
-	   return( true );
+		return(((UnInstallPluginWizard)wizard).getPluginList().size() > 0 );
 	}
 	
 	public IWizardPanel getFinishPanel() {
@@ -232,5 +235,7 @@ public class UIPWListPanel extends AbstractWizardPanel {
         list.add(items[i].getData());          
     }
     ((UnInstallPluginWizard)wizard).setPluginList(list);
+    ((UnInstallPluginWizard)wizard).setFinishEnabled( isFinishEnabled() );
+    
   }
 }

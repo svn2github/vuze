@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -150,6 +151,9 @@ public class IPWListPanel extends AbstractWizardPanel {
 	    wizard.getDisplay().asyncExec(new AERunnable() {
 	      public void runSupport() {
 	        Messages.setLanguageText(lblStatus,"installPluginsWizard.list.loaded");
+	        
+	        List	selected_plugins = ((InstallPluginWizard)wizard).getPluginList();
+
 	        for(int i = 0 ; i < plugins.length ; i++) {
 	          StandardPlugin plugin = plugins[i];
 	          if(plugin.getAlreadyInstalledPlugin() == null) {
@@ -158,6 +162,13 @@ public class IPWListPanel extends AbstractWizardPanel {
 	            TableItem item = new TableItem(pluginList,SWT.NULL);
 	            item.setData(plugin);
 	            item.setText(0,plugin.getName());
+	            boolean	selected = false;
+	            for (int j=0;j<selected_plugins.size();j++){
+	            	if (((StandardPlugin)selected_plugins.get(j)).getId() == plugin.getId()){
+	            		selected = true;
+	            	}
+	            }
+	            item.setChecked( selected );
 	            item.setText(1,plugin.getVersion());
 	          }
 	        }
@@ -207,7 +218,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	public boolean 
 	isNextEnabled() 
 	{
-	   return true;
+		return(((InstallPluginWizard)wizard).getPluginList().size() > 0 );
 	}
 	
 	public boolean 
@@ -224,9 +235,12 @@ public class IPWListPanel extends AbstractWizardPanel {
     ArrayList list = new ArrayList();
     TableItem[] items = pluginList.getItems();
     for(int i = 0 ; i < items.length ; i++) {
-      if(items[i].getChecked())
-        list.add(items[i].getData());          
+      if(items[i].getChecked()){
+        list.add(items[i].getData());
+      }
     }
     ((InstallPluginWizard)wizard).setPluginList(list);
+    ((InstallPluginWizard)wizard).setNextEnabled( isNextEnabled() );
+    
   }
 }
