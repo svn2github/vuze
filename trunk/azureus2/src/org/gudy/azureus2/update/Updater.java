@@ -381,8 +381,18 @@ public class Updater {
 	   if(n < 10) return "0".concat(String.valueOf(n));
 	   return String.valueOf(n);
 	}  
-  
-	 //Beware that for OSX no SPECIAL Java will be used with
+	
+	private static boolean
+	win32NativeRestart(
+		PrintWriter	log,
+		String		exec )
+	{
+		return( false );
+	}
+	
+	 // ******** copied from Restarter.java - don't just edit here!!!!
+	
+	  //Beware that for OSX no SPECIAL Java will be used with
 	  //This method.
 	  
 	  private static final String restartScriptName = "restartScript";
@@ -435,11 +445,19 @@ public class Updater {
 	    if ( log != null ){
 	    	log.println( "  " + exec );
 	    }
-	    try {                
-	      Runtime.getRuntime().exec(exec);
-	    } catch(Exception e) {
-	        e.printStackTrace(log);
-	   }
+	    
+	    if ( !win32NativeRestart( log, exec )){
+	    	
+		   	// hmm, try java method - this WILL inherit handles but might work :)
+		        
+	        try{
+	        	Runtime.getRuntime().exec(exec);
+	        	
+	        }catch(Throwable f){
+	        	
+	        	f.printStackTrace( log );
+	        }
+	    }
 	  }
 	  
 	  private static void 
@@ -547,3 +565,4 @@ public class Updater {
 	    return( libraryPath );
 	  }
 	}
+

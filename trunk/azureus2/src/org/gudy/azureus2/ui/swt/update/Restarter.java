@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class 
 Restarter 
-{  
+{    
   private static final String mainClass = "org.gudy.azureus2.update.Updater";
   
   
@@ -73,9 +73,29 @@ Restarter
 			parameters );
   }
   
+  private static boolean
+  win32NativeRestart(
+  	PrintWriter	log,
+	String		exec )
+  {
+	    try{
+	    		// we need to spawn without inheriting handles
+	    	
+	    	PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+	    	
+	    	pm.createProcess( exec, false );
+	    
+	    	return( true );
+	    	
+	    }catch(Throwable e) {
+	    	
+	        e.printStackTrace(log);
+	        
+	        return( false );
+	    }
+  }
   
-  
-  // ******************************** This code is copied into Updater so make changes there too !!!
+  // ****************** This code is copied into Updater so make changes there too !!!
   
   //Beware that for OSX no SPECIAL Java will be used with
   //This method.
@@ -130,19 +150,11 @@ Restarter
     if ( log != null ){
     	log.println( "  " + exec );
     }
-    try{
-    		// we need to spawn without inheriting handles
+    
+    if ( !win32NativeRestart( log, exec )){
     	
-    	PlatformManager pm = PlatformManagerFactory.getPlatformManager();
-    	
-    	pm.createProcess( exec, false );
-    	   	
-    }catch(Throwable e) {
-    	
-        e.printStackTrace(log);
-       
-        	// hmm, try java method - this WILL inherit handles but might work :)
-        
+	   	// hmm, try java method - this WILL inherit handles but might work :)
+	        
         try{
         	Runtime.getRuntime().exec(exec);
         	
