@@ -234,7 +234,7 @@ DownloadImpl
 			
 		}else{
 			
-			throw( new DownloadException( "Download::restart: download stopped" ));
+			throw( new DownloadException( "Download::restart: download already running" ));
 		}
 	}
 	

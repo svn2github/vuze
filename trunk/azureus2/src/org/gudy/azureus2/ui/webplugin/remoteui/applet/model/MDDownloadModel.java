@@ -176,53 +176,62 @@ MDDownloadModel
 	start(
 		int[]		rows )
 	{
-		for (int i=0;i<rows.length;i++){
+		if ( rows.length > 0 ){
 			
-			try{
-				downloads[rows[i]].restart();
+			for (int i=0;i<rows.length;i++){
 				
-			}catch( Throwable e ){
-				
-				throw( new RPException( "Start fails", e ));
+				try{
+					downloads[rows[i]].restart();
+					
+				}catch( Throwable e ){
+					
+					throw( new RPException( "Start fails", e ));
+				}
 			}
+			
+			refresh();
 		}
-		
-		refresh();
 	}
 	
 	public void
 	stop(
-			int[]		rows )
+		int[]		rows )
 	{
-		for (int i=0;i<rows.length;i++){
+		if ( rows.length > 0 ){
 			
-			try{
-				downloads[rows[i]].stop();
-				
-			}catch( Throwable e ){
-				
-				throw( new RPException( "Stop fails", e ));
+			for (int i=0;i<rows.length;i++){
+			
+				try{
+					downloads[rows[i]].stop();
+					
+				}catch( Throwable e ){
+					
+					throw( new RPException( "Stop fails", e ));
+				}
 			}
+			
+			refresh();
 		}
-		
-		refresh();
 	}
 	
 	public void
 	remove(
-			int[]		rows )
+		int[]		rows )
 	{
-		for (int i=0;i<rows.length;i++){
+		if ( rows.length > 0 ){
 			
-			try{
-				downloads[rows[i]].remove();
-				
-			}catch( Throwable e ){
-				
-				throw( new RPException( "Remove fails", e ));
+			for (int i=0;i<rows.length;i++){
+			
+				try{
+					downloads[rows[i]].remove();
+					
+				}catch( Throwable e ){
+					
+					throw( new RPException( "Remove fails", e ));
+				}
 			}
+			
+			refresh();
 		}
-		
-		refresh();
 	}
 }

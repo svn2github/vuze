@@ -51,6 +51,8 @@ RemoteUIApplet
 	
 	protected RPPluginInterface		plugin_interface;
 	
+	protected RemoteUIMainPanel		panel;
+	
 	public
 	RemoteUIApplet()
 	{	
@@ -85,7 +87,7 @@ RemoteUIApplet
 			
 			final DownloadManager		download_manager	= plugin_interface.getDownloadManager();
 				
-			RemoteUIMainPanel	panel = new RemoteUIMainPanel( download_manager );
+			panel = new RemoteUIMainPanel( download_manager );
 			
 			panel.addListener(
 				new RemoteUIMainPanelListener()
@@ -144,6 +146,11 @@ RemoteUIApplet
 		for (int i=0;i<REQUEST_RETRY_LIMIT;i++){
 			
 			try{
+				if ( panel != null ){
+					
+					panel.logMessage("Request" + (i>0?"{retry #"+i+"}":"") + ":" + request.getObject()._getName()+ "::" + request.getMethod());
+				}
+				
 				RPReply	reply = dispatchSupport( request );
 			
 				return( reply );

@@ -39,6 +39,8 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;
 
+import com.sun.java.swing.SwingUtilities2;
+
 public class 
 RemoteUIMainPanel
 	extends JPanel
@@ -46,6 +48,8 @@ RemoteUIMainPanel
 	protected DownloadManager		download_manager;
 	
 	protected ArrayList					listeners = new ArrayList();
+	
+	protected JTextArea		log_area;
 	
 	public
 	RemoteUIMainPanel(
@@ -90,7 +94,25 @@ RemoteUIMainPanel
 			
 			final VWDownloadView 	view 	= new VWDownloadView(model);
 			
-			add( view.getComponent(), BorderLayout.CENTER );
+			JTabbedPane	tabs = new JTabbedPane();
+			
+			tabs.addTab( "Downloads", 	view.getComponent());
+			tabs.addTab( "Config", 		new JPanel());
+			
+			add( tabs, BorderLayout.CENTER );
+			
+			JPanel	bottom_panel = new JPanel( new BorderLayout());
+			
+			log_area = new JTextArea();
+			
+			log_area.setEditable(false);
+			log_area.setBorder(BorderFactory.createEtchedBorder());
+			
+			log_area.setRows(3);
+
+			bottom_panel.add( new JScrollPane(log_area), BorderLayout.CENTER );
+			
+			add( bottom_panel, BorderLayout.SOUTH );
 			
 			refresh.addActionListener(
 					new ActionListener()
@@ -208,9 +230,26 @@ RemoteUIMainPanel
 	}
 	
 	public void
+	logMessage(
+		final String	str )
+	{
+		SwingUtilities.invokeLater(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					log_area.setText(log_area.getText()+ "\r\n" + str );
+				}
+			});
+	}
+	
+	public void
 	reportError(
 		final Throwable 	e )
 	{
+		logMessage( e.getMessage());
+			
 		for (int i=0;i<listeners.size();i++){
 			
 			((RemoteUIMainPanelListener)listeners.get(i)).error( e );

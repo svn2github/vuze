@@ -147,6 +147,26 @@ RPObject
 		_setDelegate( res );
 	}
 	
+	public String
+	_getName()
+	{
+		String	str = this.getClass().getName();
+		
+		int	dp = str.lastIndexOf('.');
+		
+		if ( dp != -1 ){
+			
+			str = str.substring(dp+1);
+		}
+		
+		if ( str.startsWith("RP")){
+			
+			str = str.substring(2);
+		}
+		
+		return( str );
+	}
+	
 	public void
 	notSupported()
 	{
