@@ -238,7 +238,14 @@ public class MessageText {
         return name.startsWith(prefix) && name.endsWith(extension);
       }
     });
-    bundleSet.addAll(Arrays.asList(localBundles));
+    
+    	// can be null if user path is borked
+    
+    if ( localBundles != null ){
+    	
+    	bundleSet.addAll(Arrays.asList(localBundles));
+    }
+    
     // Add AppDir 2nd
     File appDir = new File(SystemProperties.getApplicationPath());
     String appBundles[] = appDir.list(new FilenameFilter() {
@@ -246,6 +253,8 @@ public class MessageText {
         return name.startsWith(prefix) && name.endsWith(extension);
       }
     });
+    
+    	// can be null if app path is borked
     
     if ( appBundles != null ){
     	

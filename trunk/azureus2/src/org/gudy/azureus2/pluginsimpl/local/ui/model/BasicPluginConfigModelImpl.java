@@ -359,8 +359,12 @@ BasicPluginConfigModelImpl
 				swt_param	= null;
 			}
 			
-			if ( swt_param != null ){
-									
+			if ( swt_param == null ){
+				
+				comp_map.put( param, new Object[]{ null, label });
+				
+			}else{
+				
 				Control[]	c = swt_param.getControls();
 					
 				Object[] moo = new Object[c.length+2];

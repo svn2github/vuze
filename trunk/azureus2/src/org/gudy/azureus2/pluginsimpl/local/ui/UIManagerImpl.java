@@ -247,9 +247,9 @@ UIManagerImpl
 	
 	public LabelParameter
 	addLabelParameter2(
-		String		resource )
+		String		resource_name )
 	{
-		return( new LabelParameter(){});
+		return( new LabelParameterImpl(plugin_config,key_prefix,resource_name));
 	}
 	
 	public DirectoryParameter
