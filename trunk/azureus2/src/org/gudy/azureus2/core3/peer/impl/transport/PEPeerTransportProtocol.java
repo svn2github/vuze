@@ -409,6 +409,8 @@ PEPeerTransportProtocol
         manager.peerConnectionClosed( this, false );
       }
     }
+    
+    closed = 9;
   }
   
   
