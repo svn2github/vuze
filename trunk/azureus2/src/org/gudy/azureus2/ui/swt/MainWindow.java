@@ -2181,7 +2181,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	              // so that auto-open details will work (even if the torrent
 	              // immediately goes to queued)
 	              
-	              LGLogger.log( "MainWindow::openTorrent: adding download" );
+	              LGLogger.log( "MainWindow::openTorrent: adding download '" + fileName + "'/'" + savePath + "'" );
 	
 	              globalManager.addDownloadManager(fileName, savePath, 
 	                                               startInStoppedState ? DownloadManager.STATE_STOPPED 

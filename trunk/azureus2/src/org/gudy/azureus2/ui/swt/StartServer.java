@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 /**
@@ -53,7 +54,7 @@ public class StartServer extends Thread {
         Socket sck = socket.accept();
         String address = sck.getInetAddress().getHostAddress();
         if (address.equals("localhost") || address.equals("127.0.0.1")) {
-          br = new BufferedReader(new InputStreamReader(sck.getInputStream()));
+          br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
           String line = br.readLine();
           //System.out.println("received : " + line);
           

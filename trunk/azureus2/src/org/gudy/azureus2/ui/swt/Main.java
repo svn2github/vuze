@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
@@ -38,7 +39,7 @@ public class Main implements ILocaleUtilChooser {
       	
         sck = new Socket("localhost",6880);
         
-        pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
+        pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
         
         StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
         
@@ -93,24 +94,33 @@ public class Main implements ILocaleUtilChooser {
       return;
     }
     
-    if (startServer.getState() == StartServer.STATE_LISTENING) {
-      startServer.start();
-      gm = GlobalManagerFactory.create(false);
-      
-      mainWindow = new MainWindow(gm, startServer);      
-      if (args.length != 0) {
+    if (args.length != 0) {
         // Sometimes Windows use filename in 8.3 form and cannot
         // match .torrent extension. To solve this, canonical path
         // is used to get back the long form
         String filename = args[0];
         try {
-          filename = new java.io.File(args[0]).getCanonicalPath();
+          args[0] = new java.io.File(args[0]).getCanonicalPath();
         } catch (java.io.IOException ioe) {
         }
-        mainWindow.openTorrent(filename);
+    }
+    
+    if (startServer.getState() == StartServer.STATE_LISTENING) {
+    	
+      startServer.start();
+      
+      gm = GlobalManagerFactory.create(false);
+      
+      mainWindow = new MainWindow(gm, startServer);
+      
+      if (args.length != 0) {
+
+        mainWindow.openTorrent( args[0]);
       }
       mainWindow.waitForClose();
-    } else {
+      
+    }else{
+    	
       new StartSocket(args);
     }
   }
