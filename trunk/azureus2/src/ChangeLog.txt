@@ -12,8 +12,8 @@ CHANGE: All config/pref files utilize .bak backup files [Parg]
 
 BUGFIX: Fix of startup issues under Win95/98/Me [TuxPaper]
 BUGFIX: Locale-specific dir creation [Parg]
-
-PLANNED: Fix Configuration window and General tab taking a long time to load under linux
+BUGFIX: Hebrew language works now [TuxPaper]
+BUGFIX: Fixed long load times in Linux by removing extra long drop-down lists in Configuration view and General tab. [TuxPaper]
 
 
 08.03.04 | Azureus 2.0.8.0
