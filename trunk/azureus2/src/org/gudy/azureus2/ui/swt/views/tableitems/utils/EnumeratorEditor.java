@@ -54,6 +54,11 @@ public class EnumeratorEditor {
     layout.numColumns = 3;
     GridData gridData;
     shell.setLayout (layout); 
+    Label label = new Label(shell,SWT.NULL);
+    label.setText("Drag rows to re-order them");
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
     table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
