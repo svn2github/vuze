@@ -646,16 +646,13 @@ StartStopRulesDefaultPlugin
         int shareRatio = download.getStats().getShareRatio();
         int state = download.getState();
         boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
-                            (!download.isForceStart());
+                            (!download.isForceStart()) &&
+                            (!dl_data.isFirstPriority());
         // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
         // skip check
         if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
           long timeAlive = (System.currentTimeMillis() - download.getStats().getTimeStarted());
           okToQueue = (timeAlive >= minTimeAlive);
-        }
-        if (okToQueue && 
-            (iRankType == RANK_NONE || iRankType == RANK_TIMED)) {
-          okToQueue = !dl_data.isFirstPriority();
         }
         
         if (state == Download.ST_READY ||
