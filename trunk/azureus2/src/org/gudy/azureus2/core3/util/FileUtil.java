@@ -908,4 +908,23 @@ public class FileUtil {
 			}
 		}
     }
+    
+    
+    
+    public static void writeBytesAsFile( String filename, byte[] file_data ) {
+      try{
+        File file = new File( filename );
+        
+        FileOutputStream out = new FileOutputStream( file );
+        
+        out.write( file_data );
+        
+        out.close();
+      }
+      catch( Throwable t ) {
+        Debug.out( "writeBytesAsFile:: error: ", t );
+      }
+
+    }
+    
 }
