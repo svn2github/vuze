@@ -172,6 +172,10 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
       return;
     }
     
+    if( totalUptime > 60*60*24*365*10 ) {  //total uptime > 10years is an error, reset
+      totalUptime = 0;
+    }
+    
     totalUptime += delta;
     lastUptime = current_time;
     
