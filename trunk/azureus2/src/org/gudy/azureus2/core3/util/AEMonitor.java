@@ -100,10 +100,8 @@ AEMonitor
 			
 			while (it.hasNext()){
 				
-				monitorData	data = (monitorData)it.next();
-				
-				AEMonitor	monitor = data.monitor;
-				
+				AEMonitor	monitor = (AEMonitor)it.next();
+								
 				if ( monitor.entry_count != monitor.last_entry_count ){
 					
 					active_monitors.add( monitor );
@@ -180,9 +178,9 @@ AEMonitor
 				String	class_name 	= elt.getClassName();
 				int		line_number	= elt.getLineNumber(); 
 			
-				monitorData new_entry	= new monitorData( this, class_name, line_number);
+				monitorData new_entry	= new monitorData( class_name, line_number);
 
-				debug_monitors.put( new_entry, new_entry );
+				debug_monitors.put( this, new_entry );
 				
 				if ( DEBUG_CHECK_DUPLICATES ){
 					
@@ -449,19 +447,15 @@ AEMonitor
 	protected static class
 	monitorData
 	{
-		protected AEMonitor		monitor;
 		protected Class			owning_class;
 		protected int			line_number;
 		
 		
 		protected
 		monitorData(
-			AEMonitor		_monitor,
 			String			_class_name,
 			int				_line_number )
-		{
-			monitor			= _monitor;
-			
+		{			
 			try{
 				owning_class	= Class.forName( _class_name );
 				
