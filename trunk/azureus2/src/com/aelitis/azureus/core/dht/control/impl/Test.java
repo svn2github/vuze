@@ -46,10 +46,26 @@ Test
 		//    :AFC97EA1 :    queried = {91032AD7 ,AC3478D6 ,ACCA5B51 ,B6692EA5 ,ACF10F2C ,F66B7DCD ,B3F0C7F6 ,A8A2B30F ,972A67C4 ,AE7B4B79 ,887309D0 ,8383DA94 ,9E6A55B6 ,902BA3CD ,AFC97EA1 ,BD307A3E ,B1D57811 ,8665243E ,9EE0DF7C ,B6589FC6 ,BC33EA4E }
 		//    :AFC97EA1 :    to query = {F6E1126C ,F22FE10D ,F0483F25 ,F1F836CB ,F1ABD670 ,FE5DBBCE ,FA35E192 ,FBDD85A9 ,FBEA31C7 ,EAEF5296 ,D435A6CD ,D051BF1D ,DA4B9237 ,C1DFD96E ,CB4E5208 ,356A192B ,17BA0791 ,1574BDDB ,1B645389 ,0716D970 ,0ADE7C2C ,77DE68DA ,7B52009B ,4D134BC0 }
 
+		// final byte[]	target 	= { (byte)0xB6, (byte)0x58, (byte)0x9f, (byte)0xc6 };
+
+		//  :9A79BE61:lookup complete for 31017A72
+		//    :9A79BE61:    queried = {77DE68DA,1B645389,31BD9B9F,356A192B,310B86E0}
+		//    :9A79BE61:    to query = {6FB84AED,B6589FC6,812ED456,DA4B9237}
+		//    :9A79BE61:    ok = {77DE68DA,1B645389,356A192B,31BD9B9F,310B86E0}
 		
-		final byte[]	target 	= { (byte)0xB6, (byte)0x58, (byte)0x9f, (byte)0xc6 };
+		final byte[]	target 	= { (byte)0x31, (byte)0x01, (byte)0x7a, (byte)0x72 };
+		final byte[]	t1 		= { (byte)0x77, (byte)0xde, (byte)0x68, (byte)0xda };
+		final byte[]	t2 		= { (byte)0x31, (byte)0xbd, (byte)0x9b, (byte)0x9f };
 				   
 			
+		byte[]	d1 = DHTControlImpl.computeDistance( target, t1 );
+		byte[]	d2 = DHTControlImpl.computeDistance( target, t2 );
+		
+		System.out.println( "d1 = " + ByteFormatter.nicePrint( d1 ));
+		System.out.println( "d2 = " + ByteFormatter.nicePrint( d2 ));
+		
+		System.out.println( "comp = " + DHTControlImpl.compareDistances( d1, d2 ));
+		
 		final Set			set = 
 			new TreeSet(
 				new Comparator()
@@ -68,9 +84,12 @@ Test
 					}
 				});
 		
-		set.add( new byte[]{ (byte)0xF0, (byte)0x48 ,(byte)0x3F, (byte)0x25 });
-		set.add( new byte[]{ (byte)0xF1, (byte)0xF8, (byte)0x36, (byte)0xCB });
-		set.add( new byte[]{ (byte)0xF2, (byte)0x2F, (byte)0xE1, (byte)0x0D });
+		set.add( t1 );
+		set.add( t2 );
+		
+		//set.add( new byte[]{ (byte)0xF0, (byte)0x48 ,(byte)0x3F, (byte)0x25 });
+		//set.add( new byte[]{ (byte)0xF1, (byte)0xF8, (byte)0x36, (byte)0xCB });
+		//set.add( new byte[]{ (byte)0xF2, (byte)0x2F, (byte)0xE1, (byte)0x0D });
 	
 		
 		Iterator it = set.iterator();

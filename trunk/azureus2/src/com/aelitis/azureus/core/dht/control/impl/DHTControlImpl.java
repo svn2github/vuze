@@ -125,14 +125,22 @@ DHTControlImpl
 							storeReply(
 								DHTTransportContact contact )
 							{
+								DHTLog.indent( router );
+								
 								DHTLog.log( "store ok" );
+								
+								DHTLog.exdent();
 							}	
 							
 							public void
 							failed(
 								DHTTransportContact 	contact )
 							{
+								DHTLog.indent( router );
+								
 								DHTLog.log( "store failed" );
+								
+								DHTLog.exdent();
 							}
 						},
 						encoded_key, 
@@ -154,7 +162,18 @@ DHTControlImpl
 			final byte[]	encoded_key = encodeKey( unencoded_key );
 
 			DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
-	
+
+				// maybe we've got the value already
+			
+			byte[]	local_result = (byte[])stored_values.get( new HashWrapper( encoded_key ));
+			
+			if ( local_result != null ){
+				
+				DHTLog.log( "    surprisingly we've got it locally!" );
+
+				return( local_result );
+			}
+			
 			List	result_and_closest = lookup( encoded_key, true );
 	
 			byte[]	value = (byte[])result_and_closest.get(0);
@@ -172,14 +191,22 @@ DHTControlImpl
 								storeReply(
 									DHTTransportContact contact )
 								{
+									DHTLog.indent( router );
+									
 									DHTLog.log( "cache store ok" );
+									
+									DHTLog.exdent();
 								}	
 								
 								public void
 								failed(
 									DHTTransportContact 	contact )
 								{
+									DHTLog.indent( router );
+									
 									DHTLog.log( "cache store failed" );
+									
+									DHTLog.exdent();
 								}
 							},
 							encoded_key, 
@@ -301,8 +328,8 @@ DHTControlImpl
 				
 					// get permission to kick off another search
 				
-				search_sem.reserve();
-						
+				search_sem.reserve();				
+
 				if ( value_search_result[0] != null ){
 					
 					break;
@@ -365,6 +392,8 @@ DHTControlImpl
 								DHTTransportContact[]	reply_contacts )
 							{
 								try{
+									DHTLog.indent( router );
+									
 									DHTLog.log( "findNodeReply: " + DHTLog.getString( reply_contacts ));
 							
 									router.contactAlive( target_contact.getID(), target_contact );
@@ -387,6 +416,13 @@ DHTControlImpl
 										for (int i=0;i<reply_contacts.length;i++){
 											
 											DHTTransportContact	contact = reply_contacts[i];
+											
+												// ignore responses that are ourselves
+											
+											if ( compareDistances( router.getLocalContact().getID(), contact.getID()) == 0 ){
+												
+												continue;
+											}
 											
 												// dunno if its alive or not, however record its existance
 											
@@ -416,6 +452,8 @@ DHTControlImpl
 									active_searches[0]--;								
 		
 									search_sem.release();
+									
+									DHTLog.exdent();
 								}
 							}
 							
@@ -425,6 +463,8 @@ DHTControlImpl
 								byte[]					value )
 							{
 								try{
+									DHTLog.indent( router );
+									
 									DHTLog.log( "findValueReply: " + DHTLog.getString( value ));
 									
 									value_search_result[0]	= value;
@@ -434,6 +474,8 @@ DHTControlImpl
 									active_searches[0]--;
 									
 									search_sem.release();
+									
+									DHTLog.exdent();
 								}						
 							}
 							
@@ -450,6 +492,8 @@ DHTControlImpl
 								DHTTransportContact 	target_contact )
 							{
 								try{
+									DHTLog.indent( router );
+									
 									DHTLog.log( "Reply: findNode/findValue -> failed" );
 									
 									router.contactDead( target_contact.getID(), target_contact );
@@ -460,6 +504,8 @@ DHTControlImpl
 									active_searches[0]--;
 									
 									search_sem.release();
+									
+									DHTLog.exdent();
 								}
 							}
 						};
@@ -475,27 +521,33 @@ DHTControlImpl
 				}
 			}
 			
-			DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
+				// maybe unterminated searches still going on so protect ourselves
+				// against concurrent modification of result set
 			
-			DHTLog.log( "    queried = " + DHTLog.getString( contacts_queried ));
-			DHTLog.log( "    to query = " + DHTLog.getString( contacts_to_query ));
-			DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
-			
-			ArrayList	res;
-			
-			if ( value_search ){
+			synchronized( contacts_to_query ){
+
+				DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
 				
-				res = new ArrayList( ok_contacts.size() + 1 );
+				DHTLog.log( "    queried = " + DHTLog.getString( contacts_queried ));
+				DHTLog.log( "    to query = " + DHTLog.getString( contacts_to_query ));
+				DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
 				
-				res.add( value_search_result[0]);
+				ArrayList	res;
 				
-				res.addAll( ok_contacts );
-			}else{
+				if ( value_search ){
+					
+					res = new ArrayList( ok_contacts.size() + 1 );
+					
+					res.add( value_search_result[0]);
+					
+					res.addAll( ok_contacts );
+				}else{
+					
+					res = new ArrayList( ok_contacts );
+				}
 				
-				res = new ArrayList( ok_contacts );
+				return( res );
 			}
-			
-			return( res );
 			
 		}finally{
 			

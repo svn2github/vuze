@@ -507,7 +507,7 @@ DHTRouterImpl
 		// TODO:!
 	}
 	
-	public void
+	public synchronized void
 	print()
 	{
 		DHTLog.log( "DHT: node count = " + getNodeCount()+ ", contacts =" + getContactCount());

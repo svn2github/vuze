@@ -55,6 +55,8 @@ DHTLog
 			}
 		};
 		
+
+	private static boolean	logging_enabled	= true;
 	
 	public static void
 	log(
@@ -65,7 +67,17 @@ DHTLog
 		Stack	stack 	= (Stack)data[0];
 		String	indent	= (String)data[1];
 		
-		System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+		if ( logging_enabled ){
+			
+			System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+		}
+	}
+	
+	public static void
+	setLoggingEnabled(
+		boolean	b )
+	{
+		logging_enabled	= b;
 	}
 	
 	public static void
@@ -73,24 +85,23 @@ DHTLog
 		DHTRouter	router )
 	{
 		Object[]	data = (Object[])tls.get();
-		
+			
 		Stack	stack = (Stack)data[0];
-		
+			
 		stack.push( router.getLocalContact().getID());
-		
+			
 		data[1] = (String)data[1] + "  ";
-	
 	}
 	
 	public static void
 	exdent()
 	{
 		Object[]	data = (Object[])tls.get();
-		
+			
 		Stack	stack = (Stack)data[0];
-		
+			
 		stack.pop();
-		
+			
 		data[1] = ((String)data[1]).substring( 0, ((String)data[1]).length()-2);
 	}
 	

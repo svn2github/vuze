@@ -26,6 +26,8 @@ import java.util.*;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
@@ -40,6 +42,23 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
+	public static 		boolean	SYNCHRONOUS	= true;
+	public static 		int		LATENCY		= 0;
+	
+	public static void
+	setSynchronous(
+		boolean	b )
+	{
+		SYNCHRONOUS	= b;
+	}
+	
+	public static void
+	setLatency(
+		int	_latency )
+	{
+		LATENCY	= _latency;
+	}
+	
 	private static long	node_id_seed_next	= 0;
 	private static Map	node_map	= new HashMap();
 	
@@ -126,8 +145,59 @@ DHTTransportLoopbackImpl
 		request_handler.contactImported( contact );
 	}
 	
+	protected void
+	run(
+		final AERunnable	r )
+	{
+		if ( SYNCHRONOUS ){
+			
+			r.runSupport();
+		}else{
+			
+			new AEThread( "DHTTransportLoopback")
+			{
+				public void
+				runSupport()
+				{
+					if ( LATENCY > 0 ){
+						
+						try{
+							Thread.sleep( LATENCY );
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+					r.runSupport();
+				}
+			}.start();
+		}
+	}
+	
+		// transport
+	
+		// PING 
+	
 	public void
 	sendPing(
+		final DHTTransportContact			contact,
+		final DHTTransportReplyHandler		handler )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendPingSupport( contact, handler );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendPingSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler )
 	{
@@ -145,8 +215,30 @@ DHTTransportLoopbackImpl
 		}
 	}
 		
+		// STORE
+	
 	public void
 	sendStore(
+		final DHTTransportContact		contact,
+		final DHTTransportReplyHandler	handler,
+		final byte[]					key,
+		final byte[]					value )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendStoreSupport( contact, handler, key, value );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendStoreSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
@@ -168,8 +260,29 @@ DHTTransportLoopbackImpl
 		}
 	}
 	
+		// FIND NODE
+	
 	public void
 	sendFindNode(
+		final DHTTransportContact		contact,
+		final DHTTransportReplyHandler	handler,
+		final byte[]					nid )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendFindNodeSupport( contact, handler, nid );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendFindNodeSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
 		byte[]						nid )
@@ -187,12 +300,40 @@ DHTTransportLoopbackImpl
 					new DHTTransportLoopbackContactImpl( target, node_id ),
 					nid );
 			
-			handler.findNodeReply( contact, res );
+			DHTTransportContact[] trans_res = new DHTTransportContact[res.length];
+																	  														  
+			for (int i=0;i<res.length;i++){
+				
+				trans_res[i] = new DHTTransportLoopbackContactImpl( this, res[i].getID());
+			}
+			
+			handler.findNodeReply( contact, trans_res );
 		}
 	}
-		
+	
+		// FIND VALUE
+	
 	public void
 	sendFindValue(
+		final DHTTransportContact		contact,
+		final DHTTransportReplyHandler	handler,
+		final byte[]					key )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendFindValueSupport( contact, handler, key );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendFindValueSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
 		byte[]						key )
@@ -205,18 +346,27 @@ DHTTransportLoopbackImpl
 			
 		}else{
 			
-			Object res =
+			Object o_res =
 				target.getRequestHandler().findValueRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
 					key );
 			
-			if ( res instanceof DHTTransportContact[]){
+			if ( o_res instanceof DHTTransportContact[]){
 				
-				handler.findValueReply( contact, (DHTTransportContact[])res );
+				DHTTransportContact[]	res  = (DHTTransportContact[])o_res;
+				
+				DHTTransportContact[] trans_res = new DHTTransportContact[res.length];
+				  
+				for (int i=0;i<res.length;i++){
+				
+					trans_res[i] = new DHTTransportLoopbackContactImpl( this, res[i].getID());
+				}
+
+				handler.findValueReply( contact, trans_res );
 				
 			}else{
 				
-				handler.findValueReply( contact, (byte[])res );
+				handler.findValueReply( contact, (byte[])o_res );
 			}
 		}
 	}

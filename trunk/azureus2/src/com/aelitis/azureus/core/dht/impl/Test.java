@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.impl;
 
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
 
 import java.io.*;
 import java.util.*;
@@ -42,6 +43,8 @@ Test
 	main(
 		String[]		args )
 	{
+		DHTLog.setLoggingEnabled( false );
+		
 		try{
 			int		K			= 5;
 			int		B			= 1;
@@ -85,9 +88,13 @@ Test
 			
 			//dht1.print();
 			
+			DHTLog.setLoggingEnabled( true );
+			//DHTTransportLoopbackImpl.setLatency( 500);
+			
 			dhts[99].put( "fred".getBytes(), new byte[2]);
 			
 			System.out.println( "get:"  + dhts[0].get( "fred".getBytes()));
+			System.out.println( "get:"  + dhts[777].get( "fred".getBytes()));
 			
 		}catch( Throwable e ){
 			
