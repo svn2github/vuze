@@ -147,7 +147,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     Messages.setLanguageText(label, "wizard.maketorrent.filesize");
     
     Label file_size_label = new Label(gFileStuff, SWT.NULL);
-    file_size_label.setText( DisplayFormatters.formatByteCountToKBEtc(file_size));
+    file_size_label.setText( DisplayFormatters.formatByteCountToKiBEtc(file_size));
  
     label = new Label(gFileStuff, SWT.NULL);
     label = new Label(gFileStuff, SWT.NULL);
@@ -171,7 +171,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     gridData = new GridData();
     gridData.widthHint = 75;
     piece_size_label.setLayoutData(gridData);
-    piece_size_label.setText( DisplayFormatters.formatByteCountToKBEtc( piece_size ));
+    piece_size_label.setText( DisplayFormatters.formatByteCountToKiBEtc( piece_size ));
     
     final Combo manual = new Combo(gFileStuff, SWT.SINGLE | SWT.READ_ONLY);
  
@@ -180,7 +180,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     manual.add( MessageText.getString( "wizard.maketorrent.auto"));
     
     for (int i=0;i<sizes.length;i++){
-    	manual.add(DisplayFormatters.formatByteCountToKBEtc(sizes[i]));
+    	manual.add(DisplayFormatters.formatByteCountToKiBEtc(sizes[i]));
     }
     
     manual.select(0);
@@ -206,7 +206,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     		
     		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
  
-    		piece_size_label.setText( DisplayFormatters.formatByteCountToKBEtc(piece_size));
+    		piece_size_label.setText( DisplayFormatters.formatByteCountToKiBEtc(piece_size));
     		piece_count_label.setText( ""+piece_count );
     	}
     });
