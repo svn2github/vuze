@@ -20,6 +20,10 @@ public class IntParameter {
 
   Text inputField;
 
+  public IntParameter(Composite composite, final String name) {
+    this(composite,name,COConfigurationManager.getIntParameter(name));
+  }
+
   public IntParameter(Composite composite, final String name, int defaultValue) {
     inputField = new Text(composite, SWT.BORDER);
     int value = COConfigurationManager.getIntParameter(name, defaultValue);

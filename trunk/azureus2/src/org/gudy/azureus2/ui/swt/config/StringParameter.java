@@ -21,6 +21,10 @@ public class StringParameter implements IParameter{
   String name;
   Text inputField;
 
+  public StringParameter(Composite composite,final String name) {
+    this(composite, name, COConfigurationManager.getStringParameter(name));
+  }
+
   public StringParameter(Composite composite,final String name, String defaultValue) {
     this.name = name;
     inputField = new Text(composite, SWT.BORDER);

@@ -21,6 +21,14 @@ public class IntListParameter implements IParameter {
   Combo list;
 
   public IntListParameter(
+                          Composite composite,
+                          final String name,
+                          final String labels[],
+                          final int values[]) {
+    this(composite, name, COConfigurationManager.getIntParameter(name), labels, values);
+  }
+
+  public IntListParameter(
     Composite composite,
     final String name,
     int defaultValue,
