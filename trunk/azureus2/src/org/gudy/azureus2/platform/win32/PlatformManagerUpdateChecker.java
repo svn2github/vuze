@@ -45,7 +45,7 @@ PlatformManagerUpdateChecker
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 
-	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update2/";
+	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update/";
 	public static final String	UPDATE_PROPERTIES_FILE	= UPDATE_DIR + PlatformManagerImpl.DLL_NAME + ".dll.properties";
 	
 	
