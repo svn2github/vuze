@@ -110,8 +110,6 @@ DMWriterAndCheckerImpl
 	private List 			writeQueue			= new LinkedList();
 	private List 			checkQueue			= new LinkedList();
 	private AESemaphore		writeCheckQueueSem	= new AESemaphore("writeCheckQ");				
-
-	protected volatile 		ConcurrentHasherRequest	current_hash_request;
 	
 	protected long			total_async_check_requests;
 	protected AESemaphore	async_check_request_sem 	= new AESemaphore("DMW&C::asyncReq");
@@ -196,10 +194,6 @@ DMWriterAndCheckerImpl
       
 			COConfigurationManager.removeParameterListener( "diskmanager.friendly.hashchecking", param_listener );
       
-			if ( current_hash_request != null ){
-				
-				current_hash_request.cancel();
-			}
 		}finally{
 			
 			this_mon.exit();
@@ -542,58 +536,57 @@ DMWriterAndCheckerImpl
 
     		    	async_request	= true;
     		    	
-    		    	total_async_check_requests++;
+     		    	final	DirectByteBuffer	f_buffer	= buffer;
     		    	
-    		    	final	DirectByteBuffer	f_buffer	= buffer;
-    		    	
-	    		    current_hash_request = 
-	    		    	ConcurrentHasher.getSingleton().addRequest(
-	    		    			buffer.getBuffer(DirectByteBuffer.SS_DW),
-								new ConcurrentHasherRequestListener()
-								{
-	    		    				public void
-									complete(
-										ConcurrentHasherRequest	request )
-	    		    				{
-	    		    					int	async_result	= CheckPieceResultHandler.OP_CANCELLED;
-	    		    						    		    					
-	    		    					try{
-	    		    						
-		    								byte[] testHash = request.getResult();
-		    										    								
-		    								if ( testHash != null ){
-		    											
-			    								async_result = CheckPieceResultHandler.OP_SUCCESS;
-			    								
-			    								for (int i = 0; i < testHash.length; i++){
-			    									
-			    									if ( testHash[i] != required_hash[i]){
-			    										
-			    										async_result = CheckPieceResultHandler.OP_FAILURE;
-			    										
-			    										break;
-			    									}
-			    								}
+	    		   	ConcurrentHasher.getSingleton().addRequest(
+    		    			buffer.getBuffer(DirectByteBuffer.SS_DW),
+							new ConcurrentHasherRequestListener()
+							{
+    		    				public void
+								complete(
+									ConcurrentHasherRequest	request )
+    		    				{
+    		    					int	async_result	= CheckPieceResultHandler.OP_CANCELLED;
+    		    						    		    					
+    		    					try{
+    		    						
+	    								byte[] testHash = request.getResult();
+	    										    								
+	    								if ( testHash != null ){
+	    											
+		    								async_result = CheckPieceResultHandler.OP_SUCCESS;
+		    								
+		    								for (int i = 0; i < testHash.length; i++){
+		    									
+		    									if ( testHash[i] != required_hash[i]){
+		    										
+		    										async_result = CheckPieceResultHandler.OP_FAILURE;
+		    										
+		    										break;
+		    									}
 		    								}
-	    		    					}finally{
+	    								}
+    		    					}finally{
+    		    						
+    		    						try{
+	    		    						f_buffer.returnToPool();
+
+	    		    						result_handler.processResult( 
+	    		    								pieceNumber, 
+													async_result,
+													user_data );
 	    		    						
-	    		    						try{
-		    		    						f_buffer.returnToPool();
+    		    						}finally{
+    		    							
+    		    							async_check_request_sem.release();
+    		    						}
+    		    					}
+    		    				}
+    		    				
+							});
 	
-		    		    						result_handler.processResult( 
-		    		    								pieceNumber, 
-														async_result,
-														user_data );
-		    		    						
-	    		    						}finally{
-	    		    							
-	    		    							async_check_request_sem.release();
-	    		    						}
-	    		    					}
-	    		    				}
-	    		    				
-								});
-	
+	   		    	total_async_check_requests++;
+    		    	
     		    }else{
 
 					byte[] testHash = new SHA1Hasher().calculateHash( buffer.getBuffer(DirectByteBuffer.SS_DW ));
