@@ -139,6 +139,8 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getDirectoryParameter( _name ));
 	}
 	
+	
+	
 	/*
 	public static boolean
 	setParameter(String parameter, Color value) 
@@ -171,6 +173,17 @@ COConfigurationManager
 	setParameter(String parameter, float value)
 	{
 		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+	
+	public static boolean
+	setParameter(String parameter,StringList value) {
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+	
+	public static StringList
+	getStringListParameter(String parameter)
+	{
+		return( ConfigurationManager.getInstance().getStringListParameter( parameter ));
 	}
 
   public static void

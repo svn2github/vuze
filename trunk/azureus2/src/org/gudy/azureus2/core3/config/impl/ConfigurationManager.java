@@ -196,6 +196,26 @@ public class ConfigurationManager {
     }
     return result;
   }
+  
+  public StringList getStringListParameter(String parameter) {
+  	try {  		
+  		List rawList = (List) propertiesMap.get(parameter);
+  		return new StringListImpl(rawList);  	
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return null;
+  	}
+  }
+  
+  public boolean setParameter(String parameter,StringList value) {
+  	try {
+  		propertiesMap.put(parameter,new ArrayList(((StringListImpl)value).getList()));
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return false;
+  	}
+  	return true;
+  }
    
   public String getDirectoryParameter(String parameter) throws IOException {
     String dir = getStringParameter(parameter);
