@@ -26,6 +26,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
+
 
 /**
  * @author parg
@@ -42,6 +44,11 @@ DHTUDPPacketData
 	private int		start_position;
 	private int		length;
 	private int		total_length;
+	
+		// assume keys are 20 bytes + 1 len, data len is 2 bytes
+	
+	public static int	MAX_DATA_SIZE = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
+											21 - 21 - 14;
 	
 	public
 	DHTUDPPacketData(
@@ -83,7 +90,15 @@ DHTUDPPacketData
 		os.writeInt( start_position );
 		os.writeInt( length );
 		os.writeInt( total_length );
-		DHTUDPUtils.serialiseByteArray( os, data, 65535 );
+		
+		if ( data.length > 0 ){
+			
+			DHTUDPUtils.serialiseByteArray( os, data, start_position, length, 65535 );
+			
+		}else{
+			
+			DHTUDPUtils.serialiseByteArray( os, data,  65535 );
+		}
 	}
 	
 	public void
@@ -115,6 +130,12 @@ DHTUDPPacketData
 		return( key );
 	}
 	
+	public byte[]
+	getData()
+	{
+		return( data );
+	}
+	
 	public int
 	getStartPosition()
 	{
@@ -136,6 +157,8 @@ DHTUDPPacketData
 	public String
 	getString()
 	{
-		return( super.getString());
+		return( super.getString() + "tk=" + DHTLog.getString2( transfer_key ) + ",rk=" + 
+				DHTLog.getString2( key ) + ",data=" + data.length +
+				",st=" + start_position + ",len=" + length + ",tot=" + total_length );
 	}
 }

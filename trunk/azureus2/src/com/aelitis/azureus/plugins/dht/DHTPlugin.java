@@ -890,7 +890,7 @@ DHTPlugin
 		}
 		
 		try{
-			return( dht.getTransport().readTransfer( ((DHTPluginContactImpl)target).getContact(), handler_key, key ));
+			return( dht.getTransport().readTransfer( ((DHTPluginContactImpl)target).getContact(), handler_key, key, 60000 ));
 			
 		}catch( DHTTransportException e ){
 			

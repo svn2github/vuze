@@ -1321,10 +1321,7 @@ DHTTransportUDPImpl
 		return( res[0] );
 	}
 	
-	
 		// read request
-	
-	// stats
 	
 	protected void
 	sendReadRequest(
@@ -1333,11 +1330,23 @@ DHTTransportUDPImpl
 		byte[]						transfer_key,
 		byte[]						key )
 	{
+		sendReadRequest( connection_id, contact, transfer_key, key, 0, 0 );
+	}
+	
+	protected void
+	sendReadRequest(
+		long						connection_id,	
+		DHTTransportUDPContactImpl	contact,
+		byte[]						transfer_key,
+		byte[]						key,
+		int							start_pos,
+		int							len )
+	{
 		final DHTUDPPacketData	request = 
 			new DHTUDPPacketData( connection_id, local_contact, contact );
 			
-		request.setDetails( transfer_key, key, null, -1, -1, -1 );
-		
+		request.setDetails( transfer_key, key, new byte[0], start_pos, len, 0 );
+				
 		try{
 			checkAddress( contact );
 			
@@ -1350,6 +1359,33 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	protected void
+	sendWriteRequest(
+		long						connection_id,	
+		DHTTransportUDPContactImpl	contact,
+		byte[]						transfer_key,
+		byte[]						key,
+		byte[]						data,
+		int							start_position,
+		int							length,
+		int							total_length )
+	{
+		final DHTUDPPacketData	request = 
+			new DHTUDPPacketData( connection_id, local_contact, contact );
+			
+		request.setDetails( transfer_key, key, data, start_position, length, total_length );
+		
+		try{
+			checkAddress( contact );
+			
+			packet_handler.send(
+				request,
+				contact.getTransportAddress());
+			
+		}catch( Throwable e ){
+			
+		}
+	}
 	public void
 	registerTransferHandler(
 		byte[]						handler_key,
@@ -1368,7 +1404,7 @@ DHTTransportUDPImpl
 		if ( queue != null ){
 			
 			queue.add( req );
-			
+				
 		}else{
 			
 			byte[]	transfer_key = req.getTransferKey();
@@ -1381,8 +1417,67 @@ DHTTransportUDPImpl
 				
 			}else{
 		
-				// TODO:
+					// incoming request - read-request if data length 0, write request otherwise
 				
+				byte[]	data = req.getData();
+				
+				if ( data.length == 0 ){
+					
+					data = handler.handleRead( originator, req.getRequestKey());
+					
+					if ( data != null ){
+												
+						int	start = req.getStartPosition();
+						
+						if ( start < 0 ){
+							
+							start	= 0;
+							
+						}else if ( start >= data.length ){
+							
+							logger.log( "dataRequest: invalid start position" );
+							
+							return;
+						}
+						
+						int len = req.getLength();
+						
+						if ( len <= 0 ){
+							
+							len = data.length;
+							
+						}else if ( start + len > data.length ){
+							
+							logger.log( "dataRequest: invalid length" );
+							
+							return;
+						}
+						
+						int	end = start+len;
+						
+						while( start < end ){
+							
+							int	chunk = end - start;
+							
+							if ( chunk > DHTUDPPacketData.MAX_DATA_SIZE ){
+								
+								chunk = DHTUDPPacketData.MAX_DATA_SIZE;								
+							}
+							
+							sendWriteRequest( 
+									req.getConnectionId(),
+									originator,
+									transfer_key,
+									req.getRequestKey(),
+									data,
+									start,
+									chunk,
+									data.length );
+							
+							start += chunk;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1391,7 +1486,8 @@ DHTTransportUDPImpl
 	readTransfer(
 		DHTTransportContact		target,
 		byte[]					handler_key,
-		byte[]					key )
+		byte[]					key,
+		long					timeout )
 	
 		throws DHTTransportException
 	{
@@ -1399,25 +1495,161 @@ DHTTransportUDPImpl
 		
 		transferQueue	transfer_queue = new transferQueue( connection_id );
 		
+		SortedSet	packets = 
+			new TreeSet(
+				new Comparator()
+				{
+					public int
+					compare(
+						Object	o1,
+						Object	o2 )
+					{
+						DHTUDPPacketData	p1 = (DHTUDPPacketData)o1;
+						DHTUDPPacketData	p2 = (DHTUDPPacketData)o2;
+						
+						return( p1.getStartPosition() - p2.getStartPosition());
+					}
+				});
+		
 		try{
-			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+			long	start = SystemTime.getCurrentTime();
 			
-			while( true ){
+			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+
+			while( SystemTime.getCurrentTime() - start <= timeout ){					
 				
-				DHTUDPPacketData	reply = transfer_queue.receive();
+				DHTUDPPacketData	reply = transfer_queue.receive( 10000 );
 				
 				if ( reply != null ){
 	
-					// TODO:
+					Iterator	it = packets.iterator();
 					
+					boolean	duplicate = false;
+					
+					while( it.hasNext()){
+						
+						DHTUDPPacketData	p = (DHTUDPPacketData)it.next();
+						
+							// ignore duplicates.
+							// Note that because the packet data size is fixed our re-requests are
+							// always properly synchronised with the replies, which makes things easier
+							// e.g. we're not in a position of having a->b and getting c->d where these
+							// overlap (c>a and c<b)
+						
+						if ( p.getStartPosition() == reply.getStartPosition()){
+							
+							duplicate	= true;
+							
+							break;
+						}
+					}
+					
+					if ( !duplicate ){
+						
+						packets.add( reply );
+						
+							// see if we're done				
+					
+						it = packets.iterator();
+						
+						int	pos			= 0;
+						int	actual_end	= -1;
+						
+						while( it.hasNext()){
+							
+							DHTUDPPacketData	p = (DHTUDPPacketData)it.next();
+						
+							if ( actual_end == -1 ){
+								
+								actual_end = p.getTotalLength();
+							}
+							
+							if ( p.getStartPosition() != pos ){
+								
+									// missing data, give up
+								
+								break;
+							}
+							
+							pos += p.getLength();
+							
+							if ( pos == actual_end ){
+							
+									// huzzah, we got the lot
+								
+								byte[]	result = new byte[actual_end];
+								
+								it =  packets.iterator();
+								
+								pos	= 0;
+								
+								while( it.hasNext()){
+									
+									p = (DHTUDPPacketData)it.next();
+
+									System.arraycopy( p.getData(), 0, result, pos, p.getLength());
+									
+									pos	+= p.getLength();
+								}
+								
+								return( result );
+							}
+						}
+					}
 				}else{
 					
-						// timeout
+						// timeout, look for missing bits
 					
-					// TODO:
+					if ( packets.size() == 0 ){
+						
+						sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+						
+					}else{
+						
+						Iterator it = packets.iterator();
 					
+						int	pos			= 0;
+						int	actual_end	= -1;
+						
+						while( it.hasNext()){
+							
+							DHTUDPPacketData	p = (DHTUDPPacketData)it.next();
+						
+							if ( actual_end == -1 ){
+								
+								actual_end = p.getTotalLength();
+							}
+							
+							if ( p.getStartPosition() != pos ){
+								
+								sendReadRequest( 
+										connection_id, 
+										(DHTTransportUDPContactImpl)target, 
+										handler_key, 
+										key,
+										pos,
+										p.getStartPosition()-pos );
+							
+							}
+							
+							pos = p.getStartPosition() + p.getLength();
+						}
+						
+						if ( pos != actual_end ){
+							
+							sendReadRequest( 
+									connection_id, 
+									(DHTTransportUDPContactImpl)target, 
+									handler_key, 
+									key,
+									pos,
+									actual_end - pos );						
+						}
+					}
 				}
 			}
+			
+			return( null );
 		}finally{
 			
 			transfer_queue.destroy();
@@ -1429,7 +1661,8 @@ DHTTransportUDPImpl
 		DHTTransportContact		target,
 		byte[]					handler_key,
 		byte[]					key,
-		byte[]					data )
+		byte[]					data,
+		long					timeout )
 	
 		throws DHTTransportException
 	{
@@ -1753,9 +1986,10 @@ DHTTransportUDPImpl
 		}
 		
 		protected DHTUDPPacketData
-		receive()
+		receive(
+			long	timeout )
 		{
-			if ( packets_sem.reserve(request_timeout)){
+			if ( packets_sem.reserve( timeout )){
 				
 				try{
 					this_mon.enter();

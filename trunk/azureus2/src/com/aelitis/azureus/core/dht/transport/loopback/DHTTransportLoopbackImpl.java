@@ -556,7 +556,8 @@ DHTTransportLoopbackImpl
 	readTransfer(
 		DHTTransportContact		target,
 		byte[]					handler_key,
-		byte[]					key )
+		byte[]					key,
+		long					timeout )
 	
 		throws DHTTransportException
 	{
@@ -565,10 +566,11 @@ DHTTransportLoopbackImpl
 	
 	public void
 	writeTransfer(
-			DHTTransportContact		target,
+		DHTTransportContact		target,
 		byte[]					handler_key,
 		byte[]					key,
-		byte[]					data )
+		byte[]					data,
+		long					timeout )
 	
 		throws DHTTransportException
 	{

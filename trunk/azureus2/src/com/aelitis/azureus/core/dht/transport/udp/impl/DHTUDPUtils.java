@@ -153,9 +153,22 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		serialiseLength( os, data.length, max_length );
+		serialiseByteArray( os, data, 0, data.length, max_length );
+	}
+	
+	protected static void
+	serialiseByteArray(
+		DataOutputStream	os,
+		byte[]				data,
+		int					start,
+		int					length,
+		int					max_length )
+	
+		throws IOException
+	{
+		serialiseLength( os, length, max_length );
 		
-		os.write( data );
+		os.write( data, start, length );
 	}
 	
 	protected static void

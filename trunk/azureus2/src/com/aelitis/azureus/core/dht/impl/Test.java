@@ -483,8 +483,11 @@ Test
 							dhts[0].getTransport().readTransfer(
 									dhts[1].getTransport().getLocalContact(),
 									th_key,
-									new byte[]{1,2,3,4});
+									new byte[]{1,2,3,4},
+									30000 );
 		
+						System.out.println( "res = " + res );
+						
 					}else if ( command == 'w' ){
 						
 						System.out.println( "write - dht0 -> dht1" );
@@ -493,7 +496,8 @@ Test
 									dhts[1].getTransport().getLocalContact(),
 									th_key,
 									new byte[]{1,2,3,4},
-									new byte[]{4,3,2,1});
+									new byte[]{4,3,2,1},
+									30000 );
 		
 					}else{
 						
@@ -548,7 +552,7 @@ Test
 				{
 					System.out.println("handle read");
 					
-					return( new byte[]{ 5,6,7,8 });
+					return( new byte[10000]);
 				}
 				
 				public void

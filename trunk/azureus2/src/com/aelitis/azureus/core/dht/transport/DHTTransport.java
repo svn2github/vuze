@@ -28,7 +28,6 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 import java.io.*;
-import java.net.InetSocketAddress;
 
 public interface 
 DHTTransport 
@@ -70,7 +69,8 @@ DHTTransport
 	readTransfer(
 		DHTTransportContact		target,
 		byte[]					handler_key,
-		byte[]					key )
+		byte[]					key,
+		long					timeout )
 	
 		throws DHTTransportException;
 	
@@ -79,7 +79,8 @@ DHTTransport
 		DHTTransportContact		target,
 		byte[]					handler_key,
 		byte[]					key,
-		byte[]					data )
+		byte[]					data,
+		long					timeout )
 	
 		throws DHTTransportException;
 	
