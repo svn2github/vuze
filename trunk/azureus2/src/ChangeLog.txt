@@ -3,24 +3,30 @@ AZUREUS CHANGELOG
 
 2004.06.xx | Azureus 2.1.0.1
 
-FEATURE: Plug | Tracker plugin supports simple category view
-FEATURE: Plug | Webui support for password protected trackers
-FEATURE: Plug | Webui attempts to get access to system clipboard to fix copy/paste issues
-
-FEATURE: Core | Health items now show if a torrent is being shared/published
+FEATURE: Core | Health items now show if a torrent is being shared/published [Parg]
+FEATURE: Dev  | ToolTip access functions for table cells [TuxPaper]
+FEATURE: Plug | Tracker plugin supports simple category view [Parg]
+FEATURE: Plug | Webui support for password protected trackers [Parg]
+FEATURE: Plug | Webui attempts to get access to system clipboard to fix copy/paste issues [Parg]
+FEATURE: UI   | Better scrape result reporting, including new "Next Tracker Access" column [TuxPaper]
+FEATURE: UI   | Tooltip for Health Icon [TuxPaper]
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
-CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config
+CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config  [Parg]
 
 BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
 BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
 BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
 BUGFIX: Core | Plugin loader picking up .zip files instead of corresponding .jar files [Parg]
 BUGFIX: Core | Don't delete the imported .torrent file if the import dir happens to also be the Save torrent dir [Nolar]
+BUGFIX: Core | Torrents leave READY state quicker after other torrents are re-queued [TuxPaper]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
-BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
+BUGFIX: UI   | Fix for Bug #966867: Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
 BUGFIX: UI   | Fix for .torrent icons with new Azureus.exe [Parg]
+BUGFIX: UI   | Fix for text color on some Table cells not moving when row moved [TuxPaper]
+BUGFIX: UI   | Moving torrent from Uncategorized category to new category now removes the row from the display [TuxPaper]
+BUGFIX: UI   | Fix for empty table rows appearing in Peers Details tab and Pieces tab [TuxPaper]
 
 
 30.05.04 | Azureus 2.1.0.0
