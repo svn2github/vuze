@@ -21,7 +21,7 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.base;
 
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -83,6 +83,7 @@ PEPeerServerImpl
     //Will create a Server on any socket from 6881 to 6889
     int lowPort = COConfigurationManager.getIntParameter("Low Port", 6881);
     int highPort = COConfigurationManager.getIntParameter("High Port", 6889);
+    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
     lowPort = Math.min(lowPort, highPort);
     highPort = Math.max(lowPort, highPort);
     port = lowPort;
@@ -93,7 +94,12 @@ PEPeerServerImpl
       try {
         sck = ServerSocketChannel.open();
         sck.socket().setReuseAddress(true);
-        sck.socket().bind(new InetSocketAddress(port));
+        if (bindIP == "") {
+           sck.socket().bind(new InetSocketAddress(port));
+        }
+        else {
+           sck.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), port));
+        }
       }
       catch (Exception e) {
         LGLogger.log(
