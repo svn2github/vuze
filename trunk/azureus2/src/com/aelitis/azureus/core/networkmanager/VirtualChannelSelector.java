@@ -142,22 +142,24 @@ public class VirtualChannelSelector {
     public void pauseSelects( SocketChannel channel ) {
       
       if( channel == null ) {
-        Debug.printStackTrace( new Exception( "pauseSelects()" ) );
+        Debug.printStackTrace( new Exception( "pauseSelects():: channel == null" ) );
         return;
       }
       
       SelectionKey key = channel.keyFor( selector );
+      
       if( key != null && key.isValid() ) {
         key.interestOps( key.interestOps() & ~INTEREST_OP );
       }
       else {  //channel not (yet?) registered
-        try{  register_cancel_list_mon.enter();
+        if( channel.isOpen() ) {  //only bother if channel has not already been closed
+          try{  register_cancel_list_mon.enter();
           
-          paused_states.put( channel, new Boolean( true ) );  //ensure the op is paused upon reg select-time reg
+            paused_states.put( channel, new Boolean( true ) );  //ensure the op is paused upon reg select-time reg
 
+          }
+          finally{  register_cancel_list_mon.exit();  }
         }
-        finally{  register_cancel_list_mon.exit();  }
-        
       }
     }
     
