@@ -31,63 +31,63 @@ public class Move extends IConsoleCommand {
 	}
 	
 	public void execute(String commandName, ConsoleInput ci, List args) {
-		if ((args != null) && (!args.isEmpty())){
-			String[] sSubcommands = new String[args.size()];
-			args.toArray(sSubcommands);
-			//String subcommand = (String) args.get(0);
-			if ((ci.torrents != null) && ci.torrents.isEmpty()) {
-				ci.out.println("> Command 'move': No torrents in list.");
+		if( args.isEmpty() )
+		{
+			ci.out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#from> [<#to>]");
+			return;
+		}
+		
+		if (ci.torrents.isEmpty()) 
+		{
+			ci.out.println("> Command 'move': No torrents in list.");
+			return;
+		} 
+			
+		int ncommand;
+		int nmoveto = -1;
+		boolean moveto = false;
+		try {			
+			ncommand = Integer.parseInt((String) args.get(0));
+			if (args.size() > 1) {
+				nmoveto = Integer.parseInt((String) args.get(1));
+				moveto = true;
+			}
+		} catch (NumberFormatException e) {
+			ci.out.println("> Command 'move': Subcommand '" + args.get(0) + "' unknown.");
+			return;
+		}
+		int number = Math.abs(ncommand);
+		if (number == 0 || number > ci.torrents.size()) {
+			ci.out.println("> Command 'move': Torrent #" + Integer.toString(number) + " unknown.");
+			return;
+		}
+		DownloadManager dm = (DownloadManager) ci.torrents.get(number - 1);
+		String name = dm.getDisplayName();
+		if (name == null)
+			name = "?";
+		
+		if (moveto) {
+			ci.gm.moveTo(dm, nmoveto - 1);
+			ci.gm.fixUpDownloadManagerPositions();
+			ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
+		} else if (ncommand > 0) {
+			if (dm.isMoveableUp()) {
+				while (dm.isMoveableUp())
+					dm.moveUp();
+				ci.gm.fixUpDownloadManagerPositions();
+				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to top.");
 			} else {
-				String name;
-				DownloadManager dm;
-				try {
-					int ncommand;
-					int nmoveto = -1;
-					boolean moveto = false;
-					if (sSubcommands.length > 1) {
-						ncommand = Integer.parseInt(sSubcommands[0]);
-						nmoveto = Integer.parseInt(sSubcommands[1]);
-						moveto = true;
-					} else
-						ncommand = Integer.parseInt(sSubcommands[0]);
-					int number = Math.abs(ncommand);
-					if ((number > 0) && (number <= ci.torrents.size())) {
-						dm = (DownloadManager) ci.torrents.get(number - 1);
-						if (dm.getDisplayName() == null)
-							name = "?";
-						else
-							name = dm.getDisplayName();
-						if (moveto) {
-							ci.gm.moveTo(dm, nmoveto - 1);
-							ci.gm.fixUpDownloadManagerPositions();
-							ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
-						} else if (ncommand > 0) {
-							if (dm.isMoveableUp()) {
-								while (dm.isMoveableUp())
-									dm.moveUp();
-								ci.gm.fixUpDownloadManagerPositions();
-								ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to top.");
-							} else {
-								ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at top.");
-							}
-						} else {
-							if (dm.isMoveableDown()) {
-								while (dm.isMoveableDown())
-									dm.moveDown();
-								ci.gm.fixUpDownloadManagerPositions();
-								ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to bottom.");
-							} else {
-								ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at bottom.");
-							}
-						}
-					} else
-						ci.out.println("> Command 'move': Torrent #" + Integer.toString(number) + " unknown.");
-				} catch (NumberFormatException e) {
-					ci.out.println("> Command 'move': Subcommand '" + sSubcommands[0] + "' unknown.");
-				}
+				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at top.");
 			}
 		} else {
-			ci.out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#from> [<#to>]");
+			if (dm.isMoveableDown()) {
+				while (dm.isMoveableDown())
+					dm.moveDown();
+				ci.gm.fixUpDownloadManagerPositions();
+				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to bottom.");
+			} else {
+				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at bottom.");
+			}
 		}
 	}
 }
