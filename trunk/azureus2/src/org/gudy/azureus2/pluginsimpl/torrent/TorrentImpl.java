@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.pluginsimpl.torrent;
 
+import java.net.*;
+
 /**
  * @author parg
  *
@@ -179,4 +181,10 @@ TorrentImpl
 			throw( new TorrentException( "Torrent::writeToFile: fails", e ));
 		}
 	}
+  
+  
+  public void addAnnounceURLTrackerGroup( URL[] urls ) {
+    torrent.addTorrentAnnounceURLSet( urls );
+  }
+  
 }

@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.torrent;
 
+import java.net.*;
+
 /**
  * @author parg
  *
@@ -69,4 +71,10 @@ Torrent
 		File		file )
 	
 		throws TorrentException;
+  
+  /**
+   * Add a group of URLs to the torrent's current set of announce urls.
+   */
+  public void addAnnounceURLTrackerGroup( URL[] urls );
+  
 }
