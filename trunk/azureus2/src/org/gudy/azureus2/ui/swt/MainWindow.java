@@ -259,7 +259,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                 Tab.refresh();
               }
   
-              ipBlocked.setText("IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
+              ipBlocked.setText( "{"+DisplayFormatters.formatDate(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
               statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
               statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
   					}
@@ -846,9 +846,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		checkForNewVersion();
 
 		gridData = new GridData();
-		gridData.widthHint = 105;
+		gridData.widthHint = 205;
 		ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
-		ipBlocked.setText("IPs:"); //$NON-NLS-1$
+		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
 		ipBlocked.setLayoutData(gridData);
 		Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
 		ipBlocked.addMouseListener(new MouseAdapter() {

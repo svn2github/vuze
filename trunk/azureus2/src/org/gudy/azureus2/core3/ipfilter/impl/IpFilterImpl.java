@@ -57,6 +57,8 @@ IpFilterImpl
     //Map ip blocked -> matching range
     private List ipsBlocked;
  
+    private long	last_update_time;
+    
   
 	private IpFilterImpl() 
 	{
@@ -176,6 +178,8 @@ IpFilterImpl
 	  }finally{
 	  
 	  	ipRanges 	= new_ipRanges;
+	  	
+	  	last_update_time	= System.currentTimeMillis();
 	  }
 	}
   
@@ -260,6 +264,8 @@ IpFilterImpl
 		
 			ipRanges.add( range );
 		}
+		
+	  	last_update_time	= System.currentTimeMillis();
 	}
 	
 	public void
@@ -270,6 +276,8 @@ IpFilterImpl
 		
 			ipRanges.remove( range );
 		}
+		
+	  	last_update_time	= System.currentTimeMillis();
 	}
 	
 	public int getNbRanges() {
@@ -313,5 +321,11 @@ IpFilterImpl
 		boolean	enabled )
 	{
 		COConfigurationManager.setParameter( "Ip Filter Enabled", enabled );
+	}
+	
+	public long
+	getLastUpdateTime()
+	{
+		return( last_update_time );
 	}
 }

@@ -90,4 +90,7 @@ IpFilter
 	public abstract void
 	setEnabled(
 		boolean	enabled );
+	
+	public abstract long
+	getLastUpdateTime();
 }
