@@ -45,9 +45,19 @@ public class PeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XT", "XanTorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "bk", "BitKitten (libtorrent)" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "CT", "CTorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "SN", "ShareNET" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "BB", "BitBuddy" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "SS", "SwarmScope" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "BS", "BTSlave" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "BX", "BittorrentX" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "TN", "Torrent.NET" )) != null ) return decoded;
+      
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
+     
       if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
+      
       if( (decoded = decodeSimpleStyle( peerID, 0, "martini", "Martini Man" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "oernu", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "BTDWV-", "Deadman Walking" )) != null ) return decoded;
@@ -60,7 +70,8 @@ public class PeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
-
+      if( (decoded = decodeSimpleStyle( peerID, 0, "a02---00", "Swarmy" )) != null ) return decoded;
+      
 
       String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
@@ -144,40 +155,42 @@ public class PeerIDByteDecoder {
         return name;
       }
       
-      // Shareaza check
-      boolean bShareaza = true;
-      for (int i = 0; i < 16; i++) {
-        if (peerID[i] == (byte)0) {
-          bShareaza = false;
+            
+      iFirstNonZeroPos = 20;
+      for( int i=0; i < 20; i++ ) {
+        if( peerID[i] != (byte)0 ) {
+          iFirstNonZeroPos = i;
           break;
         }
       }
-      if (bShareaza) {
-        for (int i = 16; i < 20; i++) {
-      		if (peerID[i] != (peerID[i % 16] ^ peerID[15 - (i % 16)])) {
+      
+      
+      //Shareaza check
+      if( iFirstNonZeroPos == 0 ) {
+        boolean bShareaza = true;
+        for( int i=0; i < 16; i++ ) {
+          if( peerID[i] == (byte)0 ) {
             bShareaza = false;
-      			break;
-      		}
-     		}
-     		return "Shareaza";
+            break;
+          }
+        }
+        if( bShareaza ) {
+          for( int i=16; i < 20; i++ ) {
+            if( peerID[i] != ( peerID[i % 16] ^ peerID[15 - (i % 16)] ) ) {
+              bShareaza = false;
+              break;
+            }
+          }
+          if( bShareaza )  return "Shareaza";
+        }
       }
-      
-      iFirstNonZeroPos = 20;
-      for (int i = 0; i < 20; i++) {
-        if (peerID[i] != (byte)0) { iFirstNonZeroPos = i; break; }
+          
+
+      if( iFirstNonZeroPos == 8 ) {
+        if( (decoded = decodeSimpleStyle( peerID, 16, "UDP0", "BitComet UDP" )) != null ) return decoded;
+        if( (decoded = decodeSimpleStyle( peerID, 14, "HTTPBT", "BitComet HTTP" )) != null ) return decoded;
+        
       }
-      
-      //TODO
-      //BitSpirit HTTPBT-compatable extention?
-      //Bitspirit clients always have a "BS" in front....this seems to be a
-      //client that also supports the httpbt extension
-      //if( iFirstNonZeroPos == 8 ) {
-      //  String httpbt = new String(peerID, 14, 6, Constants.BYTE_ENCODING);
-      //  if( httpbt.equals( "HTTPBT" ) ) {
-      //    return "Unknown HTTPBT client";
-      //  }
-      //}
-      
       
       byte three = (byte)3;
       if ((iFirstNonZeroPos == 9)

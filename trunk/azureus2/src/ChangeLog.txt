@@ -18,6 +18,8 @@ FEATURE: UI   | Torrent export option added to SWT UI [Parg]
 FEATURE: Core | Client identification plugin interface [Parg]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
+CHANGE: Core | Added many new peerid identifications [Nolar]
+
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
