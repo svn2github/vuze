@@ -97,6 +97,8 @@ ExternalIPCheckerServiceImpl
 							if ( !completed ){
 								
 								informFailure( "timeout" );
+								
+								setComplete();
 							}
 						}catch( InterruptedException e ){
 							
@@ -203,6 +205,8 @@ ExternalIPCheckerServiceImpl
 			
 			if ( p1 == -1 ){
 				
+				informFailure( "ipnotfound"  );
+				
 				return( null );
 			}
 			
@@ -251,6 +255,8 @@ ExternalIPCheckerServiceImpl
 			pos	= p1+1;
 		}
 		
+		informFailure( "ipnotfound"  );
+
 		return( null );
 	}
 	
@@ -276,9 +282,12 @@ ExternalIPCheckerServiceImpl
 	informSuccess(
 		String		ip )
 	{
-		for ( int i=0;i<listeners.size();i++){
+		if ( !completed ){
 			
-			((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkComplete( this, ip );
+			for ( int i=0;i<listeners.size();i++){
+				
+				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkComplete( this, ip );
+			}
 		}
 	}
 	
@@ -294,16 +303,19 @@ ExternalIPCheckerServiceImpl
 		String		msg_key,
 		String		extra )
 	{
-		String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+		if ( !completed ){
 		
-		if ( extra != null ){
+			String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
 			
-			message += ": " + extra;
-		}
-		
-		for ( int i=0;i<listeners.size();i++){
+			if ( extra != null ){
+				
+				message += ": " + extra;
+			}
 			
-			((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkFailed( this, message );
+			for ( int i=0;i<listeners.size();i++){
+				
+				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkFailed( this, message );
+			}
 		}
 	}
 	
@@ -318,16 +330,19 @@ ExternalIPCheckerServiceImpl
 	reportProgress(
 			String		msg_key,
 			String		extra )
-		{
-		String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+	{
+		if ( !completed ){
 		
-		if ( extra != null ){
+			String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
 			
-			message += ": " + extra;
-		}
-		for ( int i=0;i<listeners.size();i++){
-			
-			((ExternalIPCheckerServiceListener)listeners.elementAt(i)).reportProgress( this, message );
+			if ( extra != null ){
+				
+				message += ": " + extra;
+			}
+			for ( int i=0;i<listeners.size();i++){
+				
+				((ExternalIPCheckerServiceListener)listeners.elementAt(i)).reportProgress( this, message );
+			}
 		}
 	}
 	
