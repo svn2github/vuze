@@ -743,8 +743,8 @@ DiskManagerImpl
 			RandomAccessFile raf = null;
 
 			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
-			//boolean preZero = COConfigurationManager.getBooleanParameter("Zero New", false);
-         boolean bCreateFile=false;
+			boolean preZero = COConfigurationManager.getBooleanParameter("Zero New", false);
+         boolean bCreateFile = false;
 			
 			if (!f.exists()) {
 			  bCreateFile = true;
@@ -766,8 +766,8 @@ DiskManagerImpl
 					//if we don't want incremental file creation, pre-allocate file
 					if (!incremental) raf.setLength(length);
 					
-					/*
-					//if we want to fill file with zeros - formerly "Allocate new files"
+					
+					//if we want to pre-fill file with zeros
 					if (preZero) {
 					  //pre-allocate
 					  raf.setLength(length);
@@ -775,10 +775,10 @@ DiskManagerImpl
 					  boolean ok = zeroFile(raf);
 					  if (!ok) {
 					    this.state = FAULTY;
-					    return false;
+					    return -1;
 					  }
 					}
-					*/
+					
 
 				} catch (Exception e) {
 					try {
@@ -846,7 +846,7 @@ DiskManagerImpl
 		return numNewFiles;
 	}
 
-	/*
+
   private boolean zeroFile(RandomAccessFile file) {
 		FileChannel fc = file.getChannel();
 		long length;
@@ -881,7 +881,7 @@ DiskManagerImpl
 		}
         return true;
 	}
-  */
+  
 
 	private void buildDirectoryStructure(String file) {
 		File tempFile = new File(file);
@@ -1424,7 +1424,7 @@ DiskManagerImpl
 		List _pieces = new ArrayList();
 		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
-      int k = 0;      
+      int k = 0;
       //Switch comments to enable sequential piece picking.
 			//for (int j = 0; j < nbPieces && k < 50; j++) {
       for (int j = 0; j < nbPieces ; j++) {
@@ -1504,7 +1504,6 @@ DiskManagerImpl
     String returnName = "";
     
     //make sure the torrent hasn't already been moved
-    //Added synchronized block, so that we're sure it's ok.
     synchronized(this) {
       if (alreadyMoved) return returnName;
       alreadyMoved = true;
@@ -1562,6 +1561,7 @@ DiskManagerImpl
         }
       }
       
+      //remove the old dir
       File tFile = new File(rPath, fileName);
       if (tFile.isDirectory()) FileUtil.recursiveDelete(tFile);
       
