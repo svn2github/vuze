@@ -1799,7 +1799,7 @@ TRTrackerClientClassicImpl
       failure_added_time += 120 + new Random().nextInt( 60 );
     }
 
-    boolean is_seed = announce_data_provider.getRemaining() == 0;
+    boolean is_seed = (announce_data_provider == null) ? false : announce_data_provider.getRemaining() == 0;
     
     if( is_seed ) failure_added_time = failure_added_time * 2; //no need to retry as often
     
