@@ -165,7 +165,28 @@ Constants
 								
 			}else{
 				
-				return( v1_c - v2_c );
+					// could be 1.4.9 -vs- 1.4.10
+				
+				int	v1_next_dot = j+1;
+				
+				while( v1_next_dot < version_1.length() && version_1.charAt(v1_next_dot) != '.'){
+					
+					v1_next_dot++;
+				}
+				
+				int	v2_next_dot = j+1;
+				
+				while( v2_next_dot < version_2.length() && version_2.charAt(v2_next_dot) != '.'){
+					
+					v2_next_dot++;
+				}
+				
+				if ( v1_next_dot == v2_next_dot ){
+					
+					return( v1_c - v2_c );
+				}
+				
+				return( v1_next_dot - v2_next_dot );
 			}
 		}
 		
