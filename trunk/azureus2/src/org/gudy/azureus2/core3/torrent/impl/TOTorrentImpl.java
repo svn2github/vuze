@@ -67,6 +67,8 @@ TOTorrentImpl
 	private Map					additional_properties 		= new HashMap();
 	private Map					additional_info_properties	= new HashMap();
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TOTorrent" );
+
 	/** 
 	 * Constructor for deserialisation
 	 */
@@ -875,5 +877,11 @@ TOTorrentImpl
 			
 			e.printStackTrace();
 		}
+	}
+	
+	public AEMonitor
+	getMonitor()
+	{
+		return( this_mon );
 	}
 }

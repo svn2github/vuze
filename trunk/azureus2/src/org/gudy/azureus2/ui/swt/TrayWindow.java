@@ -35,6 +35,8 @@ public class TrayWindow implements GlobalManagerListener {
 
   GlobalManager globalManager;
   List managers;
+  protected AEMonitor managers_mon 	= new AEMonitor( "TrayWindow:managers" );
+
 
   MainWindow main;
   Display display;
@@ -190,7 +192,8 @@ public class TrayWindow implements GlobalManagerListener {
       return;
     StringBuffer toolTip = new StringBuffer();
     String separator = ""; //$NON-NLS-1$
-    synchronized (managers) {
+    try{
+      managers_mon.enter();
       for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager) managers.get(i);
 		DownloadManagerStats	stats = manager.getStats();
@@ -207,20 +210,31 @@ public class TrayWindow implements GlobalManagerListener {
         toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()));
         separator = "\n"; //$NON-NLS-1$
       }
+    }finally{
+    	managers_mon.exit();
     }
     //label.setToolTipText(toolTip.toString());
     //minimized.moveAbove(null);
   }
  
    public void downloadManagerAdded(DownloadManager created) {
-     synchronized (managers) {
-      managers.add(created);
+     try{
+     	managers_mon.enter();
+     
+     	managers.add(created);
+     }finally{
+     	
+     	managers_mon.exit();
     }
   }
 
    public void downloadManagerRemoved(DownloadManager removed) {
-    synchronized (managers) {
-      managers.remove(removed);
+    try{
+    	managers_mon.enter();
+    	
+    	managers.remove(removed);
+    }finally{
+    	managers_mon.exit();
     }
   }
 

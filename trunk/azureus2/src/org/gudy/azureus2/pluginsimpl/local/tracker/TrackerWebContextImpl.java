@@ -33,6 +33,7 @@ import java.net.URL;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TrackerWebContextImpl 
@@ -178,27 +179,41 @@ TrackerWebContextImpl
 		return( null );
 	}
 	
-	public synchronized void
+	public void
 	addAuthenticationListener(
 		TrackerAuthenticationListener	l )
 	{	
-		auth_listeners.add(l);
+		try{
+			this_mon.enter();
 		
-		if ( auth_listeners.size() == 1 ){
+			auth_listeners.add(l);
 			
-			server.addAuthenticationListener( this );
+			if ( auth_listeners.size() == 1 ){
+				
+				server.addAuthenticationListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeAuthenticationListener(
 		TrackerAuthenticationListener	l )
 	{	
-		auth_listeners.remove(l);
+		try{
+			this_mon.enter();
 		
-		if ( auth_listeners.size() == 0 ){
-				
-			server.removeAuthenticationListener( this );
+			auth_listeners.remove(l);
+			
+			if ( auth_listeners.size() == 0 ){
+					
+				server.removeAuthenticationListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 }

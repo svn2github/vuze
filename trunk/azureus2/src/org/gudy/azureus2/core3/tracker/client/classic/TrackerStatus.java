@@ -50,6 +50,7 @@ public class TrackerStatus {
   
   private boolean bSingleHashScrapes = false;
     
+  protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
 
   public TrackerStatus(TRTrackerScraperImpl	_scraper, String trackerUrl) {    	
   	scraper		= _scraper;
@@ -88,14 +89,24 @@ public class TrackerStatus {
   }
 
   protected TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
-  	synchronized( hashes ){
+  	try{
+  		hashes_mon.enter();
+  		
   		return (TRTrackerScraperResponseImpl) hashes.get(hash.getHash());
+  	}finally{
+  		
+  		hashes_mon.exit();
   	}
   }
 
   protected TRTrackerScraperResponseImpl getHashData(byte[] hash) {
-  	synchronized( hashes ){
+  	try{
+  		hashes_mon.enter();
+ 
   		return (TRTrackerScraperResponseImpl) hashes.get(hash);
+  	}finally{
+  		
+  		hashes_mon.exit();
   	}
   }
 
@@ -118,12 +129,17 @@ public class TrackerStatus {
 
     TRTrackerScraperResponseImpl response;
     
-    synchronized( hashes ){
+   try{
+   		hashes_mon.enter();
+   		
 	    response = (TRTrackerScraperResponseImpl)hashes.get(hash);
 	    
 	    if (response == null) {
 	      response = addHash(hash);
 	    }
+    }finally{
+    	
+    	hashes_mon.exit();
     }
 
     long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
@@ -142,7 +158,8 @@ public class TrackerStatus {
     
     if (!bSingleHashScrapes){
     	
-    	synchronized( hashes ){
+    	try{
+    	  hashes_mon.enter();
     		
 	      Iterator iterHashes = hashes.values().iterator();
 	      
@@ -162,6 +179,9 @@ public class TrackerStatus {
 	          }
 	        }
 	      }
+      }finally{
+      	
+      	hashes_mon.exit();
       }
     }
     
@@ -799,8 +819,14 @@ public class TrackerStatus {
       response.setStatus(TRTrackerScraperResponse.ST_INITIALIZING,
                          MessageText.getString("Scrape.status.initializing"));
     }
-  	synchronized( hashes ){
-      hashes.put(hash, response);
+  	try{
+  		hashes_mon.enter();
+  	
+  		hashes.put(hash, response);
+      
+  	}finally{
+  		
+  		hashes_mon.exit();
   	}
 
     //notifiy listeners
@@ -810,14 +836,26 @@ public class TrackerStatus {
   }
   
   protected void removeHash(HashWrapper hash) {
-  	synchronized( hashes ){
+  	try{
+  		hashes_mon.enter();
+  	
   		hashes.remove( hash.getHash() );
+  		
+  	}finally{
+  		
+  		hashes_mon.exit();
   	}
   }
   
   
   protected Map getHashes() {
     return hashes;
+  }
+  
+  protected AEMonitor
+  getHashesMonitor()
+  {
+  	return( hashes_mon );
   }
 
 	protected void scrapeReceived(TRTrackerScraperResponse response) {

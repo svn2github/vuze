@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TrackerImpl
@@ -43,7 +44,8 @@ TrackerImpl
 	implements 	Tracker, TRHostListener, TRHostAuthenticationListener
 {
 	protected static TrackerImpl	tracker;
-	
+	protected static AEMonitor 		class_mon 	= new AEMonitor( "Tracker" );
+
 	protected List	listeners	= new ArrayList();
 	
 	protected TRHost		host;
@@ -51,15 +53,23 @@ TrackerImpl
 	protected List	auth_listeners	= new ArrayList();
 	
 	
-	public static synchronized Tracker
+	public static Tracker
 	getSingleton()
 	{
-		if ( tracker == null ){
-						
-			tracker	= new TrackerImpl( TRHostFactory.getSingleton());
-		}		
+		try{
+			class_mon.enter();
 		
-		return( tracker );
+			if ( tracker == null ){
+							
+				tracker	= new TrackerImpl( TRHostFactory.getSingleton());
+			}		
+			
+			return( tracker );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected
@@ -192,13 +202,20 @@ TrackerImpl
 		return( new TrackerWebContextImpl( this, name, port, protocol ));
 	}
 	
-	public synchronized void
+	public void
 	torrentAdded(
 		TRHostTorrent		t )
 	{
-		for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((TrackerListener)listeners.get(i)).torrentAdded(new TrackerTorrentImpl(t));
+			}
+		}finally{
 			
-			((TrackerListener)listeners.get(i)).torrentAdded(new TrackerTorrentImpl(t));
+			this_mon.exit();
 		}
 	}
 	
@@ -213,36 +230,58 @@ TrackerImpl
 	}
 	
 
-	public synchronized void
+	public void
 	torrentRemoved(
 		TRHostTorrent		t )	
 	{	
-		for (int i=0;i<listeners.size();i++){
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<listeners.size();i++){
 			
-			((TrackerListener)listeners.get(i)).torrentRemoved(new TrackerTorrentImpl(t));
+				((TrackerListener)listeners.get(i)).torrentRemoved(new TrackerTorrentImpl(t));
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
 
-	public synchronized void
+	public void
 	addListener(
 		TrackerListener		listener )
 	{
-		listeners.add( listener );
+		try{
+			this_mon.enter();
 		
-		TrackerTorrent[] torrents = getTorrents();
+			listeners.add( listener );
 		
-		for (int i=0;i<torrents.length;i++){
+			TrackerTorrent[] torrents = getTorrents();
+		
+			for (int i=0;i<torrents.length;i++){
 			
-			listener.torrentAdded( torrents[i]);
+				listener.torrentAdded( torrents[i]);
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		TrackerListener		listener )
 	{
-		listeners.remove( listener );
+		try{
+			this_mon.enter();
+		
+			listeners.remove( listener );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public boolean
@@ -292,27 +331,41 @@ TrackerImpl
 		return( null );
 	}
 	
-	public synchronized void
+	public void
 	addAuthenticationListener(
 		TrackerAuthenticationListener	l )
 	{	
-		auth_listeners.add(l);
-		
-		if ( auth_listeners.size() == 1 ){
+		try{
+			this_mon.enter();
+				
+			auth_listeners.add(l);
 			
-			host.addAuthenticationListener( this );
+			if ( auth_listeners.size() == 1 ){
+				
+				host.addAuthenticationListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeAuthenticationListener(
 		TrackerAuthenticationListener	l )
 	{	
-		auth_listeners.remove(l);
+		try{
+			this_mon.enter();
 		
-		if ( auth_listeners.size() == 0 ){
-				
-			host.removeAuthenticationListener( this );
+			auth_listeners.remove(l);
+			
+			if ( auth_listeners.size() == 0 ){
+					
+				host.removeAuthenticationListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 }

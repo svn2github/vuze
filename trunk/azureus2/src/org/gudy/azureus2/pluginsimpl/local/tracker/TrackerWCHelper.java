@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public abstract class 
 TrackerWCHelper 
@@ -42,6 +43,8 @@ TrackerWCHelper
 {
 	protected Tracker	tracker;
 	protected List		generators 	= new ArrayList();
+
+	protected AEMonitor this_mon 	= new AEMonitor( "TrackerWCHelper" );
 
 	protected
 	TrackerWCHelper()
@@ -72,7 +75,8 @@ TrackerWCHelper
 
 			TrackerWebPageGenerator	generator;
 			
-			synchronized( this ){
+			try{
+				this_mon.enter();
 				
 				if ( i >= generators.size()){
 					
@@ -80,6 +84,10 @@ TrackerWCHelper
 				}
 				
 				generator = (TrackerWebPageGenerator)generators.get(i);
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			if ( generator.generate( request, reply )){
@@ -104,17 +112,33 @@ TrackerWCHelper
 		return( res );
 	}
 	
-	public synchronized void
+	public void
 	addPageGenerator(
 		TrackerWebPageGenerator	generator )
-	{			
-		generators.add( generator );
+	{		
+		try{
+			this_mon.enter();
+		
+			generators.add( generator );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public void
 	removePageGenerator(
 		TrackerWebPageGenerator	generator )
 	{
-		generators.remove( generator );
+		try{
+			this_mon.enter();
+		
+			generators.remove( generator );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}	
 }

@@ -32,6 +32,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TrackerTorrentImpl
@@ -42,6 +43,8 @@ TrackerTorrentImpl
 	protected List	listeners 			= new ArrayList();
 	protected List	removal_listeners	= new ArrayList();
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TrackerTorrent" );
+
 	public
 	TrackerTorrentImpl(
 		TRHostTorrent	_host_torrent )
@@ -219,45 +222,66 @@ TrackerTorrentImpl
 		host_torrent.disableReplyCaching();
 	}
 	
-	public synchronized void
+	public void
 	postProcess(
 		TRHostTorrentRequest	request )
 	
 		throws TRHostException
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+		try{
+			this_mon.enter();
+		
+			for (int i=0;i<listeners.size();i++){
 				
-			}catch( TrackerException e ){
-				
-				throw( new TRHostException( "Post process fails", e ));
+				try{
+					((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+					
+				}catch( TrackerException e ){
+					
+					throw( new TRHostException( "Post process fails", e ));
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		TrackerTorrentListener	listener )
 	{
-		listeners.add( listener );
+		try{
+			this_mon.enter();
 		
-		if ( listeners.size() == 1 ){
+			listeners.add( listener );
 			
-			host_torrent.addListener( this );
+			if ( listeners.size() == 1 ){
+				
+				host_torrent.addListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		TrackerTorrentListener	listener )
 	{
-		listeners.remove( listener );
+		try{
+			this_mon.enter();
 		
-		if ( listeners.size() == 0 ){
+			listeners.remove( listener );
 			
-			host_torrent.removeListener(this);
+			if ( listeners.size() == 0 ){
+				
+				host_torrent.removeListener(this);
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -279,27 +303,41 @@ TrackerTorrentImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	addRemovalListener(
 		TrackerTorrentWillBeRemovedListener	listener )
 	{
-		removal_listeners.add( listener );
+		try{
+			this_mon.enter();
 		
-		if ( removal_listeners.size() == 1 ){
+			removal_listeners.add( listener );
 			
-			host_torrent.addRemovalListener( this );
-		}	
+			if ( removal_listeners.size() == 1 ){
+				
+				host_torrent.addRemovalListener( this );
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeRemovalListener(
 		TrackerTorrentWillBeRemovedListener	listener )
 	{
-		removal_listeners.remove( listener );
+		try{
+			this_mon.enter();
 		
-		if ( removal_listeners.size() == 0 ){
+			removal_listeners.remove( listener );
 			
-			host_torrent.removeRemovalListener(this);
-		}	
+			if ( removal_listeners.size() == 0 ){
+				
+				host_torrent.removeRemovalListener(this);
+			}	
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

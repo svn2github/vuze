@@ -21,7 +21,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
    * key = Tracker URL string
    * value = TrackerStatus object
    */
-  private HashMap           trackers;
+  private HashMap       trackers;
+  private AEMonitor 	trackers_mon 	= new AEMonitor( "TrackerChecker:trackers" );
+
   /** TRTrackerScraperImpl object associated with this object.
    */
   private TRTrackerScraperImpl    scraper;
@@ -33,6 +35,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
   /* Next scrape will be for this torrent's hash.  */
   private byte[] nextTrackerHash;
   
+  
+  private AEMonitor this_mon 	= new AEMonitor( "TrackerChecker" );
+
   /** Initialize TrackerChecker.  
    *
    * @note Since there is only one TRTrackerScraperImpl, there will only be one
@@ -120,8 +125,13 @@ public class TrackerChecker implements TRTrackerScraperListener {
     } else {
       //System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
       final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
-      synchronized (trackers) {
+      try{
+      	trackers_mon.enter();
+      	
         trackers.put(trackerUrl, ts);
+      }finally{
+      	
+      	trackers_mon.exit();
       }
       data = ts.addHash(hashBytes);
     }
@@ -177,7 +187,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
     try {
       byte[] hash = torrent.getHash();
       
-      synchronized (trackers) {
+      try{
+      	trackers_mon.enter();
+      	
         Iterator iter = trackers.values().iterator();
         while (iter.hasNext()){
           TrackerStatus ts = (TrackerStatus) iter.next();
@@ -189,7 +201,10 @@ public class TrackerChecker implements TRTrackerScraperListener {
             return;
           }
         }
-      }  
+      }finally{
+      	
+      	trackers_mon.exit();
+      }
     } catch (TOTorrentException e) {
       e.printStackTrace();
     }
@@ -221,43 +236,61 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * XXX: Timer.schedule 
    */
-  private synchronized void checkForNextScrape() {
-    // search for the next scrape
-    TRTrackerScraperResponseImpl nextResponse = null;
-    long lNewNextScrapeTime = 0;
-
-    synchronized (trackers) {
-      Iterator iter = trackers.values().iterator();
-      while (iter.hasNext()) {
-        TrackerStatus ts = (TrackerStatus) iter.next();
-        Map hashmap = ts.getHashes();
-        
-        synchronized( hashmap ){
-          Iterator iterHashes = hashmap.values().iterator();
-          while( iterHashes.hasNext() ) {
-            TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)iterHashes.next();
-            long lResponseNextScrapeTime = response.getNextScrapeStartTime();
-            if ((response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) &&
-                (nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
-                (nextTrackerStatus != response.getTrackerStatus() ||
-                 nextTrackerHash != response.getHash())) {
-              lNewNextScrapeTime = lResponseNextScrapeTime;
-              nextResponse = response;
-            }
-          } // while hashes
-        } // synchronized( hashmap ){
-      } // while trackers
-    } // synchronized( trackers)
-    
-    // no next scrape was found.  search again in a minute
-    if (nextResponse == null) {
-      nextTrackerStatus = null;
-      lNextScrapeTime = SystemTime.getCurrentTime() + 1000 * 60;
-    } else {
-      nextTrackerStatus = nextResponse.getTrackerStatus();
-      nextTrackerHash = nextResponse.getHash();
-      lNextScrapeTime = lNewNextScrapeTime;
-    }
+  private void checkForNextScrape() 
+  {
+  	try{
+  		this_mon.enter();
+  	
+	    // search for the next scrape
+	    TRTrackerScraperResponseImpl nextResponse = null;
+	    long lNewNextScrapeTime = 0;
+	
+	    try{
+	    	trackers_mon.enter();
+	    	
+	      Iterator iter = trackers.values().iterator();
+	      while (iter.hasNext()) {
+	        TrackerStatus ts = (TrackerStatus) iter.next();
+	        Map hashmap = ts.getHashes();
+	        
+	        try{
+	        	ts.getHashesMonitor().enter();
+	        	
+	          Iterator iterHashes = hashmap.values().iterator();
+	          while( iterHashes.hasNext() ) {
+	            TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)iterHashes.next();
+	            long lResponseNextScrapeTime = response.getNextScrapeStartTime();
+	            if ((response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) &&
+	                (nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
+	                (nextTrackerStatus != response.getTrackerStatus() ||
+	                 nextTrackerHash != response.getHash())) {
+	              lNewNextScrapeTime = lResponseNextScrapeTime;
+	              nextResponse = response;
+	            }
+	          } // while hashes
+	        }finally{
+	        	
+	        	ts.getHashesMonitor().exit();
+	        }
+	      } // while trackers
+	    }finally{
+	    	
+	    	trackers_mon.exit();
+	    }
+	    
+	    // no next scrape was found.  search again in a minute
+	    if (nextResponse == null) {
+	      nextTrackerStatus = null;
+	      lNextScrapeTime = SystemTime.getCurrentTime() + 1000 * 60;
+	    } else {
+	      nextTrackerStatus = nextResponse.getTrackerStatus();
+	      nextTrackerHash = nextResponse.getHash();
+	      lNextScrapeTime = lNewNextScrapeTime;
+	    }
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 
 

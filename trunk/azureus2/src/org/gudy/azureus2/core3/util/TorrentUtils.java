@@ -88,7 +88,8 @@ TorrentUtils
 	
 		throws TOTorrentException 
 	{
-	    synchronized( torrent ){
+	   try{
+	   		torrent.getMonitor().enter();
 	    	
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
 	    	
@@ -119,6 +120,10 @@ TorrentUtils
 	    	}
 	      
 	    	torrent.serialiseToBEncodedFile(torrent_file);
+	    	
+	   	}finally{
+	   		
+	   		torrent.getMonitor().exit();
 	   	}
 	}
 	
@@ -140,7 +145,8 @@ TorrentUtils
 	
 		throws TOTorrentException 
 	{
-	    synchronized( torrent ){
+	   try{
+	   		torrent.getMonitor().enter();
 	    	
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
 	    	
@@ -155,6 +161,10 @@ TorrentUtils
 	    	}
 		
 	    	new File( str + ".bak" ).delete();
+	    	
+	    }finally{
+	    	
+	    	torrent.getMonitor().exit();
 	    }
 	}
 	

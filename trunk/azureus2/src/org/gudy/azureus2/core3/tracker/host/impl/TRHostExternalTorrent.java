@@ -44,6 +44,8 @@ TRHostExternalTorrent
 	
 	protected Map		additional_properties = new HashMap();
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRHostExternalTorrent" );
+
 	protected
 	TRHostExternalTorrent(
 		byte[]	_hash,
@@ -331,6 +333,12 @@ TRHostExternalTorrent
 		throw( new TOTorrentException("External Torrent", TOTorrentException.RT_WRITE_FAILS ));
 	}
 
+   	public AEMonitor
+	getMonitor()
+   	{
+   		return( this_mon );
+   	}
+   	
 	public void
 	print()
 	{

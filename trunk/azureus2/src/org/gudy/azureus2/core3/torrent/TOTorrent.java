@@ -25,7 +25,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.*;
 
 public interface 
 TOTorrent
@@ -256,6 +256,8 @@ TOTorrent
 		  
 	   throws TOTorrentException;
 
+   public AEMonitor
+   getMonitor();
 
 	 /**
 	  * A diagnostic method for dumping the tracker contents to "stdout"

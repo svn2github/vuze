@@ -40,8 +40,9 @@ public class TrackersUtil {
   private List trackers;
   private Map multiTrackers; 
   
-  private static TrackersUtil instance;
-  
+  private static TrackersUtil 	instance;
+  private static AEMonitor		class_mon 	= new AEMonitor( "TrackersUtil:class" );
+
   
   
   private TrackersUtil() {
@@ -51,10 +52,18 @@ public class TrackersUtil {
   }
   
   
-  public static synchronized TrackersUtil getInstance() {
-    if(instance == null)
-      instance = new TrackersUtil();
-    return instance;
+  public static TrackersUtil getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+  		if(instance == null)
+  			instance = new TrackersUtil();
+  		return instance;
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public List getTrackersList() {
