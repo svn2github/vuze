@@ -94,7 +94,7 @@ public class ConfigurationDefaults {
     def.put("TCP.Listen.Port", new Long(6881));
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
-
+    def.put("Newly Seeding Torrents Get First Priority", new Long(1));
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
@@ -169,6 +169,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iIgnoreRatioPeersSeedStart", new Long(0));
     // for "Stop Ratio" ignore rule
     def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
+    def.put("StartStopManager_bNewSeedsMoveTop", new Long(1));
     
     	//tracker proxy defaults
     def.put( "Enable.Proxy", new Long(0) );

@@ -668,7 +668,12 @@ DownloadManagerImpl
   		  // pretend we are at the bottom of the new list
   		  // so that move top will shift everything down one
   		  position = globalManager.getDownloadManagers().size() + 1;
-  		  globalManager.moveTop(dms);
+  		  
+  		  if ( COConfigurationManager.getBooleanParameter("Newly Seeding Torrents Get First Priority" )){
+  		  	globalManager.moveTop(dms);
+  		  }else{
+  		  	globalManager.moveEnd(dms);	
+  		  }
   		  // we left a gap in incomplete list, fixup
         globalManager.fixUpDownloadManagerPositions();
       }

@@ -233,6 +233,11 @@ RPPluginConfig
 	  	return( false );
 	  }
 	  
+	  public void setBooleanParameter(String key, boolean value )
+	  {	
+	  	notSupported();
+	  }
+	  
 	  public byte[] getByteParameter(String name, byte[] _default )
 	  {
 	  	notSupported();

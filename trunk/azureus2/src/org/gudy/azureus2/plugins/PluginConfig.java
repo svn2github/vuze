@@ -52,9 +52,11 @@ PluginConfig
    *
    * @since 2.1.0.0
    */
-	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL						= "Max Connections Global";
+	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL					= "Max Connections Global";
 	
-	public static final String CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION			= "SOCKS Proxy No Inward Connection";
+	public static final String CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION		= "SOCKS Proxy No Inward Connection";
+
+	public static final String CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP				= "Newly Seeding Torrents Get First Priority";
 
   /**
    * returns the value of a core float parameter
@@ -136,6 +138,17 @@ PluginConfig
    * @since 2.0.6.0
    */
   public boolean getBooleanParameter(String key, boolean _default );
+  
+  /**
+   * Set a core boolean
+   * @param key		 must be from above constants
+   * @param value
+   */
+ 
+  public void
+  setBooleanParameter(
+  	String	key, 
+	boolean		value );
   
   /**
    * 

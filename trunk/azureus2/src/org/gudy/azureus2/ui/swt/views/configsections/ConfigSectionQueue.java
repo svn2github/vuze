@@ -124,6 +124,11 @@ public class ConfigSectionQueue implements ConfigSectionSWT {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
+    new BooleanParameter(gMainTab, "StartStopManager_bNewSeedsMoveTop", true,
+                         "ConfigView.label.queue.newseedsmovetop").setLayoutData(gridData);
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
     new BooleanParameter(gMainTab, "Alert on close", true,
                          "ConfigView.label.showpopuponclose").setLayoutData(gridData);
 

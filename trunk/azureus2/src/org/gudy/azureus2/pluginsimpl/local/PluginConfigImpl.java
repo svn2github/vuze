@@ -50,6 +50,8 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL, 				"Max.Peer.Connections.Total" );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT, 			"Max.Peer.Connections.Per.Torrent" );
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION, 	"Proxy.Data.SOCKS.inform" );
+		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP, 			CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP );
+		
 	}
 
 	private PluginInterface	plugin_interface;
@@ -125,6 +127,21 @@ PluginConfigImpl
 	
 	public boolean getBooleanParameter(String name, boolean _default) {
 		return COConfigurationManager.getBooleanParameter(mapKeyName(name), _default);
+	}
+	
+	public void
+	setBooleanParameter(
+	  	String		key, 
+		boolean		value )
+	{
+		String	target_key = (String)external_to_internal_key_map.get( key );
+		
+		if ( target_key == null ){
+			
+			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
+		}
+		
+		COConfigurationManager.setParameter( target_key, value );
 	}
 	
     public byte[] getByteParameter(String name, byte[] _default )

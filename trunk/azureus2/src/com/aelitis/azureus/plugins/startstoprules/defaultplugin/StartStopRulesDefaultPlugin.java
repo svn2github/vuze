@@ -493,6 +493,9 @@ public class StartStopRulesDefaultPlugin
 	    bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
 	    iMaxUploadSpeed = plugin_config.getIntParameter("Max Upload Speed KBs",0);
 	
+	    boolean	move_top = plugin_config.getBooleanParameter( "StartStopManager_bNewSeedsMoveTop" );
+	    plugin_config.setBooleanParameter( PluginConfig.CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP, move_top );
+	    
 	    if (iNewRankType != iRankType) {
 	      iRankType = iNewRankType;
 	      
