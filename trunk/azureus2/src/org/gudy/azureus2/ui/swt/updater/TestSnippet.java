@@ -39,6 +39,8 @@ public class TestSnippet {
     
     Process p = Runtime.getRuntime().exec(exec);
     
+    int exitCode = p.waitFor();
+    
     BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
     String line = null;
     while((line = br.readLine()) != null ) {
@@ -51,8 +53,6 @@ public class TestSnippet {
       System.out.println(line);
     }
     
-    int exitCode = p.waitFor();
-
     System.out.println("Exited with code : " + exitCode);
     } catch(Exception e) {
       e.printStackTrace();
