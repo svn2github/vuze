@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.tracker.client;
 
 import java.util.Map;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
 
@@ -44,12 +45,12 @@ TRTrackerClient
 	public TOTorrent
 	getTorrent();
 	
-	public String
+	public URL
 	getTrackerUrl();
 	
 	public void
 	setTrackerUrl(
-		String		url );
+		URL		url );
 		
 	public void
 	resetTrackerUrl(

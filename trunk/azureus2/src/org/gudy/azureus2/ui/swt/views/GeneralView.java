@@ -1121,7 +1121,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
        	}
     }else{
     	
-    	trackerURL = trackerClient.getTrackerUrl();
+    	trackerURL = trackerClient.getTrackerUrl().toString();
     }
     
     if ( trackerURL != null ){

@@ -41,7 +41,10 @@ public class TrackerStatus {
 	public final static int evtErrors = 2;
 
   private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
-  private String scrapeURL = null;
+  
+  private URL		tracker_url;
+  
+  private String 	scrapeURL = null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
   private HashMap 					hashes;
@@ -55,9 +58,12 @@ public class TrackerStatus {
   public 
   TrackerStatus(
   	TRTrackerScraperImpl	_scraper, 
-	String 					trackerUrl) 
+	URL 					_tracker_url ) 
   {    	
   	scraper		= _scraper;
+    tracker_url	= _tracker_url;
+    
+    String trackerUrl	= tracker_url.toString();
     
     hashes = new HashMap();
     
@@ -551,7 +557,7 @@ public class TrackerStatus {
   	
     reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
-  	//System.out.println( "trying " + scrape.toString());
+  	// System.out.println( "scraping " + reqUrl.toString());
   	
   	InputStream is = null;
   	
@@ -874,6 +880,11 @@ public class TrackerStatus {
   	}
   }
   
+  protected URL
+  getTrackerURL()
+  {
+  	return( tracker_url );
+  }
   
   protected Map getHashes() {
     return hashes;

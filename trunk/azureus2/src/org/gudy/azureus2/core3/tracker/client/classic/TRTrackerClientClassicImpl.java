@@ -96,7 +96,7 @@ TRTrackerClientClassicImpl
 
   	private List trackerUrlLists;
      
-  	private String lastUsedUrl;
+  	private URL lastUsedUrl;
   
   	private String trackerUrlListString;
   
@@ -773,39 +773,37 @@ TRTrackerClientClassicImpl
 		
 		for (int j = 0 ; j < urls.size() ; j++) {
 			
-		  String url = (String) urls.get(j);
+		  URL url = (URL)urls.get(j);
 		  
 		  lastUsedUrl = url;
 		   
-		  String	this_url_string = null;
+		  URL	request_url = null;
 		  
 		  try{
 		  
-			  this_url_string = constructUrl(evt,url);
-			  					  	  
-			  URL reqUrl = new URL(this_url_string);
+		  	request_url = constructUrl(evt,url);
+			  					  	  			  
+			TRTrackerResponseImpl resp = decodeTrackerResponse( updateOld(request_url));
 			  
-			  TRTrackerResponseImpl resp = decodeTrackerResponse( updateOld(reqUrl));
-			  
-		      if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
+		    if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
 					
-	            	urls.remove(j);
+	            urls.remove(j);
 	            	
-	            	urls.add(0,url);
+	            urls.add(0,url);
 	            	
-	            	trackerUrlLists.remove(i);
+	            trackerUrlLists.remove(i);
 	            	
-	            	trackerUrlLists.add(0,urls);            
+	            trackerUrlLists.add(0,urls);            
 	            
-	            	informURLChange( this_url_string, false );
+	            informURLChange( url, false );
 	            	
-	            		//and return the result
+	            	//and return the result
 	            		
-	            	return( resp );
-			  }else{
+	            return( resp );
+			 }else{
 			  				  		
-			  	last_failure_resp = resp;
-			  }
+			 	last_failure_resp = resp;
+			 }
 		  }catch( MalformedURLException e ){
 		  	
 		  	Debug.printStackTrace( e );
@@ -814,7 +812,7 @@ TRTrackerClientClassicImpl
 		  		new TRTrackerResponseImpl( 
 		  				TRTrackerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
-						"malformed URL '" + this_url_string + "'" );
+						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
 		  	
 		  }catch( Exception e ){
 		  	
@@ -1396,7 +1394,15 @@ TRTrackerClientClassicImpl
   	return( str );
   }
   
-  public String constructUrl(String evt,String url) {
+  public URL 
+  constructUrl(
+  	String 	evt,
+	URL		_url)
+  
+  	throws MalformedURLException
+  {
+  	String	url = _url.toString();
+  	
   	StringBuffer request = new StringBuffer(url);
   	
   		// if url already has a query component then just append our parameters on the end
@@ -1469,7 +1475,7 @@ TRTrackerClientClassicImpl
       	request.append( "&key=" + key_id);
     }
     
-    return request.toString();
+    return new URL( request.toString());
   }
 
   protected int
@@ -1505,27 +1511,33 @@ TRTrackerClientClassicImpl
 		return( torrent );
 	}
 	
-	public String 
+	public URL 
 	getTrackerUrl() 
 	{
-		return lastUsedUrl;
+		return( lastUsedUrl );
 	} 
   
 	public void 
 	setTrackerUrl(
-		String trackerUrl ) 
+		URL new_url ) 
 	{
-		trackerUrl = trackerUrl.replaceAll(" ", "");
+		try{
+			new_url = new URL( new_url.toString().replaceAll(" ", ""));
+			
+			List list = new ArrayList(1);
+	  	
+			list.add( new_url );
+	  	
+			trackerUrlLists.clear();
+	  	
+			trackerUrlLists.add( list );
 		
-		List list = new ArrayList(1);
-  	
-		list.add( trackerUrl );
-  	
-		trackerUrlLists.clear();
-  	
-		trackerUrlLists.add( list );
-	
-		informURLChange( trackerUrl, true );       	
+			informURLChange( new_url, true );   
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
   
 	public void
@@ -1539,7 +1551,7 @@ TRTrackerClientClassicImpl
 			return;
 		}
 	
-		String	first_url = (String)((List)trackerUrlLists.get(0)).get(0);
+		URL	first_url = (URL)((List)trackerUrlLists.get(0)).get(0);
 		
 		informURLChange( first_url, true );       	
 	}
@@ -1578,7 +1590,7 @@ TRTrackerClientClassicImpl
 	  	
 					//If not present, we use the default specification
 					
-				String url = torrent.getAnnounceURL().toString();
+				URL url = torrent.getAnnounceURL();
 				       
 					//We then contruct a list of one element, containing this url, and put this list
 					//into the list of lists of urls.
@@ -1598,24 +1610,24 @@ TRTrackerClientClassicImpl
 				  
 					URL[]	urls = announce_sets[i].getAnnounceURLs();
 					
-				 	List stringUrls = new ArrayList();
+				 	List random_urls = new ArrayList();
 				 	
 				 	for(int j = 0 ; j < urls.length; j++){
 				  		
 						//System.out.println(urls.get(j).getClass());
 						      
-						String url = urls[j].toString();
+						URL url = urls[j];
 						            		
 							//Shuffle
 							
-						int pos = shuffle?(int)(Math.random() *  (stringUrls.size()+1)):j;
+						int pos = shuffle?(int)(Math.random() *  (random_urls.size()+1)):j;
 						
-						stringUrls.add(pos,url);
+						random_urls.add(pos,url);
 				  	}
 				  			  	         
 				  		//Add this list to the list
 				  		
-				 	trackerUrlLists.add(stringUrls);
+				 	trackerUrlLists.add(random_urls);
 				}
 			}      
 		}catch(Exception e){
@@ -1633,9 +1645,9 @@ TRTrackerClientClassicImpl
 			
 			for (int j=0;j<group.size();j++){
 				
-				String	u = (String)group.get(j);
+				URL	u = (URL)group.get(j);
 				
-				trackerUrlListString	+= (j==0?"":",") + u;
+				trackerUrlListString	+= (j==0?"":",") + u.toString();
 			}
 			
 			trackerUrlListString	+= "]";
@@ -1926,11 +1938,11 @@ TRTrackerClientClassicImpl
   	
 	protected void
 	informURLChange(
-		String	url,
+		URL		url,
 		boolean	explicit  )
 	{
 		listeners.dispatch(	LDT_URL_CHANGED,
-							new Object[]{url,new Boolean(explicit)});
+							new Object[]{url.toString(),new Boolean(explicit)});
 	}
 	
 	protected void

@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.client;
  *
  */
 
+import java.net.URL;
 import org.gudy.azureus2.core3.torrent.*;
 
 public interface 
@@ -35,6 +36,13 @@ TRTrackerScraper
 	scrape(
 		TOTorrent		torrent );
 		
+		// scrape an explicit URL from the (multi-tracker) torrent's set of URLs
+	
+	public TRTrackerScraperResponse
+	scrape(
+		TOTorrent		torrent,
+		URL				target_url );
+	
 	public TRTrackerScraperResponse
 	scrape(
 		TOTorrent		torrent,

@@ -88,9 +88,13 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * @return The cached scrape response.  Can be null.
    */
-  protected TRTrackerScraperResponseImpl getHashData(TOTorrent  torrent) {
+  protected TRTrackerScraperResponseImpl 
+  getHashData(
+  	TOTorrent  	torrent,
+	URL			target_url )
+  {
     try {
-      return getHashData(torrent.getAnnounceURL().toString(), 
+      return getHashData(target_url==null?torrent.getAnnounceURL():target_url, 
                          torrent.getHashWrapper());
       
     } catch(TOTorrentException e) {
@@ -104,7 +108,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * @return The cached scrape response.  Can be null.
    */
-  protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,
+  protected TRTrackerScraperResponseImpl getHashData(URL trackerUrl,
                                                      final HashWrapper hash) {
     // can be null when first called and url not yet set up...
     if ( trackerUrl == null ){
@@ -178,10 +182,15 @@ public class TrackerChecker implements TRTrackerScraperListener {
   
   /* Forced synchronous scrape of the supplied torrent.
    */
-  protected void syncUpdate(TOTorrent torrent) {
-    if (torrent == null)
+  protected void 
+  syncUpdate(
+  	TOTorrent 	torrent,
+	URL			target_url ) 
+  {
+    if (torrent == null){
       return;
-
+    }
+    
     try {
       byte[] hash = torrent.getHash();
       
@@ -189,14 +198,22 @@ public class TrackerChecker implements TRTrackerScraperListener {
       	trackers_mon.enter();
       	
         Iterator iter = trackers.values().iterator();
+        
         while (iter.hasNext()){
+        	
           TrackerStatus ts = (TrackerStatus) iter.next();
 
-          Map hashmap = ts.getHashes();
-
-          if ( hashmap.get( hash ) != null ){
-            ts.updateSingleHash( hash, true, false );
-            return;
+          if ( 	target_url == null ||
+          		target_url.equals( ts.getTrackerURL())){
+          	
+	          Map hashmap = ts.getHashes();
+	
+	          if ( hashmap.get( hash ) != null ){
+	          	
+	            ts.updateSingleHash( hash, true, false );
+	            
+	            return;
+	          }
           }
         }
       }finally{

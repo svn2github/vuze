@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  *
  */
 
+import java.net.URL;
+
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -94,17 +96,37 @@ TRTrackerScraperImpl
 	public TRTrackerScraperResponse
 	scrape(
 		TOTorrent		torrent,
+		URL				target_url )
+	{
+		return( scrape( torrent, target_url, false ));
+	}
+	
+	public TRTrackerScraperResponse
+	scrape(
+		TOTorrent		torrent,
 		boolean			force )
 	{
-    if (torrent == null)
-      return null;
+		return( scrape( torrent, null, force ));
+	}
+	
+	
+	public TRTrackerScraperResponse
+	scrape(
+		TOTorrent		torrent,
+		URL				target_url,
+		boolean			force )
+	{
+		if (torrent == null){
+			
+			return null;
+		}
 
 		if ( force ){
 			
-			tracker_checker.syncUpdate( torrent );
+			tracker_checker.syncUpdate( torrent, target_url );
 		}
 		
-		TRTrackerScraperResponse	res = tracker_checker.getHashData( torrent );
+		TRTrackerScraperResponse	res = tracker_checker.getHashData( torrent, target_url );
 		
 		// System.out.println( "scrape: " + torrent + " -> " + (res==null?"null":""+res.getSeeds()));
 		

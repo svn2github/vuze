@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.download.impl;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.net.*;
 
 
 import org.gudy.azureus2.core3.config.*;
@@ -236,7 +237,9 @@ DownloadManagerImpl
 	private Map							tracker_response_cache; 
   
 	private TRTrackerClient 			tracker_client;
-	private TRTrackerClientListener	tracker_client_listener;
+	private TRTrackerClientListener		tracker_client_listener;
+	
+	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
 	private DiskManager 			diskManager;
 	private DiskManagerListener		disk_manager_listener;
@@ -1048,13 +1051,64 @@ DownloadManagerImpl
 	torrentFileName = string;
   }
 
-  public TRTrackerScraperResponse getTrackerScrapeResponse() {
+  public TRTrackerScraperResponse 
+  getTrackerScrapeResponse() 
+  {
     TRTrackerScraperResponse r = null;
+    
     if (globalManager != null) {
-      if (tracker_client != null)
-        r = globalManager.getTrackerScraper().scrape(tracker_client);
-      if (r == null && torrent != null)
-        r = globalManager.getTrackerScraper().scrape(torrent);
+    	
+    	TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+    	
+    	if (tracker_client != null){
+      	
+    		r = scraper.scrape(tracker_client);
+    	}
+      
+	    if ( r == null && torrent != null){
+	      	
+	    		// torrent not running. For multi-tracker torrents we need to behave sensibly
+	      		// here
+	      	
+	    	TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+	    	
+	    	if ( sets.length == 0 ){
+	    	
+	    		r = scraper.scrape(torrent);
+	    		
+	    	}else{
+	    			    			
+	    			// we use a fixed seed so that subsequent scrapes will randomise
+	    			// in the same order, as required by the spec. Note that if the
+	    			// torrent's announce sets are edited this all works fine (if we
+	    			// cached the randomised URL set this wouldn't work)
+	    		
+	    		Random	scrape_random = new Random(scrape_random_seed);
+	    		
+	    		for (int i=0;r==null && i<sets.length;i++){
+	    			
+	    			TOTorrentAnnounceURLSet	set = sets[i];
+	    			
+	    			URL[]	urls = set.getAnnounceURLs();
+	    			
+	    			List	rand_urls = new ArrayList();
+	    							 	
+				 	for (int j=0;j<urls.length;j++ ){
+				  		
+						URL url = urls[j];
+						            									
+						int pos = (int)(scrape_random.nextDouble() *  (rand_urls.size()+1));
+						
+						rand_urls.add(pos,url);
+				  	}
+				 	
+				 	for (int j=0;r==null && j<rand_urls.size();j++){
+				 		
+				 		r = scraper.scrape(torrent, (URL)rand_urls.get(j));
+				 	}
+	    		}
+	    	}
+	    }
     }
     return r;
   }
