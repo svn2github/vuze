@@ -23,8 +23,10 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.PluginConfig;
 
 /**
@@ -33,7 +35,7 @@ import org.gudy.azureus2.plugins.PluginConfig;
  */
 public class 
 ParameterImpl 
-	implements EnablerParameter
+	implements EnablerParameter, org.gudy.azureus2.core3.config.ParameterListener
 {
 	protected 	PluginConfig	config;
 	private 	String 			key;
@@ -42,6 +44,8 @@ ParameterImpl
 	private List toDisable	= new ArrayList();
 	private List toEnable	= new ArrayList();
 	  
+	private List	listeners	= new ArrayList();
+	
 	public 
 	ParameterImpl(
 		PluginConfig	_config,
@@ -82,4 +86,38 @@ ParameterImpl
 	  public List getEnabledOnSelectionParameters() {
 	    return toEnable;
 	  }
+		
+	public void
+	parameterChanged(
+		String		key )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((ParameterListener)listeners.get(i)).parameterChanged( this );
+		}
+	}
+	
+	public void
+	addListener(
+		ParameterListener	l )
+	{
+		listeners.add(l);
+		
+		if ( listeners.size() == 1 ){
+			
+			COConfigurationManager.addParameterListener( key, this );
+		}
+	}
+			
+	public void
+	removeListener(
+		ParameterListener	l )
+	{
+		listeners.remove(l);
+		
+		if ( listeners.size() == 0 ){
+			
+			COConfigurationManager.removeParameterListener( key, this );
+		}
+	}
 }

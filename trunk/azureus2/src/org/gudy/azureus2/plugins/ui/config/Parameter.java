@@ -26,6 +26,15 @@ package org.gudy.azureus2.plugins.ui.config;
  * @author Olivier
  *
  */
-public interface Parameter {
 
+public interface
+Parameter 
+{
+	public void
+	addListener(
+		ParameterListener	l );	
+		
+	public void
+	removeListener(
+		ParameterListener	l );
 }

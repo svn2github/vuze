@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
@@ -169,17 +170,7 @@ UIManagerImpl
 		String 			resource_name,
 		final boolean 	defaultValue )
 	{	
-		return( 
-			new BooleanParameter()
-			{
-				public boolean
-				getValue()
-				{
-					return( pi.getPluginconfig().getPluginBooleanParameter( key, defaultValue));
-				}
-				public void addEnabledOnSelection(Parameter parameter){}
-				public void addDisabledOnSelection(Parameter parameter){}
-			});
+		return( new BooleanParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
 	}
 	
 	
