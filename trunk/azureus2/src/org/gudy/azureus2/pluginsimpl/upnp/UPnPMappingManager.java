@@ -50,15 +50,15 @@ UPnPMappingManager
 	{
 			// incoming data port
 				
-		addConfigPort( "ConfigView.label.serverport", true, "TCP.Listen.Port", true );
+		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
 		
 			// tracker TCP
 		
-		addConfigPort( "ConfigView.section.tracker.port", true, "Tracker Port Enable", "Tracker Port" );
+		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );
 		
 			// tracker UDP
 
-		addConfigPort( "ConfigView.section.tracker.enableudp", false, "Tracker Port UDP Enable", "Tracker Port" );
+		addConfigPort( "upnp.mapping.udptrackerport", false, "Tracker Port UDP Enable", "Tracker Port" );
 	}
 	
 	protected UPnPMapping

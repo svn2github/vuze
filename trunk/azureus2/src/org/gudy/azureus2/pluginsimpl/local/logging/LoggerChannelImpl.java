@@ -160,6 +160,14 @@ LoggerChannelImpl
 	}
 	
 	public void
+	logAlert(
+		String		message,
+		Throwable 	e )
+	{
+		LGLogger.logAlert( message, e );
+	}
+	
+	public void
 	addListener(
 		LoggerChannelListener	l )
 	{

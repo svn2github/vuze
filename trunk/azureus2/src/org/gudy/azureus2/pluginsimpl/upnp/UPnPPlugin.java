@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.plugins.ui.config.*;
 
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.services.*;
@@ -45,6 +46,10 @@ UPnPPlugin
 	protected LoggerChannel 		log;
 	
 	protected UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton();
+	
+	protected UPnP	upnp;
+	
+	protected BooleanParameter	alert_success_param;
 	
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
@@ -63,9 +68,39 @@ UPnPPlugin
 			ui_manager.createBasicPluginViewModel( 
 					"UPnP");
 		
-		//boolean enabled = plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true );
-
-		//model.getStatus().setText( enabled?"Running":"Optional checks disabled" );
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "UPnP" );
+		
+		config.addLabelParameter2( "upnp.info" );
+		
+		final BooleanParameter enable_param = 
+			config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
+		
+		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
+		
+		enable_param.addEnabledOnSelection( alert_success_param );
+		
+		boolean	enabled = enable_param.getValue();
+		
+		model.getStatus().setText( enabled?"Running":"Disabled" );
+		
+		enable_param.addListener(
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						Parameter	p )
+					{
+						boolean	enabled = enable_param.getValue();
+						
+						model.getStatus().setText( enabled?"Running":"Disabled" );
+						
+						if ( enabled ){
+							
+							startUp();
+						}
+					}
+				});
+		
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
 		
@@ -89,8 +124,22 @@ UPnPPlugin
 				}
 			});
 		
+		if ( enabled ){
+			
+			startUp();
+		}
+	}
+	
+	protected void
+	startUp()
+	{
+		if ( upnp != null ){
+			
+			return;
+		}
+		
 		try{
-			UPnP	upnp = UPnPFactory.getSingleton();
+			upnp = UPnPFactory.getSingleton();
 				
 			upnp.addRootDeviceListener(
 				new UPnPRootDeviceListener()
@@ -182,15 +231,6 @@ UPnPPlugin
 			if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANIPConnection:1") || 
 					service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANPPPConnection:1")){
 				
-				log.log( "    Found " + ( service_type.indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
-	
-				UPnPAction[]	actions = s.getActions();
-			
-				for (int j=0;j<actions.length;j++){
-				
-					log.log( "      action:" + actions[j].getName());
-				}
-				
 				UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
 				
 				addService( wan_service );
@@ -198,26 +238,28 @@ UPnPPlugin
 		}
 	}
 	
-	protected void
+	protected synchronized void
 	addService(
 		UPnPWANConnection	wan_service )
 	
 		throws UPnPException
 	{
+		log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
+		
 		UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
 		
 		for (int j=0;j<ports.length;j++){
 			
 			log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
-							(ports[j].isTCP()?"TCP":"UDP" ));
+							(ports[j].isTCP()?"TCP":"UDP" ) + " -> " + ports[j].getInternalHost());
 		}
 		
-		services.add(new UPnPPluginService( wan_service, ports ));
+		services.add(new UPnPPluginService( wan_service, ports, alert_success_param ));
 		
 		checkState();
 	}
 	
-	protected void
+	protected synchronized void
 	addMapping(
 		UPnPMapping		mapping )
 	{
@@ -232,7 +274,7 @@ UPnPPlugin
 		checkState();
 	}	
 	
-	public void
+	public synchronized void
 	mappingChanged(
 		UPnPMapping	mapping )
 	{
@@ -241,7 +283,22 @@ UPnPPlugin
 	
 	protected synchronized void
 	checkState()
-	{
-		System.out.println( "check state: services = " + services.size() + ", mappings = " + mappings.size());
+	{		
+		for (int i=0;i<mappings.size();i++){
+			
+			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+			
+			if ( !mapping.isEnabled()){
+				
+				continue;
+			}
+			
+			for (int j=0;j<services.size();j++){
+				
+				UPnPPluginService	service = (UPnPPluginService)services.get(j);
+				
+				service.checkMapping( log, mapping );
+			}
+		}
 	}
 }

@@ -34,6 +34,9 @@ import org.gudy.azureus2.core3.upnp.services.*;
 public interface 
 UPnPService 
 {
+	public UPnPDevice
+	getDevice();
+	
 	public String
 	getServiceType();
 

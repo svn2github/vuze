@@ -74,6 +74,11 @@ LoggerChannel
 		String		message );
 	
 	public void
+	logAlert(
+		String		message,
+		Throwable 	e );
+	
+	public void
 	addListener(
 		LoggerChannelListener	l );
 	

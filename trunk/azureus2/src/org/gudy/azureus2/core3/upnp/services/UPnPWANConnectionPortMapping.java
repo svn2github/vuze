@@ -35,4 +35,7 @@ UPnPWANConnectionPortMapping
 	
 	public int
 	getExternalPort();
+	
+	public String
+	getInternalHost();
 }

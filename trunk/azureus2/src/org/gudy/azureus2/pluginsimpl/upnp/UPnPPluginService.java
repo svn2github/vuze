@@ -27,15 +27,167 @@ package org.gudy.azureus2.pluginsimpl.upnp;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.upnp.services.*;
+import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 public class 
 UPnPPluginService 
 {
+	protected UPnPWANConnection		connection;
+	protected BooleanParameter 		alert_success;
+	
+	protected List	service_mappings = new ArrayList();
+	
 	protected
 	UPnPPluginService(
 		UPnPWANConnection				_connection,
-		UPnPWANConnectionPortMapping[]	_ports )
+		UPnPWANConnectionPortMapping[]	_ports,
+		BooleanParameter				_alert_success )
 	{
+		connection		= _connection;
+		alert_success	= _alert_success;
+		
+		for (int i=0;i<_ports.length;i++){
+
+			service_mappings.add( new serviceMapping( _ports[i]));
+		}
+	}
+	
+	protected void
+	checkMapping(
+		LoggerChannel		log,
+		UPnPMapping			mapping )
+	{
+		String local_address = connection.getGenericService().getDevice().getLocalAddress().getHostAddress();
+		
+		for (int i=0;i<service_mappings.size();i++){
+			
+			serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+			
+			if ( 	sm.isTCP() == mapping.isTCP() &&
+					sm.getPort() == mapping.getPort()){
+				
+				if ( !sm.getLogged()){
+					
+					sm.setLogged();
+					
+					if ( sm.getInternalHost().equals( local_address )){
+						
+						log.log( "Mapping " + mapping.getString() + " already established" );
+						
+					}else{
+						
+						String	text = 
+							MessageText.getString( 
+									"upnp.alert.differenthost", 
+									new String[]{ mapping.getString(), sm.getInternalHost()});
+						
+						log.log( text );
+						
+						log.logAlert( LoggerChannel.LT_WARNING, text );
+					}
+				}
+				
+				return;
+			}
+		}
+		
+			// not found - try and establish it + add entry even if we fail so
+			// that we don't retry later
+		
+		try{
+			connection.addPortMapping( 
+				mapping.isTCP(), mapping.getPort(),"AZ" + mapping.getPort());
+		
+			String	text = 
+				MessageText.getString( 
+						"upnp.alert.mappingok", 
+						new String[]{ mapping.getString()});
+			
+			log.log( text );
+			
+			if ( alert_success.getValue()){
+				
+				log.logAlert( LoggerChannel.LT_INFORMATION, text );
+			}
+			
+		}catch( Throwable e ){
+			
+			String	text = 
+				MessageText.getString( 
+						"upnp.alert.mappingfailed", 
+						new String[]{ mapping.getString()});
+			
+			log.log( text );
+			
+			log.logAlert( LoggerChannel.LT_ERROR, text );
+		}
+		
+		service_mappings.add( new serviceMapping( mapping ));
+	}
+	
+	protected class
+	serviceMapping
+	{
+		protected boolean		external;
+		protected boolean		tcp;
+		protected int			port;
+		protected String		internal_host;
+		
+		protected boolean		logged;
+		
+		protected
+		serviceMapping(
+			UPnPWANConnectionPortMapping		mapping )
+		{
+			external		= true;
+			tcp				= mapping.isTCP();
+			port			= mapping.getExternalPort();
+			internal_host	= mapping.getInternalHost();
+		}
+	
+		protected
+		serviceMapping(
+			UPnPMapping		mapping )
+		{
+			external		= true;
+			tcp				= mapping.isTCP();
+			port			= mapping.getPort();
+			internal_host	= connection.getGenericService().getDevice().getLocalAddress().getHostAddress();
+		}
+		
+		protected boolean
+		getLogged()
+		{
+			return( logged );
+		}
+		
+		protected void
+		setLogged()
+		{
+			logged	= true;
+		}
+		
+		protected boolean
+		isTCP()
+		{
+			return( tcp );
+		}
+		
+		protected int
+		getPort()
+		{
+			return( port );
+		}
+		
+		protected String
+		getInternalHost()
+		{
+			return( internal_host );
+		}
 	}
 }

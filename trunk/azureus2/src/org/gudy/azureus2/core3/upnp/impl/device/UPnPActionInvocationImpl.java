@@ -93,7 +93,7 @@ UPnPActionInvocationImpl
 							
 				// try standard POST
 			
-			SimpleXMLParserDocument resp_doc	= ((UPnPServiceImpl)action.getService()).getDevice().getUPnP().performSOAPRequest( service, soap_action, request );
+			SimpleXMLParserDocument resp_doc	= ((UPnPDeviceImpl)action.getService().getDevice()).getUPnP().performSOAPRequest( service, soap_action, request );
 						
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			

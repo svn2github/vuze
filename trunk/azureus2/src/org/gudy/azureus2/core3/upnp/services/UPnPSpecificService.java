@@ -27,7 +27,11 @@ package org.gudy.azureus2.core3.upnp.services;
  *
  */
 
+import org.gudy.azureus2.core3.upnp.*;
+
 public interface 
 UPnPSpecificService 
 {
+	public UPnPService
+	getGenericService();
 }

@@ -29,6 +29,8 @@ package org.gudy.azureus2.pluginsimpl.upnp;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.*;
+
 public class 
 UPnPMapping 
 {
@@ -98,6 +100,13 @@ UPnPMapping
 			
 			changed();
 		}
+	}
+	
+	public String
+	getString()
+	{
+		return( MessageText.getString( resource_name ) + 
+				" (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
 	}
 	
 	protected void

@@ -79,7 +79,7 @@ UPnPStateVariableImpl
 			request += "</s:Body\n>"+
 						"</s:Envelope>\n";
 							
-			SimpleXMLParserDocument resp_doc	= service.getDevice().getUPnP().performSOAPRequest( service, soap_action, request );
+			SimpleXMLParserDocument resp_doc	= ((UPnPDeviceImpl)service.getDevice()).getUPnP().performSOAPRequest( service, soap_action, request );
 
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			

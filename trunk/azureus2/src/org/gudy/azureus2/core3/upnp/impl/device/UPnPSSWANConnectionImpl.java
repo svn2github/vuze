@@ -24,11 +24,7 @@ package org.gudy.azureus2.core3.upnp.impl.device;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.upnp.UPnPAction;
-import org.gudy.azureus2.core3.upnp.UPnPActionArgument;
-import org.gudy.azureus2.core3.upnp.UPnPActionInvocation;
-import org.gudy.azureus2.core3.upnp.UPnPException;
-import org.gudy.azureus2.core3.upnp.UPnPStateVariable;
+import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.services.UPnPWANConnectionPortMapping;
 
 /**
@@ -46,6 +42,12 @@ UPnPSSWANConnectionImpl
 		UPnPServiceImpl		_service )
 	{
 		service	= _service;
+	}
+	
+	public UPnPService
+	getGenericService()
+	{
+		return( service );
 	}
 	
 	public void
@@ -78,12 +80,13 @@ UPnPSSWANConnectionImpl
 										
 		throws UPnPException
 	{
-		UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
+		// UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
 		
-		int	entries = Integer.parseInt( noe.getValue());
+		int	entries = 0; //Integer.parseInt( noe.getValue());
 		
 			// some routers (e.g. Gudy's) return 0 here whatever!
 			// In this case take mindless approach
+			// hmm, even for my router the state variable isn't accurate...
 		
 		UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
 
@@ -98,8 +101,9 @@ UPnPSSWANConnectionImpl
 			try{
 				UPnPActionArgument[] outs = inv.invoke();
 				
-				int		port	= 0;
-				boolean	tcp		= false;
+				int		port			= 0;
+				boolean	tcp				= false;
+				String	internal_host	= null;
 				
 				for (int j=0;j<outs.length;j++){
 					
@@ -114,10 +118,14 @@ UPnPSSWANConnectionImpl
 					}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
 						
 						tcp = out.getValue().equalsIgnoreCase("TCP");
+			
+					}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
+						
+						internal_host = out.getValue();
 					}
 				}
 				
-				res.add( new portMapping( port, tcp ));
+				res.add( new portMapping( port, tcp, internal_host ));
 				
 			}catch( UPnPException e ){
 				
@@ -143,14 +151,17 @@ UPnPSSWANConnectionImpl
 	{
 		protected int			external_port;
 		protected boolean		tcp;
+		protected String		internal_host;
 		
 		protected
 		portMapping(
 			int			_external_port,
-			boolean		_tcp )
+			boolean		_tcp,
+			String		_internal_host )
 		{
 			external_port	= _external_port;
 			tcp				= _tcp;
+			internal_host	= _internal_host;
 		}
 		
 		public boolean
@@ -163,6 +174,12 @@ UPnPSSWANConnectionImpl
 		getExternalPort()
 		{
 			return( external_port );
+		}
+		
+		public String
+		getInternalHost()
+		{
+			return( internal_host );
 		}
 	}
 }

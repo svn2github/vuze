@@ -64,7 +64,7 @@ UPnPServiceImpl
 		device.getUPnP().log( indent + desc_url + ", " + control_url );
 	}
 	
-	protected UPnPDeviceImpl
+	public UPnPDevice
 	getDevice()
 	{
 		return( device );
