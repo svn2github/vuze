@@ -3,8 +3,6 @@ CHANGELOG
 
 xx.xx.03 | Azureus 2.0.4.3
 
-***** TODO: Add SSL stuff to FAQ [Parg] *****
-
 FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for quicker download speed ramp up [Nolar]
 FEATURE: Azureus can now run all downloads off one shared incoming port: only need to open/forward one port in your firewall/NAT [Parg]
 FEATURE: Drag-n-Drop moving of downloads in MyTorrents; moving of downloads in MyTorrents with Ctrl + Arrow-Up/Down [Rele]
@@ -31,7 +29,6 @@ FEATURE: Editing and selection of tracker announce URLs from general view [Gudy]
 FEATURE: Plugin interface for tracker web serving [Parg]
 FEATURE: HTML template (http://html-tmpl-java.sourceforge.net/) support for tracker web serving from %az_home%/web folder [Parg]
 FEATURE: Opening a second torrent with same hash as existing download causes second torrent's announce urls to be merged into the first [Parg]
-
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
