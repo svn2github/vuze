@@ -221,6 +221,10 @@ public class IncomingMessageQueue {
                 
               System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
             }
+            
+            if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
+              Debug.out( "Direct buffer memory exception", e );
+            }
           }
               
           connection.notifyOfException( e );
