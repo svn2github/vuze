@@ -469,8 +469,10 @@ public class GeneralView extends AbstractIView {
       }
     }
     gcImage.dispose();
-    if (availabilityPercent == null || availabilityPercent.isDisposed())
+    if (availabilityPercent == null || availabilityPercent.isDisposed()) {
+      gc.dispose();
       return;
+    }
     availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
     gc.setForeground(MainWindow.grey);
     gc.drawImage(aImage, x0, y0);
@@ -494,8 +496,10 @@ public class GeneralView extends AbstractIView {
     GC gc = new GC(piecesImage);
     boolean valid = true;
     boolean newPieces[] = manager.getPiecesStatus();
-    if (newPieces == null)
+    if (newPieces == null) {
+      gc.dispose();
       return;
+    }
     for (int i = 0; i < pieces.length; i++) {
       if (pieces[i] != newPieces[i]) {
         valid = false;
@@ -539,8 +543,10 @@ public class GeneralView extends AbstractIView {
           piecesPercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
       }
     }
-    if (pImage == null || pImage.isDisposed())
+    if (pImage == null || pImage.isDisposed()) {
+      gc.dispose();
       return;
+    }
     gc.setForeground(MainWindow.grey);
     gc.drawImage(pImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
