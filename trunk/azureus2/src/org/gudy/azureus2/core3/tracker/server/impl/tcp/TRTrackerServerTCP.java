@@ -205,11 +205,11 @@ TRTrackerServerTCP
 								
 				String	ip = socket.getInetAddress().getHostAddress();
 				
-				if ( checkDOS( ip )){
+				//if ( checkDOS( ip )){
 					
-					socket.close();
+				//	socket.close();
 					
-				}else{
+				//}else{
 					
 					if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
 						
@@ -219,7 +219,7 @@ TRTrackerServerTCP
 						
 						socket.close();
 					}
-				}
+				//}
 				
 			}catch( Throwable e ){
 				
