@@ -64,7 +64,6 @@ public class TCPTransport {
    */
   public TCPTransport() {
     socket_channel = null;
-    is_ready_for_write = false;
     is_inbound_connection = false;
   }
   
@@ -77,7 +76,6 @@ public class TCPTransport {
   public TCPTransport( SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
     this.data_already_read = already_read;   
-    is_ready_for_write = true;  //assume it is ready
     is_inbound_connection = true;
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
     
@@ -273,8 +271,6 @@ public class TCPTransport {
         is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
       }
     }, null );
-    
-    NetworkManager.getSingleton().getWriteController().getWriteSelector().pauseSelects( socket_channel );
   }
   
   
@@ -433,7 +429,6 @@ public class TCPTransport {
         
         socket_channel = channel;
         connect_request_key = null;
-        is_ready_for_write = true;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         registerSelectHandling();
