@@ -207,9 +207,14 @@ public class Messages {
 
   private static void updateLanguageFromData(Widget widget,String[] params) {
       if (widget.getData() != null) {
-        String key = (String) widget.getData();
-        if(key.endsWith(".tooltip"))
-          return;
+        String key = null;
+        try {
+          key = (String) widget.getData();
+        } catch(ClassCastException e) {
+        }
+        
+        if(key == null) return;        
+        if(key.endsWith(".tooltip")) return;
         
         String	message;
         
@@ -219,7 +224,7 @@ public class Messages {
         }else{
         	
            	message = MessageText.getString((String) widget.getData(), params);         	
-        }
+        }        
         
         if (widget instanceof MenuItem)
            ((MenuItem) widget).setText(message);
