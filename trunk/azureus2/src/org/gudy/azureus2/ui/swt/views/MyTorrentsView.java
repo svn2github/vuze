@@ -1265,6 +1265,7 @@ public class MyTorrentsView
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
+    super.parameterChanged(parameterName);
     confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
   }
 
