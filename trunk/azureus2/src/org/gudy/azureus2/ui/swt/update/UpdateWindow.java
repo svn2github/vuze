@@ -151,25 +151,16 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       Messages.setLanguageText(column,"swt.update.window.columns." + names[i]);
       column.setWidth(sizes[i]);
     }
-    table.setHeaderVisible(true);
-    
+    table.setHeaderVisible(true);    
+
     table.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
-        checkMandatory();
-        checkRestartNeeded();
-        TableItem[] items = table.getSelection();
-        if(items.length == 0) return;
-        Update update = (Update) items[0].getData();        
-        String[] descriptions = update.getDescription();
-        stDescription.setText("");
-        for(int i = 0 ; i < descriptions.length ; i++) {
-          stDescription.append(descriptions[i] + "\n");
-        }
+      	rowSelected();
       }
     });
     
-    stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
-    
+    stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);    
+
     progress = new ProgressBar(updateWindow,SWT.NULL);
     progress.setMinimum(0);
     progress.setMaximum(100);
@@ -233,6 +224,21 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     //updateWindow.open();
   }
   
+  protected void
+  rowSelected()
+  {
+    checkMandatory();
+    checkRestartNeeded();
+    TableItem[] items = table.getSelection();
+    if(items.length == 0) return;
+    Update update = (Update) items[0].getData();        
+    String[] descriptions = update.getDescription();
+    stDescription.setText("");
+    for(int i = 0 ; i < descriptions.length ; i++) {
+      stDescription.append(descriptions[i] + "\n");
+    }
+  }
+  
   public void dispose() {
     updateWindow.dispose();
     MainWindow.getWindow().setUpdateNeeded(null);
@@ -263,6 +269,15 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
         item.setText(COL_SIZE,DisplayFormatters.formatByteCountToBase10KBEtc(totalLength));                
         
         item.setChecked(true);
+        
+        	// select first entry
+        
+        if ( table.getItemCount() == 1 ){
+        	
+        	table.select(0);
+        	
+        	rowSelected();	// don't seem to be getting the selection event, do it explicitly
+        }
         
         checkRestartNeeded();
         
