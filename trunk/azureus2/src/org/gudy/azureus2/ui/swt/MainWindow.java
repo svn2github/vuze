@@ -75,6 +75,8 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.FileImporter;
+import org.gudy.azureus2.core3.disk.FileImporter.FolderWatcher;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -177,6 +179,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Shell			current_upgrade_window;
   private Timer			version_check_timer;
   
+  private FolderWatcher folderWatcher = null;
 
 
   private class GUIUpdater extends Thread implements ParameterListener {
@@ -770,11 +773,28 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       tray.setVisible(true);
     }
     COConfigurationManager.addParameterListener("Show Download Basket", this);
-	}catch( Throwable e ){
+    startFolderWatcher();
+    COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
+    COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
+  }catch( Throwable e ){
 		e.printStackTrace();
 	} }
 
-	public void allocateBlues() {
+	private void startFolderWatcher() {
+    if(folderWatcher == null)
+      folderWatcher = FileImporter.getFolderWatcher();
+	  folderWatcher.startIt();
+  }
+
+  private void stopFolderWatcher() {
+    if(folderWatcher != null) {
+      folderWatcher.stopIt();
+      folderWatcher.interrupt();
+      folderWatcher = null;
+    }
+  }
+
+  public void allocateBlues() {
     int r = COConfigurationManager.getIntParameter("Color Scheme.red",0);
     int g = COConfigurationManager.getIntParameter("Color Scheme.green",128);
     int b = COConfigurationManager.getIntParameter("Color Scheme.blue",255);
@@ -1682,7 +1702,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       return false;
     if (this.trayIcon != null)
       SysTrayMenu.dispose();
-
+    stopFolderWatcher();
     if (startServer != null)
       startServer.stopIt();
     updater.stopIt();
@@ -1806,22 +1826,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       return;
     }
 
-    display.asyncExec(new Runnable() {
-      public void run() {
-        if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
-          mainWindow.setActive();
-
-        new Thread() {
-          public void run() {
-            String savePath = getSavePath(fileName);
-            if (savePath == null)
-              return;
-            globalManager.addDownloadManagerStopped(fileName, savePath, startInStoppedState);
-}
+    if(display != null && ! display.isDisposed())
+      display.asyncExec(new Runnable() {
+        public void run() {
+          if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+            mainWindow.setActive();
+          
+          new Thread() {
+            public void run() {
+              String savePath = getSavePath(fileName);
+              if (savePath == null)
+                return;
+              globalManager.addDownloadManagerStopped(fileName, savePath, startInStoppedState);
+            }
+          }
+          .start();
         }
-        .start();
-      }
-    });
+      });
   }
 
   public String getSavePath(String fileName) {
@@ -2100,7 +2121,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       tray.setVisible(false);
       tray = null;
     }
-  }
+    if (COConfigurationManager.getBooleanParameter("Watch Torrent Folder", false)) //$NON-NLS-1$
+      startFolderWatcher();
+    else
+      stopFolderWatcher();
+    if("Watch Torrent Folder Path".equals(parameterName))
+      startFolderWatcher();
+   }
   
   
 
@@ -2351,12 +2378,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       sb.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
-        sb.append(" " + notInRange);
-        sb.append("\n");
+        sb.append(' ');
+        sb.append(notInRange);
+        sb.append('\n');
       } else {
-        sb.append(" " + inRange);
+        sb.append(' ');
+        sb.append(inRange);
         sb.append(range.toString());
-        sb.append("\n");
+        sb.append('\n');
       }
     }
     if(mainWindow == null || mainWindow.isDisposed())

@@ -692,7 +692,7 @@ public class ConfigView extends AbstractIView {
     //Group gFile = new Group(ctfConfig, SWT.NULL);
 
     GridLayout layout = new GridLayout();
-    layout.numColumns = 7;
+    layout.numColumns = 9;
     gFile.setLayout(layout);
     Label label;
     
@@ -704,10 +704,14 @@ public class ConfigView extends AbstractIView {
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
@@ -731,14 +735,18 @@ public class ConfigView extends AbstractIView {
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
     
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
     BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
-    new Label(gFile, SWT.NULL);
     
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
     label = new Label(gFile, SWT.NULL);
+    label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
     final String saveResumeLabels[] = new String[19];
     final int saveResumeValues[] = new int[19];
@@ -753,7 +761,8 @@ public class ConfigView extends AbstractIView {
     bpUseResume.setAdditionalActionPerformer(performer);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
-    
+    new Label(gFile, SWT.NULL);
+
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
     BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir", true); //$NON-NLS-1$
@@ -763,7 +772,7 @@ public class ConfigView extends AbstractIView {
     
     gridData = new GridData();
     gridData.widthHint = 180;
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 6;
     final StringParameter pathParameter = new StringParameter(gFile, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
     
@@ -798,7 +807,7 @@ public class ConfigView extends AbstractIView {
    
     gridData = new GridData();
     gridData.widthHint = 180;
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     final StringParameter torrentPathParameter = new StringParameter(gFile, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
     torrentPathParameter.setLayoutData(gridData);
     
@@ -859,11 +868,7 @@ public class ConfigView extends AbstractIView {
     
     Label lMoveTorrent = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); //$NON-NLS-1$
-    BooleanParameter moveTorrent = new BooleanParameter(gFile, "Move Torrent When Done", true); //$NON-NLS-1$
-
-    new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
+    BooleanParameter moveTorrent = new BooleanParameter(gFile, "Move Torrent When Done", true); //$NON-NLS-1$    
     
     Label lMoveOnly = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); //$NON-NLS-1$
@@ -880,16 +885,61 @@ public class ConfigView extends AbstractIView {
     IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls);
     moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 
-    new Label(gFile, SWT.NULL);
-    new Label(gFile, SWT.NULL);
+
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.watchtorrentfolder"); //$NON-NLS-1$
+    BooleanParameter watchFolder = new BooleanParameter(gFile, "Watch Torrent Folder", false); //$NON-NLS-1$    
+
+    Button browse4 = new Button(gFile, SWT.PUSH);
+    Messages.setLanguageText(browse4, "ConfigView.button.browse"); //$NON-NLS-1$
     
+    gridData = new GridData();
+    gridData.widthHint = 180;
+    final StringParameter watchFolderPathParameter = new StringParameter(gFile, "Watch Torrent Folder Path", "");
+    watchFolderPathParameter.setLayoutData(gridData);
     
+    browse4.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(watchFolderPathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosewatchtorrentfolderpath")); //$NON-NLS-1$
+        String path = dialog.open();
+        if (path != null) {
+          watchFolderPathParameter.setValue(path);
+        }
+      }
+    });
+    
+    Label lWatchTorrentFolderInterval = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(lWatchTorrentFolderInterval, "ConfigView.label.watchtorrentfolderinterval"); //$NON-NLS-1$
+    final String watchTorrentFolderIntervalLabels[] = new String[5];
+    final int watchTorrentFolderIntervalValues[] = new int[5];
+    for (int i = 1; i < 6; i++) {
+      watchTorrentFolderIntervalLabels[i - 1] = " " + i + " min"; //$NON-NLS-1$ //$NON-NLS-2$
+      watchTorrentFolderIntervalValues[i - 1] = i;
+    }
+    IntListParameter iWatchTorrentFolderIntervalParameter = new IntListParameter(gFile, "Watch Torrent Folder Interval", 1, watchTorrentFolderIntervalLabels, watchTorrentFolderIntervalValues);
+    label = new Label(gFile, SWT.NULL);
+    Label lStartWatchedTorrentsStopped = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(lStartWatchedTorrentsStopped, "ConfigView.label.startwatchedtorrentsstopped"); //$NON-NLS-1$
+    BooleanParameter startWatchedTorrentsStopped = new BooleanParameter(gFile, "Start Watched Torrents Stopped", true); //$NON-NLS-1$    
+    controls = new Control[6];
+    controls[0] = watchFolderPathParameter.getControl();
+    controls[1] = browse4;
+    controls[2] = lWatchTorrentFolderInterval;
+    controls[3] = iWatchTorrentFolderIntervalParameter.getControl();
+    controls[4] = lStartWatchedTorrentsStopped;
+    controls[5] = startWatchedTorrentsStopped.getControl();
+    IAdditionalActionPerformer grayPathAndButton3 = new ChangeSelectionActionPerformer(controls);
+    watchFolder.setAdditionalActionPerformer(grayPathAndButton3);
+
+
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
     
     gridData = new GridData();
     gridData.widthHint = 262;
-    gridData.horizontalSpan = 6;
+    gridData.horizontalSpan = 8;
     new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
 
     	// locale decoder
@@ -913,11 +963,12 @@ public class ConfigView extends AbstractIView {
 	decoder_controls[0] = label;
 	decoder_controls[1] = new StringListParameter(gFile, "File.Decoder.Default", "", decoderLabels, decoderValues).getControl(); //$NON-NLS-1$    
 	gridData = new GridData();
-	gridData.horizontalSpan = 2;
+	gridData.horizontalSpan = 3;
 	decoder_controls[1].setLayoutData(gridData);
 	new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
 	
 		// locale always prompt
@@ -927,8 +978,10 @@ public class ConfigView extends AbstractIView {
 	Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt"); 
 	BooleanParameter enableStats = new BooleanParameter(gFile, "File.Decoder.Prompt", false);
 	new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
+  new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
 	
