@@ -219,19 +219,13 @@ PEPeerTransportProtocol
   		String 			_ip, 
   		int 			_port,
   		boolean			_incoming_connection,
-      SocketChannel channel,  //hack for incoming connections. null otherwise
-  		final byte[]			data_already_read,
-  		boolean 		fake ) 
+		SocketChannel 	channel,  //hack for incoming connections. null otherwise
+  		final byte[]	data_already_read )
 	{		
 		manager	= _manager;
 		ip 		= _ip;
 		port 	= _port;
 	 	    
-	 	
-		if ( fake ){
-			return;
-		}
-	
 		uniquePiece = -1;
 		
 		incoming = _incoming_connection;
@@ -1805,43 +1799,46 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		public List 
 		getExpiredRequests() {
 			List result = null;
-			try{
-				requested_mon.enter();
 			
-		    	for (int i = 0; i < requested.size(); i++) {
-		    		try {
-		    			DiskManagerReadRequest request = (DiskManagerReadRequest) requested.get(i);
-		    			if (request.isExpired()) {
-		    				if ( result == null ){
-		    					result = new ArrayList();
-		    				}
-		    				result.add(request);
-		    			}
-		    		}
-		    		catch (ArrayIndexOutOfBoundsException e) {
-		    			//Keep going, most probably, piece removed...
-		    			//Hopefully we'll find it later :p
-		    			Debug.printStackTrace( e );
-		    		}
+				// this is frequently called, hence we operate without a monitor and
+				// take the hit of possible exceptions due to concurrent list
+				// modification (only out-of-bounds can occur)
+				
+			try{
+		    	for (int i = 0; i < requested.size(); i++){
+		    		
+	    			DiskManagerReadRequest request = (DiskManagerReadRequest) requested.get(i);
+		    			
+	    			if (request.isExpired()){
+	    				
+	    				if ( result == null ){
+	    					
+	    					result = new ArrayList();
+	    				}
+	    				
+	    				result.add(request);
+	    			}
 		    	}
-		    }finally{
 		    	
-		    	requested_mon.exit();
+		    	return( result );
+		    	
+		    }catch(Throwable e ){
+		    	
+		    	return( null );
 		    }
-			return result;
 		}
 		
 		protected boolean
 		alreadyRequested(
 			DiskManagerReadRequest	request )
 		{
-	    try{
-	    	requested_mon.enter();
+			try{
+				requested_mon.enter();
 	    
-	      return requested.contains( request );
-	    }finally{
-	    	requested_mon.exit();
-	    }
+				return requested.contains( request );
+			}finally{
+				requested_mon.exit();
+			}
 		}
 		
 		protected void

@@ -41,10 +41,9 @@ PEPeerTransportFactory
 	createTransport(
 		PEPeerControl	 	control,
 		String 				ip, 
-		int 				port, 
-		boolean 			fake )
+		int 				port )
 	{
-		return( new PEPeerTransportImpl( control, ip, port, fake ));
+		return( new PEPeerTransportImpl( control, ip, port ));
 	}
 
 	public static void

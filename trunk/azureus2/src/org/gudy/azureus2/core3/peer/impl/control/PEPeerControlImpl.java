@@ -511,7 +511,7 @@ PEPeerControlImpl
 		try{
 			peer_transports_mon.enter();
 				
-			if ( !peer_transports_cow.contains(transport)){ //TODO does nothing as peertransport no longer overrides equals()
+			if ( !peer_transports_cow.contains(transport)){
 				
 				addToPeerTransports( transport.getRealTransport());
 				
@@ -559,19 +559,12 @@ PEPeerControlImpl
    * @param address ip of remote peer
    * @param port remote peer listen port
    */
-  private void makeNewOutgoingConnection( String address, int port ) {
-    //make sure this connection is not already established
-    PEPeerTransport test = PEPeerTransportFactory.createTransport( this, address, port, true );
-    try{
-    	peer_transports_mon.enter();
-    	
-      if( peer_transports_cow.contains( test ) )  return;  //TODO does nothing as peertransport no longer overrides equals()
-    }finally{
-    	
-    	peer_transports_mon.exit();
-    }
-    
-    //make sure this connection isn't filtered
+  private void 
+  makeNewOutgoingConnection( 
+  	String address, int port ) 
+  {    
+  		//make sure this connection isn't filtered
+  	
     if( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( address, _downloadManager.getDisplayName() ) ) {
       return;
     }
@@ -581,7 +574,8 @@ PEPeerControlImpl
     if( needed == 0 )  return;
 
     //start the connection
-    PEPeerTransport real = PEPeerTransportFactory.createTransport( this, address, port, false );
+    PEPeerTransport real = PEPeerTransportFactory.createTransport( this, address, port );
+    
     addToPeerTransports( real );
   }
   
@@ -1215,12 +1209,14 @@ PEPeerControlImpl
 	       try{
 	       	peer_transports_mon.enter();
 	       
-	          if (!peer_transports_cow.contains(ps)) {//TODO does nothing as peertransport no longer overrides equals()
-	          	/* add connection */
+	          if (!peer_transports_cow.contains( ps )) {
+	          
 	          	addToPeerTransports(ps);
-	          }
-	          else {
+	          	
+	          }else{
+	          	
 	            addFailed = true;
+	            
 	            reason=ps.getIp() + " : Already Connected";
 	          }
 	       }finally{
@@ -1484,14 +1480,21 @@ PEPeerControlImpl
           }
           if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
             long upRate = 0;
-            //If peer we'll use the overall uploaded value
-            if (!_finished)
+            	//If peer we'll use the overall uploaded value
+            if (!_finished){
+            	
               upRate = pc.getStats().getTotalReceived();
-            else {
-              //TODO: seeding to more-complete peers is not the best way to do things
+              
+            }else{
+              
+            		//TODO: seeding to more-complete peers is not the best way to do things
+            	
               upRate = pc.getPercentDone();
-              if (pc.isSnubbed())
-                upRate = -1;
+              
+              if (pc.isSnubbed()){
+               
+              	upRate = -1;
+              }
             }
             testAndSortBest(upRate, upRates, pc, bestUploaders, start);
           }

@@ -62,10 +62,9 @@ PEPeerTransportImpl
   	PEPeerTransportImpl(
   		PEPeerControl 	manager,
   		String 			ip, 
-  		int 			port, 
-  		boolean 		fake )
+  		int 			port ) 
  	{
-    	super(manager, ip, port, false, null, null, fake);
+    	super(manager, ip, port, false, null, null );
   	}
 
 
@@ -85,9 +84,8 @@ PEPeerTransportImpl
     			sck.socket().getInetAddress().getHostAddress(), 
     			sck.socket().getPort(),
     			true,
-          sck,
-    			_leading_data,
-    			false ) ;
+				sck,
+    			_leading_data );
       
      	socket 			= sck;
   	}
