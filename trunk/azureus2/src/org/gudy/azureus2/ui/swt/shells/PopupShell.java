@@ -62,7 +62,8 @@ public class PopupShell {
     //shell.setRegion(region);
     
     Rectangle size = region.getBounds();
-    shell.setSize(size.width, size.height);
+    //shell.setSize(size.width, size.height);
+    shell.setSize(250,150);
     shell.setImage(ImageRepository.getImage("azureus"));
     
     FormLayout layout = new FormLayout();
