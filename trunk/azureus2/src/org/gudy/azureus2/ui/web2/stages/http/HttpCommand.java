@@ -7,11 +7,10 @@
 package org.gudy.azureus2.ui.web2.stages.http;
 
 import java.io.File;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -57,7 +56,7 @@ public class HttpCommand implements WebConst, EventHandlerIF {
     if (item instanceof httpRequest) {
       httpRequest req = (httpRequest) item;
       if (req.getRequest() == httpRequest.REQUEST_POST)
-        Process(req.getQuery());
+        Process(req);
       else {
         if (logger.isDebugEnabled())
           logger.debug("HttpCommand: Got non-POST request: " + item);
@@ -68,15 +67,14 @@ public class HttpCommand implements WebConst, EventHandlerIF {
     }
 
   }
-  private void ProcessConfigVars(Hashtable URIvars) {
-    Set keys = URIvars.keySet();
-    Iterator key = keys.iterator();
+  private void ProcessConfigVars(httpRequest req) {
+    Enumeration key = req.getQueryKeys();
     File temp;
-    while (key.hasNext()) {
-      String k = (String) key.next();
+    while (key.hasMoreElements()) {
+      String k = (String) key.nextElement();
       if (k.startsWith("Options_")) {
         String option = k.substring(k.indexOf('_') + 1);
-        String value = (String) URIvars.get(k);
+        String value = req.getQuery(k);
         if (option.endsWith("_Directory")) {
           temp = new File(value);
           if (!temp.exists())
@@ -97,8 +95,8 @@ public class HttpCommand implements WebConst, EventHandlerIF {
     //server.initAccess();
   }
 
-  private void ProcessAdd(Hashtable URIvars) {
-    if (URIvars.containsKey("Add_torrent") && !((String) URIvars.get("Add_torrent")).equals("")) {
+  private void ProcessAdd(httpRequest req) {
+    if (req.getQuery().containsKey("Add_torrent") && !(req.getQuery("Add_torrent")).equals("")) {
       /*  
       try {
         HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -108,7 +106,7 @@ public class HttpCommand implements WebConst, EventHandlerIF {
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
       }*/
-      TorrentDownloaderFactory.downloadManaged((String) URIvars.get("Add_torrent"));
+      TorrentDownloaderFactory.downloadManaged(req.getQuery("Add_torrent"));
     }
   }
 
@@ -124,20 +122,19 @@ public class HttpCommand implements WebConst, EventHandlerIF {
     }
   }
 
-  private void ProcessTorrent(Hashtable URIvars) {
-    if (URIvars.containsKey("subcommand")) {
-      String subcommand = (String) URIvars.get("subcommand");
+  private void ProcessTorrent(httpRequest req) {
+    if (req.getQuery().containsKey("subcommand")) {
+      String subcommand = req.getQuery("subcommand");
       if (logger.isDebugEnabled())
         logger.debug("ProcessTorrent: " + subcommand);
       List torrents = UIConst.GM.getDownloadManagers();
       if (!torrents.isEmpty()) {
         UpdateDls();
 
-        Set keys = URIvars.keySet();
-        Iterator ikeys = keys.iterator();
-        while (ikeys.hasNext()) {
-          String key = (String) ikeys.next();
-          String value = (String) URIvars.get(key);
+        Enumeration ikeys = req.getQueryKeys();
+        while (ikeys.hasMoreElements()) {
+          String key = (String) ikeys.nextElement();
+          String value = req.getQuery(key);
           if (logger.isDebugEnabled())
             logger.debug("ProcessTorrent: (" + key + "/" + value + ")");
           if (value.equals("1") && key.startsWith("Torrent_Hash_")) {
@@ -163,19 +160,19 @@ public class HttpCommand implements WebConst, EventHandlerIF {
     }
   }
 
-  public void Process(Hashtable URIvars) {
+  public void Process(httpRequest req) {
     if (logger.isDebugEnabled())
-      logger.debug("Processing "+URIvars);
-    if (URIvars.containsKey("command")) {
-      String command = (String) URIvars.get("command");
+      logger.debug("Processing " + req);
+    if (req.getQuery().containsKey("command")) {
+      String command = (String) req.getQuery().get("command");
       if (command.equals("Config"))
-        this.ProcessConfigVars(URIvars);
+        this.ProcessConfigVars(req);
       else if (command.equals("Add"))
-        this.ProcessAdd(URIvars);
+        this.ProcessAdd(req);
       else if (command.equals("Exit"))
         UIConst.shutdown();
       else if (command.equals("Torrent"))
-        this.ProcessTorrent(URIvars);
+        this.ProcessTorrent(req);
     }
   }
 
@@ -201,6 +198,7 @@ public class HttpCommand implements WebConst, EventHandlerIF {
   /* (non-Javadoc)
    * @see seda.sandStorm.api.EventHandlerIF#destroy()
    */
-  public void destroy() throws Exception {}
+  public void destroy() throws Exception {
+  }
 
 }
