@@ -172,7 +172,6 @@ PEPeerTransportProtocol
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
         registerForMessageHandling();
         changePeerState( PEPeer.HANDSHAKING );
-        sendBTHandshake();
       }
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -1009,6 +1008,11 @@ PEPeerTransportProtocol
     LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
 
     handshake.destroy();
+    
+    
+    if( incoming ) {  //wait until we've received their handshake before sending ours
+      sendBTHandshake();
+    }
     
     
     //extended protocol processing
