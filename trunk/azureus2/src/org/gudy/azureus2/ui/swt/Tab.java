@@ -13,6 +13,9 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -85,34 +88,34 @@ public class Tab {
         tabItem = new TabItem((TabFolder) folder, SWT.NULL);
       }
     }
-    /*
-    folder.addMouseListener(new MouseAdapter() {
-      public void mouseDown(MouseEvent arg0) {
-        if(arg0.button == 2) {
-          if(eventCloseAllowed) { 
-            Rectangle rectangle = useCustomTab ? ((CTabItem)tabItem).getBounds() : ((TabItem)tabItem).getControl().getBounds(); 
-            if(rectangle.contains(arg0.x, arg0.y)) {
-              eventCloseAllowed = false;
-              folder.removeMouseListener(this);
-              closed(tabItem);
-            }
-          }
-        } else {          
-          selectedItem = useCustomTab ? (Item) ((CTabFolder) folder).getSelection() : ((TabFolder) folder).getSelection().length > 0 ? ((TabFolder) folder).getSelection()[0] : null;
-//    System.out.println("selected: "+selectedItem.getText());
-        }
-      }
-      
-      public void mouseUp(MouseEvent arg0) {
-        eventCloseAllowed = true;
-        if(selectedItem != null) {
-          if(_folder instanceof CTabFolder)
-            ((CTabFolder) _folder).setSelection((CTabItem)selectedItem);
-          else
-            ((TabFolder) _folder).setSelection(new TabItem[]{(TabItem)selectedItem});
-        }
-      }
-    });*/
+    
+    if(useCustomTab) {
+	    folder.addMouseListener(new MouseAdapter() {
+	      public void mouseDown(MouseEvent arg0) {
+	        if(arg0.button == 2) {
+	          if(eventCloseAllowed) { 
+	            Rectangle rectangle =((CTabItem)tabItem).getBounds(); 
+	            if(rectangle.contains(arg0.x, arg0.y)) {
+	              eventCloseAllowed = false;
+	              folder.removeMouseListener(this);
+	              closed(tabItem);
+	            }
+	          }
+	        } else {          
+	          selectedItem = (Item) ((CTabFolder) folder).getSelection();
+	          //System.out.println("selected: "+selectedItem.getText());
+	        }
+	      }
+	      
+	      public void mouseUp(MouseEvent arg0) {
+	        eventCloseAllowed = true;
+	        if(selectedItem != null) {
+	          if(_folder instanceof CTabFolder)
+	            ((CTabFolder) _folder).setSelection((CTabItem)selectedItem);	          
+	        }
+	      }
+	    });
+    }
 
     if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView)) {
       composite = new Composite(folder, SWT.NULL);
@@ -147,6 +150,7 @@ public class Tab {
     else {
       try {
         _view.initialize(folder);
+        _view.setTabListener();
         tabItem.setText(view.getShortTitle());
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(_view.getComposite());

@@ -1282,6 +1282,10 @@ public class ConfigView extends AbstractIView {
    Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "config.style.useSIUnits",false); //$NON-NLS-1$
    
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.alwaysRefreshMyTorrents"); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "config.style.refreshMT",false); //$NON-NLS-1$
+   
    itemStyle.setControl(gStyle);
   }
   

@@ -136,6 +136,7 @@ public class ConfigurationDefaults {
     def.put("ReOrder Delay",new Long(0));
     def.put("Send Version Info",new Long(1));
     def.put("Show Download Basket",new Long(0));
+    def.put("config.style.refreshMT",new Long(0));
     
     /** Headless Server settings **/
     // Server Name

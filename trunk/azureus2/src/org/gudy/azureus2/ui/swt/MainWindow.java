@@ -191,18 +191,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
 
   private class GUIUpdater extends Thread implements ParameterListener {
-    boolean finished = false;    
+    boolean finished = false;
+    boolean refreshed = true;
+    
     int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
-
+    boolean alwaysRefreshMyTorrents = COConfigurationManager.getBooleanParameter("config.style.refreshMT");
+    
     public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
       setPriority(Thread.MIN_PRIORITY);
       COConfigurationManager.addParameterListener("GUI Refresh", this);
+      COConfigurationManager.addParameterListener("config.style.refreshMT", this);
     }
 
     public void run() {
       while (!finished) {
-        update();
+        if(refreshed)
+          update();
         try {
           Thread.sleep(waitTime);
         }
@@ -219,6 +224,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
 
     private void update() {
+      refreshed = false;
       if (display != null && !display.isDisposed())
         display.asyncExec(new Runnable() {
         public void run() {
@@ -237,7 +243,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
             statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
 					}
 
-          if (!mainWindow.isDisposed()) {            
+          if (!mainWindow.isDisposed() && alwaysRefreshMyTorrents) {            
             if (mytorrents != null) {
               try {
                 viewMyTorrents = Tab.getView(mytorrents.getTabItem());
@@ -248,20 +254,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                 viewMyTorrents.refresh();
               }
             }
-
-            if (my_tracker_tab != null) {
-              try {
-                my_tracker_view = Tab.getView(my_tracker_tab.getTabItem());
-              } catch (Exception e) {
-                my_tracker_view = null;
-              }
-              if (my_tracker_view != null && my_tracker_view != view) {
-                my_tracker_view.refresh();
-              }
-            }
           }
+          
           if (trayIcon != null)
             trayIcon.refresh();
+          
           synchronized (downloadBars) {
             Iterator iter = downloadBars.values().iterator();
             while (iter.hasNext()) {
@@ -269,7 +266,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               mw.refresh();
             }
           }
-        }
+          refreshed = true;
+        }        
       });
     }
 
