@@ -77,8 +77,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel timeRemaining;
   BufferedLabel download;
   BufferedLabel downloadSpeed;
+  Text 			maxDLSpeed;
   BufferedLabel upload;
   BufferedLabel uploadSpeed;
+  Text 			maxULSpeed;
   Text maxUploads;
   BufferedLabel totalSpeed;
   BufferedLabel seeds;
@@ -283,7 +285,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
     Messages.setLanguageText(label, "GeneralView.label.maxuploadspeed.tooltip", true);
     
-    final Text maxULSpeed = new Text(culdl, SWT.BORDER);
+    maxULSpeed = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
     gridData.widthHint = 30;
     maxULSpeed.setLayoutData(gridData);
@@ -329,7 +331,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
       Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
       
-      final Text maxDLSpeed = new Text(culdl, SWT.BORDER);
+      maxDLSpeed = new Text(culdl, SWT.BORDER);
       gridData = new GridData();
       gridData.widthHint = 30;
       maxDLSpeed.setLayoutData(gridData);
@@ -728,6 +730,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getTotalAverage()),
+		""+manager.getStats().getMaxDownloadKBSpeed(),
+		""+(manager.getStats().getUploadRateLimitBytesPerSecond()/1024),
       	seeds_str,
       	peers_str,
 		DisplayFormatters.formatHashFails(manager),
@@ -1037,27 +1041,39 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     timeRemaining.setText( remaining);
   }
 
-  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails,String _shareRatio) {
+  public void 
+  setStats(
+  	String dl, String ul, 
+	String dls, String uls,
+	String ts, 
+	String dl_speed, String ul_speed,
+	String s, 
+	String p,
+	String hash_fails,
+	String share_ratio) 
+  {
     if (display == null || display.isDisposed())
       return;
-
-    final String dls = _dls;
-    final String uls = _uls;
-    final String dl = _dl;
-    final String ul = _ul;
-    final String ts = _ts;
-    final String s = _s;
-    final String p = _p;
     
 	download.setText( dl );
 	downloadSpeed.setText( dls );
 	upload.setText( ul );
 	uploadSpeed.setText( uls );
 	totalSpeed.setText( ts );
-	seeds.setText( s); //$NON-NLS-1$
-	peers.setText( p); //$NON-NLS-1$
-	hashFails.setText( _hashFails);
-	shareRatio.setText( _shareRatio);     
+	
+	if ( !maxDLSpeed.getText().equals( dl_speed )){
+		
+		maxDLSpeed.setText( dl_speed );
+	}
+	
+	if ( !maxULSpeed.getText().equals( ul_speed )){
+		
+		maxULSpeed.setText( ul_speed );
+	}
+	seeds.setText( s);
+	peers.setText( p); 
+	hashFails.setText( hash_fails);
+	shareRatio.setText( share_ratio);     
   }
 
   public void setTracker( DownloadManager	_manager ){

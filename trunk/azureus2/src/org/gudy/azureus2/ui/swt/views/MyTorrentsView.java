@@ -637,6 +637,7 @@ public class MyTorrentsView
 	              speed.append(" ");
 	              speed.append( DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));	            
 	            }
+	            System.out.println( limit + " -> " + speed );
 	            itemsSpeed[i].setText(speed.toString());
 	            itemsSpeed[i].setData("maxul", new Integer(limit));
 	          }
