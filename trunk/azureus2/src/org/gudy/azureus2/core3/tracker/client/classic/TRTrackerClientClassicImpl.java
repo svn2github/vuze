@@ -166,13 +166,25 @@ TRTrackerClientClassicImpl
 		  URL reqUrl = new URL(constructUrl(evt,url));
 		  result = updateOld(reqUrl,evt);
 		  //We have a result, move everything in top of list
-		  if(result != null && !result.equals("")) {
-			urls.remove(j);
-			urls.add(0,url);
-			trackerUrlLists.remove(i);
-			trackerUrlLists.add(0,urls);            
-			//and return the result
-			return(decodeTrackerResponse(result));
+		  if(result != null && ! (result.length == 0)) {
+        //Add a test to see if result is 1. valid and 2. not an error response
+        try{
+          Map metaData = BDecoder.decode(result);
+          byte[] failure =(byte[]) metaData.get("failure reason");
+          
+          if(failure == null) {
+            urls.remove(j);
+            urls.add(0,url);
+            trackerUrlLists.remove(i);
+            trackerUrlLists.add(0,urls);            
+            
+            //and return the result
+            return(decodeTrackerResponse(result));
+          }
+        } catch(Exception e) {
+          //do nothing
+        }
+  			
 		  }
 		}
 	  }  
@@ -283,7 +295,7 @@ TRTrackerClientClassicImpl
   public void setManager(PEPeerManager manager) {
 	this.manager = manager;
   }
-
+	
 	public TOTorrent
 	getTorrent()
 	{
