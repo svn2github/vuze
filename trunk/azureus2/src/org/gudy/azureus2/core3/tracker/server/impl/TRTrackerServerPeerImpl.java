@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
 
@@ -55,6 +56,18 @@ TRTrackerServerPeerImpl
 		key			= _key;
 		ip			= _ip;
 		port		= _port;
+	}
+	
+	protected void
+	checkForIPChange(
+		byte[]		_ip )
+	{
+		if ( !Arrays.equals( _ip, ip )){
+			
+			ip			= _ip;
+			ip_str		= null;
+			ip_bytes	= null;
+		}
 	}
 	
 	protected byte[]

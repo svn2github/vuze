@@ -147,6 +147,12 @@ TRTrackerServerTorrentImpl
 			if ( stopped ){
 				
 				removePeer( peer );
+				
+			}else{
+				
+					// IP may have changed - update if required
+				
+				peer.checkForIPChange( ip_address.getBytes());
 			}
 		}
 		
