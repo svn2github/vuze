@@ -53,6 +53,8 @@ PEPeerControlImpl
   
   private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
   
+  private static int	SLOW_CONNECT_INTERVAL	= 1000;	// millisecs
+  
   private int peer_manager_state = PS_INITIALISED;
   
   private int[] _availability;
@@ -313,7 +315,7 @@ PEPeerControlImpl
             
             try {
                /* wait until notified of new connection to slow connect */
-               synchronized (slowQueue) { slowQueue.wait(3000); }
+               synchronized (slowQueue) { slowQueue.wait(SLOW_CONNECT_INTERVAL); }
                
                /* dequeue waiting connections and process */
                while ((slowQueue.size() > 0) && bContinue) {
@@ -328,7 +330,7 @@ PEPeerControlImpl
                      }
                   }
                   /* wait */
-                  Thread.sleep(3000);
+                  Thread.sleep(SLOW_CONNECT_INTERVAL);
                }
             } catch (Exception e) {
                e.printStackTrace();
@@ -498,16 +500,9 @@ PEPeerControlImpl
 					
 				for (int i=0;i<transports.size();i++){
 					
-					PEPeerTransport	transport = (PEPeerTransport)transports.get(i);
+					PEPeer	transport = (PEPeer)transports.get(i);
 					
-					if ( !_peer_transports.contains(transport)){
-						
-						addToPeerTransports( transport.getRealTransport());
-						
-					}else{
-					  
-						transport.closeAll("Already Connected",false,false);
-					}
+					addPeer( transport );
 				}
 			}
 		}
