@@ -26,11 +26,40 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  *
  */
 
-import java.nio.channels.SocketChannel;
+import java.io.*;
+import java.nio.channels.*;
 
 public class 
 PESharedPortSelector 
 {
+	protected Selector	selector;
+	
+	protected
+	PESharedPortSelector()
+	
+		throws IOException
+	{
+		selector = Selector.open();
+		
+		Thread t = new Thread("PESharedPortSelector")
+			{
+				public void
+				run()
+				{
+					selectLoop();
+				}
+			};
+			
+		t.setDaemon(true);
+		
+		t.start();
+	}
+	
+	protected void
+	selectLoop()
+	{
+	}
+	
 	public void
 	addSocket(
 		SocketChannel		_socket )

@@ -26,8 +26,10 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  *
  */
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
@@ -47,35 +49,50 @@ PESharedPortServerImpl
 		synchronized( PESharedPortServerImpl.class ){
 			
 			if ( server_delegate == null ){
-			
-					// TODO: add code to deal with lack of ports...
-						
-				server_delegate = new PEPeerServerImpl();
 				
-				selector = new PESharedPortSelector();
+				try{
 				
-				server_delegate.setServerAdapter( 
-					new PEPeerServerAdapter()
-					{
-						public void
-						addPeerTransport(
-							Object		param )
-						{
-								// new incoming connection
-								
-							selector.addSocket((SocketChannel)param);
-						}
-							
-						public PEPeerControl
-						getControl()
-						{
-							System.out.println( "PESharedPortServer::getControl - should never be called!!!!");
-		
-							throw( new RuntimeException( "whoops!"));
-						}
-					});
+					selector = new PESharedPortSelector();
+										
+					server_delegate = (PEPeerServerHelper)PEPeerServerImpl.create();
 					
-				server_delegate.startServer();
+					if ( server_delegate == null || server_delegate.getPort() == 0 ){
+						
+							// no ports available
+							
+						server_delegate = null;
+						
+					}else{
+					
+						server_delegate.setServerAdapter( 
+							new PEPeerServerAdapter()
+							{
+								public void
+								addPeerTransport(
+									Object		param )
+								{
+										// new incoming connection
+										
+									selector.addSocket((SocketChannel)param);
+								}
+									
+								public PEPeerControl
+								getControl()
+								{
+									System.out.println( "PESharedPortServer::getControl - should never be called!!!!");
+				
+									throw( new RuntimeException( "whoops!"));
+								}
+							});
+							
+						server_delegate.startServer();
+					}
+				}catch( IOException e ){
+					
+					LGLogger.log(0, 0, LGLogger.INFORMATION, "PESharedPortServer: failed to establish selector" + e.toString());
+					
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -83,7 +100,7 @@ PESharedPortServerImpl
 	public int
 	getPort()
 	{
-		return( server_delegate.getPort());
+		return( server_delegate==null?0:server_delegate.getPort());
 	}
 	
 	public void
