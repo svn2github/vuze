@@ -183,7 +183,7 @@ public class ConnectDisconnectManager {
               finally{ new_canceled_mon.exit(); }
               
               if( canceled ) {
-                Debug.out( "Connect request for ["+request.channel+"] already canceled, just closing." );
+                //Debug.out( "Connect request for ["+request.channel+"] already canceled, just closing." );
                 
                 try{  pending_closes_mon.enter();
                   pending_closes.addLast( request.channel );  //just close it

@@ -50,6 +50,7 @@ public class SelectorGuard {
   private int consecutiveZeroSelects = 0;
   private long beforeSelectTime;
   private long select_op_time;
+  private int num_keys_selected;
   
   private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
   
@@ -81,6 +82,8 @@ public class SelectorGuard {
    * Checks whether selector is still OK, and not spinning.
    */
   public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {
+    num_keys_selected = _num_keys_ready;
+    
     if (_num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
@@ -124,7 +127,7 @@ public class SelectorGuard {
    */
   public Selector repairSelector( Selector _bad_selector ) {
     String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys. [JRE " +System.getProperty("java.version")+"]\n";
-    msg += MessageText.getString( "SelectorGuard.repairmessage" );
+    msg += "Please see http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect for help.";
     Debug.out( msg );
     LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
     
@@ -171,7 +174,7 @@ public class SelectorGuard {
     HashMap new_keys = new HashMap();
     boolean spin_detected = false;
     
-    if( select_op_time > 30 ) {  //the select op didnt return immediately
+    if( select_op_time > 30 || num_keys_selected >= 10 ) {  //the select op didnt return immediately
       //must have blocked, no spinning
     }
     else {
