@@ -168,4 +168,16 @@ TRTrackerServerTorrentStatsImpl
 	{
 		return( bytes_out );
 	}
+	
+	public int
+	getSeedCount()
+	{
+		return( torrent.getSeedCount());
+	}
+	
+	public int
+	getLeecherCount()
+	{
+		return( torrent.getLeecherCount());
+	}
 }

@@ -195,6 +195,18 @@ TrackerTorrentImpl
 		return( host_torrent.getAnnounceCount());
 	}
 	
+	public int
+	getSeedCount()
+	{
+		return( host_torrent.getSeedCount());
+	}	
+	
+	public int
+	getLeecherCount()
+	{
+		return( host_torrent.getLeecherCount());
+	}
+	
 	public Object
 	getAdditionalProperty(
 		String		name )

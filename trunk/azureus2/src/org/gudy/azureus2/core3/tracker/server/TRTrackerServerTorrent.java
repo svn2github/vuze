@@ -34,6 +34,9 @@ TRTrackerServerTorrent
 	public HashWrapper
 	getHash();
 	
+	public TRTrackerServerPeer[]
+	getPeers();
+	
 	public TRTrackerServerTorrentStats
 	getStats();
 	

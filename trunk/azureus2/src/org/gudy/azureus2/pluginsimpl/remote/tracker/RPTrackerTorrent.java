@@ -225,6 +225,22 @@ RPTrackerTorrent
 		return( 0 );	
 	}
 	
+	public int
+	getSeedCount()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}	
+	
+	public int
+	getLeecherCount()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}
+	
 	public Object
 	getAdditionalProperty(
 		String		name )

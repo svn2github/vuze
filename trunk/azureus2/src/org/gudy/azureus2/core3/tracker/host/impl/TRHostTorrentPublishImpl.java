@@ -181,6 +181,18 @@ TRHostTorrentPublishImpl
 		}
 	}
 
+	public int
+	getSeedCount()
+	{
+		return( 0 );
+	}
+	
+	public int
+	getLeecherCount()
+	{
+		return( 0 );
+	}
+	
 	public long
 	getTotalUploaded()
 	{

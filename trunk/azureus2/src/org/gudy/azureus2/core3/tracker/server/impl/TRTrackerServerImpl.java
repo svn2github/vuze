@@ -438,14 +438,10 @@ TRTrackerServerImpl
 					Iterator	it = torrent_map.values().iterator();
 					
 					while(it.hasNext()){
-						
-						Map	temp = new HashMap();
-						
-						// this triggers timeouts...
-						
+												
 						TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
 						
-						clients += t.getPeers().length;
+						clients += t.getPeerCount();
 					}
 				}
 				

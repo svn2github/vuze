@@ -45,10 +45,21 @@ TRTrackerServerProcessorTCP
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 
-							
+
+	protected static final byte[]	HTTP_RESPONSE_START = (
+		"HTTP/1.1 200 OK" + NL + 
+		"Content-Type: text/html" + NL +
+		"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
+		"Connection: close" + NL +
+		"Content-Length: ").getBytes();
+		
+	protected static final byte[]	HTTP_RESPONSE_END_GZIP 		= (NL + "Content-Encoding: gzip" + NL + NL).getBytes();
+	protected static final byte[]	HTTP_RESPONSE_END_NOGZIP 	= (NL + NL).getBytes();
+	
 	protected TRTrackerServerTCP	server;
 	protected Socket				socket;
 	
+
 	protected
 	TRTrackerServerProcessorTCP(
 		TRTrackerServerTCP		_server,
@@ -598,29 +609,32 @@ TRTrackerServerProcessorTCP
 			}
 						
 				// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
-				
-			StringBuffer output_header = new StringBuffer(data.length+256);
+						
+				// write the response
 			
-			output_header	.append( "HTTP/1.1 200 OK" ).append( NL ) 
-						 	.append( "Content-Type: text/html" ).append( NL )
-							.append( "Server: " ).append( Constants.AZUREUS_NAME ).append( " " ).append( Constants.AZUREUS_VERSION ).append( NL )
-							.append( "Connection: close" ).append( NL )
-							.append( "Content-Length: " ).append( data.length ).append( NL );
+			os.write( HTTP_RESPONSE_START );
+			
+			byte[]	length_bytes = String.valueOf(data.length).getBytes();
+			
+			os.write( length_bytes );
+
+			int	header_len = HTTP_RESPONSE_START.length + length_bytes.length;
 			
 			if ( gzip_reply ){
 				
-				output_header.append( "Content-Encoding: gzip" ).append( NL );
-			}
-				
-			output_header.append( NL );
-	
-			byte[]	header_data	= output_header.toString().getBytes();
+				os.write( HTTP_RESPONSE_END_GZIP );
 			
-			os.write( header_data );
-						
+				header_len += HTTP_RESPONSE_END_GZIP.length; 
+			}else{
+				
+				os.write( HTTP_RESPONSE_END_NOGZIP );
+
+				header_len += HTTP_RESPONSE_END_NOGZIP.length; 
+			}
+					
 			os.write( data );
 			
-			server.updateStats( specific_torrent, input_header.length(), header_data.length+data.length );
+			server.updateStats( specific_torrent, input_header.length(), header_len+data.length );
 							
 		}finally{
 			

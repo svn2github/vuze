@@ -252,6 +252,32 @@ TRHostTorrentHostImpl
 		sos_bytes_out		= bytes_out;
 	}
 	
+	public int
+	getSeedCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+	
+		if ( stats != null ){
+		
+			return( stats.getSeedCount());
+		}
+		
+		return( 0 );
+	}
+	
+	public int
+	getLeecherCount()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+	
+		if ( stats != null ){
+		
+			return( stats.getLeecherCount());
+		}
+		
+		return( 0 );
+	}
+	
 	public long
 	getAnnounceCount()
 	{

@@ -27,6 +27,12 @@ package org.gudy.azureus2.core3.tracker.server;
 public interface 
 TRTrackerServerTorrentStats 
 {
+	public int
+	getSeedCount();
+	
+	public int
+	getLeecherCount();
+	
 	public long
 	getScrapeCount();
 	

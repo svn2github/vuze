@@ -55,6 +55,12 @@ TrackerTorrent
 	public int
 	getStatus();
 	
+	public int
+	getSeedCount();
+	
+	public int
+	getLeecherCount();
+	
 	public long
 	getTotalUploaded();
 	

@@ -77,6 +77,12 @@ TRHostTorrent
 	public TRHostPeer[]
 	getPeers();
 	
+	public int
+	getSeedCount();
+	
+	public int
+	getLeecherCount();
+	
 	public long
 	getAnnounceCount();
 	

@@ -47,6 +47,8 @@ TRTrackerServerTorrentImpl
 	protected Map				peer_reuse_map	= new HashMap();
 	protected List				peer_list		= new ArrayList();
 	
+	protected int				seed_count;
+	
 	protected Random			random		= new Random( SystemTime.getCurrentTime());
 	
 	protected long				last_scrape_calc_time;
@@ -166,6 +168,8 @@ TRTrackerServerTorrentImpl
 		long	dl_diff	= 0;
 		long	le_diff = 0;
 		
+			// a null peer here signifies a new peer whose first state was "stopped"
+		
 		if ( peer != null ){
 			
 			peer.setTimeout( SystemTime.getCurrentTime() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
@@ -186,7 +190,16 @@ TRTrackerServerTorrentImpl
 				
 			le_diff = stopped?0:(left - peer.getAmountLeft());
 			
+			boolean	was_seed 	= new_peer?false:peer.isSeed();
+			
 			peer.setStats( uploaded, downloaded, left );
+			
+			boolean	is_seed		= peer.isSeed();
+			
+			if (!(stopped || was_seed || !is_seed )){
+				
+				seed_count++;
+			}
 		}
 		
 		stats.addAnnounce( ul_diff, dl_diff, le_diff );
@@ -234,7 +247,12 @@ TRTrackerServerTorrentImpl
 			}
 			
 		}catch( UnsupportedEncodingException e ){
-		}										
+		}	
+		
+		if ( peer.isSeed()){
+			
+			seed_count--;
+		}
 	}
 	
 	protected void
@@ -265,7 +283,12 @@ TRTrackerServerTorrentImpl
 			}
 			
 		}catch( UnsupportedEncodingException e ){
-		}										
+		}	
+		
+		if ( peer.isSeed()){
+			
+			seed_count--;
+		}
 	}
 	
 	protected synchronized Map
@@ -645,6 +668,33 @@ TRTrackerServerTorrentImpl
 	getStats()
 	{
 		return( stats );
+	}
+	
+	public int
+	getPeerCount()
+	{
+		return( peer_map.size());
+	}
+	
+	public int
+	getSeedCount()
+	{
+		if ( seed_count < 0 ){
+			
+			Debug.out( "seed count negative" );
+		}
+		
+		return( seed_count );
+	}
+	
+	public int
+	getLeecherCount()
+	{
+			// this isn't synchronized so could possible end up negative
+		
+		int	res = peer_map.size() - seed_count;
+		
+		return( res<0?0:res );
 	}
 	
 	public synchronized TRTrackerServerPeer[]

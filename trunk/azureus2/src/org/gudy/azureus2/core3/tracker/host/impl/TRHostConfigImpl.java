@@ -184,24 +184,10 @@ TRHostConfigImpl
 					long	downloaded	= torrent.getTotalDownloaded();
 					long	bytes_in	= torrent.getTotalBytesIn();
 					long	bytes_out	= torrent.getTotalBytesOut();
-					
-					TRHostPeer[]	peers = torrent.getPeers();
-					
-					int	seed_count 		= 0;
-					int non_seed_count	= 0;
-					
-					for (int j=0;j<peers.length;j++){
-						
-						if ( peers[j].isSeed()){
-							
-							seed_count++;
-							
-						}else{
-							
-							non_seed_count++;
-						}
-					}
-					
+										
+					int	seed_count 		= torrent.getSeedCount();
+					int non_seed_count	= torrent.getLeecherCount();
+										
 					if ( torrent.isPersistent()){
 				
 						Map t_map = new HashMap();

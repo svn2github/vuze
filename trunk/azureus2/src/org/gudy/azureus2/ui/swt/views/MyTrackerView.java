@@ -257,30 +257,14 @@ MyTrackerView
       TRHostTorrent	host_torrent = (TRHostTorrent)rows[x].getDataSource(true);
       if (host_torrent == null)
         continue;
-
-  		TRHostPeer[]	peers = host_torrent.getPeers();
-  		
-  		int		peer_count	= 0;
-  		int		seed_count	= 0;
-  		
+ 		 		
   		long	uploaded	= host_torrent.getTotalUploaded();
   		long	downloaded	= host_torrent.getTotalDownloaded();
   		long	left		= host_torrent.getTotalLeft();
   		
-  		for (int i=0;i<peers.length;i++){
-  			
-  			TRHostPeer	peer = peers[i];
-  			
-  			if ( peer.isSeed()){
-  				
-  				seed_count++;
-  			}else{
-  				
-  				peer_count++;
-  			}
-  		}
+  		int		seed_count	= host_torrent.getSeedCount();
   		
-  		host_torrent.setData("GUI_PeerCount", new Long(peer_count));
+  		host_torrent.setData("GUI_PeerCount", new Long(host_torrent.getLeecherCount()));
   		host_torrent.setData("GUI_SeedCount", new Long(seed_count));
   		host_torrent.setData("GUI_Uploaded", new Long(uploaded));
   		host_torrent.setData("GUI_Downloaded", new Long(downloaded));
