@@ -33,7 +33,7 @@ public class Set implements IConsoleCommand {
 		if ((args != null) && (!args.isEmpty())) {
 			String parameter = (String) args.get(0);
 			String setto = (args.size()==1)?null:((String) args.get(1));
-			if (COConfigurationManager.doesParameterExist(ExternalUIConst.parameterlegacy.get(parameter).toString())) {
+			if (COConfigurationManager.doesParameterDefaultExist(ExternalUIConst.parameterlegacy.get(parameter).toString())) {
 				try {
 					if (setto == null) {
 						if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
@@ -56,7 +56,7 @@ public class Set implements IConsoleCommand {
           e.printStackTrace();
 				}
 			}
-      else if( COConfigurationManager.doesParameterExist( parameter ) ) {
+      else if( COConfigurationManager.doesParameterDefaultExist( parameter ) ) {
         try {
           if (setto == null) {
             try {
