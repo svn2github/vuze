@@ -35,7 +35,7 @@ import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
  */
 public class ConsoleInput extends Thread implements IConsoleCommand {
 
-	private static final String commandclasses[] = {"XML", "Hack", "Set", "Show", "AddFind", "Torrent", "Log", "Move"};
+	private static final String commandclasses[] = {"XML", "Hack", "Set", "Show", "AddFind", "Torrent", "Log", "Move", "Share" };
 	
 	private static HashMap commands = new HashMap();
 	private static TreeSet helplines = new TreeSet();
@@ -188,12 +188,19 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	public static void commandQuit(ConsoleInput ci, List args) {
 		if (ci.controlling) {
 			ci.running = false;
-			quit(ci.controlling);
-		} else {
-			if ((args == null) || (args.isEmpty()) || (!args.get(0).toString().equalsIgnoreCase("IAMSURE")))
+      ci.out.print( "Exiting....." );
+			quit( true );
+      ci.out.println( "OK" );
+		}
+    else {
+			if ((args == null) || (args.isEmpty()) || (!args.get(0).toString().equalsIgnoreCase("IAMSURE"))) {
 				ci.out.println("> The 'quit' command exits azureus. Since this is a non-controlling shell thats probably not what you wanted. Use 'logout' to quit it or 'quit iamsure' to really exit azureus.");
-			else
-				quit(true);
+			}
+			else {
+        ci.out.print( "Exiting....." );
+				quit( true );
+        ci.out.println( "OK" );
+      }
 		}
 	}
 
