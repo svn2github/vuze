@@ -43,7 +43,10 @@ UISwingImageRepository
 		try{
 			return(ImageIO.read(UIImageRepository.getImageAsStream(name)));
 			
-		}catch( IOException e ){
+		}catch( Throwable e ){
+	
+				// some versions of Opera don't have the imageio stuff available it seems
+				// so catch all errors and return null
 			
 			e.printStackTrace();
 			
@@ -58,7 +61,7 @@ UISwingImageRepository
 		try{
 			return(ImageIO.read(is));
 			
-		}catch( IOException e ){
+		}catch( Throwable e ){
 			
 			e.printStackTrace();
 			
