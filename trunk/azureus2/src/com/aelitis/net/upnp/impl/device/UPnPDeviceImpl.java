@@ -88,6 +88,13 @@ UPnPDeviceImpl
 		}
 	}
 	
+	protected String
+	getAbsoluteURL(
+		String	url )
+	{
+		return( root_device.getAbsoluteURL(url));
+	}
+	
 	public InetAddress
 	getLocalAddress()
 	{

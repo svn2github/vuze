@@ -69,16 +69,16 @@ UPnPStateVariableImpl
 			String	soap_action = "urn:schemas-upnp-org:control-1-0#QueryStateVariable";
 			
 			String	request =
-				"<?xml version=\"1.0\"?>\n"+
-				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n"+
-					"<s:Body>\n";
+				"<?xml version=\"1.0\"?>"+
+				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"+
+					"<s:Body>";
 													
-			request += 	"<u:QueryStateVariable xmlns:u=\"urn:schemas-upnp-org:control-1-0\">\n" +
-							"<u:varName>" + name + "</u:varName>\n" +
-						"</u:QueryStateVariable>\n";
+			request += 	"<u:QueryStateVariable xmlns:u=\"urn:schemas-upnp-org:control-1-0\">" +
+							"<u:varName>" + name + "</u:varName>" +
+						"</u:QueryStateVariable>";
 
-			request += "</s:Body\n>"+
-						"</s:Envelope>\n";
+			request += 	"</s:Body>"+
+						"</s:Envelope>";
 							
 			SimpleXMLParserDocument resp_doc	= ((UPnPDeviceImpl)service.getDevice()).getUPnP().performSOAPRequest( service, soap_action, request );
 

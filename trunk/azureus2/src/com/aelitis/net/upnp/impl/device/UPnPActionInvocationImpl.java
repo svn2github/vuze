@@ -70,12 +70,12 @@ UPnPActionInvocationImpl
 			String	soap_action = service.getServiceType() + "#" + action.getName();
 			
 			String	request =
-				"<?xml version=\"1.0\"?>\n"+
-				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n"+
-					"<s:Body>\n";
+				"<?xml version=\"1.0\"?>"+
+				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"+
+					"<s:Body>";
 													
 			request += "<u:" + action.getName() + 
-							" xmlns:u=\"" + service.getServiceType()+ "\">\n";
+							" xmlns:u=\"" + service.getServiceType()+ "\">";
 			
 			
 			for (int i=0;i<arg_names.size();i++){
@@ -83,13 +83,13 @@ UPnPActionInvocationImpl
 				String	name 	= (String)arg_names.get(i);
 				String	value 	= (String)arg_values.get(i);
 				
-				request += "<" + name + ">" + value + "</" + name + ">\n";
+				request += "<" + name + ">" + value + "</" + name + ">";
 			}
 			
-			request += "</u:" + action.getName() + ">\n";
+			request += "</u:" + action.getName() + ">";
 
-			request += "</s:Body\n>"+
-						"</s:Envelope>\n";
+			request += "</s:Body>"+
+						"</s:Envelope>";
 							
 				// try standard POST
 			

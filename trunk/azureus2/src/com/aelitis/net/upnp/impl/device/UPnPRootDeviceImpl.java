@@ -66,6 +66,28 @@ UPnPRootDeviceImpl
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 	}
 
+	protected String
+	getAbsoluteURL(
+		String	url )
+	{
+		String	lc_url = url.toLowerCase().trim();
+		
+		if ( lc_url.startsWith( "http://") || lc_url.startsWith( "https://" )){
+			
+			return( url );
+		}
+		
+		String	prefix = location.toString();
+		
+		int	p1 = prefix.indexOf( "://" ) + 3;
+		
+		p1 = prefix.indexOf( "/", p1 );
+		
+		prefix = prefix.substring( 0, p1 );
+		
+		return( prefix + (url.startsWith("/")?"":"/") + url );
+	}
+	
 	protected UPnPImpl
 	getUPnP()
 	{

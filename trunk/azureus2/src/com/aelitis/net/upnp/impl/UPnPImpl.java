@@ -53,6 +53,9 @@ UPnPImpl
 	extends 	ResourceDownloaderAdapter
 	implements 	UPnP, SSDPListener
 {
+	public static final boolean	USE_HTTP_CONNECTION		= true;
+	public static final String	NL	= "\r\n";
+	
 	protected static UPnPImpl	singleton;
 	
 	public static synchronized UPnP
@@ -330,61 +333,87 @@ UPnPImpl
 
 		URL	control = service.getControlURL();
 		
-		HttpURLConnection	con = (HttpURLConnection)control.openConnection();
-		
-		con.setRequestProperty( "SOAPACTION", "\""+ soap_action + "\"");
-		
-		con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-		
-		con.setRequestMethod( "POST" );
-		
-		con.setDoInput( true );
-		con.setDoOutput( true );
-		
-		OutputStream	os = con.getOutputStream();
-		
-		PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-					
-		pw.println( request );
-		
-		pw.flush();
-
-		con.connect();
-		
-		if ( con.getResponseCode() == 405 ){
+		if ( USE_HTTP_CONNECTION ){
 			
-				// gotta retry with M-POST method
-							
-			con = (HttpURLConnection)control.openConnection();
+			HttpURLConnection	con = (HttpURLConnection)control.openConnection();
+			
+			con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 			
 			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
 			
-			con.setRequestMethod( "M-POST" );
+			con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
 			
-			con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-
-			con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+			con.setRequestMethod( "POST" );
 			
 			con.setDoInput( true );
 			con.setDoOutput( true );
 			
-			os = con.getOutputStream();
+			OutputStream	os = con.getOutputStream();
 			
-			pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+			PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
 						
 			pw.println( request );
 			
 			pw.flush();
-
+	
 			con.connect();
-		
-			return( parseXML(con.getInputStream()));	
 			
+			if ( con.getResponseCode() == 405 ){
+				
+					// gotta retry with M-POST method
+								
+				con = (HttpURLConnection)control.openConnection();
+				
+				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+				
+				con.setRequestMethod( "M-POST" );
+				
+				con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+	
+				con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+				
+				con.setDoInput( true );
+				con.setDoOutput( true );
+				
+				os = con.getOutputStream();
+				
+				pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+							
+				pw.println( request );
+				
+				pw.flush();
+	
+				con.connect();
+			
+				return( parseXML(con.getInputStream()));	
+				
+			}else{
+				
+				return( parseXML(con.getInputStream()));
+			}
 		}else{
+	
+			Socket	socket = new Socket(control.getHost(), control.getPort());
 			
-			return( parseXML(con.getInputStream()));
+			PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
+		
+			String	url_target = control.toString();
+			
+			
+			/*
+pw.print( "POST " + url_target + " HTTP/1.1" + NL );
+Content-Type: text/xml; charset="utf-8"
+SOAPAction: "urn:schemas-upnp-org:service:WANIPConnection:1#GetNATRSIPStatus"
+User-Agent: Mozilla/4.0 (compatible; UPnP/1.0; Windows 9x)
+Host: 192.168.0.1
+Content-Length: 299
+Connection: Keep-Alive
+Pragma: no-cache
+*/
+			return( parseXML( socket.getInputStream()));
 		}
 	}
+	
 	protected synchronized File
 	getTraceFile()
 	{
