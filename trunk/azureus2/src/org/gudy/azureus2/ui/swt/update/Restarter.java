@@ -224,8 +224,8 @@ Restarter
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec =   "#!/bin/bash\n\"" + 
-                  "ulimit -H -S -n 8192\n" +
+    String exec =   "#!/bin/bash\n" + 
+                  "ulimit -H -S -n 8192\n\"" +
           userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
           "-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
     
