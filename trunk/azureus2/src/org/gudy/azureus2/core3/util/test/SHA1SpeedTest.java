@@ -17,8 +17,8 @@ public class SHA1SpeedTest {
   
   private static final int BUFF_MAX_SIZE = 4 * 1024 * 1024;
   
-  private static final int[] LOOPS = {2300, 2100, 1900, 1700, 1500, 1300, 1100, 900, 700};
-  private static final int[] TESTS = {16, 32, 64, 128, 256, 512, 1024, 2048, 4096};
+  private static final int[] LOOPS = {2500, 2000, 1500, 1200, 900, 700};
+  private static final int[] TESTS = {16, 64, 256, 512, 1024, 2048};
   
 	public static void main(String[] args) {
     
@@ -62,7 +62,7 @@ public class SHA1SpeedTest {
     	long jde = System.currentTimeMillis();
   
     	long jdt = jde - jds;
-    	float jdspeed = (totalBytes / ((jdt+1) / 1000F)) / (1024 * 1024);
+    	double jdspeed = (totalBytes / ((jdt+1) / 1000D)) / (1024 * 1024);
     	System.out.println(info + jdt + " ms @ " + jdspeed + " MB/s");
 
     
@@ -76,12 +76,15 @@ public class SHA1SpeedTest {
     	long gde = System.currentTimeMillis();
     
     	long gdt = gde - gds;
-    	float gdspeed = (totalBytes / ((gdt+1) / 1000F)) / (1024 * 1024);
+    	double gdspeed = (totalBytes / ((gdt+1) / 1000D)) / (1024 * 1024);
     	System.out.println(info + gdt + " ms @ " + gdspeed + " MB/s");
       
       System.out.println();
     
     }
+    
+    System.out.println("DONE");
+    
     
 	}
 
