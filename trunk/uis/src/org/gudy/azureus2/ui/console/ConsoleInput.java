@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
-import org.gudy.azureus2.ui.console.commands.Alias;
 import org.gudy.azureus2.ui.console.commands.Hack;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
 import org.gudy.azureus2.ui.console.commands.Log;
