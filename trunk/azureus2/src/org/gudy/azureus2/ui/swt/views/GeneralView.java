@@ -227,7 +227,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     GridLayout layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
-    layoutInfo.horizontalSpacing = 7;
+    layoutInfo.horizontalSpacing = 6;
     layoutInfo.marginHeight = 0;
     layoutInfo.marginWidth = 0;
     culdl.setLayout(layoutInfo);
@@ -236,7 +236,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
     maxUploads = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
-    gridData.widthHint = 30;
+    gridData.widthHint = 35;
     maxUploads.setLayoutData(gridData);
     maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
     maxUploads.addListener(SWT.Verify, new Listener() {
@@ -286,7 +286,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     maxULSpeed = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
-    gridData.widthHint = 30;
+    gridData.widthHint = 35;
     maxULSpeed.setLayoutData(gridData);
     maxULSpeed.setText(String.valueOf(manager.getStats().getUploadRateLimitBytesPerSecond() / 1024));
     maxULSpeed.addListener(SWT.Verify, new Listener() {
@@ -332,7 +332,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       
       maxDLSpeed = new Text(culdl, SWT.BORDER);
       gridData = new GridData();
-      gridData.widthHint = 30;
+      gridData.widthHint = 35;
       maxDLSpeed.setLayoutData(gridData);
       maxDLSpeed.setText(String.valueOf(manager.getStats().getMaxDownloadKBSpeed()));
       maxDLSpeed.addListener(SWT.Verify, new Listener() {
