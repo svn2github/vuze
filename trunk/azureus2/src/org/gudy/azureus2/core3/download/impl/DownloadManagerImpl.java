@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 /**
  * @author Olivier
@@ -1016,7 +1018,29 @@ DownloadManagerImpl
 	return( tracker_client );
   }
  
- 
+	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result )
+	{
+		TRTrackerClient	cl = getTrackerClient();
+		
+		if ( cl == null ){
+			
+			Debug.out( "setAnnounceResult called when download not running" );
+			
+			return;
+		}
+		
+		cl.setAnnounceResult( result );
+	}
+	
+	public void
+	setScrapeResult(
+		DownloadScrapeResult	result )
+	{
+		Debug.out( "setScrapeResult not implemented!!!!" );
+	}
+	
   /**
    * @return
    */

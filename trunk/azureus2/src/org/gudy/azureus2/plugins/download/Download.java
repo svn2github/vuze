@@ -400,12 +400,21 @@ Download
 	
 		throws DownloadRemovalVetoException;
 	
+	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result );
+	
+	public void
+	setScrapeResult(
+		DownloadScrapeResult	result );
+	
 	/**
 	 * Gives access to the last announce result received from the tracker for the download
 	 * @return
    *
    * @since 2.0.7.0
 	 */
+	
 	public DownloadAnnounceResult
 	getLastAnnounceResult();
 	

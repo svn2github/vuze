@@ -146,4 +146,20 @@ RPDownloadAnnounceResult
 		
 		return( null );
 	}
+	
+	public DownloadAnnounceResultPeer[]
+	getPeers()
+	{
+		notSupported();
+	
+		return( null );
+	}
+	
+	public long
+	getTimeToWait()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
 public interface 
 TRTrackerClient 
@@ -125,6 +126,10 @@ TRTrackerClient
 	
 	public void
 	refreshListeners();
+	
+	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result );
 	
 	public void
 	addListener(

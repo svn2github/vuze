@@ -504,8 +504,8 @@ PEPeerControlImpl
   
   public void addPeer( final String ip_address, final int port ) {
     TRTrackerResponsePeer peer = new TRTrackerResponsePeer() {
-      public byte[] getPeerId() {  return new byte[20];  }     
-      public String getIPAddress() {  return ip_address;  }         
+      public byte[] getPeerID() {  return new byte[20];  }     
+      public String getAddress() {  return ip_address;  }         
       public int getPort() {  return port;  }
     };
     
@@ -531,7 +531,7 @@ PEPeerControlImpl
         
         	// allow loopback connects for co-located proxy-based connections and testing
         
-        if( peer.getIPAddress().equals( transport.getIp() )){
+        if( peer.getAddress().equals( transport.getIp() )){
         	
           boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
           							transport.getIp().equals( "127.0.0.1" );
@@ -545,7 +545,7 @@ PEPeerControlImpl
       
       if( already_connected )  continue;
       
-      peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getIPAddress(), peer.getPort() ) );
+      peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getAddress(), peer.getPort() ) );
 		}
  	}
   

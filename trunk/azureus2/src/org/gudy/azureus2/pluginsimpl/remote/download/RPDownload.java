@@ -724,4 +724,18 @@ RPDownload
  	{
 		_dispatcher.dispatch( new RPRequest( this, "requestTrackerAnnounce", null)).getResponse();	
  	}
+ 	
+	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result )
+	{
+		notSupported();
+	}
+	
+	public void
+	setScrapeResult(
+		DownloadScrapeResult	result )
+	{
+		notSupported();
+	}
 }

@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 public class 
 DownloadAnnounceResultImpl 
@@ -124,5 +125,22 @@ DownloadAnnounceResultImpl
 	getURL()
 	{
 		return( response.getURL());
+	}
+	
+	public DownloadAnnounceResultPeer[]
+	getPeers()
+	{
+		if ( response == null ){
+			
+			return( new DownloadAnnounceResultPeer[0]);
+		}
+		
+		return( response.getPeers());
+	}
+	
+	public long
+	getTimeToWait()
+	{
+		return( response.getTimeToWait());
 	}
 }

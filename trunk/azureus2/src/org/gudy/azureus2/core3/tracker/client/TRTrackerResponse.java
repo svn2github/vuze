@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.tracker.client;
 import java.net.URL;
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+
 public interface 
 TRTrackerResponse 
 {

@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerResponsePeer.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : Handler.java
+ * Created : 19-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,12 +19,44 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client;
+package org.gudy.azureus2.core3.util.protocol.dht;
 
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+/**
+ * @author parg
+ *
+ */
 
-public interface 
-TRTrackerResponsePeer
-	extends DownloadAnnounceResultPeer
+import java.io.IOException;
+import java.net.*;
+
+import org.gudy.azureus2.core3.util.Debug;
+
+public class 
+Handler 
+	extends URLStreamHandler 
 {
+	public URLConnection 
+	openConnection(URL u)
+	{	
+		String	str = u.toString();
+		
+		str = "http" + str.substring( 3 );
+		
+		try{
+			return( new URL(str).openConnection());
+			
+		}catch( MalformedURLException e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+			
+		}catch( IOException  e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+
 }

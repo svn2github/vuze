@@ -52,6 +52,8 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
@@ -338,6 +340,17 @@ Test
 		{
 			return( peer_manager );
 			
+		}
+		public void
+		setAnnounceResult(
+			DownloadAnnounceResult	result )
+		{
+		}
+		
+		public void
+		setScrapeResult(
+			DownloadScrapeResult	result )
+		{
 		}
 		
 		public void

@@ -23,15 +23,20 @@
 package com.aelitis.azureus.plugins.tracker.dht;
 
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -60,13 +65,19 @@ public class
 DHTTrackerPlugin 
 	implements Plugin, DownloadListener
 {
+	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
+	private static final int	ANNOUNCE_MIN		= 2*60*1000;
+	private static final int	ANNOUNCE_MAX		= 60*60*1000;
+	private static final int	NUM_WANT			= 100;
+	
 	private PluginInterface		plugin_interface;
 	
 	private DHTPlugin			dht;
 	
 	private Set					running_downloads 		= new HashSet();
 	private Set					registered_downloads 	= new HashSet();
-	private Set					querying			 	= new HashSet();
+	
+	private Map					query_map			 	= new HashMap();
 	
 	private LoggerChannel		log;
 	
@@ -236,6 +247,8 @@ DHTTrackerPlugin
 			
 			this_mon.exit();
 		}
+
+		long	 now = SystemTime.getCurrentTime();
 		
 		Iterator	it = rds.iterator();
 		
@@ -250,6 +263,16 @@ DHTTrackerPlugin
 				final 	long	start = SystemTime.getCurrentTime();
 				
 				registered_downloads.add( dl );
+				
+				try{ 
+					this_mon.enter();
+
+					query_map.put( dl, new Long( now ));
+					
+				}finally{
+					
+					this_mon.exit();
+				}
 				
 				int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
@@ -302,6 +325,16 @@ DHTTrackerPlugin
 				
 				it.remove();
 				
+				try{
+					this_mon.enter();
+
+					query_map.remove( dl );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+				
 				dht.remove( 
 						dl.getTorrent().getHash(),
 						new DHTPluginOperationListener()
@@ -324,46 +357,188 @@ DHTTrackerPlugin
 			}
 		}
 		
-		/*
 		it = rds.iterator();
 		
 		while( it.hasNext()){
 			
 			final Download	dl = (Download)it.next();
 			
-			if ( !querying.contains(dl) ){
-				
-				querying.add( dl );
+			Long	next_time;
 			
-				final long	start = SystemTime.getCurrentTime();
+			try{
+				this_mon.enter();
+	
+				next_time = (Long)query_map.get( dl );
 				
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+			if ( next_time != null && now >= next_time.longValue()){
+			
+				try{
+					this_mon.enter();
+		
+					query_map.remove( dl );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+				
+				final long	start = SystemTime.getCurrentTime();
+								
 				dht.get(dl.getTorrent().getHash(), 
-						16, 
-						60*1000,
+						NUM_WANT, 
+						ANNOUNCE_TIMEOUT,
 						new DHTPluginOperationListener()
 						{
-							String	res = "";
+							List	addresses 	= new ArrayList();
+							List	ports		= new ArrayList();
 							
 							public void
 							valueFound(
 								InetSocketAddress	originator,
 								byte[]				value )
 							{
-								res += ( res.length()==0?"":",") + new String(value) + ":" + originator;
+								String	str_val = new String(value);
+								
+								try{
+									int	port = Integer.parseInt( str_val );
+								
+									addresses.add( originator.getAddress().getHostAddress());
+									
+									ports.add(new Integer(port));
+									
+								}catch( Throwable e ){
+									
+								}
 							}
 							
 							public void
 							complete(
 								boolean	timeout_occurred )
 							{
-								log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), res = " + res );
+								log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size());
+																
+								final DownloadAnnounceResultPeer[]	peers = new
+									DownloadAnnounceResultPeer[addresses.size()];
 								
-								querying.remove( dl );
+								final long	retry = ANNOUNCE_MIN + peers.length*(ANNOUNCE_MAX-ANNOUNCE_MIN)/NUM_WANT;
+								
+								try{
+									this_mon.enter();
+								
+									if ( running_downloads.contains( dl )){
+										
+										query_map.put( dl, new Long( SystemTime.getCurrentTime() + retry ));
+									}
+									
+								}finally{
+									
+									this_mon.exit();
+								}
+								
+								for (int i=0;i<peers.length;i++){
+									
+									final int f_i = i;
+									
+									peers[i] = 
+										new DownloadAnnounceResultPeer()
+										{
+											public String
+											getAddress()
+											{
+												return((String)addresses.get(f_i));
+											}
+											
+											public int
+											getPort()
+											{
+												return(((Integer)ports.get(f_i)).intValue());
+											}
+											
+											public byte[]
+											getPeerID()
+											{
+												return( null );
+											}
+										};
+									
+								}
+								
+								dl.setAnnounceResult(
+										new DownloadAnnounceResult()
+										{
+											public Download
+											getDownload()
+											{
+												return( dl );
+											}
+																						
+											public int
+											getResponseType()
+											{
+												return( DownloadAnnounceResult.RT_SUCCESS );
+											}
+																					
+											public int
+											getReportedPeerCount()
+											{
+												return( peers.length);
+											}
+											
+										
+											public int
+											getSeedCount()
+											{
+												return( 0 );	// TODO:
+											}
+											
+											public int
+											getNonSeedCount()
+											{
+												return( 0 );	// TODO:
+											}
+											
+											public String
+											getError()
+											{
+												return( null );
+											}
+																						
+											public URL
+											getURL()
+											{
+												try{
+													return( new URL( "dht://" + ByteFormatter.encodeString( dl.getTorrent().getHash()) + "/" ));
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+													
+													return( null );
+												}
+											}
+											
+											public DownloadAnnounceResultPeer[]
+											getPeers()
+											{
+												return( peers );
+											}
+											
+											public long
+											getTimeToWait()
+											{
+												return( retry );
+											}
+										});
+								
 							}
 						});
 			}
 		}
-		*/
 	}
 	
 	protected void

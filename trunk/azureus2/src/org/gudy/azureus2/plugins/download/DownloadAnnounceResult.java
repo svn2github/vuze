@@ -102,4 +102,10 @@ DownloadAnnounceResult
 	
 	public URL
 	getURL();
+	
+	public DownloadAnnounceResultPeer[]
+	getPeers();
+	
+	public long
+	getTimeToWait();
 }

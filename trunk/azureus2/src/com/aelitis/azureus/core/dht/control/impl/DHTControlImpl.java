@@ -956,6 +956,7 @@ DHTControlImpl
 				
 			final int[]	values_found	= { 0 };
 			final int[]	value_replies	= { 0 };
+			final Set	values_found_set	= new HashSet();
 			
 			long	start = SystemTime.getCurrentTime();
 	
@@ -1165,9 +1166,20 @@ DHTControlImpl
 									
 									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
 									
+									int	new_values = 0;
+									
 									for (int i=0;i<values.length;i++){
 										
-										result_handler.read( contact, values[i] );
+										DHTTransportValue	value = values[i];
+										
+										if ( !values_found_set.contains( value.getOriginator().getAddress())){
+											
+											new_values++;
+											
+											values_found_set.add( value.getOriginator().getAddress());
+											
+											result_handler.read( contact, values[i] );
+										}
 									}
 									
 										// TODO: remove duplicates 
@@ -1177,7 +1189,7 @@ DHTControlImpl
 
 										value_replies[0]++;
 										
-										values_found[0] += values.length;
+										values_found[0] += new_values;
 										
 									}finally{
 										

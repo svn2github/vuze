@@ -140,7 +140,7 @@ TRTrackerResponseImpl
 				
 				TRTrackerResponsePeer	peer = peers[i];
 				
-				System.out.println( "\t\t" + peer.getIPAddress() + ":" + peer.getPort());
+				System.out.println( "\t\t" + peer.getAddress() + ":" + peer.getPort());
 			}
 		}
 	}

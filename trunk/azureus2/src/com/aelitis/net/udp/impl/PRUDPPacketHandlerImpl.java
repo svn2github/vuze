@@ -51,6 +51,9 @@ PRUDPPacketHandlerImpl
 {	
 	private boolean			TRACE_REQUESTS	= false;
 	
+	private static final long	MAX_SEND_QUEUE_DATA_SIZE	= 2*1024*1024;
+	private static final long	MAX_RECV_QUEUE_DATA_SIZE	= 1*1024*1024;
+	
 	private int				port;
 	private DatagramSocket	socket;
 	
@@ -64,12 +67,14 @@ PRUDPPacketHandlerImpl
 	
 	
 	private AEMonitor	send_queue_mon	= new AEMonitor( "PRUDPPH:sd" );
+	private long		send_queue_data_size;
 	private List		send_queue_hp		= new ArrayList();
 	private List		send_queue_lp		= new ArrayList();
 	private AESemaphore	send_queue_sem	= new AESemaphore( "PRUDPPH:sq" );
 	private AEThread	send_thread;
 	
 	private AEMonitor	recv_queue_mon	= new AEMonitor( "PRUDPPH:rq" );
+	private long		recv_queue_data_size;
 	private List		recv_queue		= new ArrayList();
 	private AESemaphore	recv_queue_sem	= new AESemaphore( "PRUDPPH:rq" );
 	private AEThread	recv_thread;
@@ -331,13 +336,15 @@ PRUDPPacketHandlerImpl
 					try{
 						recv_queue_mon.enter();
 						
-						if ( recv_queue.size() > 1024 ){
+						if ( recv_queue_data_size > MAX_RECV_QUEUE_DATA_SIZE ){
 							
 							Debug.out( "Receive queue max limit exceeded, dropping request packet" );
 							
 						}else{
 							
-							recv_queue.add( packet );
+							recv_queue.add( new Object[]{ packet, new Integer( dg_packet.getLength()) });
+											
+							recv_queue_data_size	+= dg_packet.getLength();
 														
 							recv_queue_sem.release();
 					
@@ -354,17 +361,21 @@ PRUDPPacketHandlerImpl
 												try{
 													recv_queue_sem.reserve();
 													
-													PRUDPPacketRequest	p;
+													Object[]	data;										
 													
 													try{
 														recv_queue_mon.enter();
 													
-														p = (PRUDPPacketRequest)recv_queue.remove(0);
+														data = (Object[])recv_queue.remove(0);
 														
 													}finally{
 														
 														recv_queue_mon.exit();
 													}
+													
+													PRUDPPacketRequest	p = (PRUDPPacketRequest)data[0];
+													
+													recv_queue_data_size -= ((Integer)data[1]).intValue();
 													
 													request_handler.process( p );
 													
@@ -556,7 +567,7 @@ PRUDPPacketHandlerImpl
 					try{
 						send_queue_mon.enter();
 						
-						if ( send_queue_lp.size() + send_queue_hp.size() > 2048 ){
+						if ( send_queue_data_size > MAX_SEND_QUEUE_DATA_SIZE ){
 														
 							request.sent();
 							
@@ -575,6 +586,8 @@ PRUDPPacketHandlerImpl
 							
 						}else{
 							
+							send_queue_data_size	+= packet.getLength();
+														
 							if ( low_priority ){
 								
 								send_queue_lp.add( new Object[]{ packet, request });
@@ -628,6 +641,8 @@ PRUDPPacketHandlerImpl
 
 														// mark as sent before sending in case send fails
 														// and we then rely on timeout to pick this up
+													
+													send_queue_data_size	-= p.getLength();
 													
 													r.sent();
 													

@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 import org.gudy.azureus2.plugins.clientid.*;
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -96,7 +97,7 @@ TRTrackerClientClassicImpl
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
   
-  private long min_interval = 0;
+	private long min_interval = 0;
   
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
@@ -807,7 +808,7 @@ TRTrackerClientClassicImpl
 	  			
 	  			TRTrackerResponsePeer	peer = peers[i];
 	  			
-	  			String	peer_address = peer.getIPAddress();
+	  			String	peer_address = peer.getAddress();
 	  			
 	  			String	peer_network = AENetworkClassifier.categoriseAddress( peer_address );
 	  			
@@ -2397,7 +2398,7 @@ TRTrackerClientClassicImpl
 
 				Map	entry = new HashMap();
 				
-				entry.put( "ip", peer.getIPAddress().getBytes());
+				entry.put( "ip", peer.getAddress().getBytes());
 				entry.put( "port", new Long(peer.getPort()));
 				
 				peers.add( entry );
@@ -2497,9 +2498,9 @@ TRTrackerClientClassicImpl
 				
 					// remove and reinsert to maintain most recent last
 				
-				tracker_peer_cache.remove( peer.getIPAddress());
+				tracker_peer_cache.remove( peer.getAddress());
 				
-				tracker_peer_cache.put( peer.getIPAddress(), peer );
+				tracker_peer_cache.put( peer.getAddress(), peer );
 			}
 			
 			Iterator	it = tracker_peer_cache.keySet().iterator();
@@ -2600,7 +2601,7 @@ TRTrackerClientClassicImpl
 			
 			for (int i=0;i<num_want;i++){
 				
-				tracker_peer_cache.put( res[i].getIPAddress(), res[i] );
+				tracker_peer_cache.put( res[i].getAddress(), res[i] );
 			}
 			
 		    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
@@ -2614,7 +2615,59 @@ TRTrackerClientClassicImpl
 		}
 	} 
   
-  
+	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result )
+	{
+			// this is how the results from "external" announces get into the system
+			// really should refactor so that "normal" and "external" mechanisms are
+			// just instances of the same generic approach
+		
+		TRTrackerResponseImpl response;
+		
+		if ( result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+			
+			tracker_status_str = MessageText.getString("PeerManager.status.error"); 
+		      
+			String	reason = result.getError();
+	
+			if ( reason != null ){
+		
+				tracker_status_str += " (" + reason + ")";		
+			}
+			
+	  		response = new TRTrackerResponseImpl(
+				  				result.getURL(),
+				  				TRTrackerResponse.ST_OFFLINE, 
+								result.getTimeToWait(), 
+								reason );
+		}else{
+			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
+			
+			TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ext_peers.length];
+				
+			for (int i=0;i<ext_peers.length;i++){
+				
+	    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
+
+				peers[i] = new TRTrackerResponsePeerImpl( 
+									ext_peers[i].getPeerID(),
+									ext_peers[i].getAddress(), 
+									ext_peers[i].getPort());
+			}
+			
+			addToTrackerCache( peers);
+		
+			tracker_status_str = MessageText.getString("PeerManager.status.ok") + " (" + result.getURL() + ")";
+
+			response = new TRTrackerResponseImpl( result.getURL(), TRTrackerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+		}
+		
+		last_response = response;
+		
+		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+	}
   
   // ParameterListener Implementation
   public void parameterChanged(String parameterName) {

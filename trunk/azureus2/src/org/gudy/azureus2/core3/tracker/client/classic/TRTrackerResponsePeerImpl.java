@@ -26,33 +26,33 @@ import org.gudy.azureus2.core3.tracker.client.*;
 
 public class 
 TRTrackerResponsePeerImpl
-	implements TRTrackerResponsePeer 
+	implements TRTrackerResponsePeer
 {
 	protected byte[]		peer_id;
-	protected String		ip_address;
+	protected String		address;
 	protected int			port;
 	
 	protected
 	TRTrackerResponsePeerImpl(
 		byte[]		_peer_id,
-		String		_ip_address,
+		String		_address,
 		int			_port )
 	{
 		peer_id		= _peer_id;
-		ip_address	= _ip_address;
+		address		= _address;
 		port		= _port;
 	}
 	
 	public byte[]
-	getPeerId()
+	getPeerID()
 	{
 		return( peer_id );
 	}
 	
 	public String
-	getIPAddress()
+	getAddress()
 	{
-		return( ip_address );
+		return( address );
 	}
 	
 	public int

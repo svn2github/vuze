@@ -734,6 +734,20 @@ DownloadImpl
 	}
 	
 	public void
+	setAnnounceResult(
+		DownloadAnnounceResult	result )
+	{
+		download_manager.setAnnounceResult( result );
+	}
+	
+	public void
+	setScrapeResult(
+		DownloadScrapeResult	result )
+	{
+		download_manager.setScrapeResult( result );
+	}
+	
+	public void
 	stateChanged(
 		DownloadManagerState			state,
 		DownloadManagerStateEvent		event )
