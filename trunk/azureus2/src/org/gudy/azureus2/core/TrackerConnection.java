@@ -30,6 +30,8 @@ public class TrackerConnection
   public final static int evtFullTrace = 1;
   public final static int evtErrors = 2;
   
+  private static final byte[] azureus = "Azureus".getBytes();
+
   public TrackerConnection(Map metainfo,byte[] hash,int port)
   {
     //Get the Tracker url
@@ -52,7 +54,6 @@ public class TrackerConnection
     {
       peerId[i] = (byte) (Math.random() * 254);
     }
-    byte[] azureus = (new String("Azureus")).getBytes();
     for(int i = 5 ;i < 12 ; i++) {
       peerId[i] = azureus[i-5];
     }
@@ -96,12 +97,13 @@ public class TrackerConnection
 
   private String update(String evt)
   {
+    InputStream is = null;
     try {
       URL reqUrl = new URL(constructURL(evt));
       Logger.getLogger().log(componentID,evtFullTrace,Logger.INFORMATION,"Tracker is Requesting : " + reqUrl);
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();             
       con.connect();
-      InputStream is = con.getInputStream(); 
+      is = con.getInputStream(); 
 //      int length = con.getContentLength();
 //      System.out.println(length);
       byte[] data = new byte[1024];
@@ -128,6 +130,12 @@ public class TrackerConnection
     {
       Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"Exception while creating the Tracker Request : " + e);
       return null;
+    } finally {
+      try {
+        if (is != null)
+          is.close();
+      } catch (Exception e) {
+      }
     }
   }
   
