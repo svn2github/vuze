@@ -113,7 +113,15 @@ SSDPImpl
 						
 						mc_sock.setReuseAddress(true);
 						
-						mc_sock.setTimeToLive(4);
+							// windows 98 doesn't support setTimeToLive
+						
+						try{
+							mc_sock.setTimeToLive(4);
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
 						
 						mc_sock.bind( bind_address );
 						
