@@ -48,7 +48,7 @@ PEPeerControlImpl
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
-  private static final int BAD_CHUNKS_LIMIT = 5;
+  private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
   private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
   
@@ -1241,18 +1241,7 @@ PEPeerControlImpl
         }
       }
     }
-  }
-  
-  //Method that checks for bad peers
-  //TODO : Remove as not used
-  private void checkBadPeers() {
-    synchronized (_connections) {
-      Iterator iter = _connections.iterator();
-      while(iter.hasNext()) {
-        PEPeer pc = (PEPeer) iter.next();        
-      }
-    }
-  }
+  }  
 
   private void updateStats() {
     _seeds = _peers = 0;
