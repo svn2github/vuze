@@ -279,7 +279,7 @@ public class PeerSocket extends PeerConnection {
     }
     
     //In case it was an outgoing connection, established, we can try to reconnect.   
-    if((closedOnError) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
+    if((closedOnError) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
       logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
       createConnection();
     } else {

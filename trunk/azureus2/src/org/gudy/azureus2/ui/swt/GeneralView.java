@@ -77,6 +77,7 @@ public class GeneralView extends AbstractIView {
   Label trackerUrlValue;
   Label pieceNumber;
   Label pieceSize;
+  Label comment;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -307,6 +308,15 @@ public class GeneralView extends AbstractIView {
       }
     });
     
+    label = new Label(gInfo, SWT.LEFT);
+    
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
+    comment = new Label(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    comment.setLayoutData(gridData);
+    
     genComposite.addListener(SWT.Resize, new Listener() {
       public void handleEvent(Event e) {
         overall = -1;
@@ -359,7 +369,8 @@ public class GeneralView extends AbstractIView {
       manager.getSavePath(),
       ByteFormater.nicePrint(manager.getHash()),
       manager.getNbPieces(),
-      manager.getPieceLength());
+      manager.getPieceLength(),
+      manager.getComment());
   }
 
   /* (non-Javadoc)
@@ -675,7 +686,8 @@ public class GeneralView extends AbstractIView {
     final String _path,
     final String _hash,
     final int _pieceNumber,
-    final String _pieceLength) {
+    final String _pieceLength,
+    final String _comment) {
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
@@ -698,7 +710,9 @@ public class GeneralView extends AbstractIView {
         if (pieceSize == null || pieceSize.isDisposed())
           return;
         pieceSize.setText(_pieceLength);
-//        if (gInfo.isDisposed()) return;
+        if(comment == null || comment.isDisposed())
+           return;
+        comment.setText(_comment);
       }
     });
   }

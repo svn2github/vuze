@@ -28,6 +28,7 @@ public class FileInfo {
   private int nbPieces = 0;
   
   private boolean priority = false;  
+  private boolean skipped = false;
 
   /**
    * @return
@@ -182,6 +183,20 @@ public class FileInfo {
    */
   public void setPriority(boolean b) {
     priority = b;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isSkipped() {
+    return skipped;
+  }
+
+  /**
+   * @param skipped
+   */
+  public void setSkipped(boolean skipped) {
+    this.skipped = skipped;
   }
 
 }

@@ -47,7 +47,7 @@ public class PeerTableItem {
     this.table = table;
     this.peerSocket = pc;
     this.valid = false;
-    this.oldTexts = new String[18];
+    this.oldTexts = new String[19];
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";	
 
@@ -239,7 +239,7 @@ public class PeerTableItem {
     if (!(oldTexts[17].equals(tmp))) {
       item.setText(17, tmp);
       oldTexts[17] = tmp;
-    }
+    }        
 
   }
 
@@ -297,6 +297,12 @@ public class PeerTableItem {
       item.setText(16, tmp);
       oldTexts[16] = tmp;
     }
+    
+    tmp = "" + stats.getTotalDiscarded();
+            if (!(oldTexts[18].equals(tmp))) {
+              item.setText(18, tmp);
+              oldTexts[18] = tmp;
+            }
 
   }
 

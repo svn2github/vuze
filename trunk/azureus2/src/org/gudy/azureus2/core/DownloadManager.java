@@ -55,6 +55,9 @@ public class DownloadManager extends Component {
   
   //Used when trackerConnection is not yet created.
   private String trackerUrl;
+  
+  //The comment field in the metaData
+  private String comment;
 
   private byte[] hash;
   private Map metaData;
@@ -99,11 +102,15 @@ public class DownloadManager extends Component {
     extractMetaInfo();
     if (this.state == STATE_ERROR) return;
 
-    //Get the Tracker url
+    //Get the Tracker url / comment
        try {
          trackerUrl = null;
          trackerUrl = new String((byte[]) metaData.get("announce"), Constants.DEFAULT_ENCODING);
          trackerUrl = trackerUrl.replaceAll(" ", "");
+         comment = "";
+         byte[] bcomment = (byte[]) metaData.get("comment");
+         if(bcomment != null)
+          comment = new String(bcomment, Constants.DEFAULT_ENCODING);
        } catch (Exception e) {
          e.printStackTrace();
        }
@@ -534,6 +541,13 @@ public class DownloadManager extends Component {
    */
   public TrackerConnection getTrackerConnection() {
     return trackerConnection;
+  }
+
+  /**
+   * @return
+   */
+  public String getComment() {
+    return comment;
   }
 
 }

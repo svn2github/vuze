@@ -55,7 +55,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
       "I2", "C2", "uploadspeed", //$NON-NLS-1$
       "upload", //$NON-NLS-1$
       "statup", "S", "downloadspeedoverall", //$NON-NLS-1$
-      "optunchoke", "client" };
+      "optunchoke", "client","discarded" };
     int[] align =
       {
         SWT.LEFT,
@@ -75,7 +75,8 @@ public class PeersView extends AbstractIView implements IComponentListener {
         SWT.LEFT,
         SWT.LEFT,
         SWT.LEFT,
-        SWT.LEFT };
+        SWT.LEFT,
+        SWT.CENTER };
     for (int i = 0; i < titles.length; i++) {
       TableColumn column = new TableColumn(table, align[i]);
       Messages.setLanguageText(column, "PeersView." + titles[i]);
@@ -98,6 +99,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     table.getColumn(15).setWidth(60);
     table.getColumn(16).setWidth(30);
     table.getColumn(17).setWidth(60);
+    table.getColumn(18).setWidth(60);
 
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip")); //$NON-NLS-1$
     table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port")); //$NON-NLS-1$

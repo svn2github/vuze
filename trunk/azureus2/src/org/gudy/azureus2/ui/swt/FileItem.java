@@ -120,6 +120,8 @@ public class FileItem {
     tmp = MessageText.getString("FileItem.normal"); //$NON-NLS-1$
     if (fileInfo.isPriority())
       tmp = MessageText.getString("FileItem.high"); //$NON-NLS-1$
+    if(fileInfo.isSkipped())
+      tmp = MessageText.getString("FileItem.donotdownload"); //$NON-NLS-1$
     if (!oldTexts[8].equals(tmp)) {
           oldTexts[8] = tmp;
           item.setText(8, tmp);

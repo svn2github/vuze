@@ -89,6 +89,8 @@ public class FilesView extends AbstractIView {
     Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
     Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal"); //$NON-NLS-1$
+    final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
+    Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -129,6 +131,7 @@ public class FilesView extends AbstractIView {
             FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
             if (fileInfo != null)
               fileInfo.setPriority(true);
+              fileInfo.setSkipped(false);
           }
         });
         
@@ -142,8 +145,22 @@ public class FilesView extends AbstractIView {
             FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
             if (fileInfo != null)
               fileInfo.setPriority(false);
+              fileInfo.setSkipped(false);
           }
         });
+        
+    itemSkipped.addListener(SWT.Selection, new Listener() {
+              public void handleEvent(Event e) {
+                TableItem[] tis = table.getSelection();
+                if (tis.length == 0) {
+                  return;
+                }
+                TableItem ti = tis[0];
+                FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+                if (fileInfo != null)
+                  fileInfo.setSkipped(true);
+              }
+            });
     
     
     table.setMenu(menu);

@@ -1313,10 +1313,14 @@ public class DiskManager {
     public void computePriorityIndicator() {
         for (int i = 0; i < pieceCompletion.length; i++) {
             PieceList pieceList = pieceMap[i];
-            int completion = 0;
+            int completion = -1;
             for (int k = 0; k < pieceList.size(); k++) {
                 //get the piece and the file 
                 FileInfo fileInfo = (pieceList.get(k)).getFile();
+                //If the file isn't skipped
+                if(fileInfo.isSkipped())
+                    continue;
+                                   
                 //If the file is started but not completed
                 if (fileInfo.isPriority())
                     completion = 9;
@@ -1416,8 +1420,9 @@ public class DiskManager {
                 break;
         }
 
-        if (pieces.size() == 0)
-            System.out.println("Size 0");
+        if (pieces.size() == 0) {
+          return -1;
+        }
 
         return ((Integer)pieces.get((int) (Math.random() * pieces.size()))).intValue();
     }

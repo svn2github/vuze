@@ -109,7 +109,7 @@ public class PeerStats {
     if(totalDiscarded == 0)
       return format(totalReceived);
     else {
-      return format(totalReceived-totalDiscarded) + " + ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + ")"; 
+      return format(totalReceived-totalDiscarded) + " ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + ")"; 
     }
   }
   
