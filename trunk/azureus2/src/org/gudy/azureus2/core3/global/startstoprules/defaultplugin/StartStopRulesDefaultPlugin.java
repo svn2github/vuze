@@ -168,7 +168,7 @@ StartStopRulesDefaultPlugin
       log.log(LoggerChannel.LT_WARNING,
               "SWT UI Config not loaded for StartStopRulesDefaulPlugin. " +
               e.getMessage() + " not found.");
-    } catch( Exception e ){
+    } catch( Throwable e ){
       e.printStackTrace();
     }
 

@@ -139,7 +139,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static boolean isDisposeFromListener = false;
   
   public static Color[] blues = new Color[5];
-  public static Color colorShift;
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -401,7 +400,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         
     ImageRepository.loadImages(display);
     
-    LGLogger.log("Loading images complete");
     splashNextTask();
     setSplashTask("splash.initializeGui");
     
@@ -416,11 +414,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     downloadBars = new HashMap();
     
 
-    LGLogger.log("Allocating Colors..");
     if (instanceCount == 0) {      
       try {
         allocateBlues();
-    LGLogger.log(".. blues done");
         
         black = new Color(display, new RGB(0, 0, 0));
         blue = new Color(display, new RGB(0, 0, 170));
@@ -430,16 +426,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         background = new Color(display , new RGB(248,248,248));
         red_ConsoleView = new Color(display, new RGB(255, 192, 192));
         red_ManagerItem = new Color(display, new RGB(255, 68, 68));
-    LGLogger.log(".. colors done");
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
-    LGLogger.log(".. cursor done");
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
         e.printStackTrace();
       }
     }
     instanceCount++;
-    LGLogger.log("Starting Main Window Init..");
 
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
@@ -454,7 +447,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Decorations decoMenu = new Decorations(coolbar,SWT.NULL);
     */
     
-    LGLogger.log("Creating menus");
   try {
     //The Main Menu
     menuBar = new Menu(mainWindow, SWT.BAR);
@@ -696,7 +688,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     addCloseDownloadBarsToMenu(viewMenu);
 
     createLanguageMenu(menuBar, mainWindow, locales);
-    LGLogger.log("Language Menu Created");
 
     //The Help Menu
     MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -747,8 +738,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
     e.printStackTrace();
   }
-
-    LGLogger.log("Initializing GUI tabs");
 
     createDropTarget(mainWindow);
 
@@ -1112,13 +1101,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       r = COConfigurationManager.getIntParameter("Color Scheme.red",r);
       g = COConfigurationManager.getIntParameter("Color Scheme.green",g);
       b = COConfigurationManager.getIntParameter("Color Scheme.blue",b);
-      LGLogger.log("r:"+r+";g:"+g+"b:"+b);
       for(int i = 0 ; i < 5 ; i++) {
-        LGLogger.log("Color "+i);
         Color toBeDisposed = blues[i];
         blues[i] = new Color(display,r+((255-r)*(4-i))/4,g+((255-g)*(4-i))/4,b+((255-b)*(4-i))/4);
         if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-          LGLogger.log("Disposing old Color "+i);
           toBeDisposed.dispose();
         }
       }
@@ -1126,21 +1112,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
       e.printStackTrace();
     }
-    try {
-      colorShift = new Color(display, r, g, b);
-/*
-      float[] hsb = new float[3];
-      java.awt.Color.RGBtoHSB(r, g, b, hsb);
-      hsb[0] += 0.10;
-      if (hsb[0] > 1)
-      	hsb[0] -= 1;
-      java.awt.Color awtColorShift = java.awt.Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-      colorShift = new Color(display, awtColorShift.getRed(), awtColorShift.getGreen(), awtColorShift.getBlue());
-*/
-    } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Color Shift Failure, using default 'blue'");
-    }
-    
   }
 
   public void showMyTracker() {
