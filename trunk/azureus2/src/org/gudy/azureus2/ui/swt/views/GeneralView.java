@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -106,6 +107,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   Button		updateButton;
 
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  private boolean bInitializeDone = false;
+  private boolean bPaintListenersAdded = false;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -115,6 +118,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
+    LGLogger.log("General View Initialization Starts");
+    long lStartTime = System.currentTimeMillis();
+
     this.display = composite.getDisplay();
 
     genComposite = new Canvas(composite, SWT.NULL);
@@ -539,6 +545,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     comment.setLayoutData(gridData);
  
     
+    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to create");
+    lStartTime = System.currentTimeMillis();
+
     if(System.getProperty("os.name").equals("Mac OS X")) {
       Shell shell = MainWindow.getWindow().getShell();
       Point size = shell.getSize();
@@ -549,29 +558,18 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
 
-    fileImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0 && e.width > 0 && e.height > 0) {
-          updateOverall(true);
-        }
-      }
-    });
-    piecesImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0 && e.width > 0 && e.height > 0) {
-          updatePiecesInfo(true);
-        }
-      }
-    });
-    availabilityImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        if (e.count == 0 && e.width > 0 && e.height > 0) {
-          updateAvailability();
-        }
-      }
-    });
+    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to layout");
+    lStartTime = System.currentTimeMillis();
 
     COConfigurationManager.addParameterListener("Graphics Update", this);
+
+    updateAvailability();
+    updatePiecesInfo(true);
+    updateOverall(true);
+
+    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to initially draw bars");
+
+    bInitializeDone = true;
   }
 
   /* (non-Javadoc)
@@ -594,6 +592,34 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       updatePiecesInfo(false);
       updateOverall(false);
     }
+    
+    if (!bPaintListenersAdded && bInitializeDone) {
+      bPaintListenersAdded = true;
+      LGLogger.log("GeneralView: Paint listeners added");
+      
+      fileImage.addListener(SWT.Paint, new Listener() {
+        public void handleEvent(Event e) {
+          if (e.count == 0 && e.width > 0 && e.height > 0) {
+            updateOverall(true);
+          }
+        }
+      });
+      piecesImage.addListener(SWT.Paint, new Listener() {
+        public void handleEvent(Event e) {
+          if (e.count == 0 && e.width > 0 && e.height > 0) {
+            updatePiecesInfo(true);
+          }
+        }
+      });
+      availabilityImage.addListener(SWT.Paint, new Listener() {
+        public void handleEvent(Event e) {
+          if (e.count == 0 && e.width > 0 && e.height > 0) {
+            updateAvailability();
+          }
+        }
+      });
+    }
+
     setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");

@@ -41,6 +41,7 @@ BufferedTableRow
 	
 	protected String[]	text_values		= new String[0];
 	protected Image[]	image_values	= new Image[0];
+	protected Color[]	foreground_colors	= new Color[0];
 	
 	protected Color		foreground;
 	
@@ -125,13 +126,45 @@ BufferedTableRow
 		item.setForeground(foreground);
 	}
 
-	public void
+	public boolean
 	setForeground(
-	  int iColumn,
-		Color	c )
+	  int index,
+		Color	new_color )
 	{
-	  // TODO: buffer
-		item.setForeground(iColumn, c);
+		if ( item.isDisposed()){
+			return false;
+		}
+				
+		if ( index >= foreground_colors.length ){
+			
+			int	new_size = Math.max( index+1, foreground_colors.length+VALUE_SIZE_INC );
+			
+			Color[]	new_colors = new Color[new_size];
+			
+			System.arraycopy( foreground_colors, 0, new_colors, 0, foreground_colors.length );
+			
+			foreground_colors = new_colors;
+		}
+
+		Color value = foreground_colors[index];
+		
+		if ( new_color == value ){
+			
+			return false;
+		}
+		
+		if (	new_color != null && 
+				value != null &&
+				new_color.equals( value )){
+					
+			return false;
+		}
+		
+		foreground_colors[index] = new_color;
+		
+    item.setForeground(index, new_color);
+    
+    return true;
 	}
 	
 	public String
@@ -196,7 +229,7 @@ BufferedTableRow
       return null;
     return item.getBounds(index);
   }
-  
+
   public Table getTable() {
     if(item == null || item.isDisposed())
       return null;
