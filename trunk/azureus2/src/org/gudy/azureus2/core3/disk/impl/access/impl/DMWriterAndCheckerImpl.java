@@ -27,7 +27,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.file.FMFile;
+import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
@@ -165,7 +165,7 @@ DMWriterAndCheckerImpl
 	  }
 
 	  public boolean zeroFile( DiskManagerFileInfoImpl file, long length ) {
-	    FMFile	fm_file = file.getFMFile();
+	  	CacheFile	fm_file = file.getCacheFile();
 			long written = 0;
 			synchronized (file){
 			  try{
@@ -237,9 +237,9 @@ DMWriterAndCheckerImpl
 					try {
 		                    
 							   //if the file is large enough
-						if ( tempPiece.getFile().getFMFile().getSize() >= tempPiece.getOffset()){
+						if ( tempPiece.getFile().getCacheFile().getSize() >= tempPiece.getOffset()){
 							
-							tempPiece.getFile().getFMFile().read(allocateAndTestBuffer, tempPiece.getOffset());
+							tempPiece.getFile().getCacheFile().read(allocateAndTestBuffer, tempPiece.getOffset());
 							
 						}else{
 								   //too small, can't be a complete piece
@@ -379,7 +379,7 @@ DMWriterAndCheckerImpl
 	
 				if ( buffer.hasRemaining() ){
 
-					current_piece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
+					current_piece.getFile().getCacheFile().write( buffer, fileOffset + (offset - previousFilesLength));
 				}
 					
 				buffer.limit(realLimit);

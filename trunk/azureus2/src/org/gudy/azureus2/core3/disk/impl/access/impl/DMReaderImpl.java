@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.file.FMFileManagerException;
+import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -165,11 +165,11 @@ DMReaderImpl
 			long offset) 
 		{
 			try{
-				file.getFMFile().read( buffer, offset );
+				file.getCacheFile().read( buffer, offset );
 				
 				return( true );
 				
-			}catch( FMFileManagerException e ){
+			}catch( CacheFileManagerException e ){
 				
 				disk_manager.setErrorMessage((e.getCause()!=null?e.getCause().getMessage():e.getMessage()));
 				

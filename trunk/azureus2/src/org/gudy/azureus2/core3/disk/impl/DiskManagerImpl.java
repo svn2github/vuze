@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
 
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
@@ -55,7 +55,7 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
  */
 public class 
 DiskManagerImpl
-	implements DiskManagerHelper, FMFileOwner 
+	implements DiskManagerHelper, CacheFileOwner 
 {  
 
 	private String	dm_name	= "";
@@ -376,7 +376,7 @@ DiskManagerImpl
 			try{
 				fileInfo = new DiskManagerFileInfoImpl( this, f );
 				
-			}catch ( FMFileManagerException e ){
+			}catch ( CacheFileManagerException e ){
 				
 				this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles:" + f.toString() + ")";
 				
@@ -429,7 +429,7 @@ DiskManagerImpl
 			  try {
           fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 			  }
-        catch (FMFileManagerException e) {
+        catch (CacheFileManagerException e) {
           this.errorMessage = (e.getCause() != null
               ? e.getCause().getMessage()
               : e.getMessage())
@@ -457,7 +457,7 @@ DiskManagerImpl
           fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
           if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
             //do incremental stuff
-            fileInfo.getFMFile().setLength( 0 );
+            fileInfo.getCacheFile().setLength( 0 );
           }
           else {  //fully allocate
             if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
@@ -467,14 +467,14 @@ DiskManagerImpl
               }
             }
             else {  //reserve the full file size with the OS file system
-              fileInfo.getFMFile().setLength( length );
+              fileInfo.getCacheFile().setLength( length );
               allocated += length;
             }
           }
         }
         catch ( Exception e ) {
-          try {  fileInfo.getFMFile().close();  }
-          catch (FMFileManagerException ex) {  ex.printStackTrace();  }
+          try {  fileInfo.getCacheFile().close();  }
+          catch (CacheFileManagerException ex) {  ex.printStackTrace();  }
           this.errorMessage = (e.getCause() != null
               ? e.getCause().getMessage()
               : e.getMessage())
@@ -603,7 +603,7 @@ DiskManagerImpl
 				try {
 					if (files[i] != null) {
 						
-						files[i].getFMFile().close();
+						files[i].getCacheFile().close();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -876,7 +876,7 @@ DiskManagerImpl
            	
             files[i].setAccessMode(DiskManagerFileInfo.READ);
             
-          }catch( FMFileManagerException e ){
+          }catch( CacheFileManagerException e ){
           	
             String msg = "Failed to move " + old_file.getName() + " to destination dir";
             
@@ -898,7 +898,7 @@ DiskManagerImpl
 
             		files[j].setAccessMode(DiskManagerFileInfo.READ);
          		
-            	}catch( FMFileManagerException f ){
+            	}catch( CacheFileManagerException f ){
               
             		LGLogger.logAlertUsingResource( 
                     		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 

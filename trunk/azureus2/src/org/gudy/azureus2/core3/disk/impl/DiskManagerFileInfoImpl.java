@@ -27,7 +27,7 @@ package org.gudy.azureus2.core3.disk.impl;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -38,7 +38,7 @@ public class
 DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo
 {
-  private FMFile		fm_file;
+  private CacheFile		cache_file;
   
   private String 		path;
   private String 		name;
@@ -54,10 +54,10 @@ DiskManagerFileInfoImpl
   
   protected
   DiskManagerFileInfoImpl(
-  	FMFileOwner	owner,
-  	File		file )
+  	CacheFileOwner	owner,
+  	File			file )
   
-  	throws FMFileManagerException
+  	throws CacheFileManagerException
   {
     this.diskManager = (DiskManager)owner;
   	try{
@@ -69,16 +69,16 @@ DiskManagerFileInfoImpl
       e.printStackTrace();
     }
   	
-  	fm_file = FMFileManagerFactory.getSingleton().createFile( owner, file );
+  	cache_file = CacheFileManagerFactory.getSingleton().createFile( owner, file );
   }
   
   protected void
   moveFile(
   	File	newFile )
   
-  	throws FMFileManagerException
+  	throws CacheFileManagerException
   {
-  	fm_file.moveFile( newFile );
+  	cache_file.moveFile( newFile );
   	
   	try {
       path = newFile.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
@@ -86,27 +86,27 @@ DiskManagerFileInfoImpl
     catch (Exception e) { Debug.out("Unable to resolve canonical path for " + newFile.getName()); }
   }
   
-  public FMFile
-  getFMFile()
+  public CacheFile
+  getCacheFile()
   {
-  	return( fm_file );
+  	return( cache_file );
   }
   
   public void
   setAccessMode(
   	int		mode )
   
-  	throws FMFileManagerException
+  	throws CacheFileManagerException
   {
-  	fm_file.setAccessMode( mode==DiskManagerFileInfo.READ?FMFile.FM_READ:FMFile.FM_WRITE );
+  	cache_file.setAccessMode( mode==DiskManagerFileInfo.READ?CacheFile.CF_READ:CacheFile.CF_WRITE );
   }
   
   public int 
   getAccessMode()
   {
-  	int	mode = fm_file.getAccessMode();
+  	int	mode = cache_file.getAccessMode();
   	
-	return( mode == FMFile.FM_READ?DiskManagerFileInfo.READ:DiskManagerFileInfo.WRITE);
+	return( mode == CacheFile.CF_READ?DiskManagerFileInfo.READ:DiskManagerFileInfo.WRITE);
   }
 
   /**
@@ -127,7 +127,7 @@ DiskManagerFileInfoImpl
    * @return
    */
   public File getFile() {
-	return( fm_file.getFile());
+	return( cache_file.getFile());
   }
 
   /**
