@@ -138,13 +138,26 @@ public class PeerSocket extends PeerConnection {
     readBuffer.position(0);
     //Now test for data...
 
-    if (readBuffer.get() != (byte) PROTOCOL.length())
+    if (readBuffer.get() != (byte) PROTOCOL.length()) {
       bContinue = false;
+	  closeAll(true);
+	  return;
+    }
 
     byte[] protocol = PROTOCOL.getBytes();
+    
+    if (readBuffer.remaining() < protocol.length) {
+		bContinue = false;
+		closeAll(true);
+		return;
+    }
+    
     readBuffer.get(protocol);
-    if (!(new String(protocol)).equals(PROTOCOL))
+    if (!(new String(protocol)).equals(PROTOCOL)) {
       bContinue = false;
+	  closeAll(true);
+	  return;
+    }
 
     byte[] reserved = new byte[8];
     readBuffer.get(reserved);
