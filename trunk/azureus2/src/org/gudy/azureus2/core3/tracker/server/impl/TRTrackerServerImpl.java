@@ -35,6 +35,9 @@ public class
 TRTrackerServerImpl 
 	implements TRTrackerServer
 {
+	protected static final int THREAD_POOL_SIZE				= 10;
+	protected static final int SOCKET_TIMEOUT				= 5000;
+	
 	protected static final int RETRY_MINIMUM_SECS			= 60;
 	protected static final int RETRY_MINIMUM_MILLIS			= RETRY_MINIMUM_SECS*1000;
 	protected static final int CLIENT_TIMEOUT_MULTIPLIER	= 3;
@@ -48,6 +51,9 @@ TRTrackerServerImpl
 	protected Map	torrent_map = new HashMap(); 
 		
 	protected int	current_retry_interval;
+	
+	protected Stack		thread_pool = new Stack();
+	protected Semaphore	thread_sem	= new Semaphore( THREAD_POOL_SIZE );
 	
 	protected Vector	listeners = new Vector();
 	
@@ -124,41 +130,29 @@ TRTrackerServerImpl
 	
 			try{				
 				final Socket socket = ss.accept();
-					
+										
 				String	ip = socket.getInetAddress().getHostAddress();
 							
 				if ( !ip_filter.isInRange( ip )){
 					
-					new Thread()
-						{
-							public void
-							run()
-							{			
-								try{
-								
-									socket.setSoTimeout( 5000 );
-									
-								}catch ( SocketException e ){
-									
-									e.printStackTrace();
-								}
-								
-								try{
-								
-									new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
-									
-								}finally{
-									
-									try{
-										socket.close();
-										
-									}catch( Throwable e ){
-										
-										e.printStackTrace();
-									}
-								}
-							}
-						}.start();
+					thread_sem.reserve();
+					
+					worker w;
+					
+					synchronized( this ){
+						
+						if ( thread_pool.isEmpty()){
+					
+							w = new worker();	
+
+						}else{
+							
+							w = (worker)thread_pool.pop();
+						}
+					}
+					
+					w.process( socket );
+
 				}else{
 					
 					socket.close();
@@ -373,5 +367,77 @@ TRTrackerServerImpl
 		TRTrackerServerListener	l )
 	{
 		listeners.removeElement(l);
+	}
+	
+	protected class
+	worker
+	{
+		protected Semaphore my_sem = new Semaphore();
+		
+		protected Socket	socket;
+		
+		protected
+		worker()
+		{
+			Thread t = new Thread()
+				{
+					public void 
+					run()
+					{
+						while(true){
+							try{
+								my_sem.reserve();
+									
+								try{
+											
+									try{
+											
+										socket.setSoTimeout( SOCKET_TIMEOUT );
+												
+									}catch ( SocketException e ){
+												
+										e.printStackTrace();
+									}
+											
+									new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
+												
+								}finally{
+												
+									try{
+										socket.close();
+											
+										socket	= null;
+												
+									}catch( Throwable e ){
+													
+										e.printStackTrace();
+									}
+								}
+							}finally{
+													
+								synchronized( TRTrackerServerImpl.this ){
+															
+									thread_pool.push( worker.this );
+								}
+															
+								thread_sem.release();
+							}
+						}
+					}
+				};
+				
+			t.setDaemon(true);
+			
+			t.start();
+		}
+		
+		protected void
+		process(
+			Socket	_socket )
+		{
+			socket	= _socket;
+			
+			my_sem.release();
+		}
 	}
 }
