@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
 import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -230,44 +231,46 @@ public class ConfigView extends AbstractIView {
     pluginSections = ConfigSectionRepository.getInstance().getList();
     for (int i = 0; i < pluginSections.size(); i++) {
       ConfigSection section = (ConfigSection)pluginSections.get(i);
-      String name;
-      try {
-        name = section.configSectionGetName();
-      } catch (Exception e) {
-        LGLogger.log(LGLogger.ERROR, "A ConfigSection plugin caused an error while trying to call its configSectionGetName function");
-        name = "Bad Plugin";
-        e.printStackTrace();
-      }
-      try {
-        TreeItem treeItem = null;
-        String location = section.configSectionGetParentSection();
-
-        if (location.equalsIgnoreCase(ConfigSection.SECTION_ROOT))
-          treeItem = new TreeItem(tree, SWT.NULL);
-        else if (location != "") {
-          TreeItem treeItemFound = findTreeItem(tree, location);
-          if (treeItemFound != null)
-            treeItem = new TreeItem(treeItemFound, SWT.NULL);
+      if (section instanceof ConfigSectionSWT) {
+        String name;
+        try {
+          name = section.configSectionGetName();
+        } catch (Exception e) {
+          LGLogger.log(LGLogger.ERROR, "A ConfigSection plugin caused an error while trying to call its configSectionGetName function");
+          name = "Bad Plugin";
+          e.printStackTrace();
         }
-
-        if (treeItem == null)
-          treeItem = new TreeItem(treePlugins, SWT.NULL);
-
-        ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
-        sc.setExpandHorizontal(true);
-        sc.setExpandVertical(true);
-        sc.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-        Composite c = section.configSectionCreate(sc);
-
-        Messages.setLanguageText(treeItem, sSectionPrefix + name);
-        treeItem.setData("Panel", sc);
-        treeItem.setData("ID", name);
-        
-        sc.setContent(c);
-      } catch (Exception e) {
-        LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
-        e.printStackTrace();
+        try {
+          TreeItem treeItem = null;
+          String location = section.configSectionGetParentSection();
+  
+          if (location.equalsIgnoreCase(ConfigSection.SECTION_ROOT))
+            treeItem = new TreeItem(tree, SWT.NULL);
+          else if (location != "") {
+            TreeItem treeItemFound = findTreeItem(tree, location);
+            if (treeItemFound != null)
+              treeItem = new TreeItem(treeItemFound, SWT.NULL);
+          }
+  
+          if (treeItem == null)
+            treeItem = new TreeItem(treePlugins, SWT.NULL);
+  
+          ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
+          sc.setExpandHorizontal(true);
+          sc.setExpandVertical(true);
+          sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+  
+          Composite c = ((ConfigSectionSWT)section).configSectionCreate(sc);
+  
+          Messages.setLanguageText(treeItem, sSectionPrefix + name);
+          treeItem.setData("Panel", sc);
+          treeItem.setData("ID", name);
+          
+          sc.setContent(c);
+        } catch (Exception e) {
+          LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
+          e.printStackTrace();
+        }
       }
     }
     initSaveButton();
@@ -418,12 +421,17 @@ public class ConfigView extends AbstractIView {
       String pluginName = names[i];
       Parameter[] parameters = repository.getParameterBlock(pluginName);
 
-      // Alas, the pluginName isn't in "ConfigView.section.plugins." + pluginName format
-      // Our sample ConfigTester plugin passes use just "Config.title"
-      // So, skip the auto adding of the prefix..
-      // (Note: Documentation of the PluginInterface.addConfigUIParameters is incorrect
-      //        as of writing this.  It says to pass "ConfigView.plugins." + displayName)
-      Composite pluginGroup = createConfigSection(treePlugins, pluginName, false);
+      // Note: 2070's plugin documentation for PluginInterface.addConfigUIParameters
+      //       said to pass <"ConfigView.plugins." + displayName>.  This was
+      //       never implemented in 2070.  2070 read the key <displayName> without
+      //       the prefix.
+      //
+      //       2071+ uses <sSectionPrefix ("ConfigView.section.plugins.") + pluginName>
+      //       and falls back to <displayName>.  Since 
+      //       <"ConfigView.plugins." + displayName> was never implemented in the
+      //       first place, a check for it has not been created
+      boolean bUsePrefix = MessageText.keyExists(sSectionPrefix + "plugins." + pluginName);
+      Composite pluginGroup = createConfigSection(treePlugins, pluginName, bUsePrefix);
       GridLayout pluginLayout = new GridLayout();
       pluginLayout.numColumns = 3;
       pluginGroup.setLayout(pluginLayout);

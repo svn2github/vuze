@@ -21,7 +21,21 @@
  
 package org.gudy.azureus2.plugins.ui.config;
 
-/**
+/** Functions to create various plugin UI Config Parameters.<p>
+ *
+ * The <i>label</i> parameter passed to these functions is a lookup name.
+ * The UI label's text will be assigned the value looked up in the language file 
+ * using the label parameter as the key name.
+ * <p>
+ * If you wish your configuration option to be displaying in console mode,
+ * add the following to your key:<PRE>
+ * _b      Boolean Value
+ * _i      Integer Value
+ * _s      String Value
+ * </PRE> the above tags must be added before any other "_" characters.
+ *
+ * @see org.gudy.azureus2.plugins.PluginInterface#addConfigUIParameters PluginInterface.addConfigUIParameters
+ *
  * @author Olivier
  *
  */

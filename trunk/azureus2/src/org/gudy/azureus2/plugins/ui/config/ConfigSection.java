@@ -21,10 +21,10 @@
 
 package org.gudy.azureus2.plugins.ui.config;
 
-import org.eclipse.swt.widgets.Composite;
-
 /**
- * Extend this class to add a new configuration panel to the Config view.
+ * Base class for adding "ConfigSection"s.<p>
+ * This class does nothing.  Extend the subinterfaces to add a section to a
+ * particular type of view (currently only SWT is supported).
  */
 public interface ConfigSection {
   /**
@@ -42,17 +42,6 @@ public interface ConfigSection {
    * return the configSectionGetName result of your parent.<br>
    */
   public String configSectionGetParentSection();
-
-
-  /**
-   * Create your own configuration panel here.  It can be anything that inherits
-   * from SWT's Composite class.
-   * Please be mindfull of small screen resolutions
-   *
-   * @param parent The parent of your configuration panel
-   * @return your configuration panel
-   */
-  public Composite configSectionCreate(Composite parent);
 
   /**
    * In order for the plugin to display its section correctly, a key in the

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 
 /**
  * @author epall
@@ -49,6 +50,48 @@ public class ParameterRepository
 	public void addPlugin(Parameter[] parameters, String displayName)
 	{
 		params.put(displayName, parameters);
+    
+    // set the defaults
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    if (def == null)
+      return;
+
+    for (int i = 0; i < parameters.length; i++) {
+      Parameter parameter = parameters[i];
+      if (!(parameter instanceof GenericParameter))
+        continue;
+      String sKey = ((GenericParameter)parameter).getKey();
+
+      if(parameter instanceof StringParameter) {
+        def.addParameter(sKey,
+                         ((StringParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof IntParameter) {
+        def.addParameter(sKey,
+                         ((IntParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof BooleanParameter) {
+        def.addParameter(sKey,
+                         ((BooleanParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof FileParameter) {
+        def.addParameter(sKey,
+                         ((FileParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof DirectoryParameter) {
+        def.addParameter(sKey,
+                         ((DirectoryParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof IntsParameter) {
+        def.addParameter(sKey,
+                         ((IntsParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof StringsParameter) {
+        def.addParameter(sKey,
+                         ((StringsParameter)parameter).getDefaultValue());
+      } else if(parameter instanceof ColorParameter) {
+        def.addParameter(sKey + ".red",
+                         ((ColorParameter)parameter).getDefaultRed());
+        def.addParameter(sKey + ".green",
+                         ((ColorParameter)parameter).getDefaultGreen());
+        def.addParameter(sKey + ".blue",
+                         ((ColorParameter)parameter).getDefaultBlue());
+      }
+    }
 	}	
 	
 	public String[] getNames()

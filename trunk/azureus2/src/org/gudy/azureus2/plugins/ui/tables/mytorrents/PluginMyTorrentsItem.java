@@ -29,8 +29,7 @@ package org.gudy.azureus2.plugins.ui.tables.mytorrents;
  */
 public interface PluginMyTorrentsItem {
   
-  /**
-   * Called by the GUI whenever a refresh is needed.<br>
+  /** Called by the GUI whenever a refresh is needed.<br>
    * The Item should have been created by its associated factory,
    * and been initialiazed with references to a MyTorrentsTableItem.
    * This class only needs to implement the refresh method using methods
@@ -38,16 +37,16 @@ public interface PluginMyTorrentsItem {
    */
   public void refresh();
   
-  /**
-   * Called by the GUI whenever a sort is done.<br>
+  /** Called by the GUI whenever a sort is done.<br>
    * Should return null if the item is of type TYPE_INT.
+   *
    * @return the current value
    */
   public String getStringValue();
   
-  /**
-   * Called by the GUI whenever a sort is done.<br>
+  /** Called by the GUI whenever a sort is done.<br>
    * Should return 0 if the item is of type TYPE_STRING.
+   *
    * @return the current value
    */
   public int getIntValue();

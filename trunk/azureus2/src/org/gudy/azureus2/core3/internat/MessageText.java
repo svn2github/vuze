@@ -44,6 +44,15 @@ public class MessageText {
 //  private static ResourceBundle RESOURCE_BUNDLE = new IntegratedResourceBundle(ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT), pluginLocalizationPaths);
   private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
 
+  public static boolean keyExists(String key) {
+    try {
+      RESOURCE_BUNDLE.getString(key);
+      return true;
+    } catch (MissingResourceException e) {
+      return false;
+    }
+  }
+
   /**
    * @param key
    * @return

@@ -275,5 +275,17 @@ public class ConfigurationDefaults {
   public Set getAllowedParameters() {
   	return def.keySet();
   }
-  
+ 
+  public void addParameter(String sKey, String sParameter) {
+    def.put(sKey, sParameter);
+  }
+
+  public void addParameter(String sKey, int iParameter) {
+    def.put(sKey, new Long(iParameter));
+  }
+
+  public void addParameter(String sKey, boolean bParameter) {
+    Long lParameter = new Long(bParameter ? 0 : 1);
+    def.put(sKey, lParameter);
+  }
 }

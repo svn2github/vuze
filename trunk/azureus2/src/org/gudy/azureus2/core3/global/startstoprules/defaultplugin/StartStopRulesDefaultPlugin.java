@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
@@ -1117,7 +1118,7 @@ StartStopRulesDefaultPlugin
 
   /** General Queueing options
    */
-  class ConfigSectionQueue implements ConfigSection {
+  class ConfigSectionQueue implements ConfigSectionSWT {
     public String configSectionGetParentSection() {
       return ConfigSection.SECTION_ROOT;
     }
@@ -1196,7 +1197,7 @@ StartStopRulesDefaultPlugin
 
   /** Seeding Automation Specific options
    */
-  class ConfigSectionSeeding implements ConfigSection {
+  class ConfigSectionSeeding implements ConfigSectionSWT {
     public String configSectionGetParentSection() {
       return "queue";
     }
@@ -1258,7 +1259,7 @@ StartStopRulesDefaultPlugin
   
   /** First Priority Specific options.
    */
-  class ConfigSectionSeedingFirstPriority implements ConfigSection {
+  class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
     public String configSectionGetParentSection() {
       return "queue.seeding";
     }
@@ -1381,7 +1382,7 @@ StartStopRulesDefaultPlugin
   
   /** Auto Starting specific options
    */
-  class ConfigSectionSeedingAutoStarting implements ConfigSection {
+  class ConfigSectionSeedingAutoStarting implements ConfigSectionSWT {
     public String configSectionGetParentSection() {
   		return "queue.seeding";
     }
@@ -1625,7 +1626,7 @@ StartStopRulesDefaultPlugin
 
   /** Config Section for items that make us ignore torrents when seeding 
    */
-  class ConfigSectionSeedingIgnore implements ConfigSection {
+  class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
     public String configSectionGetParentSection() {
       return "queue.seeding";
     }

@@ -52,9 +52,13 @@ public interface PluginInterface {
   
   /**
    * adds a tab under the 'plugins' tab in the config view.<br>
+   * Use {@link #getPluginConfigUIFactory()} to get the 
+   * {@link PluginConfigUIFactory} class, from which you can create different
+   * types of parameters.
+   *
    * @param parameters the Parameter(s) to be edited
    * @param displayName the under which it should display.<br>
-   * Azureus will look-up for ConfigView.plugins.displayName into the lang files
+   * Azureus will look-up for ConfigView.section.plugins.&lt;displayName&gt; into the lang files
    * in order to find the localized displayName. (see i18n)
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
@@ -63,7 +67,7 @@ public interface PluginInterface {
    * adds a column to the peers table.<br>
    * @param columnName the key name of the column
    * @param factory the factory responsible of creating items.
-   * Azureus will look-up for PeersView.columnName into the lang files
+   * Azureus will look-up for MyTorrentsView.&lt;columnName&gt; into the lang files
    * in order to find the localized displayName. (see i18n)
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
@@ -78,7 +82,7 @@ public interface PluginInterface {
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
   
   /**
-   * adds a ConfigSection to the config view<p>
+   * adds a ConfigSection to the config view.<p>
    * In contrast to addConfigUIParameters, this gives you total control over
    * a tab.  Please be kind and use localizable text.<BR>
    * @param section ConfigSection to be added to the Config view
