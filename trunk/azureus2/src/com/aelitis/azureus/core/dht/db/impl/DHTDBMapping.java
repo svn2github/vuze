@@ -26,9 +26,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
-import sun.security.krb5.internal.i;
-
-
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
@@ -357,15 +354,21 @@ DHTDBMapping
 		public Object
 		next()
 		{
-			hasNext();
+			if ( hasNext()){
 			
-			return( it.next());
+				return( it.next());
+			}
+			
+			throw( new NoSuchElementException());
 		}
 		
 		public void
 		remove()
 		{
-			hasNext();
+			if ( it == null ){
+							
+				throw( new IllegalStateException());
+			}	
 			
 			it.remove();
 		}
