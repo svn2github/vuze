@@ -415,7 +415,7 @@ PEPeerTransportProtocol
         avail_ids,
         avail_vers );        
 
-    System.out.println( "Sending AZ handshake of " +az_handshake.getDescription() );
+    //System.out.println( "Sending " +az_handshake.getDescription() );
     
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
   }
@@ -1061,13 +1061,29 @@ PEPeerTransportProtocol
       
       if( msg != null ) {  //mutual support!
         messages.add( msg );
-        mutual += msg.getID() + " ";
+        
+        String id = msg.getID();
+        
+        if( !id.equals( BTMessage.ID_BT_BITFIELD ) &&   //filter out obvious mutual messages
+            !id.equals( BTMessage.ID_BT_CANCEL ) &&
+            !id.equals( BTMessage.ID_BT_CHOKE ) &&
+            !id.equals( BTMessage.ID_BT_HANDSHAKE ) &&
+            !id.equals( BTMessage.ID_BT_HAVE ) &&
+            !id.equals( BTMessage.ID_BT_INTERESTED ) &&
+            !id.equals( BTMessage.ID_BT_KEEP_ALIVE ) &&
+            !id.equals( BTMessage.ID_BT_PIECE ) &&
+            !id.equals( BTMessage.ID_BT_REQUEST ) &&
+            !id.equals( BTMessage.ID_BT_UNCHOKE ) &&
+            !id.equals( BTMessage.ID_BT_UNINTERESTED ) )
+        {
+          mutual += "[" +id+ "] ";
+        }
       }
     }
     
     supported_messages = (Message[])messages.toArray( new Message[0] );
 
-    System.out.println( "Mutually supported messages: [" +mutual+ "]" );
+    System.out.println( "Mutually supported messages: " +mutual );
 
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
     last_data_message_received_time = SystemTime.getCurrentTime();
