@@ -304,18 +304,23 @@ public class PeerTableItem {
   public void remove() {
     if (display == null || display.isDisposed())
       return;
-    display.syncExec(new Runnable() {
-      public void run() {
-        if (table == null || table.isDisposed())
-          return;
-        if (item == null || item.isDisposed())
-          return;
-        table.getColumn(5).removeListener(SWT.Resize, listener);
-        table.remove(table.indexOf(item));
-        item.dispose();
-        tableItems.remove(item);
-      }
-    });
+    try {
+	    display.syncExec(new Runnable() {
+	      public void run() {
+	        if (table == null || table.isDisposed())
+	          return;
+	        if (item == null || item.isDisposed())
+	          return;
+	        table.getColumn(5).removeListener(SWT.Resize, listener);
+	        table.remove(table.indexOf(item));
+	        item.dispose();
+	        tableItems.remove(item);
+	      }
+	    });
+    }
+    catch (Exception e) {
+    	e.printStackTrace();
+    }
   }
 
   public void invalidate() {
