@@ -104,7 +104,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     
     
-    IntParameter paramMaxClients = new IntParameter(cTransfer, "Max.Peer.Connections.Per.Torrent", 100);
+    IntParameter paramMaxClients = new IntParameter(cTransfer, "Max.Peer.Connections.Per.Torrent");
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploads.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -120,7 +120,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label.setLayoutData(formData);
     
     
-    IntParameter paramMaxClientsTotal = new IntParameter(cTransfer, "Max.Peer.Connections.Total", 0);
+    IntParameter paramMaxClientsTotal = new IntParameter(cTransfer, "Max.Peer.Connections.Total");
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxClients.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
