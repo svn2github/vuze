@@ -181,6 +181,8 @@ PEPeerServerImpl
           sckClient.configureBlocking(false);
           
           adapter.addPeerTransport(sckClient);
+          
+          sckClient = null;
         }
         else {
           LGLogger.log(
