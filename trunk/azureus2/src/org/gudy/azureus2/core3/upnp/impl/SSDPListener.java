@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.impl;
 
 /**
  * @author parg
@@ -28,13 +28,11 @@ package org.gudy.azureus2.core3.upnp;
  */
 
 public interface 
-UPnP 
+SSDPListener 
 {
 	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+	rootDiscovered(
+		String		location,
+		String		usn,
+		String		st );
 }

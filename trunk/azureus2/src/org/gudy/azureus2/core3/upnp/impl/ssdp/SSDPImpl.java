@@ -26,7 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
-
+import org.gudy.azureus2.core3.upnp.impl.*;
 
 /**
  * @author parg
@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.upnp.*;
 
 public class 
 SSDPImpl 
+	implements SSDP
 {
 	protected final static String	SSDP_GROUP_ADDRESS 	= "239.255.255.250";
 	protected final static int		SSDP_GROUP_PORT		= 1900;
@@ -45,16 +46,27 @@ SSDPImpl
 	protected static final String	HTTP_VERSION	= "1.1";
 	protected static final String	NL				= "\r\n";
 	
-	protected List	mc_bind_addresses	= new ArrayList();
 	
-	protected String		root_location;
-	protected String		root_usn;
-	protected String		root_st;
+	protected UPnPImpl		upnp;
+	
+	protected List			mc_bind_addresses	= new ArrayList();
+		
+	protected List			listeners	= new ArrayList();
 	
 	public
-	SSDPImpl()
+	SSDPImpl(
+		UPnPImpl		_upnp )
+	
 		throws UPnPException
 	{	
+		upnp	= _upnp;
+	}
+	
+	public void
+	start()
+	
+		throws UPnPException
+	{
 		try{
 			Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
 			
@@ -83,12 +95,14 @@ SSDPImpl
 						final MulticastSocket mc_sock = new MulticastSocket(null);
 						
 						mc_sock.setReuseAddress(true);
-					
+						
+						mc_sock.setTimeToLive(4);
+						
 						mc_sock.bind( bind_address );
 						
 						final InetSocketAddress group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), SSDP_GROUP_PORT);
 							
-						System.out.println( "Multicast Group: group = " + group_address +"/" + network_interface.getName() + ":" + bind_address );
+						upnp.log( "UPnP::SSDP: group = " + group_address +"/" + network_interface.getName() + ":" + bind_address );
 						
 						mc_sock.joinGroup( group_address, network_interface );
 					
@@ -103,7 +117,6 @@ SSDPImpl
 										try{
 											mc_sock.leaveGroup( group_address, network_interface );
 											
-											System.out.println( "left group" );
 										}catch( Throwable e ){
 											
 											e.printStackTrace();
@@ -198,15 +211,19 @@ SSDPImpl
 					try{
 						InetSocketAddress group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), SSDP_GROUP_PORT);
 						
-						MulticastSocket msock = new MulticastSocket(null);
+						MulticastSocket mc_sock = new MulticastSocket(null);
+
+						mc_sock.setReuseAddress(true);
 						
-						msock.bind( new InetSocketAddress( mc_bind_address.getAddress(), SSDP_CONTROL_PORT ));
+						mc_sock.setTimeToLive(4);
+
+						mc_sock.bind( new InetSocketAddress( mc_bind_address.getAddress(), SSDP_CONTROL_PORT ));
 		
 						DatagramPacket packet = new DatagramPacket(data, data.length, group_address);
 						
-						msock.send(packet);
+						mc_sock.send(packet);
 						
-						msock.close();
+						mc_sock.close();
 					
 					
 					}catch( Throwable e ){
@@ -256,6 +273,19 @@ SSDPImpl
 	{
 		String	str = new String( packet.getData(), 0, packet.getLength());
 		
+		if ( str.startsWith("M-SEARCH")){
+			
+				// hmm, loopack or another client announcing, ignore it
+			
+			return;
+			
+		}else if ( str.startsWith( "NOTIFY" )){
+			
+				// notify event, ignore
+			
+			return;
+		}
+		
 		// System.out.println( str );
 		
 		List	lines = new ArrayList();
@@ -287,13 +317,16 @@ SSDPImpl
 		
 		if ( lines.size() == 0 ){
 			
-			System.out.println( "SSDP::receive packet - 0 line reply" );
+			upnp.log( "SSDP::receive packet - 0 line reply" );
 			
 			return;
 		}
 		
 		String	header = (String)lines.get(0);
 		
+		// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
+		// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
+
 		if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
 			
 			String	location	= null;
@@ -332,8 +365,8 @@ SSDPImpl
 				gotRoot( location, usn, st );
 			}
 		}else{
-			System.out.println( "SSDP::receive packet - bad header:" + header );
-		
+			
+			upnp.log( "UPnP::SSDP::receive packet - bad header:" + header );
 		}
 	}
 	
@@ -343,10 +376,23 @@ SSDPImpl
 		String		usn,
 		String		st )
 	{
-		root_location	= location;
-		root_usn		= usn;
-		root_st			= st;
-		
-		System.out.println( "Root: " + root_location + ", " + root_usn + ", " + root_st );
+		for (int i=0;i<listeners.size();i++){
+			
+			((SSDPListener)listeners.get(i)).rootDiscovered( location, usn, st );
+		}
+	}
+	
+	public void
+	addListener(
+		SSDPListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		SSDPListener	l )
+	{
+		listeners.remove(l);
 	}
 }

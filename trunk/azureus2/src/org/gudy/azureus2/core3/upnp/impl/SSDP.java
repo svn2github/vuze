@@ -20,21 +20,20 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.impl;
 
 /**
  * @author parg
  *
  */
 
+import org.gudy.azureus2.core3.upnp.*;
+
 public interface 
-UPnP 
+SSDP 
 {
 	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+	start()
+	
+		throws UPnPException;
 }

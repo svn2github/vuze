@@ -20,21 +20,25 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.impl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-UPnP 
+import org.gudy.azureus2.core3.upnp.UPnPException;
+import org.gudy.azureus2.core3.upnp.impl.ssdp.*;
+
+public class 
+SSDPFactory 
 {
-	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+	public static SSDP
+	create(
+		UPnPImpl	upnp )
+	
+		throws UPnPException
+	{
+		return( new SSDPImpl(upnp));
+	}
 }

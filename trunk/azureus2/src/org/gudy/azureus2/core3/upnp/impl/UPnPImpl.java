@@ -27,12 +27,14 @@ package org.gudy.azureus2.core3.upnp.impl;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.impl.ssdp.*;
 
 public class 
 UPnPImpl
-	implements UPnP
+	implements UPnP, SSDPListener
 {
 	protected static UPnPImpl	singleton;
 	
@@ -49,22 +51,119 @@ UPnPImpl
 		return( singleton );
 	}
 	
+	protected SSDPImpl	ssdp;
+	
+	protected Map		root_locations	= new HashMap();
+	
+	protected List		log_listeners	= new ArrayList();
+	protected List		log_history		= new ArrayList();
+	
 	protected
 	UPnPImpl()
 	
 		throws UPnPException
 	{
-		new SSDPImpl();
+		ssdp = new SSDPImpl( this );
+		
+		ssdp.addListener(this);
+		
+		ssdp.start();
 	}
 	
+	public void
+	rootDiscovered(
+		String		location,
+		String		usn,
+		String		st )
+	{
+		if ( root_locations.get( location ) != null  ){
+			
+			return;
+		}
+		
+		log( "UPnP: root = " + location + ", USN = " + usn );
+		
+		try{
+			UPnPRootDevice	device = new UPnPRootDevice( this, location, usn );
+		
+			root_locations.put( location, device );
+			
+		}catch( UPnPException e ){
+			
+			log( e.toString());
+		}
+	}
+	
+	public void
+	log(
+		Throwable e )
+	{
+		log( e.toString());
+	}
+	
+	public void
+	log(
+		String	str )
+	{
+		List	old_listeners;
+		
+		synchronized( this ){
+
+			old_listeners = new ArrayList(log_listeners);
+
+			log_history.add( str );
+		}
+		
+		for (int i=0;i<old_listeners.size();i++){
+	
+			((UPnPLogListener)old_listeners.get(i)).log( str );
+		}
+	}
+	
+	public void
+	addLogListener(
+		UPnPLogListener	l )
+	{
+		List	old_logs;
+		
+		synchronized( this ){
+
+			old_logs = new ArrayList(log_history);
+
+			log_listeners.add( l );
+		}
+		
+		for (int i=0;i<old_logs.size();i++){
+			
+			l.log((String)old_logs.get(i));
+		}
+	}
+		
+	public void
+	removeLogListener(
+		UPnPLogListener	l )
+	{
+		log_listeners.remove( l );
+	}
 	
 	public static void
 	main(
 		String[]		args )
 	{
 		try{
-			new SSDPImpl();
-					
+			UPnP	upnp = UPnPFactory.getSingleton();
+				
+			upnp.addLogListener(
+				new UPnPLogListener()
+				{
+					public void
+					log(
+						String	str )
+					{
+						System.out.println( str );
+					}
+				});
+			
 			Thread.sleep(2000);
 			
 		}catch( Throwable e ){

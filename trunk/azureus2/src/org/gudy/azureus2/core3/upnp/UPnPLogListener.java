@@ -28,13 +28,9 @@ package org.gudy.azureus2.core3.upnp;
  */
 
 public interface 
-UPnP 
+UPnPLogListener 
 {
 	public void
-	addLogListener(
-		UPnPLogListener	l );
-		
-	public void
-	removeLogListener(
-		UPnPLogListener	l );
+	log(
+		String		str );
 }

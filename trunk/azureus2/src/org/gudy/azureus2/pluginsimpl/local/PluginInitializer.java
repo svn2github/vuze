@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
+import org.gudy.azureus2.pluginsimpl.upnp.UPnPPlugin;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.core3.startup.STProgressListener;
@@ -72,6 +73,7 @@ PluginInitializer
 	   		{	 CoreUpdateChecker.class, "<internal>", "CoreUpdater" },
 			{	 CorePatchChecker.class, "<internal>", "CorePatcher" },
 	   		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
+			{	 UPnPPlugin.class, "<internal>", "UPnP" },
         };
  
   
