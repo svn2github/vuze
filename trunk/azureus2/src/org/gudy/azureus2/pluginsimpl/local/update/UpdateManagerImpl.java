@@ -97,6 +97,14 @@ UpdateManagerImpl
 	public UpdateCheckInstance
 	createUpdateCheckInstance()
 	{
+		return( createUpdateCheckInstance( UpdateCheckInstance.UCI_UPDATE, "" ));
+	}
+	
+	public UpdateCheckInstance
+	createUpdateCheckInstance(
+		int			type,
+		String		name )
+	{
 		try{
 			this_mon.enter();
 	
@@ -104,7 +112,7 @@ UpdateManagerImpl
 			
 			components.toArray( comps );
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, name, comps );
 			
 			for (int i=0;i<listeners.size();i++){
 				
@@ -121,14 +129,15 @@ UpdateManagerImpl
 	
 	public UpdateCheckInstance
 	createEmptyUpdateCheckInstance(
-		int			type )
+		int			type,
+		String		name )
 	{
 		try{
 			this_mon.enter();
 	
 			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, comps );
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, name, comps );
 			
 			for (int i=0;i<listeners.size();i++){
 				

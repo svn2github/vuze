@@ -154,7 +154,9 @@ PluginInstallerImpl
 		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	inst = 
-			uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_INSTALL);
+			uman.createEmptyUpdateCheckInstance( 
+					UpdateCheckInstance.UCI_INSTALL,
+					"update.instance.install" );
 		
 		for (int i=0;i<plugins.length;i++){
 			
@@ -272,7 +274,9 @@ PluginInstallerImpl
 			UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
 			
 			UpdateCheckInstance	inst = 
-				uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_UNINSTALL );
+				uman.createEmptyUpdateCheckInstance(
+						UpdateCheckInstance.UCI_UNINSTALL,
+						"update.instance.uninstall");
 
 			for (int i=0;i<pis.length;i++){
 				

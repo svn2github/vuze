@@ -7,6 +7,7 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
@@ -94,6 +95,7 @@ import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
+import org.gudy.azureus2.ui.swt.update.*;
 
 /**
  * @author Olivier
@@ -163,6 +165,8 @@ MainWindow
   private Tab 	stats_tab;
   private Tab console;
   private Tab config;
+  
+  private ArrayList	update_stack = new ArrayList();
   
   protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
 
@@ -414,7 +418,21 @@ MainWindow
     
     statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
     Messages.setLanguageText(statusUpdateLabel, "MainWindow.statusText.checking");
+    Messages.setLanguageText(statusUpdateLabel,"MainWindow.status.update.tooltip");
+    statusUpdateLabel.addMouseListener(new MouseAdapter() {
+        public void mouseDoubleClick(MouseEvent arg0) {
+         showUpdateProgressWindow();
+        }
+      });
+    
     statusUpdateProgressBar = new ProgressBar(statusUpdate,SWT.HORIZONTAL);
+    Messages.setLanguageText(statusUpdateProgressBar,"MainWindow.status.update.tooltip");
+    statusUpdateProgressBar.addMouseListener(new MouseAdapter() {
+        public void mouseDoubleClick(MouseEvent arg0) {
+         showUpdateProgressWindow();
+        }
+      });
+    
     /*statusUpdateButton = new Button(statusUpdate,SWT.PUSH);
     Messages.setLanguageText(statusUpdateButton,"Button.cancel");*/
     int ctrlHeight,top;
@@ -1449,17 +1467,6 @@ MainWindow
   
 
   
-  private void 
-  addUpdateListener() 
-  {
-  	azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(new UpdateManagerListener () {
-      public void checkInstanceCreated(UpdateCheckInstance instance) {
-        
-      	new updateStatusChanger( instance );
-      }
-    });
-  }  
-  
     
   /**
    * MUST be called by the SWT Thread
@@ -1531,42 +1538,139 @@ MainWindow
   	return( azureus_core );
   }
   
+  
+  private void 
+  addUpdateListener() 
+  {
+  	azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(new UpdateManagerListener () {
+      public void checkInstanceCreated(UpdateCheckInstance instance) {
+        
+      	new updateStatusChanger( instance );
+      }
+    });
+  }  
+  
   protected class
   updateStatusChanger
   {
+  	UpdateCheckInstance	instance;
+  	
+  	int					check_num = 0;
+  	boolean				active;
+  	
   	protected
 	updateStatusChanger(
-		UpdateCheckInstance		instance )
+		UpdateCheckInstance		_instance )
   	{
-        switchStatusToUpdate();
+ 		instance	= _instance;
+  		
+    	try{
+      		this_mon.enter();
+      	
+      		update_stack.add( this );
+      		
+       		instance.addListener(
+	        	new UpdateCheckInstanceListener () 
+				{
+		          public void 
+				  cancelled(
+				  		UpdateCheckInstance instance) 
+		          {
+		          	deactivate();
+		          }
+		          
+		          public void 
+				  complete(
+				  		UpdateCheckInstance instance) 
+		          {
+		          	deactivate();
+		          }
+				});
         
-        instance.addListener(new UpdateCheckInstanceListener () {
-          public void cancelled(UpdateCheckInstance instance) {
-            switchStatusToText();
-          }
-          public void complete(UpdateCheckInstance instance) {
-            switchStatusToText();
-          }
-        });
-        UpdateChecker[] checkers = instance.getCheckers();
-        setNbChecks(checkers.length);
-        UpdateCheckerListener listener = new UpdateCheckerListener() {
-          public void cancelled(UpdateChecker checker) {
-            //setNextCheck();
-          }
-          
-          public void completed(UpdateChecker checker) {
-            setNextCheck();
-          }
-          
-          public void failed(UpdateChecker checker) {
-            setNextCheck();
-          }
-          
-        };
-        for(int i = 0 ; i < checkers.length ; i++) {
-          checkers[i].addListener(listener);
-        }
+	        UpdateChecker[] checkers = instance.getCheckers();
+	        
+	        UpdateCheckerListener listener = new UpdateCheckerListener() {
+	          public void cancelled(UpdateChecker checker) {
+	            // we don't count a cancellation as progress step
+	          }
+	          
+	          public void completed(UpdateChecker checker) {
+	            setNextCheck();
+	          }
+	          
+	          public void failed(UpdateChecker checker) {
+	            setNextCheck();
+	          }
+	          
+	        };
+	        for(int i = 0 ; i < checkers.length ; i++) {
+	          checkers[i].addListener(listener);
+	        }
+       
+	        activate();
+	        
+       	}finally{
+    		
+    		this_mon.exit();
+    	}
+    	
+  
+  	}
+  	
+  	protected UpdateCheckInstance
+	getInstance()
+  	{
+  		return( instance );
+  	}
+  	
+  	private void
+	activate()
+  	{
+  		try{
+  			this_mon.enter();
+  		
+  			active	= true;
+  			
+  			switchStatusToUpdate();
+        
+  			setNbChecks(instance.getCheckers().length);
+  			
+  		}finally{
+  			
+  			this_mon.exit();
+  		}
+  	}
+  	
+  	private void
+	deactivate()
+  	{
+  		try{
+  			this_mon.enter();
+  			
+  			active	= false;
+  			
+  			for (int i=0;i<update_stack.size();i++){
+  				
+  				if ( update_stack.get(i) == this ){
+  					
+  					update_stack.remove(i);
+  					
+  					break;
+  				}
+  			}
+  			if ( update_stack.size()==0){
+  				
+  				switchStatusToText();
+  				
+  			}else{
+  				
+  				((updateStatusChanger)update_stack.get(update_stack.size()-1)).activate();
+  			}
+  			
+  		}finally{
+  			
+  			this_mon.exit();
+  		}
   	}
   	
     private void setNbChecks(final int nbChecks) {
@@ -1577,7 +1681,7 @@ MainWindow
                 return;
               statusUpdateProgressBar.setMinimum(0);
               statusUpdateProgressBar.setMaximum(nbChecks);
-              statusUpdateProgressBar.setSelection(0);
+              statusUpdateProgressBar.setSelection(check_num);
             }
           });
       }
@@ -1588,7 +1692,12 @@ MainWindow
             public void runSupport() {
               if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
                 return;
-              statusUpdateProgressBar.setSelection(statusUpdateProgressBar.getSelection() + 1);
+              
+              check_num++;
+    
+              if ( active ){
+              	statusUpdateProgressBar.setSelection( check_num );
+              }
             }
           });
       }
@@ -1600,6 +1709,16 @@ MainWindow
                	if ( statusArea == null || statusArea.isDisposed()){
             		return;
             	}
+               	
+               	String	name = instance.getName();
+               	
+               	if ( MessageText.keyExists(name)){
+               	
+               		name = MessageText.getString( name );
+               	}
+               	
+               	statusUpdateLabel.setText( name );
+               	
                	layoutStatusAera.topControl = statusUpdate;
                	statusArea.layout();
             }
@@ -1618,5 +1737,26 @@ MainWindow
             }
           });
       }
+  }
+  
+  protected void
+  showUpdateProgressWindow()
+  {
+  	try{
+  		this_mon.enter();
+ 
+  		UpdateCheckInstance[]	instances = new UpdateCheckInstance[update_stack.size()];
+  		
+  		for (int i=0;i<instances.length;i++){
+  			
+  			instances[i] = ((updateStatusChanger)update_stack.get(i)).getInstance();
+  		}
+  		
+  		UpdateProgressWindow.show( instances, this.getShell());
+  		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
 }

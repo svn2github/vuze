@@ -209,7 +209,10 @@ UpdateMonitor
 	    
 	  	UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
 		
-	  	current_update_instance = um.createUpdateCheckInstance();
+	  	current_update_instance = 
+	  		um.createUpdateCheckInstance(
+	  				UpdateCheckInstance.UCI_UPDATE,
+	  				"update.instance.update" );
 	  	
 	  	current_update_instance.start();
 	}

@@ -42,6 +42,14 @@ UpdateCheckInstance
 	public int
 	getType();
 	
+		/**
+		 * returns the name supplied when the instance was created (or "" if it wasn't)
+		 * @return
+		 */
+	
+	public String
+	getName();
+	
 	public void
 	start();
 	

@@ -52,15 +52,28 @@ UpdateManager
 	createUpdateCheckInstance();
 	
 		/**
+		 * creates an update check instance with currently registered updatable components
+		 * @param check_type	see UpdateCheckInstance.UCI_xx
+		 * @param name			name of the update instance
+		 */
+
+	public UpdateCheckInstance
+	createUpdateCheckInstance(
+		int			check_type,
+		String		name );
+	
+		/**
 		 * creates an update check instance with no attached updateable components (as opposed
 		 * to automatically including all registered
 		 * @param check_type	see UpdateCheckInstance.UCI_xx
+		 * @param name			name of the update instance
 		 * @return
 		 */
 	
 	public UpdateCheckInstance
 	createEmptyUpdateCheckInstance(
-		int		check_type );
+		int			check_type,
+		String		name );
 
 		/**
 		 * create a stand alone update installer. you will need to restart Azureus for it to

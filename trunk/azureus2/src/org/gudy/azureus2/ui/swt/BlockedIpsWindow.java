@@ -187,6 +187,9 @@ BlockedIpsWindow
     
     window.setSize(620,450);
     window.layout();
+    
+    Utils.centreWindow( window );
+    
     window.open();    
   }
   
