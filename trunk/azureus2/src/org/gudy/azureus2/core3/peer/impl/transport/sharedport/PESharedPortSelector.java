@@ -75,12 +75,10 @@ PESharedPortSelector
 		while (true){
 			
 			try {
-        
-			  LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: before select");
-				
+        				
 				int select_res = selector.select(1000);
-        
-        LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select");
+
+LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select");
 			 			   
 				for (int i=0;i<sockets_to_handover.size();i++){
 			  	
@@ -310,12 +308,8 @@ PESharedPortSelector
       
 			socketData	sd = new socketData( _socket );
       
-      LGLogger.log(LGLogger.INFORMATION,"ADDSOCKET:: socketData created");
-			
 			outstanding_sockets.put( _socket, sd );
-      
-      LGLogger.log(LGLogger.INFORMATION,"ADDSOCKET:: placed onto outstanding list");
-			
+      			
 			_socket.register(selector,SelectionKey.OP_READ);
       
       LGLogger.log(LGLogger.INFORMATION,"ADDSOCKET:: registered with selector");

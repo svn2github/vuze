@@ -718,11 +718,12 @@ DiskManagerImpl
 				  if(!correct) {
 				    MD5CheckPiece(elt.getPieceNumber());
 				    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-				  } else  {
-            LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-          }
+				  }
+				  else {
+				    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+				  }
 				  
-          manager.pieceChecked(elt.getPieceNumber(), correct);
+				  manager.pieceChecked(elt.getPieceNumber(), correct);
 				}
 				
 				isRunning = true;
