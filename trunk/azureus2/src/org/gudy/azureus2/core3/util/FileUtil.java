@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -111,31 +112,121 @@ public class FileUtil {
    * Deletes the given dir and all dirs underneath if empty.
    * Don't delete default save path or completed files directory, however,
    * allow deletion of their empty subdirectories
+   * Files defined to be ignored for the sake of torrent creation are automatically deleted
+   * For example, by default this includes thumbs.db
    */
-  public static void recursiveEmptyDirDelete(File f) {
-    String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
-    String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+  
+  public static void 
+  recursiveEmptyDirDelete(
+  	File f) 
+  {  
+    Map		ignore_map	= new HashMap();
     
-    try {
-      if (f.isDirectory()) {
+	String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+	
+	int	pos = 0;
+	
+	while(true){
+		
+		int	p1 = ignore_list.indexOf( ";", pos );
+		
+		String	bit;
+		
+		if ( p1 == -1 ){
+			
+			bit = ignore_list.substring(pos);
+			
+		}else{
+			
+			bit	= ignore_list.substring( pos, p1 );
+			
+			pos	= p1+1;
+		}
+		
+		ignore_map.put(bit.trim().toLowerCase(),"");
+		
+		if ( p1 == -1 ){
+			
+			break;
+		}
+	}
+	
+	recursiveEmptyDirDelete( f, ignore_map );
+  }
+  
+  private static void 
+  recursiveEmptyDirDelete(
+  	File f,
+	Map	ignore_map ) 
+  {
+     try {
+      String defSaveDir 	= COConfigurationManager.getStringParameter("Default save path", "");
+      String moveToDir 		= COConfigurationManager.getStringParameter("Completed Files Directory", "");
+        
+      if ( defSaveDir.trim().length() > 0 ){
+      	
+      	defSaveDir = new File(defSaveDir).getCanonicalPath();
+      }
+
+      if ( moveToDir.trim().length() > 0 ){
+      	
+      	moveToDir = new File(moveToDir).getCanonicalPath();
+      }
+      
+      if ( f.isDirectory()){
+      	
         File[] files = f.listFiles();
+        
+        if ( files == null ){
+        	
+          	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed list contents of directory" + f );
+          	 
+          	return;
+        }
+        
         for (int i = 0; i < files.length; i++) {
-          recursiveEmptyDirDelete(files[i]);
+        	
+        	File	x = files[i];
+        	
+        	if ( x.isDirectory()){
+        		
+        		recursiveEmptyDirDelete(files[i],ignore_map);
+        		
+        	}else{
+        		
+        		if ( ignore_map.get( x.getName().toLowerCase()) != null ){
+        			
+        			if ( !x.delete()){
+        				
+        	          	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete file" + x );
+        			}
+        		}
+        	}
         }
 
         if (f.getCanonicalPath().equals(moveToDir)) {
-          System.out.println("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the MoveTo dir !");
+        	
+          Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the MoveTo dir !");
+          
           return;
         }
+        
         if (f.getCanonicalPath().equals(defSaveDir)) {
-          System.out.println("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the default data dir !");
+        	
+          Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the default data dir !");
+          
           return;
         }
 
         if (f.listFiles().length == 0) {
-          f.delete();
-        } else {
-          System.out.println("FileUtil::recursiveEmptyDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        	
+          if ( !f.delete()){
+          	
+           	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete directory" + f );
+         	
+          }
+        }else{
+        	Debug.out("FileUtil::recursiveEmptyDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
         }
       }
 
