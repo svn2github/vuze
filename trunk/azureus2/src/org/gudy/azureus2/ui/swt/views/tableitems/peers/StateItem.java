@@ -41,7 +41,7 @@ public class StateItem
   }
 
   public void refresh(TableCell cell) {
-    PEPeerTransport peer = (PEPeerTransport)cell.getDataSource();
+    PEPeerTransport peer = (PEPeerTransport)cell.getDataSource();  //TODO fix this "naughty" cast
     String state_text = "";
     if( peer != null ) {
       int state = peer.getConnectionState();
