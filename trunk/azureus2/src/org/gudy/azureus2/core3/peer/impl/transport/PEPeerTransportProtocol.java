@@ -123,7 +123,7 @@ PEPeerTransportProtocol
 		
 	int maxUpload = 1024 * 1024;
 
-  private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
+  private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 8192 : Integer.parseInt( System.getProperty("socket.write.cache"));
   private DirectByteBuffer cache_buffer;
   private boolean actively_writing = false;
   private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
