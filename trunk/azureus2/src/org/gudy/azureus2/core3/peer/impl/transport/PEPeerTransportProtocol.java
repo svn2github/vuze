@@ -792,7 +792,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			break;
 	  case BT_PIECE :
 			if (buffer.limit() < 9) {
-			   closeAll(ip + " piece received, but message of wrong size : " + buffer.limit(),true, true);
+			   closeAll(ip + " piece block received, but message of wrong size : " + buffer.limit(),true, true);
 			   break;
 			}
 			pieceNumber = buffer.getInt();
@@ -818,9 +818,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         String msg = ip + " [" + client + "]" + " has sent #" + pieceNumber + ":"
                      + pieceOffset + "->" + (pieceOffset + pieceLength);
         if (alreadyRequested(request))
-          msg += " but piece was discarded as invalid";
+          msg += " but piece block was discarded as invalid";
         else 
-          msg += " but piece was discarded as unrequested";
+          msg += " but piece block was discarded as unrequested";
         
 			  LGLogger.log( componentID, evtErrors, LGLogger.ERROR, msg);
 			  stats.discarded(pieceLength);
