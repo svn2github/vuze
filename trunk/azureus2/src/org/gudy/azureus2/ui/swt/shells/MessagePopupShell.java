@@ -245,6 +245,7 @@ public class MessagePopupShell implements AnimableShell {
 
                         final boolean notTopWindow = ((WeakReference)viewStack.getFirst()).get() != MessagePopupShell.this;
                         final boolean animationInProgress = currentAnimator != null;
+                        final boolean detailsOpen = (!detailsShell.isDisposed() && detailsShell.isVisible());
 
                         final Control cc = display.getCursorControl();
                         boolean mouseOver = (cc == shell);
@@ -258,7 +259,7 @@ public class MessagePopupShell implements AnimableShell {
                             }
                         }
 
-                        if(notTopWindow || mouseOver || animationInProgress)
+                        if(notTopWindow || mouseOver || animationInProgress || detailsOpen)
                             return;
 
                         hideShell();
