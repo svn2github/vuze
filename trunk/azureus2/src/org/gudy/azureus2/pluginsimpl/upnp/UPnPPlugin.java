@@ -27,6 +27,8 @@ package org.gudy.azureus2.pluginsimpl.upnp;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.*;
@@ -37,10 +39,15 @@ import org.gudy.azureus2.core3.upnp.services.*;
 
 public class 
 UPnPPlugin
-	implements Plugin
+	implements Plugin, UPnPMappingListener
 {
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
+	
+	protected UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton();
+	
+	protected List	mappings	= new ArrayList();
+	protected List	services	= new ArrayList();
 	
 	public void
 	initialize(
@@ -113,7 +120,23 @@ UPnPPlugin
 					}
 				});
 			
-			Thread.sleep(2000);
+			mapping_manager.addListener(
+				new UPnPMappingManagerListener()
+				{
+					public void
+					mappingAdded(
+						UPnPMapping		mapping )
+					{
+						addMapping( mapping );
+					}
+				});
+			
+			UPnPMapping[]	mappings = mapping_manager.getMappings();
+			
+			for (int i=0;i<mappings.length;i++){
+				
+				addMapping( mappings[i] );
+			}
 			
 		}catch( Throwable e ){
 			
@@ -170,14 +193,55 @@ UPnPPlugin
 				
 				UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
 				
-				UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
-				
-				for (int j=0;j<ports.length;j++){
-					
-					log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
-									(ports[j].isTCP()?"TCP":"UDP" ));
-				}
+				addService( wan_service );
 			}
 		}
+	}
+	
+	protected void
+	addService(
+		UPnPWANConnection	wan_service )
+	
+		throws UPnPException
+	{
+		UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
+		
+		for (int j=0;j<ports.length;j++){
+			
+			log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
+							(ports[j].isTCP()?"TCP":"UDP" ));
+		}
+		
+		services.add(new UPnPPluginService( wan_service, ports ));
+		
+		checkState();
+	}
+	
+	protected void
+	addMapping(
+		UPnPMapping		mapping )
+	{
+		mappings.add( mapping );
+		
+		log.log( "Mapping request: " + 
+					plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(mapping.getResourceName()) +
+					" - " + (mapping.isTCP()?"TCP":"UDP") + "/" + mapping.getPort() + ", enabled = " + mapping.isEnabled());
+		
+		mapping.addListener( this );
+		
+		checkState();
+	}	
+	
+	public void
+	mappingChanged(
+		UPnPMapping	mapping )
+	{
+		checkState();
+	}
+	
+	protected synchronized void
+	checkState()
+	{
+		System.out.println( "check state: services = " + services.size() + ", mappings = " + mappings.size());
 	}
 }

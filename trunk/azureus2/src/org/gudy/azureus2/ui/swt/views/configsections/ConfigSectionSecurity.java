@@ -34,7 +34,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 
 /**
  * @author parg
