@@ -515,7 +515,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           irc.setFocus();
       }
     });
-    
+
     MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
     view_stats.addListener(SWT.Selection, new Listener() {
@@ -781,7 +781,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       new ConfigureWizard(display);
     }       
 
-    if (COConfigurationManager.getBooleanParameter("Show Download Basket", true)) { //$NON-NLS-1$
+    if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null)
         tray = new TrayWindow(this);
       tray.setVisible(true);
@@ -2035,10 +2035,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public void setConfig(Tab tab) {
     config = tab;
   }
-  
+
   /**
-   * @return
-   */
+	 * @return
+	 */
   public Tab getStats() {
     return stats_tab;
   }
@@ -2140,7 +2140,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    if (COConfigurationManager.getBooleanParameter("Show Download Basket", true)) { //$NON-NLS-1$
+    if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null) {
         tray = new TrayWindow(this);
         tray.setVisible(true);
