@@ -80,10 +80,14 @@ public class TorrentFolderWatcher {
 
     public void run() {
       while (!finished) {
-        importAddedFiles();
+      	
+      		// start with a sleep so that the rest of AZ has time to initialise
+      		// before we start looking for new work
         try {
-          Thread.sleep(waitTime);
-        } catch (Exception ignore) {}
+            Thread.sleep(waitTime);
+          } catch (Exception ignore) {}
+          
+        importAddedFiles();
       }
     }
 
