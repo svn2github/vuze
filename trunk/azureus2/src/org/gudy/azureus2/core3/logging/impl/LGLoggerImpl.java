@@ -65,6 +65,8 @@ LGLoggerImpl
 			
 			initialised	= true;
 			
+  	  boolean overrideLog = System.getProperty("azureus.overridelog") != null;
+  	  if (!overrideLog) {
 			COConfigurationManager.addListener(
 				new COConfigurationListener()
 				{
@@ -74,7 +76,7 @@ LGLoggerImpl
 						checkLoggingConfig();
 					}
 				});
-				
+			}
 			checkLoggingConfig();
 			
 			logToSystemOut = System.getProperty("azureus.logout") != null;
@@ -125,19 +127,24 @@ LGLoggerImpl
 	    log_to_file = true;
 	    log_dir = ".";
 	    log_file_max = 2;
+  		for (int i = 0; i < log_types.length; i++) {
+    		log_types[i] = 0;
+        for (int j = 0; j <= 3; j++)
+      		log_types[i] |= true ? (1 << j) : 0;
+    	}
 	  } else {
   		log_to_file 	= COConfigurationManager.getBooleanParameter("Logging Enable", false );
   		
   		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
   		
   		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
+  		for (int i = 0; i < log_types.length; i++) {
+    		log_types[i] = 0;
+        for (int j = 0; j <= 3; j++)
+      		log_types[i] |= COConfigurationManager.getBooleanParameter("bLog" + components[i] + "-" + j) ? (1 << j) : 0;
+    	}
 		}
 		
-		for (int i = 0; i < log_types.length; i++) {
-  		log_types[i] = 0;
-      for (int j = 0; j <= 3; j++)
-    		log_types[i] |= COConfigurationManager.getBooleanParameter("bLog" + components[i] + "-" + j) ? (1 << j) : 0;
-  	}
 	}
 
 	public static synchronized void 
