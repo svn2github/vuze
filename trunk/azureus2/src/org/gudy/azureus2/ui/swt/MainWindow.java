@@ -95,7 +95,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
-import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -2882,7 +2881,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    if(display != null && !display.isDisposed()) {
     display.asyncExec( new Runnable() {
 			public void run() {
-        new DonationWindow(display).show();    
+        new DonationWindow2(display).show();    
 			}
     });
    }   	     
