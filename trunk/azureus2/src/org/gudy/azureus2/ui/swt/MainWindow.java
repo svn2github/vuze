@@ -167,6 +167,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Tab 	my_tracker_tab;
   private IView my_tracker_view;
   
+  private Tab 	my_shares_tab;
+  private IView my_shares_view;
+  
   private Tab 	stats_tab;
   
   
@@ -547,6 +550,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	  }
 	});
 	
+	MenuItem view_shares = new MenuItem(viewMenu, SWT.NULL);
+	Messages.setLanguageText(view_shares, "MainWindow.menu.view.myshares"); //$NON-NLS-1$
+	view_shares.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event e) {
+			showMyShares();
+		}
+	});
+	
     MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
     view_config.addListener(SWT.Selection, new Listener() {
@@ -712,7 +723,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     setSplashPercentage(40);
     setSplashTask( "splash.openViews");
     
-    showMyTorrents(); // mytorrents = new Tab(new MyTorrentsView(globalManager));
+    showMyTorrents();
 
   	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
   		showMyTracker();
@@ -958,17 +969,31 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void showMyTracker() {
-    if (my_tracker_tab == null) {
-      if (my_tracker_view == null) {
-        my_tracker_view = new MyTrackerView(globalManager);
-      }
-      my_tracker_tab = new Tab(my_tracker_view);
-    } else {
-      my_tracker_tab.setFocus();
-      refreshIconBar();
-    }
+  	if (my_tracker_tab == null) {
+  		if (my_tracker_view == null) {
+  			my_tracker_view = new MyTrackerView(globalManager);
+  		}
+  		my_tracker_tab = new Tab(my_tracker_view);
+  	} else {
+  		my_tracker_tab.setFocus();
+  		refreshIconBar();
+  	}
   }
-
+  
+  public void 
+  showMyShares() 
+  {
+  	if (my_shares_tab == null) {
+  		if (my_shares_view == null) {
+  			my_shares_view = new MySharesView(globalManager);
+  		}
+  		my_shares_tab = new Tab(my_shares_view);
+  	} else {
+  		my_shares_tab.setFocus();
+  		refreshIconBar();
+  	}
+  }
+  
   public void showMyTorrents() {
     if (mytorrents == null) {
       if (viewMyTorrents == null)
@@ -1888,9 +1913,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   public void setMyTracker(Tab tab) {
-	my_tracker_tab = tab;
+  	my_tracker_tab = tab;
   }
-
+  
+  public void setMyShares(Tab tab) {
+  	my_shares_tab = tab;
+  }
+  
   /**
 	 * @return
 	 */

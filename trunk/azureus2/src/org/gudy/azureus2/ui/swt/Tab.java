@@ -117,7 +117,7 @@ public class Tab {
 	    });
     }
 
-    if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView)) {
+    if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView || _view instanceof MySharesView )) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
       layout.numColumns = 1;
@@ -323,6 +323,11 @@ public class Tab {
         MainWindow.getWindow().setMyTracker(null);
         item.dispose();
         return;
+      }
+      if (view != null && view instanceof MySharesView) {
+      	MainWindow.getWindow().setMyShares(null);
+      	item.dispose();
+      	return;
       }
       try {
         Control control;
