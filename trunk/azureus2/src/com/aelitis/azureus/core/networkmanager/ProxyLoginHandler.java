@@ -173,8 +173,8 @@ public class ProxyLoginHandler {
       final ArrayList data = new ArrayList(2);
       
       ByteBuffer[] header = createSocks5Message();
-      data.set( 0, header[0] );  //message
-      data.set( 1, header[1] );  //reply buff
+      data.add( header[0] );  //message
+      data.add( header[1] );  //reply buff
       
       proxy_connection.requestReadSelects( new TCPTransport.ReadListener() {
         public void readyToRead() {  //new reply came in
