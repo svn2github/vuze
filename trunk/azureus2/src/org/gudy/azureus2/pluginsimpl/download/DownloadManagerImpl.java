@@ -109,6 +109,10 @@ DownloadManagerImpl
 							
 						}else{
 						
+							download_map.remove( dm );
+							
+							dl.destroy();
+							
 							for (int i=0;i<listeners.size();i++){
 								
 								((DownloadManagerListener)listeners.get(i)).downloadRemoved( dl );

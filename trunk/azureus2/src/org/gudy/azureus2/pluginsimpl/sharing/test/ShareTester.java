@@ -102,6 +102,18 @@ ShareTester
 							Download	download )
 						{
 							System.out.println("downloadAdded" + download );
+							
+							download.addListener(
+								new DownloadListener()
+								{
+									public void
+									stateChanged(
+										int		old,
+										int		cur )
+									{
+										System.out.println( "statechange:" + old + "-> " + cur );
+									}
+								});
 						}
 						public void
 						downloadRemoved(

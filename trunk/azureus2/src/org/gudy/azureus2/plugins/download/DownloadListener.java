@@ -1,6 +1,6 @@
 /*
- * File    : Download.java
- * Created : 06-Jan-2004
+ * File    : DownloadListener.java
+ * Created : 11-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,57 +25,11 @@ package org.gudy.azureus2.plugins.download;
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 public interface 
-Download 
+DownloadListener 
 {
-	public static final int ST_STOPPED		= 1;
-	public static final int ST_STARTED		= 2;
-	
-	/**
-	 * get state from above ST_ set
-	 * @return
-	 */
-	
-	public int
-	getState();
-
-	public Torrent
-	getTorrent();
-	
 	public void
-	start()
-	
-		throws DownloadException;
-	
-	public void
-	stop()
-	
-		throws DownloadException;
-	
-	public void
-	remove()
-	
-		throws DownloadException, DownloadRemovalVetoException;
-	
-	public DownloadStats
-	getStats();
-	
-	public void
-	addListener(
-		DownloadListener	l );
-	
-	public void
-	removeListener(
-		DownloadListener	l );
-	
-	public void
-	addDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
-	
-	public void
-	removeDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
+	stateChanged(
+		int	old_state,
+		int	new_state );
 }

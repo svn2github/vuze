@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
@@ -43,35 +44,59 @@ import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
 public class 
 DownloadImpl
-	implements Download
+	implements Download, DownloadManagerListener
 {
 	protected DownloadManager		download_manager;
 	
-	protected List		removal_listeners = new ArrayList();
+	protected int		latest_state		= ST_STOPPED;
+	
+	protected List		listeners 			= new ArrayList();
+	protected List		removal_listeners 	= new ArrayList();
 	
 	protected
 	DownloadImpl(
 		DownloadManager		_dm )
 	{
 		download_manager	= _dm;
+		
+		download_manager.addListener( this );
 	}
 	
 	public int
 	getState()
 	{
 		int	state = download_manager.getState();
-		
+				
 		switch( state ){
 			case DownloadManager.STATE_DOWNLOADING:
+			case DownloadManager.STATE_FINISHING:
 			case DownloadManager.STATE_SEEDING:
+			case DownloadManager.STATE_STOPPING:
 			{
-				return( ST_STARTED );
+				latest_state	= ST_STARTED;
+				
+				break;
+			}
+			case DownloadManager.STATE_WAITING:
+			case DownloadManager.STATE_INITIALIZING:
+			case DownloadManager.STATE_INITIALIZED:
+			case DownloadManager.STATE_ALLOCATING:
+			case DownloadManager.STATE_CHECKING:
+			case DownloadManager.STATE_READY:
+			case DownloadManager.STATE_STOPPED:
+			case DownloadManager.STATE_ERROR:
+			{
+				latest_state	= ST_STOPPED;
+				
+				break;
 			}
 			default:
 			{
-				return( ST_STOPPED );
+				latest_state	= ST_STOPPED;
 			}
 		}
+		
+		return( latest_state );
 	}
 	
 	public Torrent
@@ -152,9 +177,80 @@ DownloadImpl
 	isRemovable()
 		throws DownloadRemovalVetoException
 	{
-		for (int i=0;i<removal_listeners.size();i++){
+		synchronized( removal_listeners ){
 			
-			((DownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved(this);
+			for (int i=0;i<removal_listeners.size();i++){
+				
+				try{
+					((DownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved(this);
+					
+				}catch( DownloadRemovalVetoException e ){
+					
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	protected void
+	destroy()
+	{
+		download_manager.removeListener( this );
+	}
+	
+	// DownloadManagerListener methods
+	
+	public void
+	stateChanged(
+		int		state )
+	{
+		int	prev_state 	= latest_state;
+		int	curr_state	= getState();
+	
+		if ( prev_state != curr_state ){
+			
+			synchronized( listeners ){
+				
+				for (int i=0;i<listeners.size();i++){
+					
+					try{
+						((DownloadListener)listeners.get(i)).stateChanged( prev_state, curr_state );
+					
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	public void
+	downloadComplete()
+	{	
+	}
+	
+	public void
+	addListener(
+		DownloadListener	l )
+	{
+		synchronized( listeners ){
+			
+			listeners.add(l);
+		}
+	}
+	
+	public void
+	removeListener(
+		DownloadListener	l )
+	{
+		synchronized( listeners ){
+			
+			listeners.remove(l);
 		}
 	}
 	
@@ -162,13 +258,19 @@ DownloadImpl
 	addDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l )
 	{
-		removal_listeners.add(l);
+		synchronized( removal_listeners ){
+			
+			removal_listeners.add(l);
+		}
 	}
 	
 	public void
 	removeDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l ) 
 	{
-		removal_listeners.remove(l);
+		synchronized( removal_listeners ){
+			
+			removal_listeners.remove(l);
+		}
 	}
 }
