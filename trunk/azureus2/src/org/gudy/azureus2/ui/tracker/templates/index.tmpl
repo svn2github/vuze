@@ -7,61 +7,79 @@
 <link href="images/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<table align="center" width="100%" cellpadding="0" cellspacing="0">
-  <tr> 
-    <td> 
-      <table border="0" cellpadding="0" cellspacing="0" bordercolor="#111111" width="100%">
-        <tr> 
-          <td width="100"><a href="http://azureus.sourceforge.net/"><img src="images/Azureus_banner.gif" border="0" alt="Azureus" hspace="0" width="100" height="40" /></a></td>
-          <td align="center"> 
-            <h1>Azureus: BitTorrent Client Tracker</h1>
-          </td>
-        </tr>
-      </table>
-      <table align="center" width="100%" class="azborder" cellpadding="0" cellspacing="0" border="0">
-        <tr> 
-          <td valign="top" height="20">&nbsp;</td>
-        </tr>
-        <tr> 
-          <td valign="top"> 
-            <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" class="azcontent">
-              <tr> 
-                <th width="26%">Torrent</th>
-                <th width="10%">Status</th>
-                <th width="10%">Size</th>
-                <th width="6%">Seeds</th>
-                <th width="6%">Peers</th>
-                <th width="6%">Tot Up</th>
-                <th width="6%">Tot Down</th>
-                <th width="6%">Ave Up</th>
-                <th width="6%">Ave Down</th>
-                <th width="6%">Left</th>
-                <th width="6%">Comp</th>
-                <tmpl_if torrent_details_allowed><th width="6%">More</th></tmpl_if>
-              </tr>
-              <tmpl_loop torrent_info><tr> 
-                <td> <a href="<tmpl_var torrent_download_url>"><tmpl_var torrent_name></a></td>
-                <td><tmpl_var torrent_status></td>
-                <td><tmpl_var torrent_size></td>
-                <td><span class="torrent_<tmpl_var torrent_seeds>seed"><tmpl_var torrent_seeds></span></td>
-                <td><tmpl_var torrent_peers></td>
-                <td><tmpl_var torrent_total_upload></td>
-                <td><tmpl_var torrent_total_download></td>
-                <td><tmpl_var torrent_upload_speed></td>
-                <td><tmpl_var torrent_download_speed></td>
-                <td><tmpl_var torrent_total_left></td>
-                <td><tmpl_var torrent_completed></td>
-                <tmpl_if torrent_details_allowed><td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td></tmpl_if>
-              </tr></tmpl_loop> 
-            </table>
-          </td>
-        </tr>
-        <tr> 
-          <td valign="bottom" height="20">&nbsp;</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
+<table align="center" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td> 
+    <table border="0" cellpadding="0" cellspacing="0" bordercolor="#111111" width="100%">
+      <tr> 
+        <td width="100"><a href="http://azureus.sourceforge.net/"><img src="images/Azureus_banner.gif" border="0" alt="Azureus" hspace="0" width="100" height="40" /></a></td>
+        <td align="center"> 
+          <h1>Azureus: BitTorrent Client Tracker</h1>
+        </td>
+      </tr>
+    </table>
+    <table align="center" width="100%" class="azborder" cellpadding="0" cellspacing="0" border="0">
+      <tr> 
+        <td valign="top" height="20">&nbsp;</td>
+      </tr>
+      <tr> 
+        <td valign="top"> 
+          <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" class="azcontent">
+            <tr> 
+              <th width="26%">Torrent</th>
+              <th width="10%">Status</th>
+              <th width="10%">Size</th>
+              <th width="6%">Seeds</th>
+              <th width="6%">Peers</th>
+              <th width="6%">Tot Up</th>
+              <th width="6%">Tot Down</th>
+              <th width="6%">Ave Up</th>
+              <th width="6%">Ave Down</th>
+              <th width="6%">Left</th>
+              <th width="6%">Comp</th>
+              <tmpl_if torrent_details_allowed> 
+              <th width="6%">More</th>
+              </tmpl_if> </tr>
+            <tmpl_loop torrent_info> 
+            <tr> 
+              <td> <a href="<tmpl_var torrent_download_url>"><tmpl_var torrent_name></a></td>
+              <td><tmpl_var torrent_status></td>
+              <td><tmpl_var torrent_size></td>
+              <td><span class="torrent_<tmpl_var torrent_seeds>seed"><tmpl_var torrent_seeds></span></td>
+              <td><tmpl_var torrent_peers></td>
+              <td><tmpl_var torrent_total_upload></td>
+              <td><tmpl_var torrent_total_download></td>
+              <td><tmpl_var torrent_upload_speed></td>
+              <td><tmpl_var torrent_download_speed></td>
+              <td><tmpl_var torrent_total_left></td>
+              <td><tmpl_var torrent_completed></td>
+              <tmpl_if torrent_details_allowed> 
+              <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
+              </tmpl_if> </tr>
+            </tmpl_loop> 
+          </table>
+        </td>
+      </tr>
+      <tr> 
+        <td height="20">&nbsp;</td>
+      </tr><tmpl_if show_pagenation>
+	  <tr>
+        <td> 
+          <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" class="azcontent">
+            <tr> 
+              <th align="right"></tmpl_if><tmpl_if show_first_link><a href="<tmpl_var first_link>" class="pagenation">&laquo;</a></tmpl_if> 
+          <tmpl_if show_previous_link><a href="<tmpl_var previous_link>" class="pagenation">&lt;</a></tmpl_if> 
+          <tmpl_if show_pagenation> <tmpl_var pagenation> </tmpl_if> <tmpl_if show_next_link><a href="<tmpl_var next_link>" class="pagenation">&gt;</a></tmpl_if> 
+          <tmpl_if show_last_link><a href="<tmpl_var last_link>" class="pagenation">&raquo;</a></tmpl_if> <tmpl_if show_pagenation>
+		      </th>
+			</tr>
+          </table>
+        </td>
+	  </tr>
+      <tr> 
+        <td valign="bottom" height="20">&nbsp;</td>
+      </tr></tmpl_if>
+    </table>
+  </td></tr>
 </table>
 </body>
 </html>
