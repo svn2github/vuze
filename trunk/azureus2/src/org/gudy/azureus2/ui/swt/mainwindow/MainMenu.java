@@ -65,6 +65,9 @@ public class MainMenu {
     
   private Menu menuBar;
   
+  private MenuItem menu_tools;
+  private Menu toolsMenu;
+  
   private MenuItem menu_plugin;
   private Menu pluginMenu;
   
@@ -106,23 +109,10 @@ public class MainMenu {
   
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
-      
-      new MenuItem(fileMenu, SWT.SEPARATOR);
-      
-      MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
-      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-      
+       
       //No need for exit on OS X
       if(! Constants.isOSX) {
-        
-        
-        MenuItem view_config = new MenuItem(fileMenu, SWT.NULL);
-        Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
-        view_config.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            mainWindow.showConfig();
-          }
-        });
+
         
         new MenuItem(fileMenu, SWT.SEPARATOR);
   
@@ -229,12 +219,6 @@ public class MainMenu {
       file_create.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           new NewTorrentWizard(mainWindow.getAzureusCore(), display);
-        }
-      });
-  
-      file_configure.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          new ConfigureWizard(mainWindow.getAzureusCore(), display);
         }
       });
       
@@ -360,21 +344,9 @@ public class MainMenu {
     });
 
   
-      MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
-      Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
-      view_console.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          mainWindow.showConsole();                    
-        }
-      });
-  
-      MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
-      Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
-      view_stats.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          mainWindow.showStats();
-        }
-      });
+    
+    
+
   
       new MenuItem(viewMenu, SWT.SEPARATOR);
   
@@ -387,6 +359,53 @@ public class MainMenu {
       });
   
       addCloseDownloadBarsToMenu(viewMenu);
+      
+      
+      //the Tools menu
+      menu_tools = new MenuItem(menuBar,SWT.CASCADE);
+      Messages.setLanguageText(menu_tools, "MainWindow.menu.tools"); //$NON-NLS-1$
+      toolsMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
+      menu_tools.setMenu(toolsMenu);
+      
+      MenuItem view_console = new MenuItem(toolsMenu, SWT.NULL);
+      Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
+      view_console.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          mainWindow.showConsole();                    
+        }
+      });
+  
+      MenuItem view_stats = new MenuItem(toolsMenu, SWT.NULL);
+      Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
+      view_stats.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          mainWindow.showStats();
+        }
+      });
+      
+      
+      new MenuItem(toolsMenu, SWT.SEPARATOR);
+      
+      MenuItem file_configure = new MenuItem(toolsMenu, SWT.NULL);
+      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
+      file_configure.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new ConfigureWizard(mainWindow.getAzureusCore(), display);
+        }
+      });
+      
+      
+      //No need for configuration on OS X
+      if(! Constants.isOSX) {                
+        MenuItem view_config = new MenuItem(toolsMenu, SWT.NULL);
+        Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
+        view_config.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.showConfig();
+          }
+        });
+      }
+      
       
       //the Plugins menu
       menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
