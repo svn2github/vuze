@@ -51,16 +51,28 @@ public class ByteFormatter
 	 return( nicePrint( data, false ));
    }
     
-  public static String nicePrint(byte[] data, boolean tight) {
-    if(data == null)
-      return "";      
-    String out = "";    
-    for (int i = 0; i < data.length; i++) {
-      out = out + nicePrint(data[i]);
-      if (!tight && (i % 4 == 3))
-        out = out + " ";
+  public static String 
+  nicePrint(
+  	byte[] data, 
+	boolean tight) 
+  {
+    if(data == null){
+      return "";     
     }
-    return out;
+    
+    String out = "";
+    
+    for (int i = 0; i < data.length; i++) {
+    	
+        if ((!tight) && i > 0 && (i % 4 == 0)){
+        	
+            out = out + " ";
+        }
+        
+        out = out + nicePrint(data[i]);
+    }
+    
+    return( out );
   }
 
 
