@@ -1155,34 +1155,34 @@ DiskManagerImpl
 
 	public boolean checkBlock(int pieceNumber, int offset, int length) {
 		if (length > 65536) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "length="+length+" > 65536");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: length="+length+" > 65536");
 		  return false;
 		}
 		if (pieceNumber < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "pieceNumber="+pieceNumber+" < 0");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" < 0");
 		  return false;
       }
 		if (pieceNumber >= this.nbPieces) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 		  return false;
       }
 		int pLength = this.pieceLength;
 		if (pieceNumber == this.nbPieces - 1)
 			pLength = this.lastPieceLength;
 		if (offset < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "offset="+offset+" < 0");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" < 0");
 		  return false;
 		}
 		if (offset > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "offset="+offset+" > pLength="+pLength);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" > pLength="+pLength);
 		  return false;
 		}
 		if (offset + length > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "offset="+offset+" + length="+length+" > pLength="+pLength);
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: offset="+offset+" + length="+length+" > pLength="+pLength);
 		  return false;
 		}
 		if(!this.pieceDone[pieceNumber]) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "pieceNumber="+pieceNumber+" not done");
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK: pieceNumber="+pieceNumber+" not done");
 		  return false;
 		}
 		return true;

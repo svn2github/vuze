@@ -708,6 +708,7 @@ PEPeerTransportProtocol
         + pieceOffset
         + "->"
         + (pieceOffset + pieceLength)
+        + "choking=" + choking
         + " which is an invalid request.",
         true);
 		  return;
