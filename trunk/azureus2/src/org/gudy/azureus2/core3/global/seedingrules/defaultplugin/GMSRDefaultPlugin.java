@@ -114,8 +114,14 @@ GMSRDefaultPlugin
 				//Is greater than the minimal set, if any.
 				
 			
+					// this params corresponds to "start seeding if there is less than <n> seeds
+					// 0 = "never start". it overrides all other stuff about stopping
+				
 				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
 				
+					// note that scrape results are cached for some time, so we
+					// shouldn't end up thrashing in a start/stop loop because the results
+					// of us starting/stopping don't get reported until next scrape.
 				
 				DownloadScrapeResult sr = download.getLastScrapeResult();
 
@@ -123,7 +129,9 @@ GMSRDefaultPlugin
 				
 				if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
 					
-					if (sr.getSeedCount() > nbMinSeeds) {
+						// start if < n means we can possibly stop if >= n
+					
+					if (sr.getSeedCount() >= nbMinSeeds) {
 						
 						mayStop = true;
 					}
@@ -142,12 +150,16 @@ GMSRDefaultPlugin
 				
 				// System.out.println( "["+i+"] min = " + minShareRatio + ", share = " + shareRatio + ", may = " + mayStop + ", minSeeds = " + nbMinSeeds + ", scrape = " + sr.getResponseType() + ", sr-seeds = " + sr.getSeedCount());
 				
+				boolean	download_stopped = false;
+				
 				if (minShareRatio != 0 && ( shareRatio == -1 || shareRatio > minShareRatio ) && mayStop && ! download.isStartStopLocked()){
 					
 					try{
 						log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: stop ratio" );
 						
 						download.stop();
+				
+						download_stopped	= true;
 						
 					}catch( DownloadException e ){
 						
@@ -155,37 +167,40 @@ GMSRDefaultPlugin
 					}
 				}
 
-				int minSeedsPerPeersRatio = plugin_config.getIntParameter("Stop Peers Ratio", 0);
-				
-					//0 means never stop
-				
-				if (mayStop && minSeedsPerPeersRatio != 0) {
+				if ( !download_stopped ){
 					
-					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS) {
+					int minSeedsPerPeersRatio = plugin_config.getIntParameter("Stop Peers Ratio", 0);
+					
+						//0 means never stop
+					
+					if (mayStop && minSeedsPerPeersRatio != 0) {
 						
-						int nbPeers = sr.getNonSeedCount();
-						
-						int nbSeeds = sr.getSeedCount();
-						
-						//If there are no seeds, avoid / by 0
-						
-						if (nbSeeds != 0) {
+						if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS) {
 							
-							int ratio = nbPeers / nbSeeds;
+							int nbPeers = sr.getNonSeedCount();
 							
-								//Added a test over the shareRatio greater than 500
-								//Avoids disconnecting too early, even with many peers
+							int nbSeeds = sr.getSeedCount();
 							
-							if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! download.isStartStopLocked()){
+							//If there are no seeds, avoid / by 0
+							
+							if (nbSeeds != 0) {
 								
-								try{
-									log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: min seeds per peer" );
+								int ratio = nbPeers / nbSeeds;
+								
+									//Added a test over the shareRatio greater than 500
+									//Avoids disconnecting too early, even with many peers
+								
+								if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! download.isStartStopLocked()){
 									
-									download.stop();
-									
-								}catch( DownloadException e ){
-									
-									e.printStackTrace();
+									try{
+										log.log( LoggerChannel.LT_INFORMATION, "Stop ["+i+"]: min seeds per peer" );
+										
+										download.stop();
+										
+									}catch( DownloadException e ){
+										
+										e.printStackTrace();
+									}
 								}
 							}
 						}
@@ -193,7 +208,9 @@ GMSRDefaultPlugin
 				}
 				
 			}else if ( state == Download.ST_STOPPED && download.getStats().getCompleted() == 1000){
-								
+					
+				boolean download_started = false;
+				
 				//Checks if any condition to start seeding is met
 				
 				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
@@ -227,6 +244,9 @@ GMSRDefaultPlugin
 										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (ratio)" );
 										
 										download.start();
+										
+										download_started = true;
+										
 									}
 								}else{
 										//No seeds, at least 1 peer, let's start download.
@@ -234,6 +254,8 @@ GMSRDefaultPlugin
 									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (no seeds, >=1 peer)" );
 									
 									download.start();
+									
+									download_started	= true;
 								}
 							}catch( DownloadException e ){
 								
@@ -243,24 +265,27 @@ GMSRDefaultPlugin
 					}
 				}
 				
-				if (nbMinSeeds > 0 && ! download.isStartStopLocked()) {
+				if ( !download_started ){
 					
-					DownloadScrapeResult sr = download.getLastScrapeResult();
-					
-					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+					if (nbMinSeeds > 0 && ! download.isStartStopLocked()) {
 						
-						int nbSeeds = sr.getSeedCount();
+						DownloadScrapeResult sr = download.getLastScrapeResult();
 						
-						if (nbSeeds < nbMinSeeds){
+						if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
 							
-							try{
-								log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
+							int nbSeeds = sr.getSeedCount();
+							
+							if (nbSeeds < nbMinSeeds){
 								
-								download.start();
-								
-							}catch( DownloadException e ){
-								
-								e.printStackTrace();
+								try{
+									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
+									
+									download.start();
+									
+								}catch( DownloadException e ){
+									
+									e.printStackTrace();
+								}
 							}
 						}
 					}

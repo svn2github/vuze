@@ -388,60 +388,65 @@ DownloadManagerImpl
 	return new boolean[nbPieces];
   }
 
-  public void stopIt() {
-	Thread stopThread = new Thread() {
-	  public void run() {
-	  	
-		setState( DownloadManager.STATE_STOPPING );
+  public void stopIt() 
+  {
+  	setState( DownloadManager.STATE_STOPPING );
 
-			// kill tracker client first so it doesn't report to peer manager
-			// after its been deleted 
-			
-		if ( tracker_client != null ){
-		
-			tracker_client.removeListener( tracker_client_listener );
-	
-			tracker_client.destroy();
-			
-			tracker_client = null;
-		}
-		
-		if (peerManager != null){
-			
-		  stats.setSavedDownloadedUploaded( 
-				  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
-			 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
-      
-		  stats.saveDiscarded(stats.getDiscarded());
-		  stats.saveHashFails(stats.getHashFails());
-			 	  
-		  peerManager.removeListener( peer_manager_listener );
-		  
-		  peerManager.stopAll(); 
-		  
-		  peerManager = null; 
-		  server	  = null;	// clear down ref
-		}      
-		
-		if (diskManager != null){
-			stats.setCompleted(stats.getCompleted());
-      
-		  if (diskManager.getState() == DiskManager.READY){
-		    diskManager.dumpResumeDataToDisk(true, false);
-		  }
-      
-		  //update path+name info before termination
-		  savePath = diskManager.getPath();
-		  name = diskManager.getFileName();
-		  
-		  diskManager.stopIt();
-		  	
-		  diskManager.addListener( disk_manager_listener );
-		  
-		  diskManager = null;
-		}
+  	Thread stopThread = new Thread() {
+	  public void run()
+	  {
+	  	try{
+	  	
+				// kill tracker client first so it doesn't report to peer manager
+				// after its been deleted 
 				
-		setState( DownloadManager.STATE_STOPPED );                
+			if ( tracker_client != null ){
+			
+				tracker_client.removeListener( tracker_client_listener );
+		
+				tracker_client.destroy();
+				
+				tracker_client = null;
+			}
+			
+			if (peerManager != null){
+				
+			  stats.setSavedDownloadedUploaded( 
+					  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
+				 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
+	      
+			  stats.saveDiscarded(stats.getDiscarded());
+			  stats.saveHashFails(stats.getHashFails());
+				 	  
+			  peerManager.removeListener( peer_manager_listener );
+			  
+			  peerManager.stopAll(); 
+			  
+			  peerManager = null; 
+			  server	  = null;	// clear down ref
+			}      
+			
+			if (diskManager != null){
+				stats.setCompleted(stats.getCompleted());
+	      
+			  if (diskManager.getState() == DiskManager.READY){
+			    diskManager.dumpResumeDataToDisk(true, false);
+			  }
+	      
+			  //update path+name info before termination
+			  savePath = diskManager.getPath();
+			  name = diskManager.getFileName();
+			  
+			  diskManager.stopIt();
+			  	
+			  diskManager.addListener( disk_manager_listener );
+			  
+			  diskManager = null;
+			}
+	  	}finally{
+				
+	  		setState( DownloadManager.STATE_STOPPED );
+	  	}
 	  }
 	};
 	stopThread.setDaemon(true);
