@@ -207,7 +207,8 @@ PluginInitializer
       	}
       }catch (Exception e) {
       	
-      	
+      	  LGLogger.logAlert( LGLogger.AT_ERROR, "Can't read 'plugin.properties' for plugin '" + pluginName + "'" );
+      	  
           System.out.println("Can't read plugin.properties from plug-in " + pluginName + " : file may be missing.");
           return;    
       }
@@ -231,6 +232,9 @@ PluginInitializer
       
     } catch(Throwable e) {
       e.printStackTrace();
+      
+ 	  LGLogger.logAlert( "Error loading plugin '" + pluginName + "'", e );
+
       System.out.println("Error while loading class " + plugin_class + " : " + e);      
     }
   }
@@ -277,6 +281,9 @@ PluginInitializer
    		
   	} catch(Throwable e) {
   		e.printStackTrace();
+  		
+    	LGLogger.logAlert( "Error loading internal plugin '" + plugin_class.getName() + "'", e );
+
   		System.out.println("Error while loading internal plugin class " + plugin_class + " : " + e);      
   	}
   }

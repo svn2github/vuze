@@ -343,7 +343,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 						String		message,
 						Throwable	exception )
 					{
-						showErrorMessageBox( message, exception );
+	  					synchronized( alert_queue ){
+    						
+    						if ( !initialisation_complete ){
+    							
+    							alert_queue.add( new Object[]{ message, exception });
+    							
+    							return;
+    						}
+    					}
+	  					
+ 						showErrorMessageBox( message, exception );
 					}
     			});
     	
@@ -1068,11 +1078,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     				
     				Object[]	x = (Object[])alert_queue.get(i);
     				
-    				int		type 	= ((Integer)x[0]).intValue();
-    				String	message = (String)x[1];
+    				if ( x[0] instanceof String ){
+    					
+    					String		message 	= (String)x[0];
+    					Throwable	exception 	= (Throwable)x[1];
+    					
+    					showAlert( message, exception );
+    					
+    				}else{
+    					
+    					int		type 	= ((Integer)x[0]).intValue();
+    					String	message = (String)x[1];
     				
-    				showAlert( type, message );
+    					showAlert( type, message );
+    				}
     			}
+    			
+    			alert_queue.clear();
     		}
     	}
     }.start();
@@ -1085,14 +1107,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private void
   showAlert(
-  		int	type,
-		String	message )
+  	int		type,
+	String	message )
   {
-  	if ( alert_history.contains( message )){
-  		return;
-  	}
+  	synchronized( alert_history ){
+  		
+  		if ( alert_history.contains( message )){
+  			
+  			return;
+  		}
   	
-  	alert_history.add( message );
+  		alert_history.add( message );
+  		
+  		if ( alert_history.size() > 512 ){
+  			
+  			alert_history.remove(0);
+  		}
+  	}
   	
 	if ( type == LGLogger.AT_COMMENT ){
 			
@@ -1108,6 +1139,30 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	}
   }
   
+  private void
+  showAlert(
+  	String		message,
+	Throwable	exception )
+  {
+  	synchronized( alert_history ){
+  		
+  		String	key = message + ":" + exception.toString();
+  		
+  		if ( alert_history.contains( key )){
+  			
+  			return;
+  		}
+  	
+  		alert_history.add( key );
+  		
+  		if ( alert_history.size() > 512 ){
+  			
+  			alert_history.remove(0);
+  		}
+  	}
+  	
+	showErrorMessageBox( message, exception );
+  }
   
 	private void startFolderWatcher() {
     if(folderWatcher == null)
@@ -2844,12 +2899,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   	String		title,
 	Throwable	error )
   {
-  	String error_message = error.getMessage();
-  	
-  	if ( error_message == null ){
-  		
-  		error_message = error.toString();
-  	}
+  	String error_message = LGLogger.exceptionToString( error );
   
   	showMessageBox( SWT.ICON_ERROR, title, error_message );
   } 
