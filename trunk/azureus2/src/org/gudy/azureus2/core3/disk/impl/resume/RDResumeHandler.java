@@ -249,6 +249,8 @@ RDResumeHandler
 				if ( resumeArray == null ){
 					
 					resumeValid	= false;
+					
+					resumeArray	= new byte[pieces.length];
 				}
 				
 				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
@@ -257,63 +259,72 @@ RDResumeHandler
 					
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 					
-					if ( resumeValid ){
+					boolean	ok = resumeArray[i] == 1;
+					
+						// valid resume data means that the resume array correctly represents
+						// the state of pieces on disk, be they done or not
+					
+					if ( ok ){
+					
+							// at least check that file sizes are OK for this piece to be valid
 						
-						boolean	ok = resumeArray[i] == 1;
+						PieceList list = disk_manager.getPieceList(i);
 						
-						if ( ok ){
-						
-								// at least check that file sizes are OK for this piece to be valid
+						for (int j=0;j<list.size();j++){
 							
-							PieceList list = disk_manager.getPieceList(i);
+							PieceMapEntry	entry = list.get(j);
 							
-							for (int j=0;j<list.size();j++){
+							try{
+								long	file_size 		= entry.getFile().getCacheFile().getLength();
+								long	expected_size 	= entry.getOffset() + entry.getLength();
 								
-								PieceMapEntry	entry = list.get(j);
-								
-								try{
-									long	file_size 		= entry.getFile().getCacheFile().getLength();
-									long	expected_size 	= entry.getOffset() + entry.getLength();
+								if ( file_size < expected_size ){
 									
-									if ( file_size < expected_size ){
-										
-										ok	= false;
-										
-										LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
+									ok	= false;
+									
+									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
 
-										break;
-									}
-								}catch( CacheFileManagerException e ){
-									
-									Debug.printStackTrace(e);
-									
-									ok = false;
+									break;
 								}
+							}catch( CacheFileManagerException e ){
+								
+								Debug.printStackTrace(e);
+								
+								ok = false;
 							}
 						}
+					}
+					
+					if ( ok ){
 						
 						dm_piece.setDone( ok );
 						
 					}else{								
 						
-						pending_check_num++;
+							// We only need to recheck blocks that are marked as not-ok
+							// if the resume data is invalid
 						
-						writer_and_checker.checkPiece(
-							i,
-							new CheckPieceResultHandler()
-							{
-								public void
-								processResult(
-									int		piece_number,
-									int		result,
-									Object	user_data )
+						if ( !resumeValid ){
+						
+							pending_check_num++;
+							
+							writer_and_checker.checkPiece(
+								i,
+								new CheckPieceResultHandler()
 								{
-									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
-
-									pending_checks_sem.release();
-								}
-							},
-							null );
+									public void
+									processResult(
+										int		piece_number,
+										int		result,
+										Object	user_data )
+									{
+										LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+	
+										pending_checks_sem.release();
+									}
+								},
+								null );
+						}
 					}
 				}
 					
@@ -430,17 +441,19 @@ RDResumeHandler
 		
 		byte[] resumeData = new byte[pieces.length];
 		
+		if ( !force_recheck ){
 				
-		for (int i = 0; i < resumeData.length; i++) {
-	  	
-		  	if ( pieces[i].getDone()){
-		  		
-				resumeData[i] = (byte)1;
-		  		
-		  	}else{
+			for (int i = 0; i < resumeData.length; i++) {
 		  	
-				resumeData[i] = (byte)0;
-		  	}
+			  	if ( pieces[i].getDone()){
+			  		
+					resumeData[i] = (byte)1;
+			  		
+			  	}else{
+			  	
+					resumeData[i] = (byte)0;
+			  	}
+			}
 		}
 		
 		Map resumeMap = new HashMap();
@@ -465,7 +478,7 @@ RDResumeHandler
 	  
 		Map partialPieces = new HashMap();
 	
-		if ( savePartialPieces  ){
+		if ( savePartialPieces && !force_recheck ){
 	  		  		      
 			for (int i = 0; i < pieces.length; i++) {
 				
@@ -495,7 +508,14 @@ RDResumeHandler
 			resumeDirectory.put("blocks", partialPieces);
 		}
 		
-		resumeDirectory.put("valid", new Long( force_recheck?0:1));
+			// savePartialPieces has overloaded meanings. It also implies that the download
+			// is stopping, as opposed to this being an interim resume data save, and therefore
+			// that the resume data should be set as "valid". Being valid has the meaning that
+			// blocks marked as not-done will *not* be checked when the torrent is restarted
+			// to see if they are actually complete.
+			// TODO: fix this up!!!!
+		
+		resumeDirectory.put("valid", new Long( force_recheck?0:(savePartialPieces?1:0)));
 		
 		for (int i=0;i<files.length;i++){
 			
