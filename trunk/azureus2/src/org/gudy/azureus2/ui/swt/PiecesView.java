@@ -83,11 +83,8 @@ public class PiecesView extends AbstractIView implements IComponentListener {
     manager.removeListener(this);
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("PiecesView.title.short"); //$NON-NLS-1$
+  public String getData() {
+    return "PiecesView.title.short"; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

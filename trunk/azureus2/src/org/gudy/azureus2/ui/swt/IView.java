@@ -15,6 +15,7 @@ public interface IView {
   public Composite getComposite();
   public void refresh();
   public void delete();
+  public String getData();
   public String getShortTitle();
   public String getFullTitle();
   public void updateLanguage();  

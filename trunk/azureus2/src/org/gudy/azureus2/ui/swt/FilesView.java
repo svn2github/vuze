@@ -227,11 +227,8 @@ public class FilesView extends AbstractIView {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("FilesView.title.short"); //$NON-NLS-1$
+  public String getData() {
+    return "FilesView.title.short"; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

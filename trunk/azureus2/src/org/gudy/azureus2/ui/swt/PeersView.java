@@ -207,11 +207,8 @@ public class PeersView extends AbstractIView implements IComponentListener {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("PeersView.title.short"); //$NON-NLS-1$
+  public String getData() {
+    return "PeersView.title.short"; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)

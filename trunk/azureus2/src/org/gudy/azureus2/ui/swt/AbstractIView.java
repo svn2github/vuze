@@ -5,6 +5,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.core.MessageText;
 
 /**
  * @author René
@@ -16,9 +17,14 @@ public abstract class AbstractIView implements IView {
   public Composite getComposite(){ return null; }
   public void refresh(){}
   public void delete(){}
-  public String getShortTitle(){ return null; }
+
+  public String getData(){ return null; }
+
   public String getFullTitle(){ return null; }
 
+  public String getShortTitle() {
+    return MessageText.getString(getData());
+	}
   public void updateLanguage() {
     Messages.updateLanguageForControl(getComposite());
   }

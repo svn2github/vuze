@@ -99,6 +99,8 @@ public class Messages {
          ((Group) widget).setText(MessageText.getString((String) widget.getData()));
       else if (widget instanceof Button)
          ((Button) widget).setText(MessageText.getString((String) widget.getData()));
+      else if (widget instanceof CTabItem)
+         ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
       else
         System.out.println("No cast for " + widget.getClass().getName());
     }

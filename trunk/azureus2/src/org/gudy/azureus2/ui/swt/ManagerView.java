@@ -87,13 +87,13 @@ public class ManagerView extends AbstractIView {
     viewPieces.initialize(folder);
     viewFiles = new FilesView(manager);
     viewFiles.initialize(folder);
-    itemGeneral.setText(viewGeneral.getShortTitle());
+    Messages.setLanguageText(itemGeneral, viewGeneral.getData());
     itemGeneral.setControl(viewGeneral.getComposite());
-    itemDetails.setText(viewDetails.getShortTitle());
+    Messages.setLanguageText(itemDetails, viewDetails.getData());
     itemDetails.setControl(viewDetails.getComposite());
-    itemPieces.setText(viewPieces.getShortTitle());
+    Messages.setLanguageText(itemPieces, viewPieces.getData());
     itemPieces.setControl(viewPieces.getComposite());
-    itemFiles.setText(viewFiles.getShortTitle());
+    Messages.setLanguageText(itemFiles, viewFiles.getData());
     itemFiles.setControl(viewFiles.getComposite());
     folder.setSelection(itemGeneral);
   }
@@ -102,22 +102,21 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    itemGeneral.setText(viewGeneral.getShortTitle());
-    itemDetails.setText(viewDetails.getShortTitle());
-    itemPieces.setText(viewPieces.getShortTitle());
-    itemFiles.setText(viewFiles.getShortTitle());
-    int selected = folder.getSelectionIndex();
-    switch (selected) {
+    switch (folder.getSelectionIndex()) {
       case 0 :
-        viewGeneral.refresh();
+        if (viewGeneral != null && !itemGeneral.isDisposed())
+          viewGeneral.refresh();
         break;
       case 1 :
+      if (viewDetails != null && !itemDetails.isDisposed())
         viewDetails.refresh();
         break;
       case 2 :
+      if (viewPieces != null && !itemPieces.isDisposed())
         viewPieces.refresh();
         break;
       case 3 :
+      if (viewFiles != null && !itemFiles.isDisposed())
         viewFiles.refresh();
         break;
     }

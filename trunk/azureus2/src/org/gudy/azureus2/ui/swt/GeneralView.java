@@ -372,11 +372,8 @@ public class GeneralView extends AbstractIView {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("GeneralView.title.short"); //$NON-NLS-1$
+  public String getData() {
+    return "GeneralView.title.short"; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
@@ -471,8 +468,7 @@ public class GeneralView extends AbstractIView {
         else if (pond > 0)
           index = 1;
         gcImage.setBackground(blues[index]);
-        Rectangle rect = new Rectangle(i, 1, 1, height);
-        gcImage.fillRectangle(rect);
+        gcImage.fillRectangle(i, 1, 1, height);
       }
     }
     gcImage.dispose();
@@ -480,7 +476,7 @@ public class GeneralView extends AbstractIView {
       availabilityPercent.setText(allMin + "." + sTotal); //$NON-NLS-1$
     gc.setForeground(colorGrey);
     gc.drawImage(aImage, x0, y0);
-    gc.drawRectangle(new Rectangle(x0, y0, width, height));
+    gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
   }
 
