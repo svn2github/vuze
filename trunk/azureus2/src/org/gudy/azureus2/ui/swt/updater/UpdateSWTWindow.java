@@ -83,7 +83,7 @@ public class UpdateSWTWindow implements GeneralListener{
     Composite composite = new Composite(shell,SWT.NULL);
     composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     layout = new GridLayout();   
-    layout.numColumns = 2;
+    layout.numColumns = 3;
     composite.setLayout(layout);
     
     btnOk = new Button(composite,SWT.PUSH);
