@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
+import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
@@ -176,7 +177,8 @@ DHTPlugin
 									port, 
 									5,
 									3,
-									10000, 
+									30000, 	// udp timeout - tried less but a significant number of 
+											// premature timeouts occurred
 									log );
 						
 						plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
@@ -187,14 +189,27 @@ DHTPlugin
 									perform(
 										UTTimerEvent		event )
 									{
-										DHTTransportUDPStats stats = (DHTTransportUDPStats)transport.getStats();
+										DHTRouterStats	r_stats = dht.getRouter().getStats();
 										
-										log.log( "Stats" + 
-													":ps=" + stats.getPacketsSent() +
-													",pr=" +stats.getPacketsReceived() +
-													",bs=" +stats.getBytesSent() +
-													",br=" + stats.getBytesReceived() +
-													",to=" + stats.getRequestsTimedOut());
+										long[]	rs = r_stats.getStats();
+	
+										log.log( "Router Stats  " +
+													":no=" + rs[DHTRouterStats.ST_NODES] +
+													",le=" + rs[DHTRouterStats.ST_LEAVES] +
+													",co=" + rs[DHTRouterStats.ST_CONTACTS] +
+													",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+													",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+													",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+													",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+														
+										DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
+										
+										log.log( "Transport Stats" + 
+													":ps=" + t_stats.getPacketsSent() +
+													",pr=" + t_stats.getPacketsReceived() +
+													",bs=" + t_stats.getBytesSent() +
+													",br=" + t_stats.getBytesReceived() +
+													",to=" + t_stats.getRequestsTimedOut());
 									}
 								});
 						

@@ -115,6 +115,12 @@ Test
 						{
 							return( "sdsd".getBytes());
 						}
+						
+						public String
+						getString()
+						{
+							return( new String(getValue()));
+						}
 					});
 			
 			c1.sendFindNode(

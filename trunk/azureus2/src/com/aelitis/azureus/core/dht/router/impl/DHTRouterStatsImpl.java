@@ -41,16 +41,10 @@ DHTRouterStatsImpl
 	{
 		router	= _router;
 	}
-	
-	public long
-	getNodeCount()
+
+	public long[]
+	getStats()
 	{
-		return( router.getNodeCount());
-	}
-	
-	public long
-	getContactCount()
-	{
-		return( router.getContactCount());
+		return( router.getStatsSupport());
 	}
 }

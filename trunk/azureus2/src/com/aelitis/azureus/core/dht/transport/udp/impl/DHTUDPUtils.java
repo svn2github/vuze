@@ -135,6 +135,12 @@ DHTUDPUtils
 				{
 					return( value_bytes );
 				}
+				
+				public String
+				getString()
+				{
+					return( new String(getValue()));
+				}
 			};
 			
 		return( value );

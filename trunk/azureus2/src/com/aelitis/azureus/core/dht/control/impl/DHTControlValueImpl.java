@@ -112,4 +112,12 @@ DHTControlValueImpl
 	{
 		return( value );
 	}
+	
+	public String
+	getString()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		return( new String(value) + "{ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
+	}
 }

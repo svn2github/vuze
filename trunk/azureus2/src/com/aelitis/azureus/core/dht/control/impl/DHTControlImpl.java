@@ -1464,6 +1464,10 @@ DHTControlImpl
 			
 			if ( distance == 1 ){
 				
+					// distance 1 = initial store location. We use the initial creation date
+					// when deciding whether or not to remove this, plus a bit, as the 
+					// original publisher is supposed to republish these
+				
 				if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
 					
 					DHTLog.log( "removing cache entry at level " + distance );
@@ -1474,6 +1478,10 @@ DHTControlImpl
 			}else if ( distance > 1 ){
 				
 					// distance 2 get 1/2 time, 3 get 1/4 etc.
+					// these are indirectly cached at the nearest location traversed
+					// when performing a lookup. the store time is used when deciding
+					// whether or not to remove these in an ever reducing amount the
+					// further away from the correct cache position that the value is
 				
 				long	permitted = cache_republish_interval >> (distance-1);
 				
@@ -1525,7 +1533,7 @@ DHTControlImpl
 				
 				String	s = (String)data[1];
 				
-				s += (s.length()==0?"":", ") + new String( value.getValue());
+				s += (s.length()==0?"":", ") + value.getString();
 				
 				data[1]	= s;
 			}

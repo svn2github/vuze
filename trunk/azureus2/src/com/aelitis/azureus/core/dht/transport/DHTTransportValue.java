@@ -38,4 +38,7 @@ DHTTransportValue
 	
 	public byte[]
 	getValue();
+	
+	public String
+	getString();
 }

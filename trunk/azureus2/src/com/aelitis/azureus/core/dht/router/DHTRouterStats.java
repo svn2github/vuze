@@ -30,9 +30,25 @@ package com.aelitis.azureus.core.dht.router;
 public interface 
 DHTRouterStats 
 {
-	public long
-	getNodeCount();
+	public static final int	ST_NODES				= 0;
+	public static final int	ST_LEAVES				= 1;
+	public static final int	ST_CONTACTS				= 2;
+	public static final int	ST_REPLACEMENTS			= 3;
+	public static final int	ST_CONTACTS_LIVE		= 4;
+	public static final int	ST_CONTACTS_UNKNOWN		= 5;
+	public static final int	ST_CONTACTS_DEAD		= 6;
 	
-	public long
-	getContactCount();
+		/**
+		 * returns 
+		 * number of nodes
+		 * number of leaves
+		 * number of contacts
+		 * number of replacements
+		 * number of live contacts
+		 * number of unknown contacts
+		 * number of dying contacts
+		 */
+	
+	public long[]
+	getStats();
 }

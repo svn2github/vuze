@@ -41,6 +41,7 @@ DHTRouterContactImpl
 	private DHTRouterContactAttachment		attachment;
 	
 	private boolean		has_been_alive;
+	private boolean		ping_outstanding;
 	private int			fail_count;
 	private long		first_alive_time;
 	private long		first_fail_or_last_alive_time;
@@ -151,6 +152,18 @@ DHTRouterContactImpl
 	}
 	
 	protected long
+	getFirstFailOrLastAliveTime()
+	{
+		return( first_fail_or_last_alive_time );
+	}
+	
+	protected long
+	getFirstAliveTime()
+	{
+		return( first_alive_time );
+	}
+	
+	protected long
 	getLastAddedTime()
 	{
 		return( last_added_time );
@@ -161,6 +174,19 @@ DHTRouterContactImpl
 		long	l )
 	{
 		last_added_time	= l;
+	}
+	
+	protected void
+	setPingOutstanding(
+		boolean	b )
+	{
+		ping_outstanding = b;
+	}
+	
+	protected boolean
+	getPingOutstanding()
+	{
+		return( ping_outstanding );
 	}
 	
 	public String

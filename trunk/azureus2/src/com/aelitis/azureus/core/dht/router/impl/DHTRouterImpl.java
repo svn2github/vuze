@@ -536,20 +536,6 @@ DHTRouterImpl
 	}
 	
 	protected long
-	getLeafCount(
-		DHTRouterNodeImpl	node )
-	{
-		if ( node.getBuckets() != null ){
-			
-			return( 1 );
-			
-		}else{
-			
-			return( getLeafCount( node.getLeft())) + getLeafCount( node.getRight());
-		}
-	}
-	
-	public long
 	getContactCount()
 	{
 		return( getContactCount( root ));
@@ -847,6 +833,73 @@ DHTRouterImpl
 		DHTLog.log( "DHTRouter: requestLookup:" + DHTLog.getString( id ));
 		
 		adapter.requestLookup( id );
+	}
+	
+	protected void
+	getStatsSupport(
+		long[]				stats_array,
+		DHTRouterNodeImpl	node )
+	{
+		stats_array[DHTRouterStats.ST_NODES]++;
+		
+		List	buckets = node.getBuckets();
+		
+		if ( buckets == null ){
+			
+			getStatsSupport( stats_array, node.getLeft());
+			
+			getStatsSupport( stats_array, node.getRight());
+			
+		}else{
+			
+			stats_array[DHTRouterStats.ST_LEAVES]++;
+			
+			stats_array[DHTRouterStats.ST_CONTACTS] += buckets.size();
+			
+			for (int i=0;i<buckets.size();i++){
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+				
+				if ( contact.getFirstFailTime() > 0 ){
+					
+					stats_array[DHTRouterStats.ST_CONTACTS_DEAD]++;
+					
+				}else if ( contact.hasBeenAlive()){
+					
+					stats_array[DHTRouterStats.ST_CONTACTS_LIVE]++;
+					
+				}else{
+					
+					stats_array[DHTRouterStats.ST_CONTACTS_UNKNOWN]++;
+				}
+			}
+			
+			List	rep = node.getReplacements();
+			
+			if ( rep != null ){
+				
+				stats_array[DHTRouterStats.ST_REPLACEMENTS] += rep.size();
+			}
+		}
+	}
+	
+	protected synchronized long[]
+	getStatsSupport()
+	{
+		 /* number of nodes
+		 * number of leaves
+		 * number of contacts
+		 * number of replacements
+		 * number of live contacts
+		 * number of unknown contacts
+		 * number of dying contacts
+		 */
+		
+		long[]	res = new long[7];
+		
+		getStatsSupport( res, root );
+		
+		return( res );
 	}
 	
 	protected void

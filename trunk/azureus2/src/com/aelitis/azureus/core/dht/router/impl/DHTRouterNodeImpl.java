@@ -135,7 +135,13 @@ DHTRouterNodeImpl
 			return( null );
 		}
 		
+			// we ping the oldest bucket entry only if we "improve" matters in the replacement 
+		
+		boolean	try_ping	= false;
+		
 		if( replacements == null ){
+			
+			try_ping	= true;
 			
 			replacements = new ArrayList();
 			
@@ -154,6 +160,8 @@ DHTRouterNodeImpl
 				
 						if ( !r.hasBeenAlive()){
 							
+							try_ping	= true;
+							
 							replacements.remove(i);
 							
 							break;
@@ -169,8 +177,7 @@ DHTRouterNodeImpl
 					}
 				}else{
 						
-						// replace old unknown ones with newer unknown ones but don't remove
-						// ones with a ping in process as this would be a waste
+						// replace old unknown ones with newer unknown ones
 					
 					for (int i=0;i<replacements.size();i++){
 						
@@ -184,6 +191,9 @@ DHTRouterNodeImpl
 						}
 					}
 				}
+			}else{
+				
+				try_ping	= true;
 			}
 		}
 		
@@ -195,7 +205,24 @@ DHTRouterNodeImpl
 		}
 		
 		replacements.add( replacement );
+			
+		if ( try_ping ){
+			
+			for (int i=0;i<buckets.size();i++){
 				
+				DHTRouterContactImpl	c = (DHTRouterContactImpl)buckets.get(i);
+				
+				if ( !c.getPingOutstanding()){
+			
+					c.setPingOutstanding( true );
+					
+					router.requestPing( c );
+					
+					break;
+				}
+			}
+		}
+		
 		return( replacement );
 	}
 	
@@ -279,7 +306,9 @@ DHTRouterNodeImpl
 		DHTRouterContactImpl	contact )
 	{
 		DHTLog.log( DHTLog.getString( contact.getID()) + ": alive" );
-				
+			
+		contact.setPingOutstanding( false );
+		
 		if ( buckets.remove( contact )){
 			
 			contact.setAlive();
@@ -287,8 +316,32 @@ DHTRouterNodeImpl
 			buckets.add( contact );
 			
 		}else if ( replacements.remove( contact )){
-						
+					
+			long	last_time = contact.getFirstFailOrLastAliveTime();
+			
 			contact.setAlive();
+			
+				// this is a good time to probe the contacts as we know a 
+				// replacement is alive and therefore in a position to replace a
+				// dead bucket entry. Only do this if we haven't heard from this contact
+				// recently
+			
+			if ( contact.getLastAliveTime() - last_time > 30000 ){
+			
+				for (int i=0;i<buckets.size();i++){
+					
+					DHTRouterContactImpl	c = (DHTRouterContactImpl)buckets.get(i);
+					
+					if ( !c.getPingOutstanding()){
+				
+						c.setPingOutstanding( true );
+						
+						router.requestPing( c );
+						
+						break;
+					}
+				}
+			}
 			
 			replacements.add( contact );		
 		}
@@ -300,6 +353,8 @@ DHTRouterNodeImpl
 	{
 		DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
 		
+		contact.setPingOutstanding( false );
+
 		if ( contact.setFailed()){
 			
 				// check the contact is still present
