@@ -278,7 +278,7 @@ public class MainWindow implements IComponentListener {
     }
 
     // set to true to enable SWT leak checking
-    if (false) {
+    if (true) {
       DeviceData data = new DeviceData();
       data.tracking = true;
       display = new Display(data);

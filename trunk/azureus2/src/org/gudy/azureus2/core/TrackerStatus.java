@@ -46,9 +46,6 @@ public class TrackerStatus {
   }
 
   public synchronized void update(Hash hash) {
-    if(!hashList.contains(hash)) {
-      hashList.add(hash);
-    }
     hashes.put(hash,new HashData(0,0));
     if(scrapeURL == null)
       return;

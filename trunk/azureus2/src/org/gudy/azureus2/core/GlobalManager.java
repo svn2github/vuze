@@ -53,11 +53,11 @@ public class GlobalManager extends Component {
       while (!finished) {
 
         loopFactor++;
-        // Changed to 10 mins :D
+        determineSaveResumeDataInterval();
+        // Changed to 20 mins :D
         // Should be user configurable.
-        if (loopFactor >= 600) {
-          loopFactor = 0;
-          //determineSaveResumeDataInterval();
+        if (loopFactor >= 1200) {
+          loopFactor = 0;          
           trackerChecker.update();
         }
 
@@ -70,7 +70,7 @@ public class GlobalManager extends Component {
               nbStarted++;
               nbDownloading++;
               if (loopFactor % saveResumeLoopCount == 0) {
-                //manager.diskManager.dumpResumeDataToDisk(false);
+                manager.diskManager.dumpResumeDataToDisk(false);
               }
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
