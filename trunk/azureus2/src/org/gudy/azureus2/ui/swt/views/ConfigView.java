@@ -1940,6 +1940,10 @@ public class ConfigView extends AbstractIView {
     tracker_password.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData( gridData );
 
 
     Control[] x_controls = new Control[2];
@@ -1963,6 +1967,22 @@ public class ConfigView extends AbstractIView {
 
     passwordEnableWeb.setAdditionalActionPerformer(enabler);
     passwordEnableTorrent.setAdditionalActionPerformer(enabler);
+    
+    // row
+
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.logenable");
+
+    BooleanParameter logEnable = new BooleanParameter(gMainTab, "Tracker Log Enable", false);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    logEnable.setLayoutData( gridData );
+
+    label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData( gridData );
 
     // **** web tab ****
 

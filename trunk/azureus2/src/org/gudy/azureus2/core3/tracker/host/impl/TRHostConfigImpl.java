@@ -330,7 +330,8 @@ TRHostConfigImpl
 				 	}catch (Exception e) {}
 			   	}
 			   	
-			   	if ( stats_entries.size() > 0 ){
+				if ( 	COConfigurationManager.getBooleanParameter( "Tracker Log Enable", false ) &&
+						stats_entries.size() > 0 ){
 			   		
 				   	try{
 				   		Calendar now = GregorianCalendar.getInstance();
