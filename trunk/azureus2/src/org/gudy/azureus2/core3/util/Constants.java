@@ -19,6 +19,8 @@ Constants
   public static final String AELITIS_WEB_SITE   = "http://azureus.aelitis.com/";
   
   public static final String AELITIS_TORRENTS	= "http://play.aelitis.com/torrents/";
+  public static final String AZUREUS_WIKI = AELITIS_WEB_SITE + "wiki/index.php/";
+  
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
