@@ -87,7 +87,7 @@ public class WriteController {
           ready_entity = getNextReadyNormalPriorityEntity();
           if( ready_entity != null ) { //ready normal entity found
             if( !ready_entity.doWrite() ) {
-              System.out.println( "doWrite1 failed" );
+              //System.out.println( "doWrite1 failed" );
             }
           }
           else { //none ready in normal-priority either, so sleep
@@ -100,7 +100,7 @@ public class WriteController {
         ready_entity = getNextReadyNormalPriorityEntity();
         if( ready_entity != null ) { //ready normal entity found
           if( !ready_entity.doWrite() ) {
-            System.out.println( "doWrite2 failed" );
+            //System.out.println( "doWrite2 failed" );
           }
         }
         else { //none ready in normal-priority, so check high-priority
