@@ -47,52 +47,41 @@ public class OutgoingBTPieceMessageHandler {
   private final OutgoingMessageQueue outgoing_message_queue;
   private final DiskManager disk_manager;
   private final LinkedList requests = new LinkedList();
-  
   private final List		loading_messages 		= new ArrayList();
-  private final AEMonitor	loading_messages_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:loading");
-
   private final Map queued_messages = new HashMap();
   private int num_messages_loading = 0;
   private int num_messages_in_queue = 0;
   
   private final AEMonitor	lock_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:lock");
   
-  
-  //TODO
-  private volatile boolean destroyed = false;
-  
+
   
   private final ReadRequestListener read_req_listener = new ReadRequestListener() {
     public void readCompleted( DiskManagerRequest request, DirectByteBuffer data ) {
       BTPiece msg;
       try{
       	lock_mon.enter();
-      
-        try{
-          loading_messages_mon.enter();
-        
-          if( !loading_messages.contains( request ) ) { //was canceled
-            data.returnToPool();
-            return;
-          }
-          loading_messages.remove( request );
-        }finally{
-          loading_messages_mon.exit();
-        }
+
+      	if( !loading_messages.contains( request ) ) { //was canceled
+      	  data.returnToPool();
+      	  return;
+      	}
+      	loading_messages.remove( request );
+
         num_messages_loading--; 
         msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
         queued_messages.put( msg, request );
         num_messages_in_queue++;
-      }finally{
+        
+        outgoing_message_queue.addMessage( msg );//needs to be outside a synchronised(lock) block due to deadlock with outgoing_message_queue methods
+ 
+      }
+      finally{
       	lock_mon.exit();
       }
-      if( destroyed ) {
-        msg.destroy();
-        System.out.println("readCompleted:: already destroyed");
-      }
-      else {
-        outgoing_message_queue.addMessage( msg );//needs to be outside a synchronised(lock) block due to deadlock with outgoing_message_queue methods
-      }
+
+      
+      
     }
   };
   
@@ -135,9 +124,7 @@ public class OutgoingBTPieceMessageHandler {
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
     DiskManagerRequest dmr = disk_manager.createRequest( piece_number, piece_offset, length );
-    
-    if( destroyed ) System.out.println("addPieceRequest:: already destroyed");
-    
+
     try{
       lock_mon.enter();
     
@@ -171,38 +158,22 @@ public class OutgoingBTPieceMessageHandler {
         num_messages_loading--;
         return;
       }
-    }finally{
-      lock_mon.exit();
-    }
-    
-    Object[] entries;
-    try{
-      lock_mon.enter();
-    
-      entries = queued_messages.entrySet().toArray();
-    }finally{
-      lock_mon.exit();
-    }
-    
-    for( int i=0; i < entries.length; i++ ) {
-      Map.Entry entry = (Map.Entry)entries[ i ];
-      if( entry.getValue().equals( dmr ) ) {
-        BTPiece msg = (BTPiece)entry.getKey();
-        if( outgoing_message_queue.removeMessage( msg ) ) {//needs to be outside a synchronised(lock) block due to deadlock with outgoing_message_queue methods
-          try{
-            lock_mon.enter();
-          
-            queued_messages.remove( msg );
-          }finally{
-          	lock_mon.exit();
+      
+      
+      for( Iterator i = queued_messages.entrySet().iterator(); i.hasNext(); ) {
+        Map.Entry entry = (Map.Entry)i.next();
+        if( entry.getValue().equals( dmr ) ) {
+          BTPiece msg = (BTPiece)entry.getKey();
+          if( outgoing_message_queue.removeMessage( msg ) ) {
+            i.remove();
+            num_messages_in_queue--;
           }
-          num_messages_in_queue--;
+          return;
         }
-        else {
-          //System.out.println("removePieceRequest:: message not removed");
-        }
-        break;
       }
+    }
+    finally{
+      lock_mon.exit();
     }
   }
   
@@ -212,45 +183,22 @@ public class OutgoingBTPieceMessageHandler {
    */
   public void removeAllPieceRequests() {
     try{
-      loading_messages_mon.enter();
-   
-      loading_messages.clear();
-    }finally{
-      loading_messages_mon.exit();
-    }
-    
-    try{
       lock_mon.enter();
   
       requests.clear();
+      loading_messages.clear();
       num_messages_loading = 0;
-    }finally{
-      lock_mon.exit();
-    }
-    
-    Object[] messages;
-    try{
-      lock_mon.enter();
-    
-      messages = queued_messages.keySet().toArray();
-    }finally{
-      lock_mon.exit();
-    }
-    for( int i=0; i < messages.length; i++ ) {
-      BTPiece msg = (BTPiece)messages[ i ];
-      if( outgoing_message_queue.removeMessage( msg ) ) { //needs to be outside a synchronised(lock) block due to deadlock with outgoing_message_queue methods
-        try{
-          lock_mon.enter();
-        
-          queued_messages.remove( msg );
-        }finally{
-          lock_mon.exit();
+      
+      for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
+        BTPiece msg = (BTPiece)i.next();
+        if( outgoing_message_queue.removeMessage( msg ) ) {
+          i.remove();
+          num_messages_in_queue--;
         }
-        num_messages_in_queue--;
       }
-      else {
-        //System.out.println("removeAllPieceRequests:: message not removed");
-      }
+    }
+    finally{
+      lock_mon.exit();
     }
   }
       
@@ -258,7 +206,16 @@ public class OutgoingBTPieceMessageHandler {
   
   
   public void destroy() {
-    destroyed = true;
+    try{
+      lock_mon.enter();
+  
+      requests.clear();
+      loading_messages.clear();
+      num_messages_loading = 0;
+    }
+    finally{
+      lock_mon.exit();
+    }
   }
   
   
