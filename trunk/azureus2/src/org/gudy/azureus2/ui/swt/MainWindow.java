@@ -66,6 +66,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
@@ -120,7 +121,8 @@ public class MainWindow implements GlobalManagerListener {
   public static Color red_ManagerItem;
   public static Cursor handCursor;
 
-  private CTabFolder folder;
+  private TabFolder folder;
+  //private CTabFolder folder;
   private CLabel statusText;
   private CLabel statusDown;
   private CLabel statusUp;
@@ -175,7 +177,8 @@ public class MainWindow implements GlobalManagerListener {
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
 
             try {
-              view = Tab.getView(folder.getSelection());
+              view = Tab.getView(folder.getSelection()[0]);
+              //view = Tab.getView(folder.getSelection());
 
             }
             catch (Exception e) {
@@ -576,17 +579,29 @@ public class MainWindow implements GlobalManagerListener {
     GridData gridData;
 
     gridData = new GridData(GridData.FILL_BOTH);
-    folder = new CTabFolder(mainWindow, SWT.NULL);
+    folder = new TabFolder(mainWindow, SWT.V_SCROLL);
+    //folder = new CTabFolder(mainWindow, SWT.NULL);
     Tab.setFolder(folder);
-
-    folder.setSelectionBackground(new Color[] { white }, new int[0]);
+    
+    Menu menuFolder = new Menu(mainWindow,SWT.NULL);
+    MenuItem closeTab = new MenuItem(menuFolder,SWT.NULL);
+    Messages.setLanguageText(closeTab,"MainWindow.folder.menu");
+    menuFolder.addListener(SWT.Show,new Listener() {     
+      public void handleEvent(Event event) {
+       if(folder.getSelection().length == 0)
+         event.doit = false;
+      }
+    });
+    folder.setMenu(menuFolder);
+    
+    //folder.setSelectionBackground(new Color[] { white }, new int[0]);
     folder.setLayoutData(gridData);
-    folder.addCTabFolderListener(new CTabFolderAdapter() {
+    /*folder.addCTabFolderListener(new CTabFolderAdapter() {
       public void itemClosed(CTabFolderEvent event) {
         Tab.closed((CTabItem) event.item);
         event.doit = true;
       }
-    });
+    });*/
 
 	mytorrents = new Tab(new MyTorrentsView(globalManager));
 

@@ -71,13 +71,6 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return manager.getName();
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
     int completed = manager.getStats().getCompleted();
     return (completed / 10) + "." + (completed % 10) + "% : " + manager.getName();
   }

@@ -14,6 +14,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.ui.swt.views.*;
 
 /**
@@ -23,19 +25,26 @@ import org.gudy.azureus2.ui.swt.views.*;
 public class Tab {
 
   private static HashMap tabs;
-  private static CTabFolder _folder;
+  private static TabFolder _folder;
+  //private static CTabFolder _folder;
 
-  private CTabFolder folder;
-  private CTabItem tabItem;
+  private TabFolder folder;
+  private TabItem tabItem;
+  
+  private String lastTitle;
+  private String lastTooltip;
+  //private CTabFolder folder;
+  //private CTabItem tabItem;
   private Composite composite;
-//  private CLabel title;
+  //private CLabel title;
   private IView view;
 
   static {
     tabs = new HashMap();
   }
 
-  public CTabItem getTabItem() {
+  public TabItem getTabItem() {
+  //public CTabItem getTabItem() {
 		return tabItem;
   }
 
@@ -43,11 +52,12 @@ public class Tab {
     this.view = _view;
     this.folder = _folder;
     if(_view instanceof MyTorrentsView) {
-      tabItem = new CTabItem(folder, SWT.NULL, 0);
+      tabItem = new TabItem(folder, SWT.NULL, 0);
+      //tabItem = new CTabItem(folder, SWT.NULL, 0);
     } else {
-      tabItem = new CTabItem(folder, SWT.NULL);
-    }
-    
+      tabItem = new TabItem(folder, SWT.NULL);
+      //tabItem = new CTabItem(folder, SWT.NULL);
+    }      
     if(!( _view instanceof MyTorrentsView)) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
@@ -63,7 +73,9 @@ public class Tab {
         _view.getComposite().setLayoutData(gridData);
         tabItem.setControl(composite);
         tabItem.setText(view.getShortTitle());
-        folder.setSelection(tabItem);
+        TabItem items[] = {tabItem};
+        folder.setSelection(items);
+        //folder.setSelection(tabItem);
         tabs.put(tabItem, view);
       } catch (Exception e) {
         e.printStackTrace();
@@ -73,7 +85,10 @@ public class Tab {
         _view.initialize(folder);              
         tabItem.setControl(_view.getComposite());
         tabItem.setText(view.getShortTitle());
-        folder.setSelection(tabItem);
+        tabItem.setToolTipText(view.getFullTitle());
+        TabItem items[] = {tabItem};
+        folder.setSelection(items);
+        //folder.setSelection(tabItem);
         tabs.put(tabItem, view);
       } catch (Exception e) {
         e.printStackTrace();
@@ -81,7 +96,8 @@ public class Tab {
     }
   }
 
-  public static IView getView(CTabItem item) {
+  public static IView getView(TabItem item) {
+  //public static IView getView(CTabItem item) {
     return (IView) tabs.get(item);
   }
 
@@ -89,12 +105,18 @@ public class Tab {
     synchronized (tabs) {
       Iterator iter = tabs.keySet().iterator();
       while (iter.hasNext()) {
-        CTabItem item = (CTabItem) iter.next();
+        TabItem item = (TabItem) iter.next();
+        //CTabItem item = (CTabItem) iter.next();
         IView view = (IView) tabs.get(item);
         try {
           if (item.isDisposed())
             continue;
-          item.setText(view.getShortTitle());
+          String lastTitle = item.getText();
+          String newTitle = view.getShortTitle();
+          if(lastTitle == null || !lastTitle.equals(newTitle)) {
+            item.setText(newTitle);            
+          }
+          item.setToolTipText(view.getFullTitle());          
         } catch (Exception e) {
         }
       }
@@ -118,8 +140,8 @@ public class Tab {
 
   public static void closeAllDetails() {
 		synchronized (tabs) {
-			CTabItem[] tab_items =
-				(CTabItem[]) tabs.keySet().toArray(new CTabItem[tabs.size()]);
+		  TabItem[] tab_items = (TabItem[]) tabs.keySet().toArray(new TabItem[tabs.size()]); 
+			//CTabItem[] tab_items = (CTabItem[]) tabs.keySet().toArray(new CTabItem[tabs.size()]);
 			for (int i = 0; i < tab_items.length; i++) {
         IView view = (IView) tabs.get(tab_items[i]);
         if(view instanceof ManagerView) {
@@ -137,7 +159,8 @@ public class Tab {
 		}
 	}
 
-  public static void setFolder(CTabFolder folder) {
+  public static void setFolder(TabFolder folder) {
+  //public static void setFolder(CTabFolder folder) {
     _folder = folder;
   }
 
@@ -176,7 +199,9 @@ public class Tab {
 
   public void setFocus() {
     if (folder != null && !folder.isDisposed()) {
-      folder.setSelection(tabItem);
+      TabItem items[] = {tabItem};
+      folder.setSelection(items);
+      //folder.setSelection(tabItem);
     }
   }
 

@@ -21,11 +21,18 @@ public abstract class AbstractIView implements IView {
 
   public String getData(){ return null; }
 
-  public String getFullTitle(){ return null; }
+  public String getFullTitle(){
+    return MessageText.getString(getData());
+  }
 
   public String getShortTitle() {
-    return MessageText.getString(getData());
+    String shortTitle = getFullTitle();
+    if(shortTitle != null && shortTitle.length() > 20) {
+      shortTitle = shortTitle.substring(0,20) + "...";
+    }
+    return shortTitle;
 	}
+  
   public void updateLanguage() {
     Messages.updateLanguageForControl(getComposite());
   }
