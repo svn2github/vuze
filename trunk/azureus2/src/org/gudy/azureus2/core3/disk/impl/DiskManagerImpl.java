@@ -1608,6 +1608,15 @@ DiskManagerImpl
           //get old file's parent path
           fullPath = oldFile.getParent();
           
+          boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir", true);
+          if (moveOnlyInDefault) {
+            String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+            if (!rPath.equals(defSaveDir)) {
+              LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
+              return returnName;
+            }
+          }
+          
           //compute the file's sub-path off from the default save path
           subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
     
