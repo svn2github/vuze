@@ -342,7 +342,7 @@ public class ConnectionPool {
     synchronized( added_connections ) {
       for( int i=0; i < added_connections.size(); i++ ) {
         Connection conn = (Connection)added_connections.get( i );
-        synchronized( connections ) {  connections.addLast( conn );  }
+        connections.addLast( conn );
       }
       added_connections.clear();
     }
@@ -351,53 +351,53 @@ public class ConnectionPool {
     synchronized( removed_connections ) {
       for( int i=0; i < removed_connections.size(); i++ ) {
         Connection conn = (Connection)removed_connections.get( i );
-        synchronized( connections ) {  connections.remove( conn );  }
+        connections.remove( conn );
       }
       removed_connections.clear();
     }
 
-    synchronized( connections ) {
-      int num_connections = connections.size();
-      int num_empty = 0;
-      int num_seen_this_round = 0;
-      while( num_empty < num_connections && max_bytes_allowed - total_bytes_used >= mss_size ) {
-        if( num_seen_this_round == num_connections ) {
-          num_empty = 0;
-          num_seen_this_round = 0;
-        }
+    
+    int num_connections = connections.size();
+    int num_empty = 0;
+    int num_seen_this_round = 0;
+    while( num_empty < num_connections && max_bytes_allowed - total_bytes_used >= mss_size ) {
+      if( num_seen_this_round == num_connections ) {
+        num_empty = 0;
+        num_seen_this_round = 0;
+      }
         
-        Connection conn = (Connection)connections.removeFirst();
+      Connection conn = (Connection)connections.removeFirst();
         
-        if( conn.isTransportReadyForWrite() ) {
-          OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
-          int size = omq.getTotalSize();
-          boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > 1000 ? true : false;
-          if( size >= mss_size || forced_flush ) {
-            if( size > mss_size )  size = mss_size;
-            int written = 0;
-            try {
-              written = omq.deliverToTransport( size );
-              if( written < size ) {  //unable to deliver all data....add to selector for readiness notification
-                conn.setTransportReadyForWrite( false );
-                NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );
-              }
-            } 
-            catch( Throwable t ) {
-              //System.out.println( "doConnectionWrites: " + t.getMessage() );
+      if( conn.isTransportReadyForWrite() ) {
+        OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
+        int size = omq.getTotalSize();
+        boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > 1000 ? true : false;
+        if( size >= mss_size || forced_flush ) {
+          if( size > mss_size )  size = mss_size;
+          int written = 0;
+          try {
+            written = omq.deliverToTransport( size );
+            if( written < size ) {  //unable to deliver all data....add to selector for readiness notification
               conn.setTransportReadyForWrite( false );
-              conn.notifyOfException( t );
+              NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );
             }
-            total_bytes_used += written;
+          } 
+          catch( Throwable t ) {
+            //System.out.println( "doConnectionWrites: " + t.getMessage() );
+            conn.setTransportReadyForWrite( false );
+            conn.notifyOfException( t );
           }
-          else num_empty++;
+          total_bytes_used += written;
         }
         else num_empty++;
-        
-        connections.addLast( conn );
-        
-        num_seen_this_round++;
       }
-    }  
+      else num_empty++;
+        
+      connections.addLast( conn );
+        
+      num_seen_this_round++;
+    }
+    
     
     //System.out.println( "writes: max=" +max_bytes_allowed+ ", out=" + total_bytes_used );
     return total_bytes_used;
