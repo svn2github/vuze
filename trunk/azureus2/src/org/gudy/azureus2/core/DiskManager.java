@@ -466,7 +466,7 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        while (readQueue.size() > 0) {
+        while (readQueue.size() != 0) {
           DataQueueItem item = (DataQueueItem) readQueue.remove(0);
           Request request = item.getRequest();
           item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
@@ -494,12 +494,12 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        while (writeQueue.size() > 0) {
+        while (writeQueue.size() != 0) {
           WriteElement elt = (WriteElement) writeQueue.remove(0);
           dumpBlockToDisk(elt);
           manager.blockWritten(elt.getPieceNumber(), elt.getOffset());
         }
-        if (checkQueue.size() > 0) {
+        if (checkQueue.size() != 0) {
           WriteElement elt = (WriteElement) checkQueue.remove(0);
           manager.pieceChecked(elt.getPieceNumber(), checkPiece(elt.getPieceNumber()));
         }
@@ -1147,7 +1147,7 @@ public class DiskManager {
         if (fileInfo.isPriority())
           completion = 9;
         int percent = 0;
-        if (fileInfo.getLength() > 0)
+        if (fileInfo.getLength() != 0)
           percent = (int) ((fileInfo.getDownloaded() * 10) / fileInfo.getLength());
         if (percent > completion && percent < 10)
           completion = percent;
