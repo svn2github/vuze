@@ -688,7 +688,12 @@ DHTPluginStorageManager
 			
 			while( it.hasNext()){
 			
-				keys.add(((storageKey)it.next()).serialise());
+				storageKey	key = (storageKey)it.next();
+				
+				if ( key.getDiversificationType() != DHT.DT_NONE ){
+					
+					keys.add(key.serialise());
+				}
 			}
 			
 			List	divs = new ArrayList();
