@@ -6,6 +6,19 @@
         <link href="azureus.css" rel="stylesheet" type="text/css">
     </head>
     <body>
-        <h1>Here be Torrent Info (when implemented).</h1>
+        <TMPL_IF TorrentInfo_Hash>
+            <table border='1' width="100%" class="torrent nowrap">
+                <tr>
+                    <td>Downloaded Pieces</td>
+                    <td width="100%"><IMG src="TorrentInfo.png?hash=<TMPL_VAR TorrentInfo_Hash>&kind=pieces" height='10' width='100%'></td>
+                </TR>
+                <tr>
+                    <td>Availability</td>
+                    <td><IMG src="TorrentInfo.png?hash=<TMPL_VAR TorrentInfo_Hash>&kind=availability" height='10' width='100%'></td>
+                </TR>
+            </TABLE>
+        <TMPL_ELSE>
+            <h1>No Torrent selected.</h1>
+        </TMPL_IF>
     </body>
 </html>

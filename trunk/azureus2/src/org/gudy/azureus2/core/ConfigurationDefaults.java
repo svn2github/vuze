@@ -65,8 +65,9 @@ public class ConfigurationDefaults {
     // Allocate new files ("Allocate New")
     //def.put("Core_bAllocateNew", new Long(1));
     def.put("Allocate New", new Long(1));
-    
-	def.put("Enable incremental file creation", new Long(0));
+    // Allocate new files incrementally ("Enable incremental file creation")
+    //def.put("Core_bIncrementalAllocate", new Long(0)); *
+    def.put("Enable incremental file creation", new Long(0));
     // Lower port to use for BT ("Low Port")
     //def.put("Core_iLowPort", new Long(6881));
     def.put("Low Port", new Long(6881));
@@ -92,8 +93,30 @@ public class ConfigurationDefaults {
     //def.put("Core_bUseResume", new Long(0));
     def.put("Use Resume", new Long(0));
     // Save Resume Interval (minutes)
-    //def.put("Core_iSaveResumeInterval, new Long(5));
+    //def.put("Core_iSaveResumeInterval", new Long(5));
     def.put("Save Resume Interval", new Long(5));
+    // Recheck pices on completed download
+    //def.put("Core_bCheckPiecesOnCompletion", new Long(0)); *
+    def.put("Check Pieces on Completion", new Long(0));
+    // Stop seeding when share ratio reaches
+    //def.put("Core_iSeedingShareStop", new Long(0)); *
+    def.put("Stop Ratio", new Long(0));
+    // Stop seeding when there is at least 1 seed for X peers
+    //def.put("Core_iSeedingRatioStop", new Long(0)); *
+    def.put("Stop Peers Ratio", new Long(0));
+    // Start seeding when there is less than 1 seed for X peers
+    //def.put("Core_iSeedingRatioStart", new Long(0)); *
+    def.put("Start Peers Ratio", new Long(0));
+    // Disconnect Seeds on completion
+    //def.put("Core_bDisconnectSeed", new Long(0)); *
+    def.put("Disconnect Seed", new Long(0));
+    // Set to low priority on completion
+    //def.put("Core_bSwitchPriority", new Long(1)); *
+    def.put("Switch Priority", new Long(1));
+    // Automatically switch these extensions to high priority (eg ".exe;.txt")
+    //def.put("Core_sPriorityExtensions", ""); *
+    def.put("priorityExtensions", "");
+    
     
     /** Headless Server settings **/
     // Server Name
@@ -138,6 +161,8 @@ public class ConfigurationDefaults {
     def.put("Server_iDownstreamProxyPort", new Long(0));
     // Grab Torrents in Proxy mode
     def.put("Server_bProxyGrabTorrents", new Long(1));
+    // Page to redirect to if torrent download was successful
+    def.put("Server_sProxySuccessRedirect", "torrents");
     
     // Logging relevant Stuff
     //  Log levels:

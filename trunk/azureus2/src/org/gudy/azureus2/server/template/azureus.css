@@ -90,7 +90,7 @@ body {
     font-size: 10px;
 }
 
-/* torrent list stuff */
+/* torrent list & info stuff */
 table.torrent {
     font-size: 10px;
     border: #000 solid 1px;
@@ -109,6 +109,9 @@ table.torrent.td {
 }
 .torrentrow {
     background: RGB(192,224,255); 
+}
+.nowrap {
+    white-space: nowrap;
 }
 .seedy {
     font-size: 10px;
@@ -139,4 +142,24 @@ table.torrent.td {
 .rovr {
     background: RGB(0,128,255);
 }
+
+/* config stuff */
+table.config {
+    font-size: 10px;
+    border: #000 solid 1px;
+    width: 100%;
+}
+table.config.td {
+    font-size: 10px;
+}
+.configheading {
+    background: RGB(0,128,255);
+    color: RGB(192,224,255);
+    white-space: nowrap;
+    font-variant: small-caps;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 2px;
+    padding-bottom: 3px;
+}    
 

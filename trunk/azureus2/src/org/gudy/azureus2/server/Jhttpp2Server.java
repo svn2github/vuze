@@ -200,7 +200,12 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     init(_gm);
   }
   public Jhttpp2Server(GlobalManager _gm, boolean b) {
-    System.out.println("jHTTPp2 HTTP Proxy Server Release " + getServerJhttp2Version() + "\r\n"
+    System.out.println("Azureus WebInterface\r\n"
+    +"Copyright (c) 2001-2003 by the Azureus Developer Team\r\n"
+    +"This software comes with ABSOLUTELY NO WARRANTY OF ANY KIND.\r\n"
+    +"http://azureus.sourceforge.net/\r\n\r\n"
+    +"The webinterface is based upon\r\n"
+    +"jHTTPp2 HTTP Proxy Server Release " + getServerJhttp2Version() + "\r\n"
     +"Copyright (c) 2001-2003 Benjamin Kohl <bkohl@users.sourceforge.net>\r\n"
     +"This software comes with ABSOLUTELY NO WARRANTY OF ANY KIND.\r\n"
     +"http://jhttp2.sourceforge.net/");

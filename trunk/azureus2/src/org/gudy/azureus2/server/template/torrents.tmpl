@@ -15,24 +15,40 @@
         <TMPL_ELSE>
           <form name="Torrent" method=post action='torrents' target='torrentlist'>
             <input type=hidden name=command value='Torrent'>
-            <TMPL_UNLESS Global_NoJavaScript>
-                <input type=hidden name=subcommand value='Download'>
-                <p>
-                <center>
-                    <table class="menu" cellspacing=0 cellpadding=0><tr>
-                        <td class="menuitem mvleft" onclick='eTorrent(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>P</b>ause</td>
-                        <td class="menuitem mvmid" onclick='eTorrent(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>D</b>ownload</td>
-                        <td class="menuitem mvright" onclick='eTorrent(2)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>C</b>ancel</td>
-                    </tr></table>
-                </center>
-            <TMPL_ELSE>
-                <p>
-                <center>
-                    <input type=submit name=subcommand value='Pause'>
-                    <input type=submit name=subcommand value='Start'>
-                    <input type=submit name=subcommand value='Cancel'>
-                </CENTER>
-            </TMPL_UNLESS>
+            <input type=hidden name=subcommand value='Download'>
+            <p>
+            <center><table><tr>
+                <td>
+                    <TMPL_UNLESS Global_NoJavaScript>
+                         <table class="menu" cellspacing=0 cellpadding=0>
+                             <tr><td class="menuitem mtop" onclick='eTorrent(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>P</b>ause</td></tr>
+                             <tr><td class="menuitem mmid" onclick='eTorrent(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>D</b>ownload</td></tr>
+                             <tr><td class="menuitem mbot" onclick='eTorrent(2)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>C</b>ancel</td></tr>
+                        </table>
+                    <TMPL_ELSE>
+                        <input type=submit name=subcommand value='Pause'>
+                        <input type=submit name=subcommand value='Start'>
+                        <input type=submit name=subcommand value='Cancel'>
+                    </TMPL_UNLESS>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                    <table class="menu" cellspacing=0 cellpadding=0>
+                        <tr>
+                            <td class="menuitem mvleft mtop">Total Speed (Up/Down)</td>
+                            <td class="menuitem mvright mtop"><TMPL_VAR Torrents_TotalSpeedUp> / <TMPL_VAR Torrents_TotalSpeedDown></td>
+                        </tr>
+                        <tr>
+                            <td class="menuitem mvleft mmid">Transferred Volume (Up/Down/Discarded)</td>
+                            <td class="menuitem mvright mmid"><TMPL_VAR Torrents_TotalSizeUp> / <TMPL_VAR Torrents_TotalSizeDown> / <TMPL_VAR Torrents_TotalSizeDiscarded></td>
+                        </tr>
+                        <tr>
+                            <td class="menuitem mvleft mbot">Total Connections (Seeds/Peers)</td>
+                            <td class="menuitem mvright mbot"><TMPL_VAR Torrents_TotalSeedsConnected> / <TMPL_VAR Torrents_TotalPeersConnected></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr></table></center>
             <p>
             <table class="torrent">
                 <tr>

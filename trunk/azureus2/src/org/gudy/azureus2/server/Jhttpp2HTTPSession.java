@@ -78,6 +78,7 @@ public class Jhttpp2HTTPSession extends Thread {
   private static Hashtable parameterlegacy = null;
   private static Hashtable messagetextmap = null;
   private static Hashtable stuff = null;
+  private HashMap dls = new HashMap();
   
   public Jhttpp2HTTPSession(Jhttpp2Server server,Socket client) {
     try {
@@ -98,11 +99,24 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
         parameterlegacy.put("Core_bUseResume", "Use Resume");
         parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
+        parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
+        parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
+        parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
+        parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
+        parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
+        parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
+        parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
+        parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
         messagetextmap = new LegacyHashtable();
         messagetextmap.put("allocatenew", "allocatenewfiles");
         messagetextmap.put("lowport", "serverportlow");
         messagetextmap.put("highport", "serverporthigh");
         messagetextmap.put("useresume", "usefastresume");
+        messagetextmap.put("enableincrementalfilecreation", "incrementalfile");
+        messagetextmap.put("checkpiecesoncompletion", "checkOncompletion");
+        messagetextmap.put("stopratio", "stopRatio");
+        messagetextmap.put("stoppeersratio", "stopRatioPeers");
+        messagetextmap.put("startpeersratio", "startRatioPeers");
         stuff = new Hashtable();
         stuff.put("favicon.ico", "org/gudy/azureus2/ui/icons/azureus.ico");
         stuff.put("froggy.png", "org/gudy/azureus2/ui/icons/tray.png");
@@ -403,6 +417,14 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigInt(tmpl, "Core_iMaxUploadSpeed");
     handleConfigBool(tmpl,"Core_bUseResume");
     handleConfigInt(tmpl, "Core_iSaveResumeInterval");
+    handleConfigBool(tmpl,"Core_bIncrementalAllocate");
+    handleConfigBool(tmpl,"Core_bCheckPiecesOnCompletion");
+    handleConfigInt(tmpl, "Core_iSeedingShareStop");
+    handleConfigInt(tmpl, "Core_iSeedingRatioStop");
+    handleConfigInt(tmpl, "Core_iSeedingRatioStart");
+    handleConfigBool(tmpl,"Core_bDisconnectSeed");
+    handleConfigBool(tmpl,"Core_bSwitchPriority");
+    handleConfigStr(tmpl, "Core_sPriorityExtensions");
     handleConfigStr(tmpl, "Server_sName");
     handleConfigStr(tmpl, "Server_sBindIP");
     handleConfigInt(tmpl, "Server_iPort");
@@ -441,10 +463,26 @@ public class Jhttpp2HTTPSession extends Thread {
     if (!torrents.isEmpty()) {
       Vector v = new Vector();
       Iterator torrent = torrents.iterator();
+      long totalReceived = 0;
+      long totalSent = 0;
+      long totalDiscarded = 0;
+      int connectedSeeds = 0;
+      int connectedPeers = 0;
+      PeerStats ps;
       while (torrent.hasNext()) {
         dm = (DownloadManager) torrent.next();
         HashData hd = dm.getHashData();
         dmstate = dm.getState();
+        try {
+          ps = dm.peerManager.getStats();
+        } catch (Exception e) {ps = null;}
+        if (ps != null) {
+          totalReceived += ps.getTotalReceivedRaw();
+          totalSent += ps.getTotalSentRaw();
+          totalDiscarded += ps.getTotalDiscardedRaw();
+          connectedSeeds += dm.getNbSeeds();
+          connectedPeers += dm.getNbPeers();
+        }
         h = new Hashtable();
         if (dmstate == DownloadManager.STATE_STOPPED) {
           h.put("Torrents_Torrent_Command", "Resume");
@@ -496,6 +534,19 @@ public class Jhttpp2HTTPSession extends Thread {
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
+      tmpl.setParam("Torrents_TotalSpeedDown", server.gm.getDownloadSpeed());
+      tmpl.setParam("Torrents_TotalSpeedUp", server.gm.getUploadSpeed());
+      tmpl.setParam("Torrents_TotalSizeDown", PeerStats.format(totalReceived));
+      tmpl.setParam("Torrents_TotalSizeUp", PeerStats.format(totalSent));
+      tmpl.setParam("Torrents_TotalSizeDiscarded", PeerStats.format(totalDiscarded));
+      tmpl.setParam("Torrents_TotalSeedsConnected", Integer.toString(connectedSeeds));
+      tmpl.setParam("Torrents_TotalPeersConnected", Integer.toString(connectedPeers));
+    }
+  }
+  
+  private void handleTorrentInfo(Template tmpl) {
+    if ((!in.vars.isEmpty()) && in.vars.containsKey("hash")) {
+      tmpl.setParam("TorrentInfo_Hash", in.vars.get("hash").toString());
     }
   }
   
@@ -564,12 +615,8 @@ public class Jhttpp2HTTPSession extends Thread {
     }
   }
   
-  private void ProcessTorrent(HashMap URIvars) {
-    if (URIvars.containsKey("subcommand")) {
-      String subcommand = (String) URIvars.get("subcommand");
-      if (server.loggerWeb.isDebugEnabled())
-        server.loggerWeb.debug("ProcessTorrent: "+subcommand);
-      HashMap dls = new HashMap();
+  private void UpdateDls () {
+      dls.clear();
       List torrents = server.gm.getDownloadManagers();
       if (!torrents.isEmpty()) {
         Iterator torrent = torrents.iterator();
@@ -577,6 +624,17 @@ public class Jhttpp2HTTPSession extends Thread {
           DownloadManager dm = (DownloadManager) torrent.next();
           dls.put(ByteFormater.nicePrint(dm.getHash(), true), dm);
         }
+      }
+  }
+  
+  private void ProcessTorrent(HashMap URIvars) {
+    if (URIvars.containsKey("subcommand")) {
+      String subcommand = (String) URIvars.get("subcommand");
+      if (server.loggerWeb.isDebugEnabled())
+        server.loggerWeb.debug("ProcessTorrent: "+subcommand);
+      List torrents = server.gm.getDownloadManagers();
+      if (!torrents.isEmpty()) {
+        UpdateDls();
         
         Set keys = URIvars.keySet();
         Iterator ikeys = keys.iterator();
@@ -693,6 +751,14 @@ public class Jhttpp2HTTPSession extends Thread {
     } else if (stuff.containsKey(filename)) {
       useres = true;
       fileres = (String) stuff.get(filename);
+    } else if (filename.compareToIgnoreCase("TorrentInfo.png")==0) {
+      if ((!in.vars.isEmpty()) && in.vars.containsKey("hash"))
+        if (!dls.containsKey(in.vars.get("hash")))
+          UpdateDls();
+        if (dls.containsKey(in.vars.get("hash"))) {
+          useres = true;
+          fileres = null;
+        }
     }
     if ((file == null) && !useres) {
       sendErrorMSG(404,"The requested file /" + filename + " was not found or the path is invalid.");
@@ -727,11 +793,15 @@ public class Jhttpp2HTTPSession extends Thread {
     }
     if (tmpl == null) {
       InputStream in_st;
-      if (useres)
-        in_st = ClassLoader.getSystemResourceAsStream(fileres);
-      else
+      if (useres) {
+        if (fileres==null)
+          in_st = new TorrentInfoPNGStream(in.vars, (DownloadManager) dls.get(in.vars.get("hash")));
+        else
+          in_st = ClassLoader.getSystemResourceAsStream(fileres);
+      } else
         in_st = new FileInputStream(file);
-      BufferedInputStream file_in = new BufferedInputStream(in_st);
+      //BufferedInputStream file_in = new BufferedInputStream(in_st);
+      InputStream file_in = in_st;
       sendHeader(200,content_type, in_st.available());
       endHeader();
       byte[] buffer=new byte[4096];
@@ -754,6 +824,8 @@ public class Jhttpp2HTTPSession extends Thread {
         this.handleConfig(tmpl);
       if (tc.needs(filename, "Torrents"))
         this.handleTorrents(tmpl);
+      if (tc.needs(filename, "TorrentInfo"))
+        this.handleTorrentInfo(tmpl);
       if (tc.needs(filename, "Log"))
         this.handleLog(tmpl);
       String output = tmpl.output();
@@ -773,7 +845,7 @@ public class Jhttpp2HTTPSession extends Thread {
         String file = dl.download();
         server.gm.addDownloadManager(file, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultSave_Directory"));
         server.loggerWeb.info("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" succeeded");
-        fwd="torrents";
+        fwd=ConfigurationManager.getInstance().getStringParameter("Server_sProxySuccessRedirect");
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
         fwd="dl_fail";
