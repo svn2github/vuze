@@ -43,6 +43,9 @@ PeerManagerImpl
 {
 	protected PEPeerManager	manager;
 	
+	protected Map		foreign_map	= new WeakHashMap();
+	
+
 	public
 	PeerManagerImpl(
 		PEPeerManager	_manager )
@@ -96,18 +99,34 @@ PeerManagerImpl
 	{
 		manager.peerRemoved( mapForeignPeer( peer ));
 	}
-	
+		
 	public PEPeer
 	mapForeignPeer(
 		Peer	_foreign )
 	{
-		return( null );
+		PEPeer	local = (PEPeer)foreign_map.get( _foreign );
+		
+		if( local == null ){
+			
+			local 	= new PeerForeignDelegate( this, _foreign );
+			
+			foreign_map.put( _foreign, local );
+		}
+		
+		return( local );
 	}
 	
 	public List
 	mapForeignPeers(
 		Peer[]	_foreigns )
 	{
-		return( null );
+		List	res = new ArrayList();
+		
+		for (int i=0;i<_foreigns.length;i++){
+			
+			res.add( mapForeignPeer( _foreigns[i]));		
+		}
+		
+		return( res );
 	}
 }
