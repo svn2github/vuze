@@ -922,13 +922,21 @@ PEPeerControlImpl
   	}
   	
   	int		percentage 			= 100;
-    final int LIMIT = 100;
+    final int LIMIT = 200;
   	
     //if we're not downloading, use normal re-check rate
     if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
         _downloadManager.getState() == DownloadManager.STATE_SEEDING ) {
       
       int maxAllowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      
+      boolean has_remote = _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK;
+      if( has_remote ) {
+        //is not firewalled, so can accept incoming connections,
+        //which means no need to continually keep asking the tracker for peers
+        maxAllowed = (int)(maxAllowed / 1.5);
+      }
+      
       if ( maxAllowed < 0 || maxAllowed > LIMIT ) {
       	maxAllowed = LIMIT;
       }
