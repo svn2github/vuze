@@ -819,7 +819,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(), FileTransfer.getInstance(), TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
       public void dragOver(DropTargetEvent event) {
-        if(event.dataTypes.length > 1 && URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
+        if(event.dataTypes.length >= 5 && URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
           event.detail = DND.DROP_LINK;
         } else if(TextTransfer.getInstance().isSupportedType(event.currentDataType)) {
           event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL | DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_INSERT_AFTER;
