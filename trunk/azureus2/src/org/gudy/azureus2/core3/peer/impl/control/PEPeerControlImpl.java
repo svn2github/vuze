@@ -22,8 +22,6 @@
  package org.gudy.azureus2.core3.peer.impl.control;
 
 
-import java.applet.Applet;
-import java.applet.AudioClip;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -32,7 +30,6 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
@@ -40,21 +37,14 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.impl.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 
 public class 
 PEPeerControlImpl
-	implements 	PEPeerControl, ParameterListener
+	implements 	PEPeerControl
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
-
-  private static AudioClip audioDownloadFinished = null;
-  static {
-    if(COConfigurationManager.getBooleanParameter("Play Download Finished", true))
-      activatePlayDownloadFinished();
-  }
 
   private int peer_manager_state = PS_INITIALISED;
   
@@ -107,7 +97,6 @@ PEPeerControlImpl
     this._manager = manager;
 	_tracker = tracker;
 	this._diskManager = diskManager;
-  ConfigurationManager.getInstance().addParameterListener("Play Download Finished", this);
  }
   
   public void
@@ -534,7 +523,7 @@ PEPeerControlImpl
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
-      playDownloadFinished();
+      _manager.downloadEnded();
             		
       _tracker.complete( looks_like_restart );
     }
@@ -1683,45 +1672,4 @@ PEPeerControlImpl
   	listeners.remove(l);
   }
  
-  /**
-   * Sets the Download Finished sound, if not already set 
-   *
-   * @author Rene Leonhardt
-   */
-  private static void activatePlayDownloadFinished() {
-    if(null == audioDownloadFinished) {
-      try {
-        audioDownloadFinished = Applet.newAudioClip(ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-  }
-  
-  /**
-   * Plays the Download Finished sound, if it is available 
-   *
-   * @author Rene Leonhardt
-   */
-  private static void playDownloadFinished() {
-    if(null != audioDownloadFinished) {
-      try {
-        audioDownloadFinished.play();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  /**
-   * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
-   */
-  public void parameterChanged(String parameterName) {
-    if(COConfigurationManager.getBooleanParameter("Play Download Finished", true))
-      activatePlayDownloadFinished();
-    else
-      audioDownloadFinished = null;
-  }
-  
 }

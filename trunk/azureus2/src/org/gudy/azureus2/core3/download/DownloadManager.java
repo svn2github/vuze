@@ -206,4 +206,12 @@ DownloadManager
 
 	public void setPrevState(int state);
   
+
+  /**
+   * Is called when a download is finished.
+   * Activates alerts for the user.
+   *
+   * @author Rene Leonhardt
+   */
+  public void downloadEnded();
 }

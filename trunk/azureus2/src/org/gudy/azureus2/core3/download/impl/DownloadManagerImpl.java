@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.ui.common.util.UserAlerts;
 
 /**
  * @author Olivier
@@ -814,4 +815,13 @@ DownloadManagerImpl
     this.startStopLocked = startStopLocked;
   }
 
+  /**
+   * Is called when a download is finished.
+   * Activates alerts for the user.
+   *
+   * @author Rene Leonhardt
+   */
+  public void downloadEnded() {
+    UserAlerts.downloadFinished();
+  }
 }
