@@ -185,18 +185,18 @@ public class PeerSocket extends PeerConnection {
 
 			if (!same)
 				bContinue = false;
+		}
 
-			try {
-				client = "Generic";
-				String xan = new String(otherPeerId, 0, 11, "ISO-8859-1");
-				if (xan.equals("DansClient "))
-					client = "Xan'";
-				String azureus = new String(otherPeerId, 5, 7, "ISO-8859-1");
-				if (azureus.equals("Azureus"))
-					client = "Azureus'";
-			} catch (Exception e) {
+		try {
+			client = "Generic";
+			String xan = new String(otherPeerId, 0, 11, "ISO-8859-1");
+			if (xan.equals("DansClient "))
+				client = "Xan'";
+			String azureus = new String(otherPeerId, 5, 7, "ISO-8859-1");
+			if (azureus.equals("Azureus"))
+				client = "Azureus'";
+		} catch (Exception e) {
 
-			}
 		}
 
 		if (!bContinue)
@@ -1093,7 +1093,7 @@ public class PeerSocket extends PeerConnection {
 	public String getClient() {
 		return client;
 	}
-	
+
 	public boolean isOptimisticUnchoke() {
 		return manager.isOptimisticUnchoke(this);
 	}
