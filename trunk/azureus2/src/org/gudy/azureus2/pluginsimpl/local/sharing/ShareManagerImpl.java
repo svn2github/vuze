@@ -768,6 +768,11 @@ ShareManagerImpl
 								
 								int		scan_period		= COConfigurationManager.getIntParameter( "Sharing Rescan Period" );
 
+								if ( scan_period < 1 ){
+									
+									scan_period	= 1;
+								}
+								
 								Thread.sleep( scan_period * 1000 );
 								
 								if ( current_scanner == shareScanner.this ){
