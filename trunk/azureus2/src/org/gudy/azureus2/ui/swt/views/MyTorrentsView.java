@@ -1461,7 +1461,6 @@ public class MyTorrentsView
         downloadManagerAdded(currentCategory, (DownloadManager)managers.get(i));
       }
     }
-    sorter.sortColumn(true);
   }
 
 
