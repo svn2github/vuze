@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -49,6 +50,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import sun.management.StringFlag;
 
 public class ConfigSectionIPFilter implements ConfigSectionSWT {
   AzureusCore	azureus_core;
@@ -135,6 +138,16 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
 
+    long nbIPsBlocked = filter.getTotalAddressesInRange();
+    int percentIPsBlocked =  (int) (nbIPsBlocked * 1000l / (255l * 255l * 255l * 255l));
+    
+    String nbIps = "" + nbIPsBlocked;
+    String percentIps = DisplayFormatters.formatPercentFromThousands(percentIPsBlocked);
+    
+    Label lbl  = new Label(gFilter, SWT.NULL);
+    Messages.setLanguageText(lbl,"ConfigView.section.ipfilter.totalIPs",new String[]{nbIps,percentIps});
+    
+    
     // start controls
     BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true); //$NON-NLS-1$
     Messages.setLanguageText(enabled.getControl(), "ConfigView.section.ipfilter.enable"); //$NON-NLS-1$
