@@ -457,7 +457,7 @@ public class MultiTrackerEditor {
     FontData fd = f.getFontData()[0];
     int iHeightPoints = fd.getHeight();
     int iHeightPixels = (iHeightPoints * text.getDisplay().getDPI().y) / 72;
-    editor.minimumHeight = iHeightPixels + text.getBorderWidth() * 2 + 2;
+    editor.minimumHeight = iHeightPixels + text.getBorderWidth() * 2 + 4;
 
 
     // Open the text editor on the selected row.
