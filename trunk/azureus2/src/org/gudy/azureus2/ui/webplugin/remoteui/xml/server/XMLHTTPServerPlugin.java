@@ -88,8 +88,9 @@ XMLHTTPServerPlugin
 			InputStream	is = null;
 						
 			try{
-				XMLRequestProcessor processor = 
-						new XMLRequestProcessor( 
+				response.setContentType("text/xml; charset=\"utf-8\"");
+				
+				new XMLRequestProcessor( 
 								request_handler,
 								access_controller,
 								request.getClientAddress(), 
