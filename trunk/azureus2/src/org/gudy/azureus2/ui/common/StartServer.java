@@ -33,12 +33,12 @@ public class StartServer extends Thread {
   public StartServer() {
     super("Start Server");
     try {
-      socket = new ServerSocket(6880, 50, InetAddress.getByName("localhost")); //NOLAR: only bind to localhost
+      socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
-      Logger.getLogger("azureus2").info("StartServer: listening on localhost:6880 for passed torrent info");
+      Logger.getLogger("azureus2").info("StartServer: listening on 127.0.0.1:6880 for passed torrent info");
     } catch (Exception e) {
       state = STATE_FAULTY;
-      Logger.getLogger("azureus2").error("StartServer ERROR: unable to bind to localhost:6880 for passed torrent info");
+      Logger.getLogger("azureus2").error("StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
     }
   }
 

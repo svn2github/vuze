@@ -126,14 +126,14 @@ Main
 						
 						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
 								new File("c:\\temp\\test.wmf"), 
-								new URL( "http://localhost:6969/announce" ),
+								new URL( "http://127.0.0.1:6969/announce" ),
 								1024*10, list );			
 						
 					}else{
 		
 						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
 								new File("c:\\temp\\scans"), 
-								new URL("http://localhost:6969/announce" ), 
+								new URL("http://127.0.0.1:6969/announce" ), 
 								1024*256, 
 								list);
 					}
@@ -142,14 +142,14 @@ Main
 						
 						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 								new File("c:\\temp\\test.wmf"), 
-								new URL( "http://localhost:6969/announce" ),
+								new URL( "http://127.0.0.1:6969/announce" ),
 								list );			
 						
 					}else{
 		
 						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 								new File("c:\\temp\\qqq"), 
-								new URL("http://localhost:6969/announce" ), 
+								new URL("http://127.0.0.1:6969/announce" ), 
 								list);
 								
 						t.setCreationDate( 12345L );

@@ -118,7 +118,7 @@ XMLHTTPClient
 	{
 		try{
 	
-		    URL url = new URL( "http://localhost:6884/process.cgi" );
+		    URL url = new URL( "http://127.0.0.1:6884/process.cgi" );
 			
 			// System.out.println( "doc base = " + url );
 			

@@ -247,7 +247,7 @@ public class Main {
       Socket sck = null;
       PrintWriter pw = null;
       try {      
-        sck = new Socket("localhost",6880);
+        sck = new Socket("127.0.0.1",6880);
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
         StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING+";args;");
         for(int i = 0 ; i < args.length ; i++) {
