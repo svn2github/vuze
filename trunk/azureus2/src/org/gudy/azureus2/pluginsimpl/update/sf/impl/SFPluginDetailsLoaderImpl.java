@@ -168,7 +168,7 @@ SFPluginDetailsLoaderImpl
 			
 			HTMLTableRow[]	rows = table.getRows();
 		
-			if ( rows.length == 9 ){
+			if ( rows.length == 10 ){
 				
 				HTMLTableCell[]	cells = rows[0].getCells();
 				
@@ -205,8 +205,8 @@ SFPluginDetailsLoaderImpl
 									plugin_version,
 									plugin_download,
 									plugin_auth,
-									rows[5].getCells()[0].getContent(),
-									rows[8].getCells()[0].getContent()));							
+									rows[6].getCells()[0].getContent(),
+									rows[9].getCells()[0].getContent()));							
 				}
 			}
 			

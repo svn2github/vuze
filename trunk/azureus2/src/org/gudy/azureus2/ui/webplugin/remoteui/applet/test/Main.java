@@ -32,7 +32,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.utils.*;
+// import org.gudy.azureus2.plugins.utils.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.*;
 
