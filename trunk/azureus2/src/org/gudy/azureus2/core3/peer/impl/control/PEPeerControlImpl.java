@@ -2589,7 +2589,9 @@ PEPeerControlImpl
     }
   }
   
-  private void computeEndGameModeChunks() {    
+  private void 
+  computeEndGameModeChunks() 
+  {    
     endGameModeChunks = new ArrayList();
     try{
     	endGameModeChunks_mon.enter();
@@ -2599,13 +2601,31 @@ PEPeerControlImpl
 	      if(dm_pieces[i].getDone())
 	        continue;
 	      PEPiece piece = _pieces[i];
-	      if(piece == null)
+	      if(piece == null){
+	      	
 	        continue;
+	      }
+	      
 	      boolean written[] = piece.getWritten();
-	      for(int j = 0 ; j < written.length ; j++) {
-	        if(!written[j]) {
-	          endGameModeChunks.add(new EndGameModeChunk(piece,j));
-	        }
+	      
+	      if ( written == null ){
+	      	
+	      	if ( !piece.isComplete()){
+	      		
+			   for(int j = 0 ; j < piece.getNbBlocs() ; j++) {
+			   
+			      endGameModeChunks.add(new EndGameModeChunk(piece,j));
+			  }	      		
+	      	}
+	      }else{
+	      	
+		      for(int j = 0 ; j < written.length ; j++) {
+		      	
+		        if(!written[j]) {
+		        	
+		          endGameModeChunks.add(new EndGameModeChunk(piece,j));
+		        }
+		      }
 	      }
 	    }
     }finally{
