@@ -669,6 +669,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
           }
         });
     
+    if ( !FileUtil.isJavaWebStart()){
+    	
     MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
     Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
     help_checkupdate.addListener(SWT.Selection, new Listener() {
@@ -676,7 +678,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
         new VersionChecker().start();
       }
     });
-
+    }
+    
     new MenuItem(helpMenu,SWT.SEPARATOR);
     
     MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
@@ -757,7 +760,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
     statusText.setLayoutData(gridData);
 
-    new VersionChecker().start();
+	if ( !FileUtil.isJavaWebStart()){
+		
+    	new VersionChecker().start();
+	}
 
     gridData = new GridData();
     gridData.widthHint = 105;
@@ -1793,11 +1799,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     }
     
     	// problem with closing down web start as AWT threads don't close properly
-    	
-    String	java_ws_prop = System.getProperty("azureus.javaws");
-    
-    if ( java_ws_prop != null && java_ws_prop.equals( "true")){
-    	
+
+	if ( FileUtil.isJavaWebStart()){    	
+ 	
     	System.exit(1);
     }
     
