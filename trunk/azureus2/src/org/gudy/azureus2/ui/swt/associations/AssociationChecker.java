@@ -116,10 +116,21 @@ AssociationChecker
 		user_label.setLayoutData(gridData);
 
 
+	    Label label = new Label(shell, SWT.NULL);
+		gridData = new GridData(GridData.FILL_BOTH);
+		gridData.horizontalSpan = 1;
+		label.setLayoutData(gridData);
+	    Messages.setLanguageText(label, "dialog.associations.askagain"); //$NON-NLS-1$
+
+	    final Button checkBox = new Button(shell, SWT.CHECK);
+	    checkBox.setSelection(true);
+		gridData = new GridData(GridData.FILL_BOTH);
+		gridData.horizontalSpan = 2;
+		checkBox.setLayoutData(gridData);
 		
 			// buttons
 			
-		Label label = new Label(shell,SWT.NULL);
+		label = new Label(shell,SWT.NULL);
 
 		Button bYes = new Button(shell,SWT.PUSH);
 	 	bYes.setText(MessageText.getString("Button.yes"));
@@ -129,7 +140,7 @@ AssociationChecker
 	 	bYes.setLayoutData(gridData);
 	 	bYes.addListener(SWT.Selection,new Listener() {
 	  		public void handleEvent(Event e) {
-		 		close(true);
+		 		close(true, checkBox.getSelection());
 	   		}
 		 });
     
@@ -141,7 +152,7 @@ AssociationChecker
 	 	bNo.setLayoutData(gridData);    
 	 	bNo.addListener(SWT.Selection,new Listener() {
 	 		public void handleEvent(Event e) {
-		 		close(false);
+		 		close(false, checkBox.getSelection());
 	   		}
 	 	});
 						    
@@ -150,7 +161,7 @@ AssociationChecker
 		shell.addListener(SWT.Traverse, new Listener() {	
 			public void handleEvent(Event e) {
 				if ( e.character == SWT.ESC){
-					close( false );
+					close( false, true );
 				}
 			}
 		});
@@ -165,13 +176,19 @@ AssociationChecker
 					   
 	protected void
 	close(
-		boolean		ok )
+		boolean		ok,
+		boolean		check_on_startup )
  	{
+    	if ( check_on_startup != COConfigurationManager.getBooleanParameter( "config.interface.checkassoc",true )){
+    		
+    		COConfigurationManager.setParameter( "config.interface.checkassoc",check_on_startup );
+    		
+    		COConfigurationManager.save();
+    	}
+
  		if ( ok ){
  			
- 			try{
- 				System.out.println(" reg" );
- 				
+ 			try{				
  				platform.registerApplication();
  				
  			}catch( PlatformManagerException e ){
