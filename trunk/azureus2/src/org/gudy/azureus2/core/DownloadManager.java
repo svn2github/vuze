@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.ui.swt.IComponentListener;
+import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier
@@ -68,7 +69,7 @@ public class DownloadManager extends Component {
 
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath) {
     this.globalManager = gm;
-    this.maxUploads = ConfigurationManager.getInstance().getIntParameter("Max Uploads", 4);
+    this.maxUploads = ConfigurationManager.getInstance().getIntParameter("Max Uploads", 4); //$NON-NLS-1$
     this.state = STATE_WAITING;
     this.priority = HIGH_PRIORITY;
     this.torrentFileName = torrentFileName;
@@ -102,35 +103,35 @@ public class DownloadManager extends Component {
       int nbRead;
       FileInputStream fis = new FileInputStream(torrentFileName);
       while ((nbRead = fis.read(buf)) > 0)
-        metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1"));
+        metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
       fis.close();
-      metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
-      Map info = (Map) metaData.get("info");
-      name = new String((byte[]) info.get("name"), "ISO-8859-1");
-      byte[] pieces = (byte[]) info.get("pieces");
+      metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
+      Map info = (Map) metaData.get("info"); //$NON-NLS-1$
+      name = new String((byte[]) info.get("name"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
+      byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
       nbPieces = pieces.length / 20;
-      metaData.put("torrent filename", torrentFileName.getBytes("ISO-8859-1"));
+      metaData.put("torrent filename", torrentFileName.getBytes("ISO-8859-1")); //$NON-NLS-1$ //$NON-NLS-2$
       SHA1Hasher s = new SHA1Hasher();
-      hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info")));
+      hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
     }
     catch (FileNotFoundException e) {
-      name = "File Not Found";
+      name = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
       nbPieces = 0;
       hash = new byte[20];      
       this.state = STATE_ERROR;
-      errorDetail = "File Not Found";
+      errorDetail = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
     }
     catch (UnsupportedEncodingException e) {
       this.state = STATE_ERROR;
-      errorDetail = "Unsupported Encoding";
+      errorDetail = Messages.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
     }
     catch (IOException e) {
       this.state = STATE_ERROR;
-      errorDetail = "IO Error";
+      errorDetail = Messages.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
     }
     catch (NoSuchAlgorithmException e) {
       this.state = STATE_ERROR;
-      errorDetail = "No such Algorithm (SHA1) Error";
+      errorDetail = Messages.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
     }
     catch (Exception e) {
       this.state = STATE_ERROR;
@@ -143,7 +144,7 @@ public class DownloadManager extends Component {
     int port = server.getPort();
     if (port == 0) {
       this.state = STATE_ERROR;
-      errorDetail = "Unable to Start Server";
+      errorDetail = Messages.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
     }
   }
 
@@ -240,25 +241,25 @@ public class DownloadManager extends Component {
   public String getDownloadSpeed() {
     if (peerManager != null)
       return peerManager.getStats().getReceptionSpeed();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getUploadSpeed() {
     if (peerManager != null)
       return peerManager.getStats().getSendingSpeed();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getTrackerStatus() {
     if (peerManager != null)
       return peerManager.getTrackerStatus();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getETA() {
     if (peerManager != null)
       return peerManager.getETA();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   /**
@@ -285,25 +286,25 @@ public class DownloadManager extends Component {
   public String getElapsed() {
     if (peerManager != null)
       return peerManager.getElpased();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getDownloaded() {
     if (peerManager != null)
       return peerManager.getDownloaded();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getUploaded() {
     if (peerManager != null)
       return peerManager.getUploaded();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public String getTotalSpeed() {
     if (peerManager != null)
       return peerManager.getTotalSpeed();
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   public int getTrackerTime() {
@@ -329,7 +330,7 @@ public class DownloadManager extends Component {
   public String getPieceLength() {
     if (diskManager != null)
       return PeerStats.format(diskManager.getPieceLength());
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
@@ -358,7 +359,7 @@ public class DownloadManager extends Component {
 
   public String getFileName() {
     if (diskManager != null)
-      return savePath + System.getProperty("file.separator") + diskManager.getFileName();
+      return savePath + System.getProperty("file.separator") + diskManager.getFileName(); //$NON-NLS-1$
     return savePath;
   }
 

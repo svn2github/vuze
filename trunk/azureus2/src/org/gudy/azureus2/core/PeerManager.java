@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.ui.swt.Messages;
 
 public class PeerManager extends Thread {
   private static final int BLOCK_SIZE = 32768;
@@ -56,7 +57,7 @@ public class PeerManager extends Thread {
     Server server,
     TrackerConnection tracker,
     DiskManager diskManager) {
-    super("Peer Manager");
+    super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
     //This torrent Hash
     _hash = hash;
@@ -84,7 +85,7 @@ public class PeerManager extends Thread {
     //The current tracker state
     //this could be start or update
     _trackerState = TRACKER_START;
-    _trackerStatus = "...";
+    _trackerStatus = "..."; //$NON-NLS-1$
     _timeToWait = 120;
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
@@ -105,7 +106,7 @@ public class PeerManager extends Thread {
     private long iter = 0;
     
     public PeerUpdater() {
-      super("Peer Updater");
+      super("Peer Updater"); //$NON-NLS-1$
       started = new long[10];
     }
 
@@ -244,7 +245,7 @@ public class PeerManager extends Thread {
     //was any data returned?
     if (data == null) //no data returned
       {
-      _trackerStatus = "offline"; //set the status to offline      
+      _trackerStatus = Messages.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
       _timeToWait = 60; //retry in 60 seconds
       return; //break
     }
@@ -252,17 +253,17 @@ public class PeerManager extends Thread {
       {
       try {
         //parse the metadata
-        Map metaData = BDecoder.decode(data.getBytes("ISO-8859-1"));
+        Map metaData = BDecoder.decode(data.getBytes("ISO-8859-1")); //$NON-NLS-1$
 
         //OLD WAY
         //BtDictionary metaData = new BtDecode(data).getDictionary();
 
         try {
           //set the timeout			
-          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3;
+          _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         }
         catch (Exception e) {
-          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "ISO-8859-1");
+          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
         }
@@ -275,7 +276,7 @@ public class PeerManager extends Thread {
           System.out.println(_timeToWait);
         }
         //build the list of peers
-        List peers = (List) metaData.get("peers");
+        List peers = (List) metaData.get("peers"); //$NON-NLS-1$
 
         //OLD WAY
         //BtList peers = (BtList) metaData.getValue("peers");
@@ -287,11 +288,11 @@ public class PeerManager extends Thread {
         for (int i = 0; i < nbPeers; i++) {
           Map peer = (Map) peers.get(i);
           //build a dictionary object				
-          String peerId = new String((byte[]) peer.get("peer id"), "ISO-8859-1");
+          String peerId = new String((byte[]) peer.get("peer id"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer id
-          String ip = new String((byte[]) peer.get("ip"), "ISO-8859-1");
+          String ip = new String((byte[]) peer.get("ip"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer ip address
-          int port = ((Long) peer.get("port")).intValue();
+          int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
           //get the peer port number
 
           //Test peer IDs to remove the local IP address
@@ -299,7 +300,7 @@ public class PeerManager extends Thread {
           try { //:: Any reason for this try/catch? -Tyler
             //:: If not we can merge this section and the one below
             //:: Into a single compact statement
-            piBytes = peerId.getBytes("ISO-8859-1");
+            piBytes = peerId.getBytes("ISO-8859-1"); //$NON-NLS-1$
           }
           catch (Exception e) {
             e.printStackTrace();
@@ -317,14 +318,14 @@ public class PeerManager extends Thread {
           //}		                   
         }
         _trackerState = TRACKER_UPDATE;
-        _trackerStatus = "ok"; //set the status		  
+        _trackerStatus = Messages.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
         return; //break						
       }
       catch (Exception e) {
         //TODO:: WE SHOULD CLEAN THIS UP
         //tracker not working		
         System.out.println("Problems with Tracker, will retry in 1 minute");
-        _trackerStatus = "offline";
+        _trackerStatus = Messages.getString("PeerManager.status.offline"); //$NON-NLS-1$
         _timeToWait = 60;
       }
     }
@@ -483,9 +484,9 @@ public class PeerManager extends Thread {
     //has the timeout expired?
     if ((time - _timeLastUpdate) > _timeToWait) //if so...
       {
-      _trackerStatus = "checking...";
+      _trackerStatus = Messages.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
-      Thread t = new Thread("Tracker Checker") {
+      Thread t = new Thread("Tracker Checker") { //$NON-NLS-1$
         public void run() {
           if (_trackerState == TRACKER_UPDATE)
             analyseTrackerResponse(_tracker.update());
@@ -719,7 +720,7 @@ public class PeerManager extends Thread {
   	*/
   private synchronized void insertPeerSocket(PeerSocket pc) {
     //Get the max number of connections allowed
-    int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0);
+    int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
 
     synchronized (_connections) {
       //does our list already contain this PeerConnection?  
@@ -979,7 +980,7 @@ public class PeerManager extends Thread {
   //Methods that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds() {
     //If we are not ourself a seed, return
-    if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed", false))
+    if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed", false)) //$NON-NLS-1$
       return;
     synchronized (_connections) {
       for (int i = 0; i < _connections.size(); i++) {
@@ -1231,7 +1232,7 @@ public class PeerManager extends Thread {
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
     int averageSpeed = _averageReceptionSpeed.getAverage();
     if (averageSpeed < 256) {
-      remaining = "oo";
+      remaining = "oo"; //$NON-NLS-1$
 
     }
     else {
@@ -1240,7 +1241,7 @@ public class PeerManager extends Thread {
       remaining = TimeFormater.format(timeRemaining);
     }
     if (dataRemaining == 0)
-      remaining = "Finished";
+      remaining = Messages.getString("PeerManager.status.finished"); //$NON-NLS-1$
     return remaining;
   }
 
