@@ -126,16 +126,17 @@ TRTrackerClientClassicImpl
   }
 
   public TRTrackerResponse complete() {
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
 	
 	if ( !completed_event_sent ){
 	
 		completed_event_sent = true;
+
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
 		
 		return update("completed");
 	}else{
 		
-		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, 120, "invalid state change complete -> complete"));
+		return( update());
 	}
   }
 
