@@ -1506,6 +1506,14 @@ public class StartStopRulesDefaultPlugin
         if (bDebugLog) sExplainFP += "Not FP: Download is ERROR or STOPPED\n";
         return false;
       }
+      
+      // FP doesn't apply when P:S >= 10:1
+      int numPeers = calcPeersNoUs(dl);
+      int numSeeds = calcSeedsNoUs(dl);
+      if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= 10) {
+        if (bDebugLog) sExplainFP += "Not FP: P:S >= 10:1\n";
+        return false;
+      }
 
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
