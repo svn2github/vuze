@@ -5,6 +5,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -74,7 +75,8 @@ public class ConfigView extends AbstractIView {
    */
   public void initialize(Composite composite) {
     final ConfigurationManager config = ConfigurationManager.getInstance();
-    gConfig = new Composite(composite, SWT.NULL);
+    gConfig = new Composite(composite, SWT.NONE);
+    ((ScrolledComposite)composite).setContent(gConfig);
     GridLayout configLayout = new GridLayout();
     configLayout.numColumns = 2;
     gConfig.setLayout(configLayout);
@@ -260,6 +262,7 @@ public class ConfigView extends AbstractIView {
       }
     });
 
+    gConfig.setSize(gConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   /* (non-Javadoc)
