@@ -467,7 +467,7 @@ WebPlugin
 						
 						if (  !last_pw.equals( pw )){
 														
-							hash = plugin_interface.getUtilities().calculateSHA1( pw.getBytes());
+							hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
 							
 							last_pw		= pw;
 							last_hash	= hash;

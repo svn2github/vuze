@@ -50,6 +50,12 @@ SESecurityManager
 		SESecurityManagerImpl.getSingleton().initialise();
 	}
 	
+	public static void
+	installAuthenticator()
+	{
+		SESecurityManagerImpl.getSingleton().installAuthenticator();
+	}
+	
 	public static SSLServerSocketFactory
 	getSSLServerSocketFactory()
 	

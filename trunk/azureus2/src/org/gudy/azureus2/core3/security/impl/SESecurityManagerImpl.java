@@ -80,6 +80,29 @@ SESecurityManagerImpl
 		System.setProperty( "javax.net.ssl.trustStorePassword", SESecurityManager.SSL_PASSWORD );
 		
 		
+		installAuthenticator();
+		
+		try{
+			Security.addProvider((java.security.Provider)
+				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		try{
+			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public void
+	installAuthenticator()
+	{
 		Authenticator.setDefault(
 				new Authenticator()
 				{
@@ -105,23 +128,6 @@ SESecurityManagerImpl
 						return( res );
 					}
 				});
-		
-		try{
-			Security.addProvider((java.security.Provider)
-				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-		
-		try{
-			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 	
 	public synchronized PasswordAuthentication

@@ -33,10 +33,11 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.ui.common.UIImageRepository;
@@ -126,17 +127,9 @@ UtilitiesImpl
 		return( ResourceDownloaderFactoryImpl.getSingleton());
 	}
 	
-	public byte[]
-	calculateSHA1(
-		byte[]		data_in )
+	public SESecurityManager
+	getSecurityManager()
 	{
-		if (data_in == null ){
-			
-			data_in = new byte[0];
-		}
-		
-        SHA1Hasher hasher = new SHA1Hasher();
-        
-        return( hasher.calculateHash(data_in));	
+		return( new SESecurityManagerImpl());
 	}
 }
