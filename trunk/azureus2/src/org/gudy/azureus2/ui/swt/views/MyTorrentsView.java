@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
@@ -200,12 +201,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
-        saveTableColumns((TableColumn) e.widget);
+        Utils.saveTableColumn((TableColumn) e.widget);
       }
     };
-    
-    
-    
         
     itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
     ItemDescriptor[] items = itemEnumerator.getItems();
@@ -213,32 +211,24 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     //Create all columns
     for (int i = 0; i < items.length; i++) {
       int position = items[i].getPosition();
-      if(position != -1) {
+      if (position != -1) {
         TableColumn column = new TableColumn(table, SWT.NULL);
+        //Assign length and titles
+        Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
+        column.setWidth(items[i].getWidth());
+        if (items[i].getType() == ItemDescriptor.TYPE_INT) {
+          sorter.addIntColumnListener(column, items[i].getName());
+        }
+        if (items[i].getType() == ItemDescriptor.TYPE_STRING) {
+          sorter.addStringColumnListener(column, items[i].getName());
+        }
+        column.setData("configName", "Table.MyTorrents." + items[i].getName());
+        column.addControlListener(resizeListener);
       }
-    }
-    //Assign length and titles
-    for (int i = 0; i < items.length; i++) {
-     int position = items[i].getPosition();
-     if(position != -1) {
-       TableColumn column = table.getColumn(position);
-       Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
-       column.setWidth(items[i].getWidth());
-       if(items[i].getType() == ItemDescriptor.TYPE_INT) {
-         sorter.addIntColumnListener(column,items[i].getName());
-       }
-       if(items[i].getType() == ItemDescriptor.TYPE_STRING) {
-         sorter.addStringColumnListener(column,items[i].getName());
-       }
-       column.setData("configName","Table.MyTorrents." + items[i].getName());
-       column.addControlListener(resizeListener);
-     }  
     }   
 
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
-
-    
     
     table.addMouseListener(new MouseAdapter() {
       /* (non-Javadoc)
@@ -255,19 +245,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
     
-    table.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-        String string = "DOWN";
-        string += ": stateMask=0x" + Integer.toHexString(e.stateMask);
-        if ((e.stateMask & SWT.CTRL) != 0) {
-          if(e.keyCode == 0x1000001)
-            moveSelectedTorrents(1, 0);
-          else if(e.keyCode == 0x1000002)
-            moveSelectedTorrents(0, 1);
-        }
-      }
-    });
-
     table.setMenu(menu);
   }
 
@@ -472,7 +449,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     itemStart.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
-        final boolean initStoppedDownloads = true;
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
@@ -516,15 +492,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     itemRemove.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null
-            && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
-            globalManager.removeDownloadManager(dm);
-          }
-        }
+        removeSelectedTorrentsIfStoppedOrError();
       }
     });
 
@@ -916,11 +884,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     }
   }
 
-  private void saveTableColumns(TableColumn t) {
-    COConfigurationManager.setParameter((String) t.getData("configName") + ".width", t.getWidth());
-    COConfigurationManager.save();
-  }
-
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
@@ -976,8 +939,28 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   private KeyListener createKeyListener() {
     return new KeyAdapter() {
       public void keyPressed(KeyEvent e) {
-        if (0 == e.keyCode && 0x40000 == e.stateMask && 1 == e.character)
-          table.selectAll(); // CTRL+a
+        //TODO: what is the best key shortcut for stopping selected torrents?
+        //TODO: what is the correct keycode for CTRL+a ?
+//        if (0 == e.keyCode && 0x40000 == e.stateMask && 1 == e.character)
+//          table.selectAll(); // CTRL+a
+        if ((e.stateMask & SWT.CTRL) != 0) {
+          // move one down
+          if(e.keyCode == 0x1000001)
+            moveSelectedTorrents(1, 0);
+          // move one up
+          else if(e.keyCode == 0x1000002)
+            moveSelectedTorrents(0, 1);
+          // move to end
+          else if(e.keyCode == 0x1000008)
+            moveSelectedTorrents(0, table.getItemCount()-1);
+          // move to top
+          else if(e.keyCode == 0x1000007)
+            moveSelectedTorrents(table.getItemCount()-1, 0);
+        } else if(e.stateMask == 0) {
+          if(e.keyCode == 127) {
+            removeSelectedTorrentsIfStoppedOrError();
+          }
+        }
       }
     };
   }
@@ -1000,6 +983,18 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
   public Map getTableItemToObjectMap() {
     return tableItemToObject;
+  }
+
+  private void removeSelectedTorrentsIfStoppedOrError() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null
+          && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
+        globalManager.removeDownloadManager(dm);
+      }
+    }
   }
 
 }
