@@ -107,7 +107,7 @@ LGLoggerImpl
 	{
 		if ( log_to_file ){
 			
-			logToFile( "" + componentId + ":" + event + ":" + color + ":" + text + NL );
+			logToFile( "{" + componentId + ":" + event + ":" + color + "}  " + text + NL );
 		}
 		
 		if( listener !=  null ){
