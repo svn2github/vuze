@@ -52,8 +52,8 @@ public class GlobalManager extends Component {
               manager.initialize();
               alreadyOneAllocatingOrChecking = true;
             }
-            if (manager.getState() == DownloadManager.STATE_READY
-              && nbStarted < ConfigurationManager.getInstance().getIntParameter("max active torrents", 4)) {
+            int nbMax = ConfigurationManager.getInstance().getIntParameter("max active torrents", 4);
+            if (manager.getState() == DownloadManager.STATE_READY && ((nbMax == 0) || (nbStarted < nbMax))) {
               manager.startDownload();
             }
 
@@ -62,8 +62,10 @@ public class GlobalManager extends Component {
               || (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
               alreadyOneAllocatingOrChecking = true;
             }
-            
-            if((manager.getState() == DownloadManager.STATE_SEEDING) && (manager.getPriority() == DownloadManager.HIGH_PRIORITY) && ConfigurationManager.getInstance().getBooleanParameter("Switch Priority",true)) {
+
+            if ((manager.getState() == DownloadManager.STATE_SEEDING)
+              && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
+              && ConfigurationManager.getInstance().getBooleanParameter("Switch Priority", true)) {
               manager.setPriority(DownloadManager.LOW_PRIORITY);
             }
 
@@ -148,72 +150,74 @@ public class GlobalManager extends Component {
   public String getUploadSpeed() {
     return stats.getSendingSpeed();
   }
-  
-  private void loadDownloads() {    
+
+  private void loadDownloads() {
+    try {
+      //open the file
+      FileInputStream fin = new FileInputStream(this.getApplicationPath() + "downloads.config");
+      BufferedInputStream bin = new BufferedInputStream(fin);
+      Map map = BDecoder.decode(bin);
+      Iterator iter = map.values().iterator();
+      while (iter.hasNext()) {
+        Map mDownload = (Map) iter.next();
         try {
-          //open the file
-          FileInputStream fin = new FileInputStream(this.getApplicationPath() + "downloads.config");      
-          BufferedInputStream bin = new BufferedInputStream(fin);     
-          Map map = BDecoder.decode(bin);
-          Iterator iter = map.values().iterator();
-          while(iter.hasNext()) {
-            Map mDownload = (Map) iter.next();
-            try {
-              String fileName = new String((byte[])mDownload.get("torrent"), "ISO-8859-1");
-              String savePath = new String((byte[])mDownload.get("path"), "ISO-8859-1");
-              int nbUploads = ((Long) mDownload.get("uploads")).intValue();
-              int stopped = ((Long) mDownload.get("stopped")).intValue();
-              DownloadManager dm = new DownloadManager(this,fileName,savePath);
-              dm.setMaxUploads(nbUploads);
-              if(stopped == 1)
-                dm.stopIt();
-              this.addDownloadManager(dm);              
-            }
-            catch (UnsupportedEncodingException e1) {
-              //Do nothing and process next.
-            }    
-          }
-        } catch (FileNotFoundException e) {
-          //Do nothing
+          String fileName = new String((byte[]) mDownload.get("torrent"), "ISO-8859-1");
+          String savePath = new String((byte[]) mDownload.get("path"), "ISO-8859-1");
+          int nbUploads = ((Long) mDownload.get("uploads")).intValue();
+          int stopped = ((Long) mDownload.get("stopped")).intValue();
+          DownloadManager dm = new DownloadManager(this, fileName, savePath);
+          dm.setMaxUploads(nbUploads);
+          if (stopped == 1)
+            dm.stopIt();
+          this.addDownloadManager(dm);
         }
+        catch (UnsupportedEncodingException e1) {
+          //Do nothing and process next.
+        }
+      }
+    }
+    catch (FileNotFoundException e) {
+      //Do nothing
+    }
   }
-  
+
   private void saveDownloads() {
-    
-      Map map = new HashMap();
-      for(int i = 0 ; i < managers.size() ; i++) {
-        DownloadManager dm = (DownloadManager) managers.get(i);
-        Map dmMap = new HashMap();
-        dmMap.put("torrent",dm.getTorrentFileName().getBytes());
-        dmMap.put("path",dm.getSavePath());
-        dmMap.put("uploads",new Long(dm.getMaxUploads()));
-        int stopped = 0;
-        if(dm.getState() == DownloadManager.STATE_STOPPED)
-          stopped = 1;
-        dmMap.put("stopped", new Long(stopped));
-        map.put("torrent" +i ,dmMap);
-      }
-      //encode the data
-      byte[] torrentData = BEncoder.encode(map);
-      //open a file stream
-      FileOutputStream fos = null;
-      try {
-        fos = new FileOutputStream(this.getApplicationPath() + "downloads.config");
-      } catch (FileNotFoundException e) {     
-        e.printStackTrace();
-      }
-      //write the data out
-      try {
-        fos.write(torrentData);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }    
+
+    Map map = new HashMap();
+    for (int i = 0; i < managers.size(); i++) {
+      DownloadManager dm = (DownloadManager) managers.get(i);
+      Map dmMap = new HashMap();
+      dmMap.put("torrent", dm.getTorrentFileName().getBytes());
+      dmMap.put("path", dm.getSavePath());
+      dmMap.put("uploads", new Long(dm.getMaxUploads()));
+      int stopped = 0;
+      if (dm.getState() == DownloadManager.STATE_STOPPED)
+        stopped = 1;
+      dmMap.put("stopped", new Long(stopped));
+      map.put("torrent" + i, dmMap);
+    }
+    //encode the data
+    byte[] torrentData = BEncoder.encode(map);
+    //open a file stream
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(this.getApplicationPath() + "downloads.config");
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    //write the data out
+    try {
+      fos.write(torrentData);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
-  
-//TODO:: Move this to a FileManager class?
-  private String getApplicationPath()
-  {
-    return System.getProperty("user.dir")+System.getProperty("file.separator");
-  } 
+
+  //TODO:: Move this to a FileManager class?
+  private String getApplicationPath() {
+    return System.getProperty("user.dir") + System.getProperty("file.separator");
+  }
 
 }
