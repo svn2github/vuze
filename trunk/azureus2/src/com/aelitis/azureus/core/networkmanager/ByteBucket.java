@@ -39,12 +39,12 @@ public class ByteBucket {
   
   /**
    * Create a new byte-bucket with the given byte fill (guaranteed) rate.
-   * Burst rate is set to default 1.5X of given fill rate.
+   * Burst rate is set to default 1.2X of given fill rate.
    * @param rate_bytes_per_sec
    */
   protected ByteBucket( int rate_bytes_per_sec ) {
     this.rate = rate_bytes_per_sec;
-    burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/2);
+    burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/5);
     avail_bytes = 0; //start bucket empty
     prev_update_time = SystemTime.getCurrentTime();
   }
@@ -84,11 +84,11 @@ public class ByteBucket {
   
   
   /**
-   * Set the current fill/guaranteed rate, with a burst rate of 1.5X the given rate.
+   * Set the current fill/guaranteed rate, with a burst rate of 1.2X the given rate.
    * @param rate_bytes_per_sec
    */
   protected void setRate( int rate_bytes_per_sec ) {
-    setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/2));
+    setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/5));
   }
   
   

@@ -58,6 +58,7 @@ public class ConnectionPool {
     parent_pool = null;
     write_percent_of_max = 1.0F;
     write_bytebucket = new ByteBucket( max_write_rate_bytes_per_sec );
+    write_bytebucket.setRate( max_write_rate_bytes_per_sec, max_write_rate_bytes_per_sec );
   }
   
   
@@ -269,15 +270,12 @@ public class ConnectionPool {
    * connections to use any remaining unclaimed bandwidth (burst).
    */
   protected void doWrites( VirtualChannelSelector selector ) {
-    selector.select( 25 );
-    int total_bytes_available = write_bytebucket.getAvailableByteCount();
-    int total_bytes_used = doLimitedRateWrites();  //do guaranteed-rate writes
-    //System.out.println("avail="+total_bytes_available+", used="+total_bytes_used);
-    int remaining = total_bytes_available - total_bytes_used;
+    selector.select( 50 );
+    doLimitedRateWrites();  //do guaranteed-rate writes
     //optimization: if the configured max rate is unlimited, doLimitedRateWrites() will do all the writes possible at the moment
     boolean is_unlimited_rate = NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() == NetworkManager.UNLIMITED_WRITE_RATE ? true : false;
+    int remaining = write_bytebucket.getAvailableByteCount();
     if( remaining >= NetworkManager.getSingleton().getTcpMssSize() && !is_unlimited_rate ) {
-      selector.select( 25 );
       doUncountedRateWrites( remaining );  //use any remaining unclaimed bandwidth
     }
   }
@@ -285,33 +283,34 @@ public class ConnectionPool {
   
   private int doLimitedRateWrites() {
     int total_bytes_used = 0;
-    int total_bytes_available = write_bytebucket.getAvailableByteCount();
     
-    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    final int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     
     synchronized( children_pools ) {
       int num_children = children_pools.size();
       int num_checked = 0;
-      while( num_checked < num_children && total_bytes_available - total_bytes_used >= mss_size ) {
+      while( num_checked < num_children && write_bytebucket.getAvailableByteCount() >= mss_size ) {
         ConnectionPool child = (ConnectionPool)children_pools.removeFirst();
-        total_bytes_used += child.doLimitedRateWrites();
+        int used = child.doLimitedRateWrites();
+        write_bytebucket.setBytesUsed( used );
+        total_bytes_used += used;
         children_pools.addLast( child );
         num_checked++;
       }
     }
     
-    int remaining = total_bytes_available - total_bytes_used;
+    int remaining = write_bytebucket.getAvailableByteCount();
     if( remaining >= mss_size ) {
-      total_bytes_used += doConnectionWrites( remaining );
+      int used = doConnectionWrites( remaining );
+      write_bytebucket.setBytesUsed( used );
+      total_bytes_used += used;
     }
     
-    //System.out.println("total_bytes_available="+total_bytes_available+", total_bytes_used="+total_bytes_used   );
-    
-    write_bytebucket.setBytesUsed( total_bytes_used );
     return total_bytes_used;
   }
   
 
+  
   private int doUncountedRateWrites( int max_bytes_allowed ) {
     int total_bytes_used = 0;
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
@@ -360,11 +359,15 @@ public class ConnectionPool {
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     int num_connections = connections.size();
     int num_seen = 0;
+    int num_empty = 0;
     
-    while( max_bytes_allowed - total_bytes_used >= mss_size && num_seen < num_connections ) {
-      Connection conn = (Connection)connections.removeFirst();
+    while( max_bytes_allowed - total_bytes_used >= mss_size && num_empty < num_connections ) {
+      if( num_seen == num_connections ) {
+        num_empty = 0;
+        num_seen = 0;
+      }
       
-      boolean already_added = false;
+      Connection conn = (Connection)connections.removeFirst();
       
       if( conn.isTransportReadyForWrite() ) {
         OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
@@ -391,10 +394,8 @@ public class ConnectionPool {
               conn.setTransportReadyForWrite( false );
               NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );
             }
-            else if( size - written >= mss_size ) { //if there's still remaining data, requeue at front
-             connections.addFirst( conn );
-              already_added = true;
-              //System.out.println("AF");
+            else if( omq.getTotalSize() >= mss_size ) { //there's still data left to send
+              num_empty--; //make sure it's not counted as empty
             }
           } 
           catch( Throwable t ) {
@@ -405,13 +406,11 @@ public class ConnectionPool {
         }
       }
       
-      if( !already_added ) {
-        connections.addLast( conn );
-        num_seen++;
-      }
+      connections.addLast( conn );
+      num_seen++;
+      num_empty++;
     }
     
-    //System.out.println( "writes: max=" +max_bytes_allowed+ ", out=" + total_bytes_used );
     return total_bytes_used;
   }
   
