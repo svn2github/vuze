@@ -46,6 +46,7 @@ public class Piece {
 
   public void setWritten(int blocNumber) {
     written[blocNumber] = true;
+    completed++;
   }
 
   public boolean isComplete() {
@@ -61,8 +62,7 @@ public class Piece {
   }
 
   public void setBloc(int blocNumber) {
-    downloaded[blocNumber] = true;
-    completed++;
+    downloaded[blocNumber] = true;    
   }
 
   // This method is used to clear the requested information
@@ -75,7 +75,7 @@ public class Piece {
   public synchronized int getAndMarkBlock() {
     int blocNumber = -1;
     for (int i = 0; i < nbBlocs; i++) {
-      if (!requested[i]) {
+      if (!requested[i] && !written[i]) {
         blocNumber = i;
         requested[i] = true;
 

@@ -816,12 +816,11 @@ public class DiskManager {
     resumeMap.put(path, resumeDirectory);
     resumeDirectory.put("resume data", resumeData);
     Map partialPieces = new HashMap();
-    if (savePartialPieces) {
-      Piece[] pieces = manager.getPieces();
+    if (savePartialPieces) {      
       for (int i = 0; i < pieces.length; i++) {
         Piece piece = pieces[i];
-        if (piece != null) {
-          boolean[] downloaded = piece.downloaded;
+        if (piece != null && piece.getCompleted() > 0) {
+          boolean[] downloaded = piece.written;
           List blocks = new ArrayList();
           for (int j = 0; j < downloaded.length; j++) {
             if (downloaded[j])

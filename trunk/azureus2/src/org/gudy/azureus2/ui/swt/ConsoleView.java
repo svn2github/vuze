@@ -91,6 +91,8 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
   }
 
   private void doLog(final int _color, final String _text) {
+    if(display == null || display.isDisposed())
+      return;
     display.asyncExec(new Runnable() {
       public void run() {
         if (consoleText == null || consoleText.isDisposed())
