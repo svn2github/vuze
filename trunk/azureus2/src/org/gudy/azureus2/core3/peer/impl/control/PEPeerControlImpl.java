@@ -256,11 +256,7 @@ PEPeerControlImpl
             PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
             
             if (ps.getState() == PEPeer.DISCONNECTED) {
-              _peer_transports.remove(i);
-              
-              for (int m=0; m < peer_transport_listeners.size(); m++) {
-                ((PEPeerControlListener)peer_transport_listeners.get(m)).peerRemoved( ps );
-              }
+              removeFromPeerTransports( ps );
             }
             else {
               if (oldPolling || ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
