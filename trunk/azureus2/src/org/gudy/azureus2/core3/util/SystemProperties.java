@@ -15,22 +15,16 @@ import java.io.*;
 public class SystemProperties {
   
   public static final String SEPARATOR = System.getProperty("file.separator");
-  private static final String USER_DIR_OSX = "Azureus";
-  private static final String USER_DIR = ".azureus";
+  private static final String USER_DIR = "Azureus";
   
   /**
    * Returns the full path to the user's home azureus directory.
-   * Under unix, this is usually ~/.azureus/
-   * Under Windows, this is usually .../Documents and Settings/username/.azureus/
+   * Under unix, this is usually ~/Azureus/
+   * Under Windows, this is usually .../Documents and Settings/username/Azureus/
+   * Under OSX, this is usually /Users/username/Azureus/
    */
   public static String getUserPath() {
-    String path;
-    if ( System.getProperty("os.name").equals("Mac OS X")) {
-    	path = System.getProperty("user.home") + SEPARATOR + USER_DIR_OSX + SEPARATOR;
-    }
-    else {
-      path = System.getProperty("user.home") + SEPARATOR + USER_DIR + SEPARATOR;
-    }
+    String path = System.getProperty("user.home") + SEPARATOR + USER_DIR + SEPARATOR;
     
     //if the directory doesn't already exist, create it
     File dir = new File( path );
