@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
@@ -367,7 +368,8 @@ public class MainMenu {
       Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
       help_checkupdate.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          VersionChecker.checkForNewVersion();
+          //VersionChecker.checkForNewVersion();
+          PluginInitializer.getDefaultInterface().getUpdateManager().createUpdateCheckInstance().start();
         }
       });
       }

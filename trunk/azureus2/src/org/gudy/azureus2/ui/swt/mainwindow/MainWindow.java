@@ -70,6 +70,11 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.plugins.update.UpdateChecker;
+import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
+import org.gudy.azureus2.plugins.update.UpdateManagerListener;
 import org.gudy.azureus2.pluginsimpl.local.*;
 
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -121,11 +126,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Composite folder;
       
   private Composite statusArea;
+  StackLayout layoutStatusAera;
   
   private CLabel statusText;
   private String statusTextKey;
   
-  private Group statusUpdate;
+  
+  private Composite statusUpdate;
   private Label statusUpdateLabel;
   private ProgressBar statusUpdateProgressBar;
   private Button statusUpdateButton;
@@ -340,7 +347,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusArea = new Composite(statusBar, SWT.NULL);
     statusArea.setLayoutData(gridData);
     
-    StackLayout layoutStatusAera = new StackLayout();
+    layoutStatusAera = new StackLayout();
     statusArea.setLayout(layoutStatusAera);
     
     //Either the Status Text
@@ -348,7 +355,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     int height = statusText.computeSize(150,SWT.DEFAULT).y;
     
     //Or a composite with a label, a label, a progressBar and a button
-    statusUpdate = new Group(statusArea, SWT.BORDER);
+    statusUpdate = new Composite(statusArea, SWT.BORDER);
     statusUpdate.setSize(SWT.DEFAULT,height);
     FormLayout layoutStatusUpdate = new FormLayout();
     layoutStatusUpdate.marginHeight = 0;
@@ -357,10 +364,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusUpdate.setLayout(layoutStatusUpdate);
     
     statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
-    statusUpdateLabel.setText("Alea jacta est");
+    Messages.setLanguageText(statusUpdateLabel, "MainWindow.statusText.checking");
     statusUpdateProgressBar = new ProgressBar(statusUpdate,SWT.HORIZONTAL);
-    statusUpdateButton = new Button(statusUpdate,SWT.PUSH);
-    Messages.setLanguageText(statusUpdateButton,"Button.cancel");
+    /*statusUpdateButton = new Button(statusUpdate,SWT.PUSH);
+    Messages.setLanguageText(statusUpdateButton,"Button.cancel");*/
     int ctrlHeight,top;
     
     formData = new FormData();
@@ -372,25 +379,27 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     formData.height = height;
     statusUpdateLabel.setLayoutData(formData);
     
-    formData = new FormData();
+    /*formData = new FormData();
     formData.right = new FormAttachment(100);
     ctrlHeight = statusUpdateButton.computeSize(100,SWT.DEFAULT).y;
     top = (height - ctrlHeight) / 2;
     //formData.top = new FormAttachment(0,top);
     formData.width = 100;
     formData.height = height;
-    statusUpdateButton.setLayoutData(formData);
+    statusUpdateButton.setLayoutData(formData);*/
     
     formData = new FormData();
     formData.left = new FormAttachment(statusUpdateLabel);
-    formData.right = new FormAttachment(statusUpdateButton);
+    formData.right = new FormAttachment(100);
     ctrlHeight = statusUpdateProgressBar.computeSize(100,SWT.DEFAULT).y;
     top = (height - ctrlHeight) / 2;
     formData.top = new FormAttachment(0,top);
     formData.height = height;    
     statusUpdateProgressBar.setLayoutData(formData);    
     
-    layoutStatusAera.topControl = statusUpdate;
+    layoutStatusAera.topControl = statusText;
+    
+    
     
     gridData = new GridData();
     gridData.widthHint = 220;
@@ -605,6 +614,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     //  share progress window    
     new ProgressWindow();
+    
+    addUpdateListener();
     
     if ( TRHostFactory.create().getTorrents().length > 0 ){     
       showMyTracker();
@@ -1335,4 +1346,85 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       });
     }
   }
+  
+  private void switchStatusToUpdate() {
+    if(display != null && ! display.isDisposed())
+      display.asyncExec(new Runnable() {
+        public void run() {
+          layoutStatusAera.topControl = statusUpdate;
+          statusArea.layout();
+        }
+      });
+  }
+  
+  private void switchStatusToText() {
+    if(display != null && ! display.isDisposed())
+      display.asyncExec(new Runnable() {
+        public void run() {
+          layoutStatusAera.topControl = statusText;
+          statusArea.layout();
+        }
+      });
+  }
+  
+  private void setNbChecks(final int nbChecks) {
+    if(display != null && ! display.isDisposed())
+      display.asyncExec(new Runnable() {
+        public void run() {
+          if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
+            return;
+          statusUpdateProgressBar.setMinimum(0);
+          statusUpdateProgressBar.setMaximum(nbChecks);
+          statusUpdateProgressBar.setSelection(0);
+        }
+      });
+  }
+  
+  private void setNextCheck() {
+    if(display != null && ! display.isDisposed())
+      display.asyncExec(new Runnable() {
+        public void run() {
+          if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
+            return;
+          statusUpdateProgressBar.setSelection(statusUpdateProgressBar.getSelection() + 1);
+        }
+      });
+  }
+  
+  private void addUpdateListener() {
+    PluginInitializer.getDefaultInterface().getUpdateManager().addListener(new UpdateManagerListener () {
+      public void checkInstanceCreated(UpdateCheckInstance instance) {
+        
+        switchStatusToUpdate();
+        instance.addListener(new UpdateCheckInstanceListener () {
+          public void cancelled(UpdateCheckInstance instance) {
+            switchStatusToText();
+          }
+          public void complete(UpdateCheckInstance instance) {
+            switchStatusToText();
+          }
+        });
+        UpdateChecker[] checkers = instance.getCheckers();
+        setNbChecks(checkers.length);
+        UpdateCheckerListener listener = new UpdateCheckerListener() {
+          public void cancelled(UpdateChecker checker) {
+            setNextCheck();
+          }
+          
+          public void completed(UpdateChecker checker) {
+            setNextCheck();
+          }
+          
+          public void failed(UpdateChecker checker) {
+            setNextCheck();
+          }
+          
+        };
+        for(int i = 0 ; i < checkers.length ; i++) {
+          checkers[i].addListener(listener);
+        }
+      }
+    });
+  }  
+  
 }

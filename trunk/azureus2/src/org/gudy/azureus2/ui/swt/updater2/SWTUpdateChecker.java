@@ -53,7 +53,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 {
   //TODO : Make 1. SF , 2. aelitis.com 3. keecall.com and 4. gudy.org
   public static String[] swtURLProviders = {   
-      "http://www.aelitis.com/azureus/swt_version.php",
+      "http://azureus.aelitis.com/swt_version.php",
       "http://www.gudy.org/azureus/swt_version.php" ,
       "http://azureus.sourceforge.net/swt_version.php" ,
       "http://www.keecall.com/azureus/swt_version.php"
