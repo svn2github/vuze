@@ -62,18 +62,30 @@ public class Main implements ILocaleUtilChooser {
   public Main(String args[]) {
     LocaleUtil.setLocaleUtilChooser(this);
     startServer = new StartServer(this);
-	
+
+    boolean debugGUI = Boolean.getBoolean("debug");
+    if(debugGUI) {
+      // create a MainWindow regardless to the server state
+      gm = GlobalManagerFactory.create(new GlobalManagerAdapter() {
+        public InputStream getImageAsStream(String name) {
+          return (ImageRepository.getImageAsStream(name));
+        }
+      });
+
+      mainWindow = new MainWindow(gm, startServer);
+      COConfigurationManager.checkConfiguration();
+      mainWindow.waitForClose();
+      return;
+    }
+    
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
       gm = GlobalManagerFactory.create(
-		  new GlobalManagerAdapter(){
-			  public InputStream
-			  getImageAsStream(
-				  String	name )
-			  {
-				  return( ImageRepository.getImageAsStream(name));
-			  }
-		  });
+		  new GlobalManagerAdapter() {
+        public InputStream getImageAsStream(String name) {
+          return (ImageRepository.getImageAsStream(name));
+        }
+      });
 
       mainWindow = new MainWindow(gm, startServer);
       COConfigurationManager.checkConfiguration();
