@@ -50,6 +50,8 @@ import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.impl.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+
 
 /**
  * 
@@ -969,6 +971,8 @@ TRTrackerClientClassicImpl
  		
  		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
  		
+ 		reqUrl = AEProxyFactory.getAddressMapper().internalise( reqUrl );
+ 		
  		String	failure_reason = null;
  		
  		HttpURLConnection con;
@@ -1763,14 +1767,16 @@ TRTrackerClientClassicImpl
 				     }
 				   }
 				   
-				  //System.out.println("Response from Announce: " + new String(data));
-          Long lIncomplete = null;
-          Long lComplete = (Long)metaData.get("complete");
-				  if (lComplete != null) {
-            lIncomplete = (Long)metaData.get("incomplete");
-            LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                         "ANNOUNCE SCRAPE1: seeds=" +lComplete+ " peers=" +lIncomplete);
-          }
+				   	//System.out.println("Response from Announce: " + new String(data));
+				   
+				   Long incomplete_l 	= (Long)metaData.get("incomplete");
+				   Long complete_l 		= (Long)metaData.get("complete");
+				   
+				   if ( incomplete_l != null || complete_l != null  ){
+				   
+				   	LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                         "ANNOUNCE SCRAPE1: seeds=" +complete_l+ " peers=" +incomplete_l);
+				   }
 						
 						//build the list of peers
 					List valid_meta_peers = new ArrayList();
@@ -1807,11 +1813,11 @@ TRTrackerClientClassicImpl
 									//get the peer port number
 								
 								int peer_port = ((Long) s_port).intValue(); 
-                
-                if( peer_port < 0 || peer_port > 65535 ) {
-                  LGLogger.log( LGLogger.ERROR, "Invalid peer port given: " +ip+ ": " +peer_port );
-                  continue;
-                }
+				                
+				                if( peer_port < 0 || peer_port > 65535 ) {
+				                  LGLogger.log( LGLogger.ERROR, "Invalid peer port given: " +ip+ ": " +peer_port );
+				                  continue;
+				                }
 								
 								byte[] peer_peer_id;
 								
@@ -1862,10 +1868,10 @@ TRTrackerClientClassicImpl
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 				    		int		peer_port 	= po1*256+po2;
 				    		
-                if( peer_port < 0 || peer_port > 65535 ) {
-                  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
-                  continue;
-                }
+			                if( peer_port < 0 || peer_port > 65535 ) {
+			                  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
+			                  continue;
+			                }
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
@@ -1900,18 +1906,29 @@ TRTrackerClientClassicImpl
 					
 					resp.setExtensions(extensions);
 					
-					if (extensions != null && lComplete == null) {
-			            lComplete = (Long)extensions.get("complete");
-			  		
-			            if (lComplete != null) {
-			              lIncomplete = (Long)extensions.get("incomplete");
-			              LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			                           "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
-			            }
+					if ( extensions != null ){
+						
+						if ( complete_l == null) {
+							complete_l = (Long)extensions.get("complete");
+						}
+						
+						if ( incomplete_l == null) {
+							incomplete_l = (Long)extensions.get("incomplete");
+						}
+					
+						LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			                           "ANNOUNCE SCRAPE2: seeds=" +complete_l+ " peers=" +incomplete_l);
+			            
 					}
 
-		          if (lComplete != null && lIncomplete != null) {
+		          if (complete_l != null || incomplete_l != null) {
+		          	
+		          	int	complete = complete_l==null?0:complete_l.intValue();
+		          	
+		          	int incomplete = incomplete_l==null?0:incomplete_l.intValue();
+		          	
 		            TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
+		            
 		            if (scraper != null) {
 		              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
 		              if (scrapeResponse != null) {
@@ -1931,7 +1948,7 @@ TRTrackerClientClassicImpl
 		                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
 		                }
 		                
-		                scrapeResponse.setSeedsPeers(lComplete.intValue(), lIncomplete.intValue());
+		                scrapeResponse.setSeedsPeers( complete, incomplete );
 		              }
 		            }
        
