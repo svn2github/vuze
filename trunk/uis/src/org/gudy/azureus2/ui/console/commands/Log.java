@@ -30,10 +30,10 @@ public class Log extends IConsoleCommand {
 		Appender con = Logger.getRootLogger().getAppender("ConsoleAppender");
 		if ((con != null) && (args != null) && (!args.isEmpty())) {
 			String subcommand = (String) args.get(0);
-			if (subcommand.equalsIgnoreCase("off")) {
+			if ("off".equalsIgnoreCase(subcommand) ) {
 				con.addFilter(new DenyAllFilter());
 				ci.out.println("> Console logging off");
-			} else if (subcommand.equalsIgnoreCase("on")) {
+			} else if ("on".equalsIgnoreCase(subcommand) ) {
 				con.clearFilters();
 				ci.out.println("> Console logging on");
 			} else {
