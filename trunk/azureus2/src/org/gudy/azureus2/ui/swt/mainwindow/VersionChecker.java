@@ -68,7 +68,7 @@ VersionChecker
 		InputStream is = null;
 		try {
 			String id = COConfigurationManager.getStringParameter("ID",null);        
-			String url = "http://azureus.sourceforge.net/version.php";
+			String url = Constants.AELITIS_WEB_SITE + "version.php";
 			if(id != null && COConfigurationManager.getBooleanParameter("Send Version Info")) {
 				url += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
 			}
