@@ -36,9 +36,8 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messages.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
-import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+import com.aelitis.azureus.core.peermanager.utils.*;
 
 
 

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages;
+package com.aelitis.azureus.core.peermanager.utils;
 
 import java.util.*;
 
@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 
 
