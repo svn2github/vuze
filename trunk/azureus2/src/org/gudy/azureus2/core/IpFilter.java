@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -126,7 +127,9 @@ public class IpFilter {
     }
   }
   
-  public boolean isInRange(String ipAddress) {  
+  public boolean isInRange(String ipAddress) {
+    if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",false))
+      return false;
     synchronized(ipRanges) { 
       Iterator iter = ipRanges.iterator();
       while(iter.hasNext()) {

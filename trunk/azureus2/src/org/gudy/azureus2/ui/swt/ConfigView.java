@@ -478,9 +478,19 @@ public class ConfigView extends AbstractIView {
     gFilter.setLayoutData(gridData);
 
     GridLayout layoutFilter = new GridLayout();
-    layoutFilter.numColumns = 2;
+    layoutFilter.numColumns = 3;
     gFilter.setLayout(layoutFilter);
 
+    gridData = new GridData(GridData.BEGINNING);
+    new BooleanParameter(gFilter, "Ip Filter Enabled",false).setLayoutData(gridData); //$NON-NLS-1$
+        
+    label = new Label(gFilter, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ipFilter.enable"); //$NON-NLS-1$
+    
+    
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
     String[] headers = { "ipFilter.description", "ipFilter.start", "ipFilter.end" };
     int[] sizes = { 300, 120, 120 };
@@ -497,6 +507,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.heightHint = 300;
     gridData.verticalSpan = 4;
+    gridData.horizontalSpan = 2;
     table.setLayoutData(gridData);
 
     Button add = new Button(gFilter, SWT.PUSH);

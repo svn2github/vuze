@@ -120,6 +120,8 @@ public class ConfigurationDefaults {
     // Automatically switch these extensions to high priority (eg ".exe;.txt")
     //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
+    //Use or not the ip filtering feature
+    def.put("Ip Filter Enabled", new Long(0));
     
     
     /** Headless Server settings **/
