@@ -238,7 +238,7 @@ TOTorrentDeserialiseImpl
 						}
             
             //if the original announce url isn't found, add it to the list
-            if ( !announce_url_found ) {
+            if ( !announce_url_found && announce_list.size() > 0 ) {
               try {
               	Vector urls = new Vector();
               	urls.add( new URL( announce_url ));
