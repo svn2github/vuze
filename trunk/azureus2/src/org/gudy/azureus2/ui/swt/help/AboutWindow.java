@@ -148,31 +148,36 @@ public class AboutWindow {
         final int maxY = image.getBounds().height;
         final Image imgSrc = ImageRepository.getImage("azureus_splash");
         while(!finished[0]) {
-          if(image == null || image.isDisposed()) {
-            finished[0] = true;
-            break;
-          }
-          if(display == null || display.isDisposed()) {
-            finished[0] = true;
-            break;
-          }
-          display.asyncExec(new Runnable() {
-            public void run() {
-              GC gcImage = new GC(labelImage);
-              gcImage.setClipping(x[0],0,1,maxY);
-              gcImage.drawImage(imgSrc,0,0);
-              gcImage.dispose();
-              x[0]++;
-              if(x[0] >= maxX) {
-                finished[0] = true;
-                labelImage.setImage(imgSrc);
-              }
-            }
-          });
           try {
-            Thread.sleep(30);
-          }catch(Exception e) {
-            e.printStackTrace();
+	          if(image == null || image.isDisposed()) {
+	            finished[0] = true;
+	            break;
+	          }
+	          if(display == null || display.isDisposed()) {
+	            finished[0] = true;
+	            break;
+	          }
+	          display.asyncExec(new Runnable() {
+	            public void run() {
+	              GC gcImage = new GC(labelImage);
+	              gcImage.setClipping(x[0],0,1,maxY);
+	              gcImage.drawImage(imgSrc,0,0);
+	              gcImage.dispose();
+	              x[0]++;
+	              if(x[0] >= maxX) {
+	                finished[0] = true;
+	                labelImage.setImage(imgSrc);
+	              }
+	            }
+	          });
+	          try {
+	            Thread.sleep(30);
+	          }catch(Exception e) {
+	            e.printStackTrace();
+	          }
+          }
+          catch (Exception e){
+          	finished[0] = true;
           }
       }
     }};
