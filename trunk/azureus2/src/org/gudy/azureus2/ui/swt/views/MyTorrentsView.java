@@ -394,13 +394,10 @@ public class MyTorrentsView
     final MenuItem itemMoveEnd = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
     itemMoveEnd.setImage(ImageRepository.getImage("bottom"));
-
-    //TODO
-    /*
+    
     final MenuItem itemSpeed = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
-    itemSpeed.setImage(ImageRepository.getImage("speed"));
-    
+    itemSpeed.setImage(ImageRepository.getImage("speed"));    
     
     final Menu menuSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemSpeed.setMenu(menuSpeed);
@@ -410,22 +407,35 @@ public class MyTorrentsView
     
     new MenuItem(menuSpeed,SWT.SEPARATOR);
     
-    final MenuItem itemsSpeed[] = new MenuItem[10];
-    
-    
-    for(int i = 0 ; i < 10 ; i++) {
-      final int percent = (i+1) * 10;
-      itemsSpeed[i] = new MenuItem(menuSpeed,SWT.PUSH);
-      itemsSpeed[i].setText(percent + " %");
-      
-      itemsSpeed[i].addListener(SWT.Selection,new Listener() {
-        public void handleEvent(Event e) {
-          setSelectedTorrentsSpeed(percent);
+    final MenuItem itemsSpeed[] = new MenuItem[12];                
+    Listener itemsSpeedListener = new Listener() {
+      public void handleEvent(Event e) {
+        if(e.widget != null && e.widget instanceof MenuItem) {
+          MenuItem item = (MenuItem) e.widget;
+          int speed = item.getData("maxul") == null ? 0 : ((Integer)item.getData("maxul")).intValue();
+          setSelectedTorrentsSpeed(speed);
         }
-      });
-    }
-    */
+      }
+    };
     
+    
+    
+    itemsSpeed[1] = new MenuItem(menuSpeed,SWT.PUSH);
+    Messages.setLanguageText(itemsSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
+    itemsSpeed[1].setData("maxul", new Integer(0));    
+    itemsSpeed[1].addListener(SWT.Selection,itemsSpeedListener);
+    
+    for(int i = 2 ; i < 12 ; i++) {
+      itemsSpeed[i] = new MenuItem(menuSpeed,SWT.PUSH);      
+      itemsSpeed[i].addListener(SWT.Selection,itemsSpeedListener);
+    }
+    
+    //Disable at the end of the list, thus the first item of the array is instanciated last.
+    itemsSpeed[0] = new MenuItem(menuSpeed,SWT.PUSH);
+    Messages.setLanguageText(itemsSpeed[0],"MyTorrentsView.menu.setSpeed.disable");
+    itemsSpeed[0].setData("maxul", new Integer(-1));    
+    itemsSpeed[0].addListener(SWT.Selection,itemsSpeedListener);
+        
 
     // Category
 
@@ -520,16 +530,19 @@ public class MyTorrentsView
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened =
                    forceStart = forceStartEnabled = recheck = manualUpdate = changeSpeed = true;
           
-          float totalSpeed = 0;
+          long totalSpeed = 0;
+          boolean speedUnlimited = false;
+          boolean speedDisabled = false;
           for (int i = 0; i < dms.length; i++) {
             DownloadManager dm = (DownloadManager)dms[i];
             
             try {
-              //TODO ???
-              //totalSpeed = (totalSpeed * i) + dm.getPeerManager().getConnectionPool().getWritePercentOfMax();
+              int maxul = dm.getStats().getUploadRateLimitBytesPerSecond();              
+              if(maxul == 0) {speedUnlimited = true; }
+              if(maxul == -1) { maxul = 0; speedDisabled = true; }              
+              totalSpeed += maxul;
             } catch(NullPointerException ex) {
-              changeSpeed  = false;
-              //ex.printStackTrace();
+              changeSpeed  = false;;
             } catch (Exception ex) {
             	Debug.printStackTrace( ex );
             }
@@ -585,8 +598,36 @@ public class MyTorrentsView
           itemRemove.setEnabled(remove);
           itemRemoveAnd.setEnabled(remove);
 
-          //itemSpeed.
+          StringBuffer speedText = new StringBuffer();
+          String separator = "";
+          //itemSpeed.                   
+          if(speedDisabled) {
+            speedText.append(MessageText.getString("MyTorrentsView.menu.setSpeed.disabled"));
+            separator = " / ";
+          }
+          if(speedUnlimited) {
+            speedText.append(separator);
+            speedText.append(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
+            separator = " / ";
+          }                    
+          if(totalSpeed > 0) {
+            speedText.append(separator);
+            speedText.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(totalSpeed));
+          }                              
+          itemCurrentSpeed.setText(speedText.toString());          
           
+          
+          int maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+          //using 1MB/s as the default limit when no limit set.
+          if(maxUpload == 0) maxUpload = 1024 * 1024;
+          
+          
+          for(int i = 2 ; i < 12 ; i++) {
+            int limit = maxUpload / 10 * (12 - i);
+            itemsSpeed[i].setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
+            itemsSpeed[i].setData("maxul", new Integer(limit));
+          }
+                    
           itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);
@@ -1562,14 +1603,11 @@ public class MyTorrentsView
   
   private void setSelectedTorrentsSpeed(int speed) {      
     Object[] dms = getSelectedDataSources();
-    if(dms.length > 0) {
-      float realSpeedPerTorrent  = (float) speed / (dms.length * 100);
-      
+    if(dms.length > 0) {            
       for (int i = 0; i < dms.length; i++) {
         try {
           DownloadManager dm = (DownloadManager)dms[i];
-          //TODO ???
-          //dm.getPeerManager().getConnectionPool().setWritePercentOfMax(realSpeedPerTorrent);
+          dm.getStats().setUploadRateLimitBytesPerSecond(speed);
         } catch (Exception e) {
         	Debug.printStackTrace( e );
         }
