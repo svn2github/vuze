@@ -114,7 +114,7 @@ DMWriterAndCheckerImpl
 		lastPieceLength	= disk_manager.getLastPieceLength();
 		totalLength		= disk_manager.getTotalLength();
 		
-		nbPieces		= disk_manager.getPiecesNumber();
+		nbPieces		= disk_manager.getNumberOfPieces();
 		
 		md5 = new Md5Hasher();
 	    md5Result = DirectByteBufferPool.getBuffer( 16 );

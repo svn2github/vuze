@@ -70,7 +70,7 @@ RDResumeHandler
 		writer_and_checker	= _writer_and_checker;
 		
 		torrent			= disk_manager.getTorrent();
-		nbPieces		= disk_manager.getPiecesNumber();
+		nbPieces		= disk_manager.getNumberOfPieces();
 		pieceLength		= disk_manager.getPieceLength();
 		lastPieceLength	= disk_manager.getLastPieceLength();
 

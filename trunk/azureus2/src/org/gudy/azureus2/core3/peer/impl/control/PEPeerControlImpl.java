@@ -936,7 +936,7 @@ PEPeerControlImpl
     //Allowing 20% here.
     getRarestPieces(pc,20);
     
-    pieceNumber = _diskManager.getPiecenumberToDownload(_piecesRarest);
+    pieceNumber = _diskManager.getPieceNumberToDownload(_piecesRarest);
 
     if (pieceNumber == -1)
       return false;
@@ -1426,8 +1426,8 @@ PEPeerControlImpl
   public void setDiskManager(DiskManager diskManager) {
     //the diskManager that handles read/write operations
     _diskManager = diskManager;
-    _downloaded = _diskManager.getPiecesStatus();
-    _nbPieces = _diskManager.getPiecesNumber();
+    _downloaded = _diskManager.getPiecesDone();
+    _nbPieces = _diskManager.getNumberOfPieces();
 
     //the bitfield indicating if pieces are currently downloading or not
     _downloading = new boolean[_nbPieces];

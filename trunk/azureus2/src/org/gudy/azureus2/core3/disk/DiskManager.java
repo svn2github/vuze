@@ -104,14 +104,14 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 		int	pieceNumber );
   
 	public int 
-	getPiecenumberToDownload(
+	getPieceNumberToDownload(
 		boolean[] 	_piecesRarest );
 	
 	public boolean[] 
-	getPiecesStatus();
+	getPiecesDone();
 
 	public int 
-	getPiecesNumber();
+	getNumberOfPieces();
 
 	public DiskManagerFileInfo[]
 	getFiles();

@@ -1,5 +1,5 @@
 /*
- * Created on 31-Jul-2004
+ * Created on 01-Aug-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,55 +20,27 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl;
+package org.gudy.azureus2.core3.disk.impl.piecepicker;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.torrent.*;
-
 public interface 
-DiskManagerHelper 
-	extends DiskManager
+DMPiecePicker 
 {
-	public PieceList
-	getPieceList(
-		int	piece_number );
-	
-	public byte[]
-	getPieceHash(
-		int	piece_number );
+	public void
+	start();
 	
 	public void
-	setState(
-		int	state );
-	
-	public void
-	setErrorMessage(
-		String	str );
-	
-	public long
-	getAllocated();
-	
-	public void
-	setAllocated(
-		long		num );
-	
-	public void
-	setRemaining(
-		long		num );
-	
-	public void
-	setPercentDone(
-		int			num );
+	stop();
 	
 	public void 
-	computeFilesDone(
-		int pieceNumber ); 
+	computePriorityIndicator();
 	
-	public TOTorrent
-	getTorrent();
+	public int 
+	getPiecenumberToDownload(
+		boolean[] _piecesRarest);
+
 }

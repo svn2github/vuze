@@ -25,13 +25,13 @@ package org.gudy.azureus2.core3.disk.impl;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 import java.util.StringTokenizer;
 
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -55,7 +55,7 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
  */
 public class 
 DiskManagerImpl
-	implements DiskManagerHelper, ParameterListener, FMFileOwner 
+	implements DiskManagerHelper, FMFileOwner 
 {  
 
 	private String	dm_name	= "";
@@ -89,14 +89,13 @@ DiskManagerImpl
 	private DMWriterAndChecker		writer_and_checker;
 	
 	private RDResumeHandler			resume_handler;
+	private DMPiecePicker			piece_picker;
+	
 	
 	private String rootPath = null;
 
 	//The map that associate
 	private PieceList[] pieceMap;
-	private int pieceCompletion[];
-	private BitSet[] priorityLists;
-	//private int[][] priorityLists;
 
 	private DiskManagerFileInfoImpl[] files;
     private DownloadManager dmanager;
@@ -128,8 +127,6 @@ DiskManagerImpl
 				}
 			});		
 	
-    private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-  
 	public 
 	DiskManagerImpl(
 		TOTorrent			_torrent, 
@@ -249,7 +246,8 @@ DiskManagerImpl
 		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this,reader);
 		
 		resume_handler		= new RDResumeHandler( this, writer_and_checker );
-		
+	
+		piece_picker		= DMPiecePickerFactory.create( this );
 	}
 
 	public void start() {
@@ -258,10 +256,7 @@ DiskManagerImpl
 
 		started = true;
 
-    
-    // add configuration parameter listeners
-    COConfigurationManager.addParameterListener("Prioritize First Piece", this);
-    
+       
     Thread init = new AEThread("DiskManager:start") {
 			public void run() {
 				startSupport();
@@ -277,12 +272,6 @@ DiskManagerImpl
 	private void startSupport() {
 		//  create the pieces map
 		pieceMap = new PieceList[nbPieces];
-		pieceCompletion = new int[nbPieces];
-		priorityLists = new BitSet[100];
-		//    priorityLists = new int[10][nbPieces + 1];
-
-		// the piece numbers for getPiecenumberToDownload
-		//    _priorityPieces = new int[nbPieces + 1];
 
 		pieceDone = new boolean[nbPieces];
 		
@@ -325,6 +314,8 @@ DiskManagerImpl
 		constructPieceMap(btFileList);
 
 		constructFilesPieces();
+		
+		piece_picker.start();
 		
 		resume_handler.start();
 		  
@@ -536,31 +527,7 @@ DiskManagerImpl
 		return pieceToFileList;
 	}
 
-	private static class FlyWeightInteger {
-    private static Integer[] array = new Integer[1024];
 
-    final static Integer getInteger(final int value) {
-      Integer tmp = null;
-      
-      if (value >= array.length) {
-        Integer[] arrayNew = new Integer[value + 256];
-        System.arraycopy(array, 0, arrayNew, 0, array.length);
-        array = arrayNew;
-      }
-      else {
-        tmp = array[value];
-      }
-      
-      if (tmp == null) {
-        tmp = new Integer(value);
-        array[value] = tmp;
-      }
-      
-      return tmp;
-    }
-	}
-  
-  
 
 	private static class BtFile {
 		private DiskManagerFileInfoImpl _file;
@@ -844,7 +811,7 @@ DiskManagerImpl
 	}
 
 
-	public int getPiecesNumber() {
+	public int getNumberOfPieces() {
 		return nbPieces;
 	}
 
@@ -926,17 +893,16 @@ DiskManagerImpl
 		this.manager = manager;
 	}
 
-	public void stopIt() {
-        
-			// remove configuration parameter listeners
-		
-		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
-		
+	public void stopIt() 
+	{
+        		
     	writer_and_checker.stop();
     	
 		reader.stop();
 		
 		resume_handler.stop();
+		
+		piece_picker.stop();
 		
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {
@@ -1042,71 +1008,6 @@ DiskManagerImpl
 		return files;
 	}
 
-	public void computePriorityIndicator() {
-		for (int i = 0; i < pieceCompletion.length; i++) {
-		  
-		   //if the piece is already complete, skip computation
-		   if (pieceDone[i]) {
-		     pieceCompletion[i] = -1;
-		     continue;
-		   }
-      
-			PieceList pieceList = pieceMap[i];
-			int completion = -1;
-			
-			for (int k = 0; k < pieceList.size(); k++) {
-				//get the piece and the file 
-				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
-				
-				//If the file isn't skipped
-				if(fileInfo.isSkipped()) {
-					continue;
-				}
-
-				//if this is the first piece of the file
-				if (firstPiecePriority && i == fileInfo.getFirstPieceNumber()) {
-				  if (fileInfo.isPriority()) completion = 99;
-				  else completion = 97;
-				}
-        
-        //if the file is high-priority
-				else if (fileInfo.isPriority()) {
-				  completion = 98;
-				}
-				
-				//If the file is started but not completed
-				else {
-				  int percent = 0;
-				  if (fileInfo.getLength() != 0) {
-				    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
-				  }
-				  if (percent < 100) {
-				    completion = percent;
-				  }
-				}
-			}
-      
-			pieceCompletion[i] = completion;
-		}
-
-		for (int i = 0; i < priorityLists.length; i++) {
-			BitSet list = priorityLists[i];
-			if (list == null) {
-				list = new BitSet(pieceCompletion.length);
-			} else {
-				list.clear();
-			}
-			priorityLists[i]=list;
-		}
-		
-		int priority;
-		for (int j = 0; j < pieceCompletion.length; j++) {
-			priority = pieceCompletion[j];
-			if (priority >= 0) {
-				priorityLists[priority].set(j);
-			}
-		}
-	}
 
 	private void constructFilesPieces() {
 		for (int i = 0; i < pieceMap.length; i++) {
@@ -1144,84 +1045,7 @@ DiskManagerImpl
 		errorMessage	= str;
 	}
 	
-  /*
-	// searches from 0 to searchLength-1
-    public static int binarySearch(int[] a, int key, int searchLength) {
-		int low = 0;
-		int high = searchLength - 1;
-
-		while (low <= high) {
-			int mid = (low + high) >> 1;
-			int midVal = a[mid];
-
-			if (midVal < key)
-				low = mid + 1;
-			else if (midVal > key)
-				high = mid - 1;
-			else
-				return mid; // key found
-		}
-		return - (low + 1); // key not found.
-	}
-  */
-
-	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
-		//Added patch so that we try to complete most advanced files first.
-		List _pieces = new ArrayList();
-    
-		for (int i = 99; i >= 0; i--) {
-
-		  if (priorityLists[i].isEmpty()) {
-		    //nothing is set for this priority, so skip
-		    continue;
-		  }
-		  
-		  //Switch comments to enable sequential piece picking.
-		  //int k = 0;
-		  //for (int j = 0; j < nbPieces && k < 50; j++) {
-      
-		  for (int j = 0; j < nbPieces ; j++) {
-		    if (_piecesRarest[j] && priorityLists[i].get(j)) {
-		      _pieces.add( FlyWeightInteger.getInteger(j) );
-		      //k++;
-		    }
-		  }
-		  
-		  if (_pieces.size() != 0) {
-				break;
-		  }
-		}
-
-		if (_pieces.size() == 0) {
-		  return -1;
-		}
-
-		return ((Integer)_pieces.get((int) (Math.random() * _pieces.size()))).intValue();
-	}
-
-	/*
-	  public int getPiecenumberToDownload(boolean[] _piecesRarest) {
-		int pieceNumber;
-		//Added patch so that we try to complete most advanced files first.
-		_priorityPieces[nbPieces] = 0;
-		for (int i = priorityLists.length - 1; i >= 0; i--) {
-		  for (int j = 0; j < nbPieces; j++) {
-			if (_piecesRarest[j] && binarySearch(priorityLists[i], j, priorityLists[i][nbPieces]) >= 0) {
-			  _priorityPieces[_priorityPieces[nbPieces]++] = j;
-			}
-		  }
-		  if (_priorityPieces[nbPieces] != 0)
-			break;
-		}
-      
-		if (_priorityPieces[nbPieces] == 0)
-		  System.out.println("Size 0");
-      
-		int nPiece = (int) (Math.random() * _priorityPieces[nbPieces]);
-		pieceNumber = _priorityPieces[nPiece];
-		return pieceNumber;
-	  }
-	*/
+ 
 	/**
 	 * @return
 	 */
@@ -1509,14 +1333,7 @@ DiskManagerImpl
 	{
 		return( torrent );
 	}
-	
-  /**
-   * @param parameterName the name of the parameter that has changed
-   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
-   */
-  public void parameterChanged(String parameterName) {
-    firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-  }
+
 
   public void
   addListener(
@@ -1650,4 +1467,17 @@ DiskManagerImpl
   public PEPeerManager getPeerManager() {
     return manager;
   }
+  
+  	public void 
+	computePriorityIndicator()
+  	{
+  		piece_picker.computePriorityIndicator();
+  	}
+  	
+	public int 
+	getPieceNumberToDownload(
+		boolean[] _piecesRarest)
+	{
+		return( piece_picker.getPiecenumberToDownload( _piecesRarest ));
+	}
 }

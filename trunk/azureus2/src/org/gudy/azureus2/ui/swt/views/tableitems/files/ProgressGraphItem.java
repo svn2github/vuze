@@ -128,7 +128,7 @@ public class ProgressGraphItem
     
           DiskManager manager = fileInfo.getDiskManager();
     
-          boolean available[] = manager.getPiecesStatus();
+          boolean available[] = manager.getPiecesDone();
     
           PEPeerManager pm = manager.getPeerManager();
     

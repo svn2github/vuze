@@ -606,7 +606,7 @@ DownloadManagerImpl
 	if (peerManager != null)
 	  return peerManager.getPiecesStatus();
 	if (diskManager != null)
-	  return diskManager.getPiecesStatus();
+	  return diskManager.getPiecesDone();
 	return new boolean[nbPieces];
   }
 

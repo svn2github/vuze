@@ -1834,11 +1834,11 @@ DiskManagerOldImpl
 	}
     
 
-	public int getPiecesNumber() {
+	public int getNumberOfPieces() {
 		return nbPieces;
 	}
 
-	public boolean[] getPiecesStatus() {
+	public boolean[] getPiecesDone() {
 		return pieceDone;
 	}
 
@@ -2125,7 +2125,7 @@ DiskManagerOldImpl
 	}
   */
 
-	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
+	public int getPieceNumberToDownload(boolean[] _piecesRarest) {
 		//Added patch so that we try to complete most advanced files first.
 		List _pieces = new ArrayList();
     
