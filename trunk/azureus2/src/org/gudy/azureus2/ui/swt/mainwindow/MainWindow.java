@@ -7,33 +7,13 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.StringTokenizer;
-
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.AzureusCoreListener;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolderAdapter;
-import org.eclipse.swt.custom.CTabFolderEvent;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.custom.*;
+import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -49,28 +29,11 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
-import org.gudy.azureus2.plugins.update.UpdateChecker;
-import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
-import org.gudy.azureus2.plugins.update.UpdateManagerListener;
-import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
-import org.gudy.azureus2.ui.swt.IconBar;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
-import org.gudy.azureus2.ui.swt.PasswordWindow;
-import org.gudy.azureus2.ui.swt.Tab;
-import org.gudy.azureus2.ui.swt.TrayWindow;
+import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -79,20 +42,12 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
-import org.gudy.azureus2.ui.swt.views.ConsoleView;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.ManagerView;
-import org.gudy.azureus2.ui.swt.views.MySharesView;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
-import org.gudy.azureus2.ui.swt.views.MyTrackerView;
+import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreException;
-import com.aelitis.azureus.core.AzureusCoreListener;
+import java.util.*;
 
 /**
  * @author Olivier
@@ -279,8 +234,8 @@ MainWindow
       folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     } else {
       folder = new CTabFolder(mainWindow, SWT.CLOSE | SWT.FLAT);
-      final Color bg = ColorUtils.getShade(folder.getBackground(), -25);
-      final Color fg = ColorUtils.getShade(folder.getForeground(), 25);
+      final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -5);
+      final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 5);
       folder.setBackground(bg);
       folder.setForeground(fg);
       ((CTabFolder)folder).setBorderVisible(false);
