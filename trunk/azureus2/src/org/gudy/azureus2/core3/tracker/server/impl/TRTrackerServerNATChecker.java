@@ -172,7 +172,7 @@ TRTrackerServerNATChecker
 								
 								long	now = SystemTime.getCurrentTime();
 
-								System.out.println( "NAT Check: " + host + ":" + port + " -> " + ok +", time = " + (now-start) + ", queue = " + check_queue.size());
+								// System.out.println( "NAT Check: " + host + ":" + port + " -> " + ok +", time = " + (now-start) + ", queue = " + check_queue.size());
 								
 								listener.NATCheckComplete( ok );
 								
