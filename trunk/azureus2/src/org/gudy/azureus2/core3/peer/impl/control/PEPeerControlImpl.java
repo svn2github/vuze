@@ -70,10 +70,6 @@ PEPeerControlImpl
   private TRTrackerClient _tracker;
   private String _trackerStatus;
   //  private int _maxUploads;
-  private int _trackerState;
-  private static final int TRACKER_START = 1;
-  private static final int TRACKER_UPDATE = 2;
-  private static final int TRACKER_COMPLETE = 3;
   private int _seeds, _peers;
   private long _timeStarted;
   private long _timeFinished;
@@ -146,7 +142,6 @@ PEPeerControlImpl
 
     //The current tracker state
     //this could be start or update
-    _trackerState = TRACKER_START;
     _trackerStatus = "..."; //$NON-NLS-1$
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
@@ -390,9 +385,7 @@ PEPeerControlImpl
 	    }else{
 	    	
         	addPeersFromTracker( tracker_response.getPeers());
-        	
-        	_trackerState = TRACKER_UPDATE;
-        	
+        	        	
         	_trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
     	}
   	}
@@ -401,7 +394,7 @@ PEPeerControlImpl
 	processTrackerResponse(
 		TRTrackerResponse	response )
 	{
-		addPeersFromTracker( response.getPeers());
+		analyseTrackerResponse( response );
 	}
 
  	private void 
@@ -556,15 +549,8 @@ PEPeerControlImpl
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
-      
-      if ( !looks_like_restart ){
-      	
-      		// send "complete" event to tracker
-      		
-      	_trackerState = TRACKER_COMPLETE;
-      	
-      	checkTracker(true);
-      }
+            		
+      _tracker.complete( looks_like_restart );
     }
   }
 
@@ -695,36 +681,7 @@ PEPeerControlImpl
     	
     	_timeLastUpdate = time; //update last checked time
     	
-      	Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
-			public void 
-		  	run() 
-		 	{
-		  		try{
-		    		TRTrackerResponse result;
-		    	
-		        	if ( _trackerState == TRACKER_START ){
-		        
-		            	result = _tracker.start();
-		            	
-		        	}else if ( _trackerState == TRACKER_UPDATE){
-		        
-						result = _tracker.update();
-		        	    
-		        	}else{
-		        		
-		        		result = _tracker.complete();
-		        	}
-		        		        	
-		        	analyseTrackerResponse(result);
-		       
-		  		}catch (Throwable e){
-		        
-		    		e.printStackTrace();
-		  		} 
-		 	}
-		};
-    t.setDaemon(true);
-    t.start(); //start the thread
+ 		_tracker.update();
   }
 
   /**

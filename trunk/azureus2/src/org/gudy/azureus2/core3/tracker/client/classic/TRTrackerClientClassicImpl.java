@@ -23,7 +23,12 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+import java.util.List;
+import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Map;
+
+//import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
@@ -43,17 +48,24 @@ public class
 TRTrackerClientClassicImpl
 	implements TRTrackerClient 
 {
-	private TOTorrent		torrent;
+	private static Timer	tracker_timer = new Timer( "Tracker Timer", 10);
 	
-  private int timeout = 20000; // default timeout 20 seconds
-  private Thread httpConnecter = null;
-  private boolean httpConnected = false;
-
-  private List trackerUrlLists;
+	private TOTorrent		torrent;
+	private TimerEvent		current_timer_event;
+	
+	private int				tracker_state 		= TS_INITIALISED;
+	
+	private boolean			stopped;
+	private boolean			completed;
+	private boolean			complete_reported	= false;
+	
+	private boolean			update_in_progress	= false;
+	
+  	private List trackerUrlLists;
      
-  private String lastUsedUrl;
+  	private String lastUsedUrl;
   
-  private String trackerUrlListString;
+  	private String trackerUrlListString;
   
   private String info_hash = "?info_hash=";
   private byte[] peerId;
@@ -64,7 +76,6 @@ TRTrackerClientClassicImpl
   
   private PEPeerManager manager;
 
-  private boolean completed_event_sent = false;
   
   public final static int componentID = 2;
   public final static int evtLifeCycle = 0;
@@ -119,39 +130,167 @@ TRTrackerClientClassicImpl
 	this.port = "&port=" + _port;    
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
-
-  public TRTrackerResponse start() {
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
-	return update("started");
-  }
-
-  public TRTrackerResponse complete() {
 	
-	if ( !completed_event_sent ){
-	
-		completed_event_sent = true;
-
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
-		
-		return update("completed");
-	}else{
-		
-		return( update());
+	public void
+	update()
+	{
+		requestUpdate();
 	}
+	
+	public void
+	complete(
+		boolean	already_reported )
+	{
+		complete_reported	= (complete_reported || already_reported );
+		
+		completed			= true;
+		
+		requestUpdate();
+	}
+	
+	public void
+	stop()
+	{
+		stopped	= true;
+		
+		requestUpdate();
+	}
+	
+	protected synchronized void
+	requestUpdate()
+	{
+		if ( current_timer_event != null ){
+			
+			current_timer_event.cancel();
+		}
+		
+		current_timer_event = 
+			tracker_timer.addEvent( 
+				System.currentTimeMillis(),
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						requestUpdateSupport();
+					}
+				});
+	}
+	
+	protected void
+	requestUpdateSupport()
+	{
+		synchronized( this ){
+		
+			if ( update_in_progress ){
+			
+				return;
+			}
+		}
+		
+		try{
+			synchronized( this ){
+			
+				update_in_progress = true;
+			}
+			
+			TRTrackerResponse	response = null;
+			
+			if ( stopped ){
+				
+				if ( tracker_state == TS_INITIALISED ){
+					
+						// never started
+					
+					tracker_state = TS_STOPPED;
+					
+				}else if ( tracker_state != TS_STOPPED ){
+			
+					response = stopSupport();
+					
+					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+						
+						tracker_state = TS_STOPPED;
+					}
+				}	
+			}else if ( completed ){
+				
+				if ( !complete_reported ){
+					
+					response = completeSupport();
+					
+					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+						
+						complete_reported	= true;
+				
+						tracker_state = TS_COMPLETED;
+					}
+				}else{
+					tracker_state = TS_COMPLETED;
+					
+					response = updateSupport();
+				}
+				
+			}else if ( tracker_state == TS_INITIALISED ){
+								
+				response = startSupport();
+					
+				if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+						
+					tracker_state = TS_DOWNLOADING;
+				}
+			}else{
+				
+				response = updateSupport();
+			}
+						
+				// set up next event
+				
+			if ( response != null ){
+			
+				for (int i=0;i<listeners.size();i++){
+					
+					((TRTrackerClientListener)listeners.get(i)).receivedTrackerResponse( response );	
+				}
+			}
+		}finally{
+			
+			synchronized( this ){
+			
+				update_in_progress = false;
+			}
+		}
+	}
+	
+  protected TRTrackerResponse 
+  startSupport() 
+  {
+	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
+	
+	return(update("started"));
   }
 
-  public TRTrackerResponse stop() {
+  protected TRTrackerResponse 
+  completeSupport() 
+  {	
+	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
+		
+	return(update("completed"));
+  }
+
+  protected TRTrackerResponse 
+  stopSupport() 
+  {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
-	int oldTimeout = timeout;
-	if(timeout > 5000 || timeout == 0)
-	  timeout = 5000;
-	TRTrackerResponse response = update("stopped");
-	timeout = oldTimeout;
-	return response;
+	
+	return( update("stopped"));
   }
 
-  public TRTrackerResponse update() {
+  protected TRTrackerResponse 
+  updateSupport() 
+  {
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
+	
 	return update("");
   }
   
@@ -222,135 +361,105 @@ TRTrackerClientClassicImpl
 	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, last_failure_reason ));
   }
 
-  private byte[] 
-  updateOld(URL reqUrl,String evt)
+ 	private byte[] 
+ 	updateOld(URL reqUrl,String evt)
   
-  	throws Exception
-  {
-  	String	failure_reason = null;
+  		throws Exception
+	{
+  		String	failure_reason;
   	
-	try {      
-	  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
-	  final HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
-	  final ByteArrayOutputStream message = new ByteArrayOutputStream();
-
-	  if(httpConnecter != null && httpConnecter.isAlive() && !httpConnecter.isInterrupted()) {
-		httpConnecter.interrupt();
-	  }
+		try{      
+	  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
 	  
-	  final String[]	fr_for_thread = { null };
+	  		HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
 	  
-	  httpConnected = false;
-	  httpConnecter = new Thread("Tracker HTTP Connect") {
-		public void run() {
-		  try {
-			con.connect();
-			httpConnected = true;
-		  } catch (Exception ignore) {
-		  		  		
-			fr_for_thread[0] = exceptionToString( ignore );
-		  }
-		}
-	  };
-	  httpConnecter.setDaemon(true);
-	  httpConnecter.setPriority(Thread.MIN_PRIORITY);
-	  httpConnecter.start();
-
-	  try {
-		httpConnecter.join(timeout);
-	  } catch (InterruptedException ignore) {
-	   // if somebody interrupts us he knows what he is doing
-	   
-	   failure_reason = "timeout";
-	   
-	  }
+	  		ByteArrayOutputStream message = new ByteArrayOutputStream();
+	  	  
+ 	  		con.connect();
+	  	  
+	  		InputStream is = null;
 	  
-	  if ( failure_reason == null ){
-	  	
-	  	failure_reason = fr_for_thread[0];
-	  }
-	  
-	  if ( httpConnecter != null && httpConnecter.isAlive()){
-	  	
-		httpConnecter.interrupt();
-	  }
-	  
-	  httpConnecter = null;
-	  
-	  if(httpConnected) {
-		InputStream is = null;
-		try {
-		  is = con.getInputStream();
-		  //      int length = con.getContentLength();
-		  //      System.out.println(length);
-		  byte[] data = new byte[1024];
-		  int nbRead = 0;
-		  while (nbRead >= 0) {
-			try {
-			  nbRead = is.read(data);
-			  if (nbRead >= 0)
-				message.write(data, 0, nbRead);
-			  Thread.sleep(20);
-			} catch (Exception e) {
-			  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
-			  LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
-			  nbRead = -1;
-			  
-			  failure_reason = exceptionToString( e );
-			}
-		  }
+			try{
+				
+		  		is = con.getInputStream();
+		  		
+				  //      int length = con.getContentLength();
+		  		//      System.out.println(length);
 		  
-		  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+		  		byte[] data = new byte[1024];
+		  		
+		  		int nbRead = 0;
+		  		
+		  		while (nbRead >= 0) {
+		  			
+					try{
+			  			nbRead = is.read(data);
+			  			
+			  			if (nbRead >= 0){
+			  			
+							message.write(data, 0, nbRead);
+			  			}
+			  			
+			  			Thread.sleep(20);
+			  			
+					}catch (Exception e){
+						
+			  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+			  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+			  			
+						nbRead = -1;
+						
+			  			failure_reason = exceptionToString( e );
+					}
+		  		}
 		  
-		} catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+		  
+			}catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
 			
-			failure_reason = "SSL not supported";
+				failure_reason = "SSL not supported";
 			
-		} catch (Exception ignore) {
+			}catch (Exception ignore){
 			
-			// ignore.printStackTrace();
+				// ignore.printStackTrace();
 			
-			failure_reason = exceptionToString( ignore );
+				failure_reason = exceptionToString( ignore );
 			
-		} finally {
-		  if (is != null) {
-			try {
-			  is.close();
-			} catch (Exception e) {
+			}finally{
+				
+		  		if (is != null) {
+		  			
+					try {
+			  			is.close();
+			  			
+					}catch (Exception e) {
+					}
+			
+					is = null;
+				}
 			}
-			is = null;
-		  }
-		}
 		
-			// if we've got soem kind of response then return it
+				// if we've got some kind of response then return it
 			
-		if (message.size() > 0){
+			if (message.size() > 0){
 		
-			return( message.toByteArray());
+				return( message.toByteArray());
+			}else{
+				
+				failure_reason = "No data received from tracker";
+			}
+
+		}catch (Exception e){
+	  
+	  		//e.printStackTrace();
+	  
+	  		failure_reason = exceptionToString( e );
 		}
-	  }else{
-	  	
-	  	if (failure_reason == null ){
-	  		
-	  		failure_reason = "timeout";
-	  	}
-	  }
-	} catch (Exception e) {
-	  
-	  e.printStackTrace();
-	  
-	  failure_reason = exceptionToString( e );
-	}
 	
-	if (failure_reason != null ){
-		
 		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
 		
 		throw( new Exception( failure_reason));
-	}
-	
-	return( null );
-  }
+  	}
   
   protected String
   exceptionToString(
@@ -414,13 +523,6 @@ TRTrackerClientClassicImpl
 	return lastUsedUrl;
   }
 
-  /**
-   * @param timeout maximum time in ms to wait for con.connect()
-   */
-  public void setTimeout(int timeout) {
-	if(timeout >= 0)
-	  this.timeout = timeout;
-  }
 
   /**
    * @param trackerUrl

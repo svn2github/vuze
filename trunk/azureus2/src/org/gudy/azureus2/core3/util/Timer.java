@@ -37,7 +37,7 @@ public class Timer
 	
 	Object	lock = new Object(){};
 	
-	protected
+	public
 	Timer(
 		String	name,
 		int		thread_pool_size )
@@ -63,7 +63,7 @@ public class Timer
 					
 					if ( events.isEmpty()){
 						
-						System.out.println( "waiting forever" );
+						// System.out.println( "waiting forever" );
 						
 						this.wait();
 						
@@ -76,7 +76,7 @@ public class Timer
 						
 						if ( delay > 0 ){
 						
-							System.out.println( "waiting for " + delay );
+							// System.out.println( "waiting for " + delay );
 							
 							this.wait(delay);
 						}

@@ -48,7 +48,7 @@ import org.gudy.azureus2.core3.download.*;
 
 public class 
 DownloadManagerImpl 
-	implements DownloadManager, TRTrackerClientListener
+	implements DownloadManager
 {
 	private Vector	listeners 		= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -81,11 +81,14 @@ DownloadManagerImpl
   private TOTorrent			torrent;
   private String torrent_comment;
   private String torrent_created_by;
-  private TRTrackerClient 	tracker_client;
   
-  public DiskManager diskManager;
-  public PEPeerManager peerManager;
+  private TRTrackerClient 			tracker_client;
+  private TRTrackerClientListener	tracker_client_listener;
   
+  private DiskManager diskManager;
+  
+  private PEPeerManager 		peerManager;
+  private PEPeerManagerListener	peer_manager_listener;
    
   public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
 	this(gm, torrentFileName, savePath);
@@ -138,7 +141,35 @@ DownloadManagerImpl
 		
 		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
-		tracker_client.addListener( this );
+    	tracker_client_listener = 
+			new TRTrackerClientListener()
+			{
+				public void
+				 receivedTrackerResponse(
+					 TRTrackerResponse	response	)
+				 {
+				   peerManager.processTrackerResponse( response );
+				 }
+			
+				 public void
+				 urlChanged(
+				   String		url,
+				   boolean		explicit )
+				 {  	
+				   if ( explicit ){
+			  		
+					   checkTracker( true );
+				   }
+				 }
+			  
+				 public void
+				 urlRefresh()
+				 {
+				   checkTracker( true );
+				 }		
+			};
+			
+		tracker_client.addListener( tracker_client_listener );
 
 		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
 
@@ -156,7 +187,19 @@ DownloadManagerImpl
 	this.state = STATE_DOWNLOADING;
 	
 	peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
-	
+
+	peer_manager_listener = 	
+		new PEPeerManagerListener()
+		{
+			public void
+			stateChanged(
+				int	new_state )
+			{
+			}
+		};
+		
+	peerManager.addListener( peer_manager_listener );
+		
 	peerManager.start();
   }
 
@@ -319,6 +362,8 @@ DownloadManagerImpl
 		  stats.saveDiscarded(stats.getDiscarded());
 		  stats.saveHashFails(stats.getHashFails());
 			 	  
+		  peerManager.removeListener( peer_manager_listener );
+		  
 		  peerManager.stopAll(); 
 		  
 		  peerManager = null; 
@@ -343,7 +388,7 @@ DownloadManagerImpl
 		
 		if ( tracker_client != null ){
 		
-			tracker_client.removeListener( DownloadManagerImpl.this );
+			tracker_client.removeListener( tracker_client_listener );
 	
 			tracker_client.destroy();
 			
@@ -386,30 +431,8 @@ DownloadManagerImpl
   {
 	return( tracker_client );
   }
-  
-  public void
-  receivedTrackerResponse(
-	  TRTrackerResponse	response	)
-  {
-	peerManager.processTrackerResponse( response );
-  }
-
-  public void
-  urlChanged(
-  	String		url,
-  	boolean		explicit )
-  {  	
-  	if ( explicit ){
-  		
-  		checkTracker( true );
-  	}
-  }
-  
-  public void
-  urlRefresh()
-  {
-  	checkTracker( true );
-  }
+ 
+ 
   /**
    * @return
    */

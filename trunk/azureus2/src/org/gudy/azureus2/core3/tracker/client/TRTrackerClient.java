@@ -27,6 +27,12 @@ import org.gudy.azureus2.core3.peer.*;
 public interface 
 TRTrackerClient 
 {
+	public static final int TS_INITIALISED		= 1;
+	public static final int TS_DOWNLOADING		= 2;
+	public static final int TS_COMPLETED		= 3;
+	public static final int TS_STOPPED			= 4;
+
+	
 	public void
 	setManager(
 		PEPeerManager		manager );
@@ -57,17 +63,15 @@ TRTrackerClient
 		
 	public byte[]
 	getPeerId();
-	
-	public TRTrackerResponse
-	start();
-	
-	public TRTrackerResponse
+		
+	public void
 	update();
 	
-	public TRTrackerResponse
-	complete();
+	public void
+	complete(
+		boolean	already_reported );
 	
-	public TRTrackerResponse
+	public void
 	stop();
 	
 	public void
