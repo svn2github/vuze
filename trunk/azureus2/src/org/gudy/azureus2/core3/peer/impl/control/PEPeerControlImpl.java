@@ -860,7 +860,7 @@ PEPeerControlImpl
   		return;
   	}
   	
-    final int WANT_LIMIT = 200;
+    final int WANT_LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
     if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
