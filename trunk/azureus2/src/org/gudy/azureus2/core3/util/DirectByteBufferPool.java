@@ -173,7 +173,7 @@ public class DirectByteBufferPool {
         synchronized( refs ) {
           refs.put( wr, new Boolean( false ));
         }
-        dbb.ref = wr;
+        dbb.setReference( wr );
         synchronized( refMap ) {
           refMap.put( wr, buff );
         }
@@ -340,25 +340,49 @@ public class DirectByteBufferPool {
    
   private void reclaimBuffers() {
     Reference ref;
-    while ( (ref = refQueue.poll()) != null ) {
-      boolean returned;
+    
+    while ( (ref = refQueue.poll()) != null ){
+    	
+      Boolean returned;
+      
       synchronized( refs ) {
-        returned = ((Boolean)refs.remove( ref )).booleanValue();
+      	
+        returned = (Boolean)refs.remove( ref );
       }
+      
+      if ( returned == null ){
+      	
+      	Debug.out( "Buffer reference dequeued but not in 'refs' table" );
+      }
+      
       synchronized( refMap ) {
+      	
         ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
-        bytesIn += buff.capacity();
-        if ( !returned ) {
-          System.out.println("DirectByteBuffer not returned to pool: size=" +buff.limit());
+        
+        if ( buff == null ){
+        	
+          	Debug.out( "Buffer reference requeued but not in 'refMap' table" );
+       	
+        }else{
+        	
+	        bytesIn += buff.capacity();
+	        
+	        if ( returned != null && !returned.booleanValue()){
+	        	
+	        	Debug.out("DirectByteBuffer not returned to pool: size=" +buff.limit());
+	        }
+	        
+	        free( buff );
         }
-        free( buff );
       }
     }
   }
   
   
   protected static void registerReturn( Reference ref ) {
+  	
     Map refs = pool.refs;
+    
     synchronized( refs ) {
     	
       Boolean	old_val = (Boolean)refs.put( ref, new Boolean( true ));

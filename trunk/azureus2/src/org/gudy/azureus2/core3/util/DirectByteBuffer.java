@@ -48,7 +48,7 @@ DirectByteBuffer
 	
 	private final ByteBuffer buffer;
   
-	protected Reference ref;
+	private Reference ref;
   
 	public 
 	DirectByteBuffer( 
@@ -168,6 +168,13 @@ DirectByteBuffer
 				}
 			}
 		}
+	}
+	
+	protected void
+	setReference(
+		Reference	_ref )
+	{
+		ref		= _ref;
 	}
 	
 	public int
