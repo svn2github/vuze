@@ -16,7 +16,9 @@ import java.io.*;
  */
 public class Identification {
   
-  
+	public static final byte NON_SUPPLIED_PEER_ID_BYTE1 = (byte)'[';
+	public static final byte NON_SUPPLIED_PEER_ID_BYTE2 = (byte)']';
+	
   /**
    * Decodes the given peerID, returning an identification string.
    */  
@@ -132,7 +134,7 @@ public class Identification {
       
       	// check for internally generated 'ID' when none provided by tracker
       
-      if( peerID[0]=='[' && peerID[1]==']'){
+      if( peerID[0]==NON_SUPPLIED_PEER_ID_BYTE1 && peerID[1]==NON_SUPPLIED_PEER_ID_BYTE2){
       	return( "ID not available");
       }
       

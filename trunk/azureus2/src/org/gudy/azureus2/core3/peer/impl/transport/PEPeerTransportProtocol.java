@@ -335,15 +335,20 @@ PEPeerTransportProtocol
 	  }
 	}
 
-	else if (!incoming) {
-	  boolean same = true;
-	  for (int j = 0; j < this.id.length; j++) {
-		same = same && (this.id[j] == otherPeerId[j]);
-	  }
-	  if (!same) {
-	    LGLogger.log(ip + " has sent handshake, but the peerID is wrong. InfoHash is the same though, so ignoring...");
-       //closeAll(ip + " has sent handshake, but peerId is wrong",true, false);
-		 //return;
+	else if (!incoming){
+		
+	  if( 	this.id[0] != Identification.NON_SUPPLIED_PEER_ID_BYTE1 ||
+	  		this.id[1] == Identification.NON_SUPPLIED_PEER_ID_BYTE2 ){
+	  	
+		  boolean same = true;
+		  for (int j = 0; j < this.id.length; j++) {
+			same = same && (this.id[j] == otherPeerId[j]);
+		  }
+		  if (!same) {
+		    LGLogger.log(ip + " has sent handshake, but the peerID is wrong. InfoHash is the same though, so ignoring...");
+	       //closeAll(ip + " has sent handshake, but peerId is wrong",true, false);
+			 //return;
+		  }
 	  }
 	}
 

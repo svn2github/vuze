@@ -1194,8 +1194,8 @@ TRTrackerClientClassicImpl
 								
 									// unique initial two bytes to identify this as fake (See Identification.java)
 								
-								peerId[0] = '[';
-								peerId[1] = ']';
+								peerId[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
+								peerId[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
 								
 								byte[]	ip_bytes 	= (byte[])s_ip;
 								int		ip_len		= ip_bytes.length;
