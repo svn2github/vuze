@@ -1117,77 +1117,68 @@ public class ConfigView extends AbstractIView {
 		Messages.setLanguageText(itemStats, "ConfigView.section.tracker"); //$NON-NLS-1$
 
 		Group gTracker = new Group(tfConfig, SWT.NULL);
-		
 	    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-	    
 		gTracker.setLayoutData(gridData);
-		
 		layout = new GridLayout();
-		
-		layout.numColumns = 4;
-		
+		layout.numColumns = 6;	
 		gTracker.setLayout(layout);
 
 		// row
 		
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
-    
-		label = new Label(gTracker, SWT.NULL);
-		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin"); 
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		label.setLayoutData( gridData );
    
-		IntParameter pollIntervalMin = new IntParameter(gTracker, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
+		Group gPollStuff = new Group(gTracker, SWT.NULL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData.horizontalSpan = 5;
+		gPollStuff.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 4;	
+		gPollStuff.setLayout(layout);
+   
+		label = new Label(gPollStuff, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin"); 
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+   
+		IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
 	
 		gridData = new GridData();
 		gridData.widthHint = 30;
 		pollIntervalMin.setLayoutData( gridData );
-		
-		// row
-		
-		label = new Label(gTracker, SWT.NULL);
-				
-		label = new Label(gTracker, SWT.NULL);
+						
+		label = new Label(gPollStuff, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax"); 
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		label.setLayoutData( gridData );
    
-		IntParameter pollIntervalMax = new IntParameter(gTracker, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
+		IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
 	
 		gridData = new GridData();
 		gridData.widthHint = 30;
 		pollIntervalMax.setLayoutData( gridData );
 		
 		// row
-		
-		label = new Label(gTracker, SWT.NULL);
-				
-		label = new Label(gTracker, SWT.NULL);
+						
+		label = new Label(gPollStuff, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby"); 
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		label.setLayoutData( gridData );
   
-		IntParameter pollIntervalIncBy = new IntParameter(gTracker, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
+		IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
 		
 		gridData = new GridData();
 		gridData.widthHint = 30;
 		pollIntervalIncBy.setLayoutData( gridData );
-		
-		// row
-		
-		label = new Label(gTracker, SWT.NULL);
-				
-		label = new Label(gTracker, SWT.NULL);
+						
+		label = new Label(gPollStuff, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper"); 
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		label.setLayoutData( gridData );
    
-		IntParameter pollIntervalIncPer = new IntParameter(gTracker, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
+		IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
 		
 		gridData = new GridData();
 		gridData.widthHint = 30;
@@ -1232,6 +1223,11 @@ public class ConfigView extends AbstractIView {
 
 		 }
 	   });
+	   
+	   label = new Label(gTracker, SWT.NULL);
+	   gridData = new GridData();
+	   gridData.horizontalSpan = 2;
+	   label.setLayoutData( gridData );
 		
 	   // row
 		
@@ -1252,6 +1248,10 @@ public class ConfigView extends AbstractIView {
 	   nonsslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_ssl_controls ));
 
 	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gTracker, SWT.NULL);
+	   gridData = new GridData();
+	   gridData.horizontalSpan = 2;
+	   label.setLayoutData( gridData );
 		
 	   // row
 		
@@ -1284,6 +1284,10 @@ public class ConfigView extends AbstractIView {
          Program.launch(linkFAQ);
        }
      });
+	 label = new Label(gTracker, SWT.NULL);
+	 gridData = new GridData();
+	 gridData.horizontalSpan = 2;
+	 label.setLayoutData( gridData );
 
     // row
 			
@@ -1296,6 +1300,10 @@ public class ConfigView extends AbstractIView {
 	  enablePublish.setLayoutData( gridData );
 
       label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
 
       // row
 			
@@ -1308,6 +1316,10 @@ public class ConfigView extends AbstractIView {
 	  publicPublish.setLayoutData( gridData );
 
       label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
 
 	  // row
 
@@ -1320,6 +1332,10 @@ public class ConfigView extends AbstractIView {
 	  passwordEnableWeb.setLayoutData( gridData );
 
 	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
 	  
 	  // row
 
@@ -1334,6 +1350,10 @@ public class ConfigView extends AbstractIView {
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent.info"); 
 
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
 
 		// row
 		
@@ -1348,6 +1368,10 @@ public class ConfigView extends AbstractIView {
 	  tracker_username.setLayoutData( gridData );
 
 	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
 
 	 	 // row
 		
