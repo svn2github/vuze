@@ -166,7 +166,7 @@ public class MyTorrentsView extends AbstractIView
         ,"eta;L;I;70;11"
         ,"priority;L;I;50;12"
 
-        ,"tracker;L;I;70;-1"
+        ,"tracker;L;S;70;-1"
         ,"shareRatio;R;I;70;-1"
         ,"up;R;I;70;-1"
         ,"remaining;R;I;70;-1"
@@ -195,7 +195,7 @@ public class MyTorrentsView extends AbstractIView
         ,"shareRatio;R;I;70;9"
         ,"up;R;I;70;10"
 
-        ,"tracker;L;I;70;-1"
+        ,"tracker;L;S;70;-1"
         ,"done;R;I;55;-1"
         ,"maxuploads;R;I;30;-1"
         ,"totalspeed;R;I;70;-1"
@@ -1288,6 +1288,15 @@ public class MyTorrentsView extends AbstractIView
     if (menuThisColumn.getItemCount() > 0) {
       new MenuItem(menuThisColumn, SWT.SEPARATOR);
     }
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
+    item.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
+        table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
+      }
+    });
 
     item = new MenuItem(menuThisColumn, SWT.PUSH);
     Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
