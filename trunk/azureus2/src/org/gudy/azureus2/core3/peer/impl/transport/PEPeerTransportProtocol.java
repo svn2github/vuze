@@ -352,14 +352,7 @@ PEPeerTransportProtocol
     return;
   }
   
-  
-  //make sure we haven't reached our connection limit
-  int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
-  if ( maxAllowed == 0 ) {
-    closeAll("Too many existing peer connections", false, false);
-    return;
-  }
-  
+
   
   //make sure we are not already connected to this peer
   boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
@@ -377,6 +370,15 @@ PEPeerTransportProtocol
     closeAll(ip + " exchanged handshake, but peer matches pre-existing IP address", false, false);
     return;
   }
+  
+  
+  //make sure we haven't reached our connection limit
+  int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
+  if ( maxAllowed == 0 ) {
+    closeAll("Too many existing peer connections", false, false);
+    return;
+  }
+  
   
 
   PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
