@@ -236,6 +236,13 @@ DownloadManagerStatsImpl
 	  return(saved_downloaded);
 	}
 
+	protected void
+	setSavedDownloaded(
+		long	l )
+	{
+		saved_downloaded = l; 
+	}
+	
 	public long getUploaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null)

@@ -292,7 +292,8 @@ DownloadManagerImpl
 		}
 	}
 
-  public void initialize() 
+  public void 
+  initialize() 
   {
   	initial_tracker_response_cache	= null;
   	
@@ -352,8 +353,9 @@ DownloadManagerImpl
       tracker_client.addListener( tracker_client_listener );
 
       initializeDiskManager();
-
+	
       setState( STATE_INITIALIZED );
+
 
     }catch( TRTrackerClientException e ){
       e.printStackTrace();
@@ -361,7 +363,9 @@ DownloadManagerImpl
     }
   }
 
-  public void startDownload() {
+  public void 
+  startDownload() 
+  {
 	setState( STATE_DOWNLOADING );
 	
 	PEPeerManager temp = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
@@ -1415,10 +1419,29 @@ DownloadManagerImpl
   					}
   					
   					if (oldDMState == DiskManager.CHECKING) {
-      				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-  				    DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
-            }
+  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+  						DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
+  					}
   					  
+  					if ( newDMState == DiskManager.READY ){
+  						
+  							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+  							// and resumed 
+  					
+  						if ( stats.getDownloaded() == 0 ){
+  						
+  							int	completed = stats.getDownloadCompleted(false);
+  							
+  								// for seeds leave things as they are as they may never have been downloaded in the
+  								// first place...
+  							
+  							if ( completed < 1000 ){
+  								
+  								stats.setSavedDownloaded( (completed*diskManager.getTotalLength())/1000);
+  							}
+  						}
+  					}
+  					
   					int	dl_state = getState();
   					
   					if ( dl_state != state ){
