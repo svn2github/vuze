@@ -403,7 +403,7 @@ public class MainWindow implements IComponentListener {
       }
     });
 
-    MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
+    /*MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
     view_irc.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -412,7 +412,7 @@ public class MainWindow implements IComponentListener {
         else
           irc.setFocus();
       }
-    });
+    });*/
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 

@@ -32,7 +32,7 @@ public class IrcView extends AbstractIView implements MessageListener {
   StyledText consoleText;
   Text inputField;
   Color[] colors;
-  
+
   IrcClient client;
 
   /* (non-Javadoc)
@@ -48,16 +48,16 @@ public class IrcView extends AbstractIView implements MessageListener {
     consoleText.setLayoutData(gridData);
     inputField = new Text(composite, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    inputField.setLayoutData(gridData);   
+    inputField.setLayoutData(gridData);
     inputField.addKeyListener(new KeyAdapter() {
       /* (non-Javadoc)
        * @see org.eclipse.swt.events.KeyListener#keyReleased(org.eclipse.swt.events.KeyEvent)
        */
       public void keyReleased(KeyEvent event) {
-        if(event.keyCode == 13) {
+        if (event.keyCode == 13) {
           String text = inputField.getText();
           inputField.setText("");
-          client.sendMessage(text);          
+          client.sendMessage(text);
         }
       }
     });
@@ -66,7 +66,8 @@ public class IrcView extends AbstractIView implements MessageListener {
     colors[1] = MainWindow.blues[2];
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
-    client = new IrcClient(this); 
+    client = new IrcClient(this);
+
   }
 
   /* (non-Javadoc)
@@ -103,11 +104,10 @@ public class IrcView extends AbstractIView implements MessageListener {
     return MessageText.getString("IrcView.title.full"); //$NON-NLS-1$
   }
 
-
-  public void messageReceived(String sender,String message) {    
+  public void messageReceived(String sender, String message) {
     doLog(2, sender + " > " + message);
   }
-  
+
   public void systemMessage(String message) {
     doLog(0, message);
   }
@@ -124,9 +124,8 @@ public class IrcView extends AbstractIView implements MessageListener {
         int nbLines = consoleText.getLineCount();
         if (nbLines > 4096 + 256)
           consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), ""); //$NON-NLS-1$
-        Calendar now = GregorianCalendar.getInstance();        
-        String timeStamp =
-          "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+        Calendar now = GregorianCalendar.getInstance();
+        String timeStamp = "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         nbLines = consoleText.getLineCount();
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
         consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);
@@ -135,11 +134,11 @@ public class IrcView extends AbstractIView implements MessageListener {
       }
     });
   }
-  
-  
+
   private String format(int n) {
-    if(n < 10) return "0" + n; //$NON-NLS-1$
+    if (n < 10)
+      return "0" + n; //$NON-NLS-1$
     return "" + n; //$NON-NLS-1$
   }
-  
+
 }
