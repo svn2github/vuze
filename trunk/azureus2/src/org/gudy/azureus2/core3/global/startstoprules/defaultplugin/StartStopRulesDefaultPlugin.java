@@ -128,6 +128,7 @@ public class StartStopRulesDefaultPlugin
   int iFirstPriorityDLMinutes;
   
   boolean bAutoStart0Peers;
+  int iMaxUploadSpeed;
 
   TableColumn seedingRankColumn;
 
@@ -426,7 +427,7 @@ public class StartStopRulesDefaultPlugin
     iFirstPriorityDLMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_DLMinutes");
     
     bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
-
+    iMaxUploadSpeed = plugin_config.getIntParameter("Max Upload Speed KBs",0);
 
     if (iNewRankType != iRankType) {
       iRankType = iNewRankType;
@@ -486,6 +487,7 @@ public class StartStopRulesDefaultPlugin
     int totalComplete = 0;
     int totalIncompleteQueued = 0;
     int totalFirstPriority = 0;
+    int totalStalledSeeders = 0;
 
     // pull the data into an local array, so we don't have to lock/synchronize
     downloadData[] dlDataArray;
@@ -532,6 +534,8 @@ public class StartStopRulesDefaultPlugin
             activeSeedingCount++;
             if (download.isForceStart())
               totalForcedSeeding++;
+          } else if (state == Download.ST_SEEDING) {
+            totalStalledSeeders++;
           }
           if (state == Download.ST_READY ||
               state == Download.ST_WAITING ||
@@ -564,6 +568,25 @@ public class StartStopRulesDefaultPlugin
     int iExtraFPs = (maxActive != 0) && (maxDownloads != 0) && 
                     (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) 
                                                                         : 0;
+    int maxTorrents;
+    if (iMaxUploadSpeed == 0) {
+      maxTorrents = 4;
+    } else {
+      // Don't allow more "seeding/downloading" torrents than there is enough
+      // bandwidth for.  There needs to be enough bandwidth for at least
+      // each torrent to get to its minSpeedForActiveSeeding  
+      // (we buffer it at 2x just to be safe).
+      int minSpeedPerActive = (minSpeedForActiveSeeding * 2) / 1024;
+      // Even more buffering/limiting.  Limit to enough bandwidth for
+      // each torrent to have potentially 3kbps.
+      if (minSpeedPerActive < 3)
+        minSpeedPerActive = 3;
+      maxTorrents = (iMaxUploadSpeed / minSpeedPerActive);
+      // Allow user to do stupid things like have more slots than their 
+      // upload speed can handle
+      if (maxTorrents < maxActive)
+        maxTorrents = maxActive;
+    }
 
     String[] mainDebugEntries = null;
     if (bDebugLog) {
@@ -896,6 +919,7 @@ public class StartStopRulesDefaultPlugin
         // Change to waiting if queued and we have an open slot
         } else if ((state == Download.ST_QUEUED) &&
                    (numWaitingOrSeeding < maxSeeders) && 
+                   ((activeSeedingCount + totalStalledSeeders + totalDownloading) < maxTorrents) &&
                    (dlData.getSeedingRank() > -2) && 
                    !higherQueued) {
           try {
