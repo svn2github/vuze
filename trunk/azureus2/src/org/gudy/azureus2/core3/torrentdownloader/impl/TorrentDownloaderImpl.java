@@ -64,6 +64,9 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       }
 
       this.filename = this.con.getHeaderField("Content-Disposition");
+      if ((this.filename!=null) && this.filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
+        while (this.filename.toLowerCase().charAt(0)!='a')
+          this.filename = this.filename.substring(1);
       if ((this.filename == null) || !this.filename.toLowerCase().startsWith("attachment") || (this.filename.indexOf('=') == -1)) {
         String tmp = this.url.getFile();
         if (tmp.lastIndexOf('/') != -1)
@@ -71,6 +74,8 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
         this.filename = URLDecoder.decode(tmp, "UTF-8");
       } else {
         this.filename = this.filename.substring(this.filename.indexOf('=') + 1);
+        if (this.filename.startsWith("\"") && this.filename.endsWith("\""))
+          this.filename = this.filename.substring(1, this.filename.lastIndexOf('\"'));
         File temp = new File(this.filename);
         this.filename = temp.getName();
       }
