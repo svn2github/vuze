@@ -37,6 +37,8 @@ public class DiskManager {
   private int pieceLength;
   private int lastPieceLength;
 
+  private int[] _priorityPieces;
+
   private byte[] piecesHash;
   private int nbPieces;
   private long totalLength;
@@ -110,6 +112,9 @@ public class DiskManager {
     pieceCompletion = new int[nbPieces];
     priorityLists = new int[10][nbPieces + 1];
 
+    // the piece numbers for getPiecenumberToDownload
+    _priorityPieces = new int[nbPieces + 1];
+
     pieceDone = new boolean[nbPieces];
 
     fileName = "";
@@ -157,13 +162,15 @@ public class DiskManager {
       //define a variable to keep track of what piece we're on
       //      int currentPiece = 0;
 
+      StringBuffer pathBuffer = new StringBuffer(256);
+      final char separator = System.getProperty("file.separator").charAt(0);
+
       //get the root
-      rootPath = fileName;
-      rootPath = rootPath + System.getProperty("file.separator");
+      rootPath = fileName + separator;
 
       //:: Directory patch 08062003 - Tyler
       //check for a user selecting the full path
-      String fullPath = path + System.getProperty("file.separator");
+      String fullPath = path + separator;
       if (fullPath.lastIndexOf(rootPath) == (fullPath.length() - rootPath.length())) {
         rootPath = ""; //null out rootPath
       }
@@ -178,13 +185,14 @@ public class DiskManager {
         long fileLength = ((Long) fileDictionay.get("length")).longValue();
         //build the path
         List fileList = (List) fileDictionay.get("path");
-
-        StringBuffer pathBuffer = new StringBuffer();
+        
+        int size = fileList.size();
         //build the path string
-        for (int j = 0; j < fileList.size(); j++) {
+        for (int j = 0; j < size; j++) {
           //attach every element
-          if (j != (fileList.size() - 1)) //are we the filename?
-            {
+          if (j != (size - 1)) { //are we the filename?
+            pathBuffer.setLength(0);
+
             try {
               pathBuffer.append(LocaleUtil.getCharsetString((byte[]) fileList.get(j)));
             } catch (UnsupportedEncodingException e) {
@@ -193,9 +201,8 @@ public class DiskManager {
               return;
             }
 
-            pathBuffer.append(System.getProperty("file.separator"));
-          } else //no, then we must be a part of the path
-            {
+            pathBuffer.append(separator);
+          } else { //no, then we must be a part of the path
             //add the file entry to the file holder list 
             try {
               btFileList.add(new BtFile(pathBuffer.toString(), LocaleUtil.getCharsetString((byte[]) fileList.get(j)), fileLength));
@@ -1202,10 +1209,6 @@ public class DiskManager {
     }
   }
 
-  public int[][] getPriorityLists() {
-    return priorityLists;
-  }
-
   private void constructFilesPieces() {
     for (int i = 0; i < pieceMap.length; i++) {
       List pieceList = pieceMap[i];
@@ -1233,6 +1236,47 @@ public class DiskManager {
    */
   public String getErrorMessage() {
     return errorMessage;
+  }
+
+  // searches from 0 to searchLength-1
+  public static int binarySearch(int[] a, int key, int searchLength) {
+    int low = 0;
+    int high = searchLength - 1;
+  
+    while (low <= high) {
+      int mid = (low + high) >> 1;
+      int midVal = a[mid];
+  
+      if (midVal < key)
+        low = mid + 1;
+      else if (midVal > key)
+        high = mid - 1;
+      else
+        return mid; // key found
+    }
+    return - (low + 1); // key not found.
+  }
+
+  public int getPiecenumberToDownload(boolean[] _piecesRarest) {
+    int pieceNumber;
+    //Added patch so that we try to complete most advanced files first.
+    _priorityPieces[nbPieces] = 0;
+    for (int i = priorityLists.length - 1; i >= 0; i--) {
+      for (int j = 0; j < nbPieces; j++) {
+        if (_piecesRarest[j] && binarySearch(priorityLists[i], j, priorityLists[i][nbPieces]) >= 0) {
+          _priorityPieces[_priorityPieces[nbPieces]++] = j;
+        }
+      }
+      if (_priorityPieces[nbPieces] != 0)
+        break;
+    }
+  
+    if (_priorityPieces[nbPieces] == 0)
+      System.out.println("Size 0");
+  
+    int nPiece = (int) (Math.random() * _priorityPieces[nbPieces]);
+    pieceNumber = _priorityPieces[nPiece];
+    return pieceNumber;
   }
 
 }

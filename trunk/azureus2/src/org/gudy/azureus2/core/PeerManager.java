@@ -26,13 +26,12 @@ public class PeerManager extends Thread {
   private boolean[] _downloaded;
   private boolean[] _downloading;
   private boolean _finished;
-  private boolean[] _piecesRarest;
+  protected boolean[] _piecesRarest;
   private byte[] _hash;
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
   private Piece[] _pieces;
-  private int[] _priorityPieces;
   private Server _server;
   private PeerStats _stats;
   private long _timeLastUpdate;
@@ -630,24 +629,7 @@ public class PeerManager extends Thread {
 
     //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.
 
-    //Added patch so that we try to complete most advanced files first.
-    int[][] priorityLists = _diskManager.getPriorityLists();
-    _priorityPieces[_nbPieces] = 0;
-    for (int i = priorityLists.length - 1; i >= 0; i--) {
-      for (int j = 0; j < _nbPieces; j++) {
-        if (_piecesRarest[j] && binarySearch(priorityLists[i], j, priorityLists[i][_nbPieces]) >= 0) {
-          _priorityPieces[_priorityPieces[_nbPieces]++] = j;
-        }
-      }
-      if (_priorityPieces[_nbPieces] != 0)
-        break;
-    }
-
-    if (_priorityPieces[_nbPieces] == 0)
-      System.out.println("Size 0");
-
-    int nPiece = (int) (Math.random() * _priorityPieces[_nbPieces]);
-    pieceNumber = _priorityPieces[nPiece];
+    pieceNumber = _diskManager.getPiecenumberToDownload(_piecesRarest);
 
     if (pieceNumber == -1)
       return false;
@@ -671,25 +653,6 @@ public class PeerManager extends Thread {
 
     pc.request(pieceNumber, blockNumber * BLOCK_SIZE, piece.getBlockSize(blockNumber));
     return true;
-  }
-
-  // searches from 0 to searchLength-1
-  public static int binarySearch(int[] a, int key, int searchLength) {
-    int low = 0;
-    int high = searchLength - 1;
-
-    while (low <= high) {
-      int mid = (low + high) >> 1;
-      int midVal = a[mid];
-
-      if (midVal < key)
-        low = mid + 1;
-      else if (midVal > key)
-        high = mid - 1;
-      else
-        return mid; // key found
-    }
-    return - (low + 1); // key not found.
   }
 
   private void getRarestPieces(PeerSocket pc) {
@@ -1119,9 +1082,6 @@ public class PeerManager extends Thread {
 
     //the pieces
     _pieces = new Piece[_nbPieces];
-
-    // the piece numbers for findPieceToDownload
-    _priorityPieces = new int[_nbPieces + 1];
 
     //the availability level of each piece in the network
     _availability = new int[_nbPieces];
