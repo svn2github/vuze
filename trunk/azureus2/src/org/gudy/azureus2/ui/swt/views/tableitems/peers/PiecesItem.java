@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.eclipse.swt.graphics.GC;
@@ -37,7 +37,7 @@ public class PiecesItem extends PeerGraphicItem  {
   private final static int borderVerticalSize = 1;
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
-  
+
   /**
    * @param row
    * @param position
@@ -47,8 +47,10 @@ public class PiecesItem extends PeerGraphicItem  {
     /* We dispose of our own images because we store them against PEPeer */
     disposeGraphic = false;
   }
-  
+
   public void dispose() {
+    //if (peerRow.getPeerSocket() == null) System.out.println("crap! infoObj == null! Graphic possibly == " + getGraphic());
+
     PEPeer infoObj = peerRow.getPeerSocket();
 
     setGraphic(null);
@@ -59,23 +61,23 @@ public class PiecesItem extends PeerGraphicItem  {
     infoObj.setData("ImageBuffer", null);
     infoObj.setData("Image", null);
   }
-  
+
   public void refresh() {
     /* Notes:
      * We store our image and imageBufer in PEPeer using
      * setData & getData.
      * This means, we can ignore peerRow.isValid(). peerRow gets marked
      * invalid when its link between peerRow and the table row changes.
-     * However, since our data isn't reliant on the table row, it may not 
+     * However, since our data isn't reliant on the table row, it may not
      * really be invalid.
      */
     //Bounds of canvas without padding
     Rectangle bounds = getBoundsForCanvas();
-    
+
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
-      
+
     PEPeer infoObj = peerRow.getPeerSocket();
 
     int x0 = borderVerticalSize;
@@ -91,19 +93,19 @@ public class PiecesItem extends PeerGraphicItem  {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
-    
+
     Image image = (Image)infoObj.getData("Image");
     GC gcImage;
-    boolean bImageSizeChanged;
+    boolean bImageChanged;
     Rectangle imageBounds;
     if (image == null || image.isDisposed()) {
-      bImageSizeChanged = true;
+      bImageChanged = true;
     } else {
       imageBounds = image.getBounds();
-      bImageSizeChanged = imageBounds.width != bounds.width ||
-                          imageBounds.height != bounds.height;
+      bImageChanged = imageBounds.width != bounds.width ||
+                      imageBounds.height != bounds.height;
     }
-    if (bImageSizeChanged) {
+    if (bImageChanged) {
       if (image != null && !image.isDisposed()) {
         image.dispose();
       }
@@ -125,7 +127,7 @@ public class PiecesItem extends PeerGraphicItem  {
         gcImage.drawLine(0, 0, 0, bounds.height - 1);
         gcImage.drawLine(bounds.width - 1, 0, bounds.width - 1, bounds.height - 1);
       }
-      
+
       if (borderSplit > 0) {
         gcImage.setForeground(MainWindow.white);
         gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
@@ -135,7 +137,6 @@ public class PiecesItem extends PeerGraphicItem  {
       gcImage = new GC(image);
     }
 
-    boolean bImageChanged = false;
     boolean available[] = infoObj.getAvailable();
     if (available != null && available.length > 0) {
       int nbComplete = 0;
@@ -147,16 +148,16 @@ public class PiecesItem extends PeerGraphicItem  {
           // always start out with one piece
           a0 = 0;
           a1 = nbPieces / drawWidth;
-          if (a1 == 0) 
+          if (a1 == 0)
             a1 = 1;
         } else {
           // the last iteration, a1 will be nbPieces
           a0 = a1;
           a1 = ((i + 1) * nbPieces) / (drawWidth);
         }
-        
+
         int index;
-        
+
         if (a1 <= a0) {
           index = imageBuffer[i - 1];
         } else {
@@ -176,7 +177,6 @@ public class PiecesItem extends PeerGraphicItem  {
           gcImage.drawLine(i + x0, y0, i + x0, y1);
         }
       }
-
       int limit = (drawWidth * nbComplete) / nbPieces;
       if (limit < drawWidth) {
         gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);

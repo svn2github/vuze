@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.GC;
@@ -38,7 +38,7 @@ public class PiecesItem extends TorrentGraphicItem  {
   private final static int borderVerticalSize = 1;
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
-  
+
   /**
    * @param row
    * @param position
@@ -48,8 +48,10 @@ public class PiecesItem extends TorrentGraphicItem  {
     /* We dispose of our own images because we store them against DownloadManager */
     disposeGraphic = false;
   }
-  
+
   public void dispose() {
+    //if (torrentRow.getManager() == null) System.out.println("crap! infoObj == null! Graphic possibly == " + getGraphic());
+
     setGraphic(null);
     DownloadManager infoObj = torrentRow.getManager();
     if (infoObj == null)
@@ -68,22 +70,22 @@ public class PiecesItem extends TorrentGraphicItem  {
      * setData & getData.
      * This means, we can ignore peerRow.isValid(). peerRow gets marked
      * invalid when its link between peerRow and the table row changes.
-     * However, since our data isn't reliant on the table row, it may not 
+     * However, since our data isn't reliant on the table row, it may not
      * really be invalid.
      */
-    BufferedTableRow row = torrentRow.getRow();    
+    BufferedTableRow row = torrentRow.getRow();
     if (row == null || row.isDisposed())
       return;
-    
+
     //Compute bounds ...
     Rectangle bounds = getBoundsForCanvas();
 
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
-      
+
     DownloadManager infoObj = torrentRow.getManager();
-      
+
     int x0 = borderVerticalSize;
     int x1 = bounds.width - 1 - borderVerticalSize;
     int y0 = completionHeight + borderHorizontalSize + borderSplit;
@@ -97,19 +99,19 @@ public class PiecesItem extends TorrentGraphicItem  {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
-    
+
     Image image = (Image)infoObj.getData("Image");
     GC gcImage;
-    boolean bImageSizeChanged;
+    boolean bImageChanged;
     Rectangle imageBounds;
     if (image == null || image.isDisposed()) {
-      bImageSizeChanged = true;
+      bImageChanged = true;
     } else {
       imageBounds = image.getBounds();
-      bImageSizeChanged = imageBounds.width != bounds.width ||
-                          imageBounds.height != bounds.height;
+      bImageChanged = imageBounds.width != bounds.width ||
+                      imageBounds.height != bounds.height;
     }
-    if (bImageSizeChanged) {      
+    if (bImageChanged) {
       if (image != null && !image.isDisposed()) {
         image.dispose();
       }
@@ -131,7 +133,7 @@ public class PiecesItem extends TorrentGraphicItem  {
         gcImage.drawLine(0, 0, 0, bounds.height - 1);
         gcImage.drawLine(bounds.width - 1, 0, bounds.width - 1, bounds.height - 1);
       }
-      
+
       if (borderSplit > 0) {
         gcImage.setForeground(MainWindow.white);
         gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
@@ -141,7 +143,6 @@ public class PiecesItem extends TorrentGraphicItem  {
       gcImage = new GC(image);
     }
 
-    boolean bImageChanged = false;
     boolean available[] = infoObj.getPiecesStatus();
     if (available != null && available.length > 0) {
       int nbComplete = 0;
@@ -153,16 +154,16 @@ public class PiecesItem extends TorrentGraphicItem  {
           // always start out with one piece
           a0 = 0;
           a1 = nbPieces / drawWidth;
-          if (a1 == 0) 
+          if (a1 == 0)
             a1 = 1;
         } else {
           // the last iteration, a1 will be nbPieces
           a0 = a1;
           a1 = ((i + 1) * nbPieces) / (drawWidth);
         }
-        
+
         int index;
-        
+
         if (a1 <= a0) {
           index = imageBuffer[i - 1];
         } else {
