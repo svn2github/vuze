@@ -90,6 +90,15 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
+		COConfigurationManager.addListener(
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
+				{
+					announce_url	= null;
+				}
+			});
 	}
 	
 	public void
