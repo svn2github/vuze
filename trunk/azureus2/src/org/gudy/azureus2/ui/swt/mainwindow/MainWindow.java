@@ -499,21 +499,12 @@ MainWindow
     statusDown.setLayoutData(gridData);
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
 
-    Listener lStats = new Listener() {
-    	public void handleEvent(Event e) {
-    		showStats();
-    	}
-    };
-    
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
     statusUp = new CLabel(statusBar, borderFlag);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
     Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
-   
-    statusDown.addListener(SWT.MouseDoubleClick,lStats);
-    statusUp.addListener(SWT.MouseDoubleClick,lStats);
     
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);    
     menuUpSpeed.addListener(SWT.Show,new Listener() {
@@ -1393,18 +1384,22 @@ MainWindow
 	    return null;
 	  }
   }
-  
+
   public void refreshIconBar() {
     iconBar.setCurrentEnabler(this);
   }
 
-  
-  
+  public void close() {
+      getShell().close();
+  }
 
-  
-  
+  public void closeViewOrWindow() {
+      if(getCurrentView() != null)
+        Tab.closeCurrent();
+      else
+          close();
+  }
 
-  
   public void showConfig() {
     if (config == null)
       config = new Tab(new ConfigView( azureus_core ));

@@ -157,14 +157,9 @@ UpdateMonitor
 						runSupport()
 						{
 							if ( start_of_day ){
-								
-								MainWindow mainWindow = MainWindow.getWindow();
-				
-							    mainWindow.setStatusText( 
-							    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
-										" / MainWindow.status.latestversionunchecked" );
+                                MainWindow.getWindow().setStatusText("");
 							}
-							
+
 							CoreUpdateChecker.doUsageStats();
 						}
 					});
@@ -205,7 +200,7 @@ UpdateMonitor
 	    
 		MainWindow mainWindow = MainWindow.getWindow();
 		
-	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
+	    mainWindow.setStatusText("MainWindow.status.checking ...");
 	    
 	    	// take this off this GUI thread in case it blocks for a while
 	    
@@ -248,9 +243,7 @@ UpdateMonitor
 			
 			MainWindow mainWindow = MainWindow.getWindow();
 		
-		    mainWindow.setStatusText( 
-		    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
-					" / MainWindow.status.latestversion " + (latest_version==null?"Unknown":latest_version ));
+		    mainWindow.setStatusText("");
 		}
 		
 	    Update[] us = instance.getUpdates();
@@ -323,10 +316,8 @@ UpdateMonitor
 		UpdateCheckInstance		instance )
 	{
 		MainWindow mainWindow = MainWindow.getWindow();
-		
-		mainWindow.setStatusText( 
-		    		Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + 
-					" / MainWindow.status.latestversion " + "Unknown" );
+
+		mainWindow.setStatusText("");
 
 	}
 }

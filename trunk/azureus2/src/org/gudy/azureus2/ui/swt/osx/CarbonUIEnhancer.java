@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 
 import java.io.IOException;
 
@@ -27,13 +28,23 @@ public class CarbonUIEnhancer {
          private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
    private static final int kHICommandAbout= ('a'<<24) + ('b'<<16) + ('o'<<8) + 'u';
    private static final int kHICommandServices= ('s'<<24) + ('e'<<16) + ('r'<<8) + 'v';
+   private static final int kHICommandWizard = ('c'<<24) + ('o'<<16) + ('n' << 8) + 'f';
+   private static final int kHICommandRestart = ('r'<<24) + ('e'<<16) + ('s'<<8) + 't';
 
    private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
    private static String fgAboutActionName;
+   private static String fgWizardActionName;
+   private static String fgRestartActionName;
 
    public CarbonUIEnhancer() {
       if (fgAboutActionName == null) {
          fgAboutActionName = MessageText.getString("MainWindow.menu.help.about");
+      }
+      if(fgWizardActionName == null) {
+          fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
+      }
+      if(fgRestartActionName == null) {
+          fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
       }
       earlyStartup();
       registerTorrentFile();
@@ -72,7 +83,8 @@ public class CarbonUIEnhancer {
       );
    }
       /**
-    * See Apple Technical Q&A 1079 (http://developer.apple.com/qa/qa2001/qa1079.html)
+    * See Apple Technical Q&A 1079 (http://developer.apple.com/qa/qa2001/qa1079.html)<br />
+    * Also http://developer.apple.com/documentation/Carbon/Reference/Menu_Manager/menu_mgr_ref/function_group_10.html
     */
    public void hookApplicationMenu(final Display display) {
             // Callback target
@@ -88,6 +100,12 @@ public class CarbonUIEnhancer {
                case kHICommandAbout:
                  AboutWindow.show(display);
                  return OS.noErr;
+               case kHICommandRestart:
+                  MainWindow.getWindow().dispose(true,false);
+                  return OS.noErr;
+               case kHICommandWizard:
+                  new ConfigureWizard(MainWindow.getWindow().getAzureusCore(), display);
+                  return OS.noErr;
                default:
                   break;
                }
@@ -108,7 +126,7 @@ public class CarbonUIEnhancer {
       };
       OS.InstallEventHandler(OS.GetApplicationEventTarget(), commandProc, mask.length / 2, mask, 0, null);
 
-      // create About Eclipse menu command
+      // create About menu command
       int[] outMenu= new int[1];
       short[] outIndex= new short[1];
       if (OS.GetIndMenuItemWithCommandID(0, kHICommandPreferences, 1, outMenu, outIndex) == OS.noErr && outMenu[0] != 0) {
@@ -127,6 +145,26 @@ public class CarbonUIEnhancer {
          OS.EnableMenuCommand(menu, kHICommandPreferences);
                // disable services menu
          OS.DisableMenuCommand(menu, kHICommandServices);
+
+          // wizard menu
+         l= fgWizardActionName.length();
+         buffer= new char[l];
+         fgWizardActionName.getChars(0, l, buffer, 0);
+         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandWizard);
+         OS.CFRelease(str);
+
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 4, OS.kMenuItemAttrSeparator, 0);
+
+          // restart menu
+         l= fgRestartActionName.length();
+         buffer= new char[l];
+         fgRestartActionName.getChars(0, l, buffer, 0);
+         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandRestart);
+         OS.CFRelease(str);
+
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6, OS.kMenuItemAttrSeparator, 0);
       }
 
       // schedule disposal of callback object

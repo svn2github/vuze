@@ -230,11 +230,12 @@ public class Messages {
         
         if (widget instanceof MenuItem) {
             final MenuItem menuItem = ((MenuItem) widget);
+            boolean indent = (menuItem.getData("IndentItem") != null);
 
             if(Constants.isOSX)
-                menuItem.setText(HIG_ELLIP_EXP.matcher(message).replaceAll("\u2026")); // hig style - ellipsis
-            else
-                menuItem.setText(message);
+                message = HIG_ELLIP_EXP.matcher(message).replaceAll("\u2026"); // hig style - ellipsis
+
+            menuItem.setText(indent ? "  " + message : message);
 
             if(menuItem.getAccelerator() != 0) // opt-in only for now; remove this conditional check to allow accelerators for arbitrary MenuItem objects
                 KeyBindings.setAccelerator(menuItem, (String)menuItem.getData()); // update keybinding

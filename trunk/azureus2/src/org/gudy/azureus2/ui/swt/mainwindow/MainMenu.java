@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
+import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -61,9 +62,6 @@ public class MainMenu {
   private MainWindow mainWindow;
     
   private Menu menuBar;
-  
-  private MenuItem menu_tools;
-  private Menu toolsMenu;
   
   private MenuItem menu_plugin;
   private Menu pluginMenu;
@@ -91,44 +89,51 @@ public class MainMenu {
       Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
       Menu fileMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
       fileItem.setMenu(fileMenu);
-      
+
+      MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
+      KeyBindings.setAccelerator(file_create, "MainWindow.menu.file.create");
+
       MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
       Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
       
       MenuItem file_share= new MenuItem(fileMenu, SWT.CASCADE);
       Messages.setLanguageText(file_share, "MainWindow.menu.file.share"); //$NON-NLS-1$
-      
-      MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
-      Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
   
       new MenuItem(fileMenu, SWT.SEPARATOR);
-  
-      MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_export, "MainWindow.menu.file.export");
-      Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
-  
+
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
       KeyBindings.setAccelerator(file_import, "MainWindow.menu.file.import");
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
-       
+
+      MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_export, "MainWindow.menu.file.export");
+      Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
+
       new MenuItem(fileMenu, SWT.SEPARATOR);
-      
-      MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
-      Messages.setLanguageText(file_restart, "MainWindow.menu.file.restart"); //$NON-NLS-1$
-      
-      file_restart.addListener(SWT.Selection, new Listener() {
+
+      addCloseWindowMenuItem(fileMenu);
+      addCloseTabMenuItem(fileMenu);
+      addCloseDetailsMenuItem(fileMenu);
+      addCloseDownloadBarsToMenu(fileMenu);
+
+
+
+      //No need for restart and exit on OS X
+      if(!Constants.isOSX) {
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+
+        MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
+        Messages.setLanguageText(file_restart, "MainWindow.menu.file.restart"); //$NON-NLS-1$
+
+        file_restart.addListener(SWT.Selection, new Listener() {
 
         public void handleEvent(Event event) {
 
-        	MainWindow.getWindow().dispose(true,false);
+            MainWindow.getWindow().dispose(true,false);
          }
-      });
-      
-      
-      //No need for exit on OS X
-      if(! Constants.isOSX) {
-        new MenuItem(fileMenu, SWT.SEPARATOR);
-  
+        });
+
         MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
         KeyBindings.setAccelerator(file_exit, "MainWindow.menu.file.exit");
         Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
@@ -153,16 +158,6 @@ public class MainMenu {
           TorrentOpener.openTorrent();
         }
       });
-      
-/* Not working.. Hide for release
-      MenuItem file_new_torrentwindow = new MenuItem(newMenu, SWT.NULL);
-      file_new_torrentwindow.setText(MessageText.getString("MainWindow.menu.file.open.torrent") + " (Experimental)");
-      file_new_torrentwindow.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openTorrentWindow();
-        }
-      });
-*/
   
       MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
       KeyBindings.setAccelerator(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault");
@@ -333,108 +328,45 @@ public class MainMenu {
     		});
       
       	// ******** The View Menu
-      
       MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
       Menu viewMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
       viewItem.setMenu(viewMenu);
-  
-      MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
-      KeyBindings.setAccelerator(view_torrents, "MainWindow.menu.view.mytorrents");
-      Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
-      view_torrents.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-    	mainWindow.showMyTorrents();
-        }
-      });
-  
-    MenuItem view_tracker = new MenuItem(viewMenu, SWT.NULL);
-    KeyBindings.setAccelerator(view_tracker, "MainWindow.menu.view.mytracker");
-    Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
-    view_tracker.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        mainWindow.showMyTracker();
+
+      addMenuItemLabel(viewMenu, "MainWindow.menu.view.show");
+      indent(addMyTorrentsMenuItem(viewMenu));
+      indent(addMyTrackerMenuItem(viewMenu));
+      indent(addMySharesMenuItem(viewMenu));
+
+        if(Constants.isOSX) {
+          indent(addConsoleMenuItem(viewMenu));
+          indent(addStatisticsMenuItem(viewMenu));
       }
-    });
-    
-    MenuItem view_shares = new MenuItem(viewMenu, SWT.NULL);
-    KeyBindings.setAccelerator(view_shares, "MainWindow.menu.view.myshares");
-    Messages.setLanguageText(view_shares, "MainWindow.menu.view.myshares"); //$NON-NLS-1$
-    view_shares.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-        mainWindow.showMyShares();
-    	}
-    });
 
-  
-
-      new MenuItem(viewMenu, SWT.SEPARATOR);
-  
-      MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
-      KeyBindings.setAccelerator(view_closeDetails, "MainWindow.menu.closealldetails");
-      Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
-      view_closeDetails.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          Tab.closeAllDetails();
-        }
-      });
-  
-      addCloseDownloadBarsToMenu(viewMenu);
-      
-      
       //the Tools menu
-      menu_tools = new MenuItem(menuBar,SWT.CASCADE);
-      Messages.setLanguageText(menu_tools, "MainWindow.menu.tools"); //$NON-NLS-1$
-      toolsMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
-      menu_tools.setMenu(toolsMenu);
-      
-      MenuItem view_console = new MenuItem(toolsMenu, SWT.NULL);
+        if(!Constants.isOSX) {
+            MenuItem menu_tools = new MenuItem(menuBar,SWT.CASCADE);
+            Messages.setLanguageText(menu_tools, "MainWindow.menu.tools"); //$NON-NLS-1$
+            Menu toolsMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
+            menu_tools.setMenu(toolsMenu);
 
-      KeyBindings.setAccelerator(view_console, "MainWindow.menu.view.console");
-      Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
-      view_console.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          mainWindow.showConsole();                    
-        }
-      });
-  
-      MenuItem view_stats = new MenuItem(toolsMenu, SWT.NULL);
-      KeyBindings.setAccelerator(view_stats, "MainWindow.menu.view.stats");
-      Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
-      view_stats.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          mainWindow.showStats();
-        }
-      });
-            
-      
-      
-      new MenuItem(toolsMenu, SWT.SEPARATOR);
-      
-      MenuItem file_configure = new MenuItem(toolsMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_configure, "MainWindow.menu.file.configure");
-      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-      file_configure.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          new ConfigureWizard(mainWindow.getAzureusCore(), display);
-        }
-      });
-      
-      
-      //No need for configuration on OS X
-      if(! Constants.isOSX) {                
-        MenuItem view_config = new MenuItem(toolsMenu, SWT.NULL);
-        KeyBindings.setAccelerator(view_config, "MainWindow.menu.view.configuration");
-        Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
-        view_config.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
+            addBlockedIPsMenuItem(toolsMenu);
+            addConsoleMenuItem(toolsMenu);
+            addStatisticsMenuItem(toolsMenu);
+            new MenuItem(toolsMenu, SWT.SEPARATOR);
+
+            addConfigWizardMenuItem(toolsMenu);
+
+            //No need for configuration on OS X
+            MenuItem view_config = new MenuItem(toolsMenu, SWT.NULL);
+            KeyBindings.setAccelerator(view_config, "MainWindow.menu.view.configuration");
+            Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
+            view_config.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
             mainWindow.showConfig();
-          }
-        });
+            }
+            });
       }
-      
-      
-      
       
       //the Plugins menu
       menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
@@ -462,8 +394,24 @@ public class MainMenu {
           new UnInstallPluginWizard(mainWindow.getAzureusCore(), display);
         }
       });
-      
-      
+
+      // standard items
+      if(Constants.isOSX) {
+          // Window menu
+          final MenuItem menu_window = new MenuItem(menuBar, SWT.CASCADE);
+          Messages.setLanguageText(menu_window, "MainWindow.menu.window");
+          Menu windowMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+          menu_window.setMenu(windowMenu);
+
+          // minimize, zoom
+          addMinimizeWindowMenuItem(windowMenu);
+          addZoomWindowMenuItem(windowMenu);
+          new MenuItem(windowMenu, SWT.SEPARATOR);
+          addBlockedIPsMenuItem(windowMenu);
+          new MenuItem(windowMenu, SWT.SEPARATOR);
+          addBringAllToFrontMenuItem(windowMenu);
+      }
+
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
@@ -480,21 +428,6 @@ public class MainMenu {
           });
       }
 
-      if ( !SystemProperties.isJavaWebStartInstance()){
-        
-        MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
-        KeyBindings.setAccelerator(help_checkupdate, "MainWindow.menu.help.checkupdate");
-        Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
-        help_checkupdate.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {          
-            UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
-          }
-        });
-      }
-      
-      
-      new MenuItem(helpMenu,SWT.SEPARATOR);
-      
       MenuItem help_health = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_health, "MyTorrentsView.menu.health");
       help_health.addListener(SWT.Selection, new Listener() {
@@ -502,8 +435,20 @@ public class MainMenu {
           HealthHelpWindow.show( display );
         }
       });
-      
-      
+
+      if ( !SystemProperties.isJavaWebStartInstance()){
+          MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+          KeyBindings.setAccelerator(help_checkupdate, "MainWindow.menu.help.checkupdate");
+          Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
+          help_checkupdate.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
+      }
+    });
+      }
+
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+
       MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
       help_faq.addListener(SWT.Selection, new Listener() {
@@ -512,10 +457,7 @@ public class MainMenu {
           Program.launch(faqString);
         }
       });
-      
-      new MenuItem(helpMenu,SWT.SEPARATOR);
-      
-      
+
       MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
       help_new.addListener(SWT.Selection, new Listener() {
@@ -523,7 +465,10 @@ public class MainMenu {
           Program.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
         }
       });
-      
+
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+
+
       
       MenuItem help_plugin= new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_plugin, "MainWindow.menu.help.plugins"); //$NON-NLS-1$
@@ -533,10 +478,7 @@ public class MainMenu {
             Program.launch(pluginString);
           }
         });
-    
-  
-      new MenuItem(helpMenu,SWT.SEPARATOR);
-      
+
       MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
       help_donate.addListener(SWT.Selection, new Listener() {
@@ -552,17 +494,153 @@ public class MainMenu {
     }
   }
 
+    private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
+      MenuItem item = new MenuItem(menu, SWT.NULL);
+      Messages.setLanguageText(item, localizationKey);
+      KeyBindings.setAccelerator(item, localizationKey);
+      item.addListener(SWT.Selection, selListener);
+      return item;
+  }
+
+  private static final void indent(MenuItem item) {
+      item.setData("IndentItem", "YES");
+      item.setText("  " + item.getText());
+  }
+
+  private static final MenuItem addMenuItemLabel(Menu menu, String localizationKey) {
+      MenuItem item = new MenuItem(menu, SWT.NULL);
+      Messages.setLanguageText(item, localizationKey);
+      item.setEnabled(false);
+      return item;
+  }
+
+  private MenuItem addMyTorrentsMenuItem(Menu menu) {
+      return addMenuItem(menu, "MainWindow.menu.view.mytorrents", new Listener() {
+        public void handleEvent(Event e) {
+          mainWindow.showMyTorrents();
+        }
+      });
+  }
+
+  private MenuItem addMyTrackerMenuItem(Menu menu)
+    {
+        return addMenuItem(menu, "MainWindow.menu.view.mytracker", new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.showMyTracker();
+          }
+        });
+    }
+
+    private MenuItem addMySharesMenuItem(Menu menu)
+    {
+        return addMenuItem(menu, "MainWindow.menu.view.myshares", new Listener() {
+            public void handleEvent(Event e) {
+            mainWindow.showMyShares();
+            }
+        });
+    }
+
+    private MenuItem addConsoleMenuItem(Menu menu) {
+       return addMenuItem(menu, "MainWindow.menu.view.console", new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.showConsole();
+          }
+        });
+    }
+
+    private MenuItem addStatisticsMenuItem(Menu menu) {
+       return addMenuItem(menu, "MainWindow.menu.view.stats", new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.showStats();
+          }
+        });
+    }
+
+    private void addConfigWizardMenuItem(Menu menu) {
+        addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {
+          public void handleEvent(Event e) {
+            new ConfigureWizard(mainWindow.getAzureusCore(), display);
+          }
+        });
+    }
+
+   private void addCloseDetailsMenuItem(Menu menu) {
+       addMenuItem(menu, "MainWindow.menu.closealldetails", new Listener() {
+         public void handleEvent(Event e) {
+           Tab.closeAllDetails();
+         }
+      });
+  }
+
+  private void addCloseWindowMenuItem(Menu menu) {
+      addMenuItem(menu, "MainWindow.menu.file.closewindow", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              mainWindow.close();
+          }
+      });
+  }
+
+  private void addCloseTabMenuItem(Menu menu) {
+      addMenuItem(menu, "MainWindow.menu.file.closetab", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              mainWindow.closeViewOrWindow();
+          }
+      });
+  }
+
+  private void addMinimizeWindowMenuItem(Menu menu) {
+      addMenuItem(menu, "MainWindow.menu.window.minimize", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              mainWindow.getShell().setMinimized(true);
+          }
+      });
+  }
+
+  private void addZoomWindowMenuItem(Menu menu) {
+      addMenuItem(menu, "MainWindow.menu.window.zoom", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              mainWindow.getShell().setMaximized(!MainWindow.getWindow().getShell().getMaximized());
+          }
+      });
+  }
+
+  private void addBringAllToFrontMenuItem(Menu menu) {
+      addMenuItem(menu, "MainWindow.menu.window.alltofront", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              mainWindow.getShell().setMinimized(false);
+          }
+      });
+  }
+
+  private void addBlockedIPsMenuItem(Menu menu) {
+      addMenuItem(menu, "ConfigView.section.ipfilter.list.title", new Listener() {
+          public void handleEvent(Event event) {
+              if(MainWindow.isAlreadyDead) {return;}
+
+              BlockedIpsWindow.showBlockedIps(mainWindow.getAzureusCore(), mainWindow.getShell());
+          }
+      });
+  }
+
   public void addCloseDownloadBarsToMenu(Menu menu) {
-    MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
-    Messages.setLanguageText(view_closeAll, "MainWindow.menu.closealldownloadbars"); //$NON-NLS-1$
-    view_closeAll.addListener(SWT.Selection, new Listener() {
+    addMenuItem(menu, "MainWindow.menu.closealldownloadbars", new Listener() {
       public void handleEvent(Event e) {
         mainWindow.closeDownloadBars();
       }
     });
   }
 
-  
+
   public void updateMenuText(Object menu) {
     if (menu == null)
       return;
