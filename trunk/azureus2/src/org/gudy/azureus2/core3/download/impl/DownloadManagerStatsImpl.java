@@ -234,15 +234,7 @@ DownloadManagerStatsImpl
 	    return saved_downloaded + pm.getStats().getTotalReceived();
 	  }
 	  return(saved_downloaded);
-	}
-
-	protected void
-	setSavedDownloaded(
-		long	l )
-	{
-		saved_downloaded = l; 
-	}
-	
+	}	
   
 	public long getUploaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();

@@ -1577,7 +1577,9 @@ DownloadManagerImpl
   							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
   							// and resumed 
   					
-  						if ( stats.getDownloaded() == 0 ){
+  						if ( 	stats.getDownloaded() == 0 &&
+  								stats.getUploaded() == 0 &&
+  								stats.getSecondsDownloading() == 0 ){
   						
   							int	completed = stats.getDownloadCompleted(false);
   							
@@ -1585,9 +1587,15 @@ DownloadManagerImpl
   								// first place...
   							
   							if ( completed < 1000 ){
+ 
+  									// assume downloaded = uploaded, optimistic but at least results in
+  									// future share ratios relevant to amount up/down from now on
+  									// see bug 1077060 
   								
-  								stats.setSavedDownloaded( (completed*diskManager.getTotalLength())/1000);
-  							}
+  								long	amount_downloaded = (completed*diskManager.getTotalLength())/1000;
+  								
+ 								stats.setSavedDownloadedUploaded( amount_downloaded,amount_downloaded );
+   							}
   						}
   					}
   					
