@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
@@ -366,7 +367,7 @@ public class DiskManager {
         }
 
         if (resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
-            for (int i = 0; i < resumeArray.length; i++) //parse the array
+            for (int i = 0; i < resumeArray.length && bContinue; i++) //parse the array
                 {
                 percentDone = ((i + 1) * 1000) / nbPieces;
                 //mark the pieces
@@ -684,6 +685,25 @@ public class DiskManager {
             if (separator == -1)
                 separator = 0;
             fileInfo.setExtension(tempName.substring(separator));
+            
+            //Added for Feature Request
+            //[ 807483 ] Prioritize .nfo files in new torrents
+            //Implemented a more general way of dealing with it.
+            String extensions = ConfigurationManager.getInstance().getStringParameter("priorityExtensions","");
+            if(!extensions.equals("")) {
+                StringTokenizer st = new StringTokenizer(extensions,";");
+                while(st.hasMoreTokens()) {
+                  String extension = st.nextToken();
+                  extension = extension.trim();
+                  if(!extension.startsWith("."))
+                    extension = "." + extension;
+                  if(fileInfo.getExtension().equals(extension)) {
+                    fileInfo.setPriority(true);
+                  }                    
+                }
+            }
+            
+            
             fileInfo.setLength(length);
             fileInfo.setDownloaded(0);
             fileInfo.setFile(f);

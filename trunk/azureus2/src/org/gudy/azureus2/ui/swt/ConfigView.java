@@ -178,6 +178,12 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gGlobal, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
+    
+    label = new Label(gGlobal, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    new StringParameter(gGlobal, "priorityExtensions","").setLayoutData(gridData); //$NON-NLS-1$       
 
     Group gTransfer = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
