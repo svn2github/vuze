@@ -25,6 +25,7 @@ package org.gudy.azureus2.pluginsimpl.remote.tracker;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.remote.*;
+import org.gudy.azureus2.pluginsimpl.remote.torrent.RPTorrent;
 
 
 /**
@@ -40,7 +41,9 @@ RPTrackerTorrent
 	protected transient TrackerTorrent		delegate;
 	
 		// don't change the names of these, they appear in XML serialisation
-	
+
+	public RPTorrent				torrent;
+
 	public int		status;
 	public long		total_uploaded;
 	public long		total_downloaded;
@@ -78,6 +81,16 @@ RPTrackerTorrent
 		TrackerTorrent		_delegate )
 	{
 		super( _delegate );
+		
+		if ( delegate.getTorrent() != null ){
+			
+			torrent = (RPTorrent)_lookupLocal( delegate.getTorrent());
+		
+			if ( torrent == null ){
+				
+				torrent = RPTorrent.create( delegate.getTorrent());
+			}
+		}
 	}
 	
 	protected void
@@ -109,9 +122,27 @@ RPTrackerTorrent
 	
 		throws RPException
 	{
-		return( _fixupLocal());
+		Object res = _fixupLocal();
+		
+		if ( torrent != null ){
+			
+			torrent._setLocal();
+		}
+		
+		return( res );
 	}
 	
+	public void
+	_setRemote(
+		RPRequestDispatcher		dispatcher )
+	{
+		super._setRemote( dispatcher );
+		
+		if ( torrent != null ){
+			
+			torrent._setRemote( dispatcher );
+		}
+	}
 	
 	public RPReply
 	_process(
@@ -148,9 +179,8 @@ RPTrackerTorrent
 	public Torrent
 	getTorrent()
 	{
-		notSupported();
-		
-		return( null );	}
+		return( torrent );	
+	}
 	
 	public TrackerPeer[]
 	getPeers()
