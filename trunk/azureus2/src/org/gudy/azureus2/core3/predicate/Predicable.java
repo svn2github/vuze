@@ -1,9 +1,9 @@
 package org.gudy.azureus2.core3.predicate;
 
 /*
- * Created on 5-Mar-2004
+ * Created on 5-Mar-2005
  * Created by James Yeh
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
