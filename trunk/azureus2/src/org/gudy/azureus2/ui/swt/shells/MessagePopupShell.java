@@ -66,8 +66,6 @@ public class MessagePopupShell implements AnimableShell {
     detailsShell.setLayout(new FillLayout());
     StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
     textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-    if(details != null)
-      textDetails.setText(details);
     detailsShell.layout();    
     detailsShell.setSize(500,300);    
     
@@ -89,6 +87,7 @@ public class MessagePopupShell implements AnimableShell {
     GC gcImage = new GC(shellImg);
     
     Image imgIcon = ImageRepository.getImage(icon);
+    imgIcon.setBackground(shell.getBackground());
     
     gcImage.drawImage(imgIcon,5,5);
     
@@ -108,10 +107,16 @@ public class MessagePopupShell implements AnimableShell {
     fontTitle.dispose();
     
     
-    GCStringPrinter.printString(gcImage,errorMessage, new Rectangle(5,40,240,60));
+    boolean bItFit = GCStringPrinter.printString(gcImage,errorMessage, 
+                                                 new Rectangle(5,40,240,60));
     
     gcImage.dispose();            
+    if (!bItFit && details == null)
+      details = errorMessage;
     
+    if(details != null)
+      textDetails.setText(details);
+
     final Button btnDetails = new Button(shell,SWT.TOGGLE);
     Messages.setLanguageText(btnDetails,"popup.error.details");    
     btnDetails.setEnabled(details != null);
