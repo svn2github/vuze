@@ -35,7 +35,7 @@ import java.util.zip.ZipFile;
 public class UpdateSWT {
   
   static FileOutputStream fosLog;
-  
+  static String userDir;
   public static void main(String args[]) throws Exception {
     File f = new File("updateSWT.log");
     fosLog = new FileOutputStream(f,true);
@@ -48,7 +48,8 @@ public class UpdateSWT {
     if(args.length < 4)
       return;
     try {
-      toLog = "user.dir="  + System.getProperty("user.dir") + "\n";
+      userDir = System.getProperty("user.dir") + System.getProperty("file.separator");
+      toLog = "user.dir="  + userDir + "\n";
       fosLog.write(toLog.getBytes());
       
       toLog = "SWT Updater is waiting 1 sec\n";
@@ -92,10 +93,16 @@ public class UpdateSWT {
       fosLog.write(toLog.getBytes());
       
       if(zipEntry.getName().equals("swt.jar")) {        
-        writeFile(zipFile,zipEntry,null);
+        writeFile(zipFile,zipEntry,userDir);
+      }
+      if(zipEntry.getName().equals("swt-pi.jar")) {        
+        writeFile(zipFile,zipEntry,userDir);
+      }
+      if(zipEntry.getName().startsWith("swt") && zipEntry.getName().endsWith(".so")) {        
+        writeFile(zipFile,zipEntry,userDir);
       }
       if(zipEntry.getName().startsWith("swt-win32-") && zipEntry.getName().endsWith(".dll")) {
-        writeFile(zipFile,zipEntry,null);
+        writeFile(zipFile,zipEntry,userDir);
       }
     }    
   }
@@ -116,7 +123,7 @@ public class UpdateSWT {
       fosLog.write(toLog.getBytes());
       
       if(zipEntry.getName().equals("java_swt")) {                
-        writeFile(zipFile,zipEntry,"Azureus.app/Contents/MacOS/");
+        writeFile(zipFile,zipEntry,userDir + "Azureus.app/Contents/MacOS/");
         File f = openFile("Azureus.app/Contents/MacOS/","java_swt");
         String path = f.getAbsolutePath();
         String chgRights = "chmod 755 " + path;
@@ -124,10 +131,10 @@ public class UpdateSWT {
         p.waitFor();
       }
       if(zipEntry.getName().equals("swt.jar")) {        
-        writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/");
+        writeFile(zipFile,zipEntry,userDir + "Azureus.app/Contents/Resources/Java/");
       }
       if(zipEntry.getName().startsWith("libswt-carbon-") && zipEntry.getName().endsWith(".jnilib")) {
-        writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/dll/");
+        writeFile(zipFile,zipEntry,userDir + "Azureus.app/Contents/Resources/Java/dll/");
       }
     }    
   }
