@@ -1,6 +1,6 @@
 /*
- * File    : TRHostAdapter.java
- * Created : 19-Nov-2003
+ * File    : TorrentImpl.java
+ * Created : 08-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,19 +19,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.host;
+package org.gudy.azureus2.plugins.torrent.impl;
 
 /**
  * @author parg
  *
  */
 
-import java.io.InputStream;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.plugins.torrent.*;
 
-public interface 
-TRHostAdapter 
+public class 
+TorrentImpl
+	implements Torrent
 {
-	public InputStream
-	getImageAsStream(
-		String	name ); 
+	protected TOTorrent		torrent;
+	
+	public
+	TorrentImpl(
+		TOTorrent	_torrent )
+	{
+		torrent	= _torrent;
+	}
+	
+	public byte[]
+	getName()
+	{
+		return( torrent.getName());
+	}
+	
+	public byte[]
+	getHash()
+	{
+		try{
+			return( torrent.getHash());
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
+	}
+	
+	public long
+	getSize()
+	{
+		return( torrent.getSize());
+	}
 }

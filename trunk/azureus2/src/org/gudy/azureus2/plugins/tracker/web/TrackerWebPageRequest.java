@@ -28,14 +28,12 @@ package org.gudy.azureus2.plugins.tracker.web;
 
 import org.gudy.azureus2.plugins.tracker.*;
 
-import java.net.URL;
-
 public interface 
 TrackerWebPageRequest
 {
 	public Tracker
 	getTracker();
 	
-	public URL
+	public String
 	getURL();
 }

@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.tracker.Tracker;
+import org.gudy.azureus2.plugins.tracker.impl.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
@@ -41,14 +42,19 @@ import org.gudy.azureus2.ui.swt.MainWindow;
  */
 public class PluginInterfaceImpl implements PluginInterface {
   
+	protected PluginInitializer	initialiser;
+	
   Properties props;
   String pluginDir;
   PluginConfig config;
 
   public PluginInterfaceImpl(
+  		PluginInitializer	_initialiser,
       String key,
       Properties props,
-      String pluginDir) {
+      String pluginDir) 
+  {
+  	initialiser	= _initialiser;
     this.props = props;
     this.pluginDir = pluginDir;
     this.config = new PluginConfigImpl(key);
@@ -98,7 +104,6 @@ public class PluginInterfaceImpl implements PluginInterface {
   }
   
   public Tracker getTracker() {
-    // TODO Auto-generated method stub
-    return null;
+  	return( TrackerImpl.getSingleton( initialiser.getTrackerHost()));
   }
 }

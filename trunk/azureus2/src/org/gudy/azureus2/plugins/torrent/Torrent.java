@@ -1,6 +1,6 @@
 /*
- * File    : TRHostFactory.java
- * Created : 24-Oct-2003
+ * File    : Torrent.java
+ * Created : 08-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,21 +18,22 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.tracker.host;
+
+package org.gudy.azureus2.plugins.torrent;
 
 /**
  * @author parg
+ *
  */
-
-import org.gudy.azureus2.core3.tracker.host.impl.*;
-
-public class 
-TRHostFactory 
+public interface 
+Torrent
 {
-	public static TRHost
-	create()
-	{
-		return( TRHostImpl.create());
-	}
+	public byte[]
+	getName();
+	
+	public byte[]
+	getHash();
+	
+	public long
+	getSize();
 }

@@ -31,7 +31,6 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -45,12 +44,9 @@ TRHostImpl
 	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
 	
 	protected static final int STATS_PERIOD_SECS	= 60;
-	
-	protected static final String	NL			= "\r\n";
-	
+		
 	protected static TRHostImpl		singleton;
 	
-	protected TRHostAdapter			host_adapter;
 	protected TRHostConfigImpl		config;
 		
 	protected Hashtable				server_map 	= new Hashtable();
@@ -63,20 +59,18 @@ TRHostImpl
 	protected List	listeners			= new ArrayList();
 	
 	public static synchronized TRHost
-	create(
-		TRHostAdapter	adapter )
+	create()
 	{
 		if ( singleton == null ){
 			
-			singleton = new TRHostImpl( adapter );
+			singleton = new TRHostImpl();
 		}
 		
 		return( singleton );
 	}
 	
 	protected
-	TRHostImpl(
-		TRHostAdapter	_adapter )
+	TRHostImpl()
 	{	
 			// we need to synchronize this so that the async (possible) establishment of
 			// a server within the stats loop (to deal with public trackers with no locally
@@ -86,9 +80,7 @@ TRHostImpl
 			// it should really be using an existing torrent 
 			 
 		synchronized(this){
-		
-			host_adapter	= _adapter;
-			
+					
 			config = new TRHostConfigImpl(this);	
 			
 			TRTrackerClientFactory.addListener( this );
@@ -651,316 +643,18 @@ TRHostImpl
 			return( false );
 		}
 		
-		byte[]		reply_bytes		= null;
-		String		content_type	= "text/html";
-		String		extra_headers	= null;
-		String		reply_status	= "200";
-		
-		try{
-			if ( url.equals( "/" )){
-				
-				String[]	widths = { "30%", "10%", "10%", "8%", "6%", "6%", "6%", "6%", "6%", "6%", "6%" };
-				 
-				String	reply_string = 
-				"<html>" +
-				"<head>" +
-				"<title> Azureus : Java BitTorrent Client Tracker</title>" + 
-				"<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">" +
-				"<META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\">" +
-				"<meta name=\"keywords\" content=\"BitTorrent, bt, java, client, azureus\">" +
-				"<link rel=\"stylesheet\" href=\"http://azureus.sourceforge.net/style.css\" type=\"text/css\">" +
-				"</head>" +
-				"<body>" +
-				//"<table align=\"center\" class=\"body\" cellpadding=\"0\" cellspacing=\"0\">" + 
-				//"<tr><td>" +
-				"<table align=\"center\" class=\"main\" cellpadding=\"0\" cellspacing=\"0\">" +
-				"<tr><td>" +
-				"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" bordercolor=\"#111111\" width=\"100%\">" +
-				"  <tr>" +
-				"	<td><a href=\"http://azureus.sourceforge.net/\"><img src=\"http://azureus.sourceforge.net/img/Azureus_banner.gif\" border=\"0\" alt=\"Azureus\" hspace=\"0\" width=\"100\" height=\"40\" /></a></td>" +
-				"	<td><p align=\"center\"><font size=\"5\">Azureus: BitTorrent Client Tracker</font></td>" +
-				"  </tr>" +
-				"</table>" +
-				"<table align=\"center\" class=\"main1\" bgcolor=\"#526ED6\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">" +
-				"<tr><td valign=\"top\" height=\"20\"></td></tr>" +
-				"<tr>" +
-				"  <td valign=\"top\">"+
-				"   <table align=\"center\" border=\"1\" cellpadding=\"2\" cellspacing=\"1\" bordercolor=\"#111111\" width=\"96%\" bgcolor=\"#D7E0FF\">" +
-				"   <thead>" +
-				"     <tr>" +
-				"	    <td width=\""+widths[0]+"\" bgcolor=\"#FFDEAD\">Torrent</td>" +
-				"	    <td width=\""+widths[1]+"\" bgcolor=\"#FFDEAD\">Status</td>" +
-				"	    <td width=\""+widths[2]+"\" bgcolor=\"#FFDEAD\">Size</td>" +
-				"	    <td width=\""+widths[3]+"\" bgcolor=\"#FFDEAD\">Seeds</td>" +
-				"	    <td width=\""+widths[4]+"\" bgcolor=\"#FFDEAD\">Peers</td>" +
-				"	    <td width=\""+widths[5]+"\" bgcolor=\"#FFDEAD\">Tot Up</td>" +
-				"	    <td width=\""+widths[6]+"\" bgcolor=\"#FFDEAD\">Tot Down</td>" +
-				"	    <td width=\""+widths[7]+"\" bgcolor=\"#FFDEAD\">Ave Up</td>" +
-				"	    <td width=\""+widths[8]+"\" bgcolor=\"#FFDEAD\">Ave Down</td>" +
-				"	    <td width=\""+widths[9]+"\" bgcolor=\"#FFDEAD\">Left</td>" +
-				"	    <td width=\""+widths[10]+"\" bgcolor=\"#FFDEAD\">Comp</td>" +
-				"	  </tr>" +
-				"    </thread>";
-				
-				StringBuffer	table_bit = new StringBuffer(1024);
-				
-				synchronized( this ){
-				
-					for (int i=0;i<host_torrents.size();i++){
-				
-						TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get(i);
+		synchronized( listeners ){
+			
+			for (int i=0;i<listeners.size();i++){
+			
+				if (((TRHostListener)listeners.get(i)).handleExternalRequest( url, os )){
 					
-						TOTorrent	torrent = host_torrent.getTorrent();
-						
-						String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
-						
-						String	torrent_name = new String(torrent.getName());
-						
-						TRHostPeer[]	peers = host_torrent.getPeers();
-						
-						int	seed_count 		= 0;
-						int non_seed_count	= 0;
-						
-						for (int j=0;j<peers.length;j++){
-							
-							if ( peers[j].isSeed()){
-								
-								seed_count++;
-								
-							}else{
-								
-								non_seed_count++;
-							}
-						}
-						
-						int	status = host_torrent.getStatus();
-						
-						String	status_str;
-						
-						if ( status == TRHostTorrent.TS_STARTED ){
-
-							status_str = "Running";
-							
-						}else if ( status == TRHostTorrent.TS_STOPPED ){
-							
-							status_str = "Stopped";
-							
-						}else if ( status == TRHostTorrent.TS_PUBLISHED ){
-							
-							status_str = "Published";
-							
-						}else{
-							
-							status_str = "Failed";
-						}
-						
-						table_bit.append( "<tr>" );
-						
-						if ( torrent.getSize() > 0 ){
-						
-							table_bit.append( "<td>"+
-											  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
-						}else{			  
-						
-							table_bit.append( "<td>" + torrent_name + "</td>" );
-						}
-										  
-						table_bit.append( "<td>" + status_str + "</td>" );
-										  
-						table_bit.append( "<td>" + 
-										  (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKBEtc( torrent.getSize())) + "</td>" );
-										  
-						table_bit.append( "<td><b><font color=\"" + (seed_count==0?"#FF0000":"#00CC00")+"\">" +
-										  seed_count + "</font></b></td>" );
-										  
-						table_bit.append( "<td>" + 
-										  non_seed_count + "</td>" );
-										  
-						table_bit.append( "<td>" + 
-											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalUploaded()) + 
-											"</td>" );
-										  
-						table_bit.append( "<td>" + 
-											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalDownloaded()) + 
-											"</td>" );
-										  
-						table_bit.append( "<td>" + 
-											DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageUploaded()) + 
-											"</td>" );
-										  
-						table_bit.append( "<td>" + 
-											DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageDownloaded()) + 
-											"</td>" );
-											
-						table_bit.append( "<td>" + 
-											DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalLeft()) + 
-											"</td>" );
-										  
-						table_bit.append( "<td>" + 
-											host_torrent.getCompletedCount() + 
-											"</td>" );
-										  
-						table_bit.append( "</tr>" );
-					}	
+					return( true );
 				}
-				
-				reply_string += table_bit;
-				
-				reply_string +=
-				"    </table>" +
-				"    <tr><td>&nbsp;</tr></td>" +
-				"  </td>" +
-				"</tr>" +
-				"</table>" +
-				"</td></tr>" +
-				"</table>" +
-				//"</td></tr>" +
-				//"</table>" +
-				"</body>" +
-				"</html>";
-						
-				reply_bytes = reply_string.getBytes();
-								
-			}else if ( url.startsWith( "/torrents/")){
-				
-				String	str = url.substring(10);
-				
-				int	pos = str.indexOf ( "?" );
-				
-				String	hash_str = str.substring(pos+1);
-				
-				byte[]	hash = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING );
-				
-				synchronized( this ){
-				
-					for (int i=0;i<host_torrents.size();i++){
-					
-						TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get(i);
-						
-						TOTorrent	torrent = host_torrent.getTorrent();
-						
-						if ( Arrays.equals( hash, torrent.getHash())){
-															
-								// make a copy of the torrent
-							
-							TOTorrent	torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
-							
-								// remove any non-standard stuff (e.g. resume data)
-								
-							torrent_to_send.removeAdditionalProperties();
-							
-								// override the announce url but not port (as this is already fixed)
-								
-							String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-							
-								// if tracker ip not set then assume they know what they're doing
-								
-							if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED ){
-							
-								if ( tracker_ip.length() > 0 ){
-									
-									int	 	tracker_port 	= ((TRHostTorrentHostImpl)host_torrent).getPort();
-											
-									String protocol = torrent_to_send.getAnnounceURL().getProtocol();
-									
-									URL announce_url = new URL( protocol + "://" + tracker_ip + ":" + tracker_port + "/announce" );
-									
-									torrent_to_send.setAnnounceURL( announce_url );
-									
-									torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
-								}
-							}
-
-							reply_bytes = BEncoder.encode( torrent_to_send.serialiseToMap());
-							
-							break;
-						}
-					}
-				}
-				
-				if ( reply_bytes != null ){
-					
-					content_type 	= "application/x-bittorrent";
-					
-				}else{
-					System.out.println( "Torrent not found at '" + url + "'" );
-					
-					reply_bytes = new byte[0];
-				
-					reply_status	= "404";
-				}
-			}else if ( url.equalsIgnoreCase("/favicon.ico" )){
-									
-				content_type = "image/x-icon";
-				//content_type = "application/octet-stream";
-				
-				extra_headers = "Last Modified: Fri,05 Sep 2003 01:01:01 GMT" + NL +
-								"Expires: Sun, 17 Jan 2038 01:01:01 GMT" + NL;
-								
-				InputStream is = host_adapter.getImageAsStream( "favicon.ico" );
-				
-				if ( is == null ){
-				
-					reply_bytes = new byte[0];
-				
-					reply_status	= "404";
-					
-				}else{
-					
-					byte[] data = new byte[4096];
-					
-					int	pos = 0;
-					
-					while(true){
-					
-						int len = is.read(data, pos, data.length - pos );
-						
-						if ( len <= 0 ){
-							
-							break;
-						}
-						
-						pos += len;
-					}
-				
-					reply_bytes = new byte[pos];
-															
-					System.arraycopy( data, 0, reply_bytes, 0, pos );
-				}
-			}else{
-					
-				System.out.println( "Tracker: Received request for invalid url '" + url + "'" );
-							
-				reply_bytes = new byte[0];
-				
-				reply_status	= "404";
-				
 			}
-		}catch( Throwable e ){
-		
-			content_type = "text/html";
-			
-			reply_bytes = e.toString().getBytes();
-			
-			reply_status = "200";	
 		}
 		
-		String reply_header = 
-						"HTTP/1.1 " + reply_status + (reply_status.equals( "200" )?" OK":" BAD") + NL +
-						(extra_headers==null?"":extra_headers)+ 
-						"Content-Type: " + content_type + NL +
-						"Content-Length: " + reply_bytes.length + NL +
-						NL;
-	
-		os.write( reply_header.getBytes());
-				
-		os.flush();
-		
-		os.write( reply_bytes );
-		
-		os.flush();
-		
-		return( true );
+		return( false );
 	}
 	
 	public synchronized void

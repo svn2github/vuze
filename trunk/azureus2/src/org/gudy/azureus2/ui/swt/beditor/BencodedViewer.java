@@ -45,7 +45,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.common.ImageRepository;
 
 /**
  * @author Paul Duran

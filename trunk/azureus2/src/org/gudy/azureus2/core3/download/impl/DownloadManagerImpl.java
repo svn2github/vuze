@@ -156,7 +156,12 @@ DownloadManagerImpl
 				 receivedTrackerResponse(
 					 TRTrackerResponse	response	)
 				 {
-				   peerManager.processTrackerResponse( response );
+					PEPeerManager	pm = peerManager;
+					
+					if ( pm != null ){
+					
+						pm.processTrackerResponse( response );
+					}
 				 }
 			
 				 public void

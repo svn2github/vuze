@@ -25,10 +25,14 @@ package org.gudy.azureus2.plugins.tracker;
  * @author Olivier
  *
  */
-public interface TrackerPeer {
+public interface 
+TrackerPeer 
+{
   
-  public void associateKeyToPeer(Object peerKey);
+	public void associateKeyToPeer(Object peerKey);
   
-  public Object getAssociatedKey();
+	public Object getAssociatedKey();
 
+	public boolean
+	isSeed();
 }

@@ -26,7 +26,6 @@ package org.gudy.azureus2.core3.global.impl;
  *
  */
 
-import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -280,8 +279,7 @@ public class GlobalManagerImpl
     }
   }
 
-  public GlobalManagerImpl(
-  	final GlobalManagerAdapter	_adapter ) 
+  public GlobalManagerImpl()
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -292,23 +290,8 @@ public class GlobalManagerImpl
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
 
-    
-    TRHostAdapter	adapter = new TRHostAdapter()
-    	{
-    		public InputStream
-    		getImageAsStream(
-    			String	name )
-    		{
-    			if ( _adapter != null ){
-    				
-    				return( _adapter.getImageAsStream( name ));
-    			}
-    			
-    			return( null );
-    		}
-    	};
     	
-    TRHostFactory.create(adapter).initialise( 
+    TRHostFactory.create().initialise( 
     	new TRHostTorrentFinder()
     	{
     		public TOTorrent

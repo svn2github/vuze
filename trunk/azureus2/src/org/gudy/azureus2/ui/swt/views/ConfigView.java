@@ -40,7 +40,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.impl2.GenericParameter;
 import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.common.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;

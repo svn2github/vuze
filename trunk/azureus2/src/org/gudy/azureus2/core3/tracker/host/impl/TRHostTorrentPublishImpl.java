@@ -78,6 +78,12 @@ TRHostTorrentPublishImpl
 		return( torrent );
 	}
 
+	public int
+	getPort()
+	{
+		return( -1 );
+	}
+	
 	public synchronized TRHostPeer[]
 	getPeers()
 	{

@@ -34,13 +34,6 @@ GlobalManagerFactory
 	public static GlobalManager
 	create()
 	{
-		return( create(null));
-	}	
-	
-	public static GlobalManager
-	create(
-		GlobalManagerAdapter	adapter )
-	{
-		return( new GlobalManagerImpl( adapter ));
+		return( new GlobalManagerImpl());
 	}
 }

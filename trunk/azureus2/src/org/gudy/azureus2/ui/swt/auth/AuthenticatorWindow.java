@@ -35,8 +35,8 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.ui.common.*;
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;

@@ -78,6 +78,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.impl.PluginInitializer;
+import org.gudy.azureus2.ui.common.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -1641,15 +1642,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
     GlobalManager gm = 
-    	GlobalManagerFactory.create( 
-    		new GlobalManagerAdapter(){
-				public InputStream
-				getImageAsStream(
-					String	name )
-				{
-					return( ImageRepository.getImageAsStream(name));
-				}
-    		});
+    	GlobalManagerFactory.create(); 
+ 
     		
     MainWindow mw = new MainWindow(gm, null);
     mw.waitForClose();

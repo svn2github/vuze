@@ -1,6 +1,6 @@
 /*
- * File    : TRHostFactory.java
- * Created : 24-Oct-2003
+ * File    : TrackerPeerImpl.java
+ * Created : 08-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,21 +18,45 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.tracker.host;
+
+package org.gudy.azureus2.plugins.tracker.impl;
 
 /**
  * @author parg
+ *
  */
 
-import org.gudy.azureus2.core3.tracker.host.impl.*;
+import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.plugins.tracker.*;
 
 public class 
-TRHostFactory 
+TrackerPeerImpl
+	implements TrackerPeer
 {
-	public static TRHost
-	create()
+	protected TRHostPeer		peer;
+	
+	protected
+	TrackerPeerImpl(
+		TRHostPeer		_peer )
 	{
-		return( TRHostImpl.create());
+		peer	= _peer;
+	}
+	
+	
+	public void associateKeyToPeer(Object peerKey)
+	{
+		
+	}
+	
+	public Object 
+	getAssociatedKey()
+	{
+		return( null );
+	}
+
+	public boolean
+	isSeed()
+	{
+		return( peer.isSeed());
 	}
 }

@@ -51,6 +51,9 @@ TRHostTorrent
 	public TOTorrent
 	getTorrent();
 	
+	public int
+	getPort();
+	
 	public TRHostPeer[]
 	getPeers();
 	

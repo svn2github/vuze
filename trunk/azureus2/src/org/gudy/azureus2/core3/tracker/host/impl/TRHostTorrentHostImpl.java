@@ -67,7 +67,7 @@ TRHostTorrentHostImpl
 		port		= _port;
 	}
 	
-	protected int
+	public int
 	getPort()
 	{
 		return( port );

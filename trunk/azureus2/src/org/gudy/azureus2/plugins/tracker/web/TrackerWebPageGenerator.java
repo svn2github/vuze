@@ -26,11 +26,22 @@ package org.gudy.azureus2.plugins.tracker.web;
  *
  */
 
+import java.io.IOException;
+
 public interface 
 TrackerWebPageGenerator 
 {
-	public void
+	/**
+	 * 
+	 * @param request
+	 * @param response
+	 * @return	true if the request was handled
+	 */
+	
+	public boolean
 	generate(
 		TrackerWebPageRequest		request,
-		TrackerWebPageResponse		response );
+		TrackerWebPageResponse		response )
+	
+		throws IOException;
 }

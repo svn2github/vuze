@@ -25,6 +25,9 @@ package org.gudy.azureus2.core3.tracker.host;
  * @author parg
  *
  */
+
+import java.io.*;
+
 public interface 
 TRHostListener 
 {
@@ -35,4 +38,11 @@ TRHostListener
 	public void
 	torrentRemoved(
 		TRHostTorrent		t );
+	
+	public boolean
+	handleExternalRequest(
+		String			url,
+		OutputStream	os )
+	
+		throws IOException;
 }

@@ -26,10 +26,32 @@ package org.gudy.azureus2.plugins.tracker.web;
  *
  */
 
+import java.io.OutputStream;
+import java.io.IOException;
+import org.gudy.azureus2.plugins.tracker.*;
+
 public interface 
 TrackerWebPageResponse 
 {
-	public void
-	setContentType();
+	public OutputStream
+	getOutputStream();
 	
+	public void
+	setReplyStatus(
+		int		status );
+	
+	public void
+	setContentType(
+		String		type );
+	
+	public void
+	setHeader(
+		String		name,
+		String		value );
+	
+	public void
+	writeTorrent(
+		TrackerTorrent	torrent )
+	
+		throws IOException;
 }

@@ -29,7 +29,10 @@ import java.util.Properties;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.tracker.host.*;
+
 import org.gudy.azureus2.ui.swt.SplashWindow;
+import org.gudy.azureus2.ui.tracker.TrackerWebDefaultPlugin;
 import org.gudy.azureus2.plugins.Plugin;
 
 /**
@@ -38,16 +41,25 @@ import org.gudy.azureus2.plugins.Plugin;
  */
 public class PluginInitializer {
 
+  private Class[]	builtin_plugins = new Class[]{ TrackerWebDefaultPlugin.class };
+  
   URLClassLoader classLoader;
   private GlobalManager gm;
   private SplashWindow splash;
   
+  private TRHost	tracker_host;
+  
   public PluginInitializer(GlobalManager gm,SplashWindow splash) {
     this.gm = gm;
     this.splash = splash;
+    
+    tracker_host	= TRHostFactory.create();
   }
   
   public void initializePlugins() {
+  	
+  		// first do explicit plugins
+  	
     File pluginDirectory = FileUtil.getApplicationFile(System.getProperty("file.separator") + "plugins");
     if(!pluginDirectory.isDirectory()) return;
     File[] pluginsDirectory = pluginDirectory.listFiles();
@@ -59,6 +71,13 @@ public class PluginInitializer {
       if(splash != null) {
         splash.setPercentDone(50 + (50*(i +1)) / pluginsDirectory.length);        
       }
+    }
+    
+    	// now do built in ones
+    
+    for (int i=0;i<builtin_plugins.length;i++){
+    	
+    	initializePluginFromClass( builtin_plugins[i] );
     }
   }
   
@@ -84,7 +103,7 @@ public class PluginInitializer {
       Class c = classLoader.loadClass((String)props.get("plugin.class"));
       Plugin plugin = (Plugin) c.newInstance();
       MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
-      plugin.initialize(new PluginInterfaceImpl(directory.getName(),props,directory.getAbsolutePath()));
+      plugin.initialize(new PluginInterfaceImpl(this,directory.getName(),props,directory.getAbsolutePath()));
     } catch(Throwable e) {
       //e.printStackTrace();
       System.out.println("Error while loading class " + ((String)props.get("plugin.class")) + " : " + e);      
@@ -105,5 +124,23 @@ public class PluginInitializer {
     } catch(Exception e) {
       e.printStackTrace();
     }
+  }
+  
+  private void initializePluginFromClass(Class plugin_class) {
+  	classLoader = null;
+ 
+  	try{
+  		Plugin plugin = (Plugin) plugin_class.newInstance();
+   		plugin.initialize(new PluginInterfaceImpl(this,"",new Properties(),""));
+  	} catch(Throwable e) {
+  		e.printStackTrace();
+  		System.out.println("Error while loading internal plugin class " + plugin_class + " : " + e);      
+  	}
+  }
+  
+  protected TRHost
+  getTrackerHost()
+  {
+  	return( tracker_host );
   }
 }

@@ -1,6 +1,6 @@
 /*
- * File    : GlobalManagerAdapter.java
- * Created : 19-Nov-2003
+ * File    : TrackerWebPageRequestImpl.java
+ * Created : 08-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,19 +19,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.global;
+package org.gudy.azureus2.plugins.tracker.impl;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
+import org.gudy.azureus2.plugins.tracker.*;
+import org.gudy.azureus2.plugins.tracker.web.*;
 
-public interface 
-GlobalManagerAdapter 
+public class 
+TrackerWebPageRequestImpl
+	implements TrackerWebPageRequest
 {
-	public InputStream
-	getImageAsStream(
-		String	name );
-}
+	protected Tracker		tracker;
+	protected String		url;
+	
+	protected
+	TrackerWebPageRequestImpl(
+		Tracker		_tracker,
+		String		_url )
+	{
+		tracker	= _tracker;
+		url		= _url;
+	}
+	
+	public Tracker
+	getTracker()
+	{
+		return( tracker );
+	}
+	
+	public String
+	getURL()
+	{
+		return( url );
+	}
+}	

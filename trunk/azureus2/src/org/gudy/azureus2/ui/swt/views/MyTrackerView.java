@@ -27,6 +27,8 @@ package org.gudy.azureus2.ui.swt.views;
  */
 
 import java.util.*;
+import java.io.OutputStream;
+import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -49,7 +51,7 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.common.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
@@ -297,9 +299,16 @@ MyTrackerView
 		}		
 	}
 
+	public boolean
+	handleExternalRequest(
+		String			url,
+		OutputStream	os )
+	
+		throws IOException
+	{
+		return( false );
+	}
  
-
-
 	private void saveTableColumns(TableColumn t)
 	{
 	  COConfigurationManager.setParameter((String) t.getData(), t.getWidth());

@@ -4,7 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -66,11 +65,7 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if(debugGUI) {
       // create a MainWindow regardless to the server state
-      gm = GlobalManagerFactory.create(new GlobalManagerAdapter() {
-        public InputStream getImageAsStream(String name) {
-          return (ImageRepository.getImageAsStream(name));
-        }
-      });
+      gm = GlobalManagerFactory.create();
       
       COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);
@@ -81,12 +76,7 @@ public class Main implements ILocaleUtilChooser {
     
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
-      gm = GlobalManagerFactory.create(
-		  new GlobalManagerAdapter() {
-        public InputStream getImageAsStream(String name) {
-          return (ImageRepository.getImageAsStream(name));
-        }
-      });
+      gm = GlobalManagerFactory.create();
       
       COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);      
