@@ -5,7 +5,7 @@ xx.xx.03 | Azureus 2.0.4.1
 
 FEATURE: Full scrape of tracker now supported as SN requires this for hosting [Parg]
 
-CHANGE: Client identification now includes Experimental [Nolar]
+CHANGE: Client identification now includes Experimental, BitComet, and better Shadow [Nolar]
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
