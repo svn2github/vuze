@@ -413,8 +413,12 @@ public class PeerSocket extends PeerConnection {
           //Unless we finish the socket's queue, or we start receiving a piece.
           readyToRequest = false;
           analyseBuffer(readBuffer);
-          if(getState() == TRANSFERING)
+          if(getState() == TRANSFERING) {
+            if(!readingLength)
+              System.out.println("Not reading lengtht!!!!");
             process();
+          }
+            
         }
       }
     }
