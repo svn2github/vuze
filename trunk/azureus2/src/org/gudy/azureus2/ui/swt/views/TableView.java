@@ -127,9 +127,9 @@ public class TableView
   /** How often graphic cells get updated
    */
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
-  /** Check Column Widths every 10 seconds on Mac if view is active.  
+  /** Check Column Widths every 10 seconds on Pre 3.0RC1 on OSX if view is active.  
    * Other OSes can capture column width changes automatically */
-  private int checkColumnWidthsEvery = Constants.isOSX ?
+  private int checkColumnWidthsEvery = (Constants.isOSX && SWT.getVersion() < 3054) ?
                                        10000 / COConfigurationManager.getIntParameter("GUI Refresh") :
                                        0;
 
@@ -247,7 +247,7 @@ public class TableView
 
     sorter = new TableSorter(this, sTableID, sDefaultSortOn, true);
 
-    // OSX doesn't call this!! :(
+    // Pre 3.0RC1 SWT on OSX doesn't call this!! :(
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
         TableColumn column = (TableColumn) e.widget;
@@ -298,8 +298,9 @@ public class TableView
       column.setData("configName", "Table." + sTableID + "." + sName);
       column.setData("Name", sName);
 
-      // OSX doesn't call these listeners
       column.addControlListener(resizeListener);
+      // At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
+      // selection listener for tables
       column.addListener(SWT.Selection, new ColumnListener(tableColumns[i]));
     }
 
@@ -317,6 +318,7 @@ public class TableView
         try {
           if (table.getItemCount() <= 0)
             return;
+
           // skip if outside client area (ie. scrollbars)
           Rectangle rTableArea = table.getClientArea();
           //System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
@@ -354,6 +356,91 @@ public class TableView
       }
     });
 
+  	// Implement a "fake" tooltip
+  	final Listener labelListener = new Listener () {
+  		public void handleEvent (Event event) {
+  			Label label = (Label)event.widget;
+  			Shell shell = label.getShell ();
+  			switch (event.type) {
+  				case SWT.MouseDown:
+  					Event e = new Event ();
+  					e.item = (TableItem) label.getData ("_TABLEITEM");
+  					// Assuming table is single select, set the selection as if
+  					// the mouse down event went through to the table
+  					table.setSelection (new TableItem [] {(TableItem) e.item});
+  					table.notifyListeners (SWT.Selection, e);
+  					// fall through
+  				case SWT.MouseExit:
+  					shell.dispose ();
+  					break;
+  			}
+  		}
+  	};
+  
+  	Listener tableListener = new Listener () {
+  		Shell tip = null;
+  		Label label = null;
+  		public void handleEvent (Event event) {
+  			switch (event.type) {
+  				case SWT.Dispose:
+  				case SWT.KeyDown:
+  				case SWT.MouseMove: {
+  					if (tip == null) break;
+  					tip.dispose ();
+  					tip = null;
+  					label = null;
+  					break;
+  				}
+  				case SWT.MouseHover: {
+  					TableItem item = table.getItem (new Point (event.x, event.y));
+  					if (item != null) {
+  						if (tip != null  && !tip.isDisposed ()) tip.dispose ();
+              TableRowCore row = (TableRowCore)item.getData("TableRow");
+              if (row == null)
+                return;
+              int iColumn = getColumnNo(event.x);
+              if (iColumn < 0)
+                return;
+              TableColumn tcColumn = table.getColumn(iColumn);
+              String sCellName = (String)tcColumn.getData("Name");
+              if (sCellName == null)
+                return;
+              
+              TableCellCore cell = row.getTableCellCore(sCellName);
+              if (cell == null)
+                return;
+              Object oToolTip = cell.getToolTip();
+              
+              // TODO: support composite, image, etc
+              if (oToolTip == null || !(oToolTip instanceof String))
+                return;
+              String sToolTip = (String)oToolTip;
+
+  						tip = new Shell (table.getShell(), SWT.ON_TOP);
+  						tip.setLayout (new FillLayout ());
+  						label = new Label (tip, SWT.NONE);
+  						label.setForeground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_FOREGROUND));
+  						label.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
+  						label.setData ("_TABLEITEM", item);
+  						label.setText (sToolTip);
+  						label.addListener (SWT.MouseExit, labelListener);
+  						label.addListener (SWT.MouseDown, labelListener);
+  						Point size = tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
+  						if (size.x > 400)
+    						size = tip.computeSize (400, SWT.DEFAULT);
+  						Point pt = table.toDisplay (event.x, event.y + 30);
+  						tip.setBounds (pt.x, pt.y, size.x, size.y);
+  						tip.setVisible (true);
+  					}
+  				}
+  			}
+  		}
+  	};
+  	table.addListener (SWT.Dispose, tableListener);
+  	table.addListener (SWT.KeyDown, tableListener);
+  	table.addListener (SWT.MouseMove, tableListener);
+  	table.addListener (SWT.MouseHover, tableListener);
+
     table.setHeaderVisible(true);
   }
 
@@ -383,22 +470,7 @@ public class TableView
     
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
-        if (table.getItemCount() > 0) {
-          TableItem ti = table.getItem(0);
-          // Unfortunately, this listener doesn't fill location
-          int iColumn = -1;
-          for (int i = bSkipFirstColumn ?  1 : 0; i < table.getColumnCount(); i++) {
-            // M8 Fixes SWT GTK Bug 51777:
-            //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
-            Rectangle cellBounds = ti.getBounds(i);
-            //System.out.println("i="+i+";Mouse.x="+iMouseX+";cellbounds="+cellBounds);
-            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width && cellBounds.width > 0) {
-              iColumn = i;
-              break;
-            }
-          }
-          addThisColumnSubMenu(iColumn);
-        }
+        addThisColumnSubMenu(getColumnNo(iMouseX));
       }
     });
 
@@ -547,7 +619,6 @@ public class TableView
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
-    // Since OSX can't handle TableColumn ControlListener, check widths
     if (checkColumnWidthsEvery != 0 && 
         (loopFactor % checkColumnWidthsEvery) == 0) {
       TableColumn[] tableColumnsSWT = table.getColumns();
@@ -1070,4 +1141,21 @@ public class TableView
     }
   }
 
+  private int getColumnNo(int iMouseX) {
+    int iColumn = -1;
+    if (table.getItemCount() > 0) {
+      TableItem ti = table.getItem(0);
+      for (int i = bSkipFirstColumn ?  1 : 0; i < table.getColumnCount(); i++) {
+        // M8 Fixes SWT GTK Bug 51777:
+        //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
+        Rectangle cellBounds = ti.getBounds(i);
+        //System.out.println("i="+i+";Mouse.x="+iMouseX+";cellbounds="+cellBounds);
+        if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width && cellBounds.width > 0) {
+          iColumn = i;
+          break;
+        }
+      }
+    }
+    return iColumn;
+  }
 }
