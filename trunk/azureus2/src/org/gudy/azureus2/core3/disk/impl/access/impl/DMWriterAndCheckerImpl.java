@@ -37,12 +37,8 @@ import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
-import org.gudy.azureus2.core3.util.Md5Hasher;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
-import org.gudy.azureus2.core3.util.Semaphore;
+import org.gudy.azureus2.core3.util.*;
+
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
@@ -89,8 +85,9 @@ DMWriterAndCheckerImpl
 	private Semaphore		writeCheckQueueSem;
 	private Object			writeCheckQueueLock;
 	
-	private SHA1Hasher hasher;
-	private Md5Hasher md5;			
+	protected ConcurrentHasherRequest	current_hash_request;
+	
+	protected Md5Hasher md5;			
 
 	protected boolean	bOverallContinue		= true;
 	
@@ -115,7 +112,6 @@ DMWriterAndCheckerImpl
 		nbPieces		= disk_manager.getNumberOfPieces();
 		
 		md5 	= new Md5Hasher();
-		hasher 	= new SHA1Hasher();
 	}
 	
 	public void
@@ -135,8 +131,16 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
-		bOverallContinue	= false;
-    		
+		synchronized( this ){
+			
+			bOverallContinue	= false;
+			
+			if ( current_hash_request != null ){
+				
+				current_hash_request.cancel();
+			}
+		}
+		
 		if (writeThread != null){
 			
 			writeThread.stopIt();
@@ -241,146 +245,201 @@ DMWriterAndCheckerImpl
         DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(pieceLength);
         
 		try{
-		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ) {
-		      try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
+		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
+		    	
+		    	try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
 		    }
 		       
 		    boolean[]	pieceDone	= disk_manager.getPiecesDone();
 		    
-		    if (bOverallContinue == false) return false;
+		    if ( bOverallContinue == false ){
+		    	
+		    	return false;
+		    }
 
 		    buffer.position(0);
 
-				int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
+			int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
-				buffer.limit(length);
+			buffer.limit(length);
 
 				//get the piece list
-				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+			
+			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 				//for each piece
-				for (int i = 0; i < pieceList.size(); i++) {
-					//get the piece and the file 
-					PieceMapEntry tempPiece = pieceList.get(i);
-		            
-
-					try {
-		                    
-							   //if the file is large enough
-						if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
-							
-							tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
-							
-						}else{
-								   //too small, can't be a complete piece
-							
-							buffer.clear();
-							
-							pieceDone[pieceNumber] = false;
-							
-							return false;
-						}
-					}catch (Exception e){
-						
-						e.printStackTrace();
-					}
-				}
+			
+			for (int i = 0; i < pieceList.size(); i++) {
+				
+					//get the piece and the file
+				
+				PieceMapEntry tempPiece = pieceList.get(i);
+	            
 
 				try {
-		      
-		      if (bOverallContinue == false) return false;
-		      
-		      buffer.position(0);
-
-					byte[] testHash = hasher.calculateHash(buffer.getBuffer());
-					int i = 0;
-					for (i = 0; i < 20; i++) {
-						if (testHash[i] != disk_manager.getPieceHash(pieceNumber)[i])
-							break;
+	                    
+						   //if the file is large enough
+					
+					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+						
+						tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+						
+					}else{
+							   //too small, can't be a complete piece
+						
+						buffer.clear();
+						
+						pieceDone[pieceNumber] = false;
+						
+						return false;
 					}
-					if (i >= 20) {
-						//mark the piece as done..
-						if (!pieceDone[pieceNumber]) {
-							
-							pieceDone[pieceNumber] = true;
-							
-							disk_manager.setRemaining( disk_manager.getRemaining() - length );
-							
-							disk_manager.computeFilesDone(pieceNumber);
-						}
-						return true;
-					}
-					if(pieceDone[pieceNumber]) {
-					  pieceDone[pieceNumber] = false;
-						disk_manager.setRemaining( disk_manager.getRemaining() + length );
-					}
-				} catch (Exception e) {
+				}catch (Exception e){
+					
 					e.printStackTrace();
 				}
-				return false;
+			}
+
+			try {
+	      
+				if (bOverallContinue == false) return false;
+	      
+	      		buffer.position(0);
+
+				// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
+	      		
+	      			// running torrents have highest priority. 
+	      			// for checking torrents, smaller torrents have higher priority to get them
+	      			// checked and running ASAP
+	      		
+	      		long	hash_priority	= disk_manager.getState() == DiskManager.CHECKING?disk_manager.getTotalLength():0;
+	      		
+	      		synchronized( this ){
+	      			
+	    		    if ( !bOverallContinue ){
+	    		    	
+	    		    	return false;
+	    		    }
+
+	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(),hash_priority);
+	      		}
+				
+				byte[] testHash = current_hash_request.getResult();
+				
+				current_hash_request	= null;
+				
+				if ( testHash == null ){
+				
+						// cancelled
+					
+					return( false );
+				}
+				
+				byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
+				
+				int i = 0;
+				
+				for (i = 0; i < 20; i++){
+					
+					if (testHash[i] != required_hash[i]){
+						
+						break;
+					}
+				}
+				
+				if (i >= 20){
+					
+						//mark the piece as done..
+					
+					if (!pieceDone[pieceNumber]) {
+						
+						pieceDone[pieceNumber] = true;
+						
+						disk_manager.setRemaining( disk_manager.getRemaining() - length );
+						
+						disk_manager.computeFilesDone(pieceNumber);
+					}
+					
+					return true;
+				}
+				
+				if( pieceDone[pieceNumber]){
+					
+					pieceDone[pieceNumber] = false;
+					
+					disk_manager.setRemaining( disk_manager.getRemaining() + length );
+				}
+				
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}
+			
+			return false;
+				
 		}finally{
+			
 			buffer.returnToPool();
 		}
 	}
 		
 		
-		private byte[] 
-		computeMd5Hash(
-			DirectByteBuffer buffer) 
-		{ 	
-		    md5.reset();
-		    
-		    int position = buffer.position();
-		    
-		    md5.update(buffer.getBuffer());
-		    
-		    buffer.position(position);
-		    
-		    ByteBuffer md5Result	= ByteBuffer.allocate(16);
-		    
-		    md5Result.position(0);
-		    
-		    md5.finalDigest( md5Result );
-		    
-		    byte[] result = new byte[16];
-		    
-		    md5Result.position(0);
-		    
-		    for(int i = 0 ; i < result.length ; i++) {
-		    	
-		      result[i] = md5Result.get();
-		    }   
-		    
-		    return result;    
-		  }
-		  
-		  private void MD5CheckPiece(int pieceNumber,boolean correct) {
-		    PEPiece piece = disk_manager.getPeerManager().getPieces()[pieceNumber];
-		    if(piece == null) {
-		      return;
-		    }
-		    PEPeer[] writers = piece.getWriters();
-		    int offset = 0;
-		    for(int i = 0 ; i < writers.length ; i++) {
-		      int length = piece.getBlockSize(i);
-		      PEPeer peer = writers[i];
-		      if(peer != null) {
-		        DirectByteBuffer buffer = reader.readBlock(pieceNumber,offset,length);
-		        byte[] hash = computeMd5Hash(buffer);
-		        buffer.returnToPool();
-		        buffer = null;
-		        piece.addWrite(i,peer,hash,correct);        
-		      }
-		      offset += length;
-		    }        
-		  }
-		  
-		 
-		/**
-		 * @param e
-		 * @return FALSE if the write failed for some reason. Error will have been reported
-		 * and queue element set back to initial state to allow a re-write attempt later
-		 */
+	private byte[] 
+	computeMd5Hash(
+		DirectByteBuffer buffer) 
+	{ 	
+	    md5.reset();
+	    
+	    int position = buffer.position();
+	    
+	    md5.update(buffer.getBuffer());
+	    
+	    buffer.position(position);
+	    
+	    ByteBuffer md5Result	= ByteBuffer.allocate(16);
+	    
+	    md5Result.position(0);
+	    
+	    md5.finalDigest( md5Result );
+	    
+	    byte[] result = new byte[16];
+	    
+	    md5Result.position(0);
+	    
+	    for(int i = 0 ; i < result.length ; i++) {
+	    	
+	      result[i] = md5Result.get();
+	    }   
+	    
+	    return result;    
+	  }
+	  
+	  private void MD5CheckPiece(int pieceNumber,boolean correct) {
+	    PEPiece piece = disk_manager.getPeerManager().getPieces()[pieceNumber];
+	    if(piece == null) {
+	      return;
+	    }
+	    PEPeer[] writers = piece.getWriters();
+	    int offset = 0;
+	    for(int i = 0 ; i < writers.length ; i++) {
+	      int length = piece.getBlockSize(i);
+	      PEPeer peer = writers[i];
+	      if(peer != null) {
+	        DirectByteBuffer buffer = reader.readBlock(pieceNumber,offset,length);
+	        byte[] hash = computeMd5Hash(buffer);
+	        buffer.returnToPool();
+	        buffer = null;
+	        piece.addWrite(i,peer,hash,correct);        
+	      }
+	      offset += length;
+	    }        
+	  }
+	  
+	 
+	/**
+	 * @param e
+	 * @return FALSE if the write failed for some reason. Error will have been reported
+	 * and queue element set back to initial state to allow a re-write attempt later
+	 */
 	
 	private boolean 
 	dumpBlockToDisk(
@@ -571,11 +630,16 @@ DMWriterAndCheckerImpl
 
 
 
-	public class DiskWriteThread extends Thread {
+	public class 
+	DiskWriteThread 
+		extends Thread 
+	{
 		private boolean bWriteContinue = true;
 
-		public DiskWriteThread() {
+		public DiskWriteThread() 
+		{
 			super("Disk Writer & Checker");
+			
 			setDaemon(true);
 		}
 

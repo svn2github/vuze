@@ -109,173 +109,179 @@ RDResumeHandler
 	checkAllPieces(
 		boolean newfiles ) 
 	{
-		disk_manager.setState( DiskManager.CHECKING );
+		//long	start = System.currentTimeMillis();
 		
-		int startPos = 0;
-		
-		boolean resumeEnabled = useFastResume;
-		//disable fast resume if a new file was created
-		if (newfiles) resumeEnabled = false;
-		
-		boolean	resume_data_complete = false;
-		
-		if (resumeEnabled){
-			boolean resumeValid = false;
-			byte[] resumeArray = null;
-			Map partialPieces = null;
-			Map resumeMap = torrent.getAdditionalMapProperty("resume");
+		try{
+			disk_manager.setState( DiskManager.CHECKING );
 			
-			if (resumeMap != null) {
-				
-					// backward compatability here over path management changes :(
-				
-				String resume_key = 
-					torrent.isSimpleTorrent()?
-						disk_manager.getDownloadManager().getTorrentSaveDir():
-						disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
-				
+			int startPos = 0;
 			
-				// see bug 869749 for explanation of this mangling
+			boolean resumeEnabled = useFastResume;
+			//disable fast resume if a new file was created
+			if (newfiles) resumeEnabled = false;
+			
+			boolean	resume_data_complete = false;
+			
+			if (resumeEnabled){
+				boolean resumeValid = false;
+				byte[] resumeArray = null;
+				Map partialPieces = null;
+				Map resumeMap = torrent.getAdditionalMapProperty("resume");
 				
-				/*
-				System.out.println( "Resume map");
-				
-				Iterator it = resumeMap.keySet().iterator();
-				
-				while( it.hasNext()){
+				if (resumeMap != null) {
 					
-					System.out.println( "\tmap:" + ByteFormatter.nicePrint((String)it.next()));
-				}
-				*/
+						// backward compatability here over path management changes :(
+					
+					String resume_key = 
+						torrent.isSimpleTorrent()?
+							disk_manager.getDownloadManager().getTorrentSaveDir():
+							disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
+					
 				
-				String mangled_path;
+					// see bug 869749 for explanation of this mangling
+					
+					/*
+					System.out.println( "Resume map");
+					
+					Iterator it = resumeMap.keySet().iterator();
+					
+					while( it.hasNext()){
+						
+						System.out.println( "\tmap:" + ByteFormatter.nicePrint((String)it.next()));
+					}
+					*/
+					
+					String mangled_path;
+					
+					try{
+						mangled_path = new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+						
+						// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+						
+						mangled_path = resume_key;
+					}
+					
+					Map resumeDirectory = (Map)resumeMap.get(mangled_path);
+					
+					if ( resumeDirectory == null ){
+						
+							// unfortunately, if the torrent hasn't been saved and restored then the
+							// mangling with not yet have taken place. So we have to also try the 
+							// original key (see 878015)
+						
+						resumeDirectory = (Map)resumeMap.get(resume_key);
+					}
+					
+					if ( resumeDirectory != null ){
+						
+						try {
+							
+							resumeArray = (byte[])resumeDirectory.get("resume data");
+							partialPieces = (Map)resumeDirectory.get("blocks");
+							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
+							
+								// if the torrent download is complete we don't need to invalidate the
+								// resume data
+							
+							if ( isTorrentResumeDataComplete( 
+									torrent, 
+									disk_manager.getDownloadManager().getTorrentSaveDir(),
+									disk_manager.getDownloadManager().getTorrentSaveFile())){
+								
+								resume_data_complete	= true;
+										
+							}else{
+								
+								resumeDirectory.put("valid", new Long(0));
+								
+								saveTorrent();
+							}
+							
+						}catch(Exception ignore){
+							/* ignore */ 
+						}
+						
+					}else{
+						
+						// System.out.println( "resume dir not found");
+					}
+				}
+				
+				boolean[]	pieceDone	= disk_manager.getPiecesDone();
+				
+				if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
+					startPos = resumeArray.length;
+					for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
+						disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
+						//mark the pieces
+						if (resumeArray[i] == 0) {
+							if (!resumeValid) pieceDone[i] = writer_and_checker.checkPiece(i);
+						}
+						else {
+							disk_manager.computeFilesDone(i);
+							
+							pieceDone[i] = true;
+							
+							if (i < nbPieces - 1) {
+								
+								disk_manager.setRemaining( disk_manager.getRemaining() - pieceLength );
+							}
+							if (i == nbPieces - 1) {
+								
+								disk_manager.setRemaining( disk_manager.getRemaining() - lastPieceLength );
+							}
+						}
+					}
+					
+					if (partialPieces != null && resumeValid) {
+						
+						recovered_pieces = new PEPiece[nbPieces];
+										
+						Iterator iter = partialPieces.entrySet().iterator();
+						while (iter.hasNext()) {
+							Map.Entry key = (Map.Entry)iter.next();
+							int pieceNumber = Integer.parseInt((String)key.getKey());
+							PEPiece piece;
+							if (pieceNumber < nbPieces - 1)
+								piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getPieceLength(), pieceNumber);
+							else
+								piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getLastPieceLength(), pieceNumber);
+							List blocks = (List)partialPieces.get(key.getKey());
+							Iterator iterBlock = blocks.iterator();
+							while (iterBlock.hasNext()) {
+								piece.setWritten(null,((Long)iterBlock.next()).intValue());
+							}
+							recovered_pieces[pieceNumber] = piece;
+						}
+					}
+				}
+			}
+			
+			for (int i = startPos; i < nbPieces && bOverallContinue; i++) {
+				
+				disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces);
+				
+				writer_and_checker.checkPiece(i);
+			}
+			
+				//dump the newly built resume data to the disk/torrent
+			
+			if (bOverallContinue && resumeEnabled && !resume_data_complete){
 				
 				try{
-					mangled_path = new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+					dumpResumeDataToDisk(false, false);
 					
-					// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
+				}catch( Exception e ){
 					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-					
-					mangled_path = resume_key;
-				}
-				
-				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
-				
-				if ( resumeDirectory == null ){
-					
-						// unfortunately, if the torrent hasn't been saved and restored then the
-						// mangling with not yet have taken place. So we have to also try the 
-						// original key (see 878015)
-					
-					resumeDirectory = (Map)resumeMap.get(resume_key);
-				}
-				
-				if ( resumeDirectory != null ){
-					
-					try {
-						
-						resumeArray = (byte[])resumeDirectory.get("resume data");
-						partialPieces = (Map)resumeDirectory.get("blocks");
-						resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-						
-							// if the torrent download is complete we don't need to invalidate the
-							// resume data
-						
-						if ( isTorrentResumeDataComplete( 
-								torrent, 
-								disk_manager.getDownloadManager().getTorrentSaveDir(),
-								disk_manager.getDownloadManager().getTorrentSaveFile())){
-							
-							resume_data_complete	= true;
-									
-						}else{
-							
-							resumeDirectory.put("valid", new Long(0));
-							
-							saveTorrent();
-						}
-						
-					}catch(Exception ignore){
-						/* ignore */ 
-					}
-					
-				}else{
-					
-					// System.out.println( "resume dir not found");
+					Debug.out( "Failed to dump initial resume data to disk" );
 				}
 			}
-			
-			boolean[]	pieceDone	= disk_manager.getPiecesDone();
-			
-			if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
-				startPos = resumeArray.length;
-				for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
-					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
-					//mark the pieces
-					if (resumeArray[i] == 0) {
-						if (!resumeValid) pieceDone[i] = writer_and_checker.checkPiece(i);
-					}
-					else {
-						disk_manager.computeFilesDone(i);
-						
-						pieceDone[i] = true;
-						
-						if (i < nbPieces - 1) {
-							
-							disk_manager.setRemaining( disk_manager.getRemaining() - pieceLength );
-						}
-						if (i == nbPieces - 1) {
-							
-							disk_manager.setRemaining( disk_manager.getRemaining() - lastPieceLength );
-						}
-					}
-				}
-				
-				if (partialPieces != null && resumeValid) {
-					
-					recovered_pieces = new PEPiece[nbPieces];
-									
-					Iterator iter = partialPieces.entrySet().iterator();
-					while (iter.hasNext()) {
-						Map.Entry key = (Map.Entry)iter.next();
-						int pieceNumber = Integer.parseInt((String)key.getKey());
-						PEPiece piece;
-						if (pieceNumber < nbPieces - 1)
-							piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getPieceLength(), pieceNumber);
-						else
-							piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getLastPieceLength(), pieceNumber);
-						List blocks = (List)partialPieces.get(key.getKey());
-						Iterator iterBlock = blocks.iterator();
-						while (iterBlock.hasNext()) {
-							piece.setWritten(null,((Long)iterBlock.next()).intValue());
-						}
-						recovered_pieces[pieceNumber] = piece;
-					}
-				}
-			}
-		}
-		
-		for (int i = startPos; i < nbPieces && bOverallContinue; i++) {
-			
-			disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces);
-			
-			writer_and_checker.checkPiece(i);
-		}
-		
-			//dump the newly built resume data to the disk/torrent
-		
-		if (bOverallContinue && resumeEnabled && !resume_data_complete){
-			
-			try{
-				dumpResumeDataToDisk(false, false);
-				
-			}catch( Exception e ){
-				
-				Debug.out( "Failed to dump initial resume data to disk" );
-			}
+		}finally{
+			//System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
 		}
 	}
 	
