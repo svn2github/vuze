@@ -83,4 +83,11 @@ FormattersImpl
 	{
 		return( DisplayFormatters.formatDate( millis ));
 	}
+	
+	public String
+	formatTimeFromSeconds(
+		long		seconds )
+	{
+		return( DisplayFormatters.formatTime( seconds ));
+	}
 }

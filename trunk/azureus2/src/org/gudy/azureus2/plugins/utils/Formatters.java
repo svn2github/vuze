@@ -56,4 +56,8 @@ Formatters
 	public String
 	formatDate(
 		long		millis );
+	
+	public String
+	formatTimeFromSeconds(
+		long		seconds );
 }
