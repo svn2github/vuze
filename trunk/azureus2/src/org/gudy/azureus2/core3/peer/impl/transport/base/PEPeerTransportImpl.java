@@ -124,8 +124,14 @@ PEPeerTransportImpl
 
 	    if (socket.isOpen()) {
 	      socket.close();
-         if (!sck.isOutputShutdown()) sck.shutdownOutput();
-         if (!sck.isInputShutdown()) sck.shutdownInput();  
+         if (!sck.isInputShutdown()) {
+           Debug.out("shutting down input");
+           sck.shutdownInput();
+         }
+         if (!sck.isOutputShutdown()) {
+           Debug.out("shutting down output");
+           sck.shutdownOutput();
+         }
 	    }
       
 	    if (!sck.isClosed()){
