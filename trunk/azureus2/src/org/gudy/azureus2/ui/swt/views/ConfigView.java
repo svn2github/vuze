@@ -201,6 +201,7 @@ public class ConfigView extends AbstractIView {
 
     ConfigSection[] internalSections = { new ConfigSectionFile(), 
                                          new ConfigSectionFileTorrents(),
+                                         new ConfigSectionFilePerformance(),
                                          new ConfigSectionServer(),
                                          new ConfigSectionTransfer(),
                                          new ConfigSectionInterface(),

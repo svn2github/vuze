@@ -119,7 +119,7 @@ public class PieceTableItem implements SortableItem{
   }
   
   void updateBlockView() {
-    if (cBlockView == null)
+    if (cBlockView == null || cBlockView.isDisposed())
       return;
     Rectangle bounds = item.getBounds(3);
     bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);

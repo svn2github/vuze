@@ -84,7 +84,7 @@ public class PiecesItem extends TorrentItem  {
   }
   
   public void refresh() {
-    if (cBlockView == null)
+    if (cBlockView == null || cBlockView.isDisposed())
       return;
     boolean valid = torrentRow.isValid();
     BufferedTableRow row = torrentRow.getRow();    
@@ -172,6 +172,8 @@ public class PiecesItem extends TorrentItem  {
 	}
   
   public void doPaint(Rectangle clipping) {
+    if (cBlockView == null || cBlockView.isDisposed())
+      return;
     // clipping is relative to table
     
     // verify position, because redraw() won't work if it isn't on screen
@@ -198,7 +200,7 @@ public class PiecesItem extends TorrentItem  {
   }
 
   public void drawOnCanvas(GC gc,  Rectangle clipping, boolean bForce) {
-    if (cBlockView == null)
+    if (cBlockView == null || cBlockView.isDisposed())
       return;
     BufferedTableRow row = torrentRow.getRow();    
     

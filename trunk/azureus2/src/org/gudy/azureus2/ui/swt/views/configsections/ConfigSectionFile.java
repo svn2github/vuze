@@ -35,8 +35,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -253,62 +251,6 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.confirm_data_delete");
     new BooleanParameter(gFile, "Confirm Data Delete", true);
-    
-    
-    Group gPerf = new Group(gFile, SWT.NULL);
-    layout = new GridLayout();
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
-    layout.marginHeight = 4;
-    layout.marginWidth = 4;
-    layout.numColumns = 3;
-    gPerf.setLayout(layout);
-    gPerf.setLayoutData( gridData );
-    Messages.setLanguageText(gPerf, "ConfigView.section.file.perf");
-
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.perf.explain");
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
-    label.setLayoutData( gridData );
-     
-
-    // Max Open Files
-    
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
-    IntParameter file_max_open = new IntParameter(gPerf, "File Max Open", 0);
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    file_max_open.setLayoutData( gridData );
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
-    
-    	// write block limit
-    
-    label = new Label(gPerf, SWT.NULL);
-    String label_text = 
-    	MessageText.getString( 
-    		"ConfigView.section.file.write_block_limit", 
-    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( PEPeerManager.BLOCK_SIZE )});
-    label.setText(label_text);
-    IntParameter write_block_limit = new IntParameter(gPerf, "DiskManager Write Queue Block Limit", 0);
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    write_block_limit.setLayoutData( gridData );
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
-         
-    	// check piece limit
-    
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit");
-    IntParameter check_piece_limit = new IntParameter(gPerf, "DiskManager Check Queue Piece Limit", 0);
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    check_piece_limit.setLayoutData( gridData );
-    label = new Label(gPerf, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
            
     return gFile;
   }

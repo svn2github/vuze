@@ -83,7 +83,7 @@ public class PiecesItem extends PeerItem  {
   }
   
   public void refresh() {
-    if (cBlockView == null)
+    if (cBlockView == null || cBlockView.isDisposed())
       return;
     boolean valid = peerRow.isValid() && image != null;
     
@@ -168,6 +168,8 @@ public class PiecesItem extends PeerItem  {
   }
   
   public void doPaint(Rectangle clipping) {
+    if (cBlockView == null || cBlockView.isDisposed())
+      return;
     // clipping is relative to table
     
     // verify position, because redraw() won't work if it isn't on screen
@@ -194,7 +196,7 @@ public class PiecesItem extends PeerItem  {
   }
   
   public void drawOnCanvas(GC gc,  Rectangle clipping, boolean bForce) {
-    if (cBlockView == null)
+    if (cBlockView == null || cBlockView.isDisposed())
       return;
     BufferedTableRow row = peerRow.getRow();
     

@@ -22,19 +22,24 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+//import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+//import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionTMP implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
 
+  /* Name of section will be pulled from 
+   * ConfigView.section.<i>configSectionGetName()</i>
+   */
 	public String configSectionGetName() {
 		return "newsectionname";
 	}
