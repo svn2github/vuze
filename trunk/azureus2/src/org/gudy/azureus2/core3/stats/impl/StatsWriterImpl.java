@@ -231,14 +231,21 @@ StatsWriterImpl
 										
 										PEPeerStats	peer_stats = peer.getStats();
 										
+										byte[]	id	= peer.getId();
+										
+										if ( id == null ){
+											
+											continue;
+										}
+										
 										try{
-											String	peer_id = Identification.getPrintablePeerID( peer.getId());
+											String	peer_id = Identification.getPrintablePeerID( id );
 											
 											peer_id = escapeXML(peer_id);
 											
 											String	type = escapeXML( peer.getClient());
 											
-											writeLine( "<PEER hex_id=\"" + ByteFormatter.encodeString( peer.getId()) + "\" printable_id=\""+ peer_id + "\" type=\"" + type + "\">");
+											writeLine( "<PEER hex_id=\"" + ByteFormatter.encodeString( id ) + "\" printable_id=\""+ peer_id + "\" type=\"" + type + "\">");
 										
 											indent();
 										
