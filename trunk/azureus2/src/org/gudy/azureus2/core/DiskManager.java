@@ -160,7 +160,7 @@ public class DiskManager {
     }
     else {
       //define a variable to keep track of what piece we're on
-      int currentPiece = 0;
+//      int currentPiece = 0;
 
       //get the root
       rootPath = fileName;
@@ -390,7 +390,7 @@ public class DiskManager {
     return pieceToFileList;
   }
 
-  private class BtFile {
+  private static class BtFile {
     private FileInfo _file;
     private String _path;
     private String _name;
@@ -418,7 +418,7 @@ public class DiskManager {
     }
   }
 
-  private class PieceMapEntry {
+  private static class PieceMapEntry {
     private FileInfo _file;
     private int _offset;
     private int _length;
@@ -443,7 +443,7 @@ public class DiskManager {
 
   }
 
-  public class WriteElement {
+  public static class WriteElement {
     private int pieceNumber;
     private int offset;
     private ByteBuffer data;
@@ -747,19 +747,18 @@ public class DiskManager {
     FileOutputStream fos = null;
     try {
       fos = new FileOutputStream(torrent);
-    }
-    catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    //write the data out
-    try {
+      //write the data out
       fos.write(torrentData);
-      fos.close();
     }
-    catch (IOException e) {
+    catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+    } finally {
+      try {
+        if (fos != null)
+          fos.close();
+      } catch (Exception e) {
+      }
     }
   }
 
@@ -782,7 +781,7 @@ public class DiskManager {
 
       //grab it's data and return it
       try {
-        byte[] data = new byte[(int) tempPiece.getLength()];
+        byte[] data = new byte[tempPiece.getLength()];
         //create a databuffer
         raf.seek(tempPiece.getOffset());
         //seek to the correct point
@@ -826,7 +825,7 @@ public class DiskManager {
         RandomAccessFile raf = tempPiece.getFile().getRaf();
         FileChannel fc = raf.getChannel();
         try {
-          fc.position(fileOffset + (long) (offset - previousFilesLength));
+          fc.position(fileOffset + (offset - previousFilesLength));
           fc.read(buffer);
         }
         catch (IOException e) {
@@ -913,7 +912,7 @@ public class DiskManager {
         try {
           RandomAccessFile raf = tempPiece.getFile().getRaf();
                 FileChannel fc = raf.getChannel();
-          fc.position(fileOffset + (long) (offset - previousFilesLength));
+          fc.position(fileOffset + (offset - previousFilesLength));
           //System.out.print(" remaining:" + buffer.remaining());
           //System.out.print(" position:" + buffer.position());
           int realLimit = buffer.limit();
@@ -943,6 +942,7 @@ public class DiskManager {
   }
 
   public void updateResumeInfo() {
+    FileOutputStream fos = null;
     try {
       //  TODO CLEAN UP
       //build the piece byte[] 
@@ -965,12 +965,19 @@ public class DiskManager {
       //re-encode the data
       byte[] torrentData = BEncoder.encode(metaData);
       //open a file stream
-      FileOutputStream fos = new FileOutputStream(torrent);
+      fos = new FileOutputStream(torrent);
       //write the data out
       fos.write(torrentData);
+      fos.close();
     }
     catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      try {
+        if (fos != null)
+          fos.close();
+      } catch (Exception e) {
+      }
     }
   }
 
