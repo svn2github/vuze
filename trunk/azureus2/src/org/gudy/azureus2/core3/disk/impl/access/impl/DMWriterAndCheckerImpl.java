@@ -73,7 +73,7 @@ DMWriterAndCheckerImpl
 		
 		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
-		global_write_queue_block_sem = new AESemaphore("writeQ", global_write_queue_block_sem_size);
+		global_write_queue_block_sem = new AESemaphore("DMW&C::writeQ", global_write_queue_block_sem_size);
 		
 		if ( global_write_queue_block_sem_size == 0 ){
 			
@@ -86,7 +86,7 @@ DMWriterAndCheckerImpl
 		
 		global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
-		global_check_queue_block_sem = new AESemaphore("checkQ", global_check_queue_block_sem_size);
+		global_check_queue_block_sem = new AESemaphore("DMW&C::checkQ", global_check_queue_block_sem_size);
 		
 		if ( global_check_queue_block_sem_size == 0 ){
 			
@@ -99,10 +99,10 @@ DMWriterAndCheckerImpl
 	private DiskManagerHelper		disk_manager;
 	
 	private DiskWriteThread writeThread;
-	private List 			writeQueue;
-	private List 			checkQueue;
-	private AESemaphore		writeCheckQueueSem;
-		
+	private List 			writeQueue			= new LinkedList();
+	private List 			checkQueue			= new LinkedList();
+	private AESemaphore		writeCheckQueueSem	= new AESemaphore("writeCheckQ");				
+
 	protected volatile 		ConcurrentHasherRequest	current_hash_request;
 	
 	protected long			total_async_check_requests;
@@ -141,34 +141,44 @@ DMWriterAndCheckerImpl
 	public void
 	start()
 	{
-		if ( started ){
+		try{
+			this_mon.enter();
+
+			if ( started ){
+				
+				throw( new RuntimeException( "DMW&C: start while started"));
+			}
 			
-			throw( new RuntimeException( "DMW&C: start while started"));
+			if ( !bOverallContinue ){
+				
+				throw( new RuntimeException( "DMW&C: start after stopped"));
+			}
+
+			started	= true;
+			
+			writeThread = new DiskWriteThread();
+			
+			writeThread.start();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		started	= true;
-		
-		writeQueue			= new LinkedList();
-		checkQueue			= new LinkedList();
-		writeCheckQueueSem	= new AESemaphore("writeCheckQ");
-   				
-		writeThread = new DiskWriteThread();
-		writeThread.start();
 	}
 	
 	public void
 	stop()
 	{
-		if ( !started ){
-			
-			return;
-		}
-		
-			// when we exit here we guarantee that all file usage operations have completed
-			// i.e. writes and checks (checks being doubly async)
-		
 		try{
 			this_mon.enter();
+
+			if ( !started ){
+			
+				return;
+			}
+		
+				// when we exit here we guarantee that all file usage operations have completed
+				// i.e. writes and checks (checks being doubly async)
 			
 			bOverallContinue	= false;
 			

@@ -47,12 +47,12 @@ DMReaderImpl
 
 	private boolean		bOverallContinue	= true;
 	
-	private List		readQueue;
-	private AESemaphore	readQueueSem;
-	
+	private List		readQueue		= new LinkedList();
+	private AESemaphore	readQueueSem	= new AESemaphore("DMReader::readQ");
+		
 	private AEMonitor	this_mon		= new AEMonitor( "DMReader");
 	
-	private int			next_report_size	= 0;
+	private int			next_report_size	= QUEUE_REPORT_CHUNK;
 	
 	private boolean			started;
 	private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
@@ -69,33 +69,42 @@ DMReaderImpl
 	public void
 	start()
 	{
-		if ( started ){
+		try{
+			this_mon.enter();
+
+			if ( started ){
+				
+				throw( new RuntimeException( "DMReader: start while started"));
+			}
 			
-			throw( new RuntimeException( "DMReader: start while started"));
+			if ( !bOverallContinue ){
+	
+				throw( new RuntimeException( "DMReader: start after stopped"));
+			}
+			
+			started	= true;
+					
+			readThread = new DiskReadThread();
+			
+			readThread.start();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		started	= true;
-		
-		readQueue			= new LinkedList();
-		readQueueSem		= new AESemaphore("readQ");
-		next_report_size	= QUEUE_REPORT_CHUNK;
-		
-		readThread = new DiskReadThread();
-		
-		readThread.start();
 	}
 	
 	public void
 	stop()
 	{
-		if ( !started ){
-			
-			return;
-		}
-		
 		try{
 			this_mon.enter();
 
+			if ( !started ){
+			
+				return;
+			}	
+		
 			bOverallContinue	= false;
 			
 		}finally{
