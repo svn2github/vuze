@@ -136,12 +136,12 @@ StatsWriterImpl
 					
 							writeTag( "NAME", dm.getName());
                                                                 
-																writeTag( "HASH", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
-							
 							writeTag( "TORRENT_FILE", dm.getTorrentFileName());
 							
-												if ( torrent != null ){
+							if ( torrent != null ){
 								
+								writeTag( "HASH", ByteFormatter.nicePrintTorrentHash(torrent, true));
+							
 								writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 								
 								writeTag( "PIECE_COUNT", torrent.getPieces().length );
