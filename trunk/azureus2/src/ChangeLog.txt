@@ -20,6 +20,7 @@ CHANGE: Core | More sensible merging of plugin.properties on plugin update [Parg
 CHANGE: Core | Retuned tracker connect failure retry interval [Nolar]
 CHANGE: Core | Torrents downloaded by URL now named after torrent if not already .torrent [Parg]
 CHANGE: Plug | Green colour used on tracker web pages now more legible [Nolar]
+CHANGE: Core | Performance of ipfilter checking improved [Parg]
 
 BUGFIX: Core | 99.X% / continuous hash fails fix [Parg]
 BUGFIX: Core | Basic plugin config model parameters not working in non-swt (e.g. console) mode [Parg]
