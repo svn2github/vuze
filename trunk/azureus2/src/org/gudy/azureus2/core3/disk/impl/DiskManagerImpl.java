@@ -968,11 +968,9 @@ DiskManagerImpl
 		}
 
 		//Attach the resume data
-		Map resumeMap = torrent.getAdditionalMapProperty("resume");
-		if (resumeMap == null) {
-			resumeMap = new HashMap();
-			torrent.setAdditionalMapProperty("resume", resumeMap);
-		}
+		Map resumeMap = new HashMap();
+		torrent.setAdditionalMapProperty("resume", resumeMap);
+
 		Map resumeDirectory = new HashMap();
 		resumeMap.put(path, resumeDirectory);
 		resumeDirectory.put("resume data", resumeData);
