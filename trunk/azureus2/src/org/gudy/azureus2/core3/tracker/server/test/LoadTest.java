@@ -162,6 +162,13 @@ LoadTest
 				}else if (chance(10)){
 					
 					client.reset();
+					
+				}else if ( chance(20)){
+					
+						// force some address reuse
+					
+					address4	 = 0;
+					
 				}else{
 					
 					client.complete();

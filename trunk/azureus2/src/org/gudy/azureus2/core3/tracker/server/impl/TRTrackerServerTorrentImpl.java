@@ -73,6 +73,8 @@ TRTrackerServerTorrentImpl
 	protected List				listeners	= new ArrayList();
 	protected boolean			deleted;
 	
+	protected boolean			map_size_diff_reported;
+	
 	public
 	TRTrackerServerTorrentImpl(
 		HashWrapper				_hash )
@@ -118,9 +120,11 @@ TRTrackerServerTorrentImpl
 		long	dl_diff	= 0;
 		long	le_diff = 0;
 		
+		byte[]	ip_address_bytes = ip_address.getBytes( Constants.BYTE_ENCODING );
+		
 		if ( peer == null ){
 			
-			String	reuse_key = ip_address + ":" +port;
+			String	reuse_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
 			
 			new_peer	= true;
 			
@@ -168,7 +172,7 @@ TRTrackerServerTorrentImpl
 				peer = new TRTrackerServerPeerImpl( 
 								peer_id, 
 								tracker_key_hash_code, 
-								ip_address.getBytes(), 
+								ip_address_bytes,
 								port,
 								last_contact_time,
 								already_completed );
@@ -176,7 +180,7 @@ TRTrackerServerTorrentImpl
 				peer_map.put( peer_id, peer );
 				
 				peer_list.add( peer );
-				
+								
 				peer_reuse_map.put( reuse_key, peer );
 			}
 		}else{
@@ -202,18 +206,40 @@ TRTrackerServerTorrentImpl
 			}else{
 				
 					// IP may have changed - update if required
+	
+					// it is possible for two az clients to have the same peer id. Unlikely but possible
+					// or indeed some hacked versions could do it on purpose. If this is the case then all we
+					// will see here is address/port changes as each peer announces
+
+				byte[]	old_ip 		= peer.getIPAsRead();
+				int		old_port	= peer.getPort();
 				
-				byte[]	old_ip = peer.getIPAsRead();
-				
-				if ( peer.checkForIPChange( ip_address.getBytes())){
+				if ( peer.checkForIPOrPortChange( ip_address_bytes, port )){
 					
 						// same peer id so same port
 					
-					String 	old_key = new String( old_ip, Constants.BYTE_ENCODING ) + ":" + peer.getPort();
+					String 	old_key = new String( old_ip, Constants.BYTE_ENCODING ) + ":" + old_port;
 					
-					String	new_key = new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort();
+					String	new_key = new String(ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
 					
-					peer_reuse_map.remove( old_key );
+						// it is possible, on address change, that the target address already exists and is
+						// (was) being used by another peer. Given that this peer has taken over its address
+						// the assumption is that the other peer has also had an address change and has yet
+						// to report it. The only action here is to delete the other peer
+					
+					TRTrackerServerPeerImpl old_peer = (TRTrackerServerPeerImpl)peer_reuse_map.get( new_key );
+					
+					if ( old_peer != null ){
+					
+						removePeer( old_peer );
+					}
+
+						// now swap the keys
+					
+					if ( peer_reuse_map.remove( old_key ) == null ){
+						
+						Debug.out( "TRTrackerServerTorrent: IP address change: '" + old_key + "' -> '" + new_key + "': old key not found" );
+					}
 
 					peer_reuse_map.put( new_key, peer );
 				}
@@ -352,7 +378,12 @@ TRTrackerServerTorrentImpl
 		
 		if ( peer_map.size() != peer_reuse_map.size()){
 	
-			Debug.out( "TRTrackerServerTorrent::removePeer: maps size different");	
+			if ( !map_size_diff_reported ){
+				
+				map_size_diff_reported	= true;
+				
+				Debug.out( "TRTrackerServerTorrent::removePeer: maps size different ( " + peer_map.size() + "/" + peer_reuse_map.size() +")");
+			}
 		}
 		
 		{

@@ -68,21 +68,27 @@ TRTrackerServerPeerImpl
 	}
 	
 	protected boolean
-	checkForIPChange(
-		byte[]		_ip )
+	checkForIPOrPortChange(
+		byte[]		_ip,
+		int			_port )
 	{
+		boolean	res	= false;
+		
+		if ( _port != port ){
+			
+			port	= _port;
+			
+			res		= true;
+		}
+		
 		if ( !Arrays.equals( _ip, ip )){
 			
 			ip			= _ip;
 	
-			resolve();
-			
-			return( true );
-			
-		}else{
-			
-			return( false );
+			res	= true;	
 		}
+			
+		return( res );
 	}
 	
 	protected void
