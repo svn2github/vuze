@@ -308,6 +308,9 @@ AuthenticatorWindow
 			shell.setDefaultButton( bOk );
 
 		 	shell.pack ();
+		 	
+			Utils.centreWindow( shell );
+
 			shell.open ();   
 		}
    

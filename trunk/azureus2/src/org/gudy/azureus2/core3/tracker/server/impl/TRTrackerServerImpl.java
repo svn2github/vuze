@@ -55,7 +55,8 @@ TRTrackerServerImpl
 	
 	ThreadPool	thread_pool;
 	
-	protected boolean	password_enabled;
+	protected boolean	web_password_enabled;
+	protected boolean	tracker_password_enabled;
 	protected String	password_user;
 	protected byte[]	password_pw;
 	
@@ -67,6 +68,16 @@ TRTrackerServerImpl
 	{
 		port					= _port;
 
+		COConfigurationManager.addListener(
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
+				{
+					readPasswordSettings();
+				}
+			});
+			
 		readPasswordSettings();
 				
 		thread_pool = new ThreadPool( "TrackerServer:"+port, THREAD_POOL_SIZE );			
@@ -164,9 +175,7 @@ TRTrackerServerImpl
 				Thread.sleep( RETRY_MINIMUM_MILLIS );
 				
 				time_to_go -= RETRY_MINIMUM_MILLIS;
-	
-				readPasswordSettings();
-				
+					
 					// recalc tracker interval every minute
 					
 				int	min 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
@@ -245,9 +254,10 @@ TRTrackerServerImpl
 	protected void
 	readPasswordSettings()
 	{		
-		password_enabled = COConfigurationManager.getBooleanParameter("Tracker Password Enable", false);
+		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
+		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
 
-		if ( password_enabled ){
+		if ( web_password_enabled || tracker_password_enabled ){
 			
 			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
 			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
@@ -255,9 +265,15 @@ TRTrackerServerImpl
 	}
 	
 	public boolean
-	isPasswordEnabled()
+	isWebPasswordEnabled()
 	{
-		return( password_enabled );
+		return( web_password_enabled );
+	}
+	
+	public boolean
+	isTrackerPasswordEnabled()
+	{
+		return( tracker_password_enabled );
 	}
 	
 	public String

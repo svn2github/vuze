@@ -1240,11 +1240,22 @@ public class ConfigView extends AbstractIView {
 	  // row
 
 	  label = new Label(gTracker, SWT.NULL);
-	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenable"); 
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenableweb"); 
     
-	  BooleanParameter passwordEnable = new BooleanParameter(gTracker, "Tracker Password Enable", false);
+	  final BooleanParameter passwordEnableWeb = new BooleanParameter(gTracker, "Tracker Password Enable Web", false);
 
 	  label = new Label(gTracker, SWT.NULL);
+	  
+	  // row
+
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent"); 
+    
+	  final BooleanParameter passwordEnableTorrent = new BooleanParameter(gTracker, "Tracker Password Enable Torrent", false);
+
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent.info"); 
+
 
 		// row
 		
@@ -1275,14 +1286,29 @@ public class ConfigView extends AbstractIView {
 	  label = new Label(gTracker, SWT.NULL);
 
 
- 	  Control[] controls = new Control[2];
-	  controls[0] = tracker_username.getControl();
-	  controls[1] = tracker_password.getControl();
+ 	  Control[] x_controls = new Control[2];
+	  x_controls[0] = tracker_username.getControl();
+	  x_controls[1] = tracker_password.getControl();
 	
-	  IAdditionalActionPerformer enabler = new ChangeSelectionActionPerformer(controls);
-	  passwordEnable.setAdditionalActionPerformer(enabler); 
+	  IAdditionalActionPerformer enabler = 
+	  		new GenericActionPerformer(x_controls)
+	  				{
+						public void performAction() 
+						{
+							boolean selected =  passwordEnableWeb.isSelected() ||
+												passwordEnableTorrent.isSelected();
+											
+							for (int i=0;i<controls.length;i++){
+								
+								controls[i].setEnabled( selected );
+							}
+						}
+  					};
+  					
+	  passwordEnableWeb.setAdditionalActionPerformer(enabler); 
+	  passwordEnableTorrent.setAdditionalActionPerformer(enabler); 
 
-	 	itemStats.setControl(gTracker);
+	  itemStats.setControl(gTracker);
 	}
 	
 	

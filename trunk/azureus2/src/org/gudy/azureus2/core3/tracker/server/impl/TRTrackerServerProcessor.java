@@ -111,34 +111,29 @@ TRTrackerServerProcessor
 					
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
 				}				
-	
-				OutputStream	os = socket.getOutputStream();
-				
-				if ( !doAuthentication( header, os )){
 					
-					return;
-				}
-				// System.out.println( "got header:" + header );
+					// System.out.println( "got header:" + header );
 				
 				if ( !header.startsWith( "GET " )){
 					
 					throw( new TRTrackerServerException( "header doesn't start with GET ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
 				}
 				
-				header = header.substring(4).trim();
+				String	url = header.substring(4).trim();
 				
-				int	pos = header.indexOf( " " );
+				int	pos = url.indexOf( " " );
 				
 				if ( pos == -1 ){
 					
 					throw( new TRTrackerServerException( "header doesn't have space in right place" ));
 				}
+								
+				url = url.substring(0,pos);
 				
-				header = header.substring(0,pos);
-				
-				processRequest( header, 
+				processRequest( header,
+								url, 
 								socket.getInetAddress().getHostAddress(),
-								os );
+								socket.getOutputStream() );
 				
 			}catch( SocketTimeoutException e ){
 				
@@ -162,86 +157,11 @@ TRTrackerServerProcessor
 		}
 	}
 	
-	protected boolean
-	doAuthentication(
-		String			header,
-		OutputStream	os )
-		
-		throws IOException
-	{
-		if ( server.isPasswordEnabled()){
-			
-			int	x = header.indexOf( "Authorization:" );
-			
-			if ( x != -1 ){
-															
-					//			Authorization: Basic dG9tY2F0OnRvbWNhdA==
-		
-				int	p1 = header.indexOf(' ', x );
-				int p2 = header.indexOf(' ', p1+1 );
-				
-				String	body = header.substring( p2, header.indexOf( '\r', p2 )).trim();
-				
-				String decoded=new String(new BASE64Decoder().decodeBuffer(body));
-
-					// username:password
-									
-				int	cp = decoded.indexOf(':');
-				
-				String	user = decoded.substring(0,cp);
-				String  pw	 = decoded.substring(cp+1);
-				
-				try{
-			
-					SHA1Hasher hasher = new SHA1Hasher();
-					
-					byte[] password = pw.getBytes();
-					
-					byte[] encoded;
-					
-					if( password.length > 0){
-					
-						encoded = hasher.calculateHash(password);
-						
-					}else{
-						
-						encoded = new byte[0];
-					}
-					
-					if ( user.equals( "<internal>")){
-						
-						byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
-
-						if ( Arrays.equals( internal_pw, server.getPassword())){
-							
-							return( true );
-						}
-					}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
-						 		Arrays.equals(encoded, server.getPassword())){
-						 	
-						 return( true );			 	
-					}
-				}catch( Exception e ){
-					
-					e.printStackTrace();
-				}
-			}
-			
-			os.write( "HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"Azureus\"\r\n\r\n".getBytes() );
-			
-			os.flush();
-				
-			return( false );
-
-		}else{
-		
-			return( true );
-		}
-	}
-			
+	
 
 	protected void
 	processRequest(
+		String			header,
 		String			str,
 		String			client_ip_address,
 		OutputStream	os )
@@ -274,6 +194,13 @@ TRTrackerServerProcessor
 				
 				}else{
 					
+						// check non-tracker authentication
+						
+					if ( !doAuthentication( header, os, false )){
+					
+						return;
+					}
+					
 					if ( handleExternalRequest( str, os )){
 					
 						return;
@@ -282,6 +209,13 @@ TRTrackerServerProcessor
 					throw( new Exception( "Unsupported Request Type"));
 				}
 					
+					// check tracker authentication
+					
+				if ( !doAuthentication( header, os, true )){
+					
+					return;
+				}
+
 				int	pos = 0;
 					
 				String		hash_str	= null;
@@ -515,12 +449,13 @@ TRTrackerServerProcessor
 				
 			// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
 				
-			String header = "HTTP/1.1 200 OK" + NL + 
+			String output_header = 
+							"HTTP/1.1 200 OK" + NL + 
 							"Content-Type: text/html" + NL +
 							"Content-Length: " + data.length + 
 							NL + NL;
 	
-			os.write( header.getBytes());
+			os.write( output_header.getBytes());
 				
 			os.write( data );
 							
@@ -530,6 +465,87 @@ TRTrackerServerProcessor
 		}
 	}
 	
+	protected boolean
+	doAuthentication(
+		String			header,
+		OutputStream	os,
+		boolean			tracker )
+		
+		throws IOException
+	{
+		// System.out.println( "doAuth: " + server.isTrackerPasswordEnabled() + "/" + server.isWebPasswordEnabled());
+		
+		if (	( tracker && server.isTrackerPasswordEnabled()) ||
+				( (!tracker) && server.isWebPasswordEnabled())){
+			
+			int	x = header.indexOf( "Authorization:" );
+			
+			if ( x != -1 ){
+															
+					//			Authorization: Basic dG9tY2F0OnRvbWNhdA==
+		
+				int	p1 = header.indexOf(' ', x );
+				int p2 = header.indexOf(' ', p1+1 );
+				
+				String	body = header.substring( p2, header.indexOf( '\r', p2 )).trim();
+				
+				String decoded=new String(new BASE64Decoder().decodeBuffer(body));
+
+					// username:password
+									
+				int	cp = decoded.indexOf(':');
+				
+				String	user = decoded.substring(0,cp);
+				String  pw	 = decoded.substring(cp+1);
+				
+				try{
+			
+					SHA1Hasher hasher = new SHA1Hasher();
+					
+					byte[] password = pw.getBytes();
+					
+					byte[] encoded;
+					
+					if( password.length > 0){
+					
+						encoded = hasher.calculateHash(password);
+						
+					}else{
+						
+						encoded = new byte[0];
+					}
+					
+					if ( user.equals( "<internal>")){
+						
+						byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
+
+						if ( Arrays.equals( internal_pw, server.getPassword())){
+							
+							return( true );
+						}
+					}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
+								Arrays.equals(encoded, server.getPassword())){
+						 	
+						 return( true );			 	
+					}
+				}catch( Exception e ){
+					
+					e.printStackTrace();
+				}
+			}
+			
+			os.write( "HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"Azureus\"\r\n\r\nAccess Denied\r\n".getBytes() );
+			
+			os.flush();
+				
+			return( false );
+
+		}else{
+		
+			return( true );
+		}
+	}
+		
 	protected boolean
 	handleExternalRequest(
 		String			header,

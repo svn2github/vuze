@@ -63,4 +63,9 @@ public class BooleanParameter implements IParameter{
     return checkBox;
   }
 
+  public boolean
+  isSelected()
+  {
+  	return( checkBox.getSelection());
+  }
 }

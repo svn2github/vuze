@@ -29,6 +29,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -156,4 +157,20 @@ public class Utils {
       saveTableColumn(t);
   }
 
+  public static void
+  centreWindow(
+  	Shell	shell )
+  {
+  	Display display = shell.getDisplay();
+  	
+	Rectangle displayRect = display.getBounds();
+	
+	Rectangle shellRect = shell.getBounds();
+	
+	int x = (displayRect.width - shellRect.width) / 2;
+	
+	int y = (displayRect.height - shellRect.height) / 2;
+	
+	shell.setLocation(x, y);
+  }
 }

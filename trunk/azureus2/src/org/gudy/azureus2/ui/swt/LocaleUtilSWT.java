@@ -16,7 +16,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -236,12 +235,9 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     checkBox.setSelection(rememberEncodingDecision);
 
     s.pack();
-    Rectangle splashRect = s.getBounds();
-    Rectangle displayRect = display.getBounds();
-    int x = (displayRect.width - splashRect.width) / 2;
-    int y = (displayRect.height - splashRect.height) / 2;
-    s.setLocation(x, y);
-
+    
+    Utils.centreWindow(s);
+ 
     ok.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         setChoosedIndex(s, table, checkBox, candidates);

@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -210,8 +211,11 @@ public class Wizard {
         onClose();
       }
     });
-	
+		
     wizardWindow.setSize(400, 400);
+    
+	Utils.centreWindow( wizardWindow );
+
     wizardWindow.open();
 
   }
