@@ -7,8 +7,12 @@ package org.gudy.azureus2.core2;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+//import java.nio.channels.SelectionKey;
+//import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+//import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -46,20 +50,23 @@ public class PeerSocket extends PeerConnection {
       return;
     this.incoming = false;
     allocateAll();
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
+//    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
+//      selector = Selector.open();
       //      Construct the peer's address with ip and port     
       InetSocketAddress peerAddress = new InetSocketAddress(ip, port);
       //Create a new SocketChannel, left non-connected
-      socket = SocketChannel.open();
+      udpSocket = DatagramChannel.open();
       //Configure it so it's non blocking
-      socket.configureBlocking(false);
+      udpSocket.configureBlocking(false);
       //Initiate the connection
-      socket.connect(peerAddress);
+      udpSocket.connect(peerAddress);
+//      udpSocket.register(selector, SelectionKey.OP_READ);
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
+      e.printStackTrace();
       closeAll();
     }
   }
@@ -224,10 +231,20 @@ public class PeerSocket extends PeerConnection {
       try {
         socket.close();
       } catch (Exception e) {
-        logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
       }
+      socket = null;
     }
 
+    if (udpSocket != null) {
+      try {
+        udpSocket.close();
+      } catch (Exception e) {
+        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+      }
+      udpSocket = null;
+    }
+    
     //4. release the read Buffer
     if (readBuffer != null)
       ByteBufferPool.getInstance().freeBuffer(readBuffer);
@@ -255,16 +272,22 @@ public class PeerSocket extends PeerConnection {
     manager.peerRemoved(this);
 
     //8. Send a logger event
-    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
+//    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
   }
 
   private class StateConnecting implements State {
     public void process() {
       try {
-        if (socket.finishConnect()) {
-          handShake();
-          currentState = new StateHandshaking();
+        if(incoming) {
+          while (!socket.finishConnect()) {
+            try {
+              Thread.sleep(30);
+            } catch (InterruptedException e1) {
+            }
+          }
         }
+        handShake();
+        currentState = new StateHandshaking();
       }
       catch (IOException e) {
         logger.log(
@@ -287,14 +310,12 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readBuffer.hasRemaining()) {
         try {
-          int read = socket.read(readBuffer);
+          int read = incoming ? socket.read(readBuffer) : udpSocket.read(readBuffer);
           if (read < 0) {
             closeAll();
             return;
           }
-        }
-        catch (IOException e) {
-          //e.printStackTrace();
+        } catch (IOException e) {
           closeAll();
           return;
         }
@@ -314,7 +335,7 @@ public class PeerSocket extends PeerConnection {
       if (readingLength) {
         if (lengthBuffer.hasRemaining()) {
           try {
-            int read = socket.read(lengthBuffer);
+            int read = incoming ? socket.read(lengthBuffer) : udpSocket.read(lengthBuffer);
             if (read < 0) {
               closeAll();
               return;
@@ -338,7 +359,7 @@ public class PeerSocket extends PeerConnection {
       }
       if (!readingLength) {
         try {
-          int read = socket.read(readBuffer);
+          int read = udpSocket != null ? udpSocket.read(readBuffer) : socket.read(readBuffer);
           if (read < 0) {
             closeAll();
             return;
@@ -800,7 +821,7 @@ public class PeerSocket extends PeerConnection {
             limit = realLimit;
         }
         writeBuffer.limit(limit);
-        int written = socket.write(writeBuffer);
+        int written = incoming ? socket.write(writeBuffer) : udpSocket.write(writeBuffer);
         // End of Stream Reached
         if (written >= 0) {
           writeBuffer.limit(realLimit);
@@ -933,6 +954,9 @@ public class PeerSocket extends PeerConnection {
 
   //The SocketChannel associated with this peer
   private SocketChannel socket;
+  private DatagramChannel udpSocket;
+//  private Selector selector;
+
   //The reference to the current ByteBuffer used for reading on the socket.
   private ByteBuffer readBuffer;
   //The Buffer for reading the length of the messages
