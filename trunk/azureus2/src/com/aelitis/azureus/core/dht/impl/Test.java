@@ -59,7 +59,7 @@ Test
 	
 
 	static int		K			= 20;
-	static int		B			= 1;
+	static int		B			= 5;
 	static int		ID_BYTES	= 20;
 	
 	static int		fail_percentage	= 00;

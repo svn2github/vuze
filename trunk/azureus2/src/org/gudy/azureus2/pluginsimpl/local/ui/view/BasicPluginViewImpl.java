@@ -27,9 +27,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.PluginView;
@@ -120,10 +123,19 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
     if(model.getLogArea().getVisible()) {
       Label logTitle = new Label(panel,SWT.NULL);
       Messages.setLanguageText(logTitle,"plugins.basicview.log");
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
-      logTitle.setLayoutData(gridData);
+    //  gridData = new GridData(GridData.FILL_HORIZONTAL);
+    //  gridData.horizontalSpan = 1;
+    //  logTitle.setLayoutData(gridData);
       
+      Button button = new Button( panel, SWT.PUSH );
+      Messages.setLanguageText(button,"plugins.basicview.clear");
+      
+      button.addListener(SWT.Selection, new Listener() {
+  	      public void handleEvent(Event event) 
+  	      {
+  	      	model.getLogArea().setText("");
+  	      }});
+
       log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
       gridData = new GridData(GridData.FILL_BOTH);
       gridData.horizontalSpan = 2;
