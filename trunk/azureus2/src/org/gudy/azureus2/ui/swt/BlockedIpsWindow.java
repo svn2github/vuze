@@ -40,47 +40,50 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
  */
 public class BlockedIpsWindow {
   
-  public static void show(Display display,String ips) {
+  public static void show(Display display,String ipsBlocked,String ipsBanned) {
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
     window.setImage(ImageRepository.getImage("azureus"));
     
     FormLayout layout = new FormLayout();
     try {
-      layout.spacing = 3;
+      layout.spacing = 5;
     } catch (NoSuchFieldError e) {
       /* Ignore for Pre 3.0 SWT.. */
     }
-    layout.marginHeight = 3;
-    layout.marginWidth = 3;
+    layout.marginHeight = 5;
+    layout.marginWidth = 5;
     window.setLayout(layout);
     FormData formData;
     
-    	// text area
+    	// text blocked area
     
-    final StyledText text = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-    
-    Button btnOk = new Button(window,SWT.PUSH);
-    
+    final StyledText textBlocked = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
     Button btnClear = new Button(window,SWT.PUSH);
+    textBlocked.setEditable(false);
+    
+    final StyledText textBanned = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+    Button btnOk = new Button(window,SWT.PUSH);
+    textBanned.setEditable(false);
+    
             
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
     formData.top = new FormAttachment(0,0);   
-    formData.bottom = new FormAttachment(btnOk);   
-    text.setLayoutData(formData);
-    text.setText(ips);
-    text.setEditable(false);
+    formData.bottom = new FormAttachment(40,0);   
+    textBlocked.setLayoutData(formData);
+    textBlocked.setText(ipsBlocked);
+    
     
     	// clear button
     
     
     Messages.setLanguageText(btnClear,"Button.clear");
     formData = new FormData();
-    formData.top = new FormAttachment(text);    
-    formData.right = new FormAttachment(btnOk);    
-    formData.bottom = new FormAttachment(100,0);
+    formData.top = new FormAttachment(textBlocked);    
+    formData.right = new FormAttachment(95,0 );    
+    //formData.bottom = new FormAttachment(textBanned);
     formData.width = 70;
     btnClear.setLayoutData(formData);
     btnClear.addListener(SWT.Selection,new Listener() {
@@ -89,17 +92,27 @@ public class BlockedIpsWindow {
      
     	IpFilter.getInstance().clearBlockedIPs();
     	
-    	text.setText( "" );
+    	textBlocked.setText( "" );
     }
     });
+    
+    
+    // text banned area
+    formData = new FormData();
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);
+    formData.top = new FormAttachment(btnClear);   
+    formData.bottom = new FormAttachment(btnOk);   
+    textBanned.setLayoutData(formData);
+    textBanned.setText(ipsBanned);
     
     	// ok button
     
     
     Messages.setLanguageText(btnOk,"Button.ok");
     formData = new FormData();
-    formData.right = new FormAttachment(100,0);    
-    formData.bottom = new FormAttachment(100,0);
+    formData.right = new FormAttachment(95,0);    
+    formData.bottom = new FormAttachment(100,0);    
     formData.width = 70;
     btnOk.setLayoutData(formData);
     btnOk.addListener(SWT.Selection,new Listener() {
@@ -119,13 +132,14 @@ public class BlockedIpsWindow {
 		}
     });
     
-    window.setSize(720,320);
+    window.setSize(620,450);
     window.layout();
     window.open();    
   }
   
   public static void showBlockedIps(Shell mainWindow) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sbBlocked = new StringBuffer();
+    StringBuffer sbBanned = new StringBuffer();
     BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
     String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
     String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");   
@@ -134,54 +148,53 @@ public class BlockedIpsWindow {
     
     for(int i=0;i<blocked.length;i++){
       BlockedIp bIp = blocked[i];
-      sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
-      sb.append("\t[");
-      sb.append( bIp.getTorrentName() );
-      sb.append("] \t");
-      sb.append(bIp.getBlockedIp());
+      sbBlocked.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
+      sbBlocked.append("\t[");
+      sbBlocked.append( bIp.getTorrentName() );
+      sbBlocked.append("] \t");
+      sbBlocked.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
-        sb.append(' ');
-        sb.append(notInRange);
-        sb.append('\n');
+        sbBlocked.append(' ');
+        sbBlocked.append(notInRange);
+        sbBlocked.append('\n');
       } else {
-        sb.append(' ');
-        sb.append(inRange);
-        sb.append(range.toString());
-        sb.append('\n');
+        sbBlocked.append(' ');
+        sbBlocked.append(inRange);
+        sbBlocked.append(range.toString());
+        sbBlocked.append('\n');
       }
     }  
     
-    BannedIp[]	banned_ips = IpFilter.getInstance().getBannedIps();
+    BannedIp[]	banned_ips = IpFilter.getInstance().getBannedIps();    
     
     for(int i=0;i<banned_ips.length;i++){
     	BannedIp bIp = banned_ips[i];
-        sb.append(DisplayFormatters.formatTimeStamp(bIp.getBanningTime()));
-        sb.append("\t[");
-        sb.append( bIp.getTorrentName() );
-        sb.append("] \t" );
-        sb.append( bIp.getIp());
-        sb.append( " " );
-        sb.append( bannedMessage );
-        sb.append( "\n");
+      sbBanned.append(DisplayFormatters.formatTimeStamp(bIp.getBanningTime()));
+      sbBanned.append("\t[");
+      sbBanned.append( bIp.getTorrentName() );
+      sbBanned.append("] \t" );
+      sbBanned.append( bIp.getIp());
+      sbBanned.append( " " );
+      sbBanned.append( bannedMessage );
+      sbBanned.append( "\n");
     }
     
     BadIp[]	bad_ips = BadIps.getInstance().getBadIps();
-    
     for(int i=0;i<bad_ips.length;i++){
     	BadIp bIp = bad_ips[i];
-        sb.append(DisplayFormatters.formatTimeStamp(bIp.getLastTime()));
-        sb.append( "\t" );
-        sb.append( bIp.getIp());
-        sb.append( " " );
-        sb.append( badDataMessage );
-        sb.append( " " );
-        sb.append( bIp.getNumberOfWarnings());
-        sb.append( "\n" );
+        sbBanned.append(DisplayFormatters.formatTimeStamp(bIp.getLastTime()));
+        sbBanned.append( "\t" );
+        sbBanned.append( bIp.getIp());
+        sbBanned.append( " " );
+        sbBanned.append( badDataMessage );
+        sbBanned.append( " " );
+        sbBanned.append( bIp.getNumberOfWarnings());
+        sbBanned.append( "\n" );
     }
     
     if(mainWindow == null || mainWindow.isDisposed())
       return;
-    BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
+    BlockedIpsWindow.show(mainWindow.getDisplay(),sbBlocked.toString(),sbBanned.toString());
   }
 }
