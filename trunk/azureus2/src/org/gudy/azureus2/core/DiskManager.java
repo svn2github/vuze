@@ -816,7 +816,9 @@ public class DiskManager {
     resumeMap.put(path, resumeDirectory);
     resumeDirectory.put("resume data", resumeData);
     Map partialPieces = new HashMap();
-    if (savePartialPieces) {      
+    if (savePartialPieces) {
+      if(pieces == null)
+         pieces = manager.getPieces();      
       for (int i = 0; i < pieces.length; i++) {
         Piece piece = pieces[i];
         if (piece != null && piece.getCompleted() > 0) {
@@ -942,7 +944,8 @@ public class DiskManager {
         FileChannel fc = raf.getChannel();
         try {
           fc.position(fileOffset + (offset - previousFilesLength));
-          fc.read(buffer);
+          while(fc.position() != fc.size() || buffer.hasRemaining())
+            fc.read(buffer);
         }
         catch (IOException e) {
           // TODO Auto-generated catch block
@@ -963,8 +966,7 @@ public class DiskManager {
         System.out.println("Buffer - limit : " + buffer.limit() + ", remaining : " + buffer.remaining());
         System.out.println("PieceList - size : " + pieceList.size());
         System.out.println("currentFile : " + currentFile);
-        System.out.println("tempPiece - length : " + tempPiece.getLength() + ", offset : " + tempPiece.getOffset());
-
+        System.out.println("tempPiece - length : " + tempPiece.getLength() + ", offset : " + tempPiece.getOffset());      
       }
 
     }
