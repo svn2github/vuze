@@ -105,7 +105,7 @@ public class Main {
         if (param.equals("--maxUploads"))
 			COConfigurationManager.setParameter("Max Uploads", Integer.parseInt(value));
         else if (param.equals("--maxSpeed"))
-			COConfigurationManager.setParameter("Max Upload Speed", Integer.parseInt(value));
+			COConfigurationManager.setParameter("Max Upload Speed KBs", Integer.parseInt(value));
         else
           return false;
       }
@@ -119,7 +119,7 @@ public class Main {
   private static void usage() {
     System.out.println("Usage : java org.gudy.azureus2.cl.Main [parameters] \"file.torrent\" \"save path\"");
     System.out.println("--maxUploads :\t\t Max number of simultaneous uploads");
-    System.out.println("--maxSpeed :\t\t Max upload speed in bytes/sec");
+    System.out.println("--maxSpeed :\t\t Max upload speed in KBytes/sec");
     System.exit(0);
   }
 }

@@ -126,12 +126,21 @@ public class ConfigurationChecker {
     changed = true;
     }
 
-    int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed",0);
-    if(maxUpSpeed > 0 && maxUpSpeed < 1024 * 5) {
+    //migrate from older BPs setting to newer KBs setting
+    int speed = COConfigurationManager.getIntParameter("Max Upload Speed", -1);
+    if ( speed > -1 ) {      
+      COConfigurationManager.setParameter("Max Upload Speed KBs", speed / 1024);
+      COConfigurationManager.setParameter("Max Upload Speed", -1);
       changed = true;
-      COConfigurationManager.setParameter("Max Upload Speed", 5 * 1024);
     }
     
+    int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+    if(maxUpSpeed > 0 && maxUpSpeed < 5) {
+      changed = true;
+      COConfigurationManager.setParameter("Max Upload Speed KBs", 5);
+    }
+    
+
     int peersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);
     if(peersRatio > 14) {
       COConfigurationManager.setParameter("Stop Peers Ratio", 14);

@@ -95,7 +95,7 @@ public class ConfigurationDefaults {
     def.put("Max Uploads", new Long(4));
     // Maximal upload speed (globally, 0=unlimited) ("Max Upload Speed")
     //def.put("Core_iMaxUploadSpeed", new Long(0));
-    def.put("Max Upload Speed", new Long(0));
+    def.put("Max Upload Speed KBs", new Long(0));
     // Fast Resume
     //def.put("Core_bUseResume", new Long(0));
     def.put("Use Resume", new Long(1));

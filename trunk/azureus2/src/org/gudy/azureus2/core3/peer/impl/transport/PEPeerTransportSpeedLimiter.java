@@ -78,8 +78,8 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
   private PEPeerTransportSpeedLimiter() {
     uploaders = new ArrayList();
     lastComputationTime = 0;
-    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
-    COConfigurationManager.addParameterListener("Max Upload Speed", this);
+    this.limit = 1024 * COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+    COConfigurationManager.addParameterListener("Max Upload Speed KBs", this);
   }
 
   /**
@@ -229,7 +229,7 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
+    this.limit = 1024 * COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
   }
 
   static private int min(int a, int b) {
