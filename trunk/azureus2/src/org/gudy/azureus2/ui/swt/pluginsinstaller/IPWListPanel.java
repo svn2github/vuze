@@ -169,18 +169,17 @@ public class IPWListPanel extends AbstractWizardPanel {
 	public boolean 
 	isNextEnabled() 
 	{
-	   return false;
+	   return true;
 	}
 	
 	public boolean 
 	isFinishEnabled() 
 	{
-	   return true ;
+	   return false ;
 	}
 	
-  public IWizardPanel getFinishPanel() {
-    finish();
-    return new FinishPanel(wizard,this);
+  public IWizardPanel getNextPanel() {
+    return new IPWInstallModePanel(wizard,this);
   }
 	
   public void updateList() {

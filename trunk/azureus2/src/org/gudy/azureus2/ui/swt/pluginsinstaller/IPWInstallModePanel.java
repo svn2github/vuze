@@ -39,16 +39,13 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  * @author Olivier Chalouhi
  *
  */
-public class IPWModePanel extends AbstractWizardPanel {
+public class IPWInstallModePanel extends AbstractWizardPanel {
   
-  private static final int MODE_FROM_LIST = 0;
-  private static final int MODE_FROM_FILE = 1;
-  private static final int MODE_FROM_URL  = 2;
-  
-  private int mode = MODE_FROM_LIST;
+  private static final int MODE_USER   = 0;
+  private static final int MODE_SHARED = 1;
   
   public 
-  IPWModePanel(
+  IPWInstallModePanel(
 	Wizard 					wizard, 
 	IWizardPanel 			previous ) 
   {
@@ -59,7 +56,7 @@ public class IPWModePanel extends AbstractWizardPanel {
   public void 
   show() 
   {
-	wizard.setTitle(MessageText.getString("installPluginsWizard.mode.title"));
+	wizard.setTitle(MessageText.getString("installPluginsWizard.installMode.title"));
 	
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();
@@ -73,54 +70,48 @@ public class IPWModePanel extends AbstractWizardPanel {
 	layout.numColumns = 1;
 	panel.setLayout(layout);
 
-	Button bListMode = new Button(panel,SWT.RADIO);
-	Messages.setLanguageText(bListMode,"installPluginsWizard.mode.list");
-	bListMode.setData("mode",new Integer(MODE_FROM_LIST));
+	
+
+	Button bSharedMode = new Button(panel,SWT.RADIO);
+	Messages.setLanguageText(bSharedMode,"installPluginsWizard.installMode.shared");
+	bSharedMode.setData("mode",new Integer(MODE_SHARED));
+	bSharedMode.setSelection(true);
 	GridData data = new GridData(GridData.FILL_VERTICAL);
 	data.verticalAlignment = GridData.VERTICAL_ALIGN_END;
-	bListMode.setLayoutData(data);
+	bSharedMode.setLayoutData(data);
 	
 	
-	Button bFileMode = new Button(panel,SWT.RADIO);
-	Messages.setLanguageText(bFileMode,"installPluginsWizard.mode.file");
-	bFileMode.setData("mode",new Integer(MODE_FROM_FILE));
+	Button bUserMode = new Button(panel,SWT.RADIO);
+	Messages.setLanguageText(bUserMode,"installPluginsWizard.installMode.user");
+	bUserMode.setData("mode",new Integer(MODE_USER));
 	data = new GridData(GridData.FILL_VERTICAL);
 	data.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
-	bFileMode.setLayoutData(data);
+	bUserMode.setLayoutData(data);
 	
 	
 	Listener modeListener = new Listener() {
 	  public void handleEvent(Event e) {
-	    mode = ((Integer) e.widget.getData("mode")).intValue();
+	    ((InstallPluginWizard) wizard).shared = ((Integer) e.widget.getData("mode")).intValue() == MODE_SHARED;
 	  }
 	};
 
-	bListMode.addListener(SWT.Selection,modeListener);
+	bUserMode.addListener(SWT.Selection,modeListener);
+	bSharedMode.addListener(SWT.Selection,modeListener);
 }
-
-	public IWizardPanel 
-	getNextPanel()
-	{
-	  switch(mode) {
-	    case MODE_FROM_LIST :
-	      return new IPWListPanel(wizard,this);
-	    
-	    case MODE_FROM_FILE :
-	      return new IPWFilePanel(wizard,this);
-	  }
-
-	  return null;
-	}
-	
 	public boolean 
 	isNextEnabled() 
 	{
-	   return true;
+	   return false;
 	}
 	
 	public boolean 
 	isFinishEnabled() 
 	{
-	   return( false );
+	   return( true );
+	}
+	
+	public IWizardPanel getFinishPanel() {
+	    finish();
+	    return new FinishPanel(wizard,this);
 	}
 }

@@ -37,7 +37,8 @@ import com.aelitis.azureus.core.AzureusCore;
  */
 public class InstallPluginWizard extends Wizard {
       
-  List plugins;
+  List plugins = null;
+  boolean shared = false;
   
   public InstallPluginWizard(
       	AzureusCore	azureus_core,	
@@ -73,7 +74,7 @@ public class InstallPluginWizard extends Wizard {
   	  	
   	    try{
   	    	
-  	      ps[0].getInstaller().install(ps,false);
+  	      ps[0].getInstaller().install(ps,shared);
   	      
   	    }catch(Exception e){
   	    	
