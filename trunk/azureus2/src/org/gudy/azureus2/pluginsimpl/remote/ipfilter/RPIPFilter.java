@@ -95,7 +95,7 @@ RPIPFilter
 	
 		Object[]	params = request.getParams();
 		
-		if ( 	method.equals( "createAndAddRange[String,String,String,boolean]")){
+		if ( method.equals( "createAndAddRange[String,String,String,boolean]")){
 		
 			IPRange range = delegate.createAndAddRange(
 								(String)params[0],
@@ -112,6 +112,17 @@ RPIPFilter
 				RPIPRange rp_range = RPIPRange.create( range );
 			
 				return( new RPReply( rp_range ));
+			}
+		}else if ( method.equals( "save" )){
+		
+			try{
+				delegate.save();
+					
+				return(null );
+				
+			}catch( IPFilterException e ){
+				
+				return( new RPReply( e ));
 			}
 		}
 		
@@ -234,8 +245,18 @@ RPIPFilter
 	
 		throws IPFilterException
 	{
-		notSupported();
+		try{
+			_dispatcher.dispatch( new RPRequest( this, "save", null )).getResponse();
+						
+		}catch( RPException e ){
 			
+			if ( e.getCause() instanceof IPFilterException ){
+				
+				throw((IPFilterException)e.getCause());
+			}
+			
+			throw( e );
+		}		
 	}
 	
 	public void

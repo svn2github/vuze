@@ -102,12 +102,21 @@ XMLHTTPClient
 							"<PARAMS>"+
 								"<ENTRY>XML Test</ENTRY>"+
 								"<ENTRY>1.1.1.1</ENTRY>"+
-								"<ENTRY>1.1.12</ENTRY>"+
-								"<ENTRY>true</ENTRY>"+
+								"<ENTRY>1.1.1.2</ENTRY>"+
+								"<ENTRY>false</ENTRY>"+
 							"</PARAMS>" +
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");	
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>save</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");				
+
 				/*
 				
 					// config stuff
