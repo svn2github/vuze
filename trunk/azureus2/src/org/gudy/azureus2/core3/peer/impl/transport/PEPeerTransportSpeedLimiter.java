@@ -4,11 +4,15 @@
  */
 package org.gudy.azureus2.core3.peer.impl.transport;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 
 /**
@@ -33,31 +37,40 @@ public class PEPeerTransportSpeedLimiter {
   //The List of current uploaders
   private List uploaders;
 
-  // TODO rename the following, more descriptive fields, etc.
-  static private class UploaderInfo {
+  
+  //The last computation time
+  private long lastComputationTime;
+  
+  //Cache expiration in ms
+  private static final long CACHE_EXPIRES = 50;
+  
+  //The limit per peer
+  private Map peerToLimit;
+  
+  static private class UploaderInfo implements Comparable{
+    int priorityLevel;
     int maxUpload;
-    PEPeer peerSocket;
-  }
-
-  static private class Allocation {
-    int toBeAllocated;
-    int peersToBeAllocated;
-
-    public int getNumAllowed() {
-      // what to do when peersToBeAllocated == 0 ?
-      // Gudy : shouldn't be accessed, but we'll return toBeAllocated, in case there's an error.
-      if(peersToBeAllocated == 0)
-          return toBeAllocated;       
-      return toBeAllocated / peersToBeAllocated;
+    PEPeer peer;
+    
+    public UploaderInfo(PEPeer peer) {
+      this.peer = peer;
+      this.priorityLevel = peer.getDownloadPriority();
+      this.maxUpload = peer.getMaxUpload();
+    }
+    
+    public int compareTo(Object otherUploader) {
+      if(otherUploader == null)
+        return 0;
+      if(!(otherUploader instanceof UploaderInfo))
+        return 0;
+      int otherMaxUpload = ((UploaderInfo)otherUploader).maxUpload;
+      int otherPriority = ((UploaderInfo)otherUploader).priorityLevel;
+      if(priorityLevel == otherPriority)
+        return otherMaxUpload - maxUpload;
+      else
+        return otherPriority - priorityLevel;
     }
   }
-
-  static private final int MAX_NUM_UPLOADERS = 1000;
-
-  private UploaderInfo[] sortedUploadersHighPriority = new UploaderInfo[MAX_NUM_UPLOADERS];
-  private UploaderInfo[] sortedUploadersLowPriority = new UploaderInfo[MAX_NUM_UPLOADERS];
-
-  private int i, j, maxUpload, smallestIndex, sortedUploadersHighPriorityIndex, sortedUploadersLowPriorityIndex;
 
   /**
    * Private constructor for SpeedLimiter
@@ -65,12 +78,9 @@ public class PEPeerTransportSpeedLimiter {
    */
   private PEPeerTransportSpeedLimiter() {
     //limit = ConfigurationManager.getInstance().getIntParameter("Max Upload Speed", 0);
-    uploaders = new Vector();
-
-    for (int i = 0; i < MAX_NUM_UPLOADERS; i++) {
-      sortedUploadersHighPriority[i] = new UploaderInfo();
-      sortedUploadersLowPriority[i] = new UploaderInfo();
-    }
+    uploaders = new ArrayList();
+    peerToLimit = new HashMap();
+    lastComputationTime = 0;
   }
 
   /**
@@ -81,14 +91,6 @@ public class PEPeerTransportSpeedLimiter {
     if (limiter == null)
       limiter = new PEPeerTransportSpeedLimiter();
     return limiter;
-  }
-
-  /**
-   * Public method use to change the limit
-   * @param limit the upload limit in bytes per second
-   */
-  public void setLimit(int limit) {
-    this.limit = limit;
   }
 
   /**
@@ -107,10 +109,13 @@ public class PEPeerTransportSpeedLimiter {
   /**
    * Same as addUploader, but to tell that an upload is ended. 
    */
-  public void removeUploader(PEPeer wt) {
+  public void removeUploader(PEPeer peer) {
     synchronized (uploaders) {
-      while (uploaders.contains(wt))
-        uploaders.remove(wt);
+      while (uploaders.contains(peer))
+        uploaders.remove(peer);
+    }
+    synchronized(peerToLimit) {
+      peerToLimit.remove(peer);
     }
   }
 
@@ -119,7 +124,7 @@ public class PEPeerTransportSpeedLimiter {
    * @return true if speed is limited
    */
   public boolean isLimited(PEPeer wt) {
-    limit = COConfigurationManager.getIntParameter("Max Upload Speed", 0);
+    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed", 0);
     return (this.limit != 0 && uploaders.contains(wt));
   }
 
@@ -128,103 +133,105 @@ public class PEPeerTransportSpeedLimiter {
    * over a period of 100ms.
    * @return number of bytes allowed for 100 ms
    */
-  public synchronized int getLimitPer100ms(PEPeer wt) {
-
-    if (this.uploaders.size() == 0)
+  public synchronized int getLimitPer100ms(PEPeer peer) {
+    
+    long currentTime = System.currentTimeMillis();
+    if(currentTime - lastComputationTime > CACHE_EXPIRES) {
+      computeAllocation();
+      lastComputationTime = currentTime;
+    }
+    Integer limit = null;
+    synchronized(peerToLimit) {
+      limit = (Integer) peerToLimit.get(peer);
+    }
+    if(limit == null)
       return 0;
-
-    sortedUploadersHighPriorityIndex = 0;
-    sortedUploadersLowPriorityIndex = 0;
-
-    assignUploaderInfos();
-
-    sortUploaderInfos(sortedUploadersHighPriority, sortedUploadersHighPriorityIndex);
-    sortUploaderInfos(sortedUploadersLowPriority, sortedUploadersLowPriorityIndex);
-
-    //System.out.println(sortedUploadersHighPriority.size() + " : " + sortedUploadersLowPriority.size());
-    Allocation allocation = new Allocation();
-    allocation.toBeAllocated = this.limit / 10;
-
-    if (!findPeerSocket(sortedUploadersHighPriority, sortedUploadersHighPriorityIndex, allocation, wt)) {
-      findPeerSocket(sortedUploadersLowPriority, sortedUploadersLowPriorityIndex, allocation, wt);
-    }
-
-    int result = getLimit(wt, allocation);
-    //Logger.getLogger().log(0,0,Logger.ERROR,"Allocated for 100ms :" + result);
-    return result;
+    return limit.intValue();
   }
 
-  // refactored out of getLimitPer100ms() - Moti
-  private boolean findPeerSocket(UploaderInfo[] uploaderInfos, int numPeers, Allocation allocation, PEPeer wt) {
-    allocation.peersToBeAllocated = numPeers;
-
-    for (i = 0; i < numPeers; i++) {
-      if (uploaderInfos[i].peerSocket == wt) {
-        return true;
+  
+  private void computeAllocation() {    
+    synchronized(peerToLimit) {
+      peerToLimit.clear();
+      
+      if (this.uploaders.size() == 0) {        
+        return;
       }
-      allocation.toBeAllocated -= getLimit(uploaderInfos[i].peerSocket, allocation);
-      allocation.peersToBeAllocated--;
-    }
-    return false;
+      
+      //1. sort out all the uploaders by max speed / priority
+      //1.1 construct a list of UploaderInfo
+      List sortedList = null;
+      int nbUploadersLowPriority = 0;
+      int nbUploadersHighPriority = 0;
+      synchronized(uploaders) {	      
+        sortedList = new ArrayList(uploaders.size());
+	      Iterator iter = uploaders.iterator();
+	      while(iter.hasNext()) {
+	        UploaderInfo ui = new UploaderInfo((PEPeer) iter.next());
+	        sortedList.add(ui);
+	        if(ui.priorityLevel == DownloadManager.HIGH_PRIORITY) {
+	          nbUploadersHighPriority++;
+	        } else {
+	          nbUploadersLowPriority++;
+	        }
+	      }	      
+      }
+      //1.2 Sort it (should be done from slowest to fastest , min to max priority)
+      Collections.sort(sortedList);
+      
+      //2. Allocate bandwith for each levels
+      this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
+      int toBeAllowedTotal = limit / 10;      
+      //2.1 LOW level, max 30% of bandwith used      
+      int toBeAllowed = (30 * toBeAllowedTotal) / 100;
+      // 70% left in the total bandwith
+      toBeAllowedTotal -= toBeAllowed;
+      
+      Iterator iter = sortedList.iterator();
+      while(iter.hasNext()) {        
+        UploaderInfo ui = (UploaderInfo) iter.next();
+        if(ui.priorityLevel != DownloadManager.LOW_PRIORITY)
+          continue;
+        int maxAllocation = toBeAllowed / nbUploadersLowPriority;
+        int allocation = min(maxAllocation,ui.maxUpload);
+        peerToLimit.put(ui.peer,new Integer(allocation));
+        toBeAllowed -= allocation;
+        nbUploadersLowPriority--;
+      }
+      
+      //2.2 HIGH level all bandwith available
+      //We add back the 70% to what is left from the 30%
+      toBeAllowed += toBeAllowedTotal;
+      iter = sortedList.iterator();
+      while(iter.hasNext()) {
+        UploaderInfo ui = (UploaderInfo) iter.next();
+        if(ui.priorityLevel != DownloadManager.HIGH_PRIORITY)
+          continue;
+        int maxAllocation = toBeAllowed / nbUploadersHighPriority;
+        int allocation = min(maxAllocation,ui.maxUpload);
+        peerToLimit.put(ui.peer,new Integer(allocation));
+        toBeAllowed -= allocation;
+        nbUploadersHighPriority--;
+      }
+      
+      //2.3 3rd pass in case some bandwith is left
+      if(toBeAllowed > 0) {
+        int toBeAllowedMorePerPeer = toBeAllowed / peerToLimit.size();
+        if(toBeAllowedMorePerPeer > 0) {
+	        iter = peerToLimit.keySet().iterator();
+	        while(iter.hasNext()) {
+	          PEPeer key = (PEPeer) iter.next();
+	          Integer oldValue = (Integer) peerToLimit.get(key);
+	          peerToLimit.put(key,new Integer(oldValue.intValue() + toBeAllowedMorePerPeer));
+	        }
+        }
+      }      
+    }        
   }
 
-  // refactored out of getLimitPer100ms() - Moti
-  private int getLimit(PEPeer wt, Allocation allocation) {
-    maxUpload = wt.getMaxUpload();
-    return min(allocation.getNumAllowed(), maxUpload);
-  }
+ 
 
   static private int min(int a, int b) {
     return a < b ? a : b;
   }
-
-  // refactored out of getLimitPer100ms() - Moti
-  private void sortUploaderInfos(UploaderInfo[] uploaderInfos, int numToSort) {
-    for (j = 0; j < numToSort - 1; j++) {
-      smallestIndex = j;
-      for (i = j + 1; i < numToSort; i++) {
-        if (uploaderInfos[i].maxUpload < uploaderInfos[smallestIndex].maxUpload)
-          smallestIndex = i;
-      }
-      if (j != smallestIndex) {
-        uploaderInfos[numToSort].maxUpload = uploaderInfos[j].maxUpload;
-        uploaderInfos[numToSort].peerSocket = uploaderInfos[j].peerSocket;
-        uploaderInfos[j].maxUpload = uploaderInfos[smallestIndex].maxUpload;
-        uploaderInfos[j].peerSocket = uploaderInfos[smallestIndex].peerSocket;
-        uploaderInfos[smallestIndex].maxUpload = uploaderInfos[numToSort].maxUpload;
-        uploaderInfos[smallestIndex].peerSocket = uploaderInfos[numToSort].peerSocket;
-      }
-    }
-  }
-
-  // refactored out of getLimitPer100ms() - Moti
-  private void assignUploaderInfos() {
-    //We construct a TreeMap to sort all writeThread according to their up speed.
-    synchronized (uploaders) {
-      for (i = 0; i < uploaders.size(); i++) {
-        PEPeer wti = (PEPeer) uploaders.get(i);
-        maxUpload = wti.getMaxUpload();
-        if (wti.getDownloadPriority() == PEPeerTransport.HIGH_PRIORITY) {
-          assignUploaderInfo(sortedUploadersHighPriority, sortedUploadersHighPriorityIndex, wti);
-          sortedUploadersHighPriorityIndex++;
-        }
-        else {
-          assignUploaderInfo(sortedUploadersLowPriority, sortedUploadersLowPriorityIndex, wti);
-          sortedUploadersLowPriorityIndex++;
-        }
-      }
-    }
-  }
-
-  // refactored out of getLimitPer100ms() - Moti
-  private void assignUploaderInfo(UploaderInfo[] uploaderInfos, int index, PEPeer wti) {
-    for (j = 0; j < index; j++)
-      if (uploaderInfos[j].maxUpload == maxUpload) {
-        maxUpload++;
-        j = -1;
-      }
-    uploaderInfos[index].maxUpload = maxUpload;
-    uploaderInfos[index].peerSocket = wti;
-  }
-
 }
