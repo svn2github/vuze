@@ -243,268 +243,273 @@ Test
 				
 				System.out.print( "> " );
 				
-				String	str = reader.readLine().trim();
-				
-				if ( str == null ){
+				try{
+					String	str = reader.readLine().trim();
 					
-					break;
-				}
-				
-				int	pos = str.indexOf(' ');
-				
-				if ( pos == -1 || pos == 0 ){
+					if ( str == null ){
+						
+						break;
+					}
 					
-					usage();
+					int	pos = str.indexOf(' ');
 					
-					continue;
-				}
-				
-				int	dht_index = (int)(Math.random()*num_dhts);
-				
-				DHT	dht = dhts[dht_index];
-				
-				String	lhs = str.substring(0,pos);
-				String	rhs = str.substring(pos+1);
-				
-				DHTTransportStats	stats_before 	= null;
-				
-				char command = lhs.toLowerCase().charAt(0);
-				
-				if ( command == 'p' ){
-					
-					pos = rhs.indexOf('=');
-					
-					if ( pos == -1 ){
+					if ( pos == -1 || pos == 0 ){
 						
 						usage();
 						
-					}else{
+						continue;
+					}
 					
+					int	dht_index = (int)(Math.random()*num_dhts);
+					
+					DHT	dht = dhts[dht_index];
+					
+					String	lhs = str.substring(0,pos);
+					String	rhs = str.substring(pos+1);
+					
+					DHTTransportStats	stats_before 	= null;
+					
+					char command = lhs.toLowerCase().charAt(0);
+					
+					if ( command == 'p' ){
+						
+						pos = rhs.indexOf('=');
+						
+						if ( pos == -1 ){
+							
+							usage();
+							
+						}else{
+						
+							System.out.println( "Using dht " + dht_index );
+							
+							stats_before = dht.getTransport().getStats().snapshot();
+	
+							String	key = rhs.substring(0,pos);
+							String	val = rhs.substring(pos+1);
+							
+							dht.put( key.getBytes(), val.getBytes(), (byte)(Math.random()*255), null );
+						}
+					}else if ( command == 'x' ){
+						
+						dht = (DHT)store_index.get( rhs );
+						
+						if ( dht == null ){
+							
+							System.out.println( "DHT not found" );
+							
+						}else{
+							
+							stats_before = dht.getTransport().getStats().snapshot();
+							
+							byte[]	res = dht.remove( rhs.getBytes());
+							
+							if ( res != null ){
+								
+								store_index.remove( rhs );
+							}
+							
+							System.out.println( "-> " + (res==null?"null":new String(res)));
+						}
+					}else if ( command == 'e' ){
+						
+						dht = (DHT)store_index.get( rhs );
+						
+						if ( dht == null ){
+							
+							System.out.println( "DHT not found" );
+							
+						}else{
+							
+							DataOutputStream	daos = new DataOutputStream( new FileOutputStream( "C:\\temp\\dht.state"));
+							
+							dht.exportState( daos, 0 );
+							
+							daos.close();
+						}
+					}else if ( command == 'g' ){
+						
 						System.out.println( "Using dht " + dht_index );
 						
 						stats_before = dht.getTransport().getStats().snapshot();
-
-						String	key = rhs.substring(0,pos);
-						String	val = rhs.substring(pos+1);
 						
-						dht.put( key.getBytes(), val.getBytes(), (byte)(Math.random()*255), null );
-					}
-				}else if ( command == 'x' ){
-					
-					dht = (DHT)store_index.get( rhs );
-					
-					if ( dht == null ){
+						byte[]	res = dht.get( rhs.getBytes(), 0);
 						
-						System.out.println( "DHT not found" );
+						System.out.println( "-> " + (res==null?"null":new String(res)));
 						
-					}else{
+					}else if ( command == 'd' ){
+						
+						System.out.println( "Using dht " + dht_index );
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 						
 						byte[]	res = dht.remove( rhs.getBytes());
 						
-						if ( res != null ){
-							
-							store_index.remove( rhs );
-						}
-						
 						System.out.println( "-> " + (res==null?"null":new String(res)));
-					}
-				}else if ( command == 'e' ){
+						
+					}else if ( command == 'z' ){
+						
+						System.out.println( "Using dht " + dht_index );
+						
+						stats_before = dht.getTransport().getStats().snapshot();
+						
+						dht.get( rhs.getBytes(), (byte)0, 10, 0,
+								new DHTOperationListener()
+								{
+									public void
+									searching(
+										DHTTransportContact	contact,
+										int					level,
+										int					active_searches )
+									{
+										
+									}
+									
+									public void
+									found(
+										DHTTransportContact	contact )
+									{
+									}
+									
+									public void
+									read(
+										final DHTTransportContact	contact,
+										final DHTTransportValue		value )
+									{
+										System.out.println( "-> " + value.getString());
+	
+										new AEThread("blah")
+										{
+											public void
+											runSupport()
+											{
+												DHTTransportFullStats stats = contact.getStats();
+										
+												System.out.println( "    stats = " + stats.getString() );
+											}
+										}.start();
+									}
+									public void
+									wrote(
+										final DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{
+									}
+									
+						
+									public void
+									complete(
+										boolean				timeout )
+									{
+										System.out.println( "complete");
+									}
+								});
+						
+						
+					}else if ( command == 'v' ){
+				
+						try{
+							int	index = Integer.parseInt( rhs );
 					
-					dht = (DHT)store_index.get( rhs );
+							dht = dhts[index];
+	
+							stats_before = dht.getTransport().getStats().snapshot();
+							
+							dht.print();
+	
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}else if ( command == 't' ){
+						
+						try{
+							int	index = Integer.parseInt( rhs );
 					
-					if ( dht == null ){
+							dht = dhts[index];
+	
+							stats_before = dht.getTransport().getStats().snapshot();
+							
+							((DHTTransportUDPImpl)transports[index]).testInstanceIDChange();
+							
+							dht.integrate();
+	
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}else if ( command == 's' ){
 						
-						System.out.println( "DHT not found" );
+						try{
+							int	index = Integer.parseInt( rhs );
+					
+							dht = dhts[index];
+	
+							stats_before = dht.getTransport().getStats().snapshot();
+							
+							((DHTTransportUDPImpl)transports[index]).testTransportIDChange();
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}else if ( command == 'a' ){
 						
-					}else{
+						createDHT( dhts, transports, num_dhts++ );
 						
-						DataOutputStream	daos = new DataOutputStream( new FileOutputStream( "C:\\temp\\dht.state"));
+						dht	= dhts[num_dhts-1];
 						
-						dht.exportState( daos, 0 );
+						stats_before = transports[num_dhts-1].getStats().snapshot();
+						
+						ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+						
+						DataOutputStream	daos = new DataOutputStream( baos );
+						
+						transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().exportContact( daos );
 						
 						daos.close();
-					}
-				}else if ( command == 'g' ){
-					
-					System.out.println( "Using dht " + dht_index );
-					
-					stats_before = dht.getTransport().getStats().snapshot();
-					
-					byte[]	res = dht.get( rhs.getBytes(), 0);
-					
-					System.out.println( "-> " + (res==null?"null":new String(res)));
-					
-				}else if ( command == 'd' ){
-					
-					System.out.println( "Using dht " + dht_index );
-					
-					stats_before = dht.getTransport().getStats().snapshot();
-					
-					byte[]	res = dht.remove( rhs.getBytes());
-					
-					System.out.println( "-> " + (res==null?"null":new String(res)));
-					
-				}else if ( command == 'z' ){
-					
-					System.out.println( "Using dht " + dht_index );
-					
-					stats_before = dht.getTransport().getStats().snapshot();
-					
-					dht.get( rhs.getBytes(), (byte)0, 10, 0,
-							new DHTOperationListener()
-							{
-								public void
-								searching(
-									DHTTransportContact	contact,
-									int					level,
-									int					active_searches )
-								{
-									
-								}
-								
-								public void
-								found(
-									DHTTransportContact	contact )
-								{
-								}
-								
-								public void
-								read(
-									final DHTTransportContact	contact,
-									final DHTTransportValue		value )
-								{
-									System.out.println( "-> " + value.getString());
-
-									new AEThread("blah")
-									{
-										public void
-										runSupport()
-										{
-											DHTTransportFullStats stats = contact.getStats();
-									
-											System.out.println( "    stats = " + stats.getString() );
-										}
-									}.start();
-								}
-								public void
-								wrote(
-									final DHTTransportContact	contact,
-									DHTTransportValue	value )
-								{
-								}
-								
-					
-								public void
-								complete(
-									boolean				timeout )
-								{
-									System.out.println( "complete");
-								}
-							});
-					
-					
-				}else if ( command == 'v' ){
-			
-					try{
-						int	index = Integer.parseInt( rhs );
-				
-						dht = dhts[index];
-
-						stats_before = dht.getTransport().getStats().snapshot();
 						
-						dht.print();
-
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
-				}else if ( command == 't' ){
-					
-					try{
-						int	index = Integer.parseInt( rhs );
-				
-						dht = dhts[index];
-
-						stats_before = dht.getTransport().getStats().snapshot();
-						
-						((DHTTransportUDPImpl)transports[index]).testInstanceIDChange();
+						transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
 						
 						dht.integrate();
-
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
-				}else if ( command == 's' ){
-					
-					try{
-						int	index = Integer.parseInt( rhs );
-				
-						dht = dhts[index];
-
-						stats_before = dht.getTransport().getStats().snapshot();
-						
-						((DHTTransportUDPImpl)transports[index]).testTransportIDChange();
-						
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
-				}else if ( command == 'a' ){
-					
-					createDHT( dhts, transports, num_dhts++ );
-					
-					dht	= dhts[num_dhts-1];
-					
-					stats_before = transports[num_dhts-1].getStats().snapshot();
-					
-					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-					
-					DataOutputStream	daos = new DataOutputStream( baos );
-					
-					transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().exportContact( daos );
-					
-					daos.close();
-					
-					transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
-					
-					dht.integrate();
-
-					dht.print();
-					
-				}else if ( command == 'r' ){
-					
-					System.out.println( "read - dht0 -> dht1" );
-										
-					byte[]	res = 
-						dhts[0].getTransport().readTransfer(
-								dhts[1].getTransport().getLocalContact(),
-								th_key,
-								new byte[]{1,2,3,4});
 	
-				}else if ( command == 'w' ){
-					
-					System.out.println( "write - dht0 -> dht1" );
-										
-					dhts[0].getTransport().writeTransfer(
-								dhts[1].getTransport().getLocalContact(),
-								th_key,
-								new byte[]{1,2,3,4},
-								new byte[]{4,3,2,1});
+						dht.print();
+						
+					}else if ( command == 'r' ){
+						
+						System.out.println( "read - dht0 -> dht1" );
+											
+						byte[]	res = 
+							dhts[0].getTransport().readTransfer(
+									dhts[1].getTransport().getLocalContact(),
+									th_key,
+									new byte[]{1,2,3,4});
+		
+					}else if ( command == 'w' ){
+						
+						System.out.println( "write - dht0 -> dht1" );
+											
+						dhts[0].getTransport().writeTransfer(
+									dhts[1].getTransport().getLocalContact(),
+									th_key,
+									new byte[]{1,2,3,4},
+									new byte[]{4,3,2,1});
+		
+					}else{
+						
+						usage();
+					}
+									
+					if ( stats_before != null ){
+						
+						DHTTransportStats	stats_after = dht.getTransport().getStats().snapshot();
 	
-				}else{
+						System.out.println( "before:" + stats_before.getString());
+						System.out.println( "after:" + stats_after.getString());
+					}
+				}catch( Throwable e ){
 					
-					usage();
-				}
-								
-				if ( stats_before != null ){
-					
-					DHTTransportStats	stats_after = dht.getTransport().getStats().snapshot();
-
-					System.out.println( "before:" + stats_before.getString());
-					System.out.println( "after:" + stats_after.getString());
+					e.printStackTrace();
 				}
 			}
 		}catch( Throwable e ){

@@ -68,7 +68,8 @@ DHTTransportUDPImpl
 	
 	private DHTTransportUDPContactImpl		local_contact;
 	
-	private Map transfer_handlers = new HashMap();
+	private Map transfer_handlers 	= new HashMap();
+	private Map	transfers			= new HashMap();
 	
 	private long last_address_change;
 	
@@ -84,12 +85,12 @@ DHTTransportUDPImpl
 	private Map	contact_history = 
 		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
 		{
-		   protected boolean 
-		   removeEldestEntry(
+			protected boolean 
+			removeEldestEntry(
 		   		Map.Entry eldest) 
-		   {
-		   	return size() > CONTACT_HISTORY_MAX;
-		   }
+			{
+				return size() > CONTACT_HISTORY_MAX;
+			}
 		};
 		
 		// TODO: secure enough?
@@ -1320,6 +1321,35 @@ DHTTransportUDPImpl
 		return( res[0] );
 	}
 	
+	
+		// read request
+	
+	// stats
+	
+	protected void
+	sendReadRequest(
+		long						connection_id,	
+		DHTTransportUDPContactImpl	contact,
+		byte[]						transfer_key,
+		byte[]						key )
+	{
+		final DHTUDPPacketData	request = 
+			new DHTUDPPacketData( connection_id, local_contact, contact );
+			
+		request.setDetails( transfer_key, key, null, -1, -1, -1 );
+		
+		try{
+			checkAddress( contact );
+			
+			packet_handler.send(
+				request,
+				contact.getTransportAddress());
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	public void
 	registerTransferHandler(
 		byte[]						handler_key,
@@ -1328,6 +1358,35 @@ DHTTransportUDPImpl
 		transfer_handlers.put( new HashWrapper( handler_key ), handler );
 	}
 	
+	protected void
+	dataRequest(
+		DHTTransportUDPContactImpl	originator,
+		DHTUDPPacketData			req )
+	{
+		transferQueue	queue = lookupTransferQueue( req.getConnectionId());
+		
+		if ( queue != null ){
+			
+			queue.add( req );
+			
+		}else{
+			
+			byte[]	transfer_key = req.getTransferKey();
+			
+			DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
+			
+			if ( handler == null ){
+				
+				logger.log( "No transfer handler for '" + req.getString() + "'" );
+				
+			}else{
+		
+				// TODO:
+				
+			}
+		}
+	}
+		
 	public byte[]
 	readTransfer(
 		DHTTransportContact		target,
@@ -1336,7 +1395,33 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		throw( new DHTTransportException( "not imp" ));
+		long	connection_id = getConnectionID();
+		
+		transferQueue	transfer_queue = new transferQueue( connection_id );
+		
+		try{
+			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+			
+			while( true ){
+				
+				DHTUDPPacketData	reply = transfer_queue.receive();
+				
+				if ( reply != null ){
+	
+					// TODO:
+					
+				}else{
+					
+						// timeout
+					
+					// TODO:
+					
+				}
+			}
+		}finally{
+			
+			transfer_queue.destroy();
+		}
 	}
 	
 	public void
@@ -1505,6 +1590,10 @@ DHTTransportUDPImpl
 					
 					packet_handler.send( reply, request.getAddress());
 					
+				}else if ( request instanceof DHTUDPPacketData ){
+					
+					dataRequest(originating_contact, (DHTUDPPacketData)request );
+					
 				}else{
 					
 					Debug.out( "Unexpected packet:" + request.toString());
@@ -1603,5 +1692,98 @@ DHTTransportUDPImpl
 		DHTTransportListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	protected transferQueue
+	lookupTransferQueue(
+		long		id )
+	{
+		try{
+			this_mon.enter();
+
+			return((transferQueue)transfers.get(new Long(id)));
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+	}
+	
+	protected class
+	transferQueue
+	{
+		long		id;
+		
+		List		packets	= new ArrayList();
+		
+		AESemaphore	packets_sem	= new AESemaphore("DHTUDPTransport:transferQueue");
+		
+		protected
+		transferQueue(
+			long		_id )
+		{
+			id		= _id;
+			
+			try{
+				this_mon.enter();
+
+				transfers.put( new Long( id ), this );
+				
+			}finally{
+				
+				this_mon.exit();
+			}			
+		}
+		
+		protected void
+		add(
+			DHTUDPPacketData	packet )
+		{
+			try{
+				this_mon.enter();
+	
+				packets.add( packet );
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+			packets_sem.release();
+		}
+		
+		protected DHTUDPPacketData
+		receive()
+		{
+			if ( packets_sem.reserve(request_timeout)){
+				
+				try{
+					this_mon.enter();
+								
+					return((DHTUDPPacketData)packets.remove(0));
+					
+				}finally{
+					
+					this_mon.exit();
+				}				
+			}else{
+				
+				return( null );
+			}
+		}
+		
+		protected void
+		destroy()
+		{
+			try{
+				this_mon.enter();
+							
+				transfers.remove( new Long( id ));
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
 	}
 }

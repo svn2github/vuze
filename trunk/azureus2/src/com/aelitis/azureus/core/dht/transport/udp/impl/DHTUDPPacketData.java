@@ -33,20 +33,27 @@ import java.io.IOException;
  */
 
 public class 
-DHTUDPPacketRequestData 
+DHTUDPPacketData 
 	extends DHTUDPPacketRequest
 {
+	private byte[]	transfer_key;
+	private byte[]	key;
+	private byte[]	data;
+	private int		start_position;
+	private int		length;
+	private int		total_length;
+	
 	public
-	DHTUDPPacketRequestData(
+	DHTUDPPacketData(
 		long							_connection_id,
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_DATA, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacket.ACT_DATA, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
-	DHTUDPPacketRequestData(
+	DHTUDPPacketData(
 		DataInputStream		is,
 		long				con_id,
 		int					trans_id )
@@ -54,6 +61,13 @@ DHTUDPPacketRequestData
 		throws IOException
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_PING, con_id, trans_id );
+		
+		transfer_key	= DHTUDPUtils.deserialiseByteArray( is, 64 );
+		key				= DHTUDPUtils.deserialiseByteArray( is, 64 );
+		start_position	= is.readInt();
+		length			= is.readInt();
+		total_length	= is.readInt();
+		data			= DHTUDPUtils.deserialiseByteArray( is, 65535 );
 	}
 	
 	public void
@@ -63,6 +77,13 @@ DHTUDPPacketRequestData
 		throws IOException
 	{
 		super.serialise(os);
+		
+		DHTUDPUtils.serialiseByteArray( os, transfer_key, 64 );
+		DHTUDPUtils.serialiseByteArray( os, key, 64 );
+		os.writeInt( start_position );
+		os.writeInt( length );
+		os.writeInt( total_length );
+		DHTUDPUtils.serialiseByteArray( os, data, 65535 );
 	}
 	
 	public void
@@ -71,9 +92,45 @@ DHTUDPPacketRequestData
 		byte[]		_key,
 		byte[]		_data,
 		int			_start_pos,
-		int			_length )
+		int			_length,
+		int			_total_length )
 	{
-		
+		transfer_key		= _transfer_key;
+		key					= _key;
+		data				= _data;
+		start_position		= _start_pos;
+		length				= _length;
+		total_length		= _total_length;
+	}
+	
+	public byte[]
+	getTransferKey()
+	{
+		return( transfer_key );
+	}
+	
+	public byte[]
+	getRequestKey()
+	{
+		return( key );
+	}
+	
+	public int
+	getStartPosition()
+	{
+		return( start_position );
+	}
+	
+	public int
+	getLength()
+	{
+		return( length );
+	}
+	
+	public int
+	getTotalLength()
+	{
+		return( total_length );
 	}
 	
 	public String
