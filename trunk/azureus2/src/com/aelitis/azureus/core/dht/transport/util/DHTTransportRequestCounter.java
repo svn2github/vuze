@@ -68,13 +68,13 @@ DHTTransportRequestCounter
 	
 	public void
 	storeRequest(
-		DHTTransportContact contact, 
-		byte[]				key,
-		DHTTransportValue[]	values )
+		DHTTransportContact 	contact, 
+		byte[][]				keys,
+		DHTTransportValue[][]	value_sets )
 	{
 		stats.storeReceived();
 		
-		delegate.storeRequest( contact, key, values );
+		delegate.storeRequest( contact, keys, value_sets );
 	}
 	
 	public DHTTransportContact[]

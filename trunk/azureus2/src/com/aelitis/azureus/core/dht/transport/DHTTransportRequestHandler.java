@@ -41,8 +41,8 @@ DHTTransportRequestHandler
 	public void
 	storeRequest(
 		DHTTransportContact contact, 
-		byte[]				key,
-		DHTTransportValue[]	values );
+		byte[][]				keys,
+		DHTTransportValue[][]	value_sets );
 	
 	public DHTTransportContact[]
 	findNodeRequest(

@@ -44,7 +44,8 @@ PRUDPPacketHandler
 		PRUDPPacket					request_packet,
 		InetSocketAddress			destination_address,
 		PRUDPPacketReceiver			receiver,
-		long						timeout )
+		long						timeout,
+		boolean						low_priority )
 	
 		throws PRUDPPacketHandlerException;
 	

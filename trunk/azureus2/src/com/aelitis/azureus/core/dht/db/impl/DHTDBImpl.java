@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.db.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
@@ -69,6 +70,8 @@ DHTDBImpl
 	private DHTTransportContact		local_contact;
 	private LoggerChannel			logger;
 	
+	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
+
 	public
 	DHTDBImpl(
 		int				_original_republish_interval,
@@ -97,7 +100,7 @@ DHTDBImpl
 				}
 			});
 					
-				// random skew here so that cache refresh isn't very synchronized, as the optimisations
+				// random skew here so that cache refresh isn't very synchronised, as the optimisations
 				// regarding non-republising benefit from this 
 			
 		timer.addPeriodicEvent(
@@ -127,7 +130,8 @@ DHTDBImpl
 	
 			// our ID has changed - amend the originator of all our values
 		
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			Iterator	it = stored_values.values().iterator();
 			
@@ -137,6 +141,9 @@ DHTDBImpl
 				
 				mapping.updateLocalContact( local_contact );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -145,7 +152,8 @@ DHTDBImpl
 		HashWrapper		key,
 		byte[]			value )
 	{
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			DHTDBValueImpl res =	
 				new DHTDBValueImpl( 
@@ -172,7 +180,11 @@ DHTDBImpl
 			mapping.add( res );
 			
 			return( res );
-		}	
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public DHTDBValue
@@ -210,7 +222,8 @@ DHTDBImpl
 			return( null );
 		}
 		
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 				// TODO:size
 			
@@ -241,6 +254,9 @@ DHTDBImpl
 				
 				return( mapping_value );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -249,7 +265,8 @@ DHTDBImpl
 		HashWrapper		key,
 		int				max_values )	// 0 -> all
 	{
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			checkCacheExpiration( false );
 					
@@ -262,6 +279,9 @@ DHTDBImpl
 			
 			return( mapping.get( max_values, true ));
 
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -270,7 +290,8 @@ DHTDBImpl
 		DHTTransportContact 	sender,
 		HashWrapper				key )
 	{
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 		
 			DHTDBMapping mapping = (DHTDBMapping)stored_values.get( key );
 			
@@ -280,6 +301,10 @@ DHTDBImpl
 			}
 			
 			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -292,7 +317,8 @@ DHTDBImpl
 	public long
 	getSize()
 	{
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			int	res = 0;
 			
@@ -306,15 +332,24 @@ DHTDBImpl
 			}
 			
 			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
 	public Iterator
 	getKeys()
 	{
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			return( new ArrayList( stored_values.keySet()).iterator());
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -323,7 +358,8 @@ DHTDBImpl
 	{
 		Map	republish = new HashMap();
 		
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			Iterator	it = stored_values.entrySet().iterator();
 			
@@ -359,6 +395,9 @@ DHTDBImpl
 					
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		Iterator	it = republish.entrySet().iterator();
@@ -392,7 +431,8 @@ DHTDBImpl
 		
 		long	now = System.currentTimeMillis();
 		
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			checkCacheExpiration( true );
 
@@ -443,6 +483,9 @@ DHTDBImpl
 					
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		if ( republish.size() > 0 ){
@@ -476,7 +519,12 @@ DHTDBImpl
 					
 					byte[]	lookup_id	= key.getHash();
 					
-					List	contacts = control.getClosestKContactsList( lookup_id, true );
+						// just use the closest contacts - if some have failed then they'll
+						// get flushed out by this operation. Grabbing just the live ones
+						// is a bad idea as failures may rack up against the live ones due
+						// to network problems and kill them, leaving the dead ones!
+					
+					List	contacts = control.getClosestKContactsList( lookup_id, false );
 								
 						// if we are no longer one of the K closest contacts then we shouldn't
 						// cache the value
@@ -504,7 +552,7 @@ DHTDBImpl
 						// recipients
 					
 						// TODO: multiple values
-					
+										
 					control.put( 
 							lookup_id, 
 							(DHTDBValueImpl)value.getValueForRelay(local_contact), 
@@ -512,12 +560,16 @@ DHTDBImpl
 				}
 			}
 			
-			synchronized( stored_values ){
+			try{
+				this_mon.enter();
 				
 				for (int i=0;i<stop_caching.size();i++){
 					
 					stored_values.remove( stop_caching.get(i));
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
 		}
 	}
@@ -595,7 +647,8 @@ DHTDBImpl
 	{
 		Map	count = new TreeMap();
 		
-		synchronized( stored_values ){
+		try{
+			this_mon.enter();
 			
 			logger.log( "Stored values = " + getSize()); 
 
@@ -641,6 +694,9 @@ DHTDBImpl
 					data[1]	= s;
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 				
 		Iterator	it = count.keySet().iterator();

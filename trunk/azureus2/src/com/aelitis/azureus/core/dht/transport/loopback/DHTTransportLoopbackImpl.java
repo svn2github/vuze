@@ -65,6 +65,7 @@ DHTTransportLoopbackImpl
 	private static List	dispatch_queue = new ArrayList();
 	private static AESemaphore	dispatch_queue_sem	= new AESemaphore("DHTTransportLoopback" );
 	
+	private static AEMonitor	class_mon	= new AEMonitor( "DHTTransportLoopback:class" );
 
 	static{
 		AEThread	dispatcher = 
@@ -79,9 +80,14 @@ DHTTransportLoopbackImpl
 						
 						Runnable	r;
 						
-						synchronized( dispatch_queue ){
+						try{
+							class_mon.enter();
 							
 							r = (Runnable)dispatch_queue.remove(0);
+							
+						}finally{
+							
+							class_mon.exit();
 						}
 						
 						if ( LATENCY > 0 ){
@@ -113,19 +119,27 @@ DHTTransportLoopbackImpl
 
 	private List	listeners = new ArrayList();
 	
-	public static synchronized DHTTransportStats
+	public static DHTTransportStats
 	getOverallStats()
 	{
-		DHTTransportStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
+		try{
+			class_mon.enter();
 		
-		Iterator	it = node_map.values().iterator();
-		
-		while( it.hasNext()){
+			DHTTransportStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
 			
-			overall_stats.add((DHTTransportStatsImpl)((DHTTransportLoopbackImpl)it.next()).getStats());
+			Iterator	it = node_map.values().iterator();
+			
+			while( it.hasNext()){
+				
+				overall_stats.add((DHTTransportStatsImpl)((DHTTransportLoopbackImpl)it.next()).getStats());
+			}
+			
+			return( overall_stats );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( overall_stats );
 	}
 	
 	public
@@ -134,7 +148,8 @@ DHTTransportLoopbackImpl
 	{	
 		id_byte_length	= _id_byte_length;
 		
-		synchronized( DHTTransportLoopbackImpl.class ){
+		try{
+			class_mon.enter();
 			
 			byte[]	temp = new SHA1Hasher().calculateHash( ( "" + ( node_id_seed_next++ )).getBytes());
 			
@@ -145,6 +160,9 @@ DHTTransportLoopbackImpl
 			node_map.put( new HashWrapper( node_id ), this );
 			
 			local_contact	= new DHTTransportLoopbackContactImpl( this, node_id );
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
@@ -158,9 +176,13 @@ DHTTransportLoopbackImpl
 	findTarget(
 		byte[]		id )
 	{
-		synchronized( DHTTransportLoopbackImpl.class ){
+		try{
+			class_mon.enter();
 			
 			return((DHTTransportLoopbackImpl)node_map.get( new HashWrapper( id )));
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
@@ -227,9 +249,14 @@ DHTTransportLoopbackImpl
 	run(
 		final AERunnable	r )
 	{
-		synchronized( dispatch_queue ){
+		try{
+			class_mon.enter();
 			
 			dispatch_queue.add( r );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 		
 		dispatch_queue_sem.release();
@@ -276,7 +303,7 @@ DHTTransportLoopbackImpl
 		
 			stats.pingFailed();
 			
-			handler.failed(contact);
+			handler.failed(contact, new Exception( "failed" ));
 			
 		}else{
 			
@@ -321,7 +348,7 @@ DHTTransportLoopbackImpl
 		
 			stats.statsFailed();
 			
-			handler.failed(contact);
+			handler.failed(contact, new Exception( "failed"));
 			
 		}else{
 			
@@ -339,8 +366,8 @@ DHTTransportLoopbackImpl
 	sendStore(
 		final DHTTransportContact		contact,
 		final DHTTransportReplyHandler	handler,
-		final byte[]					key,
-		final DHTTransportValue[]		values )
+		final byte[][]					keys,
+		final DHTTransportValue[][]		value_sets )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -348,7 +375,7 @@ DHTTransportLoopbackImpl
 				public void
 				runSupport()
 				{
-					sendStoreSupport( contact, handler, key, values );
+					sendStoreSupport( contact, handler, keys, value_sets );
 				}
 			};
 		
@@ -359,8 +386,8 @@ DHTTransportLoopbackImpl
 	sendStoreSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue[]			values )
+		byte[][]					keys,
+		DHTTransportValue[][]		value_sets )
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
@@ -370,7 +397,7 @@ DHTTransportLoopbackImpl
 		
 			stats.storeFailed();
 			
-			handler.failed(contact);
+			handler.failed(contact,new Exception( "failed"));
 			
 		}else{
 			
@@ -378,7 +405,7 @@ DHTTransportLoopbackImpl
 			
 			target.getRequestHandler().storeRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
-					key, values );
+					keys, value_sets );
 			
 			handler.storeReply( contact );
 		}
@@ -419,7 +446,7 @@ DHTTransportLoopbackImpl
 		
 			stats.findNodeFailed();
 			
-			handler.failed(contact);
+			handler.failed(contact,new Exception( "failed"));
 			
 		}else{
 			
@@ -480,7 +507,7 @@ DHTTransportLoopbackImpl
 		
 			stats.findValueFailed();
 			
-			handler.failed(contact);
+			handler.failed(contact,new Exception( "failed"));
 			
 		}else{
 			

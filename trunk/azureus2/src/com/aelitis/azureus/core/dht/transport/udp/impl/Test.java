@@ -71,7 +71,8 @@ Test
 						
 						public void
 						failed(
-							DHTTransportContact 	contact )
+							DHTTransportContact 	contact,
+							Throwable				error )
 						{
 							System.out.println( "ping failed" );
 						}
@@ -90,13 +91,14 @@ Test
 						
 						public void
 						failed(
-							DHTTransportContact 	contact )
+							DHTTransportContact 	contact,
+							Throwable				error )
 						{
 							System.out.println( "store failed" );
 						}
 					},
-					new byte[23],
-					new DHTTransportValue[]{
+					new byte[][]{ new byte[23] },
+					new DHTTransportValue[][]{{
 						new DHTTransportValue()
 						{
 							public int
@@ -135,7 +137,7 @@ Test
 								return( new String(getValue()));
 							}
 						}
-					});
+					}});
 			
 			c1.sendFindNode(
 					new DHTTransportReplyHandlerAdapter()
@@ -150,7 +152,8 @@ Test
 						
 						public void
 						failed(
-							DHTTransportContact 	contact )
+							DHTTransportContact 	contact,
+							Throwable 				e )
 						{
 							System.out.println( "findNode failed" );
 						}
@@ -180,7 +183,8 @@ Test
 						
 						public void
 						failed(
-							DHTTransportContact 	contact )
+							DHTTransportContact 	contact,
+							Throwable				error )
 						{
 							System.out.println( "findValue failed" );
 						}
@@ -205,9 +209,9 @@ Test
 		
 	public void
 	storeRequest(
-		DHTTransportContact contact, 
-		byte[]				key,
-		DHTTransportValue[]	values )
+		DHTTransportContact 	contact, 
+		byte[][]				keys,
+		DHTTransportValue[][]	value_sets )
 	{
 		System.out.println( "TransportHandler: store" );
 	}

@@ -25,6 +25,7 @@ package com.aelitis.azureus.plugins.tracker.dht;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
@@ -69,6 +70,8 @@ DHTTrackerPlugin
 	
 	private LoggerChannel		log;
 	
+	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
+
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -224,9 +227,14 @@ DHTTrackerPlugin
 	{
 		ArrayList	rds;
 	
-		synchronized( running_downloads ){
+		try{
+			this_mon.enter();
 
 			rds = new ArrayList(running_downloads);
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		Iterator	it = rds.iterator();
@@ -252,7 +260,8 @@ DHTTrackerPlugin
 						{
 							public void
 							valueFound(
-								byte[]	value )
+								InetSocketAddress	originator,
+								byte[]				value )
 							{
 								
 							}
@@ -275,9 +284,14 @@ DHTTrackerPlugin
 
 			boolean	unregister;
 			
-			synchronized( running_downloads ){
+			try{ 
+				this_mon.enter();
 
 				unregister = !running_downloads.contains( dl );
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			if ( unregister ){
@@ -294,7 +308,8 @@ DHTTrackerPlugin
 						{
 							public void
 							valueFound(
-								byte[]	value )
+								InetSocketAddress	originator,
+								byte[]				value )
 							{
 								
 							}
@@ -322,16 +337,19 @@ DHTTrackerPlugin
 			
 				final long	start = SystemTime.getCurrentTime();
 				
-				dht.get(dl.getTorrent().getHash(), 1, 30000,
+				dht.get(dl.getTorrent().getHash(), 
+						16, 
+						60*1000,
 						new DHTPluginOperationListener()
 						{
 							String	res = "";
 							
 							public void
 							valueFound(
-								byte[]	value )
+								InetSocketAddress	originator,
+								byte[]				value )
 							{
-								res += ( res.length()==0?"":",") + new String(value);
+								res += ( res.length()==0?"":",") + new String(value) + ":" + originator;
 							}
 							
 							public void
@@ -369,9 +387,14 @@ DHTTrackerPlugin
 
 		download.removeListener( this );
 		
-		synchronized( running_downloads ){
+		try{
+			this_mon.enter();
 
 			running_downloads.remove( download );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -383,7 +406,8 @@ DHTTrackerPlugin
 	{
 		int	state = download.getState();
 		
-		synchronized( running_downloads ){
+		try{
+			this_mon.enter();
 
 			if ( 	state == Download.ST_DOWNLOADING ||
 					state == Download.ST_SEEDING ||
@@ -395,6 +419,9 @@ DHTTrackerPlugin
 				
 				running_downloads.remove( download );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
  

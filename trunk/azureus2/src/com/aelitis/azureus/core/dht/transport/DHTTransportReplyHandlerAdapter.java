@@ -27,7 +27,7 @@ package com.aelitis.azureus.core.dht.transport;
  *
  */
 
-public class 
+public abstract class 
 DHTTransportReplyHandlerAdapter
 	implements DHTTransportReplyHandler
 {
@@ -76,11 +76,12 @@ DHTTransportReplyHandlerAdapter
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
-	
+	/*
 	public void
 	failed(
 		DHTTransportContact 	contact )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
+	*/
 }

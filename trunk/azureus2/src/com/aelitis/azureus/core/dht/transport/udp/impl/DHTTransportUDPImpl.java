@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -63,6 +63,7 @@ DHTTransportUDPImpl
 	private int					max_fails_for_live;
 	private int					max_fails_for_unknown;
 	private long				request_timeout;
+	private long				store_timeout;
 	private LoggerChannel		logger;
 	
 	private PRUDPPacketHandler			packet_handler;
@@ -97,6 +98,11 @@ DHTTransportUDPImpl
 	
 	private	Random		random = new Random( SystemTime.getCurrentTime());
 	
+	
+	private static AEMonitor	class_mon	= new AEMonitor( "DHTTransportUDP:class" );
+	
+	private AEMonitor	this_mon	= new AEMonitor( "DHTTransportUDP" );
+
 	public
 	DHTTransportUDPImpl(
 		int				_port,
@@ -113,6 +119,8 @@ DHTTransportUDPImpl
 		request_timeout			= _timeout;
 		logger					= _logger;
 				
+		store_timeout			= request_timeout * 2;
+		
 		DHTUDPPacket.registerCodecs( logger );
 
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
@@ -120,9 +128,10 @@ DHTTransportUDPImpl
 		
 		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
 
-			// limit send and receive rates 
+			// limit send and receive rates. Receive rate is lower as we want a stricter limit
+			// on the max speed we generate packets than those we're willing to process.
 		
-		packet_handler.setDelays( 125, 125 );
+		packet_handler.setDelays( 100, 50 );
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
@@ -195,7 +204,8 @@ DHTTransportUDPImpl
 			// class level synchronisation is for testing purposes when running multiple UDP instances
 			// in the same VM
 		
-		synchronized( DHTTransportUDPImpl.class ){
+		try{
+			class_mon.enter();
 			
 			if ( force || external_address == null ){
 				
@@ -218,9 +228,14 @@ DHTTransportUDPImpl
 						
 						List	contacts;
 						
-						synchronized( contact_history ){
+						try{
+							this_mon.enter();
 							
 							contacts = new ArrayList( contact_history.values());
+							
+						}finally{
+							
+							this_mon.exit();
 						}
 						
 							// randomly select up to 10 entries to ping until we 
@@ -377,10 +392,14 @@ DHTTransportUDPImpl
 			}
 			
 			return( external_address );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
-	protected synchronized boolean
+	protected boolean
 	externalAddressChange(
 		DHTTransportUDPContactImpl	reporter,
 		InetSocketAddress			new_address )
@@ -402,7 +421,7 @@ DHTTransportUDPImpl
 			 * Only in the case where the above check fails do we believe the address
 			 * that we've been told about
 			 */
-				
+			
 		InetAddress	ia = new_address.getAddress();
 		
 		if ( ia == null ){
@@ -421,39 +440,47 @@ DHTTransportUDPImpl
 							
 			return( true );
 		}
-
-		long	now = SystemTime.getCurrentTime();
-
-		if ( now - last_address_change < 5*60*1000 ){
+		
+		try{
+			this_mon.enter();
+	
+			long	now = SystemTime.getCurrentTime();
+	
+			if ( now - last_address_change < 5*60*1000 ){
+				
+				return( false );
+			}
 			
-			return( false );
-		}
-		
-		logger.log( "Node " + reporter.getString() + " has reported that the external IP address is '" + new_address + "'" );
-
-			// check for dodgy addresses that shouldn't appear as an external address!
-		
-		if ( 	ia.isLinkLocalAddress() ||
-				ia.isLoopbackAddress() ||
-				new_ip.startsWith( "192.168." )){
+			logger.log( "Node " + reporter.getString() + " has reported that the external IP address is '" + new_address + "'" );
+	
+				// check for dodgy addresses that shouldn't appear as an external address!
 			
-			logger.log( "     This is invalid as it is a private address." );
-
-			return( false );
-		}
-
-			// another situation to ignore is where the reported address is the same as
-			// the reporter (they must be seeing it via, say, socks connection on a local
-			// interface
-		
-		if ( reporter.getExternalAddress().getAddress().getHostAddress().equals( new_ip )){
+			if ( 	ia.isLinkLocalAddress() ||
+					ia.isLoopbackAddress() ||
+					new_ip.startsWith( "192.168." )){
+				
+				logger.log( "     This is invalid as it is a private address." );
+	
+				return( false );
+			}
+	
+				// another situation to ignore is where the reported address is the same as
+				// the reporter (they must be seeing it via, say, socks connection on a local
+				// interface
 			
-			logger.log( "     This is invalid as it is the same as the reporter's address." );
-
-			return( false );		
+			if ( reporter.getExternalAddress().getAddress().getHostAddress().equals( new_ip )){
+				
+				logger.log( "     This is invalid as it is the same as the reporter's address." );
+	
+				return( false );		
+			}
+			
+			last_address_change	= now;
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		last_address_change	= now;
 		
 		String	a = getExternalAddress( true, new_ip, logger );
 		
@@ -489,9 +516,14 @@ DHTTransportUDPImpl
 	contactAlive(
 		DHTTransportUDPContactImpl	contact )
 	{
-		synchronized( contact_history ){
+		try{
+			this_mon.enter();
 			
 			contact_history.put( contact.getTransportAddress(), contact );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -570,15 +602,6 @@ DHTTransportUDPImpl
 	}
 	
 	protected void
-	dispatch(
-		Runnable	r )
-	{
-		// TODO: request queue limits?
-		
-		r.run();
-	}
-	
-	protected void
 	checkAddress(
 		DHTTransportUDPContactImpl		contact )
 	
@@ -592,24 +615,6 @@ DHTTransportUDPImpl
 	
 	protected void
 	sendPing(
-		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler )
-	{
-		AERunnable	runnable = 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					sendPingSupport( contact, handler );
-				}
-			};
-		
-		dispatch( runnable );
-	}
-	
-	protected void
-	sendPingSupport(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler )
 	{
@@ -661,7 +666,7 @@ DHTTransportUDPImpl
 											request,
 											contact.getTransportAddress(),
 											this,
-											request_timeout );
+											request_timeout, false );
 								}
 							}else{
 								
@@ -687,16 +692,16 @@ DHTTransportUDPImpl
 					{
 						stats.pingFailed();
 						
-						handler.failed( contact );
+						handler.failed( contact,e );
 					}
 				},
-				request_timeout);
+				request_timeout, false );
 			
 		}catch( Throwable e ){
 			
 			stats.pingFailed();
 			
-			handler.failed( contact );
+			handler.failed( contact,e );
 		}
 	}
 	
@@ -704,24 +709,6 @@ DHTTransportUDPImpl
 	
 	protected void
 	sendStats(
-		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler )
-	{
-		AERunnable	runnable = 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					sendStatsSupport( contact, handler );
-				}
-			};
-		
-		dispatch( runnable );
-	}
-	
-	protected void
-	sendStatsSupport(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler )
 	{
@@ -773,7 +760,7 @@ DHTTransportUDPImpl
 											request,
 											contact.getTransportAddress(),
 											this,
-											request_timeout );
+											request_timeout, true );
 								}
 							}else{
 								
@@ -801,16 +788,16 @@ DHTTransportUDPImpl
 					{
 						stats.statsFailed();
 						
-						handler.failed( contact );
+						handler.failed( contact, e );
 					}
 				},
-				request_timeout);
+				request_timeout, true );
 			
 		}catch( Throwable e ){
 			
 			stats.statsFailed();
 			
-			handler.failed( contact );
+			handler.failed( contact, e );
 		}
 	}
 	
@@ -880,7 +867,7 @@ DHTTransportUDPImpl
 						}
 					}
 				},
-				5000 );
+				5000, false );
 			
 			sem.reserve( 5000 );
 			
@@ -900,28 +887,8 @@ DHTTransportUDPImpl
 	sendStore(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
-		final byte[]						key,
-		final DHTTransportValue[]			values )
-	{
-		AERunnable	runnable = 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					sendStoreSupport( contact, handler, key, values );
-				}
-			};
-		
-		dispatch( runnable );
-	}
-	
-	public void
-	sendStoreSupport(
-		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler,
-		byte[]								key,
-		DHTTransportValue[]					values )
+		byte[][]							keys,
+		DHTTransportValue[][]				value_sets )
 	{
 		stats.storeSent();
 		
@@ -933,9 +900,9 @@ DHTTransportUDPImpl
 			final DHTUDPPacketRequestStore	request = 
 				new DHTUDPPacketRequestStore( connection_id, local_contact );
 			
-			request.setKeys( new byte[][]{ key });
+			request.setKeys( keys );
 			
-			request.setValueSets( new DHTTransportValue[][]{ values });
+			request.setValueSets( value_sets );
 			
 			packet_handler.sendAndReceive(
 				request,
@@ -975,12 +942,12 @@ DHTTransportUDPImpl
 											request,
 											contact.getTransportAddress(),
 											this,
-											request_timeout );
+											store_timeout, true );
 								}
 							}else{
 								
 								stats.storeOK();
-							
+															
 								handler.storeReply( contact );
 							}
 							
@@ -1001,17 +968,18 @@ DHTTransportUDPImpl
 						PRUDPPacketHandlerException	e )
 					{
 						stats.storeFailed();
-						
-						handler.failed( contact );
+												
+						handler.failed( contact, e );
 					}
 				},
-				request_timeout );
+				store_timeout,
+				true );	// low priority
 			
 		}catch( Throwable e ){
-			
+						
 			stats.storeFailed();
-			
-			handler.failed( contact );
+						
+			handler.failed( contact, e );
 		}
 	}
 	
@@ -1019,25 +987,6 @@ DHTTransportUDPImpl
 	
 	public void
 	sendFindNode(
-		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler,
-		final byte[]						nid )
-	{
-		AERunnable	runnable = 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					sendFindNodeSupport( contact, handler, nid );
-				}
-			};
-		
-		dispatch( runnable );
-	}
-	
-	public void
-	sendFindNodeSupport(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
 		byte[]								nid )
@@ -1092,7 +1041,7 @@ DHTTransportUDPImpl
 											request,
 											contact.getTransportAddress(),
 											this,
-											request_timeout );
+											request_timeout, false );
 								}
 							}else{
 								
@@ -1120,16 +1069,16 @@ DHTTransportUDPImpl
 					{
 						stats.findNodeFailed();
 						
-						handler.failed( contact );
+						handler.failed( contact, e );
 					}
 				},
-				request_timeout);
+				request_timeout, false );
 			
 		}catch( Throwable e ){
 			
 			stats.findNodeFailed();
 			
-			handler.failed( contact );
+			handler.failed( contact, e );
 		}
 	}
 	
@@ -1137,27 +1086,6 @@ DHTTransportUDPImpl
 	
 	public void
 	sendFindValue(
-		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler,
-		final byte[]						key,
-		final int							max_values,
-		final byte							flags )
-	{
-		AERunnable	runnable = 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					sendFindValueSupport( contact, handler, key, max_values, flags );
-				}
-			};
-		
-		dispatch( runnable );
-	}
-	
-	public void
-	sendFindValueSupport(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
 		byte[]								key,
@@ -1218,7 +1146,7 @@ DHTTransportUDPImpl
 											request,
 											contact.getTransportAddress(),
 											this,
-											request_timeout );
+											request_timeout, false );
 								}
 							}else{
 								
@@ -1255,10 +1183,10 @@ DHTTransportUDPImpl
 					{
 						stats.findValueFailed();
 						
-						handler.failed( contact );
+						handler.failed( contact, e );
 					}
 				},
-				request_timeout);
+				request_timeout, false );
 			
 		}catch( Throwable e ){
 			
@@ -1266,7 +1194,7 @@ DHTTransportUDPImpl
 				
 				stats.findValueFailed();
 			
-				handler.failed( contact );
+				handler.failed( contact, e );
 			}
 		}
 	}
@@ -1299,7 +1227,8 @@ DHTTransportUDPImpl
 						
 						public void
 						failed(
-							DHTTransportContact 	_contact )
+							DHTTransportContact 	_contact,
+							Throwable				_error )
 						{
 							sem.release();
 						}
@@ -1398,8 +1327,8 @@ DHTTransportUDPImpl
 					
 					request_handler.storeRequest(
 							originating_contact, 
-							store_request.getKeys()[0], 
-							store_request.getValueSets()[0]);
+							store_request.getKeys(), 
+							store_request.getValueSets());
 					
 					DHTUDPPacketReplyStore	reply = 
 						new DHTUDPPacketReplyStore(

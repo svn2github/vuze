@@ -61,7 +61,19 @@ PRUDPPacketHandlerImpl
 	
 	private Map			requests = new HashMap();
 	private AEMonitor	requests_mon	= new AEMonitor( "PRUDPPH:req" );
-
+	
+	
+	private AEMonitor	send_queue_mon	= new AEMonitor( "PRUDPPH:sd" );
+	private List		send_queue_hp		= new ArrayList();
+	private List		send_queue_lp		= new ArrayList();
+	private AESemaphore	send_queue_sem	= new AESemaphore( "PRUDPPH:sq" );
+	private AEThread	send_thread;
+	
+	private AEMonitor	recv_queue_mon	= new AEMonitor( "PRUDPPH:rq" );
+	private List		recv_queue		= new ArrayList();
+	private AESemaphore	recv_queue_sem	= new AESemaphore( "PRUDPPH:rq" );
+	private AEThread	recv_thread;
+	
 	private int			send_delay		= 0;
 	private int			receive_delay	= 0;
 	
@@ -170,18 +182,6 @@ PRUDPPacketHandlerImpl
 					
 					process( packet );
 				
-					if ( receive_delay > 0 ){
-						
-						try{
-						
-							Thread.sleep(receive_delay);
-						
-						}catch( InterruptedException e ){
-						
-							Debug.printStackTrace(e);
-						
-						}
-					}
 				}catch( SocketTimeoutException e ){
 										
 				}catch( Throwable e ){
@@ -240,7 +240,10 @@ PRUDPPacketHandlerImpl
 				
 				PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
 				
-				if ( now - request.getCreateTime() >= request.getTimeout()){
+				long	sent_time = request.getSendTime();
+				
+				if ( 	sent_time != 0 &&
+						now - sent_time >= request.getTimeout()){
 				
 					it.remove();
 
@@ -320,7 +323,75 @@ PRUDPPacketHandlerImpl
 					LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
 				}
 				
-				request_handler.process( (PRUDPPacketRequest)packet );
+				if ( receive_delay > 0 ){
+					
+						// we take the processing offline so that these incoming requests don't
+						// interfere with replies to outgoing requests
+					
+					try{
+						recv_queue_mon.enter();
+						
+						if ( recv_queue.size() > 1024 ){
+							
+							Debug.out( "Receive queue max limit exceeded, dropping request packet" );
+							
+						}else{
+							
+							recv_queue.add( packet );
+														
+							recv_queue_sem.release();
+					
+							if ( recv_thread == null ){
+								
+								recv_thread = 
+									new AEThread( "PRUDPPacketHandler:receiver" )
+									{
+										public void
+										runSupport()
+										{
+											while( true ){
+												
+												try{
+													recv_queue_sem.reserve();
+													
+													PRUDPPacketRequest	p;
+													
+													try{
+														recv_queue_mon.enter();
+													
+														p = (PRUDPPacketRequest)recv_queue.remove(0);
+														
+													}finally{
+														
+														recv_queue_mon.exit();
+													}
+													
+													request_handler.process( p );
+													
+													Thread.sleep( receive_delay );
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+										}
+									};
+								
+									recv_thread.setDaemon( true );
+								
+									recv_thread.start();
+							}
+						}
+					}finally{
+						
+						recv_queue_mon.exit();
+					}
+				}else{
+				
+					request_handler.process( (PRUDPPacketRequest)packet );
+				}
+	
 			}else{
 				
 				if ( TRACE_REQUESTS ){
@@ -356,6 +427,7 @@ PRUDPPacketHandlerImpl
 			
 				// if someone's sending us junk we just log and continue
 			
+			// e.printStackTrace();
 			// LGLogger.log( e );
 		}
 	}
@@ -379,7 +451,7 @@ PRUDPPacketHandlerImpl
 		throws PRUDPPacketHandlerException
 	{
 		PRUDPPacketHandlerRequest	request = 
-			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT );
+			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT, false );
 		
 		return( request.getReply());
 	}
@@ -389,20 +461,22 @@ PRUDPPacketHandlerImpl
 		PRUDPPacket					request_packet,
 		InetSocketAddress			destination_address,
 		PRUDPPacketReceiver			receiver,
-		long						timeout )
+		long						timeout,
+		boolean						low_priority )
 	
 		throws PRUDPPacketHandlerException
 	{
-		sendAndReceive( null, request_packet, destination_address, receiver, timeout );
+		sendAndReceive( null, request_packet, destination_address, receiver, timeout, low_priority );
 	}
 	
 	public PRUDPPacketHandlerRequest
 	sendAndReceive(
-		PasswordAuthentication	auth,
-		PRUDPPacket				request_packet,
-		InetSocketAddress		destination_address,
-		PRUDPPacketReceiver		receiver,
-		long					timeout )
+		PasswordAuthentication		auth,
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address,
+		PRUDPPacketReceiver			receiver,
+		long						timeout,
+		boolean						low_priority )
 	
 		throws PRUDPPacketHandlerException
 	{
@@ -476,33 +550,128 @@ PRUDPPacketHandlerImpl
 				requests_mon.exit();
 			}
 			
-			if ( TRACE_REQUESTS ){
-			
-				LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString());
-			}
-			
 			try{
-				socket.send( packet );
-					
-				stats.packetSent( buffer.length );
-				
 				if ( send_delay > 0 ){
-					
-						// do this under the request monitor to ensure that the 
-						// send limits are applied across threads
-					
+									
 					try{
-						requests_mon.enter();
+						send_queue_mon.enter();
+						
+						if ( send_queue_lp.size() + send_queue_hp.size() > 1024 ){
+							
+							Debug.out( "Send queue max limit exceeded" );
+							
+							request.sent();
+							
+								// synchronous write holding lock to block senders
+							
+							socket.send( packet );
+							
+							stats.packetSent( buffer.length );
+							
+							if ( TRACE_REQUESTS ){
+								
+								LGLogger.log( "PRUDPPacketHandler: request packet sent to " + destination_address + ": " + request_packet.getString());
+							}
+								
+							Thread.sleep( send_delay );
+							
+						}else{
+							
+							if ( low_priority ){
+								
+								send_queue_lp.add( new Object[]{ packet, request });
+								
+							}else{
+								
+								send_queue_hp.add( new Object[]{ packet, request });
+							}
+							
+							if ( TRACE_REQUESTS ){
+								
+								System.out.println( "send queue: hp = " + send_queue_hp.size()+ ", lp = " + send_queue_lp.size());
+							}
+							
+							send_queue_sem.release();
+					
+							if ( send_thread == null ){
+								
+								send_thread = 
+									new AEThread( "PRUDPPacketHandler:sender" )
+									{
+										public void
+										runSupport()
+										{
+											while( true ){
+												
+												try{
+													send_queue_sem.reserve();
+													
+													Object[]	data;
+													
+													try{
+														send_queue_mon.enter();
+													
+														if ( send_queue_hp.size() > 0 ){
+															
+															data	= (Object[])send_queue_hp.remove(0);
+															
+														}else{
+														
+															data	= (Object[])send_queue_lp.remove(0);
+														}
+														
+													}finally{
+														
+														send_queue_mon.exit();
+													}
+																									
+													DatagramPacket				p	= (DatagramPacket)data[0];
+													PRUDPPacketHandlerRequest	r	= (PRUDPPacketHandlerRequest)data[1];
 
-						Thread.sleep( send_delay );
-					
-					}catch( InterruptedException e ){
-					
-						Debug.printStackTrace(e);
-					
+														// mark as sent before sending in case send fails
+														// and we then rely on timeout to pick this up
+													
+													r.sent();
+													
+													socket.send( p );
+													
+													stats.packetSent( p.getLength() );
+							
+													if ( TRACE_REQUESTS ){
+														
+														LGLogger.log( "PRUDPPacketHandler: request packet sent to " + p.getAddress());											
+													}														
+												
+													Thread.sleep( send_delay );
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+										}
+									};
+								
+									send_thread.setDaemon( true );
+								
+									send_thread.start();
+							}
+						}
 					}finally{
 						
-						requests_mon.exit();
+						send_queue_mon.exit();
+					}
+				}else{
+					
+					request.sent();
+					
+					socket.send( packet );
+					
+					stats.packetSent( buffer.length );
+					
+					if ( TRACE_REQUESTS ){
+						
+						LGLogger.log( "PRUDPPacketHandler: request packet sent to " + destination_address + ": " + request_packet.getString());
 					}
 				}
 					// if the send is ok then the request will be removed from the queue
@@ -556,26 +725,17 @@ PRUDPPacketHandlerImpl
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
+			if ( TRACE_REQUESTS ){
+				
+					LGLogger.log( "PRUDPPacketHandler: reply packet sent: " + request_packet.getString());
+			}
+			
 			socket.send( packet );
 			
 			stats.packetSent( buffer.length );
 			
-			if ( send_delay > 0 ){
-				
-				try{
-					requests_mon.enter();
-					
-					Thread.sleep(send_delay);
-				
-				}catch( InterruptedException e ){
-				
-					Debug.printStackTrace(e);
-				
-				}finally{
-					
-					requests_mon.exit();
-				}
-			}
+				// this is a reply to a request, no time delays considered here 
+			
 		}catch( Throwable e ){
 			
 			LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
@@ -593,6 +753,7 @@ PRUDPPacketHandlerImpl
 		
 		receive_delay	= _receive_delay;
 	}
+	
 	public PRUDPPacketHandlerStats
 	getStats()
 	{

@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -77,6 +78,13 @@ DHTTransportLoopbackContactImpl
 	{
 		return( 3 );
 	}
+	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( null );
+	}
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )
@@ -90,13 +98,14 @@ DHTTransportLoopbackContactImpl
 	{
 		transport.sendStats( this, handler );
 	}
+	
 	public void
 	sendStore(
 		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue[]			values )
+		byte[][]					keys,
+		DHTTransportValue[][]		value_sets )
 	{
-		transport.sendStore( this, handler, key, values );
+		transport.sendStore( this, handler, keys, value_sets );
 	}
 	
 	public void

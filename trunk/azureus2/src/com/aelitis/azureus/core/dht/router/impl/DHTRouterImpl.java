@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.router.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -66,7 +67,10 @@ DHTRouterImpl
 	
 	private DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
 	
-	
+	private AEMonitor	this_mon	= new AEMonitor( "DHTRouter" );
+
+	private static AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
+
 	public
 	DHTRouterImpl(
 		int										_K,
@@ -76,9 +80,16 @@ DHTRouterImpl
 		DHTRouterContactAttachment				_attachment,
 		LoggerChannel							_logger )
 	{
-		synchronized( DHTRouterImpl.class ){
+		try{
+				// only needed for in-process multi-router testing :P
 			
-			random = new Random( random_seed++);
+			class_mon.enter();
+			
+			random = new Random( random_seed++ );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 		
 		K					= _K;
@@ -168,7 +179,7 @@ DHTRouterImpl
 	// is available and the router wants to check the liveness of an existing node)
 	// or a new node can be added (either directly to a node or indirectly via 
 	// a replacement becoming "live"
-	// To avoid requesting these actions while synchronized these are recorded
+	// To avoid requesting these actions while synchronised these are recorded
 	// in lists and then kicked off separately here
 
 
@@ -178,7 +189,8 @@ DHTRouterImpl
 		DHTRouterContactAttachment	attachment )
 	{
 		try{
-			synchronized( this ){
+			try{
+				this_mon.enter();
 
 				Object[]	res = findContactSupport( node_id );
 				
@@ -191,6 +203,10 @@ DHTRouterImpl
 				}
 				
 				return( contact );
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 		}finally{
 
@@ -207,9 +223,14 @@ DHTRouterImpl
 		boolean						known_to_be_alive )
 	{	
 		try{
-			synchronized( this ){
+			try{
 			
+				this_mon.enter();
+				
 				return( addContactSupport( node_id, attachment, known_to_be_alive ));
+			}finally{
+				
+				this_mon.exit();
 			}
 		}finally{
 			
@@ -394,18 +415,26 @@ DHTRouterImpl
 		return( null );
 	}
 	
-	public synchronized List
+	public List
 	findClosestContacts(
 		byte[]		node_id,
 		boolean		live_only )
 	{
 			// find the K-ish closest nodes - consider all buckets, not just the closest
 
-		List res = new ArrayList();
-				
-		findClosestContacts( node_id, 0, root, live_only, res );
+		try{
+			this_mon.enter();
 		
-		return( res );
+			List res = new ArrayList();
+				
+			findClosestContacts( node_id, 0, root, live_only, res );
+		
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 		
 	protected void
@@ -462,7 +491,7 @@ DHTRouterImpl
 		}
 	}
 	
-	public synchronized DHTRouterContact
+	public DHTRouterContact
 	findContact(
 		byte[]		node_id )
 	{
@@ -471,7 +500,7 @@ DHTRouterImpl
 		return((DHTRouterContact)res[1]);
 	}
 	
-	protected synchronized DHTRouterNodeImpl
+	protected DHTRouterNodeImpl
 	findNode(
 		byte[]	node_id )
 	{
@@ -480,58 +509,66 @@ DHTRouterImpl
 		return((DHTRouterNodeImpl)res[0]);	
 	}
 	
-	protected synchronized Object[]
+	protected Object[]
 	findContactSupport(
 		byte[]		node_id )
 	{
-		DHTRouterNodeImpl	current_node	= root;
+		try{
+			this_mon.enter();
 		
-		for (int i=0;i<node_id.length;i++){
+			DHTRouterNodeImpl	current_node	= root;
 			
-			if ( current_node.getBuckets() != null ){
-			
-				break;
-			}
-
-			byte	b = node_id[i];
-			
-			int	j = 7;
-			
-			while( j >= 0 ){
-					
-				boolean	bit = ((b>>j)&0x01)==1?true:false;
+			for (int i=0;i<node_id.length;i++){
 				
 				if ( current_node.getBuckets() != null ){
-					
+				
 					break;
 				}
-								
-				if ( bit ){
-					
-					current_node = current_node.getLeft();
-					
-				}else{
-					
-					current_node = current_node.getRight();
-				}
+	
+				byte	b = node_id[i];
 				
-				j--;
+				int	j = 7;
+				
+				while( j >= 0 ){
+						
+					boolean	bit = ((b>>j)&0x01)==1?true:false;
+					
+					if ( current_node.getBuckets() != null ){
+						
+						break;
+					}
+									
+					if ( bit ){
+						
+						current_node = current_node.getLeft();
+						
+					}else{
+						
+						current_node = current_node.getRight();
+					}
+					
+					j--;
+				}
 			}
-		}
-		
-		List	buckets = current_node.getBuckets();
-		
-		for (int k=0;k<buckets.size();k++){
 			
-			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
+			List	buckets = current_node.getBuckets();
 			
-			if ( Arrays.equals(node_id, contact.getID())){
-
-				return( new Object[]{ current_node, contact });
+			for (int k=0;k<buckets.size();k++){
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
+				
+				if ( Arrays.equals(node_id, contact.getID())){
+	
+					return( new Object[]{ current_node, contact });
+				}
 			}
+			
+			return( new Object[]{ current_node, null });
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( new Object[]{ current_node, null });
 	}
 	
 	public long
@@ -641,9 +678,14 @@ DHTRouterImpl
 		
 		List	ids = new ArrayList();
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			refreshNodes( ids, root, path, true, 0 );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<ids.size();i++){
@@ -763,9 +805,14 @@ DHTRouterImpl
 		
 		List	ids = new ArrayList();
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			refreshNodes( ids, root, path, false, idle_max );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<ids.size();i++){
@@ -778,7 +825,7 @@ DHTRouterImpl
 	requestPing(
 		DHTRouterContactImpl	contact )
 	{
-			// make sure we don't do the ping when synchronized
+			// make sure we don't do the ping when synchronised
 		
 		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
 		
@@ -787,12 +834,16 @@ DHTRouterImpl
 			Debug.out( "pinging local contact" );
 		}
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( !outstanding_pings.contains( contact )){
 			
 				outstanding_pings.add( contact );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -801,11 +852,16 @@ DHTRouterImpl
 	{
 		List	pings;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 		
 			pings	= outstanding_pings;
 			
 			outstanding_pings = new ArrayList();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<pings.size();i++){
@@ -827,12 +883,16 @@ DHTRouterImpl
 			Debug.out( "adding local contact" );
 		}
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( !outstanding_adds.contains( contact )){
 			
 				outstanding_adds.add( contact );
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -841,11 +901,16 @@ DHTRouterImpl
 	{
 		List	adds;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 		
 			adds	= outstanding_adds;
 			
 			outstanding_adds = new ArrayList();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		for (int i=0;i<adds.size();i++){
@@ -912,7 +977,7 @@ DHTRouterImpl
 		}
 	}
 	
-	protected synchronized long[]
+	protected long[]
 	getStatsSupport()
 	{
 		 /* number of nodes
@@ -924,11 +989,19 @@ DHTRouterImpl
 		 * number of dying contacts
 		 */
 		
-		long[]	res = new long[7];
+		try{
+			this_mon.enter();
 		
-		getStatsSupport( res, root );
+			long[]	res = new long[7];
 		
-		return( res );
+			getStatsSupport( res, root );
+		
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected void
@@ -938,11 +1011,19 @@ DHTRouterImpl
 		logger.log( str );
 	}
 	
-	public synchronized void
+	public void
 	print()
 	{
-		log( "DHT: " + DHTLog.getString2(router_node_id) + ", node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+		try{
+			this_mon.enter();
 		
-		root.print( "", "" );
+			log( "DHT: " + DHTLog.getString2(router_node_id) + ", node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+		
+			root.print( "", "" );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

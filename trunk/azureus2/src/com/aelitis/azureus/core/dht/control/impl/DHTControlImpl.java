@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.control.impl;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -208,12 +209,18 @@ DHTControlImpl
 								}
 								
 								public void
-								found(
+								read(
 									DHTTransportContact	contact,
 									DHTTransportValue	value )
 								{
 								}
 								
+								public void
+								wrote(
+									DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{
+								}
 								public void
 								complete(
 									boolean				timeout )
@@ -439,7 +446,14 @@ DHTControlImpl
 					}
 					
 					public void
-					found(
+					read(
+						DHTTransportContact	contact,
+						DHTTransportValue	value )
+					{
+					}
+					
+					public void
+					wrote(
 						DHTTransportContact	contact,
 						DHTTransportValue	value )
 					{
@@ -529,13 +543,24 @@ DHTControlImpl
 					}
 					
 					public void
-					found(
+					read(
 						DHTTransportContact	_contact,
 						DHTTransportValue	_value )
 					{	
 						if ( listener != null ){
 							
-							listener.found( _contact, _value );
+							listener.read( _contact, _value );
+						}
+					}
+					
+					public void
+					wrote(
+						DHTTransportContact	_contact,
+						DHTTransportValue	_value )
+					{	
+						if ( listener != null ){
+							
+							listener.wrote( _contact, _value );
 						}
 					}
 					
@@ -553,23 +578,38 @@ DHTControlImpl
 					closest(
 						List				_closest )
 					{
-						put( encoded_key, value, _closest );		
+						put( encoded_key, value, _closest, listener );		
 					}
 				});
 	}
 	
 	public void
 	put(
-		byte[]				encoded_key,
-		DHTTransportValue	value,
-		List				closest )
+		byte[]					encoded_key,
+		DHTTransportValue		value,
+		List					closest )
+	{
+		put( encoded_key, value, closest, null );
+	}
+		
+	public void
+	put(
+		byte[]					encoded_key,
+		DHTTransportValue		value,
+		List					closest,
+		DHTOperationListener	listener )
 	{
 		for (int i=0;i<closest.size();i++){
 		
 			DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
 			
 			if ( !router.isID( contact.getID())){
-									
+					
+				if ( listener != null ){
+					
+					listener.wrote( contact, value );
+				}
+				
 				contact.sendStore( 
 					new DHTTransportReplyHandlerAdapter()
 					{
@@ -584,15 +624,16 @@ DHTControlImpl
 						
 						public void
 						failed(
-							DHTTransportContact 	_contact )
+							DHTTransportContact 	_contact,
+							Throwable 				_error )
 						{
 							DHTLog.log( "store failed" );
-							
+														
 							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 						}
 					},
-					encoded_key, 
-					new DHTTransportValue[]{ value });
+					new byte[][]{ encoded_key }, 
+					new DHTTransportValue[][]{{ value }});
 			}
 		}
 	}
@@ -621,11 +662,18 @@ DHTControlImpl
 				}
 				
 				public void
-				found(
+				read(
 					DHTTransportContact	contact,
 					DHTTransportValue	value )
 				{
 					res[0]	= value.getValue();
+				}
+				
+				public void
+				wrote(
+					DHTTransportContact	contact,
+					DHTTransportValue	value )
+				{
 				}
 				
 				public void
@@ -673,14 +721,22 @@ DHTControlImpl
 					}
 					
 					public void
-					found(
+					read(
 						DHTTransportContact	contact,
 						DHTTransportValue	value )
 					{	
 						found_contacts.add( contact );
 						found_values.add( value );
 						
-						get_listener.found( contact, value );
+						get_listener.read( contact, value );
+					}
+					
+					public void
+					wrote(
+						DHTTransportContact	contact,
+						DHTTransportValue	value )
+					{	
+						get_listener.wrote( contact, value );
 					}
 					
 					public void
@@ -706,29 +762,34 @@ DHTControlImpl
 							
 							for (int i=0;i<Math.min(cache_at_closest_n,closest.size());i++){
 								
-								((DHTTransportContact)closest.get(i)).sendStore( 
+								DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(i);
+								
+								wrote( contact, value );
+								
+								contact.sendStore( 
 										new DHTTransportReplyHandlerAdapter()
 										{
 											public void
 											storeReply(
-												DHTTransportContact contact )
+												DHTTransportContact _contact )
 											{
 												DHTLog.log( "cache store ok" );
 												
-												router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
+												router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 											}	
 											
 											public void
 											failed(
-												DHTTransportContact 	contact )
+												DHTTransportContact 	_contact,
+												Throwable 				_error )
 											{
 												DHTLog.log( "cache store failed" );
 												
-												router.contactDead( contact.getID(), new DHTControlContactImpl(contact));
+												router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 											}
 										},
-										encoded_key, 
-										new DHTTransportValue[]{ value });
+										new byte[][]{ encoded_key }, 
+										new DHTTransportValue[][]{{ value }});
 							}
 						}
 					}
@@ -859,8 +920,10 @@ DHTControlImpl
 				// contacts remaining to query
 				// closest at front
 	
-			final Set	contacts_to_query	= getClosestContactsSet( lookup_id, false );
+			final Set		contacts_to_query	= getClosestContactsSet( lookup_id, false );
 			
+			final AEMonitor	contacts_to_query_mon	= new AEMonitor( "DHTControl:ctq" );
+
 			final Map	level_map			= new HashMap();
 			
 			Iterator	it = contacts_to_query.iterator();
@@ -924,7 +987,8 @@ DHTControlImpl
 					search_sem.reserve();
 				}
 					
-				synchronized( contacts_to_query ){
+				try{
+					contacts_to_query_mon.enter();
 			
 					if ( 	values_found[0] >= max_values ||
 							value_replies[0]>= 3 ){	// all hits should have the same values anyway...	
@@ -970,20 +1034,6 @@ DHTControlImpl
 	
 							break;
 						}
-					}
-					
-						// randomise over the closest K/4 so that we don't always hit the closest
-						// contact
-					
-					int	rand_max = Math.min( router.getK()/4, contacts_to_query.size());
-					
-					int	rand = (int)(Math.random()*rand_max);
-					
-					Iterator	rand_it = contacts_to_query.iterator();
-					
-					for (int i=0;i<rand+1;i++){
-						
-						closest = (DHTTransportContact)rand_it.next();
 					}
 					
 					contacts_to_query.remove( closest );
@@ -1034,7 +1084,8 @@ DHTControlImpl
 										router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
 									}
 									
-									synchronized( contacts_to_query ){
+									try{
+										contacts_to_query_mon.enter();
 												
 										ok_contacts.add( target_contact );
 										
@@ -1080,12 +1131,20 @@ DHTControlImpl
 												// DHTLog.log( "    already queried: " + DHTLog.getString( contact ));
 											}
 										}
+									}finally{
+										
+										contacts_to_query_mon.exit();
 									}
 								}finally{
 									
-									synchronized( contacts_to_query ){
+									try{
+										contacts_to_query_mon.enter();
 
 										active_searches[0]--;
+										
+									}finally{
+										
+										contacts_to_query_mon.exit();
 									}
 		
 									search_sem.release();
@@ -1104,27 +1163,37 @@ DHTControlImpl
 									
 									for (int i=0;i<values.length;i++){
 										
-										result_handler.found( contact, values[i] );
+										result_handler.read( contact, values[i] );
 									}
 									
 										// TODO: remove duplicates 
 									
-									synchronized( contacts_to_query ){
+									try{
+										contacts_to_query_mon.enter();
 
 										value_replies[0]++;
 										
 										values_found[0] += values.length;
+										
+									}finally{
+										
+										contacts_to_query_mon.exit();
 									}
 		
 								}finally{
 									
-									synchronized( contacts_to_query ){
+									try{
+										contacts_to_query_mon.enter();
 
 										active_searches[0]--;
+										
+									}finally{
+										
+										contacts_to_query_mon.exit();
 									}
 									
 									search_sem.release();
-							}						
+								}						
 							}
 							
 							public void
@@ -1137,7 +1206,8 @@ DHTControlImpl
 							
 							public void
 							failed(
-								DHTTransportContact 	target_contact )
+								DHTTransportContact 	target_contact,
+								Throwable 				error )
 							{
 								try{
 									DHTLog.log( "Reply: findNode/findValue -> failed" );
@@ -1146,9 +1216,14 @@ DHTControlImpl
 		
 								}finally{
 									
-									synchronized( contacts_to_query ){
+									try{
+										contacts_to_query_mon.enter();
 
 										active_searches[0]--;
+										
+									}finally{
+										
+										contacts_to_query_mon.exit();
 									}
 									
 									search_sem.release();
@@ -1175,6 +1250,9 @@ DHTControlImpl
 						
 						closest.sendFindNode( handler, lookup_id );
 					}
+				}finally{
+					
+					contacts_to_query_mon.exit();
 				}
 			}
 			
@@ -1183,7 +1261,8 @@ DHTControlImpl
 			
 			List	closest_res;
 			
-			synchronized( contacts_to_query ){
+			try{
+				contacts_to_query_mon.enter();
 	
 				DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
 				
@@ -1192,6 +1271,15 @@ DHTControlImpl
 				DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
 				
 				closest_res	= new ArrayList( ok_contacts );
+				
+					// we need to reverse the list as currently closest is at
+					// the end
+			
+				Collections.reverse( closest_res );
+				
+			}finally{
+				
+				contacts_to_query_mon.exit();
 			}
 			
 			result_handler.closest( closest_res );
@@ -1217,16 +1305,23 @@ DHTControlImpl
 	public void
 	storeRequest(
 		DHTTransportContact 	originating_contact, 
-		byte[]					key,
-		DHTTransportValue[]		values )
+		byte[][]				keys,
+		DHTTransportValue[][]	value_sets )
 	{
-		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
-
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-		for (int i=0;i<values.length;i++){
+		for (int i=0;i<keys.length;i++){
+			
+			HashWrapper			key		= new HashWrapper( keys[i] );
+			
+			DHTTransportValue[]	values 	= value_sets[i];
 		
-			database.store( originating_contact, new HashWrapper( key ), values[i] );
+			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
+
+			for (int j=0;j<values.length;j++){
+			
+				database.store( originating_contact, key, values[j] );
+			}
 		}
 	}
 	
@@ -1296,7 +1391,8 @@ DHTControlImpl
 					
 					public void
 					failed(
-						DHTTransportContact 	_contact )
+						DHTTransportContact 	_contact,
+						Throwable				_error )
 					{
 						DHTLog.log( "ping failed" );
 						
@@ -1453,7 +1549,8 @@ DHTControlImpl
 							
 							public void
 							failed(
-								DHTTransportContact 	_contact )
+								DHTTransportContact 	_contact,
+								Throwable				_error )
 							{
 									// we ignore failures when propagating values as there might be
 									// a lot to propagate and one failure would remove the newly added
@@ -1473,8 +1570,8 @@ DHTControlImpl
 								}
 							}
 						},
-						key.getHash(), 
-						new DHTTransportValue[]{ value.getValueForRelay( local_contact )});
+						new byte[][]{ key.getHash()}, 
+						new DHTTransportValue[][]{{ value.getValueForRelay( local_contact )}});
 						
 			}
 		}else{

@@ -401,7 +401,7 @@ Test
 								}
 								
 								public void
-								found(
+								read(
 									final DHTTransportContact	contact,
 									DHTTransportValue	value )
 								{
@@ -418,7 +418,14 @@ Test
 										}
 									}.start();
 								}
+								public void
+								wrote(
+									final DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{
+								}
 								
+					
 								public void
 								complete(
 									boolean				timeout )

@@ -355,7 +355,16 @@ DHTUDPUtils
 	
 		throws IOException, DHTTransportException
 	{
-		os.writeInt( value.getCacheDistance());
+		int	distance = value.getCacheDistance();
+		
+		if ( distance < 0 ){
+			
+			System.out.println( "SENDING BAD DISTANCE!");
+			
+			new Exception().printStackTrace();
+		}
+		
+		os.writeInt( distance );
 		
 		os.writeLong( value.getCreationTime() + skew );
 		

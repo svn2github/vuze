@@ -45,7 +45,7 @@ PRUDPPacketHandlerRequest
 	private PRUDPPacketHandlerException	exception;
 	private PRUDPPacket					reply;
 	
-	private long						create_time;
+	private long						send_time;
 	
 	protected
 	PRUDPPacketHandlerRequest(
@@ -54,14 +54,18 @@ PRUDPPacketHandlerRequest
 	{
 		receiver	= _receiver;
 		timeout		= _timeout;
-		
-		create_time	= SystemTime.getCurrentTime();
+	}
+	
+	protected void
+	sent()
+	{
+		send_time	= SystemTime.getCurrentTime();
 	}
 	
 	protected long
-	getCreateTime()
+	getSendTime()
 	{
-		return( create_time );
+		return( send_time );
 	}
 	
 	protected long

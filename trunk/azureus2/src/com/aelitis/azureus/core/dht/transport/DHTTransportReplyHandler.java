@@ -60,6 +60,7 @@ DHTTransportReplyHandler
 	
 	public void
 	failed(
-		DHTTransportContact 	contact );
+		DHTTransportContact 	contact,
+		Throwable				error );
 
 }

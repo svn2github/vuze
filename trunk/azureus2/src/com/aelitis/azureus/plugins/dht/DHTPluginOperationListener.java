@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.plugins.dht;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author parg
  *
@@ -32,7 +34,8 @@ DHTPluginOperationListener
 {
 	public void
 	valueFound(
-		byte[]		value );
+		InetSocketAddress	originator,
+		byte[]				value );
 	
 	public void
 	complete(

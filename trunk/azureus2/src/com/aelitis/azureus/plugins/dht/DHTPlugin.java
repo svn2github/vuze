@@ -27,6 +27,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -77,6 +78,8 @@ DHTPlugin
 	
 	private LoggerChannel		log;
 	
+	private AEMonitor	this_mon	= new AEMonitor( "DHTPlugin" );
+
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -289,7 +292,11 @@ DHTPlugin
 									
 									Properties	props = new Properties();
 									
-									// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
+									/*
+									System.out.println( "FRIGGED REFRESH PERIOD" );
+									
+									props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 15*60*1000 ));
+									*/
 									
 									long	start = SystemTime.getCurrentTime();
 									
@@ -367,10 +374,12 @@ DHTPlugin
 		return( dir );
 	}
 	
-	protected synchronized void
+	protected void
 	importContacts()
 	{
 		try{
+			this_mon.enter();
+			
 			File	dir = getDataDir();
 			
 			File	target = new File( dir, "contacts.dat" );
@@ -396,13 +405,19 @@ DHTPlugin
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	exportContacts()
 	{
 		try{
+			this_mon.enter();
+			
 			File	dir = getDataDir();
 			
 			File	saving = new File( dir, "contacts.saving" );
@@ -438,6 +453,10 @@ DHTPlugin
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -481,11 +500,19 @@ DHTPlugin
 						}
 						
 						public void
-						found(
+						read(
 							DHTTransportContact	contact,
 							DHTTransportValue	value )
 						{
-							log.log( "Put: found " + value.getString() + " from " + contact.getString());
+							log.log( "Put: read " + value.getString() + " from " + contact.getString());
+						}
+						
+						public void
+						wrote(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{
+							log.log( "Put: wrote " + value.getString() + " to " + contact.getString());
 						}
 						
 						public void
@@ -534,7 +561,7 @@ DHTPlugin
 						}
 						
 						public void
-						found(
+						read(
 							final DHTTransportContact	contact,
 							final DHTTransportValue		value )
 						{
@@ -545,7 +572,7 @@ DHTPlugin
 									{
 										DHTTransportFullStats stats = contact.getStats();
 										
-										log.log( "Get: found " + value.getString() + " from " + contact.getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
+										log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
 									}
 								};
 							
@@ -553,7 +580,18 @@ DHTPlugin
 								
 							t.start();
 							
-							listener.valueFound( value.getValue());
+							if ( listener != null ){
+								
+								listener.valueFound( contact.getAddress(), value.getValue());
+							}
+						}
+						
+						public void
+						wrote(
+							final DHTTransportContact	contact,
+							final DHTTransportValue		value )
+						{
+							log.log( "Get: wrote " + value.getString() + " to " + contact.getString());
 						}
 						
 						public void
@@ -600,11 +638,19 @@ DHTPlugin
 							}
 							
 							public void
-							found(
+							read(
 								DHTTransportContact	contact,
 								DHTTransportValue	value )
 							{
-								log.log( "Remove: found " + value.getString() + " from " + contact.getString());
+								log.log( "Remove: read " + value.getString() + " from " + contact.getString());
+							}
+							
+							public void
+							wrote(
+								DHTTransportContact	contact,
+								DHTTransportValue	value )
+							{
+								log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
 							}
 							
 							public void

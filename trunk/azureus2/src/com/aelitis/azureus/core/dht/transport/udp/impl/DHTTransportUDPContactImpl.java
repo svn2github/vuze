@@ -110,6 +110,12 @@ DHTTransportUDPContactImpl
 		return( external_address );
 	}
 	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( getExternalAddress());
+	}
+	
 	public int
 	getMaxFailForLiveCount()
 	{
@@ -152,10 +158,10 @@ DHTTransportUDPContactImpl
 	public void
 	sendStore(
 		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue[]			values )
+		byte[][]					keys,
+		DHTTransportValue[][]		value_sets )
 	{
-		transport.sendStore( this, handler, key, values );
+		transport.sendStore( this, handler, keys, value_sets );
 	}
 	
 	public void
