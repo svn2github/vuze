@@ -193,8 +193,8 @@ public class PieceTableItem implements SortableItem{
    */
   
   public boolean setDataSource(Object dataSource) {
-    if (this.piece != (PEPiece) piece) {
-      this.piece = (PEPiece) piece;
+    if (piece != (PEPiece) dataSource) {
+      piece = (PEPiece) dataSource;
       invalidate();
       return true;
     }
