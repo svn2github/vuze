@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.*;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.sun.rsasign.c;
 
 
 
@@ -158,6 +159,40 @@ PEPeerTransportProtocol
   
   
   
+  private static final boolean	socks_proxy_enable;
+  private static final String	socks_host;
+  private static  int			socks_port;
+  private static final String	socks_user;
+  private static final String	socks_password;
+
+  static{
+  	socks_proxy_enable	= 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
+  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
+  	
+  	socks_host 		= COConfigurationManager.getStringParameter("Proxy.Host");
+  	
+  	String socks_port_str 		= COConfigurationManager.getStringParameter("Proxy.Port");
+  	
+  	if ( socks_proxy_enable ){
+  		
+	  	try{
+	  		socks_port = Integer.parseInt( socks_port_str );
+	  		
+	  	}catch( Throwable e ){
+	  		
+	  		Debug.printStackTrace(e);
+	  	}
+  	}else{
+  		
+  		socks_port	= 0;
+  	}
+  	
+  	socks_user 		= COConfigurationManager.getStringParameter("Proxy.Username");
+  	socks_password 	= COConfigurationManager.getStringParameter("Proxy.Password");
+
+  }
+
+  
 
   /*
 	 * This object constructors will let the PeerConnection partially created,
@@ -203,7 +238,7 @@ PEPeerTransportProtocol
       connection.connect( new Connection.ConnectionListener() {
         public void connectSuccess() {  //will be called immediately
           LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
-          currentState = new StateHandshaking( data_already_read );
+          currentState = new StateHandshaking( false, data_already_read );
         }
         
         public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -333,24 +368,56 @@ PEPeerTransportProtocol
 	
   private class StateConnecting implements PEPeerTransportProtocolState {
     
-    private StateConnecting() {
-      connection = NetworkManager.getSingleton().createNewConnection( ip, port );
-      connection.connect( new Connection.ConnectionListener() {
-        public void connectSuccess() {
-          LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
-          setChannel( connection.getSocketChannel() );
-          currentState = new StateHandshaking( null );
-        }
-        
-        public void connectFailure( Throwable failure_msg ) {
-          closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
-        }
-        
-        public void exceptionThrown( Throwable error ) {
-          closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
-        }
-      });
+    private StateConnecting() 
+    {
+    	
+        Connection.ConnectionListener	cl;
+    
+    	if ( socks_proxy_enable ){
+    		
+    		connection = NetworkManager.getSingleton().createNewConnection( socks_host, socks_port );
+ 		
+     	    cl = 
+                new Connection.ConnectionListener() {
+                   public void connectSuccess() {
+                     LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
+                     setChannel( connection.getSocketChannel() );
+                     currentState = new SOCKSStateHandshaking();
+                   }
+                   
+                   public void connectFailure( Throwable failure_msg ) {
+                     closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+                   }
+                   
+                   public void exceptionThrown( Throwable error ) {
+                     closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+                   }
+                 };
+    		
+    	}else{
+    		
+    		connection = NetworkManager.getSingleton().createNewConnection( ip, port );
+      
+    	    cl = 
+                new Connection.ConnectionListener() {
+                   public void connectSuccess() {
+                     LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
+                     setChannel( connection.getSocketChannel() );
+                     currentState = new StateHandshaking( false, null );
+                   }
+                   
+                   public void connectFailure( Throwable failure_msg ) {
+                     closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+                   }
+                   
+                   public void exceptionThrown( Throwable error ) {
+                     closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+                   }
+                 };
+    	}
 
+      connection.connect( cl );
+      
       LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);
     }
     
@@ -364,6 +431,124 @@ PEPeerTransportProtocol
   }
 		
   private class 
+  SOCKSStateHandshaking 
+  	implements PEPeerTransportProtocolState 
+  {
+    DirectByteBuffer socks_handshake_read_buff;
+    boolean sent_our_handshake = false;
+    
+    protected AEMonitor	StateHandshaking_this_mon	= new AEMonitor( "PEPeerTransportProtocol:SOCKSStateHandshaking" );
+
+    private SOCKSStateHandshaking() {
+      allocateAll();
+      startConnectionX();  //sets up the download speed limiter
+      
+      	// 8 bytes is incoming socket response size
+      
+      socks_handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 8 );
+      
+      if( socks_handshake_read_buff == null ) {
+      	
+        closeAll( toString() + ": SOCKS handshake_read_buff is null", true, false );
+        
+        return;
+      }
+    }
+    
+    public int process() 
+    {
+    	try{
+    		StateHandshaking_this_mon.enter();
+     	      
+    	    if( !sent_our_handshake ){
+    	    	   	    	
+                ByteBuffer	socks_out	= ByteBuffer.allocate(256);
+                
+                socks_out.put((byte)4);					// socks 4(a)
+                socks_out.put((byte)1);					// command = CONNECT
+                socks_out.putShort((short)port);           // port
+                socks_out.put((byte)0);
+                socks_out.put((byte)0);
+                socks_out.put((byte)0);
+                socks_out.put((byte)1);	// indicates socks 4a
+                socks_out.put((byte)0);	// user id blank
+                socks_out.put( ip.getBytes());
+				socks_out.put((byte)0);
+				 
+				socks_out.limit( socks_out.position());
+				 
+                socks_out.position(0);
+                
+                	// TODO: fix this!
+                
+                SocketChannel	chan = connection.getSocketChannel();
+                
+                try{
+	                int	len_written = chan.write( socks_out );
+	          
+	                System.out.println( "written = " + len_written ); 
+	                
+	    	        sent_our_handshake = true;
+	    	        
+                }catch (IOException e) {
+    	        	
+    				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
+    				
+    				socks_handshake_read_buff.returnToPool();
+    	        
+    				return 0;
+    			}  
+    	    }
+    	  
+	      if ( socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
+	      	
+	        try {
+	        	
+	          int read = readData( socks_handshake_read_buff );
+	          
+	          if( read == 0 ) {
+	          	
+	            return PEPeerControl.DATA_EXPECTED_SLEEP;
+	            
+	          }else if( read < 0 ){
+	          	
+				 throw new IOException( "SOCKS: End of Stream reached" );
+	          }
+	        }catch (IOException e) {
+	        	
+				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
+				
+				socks_handshake_read_buff.returnToPool();
+	        
+				return 0;
+			}
+		}
+	      
+	      if( !socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
+	      	
+	        System.out.println( "Got SOCKS response" );
+	        
+	        socks_handshake_read_buff.returnToPool();
+	        
+	        currentState = new StateHandshaking( true, null );
+	      }
+	      
+	      return PEPeerControl.NO_SLEEP;
+	      
+    	}finally{
+    		StateHandshaking_this_mon.exit();
+    	}
+      }
+    
+	  public int getState() {
+			return HANDSHAKING;
+	  }
+	}
+
+  
+  
+  
+  private class 
   StateHandshaking 
   	implements PEPeerTransportProtocolState 
   {
@@ -372,9 +557,11 @@ PEPeerTransportProtocol
   
     protected AEMonitor	StateHandshaking_this_mon	= new AEMonitor( "PEPeerTransportProtocol:StateHandshaking" );
 
-    private StateHandshaking( byte[] data_already_read ) {
-      allocateAll();
-      startConnectionX();  //sets up the download speed limiter
+    private StateHandshaking( boolean already_initialised, byte[] data_already_read ) {
+    	if ( !already_initialised ){
+    		allocateAll();
+    		startConnectionX();  //sets up the download speed limiter
+    	}
       
       handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 68 );
       if( handshake_read_buff == null ) {
