@@ -1463,7 +1463,7 @@ public class StartStopRulesDefaultPlugin
         long timeSeeding = dl.getStats().getSecondsOnlySeeding();
         if (timeSeeding > 0) {
           bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
-          if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+iFirstPrioritySeedingMinutes+"="+bLastMatched+"\n";
+          if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+iFirstPrioritySeedingMinutes*60+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
             if (bDebugLog) sExplainFP += "..Not FP\n";
             return false;
