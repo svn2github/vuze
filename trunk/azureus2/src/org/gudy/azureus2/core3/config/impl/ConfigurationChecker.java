@@ -315,7 +315,7 @@ ConfigurationChecker
           File file = files[ i ];
           if( file.exists() ) {
             LGLogger.log( "ConfigurationChecker:: removing old language file: " + file.getAbsolutePath() );
-            file.delete();
+            file.renameTo( new File( file.getParentFile(), "delme" + file.getName() ) );
           }
         }
 
