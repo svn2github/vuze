@@ -502,7 +502,7 @@ TRTrackerServerTorrentImpl
 				compact_peers[pos++] = (byte)(port>>8);
 				compact_peers[pos++] = (byte)(port&0xff);
 			}
-						
+								
 			root.put( "peers", compact_peers );
 		}else{
 			
@@ -510,6 +510,29 @@ TRTrackerServerTorrentImpl
 		}
 		
 		root.put( "interval", new Long( interval ));
+	
+			// also include scrape details
+		
+		long	seeds 		= 0;
+		long	non_seeds	= 0;
+		
+		for (int i=0;i<peer_list.size();i++){
+			
+			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
+			
+			if ( peer.getAmountLeft() == 0 ){
+				
+				seeds++;
+				
+			}else{
+				
+				non_seeds++;
+			}
+		}
+		
+		root.put( "complete", new Long( seeds ));
+		root.put( "incomplete", new Long( non_seeds ));
+		root.put( "downloaded", new Long(stats.getCompletedCount()));
 		
 		if ( add_to_cache ){
 						
