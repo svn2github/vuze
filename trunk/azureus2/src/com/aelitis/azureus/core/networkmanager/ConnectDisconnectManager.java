@@ -369,6 +369,11 @@ public class ConnectDisconnectManager {
    * @param listener to receive notification of connect attempt success/failure
    */
   protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
+    if( MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ) { //outbound connects are disabled, so fail immediately
+      listener.connectFailure( new Throwable( "Outbound connects disabled in config: MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0" ) );
+      return;
+    }
+    
     ConnectionRequest cr = new ConnectionRequest( address, listener );
     try{
       new_canceled_mon.enter();
