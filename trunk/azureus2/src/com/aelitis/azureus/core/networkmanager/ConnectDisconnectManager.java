@@ -392,6 +392,7 @@ public class ConnectDisconnectManager {
    */
   protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
     if( MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ) { //outbound connects are disabled, so fail immediately
+      LGLogger.log( "Aborting connect attempt to [" +address+ "]: Outbound connects disabled in config." );
       listener.connectFailure( new Throwable( "Outbound connects disabled in config: MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0" ) );
       return;
     }
