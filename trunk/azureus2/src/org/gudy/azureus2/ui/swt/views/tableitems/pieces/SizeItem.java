@@ -33,7 +33,7 @@ public class SizeItem
 {
   /** Default Initialization */
   public SizeItem() {
-    super("size", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PIECES);
+    super("size", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_TORRENT_PIECES);
   }
 
   public void refresh(TableCell cell) {

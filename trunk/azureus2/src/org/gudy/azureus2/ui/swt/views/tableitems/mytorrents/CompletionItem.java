@@ -75,27 +75,27 @@ public class CompletionItem
     
     public void refresh(TableCell cell) {    
       //Compute bounds ...
-      Point ptNewSize = cell.getSize();
-  
-      if (ptNewSize.x == 0)
+      int newWidth = cell.getWidth();
+      if (newWidth <= 0)
         return;
+      int newHeight = cell.getHeight();
       
-      int x1 = ptNewSize.x - borderWidth - 1;
-      int y1 = ptNewSize.y - borderWidth - 1;
+      int x1 = newWidth - borderWidth - 1;
+      int y1 = newHeight - borderWidth - 1;
       if (x1 < 10 || y1 < 3) {
         return;
       }
   
       int percentDone = getPercentDone(cell);
       boolean bImageBufferValid = (lastPercentDone == percentDone) && 
-                                  (lastWidth == ptNewSize.x) && 
+                                  (lastWidth == newWidth) && 
                                   cell.isValid();
       if (bImageBufferValid) {
         return;
       }
   
       lastPercentDone = percentDone;
-      lastWidth = ptNewSize.x;
+      lastWidth = newWidth;
   
       Image image = cell.getGraphic();
       GC gcImage;
@@ -105,19 +105,19 @@ public class CompletionItem
         bImageSizeChanged = true;
       } else {
         imageBounds = image.getBounds();
-        bImageSizeChanged = imageBounds.width != ptNewSize.x ||
-                            imageBounds.height != ptNewSize.y;
+        bImageSizeChanged = imageBounds.width != newWidth ||
+                            imageBounds.height != newHeight;
       }
       if (bImageSizeChanged) {
         image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
-                          ptNewSize.x, ptNewSize.y);
+                          newWidth, newHeight);
         imageBounds = image.getBounds();
         bImageBufferValid = false;
   
         // draw border
         gcImage = new GC(image);
         gcImage.setForeground(Colors.grey);
-        gcImage.drawRectangle(0, 0, ptNewSize.x - 1, ptNewSize.y - 1);
+        gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
       } else {
         gcImage = new GC(image);
       }

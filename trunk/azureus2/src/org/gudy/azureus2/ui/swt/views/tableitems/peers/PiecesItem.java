@@ -100,16 +100,17 @@ public class PiecesItem
         return;
   
       //Compute bounds ...
-      Point ptNewSize = cell.getSize();
-      if (ptNewSize.x == 0)
+      int newWidth = cell.getWidth();
+      if (newWidth <= 0)
         return;
+      int newHeight = cell.getHeight();
   
       DownloadManager dm = infoObj.getManager().getDownloadManager();
   
       int x0 = borderVerticalSize;
-      int x1 = ptNewSize.x - 1 - borderVerticalSize;
+      int x1 = newWidth - 1 - borderVerticalSize;
       int y0 = completionHeight + borderHorizontalSize + borderSplit;
-      int y1 = ptNewSize.y - 1 - borderHorizontalSize;
+      int y1 = newHeight - 1 - borderHorizontalSize;
       int drawWidth = x1 - x0 + 1;
       if (drawWidth < 10 || y1 < 3)
         return;
@@ -128,15 +129,15 @@ public class PiecesItem
         bImageChanged = true;
       } else {
         imageBounds = image.getBounds();
-        bImageChanged = imageBounds.width != ptNewSize.x ||
-                        imageBounds.height != ptNewSize.y;
+        bImageChanged = imageBounds.width != newWidth ||
+                        imageBounds.height != newHeight;
       }
       if (bImageChanged) {
         if (image != null && !image.isDisposed()) {
           image.dispose();
         }
         image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
-                          ptNewSize.x, ptNewSize.y);
+                          newWidth, newHeight);
         imageBounds = image.getBounds();
         bImageBufferValid = false;
   
@@ -145,14 +146,14 @@ public class PiecesItem
         gcImage.setForeground(Colors.grey);
         if (borderHorizontalSize > 0) {
           if (borderVerticalSize > 0) {
-            gcImage.drawRectangle(0, 0, ptNewSize.x - 1, ptNewSize.y - 1);
+            gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
           } else {
-            gcImage.drawLine(0, 0, ptNewSize.x - 1, 0);
-            gcImage.drawLine(0, ptNewSize.y -1, ptNewSize.x - 1, ptNewSize.y - 1);
+            gcImage.drawLine(0, 0, newWidth - 1, 0);
+            gcImage.drawLine(0, newHeight -1, newWidth - 1, newHeight - 1);
           }
         } else if (borderVerticalSize > 0) {
-          gcImage.drawLine(0, 0, 0, ptNewSize.y - 1);
-          gcImage.drawLine(ptNewSize.x - 1, 0, ptNewSize.x - 1, ptNewSize.y - 1);
+          gcImage.drawLine(0, 0, 0, newHeight - 1);
+          gcImage.drawLine(newWidth - 1, 0, newWidth - 1, newHeight - 1);
         }
   
         if (borderSplit > 0) {
@@ -203,7 +204,7 @@ public class PiecesItem
             }
             nbComplete += nbAvailable;
             index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-            if (nbNeeded < nbAvailable / 2)
+            if (nbNeeded <= nbAvailable / 2)
               index += INDEX_COLOR_FADEDSTARTS;
           }
   

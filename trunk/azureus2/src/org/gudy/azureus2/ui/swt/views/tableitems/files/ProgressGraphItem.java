@@ -84,33 +84,33 @@ public class ProgressGraphItem
       cell.setSortValue(percentDone);
 
       //Compute bounds ...
-      Point ptNewSize = cell.getSize();
-
-      if (ptNewSize.x == 0)
+      int newWidth = cell.getWidth();
+      if (newWidth <= 0)
         return;
+      int newHeight = cell.getHeight();
 
-      int x1 = ptNewSize.x - borderWidth - 1;
-      int y1 = ptNewSize.y - borderWidth - 1;
+      int x1 = newWidth - borderWidth - 1;
+      int y1 = newHeight - borderWidth - 1;
       if (x1 < 10 || y1 < 3) {
         return;
       }
 
       boolean bImageBufferValid = (lastPercentDone == percentDone) &&
-                                  (lastWidth == ptNewSize.x) &&
+                                  (lastWidth == newWidth) &&
                                   cell.isValid();
       if (bImageBufferValid) {
         return;
       }
 
       lastPercentDone = percentDone;
-      lastWidth = ptNewSize.x;
+      lastWidth = newWidth;
 
       Image piecesImage = cell.getGraphic();
 
       if (piecesImage != null && !piecesImage.isDisposed())
         piecesImage.dispose();
       piecesImage = new Image(SWTManagerImpl.getSingleton().getDisplay(),
-                              ptNewSize.x, ptNewSize.y);
+                              newWidth, newHeight);
 
       GC gcImage = new GC(piecesImage);
 
@@ -126,9 +126,9 @@ public class ProgressGraphItem
   
         PEPiece[] pieces = pm==null?null:pm.getPieces();
   
-        for (int i = 0; i < ptNewSize.x; i++) {
-          int a0 = (i * nbPieces) / ptNewSize.x;
-          int a1 = ((i + 1) * nbPieces) / ptNewSize.x;
+        for (int i = 0; i < newWidth; i++) {
+          int a0 = (i * nbPieces) / newWidth;
+          int a1 = ((i + 1) * nbPieces) / newWidth;
           if (a1 == a0)
             a1++;
           if (a1 > nbPieces && nbPieces != 0)
@@ -174,7 +174,7 @@ public class ProgressGraphItem
           //System.out.print(index);
           gcImage.setBackground(written ? Colors.red
                                         : requested ? Colors.grey : Colors.blues[index]);
-          gcImage.fillRectangle(i,1,1,ptNewSize.y-2);
+          gcImage.fillRectangle(i, 1, 1, newHeight - 2);
         }
         gcImage.setForeground(
           (fileInfo.getDownloaded() == fileInfo.getLength()) ? Colors.blues[Colors.BLUES_DARKEST] 
@@ -182,7 +182,7 @@ public class ProgressGraphItem
       } else {
         gcImage.setForeground(Colors.grey);
       }
-      gcImage.drawRectangle(0, 0, ptNewSize.x - 1, ptNewSize.y - 1);
+      gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
 
       gcImage.dispose();
       last_draw_time = SystemTime.getCurrentTime();

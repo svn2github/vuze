@@ -74,16 +74,17 @@ public class BlocksItem
       cell.setSortValue(piece.getCompleted());
       long lNumBlocks = piece.getNbBlocs();
 
-      Point ptNewSize = cell.getSize();
-      if (ptNewSize.x == 0)
+      int newWidth = cell.getWidth();
+      if (newWidth <= 0)
         return;
+      int newHeight = cell.getHeight();
   
-      int x1 = ptNewSize.x - 2;
-      int y1 = ptNewSize.y - 3;
+      int x1 = newWidth - 2;
+      int y1 = newHeight - 3;
       if (x1 < 10 || y1 < 3)
         return;
       Image image = new Image(SWTManagerImpl.getSingleton().getDisplay(), 
-                              ptNewSize.x, ptNewSize.y);
+                              newWidth, newHeight);
       Color blue = Colors.blues[Colors.BLUES_DARKEST];
       Color green = Colors.blues[Colors.BLUES_MIDLIGHT];
       Color downloaded = Colors.red;
