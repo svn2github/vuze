@@ -338,7 +338,7 @@ DisplayFormatters
     sb.append('[');
     sb.append(formatIntToTwoDigits(calendar.get(Calendar.DAY_OF_MONTH)));
     sb.append('.');
-    sb.append(formatIntToTwoDigits(calendar.get(Calendar.MONTH)));
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.MONTH)+1));	// 0 based
     sb.append('.');
     sb.append(calendar.get(Calendar.YEAR));
     sb.append(' ');
