@@ -542,12 +542,27 @@ PEPeerControlImpl
  	{
       
 		for (int i = 0; i < peers.length; i++){
-      	
 			TRTrackerResponsePeer	peer = peers[i];
       
+      ArrayList peer_transports = peer_transports_cow;
+      
+      boolean already_connected = false;
+      
+      for( int x=0; x < peer_transports.size(); x++ ) {
+        PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
+        
+        if( peer.getIPAddress().equals( transport.getIp() ) ) {
+          boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" );
+          if( !same_allowed || peer.getPort() == transport.getPort() ) {
+            already_connected = true;
+            break;
+          }
+        }
+      }
+      
+      if( already_connected )  continue;
+      
       peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getIPAddress(), peer.getPort() ) );
-      
-      
 		}
  	}
   
