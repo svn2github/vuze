@@ -36,8 +36,7 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
  */
 public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  //public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
-  public static final byte[] RESERVED = new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
+  public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
   
   private final DirectByteBuffer[] buffer;
   private final String description;

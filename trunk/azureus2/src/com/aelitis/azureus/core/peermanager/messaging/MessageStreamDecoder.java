@@ -43,7 +43,7 @@ public interface MessageStreamDecoder {
    * Get the messages decoded from the transport, if any, from the last decode op.
    * @return decoded messages, or null if no new complete messages were decoded
    */
-  public Message[] getDecodedMessages();
+  public Message[] removeDecodedMessages();
   
   /**
    * Get the number of protocol (overhead) bytes decoded from the transport, from the last decode op.

@@ -144,8 +144,15 @@ PEPeer
   
   
   /**
+   * Whether or not this peer supports the advanced messaging API.
+   * @return true if extended messaging is supported, false if not
+   */
+  public boolean supportsMessaging();
+  
+  
+  /**
    * Get the list of messages that this peer and us both understand.
-   * @return messages available for use, or null of supported is yet unknown
+   * @return messages available for use, or null of supported is yet unknown or unavailable
    */
   public Message[] getSupportedMessages();
 

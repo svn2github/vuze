@@ -53,11 +53,11 @@ public class PeersView
     new IpItem(),
     new ClientItem(),
     new TypeItem(),
+    new MessagingItem(),
     new PiecesItem(),
     new PercentItem(),
     new DownSpeedItem(),
     new UpSpeedItem(),
-
     new PeerSourceItem(),
     new HostNameItem(),
     new PortItem(),

@@ -73,6 +73,11 @@ PeerImpl
   }
   
   
+  public boolean supportsMessaging() {
+    return delegate.supportsMessaging();
+  }
+  
+  
   public Message[] getSupportedMessages() {
     com.aelitis.azureus.core.peermanager.messaging.Message[] core_msgs = delegate.getSupportedMessages();
     

@@ -92,7 +92,7 @@ public class IncomingMessageQueue {
     int bytes_read = stream_decoder.performStreamDecode( connection.getTCPTransport(), max_bytes );
     
     //check if anything was decoded and notify listeners if so
-    Message[] messages = stream_decoder.getDecodedMessages();
+    Message[] messages = stream_decoder.removeDecodedMessages();
     if( messages != null ) {
       for( int i=0; i < messages.length; i++ ) {
         Message msg = messages[ i ];

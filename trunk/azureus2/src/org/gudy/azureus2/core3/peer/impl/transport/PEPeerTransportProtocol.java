@@ -117,7 +117,7 @@ PEPeerTransportProtocol
   private long connection_established_time = 0;
 
   private boolean az_messaging_mode = false;
-  private Message[] supported_messages;
+  private Message[] supported_messages = null;
   
   
   protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
@@ -1418,5 +1418,11 @@ PEPeerTransportProtocol
   public Message[] getSupportedMessages() {
     return supported_messages;
   }
+  
+  
+  public boolean supportsMessaging() {
+    return supported_messages != null;
+  }
+  
   
 }

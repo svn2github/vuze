@@ -72,7 +72,6 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   
   public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
-    messages_last_read.clear();  //reset report values
     protocol_bytes_last_read = 0;
     data_bytes_last_read = 0;
     
@@ -109,11 +108,11 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
 
   
-  public Message[] getDecodedMessages() {
+  public Message[] removeDecodedMessages() {
     if( messages_last_read.isEmpty() )  return null;
     
-    Message[] msgs = new Message[ messages_last_read.size() ];
-    messages_last_read.toArray( msgs );
+    Message[] msgs = (Message[])messages_last_read.toArray( new Message[0] );
+    messages_last_read.clear();
     
     return msgs;
   }
@@ -137,6 +136,10 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       direct_payload_buffer = null;
     }
  
+    for( int i=0; i < messages_last_read.size(); i++ ) {
+      Message msg = (Message)messages_last_read.get( i );
+      msg.destroy();
+    }
     messages_last_read.clear();
   }
   

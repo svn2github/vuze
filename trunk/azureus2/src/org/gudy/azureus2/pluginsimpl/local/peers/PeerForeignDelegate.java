@@ -372,7 +372,10 @@ PeerForeignDelegate
   }
   
   
-  
+  public boolean supportsMessaging() {
+    return foreign.supportsMessaging();
+  }
+
   public Message[] getSupportedMessages() {
     org.gudy.azureus2.plugins.messaging.Message[] plug_msgs = foreign.getSupportedMessages();
     

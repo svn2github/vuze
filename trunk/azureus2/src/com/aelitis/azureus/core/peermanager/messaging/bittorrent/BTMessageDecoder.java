@@ -72,7 +72,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
-    messages_last_read.clear();  //reset report values
     protocol_bytes_last_read = 0;
     data_bytes_last_read = 0;
     
@@ -119,11 +118,12 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
 
   
-  public Message[] getDecodedMessages() {
+  public Message[] removeDecodedMessages() {
     if( messages_last_read.isEmpty() )  return null;
     
-    Message[] msgs = new Message[ messages_last_read.size() ];
-    messages_last_read.toArray( msgs );
+    Message[] msgs = (Message[])messages_last_read.toArray( new Message[0] );
+    
+    messages_last_read.clear();
     
     return msgs;
   }
@@ -140,7 +140,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
 
   public void destroy() {
     destroyed = true;
-    
+
     if( direct_payload_buffer != null ) {
       direct_payload_buffer.returnToPool();
       direct_payload_buffer = null;
