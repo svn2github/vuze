@@ -31,7 +31,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 DataReaderSpeedLimiter 
@@ -99,7 +99,8 @@ DataReaderSpeedLimiter
 			
 			synchronized( DataReaderSpeedLimiter.this ){
 				
-				long	now = System.currentTimeMillis();
+				long	now = SystemTime.getCurrentTime();
+				
 				
 				int		slots = (int)( ( now - last_read_time )/slot_period_millis );
 				
