@@ -161,7 +161,7 @@ public class TableSorter implements ParameterListener {
     for (int i = 0; i < cells.length; i++) {
       if (cells[i] != cellsOriginal[i]) {
         TableRowCore row = cells[i].getTableRowCore();
-        ((BufferedTableRow)row).setSelected(selected[row.getIndex()]);
+        ((BufferedTableRow)row).setSelected(selected[i /*row.getIndex()*/]);
         ((BufferedTableRow)row).setTableItem(tableItems[i], false);
         tableItems[i].setData("TableRow", row);
         row.setValid(false);
