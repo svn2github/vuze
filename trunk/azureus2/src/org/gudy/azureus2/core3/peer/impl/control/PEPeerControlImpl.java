@@ -1009,11 +1009,13 @@ PEPeerControlImpl
       }
     }
 
-    //We add a 90 % range
-    pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
-
+    
     //If availability is greater than 10, then grab any piece avail (999 should be enough)
     if(pieceMinAvailability > 10 && pieceMinAvailability < 999) pieceMinAvailability = 999;
+    
+    //  We add the range
+    pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
+    
     //For all pieces
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading it, if it's not downloaded, and if it's available from that peer
