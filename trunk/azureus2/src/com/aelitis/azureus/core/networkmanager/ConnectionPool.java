@@ -143,11 +143,11 @@ public class ConnectionPool {
         i.remove();
       }
     }
-    synchronized( connections ) {
+    if( parent_pool != null ) {  //root pool parent is null, and we don't want to destroy the root
       connections.clear();
-    }
-    if( parent_pool != null && inform_parent ) { //root pool does not have a parent
-      parent_pool.informChildDestroyed( this );
+      added_connections.clear();
+      removed_connections.clear();
+      if( inform_parent )  parent_pool.informChildDestroyed( this );
     }
   }
   
@@ -383,7 +383,7 @@ public class ConnectionPool {
               }
             } 
             catch( Throwable t ) {
-              System.out.println( "doConnectionWrites: " + t.getMessage() );
+              //System.out.println( "doConnectionWrites: " + t.getMessage() );
               conn.setTransportReadyForWrite( false );
               conn.notifyOfException( t );
             }

@@ -27,7 +27,6 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
 
@@ -48,9 +47,7 @@ PEPeerTransportImpl
 	extends 	PEPeerTransportProtocol
 {
 	private static final boolean	TRACE	= false;
-  
-  private static boolean enable_efficient_write = true;
-	
+
 	private SocketChannel 		socket 			= null;
 	private volatile boolean 	connected 		= false;
 	private volatile boolean 	connect_error 	= false;
@@ -101,7 +98,7 @@ PEPeerTransportImpl
     			true,
     			_leading_data,
     			false ) ;
-    
+      
      	socket 			= sck;
     				
 		setupSpeedLimiter();
@@ -248,79 +245,10 @@ PEPeerTransportImpl
 
 	}
   
-  
-	protected int 
-	writeData( 
-		DirectByteBuffer	buffer ) 
-	
-		throws IOException 
-	{
-		SocketChannel	socket_copy			= socket;
-				
-		if ( socket_copy == null ){
-			
-			throw( new IOException( "Not connected - socket is null" ));
-		}		
-		
-		if ( TRACE ){
-			
-			int	pos = buffer.position();
-			
-			int	len = buffer.write( socket_copy );
-			
-			if ( len > 0 ){
-				
-				byte[]	trace = new byte[len];
-				
-				buffer.position(pos);
-				
-				buffer.get( trace );
-				
-				System.out.println( "writeData:" + ByteFormatter.nicePrint( trace ));
-			}
-			
-			return( len );
-		}else{
-			
-			return(  buffer.write(socket_copy));
-		}
-	}
-  
-  
-  ///// implementation of PeerConnection: 
-  
-  public int read( ByteBuffer buffer ) throws IOException {
-    return socket.read( buffer );
-  }
-  
-  public long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
-    if( enable_efficient_write ) {
-      try {
-        return socket.write( buffers, array_offset, array_length );
-      }
-      catch( IOException e ) {
-        //a bug only fixed in Tiger (1.5 series):
-        //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-        if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-          enable_efficient_write = false;
-          System.out.println( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
-        }
-        throw e;
-      }
-    }
     
-    //single-buffer mode
-    long written_sofar = 0;
-    for( int i=array_offset; i < array_length; i++ ) {
-      int data_length = buffers[ i ].remaining();
-      int written = socket.write( buffers[ i ] );
-      written_sofar += written;
-      if( written < data_length )  break;
-    }
-    return written_sofar;
+  
+  protected SocketChannel getSocketChannel() {
+    return socket;
   }
   
-  public String getDescription() {
-    return socket.socket().getInetAddress().getHostAddress() + ":" + socket.socket().getPort();
-  }
 }

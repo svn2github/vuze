@@ -25,6 +25,8 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionPool;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.NewPeerManager;
 
 
@@ -89,6 +91,8 @@ PEPeerControlImpl
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
   
+  private ConnectionPool connection_pool = NetworkManager.getSingleton().getRootConnectionPool();
+  
   private final NewPeerManager.Listener new_peer_manager_listener = new NewPeerManager.Listener() {
     public boolean isNewPeerNeeded() {
       int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
@@ -108,6 +112,8 @@ PEPeerControlImpl
       addToPeerTransports( PEPeerTransportFactory.createTransport( peer.getControl(), peer.getId(), peer.getIp(), peer.getPort(), false ) ); 
     }
   };
+  
+  
   
   
   
@@ -220,6 +226,8 @@ PEPeerControlImpl
     peerUpdater.start();
     
     
+    
+    
     new AEThread( "Peer Manager"){
       public void
       run()
@@ -255,13 +263,15 @@ PEPeerControlImpl
                 if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
               }
               
-              ps.processWrite();
+              ps.doKeepAliveCheck();
             }
           }
         }
         
-        if( SystemTime.getCurrentTime() - start_time < 20 ) {
-          try {  Thread.sleep( 20 );  } catch(Exception e) {}
+        long loop_time = SystemTime.getCurrentTime() - start_time;
+        
+        if( loop_time < 100 ) {
+          try {  Thread.sleep( 100 - loop_time );  } catch(Exception e) {}
         }
 
       }
@@ -346,6 +356,9 @@ PEPeerControlImpl
     
     // Stop the peer updater
     peerUpdater.stopIt();
+    
+    //TODO
+    //connection_pool.destroy();
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
@@ -2230,5 +2243,6 @@ PEPeerControlImpl
   
   public DiskManager getDiskManager() {  return _diskManager;   }
     
+  public ConnectionPool getConnectionPool() {  return connection_pool;  }
   
  }

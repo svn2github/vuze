@@ -67,8 +67,6 @@ Peer
 	
 	public PeerStats getStats();
  	
-	public int getMaxUpload();
-
 	public boolean isIncoming();
 
 	public int getDownloadPriority();
