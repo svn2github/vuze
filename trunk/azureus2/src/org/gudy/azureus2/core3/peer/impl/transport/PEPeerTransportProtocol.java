@@ -36,8 +36,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messages.OutgoingBTPieceMessageHandler;
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messages.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 
 
@@ -93,6 +92,7 @@ PEPeerTransportProtocol
   private PEPeerTransportProtocolState currentState;
   
   private Connection connection;
+  private OutgoingMessageQueue outgoing_message_queue;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
   
@@ -192,6 +192,8 @@ PEPeerTransportProtocol
 			
 			allocateAll();
 
+      LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Creating incoming connection from " + toString());
+      
 			currentState = new StateHandshaking( data_already_read );
 					
 		}else{
@@ -228,7 +230,7 @@ PEPeerTransportProtocol
   		byte[] hash = manager.getHash();
   		byte[] myPeerId = manager.getPeerId();
 
-      connection.getOutgoingMessageQueue().addMessage( new BTHandshake( hash, myPeerId ) );
+      outgoing_message_queue.addMessage( new BTHandshake( hash, myPeerId ) );
     
   		readBuffer = DirectByteBufferPool.getBuffer( 68 );
   		if ( readBuffer == null ) {
@@ -397,31 +399,38 @@ PEPeerTransportProtocol
   	if (closing) {
   		return;
   	}
-  	closing = true;         
+  	closing = true;
+    
+    currentState = new StateClosing();
   	
   	//Cancel any pending requests (on the manager side)
   	cancelRequests();
-  	
+  	  	
+  	//Send removed event ...
+    manager.peerRemoved(this);
+    
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.removeAllPieceRequests();
+      outgoing_piece_message_handler = null;
     }
-  	
     
     if( connection != null ) {
       manager.getConnectionPool().removeConnection( connection );
       connection.destroy();
+      connection = null;
     }
+    
+    outgoing_message_queue = null;
     
     //Close the socket
     closeConnection();
+    
     
   	//remove identity
   	if ( this.id != null && identityAdded ) {
   		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
   	}
   	
-  	//Send removed event ...
-  	manager.peerRemoved(this);
     
     if (readBuffer != null) {
       readBuffer.returnToPool();
@@ -490,7 +499,6 @@ PEPeerTransportProtocol
     
 		public synchronized int process() {
       if( !handshake_sent ) {
-        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Creating incoming connection from " + toString());
         doConnectionLinking();
         handShake( pre_read );
         handshake_sent = true;
@@ -641,6 +649,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	}
   }
 
+  private static class StateClosing implements PEPeerTransportProtocolState {
+    public int process() { return PEPeerControl.NO_SLEEP; }
+
+    public int getState() {
+      return CLOSING;
+    }
+  }
+
   private static class StateClosed implements PEPeerTransportProtocolState {
   	public int process() { return PEPeerControl.NO_SLEEP; }
 
@@ -648,6 +664,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		return DISCONNECTED;
   	}
   }
+  
 
   
   public int processRead() {
@@ -897,7 +914,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
   	if ( !alreadyRequested( request ) ) {
   		addRequest( request );
-      connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ) );
+      outgoing_message_queue.addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return true;
   	}
   	return false;
@@ -908,14 +925,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	if ( getState() != TRANSFERING ) return;
 		if ( alreadyRequested( request ) ) {
 			removeRequest( request );
-      connection.getOutgoingMessageQueue().addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() ) );
+      outgoing_message_queue.addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() ) );
 		}
   }
 
   
   public void sendHave( int pieceNumber ) {
 		if ( getState() != TRANSFERING ) return;
-    connection.getOutgoingMessageQueue().addMessage( new BTHave( pieceNumber ) );
+    outgoing_message_queue.addMessage( new BTHave( pieceNumber ) );
 		checkInterested();
 	}
 
@@ -923,20 +940,21 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   public void sendChoke() {
   	if ( getState() != TRANSFERING ) return;
     outgoing_piece_message_handler.removeAllPieceRequests();
-    connection.getOutgoingMessageQueue().addMessage( new BTChoke() );
+    outgoing_message_queue.addMessage( new BTChoke() );
   	choking = true;
   }
 
   
   public void sendUnChoke() {
     if ( getState() != TRANSFERING ) return;
-    connection.getOutgoingMessageQueue().addMessage( new BTUnchoke() );
+    outgoing_message_queue.addMessage( new BTUnchoke() );
     choking = false;
   }
 
 
   private void sendKeepAlive() {
-    connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive() );
+    if ( getState() != TRANSFERING ) return;
+    outgoing_message_queue.addMessage( new BTKeepAlive() );
   }
   
   
@@ -980,10 +998,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 		}
 		if ( newInterested && !interested ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTInterested() );
+      outgoing_message_queue.addMessage( new BTInterested() );
 		}
     else if ( !newInterested && interested ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTUninterested() );
+      outgoing_message_queue.addMessage( new BTUninterested() );
 		}
 		interested = newInterested;
 	}
@@ -997,10 +1015,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		boolean[] myStatus = manager.getPiecesStatus();
 		boolean newInterested = !myStatus[ pieceNumber ];
 		if ( newInterested && !interested ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTInterested() );
+      outgoing_message_queue.addMessage( new BTInterested() );
 		}
     else if ( !newInterested && interested ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTUninterested() );
+      outgoing_message_queue.addMessage( new BTUninterested() );
 		}
 		interested = newInterested;
 	}
@@ -1035,7 +1053,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		}
 
 		if ( atLeastOne ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTBitfield( buffer ) );
+      outgoing_message_queue.addMessage( new BTBitfield( buffer ) );
 		}
 	}
 
@@ -1163,10 +1181,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           }
         }
       }
-      //cancel any unsent requests in the queue
-      int[] type = { BTProtocolMessage.BT_REQUEST };
-      if( connection != null ) {
-        connection.getOutgoingMessageQueue().removeMessagesOfType( type );
+      if( !closing ) {
+        //cancel any unsent requests in the queue
+        int[] type = { BTProtocolMessage.BT_REQUEST };
+        outgoing_message_queue.removeMessagesOfType( type );
       }
 		}
 
@@ -1287,14 +1305,16 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     //get a connection object from the network manager - this will be an async callback some day   
     connection = NetworkManager.getSingleton().createNewConnection( getSocketChannel(), connection_listener );
     
+    outgoing_message_queue = connection.getOutgoingMessageQueue();
+    
     //attach the new connection to the torrent's pool so that peer messages get processed
     manager.getConnectionPool().addConnection( connection );
     
     //link in outgoing piece handler
-    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
+    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), outgoing_message_queue );
     
     //register bytes sent listener
-    connection.getOutgoingMessageQueue().registerByteListener( bytes_sent_listener );
+    outgoing_message_queue.registerByteListener( bytes_sent_listener );
   }
   
   

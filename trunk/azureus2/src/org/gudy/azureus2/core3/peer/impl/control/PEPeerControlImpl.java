@@ -265,12 +265,12 @@ PEPeerControlImpl
               removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
             }
             else {
+              ps.doKeepAliveCheck();
+              
               if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
                 ps.setReadSleepTime( ps.processRead() );
                 if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
               }
-              
-              ps.doKeepAliveCheck();
             }
           }
         }

@@ -37,7 +37,8 @@ PEPeer
 	public final static int CONNECTING 		= 10;
 	public final static int HANDSHAKING 	= 20;
 	public final static int TRANSFERING 	= 30;
-	public final static int DISCONNECTED 	= 40;
+  public final static int CLOSING       = 40;
+	public final static int DISCONNECTED 	= 50;
 	
 	public PEPeerManager
 	getManager();
