@@ -89,12 +89,12 @@ PEPieceImpl
   }
 
   public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber) {
-	this(manager, length);
-	this.pieceNumber = pieceNumber;
+	this(manager, length,pieceNumber,true);	
   }
   
   public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber,boolean slowPiece) {
-	this(manager, length,pieceNumber);
+    this(manager, length);
+	this.pieceNumber = pieceNumber;
 	this.slowPiece = slowPiece;
   }
     
@@ -332,6 +332,10 @@ PEPieceImpl
   
   public boolean isSlowPiece() {
     return slowPiece;
+  }
+  
+  public void setSlowPiece(boolean slowPiece) {
+    this.slowPiece = slowPiece;
   }
 
   /**

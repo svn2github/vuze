@@ -55,6 +55,7 @@ PEPiece
   
   public boolean isSlowPiece();
   
+  public void setSlowPiece(boolean slowPiece);
   
   /**
    * record details of a piece's blocks that have been completed for bad peer detection purposes

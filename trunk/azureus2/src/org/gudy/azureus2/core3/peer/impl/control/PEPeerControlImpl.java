@@ -314,6 +314,7 @@ PEPeerControlImpl
         checkCompletedPieces();  //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
         updateStats();
+        checkFastPieces();
         
         if (!_finished) { //if we're not finished
           checkFinished(); //see if we've finished
@@ -591,6 +592,26 @@ PEPeerControlImpl
         //check the piece from the disk
         _diskManager.aSyncCheckPiece(i);
         currentPiece.setBeingChecked();
+      }
+    }
+  }
+  
+  /**
+   * Check wether a fast piece should stay in fast mode
+   * or go back to slow mode.
+   *
+   */
+  private void checkFastPieces() {
+    long currentTime = System.currentTimeMillis();
+    //for every piece
+    for (int i = 0; i < _nbPieces; i++) {
+      PEPiece currentPiece = _pieces[i]; //get the piece
+
+      
+      
+      //if piece is loaded, fast 
+      if (currentPiece != null && !currentPiece.isSlowPiece() && (currentTime - currentPiece.getLastWriteTime()) > 30 * 1000) {
+        currentPiece.setSlowPiece(true);
       }
     }
   }
