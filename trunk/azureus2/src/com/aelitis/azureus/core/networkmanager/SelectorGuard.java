@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.util.*;
 import java.nio.channels.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
@@ -114,7 +115,8 @@ public class SelectorGuard {
    * Cleanup bad selector and return a fresh new one.
    */
   public Selector repairSelector( final Selector _bad_selector ) {//TODO make protected again
-    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys";
+    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys.\n";
+    msg += MessageText.getString( "SelectorGuard.repairmessage" );
     Debug.out( msg );
     LGLogger.logAlert( LGLogger.AT_WARNING, msg, false );
     
