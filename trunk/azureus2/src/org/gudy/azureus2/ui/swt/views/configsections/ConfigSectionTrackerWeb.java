@@ -57,25 +57,25 @@ public class ConfigSectionTrackerWeb implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gWebTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 6;
+    layout.numColumns = 2;
     gWebTab.setLayout(layout);
 
     // **** web tab ****
     // row
 
-    label = new Label(gWebTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable");
-
-    BooleanParameter enablePublish = new BooleanParameter(gWebTab, "Tracker Publish Enable", true);
+    BooleanParameter enablePublish = 
+      new BooleanParameter(gWebTab, "Tracker Publish Enable", true, 
+                           "ConfigView.section.tracker.publishenable");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enablePublish.setLayoutData( gridData );
 
-    label = new Label(gWebTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.publishenabledetails");
-
-    BooleanParameter enablePublishDetails = new BooleanParameter(gWebTab, "Tracker Publish Enable Details", true);
-    label = new Label(gWebTab, SWT.NULL);
+    BooleanParameter enablePublishDetails = 
+      new BooleanParameter(gWebTab, "Tracker Publish Enable Details", true,
+                           "ConfigView.section.tracker.publishenabledetails");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    enablePublishDetails.setLayoutData( gridData );
 
     Control[] publish_controls = new Control[1];
     publish_controls[0] = enablePublishDetails.getControl();
@@ -90,17 +90,8 @@ public class ConfigSectionTrackerWeb implements ConfigSectionSWT {
     final IntParameter tracker_skip = new IntParameter(gWebTab, "Tracker Skip", 0 );
 
     gridData = new GridData();
-    gridData.horizontalSpan = 1;
     gridData.widthHint = 100;
     tracker_skip.setLayoutData( gridData );
-
-    label = new Label(gWebTab, SWT.NULL);
-    label = new Label(gWebTab, SWT.NULL);
-    label = new Label(gWebTab, SWT.NULL);
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    label.setLayoutData( gridData );
-
 
     return gWebTab;
   }

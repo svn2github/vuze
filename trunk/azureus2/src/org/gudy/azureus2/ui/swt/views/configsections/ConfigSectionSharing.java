@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionSharing implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -50,31 +49,19 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
 
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
-    GridLayout layout;
-    Label label;
 
     Composite gSharing = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gSharing.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    gSharing.setLayout(layout);
+    gSharing.setLayout(new GridLayout());
 
     // row
+    new BooleanParameter(gSharing, "Sharing Use SSL", false, 
+                         "ConfigView.section.sharing.usessl");
 
-    label = new Label(gSharing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.sharing.usessl");
-    new BooleanParameter(gSharing, "Sharing Use SSL", false);
-
-    label = new Label(gSharing, SWT.NULL);
-    
     // row
-
-    label = new Label(gSharing, SWT.NULL);
-    Messages.setLanguageText(label, "wizard.createtorrent.extrahashes");
-    new BooleanParameter(gSharing, "Sharing Add Hashes", true);
-
-    label = new Label(gSharing, SWT.NULL);
+    new BooleanParameter(gSharing, "Sharing Add Hashes", true, 
+                         "wizard.createtorrent.extrahashes");
 
     return gSharing;
   }

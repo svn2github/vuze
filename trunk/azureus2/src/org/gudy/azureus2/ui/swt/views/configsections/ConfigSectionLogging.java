@@ -78,9 +78,13 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
 
     // row
 
-    label = new Label(gLogging, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.logging.enable"); //$NON-NLS-1$
-    BooleanParameter enableLogging = new BooleanParameter(gLogging, "Logging Enable"); //$NON-NLS-1$
+    BooleanParameter enableLogging = 
+      new BooleanParameter(gLogging, 
+                           "Logging Enable", 
+                           "ConfigView.section.logging.enable");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    enableLogging.setLayoutData(gridData);
 
     Composite cArea = new Composite(gLogging, SWT.NULL);
     layout = new GridLayout();
@@ -152,15 +156,14 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
 		for (int i = 0; i < components.length; i++) {
       Group gLogType = new Group(cLogTypes, SWT.NULL);
       layout = new GridLayout();
-      layout.numColumns = 2;
+      layout.numColumns = 1;
       gLogType.setLayout(layout);
       gLogType.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
       Messages.setLanguageText(gLogType, "ConfigView.section.logging.log" + components[i] + "component");
       
       for (int j = 0; j <= 3; j++) {
-        label = new Label(gLogType, SWT.NULL);
-        Messages.setLanguageText(label, "ConfigView.section.logging.log" + j + "type");
-        new BooleanParameter(gLogType, "bLog" + components[i] + "-" + j);
+        new BooleanParameter(gLogType, "bLog" + components[i] + "-" + j,
+                             "ConfigView.section.logging.log" + j + "type");
       }
     }
     

@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.MainWindow;
-import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier

@@ -84,11 +84,12 @@ public class ConfigSectionStats implements ConfigSectionSWT {
 
     // row
 
-    label = new Label(gStats, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.stats.enable"); //$NON-NLS-1$
-    BooleanParameter enableStats = new BooleanParameter(gStats, "Stats Enable", false); //$NON-NLS-1$
-
-    label = new Label(gStats, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    BooleanParameter enableStats = 
+        new BooleanParameter(gStats, "Stats Enable", false,
+                             "ConfigView.section.stats.enable");
+    enableStats.setLayoutData(gridData);
 
     Control[] controls = new Control[7];
 

@@ -71,7 +71,6 @@ public class PiecesItem extends TorrentGraphicItem  {
      * However, since our data isn't reliant on the table row, it may not 
      * really be invalid.
      */
-    boolean valid = torrentRow.isValid();
     BufferedTableRow row = torrentRow.getRow();    
     if (row == null || row.isDisposed())
       return;

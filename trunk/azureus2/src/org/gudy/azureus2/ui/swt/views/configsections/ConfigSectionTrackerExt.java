@@ -25,11 +25,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionTrackerExt implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -50,47 +48,33 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
-    Label label;
 
     // extensions tab set up
     Composite gExtTab = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gExtTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 1;
     gExtTab.setLayout(layout);
-
 
 
     // **** extensions tab ****
     // row
+    new BooleanParameter(gExtTab, "Tracker Send Peer IDs", true, 
+                         "ConfigView.section.tracker.sendpeerids");
 
-    label = new Label(gExtTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.sendpeerids");
+    // row
+    new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false, 
+                         "ConfigView.section.tracker.enableudp");
 
-    new BooleanParameter(gExtTab, "Tracker Send Peer IDs", true);
+    // row
+    new BooleanParameter(gExtTab, "Tracker Compact Enable", true,
+                         "ConfigView.section.tracker.enablecompact");
 
     // row
 
-    label = new Label(gExtTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.enableudp");
-
-    new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false);
-
-    // row
-    
-    label = new Label(gExtTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.enablecompact");
-
-    new BooleanParameter(gExtTab, "Tracker Compact Enable", true);
-
-    // row
-    
-    label = new Label(gExtTab, SWT.NULL);
-    
-    Messages.setLanguageText(label, "ConfigView.section.tracker.enablekey");
-
-    new BooleanParameter(gExtTab, "Tracker Key Enable", true);
+    new BooleanParameter(gExtTab, "Tracker Key Enable", true,
+                         "ConfigView.section.tracker.enablekey");
 
     
     return gExtTab;

@@ -1607,7 +1607,7 @@ StartStopRulesDefaultPlugin
       gQR.addControlListener(new Utils.LabelWrapControlListener());
 
       layout = new GridLayout();
-      layout.numColumns = 2;
+      layout.numColumns = 1;
       layout.marginHeight = 0;
       gQR.setLayout(layout);
       gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -1623,8 +1623,6 @@ StartStopRulesDefaultPlugin
       layout.verticalSpacing = 2;
       cRankType.setLayout(layout);
       gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-      gridData.horizontalSpan = 2;
-
       cRankType.setLayoutData(gridData);
       Messages.setLanguageText(cRankType, "ConfigView.label.seeding.rankType");
 
@@ -1701,12 +1699,13 @@ StartStopRulesDefaultPlugin
       gridData = new GridData();
       layout.marginHeight = 0;
       layout.marginWidth = 0;
-      gridData.horizontalSpan = 2;
       cNoTimeNone.setLayoutData(gridData);
       
-      label = new Label(cNoTimeNone, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.preferLargerSwarms"); //$NON-NLS-1$
-      new BooleanParameter(cNoTimeNone, "StartStopManager_bPreferLargerSwarms");
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      new BooleanParameter(cNoTimeNone, 
+                           "StartStopManager_bPreferLargerSwarms", 
+                           "ConfigView.label.seeding.preferLargerSwarms").setLayoutData(gridData);
 
 
 
@@ -1912,17 +1911,18 @@ StartStopRulesDefaultPlugin
       Messages.setLanguageText(label, "ConfigView.label.seeds");
 
       label = new Label(cIgnore, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.ignore0Peers");
-      new BooleanParameter(cIgnore, "StartStopManager_bIgnore0Peers");
-      label = new Label(cIgnore, SWT.NULL);
-
-      label = new Label(cIgnore, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
       gridData = new GridData();
       gridData.widthHint = 20;
       new IntParameter(cIgnore, "Stop Ratio").setLayoutData(gridData);
       label = new Label(cIgnore, SWT.NULL);
       label.setText(":1");
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 3;
+      new BooleanParameter(cIgnore, 
+                           "StartStopManager_bIgnore0Peers", 
+                           "ConfigView.label.seeding.ignore0Peers").setLayoutData(gridData);
 
       return cIgnore;
     }
