@@ -92,6 +92,8 @@ PluginInitializer
    					"org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
    					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform2", "azplatform2" },
+	   		{	 PluginManagerDefaults.PID_JPC, 
+					"com.aelitis.azureus.plugins.jpc.JPCPlugin", "azjpc", "azjpc" },
 					
         };
  
@@ -306,11 +308,12 @@ PluginInitializer
   			      	
   			      }catch( Throwable e ){
   			      	
+					if ( builtin_plugins[i][0] != PluginManagerDefaults.PID_JPC ){
+							
+						Debug.printStackTrace( e );
 	  			
-  					Debug.printStackTrace( e );
-	  			
-  					LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + key + "' fails", e );
-	  	      
+						LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + key + "' fails", e );
+					}
   				}
   			}else{
     		
@@ -774,10 +777,12 @@ PluginInitializer
 		 		 				
   				}catch( Throwable e ){
 	  			
-  					Debug.printStackTrace( e );
-	  			
-  					LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
-	  	      
+ 					if ( builtin_plugins[i][0] != PluginManagerDefaults.PID_JPC ){
+						
+	 					Debug.printStackTrace( e );
+			  			
+						LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
+					}
   				}
   			}else{
     		

@@ -647,7 +647,7 @@ PluginInterfaceImpl
 	{
   			// if its us then we probably know what we're doing :P
   		
-  		if ( !plugin.getClass().getName().startsWith( "org.gudy")){
+  		if ( ! ( plugin.getClass().getName().startsWith( "org.gudy") || plugin.getClass().getName().startsWith( "com.aelitis."))){
   			
 	  		if ( str.equalsIgnoreCase( "plugin.id" ) || str.equalsIgnoreCase("plugin.version" )){
 	  		 			
@@ -667,7 +667,7 @@ PluginInterfaceImpl
 	{
 			// if its us then we probably know what we're doing :P
   		
-  		if ( !plugin.getClass().getName().startsWith( "org.gudy")){
+  		if ( ! ( plugin.getClass().getName().startsWith( "org.gudy") || plugin.getClass().getName().startsWith( "com.aelitis."))){
   			
 	 		if ((!initialising ) && key instanceof String ){
 	  			
