@@ -158,8 +158,8 @@ PEPeerTransportImpl
        msg = msg + " sInptShtdwn=" + socket.socket().isInputShutdown();
        msg = msg + " sOutptShtdwn=" + socket.socket().isOutputShutdown();
        msg = msg + " sBound=" + socket.socket().isBound();
+       msg = msg + " Exception:\n" + e.getMessage();
        Debug.out(msg);
-	    e.printStackTrace();
 	  }
 	}
 
