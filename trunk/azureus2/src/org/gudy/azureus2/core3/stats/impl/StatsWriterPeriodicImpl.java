@@ -155,7 +155,11 @@ StatsWriterPeriodicImpl
 		
 		long	now = SystemTime.getCurrentTime() /1000;
 		
-		if ( now - last_write_time < period && !SystemTime.isErrorLast10sec()){
+			// if we have a 1 second period then now-last-write_time will often be 0 (due to the
+			// rounding of SystemTime) and the stats won't be written - hence the check against
+			// (period-1). Its only
+		
+		if ( now - last_write_time < ( period - 1 ) && !SystemTime.isErrorLast10sec()){
 			
 			return;
 		}
