@@ -897,15 +897,35 @@ public class ConfigView extends AbstractIView {
 		
 		gTracker.setLayout(layout);
 
-		 // row
+		// row
 		
-		label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gTracker, SWT.NULL);
 		
-		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
+	   Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
 		
-	    IntParameter pollInterval = new IntParameter(gTracker, "Tracker Poll Interval", TRHost.DEFAULT_RETRY_DELAY );
+	   IntParameter pollInterval = new IntParameter(gTracker, "Tracker Poll Interval", TRHost.DEFAULT_RETRY_DELAY );
 
-		label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gTracker, SWT.NULL);
+		
+	   // row
+		
+	  label = new Label(gTracker, SWT.NULL);
+		
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.ip"); 
+		
+	  StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
+
+	  label = new Label(gTracker, SWT.NULL);
+		
+	  // row
+		
+	 label = new Label(gTracker, SWT.NULL);
+		
+	 Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
+		
+	 IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
+
+	 label = new Label(gTracker, SWT.NULL);
 		
 			// row
 			

@@ -32,6 +32,7 @@ public interface
 TRHost
 {
 	public static final int DEFAULT_RETRY_DELAY 	= TRTrackerServer.DEFAULT_RETRY_DELAY;
+	public static final int DEFAULT_PORT 			= TRTrackerServer.DEFAULT_TRACKER_PORT;
 
 	public void
 	initialise(

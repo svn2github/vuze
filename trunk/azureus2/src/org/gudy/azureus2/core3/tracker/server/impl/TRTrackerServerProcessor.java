@@ -27,6 +27,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -75,6 +76,8 @@ TRTrackerServerProcessor
 				}
 			}
 	
+			LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + header + "'" );				
+
 			// System.out.println( "got header:" + header );
 			
 			if ( !header.startsWith( "GET " )){
@@ -96,9 +99,7 @@ TRTrackerServerProcessor
 			processRequest( header, 
 							_socket.getInetAddress().getHostAddress(),
 							_socket.getOutputStream());
-			
-			// is.close();
-			
+						
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

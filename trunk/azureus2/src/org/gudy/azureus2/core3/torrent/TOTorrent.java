@@ -81,6 +81,10 @@ TOTorrent
 	public URL
 	getAnnounceURL();
 
+	public void
+	setAnnounceURL(
+		URL		url );
+		
 	/**
 	 * When a group of sets of trackers is defined their URLs are accessed via this method
 	 * @return the group, always present, which may have 0 members

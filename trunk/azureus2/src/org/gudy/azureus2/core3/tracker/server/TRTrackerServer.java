@@ -26,6 +26,7 @@ public interface
 TRTrackerServer 
 {
 	public static final int DEFAULT_RETRY_DELAY 	= 120;	// seconds
+	public static final int DEFAULT_TRACKER_PORT 	= 6969;
 
 	public int
 	getRetryInterval();

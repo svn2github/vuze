@@ -342,6 +342,13 @@ TOTorrentImpl
 		return( announce_url );
 	}
 	
+	public void
+	setAnnounceURL(
+		URL		url )
+	{
+		announce_url	= url;
+	}
+
 	public long
 	getCreationDate()
 	{
@@ -402,14 +409,7 @@ TOTorrentImpl
 											TOTorrentException.RT_HASH_FAILS ));
 		}
 	}
-	
-	protected void
-	setAnnounceURL(
-		URL		_url )
-	{
-		announce_url		= _url;
-	}
-	
+		
 	public TOTorrentAnnounceURLGroup
 	getAnnounceURLGroup()
 	{

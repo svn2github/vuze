@@ -40,7 +40,7 @@ public class
 TRHostImpl
 	implements TRHost, TRTrackerClientFactoryListener, TRTrackerServerListener
 {
-	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
+	protected static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
 
 	protected static final String	NL			= "\r\n";
 	
@@ -483,8 +483,29 @@ TRHostImpl
 						TOTorrent	torrent = host_torrent.getTorrent();
 						
 						if ( Arrays.equals( hash, torrent.getHash())){
-						
-							reply_bytes = BEncoder.encode(torrent.serialiseToMap());
+							
+								// make a copy of the torrent
+								
+							TOTorrent	temp = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+					
+								// override the announce url but not port (as this is already fixed)
+								
+							String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+							
+							int	 	tracker_port 	= host_torrent.getPort();
+							
+								// if tracker ip not set then assume they know what they're doing
+								
+							if ( tracker_ip.length() > 0 ){
+								
+								URL announce_url = new URL( "http://" + tracker_ip + ":" + tracker_port + "/announce" );
+								
+								torrent.setAnnounceURL( announce_url );
+								
+								torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+							}
+
+							reply_bytes = BEncoder.encode( temp.serialiseToMap());
 							
 							break;
 						}
