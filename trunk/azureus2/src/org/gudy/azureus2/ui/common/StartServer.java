@@ -33,7 +33,7 @@ public class StartServer extends Thread {
   public StartServer() {
     super("Start Server");
     try {
-      socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+      socket = new ServerSocket(6880, 50, InetAddress.getByName("localhost")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
     } catch (Exception e) {
       state = STATE_FAULTY;

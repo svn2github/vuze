@@ -37,7 +37,7 @@ public class Main implements ILocaleUtilChooser {
       try {  
       	LGLogger.log( "Main::startSocket: starting connect to 6880");
       	
-        sck = new Socket("127.0.0.1", 6880);
+        sck = new Socket("localhost", 6880);
         
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
         

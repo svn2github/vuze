@@ -38,7 +38,7 @@ public class StartServer extends Thread {
    	  LGLogger.log( "Main::startServer: starting listen on 6880");
     
       //socket = new ServerSocket(6880);
-	  socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+	  socket = new ServerSocket(6880, 50, InetAddress.getByName("localhost")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
     }
     catch (Exception e) {
