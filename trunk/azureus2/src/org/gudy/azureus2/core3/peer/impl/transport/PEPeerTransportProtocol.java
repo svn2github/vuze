@@ -149,9 +149,9 @@ PEPeerTransportProtocol
     }
   };
   
-  private final Map recent_outgoing_requests = new LinkedHashMap( 50, .75F, false ) {
+  private final Map recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
     public boolean removeEldestEntry(Map.Entry eldest) {
-      return size() > 50;
+      return size() > 100;
     }
   };
   
@@ -871,7 +871,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
               stats.discarded( pieceLength );
               manager.discarded( pieceLength );
               requests_discarded++;
-              printRequestStats();
+              System.out.println("~~~ NEVER REQUESTED ~~~");
             }
           }
           else {
@@ -879,7 +879,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             stats.discarded( pieceLength );
             manager.discarded( pieceLength );
             requests_discarded++;
-            printRequestStats();
           }
         }
       }
@@ -888,7 +887,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         stats.discarded( pieceLength );
         manager.discarded( pieceLength );
         requests_discarded++;
-        printRequestStats();
       }
 
       if( logging_is_on )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
@@ -962,7 +960,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		return false;
   	}	
   	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
-  	if ( !alreadyRequested( request ) ) {
+  	if( !alreadyRequested( request ) ) {
   		addRequest( request );
       synchronized( recent_outgoing_requests ) {
         recent_outgoing_requests.put( request, null );
