@@ -1,4 +1,0 @@
-#!/bin/zsh
-setopt EXTENDED_GLOB
-rm (*/)#*.class
-javac (*/)#*.java
