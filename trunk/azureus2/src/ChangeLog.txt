@@ -6,6 +6,16 @@ AZUREUS CHANGELOG
 FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
 FEATURE: Core | Client support for the 'min interval' announce extension [Nolar]
 FEATURE: UI   | Option to disable small fonts under OSX [Nolar]
+FEATURE: Core | Added options to disable scrape entirely or just for non-running torrents [Parg]
+FEATURE: UI   | Console support for aliases [Fatal]
+FEATURE: Plug | Added local host configuration setting for statusmailer [Parg]
+FEATURE: Plug | Reworked CSS for tracker web pages to create old and new styles [Gouss]
+FEATURE: Plug | RSS Feed added to tracker web pages [Parg]
+FEATURE: Plug | Tracker stats added to tracker web pages [Parg]
+FEATURE: Core | RSS Feed parse APIs added to plugin interface [Parg]
+FEATURE: Core | Non-blocking sockets based TCP tracker implementation [Parg]
+FEATURE: UI   | Torrent export option added to SWT UI [Parg]
+FEATURE: Core | Client identification plugin interface [Parg]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 
