@@ -962,19 +962,27 @@ public class DiskManager {
           while(fc.position() < (fc.size()-1) && buffer.hasRemaining())
             fc.read(buffer);
         }
-        catch (IOException e) {
+        catch (Exception e) {
           // TODO Auto-generated catch block
-          e.printStackTrace();
-          System.out.println(path + fileName + " :: " + tempPiece.getFile().getName());
           noError = false;
-        }
+          System.out.println("Error in read Block 2: *Debug Information*");
+          System.out.println("PieceNumber: " + pieceNumber);
+          System.out.println("Offset: " + offset);
+          System.out.println("Length  " + length);
+          System.out.println("BufferLimit: " + buffer.limit() + ", BufferRemaining: " + buffer.remaining());
+          System.out.println("PieceListSize: " + pieceList.size());
+          System.out.println("CurrentFile: " + currentFile);
+          System.out.println("TempPieceLength: " + tempPiece.getLength() + ", TempPieceOffset: " + tempPiece.getOffset());
+          System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+          e.printStackTrace();
+       }
       }
       currentFile++;
       fileOffset = 0;
       previousFilesLength = offset;
       if (buffer.hasRemaining() && currentFile > pieceList.size()) {
          noError = false;
-         System.out.println("Error in read Block 2: *Debug Information*");
+         System.out.println("Error in read Block 3: *Debug Information*");
          System.out.println("PieceNumber: " + pieceNumber);
          System.out.println("Offset: " + offset);
          System.out.println("Length  " + length);
