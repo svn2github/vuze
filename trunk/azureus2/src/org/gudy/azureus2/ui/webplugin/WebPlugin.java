@@ -63,7 +63,7 @@ WebPlugin
 	{	
 		plugin_interface	= _plugin_interface;
 		
-		log = plugin_interface.getLogger().getChannel("SeedingRules");
+		log = plugin_interface.getLogger().getChannel("WebPlugin");
 		
 		
 		tracker = plugin_interface.getTracker();
