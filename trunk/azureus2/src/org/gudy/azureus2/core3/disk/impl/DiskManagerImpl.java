@@ -907,11 +907,16 @@ DiskManagerImpl
 					FileChannel fc = raf.getChannel();
                     
 					if (fc.isOpen()) {
-						if (fc.size() >= tempPiece.getOffset()) {
+					   //if the file is large enough
+                  //if (fc.size() >= tempPiece.getOffset()) {
+						if (fc.size() >= (tempPiece.getOffset() + tempPiece.getLength())) {
 							fc.position(tempPiece.getOffset());
 							fc.read(allocateAndTestBuffer);
 						} else {
+						   //too small, can't be a complete piece
 							allocateAndTestBuffer.clear();
+							pieceDone[pieceNumber] = false;
+							return false;
 						}
 					}
 				} catch (IOException e) {
@@ -1815,6 +1820,7 @@ DiskManagerImpl
             files[i].setRaf(newRaf);
             files[i].setAccessmode(DiskManagerFileInfo.READ);
             files[i].setFile(newFile);
+            files[i].setPath(newFile.getParentFile().getAbsolutePath() + System.getProperty("file.separator"));
           }
           else {
             String msg = "Failed to move " + oldFile.getName() + " to destination dir";
